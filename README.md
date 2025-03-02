@@ -5,7 +5,7 @@
 Secure a Linux distribution in minutes.
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/97918bb7-2c0d-433e-a972-ecf8dda7c307" width="800" alt="Hardn UI">
+    <img src="https://github.com/user-attachments/assets/a30366b0-5c56-475e-a617-57d5cd8a212e" width="800" alt="Hardn UI">
 </p>
 
 ## What is it?
