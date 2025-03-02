@@ -7,10 +7,10 @@ GIT_COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitCommit=$(GIT_COMMIT)"
 
 # Version
-VERSION_MAJOR=1
-VERSION_MINOR=0
-VERSION_PATCH=0
-VERSION=1.0.0
+VERSION_MAJOR=0
+VERSION_MINOR=3
+VERSION_PATCH=1
+VERSION=0.3.1
 
 .PHONY: release release-artifacts
 
