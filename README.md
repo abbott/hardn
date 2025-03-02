@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) 
 
-Secure a Linux distribution in minutes.
+A simple hardening tool for Linux.
 
 <p align="center">
     <img src="https://github.com/user-attachments/assets/a30366b0-5c56-475e-a617-57d5cd8a212e" width="800" alt="Hardn UI">
@@ -10,18 +10,21 @@ Secure a Linux distribution in minutes.
 
 ## What is it?
 
-A Linux hardening tool that automates security configurations for Debian, Ubuntu, Proxmox, and Alpine Linux. The project is stable, but in the **early stages of development**.
+A simple hardening tool that automates basic security configurations for Debian, Ubuntu, Proxmox, and Alpine Linux. The project is stable and in the **early stages of development**.
 
 ## ⚠️ Security Disclaimer
 
-**This tool implements security best practices but is NOT a complete security solution.** Regular security audits, updates, and monitoring are still required. The software should be part of a broader security strategy, not a "set it and forget it" solution.
+**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. Hardn should be part of a broader security strategy, not a "set it and forget it" solution. The binary distributions are **SLSA3 compliant**, but **are not suitable for enterprise deployments**.
 
-## 🎯 Target Audience
+## 🎯 Target Audience/Usage
 
-- System administrators and Homelab enthusiasts managing Linux servers
-- DevOps engineers responsible for system hardening
-- SecOps architects, analysts, and pen testers
-- Organizations seeking to automate Linux security configurations
+Anyone managing a **privately owned** Linux server, container, or virtual machine
+- Homelab enthusiasts, Students, Hobbyists
+
+If you are one of the following, **refrain from deploying this tool in the public or private sector**
+- System Administrators
+- DevOps Engineers
+- SecOps Architects and Analysts
 
 ## ✨ Features
 
@@ -261,19 +264,19 @@ Please review the [Contributing Guide](docs/contributing.md) prior to submitting
 - Include your environment details (OS, Go version, etc.)
 - For security vulnerabilities, please email `641138+abbott@users.noreply.github.com` instead of creating a public issue.
 
-## 🗺️ Roadmap
+## 🗺️ Future Plans
 
-- [ ] Expanded multi-distribution support (CentOS/RHEL, Fedora)
-- [ ] Integration with compliance benchmarks (CIS, STIG)
-- [ ] Web interface for remote administration
-- [ ] Containerized deployment option
-- [ ] Centralized management for multiple servers
+- [ ] Expanded multi-distribution and package management support (Arch, CentOS/RHEL, Fedora)
+- [ ] Enhanced system integrity dashboard
+- [ ] Containerized deployment
+- [ ] Centralized configuration and management for multiple servers
 - [ ] Extended auditing capabilities
-- [ ] Role-based hardening profiles
+- [ ] Web interface for remote administration
+- [ ] Integration with compliance benchmarks (CIS, STIG)
 
 ## 🧪 Origin
 
-After manually hardening Debian based containers and VMs for years, I wrote and maintained a local script to automate the essentials by way of a config and command line arguments. Within a year, a CLI menu was bolted on and the codebase needed to be refactored to ensure maintainability, so I landed on Go, and decided to publish the tool. Enjoy 🥃
+After manually hardening Debian based containers and VMs for years, I wrote and maintained a local script to automate the essentials by way of a config and command line arguments. Within a year, a CLI menu was bolted on and the codebase needed to be refactored to ensure maintainability, so I landed on Go, and decided to publish the tool. Enjoy! 🥃
 
 ## 📝 Acknowledgments
 
