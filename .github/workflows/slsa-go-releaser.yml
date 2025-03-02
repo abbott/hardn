@@ -1,0 +1,103 @@
+name: SLSA Go Releaser
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: read-all
+
+jobs:
+  # Generate ldflags dynamically (copied from release.yml)
+  args:
+    runs-on: ubuntu-latest
+    outputs:
+      commit-date: ${{ steps.ldflags.outputs.commit-date }}
+      commit: ${{ steps.ldflags.outputs.commit }}
+      version: ${{ steps.ldflags.outputs.version }}
+      tree-state: ${{ steps.ldflags.outputs.tree-state }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: ldflags
+        run: |
+          echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
+          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)" >> "$GITHUB_OUTPUT"
+
+  # This job will prepare the repository before SLSA build
+  prepare:
+    needs: args
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      
+      - name: Remove replace directive for release
+        run: |
+          if grep -q "replace github.com/abbott/hardn" go.mod; then
+            echo "Removing replace directive from go.mod..."
+            sed -i '/replace github.com\/abbott\/hardn/d' go.mod
+            go mod tidy
+          fi
+      
+      - name: Sync vendor directory
+        run: |
+          echo "Syncing vendor directory with go.mod..."
+          go mod vendor
+          echo "Vendor directory synced successfully."
+      
+      - name: Run tests to verify everything works
+        run: |
+          # Run tests with vendor
+          go test -mod=vendor ./...
+
+  # This job will build, create release assets, and generate provenance
+  build-and-provenance:
+    needs: [args, prepare]
+    permissions:
+      id-token: write  # For signing
+      contents: write  # For uploading release assets
+      actions: read    # For reading workflow path
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+    with:
+      go-version: '1.21'
+      evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
+      
+  # Add SBOM generation
+  generate-sbom:
+    needs: [build-and-provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For uploading release assets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper versioning
+        
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.15.8
+        with:
+          format: spdx-json
+          output-file: hardn-sbom.spdx.json
+          upload-artifact: false  # Disable artifact upload
+          
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: hardn-sbom.spdx.json
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

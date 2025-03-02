@@ -1,0 +1,54 @@
+version: 1
+
+# Environment variables
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+# Compiler flags
+flags:
+  - -trimpath
+  - -tags=netgo
+
+# Default OS/Arch (overridden by matrix)
+goos: linux
+goarch: amd64
+
+# Specify the main package location
+main: ./cmd/hardn
+
+# Binary naming with template variables
+binary: hardn-{{ .Os }}-{{ .Arch }}
+
+# Dynamic ldflags
+ldflags:
+  - "-X main.Version={{ .Env.VERSION }}"
+  - "-X main.BuildDate={{ .Env.COMMIT_DATE }}"
+  - "-X main.GitCommit={{ .Env.COMMIT }}"
+  - "-X main.TreeState={{ .Env.TREE_STATE }}"
+
+# Archive settings for releases
+archives:
+  - id: hardn-archive
+    format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - hardn.yml.example
+
+# Checksum settings
+checksum:
+  name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
+  algorithm: sha256
+
+# Use cosign for signing (optional, can be added later)
+# signs:
+#   - cmd: cosign
+#     artifacts: checksum
+#     args:
+#       - sign-blob
+#       - --key=cosign.key
+#       - --output-signature=${signature}
+#       - ${artifact}
+#       - --yes

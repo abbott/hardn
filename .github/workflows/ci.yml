@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+      
+      - name: Clean environment
+        run: |
+          # Remove any vendor directory to ensure clean build
+          rm -rf vendor
+          # Ensure go.mod is clean (without replace directives)
+          grep -v "replace github.com/abbott/hardn" go.mod > clean.go.mod || cat go.mod > clean.go.mod
+          mv clean.go.mod go.mod
+          go mod tidy
+      
+      - name: Build
+        run: go build -o build/hardn ./cmd/hardn
+        
+      - name: Test
+        run: go test ./...
+        
+      - name: Lint (non-blocking)
+        continue-on-error: true  # Make linting non-blocking
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          # Use color format as command-line argument instead of config
+          args: "--color=always --out-format=colored-line-number"
+          
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        os:
+          - debian_bullseye
+          - ubuntu_focal
+          - alpine_latest
+      fail-fast: false
+    container:
+      image: ${{ matrix.os == 'debian_bullseye' && 'debian:bullseye' || matrix.os == 'ubuntu_focal' && 'ubuntu:focal' || 'alpine:latest' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup environment
+        run: |
+          # Set non-interactive mode for Debian/Ubuntu
+          if [ "${{ matrix.os }}" != "alpine_latest" ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            # Pre-configure timezone to avoid interactive prompts
+            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
+            apt-get update
+            apt-get install -y --no-install-recommends tzdata curl make git ca-certificates
+          else
+            apk add --no-cache curl make git ca-certificates
+          fi
+          
+          # Install Go 1.21 directly for all distributions
+          echo "Installing Go 1.21..."
+          curl -L https://go.dev/dl/go1.21.10.linux-amd64.tar.gz -o go.tar.gz
+          tar -C /usr/local -xzf go.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+          echo "PATH=$PATH:/usr/local/go/bin" >> $GITHUB_ENV
+          go version
+          
+      - name: Clean environment
+        run: |
+          # Remove any vendor directory
+          rm -rf vendor
+          # Ensure go.mod is clean
+          grep -v "replace github.com/abbott/hardn" go.mod > clean.go.mod || cat go.mod > clean.go.mod
+          mv clean.go.mod go.mod
+          go mod tidy
+          
+      - name: Build
+        run: go build -o build/hardn ./cmd/hardn
+        
+      - name: Basic functionality test
+        run: |
+          ./build/hardn --version
+          ./build/hardn --help

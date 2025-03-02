@@ -1,0 +1,31 @@
+# Minimal golangci-lint configuration
+
+# Options for analysis running
+run:
+  timeout: 5m
+  tests: true
+
+# List of enabled linters
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+# Linter-specific settings
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    exclude-functions:
+      - io.Copy
+      - io.ReadAll
+
+# Issues configuration
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude:
+    - "Error return value is not checked.*\\.Close\\("

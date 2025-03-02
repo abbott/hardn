@@ -1,0 +1,203 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Generate ldflags dynamically for both workflows
+  args:
+    runs-on: ubuntu-latest
+    outputs:
+      commit-date: ${{ steps.ldflags.outputs.commit-date }}
+      commit: ${{ steps.ldflags.outputs.commit }}
+      version: ${{ steps.ldflags.outputs.version }}
+      tree-state: ${{ steps.ldflags.outputs.tree-state }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: ldflags
+        run: |
+          echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
+          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)" >> "$GITHUB_OUTPUT"
+
+  # Create release and non-Go artifacts
+  release:
+    needs: args
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For creating releases and uploading assets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+        
+      - name: Install required tools
+        run: |
+          # Install fpm for package creation
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install fpm
+        
+      - name: Remove replace directive for release
+        run: |
+          if grep -q "replace github.com/abbott/hardn" go.mod; then
+            echo "Removing replace directive from go.mod..."
+            sed -i '/replace github.com\/abbott\/hardn/d' go.mod
+            go mod tidy
+          fi
+          
+      - name: Sync vendor directory
+        run: |
+          echo "Syncing vendor directory with go.mod..."
+          go mod vendor
+          echo "Vendor directory synced successfully."
+          
+      - name: Run tests
+        run: |
+          # First ensure vendor directory is synced
+          go mod vendor
+          # Then run tests with vendor mode
+          go test -mod=vendor ./...
+        
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Collect commit messages since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            git log --pretty=format:"* %s (%h)" > CHANGELOG.md
+          else
+            git log --pretty=format:"* %s (%h)" $PREV_TAG..HEAD > CHANGELOG.md
+          fi
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          # Initially create the release without packages
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+
+  # SLSA provenance generation with matrix builds
+  build:
+    needs: args
+    permissions:
+      id-token: write  # For signing
+      contents: write  # For uploading assets
+      actions: read    # For reading workflow path
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+    with:
+      go-version: '1.21'
+      evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
+      config-file: .slsa-goreleaser/${{ matrix.os }}-${{ matrix.arch }}.yml
+      upload-assets: true
+
+  # Create packages after SLSA binaries are generated
+  packages:
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For uploading assets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          
+      - name: Remove replace directive for release
+        run: |
+          if grep -q "replace github.com/abbott/hardn" go.mod; then
+            echo "Removing replace directive from go.mod..."
+            sed -i '/replace github.com\/abbott\/hardn/d' go.mod
+            go mod tidy
+          fi
+          
+      - name: Sync vendor directory
+        run: |
+          echo "Syncing vendor directory with go.mod..."
+          go mod vendor
+          echo "Vendor directory synced successfully."
+        
+      - name: Install required tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential rpm libarchive-tools
+          sudo gem install fpm
+          
+      - name: Create DEB package
+        run: |
+          make deb GO_BUILD_FLAGS="-mod=vendor"
+          
+      - name: Create RPM package
+        run: |
+          # Create RPM package with verbose output
+          # Continue even if this step fails (don't fail the whole workflow)
+          make rpm GO_BUILD_FLAGS="-mod=vendor" || echo "RPM creation failed but continuing"
+          
+      - name: Upload DEB package to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.deb
+            
+      - name: Check for RPM package
+        id: check_rpm
+        run: |
+          if ls build/*.rpm 1> /dev/null 2>&1; then
+            echo "rpm_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "rpm_exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Upload RPM package to release
+        if: steps.check_rpm.outputs.rpm_exists == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/*.rpm
+
+  # Generate SBOM after all artifacts are created
+  sbom:
+    needs: [packages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For uploading to release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.15.8
+        with:
+          format: spdx-json
+          output-file: hardn-sbom.spdx.json
+          upload-artifact: false  # Disable artifact upload
+          
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: hardn-sbom.spdx.json

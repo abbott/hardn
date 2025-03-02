@@ -1,0 +1,45 @@
+# Ignore everything
+*
+
+# But not these files...
+!/.gitignore
+
+!*.go
+!go.mod
+!go.sum
+
+# !local.go.mod
+# !local.go.sum
+
+!README.md
+!LICENSE
+
+!makefile
+!*.example
+
+# Scripts
+!install.sh
+!wf-dev-mode.sh
+!wf-prepare-build.sh
+!wf-verify-slsa-setup.sh
+!bin-postinstall.sh
+
+!vendor/*
+!docs/**/*.md
+!.github/**/*.yml
+!.slsa-goreleaser/**/*.yml
+!.golangci.yml
+
+# SLSA
+!.slsa-goreleaser.yml
+
+# Allow directories (to enable more granular allow rules)
+!*/
+
+# Allow .scratch directory itself
+#!.scratch/
+
+# Ignore all files inside .scratch/
+.scratch/*
+build/*
+dist/*

@@ -1,0 +1,28 @@
+version: 1
+
+# Environment variables
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+# Compiler flags
+flags:
+  - -trimpath
+  - -tags=netgo
+
+# OS/Arch specific config
+goos: linux
+goarch: amd64
+
+# Specify the main package location
+main: ./cmd/hardn
+
+# Binary naming with template variables
+binary: hardn-linux-amd64
+
+# Dynamic ldflags
+ldflags:
+  - "-X main.Version={{ .Env.VERSION }}"
+  - "-X main.BuildDate={{ .Env.COMMIT_DATE }}"
+  - "-X main.GitCommit={{ .Env.COMMIT }}"
+  - "-X main.TreeState={{ .Env.TREE_STATE }}"
