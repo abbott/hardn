@@ -1,9 +1,21 @@
-# Hardn - Linux Hardening Configuration
+// pkg/config/embed.go
+package config
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+// ExampleConfigContent contains the example configuration file content
+// This allows the example config to be embedded in the binary and written
+// to the filesystem when necessary
+const ExampleConfigContent = `# Hardn - Linux Hardening Configuration
 
 #################################################
 # Basic Configuration
 #################################################
-username: "george"                # Default username to create. (See: `sshAllowedUsers`)
+username: "george"                # Default username to create. (See: 'sshAllowedUsers')
 logFile: "/var/log/hardn.log"     # Log file path
 dryRun: false                     # Preview changes without applying them
 enableBackups: true               # Backup files before modifying them
@@ -171,3 +183,28 @@ language: "en_US:en"              # System language
 lcAll: "en_US.UTF-8"              # Locale for all categories
 tz: "America/New_York"            # Timezone
 pythonUnbuffered: "1"             # Python unbuffered mode
+`
+
+// EnsureExampleConfigExists checks if the example configuration file exists
+// and creates it if it doesn't. This function is called during initialization.
+func EnsureExampleConfigExists() error {
+	exampleConfigPath := "/etc/hardn/hardn.yml.example"
+	
+	// Check if the example config file already exists
+	if _, err := os.Stat(exampleConfigPath); err == nil {
+		// File exists, no need to create it
+		return nil
+	}
+	
+	// Create the directory if it doesn't exist
+	if err := os.MkdirAll(filepath.Dir(exampleConfigPath), 0755); err != nil {
+		return fmt.Errorf("failed to create directory for example config: %w", err)
+	}
+	
+	// Write the example config file
+	if err := os.WriteFile(exampleConfigPath, []byte(ExampleConfigContent), 0644); err != nil {
+		return fmt.Errorf("failed to write example config file: %w", err)
+	}
+	
+	return nil
+}

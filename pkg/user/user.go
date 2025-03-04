@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/utils"
 )
@@ -18,17 +19,17 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 	// Check if user already exists
 	_, err := user.Lookup(username)
 	if err == nil {
-		utils.LogInfo("User %s already exists. Skipping user creation.", username)
+		logging.LogInfo("User %s already exists. Skipping user creation.", username)
 		return nil
 	}
 
-	utils.LogInfo("Creating user %s...", username)
+	logging.LogInfo("Creating user %s...", username)
 
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Create user: %s", username)
-		utils.LogInfo("[DRY-RUN] Add user to sudo/wheel group")
-		utils.LogInfo("[DRY-RUN] Configure sudo with NOPASSWD: %t", cfg.SudoNoPassword)
-		utils.LogInfo("[DRY-RUN] Set up SSH keys in: %s", cfg.SshKeyPath)
+		logging.LogInfo("[DRY-RUN] Create user: %s", username)
+		logging.LogInfo("[DRY-RUN] Add user to sudo/wheel group")
+		logging.LogInfo("[DRY-RUN] Configure sudo with NOPASSWD: %t", cfg.SudoNoPassword)
+		logging.LogInfo("[DRY-RUN] Set up SSH keys in: %s", cfg.SshKeyPath)
 		return nil
 	}
 
@@ -40,7 +41,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed to install sudo on Alpine: %w", err)
 			}
-			utils.LogInstall("sudo")
+			logging.LogInstall("sudo")
 		} else {
 			cmd := exec.Command("apt-get", "update")
 			if err := cmd.Run(); err != nil {
@@ -50,7 +51,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed to install sudo on Debian/Ubuntu: %w", err)
 			}
-			utils.LogInstall("sudo")
+			logging.LogInstall("sudo")
 		}
 	}
 
@@ -64,9 +65,9 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Add to wheel group (sudo group for Alpine)
 		addGroupCmd := exec.Command("addgroup", username, "wheel")
 		if err := addGroupCmd.Run(); err != nil {
-			utils.LogError("Failed to add %s to wheel group: %v", username, err)
+			logging.LogError("Failed to add %s to wheel group: %v", username, err)
 		} else {
-			utils.LogInfo("Added %s to wheel group", username)
+			logging.LogInfo("Added %s to wheel group", username)
 		}
 
 		// Configure sudo
@@ -109,19 +110,19 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Set permissions
 		chownCmd := exec.Command("chown", "-R", fmt.Sprintf("%s:%s", username, username), sshDirPath)
 		if err := chownCmd.Run(); err != nil {
-			utils.LogError("Failed to set ownership for SSH directory: %v", err)
+			logging.LogError("Failed to set ownership for SSH directory: %v", err)
 		}
 
 		// Add .hushlogin
 		hushLoginPath := filepath.Join(userHomeDir, ".hushlogin")
 		hushLoginFile, err := os.Create(hushLoginPath)
 		if err != nil {
-			utils.LogError("Failed to create .hushlogin file: %v", err)
+			logging.LogError("Failed to create .hushlogin file: %v", err)
 		} else {
 			hushLoginFile.Close()
 			chownHushCmd := exec.Command("chown", fmt.Sprintf("%s:%s", username, username), hushLoginPath)
 			if err := chownHushCmd.Run(); err != nil {
-				utils.LogError("Failed to set ownership for .hushlogin: %v", err)
+				logging.LogError("Failed to set ownership for .hushlogin: %v", err)
 			}
 		}
 	} else {
@@ -134,9 +135,9 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Add to sudo group
 		addGroupCmd := exec.Command("usermod", "-aG", "sudo", username)
 		if err := addGroupCmd.Run(); err != nil {
-			utils.LogError("Failed to add %s to sudo group: %v", username, err)
+			logging.LogError("Failed to add %s to sudo group: %v", username, err)
 		} else {
-			utils.LogInfo("Added %s to sudo group", username)
+			logging.LogInfo("Added %s to sudo group", username)
 		}
 
 		// Configure sudo
@@ -165,31 +166,31 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Run commands as the new user to set up SSH
 		suCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("mkdir -p ~/%s && chmod 700 ~/%s", sshDir, sshDir))
 		if err := suCmd.Run(); err != nil {
-			utils.LogError("Failed to create SSH directory for user: %v", err)
+			logging.LogError("Failed to create SSH directory for user: %v", err)
 		}
 
 		// Add SSH keys
 		for _, key := range cfg.SshKeys {
 			suKeyCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("echo '%s' >> ~/%s/authorized_keys", key, sshDir))
 			if err := suKeyCmd.Run(); err != nil {
-				utils.LogError("Failed to add SSH key for user: %v", err)
+				logging.LogError("Failed to add SSH key for user: %v", err)
 			}
 		}
 
 		// Set permissions for authorized_keys
 		suPermCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("chmod 600 ~/%s/authorized_keys", sshDir))
 		if err := suPermCmd.Run(); err != nil {
-			utils.LogError("Failed to set permissions for authorized_keys: %v", err)
+			logging.LogError("Failed to set permissions for authorized_keys: %v", err)
 		}
 
 		// Add .hushlogin
 		suHushCmd := exec.Command("su", "-", username, "-c", "touch ~/.hushlogin")
 		if err := suHushCmd.Run(); err != nil {
-			utils.LogError("Failed to create .hushlogin file: %v", err)
+			logging.LogError("Failed to create .hushlogin file: %v", err)
 		}
 	}
 
-	utils.LogSuccess("User %s created successfully", username)
+	logging.LogSuccess("User %s created successfully", username)
 	return nil
 }
 
@@ -201,7 +202,7 @@ func DeleteUser(username string, osInfo *osdetect.OSInfo) error {
 		return fmt.Errorf("user %s does not exist", username)
 	}
 
-	utils.LogInfo("Deleting user %s...", username)
+	logging.LogInfo("Deleting user %s...", username)
 
 	var cmd *exec.Cmd
 	if osInfo.OsType == "alpine" {
@@ -218,11 +219,11 @@ func DeleteUser(username string, osInfo *osdetect.OSInfo) error {
 	sudoersFile := filepath.Join("/etc/sudoers.d", username)
 	if _, err := os.Stat(sudoersFile); err == nil {
 		if err := os.Remove(sudoersFile); err != nil {
-			utils.LogError("Failed to remove sudoers file for %s: %v", username, err)
+			logging.LogError("Failed to remove sudoers file for %s: %v", username, err)
 		}
 	}
 
-	utils.LogSuccess("User %s deleted successfully", username)
+	logging.LogSuccess("User %s deleted successfully", username)
 	return nil
 }
 

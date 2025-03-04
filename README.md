@@ -199,7 +199,7 @@ Example configuration:
 username: "george"
 sudoNoPassword: true
 sshKeys:
-  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@example.com"
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
 
 # Network & Security
 sshPort: 2208                       # Non-standard SSH port (security measure; Default: 22)

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/utils"
 )
@@ -15,46 +16,46 @@ import (
 // WriteSSHConfig writes the SSH server configuration based on OS type
 func WriteSSHConfig(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Configure SSH server with the following settings:")
-		utils.LogInfo("[DRY-RUN] - Protocol: 2")
-		utils.LogInfo("[DRY-RUN] - Port: %d", cfg.SshPort)
-		utils.LogInfo("[DRY-RUN] - Listen Address: %s", cfg.SshListenAddress)
-		utils.LogInfo("[DRY-RUN] - Authentication Method: publickey")
-		utils.LogInfo("[DRY-RUN] - PermitRootLogin: %t", cfg.PermitRootLogin)
-		utils.LogInfo("[DRY-RUN] - Allowed Users: %s", strings.Join(cfg.SshAllowedUsers, ", "))
-		utils.LogInfo("[DRY-RUN] - Password Authentication: no")
-		utils.LogInfo("[DRY-RUN] - AuthorizedKeysFile: .ssh/authorized_keys %s/authorized_keys", cfg.SshKeyPath)
-		
+		logging.LogInfo("[DRY-RUN] Configure SSH server with the following settings:")
+		logging.LogInfo("[DRY-RUN] - Protocol: 2")
+		logging.LogInfo("[DRY-RUN] - Port: %d", cfg.SshPort)
+		logging.LogInfo("[DRY-RUN] - Listen Address: %s", cfg.SshListenAddress)
+		logging.LogInfo("[DRY-RUN] - Authentication Method: publickey")
+		logging.LogInfo("[DRY-RUN] - PermitRootLogin: %t", cfg.PermitRootLogin)
+		logging.LogInfo("[DRY-RUN] - Allowed Users: %s", strings.Join(cfg.SshAllowedUsers, ", "))
+		logging.LogInfo("[DRY-RUN] - Password Authentication: no")
+		logging.LogInfo("[DRY-RUN] - AuthorizedKeysFile: .ssh/authorized_keys %s/authorized_keys", cfg.SshKeyPath)
+
 		if osInfo.OsType == "alpine" {
-			utils.LogInfo("[DRY-RUN] - Write config to /etc/ssh/sshd_config")
-			utils.LogInfo("[DRY-RUN] - Restart sshd service using OpenRC")
+			logging.LogInfo("[DRY-RUN] - Write config to /etc/ssh/sshd_config")
+			logging.LogInfo("[DRY-RUN] - Restart sshd service using OpenRC")
 		} else {
-			utils.LogInfo("[DRY-RUN] - Configure systemd socket at /etc/systemd/system/ssh.socket.d/listen.conf")
-			utils.LogInfo("[DRY-RUN] - Write config to %s", cfg.SshConfigFile)
-			utils.LogInfo("[DRY-RUN] - Restart ssh service using systemd")
+			logging.LogInfo("[DRY-RUN] - Configure systemd socket at /etc/systemd/system/ssh.socket.d/listen.conf")
+			logging.LogInfo("[DRY-RUN] - Write config to %s", cfg.SshConfigFile)
+			logging.LogInfo("[DRY-RUN] - Restart ssh service using systemd")
 		}
 		return nil
 	}
-	
-	utils.LogInfo("Configuring SSH...")
-	
+
+	logging.LogInfo("Configuring SSH...")
+
 	// Format SSH listen address and port
 	sshListenAddress := cfg.SshListenAddress
 	if !strings.Contains(sshListenAddress, ":") {
 		sshListenAddress = fmt.Sprintf("%s:%d", sshListenAddress, cfg.SshPort)
 	}
-	
+
 	if osInfo.OsType == "alpine" {
 		// Alpine uses /etc/ssh/sshd_config directly
 		// Backup original config
 		utils.BackupFile("/etc/ssh/sshd_config", cfg)
-		
+
 		// Determine root login setting
 		permitRootLogin := "no"
 		if cfg.PermitRootLogin {
 			permitRootLogin = "yes"
 		}
-		
+
 		// Create new config
 		configContent := fmt.Sprintf(`Protocol 2
 StrictModes yes
@@ -75,53 +76,53 @@ PermitEmptyPasswords no
 
 AuthorizedKeysFile    .ssh/authorized_keys    %s/authorized_keys
 `, cfg.SshPort, sshListenAddress, permitRootLogin, strings.Join(cfg.SshAllowedUsers, " "), cfg.SshKeyPath)
-		
+
 		// Write the file
 		if err := os.WriteFile("/etc/ssh/sshd_config", []byte(configContent), 0644); err != nil {
 			return fmt.Errorf("failed to write SSH config: %w", err)
 		}
-		
+
 		// Restart SSH using OpenRC
 		cmd := exec.Command("rc-service", "sshd", "restart")
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to restart SSH service: %w", err)
 		}
-		
-		utils.LogSuccess("SSH configured for Alpine Linux")
+
+		logging.LogSuccess("SSH configured for Alpine Linux")
 	} else {
 		// Debian/Ubuntu with systemd
 		utils.BackupFile("/etc/systemd/system/ssh.socket.d/listen.conf", cfg)
-		
+
 		// Create socket config directory
 		if err := os.MkdirAll("/etc/systemd/system/ssh.socket.d", 0755); err != nil {
 			return fmt.Errorf("failed to create SSH socket directory: %w", err)
 		}
-		
+
 		// Write socket config
 		socketConfig := fmt.Sprintf(`[Socket]
 ListenStream=
 ListenStream=%d
 `, cfg.SshPort)
-		
+
 		if err := os.WriteFile("/etc/systemd/system/ssh.socket.d/listen.conf", []byte(socketConfig), 0644); err != nil {
-			utils.LogError("Failed to set ssh port listener.")
+			logging.LogError("Failed to set ssh port listener.")
 			return err
 		}
-		
+
 		// Ensure config directory exists
 		if err := os.MkdirAll(filepath.Dir(cfg.SshConfigFile), 0755); err != nil {
 			return fmt.Errorf("failed to create SSH config directory: %w", err)
 		}
-		
+
 		// Determine root login setting
 		permitRootLogin := "no"
 		if cfg.PermitRootLogin {
 			permitRootLogin = "yes"
 		}
-		
+
 		// Set SSH config
 		utils.BackupFile(cfg.SshConfigFile, cfg)
-		
+
 		configContent := fmt.Sprintf(`### Reference
 ### https://cryptsus.com/blog/how-to-secure-your-ssh-server-with-public-key-elliptic-curve-ed25519-crypto.html
 
@@ -151,55 +152,55 @@ AuthorizedKeysFile    .ssh/authorized_keys    %s/authorized_keys
 #X11Forwarding yes
 #AuthorizedKeysFile /etc/pve/priv/authorized_keys
 `, sshListenAddress, permitRootLogin, strings.Join(cfg.SshAllowedUsers, " "), cfg.SshKeyPath)
-		
+
 		if err := os.WriteFile(cfg.SshConfigFile, []byte(configContent), 0644); err != nil {
-			utils.LogError("Failed to create %s", cfg.SshConfigFile)
+			logging.LogError("Failed to create %s", cfg.SshConfigFile)
 			return err
 		}
-		
+
 		// Restart SSH
 		cmd := exec.Command("systemctl", "restart", "ssh")
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to restart SSH service: %w", err)
 		}
-		
-		utils.LogSuccess("SSH configured for Debian/Ubuntu")
+
+		logging.LogSuccess("SSH configured for Debian/Ubuntu")
 	}
-	
+
 	return nil
 }
 
 // DisableRootSSHAccess disables root SSH access
 func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Disable root SSH access with the following changes:")
+		logging.LogInfo("[DRY-RUN] Disable root SSH access with the following changes:")
 		if osInfo.OsType == "alpine" {
-			utils.LogInfo("[DRY-RUN] - Modify /etc/ssh/sshd_config to set 'PermitRootLogin no'")
-			utils.LogInfo("[DRY-RUN] - Remove 'root' from AllowUsers directive")
-			utils.LogInfo("[DRY-RUN] - Restart sshd service using OpenRC")
+			logging.LogInfo("[DRY-RUN] - Modify /etc/ssh/sshd_config to set 'PermitRootLogin no'")
+			logging.LogInfo("[DRY-RUN] - Remove 'root' from AllowUsers directive")
+			logging.LogInfo("[DRY-RUN] - Restart sshd service using OpenRC")
 		} else {
-			utils.LogInfo("[DRY-RUN] - Modify %s to set 'PermitRootLogin no'", cfg.SshConfigFile)
-			utils.LogInfo("[DRY-RUN] - Remove 'root' from AllowUsers directive")
-			utils.LogInfo("[DRY-RUN] - Restart ssh service using systemd")
+			logging.LogInfo("[DRY-RUN] - Modify %s to set 'PermitRootLogin no'", cfg.SshConfigFile)
+			logging.LogInfo("[DRY-RUN] - Remove 'root' from AllowUsers directive")
+			logging.LogInfo("[DRY-RUN] - Restart ssh service using systemd")
 		}
 		return nil
 	}
-	
+
 	if osInfo.OsType == "alpine" {
 		// For Alpine, modify the main sshd_config file
 		configFile := "/etc/ssh/sshd_config"
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			return fmt.Errorf("/etc/ssh/sshd_config not found")
 		}
-		
+
 		utils.BackupFile(configFile, cfg)
-		
+
 		// Read the file
 		content, err := os.ReadFile(configFile)
 		if err != nil {
 			return fmt.Errorf("failed to read SSH config: %w", err)
 		}
-		
+
 		// Modify the content
 		lines := strings.Split(string(content), "\n")
 		for i, line := range lines {
@@ -207,7 +208,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 			if strings.HasPrefix(line, "PermitRootLogin yes") {
 				lines[i] = "PermitRootLogin no"
 			}
-			
+
 			// Remove 'root' from AllowUsers
 			if strings.HasPrefix(line, "AllowUsers") {
 				// Get the users
@@ -220,40 +221,40 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 							newUsers = append(newUsers, user)
 						}
 					}
-					
+
 					// Put back together
 					lines[i] = "AllowUsers " + strings.Join(newUsers, " ")
 				}
 			}
 		}
-		
+
 		// Write back the file
 		if err := os.WriteFile(configFile, []byte(strings.Join(lines, "\n")), 0644); err != nil {
 			return fmt.Errorf("failed to write SSH config: %w", err)
 		}
-		
+
 		// Restart SSH
 		cmd := exec.Command("rc-service", "sshd", "restart")
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to restart SSH service: %w", err)
 		}
-		
-		utils.LogSuccess("Root SSH access disabled in Alpine Linux")
+
+		logging.LogSuccess("Root SSH access disabled in Alpine Linux")
 	} else {
 		// For Debian/Ubuntu
 		configFile := cfg.SshConfigFile
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
 			return fmt.Errorf("SSH config file %s not found", configFile)
 		}
-		
+
 		utils.BackupFile(configFile, cfg)
-		
+
 		// Read the file
 		content, err := os.ReadFile(configFile)
 		if err != nil {
 			return fmt.Errorf("failed to read SSH config: %w", err)
 		}
-		
+
 		// Modify the content
 		lines := strings.Split(string(content), "\n")
 		for i, line := range lines {
@@ -261,7 +262,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 			if strings.HasPrefix(line, "PermitRootLogin yes") {
 				lines[i] = "PermitRootLogin no"
 			}
-			
+
 			// Remove 'root' from AllowUsers
 			if strings.HasPrefix(line, "AllowUsers") {
 				// Get the users
@@ -274,26 +275,26 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 							newUsers = append(newUsers, user)
 						}
 					}
-					
+
 					// Put back together
 					lines[i] = "AllowUsers " + strings.Join(newUsers, " ")
 				}
 			}
 		}
-		
+
 		// Write back the file
 		if err := os.WriteFile(configFile, []byte(strings.Join(lines, "\n")), 0644); err != nil {
 			return fmt.Errorf("failed to write SSH config: %w", err)
 		}
-		
+
 		// Restart SSH
 		cmd := exec.Command("systemctl", "restart", "ssh")
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to restart SSH service: %w", err)
 		}
-		
-		utils.LogSuccess("Root SSH access disabled in Debian/Ubuntu")
+
+		logging.LogSuccess("Root SSH access disabled in Debian/Ubuntu")
 	}
-	
+
 	return nil
 }

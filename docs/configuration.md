@@ -92,6 +92,8 @@ sudo hardn -f /path/to/custom-config.yml
 
 ## Configuration Options
 
+For a complete list of configuration options, see the example configuration file at `/etc/hardn/hardn.yml.example`.
+
 Here are the main configuration sections in YAML:
 
 ### Basic Configuration
@@ -116,7 +118,8 @@ nameservers:                        # DNS servers to configure
 ### SSH Configuration
 
 ```yaml
-sshPort: 2208                       # Non-standard SSH port (security measure; Default: 22)
+sshPort: 22                         # SSH port (this is the authoritative SSH port used throughout the configuration)
+                                    # Consider using a non-standard port (e.g., 2208) as a security measure
 permitRootLogin: false              # Allow or deny root SSH access
 sshAllowedUsers:                    # List of users allowed to access via SSH
   - "sysadmin"
@@ -124,6 +127,9 @@ sshListenAddress: "0.0.0.0"         # IP address to listen on
 sshKeyPath: ".ssh_%u"               # Path to SSH keys (%u = username)
 sshConfigFile: "/etc/ssh/sshd_config.d/manage.conf"  # SSH config file location
 ```
+
+**Important**: The `sshPort` setting is the single source of truth for SSH port configuration throughout the application.
+Hardn will automatically set an SSH policy with your configured port.
 
 ### Feature Toggles
 
@@ -136,7 +142,26 @@ configureDns: false                 # Configure DNS settings
 disableRoot: false                  # Disable root SSH access
 ```
 
-For a complete list of configuration options, see the example configuration file at `/etc/hardn/hardn.yml.example`.
+### Firewall Configuration with UFW Application Profiles
+
+Hardn uses UFW application profiles to configure the firewall. These profiles are written to `/etc/ufw/applications.d/hardn` and provide a flexible way to define firewall rules.
+
+```yaml
+ufwAppProfiles:
+  - name: LabHTTPS
+    title: Lab Web Server (HTTPS)
+    description: Lab Web server secure port
+    ports:
+      - "30443/tcp" # non-standard 443
+```
+
+Each profile has these fields:
+- `name`: Unique identifier for the profile (used in UFW commands)
+- `title`: User-friendly title
+- `description`: Description of the service
+- `ports`: List of ports in the format "port/protocol" (e.g., "30443/tcp")
+
+The default incoming policy is always set to "deny" and the default outgoing policy to "allow" for security.
 
 ## Configuration Recommendations
 <!-- 
@@ -165,7 +190,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    sshPort: 2208                    # Non-standard SSH port (security measure; Default: 22)
    permitRootLogin: false
    sshKeys:
-     - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@example.com"
+     - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
    ```
 <!-- provide guide on creating and using SSH keys -->
 

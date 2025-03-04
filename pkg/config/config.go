@@ -8,7 +8,17 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+	
+	"github.com/abbott/hardn/pkg/logging"
 )
+
+// UfwAppProfile represents a UFW application profile
+type UfwAppProfile struct {
+	Name        string   `yaml:"name"`
+	Title       string   `yaml:"title"`
+	Description string   `yaml:"description"`
+	Ports       []string `yaml:"ports"`
+}
 
 // Config represents the main configuration structure
 type Config struct {
@@ -56,6 +66,8 @@ type Config struct {
 	AlpineTestingRepo      bool     `yaml:"alpineTestingRepo"`
 
 	// Firewall Configuration
+	// UfwAppProfiles represents UFW application profiles
+	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
 	UfwDefaultIncomingPolicy string `yaml:"ufwDefaultIncomingPolicy"`
 	UfwDefaultOutgoingPolicy string `yaml:"ufwDefaultOutgoingPolicy"`
 	UfwAllowedPorts          []int  `yaml:"ufwAllowedPorts"`
@@ -81,20 +93,20 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		// Basic Configuration
-		Username:      "sysadmin",
+		// Username:      "sysadmin",
 		LogFile:       "/var/log/hardn.log",
 		DryRun:        false,
 		EnableBackups: true,
 		BackupPath:    "/var/backups/hardn",
 
 		// Network Configuration
-		DmzSubnet:   "192.168.4",
-		Nameservers: []string{"1.1.1.1", "1.0.0.1"},
+		// DmzSubnet:   "192.168.4",
+		// Nameservers: []string{"1.1.1.1", "1.0.0.1"},
 
 		// SSH Configuration
-		SshPort:          2208,
+		SshPort:          22,
 		PermitRootLogin:  false,
-		SshAllowedUsers:  []string{"sysadmin"},
+		// SshAllowedUsers:  []string{"sysadmin"},
 		SshListenAddress: "0.0.0.0",
 		SshKeyPath:       ".ssh_%u",
 		SshConfigFile:    "/etc/ssh/sshd_config.d/manage.conf",
@@ -104,9 +116,10 @@ func DefaultConfig() *Config {
 		SshKeys:        []string{},
 
 		// Firewall Configuration
-		UfwDefaultIncomingPolicy: "deny",
-		UfwDefaultOutgoingPolicy: "allow",
-		UfwAllowedPorts:          []int{2208},
+		UfwAppProfiles: []UfwAppProfile{},
+		// UfwDefaultIncomingPolicy: "deny",
+		// UfwDefaultOutgoingPolicy: "allow",
+		// UfwAllowedPorts:          []int{22},
 
 		// Feature Toggles
 		UseUvPackageManager:      false,
@@ -118,10 +131,10 @@ func DefaultConfig() *Config {
 		DisableRoot:              false,
 
 		// Localization
-		Lang:             "en_US.UTF-8",
-		Language:         "en_US:en",
-		LcAll:            "en_US.UTF-8",
-		Tz:               "America/New_York",
+		// Lang:             "en_US.UTF-8",
+		// Language:         "en_US:en",
+		// LcAll:            "en_US.UTF-8",
+		// Tz:               "America/New_York",
 		PythonUnbuffered: "1",
 
 		// Package configuration with common defaults
@@ -141,21 +154,25 @@ func DefaultConfig() *Config {
 }
 
 // ConfigFileSearchPath returns an ordered list of paths to search for the config file
+// Modifications for pkg/config/config.go
+
+// Update the ConfigFileSearchPath function to be more explicit about priority
 func ConfigFileSearchPath(explicitPath string) []string {
 	// If an explicit path is provided via command line, that takes precedence
 	if explicitPath != "" {
 		return []string{explicitPath}
 	}
 	
-	// Check for environment variable
+	// Check for environment variable - this should have second highest priority
 	envPath := os.Getenv("HARDN_CONFIG")
 	if envPath != "" {
+		// Return only this path - no fallback if using environment variable
 		return []string{envPath}
 	}
 	
-	// Initialize the search paths
+	// If no explicit path or environment variable, use default search paths
 	searchPaths := []string{
-		"/etc/hardn/hardn.yml", // System-wide config (highest priority after explicit paths)
+		"/etc/hardn/hardn.yml", // System-wide config
 	}
 	
 	// Add user home directory based paths
@@ -173,25 +190,114 @@ func ConfigFileSearchPath(explicitPath string) []string {
 	return searchPaths
 }
 
-// FindConfigFile searches for a config file in the standard locations
-func FindConfigFile(explicitPath string) (string, bool) {
-	searchPaths := ConfigFileSearchPath(explicitPath)
+
+// Add verbose logging to FindConfigFile for easier debugging
+// func FindConfigFile(explicitPath string) (string, bool) {
+// 	// Check explicit path from command line flag
+// 	if explicitPath != "" {
+// 		if _, err := os.Stat(explicitPath); err == nil {
+// 			logging.LogInfo("Using configuration from command-line flag: %s", explicitPath)
+// 			return explicitPath, true
+// 		} else {
+// 			logging.LogError("Configuration file specified by command-line flag not found: %s", explicitPath)
+// 			return "", false // Don't fall back if explicit path doesn't exist
+// 		}
+// 	}
 	
+// 	// Check environment variable
+// 	envPath := os.Getenv("HARDN_CONFIG")
+// 	if envPath != "" {
+// 		if _, err := os.Stat(envPath); err == nil {
+// 			logging.LogInfo("Using configuration from HARDN_CONFIG environment variable: %s", envPath)
+// 			return envPath, true
+// 		} else {
+// 			logging.LogError("Configuration file specified by HARDN_CONFIG environment variable not found: %s", envPath)
+// 			return "", false // Don't fall back if env path doesn't exist
+// 		}
+// 	}
+	
+// 	// If neither explicit path nor environment variable, search default locations
+// 	searchPaths := ConfigFileSearchPath("")
+	
+// 	for _, path := range searchPaths {
+// 		if _, err := os.Stat(path); err == nil {
+// 			logging.LogInfo("Using configuration from: %s", path)
+// 			return path, true
+// 		}
+// 	}
+	
+// 	// No configuration file found in any location
+// 	logging.LogInfo("No configuration file found in any standard location")
+// 	return "", false
+// }
+
+// Enhance LoadConfig to make environment variable priority clear
+// Direct replacement for the FindConfigFile function in pkg/config/config.go
+// This ensures environment variables have the highest priority
+
+func FindConfigFile(explicitPath string) (string, bool) {
+	// Log environment variable for debugging
+	envPath := os.Getenv("HARDN_CONFIG")
+	if envPath != "" {
+		logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
+	}
+	
+	// First priority: explicit path from command line
+	if explicitPath != "" {
+		if _, err := os.Stat(explicitPath); err == nil {
+			logging.LogInfo("Using configuration from command-line flag: %s", explicitPath)
+			return explicitPath, true
+		}
+		logging.LogError("Configuration file specified by command-line flag not found: %s", explicitPath)
+		return "", false // Don't fall back if explicit path is specified but doesn't exist
+	}
+	
+	// Second priority: environment variable
+	if envPath != "" {
+		if _, err := os.Stat(envPath); err == nil {
+			logging.LogInfo("Using configuration from HARDN_CONFIG environment variable: %s", envPath)
+			return envPath, true
+		}
+		logging.LogError("Configuration file specified by HARDN_CONFIG environment variable not found: %s", envPath)
+		return "", false // Don't fall back if env var is specified but doesn't exist
+	}
+	
+	// Third priority: default search paths
+	searchPaths := []string{
+		"/etc/hardn/hardn.yml", // System-wide config
+	}
+	
+	// Add user home directory based paths
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		// Add ~/.config/hardn/hardn.yml (XDG Base Directory)
+		searchPaths = append(searchPaths, filepath.Join(homeDir, ".config/hardn/hardn.yml"))
+		// Add ~/.hardn.yml (traditional dot-file)
+		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
+	}
+	
+	// Add current directory (lowest priority)
+	searchPaths = append(searchPaths, "./hardn.yml")
+	
+	// Search through default paths
 	for _, path := range searchPaths {
 		if _, err := os.Stat(path); err == nil {
+			logging.LogInfo("Using configuration from: %s", path)
 			return path, true
 		}
 	}
 	
+	// No configuration file found
+	logging.LogInfo("No configuration file found in any location")
 	return "", false
 }
 
-// LoadConfig loads configuration from the specified file or searches for it
-func LoadConfig(filePath string) (*Config, error) {
+// Additional helper function to use with LoadConfig
+func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	// Start with default config
 	config := DefaultConfig()
 	
-	// Find config file
+	// Find config file with proper priority
 	configPath, found := FindConfigFile(filePath)
 	
 	if !found {
@@ -205,6 +311,7 @@ func LoadConfig(filePath string) (*Config, error) {
 		}
 		
 		// If we're not creating a default config, just return the default
+		logging.LogInfo("Using default configuration (no config file found)")
 		return config, nil
 	}
 	
@@ -220,6 +327,11 @@ func LoadConfig(filePath string) (*Config, error) {
 	}
 	
 	return config, nil
+}
+
+// Replace the LoadConfig function with this implementation
+func LoadConfig(filePath string) (*Config, error) {
+	return LoadConfigWithEnvPriority(filePath)
 }
 
 // GetDefaultConfigLocation returns the appropriate location for a new config file
@@ -308,8 +420,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 	}
 
 	fmt.Printf("Created configuration file at %s\n", path)
-	fmt.Println("To modify more settings, edit this file directly.")
-
+	
+	// Ensure the example config exists and tell the user about it
+	examplePath := "/etc/hardn/hardn.yml.example"
+	if err := EnsureExampleConfigExists(); err == nil {
+		fmt.Printf("A complete example configuration with all options is available at %s\n", examplePath)
+	}
+	
 	return nil
 }
 

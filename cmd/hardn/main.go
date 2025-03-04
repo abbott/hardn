@@ -11,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/dns"
 	"github.com/abbott/hardn/pkg/firewall"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/packages"
@@ -46,10 +47,30 @@ var (
 	cfg           *config.Config
 )
 
+func main() {
+	// Setup colors
+	color.NoColor = false
+
+	// Init utils
+	logging.InitLogging("/var/log/hardn.log")
+
+	// Ensure config directory and example config exist
+	if err := config.EnsureExampleConfigExists(); err != nil {
+		// Just log a warning, don't exit - the program can still run with defaults
+		fmt.Printf("Warning: Unable to create example configuration file: %v\n", err)
+	}
+
+	// Execute command
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 func init() {
 	// Add command line flags
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", 
-	"Specify configuration file path")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
+		"Specify configuration file path")
 	// "Specify configuration file path (optionally set HARDN_CONFIG as variable)")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
@@ -83,39 +104,39 @@ var rootCmd = &cobra.Command{
 			}
 			return
 		}
-		
+
 		// Check if running as root
 		currentUser, err := osuser.Current()
 		if err != nil {
-			utils.LogError("Failed to get current user: %v", err)
+			logging.LogError("Failed to get current user: %v", err)
 			os.Exit(1)
 		}
-		
+
 		if currentUser.Uid != "0" {
-			utils.LogError("This script needs to be run as root.")
+			logging.LogError("This script needs to be run as root.")
 			fmt.Println("For Ubuntu/Debian run: sudo -i")
 			fmt.Println("For Alpine run: su")
 			os.Exit(1)
 		}
-		
+
 		// Load configuration (will check both command-line flag and environment variable)
 		cfg, err = config.LoadConfig(configFile)
 		if err != nil {
-			utils.LogError("Failed to load configuration: %v", err)
+			logging.LogError("Failed to load configuration: %v", err)
 			os.Exit(1)
 		}
-		
+
 		// Display the config file path that was loaded
-		configPath, _ := config.FindConfigFile(configFile)
-		if configPath != "" {
-			utils.LogInfo("Using configuration from: %s", configPath)
-		} else {
-			utils.LogInfo("Using default configuration (no config file found)")
-			// If using default config due to environment variable, mention it
-			if os.Getenv("HARDN_CONFIG") != "" {
-				utils.LogInfo("Note: HARDN_CONFIG environment variable is set but the file was not found")
-			}
-		}
+		// configPath, _ := config.FindConfigFile(configFile)
+		// if configPath != "" {
+		// 	logging.LogInfo("Using configuration from: %s", configPath)
+		// } else {
+		// 	logging.LogInfo("Using default configuration (no config file found)")
+		// 	// If using default config due to environment variable, mention it
+		// 	if os.Getenv("HARDN_CONFIG") != "" {
+		// 		logging.LogInfo("Note: HARDN_CONFIG environment variable is set but the file was not found")
+		// 	}
+		// }
 
 		// Set dry run mode from flag
 		cfg.DryRun = dryRun
@@ -127,14 +148,14 @@ var rootCmd = &cobra.Command{
 
 		// Check if we need to create a user and no username is provided
 		if (createUser || runAll) && cfg.Username == "" {
-			utils.LogError("Please specify a username with -u flag or in the configuration file.")
+			logging.LogError("Please specify a username with -u flag or in the configuration file.")
 			os.Exit(1)
 		}
 
 		// Detect OS
 		osInfo, err := osdetect.DetectOS()
 		if err != nil {
-			utils.LogError("Failed to detect OS: %v", err)
+			logging.LogError("Failed to detect OS: %v", err)
 			os.Exit(1)
 		}
 
@@ -163,9 +184,9 @@ var rootCmd = &cobra.Command{
 		if disableRoot {
 			err := ssh.DisableRootSSHAccess(cfg, osInfo)
 			if err != nil {
-				utils.LogError("Failed to disable root SSH access: %v", err)
+				logging.LogError("Failed to disable root SSH access: %v", err)
 			} else {
-				utils.LogSuccess("Disabled root SSH access")
+				logging.LogSuccess("Disabled root SSH access")
 			}
 		}
 
@@ -191,7 +212,7 @@ var rootCmd = &cobra.Command{
 
 			err := user.CreateUser(cfg.Username, cfg, osInfo)
 			if err != nil {
-				utils.LogError("Failed to create user: %v", err)
+				logging.LogError("Failed to create user: %v", err)
 			}
 			ssh.WriteSSHConfig(cfg, osInfo)
 		}
@@ -217,38 +238,23 @@ var rootCmd = &cobra.Command{
 		}
 
 		if printLogs {
-			utils.PrintLogs(cfg.LogFile)
+			logging.PrintLogs(cfg.LogFile)
 		}
 
 		// Output completion message
 		if runAll {
-			utils.LogSuccess("Script completed all hardening operations.")
+			logging.LogSuccess("Script completed all hardening operations.")
 		} else if createUser || disableRoot || installLinux || installPython ||
 			installAll || configureUfw || configureDns || updateSources {
-			utils.LogSuccess("Script completed selected hardening operations.")
+			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
 }
 
-func main() {
-	// Setup colors
-	color.NoColor = false
-
-	// Init utils
-	utils.InitLogging("/var/log/hardn.log")
-
-	// Execute command
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-}
-
 // Run all hardening operations
 func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
-	utils.PrintHeader()
 	utils.PrintLogo()
-	utils.LogInfo("Running complete system hardening...")
+	logging.LogInfo("Running complete system hardening...")
 
 	// Setup hushlogin
 	utils.SetupHushlogin(cfg)
@@ -266,7 +272,7 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	if cfg.Username != "" {
 		err := user.CreateUser(cfg.Username, cfg, osInfo)
 		if err != nil {
-			utils.LogError("Failed to create user: %v", err)
+			logging.LogError("Failed to create user: %v", err)
 		}
 	}
 
@@ -303,7 +309,7 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		updates.SetupUnattendedUpgrades(cfg, osInfo)
 	}
 
-	utils.LogSuccess("System hardening completed successfully!")
+	logging.LogSuccess("System hardening completed successfully!")
 	fmt.Printf("Check the log file at %s for details.\n", cfg.LogFile)
 }
 
@@ -314,7 +320,7 @@ func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 
 		// Install core Alpine packages first
 		if len(cfg.AlpineCorePackages) > 0 {
-			utils.LogInfo("Installing Alpine core packages...")
+			logging.LogInfo("Installing Alpine core packages...")
 			packages.InstallPackages(cfg.AlpineCorePackages, osInfo, cfg)
 		}
 
@@ -322,24 +328,24 @@ func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.AlpineDmzPackages) > 0 {
-				utils.LogInfo("Installing Alpine DMZ packages...")
+				logging.LogInfo("Installing Alpine DMZ packages...")
 				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 			}
 		} else {
 			// Install both
 			if len(cfg.AlpineDmzPackages) > 0 {
-				utils.LogInfo("Installing Alpine DMZ packages...")
+				logging.LogInfo("Installing Alpine DMZ packages...")
 				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 			}
 			if len(cfg.AlpineLabPackages) > 0 {
-				utils.LogInfo("Installing Alpine LAB packages...")
+				logging.LogInfo("Installing Alpine LAB packages...")
 				packages.InstallPackages(cfg.AlpineLabPackages, osInfo, cfg)
 			}
 		}
 	} else {
 		// Install core Linux packages first
 		if len(cfg.LinuxCorePackages) > 0 {
-			utils.LogInfo("Installing Linux core packages...")
+			logging.LogInfo("Installing Linux core packages...")
 			packages.InstallPackages(cfg.LinuxCorePackages, osInfo, cfg)
 		}
 
@@ -347,17 +353,17 @@ func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.LinuxDmzPackages) > 0 {
-				utils.LogInfo("Installing Debian DMZ packages...")
+				logging.LogInfo("Installing Debian DMZ packages...")
 				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 			}
 		} else {
 			// Install both
 			if len(cfg.LinuxDmzPackages) > 0 {
-				utils.LogInfo("Installing Debian DMZ packages...")
+				logging.LogInfo("Installing Debian DMZ packages...")
 				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 			}
 			if len(cfg.LinuxLabPackages) > 0 {
-				utils.LogInfo("Installing Debian Lab packages...")
+				logging.LogInfo("Installing Debian Lab packages...")
 				packages.InstallPackages(cfg.LinuxLabPackages, osInfo, cfg)
 			}
 		}

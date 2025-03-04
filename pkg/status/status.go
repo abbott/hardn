@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -57,7 +58,7 @@ func CheckSecurityStatus(cfg *config.Config, osInfo *osdetect.OSInfo) (*Security
 }
 
 // DisplaySecurityStatus prints the security status above the main menu
-func DisplaySecurityStatus(status *SecurityStatus, formatter *style.StatusFormatter) {
+func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter) {
 	// Create a formatter with all the labels we'll use
 	if formatter == nil {
 		formatter = style.NewStatusFormatter([]string{
@@ -81,23 +82,23 @@ func DisplaySecurityStatus(status *SecurityStatus, formatter *style.StatusFormat
     if !status.FirewallEnabled {
         fmt.Println(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
     } else if !status.FirewallConfigured {
-        fmt.Println(formatter.FormatWarning("Firewall", "Enabled but not hardened", ""))
+        fmt.Println(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
     } else {
         fmt.Println(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
     }
     
     // Display user security
     if !status.SecureUsers {
-        fmt.Println(formatter.FormatWarning("Users", "No non-root sudo users found", ""))
+        fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
     } else {
-        fmt.Println(formatter.FormatSuccess("Users", "Non-root sudo users configured", ""))
+        fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo privileges"))
     }
     
     // Display SSH port status
     if !status.SshPortNonDefault {
-        fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "recommended to change"))
+        fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
     } else {
-        fmt.Println(formatter.FormatSuccess("SSH Port", "Non-default", ""))
+				fmt.Println(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
     }
     
     // Display password authentication status
@@ -166,8 +167,7 @@ func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 		colorCode = style.Yellow
 	} else if score <= 8 {
 		riskLevel = "Low"
-		description = "Strong measures in place met"
-		// description = "Most best practices met."
+		description = "Strong measures implemented"
 		colorCode = style.Green
 	} else {
 		riskLevel = "Minimal"
@@ -218,37 +218,45 @@ func checkFirewallStatus() (bool, bool) {
 	configured := false
 	
 	// Check if UFW is installed and enabled
-	cmd := exec.Command("ufw", "status")
+	cmd := exec.Command("ufw", "status", "verbose")
 	output, err := cmd.CombinedOutput()
 	if err == nil {
-		statusOutput := string(output)
-		enabled = strings.Contains(statusOutput, "Status: active")
-		
-		// Check basic configuration
-		policyLines := 0
-		if strings.Contains(statusOutput, "deny (incoming)") {
-			policyLines++
-		}
-		if strings.Contains(statusOutput, "allow (outgoing)") {
-			policyLines++
-		}
-		// Check that we have at least one rule for SSH
-		if strings.Contains(statusOutput, "ALLOW") && strings.Contains(statusOutput, "/tcp") {
-			policyLines++
-		}
-		configured = policyLines >= 3
+			statusOutput := string(output)
+			enabled = strings.Contains(statusOutput, "Status: active")
+			
+			// Check basic configuration
+			policyLines := 0
+			
+			// With verbose output, the default policies appear as:
+			// "Default: deny (incoming), allow (outgoing), disabled (routed)"
+			if strings.Contains(statusOutput, "Default:") {
+					if strings.Contains(statusOutput, "deny (incoming)") {
+							policyLines++
+					}
+					if strings.Contains(statusOutput, "allow (outgoing)") {
+							policyLines++
+					}
+			}
+			
+			// Check that we have at least one rule for SSH
+			if strings.Contains(statusOutput, "ALLOW IN") && 
+				 strings.Contains(statusOutput, "/tcp") {
+					policyLines++
+			}
+			
+			configured = policyLines >= 3
 	}
 	
 	// Check for iptables if UFW not found
 	if !enabled {
-		iptablesCmd := exec.Command("iptables", "-L")
-		iptablesOutput, err := iptablesCmd.CombinedOutput()
-		if err == nil {
-			rules := strings.Count(string(iptablesOutput), "Chain")
-			enabled = rules > 3
-			// Look for SSH related rules
-			configured = strings.Contains(strings.ToLower(string(iptablesOutput)), "ssh")
-		}
+			iptablesCmd := exec.Command("iptables", "-L")
+			iptablesOutput, err := iptablesCmd.CombinedOutput()
+			if err == nil {
+					rules := strings.Count(string(iptablesOutput), "Chain")
+					enabled = rules > 3
+					// Look for SSH related rules
+					configured = strings.Contains(strings.ToLower(string(iptablesOutput)), "ssh")
+			}
 	}
 	
 	return enabled, configured

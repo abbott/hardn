@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/dns"
 	"github.com/abbott/hardn/pkg/firewall"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/packages"
 	"github.com/abbott/hardn/pkg/security"
@@ -42,18 +43,18 @@ func readKey() string {
 	// Read the first byte
 	var firstByte = make([]byte, 1)
 	os.Stdin.Read(firstByte)
-	
+
 	// If it's an escape character (27), read and discard the sequence
 	if firstByte[0] == 27 {
-			// Read and discard the next two bytes (common for arrow keys)
-			var discardBytes = make([]byte, 2)
-			os.Stdin.Read(discardBytes)
-			
-			// Return empty to indicate a special key was pressed
-			// This will cause the code to just ignore the keypress
-			return ""
+		// Read and discard the next two bytes (common for arrow keys)
+		var discardBytes = make([]byte, 2)
+		os.Stdin.Read(discardBytes)
+
+		// Return empty to indicate a special key was pressed
+		// This will cause the code to just ignore the keypress
+		return ""
 	}
-	
+
 	return string(firstByte)
 }
 
@@ -70,7 +71,6 @@ func RiskStatus(symbol string, color string, label string, status string, descri
 
 func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	for {
-		utils.PrintHeader()
 		utils.PrintLogo()
 
 		// Define separator line
@@ -153,7 +153,7 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Display detailed security status if available
 		if err == nil {
 			// Pass the formatter to the security status display to ensure consistent formatting
-			status.DisplaySecurityStatus(securityStatus, formatter)
+			status.DisplaySecurityStatus(cfg, securityStatus, formatter)
 		}
 
 		// Display dry-run mode if active
@@ -192,27 +192,27 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// First check if q is pressed immediately without Enter
 		firstKey := readKey()
 		if firstKey == "q" || firstKey == "Q" {
-				fmt.Println("q")
-				utils.PrintHeader()
-				// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
-				fmt.Println(" Hardn has exited.")
-				// Add blank line after separator
-				fmt.Println()
-				return
+			fmt.Println("q")
+			utils.PrintHeader()
+			// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
+			fmt.Println("Hardn has exited.")
+			// Add blank line after separator
+			fmt.Println()
+			return
 		}
 
 		// If firstKey is empty (like from an arrow key), try reading again
 		if firstKey == "" {
-				firstKey = readKey()
-				if firstKey == "" || firstKey == "q" || firstKey == "Q" {
-						fmt.Println("q")
-						utils.PrintHeader()
-						// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
-						fmt.Println(" Hardn has exited.")
-						// Add blank line after separator
-						fmt.Println()
-						return
-				}
+			firstKey = readKey()
+			if firstKey == "" || firstKey == "q" || firstKey == "Q" {
+				fmt.Println("q")
+				utils.PrintHeader()
+				// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
+				fmt.Println("Hardn has exited.")
+				// Add blank line after separator
+				fmt.Println()
+				return
+			}
 		}
 
 		// Read the rest of the line with standard input
@@ -306,7 +306,7 @@ func toggleDryRunMenu(cfg *config.Config) {
 	// Save config changes
 	configFile := "hardn.yml" // Default config file
 	if err := config.SaveConfig(cfg, configFile); err != nil {
-		utils.LogError("Failed to save configuration: %v", err)
+		logging.LogError("Failed to save configuration: %v", err)
 	}
 
 	fmt.Print("\n" + style.SymArrowRight + " Press any key to return to the main menu...")
@@ -317,7 +317,6 @@ func toggleDryRunMenu(cfg *config.Config) {
 func userCreationMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m User Creation Menu")
-	fmt.Println("\033[1;34m#\033[0m ----------------")
 
 	// Prompt for username if not provided
 	username := cfg.Username
@@ -337,12 +336,12 @@ func userCreationMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 
 	// Create user
 	if err := user.CreateUser(username, cfg, osInfo); err != nil {
-		utils.LogError("Failed to create user: %v", err)
+		logging.LogError("Failed to create user: %v", err)
 	}
 
 	// Configure SSH
 	if err := ssh.WriteSSHConfig(cfg, osInfo); err != nil {
-		utils.LogError("Failed to configure SSH: %v", err)
+		logging.LogError("Failed to configure SSH: %v", err)
 	}
 
 	fmt.Print("\n\033[39m#\033[0m Press any key to return to the main menu...")
@@ -353,7 +352,6 @@ func userCreationMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func disableRootMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Disable Root SSH Access")
-	fmt.Println("\033[1;34m#\033[0m ---------------------")
 
 	fmt.Println("\n\033[1;33m#\033[0m WARNING: This will disable SSH access for the root user!")
 	fmt.Println("\033[1;33m#\033[0m Make sure you have another user with sudo privileges.")
@@ -386,7 +384,6 @@ func disableRootMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Linux Packages Installation")
-	fmt.Println("\033[1;34m#\033[0m -------------------------")
 	// Add blank line after separator
 	fmt.Println()
 
@@ -395,7 +392,7 @@ func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 
 		// Install core Alpine packages first
 		if len(cfg.AlpineCorePackages) > 0 {
-			utils.LogInfo("Installing Alpine core packages...")
+			logging.LogInfo("Installing Alpine core packages...")
 			packages.InstallPackages(cfg.AlpineCorePackages, osInfo, cfg)
 		}
 
@@ -403,24 +400,24 @@ func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.AlpineDmzPackages) > 0 {
-				utils.LogInfo("Installing Alpine DMZ packages...")
+				logging.LogInfo("Installing Alpine DMZ packages...")
 				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 			}
 		} else {
 			// Install both
 			if len(cfg.AlpineDmzPackages) > 0 {
-				utils.LogInfo("Installing Alpine DMZ packages...")
+				logging.LogInfo("Installing Alpine DMZ packages...")
 				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 			}
 			if len(cfg.AlpineLabPackages) > 0 {
-				utils.LogInfo("Installing Alpine LAB packages...")
+				logging.LogInfo("Installing Alpine LAB packages...")
 				packages.InstallPackages(cfg.AlpineLabPackages, osInfo, cfg)
 			}
 		}
 	} else {
 		// Install core Linux packages first
 		if len(cfg.LinuxCorePackages) > 0 {
-			utils.LogInfo("Installing Linux core packages...")
+			logging.LogInfo("Installing Linux core packages...")
 			packages.InstallPackages(cfg.LinuxCorePackages, osInfo, cfg)
 		}
 
@@ -428,17 +425,17 @@ func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.LinuxDmzPackages) > 0 {
-				utils.LogInfo("Installing Debian DMZ packages...")
+				logging.LogInfo("Installing Debian DMZ packages...")
 				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 			}
 		} else {
 			// Install both
 			if len(cfg.LinuxDmzPackages) > 0 {
-				utils.LogInfo("Installing Debian DMZ packages...")
+				logging.LogInfo("Installing Debian DMZ packages...")
 				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 			}
 			if len(cfg.LinuxLabPackages) > 0 {
-				utils.LogInfo("Installing Debian Lab packages...")
+				logging.LogInfo("Installing Debian Lab packages...")
 				packages.InstallPackages(cfg.LinuxLabPackages, osInfo, cfg)
 			}
 		}
@@ -452,7 +449,6 @@ func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func pythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Python Packages Installation")
-	fmt.Println("\033[1;34m#\033[0m --------------------------")
 	// Add blank line after separator
 	fmt.Println()
 
@@ -480,13 +476,13 @@ func pythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Save config changes
 		configFile := "hardn.yml" // Default config file
 		if err := config.SaveConfig(cfg, configFile); err != nil {
-			utils.LogError("Failed to save configuration: %v", err)
+			logging.LogError("Failed to save configuration: %v", err)
 		}
 	}
 
 	// Install packages
 	if err := packages.InstallPythonPackages(cfg, osInfo); err != nil {
-		utils.LogError("Failed to install Python packages: %v", err)
+		logging.LogError("Failed to install Python packages: %v", err)
 	} else {
 		fmt.Println("\n\033[1;32m#\033[0m Python packages installed successfully!")
 	}
@@ -499,7 +495,6 @@ func pythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func ufwMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m UFW Firewall Configuration")
-	fmt.Println("\033[1;34m#\033[0m -------------------------")
 
 	fmt.Println("\n\033[1;33m#\033[0m WARNING: This will configure and enable the UFW firewall!")
 	fmt.Printf("\033[1;33m#\033[0m SSH access will be allowed on port %d.\n", cfg.SshPort)
@@ -508,7 +503,7 @@ func ufwMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 
 	if choice == "y" || choice == "Y" {
 		if err := firewall.ConfigureUFW(cfg, osInfo); err != nil {
-			utils.LogError("Failed to configure UFW: %v", err)
+			logging.LogError("Failed to configure UFW: %v", err)
 		} else {
 			fmt.Println("\n\033[1;32m#\033[0m UFW configured and enabled successfully!")
 		}
@@ -524,7 +519,6 @@ func ufwMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func configureDnsMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Configure DNS Settings")
-	fmt.Println("\033[1;34m#\033[0m ----------------------")
 
 	fmt.Println("\n\033[1;33m#\033[0m WARNING: This will configure DNS settings!")
 	fmt.Print("\n\033[39m#\033[0m Do you want to continue? (y/n): ")
@@ -533,7 +527,7 @@ func configureDnsMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	if choice == "y" || choice == "Y" {
 		fmt.Println("")
 		if err := dns.ConfigureDNS(cfg, osInfo); err != nil {
-			utils.LogError("Failed to configure DNS: %v", err)
+			logging.LogError("Failed to configure DNS: %v", err)
 			fmt.Println("\n\033[1;31m#\033[0m Failed to configure DNS settings.")
 		} else {
 			fmt.Println("\n\033[1;32m#\033[0m DNS settings configured successfully.")
@@ -550,15 +544,14 @@ func configureDnsMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func updateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Update Package Sources")
-	fmt.Println("\033[1;34m#\033[0m --------------------")
 
 	if err := packages.WriteSources(cfg, osInfo); err != nil {
-		utils.LogError("Failed to write package sources: %v", err)
+		logging.LogError("Failed to write package sources: %v", err)
 	}
 
 	if osInfo.OsType != "alpine" && osInfo.IsProxmox {
 		if err := packages.WriteProxmoxRepos(cfg, osInfo); err != nil {
-			utils.LogError("Failed to write Proxmox repositories: %v", err)
+			logging.LogError("Failed to write Proxmox repositories: %v", err)
 		}
 	}
 
@@ -572,7 +565,6 @@ func updateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Run All Hardening Steps")
-	fmt.Println("\033[1;34m#\033[0m ----------------------")
 
 	fmt.Println("\n\033[1;33m#\033[0m WARNING: This will run all hardening steps!")
 	if cfg.DryRun {
@@ -584,9 +576,8 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	choice := readInput()
 
 	if choice == "y" || choice == "Y" {
-		utils.PrintHeader()
 		utils.PrintLogo()
-		utils.LogInfo("Running complete system hardening...")
+		logging.LogInfo("Running complete system hardening...")
 
 		// Setup basic configuration
 		utils.SetupHushlogin(cfg)
@@ -601,7 +592,7 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		if osInfo.OsType == "alpine" {
 			// Install Alpine packages
 			if len(cfg.AlpineCorePackages) > 0 {
-				utils.LogInfo("Installing Alpine core packages...")
+				logging.LogInfo("Installing Alpine core packages...")
 				packages.InstallPackages(cfg.AlpineCorePackages, osInfo, cfg)
 			}
 
@@ -609,30 +600,30 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 			if isDmz {
 				if len(cfg.AlpineDmzPackages) > 0 {
-					utils.LogInfo("Installing Alpine DMZ packages...")
+					logging.LogInfo("Installing Alpine DMZ packages...")
 					packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 				}
 			} else {
 				if len(cfg.AlpineDmzPackages) > 0 {
-					utils.LogInfo("Installing Alpine DMZ packages...")
+					logging.LogInfo("Installing Alpine DMZ packages...")
 					packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
 				}
 
 				if len(cfg.AlpineLabPackages) > 0 {
-					utils.LogInfo("Installing Alpine LAB packages...")
+					logging.LogInfo("Installing Alpine LAB packages...")
 					packages.InstallPackages(cfg.AlpineLabPackages, osInfo, cfg)
 				}
 			}
 
 			// Install Python packages if defined
 			if len(cfg.AlpinePythonPackages) > 0 {
-				utils.LogInfo("Installing Alpine Python packages...")
+				logging.LogInfo("Installing Alpine Python packages...")
 				packages.InstallPackages(cfg.AlpinePythonPackages, osInfo, cfg)
 			}
 		} else {
 			// Install core Linux packages first
 			if len(cfg.LinuxCorePackages) > 0 {
-				utils.LogInfo("Installing Linux core packages...")
+				logging.LogInfo("Installing Linux core packages...")
 				packages.InstallPackages(cfg.LinuxCorePackages, osInfo, cfg)
 			}
 
@@ -640,17 +631,17 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 			if isDmz {
 				if len(cfg.LinuxDmzPackages) > 0 {
-					utils.LogInfo("Installing Debian DMZ packages...")
+					logging.LogInfo("Installing Debian DMZ packages...")
 					packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 				}
 			} else {
 				// Install both
 				if len(cfg.LinuxDmzPackages) > 0 {
-					utils.LogInfo("Installing Debian DMZ packages...")
+					logging.LogInfo("Installing Debian DMZ packages...")
 					packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
 				}
 				if len(cfg.LinuxLabPackages) > 0 {
-					utils.LogInfo("Installing Debian Lab packages...")
+					logging.LogInfo("Installing Debian Lab packages...")
 					packages.InstallPackages(cfg.LinuxLabPackages, osInfo, cfg)
 				}
 			}
@@ -708,9 +699,8 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func viewLogsMenu(cfg *config.Config) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m View Logs")
-	fmt.Println("\033[1;34m#\033[0m ---------")
 
-	utils.PrintLogs(cfg.LogFile)
+	logging.PrintLogs(cfg.LogFile)
 
 	fmt.Print("\n\033[39m#\033[0m Press any key to return to the main menu...")
 	readKey()
@@ -720,7 +710,6 @@ func viewLogsMenu(cfg *config.Config) {
 func backupOptionsMenu(cfg *config.Config) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Backup Settings")
-	fmt.Println("\033[1;34m#\033[0m --------------")
 
 	fmt.Println("\n\033[39m#\033[0m Current backup settings:")
 	fmt.Printf("\033[39m#\033[0m Backups enabled: %t\n", cfg.EnableBackups)
@@ -747,7 +736,7 @@ func backupOptionsMenu(cfg *config.Config) {
 		// Save config changes
 		configFile := "hardn.yml" // Default config file
 		if err := config.SaveConfig(cfg, configFile); err != nil {
-			utils.LogError("Failed to save configuration: %v", err)
+			logging.LogError("Failed to save configuration: %v", err)
 		}
 		fmt.Print("\n\033[39m#\033[0m Press any key to continue...")
 		readKey()
@@ -762,7 +751,7 @@ func backupOptionsMenu(cfg *config.Config) {
 			// Save config changes
 			configFile := "hardn.yml" // Default config file
 			if err := config.SaveConfig(cfg, configFile); err != nil {
-				utils.LogError("Failed to save configuration: %v", err)
+				logging.LogError("Failed to save configuration: %v", err)
 			}
 		} else {
 			fmt.Println("\n\033[39m#\033[0m Backup path unchanged.")
@@ -782,7 +771,6 @@ func backupOptionsMenu(cfg *config.Config) {
 
 // Help menu
 func helpMenu() {
-	utils.PrintHeader()
 	utils.PrintLogo()
 	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
 	fmt.Print(`

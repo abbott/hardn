@@ -7,18 +7,18 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/utils"
+	"github.com/abbott/hardn/pkg/logging"
 )
 
 // BackupFile backs up a file with a timestamp
 func BackupFile(filePath string, cfg *config.Config) error {
 	if !cfg.EnableBackups {
-		utils.LogInfo("Backups disabled. Skipping backup of %s", filePath)
+		logging.LogInfo("Backups disabled. Skipping backup of %s", filePath)
 		return nil
 	}
 
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Backup %s to %s", filePath, cfg.BackupPath)
+		logging.LogInfo("[DRY-RUN] Backup %s to %s", filePath, cfg.BackupPath)
 		return nil
 	}
 
@@ -33,7 +33,7 @@ func BackupFile(filePath string, cfg *config.Config) error {
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		utils.LogInfo("File %s does not exist, no backup needed", filePath)
+		logging.LogInfo("File %s does not exist, no backup needed", filePath)
 		return nil
 	}
 
@@ -51,7 +51,7 @@ func BackupFile(filePath string, cfg *config.Config) error {
 		return fmt.Errorf("failed to write backup file %s: %w", backupFile, err)
 	}
 
-	utils.LogInfo("Backed up %s to %s", filePath, backupFile)
+	logging.LogInfo("Backed up %s to %s", filePath, backupFile)
 	return nil
 }
 
@@ -90,7 +90,7 @@ func ListBackups(filePath string, cfg *config.Config) ([]string, error) {
 // RestoreBackup restores a file from backup
 func RestoreBackup(backupPath, originalPath string, cfg *config.Config) error {
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Restore backup %s to %s", backupPath, originalPath)
+		logging.LogInfo("[DRY-RUN] Restore backup %s to %s", backupPath, originalPath)
 		return nil
 	}
 
@@ -116,20 +116,20 @@ func RestoreBackup(backupPath, originalPath string, cfg *config.Config) error {
 		return fmt.Errorf("failed to write restored file %s: %w", originalPath, err)
 	}
 
-	utils.LogSuccess("Restored %s from backup %s", originalPath, backupPath)
+	logging.LogSuccess("Restored %s from backup %s", originalPath, backupPath)
 	return nil
 }
 
 // CleanupOldBackups removes backups older than specified days
 func CleanupOldBackups(cfg *config.Config, daysToKeep int) error {
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Clean up backups older than %d days in %s", daysToKeep, cfg.BackupPath)
+		logging.LogInfo("[DRY-RUN] Clean up backups older than %d days in %s", daysToKeep, cfg.BackupPath)
 		return nil
 	}
 
 	// Calculate cutoff time
 	cutoff := time.Now().AddDate(0, 0, -daysToKeep)
-	
+
 	// Get all date-based directories in backup path
 	entries, err := os.ReadDir(cfg.BackupPath)
 	if err != nil {
@@ -157,21 +157,21 @@ func CleanupOldBackups(cfg *config.Config, daysToKeep int) error {
 		if dirDate.Before(cutoff) {
 			dirPath := filepath.Join(cfg.BackupPath, entry.Name())
 			if err := os.RemoveAll(dirPath); err != nil {
-				utils.LogError("Failed to remove old backup directory %s: %v", dirPath, err)
+				logging.LogError("Failed to remove old backup directory %s: %v", dirPath, err)
 			} else {
-				utils.LogInfo("Removed old backup directory %s", dirPath)
+				logging.LogInfo("Removed old backup directory %s", dirPath)
 			}
 		}
 	}
 
-	utils.LogSuccess("Backup cleanup completed")
+	logging.LogSuccess("Backup cleanup completed")
 	return nil
 }
 
 // VerifyBackupDirectory ensures the backup directory exists and is writable
 func VerifyBackupDirectory(cfg *config.Config) error {
 	if cfg.DryRun {
-		utils.LogInfo("[DRY-RUN] Verify backup directory %s exists and is writable", cfg.BackupPath)
+		logging.LogInfo("[DRY-RUN] Verify backup directory %s exists and is writable", cfg.BackupPath)
 		return nil
 	}
 
@@ -189,6 +189,6 @@ func VerifyBackupDirectory(cfg *config.Config) error {
 	// Clean up test file
 	os.Remove(testFile)
 
-	utils.LogInfo("Backup directory %s verified", cfg.BackupPath)
+	logging.LogInfo("Backup directory %s verified", cfg.BackupPath)
 	return nil
 }
