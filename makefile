@@ -9,8 +9,8 @@ LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X 
 # Version
 VERSION_MAJOR=0
 VERSION_MINOR=3
-VERSION_PATCH=1
-VERSION=0.3.1
+VERSION_PATCH=2
+VERSION=0.3.2
 
 .PHONY: release release-artifacts
 
@@ -199,11 +199,11 @@ install-verifier:
 	go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.0
 
 # Verify a release using SLSA verifier
-# Usage: make verify-release VERSION=0.2.9 OS=linux ARCH=amd64
+# Usage: make verify-release VERSION=0.3.2 OS=linux ARCH=amd64
 verify-release:
 	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
 		echo "Error: Missing parameters"; \
-		echo "Usage: make verify-release VERSION=0.2.9 OS=linux ARCH=amd64"; \
+		echo "Usage: make verify-release VERSION=0.3.2 OS=linux ARCH=amd64"; \
 		exit 1; \
 	fi
 	@echo "Verifying release v$(VERSION) for $(OS)/$(ARCH)..."

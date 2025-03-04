@@ -89,12 +89,12 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "hardn",
-	Short: "Linux Hardening Utility",
-	Long:  `A Linux hardening tool for Debian, Ubuntu, Proxmox and Alpine systems.`,
+	Short: "Linux hardening tool",
+	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Check if version flag is set and display version info
 		if showVersion {
-			fmt.Println("Hardn - Linux Hardening Utility")
+			fmt.Println("hardn - Linux hardening tool")
 			fmt.Printf("Version:    %s\n", Version)
 			if BuildDate != "" {
 				fmt.Printf("Build Date: %s\n", BuildDate)
@@ -114,8 +114,8 @@ var rootCmd = &cobra.Command{
 
 		if currentUser.Uid != "0" {
 			logging.LogError("This script needs to be run as root.")
-			fmt.Println("For Ubuntu/Debian run: sudo -i")
-			fmt.Println("For Alpine run: su")
+			fmt.Println("For Ubuntu/Debian run: `sudo hardn` or switch to root `sudo -i`")
+			fmt.Println("For Alpine run: `sudo hardn` or switch to root `su`")
 			os.Exit(1)
 		}
 
@@ -125,18 +125,6 @@ var rootCmd = &cobra.Command{
 			logging.LogError("Failed to load configuration: %v", err)
 			os.Exit(1)
 		}
-
-		// Display the config file path that was loaded
-		// configPath, _ := config.FindConfigFile(configFile)
-		// if configPath != "" {
-		// 	logging.LogInfo("Using configuration from: %s", configPath)
-		// } else {
-		// 	logging.LogInfo("Using default configuration (no config file found)")
-		// 	// If using default config due to environment variable, mention it
-		// 	if os.Getenv("HARDN_CONFIG") != "" {
-		// 		logging.LogInfo("Note: HARDN_CONFIG environment variable is set but the file was not found")
-		// 	}
-		// }
 
 		// Set dry run mode from flag
 		cfg.DryRun = dryRun

@@ -22,9 +22,9 @@ Anyone managing a **privately owned** Linux server, container, or virtual machin
 - Homelab enthusiasts, Students, Hobbyists
 
 If you are one of the following, **refrain from deploying this tool in the public or private sector**
-- System Administrators
-- DevOps Engineers
-- SecOps Architects and Analysts
+- System Administrator
+- DevOps Engineer
+- SecOps Architect or Analyst
 
 ## ✨ Features
 
@@ -43,7 +43,7 @@ If you are one of the following, **refrain from deploying this tool in the publi
 
 ## 📦 Installation
 
-You can easily install the latest release of Hardn using our installation script. The script automatically detects your host operating system and architecture, downloads the correct binary, and installs it to `/usr/local/bin`.
+You can easily install the latest release of `hardn` using our installation script. The script automatically detects your host operating system and architecture, downloads the correct binary, and installs it to `/usr/local/bin`.
 
 ### Prerequisites
 
@@ -59,13 +59,13 @@ Run the following command in your terminal:
 curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
 
-*Note:* Replace `main` in the URL with the appropriate branch if necessary.
+<!-- *Note:* Replace `main` in the URL with the appropriate branch if necessary. -->
 
 The script will:
 
 - Detect your operating system (e.g., Debian, Proxmox, Alpine Linux) and CPU architecture.
-- Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-darwin-amd64` for macOS, `hardn-linux-amd64` for 64-bit Linux, etc.).
-- Download the asset and install it to `/usr/local/bin/hardn` with executable permissions.
+- Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-linux-amd64` for 64-bit Linux, etc.).
+- Download the asset and install it to `/usr/local/bin` with executable permissions.
 
 ### Updating Hardn
 
@@ -102,7 +102,7 @@ cd hardn
 make build
 
 # Example distribution (e.g. AMD64)
-GOOS=linux GOARCH=amd64 go build -o dist/hardn cmd/hardn/main.go
+GOOS=linux GOARCH=amd64 go build -o build/hardn cmd/hardn/main.go
 
 # Install
 sudo make install
@@ -118,7 +118,7 @@ sudo make install
 
 ### Interactive Mode
 
-Run the tool without arguments to use the interactive menu for selecting hardening operations:
+Run `hardn` without arguments to use the interactive menu for selecting hardening operations:
 
 ```bash
 sudo hardn
@@ -170,7 +170,7 @@ sudo hardn -v
 
 ### Configuration File
 
-Hardn uses a YAML configuration file. It will search for a configuration file in these locations (in order):
+On first run, `hardn` will offer to create a default configuration file if no existing config is found. The following YAML configuration file locations are searched in order:
 
 1. Path specified with `--config` or `-f` flag
 2. Environment variable `HARDN_CONFIG` (if set)
@@ -189,8 +189,6 @@ sudo hardn -f /path/to/custom-config.yml
 export HARDN_CONFIG=/path/to/custom-config.yml
 sudo hardn
 ```
-
-When running for the first time with no configuration found, Hardn will offer to create a default configuration file.
 
 Example configuration:
 
@@ -217,7 +215,7 @@ configureDns: true
 disableRoot: true
 ```
 
-For a complete list of configuration options, see:
+For a complete list of configuration options, review:
 - The [example configuration](https://github.com/abbott/hardn/blob/main/hardn.yml.example) — also located at: `/etc/hardn/hardn.yml.example` after initializing the binary (e.g., `sudo hardn`).
 - The [Configuration Guide](docs/configuration.md)
 
@@ -248,8 +246,8 @@ To verify a Hardn release:
 2. Download the binary and its provenance:
    ```bash
    # Example for Linux AMD64
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.2.9/hardn-linux-amd64
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.2.9/hardn-linux-amd64.intoto.jsonl
+   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64
+   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.intoto.jsonl
    ```
 
 3. Verify the binary:
@@ -259,10 +257,10 @@ To verify a Hardn release:
      --artifact-path hardn-linux-amd64 \
      --provenance hardn-linux-amd64.intoto.jsonl \
      --source-uri github.com/abbott/hardn \
-     --source-tag v0.2.9
+     --source-tag v0.3.2
      
    # Or using our makefile target
-   make verify-release VERSION=0.2.9 OS=linux ARCH=amd64
+   make verify-release VERSION=0.3.2 OS=linux ARCH=amd64
    ```
 
 4. A successful verification will return:
@@ -270,7 +268,7 @@ To verify a Hardn release:
    Verification succeeded! Binary artifacts were built from source revision ...
    ```
 
-This verification ensures that the binary was built by GitHub Actions from the official Hardn repository at the specified tag, and that the artifact has not been tampered with since building
+This ensures the binary was built by GitHub Actions from the official `hardn` repository at the specified tag, and that the artifact has not been tampered with since building
 
 
 ## 🤝 Contributing

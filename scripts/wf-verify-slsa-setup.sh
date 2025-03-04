@@ -57,8 +57,8 @@ fi
 
 echo -e "\n${GREEN}All checks passed! Your project is ready for SLSA Level 3.${NC}"
 echo -e "\nTo create a test release, run:"
-echo -e "  git tag -a v0.2.9-test -m \"Test SLSA implementation\""
-echo -e "  git push origin v0.2.9-test"
+echo -e "  git tag -a v0.3.2-test -m \"Test SLSA implementation\""
+echo -e "  git push origin v0.3.2-test"
 echo -e "\nTo create a real release, run:"
 echo -e "  make bump-patch"
 echo -e "  git add makefile"

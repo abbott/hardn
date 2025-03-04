@@ -1,10 +1,10 @@
 # Hardn Configuration
 
-This document explains how to configure Hardn, the Linux hardening utility.
+This document explains how to configure `hardn`, the simple hardening tool for Linux.
 
 ## Configuration File Locations
 
-Hardn searches for a configuration file in the following locations (in order):
+`hardn` searches for a YAML configuration file in the following order:
 
 1. Path specified with `--config` or `-f` flag
 2. Environment variable `HARDN_CONFIG` (if set)
@@ -12,14 +12,13 @@ Hardn searches for a configuration file in the following locations (in order):
 4. `~/.config/hardn/hardn.yml` (XDG Base Directory specification)
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 
-
 ## Creating a Configuration File
 
 You can create a configuration file in several ways:
 
 ### 1. Interactive Creation
 
-When running Hardn for the first time with no configuration file, it will offer to create one interactively.
+On first run, `hardn` will offer to create a default configuration file interactively if no existing config is found.
 
 ### 2. Manual Creation
 
@@ -39,7 +38,7 @@ nano ~/.config/hardn/hardn.yml
 
 ### 3. Using the Default Configuration
 
-If no configuration file exists and you decline, Hardn will create one at `/etc/hardn/hardn.yml` with default values.
+If no configuration file exists and you decline, `hardn` will create one at `/etc/hardn/hardn.yml` with default values.
 <!-- show/link default values -->
 
 ## Environment Variable
@@ -99,7 +98,7 @@ Here are the main configuration sections in YAML:
 ### Basic Configuration
 
 ```yaml
-username: "sysadmin"                # Default username to create
+username: "george"                # Default username to create
 logFile: "/var/log/hardn.log"       # Log file path
 dryRun: false                       # Preview changes without applying them
 enableBackups: true                 # Backup files before modifying them
@@ -122,7 +121,7 @@ sshPort: 22                         # SSH port (this is the authoritative SSH po
                                     # Consider using a non-standard port (e.g., 2208) as a security measure
 permitRootLogin: false              # Allow or deny root SSH access
 sshAllowedUsers:                    # List of users allowed to access via SSH
-  - "sysadmin"
+  - "george"
 sshListenAddress: "0.0.0.0"         # IP address to listen on
 sshKeyPath: ".ssh_%u"               # Path to SSH keys (%u = username)
 sshConfigFile: "/etc/ssh/sshd_config.d/manage.conf"  # SSH config file location

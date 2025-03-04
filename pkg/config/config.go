@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-	
+
 	"github.com/abbott/hardn/pkg/logging"
 )
 
@@ -67,10 +67,10 @@ type Config struct {
 
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
-	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
-	UfwDefaultIncomingPolicy string `yaml:"ufwDefaultIncomingPolicy"`
-	UfwDefaultOutgoingPolicy string `yaml:"ufwDefaultOutgoingPolicy"`
-	UfwAllowedPorts          []int  `yaml:"ufwAllowedPorts"`
+	UfwAppProfiles           []UfwAppProfile `yaml:"ufwAppProfiles"`
+	UfwDefaultIncomingPolicy string          `yaml:"ufwDefaultIncomingPolicy"`
+	UfwDefaultOutgoingPolicy string          `yaml:"ufwDefaultOutgoingPolicy"`
+	UfwAllowedPorts          []int           `yaml:"ufwAllowedPorts"`
 
 	// Feature Toggles
 	UseUvPackageManager      bool `yaml:"useUvPackageManager"`
@@ -93,7 +93,7 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		// Basic Configuration
-		// Username:      "sysadmin",
+		// Username:      "george",
 		LogFile:       "/var/log/hardn.log",
 		DryRun:        false,
 		EnableBackups: true,
@@ -104,9 +104,9 @@ func DefaultConfig() *Config {
 		// Nameservers: []string{"1.1.1.1", "1.0.0.1"},
 
 		// SSH Configuration
-		SshPort:          22,
-		PermitRootLogin:  false,
-		// SshAllowedUsers:  []string{"sysadmin"},
+		SshPort:         22,
+		PermitRootLogin: false,
+		// SshAllowedUsers:  []string{"george"},
 		SshListenAddress: "0.0.0.0",
 		SshKeyPath:       ".ssh_%u",
 		SshConfigFile:    "/etc/ssh/sshd_config.d/manage.conf",
@@ -162,19 +162,19 @@ func ConfigFileSearchPath(explicitPath string) []string {
 	if explicitPath != "" {
 		return []string{explicitPath}
 	}
-	
+
 	// Check for environment variable - this should have second highest priority
 	envPath := os.Getenv("HARDN_CONFIG")
 	if envPath != "" {
 		// Return only this path - no fallback if using environment variable
 		return []string{envPath}
 	}
-	
+
 	// If no explicit path or environment variable, use default search paths
 	searchPaths := []string{
 		"/etc/hardn/hardn.yml", // System-wide config
 	}
-	
+
 	// Add user home directory based paths
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
@@ -183,13 +183,12 @@ func ConfigFileSearchPath(explicitPath string) []string {
 		// Add ~/.hardn.yml (traditional dot-file)
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
 	}
-	
+
 	// Add current directory (lowest priority)
 	searchPaths = append(searchPaths, "./hardn.yml")
-	
+
 	return searchPaths
 }
-
 
 // Add verbose logging to FindConfigFile for easier debugging
 // func FindConfigFile(explicitPath string) (string, bool) {
@@ -203,7 +202,7 @@ func ConfigFileSearchPath(explicitPath string) []string {
 // 			return "", false // Don't fall back if explicit path doesn't exist
 // 		}
 // 	}
-	
+
 // 	// Check environment variable
 // 	envPath := os.Getenv("HARDN_CONFIG")
 // 	if envPath != "" {
@@ -215,17 +214,17 @@ func ConfigFileSearchPath(explicitPath string) []string {
 // 			return "", false // Don't fall back if env path doesn't exist
 // 		}
 // 	}
-	
+
 // 	// If neither explicit path nor environment variable, search default locations
 // 	searchPaths := ConfigFileSearchPath("")
-	
+
 // 	for _, path := range searchPaths {
 // 		if _, err := os.Stat(path); err == nil {
 // 			logging.LogInfo("Using configuration from: %s", path)
 // 			return path, true
 // 		}
 // 	}
-	
+
 // 	// No configuration file found in any location
 // 	logging.LogInfo("No configuration file found in any standard location")
 // 	return "", false
@@ -241,7 +240,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 	if envPath != "" {
 		logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
 	}
-	
+
 	// First priority: explicit path from command line
 	if explicitPath != "" {
 		if _, err := os.Stat(explicitPath); err == nil {
@@ -251,7 +250,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 		logging.LogError("Configuration file specified by command-line flag not found: %s", explicitPath)
 		return "", false // Don't fall back if explicit path is specified but doesn't exist
 	}
-	
+
 	// Second priority: environment variable
 	if envPath != "" {
 		if _, err := os.Stat(envPath); err == nil {
@@ -261,12 +260,12 @@ func FindConfigFile(explicitPath string) (string, bool) {
 		logging.LogError("Configuration file specified by HARDN_CONFIG environment variable not found: %s", envPath)
 		return "", false // Don't fall back if env var is specified but doesn't exist
 	}
-	
+
 	// Third priority: default search paths
 	searchPaths := []string{
 		"/etc/hardn/hardn.yml", // System-wide config
 	}
-	
+
 	// Add user home directory based paths
 	homeDir, err := os.UserHomeDir()
 	if err == nil {
@@ -275,10 +274,10 @@ func FindConfigFile(explicitPath string) (string, bool) {
 		// Add ~/.hardn.yml (traditional dot-file)
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
 	}
-	
+
 	// Add current directory (lowest priority)
 	searchPaths = append(searchPaths, "./hardn.yml")
-	
+
 	// Search through default paths
 	for _, path := range searchPaths {
 		if _, err := os.Stat(path); err == nil {
@@ -286,7 +285,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 			return path, true
 		}
 	}
-	
+
 	// No configuration file found
 	logging.LogInfo("No configuration file found in any location")
 	return "", false
@@ -296,10 +295,10 @@ func FindConfigFile(explicitPath string) (string, bool) {
 func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	// Start with default config
 	config := DefaultConfig()
-	
+
 	// Find config file with proper priority
 	configPath, found := FindConfigFile(filePath)
-	
+
 	if !found {
 		// No config file found, check if we should create one
 		if ShouldCreateDefaultConfig() {
@@ -309,23 +308,23 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 			}
 			return config, nil
 		}
-		
+
 		// If we're not creating a default config, just return the default
 		logging.LogInfo("Using default configuration (no config file found)")
 		return config, nil
 	}
-	
+
 	// Read the found config file
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
 	}
-	
+
 	// Parse YAML
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
 	}
-	
+
 	return config, nil
 }
 
@@ -342,14 +341,14 @@ func GetDefaultConfigLocation() string {
 		// Create in system location if root
 		return "/etc/hardn/hardn.yml"
 	}
-	
+
 	// Otherwise, create in user's home directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		// Fallback to current directory if can't determine home
 		return "./hardn.yml"
 	}
-	
+
 	// Use XDG config directory
 	configDir := filepath.Join(homeDir, ".config/hardn")
 	return filepath.Join(configDir, "hardn.yml")
@@ -381,7 +380,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 		reader := bufio.NewReader(os.Stdin)
 
 		// Ask for username
-		fmt.Print("Enter default username [sysadmin]: ")
+		fmt.Print("Enter default username [george ")
 		username, _ := reader.ReadString('\n')
 		username = strings.TrimSpace(username)
 		if username != "" {
@@ -420,13 +419,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 	}
 
 	fmt.Printf("Created configuration file at %s\n", path)
-	
+
 	// Ensure the example config exists and tell the user about it
 	examplePath := "/etc/hardn/hardn.yml.example"
 	if err := EnsureExampleConfigExists(); err == nil {
 		fmt.Printf("A complete example configuration with all options is available at %s\n", examplePath)
 	}
-	
+
 	return nil
 }
 
