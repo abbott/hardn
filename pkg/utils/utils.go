@@ -20,7 +20,7 @@ func PrintHeader() {
 	fmt.Print("\033[H\033[2J")
 
 	// Print header without an extra newline
-	fmt.Print(style.Colored(style.Green, "#########################################################################"))
+	fmt.Print(style.Colored(style.Green, "#######################################################################"))
 	fmt.Println()
 }
 
@@ -34,7 +34,7 @@ func PrintHeader() {
 // PrintLogo prints the script logo
 func PrintLogo() {
 	fmt.Print("\033[H\033[2J")
-	fmt.Print(style.Colored(style.Green, "#########################################################################"))
+	fmt.Print(style.Colored(style.Green, "#######################################################################"))
 	fmt.Print(`
        _   _               _            _     _
       | | | | __ _ _ __ __| |_ __      | |   (_)_ __  _   ___  __

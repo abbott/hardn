@@ -74,7 +74,7 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		utils.PrintLogo()
 
 		// Define separator line
-		separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 		sepWidth := len(separator)
 
 		securityStatus, err := status.CheckSecurityStatus(cfg, osInfo)
@@ -772,7 +772,7 @@ func backupOptionsMenu(cfg *config.Config) {
 // Help menu
 func helpMenu() {
 	utils.PrintLogo()
-	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
+	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
 	fmt.Print(`
   Tool usage:
   hardn [options]

@@ -53,6 +53,7 @@ echo "Downloading ${DOWNLOAD_URL}..."
 curl -L "$DOWNLOAD_URL" -o /usr/local/bin/hardn
 chmod +x /usr/local/bin/hardn
 
+echo ""
 echo "Installed hardn to /usr/local/bin"
 
 # Create config directory if it doesn't exist
@@ -67,3 +68,4 @@ echo "Reload your shell, and verify 'hardn --help'"
 echo ""
 echo "Note: Configuration examples will be available at /etc/hardn/hardn.yml.example"
 echo "      Run 'hardn' without arguments to enter interactive mode"
+echo ""
