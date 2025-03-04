@@ -42,15 +42,23 @@ release: test release-artifacts tag
 
 .PHONY: bump-major bump-minor bump-patch
 
+# Determine sed in-place editing syntax based on OS
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    SED_INPLACE = sed -i ''
+else
+    SED_INPLACE = sed -i
+endif
+
 bump-major:
 	$(eval VERSION_MAJOR=$(shell echo $$(($(VERSION_MAJOR)+1))))
 	$(eval VERSION_MINOR=0)
 	$(eval VERSION_PATCH=0)
 	@echo "Version bumped to $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"
-	sed -i '' 's/^VERSION_MAJOR=.*/VERSION_MAJOR=$(VERSION_MAJOR)/' makefile
-	sed -i '' 's/^VERSION_MINOR=.*/VERSION_MINOR=$(VERSION_MINOR)/' makefile
-	sed -i '' 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' makefile
-	sed -i '' 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' makefile
+	$(SED_INPLACE) 's/^VERSION_MAJOR=.*/VERSION_MAJOR=$(VERSION_MAJOR)/' makefile
+	$(SED_INPLACE) 's/^VERSION_MINOR=.*/VERSION_MINOR=$(VERSION_MINOR)/' makefile
+	$(SED_INPLACE) 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' makefile
+	$(SED_INPLACE) 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' makefile
 
 bump-minor:
 	$(eval VERSION_MINOR=$(shell echo $$(($(VERSION_MINOR)+1))))
@@ -65,8 +73,6 @@ bump-patch:
 	@echo "Version bumped to $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"
 	sed -i '' 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' makefile
 	sed -i '' 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' makefile
-
-
 
 all: clean build
 
@@ -95,18 +101,10 @@ cross-compile: linux darwin arm
 clean:
 	rm -rf $(BUILD_DIR)
 
-clean-local:
-	rm -f local.go.mod local.go.sum
-
 # Updated test target to handle vendoring properly
 test:
-	@if [ -f "local.go.mod" ]; then \
-		echo "Running tests with local.go.mod..."; \
-		go test -modfile=local.go.mod -v ./...; \
-	else \
-		echo "Running tests with standard Go modules..."; \
-		go test -v ./...; \
-	fi
+	@echo "Running tests with standard Go modules..."
+	go test -v ./...
 
 deps:
 	go get -v -u ./...
@@ -122,25 +120,25 @@ update-deps:
 install: build
 	cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/
 
+# For preparing a release by removing the replace directive
 prepare-release:
 	@echo "Preparing for release..."
 	@if grep -q "replace github.com/abbott/hardn" go.mod; then \
 		echo "Removing replace directive from go.mod..."; \
-		sed -i '/replace github.com\/abbott\/hardn/d' go.mod; \
-		echo "Running go mod tidy..."; \
+		go mod edit -dropreplace=github.com/abbott/hardn; \
 		go mod tidy; \
 	fi
-	@[ -f "local.go.mod" ] && echo "Note: local.go.mod exists but will not be used for release builds" || true
 	@echo "Verifying build..."
 	@make build
 	@echo "Build successful. Ready for release!"
 
+
+# For restoring development configuration
 restore-dev:
 	@echo "Restoring development configuration..."
 	@if ! grep -q "replace github.com/abbott/hardn" go.mod; then \
 		echo "Adding replace directive to go.mod..."; \
-		echo "replace github.com/abbott/hardn => ./" >> go.mod; \
-		echo "Running go mod tidy..."; \
+		go mod edit -replace=github.com/abbott/hardn=./; \
 		go mod tidy; \
 		echo "Development environment restored."; \
 	else \
@@ -165,7 +163,7 @@ deb: linux
 		$(BUILD_DIR)/deb/etc/hardn/hardn.yml.example=/etc/hardn/hardn.yml.example \
 		README.md=/usr/share/doc/hardn/README.md
 
-# Create a .rpm package (requires fpm)# Create a .rpm package (requires fpm)
+# Create a .rpm package (requires fpm)
 rpm: linux
 	@echo "Creating RPM package..."
 	@mkdir -p $(BUILD_DIR)/rpm/etc/hardn
@@ -256,10 +254,7 @@ fix-vendor:
 
 dev: setup-dev
 	mkdir -p $(BUILD_DIR)
-	go build -modfile=local.go.mod -mod=mod $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
-
-dev-test: setup-dev
-	go test -modfile=local.go.mod -mod=mod -v ./...
+	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
 
 run: dev
 	$(BUILD_DIR)/$(BINARY_NAME)
