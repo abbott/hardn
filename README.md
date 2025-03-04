@@ -31,15 +31,15 @@ If you are one of the following, **refrain from deploying this tool in the publi
 - **SSH Hardening**: Secure SSH configuration, key-based authentication
 - **User Management**: Create non-root users with sudo access
 - **Firewall Configuration**: UFW setup with sensible defaults
-- **Package Management**: Installation of essential security packages
-- **Multi-Distribution Support**: Works with Debian, Ubuntu, Proxmox, and Alpine
-- **DNS Configuration**: Secure DNS setup with trusted resolvers
+- **DNS Configuration**: Secure DNS setup with specific resolvers
 - **Automated Updates**: Configures unattended security updates
-- **System Auditing**: Lynis integration for security analysis
-- **AppArmor Setup**: Mandatory access control implementation
+- **System Auditing**: Install Lynis for comprehensive analysis
+- **Application Control**: Install AppArmor for application restrictions
+- **Preferred Packages**: Specify packages for Linux and Python
 - **Backup System**: Automatic backup of modified configuration files
-- **Dry-Run Mode**: Preview changes without applying them
 - **Interactive Menu**: User-friendly interface for system hardening
+- **Dry-Run Mode**: Preview changes without applying them
+- **Multi-Distribution Support**: Works with Debian, Ubuntu, Proxmox, and Alpine
 
 ## 📦 Installation
 
@@ -63,7 +63,7 @@ curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo 
 
 The script will:
 
-- Detect your operating system (e.g., Darwin for macOS or Linux for Linux distributions) and CPU architecture.
+- Detect your operating system (e.g., Debian, Proxmox, Alpine Linux) and CPU architecture.
 - Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-darwin-amd64` for macOS, `hardn-linux-amd64` for 64-bit Linux, etc.).
 - Download the asset and install it to `/usr/local/bin/hardn` with executable permissions.
 
@@ -88,7 +88,7 @@ curl -LO https://github.com/abbott/hardn/releases/latest/download/hardn-linux-am
    sudo mv hardn-linux-amd64 /usr/local/bin/hardn
    
    # Test installation
-   hardn --help
+   hardn -h # help
    ```
 
 ### Install From Source
@@ -101,7 +101,7 @@ cd hardn
 # Build
 make build
 
-# Example distribution
+# Example distribution (e.g. AMD64)
 GOOS=linux GOARCH=amd64 go build -o dist/hardn cmd/hardn/main.go
 
 # Install
@@ -111,22 +111,42 @@ sudo make install
 ### Troubleshooting
 
 - **Permission Issues:** If you encounter permission errors when writing to `/usr/local/bin`, ensure you’re running the command with `sudo`.
-- **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu or `brew install curl` on macOS).
+- **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu).
 
 
 ## 🚀 Usage
 
 ### Interactive Mode
 
-Run the tool without arguments to use the interactive menu:
+Run the tool without arguments to use the interactive menu for selecting hardening operations:
 
 ```bash
 sudo hardn
 ```
 
-This will present a menu-driven interface for selecting hardening operations.
-
 ### Command Line Mode
+
+
+| Function                  | Flag     | Description                                                    |
+|---------------------------|----------|----------------------------------------------------------------|
+| Config file (string)         | `-f, --config-file string`     | Specify configuration file path                                |
+| Username (string)                  | `-u, --username string`     | Specify username to create                             |
+| User (create)               | `-c, --create-user`     | Create non-root user with sudo access                          |
+| Root SSH (disable)              | `-d, --disable-root`     | Disable SSH access for root user                               |
+| DNS (configure)            | `-g, --configure-dns`     | Configure DNS settings                                         |
+| UFW (configure)             | `-w, --configure-ufw`     | Configure firewall with SSH rules                                 |
+| Run all (execute)             | `-r, --run-all`     | Run all hardening operations                                     |
+| Dry run (mode)              | `-n, --dry-run`     | Preview changes without applying them                          |
+| Linux packages (install)    | `-l, --install-linux`     | Install specified Linux packages                                     |
+| Python packages (install)   | `-i, --install-python`     | Install specified Python packages                            |
+| All packages (install)     | `-a, --install-all`     | Install all specified packages                                           |
+| Sources (configure)           | `-s, --configure-sources`     | Configure package sources                               |
+| Logs (print)               | `-p, --print-logs`     | View logs                                          |
+| Version (print)             | `-v --version`     | View version                                         |
+| Help (print)             | `-h, --help`     | Show usage information                                         |
+
+
+Examples
 
 ```bash
 # Run all hardening steps
@@ -135,7 +155,7 @@ sudo hardn -r
 # Create a non-root user with SSH access
 sudo hardn -u george -c
 
-# Install security packages
+# Install linu packages
 sudo hardn -l
 
 # Configure firewall

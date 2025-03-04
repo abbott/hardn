@@ -49,18 +49,19 @@ var (
 func init() {
 	// Add command line flags
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", 
-		"Config file path (can also be set with HARDN_CONFIG environment variable)")
-	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Username to create")
-	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
-	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create user")
+	"Specify configuration file path")
+	// "Specify configuration file path (optionally set HARDN_CONFIG as variable)")
+	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
+	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
 	rootCmd.PersistentFlags().BoolVarP(&disableRoot, "disable-root", "d", false, "Disable root SSH access")
 	rootCmd.PersistentFlags().BoolVarP(&installLinux, "install-linux", "l", false, "Install Linux packages")
 	rootCmd.PersistentFlags().BoolVarP(&installPython, "install-python", "i", false, "Install Python packages")
 	rootCmd.PersistentFlags().BoolVarP(&installAll, "install-all", "a", false, "Install all packages")
+	rootCmd.PersistentFlags().BoolVarP(&configureDns, "configure-dns", "g", false, "Configure DNS resolvers")
 	rootCmd.PersistentFlags().BoolVarP(&configureUfw, "configure-ufw", "w", false, "Configure UFW")
-	rootCmd.PersistentFlags().BoolVarP(&configureDns, "configure-dns", "g", false, "Configure DNS")
+	rootCmd.PersistentFlags().BoolVarP(&updateSources, "configure-sources", "s", false, "Update package sources")
 	rootCmd.PersistentFlags().BoolVarP(&runAll, "run-all", "r", false, "Run all hardening steps")
-	rootCmd.PersistentFlags().BoolVarP(&updateSources, "update-sources", "s", false, "Update package sources")
+	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 }

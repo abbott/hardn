@@ -33,15 +33,28 @@ func readInput() string {
 	return strings.TrimSpace(input)
 }
 
-// readKey reads a single key from the user
+// Improved readKey function - ignores escape sequences
 func readKey() string {
 	// Configure terminal for raw input
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
 	defer exec.Command("stty", "-F", "/dev/tty", "-cbreak").Run()
 
-	var b = make([]byte, 1)
-	os.Stdin.Read(b)
-	return string(b)
+	// Read the first byte
+	var firstByte = make([]byte, 1)
+	os.Stdin.Read(firstByte)
+	
+	// If it's an escape character (27), read and discard the sequence
+	if firstByte[0] == 27 {
+			// Read and discard the next two bytes (common for arrow keys)
+			var discardBytes = make([]byte, 2)
+			os.Stdin.Read(discardBytes)
+			
+			// Return empty to indicate a special key was pressed
+			// This will cause the code to just ignore the keypress
+			return ""
+	}
+	
+	return string(firstByte)
 }
 
 func RiskStatus(symbol string, color string, label string, status string, description string) string {
@@ -158,33 +171,48 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 
 		fmt.Println(style.SubHeader("Select an option"))
 
-		fmt.Println(style.Bolded("1) ") + " Create User                " + style.Dimmed("Create non-root user with sudo access"))
-		fmt.Println(style.Bolded("2) ") + " Disable Root SSH           " + style.Dimmed("Disable SSH access for root user"))
-		fmt.Println(style.Bolded("3) ") + " Install Linux Packages     " + style.Dimmed("Install hardening packages"))
-		fmt.Println(style.Bolded("4) ") + " Install Python Packages    " + style.Dimmed("Install Python development packages"))
-		fmt.Println(style.Bolded("5) ") + " Configure UFW              " + style.Dimmed("Set up firewall with SSH rules"))
-		fmt.Println(style.Bolded("6) ") + " Update Package Sources     " + style.Dimmed("Update repository configurations"))
-		fmt.Println(style.Bolded("7) ") + " Run All Hardening Steps    " + style.Dimmed("Complete system hardening"))
-		fmt.Println(style.Bolded("8) ") + " View Logs                  " + style.Dimmed("View hardening log file"))
-		fmt.Println(style.Bolded("9) ") + " Toggle Dry-Run Mode        " + style.Dimmed("Preview changes without applying them"))
-		fmt.Println(style.Bolded("10)") + " Configure DNS              " + style.Dimmed("Configure DNS settings"))
-		fmt.Println(style.Bolded("11)") + " Backup Options             " + style.Dimmed("Configure backup settings"))
-		fmt.Println(style.Bolded("12)") + " Help                       " + style.Dimmed("Show usage information"))
+		fmt.Println(style.Bolded("1) ") + " Sudo User            " + style.Dimmed("Create non-root user with sudo access"))
+		fmt.Println(style.Bolded("2) ") + " Root SSH             " + style.Dimmed("Disable SSH access for root user"))
+		fmt.Println(style.Bolded("3) ") + " DNS                  " + style.Dimmed("Configure DNS settings"))
+		fmt.Println(style.Bolded("4) ") + " Firewall/UFW         " + style.Dimmed("Configure firewall with SSH rules"))
+		fmt.Println(style.Bolded("5) ") + " Run All              " + style.Dimmed("Run all hardening operations"))
+		fmt.Println(style.Bolded("6) ") + " Dry-Run              " + style.Dimmed("Preview changes without applying them"))
+		fmt.Println(style.Bolded("7) ") + " Linux Packages       " + style.Dimmed("Install Linux packages"))
+		fmt.Println(style.Bolded("8) ") + " Python Packages      " + style.Dimmed("Install Python packages"))
+		fmt.Println(style.Bolded("9) ") + " Package Sources      " + style.Dimmed("Configure package source"))
+		fmt.Println(style.Bolded("10)") + " Backup               " + style.Dimmed("Configure backup settings"))
+		fmt.Println(style.Bolded("11)") + " Logs                 " + style.Dimmed("View log file"))
+		fmt.Println(style.Bolded("12)") + " Help                 " + style.Dimmed("Show usage information"))
 
 		// Exit option with color
-		fmt.Println("\n" + style.Bolded("0) ") + " Exit                       " + style.Dimmed("Tip: Press 'q' to exit immediately"))
+		fmt.Println("\n" + style.Bolded("0) ") + " Exit                 " + style.Dimmed("Tip: Press 'q' to exit immediately"))
 
 		fmt.Print("\n" + style.BulletItem + "Enter your choice [0-12 or q]: ")
 
 		// First check if q is pressed immediately without Enter
 		firstKey := readKey()
 		if firstKey == "q" || firstKey == "Q" {
-			fmt.Println("q")
-			utils.PrintHeader()
-			fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
-			// Add blank line after separator
-			fmt.Println()
-			return
+				fmt.Println("q")
+				utils.PrintHeader()
+				// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
+				fmt.Println(" Hardn has exited.")
+				// Add blank line after separator
+				fmt.Println()
+				return
+		}
+
+		// If firstKey is empty (like from an arrow key), try reading again
+		if firstKey == "" {
+				firstKey = readKey()
+				if firstKey == "" || firstKey == "q" || firstKey == "Q" {
+						fmt.Println("q")
+						utils.PrintHeader()
+						// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
+						fmt.Println(" Hardn has exited.")
+						// Add blank line after separator
+						fmt.Println()
+						return
+				}
 		}
 
 		// Read the rest of the line with standard input
@@ -200,23 +228,23 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		case "2":
 			disableRootMenu(cfg, osInfo)
 		case "3":
-			linuxPackagesMenu(cfg, osInfo)
-		case "4":
-			pythonPackagesMenu(cfg, osInfo)
-		case "5":
-			ufwMenu(cfg, osInfo)
-		case "6":
-			updateSourcesMenu(cfg, osInfo)
-		case "7":
-			runAllHardeningMenu(cfg, osInfo)
-		case "8":
-			viewLogsMenu(cfg)
-		case "9":
-			toggleDryRunMenu(cfg)
-		case "10":
 			configureDnsMenu(cfg, osInfo)
-		case "11":
+		case "4":
+			ufwMenu(cfg, osInfo)
+		case "5":
+			runAllHardeningMenu(cfg, osInfo)
+		case "6":
+			toggleDryRunMenu(cfg)
+		case "7":
+			linuxPackagesMenu(cfg, osInfo)
+		case "8":
+			pythonPackagesMenu(cfg, osInfo)
+		case "9":
+			updateSourcesMenu(cfg, osInfo)
+		case "10":
 			backupOptionsMenu(cfg)
+		case "11":
+			viewLogsMenu(cfg)
 		case "12":
 			helpMenu()
 		case "0":
@@ -759,23 +787,23 @@ func helpMenu() {
 	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
 	fmt.Print(`
   Tool usage:
-  hardening [options]
+  hardn [options]
 
   Command line options:
-    -u, --username string    Specify username to create
-    -c, --create-user        Create user
-    -d, --disable-root       Disable root SSH access
-    -l, --install-linux      Install Linux packages
-    -i, --install-python     Install Python packages
-    -a, --install-all        Install all packages
-    -f, --config-file string Configuration file path (default "hardn.yml")
-    -w, --configure-ufw      Configure UFW
-    -g, --configure-dns      Configure DNS settings
-    -r, --run-all            Run all hardening operations
-    -s, --update-sources     Update package sources
-    -p, --print-logs         Print logs
-    -n, --dry-run            Dry-run (preview changes without applying them)
-    -h, --help               Show this help information
+    -f, --config-file string  Configuration file path
+    -u, --username string     Specify username to create
+    -c, --create-user         Create user
+    -d, --disable-root        Disable root SSH access
+    -g, --configure-dns       Configure DNS resolvers
+    -w, --configure-ufw       Configure UFW
+    -r, --run-all             Run all hardening operations
+    -n, --dry-run             Preview changes without applying them
+    -l, --install-linux       Install Linux packages
+    -i, --install-python      Install Python packages
+    -a, --install-all         Install all packages
+    -s, --configure-sources   Configure package sources
+    -p, --print-logs          View logs
+    -h, --help                Show usage information
 
 `)
 	// Add blank line after separator

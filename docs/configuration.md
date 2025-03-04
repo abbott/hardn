@@ -12,9 +12,6 @@ Hardn searches for a configuration file in the following locations (in order):
 4. `~/.config/hardn/hardn.yml` (XDG Base Directory specification)
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 
-When running for the first time with no configuration found, Hardn will offer to create a default configuration file.
-
-The first configuration file found will be used. If no configuration file is found, Hardn will offer to create a default one.
 
 ## Creating a Configuration File
 
@@ -42,7 +39,8 @@ nano ~/.config/hardn/hardn.yml
 
 ### 3. Using the Default Configuration
 
-If no configuration file exists and you decline to create one, Hardn will use reasonable default values.
+If no configuration file exists and you decline, Hardn will create one at `/etc/hardn/hardn.yml` with default values.
+<!-- show/link default values -->
 
 ## Environment Variable
 
@@ -55,10 +53,10 @@ If you just need the variable for the current terminal session, run:
 export HARDN_CONFIG=$HOME/hardn.yml
 ```
 
-This setting will last only for the current shell session and will reset when you close the terminal or log out.
+This setting will reset when you close the terminal or log out.
 
 #### **Persistent Across Sessions**
-To make this configuration persist across reboots and new shell sessions, add it to your shell's startup file by issuing the following command for your respective shell:
+To make configuration persist across reboots and new shell sessions, add it to your shell's startup file by issuing the following command for your respective shell:
 
 ##### **For Bash**
 
@@ -94,7 +92,7 @@ sudo hardn -f /path/to/custom-config.yml
 
 ## Configuration Options
 
-The configuration file uses YAML format. Here are the main configuration sections:
+Here are the main configuration sections in YAML:
 
 ### Basic Configuration
 
@@ -141,6 +139,10 @@ disableRoot: false                  # Disable root SSH access
 For a complete list of configuration options, see the example configuration file at `/etc/hardn/hardn.yml.example`.
 
 ## Configuration Recommendations
+<!-- 
+create configuration definition table with each measure linking to best practices resource (e.g., 
+https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-best-practices)
+ -->
 
 1. **System Hardening**: For production servers, enable all security features:
    ```yaml
@@ -165,6 +167,7 @@ For a complete list of configuration options, see the example configuration file
    sshKeys:
      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@example.com"
    ```
+<!-- provide guide on creating and using SSH keys -->
 
 ## Best Practices
 
