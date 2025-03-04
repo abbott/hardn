@@ -1,11 +1,11 @@
 # Hardn
 
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) 
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
 
 A simple hardening tool for Linux.
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/a30366b0-5c56-475e-a617-57d5cd8a212e" width="800" alt="Hardn UI">
+    <img src="https://github.com/user-attachments/assets/1750fcee-c038-4458-bc77-ec5f5ffa35ab" width="800" alt="Hardn CLI menu">
 </p>
 
 ## What is it?
