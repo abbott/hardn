@@ -9,6 +9,23 @@ import (
 	"strings"
 )
 
+// MenuOption represents a menu option with a number, title, and description
+type MenuOption struct {
+	Number      int
+	Title       string
+	Description string
+}
+
+// Menu provides a formatted menu display
+type Menu struct {
+	title       string
+	options     []MenuOption
+	exitOption  *MenuOption
+	prompt      string
+	maxNumLen   int
+	titleWidth  int
+}
+
 const (
 	// Reset all styles
 	Reset = "\033[0m"
@@ -387,4 +404,157 @@ func PrintDivider(char string, length int, style ...string) {
 
 	// Print the divider
 	fmt.Println(Colored(styleCode, strings.Repeat(char, length)))
+}
+
+// NewMenu creates a new menu with the given title and options
+func NewMenu(title string, options []MenuOption) *Menu {
+	// Calculate maximum number length and title width
+	maxNumLen := 1 // At least 1 digit
+	titleWidth := 20 // Minimum width
+	
+	for _, opt := range options {
+		numLen := len(fmt.Sprintf("%d", opt.Number))
+		if numLen > maxNumLen {
+			maxNumLen = numLen
+		}
+		
+		titleLen := len(StripAnsi(opt.Title))
+		if titleLen > titleWidth {
+			titleWidth = titleLen
+		}
+	}
+	
+	return &Menu{
+		title:      title,
+		options:    options,
+		prompt:     "Enter your choice",
+		maxNumLen:  maxNumLen,
+		titleWidth: titleWidth,
+	}
+}
+
+// SetExitOption sets a custom exit option (default is 0: Exit)
+func (m *Menu) SetExitOption(option MenuOption) {
+	m.exitOption = &option
+	
+	// Update maxNumLen if necessary
+	numLen := len(fmt.Sprintf("%d", option.Number))
+	if numLen > m.maxNumLen {
+		m.maxNumLen = numLen
+	}
+	
+	// Update titleWidth if necessary
+	titleLen := len(StripAnsi(option.Title))
+	if titleLen > m.titleWidth {
+		m.titleWidth = titleLen
+	}
+}
+
+// SetPrompt sets a custom prompt
+func (m *Menu) SetPrompt(prompt string) {
+	m.prompt = prompt
+}
+
+// GetValidRange returns the valid range of option numbers as a string
+func (m *Menu) GetValidRange() string {
+	if len(m.options) == 0 {
+		return "0"
+	}
+	
+	min := m.options[0].Number
+	max := m.options[0].Number
+	
+	for _, opt := range m.options {
+		if opt.Number < min {
+			min = opt.Number
+		}
+		if opt.Number > max {
+			max = opt.Number
+		}
+	}
+	
+	// Include exit option in the range
+	exitNum := 0
+	if m.exitOption != nil {
+		exitNum = m.exitOption.Number
+	}
+	
+	if exitNum < min {
+		min = exitNum
+	}
+	
+	if exitNum > max {
+		max = exitNum
+	}
+	
+	if min == max {
+		return fmt.Sprintf("%d", min)
+	}
+	
+	return fmt.Sprintf("%d-%d", min, max)
+}
+
+// FormatOption formats a single menu option
+func (m *Menu) FormatOption(opt MenuOption) string {
+	// Format number with consistent padding
+	numStr := fmt.Sprintf("%d)", opt.Number)
+	
+	// Add extra space for single-digit numbers to align with double-digit numbers
+	if opt.Number < 10 {
+		numStr = " " + numStr
+	}
+	
+	numPadded := Bolded(numStr)
+	
+	// Add spacing after the number
+	numPadded += " "
+	
+	// Format title with consistent padding
+	titlePadded := PadRight(opt.Title, m.titleWidth + 4) // +4 for extra spacing
+	
+	// Add description
+	desc := Dimmed(opt.Description)
+	
+	return numPadded + titlePadded + desc
+}
+
+// Render returns the formatted menu as a string
+func (m *Menu) Render() string {
+	var sb strings.Builder
+	
+	// Title header
+	sb.WriteString("\n")
+	sb.WriteString(SubHeader(m.title))
+	
+	// Options
+	for _, opt := range m.options {
+		sb.WriteString("\n")
+		sb.WriteString(m.FormatOption(opt))
+	}
+	
+	// Exit option
+	sb.WriteString("\n\n")
+	if m.exitOption != nil {
+		sb.WriteString(m.FormatOption(*m.exitOption))
+	} else {
+		// Default exit option
+		exit := MenuOption{
+			Number:      0,
+			Title:       "Exit",
+			Description: "Tip: Press 'q' to exit immediately",
+		}
+		sb.WriteString(m.FormatOption(exit))
+	}
+	
+	// Prompt
+	sb.WriteString("\n\n")
+	sb.WriteString(BulletItem)
+	sb.WriteString(fmt.Sprintf("%s [%s or q]: ", m.prompt, m.GetValidRange()))
+	
+	return sb.String()
+}
+
+// Print displays the menu on stdout
+func (m *Menu) Print() {
+	fmt.Print(m.Render())
 }

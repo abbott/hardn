@@ -402,3 +402,36 @@ func checkPasswordAuth(osInfo *osdetect.OSInfo) bool {
 
 	return false // Default to vulnerable if not explicitly set
 }
+
+func CheckRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
+	var sshConfigPath string
+	if osInfo.OsType == "alpine" {
+		sshConfigPath = "/etc/ssh/sshd_config"
+	} else {
+		// For Debian/Ubuntu, check both main config and config.d
+		sshConfigPath = "/etc/ssh/sshd_config"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		}
+	}
+
+	file, err := os.Open(sshConfigPath)
+	if err != nil {
+		return true // Assume vulnerable if can't check
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "PermitRootLogin") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 && fields[1] == "no" {
+				return false
+			}
+			return true
+		}
+	}
+
+	return true // Default to vulnerable if not explicitly set
+}

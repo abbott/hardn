@@ -56,6 +56,15 @@ func LogError(format string, v ...interface{}) {
 	}
 }
 
+// LogError logs an error message
+func LogWarning(format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
+	color.Red("[ERROR] %s", msg)
+	if logger != nil {
+		logger.Printf("ERROR: %s", msg)
+	}
+}
+
 // LogInfo logs an info message
 func LogInfo(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
