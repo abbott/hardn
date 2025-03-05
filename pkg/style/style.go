@@ -334,6 +334,7 @@ func (sf *StatusFormatter) Initialize() {
 }
 
 // FormatLine formats a status line with proper alignment
+// FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	label string, status string, statusColor string, description string, statusWeight string) string {
 
@@ -343,7 +344,16 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
 	labelText := StripAnsi(label)
-	padding := strings.Repeat(" ", sf.maxLabelLen-len(labelText))
+	
+	// Fix: Ensure padding size is never negative
+	paddingSize := sf.maxLabelLen - len(labelText)
+	if paddingSize < 0 {
+		paddingSize = 0 // Prevent negative repeat count
+	}
+	
+	// Always add at least one space padding between label and status
+	padding := strings.Repeat(" ", paddingSize + 1)
+	
 	symbol = Colored(symbolColor, symbol)
 
 	if statusWeight == "bold" {
