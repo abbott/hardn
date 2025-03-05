@@ -18,21 +18,21 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Configure UFW firewall:")
 		logging.LogInfo("[DRY-RUN] - Enable UFW firewall with default policies (deny incoming, allow outgoing)")
-		
+
 		// Show SSH port policy
 		logging.LogInfo("[DRY-RUN] - Allow SSH on port %d/tcp", cfg.SshPort)
-		
+
 		if osInfo.OsType == "alpine" {
 			logging.LogInfo("[DRY-RUN] - Configure UFW to start on boot using OpenRC")
 		}
-		
+
 		// Show security recommendation if using default SSH port
 		if cfg.SshPort == 22 {
 			logging.LogInfo("[DRY-RUN] - SECURITY RECOMMENDATION: You are using the default SSH port (22)")
 			logging.LogInfo("[DRY-RUN] - Consider setting a non-standard SSH port (e.g., 2208) in your configuration file")
 			logging.LogInfo("[DRY-RUN] - This can help reduce automated SSH attacks targeting the default port")
 		}
-		
+
 		// Log application profiles
 		WriteUfwAppProfiles(cfg, osInfo)
 		return nil
@@ -77,20 +77,19 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	defaultInCmd := exec.Command("ufw", "default", "deny", "incoming")
 	output, err := defaultInCmd.CombinedOutput() // Capture both stdout and stderr
 	if err != nil {
-			logging.LogError("Failed to set default incoming policy: %v, output: %s", err, string(output))
-			return fmt.Errorf("failed to set default incoming policy: %w", err)
+		logging.LogError("Failed to set default incoming policy: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to set default incoming policy: %w", err)
 	}
 	logging.LogSuccess("Set default incoming policy to deny")
 
 	defaultOutCmd := exec.Command("ufw", "default", "allow", "outgoing")
 	output, err = defaultOutCmd.CombinedOutput() // Capture both stdout and stderr
 	if err != nil {
-			logging.LogError("Failed to set default outgoing policy: %v, output: %s", err, string(output))
-			return fmt.Errorf("failed to set default outgoing policy: %w", err)
+		logging.LogError("Failed to set default outgoing policy: %v, output: %s", err, string(output))
+		return fmt.Errorf("failed to set default outgoing policy: %w", err)
 	}
 	logging.LogSuccess("Set default outgoing policy to allow")
-	
-	// Add SSH port rule directly
+
 	sshPortStr := strconv.Itoa(cfg.SshPort)
 	sshAllowCmd := exec.Command("ufw", "allow", sshPortStr+"/tcp", "comment", "SSH")
 	if err := sshAllowCmd.Run(); err != nil {
@@ -136,7 +135,7 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 func WriteUfwAppProfiles(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Write UFW application profiles to /etc/ufw/applications.d/hardn")
-		
+
 		// Check if we need to create a default SSH profile
 		if len(cfg.UfwAppProfiles) == 0 && cfg.SshPort != 0 {
 			logging.LogInfo("[DRY-RUN] - No application profiles defined, creating default SSH profile")
@@ -154,7 +153,6 @@ func WriteUfwAppProfiles(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	// If no profiles defined, create a default SSH profile with configured SSH port
 	// if len(cfg.UfwAppProfiles) == 0 && cfg.SshPort != 0 {
 	// 	logging.LogInfo("No UFW application profiles defined, creating default SSH profile")
-	// 	// Add default SSH profile with the configured port
 	// 	cfg.UfwAppProfiles = append(cfg.UfwAppProfiles, config.UfwAppProfile{
 	// 		Name:        "SSH",
 	// 		Title:       "Secure Shell Server",

@@ -4,49 +4,49 @@ package style
 // Example usage: fmt.Printf("Important: %s\n", style.Bolded("This is highlighted text", style.Red))
 
 import (
-	"strings"
-	"regexp"
 	"fmt"
+	"regexp"
+	"strings"
 )
 
 const (
 	// Reset all styles
-	Reset 					= "\033[0m"
+	Reset = "\033[0m"
 
 	// Text colors - normal intensity
-	Black   				= "\033[30m"
-	Red     				= "\033[31m"
-	Green   				= "\033[32m"
-	Yellow  				= "\033[33m"
-	Blue    				= "\033[34m"
-	Magenta 				= "\033[35m"
-	Cyan    				= "\033[36m"
-	White   				= "\033[37m"
+	Black   = "\033[30m"
+	Red     = "\033[31m"
+	Green   = "\033[32m"
+	Yellow  = "\033[33m"
+	Blue    = "\033[34m"
+	Magenta = "\033[35m"
+	Cyan    = "\033[36m"
+	White   = "\033[37m"
 
-	BoldRed         = "\033[1;31;22m"
+	BoldRed = "\033[1;31;22m"
 
 	// Text colors - bright/light intensity
-	BrightBlack   	= "\033[90m"
-	BrightRed     	= "\033[91m"
-	BrightGreen   	= "\033[92m"
-	BrightYellow  	= "\033[93m"
-	BrightBlue    	= "\033[94m"
-	BrightMagenta 	= "\033[95m"
-	BrightCyan    	= "\033[96m"
-	BrightWhite   	= "\033[97m"
+	BrightBlack   = "\033[90m"
+	BrightRed     = "\033[91m"
+	BrightGreen   = "\033[92m"
+	BrightYellow  = "\033[93m"
+	BrightBlue    = "\033[94m"
+	BrightMagenta = "\033[95m"
+	BrightCyan    = "\033[96m"
+	BrightWhite   = "\033[97m"
 
 	// Special colors
-	DeepRed 				= "\033[38;5;88m"  // A more intense/deeper red
+	DeepRed = "\033[38;5;88m" // A more intense/deeper red
 
 	// Background colors - normal intensity
-	BgBlack   			= "\033[40m"
-	BgRed     			= "\033[41m"
-	BgGreen   			= "\033[42m"
-	BgYellow  			= "\033[43m"
-	BgBlue    			= "\033[44m"
-	BgMagenta 			= "\033[45m"
-	BgCyan    			= "\033[46m"
-	BgWhite   			= "\033[47m"
+	BgBlack   = "\033[40m"
+	BgRed     = "\033[41m"
+	BgGreen   = "\033[42m"
+	BgYellow  = "\033[43m"
+	BgBlue    = "\033[44m"
+	BgMagenta = "\033[45m"
+	BgCyan    = "\033[46m"
+	BgWhite   = "\033[47m"
 
 	// Background colors - bright/light intensity
 	BgBrightBlack   = "\033[100m"
@@ -59,48 +59,48 @@ const (
 	BgBrightWhite   = "\033[107m"
 
 	// Text effects
-	Bold      			= "\033[1m"
-	Dim       			= "\033[2m"
-	Italic    			= "\033[3m"
-	Underline 			= "\033[4m"
-	Blink     			= "\033[5m"
-	Reverse   			= "\033[7m"
-	Hidden    			= "\033[8m"
+	Bold      = "\033[1m"
+	Dim       = "\033[2m"
+	Italic    = "\033[3m"
+	Underline = "\033[4m"
+	Blink     = "\033[5m"
+	Reverse   = "\033[7m"
+	Hidden    = "\033[8m"
 
 	// Cursor control
-	CursorOn  			= "\033[?25h"
-	CursorOff 			= "\033[?25l"
+	CursorOn  = "\033[?25h"
+	CursorOff = "\033[?25l"
 
 	// Common symbols
-	SymAsterisk  		= "✱"
-	SymDotTri       = "⛬"
-	SymInfo      		= "ℹ" 
-	SymCheckMark 		= "✓"
-	SymCrossMark 		= "✗"
+	SymAsterisk  = "✱"
+	SymDotTri    = "⛬"
+	SymInfo      = "ℹ"
+	SymCheckMark = "✓"
+	SymCrossMark = "✗"
 
-	SymEmDash    		= "—"
-	SymEnDash    		= "–"
-	SymDash    	  	= "-"
-	SymEllipsis  		= "..."
+	SymEmDash   = "—"
+	SymEnDash   = "–"
+	SymDash     = "-"
+	SymEllipsis = "..."
 
-	SymArrowUp    	= "↑"
-	SymArrowDown  	= "↓"
-	SymArrowLeft  	= "←"
-	SymArrowRight 	= "→"
-	SymDoubleLeft   = "«"
-	SymDoubleRight  = "»"
+	SymArrowUp     = "↑"
+	SymArrowDown   = "↓"
+	SymArrowLeft   = "←"
+	SymArrowRight  = "→"
+	SymDoubleLeft  = "«"
+	SymDoubleRight = "»"
 
-	SymMultiply     = "×"
-	SymInfinity     = "∞"
-	SymDegree       = "°"
-	SymApprox       = "≈"
-	SymPercent      = "%"
+	SymMultiply = "×"
+	SymInfinity = "∞"
+	SymDegree   = "°"
+	SymApprox   = "≈"
+	SymPercent  = "%"
 
-	SymEnabled      = "◎"
-	SymBolt         = "⌁"
-	SymFlag         = "⚑"
-	SymWarning      = "▲"
-	SymStatus       = "▣"
+	SymEnabled = "◎"
+	SymBolt    = "⌁"
+	SymFlag    = "⚑"
+	SymWarning = "▲"
+	SymStatus  = "▣"
 
 	// Additional constants for layout
 	Indent     = "    "
@@ -198,10 +198,10 @@ func CenterText(text string, width int) string {
 	if len(text) >= width {
 		return text
 	}
-	
+
 	leftPadding := (width - len(text)) / 2
 	rightPadding := width - len(text) - leftPadding
-	
+
 	return strings.Repeat(" ", leftPadding) + text + strings.Repeat(" ", rightPadding)
 }
 
@@ -209,7 +209,7 @@ func PadRight(text string, width int) string {
 	if len(text) >= width {
 		return text
 	}
-	
+
 	return text + strings.Repeat(" ", width-len(text))
 }
 
@@ -259,12 +259,12 @@ func PrintSeparator(text string, width int, sepChar string, color string) {
 		textLen := len(StripAnsi(textWithSpaces))
 		leftLen := (width - textLen) / 2
 		rightLen := width - textLen - leftLen
-		
+
 		fmt.Println()
 		fmt.Println(
 			Bolded(strings.Repeat(sepChar, leftLen), color) +
-			Bolded(textWithSpaces, color) +
-			Bolded(strings.Repeat(sepChar, rightLen), color),
+				Bolded(textWithSpaces, color) +
+				Bolded(strings.Repeat(sepChar, rightLen), color),
 		)
 		fmt.Println()
 	} else {
@@ -287,10 +287,10 @@ func PrintBlankLine() {
 
 // StatusFormatter provides consistent formatting for status lines with dynamic alignment
 type StatusFormatter struct {
-	labels       []string
-	maxLabelLen  int
-	buffer       int
-	initialized  bool
+	labels      []string
+	maxLabelLen int
+	buffer      int
+	initialized bool
 }
 
 // NewStatusFormatter creates a new formatter with the given labels and buffer size
@@ -311,14 +311,13 @@ func (sf *StatusFormatter) Initialize() {
 			sf.maxLabelLen = len(label)
 		}
 	}
-	// Add buffer for spacing
+	// buffer for spacing
 	sf.maxLabelLen += sf.buffer
 	sf.initialized = true
 }
 
-
 // FormatLine formats a status line with proper alignment
-func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string, 
+func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	label string, status string, statusColor string, description string, statusWeight string) string {
 
 	if !sf.initialized {
@@ -339,7 +338,7 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	return symbol + " " + label + padding + status + " " + Dimmed(description)
 }
 
-func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status string, 
+func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status string,
 	statusColor string, description string, statusWeight string) string {
 
 	if !sf.initialized {
@@ -358,8 +357,6 @@ func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status stri
 
 	return symbol + " " + label + padding + status + " " + Dimmed(description)
 }
-
-
 
 // FormatSuccess creates a success status line
 func (sf *StatusFormatter) FormatSuccess(label string, status string, description string) string {
@@ -385,9 +382,9 @@ func PrintDivider(char string, length int, style ...string) {
 	// Default to dimmed style if none provided
 	styleCode := Dim
 	if len(style) > 0 {
-			styleCode = style[0]
+		styleCode = style[0]
 	}
-	
+
 	// Print the divider
 	fmt.Println(Colored(styleCode, strings.Repeat(char, length)))
 }

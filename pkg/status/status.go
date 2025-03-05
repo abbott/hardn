@@ -15,45 +15,45 @@ import (
 
 // SecurityStatus represents the security status of various system components
 type SecurityStatus struct {
-	RootLoginEnabled      bool
-	FirewallEnabled       bool
-	FirewallConfigured    bool
-	SecureUsers           bool
-	AppArmorEnabled       bool
-	UnattendedUpgrades    bool
-	SudoConfigured        bool
-	SshPortNonDefault     bool
-	PasswordAuthDisabled  bool
+	RootLoginEnabled     bool
+	FirewallEnabled      bool
+	FirewallConfigured   bool
+	SecureUsers          bool
+	AppArmorEnabled      bool
+	UnattendedUpgrades   bool
+	SudoConfigured       bool
+	SshPortNonDefault    bool
+	PasswordAuthDisabled bool
 }
 
 // CheckSecurityStatus examines the system and returns the security status
 func CheckSecurityStatus(cfg *config.Config, osInfo *osdetect.OSInfo) (*SecurityStatus, error) {
 	status := &SecurityStatus{}
-	
+
 	// Check SSH root login status
 	status.RootLoginEnabled = checkRootLoginEnabled(osInfo)
-	
+
 	// Check firewall status
 	status.FirewallEnabled, status.FirewallConfigured = checkFirewallStatus()
-	
+
 	// Check user security (non-root users with sudo)
 	status.SecureUsers = checkUserSecurity()
-	
+
 	// Check AppArmor status
 	status.AppArmorEnabled = checkAppArmorStatus(osInfo)
-	
+
 	// Check unattended upgrades
 	status.UnattendedUpgrades = checkUnattendedUpgrades(osInfo)
-	
+
 	// Check sudo configuration
 	status.SudoConfigured = checkSudoConfiguration()
-	
+
 	// Check SSH port configuration
 	status.SshPortNonDefault = (cfg.SshPort != 22)
-	
+
 	// Check password authentication
 	status.PasswordAuthDisabled = checkPasswordAuth(osInfo)
-	
+
 	return status, nil
 }
 
@@ -62,65 +62,65 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	// Create a formatter with all the labels we'll use
 	if formatter == nil {
 		formatter = style.NewStatusFormatter([]string{
-				"SSH Root Login",
-				"Firewall",
-				"Users", 
-				"SSH Port",
-				"SSH Auth",
-				"AppArmor",
-				"Auto Updates",
+			"SSH Root Login",
+			"Firewall",
+			"Users",
+			"SSH Port",
+			"SSH Auth",
+			"AppArmor",
+			"Auto Updates",
 		}, 2)
-}
-    // Display root login status
-    if status.RootLoginEnabled {
-        fmt.Println(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
-    } else {
-        fmt.Println(formatter.FormatSuccess("SSH Root Login", "Disabled", "secure"))
-    }
-    
-    // Display firewall status
-    if !status.FirewallEnabled {
-        fmt.Println(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
-    } else if !status.FirewallConfigured {
-        fmt.Println(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
-    } else {
-        fmt.Println(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
-    }
-    
-    // Display user security
-    if !status.SecureUsers {
-        fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
-    } else {
-        fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo privileges"))
-    }
-    
-    // Display SSH port status
-    if !status.SshPortNonDefault {
-        fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
-    } else {
-				fmt.Println(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
-    }
-    
-    // Display password authentication status
-    if !status.PasswordAuthDisabled {
-        fmt.Println(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
-    } else {
-        fmt.Println(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
-    }
-    
-    // Display AppArmor status
-    if !status.AppArmorEnabled {
-        fmt.Println(formatter.FormatWarning("AppArmor", "Not enabled", ""))
-    } else {
-        fmt.Println(formatter.FormatSuccess("AppArmor", "Enabled", ""))
-    }
-    
-    // Display unattended upgrades status
-    if !status.UnattendedUpgrades {
-        fmt.Println(formatter.FormatWarning("Auto Updates", "Not configured", ""))
-    } else {
-        fmt.Println(formatter.FormatSuccess("Auto Updates", "Configured", ""))
-    }
+	}
+	// Display root login status
+	if status.RootLoginEnabled {
+		fmt.Println(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
+	} else {
+		fmt.Println(formatter.FormatSuccess("SSH Root Login", "Disabled", "secure"))
+	}
+
+	// Display firewall status
+	if !status.FirewallEnabled {
+		fmt.Println(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
+	} else if !status.FirewallConfigured {
+		fmt.Println(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
+	} else {
+		fmt.Println(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
+	}
+
+	// Display user security
+	if !status.SecureUsers {
+		fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
+	} else {
+		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo privileges"))
+	}
+
+	// Display SSH port status
+	if !status.SshPortNonDefault {
+		fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
+	} else {
+		fmt.Println(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
+	}
+
+	// Display password authentication status
+	if !status.PasswordAuthDisabled {
+		fmt.Println(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
+	} else {
+		fmt.Println(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
+	}
+
+	// Display AppArmor status
+	if !status.AppArmorEnabled {
+		fmt.Println(formatter.FormatWarning("AppArmor", "Not enabled", ""))
+	} else {
+		fmt.Println(formatter.FormatSuccess("AppArmor", "Enabled", ""))
+	}
+
+	// Display unattended upgrades status
+	if !status.UnattendedUpgrades {
+		fmt.Println(formatter.FormatWarning("Auto Updates", "Not configured", ""))
+	} else {
+		fmt.Println(formatter.FormatSuccess("Auto Updates", "Configured", ""))
+	}
 }
 
 func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
@@ -150,17 +150,17 @@ func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 	if status.PasswordAuthDisabled {
 		score++
 	}
-	
+
 	// Determine risk level
 	var riskLevel, description, colorCode string
 	if score <= 2 {
 		riskLevel = "Critical"
 		description = "No security detected"
-		colorCode = style.Red  // Using DeepRed for Critical
+		colorCode = style.Red // Using DeepRed for Critical
 	} else if score <= 4 {
 		riskLevel = "High"
 		description = "Insufficient measures in place"
-		colorCode = style.Red  // Using DeepRed for High
+		colorCode = style.Red // Using DeepRed for High
 	} else if score <= 6 {
 		riskLevel = "Moderate"
 		description = "Some protections active"
@@ -174,7 +174,7 @@ func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 		description = "System well-hardened"
 		colorCode = style.Green
 	}
-	
+
 	return riskLevel, description, colorCode
 }
 
@@ -190,13 +190,13 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
 		}
 	}
-	
+
 	file, err := os.Open(sshConfigPath)
 	if err != nil {
 		return true // Assume vulnerable if can't check
 	}
 	defer file.Close()
-	
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -208,7 +208,7 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 			return true
 		}
 	}
-	
+
 	return true // Default to vulnerable if not explicitly set
 }
 
@@ -216,49 +216,49 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 func checkFirewallStatus() (bool, bool) {
 	enabled := false
 	configured := false
-	
+
 	// Check if UFW is installed and enabled
 	cmd := exec.Command("ufw", "status", "verbose")
 	output, err := cmd.CombinedOutput()
 	if err == nil {
-			statusOutput := string(output)
-			enabled = strings.Contains(statusOutput, "Status: active")
-			
-			// Check basic configuration
-			policyLines := 0
-			
-			// With verbose output, the default policies appear as:
-			// "Default: deny (incoming), allow (outgoing), disabled (routed)"
-			if strings.Contains(statusOutput, "Default:") {
-					if strings.Contains(statusOutput, "deny (incoming)") {
-							policyLines++
-					}
-					if strings.Contains(statusOutput, "allow (outgoing)") {
-							policyLines++
-					}
+		statusOutput := string(output)
+		enabled = strings.Contains(statusOutput, "Status: active")
+
+		// Check basic configuration
+		policyLines := 0
+
+		// With verbose output, the default policies appear as:
+		// "Default: deny (incoming), allow (outgoing), disabled (routed)"
+		if strings.Contains(statusOutput, "Default:") {
+			if strings.Contains(statusOutput, "deny (incoming)") {
+				policyLines++
 			}
-			
-			// Check that we have at least one rule for SSH
-			if strings.Contains(statusOutput, "ALLOW IN") && 
-				 strings.Contains(statusOutput, "/tcp") {
-					policyLines++
+			if strings.Contains(statusOutput, "allow (outgoing)") {
+				policyLines++
 			}
-			
-			configured = policyLines >= 3
+		}
+
+		// Check that we have at least one rule for SSH
+		if strings.Contains(statusOutput, "ALLOW IN") &&
+			strings.Contains(statusOutput, "/tcp") {
+			policyLines++
+		}
+
+		configured = policyLines >= 3
 	}
-	
+
 	// Check for iptables if UFW not found
 	if !enabled {
-			iptablesCmd := exec.Command("iptables", "-L")
-			iptablesOutput, err := iptablesCmd.CombinedOutput()
-			if err == nil {
-					rules := strings.Count(string(iptablesOutput), "Chain")
-					enabled = rules > 3
-					// Look for SSH related rules
-					configured = strings.Contains(strings.ToLower(string(iptablesOutput)), "ssh")
-			}
+		iptablesCmd := exec.Command("iptables", "-L")
+		iptablesOutput, err := iptablesCmd.CombinedOutput()
+		if err == nil {
+			rules := strings.Count(string(iptablesOutput), "Chain")
+			enabled = rules > 3
+			// Look for SSH related rules
+			configured = strings.Contains(strings.ToLower(string(iptablesOutput)), "ssh")
+		}
 	}
-	
+
 	return enabled, configured
 }
 
@@ -277,14 +277,14 @@ func checkUserSecurity() bool {
 			}
 		}
 	}
-	
+
 	// Alternative check: look for users in sudo/wheel group
 	groupFile, err := os.Open("/etc/group")
 	if err != nil {
 		return false
 	}
 	defer groupFile.Close()
-	
+
 	scanner := bufio.NewScanner(groupFile)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -295,7 +295,7 @@ func checkUserSecurity() bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -308,14 +308,14 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 		if err := cmd.Run(); err != nil {
 			return false
 		}
-		
+
 		// Check if AppArmor is in runlevel
 		rcCmd := exec.Command("rc-status", "default")
 		output, err := rcCmd.CombinedOutput()
 		if err != nil {
 			return false
 		}
-		
+
 		return strings.Contains(string(output), "apparmor")
 	} else {
 		// For Debian/Ubuntu, check AppArmor status
@@ -323,7 +323,7 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 		if err := cmd.Run(); err != nil {
 			return false
 		}
-		
+
 		return true
 	}
 }
@@ -342,13 +342,13 @@ func checkUnattendedUpgrades(osInfo *osdetect.OSInfo) bool {
 		if err := cmd.Run(); err != nil {
 			return false
 		}
-		
+
 		// Check if service is enabled
 		svcCmd := exec.Command("systemctl", "is-enabled", "unattended-upgrades")
 		if err := svcCmd.Run(); err != nil {
 			return false
 		}
-		
+
 		return true
 	}
 }
@@ -360,12 +360,12 @@ func checkSudoConfiguration() bool {
 	if err := sudoCmd.Run(); err != nil {
 		return false
 	}
-	
+
 	// Check if sudoers file exists
 	if _, err := os.Stat("/etc/sudoers"); err != nil {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -381,13 +381,13 @@ func checkPasswordAuth(osInfo *osdetect.OSInfo) bool {
 			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
 		}
 	}
-	
+
 	file, err := os.Open(sshConfigPath)
 	if err != nil {
 		return false // Assume vulnerable if can't check
 	}
 	defer file.Close()
-	
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -399,6 +399,6 @@ func checkPasswordAuth(osInfo *osdetect.OSInfo) bool {
 			return false
 		}
 	}
-	
+
 	return false // Default to vulnerable if not explicitly set
 }

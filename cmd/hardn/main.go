@@ -44,6 +44,7 @@ var (
 	updateSources bool
 	printLogs     bool
 	showVersion   bool // Flag to display version information
+	setupSudoEnv  bool
 	cfg           *config.Config
 )
 
@@ -68,9 +69,10 @@ func main() {
 }
 
 func init() {
-	// Add command line flags
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
 		"Specify configuration file path")
+
+	rootCmd.AddCommand(setupSudoEnvCmd)
 	// "Specify configuration file path (optionally set HARDN_CONFIG as variable)")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
@@ -85,6 +87,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
+	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false,
+		"Configure sudoers to preserve HARDN_CONFIG environment variable")
 }
 
 var rootCmd = &cobra.Command{
@@ -235,6 +239,34 @@ var rootCmd = &cobra.Command{
 		} else if createUser || disableRoot || installLinux || installPython ||
 			installAll || configureUfw || configureDns || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
+		}
+
+		if setupSudoEnv {
+			if err := utils.SetupSudoEnvPreservation(); err != nil {
+				logging.LogError("Failed to configure sudoers: %v", err)
+				os.Exit(1)
+			}
+			return
+		}
+	},
+}
+
+var setupSudoEnvCmd = &cobra.Command{
+	Use:   "setup-sudo-env",
+	Short: "Configure sudo to preserve HARDN_CONFIG environment variable",
+	Long: `This command adds a configuration to /etc/sudoers.d/ to ensure that 
+the HARDN_CONFIG environment variable is preserved when using sudo with hardn.
+This allows you to consistently use a custom configuration file location across
+all commands, even when requiring elevated privileges.
+
+This command must be run with sudo privileges.
+
+Example:
+  sudo hardn setup-sudo-env`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := utils.SetupSudoEnvPreservation(); err != nil {
+			logging.LogError("Failed to configure sudoers: %v", err)
+			os.Exit(1)
 		}
 	},
 }

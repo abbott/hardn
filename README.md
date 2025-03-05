@@ -1,6 +1,9 @@
 # Hardn
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
+
+
+<!-- [![Build]((https://github.com/abbott/hardn/workflows/build/badge.svg)](https://github.com/abbott/hardn/actions)  -->
 
 A simple hardening tool for Linux.
 
@@ -14,9 +17,9 @@ A simple hardening tool that automates basic security configurations for Debian,
 
 ## ⚠️ Security Disclaimer
 
-**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. Hardn should be part of a broader security strategy, not a "set it and forget it" solution. The binary distributions are **SLSA3 compliant**, but **are not suitable for enterprise deployments**.
+**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. `hardn` should be part of a broader security strategy, not a "set it and forget it" solution. While the binary distributions are [SLSA3](https://slsa.dev) compliant, they are **<ins>not suitable for enterprise deployments</ins>**.
 
-## 🎯 Target Audience/Usage
+## 🎯 Target Audience
 
 Anyone managing a **privately owned** Linux server, container, or virtual machine
 - Homelab enthusiasts, Students, Hobbyists
@@ -28,6 +31,24 @@ If you are one of the following, **refrain from deploying this tool in the publi
 
 ## ✨ Features
 
+
+| Feature                       | Description                                                    |
+|-------------------------------|----------------------------------------------------------------|
+| Tamper Protected Binary         | Releases are traceable to their source commit                                |
+| SSH Hardening                  | Secure SSH configuration, key-based authentication                             |
+| User Management               | Create non-root users w/sudo access                          |
+| Firewall Configuration               | UFW setup w/secure defaults                          |
+| DNS Configuration               | Secure DNS setup with specific resolvers                          |
+| Automated Updates               | Configures unattended security updates                          |
+| System Auditing               | Install Lynis for comprehensive analysis                          |
+| Application Control               | Install AppArmor for application restrictions                          |
+| Preferred Packages               | Specify packages for Linux and Python                          |
+| Backup System               | Automatic backup of modified configuration files                          |
+| Interactive Menu               | User-friendly interface for system hardening                          |
+| Dry-Run Mode               | Preview changes without applying them                          |
+| Multi-Distribution Support               | Works with Debian, Ubuntu, Proxmox, and Alpine                          |
+
+<!-- - **Tamper Protected Binary**: Releases are traceable to their source commit
 - **SSH Hardening**: Secure SSH configuration, key-based authentication
 - **User Management**: Create non-root users with sudo access
 - **Firewall Configuration**: UFW setup with sensible defaults
@@ -39,11 +60,11 @@ If you are one of the following, **refrain from deploying this tool in the publi
 - **Backup System**: Automatic backup of modified configuration files
 - **Interactive Menu**: User-friendly interface for system hardening
 - **Dry-Run Mode**: Preview changes without applying them
-- **Multi-Distribution Support**: Works with Debian, Ubuntu, Proxmox, and Alpine
+- **Multi-Distribution Support**: Works with Debian, Ubuntu, Proxmox, and Alpine -->
 
 ## 📦 Installation
 
-You can easily install the latest release of `hardn` using our installation script. The script automatically detects your host operating system and architecture, downloads the correct binary, and installs it to `/usr/local/bin`.
+You can easily install the latest release of `hardn` using the installation script. The script automatically detects your host operating system and architecture, downloads the correct binary, and installs it to `/usr/local/bin`.
 
 ### Prerequisites
 
@@ -67,9 +88,9 @@ The script will:
 - Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-linux-amd64` for 64-bit Linux, etc.).
 - Download the asset and install it to `/usr/local/bin` with executable permissions.
 
-### Updating Hardn
+### Updating
 
-To update Hardn to the latest release, simply re-run the installation command:
+To update `hardn` to the latest release, simply re-run the installation command:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
@@ -88,7 +109,7 @@ curl -LO https://github.com/abbott/hardn/releases/latest/download/hardn-linux-am
    sudo mv hardn-linux-amd64 /usr/local/bin/hardn
    
    # Test installation
-   hardn -h # help
+   sudo hardn -h # help
    ```
 
 ### Install From Source
@@ -124,7 +145,7 @@ Run `hardn` without arguments to use the interactive menu for selecting hardenin
 sudo hardn
 ```
 
-### Command Line Mode
+### Command Line
 
 
 | Function                  | Flag     | Description                                                    |
@@ -143,25 +164,25 @@ sudo hardn
 | Sources (configure)           | `-s, --configure-sources`     | Configure package sources                               |
 | Logs (print)               | `-p, --print-logs`     | View logs                                          |
 | Version (print)             | `-v --version`     | View version                                         |
-| Help (print)             | `-h, --help`     | Show usage information                                         |
+| Help (print)             | `-h, --help`     | View usage information                                         |
 
 
-Examples
+CLI Examples
 
 ```bash
-# Run all hardening steps
+# Run all hardening operations
 sudo hardn -r
 
-# Create a non-root user with SSH access
+# Create a non-root user w/SSH access
 sudo hardn -u george -c
 
-# Install linu packages
+# Install linux packages
 sudo hardn -l
 
 # Configure firewall
 sudo hardn -w
 
-# Enable dry-run mode to preview changes
+# Enable dry-run mode and preview all operations
 sudo hardn -n -r
 
 # Show version information
@@ -223,16 +244,16 @@ For a complete list of configuration options, review:
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
-Hardn implements SLSA Level 3 supply chain security for all releases. This provides the following security guarantees:
+`hardn` implements [SLSA](https://slsa.dev) Level 3 supply chain security for all releases. This provides the following security guarantees:
 
 - **Tamper Protection**: Each binary is signed and includes a provenance attestation
 - **Build Integrity**: Builds are performed in GitHub's trusted environment
 - **Source Verification**: Binaries are traceable back to their source commit
 - **Reproducibility**: The build process is fully documented in the provenance
 
-### Verifying a Release
+### Verifying Releases
 
-To verify a Hardn release:
+To verify a `hardn` release:
 
 1. Install the SLSA verifier:
    ```bash

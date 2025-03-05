@@ -62,7 +62,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			return fmt.Errorf("failed to create user %s on Alpine: %w", username, err)
 		}
 
-		// Add to wheel group (sudo group for Alpine)
+		// wheel group (sudo group for Alpine)
 		addGroupCmd := exec.Command("addgroup", username, "wheel")
 		if err := addGroupCmd.Run(); err != nil {
 			logging.LogError("Failed to add %s to wheel group: %v", username, err)
@@ -100,7 +100,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			return fmt.Errorf("failed to create SSH directory %s: %w", sshDirPath, err)
 		}
 
-		// Add SSH keys
+		// SSH keys
 		authorizedKeysPath := filepath.Join(sshDirPath, "authorized_keys")
 		authorizedKeysContent := strings.Join(cfg.SshKeys, "\n") + "\n"
 		if err := os.WriteFile(authorizedKeysPath, []byte(authorizedKeysContent), 0600); err != nil {
@@ -113,7 +113,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			logging.LogError("Failed to set ownership for SSH directory: %v", err)
 		}
 
-		// Add .hushlogin
+		// .hushlogin
 		hushLoginPath := filepath.Join(userHomeDir, ".hushlogin")
 		hushLoginFile, err := os.Create(hushLoginPath)
 		if err != nil {
@@ -132,7 +132,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			return fmt.Errorf("failed to create user %s on Debian/Ubuntu: %w", username, err)
 		}
 
-		// Add to sudo group
+		// sudo group
 		addGroupCmd := exec.Command("usermod", "-aG", "sudo", username)
 		if err := addGroupCmd.Run(); err != nil {
 			logging.LogError("Failed to add %s to sudo group: %v", username, err)
@@ -169,7 +169,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			logging.LogError("Failed to create SSH directory for user: %v", err)
 		}
 
-		// Add SSH keys
+		// SSH keys
 		for _, key := range cfg.SshKeys {
 			suKeyCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("echo '%s' >> ~/%s/authorized_keys", key, sshDir))
 			if err := suKeyCmd.Run(); err != nil {
@@ -183,7 +183,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 			logging.LogError("Failed to set permissions for authorized_keys: %v", err)
 		}
 
-		// Add .hushlogin
+		// .hushlogin
 		suHushCmd := exec.Command("su", "-", username, "-c", "touch ~/.hushlogin")
 		if err := suHushCmd.Run(); err != nil {
 			logging.LogError("Failed to create .hushlogin file: %v", err)

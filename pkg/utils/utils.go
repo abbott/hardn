@@ -30,7 +30,6 @@ func PrintHeader() {
 // 	fmt.Println()
 // }
 
-
 // PrintLogo prints the script logo
 func PrintLogo() {
 	fmt.Print("\033[H\033[2J")
@@ -42,7 +41,6 @@ func PrintLogo() {
       |  _  | (_| | | | (_| | | | |    | |___| | | | | |_| |>  <
       |_| |_|\__,_|_|  \__,_|_| |_|    |_____|_|_| |_|\__,_/_/\_\
 `)
-	// Add blank line after separator
 	fmt.Println()
 }
 

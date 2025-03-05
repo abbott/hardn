@@ -45,14 +45,26 @@ If no configuration file exists and you decline, `hardn` will create one at `/et
 
 You can set the `HARDN_CONFIG` environment variable to specify a configuration file location. This is particularly useful in automation scripts or when you want to maintain multiple configurations.
 
-#### **Temporary (Current Session Only)**
-If you just need the variable for the current terminal session, run:
+### Using with sudo
+
+When using `sudo`, environment variables are typically not preserved. To preserve the `HARDN_CONFIG` environment variable when using `sudo`, use the `setup-sudo-env` command which does the following:
+
+1. Create a file in `/etc/sudoers.d/` for your user
+2. Add a configuration line to preserve the `HARDN_CONFIG` environment variable
+3. Set the correct permissions on the file
+
+#### Workflow example
 
 ```bash
-export HARDN_CONFIG=$HOME/hardn.yml
-```
+# Set up sudo to preserve HARDN_CONFIG (only needs to be done once)
+sudo hardn setup-sudo-env
 
-This setting will reset when you close the terminal or log out.
+# Set your preferred config location for your current session
+export HARDN_CONFIG=$HOME/.config/hardn/hardn.yml
+
+# Run with sudo - the environment variable will be preserved
+sudo hardn
+```
 
 #### **Persistent Across Sessions**
 To make configuration persist across reboots and new shell sessions, add it to your shell's startup file by issuing the following command for your respective shell:
@@ -60,14 +72,15 @@ To make configuration persist across reboots and new shell sessions, add it to y
 ##### **For Bash**
 
 ```bash
-echo 'export HARDN_CONFIG=$HOME/hardn.yml' >> ~/.bashrc
+# For persistent configuration, add to your shell profile
+echo 'export HARDN_CONFIG=$HOME/.config/hardn/hardn.yml' >> ~/.bashrc
 # Reload the file to apply the changes
 source ~/.bashrc 
 ```
 ##### **For Zsh**
 
 ```bash
-echo 'export HARDN_CONFIG=$HOME/hardn.yml' >> ~/.zshrc
+echo 'export HARDN_CONFIG=$HOME/.config/hardn/hardn.yml' >> ~/.zshrc
 # Reload the file to apply the changes
 source ~/.zshrc
 ```
@@ -75,10 +88,20 @@ source ~/.zshrc
 ##### **For Fish**
 
 ```fish
-set -Ux HARDN_CONFIG $HOME/hardn.yml
+set -Ux HARDN_CONFIG $HOME/.config/hardn/hardn.yml
 ```
 
 If the environment variable is unavailable, restart your terminal.
+
+<!-- #### **Temporary (Current Session Only)**
+If you just need the variable for the current terminal session, run:
+
+```bash
+export HARDN_CONFIG=$HOME/hardn.yml
+```
+
+This setting will reset when you close the terminal or log out. -->
+
 
 ## Command Line Flags
 

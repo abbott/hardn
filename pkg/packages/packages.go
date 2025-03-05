@@ -79,7 +79,7 @@ https://dl-cdn.alpinelinux.org/alpine/v%s/main
 https://dl-cdn.alpinelinux.org/alpine/v%s/community
 `, versionPrefix, versionPrefix, versionPrefix, versionPrefix)
 
-		// Add testing repo if enabled
+		// testing repo if enabled
 		if cfg.AlpineTestingRepo {
 			content += `
 # Testing repository (use with caution)

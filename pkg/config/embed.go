@@ -189,22 +189,22 @@ pythonUnbuffered: "1"             # Python unbuffered mode
 // and creates it if it doesn't. This function is called during initialization.
 func EnsureExampleConfigExists() error {
 	exampleConfigPath := "/etc/hardn/hardn.yml.example"
-	
+
 	// Check if the example config file already exists
 	if _, err := os.Stat(exampleConfigPath); err == nil {
 		// File exists, no need to create it
 		return nil
 	}
-	
+
 	// Create the directory if it doesn't exist
 	if err := os.MkdirAll(filepath.Dir(exampleConfigPath), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for example config: %w", err)
 	}
-	
+
 	// Write the example config file
 	if err := os.WriteFile(exampleConfigPath, []byte(ExampleConfigContent), 0644); err != nil {
 		return fmt.Errorf("failed to write example config file: %w", err)
 	}
-	
+
 	return nil
 }

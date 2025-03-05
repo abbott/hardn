@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	osuser "os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -121,7 +123,6 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			fmt.Println(style.Bolded(separator, style.Green))
 		}
 
-		// Add blank line after separator
 		fmt.Println()
 
 		// Create a formatter that includes all labels (including Risk)
@@ -147,7 +148,6 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			fmt.Println(formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light"))
 		}
 
-		// Add blank line after divider
 		fmt.Println()
 
 		// Display detailed security status if available
@@ -157,7 +157,7 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 
 		// Display dry-run mode if active
-		fmt.Println() // Add extra spacing
+		fmt.Println()
 
 		// Format the dry-run mode status like other status lines
 		if cfg.DryRun {
@@ -166,23 +166,22 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			fmt.Println(formatter.FormatLine(style.SymAsterisk, style.BrightYellow, "Dry-run Mode", "Disabled", style.BrightYellow, "", "light"))
 		}
 
-		// Add a line after dry-run mode status
 		fmt.Println()
-
 		fmt.Println(style.SubHeader("Select an option"))
 
 		fmt.Println(style.Bolded("1) ") + " Sudo User            " + style.Dimmed("Create non-root user with sudo access"))
 		fmt.Println(style.Bolded("2) ") + " Root SSH             " + style.Dimmed("Disable SSH access for root user"))
 		fmt.Println(style.Bolded("3) ") + " DNS                  " + style.Dimmed("Configure DNS settings"))
-		fmt.Println(style.Bolded("4) ") + " Firewall/UFW         " + style.Dimmed("Configure firewall with SSH rules"))
+		fmt.Println(style.Bolded("4) ") + " Firewall             " + style.Dimmed("Configure UFW rules"))
 		fmt.Println(style.Bolded("5) ") + " Run All              " + style.Dimmed("Run all hardening operations"))
 		fmt.Println(style.Bolded("6) ") + " Dry-Run              " + style.Dimmed("Preview changes without applying them"))
-		fmt.Println(style.Bolded("7) ") + " Linux Packages       " + style.Dimmed("Install Linux packages"))
-		fmt.Println(style.Bolded("8) ") + " Python Packages      " + style.Dimmed("Install Python packages"))
+		fmt.Println(style.Bolded("7) ") + " Linux Packages       " + style.Dimmed("Install specified Linux packages"))
+		fmt.Println(style.Bolded("8) ") + " Python Packages      " + style.Dimmed("Install specified Python packages"))
 		fmt.Println(style.Bolded("9) ") + " Package Sources      " + style.Dimmed("Configure package source"))
 		fmt.Println(style.Bolded("10)") + " Backup               " + style.Dimmed("Configure backup settings"))
-		fmt.Println(style.Bolded("11)") + " Logs                 " + style.Dimmed("View log file"))
-		fmt.Println(style.Bolded("12)") + " Help                 " + style.Dimmed("Show usage information"))
+		fmt.Println(style.Bolded("11)") + " Environment          " + style.Dimmed("Configure environment variable support"))
+		fmt.Println(style.Bolded("12)") + " Logs                 " + style.Dimmed("View log file"))
+		fmt.Println(style.Bolded("13)") + " Help                 " + style.Dimmed("View usage information"))
 
 		// Exit option with color
 		fmt.Println("\n" + style.Bolded("0) ") + " Exit                 " + style.Dimmed("Tip: Press 'q' to exit immediately"))
@@ -196,7 +195,6 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			utils.PrintHeader()
 			// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
 			fmt.Println("Hardn has exited.")
-			// Add blank line after separator
 			fmt.Println()
 			return
 		}
@@ -209,7 +207,6 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 				utils.PrintHeader()
 				// fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
 				fmt.Println("Hardn has exited.")
-				// Add blank line after separator
 				fmt.Println()
 				return
 			}
@@ -244,19 +241,19 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		case "10":
 			backupOptionsMenu(cfg)
 		case "11":
-			viewLogsMenu(cfg)
+			environmentSettingsMenu(cfg)
 		case "12":
+			viewLogsMenu(cfg)
+		case "13":
 			helpMenu()
 		case "0":
 			utils.PrintHeader()
 			fmt.Println("\033[1;32m#\033[0m Hardn has exited.")
-			// Add blank line after separator
 			fmt.Println()
 			return
 		default:
 			utils.PrintHeader()
 			fmt.Println("\033[1;31m#\033[0m Invalid option. Please try again.")
-			// Add blank line after separator
 			fmt.Println()
 			fmt.Println("# Press any key to continue...")
 			readKey()
@@ -384,7 +381,6 @@ func disableRootMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Linux Packages Installation")
-	// Add blank line after separator
 	fmt.Println()
 
 	if osInfo.OsType == "alpine" {
@@ -449,7 +445,6 @@ func linuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 func pythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	utils.PrintHeader()
 	fmt.Println("\033[1;34m#\033[0m Python Packages Installation")
-	// Add blank line after separator
 	fmt.Println()
 
 	// Display current Python package management settings
@@ -695,6 +690,121 @@ func runAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	readKey()
 }
 
+func environmentSettingsMenu(cfg *config.Config) {
+	utils.PrintHeader()
+	fmt.Println("\033[1;34m#\033[0m Environment Variable Settings")
+
+	// Check if HARDN_CONFIG is set
+	configEnv := os.Getenv("HARDN_CONFIG")
+	if configEnv != "" {
+		fmt.Printf("\n\033[39m#\033[0m Current HARDN_CONFIG: \033[1;32m%s\033[0m\n", configEnv)
+	} else {
+		fmt.Println("\n\033[39m#\033[0m HARDN_CONFIG environment variable is not set")
+	}
+
+	// Check sudo preservation status
+	sudoPreservation := checkSudoEnvPreservation()
+	if sudoPreservation {
+		fmt.Println("\033[39m#\033[0m Sudo preservation: \033[1;32mEnabled\033[0m")
+	} else {
+		fmt.Println("\033[39m#\033[0m Sudo preservation: \033[1;31mDisabled\033[0m")
+	}
+
+	fmt.Println("\n\033[39m#\033[0m Select an option:")
+	fmt.Println("\033[1;36m#\033[0m 1) Setup sudo environment preservation")
+	fmt.Println("\033[1;36m#\033[0m 2) Show environment variables guide")
+	fmt.Println("\033[1;36m#\033[0m 0) Return to main menu")
+
+	fmt.Print("\n\033[39m#\033[0m Enter your choice [0-2]: ")
+	choice := readInput()
+
+	switch choice {
+	case "1":
+		// Run sudo env setup
+		fmt.Println("\n\033[39m#\033[0m Setting up sudo environment preservation...")
+
+		// Check if running as root
+		if os.Geteuid() != 0 {
+			fmt.Println("\n\033[1;31m#\033[0m This operation requires sudo privileges.")
+			fmt.Println("\033[39m#\033[0m Please run: sudo hardn setup-sudo-env")
+		} else {
+			err := utils.SetupSudoEnvPreservation()
+			if err != nil {
+				fmt.Printf("\n\033[1;31m#\033[0m Failed to configure sudo: %v\n", err)
+			}
+		}
+
+		fmt.Print("\n\033[39m#\033[0m Press any key to continue...")
+		readKey()
+		environmentSettingsMenu(cfg)
+
+	case "2":
+		// Show environment guide
+		utils.PrintHeader()
+		fmt.Println("\033[1;34m#\033[0m Environment Variables Guide")
+		fmt.Println("\n\033[39m#\033[0m HARDN_CONFIG Environment Variable")
+		fmt.Println("\033[39m#\033[0m ------------------------------------")
+		fmt.Println("\033[39m#\033[0m Set this variable to specify a custom config file location:")
+		fmt.Println("\033[39m#\033[0m   export HARDN_CONFIG=/path/to/your/config.yml")
+
+		fmt.Println("\n\033[39m#\033[0m Using with sudo")
+		fmt.Println("\033[39m#\033[0m ------------------------------------")
+		fmt.Println("\033[39m#\033[0m To preserve the variable when using sudo, run:")
+		fmt.Println("\033[39m#\033[0m   sudo hardn setup-sudo-env")
+
+		fmt.Println("\n\033[39m#\033[0m For persistent configuration:")
+		fmt.Println("\033[39m#\033[0m   echo 'export HARDN_CONFIG=/path/to/config.yml' >> ~/.bashrc")
+
+		fmt.Print("\n\033[39m#\033[0m Press any key to continue...")
+		readKey()
+		environmentSettingsMenu(cfg)
+
+	case "0":
+		return
+
+	default:
+		fmt.Println("\n\033[1;31m#\033[0m Invalid option. Please try again.")
+		fmt.Print("\n\033[39m#\033[0m Press any key to continue...")
+		readKey()
+		environmentSettingsMenu(cfg)
+	}
+}
+
+// Helper function to check if sudo preservation is enabled
+// Helper function to check if sudo preservation is enabled
+func checkSudoEnvPreservation() bool {
+	// First check for SUDO_USER which is the original user when using sudo
+	username := os.Getenv("SUDO_USER")
+
+	// If that's empty, fall back to USER
+	if username == "" {
+		username = os.Getenv("USER")
+
+		// If that's still empty, try to get username another way
+		if username == "" {
+			currentUser, err := osuser.Current()
+			if err != nil {
+				return false
+			}
+			username = currentUser.Username
+		}
+	}
+
+	// Check if sudoers file exists
+	sudoersFile := filepath.Join("/etc/sudoers.d", username)
+	if _, err := os.Stat(sudoersFile); os.IsNotExist(err) {
+		return false
+	}
+
+	// Check file content
+	data, err := os.ReadFile(sudoersFile)
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(data), "env_keep += \"HARDN_CONFIG\"")
+}
+
 // Function to view logs
 func viewLogsMenu(cfg *config.Config) {
 	utils.PrintHeader()
@@ -786,17 +896,16 @@ func helpMenu() {
     -w, --configure-ufw       Configure UFW
     -r, --run-all             Run all hardening operations
     -n, --dry-run             Preview changes without applying them
-    -l, --install-linux       Install Linux packages
-    -i, --install-python      Install Python packages
-    -a, --install-all         Install all packages
+    -l, --install-linux       Install specified Linux packages
+    -i, --install-python      Install specifiedPython packages
+    -a, --install-all         Install all specified packages
     -s, --configure-sources   Configure package sources
     -p, --print-logs          View logs
-    -h, --help                Show usage information
+    -h, --help                View usage information
 
 `)
-	// Add blank line after separator
-	fmt.Println()
 
+	fmt.Println()
 	fmt.Print("\n\033[39m#\033[0m Press any key to return to the main menu...")
 	readKey()
 }
