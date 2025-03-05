@@ -11,7 +11,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/status"
 	"github.com/abbott/hardn/pkg/style"
@@ -236,9 +235,9 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		case "11":
 			EnvironmentSettingsMenu(cfg)
 		case "12":
-			viewLogsMenu(cfg)
+			ViewLogsMenu(cfg)
 		case "13":
-			helpMenu()
+			HelpMenu()
 		case "0":
 			utils.PrintHeader()
 			fmt.Println("Hardn has exited.")
@@ -253,46 +252,3 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 	}
 }
-
-// Function to view logs
-func viewLogsMenu(cfg *config.Config) {
-	utils.PrintHeader()
-	fmt.Println("\033[1;34m#\033[0m View Logs")
-
-	logging.PrintLogs(cfg.LogFile)
-
-	fmt.Print("\n\033[39m#\033[0m Press any key to return to the main menu...")
-	ReadKey()
-}
-
-// Help menu
-func helpMenu() {
-	utils.PrintLogo()
-	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
-	fmt.Print(`
-  Tool usage:
-  hardn [options]
-
-  Command line options:
-    -f, --config-file string  Configuration file path
-    -u, --username string     Specify username to create
-    -c, --create-user         Create user
-    -d, --disable-root        Disable root SSH access
-    -g, --configure-dns       Configure DNS resolvers
-    -w, --configure-ufw       Configure UFW
-    -r, --run-all             Run all hardening operations
-    -n, --dry-run             Preview changes without applying them
-    -l, --install-linux       Install specified Linux packages
-    -i, --install-python      Install specifiedPython packages
-    -a, --install-all         Install all specified packages
-    -s, --configure-sources   Configure package sources
-    -p, --print-logs          View logs
-    -h, --help                View usage information
-
-`)
-
-	fmt.Println()
-	fmt.Print("\n\033[39m#\033[0m Press any key to return to the main menu...")
-	ReadKey()
-}
-

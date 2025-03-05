@@ -33,7 +33,7 @@ func SetupUnattendedUpgrades(cfg *config.Config, osInfo *osdetect.OSInfo) error 
 
 		// Create daily update script directory if it doesn't exist
 		if err := os.MkdirAll("/etc/periodic/daily", 0755); err != nil {
-			return fmt.Errorf("failed to create periodic directory: %w", err)
+			return fmt.Errorf("failed to create periodic directory for Alpine updates: %w", err)
 		}
 
 		// Create update script content
@@ -43,18 +43,18 @@ apk update && apk upgrade --available
 
 		// Write the update script
 		if err := os.WriteFile("/etc/periodic/daily/apk-upgrade", []byte(scriptContent), 0755); err != nil {
-			return fmt.Errorf("failed to write upgrade script: %w", err)
+			return fmt.Errorf("failed to write Alpine upgrade script: %w", err)
 		}
 
 		// Make sure crond is running
 		rcUpdateCmd := exec.Command("rc-update", "add", "crond", "default")
 		if err := rcUpdateCmd.Run(); err != nil {
-			logging.LogError("Failed to add crond to boot services: %v", err)
+			logging.LogError("Failed to add crond to Alpine boot services: %v", err)
 		}
 
 		rcServiceCmd := exec.Command("rc-service", "crond", "start")
 		if err := rcServiceCmd.Run(); err != nil {
-			logging.LogError("Failed to start crond service: %v", err)
+			logging.LogError("Failed to start crond service on Alpine: %v", err)
 		}
 
 		logging.LogSuccess("Alpine periodic updates configured")
@@ -62,7 +62,7 @@ apk update && apk upgrade --available
 		// Install unattended-upgrades on Debian/Ubuntu
 		installCmd := exec.Command("apt-get", "install", "-y", "unattended-upgrades")
 		if err := installCmd.Run(); err != nil {
-			return fmt.Errorf("failed to install unattended-upgrades: %w", err)
+			return fmt.Errorf("failed to install unattended-upgrades package: %w", err)
 		}
 
 		// Configure unattended-upgrades
@@ -104,23 +104,23 @@ func UpdateSystem(osInfo *osdetect.OSInfo) error {
 		// Alpine update
 		updateCmd := exec.Command("apk", "update")
 		if err := updateCmd.Run(); err != nil {
-			return fmt.Errorf("failed to update package list: %w", err)
+			return fmt.Errorf("failed to update Alpine package list: %w", err)
 		}
 
 		upgradeCmd := exec.Command("apk", "upgrade")
 		if err := upgradeCmd.Run(); err != nil {
-			return fmt.Errorf("failed to upgrade packages: %w", err)
+			return fmt.Errorf("failed to upgrade Alpine packages: %w", err)
 		}
 	} else {
 		// Debian/Ubuntu update
 		updateCmd := exec.Command("apt-get", "update")
 		if err := updateCmd.Run(); err != nil {
-			return fmt.Errorf("failed to update package list: %w", err)
+			return fmt.Errorf("failed to update Debian/Ubuntu package list: %w", err)
 		}
 
 		upgradeCmd := exec.Command("apt-get", "upgrade", "-y")
 		if err := upgradeCmd.Run(); err != nil {
-			return fmt.Errorf("failed to upgrade packages: %w", err)
+			return fmt.Errorf("failed to upgrade Debian/Ubuntu packages: %w", err)
 		}
 	}
 

@@ -39,13 +39,13 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		if osInfo.OsType == "alpine" {
 			cmd := exec.Command("apk", "add", "sudo")
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("failed to install sudo on Alpine: %w", err)
+				return fmt.Errorf("failed to install sudo on Alpine for user %s: %w", username, err)
 			}
 			logging.LogInstall("sudo")
 		} else {
 			cmd := exec.Command("apt-get", "update")
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("failed to update package indexes: %w", err)
+				return fmt.Errorf("failed to update package indexes for sudo installation: %w", err)
 			}
 			cmd = exec.Command("apt-get", "install", "-y", "sudo")
 			if err := cmd.Run(); err != nil {
@@ -73,7 +73,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Configure sudo
 		sudoersDir := "/etc/sudoers.d"
 		if err := os.MkdirAll(sudoersDir, 0755); err != nil {
-			return fmt.Errorf("failed to create sudoers.d directory: %w", err)
+			return fmt.Errorf("failed to create sudoers.d directory for user %s: %w", username, err)
 		}
 
 		sudoersFile := filepath.Join(sudoersDir, username)
@@ -87,7 +87,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		}
 
 		if err := os.WriteFile(sudoersFile, []byte(sudoersContent), 0440); err != nil {
-			return fmt.Errorf("failed to write sudoers file: %w", err)
+			return fmt.Errorf("failed to write sudoers file for user %s: %w", username, err)
 		}
 
 		// Extract the actual directory name from the SSH_KEY_PATH pattern
@@ -97,32 +97,32 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 
 		// Create SSH key directory
 		if err := os.MkdirAll(sshDirPath, 0700); err != nil {
-			return fmt.Errorf("failed to create SSH directory %s: %w", sshDirPath, err)
+			return fmt.Errorf("failed to create SSH directory %s for user %s: %w", sshDirPath, username, err)
 		}
 
 		// SSH keys
 		authorizedKeysPath := filepath.Join(sshDirPath, "authorized_keys")
 		authorizedKeysContent := strings.Join(cfg.SshKeys, "\n") + "\n"
 		if err := os.WriteFile(authorizedKeysPath, []byte(authorizedKeysContent), 0600); err != nil {
-			return fmt.Errorf("failed to write authorized_keys: %w", err)
+			return fmt.Errorf("failed to write authorized_keys for user %s: %w", username, err)
 		}
 
 		// Set permissions
 		chownCmd := exec.Command("chown", "-R", fmt.Sprintf("%s:%s", username, username), sshDirPath)
 		if err := chownCmd.Run(); err != nil {
-			logging.LogError("Failed to set ownership for SSH directory: %v", err)
+			logging.LogError("Failed to set ownership for SSH directory for user %s: %v", username, err)
 		}
 
 		// .hushlogin
 		hushLoginPath := filepath.Join(userHomeDir, ".hushlogin")
 		hushLoginFile, err := os.Create(hushLoginPath)
 		if err != nil {
-			logging.LogError("Failed to create .hushlogin file: %v", err)
+			logging.LogError("Failed to create .hushlogin file for user %s: %v", username, err)
 		} else {
 			hushLoginFile.Close()
 			chownHushCmd := exec.Command("chown", fmt.Sprintf("%s:%s", username, username), hushLoginPath)
 			if err := chownHushCmd.Run(); err != nil {
-				logging.LogError("Failed to set ownership for .hushlogin: %v", err)
+				logging.LogError("Failed to set ownership for .hushlogin for user %s: %v", username, err)
 			}
 		}
 	} else {
@@ -143,7 +143,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Configure sudo
 		sudoersDir := "/etc/sudoers.d"
 		if err := os.MkdirAll(sudoersDir, 0755); err != nil {
-			return fmt.Errorf("failed to create sudoers.d directory: %w", err)
+			return fmt.Errorf("failed to create sudoers.d directory for user %s: %w", username, err)
 		}
 
 		sudoersFile := filepath.Join(sudoersDir, username)
@@ -157,7 +157,7 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		}
 
 		if err := os.WriteFile(sudoersFile, []byte(sudoersContent), 0440); err != nil {
-			return fmt.Errorf("failed to write sudoers file: %w", err)
+			return fmt.Errorf("failed to write sudoers file for user %s: %w", username, err)
 		}
 
 		// Extract the actual directory name from the SSH_KEY_PATH pattern
@@ -166,27 +166,27 @@ func CreateUser(username string, cfg *config.Config, osInfo *osdetect.OSInfo) er
 		// Run commands as the new user to set up SSH
 		suCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("mkdir -p ~/%s && chmod 700 ~/%s", sshDir, sshDir))
 		if err := suCmd.Run(); err != nil {
-			logging.LogError("Failed to create SSH directory for user: %v", err)
+			logging.LogError("Failed to create SSH directory for user %s: %v", username, err)
 		}
 
 		// SSH keys
 		for _, key := range cfg.SshKeys {
 			suKeyCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("echo '%s' >> ~/%s/authorized_keys", key, sshDir))
 			if err := suKeyCmd.Run(); err != nil {
-				logging.LogError("Failed to add SSH key for user: %v", err)
+				logging.LogError("Failed to add SSH key for user %s: %v", username, err)
 			}
 		}
 
 		// Set permissions for authorized_keys
 		suPermCmd := exec.Command("su", "-", username, "-c", fmt.Sprintf("chmod 600 ~/%s/authorized_keys", sshDir))
 		if err := suPermCmd.Run(); err != nil {
-			logging.LogError("Failed to set permissions for authorized_keys: %v", err)
+			logging.LogError("Failed to set permissions for authorized_keys for user %s: %v", username, err)
 		}
 
 		// .hushlogin
 		suHushCmd := exec.Command("su", "-", username, "-c", "touch ~/.hushlogin")
 		if err := suHushCmd.Run(); err != nil {
-			logging.LogError("Failed to create .hushlogin file: %v", err)
+			logging.LogError("Failed to create .hushlogin file for user %s: %v", username, err)
 		}
 	}
 
@@ -199,7 +199,7 @@ func DeleteUser(username string, osInfo *osdetect.OSInfo) error {
 	// Check if user exists
 	_, err := user.Lookup(username)
 	if err != nil {
-		return fmt.Errorf("user %s does not exist", username)
+		return fmt.Errorf("user %s does not exist: %w", username, err)
 	}
 
 	logging.LogInfo("Deleting user %s...", username)

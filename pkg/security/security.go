@@ -39,12 +39,12 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// Enable AppArmor in OpenRC
 		rcUpdateCmd := exec.Command("rc-update", "add", "apparmor", "default")
 		if err := rcUpdateCmd.Run(); err != nil {
-			logging.LogError("Failed to add AppArmor to boot services: %v", err)
+			logging.LogError("Failed to add AppArmor to Alpine boot services: %v", err)
 		}
 
 		rcServiceCmd := exec.Command("rc-service", "apparmor", "start")
 		if err := rcServiceCmd.Run(); err != nil {
-			logging.LogError("Failed to start AppArmor service: %v", err)
+			logging.LogError("Failed to start AppArmor service on Alpine: %v", err)
 		}
 
 		// Apply profiles (Alpine version)
@@ -75,7 +75,7 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// Apply profiles
 		aaEnforceCmd := exec.Command("aa-enforce", "/etc/apparmor.d/*")
 		if err := aaEnforceCmd.Run(); err != nil {
-			logging.LogError("Failed to enforce AppArmor profiles: %v", err)
+			logging.LogError("Failed to enforce AppArmor profiles with wildcard: %v", err)
 			// Try individual profiles if wildcard fails
 			profilesDir := "/etc/apparmor.d"
 			if _, err := os.Stat(profilesDir); !os.IsNotExist(err) {
@@ -132,8 +132,9 @@ func SetupLynis(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	// Run Lynis audit
 	auditCmd := exec.Command("lynis", "audit", "system")
-	if err := auditCmd.Run(); err != nil {
-		return fmt.Errorf("failed to run Lynis audit: %w", err)
+	output, err := auditCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to run Lynis audit: %w\nOutput: %s", err, string(output))
 	}
 
 	logging.LogSuccess("Lynis installed and system audit completed")

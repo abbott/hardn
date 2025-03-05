@@ -24,12 +24,6 @@ func PrintHeader() {
 	fmt.Println()
 }
 
-// func PrintHeader(header string, color string) {
-// 	fmt.Println()
-// 	fmt.Println(Bolded(header, color))
-// 	fmt.Println()
-// }
-
 // PrintLogo prints the script logo
 func PrintLogo() {
 	fmt.Print("\033[H\033[2J")
@@ -59,7 +53,7 @@ func BackupFile(filePath string, cfg *config.Config) error {
 	// Create backup directory if it doesn't exist
 	backupDir := filepath.Join(cfg.BackupPath, time.Now().Format("2006-01-02"))
 	if err := os.MkdirAll(backupDir, 0755); err != nil {
-		return fmt.Errorf("failed to create backup directory: %w", err)
+		return fmt.Errorf("failed to create backup directory %s: %w", backupDir, err)
 	}
 
 	// Check if file exists
@@ -77,12 +71,12 @@ func BackupFile(filePath string, cfg *config.Config) error {
 	// Read original file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read file for backup: %w", err)
+		return fmt.Errorf("failed to read file %s for backup: %w", filePath, err)
 	}
 
 	// Write backup file
 	if err := os.WriteFile(backupFile, data, 0644); err != nil {
-		return fmt.Errorf("failed to write backup file: %w", err)
+		return fmt.Errorf("failed to write backup file to %s: %w", backupFile, err)
 	}
 
 	logging.LogInfo("Backed up %s to %s", filePath, backupFile)
@@ -93,7 +87,10 @@ func BackupFile(filePath string, cfg *config.Config) error {
 func RunCommand(name string, args ...string) (string, error) {
 	cmd := exec.Command(name, args...)
 	output, err := cmd.CombinedOutput()
-	return string(output), err
+	if err != nil {
+		return string(output), fmt.Errorf("command %s %v failed: %w", name, args, err)
+	}
+	return string(output), nil
 }
 
 // CheckSubnet checks if the specified subnet is present in the system's interfaces
@@ -171,7 +168,7 @@ func SetupHushlogin(cfg *config.Config) error {
 	if _, err := os.Stat(hushloginPath); os.IsNotExist(err) {
 		file, err := os.Create(hushloginPath)
 		if err != nil {
-			return fmt.Errorf("failed to create .hushlogin file: %w", err)
+			return fmt.Errorf("failed to create .hushlogin file at %s: %w", hushloginPath, err)
 		}
 		defer file.Close()
 
@@ -185,7 +182,7 @@ func SetupHushlogin(cfg *config.Config) error {
 func PrintLogs(logPath string) {
 	data, err := os.ReadFile(logPath)
 	if err != nil {
-		logging.LogError("Failed to read log file: %v", err)
+		logging.LogError("Failed to read log file %s: %v", logPath, err)
 		return
 	}
 

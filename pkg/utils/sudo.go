@@ -12,9 +12,6 @@ import (
 )
 
 // SetupSudoEnvPreservation configures sudoers to preserve the HARDN_CONFIG environment variable
-// Update in pkg/utils/sudo.go
-
-// SetupSudoEnvPreservation configures sudoers to preserve the HARDN_CONFIG environment variable
 func SetupSudoEnvPreservation() error {
 	// Check if running as root
 	if os.Geteuid() != 0 {
@@ -32,7 +29,7 @@ func SetupSudoEnvPreservation() error {
 
 		// If we're still root and can't determine the real user, error out
 		if currentUser.Username == "root" {
-			return fmt.Errorf("cannot determine the real username. Please run with sudo from a regular user account")
+			return fmt.Errorf("cannot determine the real username; please run with sudo from a regular user account")
 		}
 
 		sudoUser = currentUser.Username
@@ -43,7 +40,7 @@ func SetupSudoEnvPreservation() error {
 	// Ensure sudoers.d directory exists
 	sudoersDir := "/etc/sudoers.d"
 	if _, err := os.Stat(sudoersDir); os.IsNotExist(err) {
-		return fmt.Errorf("sudoers.d directory does not exist. Your system may not support sudo drop-in configurations")
+		return fmt.Errorf("sudoers.d directory does not exist; your system may not support sudo drop-in configurations: %w", err)
 	}
 
 	// Create/modify sudoers file for the user
@@ -55,7 +52,7 @@ func SetupSudoEnvPreservation() error {
 		// Read existing content
 		data, err := os.ReadFile(sudoersFile)
 		if err != nil {
-			return fmt.Errorf("failed to read existing sudoers file: %w", err)
+			return fmt.Errorf("failed to read existing sudoers file %s: %w", sudoersFile, err)
 		}
 		content = string(data)
 
@@ -75,19 +72,20 @@ func SetupSudoEnvPreservation() error {
 	// Create a temporary file for validation
 	tempFile := filepath.Join(os.TempDir(), "hardn_sudoers_temp")
 	if err := os.WriteFile(tempFile, []byte(content), 0440); err != nil {
-		return fmt.Errorf("failed to create temporary sudoers file: %w", err)
+		return fmt.Errorf("failed to create temporary sudoers file at %s: %w", tempFile, err)
 	}
 	defer os.Remove(tempFile)
 
 	// Validate the sudoers file
 	cmd := exec.Command("visudo", "-c", "-f", tempFile)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("invalid sudoers configuration: %w", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("invalid sudoers configuration: %w\nOutput: %s", err, string(output))
 	}
 
 	// Write the validated content to the actual sudoers file
 	if err := os.WriteFile(sudoersFile, []byte(content), 0440); err != nil {
-		return fmt.Errorf("failed to write sudoers file: %w", err)
+		return fmt.Errorf("failed to write sudoers file %s: %w", sudoersFile, err)
 	}
 
 	logging.LogSuccess("Successfully configured sudo to preserve HARDN_CONFIG environment variable for user: %s", sudoUser)

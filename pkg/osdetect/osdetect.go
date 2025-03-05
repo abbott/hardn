@@ -24,7 +24,7 @@ func DetectOS() (*OSInfo, error) {
 
 	// Check if /etc/os-release exists
 	if _, err := os.Stat("/etc/os-release"); os.IsNotExist(err) {
-		return nil, fmt.Errorf("cannot detect OS type: /etc/os-release not found")
+		return nil, fmt.Errorf("cannot detect OS type: /etc/os-release not found: %w", err)
 	}
 
 	// Read /etc/os-release
@@ -66,6 +66,8 @@ func DetectOS() (*OSInfo, error) {
 		logging.LogSuccess("Alpine Linux %s detected", osInfo.OsVersion)
 	} else if osInfo.OsType == "debian" || osInfo.OsType == "ubuntu" {
 		logging.LogSuccess("%s %s detected", osInfo.OsType, osInfo.OsCodename)
+	} else {
+		return nil, fmt.Errorf("unsupported OS type detected: %s", osInfo.OsType)
 	}
 
 	// Check if the system is Proxmox

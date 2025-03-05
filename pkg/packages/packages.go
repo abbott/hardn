@@ -90,13 +90,13 @@ https://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 		// Write the file
 		if err := os.WriteFile("/etc/apk/repositories", []byte(content), 0644); err != nil {
-			return fmt.Errorf("failed to write Alpine repositories: %w", err)
+			return fmt.Errorf("failed to write Alpine repositories for version %s: %w", versionPrefix, err)
 		}
 
 		// Update package index
 		cmd := exec.Command("apk", "update")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to update Alpine package index: %w", err)
+			return fmt.Errorf("failed to update Alpine package index for version %s: %w", versionPrefix, err)
 		}
 
 		logging.LogSuccess("Alpine repositories configured successfully")
@@ -115,7 +115,7 @@ https://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 		// Write the file
 		if err := os.WriteFile("/etc/apt/sources.list", []byte(content.String()), 0644); err != nil {
-			return fmt.Errorf("failed to write Proxmox sources list: %w", err)
+			return fmt.Errorf("failed to write Proxmox sources list for %s: %w", osInfo.OsCodename, err)
 		}
 
 		logging.LogSuccess("Proxmox repositories configured successfully")
@@ -134,7 +134,7 @@ https://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 		// Write the file
 		if err := os.WriteFile("/etc/apt/sources.list", []byte(content.String()), 0644); err != nil {
-			return fmt.Errorf("failed to write Debian/Ubuntu sources list: %w", err)
+			return fmt.Errorf("failed to write Debian/Ubuntu sources list for %s: %w", osInfo.OsCodename, err)
 		}
 
 		logging.LogSuccess("Debian/Ubuntu repositories configured successfully")
@@ -169,11 +169,11 @@ func WriteProxmoxRepos(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	// Write Ceph repository
 	if err := os.MkdirAll("/etc/apt/sources.list.d", 0755); err != nil {
-		return fmt.Errorf("failed to create sources.list.d directory: %w", err)
+		return fmt.Errorf("failed to create sources.list.d directory for Proxmox: %w", err)
 	}
 
 	if err := os.WriteFile("/etc/apt/sources.list.d/ceph.list", []byte(cephContent.String()), 0644); err != nil {
-		return fmt.Errorf("failed to write Proxmox Ceph repository: %w", err)
+		return fmt.Errorf("failed to write Proxmox Ceph repository for %s: %w", osInfo.OsCodename, err)
 	}
 
 	// Prepare content for Enterprise repository
@@ -190,7 +190,7 @@ func WriteProxmoxRepos(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	// Write Enterprise repository
 	if err := os.WriteFile("/etc/apt/sources.list.d/pve-enterprise.list", []byte(enterpriseContent.String()), 0644); err != nil {
-		return fmt.Errorf("failed to write Proxmox Enterprise repository: %w", err)
+		return fmt.Errorf("failed to write Proxmox Enterprise repository for %s: %w", osInfo.OsCodename, err)
 	}
 
 	logging.LogSuccess("Proxmox-specific repositories configured")
@@ -210,7 +210,7 @@ func HoldProxmoxPackages(osInfo *osdetect.OSInfo, patterns []string) error {
 		cmd := exec.Command("dpkg-query", "-W", "-f=${binary:Package}\n")
 		output, err := cmd.Output()
 		if err != nil {
-			return fmt.Errorf("failed to query packages: %w", err)
+			return fmt.Errorf("failed to query packages with pattern %s: %w", pattern, err)
 		}
 
 		// Mark packages as held
@@ -245,7 +245,7 @@ func UnholdProxmoxPackages(osInfo *osdetect.OSInfo, patterns []string) error {
 		cmd := exec.Command("dpkg-query", "-W", "-f=${binary:Package}\n")
 		output, err := cmd.Output()
 		if err != nil {
-			return fmt.Errorf("failed to query packages: %w", err)
+			return fmt.Errorf("failed to query packages with pattern %s for unhold: %w", pattern, err)
 		}
 
 		// Mark packages as unhold
@@ -279,13 +279,14 @@ func InstallPackages(packages []string, osInfo *osdetect.OSInfo, cfg *config.Con
 		return nil
 	}
 
-	logging.LogInfo("Installing %s packages: %s", osInfo.OsType, strings.Join(packages, ", "))
+	packagesList := strings.Join(packages, ", ")
+	logging.LogInfo("Installing %s packages: %s", osInfo.OsType, packagesList)
 
 	if osInfo.OsType == "alpine" {
 		cmd := exec.Command("apk", append([]string{"add", "--no-cache"}, packages...)...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("failed to install Alpine packages: %v\n%s", err, output)
+			return fmt.Errorf("failed to install Alpine packages [%s]: %w\n%s", packagesList, err, output)
 		}
 	} else {
 		// Hold Proxmox packages if necessary
@@ -297,7 +298,7 @@ func InstallPackages(packages []string, osInfo *osdetect.OSInfo, cfg *config.Con
 		updateCmd := exec.Command("apt-get", "update")
 		updateOutput, err := updateCmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("failed to update package lists: %v\n%s", err, updateOutput)
+			return fmt.Errorf("failed to update package lists for %s: %w\n%s", packagesList, err, updateOutput)
 		}
 
 		// Install locales first for Debian/Ubuntu
@@ -324,23 +325,23 @@ func InstallPackages(packages []string, osInfo *osdetect.OSInfo, cfg *config.Con
 		installCmd := exec.Command("apt-get", append([]string{"install", "--yes"}, packages...)...)
 		installOutput, err := installCmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("failed to install Debian/Ubuntu packages: %v\n%s", err, installOutput)
+			return fmt.Errorf("failed to install Debian/Ubuntu packages [%s]: %w\n%s", packagesList, err, installOutput)
 		}
 
 		// Clean up
 		autoremoveCmd := exec.Command("apt-get", "autoremove", "--yes")
 		if err := autoremoveCmd.Run(); err != nil {
-			logging.LogError("Failed to autoremove packages: %v", err)
+			logging.LogError("Failed to autoremove packages after installing %s: %v", packagesList, err)
 		}
 
 		cleanCmd := exec.Command("apt-get", "clean")
 		if err := cleanCmd.Run(); err != nil {
-			logging.LogError("Failed to clean package cache: %v", err)
+			logging.LogError("Failed to clean package cache after installing %s: %v", packagesList, err)
 		}
 
 		rmCmd := exec.Command("rm", "-rf", "/var/lib/apt/lists/*")
 		if err := rmCmd.Run(); err != nil {
-			logging.LogError("Failed to remove apt lists: %v", err)
+			logging.LogError("Failed to remove apt lists after installing %s: %v", packagesList, err)
 		}
 
 		// Unhold Proxmox packages
@@ -349,7 +350,7 @@ func InstallPackages(packages []string, osInfo *osdetect.OSInfo, cfg *config.Con
 		}
 	}
 
-	logging.LogInstall(strings.Join(packages, ", "))
+	logging.LogInstall(packagesList)
 	logging.LogSuccess("Linux packages installed successfully!")
 	return nil
 }
@@ -396,15 +397,17 @@ func InstallPythonPackages(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 			pyList = append(pyList, cfg.NonWslPythonPackages...)
 		}
 
+		pythonPackagesList := strings.Join(pyList, ", ")
+
 		// Install system packages first
 		cmd := exec.Command("apt-get", "update")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to update package lists: %w", err)
+			return fmt.Errorf("failed to update package lists for Python installation: %w", err)
 		}
 
 		cmd = exec.Command("apt-get", append([]string{"install", "--yes"}, pyList...)...)
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to install Python system packages: %w", err)
+			return fmt.Errorf("failed to install Python system packages [%s]: %w", pythonPackagesList, err)
 		}
 
 		// If UV package manager is enabled, install and use it for Python packages
@@ -422,7 +425,7 @@ func InstallPythonPackages(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 					logging.LogInfo("Installing pip3 first...")
 					pip3Cmd := exec.Command("apt-get", "install", "-y", "python3-pip")
 					if err := pip3Cmd.Run(); err != nil {
-						return fmt.Errorf("failed to install pip3: %w", err)
+						return fmt.Errorf("failed to install pip3 for UV installation: %w", err)
 					}
 				}
 
@@ -440,17 +443,19 @@ func InstallPythonPackages(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 			// Check if there are Python pip packages to install
 			if len(cfg.PythonPipPackages) > 0 {
-				logging.LogInfo("Installing Python pip packages with UV...")
+				pipPackagesList := strings.Join(cfg.PythonPipPackages, ", ")
+				logging.LogInfo("Installing Python pip packages with UV: %s", pipPackagesList)
 				uvPipCmd := exec.Command("uv", append([]string{"pip", "install"}, cfg.PythonPipPackages...)...)
 				if err := uvPipCmd.Run(); err != nil {
-					return fmt.Errorf("failed to install Python pip packages with UV: %w", err)
+					return fmt.Errorf("failed to install Python pip packages with UV [%s]: %w", pipPackagesList, err)
 				}
-				logging.LogInstall("Python pip packages via UV: %s", strings.Join(cfg.PythonPipPackages, ", "))
+				logging.LogInstall("Python pip packages via UV: %s", pipPackagesList)
 			}
 		} else {
 			// Use standard pip if UV is not enabled
 			if len(cfg.PythonPipPackages) > 0 {
-				logging.LogInfo("Installing Python pip packages with pip...")
+				pipPackagesList := strings.Join(cfg.PythonPipPackages, ", ")
+				logging.LogInfo("Installing Python pip packages with pip: %s", pipPackagesList)
 
 				// Check if pip3 is installed
 				_, err := exec.LookPath("pip3")
@@ -458,16 +463,16 @@ func InstallPythonPackages(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 					logging.LogInfo("Installing pip3 first...")
 					pip3Cmd := exec.Command("apt-get", "install", "-y", "python3-pip")
 					if err := pip3Cmd.Run(); err != nil {
-						return fmt.Errorf("failed to install pip3: %w", err)
+						return fmt.Errorf("failed to install pip3 for package installation: %w", err)
 					}
 				}
 
 				// Install pip packages
 				pipCmd := exec.Command("pip3", append([]string{"install"}, cfg.PythonPipPackages...)...)
 				if err := pipCmd.Run(); err != nil {
-					return fmt.Errorf("failed to install Python pip packages with pip: %w", err)
+					return fmt.Errorf("failed to install Python pip packages with pip [%s]: %w", pipPackagesList, err)
 				}
-				logging.LogInstall("Python pip packages: %s", strings.Join(cfg.PythonPipPackages, ", "))
+				logging.LogInstall("Python pip packages: %s", pipPackagesList)
 			}
 		}
 	}

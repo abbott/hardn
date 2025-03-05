@@ -78,7 +78,7 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	output, err := defaultInCmd.CombinedOutput() // Capture both stdout and stderr
 	if err != nil {
 		logging.LogError("Failed to set default incoming policy: %v, output: %s", err, string(output))
-		return fmt.Errorf("failed to set default incoming policy: %w", err)
+		return fmt.Errorf("failed to set default incoming policy in UFW: %w", err)
 	}
 	logging.LogSuccess("Set default incoming policy to deny")
 
@@ -86,7 +86,7 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	output, err = defaultOutCmd.CombinedOutput() // Capture both stdout and stderr
 	if err != nil {
 		logging.LogError("Failed to set default outgoing policy: %v, output: %s", err, string(output))
-		return fmt.Errorf("failed to set default outgoing policy: %w", err)
+		return fmt.Errorf("failed to set default outgoing policy in UFW: %w", err)
 	}
 	logging.LogSuccess("Set default outgoing policy to allow")
 
@@ -94,6 +94,7 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	sshAllowCmd := exec.Command("ufw", "allow", sshPortStr+"/tcp", "comment", "SSH")
 	if err := sshAllowCmd.Run(); err != nil {
 		logging.LogError("Failed to allow SSH port %s/tcp: %v", sshPortStr, err)
+		return fmt.Errorf("failed to create UFW rule to allow SSH on port %s/tcp: %w", sshPortStr, err)
 	} else {
 		logging.LogSuccess("Configured UFW rule for SSH on port %s/tcp", sshPortStr)
 	}
@@ -118,12 +119,12 @@ func ConfigureUFW(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	if osInfo.OsType == "alpine" {
 		bootCmd := exec.Command("rc-update", "add", "ufw", "default")
 		if err := bootCmd.Run(); err != nil {
-			logging.LogError("Failed to add UFW to boot services: %v", err)
+			logging.LogError("Failed to add UFW to Alpine boot services: %v", err)
 		}
 
 		startCmd := exec.Command("rc-service", "ufw", "start")
 		if err := startCmd.Run(); err != nil {
-			logging.LogError("Failed to start UFW service: %v", err)
+			logging.LogError("Failed to start UFW service on Alpine: %v", err)
 		}
 	}
 
@@ -149,17 +150,6 @@ func WriteUfwAppProfiles(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		}
 		return nil
 	}
-
-	// If no profiles defined, create a default SSH profile with configured SSH port
-	// if len(cfg.UfwAppProfiles) == 0 && cfg.SshPort != 0 {
-	// 	logging.LogInfo("No UFW application profiles defined, creating default SSH profile")
-	// 	cfg.UfwAppProfiles = append(cfg.UfwAppProfiles, config.UfwAppProfile{
-	// 		Name:        "SSH",
-	// 		Title:       "Secure Shell Server",
-	// 		Description: "OpenSSH server on custom port",
-	// 		Ports:       []string{fmt.Sprintf("%d/tcp", cfg.SshPort)},
-	// 	})
-	// }
 
 	// If there are no profiles to write, return
 	if len(cfg.UfwAppProfiles) == 0 {
@@ -189,7 +179,7 @@ func WriteUfwAppProfiles(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	// Write the file
 	if err := os.WriteFile("/etc/ufw/applications.d/hardn", []byte(content.String()), 0644); err != nil {
-		return fmt.Errorf("failed to write UFW application profiles: %w", err)
+		return fmt.Errorf("failed to write UFW application profiles file: %w", err)
 	}
 
 	// Apply the profiles
@@ -197,6 +187,7 @@ func WriteUfwAppProfiles(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		allowCmd := exec.Command("ufw", "allow", fmt.Sprintf("from any to any app '%s'", profile.Name))
 		if err := allowCmd.Run(); err != nil {
 			logging.LogError("Failed to enable UFW application profile %s: %v", profile.Name, err)
+			return fmt.Errorf("failed to enable UFW application profile %s: %w", profile.Name, err)
 		} else {
 			logging.LogSuccess("Enabled UFW application profile: %s", profile.Name)
 		}

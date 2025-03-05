@@ -79,13 +79,13 @@ AuthorizedKeysFile    .ssh/authorized_keys    %s/authorized_keys
 
 		// Write the file
 		if err := os.WriteFile("/etc/ssh/sshd_config", []byte(configContent), 0644); err != nil {
-			return fmt.Errorf("failed to write SSH config: %w", err)
+			return fmt.Errorf("failed to write Alpine SSH config for port %d: %w", cfg.SshPort, err)
 		}
 
 		// Restart SSH using OpenRC
 		cmd := exec.Command("rc-service", "sshd", "restart")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to restart SSH service: %w", err)
+			return fmt.Errorf("failed to restart Alpine SSH service for port %d: %w", cfg.SshPort, err)
 		}
 
 		logging.LogSuccess("SSH configured for Alpine Linux")
@@ -105,13 +105,13 @@ ListenStream=%d
 `, cfg.SshPort)
 
 		if err := os.WriteFile("/etc/systemd/system/ssh.socket.d/listen.conf", []byte(socketConfig), 0644); err != nil {
-			logging.LogError("Failed to set ssh port listener.")
-			return err
+			logging.LogError("Failed to set ssh port listener for port %d.", cfg.SshPort)
+			return fmt.Errorf("failed to write SSH socket config for port %d: %w", cfg.SshPort, err)
 		}
 
 		// Ensure config directory exists
 		if err := os.MkdirAll(filepath.Dir(cfg.SshConfigFile), 0755); err != nil {
-			return fmt.Errorf("failed to create SSH config directory: %w", err)
+			return fmt.Errorf("failed to create SSH config directory %s: %w", filepath.Dir(cfg.SshConfigFile), err)
 		}
 
 		// Determine root login setting
@@ -155,13 +155,13 @@ AuthorizedKeysFile    .ssh/authorized_keys    %s/authorized_keys
 
 		if err := os.WriteFile(cfg.SshConfigFile, []byte(configContent), 0644); err != nil {
 			logging.LogError("Failed to create %s", cfg.SshConfigFile)
-			return err
+			return fmt.Errorf("failed to write SSH config to %s: %w", cfg.SshConfigFile, err)
 		}
 
 		// Restart SSH
 		cmd := exec.Command("systemctl", "restart", "ssh")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to restart SSH service: %w", err)
+			return fmt.Errorf("failed to restart SSH service on port %d: %w", cfg.SshPort, err)
 		}
 
 		logging.LogSuccess("SSH configured for Debian/Ubuntu")
@@ -190,7 +190,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// For Alpine, modify the main sshd_config file
 		configFile := "/etc/ssh/sshd_config"
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
-			return fmt.Errorf("/etc/ssh/sshd_config not found")
+			return fmt.Errorf("/etc/ssh/sshd_config not found: %w", err)
 		}
 
 		utils.BackupFile(configFile, cfg)
@@ -198,7 +198,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// Read the file
 		content, err := os.ReadFile(configFile)
 		if err != nil {
-			return fmt.Errorf("failed to read SSH config: %w", err)
+			return fmt.Errorf("failed to read Alpine SSH config: %w", err)
 		}
 
 		// Modify the content
@@ -230,13 +230,13 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 		// Write back the file
 		if err := os.WriteFile(configFile, []byte(strings.Join(lines, "\n")), 0644); err != nil {
-			return fmt.Errorf("failed to write SSH config: %w", err)
+			return fmt.Errorf("failed to write updated Alpine SSH config: %w", err)
 		}
 
 		// Restart SSH
 		cmd := exec.Command("rc-service", "sshd", "restart")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to restart SSH service: %w", err)
+			return fmt.Errorf("failed to restart Alpine SSH service after disabling root login: %w", err)
 		}
 
 		logging.LogSuccess("Root SSH access disabled in Alpine Linux")
@@ -244,7 +244,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// For Debian/Ubuntu
 		configFile := cfg.SshConfigFile
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
-			return fmt.Errorf("SSH config file %s not found", configFile)
+			return fmt.Errorf("SSH config file %s not found: %w", configFile, err)
 		}
 
 		utils.BackupFile(configFile, cfg)
@@ -252,7 +252,7 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		// Read the file
 		content, err := os.ReadFile(configFile)
 		if err != nil {
-			return fmt.Errorf("failed to read SSH config: %w", err)
+			return fmt.Errorf("failed to read SSH config %s: %w", configFile, err)
 		}
 
 		// Modify the content
@@ -284,13 +284,13 @@ func DisableRootSSHAccess(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 		// Write back the file
 		if err := os.WriteFile(configFile, []byte(strings.Join(lines, "\n")), 0644); err != nil {
-			return fmt.Errorf("failed to write SSH config: %w", err)
+			return fmt.Errorf("failed to write updated SSH config to %s: %w", configFile, err)
 		}
 
 		// Restart SSH
 		cmd := exec.Command("systemctl", "restart", "ssh")
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to restart SSH service: %w", err)
+			return fmt.Errorf("failed to restart SSH service after disabling root login: %w", err)
 		}
 
 		logging.LogSuccess("Root SSH access disabled in Debian/Ubuntu")

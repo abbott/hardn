@@ -64,7 +64,7 @@ func ListBackups(filePath string, cfg *config.Config) ([]string, error) {
 	// Walk through backup directories
 	err := filepath.Walk(cfg.BackupPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("error accessing path %s: %w", path, err)
 		}
 
 		// Skip directories
@@ -73,7 +73,9 @@ func ListBackups(filePath string, cfg *config.Config) ([]string, error) {
 		}
 
 		// Check if this is a backup of our file
-		if matched, _ := filepath.Match(fmt.Sprintf("%s.*.bak", fileName), info.Name()); matched {
+		if matched, err := filepath.Match(fmt.Sprintf("%s.*.bak", fileName), info.Name()); err != nil {
+			return fmt.Errorf("error matching pattern for file %s: %w", info.Name(), err)
+		} else if matched {
 			backups = append(backups, path)
 		}
 
@@ -81,7 +83,7 @@ func ListBackups(filePath string, cfg *config.Config) ([]string, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to list backups: %w", err)
+		return nil, fmt.Errorf("failed to list backups for %s: %w", filePath, err)
 	}
 
 	return backups, nil
@@ -96,7 +98,7 @@ func RestoreBackup(backupPath, originalPath string, cfg *config.Config) error {
 
 	// Check if backup exists
 	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
-		return fmt.Errorf("backup file %s does not exist", backupPath)
+		return fmt.Errorf("backup file %s does not exist: %w", backupPath, err)
 	}
 
 	// Read backup file
@@ -108,7 +110,7 @@ func RestoreBackup(backupPath, originalPath string, cfg *config.Config) error {
 	// Make sure target directory exists
 	targetDir := filepath.Dir(originalPath)
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory for restored file: %w", err)
+		return fmt.Errorf("failed to create directory %s for restored file: %w", targetDir, err)
 	}
 
 	// Write restored file
@@ -137,7 +139,7 @@ func CleanupOldBackups(cfg *config.Config, daysToKeep int) error {
 			// Backup path doesn't exist yet - nothing to clean
 			return nil
 		}
-		return fmt.Errorf("failed to read backup directory: %w", err)
+		return fmt.Errorf("failed to read backup directory %s: %w", cfg.BackupPath, err)
 	}
 
 	// Check each directory
@@ -177,17 +179,19 @@ func VerifyBackupDirectory(cfg *config.Config) error {
 
 	// Create backup directory if it doesn't exist
 	if err := os.MkdirAll(cfg.BackupPath, 0755); err != nil {
-		return fmt.Errorf("failed to create backup directory: %w", err)
+		return fmt.Errorf("failed to create backup directory %s: %w", cfg.BackupPath, err)
 	}
 
 	// Check if directory is writable by writing a test file
 	testFile := filepath.Join(cfg.BackupPath, ".write_test")
 	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
-		return fmt.Errorf("backup directory is not writable: %w", err)
+		return fmt.Errorf("backup directory %s is not writable: %w", cfg.BackupPath, err)
 	}
 
 	// Clean up test file
-	os.Remove(testFile)
+	if err := os.Remove(testFile); err != nil {
+		logging.LogError("Failed to remove test file %s: %v", testFile, err)
+	}
 
 	logging.LogInfo("Backup directory %s verified", cfg.BackupPath)
 	return nil

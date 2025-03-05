@@ -41,6 +41,12 @@ func ConfigureDNS(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	logging.LogInfo("Configuring DNS settings...")
 
+	if len(cfg.Nameservers) == 0 {
+		return fmt.Errorf("no nameservers configured in configuration")
+	}
+
+	primaryNameserver := cfg.Nameservers[0]
+
 	// Check if systemd-resolved is active
 	cmd := exec.Command("systemctl", "is-active", "systemd-resolved")
 	if err := cmd.Run(); err == nil {
@@ -54,13 +60,13 @@ func ConfigureDNS(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 		// Write resolved.conf
 		if err := os.WriteFile("/etc/systemd/resolved.conf", []byte(content), 0644); err != nil {
-			return fmt.Errorf("failed to write resolved.conf: %w", err)
+			return fmt.Errorf("failed to write resolved.conf for nameserver %s: %w", primaryNameserver, err)
 		}
 
 		// Restart systemd-resolved
 		restartCmd := exec.Command("systemctl", "restart", "systemd-resolved")
 		if err := restartCmd.Run(); err != nil {
-			return fmt.Errorf("failed to restart systemd-resolved: %w", err)
+			return fmt.Errorf("failed to restart systemd-resolved for nameserver %s: %w", primaryNameserver, err)
 		}
 	} else if _, err := exec.LookPath("resolvconf"); err == nil {
 		// resolvconf is installed
@@ -76,16 +82,16 @@ func ConfigureDNS(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 		// Write head file
 		if err := os.MkdirAll("/etc/resolvconf/resolv.conf.d", 0755); err != nil {
-			return fmt.Errorf("failed to create resolvconf directory: %w", err)
+			return fmt.Errorf("failed to create resolvconf directory for nameserver %s: %w", primaryNameserver, err)
 		}
 		if err := os.WriteFile("/etc/resolvconf/resolv.conf.d/head", []byte(content), 0644); err != nil {
-			return fmt.Errorf("failed to write resolvconf head file: %w", err)
+			return fmt.Errorf("failed to write resolvconf head file with nameserver %s: %w", primaryNameserver, err)
 		}
 
 		// Update resolvconf
 		resolvCmd := exec.Command("resolvconf", "-u")
 		if err := resolvCmd.Run(); err != nil {
-			return fmt.Errorf("failed to update resolvconf: %w", err)
+			return fmt.Errorf("failed to update resolvconf with nameserver %s: %w", primaryNameserver, err)
 		}
 	} else {
 		// Direct approach
@@ -101,10 +107,10 @@ func ConfigureDNS(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 		// Write resolv.conf
 		if err := os.WriteFile("/etc/resolv.conf", []byte(content), 0644); err != nil {
-			return fmt.Errorf("failed to write resolv.conf: %w", err)
+			return fmt.Errorf("failed to write resolv.conf with nameserver %s: %w", primaryNameserver, err)
 		}
 	}
 
-	logging.LogSuccess("DNS configured successfully")
+	logging.LogSuccess("DNS configured successfully with nameserver %s", primaryNameserver)
 	return nil
 }

@@ -28,7 +28,7 @@ func InitLogging(logPath string) {
 	var err error
 	logFile, err = os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		fmt.Printf("Failed to open log file: %v\n", err)
+		fmt.Printf("Failed to open log file %s: %v\n", logPath, err)
 		logFile = nil
 	}
 
@@ -43,7 +43,9 @@ func InitLogging(logPath string) {
 // CloseLogging closes the log file
 func CloseLogging() {
 	if logFile != nil {
-		logFile.Close()
+		if err := logFile.Close(); err != nil {
+			fmt.Printf("Failed to close log file: %v\n", err)
+		}
 	}
 }
 
@@ -56,12 +58,12 @@ func LogError(format string, v ...interface{}) {
 	}
 }
 
-// LogError logs an error message
+// LogWarning logs a warning message
 func LogWarning(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Red("[ERROR] %s", msg)
+	color.Yellow("[WARNING] %s", msg) // Changed from Red to Yellow for warnings
 	if logger != nil {
-		logger.Printf("ERROR: %s", msg)
+		logger.Printf("WARNING: %s", msg) // Changed from ERROR to WARNING
 	}
 }
 
@@ -96,7 +98,7 @@ func LogInstall(format string, v ...interface{}) {
 func PrintLogs(logPath string) {
 	data, err := os.ReadFile(logPath)
 	if err != nil {
-		LogError("Failed to read log file: %v", err)
+		LogError("Failed to read log file %s: %v", logPath, err)
 		return
 	}
 

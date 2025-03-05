@@ -186,46 +186,6 @@ func ConfigFileSearchPath(explicitPath string) []string {
 	return searchPaths
 }
 
-// func FindConfigFile(explicitPath string) (string, bool) {
-// 	// Check explicit path from command line flag
-// 	if explicitPath != "" {
-// 		if _, err := os.Stat(explicitPath); err == nil {
-// 			logging.LogInfo("Using configuration from command-line flag: %s", explicitPath)
-// 			return explicitPath, true
-// 		} else {
-// 			logging.LogError("Configuration file specified by command-line flag not found: %s", explicitPath)
-// 			return "", false // Don't fall back if explicit path doesn't exist
-// 		}
-// 	}
-
-// 	// Check environment variable
-// 	envPath := os.Getenv("HARDN_CONFIG")
-// 	if envPath != "" {
-// 		if _, err := os.Stat(envPath); err == nil {
-// 			logging.LogInfo("Using configuration from HARDN_CONFIG environment variable: %s", envPath)
-// 			return envPath, true
-// 		} else {
-// 			logging.LogError("Configuration file specified by HARDN_CONFIG environment variable not found: %s", envPath)
-// 			return "", false // Don't fall back if env path doesn't exist
-// 		}
-// 	}
-
-// 	// If neither explicit path nor environment variable, search default locations
-// 	searchPaths := ConfigFileSearchPath("")
-
-// 	for _, path := range searchPaths {
-// 		if _, err := os.Stat(path); err == nil {
-// 			logging.LogInfo("Using configuration from: %s", path)
-// 			return path, true
-// 		}
-// 	}
-
-// 	// No configuration file found in any location
-// 	logging.LogInfo("No configuration file found in any standard location")
-// 	return "", false
-// }
-
-// Enhance LoadConfig to make environment variable priority clear
 // Direct replacement for the FindConfigFile function in pkg/config/config.go
 // This ensures environment variables have the highest priority
 
@@ -295,7 +255,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 		if ShouldCreateDefaultConfig() {
 			path := GetDefaultConfigLocation()
 			if err := CreateDefaultConfig(path, config); err != nil {
-				return nil, fmt.Errorf("failed to create default config: %w", err)
+				return nil, fmt.Errorf("failed to create default config at %s: %w", path, err)
 			}
 			return config, nil
 		}
@@ -313,7 +273,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 
 	// Parse YAML
 	if err := yaml.Unmarshal(data, config); err != nil {
-		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", configPath, err)
 	}
 
 	return config, nil
@@ -408,7 +368,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 	dir := filepath.Dir(path)
 	if dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory for config file: %w", err)
+			return fmt.Errorf("failed to create directory for config file at %s: %w", dir, err)
 		}
 	}
 
@@ -417,11 +377,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 		reader := bufio.NewReader(os.Stdin)
 
 		// Ask for username
-		fmt.Print("Enter default username [george ")
+		fmt.Print("Enter default username [george]: ")
 		username, _ := reader.ReadString('\n')
 		username = strings.TrimSpace(username)
 		if username != "" {
 			config.Username = username
+		} else {
+			config.Username = "george" // Default if nothing provided
 		}
 
 		// Ask for SSH port
@@ -452,7 +414,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 	// Save config
 	if err := SaveConfig(config, path); err != nil {
-		return fmt.Errorf("failed to save default config: %w", err)
+		return fmt.Errorf("failed to save default config to %s: %w", path, err)
 	}
 
 	fmt.Printf("Created configuration file at %s\n", path)
@@ -471,12 +433,20 @@ func SaveConfig(config *Config, filePath string) error {
 	// Marshal YAML
 	data, err := yaml.Marshal(config)
 	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
+		return fmt.Errorf("failed to marshal config to YAML: %w", err)
+	}
+
+	// Create directory if it doesn't exist
+	dir := filepath.Dir(filePath)
+	if dir != "." {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory %s for config: %w", dir, err)
+		}
 	}
 
 	// Write file
 	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write config file: %w", err)
+		return fmt.Errorf("failed to write config file to %s: %w", filePath, err)
 	}
 
 	return nil
