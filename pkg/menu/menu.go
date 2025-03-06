@@ -231,7 +231,7 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		case "9":
 			UpdateSourcesMenu(cfg, osInfo)
 		case "10":
-			BackupOptionsMenu(cfg)
+			// BackupOptionsMenu(cfg)
 		case "11":
 			EnvironmentSettingsMenu(cfg)
 		case "12":

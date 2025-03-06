@@ -125,9 +125,27 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	firewallManager := f.CreateFirewallManager() 
 	dnsManager := f.CreateDNSManager()
 	packageManager := f.CreatePackageManager()
+	backupManager := f.CreateBackupManager()
 	securityManager := application.NewSecurityManager(
 			userManager, sshManager, firewallManager, dnsManager)
 	
 	return application.NewMenuManager(
-			userManager, sshManager, firewallManager, dnsManager, packageManager, securityManager)
+			userManager, sshManager, firewallManager, dnsManager, packageManager, backupManager, securityManager)
+}
+
+// CreateBackupManager creates a BackupManager
+func (f *ServiceFactory) CreateBackupManager() *application.BackupManager {
+	// Create repository
+	backupRepo := secondary.NewFileBackupRepository(
+		f.provider.FS,
+		f.provider.Commander,
+		f.config.BackupPath,
+		f.config.EnableBackups,
+	)
+	
+	// Create domain service
+	backupService := service.NewBackupServiceImpl(backupRepo)
+	
+	// Create application service
+	return application.NewBackupManager(backupService)
 }

@@ -13,6 +13,7 @@ type MenuManager struct {
 	firewallManager *FirewallManager
 	dnsManager      *DNSManager
 	packageManager  *PackageManager
+	backupManager   *BackupManager
 	securityManager *SecurityManager
 }
 
@@ -22,6 +23,7 @@ func NewMenuManager(
 	firewallManager *FirewallManager,
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
+	backupManager *BackupManager,
 	securityManager *SecurityManager,
 ) *MenuManager {
 	return &MenuManager{
@@ -30,6 +32,7 @@ func NewMenuManager(
 			firewallManager: firewallManager,
 			dnsManager:      dnsManager,
 			packageManager:  packageManager,
+			backupManager:   backupManager,
 			securityManager: securityManager,
 	}
 }
@@ -105,4 +108,29 @@ func (m *MenuManager) UpdateProxmoxSources() error {
 // GetFirewallStatus retrieves the current status of the firewall
 func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
 	return m.firewallManager.GetFirewallStatus()
+}
+
+// GetBackupStatus returns the backup status and directory
+func (m *MenuManager) GetBackupStatus() (bool, string, error) {
+	return m.backupManager.GetBackupStatus()
+}
+
+// VerifyBackupPath checks if the backup path exists and is writable
+func (m *MenuManager) VerifyBackupPath() (bool, error) {
+	return m.backupManager.VerifyBackupPath()
+}
+
+// ToggleBackups enables or disables backups
+func (m *MenuManager) ToggleBackups() error {
+	return m.backupManager.ToggleBackups()
+}
+
+// SetBackupDirectory changes the backup directory
+func (m *MenuManager) SetBackupDirectory(directory string) error {
+	return m.backupManager.SetBackupDirectory(directory)
+}
+
+// VerifyBackupDirectory ensures the backup directory exists and is writable
+func (m *MenuManager) VerifyBackupDirectory() error {
+	return m.backupManager.VerifyBackupDirectory()
 }

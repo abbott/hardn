@@ -1,23 +1,44 @@
-// pkg/menu/backup.go
-
+// pkg/menu/backup_menu.go
 package menu
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// BackupOptionsMenu displays and handles backup configuration options
-func BackupOptionsMenu(cfg *config.Config) {
+// BackupMenu handles backup configuration
+type BackupMenu struct {
+	menuManager *application.MenuManager
+	config      *config.Config
+}
+
+// NewBackupMenu creates a new BackupMenu
+func NewBackupMenu(
+	menuManager *application.MenuManager,
+	config *config.Config,
+) *BackupMenu {
+	return &BackupMenu{
+		menuManager: menuManager,
+		config:      config,
+	}
+}
+
+// Show displays the backup menu and handles user input
+func (m *BackupMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Backup Settings", style.Blue))
+
+	// Get backup status from application layer
+	enabled, backupPath, err := m.menuManager.GetBackupStatus()
+	if err != nil {
+		fmt.Printf("\n%s Error retrieving backup status: %v\n", 
+			style.Colored(style.Red, style.SymCrossMark), err)
+	}
 
 	// Display current settings
 	fmt.Println()
@@ -26,7 +47,7 @@ func BackupOptionsMenu(cfg *config.Config) {
 	// Format backup status
 	backupStatus := "Disabled"
 	statusColor := style.Red
-	if cfg.EnableBackups {
+	if enabled {
 		backupStatus = "Enabled"
 		statusColor = style.Green
 	}
@@ -37,7 +58,7 @@ func BackupOptionsMenu(cfg *config.Config) {
 	// Determine symbol and color based on backup status
 	symbol := style.SymCrossMark
 	color := style.Red
-	if cfg.EnableBackups {
+	if enabled {
 		symbol = style.SymEnabled
 		color = style.Green
 	}
@@ -56,15 +77,19 @@ func BackupOptionsMenu(cfg *config.Config) {
 		style.SymInfo,
 		style.Cyan,
 		"Backup Path",
-		cfg.BackupPath,
+		backupPath,
 		style.Cyan,
 		"", 
 		"light"))
 	
 	// Check backup path status
-	if cfg.EnableBackups {
-		pathExists := checkBackupPath(cfg.BackupPath)
-		if pathExists {
+	if enabled {
+		// Use application layer to check path status
+		pathExists, err := m.menuManager.VerifyBackupPath()
+		if err != nil {
+			fmt.Printf("%s Error checking backup path: %v\n", 
+				style.Colored(style.Red, style.SymCrossMark), err)
+		} else if pathExists {
 			fmt.Printf("%s Backup directory exists and is writable\n", 
 				style.Colored(style.Green, style.SymCheckMark))
 		} else {
@@ -84,12 +109,12 @@ func BackupOptionsMenu(cfg *config.Config) {
 		{
 			Number:      2, 
 			Title:       "Change backup path", 
-			Description: fmt.Sprintf("Current: %s", cfg.BackupPath),
+			Description: fmt.Sprintf("Current: %s", backupPath),
 		},
 	}
 	
 	// Add option to test backup directory if backups are enabled
-	if cfg.EnableBackups {
+	if enabled {
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      3, 
 			Title:       "Verify backup directory", 
@@ -113,54 +138,77 @@ func BackupOptionsMenu(cfg *config.Config) {
 	
 	switch choice {
 	case 1:
-		// Toggle backups
-		cfg.EnableBackups = !cfg.EnableBackups
-		if cfg.EnableBackups {
-			fmt.Printf("\n%s Backups have been %s\n", 
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Bolded("enabled", style.Green))
-			fmt.Printf("%s Modified files will be backed up to: %s\n", 
-				style.BulletItem,
-				style.Colored(style.Cyan, cfg.BackupPath))
+		// Toggle backups using application layer
+		err := m.menuManager.ToggleBackups()
+		if err != nil {
+			fmt.Printf("\n%s Error toggling backups: %v\n", 
+				style.Colored(style.Red, style.SymCrossMark), err)
 		} else {
-			fmt.Printf("\n%s Backups have been %s\n", 
-				style.Colored(style.Yellow, style.SymInfo),
-				style.Bolded("disabled", style.Yellow))
-			fmt.Printf("%s No automatic backups will be created\n", style.BulletItem)
+			// Get the new status
+			enabled, backupPath, _ = m.menuManager.GetBackupStatus()
+			
+			if enabled {
+				fmt.Printf("\n%s Backups have been %s\n", 
+					style.Colored(style.Green, style.SymCheckMark),
+					style.Bolded("enabled", style.Green))
+				fmt.Printf("%s Modified files will be backed up to: %s\n", 
+					style.BulletItem,
+					style.Colored(style.Cyan, backupPath))
+			} else {
+				fmt.Printf("\n%s Backups have been %s\n", 
+					style.Colored(style.Yellow, style.SymInfo),
+					style.Bolded("disabled", style.Yellow))
+				fmt.Printf("%s No automatic backups will be created\n", style.BulletItem)
+			}
+			
+			// Update config to keep it in sync
+			m.config.EnableBackups = enabled
+			
+			// Save config changes
+			configFile := "hardn.yml" // Default config file
+			if err := config.SaveConfig(m.config, configFile); err != nil {
+				fmt.Printf("\n%s Failed to save configuration: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark), err)
+			}
 		}
-		
-		// Save config changes
-		saveBackupConfig(cfg)
 		
 		// Return to this menu after changing setting
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		BackupOptionsMenu(cfg)
+		m.Show()
 		
 	case 2:
 		// Change backup path
 		fmt.Printf("\n%s Current backup path: %s\n", 
 			style.BulletItem,
-			style.Colored(style.Cyan, cfg.BackupPath))
+			style.Colored(style.Cyan, backupPath))
 		fmt.Printf("%s Enter new backup path: ", style.BulletItem)
 		
 		newPath := ReadInput()
 		if newPath != "" {
-			// Expand path if it starts with ~
-			if newPath[:1] == "~" {
-				home, err := os.UserHomeDir()
-				if err == nil {
-					newPath = filepath.Join(home, newPath[1:])
+			// Use application layer to set backup directory
+			err := m.menuManager.SetBackupDirectory(newPath)
+			if err != nil {
+				fmt.Printf("\n%s Failed to set backup path: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark), err)
+			} else {
+				// Update local path for display
+				_, updatedPath, _ := m.menuManager.GetBackupStatus()
+				
+				fmt.Printf("\n%s Backup path updated to: %s\n", 
+					style.Colored(style.Green, style.SymCheckMark),
+					style.Colored(style.Cyan, updatedPath))
+					
+				// Update config to keep it in sync
+				m.config.BackupPath = updatedPath
+				
+				// Save config
+				configFile := "hardn.yml" // Default config file
+				if err := config.SaveConfig(m.config, configFile); err != nil {
+					fmt.Printf("\n%s Failed to save configuration: %v\n", 
+						style.Colored(style.Red, style.SymCrossMark), err)
 				}
 			}
-			
-			cfg.BackupPath = newPath
-			fmt.Printf("\n%s Backup path updated to: %s\n", 
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Colored(style.Cyan, cfg.BackupPath))
-				
-			// Save config changes
-			saveBackupConfig(cfg)
 		} else {
 			fmt.Printf("\n%s Backup path unchanged\n", style.BulletItem)
 		}
@@ -168,17 +216,17 @@ func BackupOptionsMenu(cfg *config.Config) {
 		// Return to this menu after changing path
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		BackupOptionsMenu(cfg)
+		m.Show()
 		
 	case 3:
 		// Verify backup directory (only available if backups are enabled)
-		if cfg.EnableBackups {
+		if enabled {
 			fmt.Printf("\n%s Verifying backup directory: %s\n", 
 				style.BulletItem,
-				style.Colored(style.Cyan, cfg.BackupPath))
+				style.Colored(style.Cyan, backupPath))
 				
-			// Try to create directory and test write access
-			err := verifyBackupDirectory(cfg.BackupPath)
+			// Use application layer to verify directory
+			err := m.menuManager.VerifyBackupDirectory()
 			if err == nil {
 				fmt.Printf("\n%s Backup directory is valid and writable\n", 
 					style.Colored(style.Green, style.SymCheckMark))
@@ -193,7 +241,7 @@ func BackupOptionsMenu(cfg *config.Config) {
 		// Return to this menu after verification
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		BackupOptionsMenu(cfg)
+		m.Show()
 		
 	case 0:
 		// Return to main menu
@@ -205,57 +253,6 @@ func BackupOptionsMenu(cfg *config.Config) {
 			
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		BackupOptionsMenu(cfg)
+		m.Show()
 	}
-}
-
-// Helper function to save backup configuration
-func saveBackupConfig(cfg *config.Config) {
-	// Save config changes
-	configFile := "hardn.yml" // Default config file
-	if err := config.SaveConfig(cfg, configFile); err != nil {
-		logging.LogError("Failed to save configuration: %v", err)
-		fmt.Printf("\n%s Failed to save configuration: %v\n", 
-			style.Colored(style.Red, style.SymCrossMark),
-			err)
-	}
-}
-
-// Helper function to check if backup path exists
-func checkBackupPath(path string) bool {
-	// Check if directory exists
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	
-	// Check if directory is writable by writing a test file
-	testFile := filepath.Join(path, ".write_test")
-	err := os.WriteFile(testFile, []byte("test"), 0644)
-	if err != nil {
-		return false
-	}
-	
-	// Clean up test file
-	os.Remove(testFile)
-	
-	return true
-}
-
-// Helper function to verify backup directory
-func verifyBackupDirectory(path string) error {
-	// Create backup directory if it doesn't exist
-	if err := os.MkdirAll(path, 0755); err != nil {
-		return fmt.Errorf("failed to create backup directory: %w", err)
-	}
-	
-	// Check if directory is writable by writing a test file
-	testFile := filepath.Join(path, ".write_test")
-	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
-		return fmt.Errorf("backup directory is not writable: %w", err)
-	}
-	
-	// Clean up test file
-	os.Remove(testFile)
-	
-	return nil
 }

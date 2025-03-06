@@ -38,13 +38,13 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	firewallManager := f.serviceFactory.CreateFirewallManager()
 	dnsManager := f.serviceFactory.CreateDNSManager()
 	packageManager := f.serviceFactory.CreatePackageManager()
+	backupManager := f.serviceFactory.CreateBackupManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
-	
-	// Create menu manager
-	menuManager := application.NewMenuManager(
-		userManager, sshManager, firewallManager, dnsManager, packageManager, securityManager)
-    
-    // Create menu
-    return menu.NewMainMenu(menuManager, f.config, f.osInfo)
-}
+		// Create menu manager
+		menuManager := application.NewMenuManager(
+			userManager, sshManager, firewallManager, dnsManager, packageManager, backupManager, securityManager)
+			
+			// Create menu
+			return menu.NewMainMenu(menuManager, f.config, f.osInfo)
+	}

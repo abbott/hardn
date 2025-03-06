@@ -285,9 +285,9 @@ func (m *MainMenu) ShowMainMenu() {
 			// sourcesMenu.Show()
 			
 		case "10": // Backup
-			BackupOptionsMenu(m.config)
-			// backupMenu := NewBackupMenu(m.menuManager, m.config)
-			// backupMenu.Show()
+			// BackupOptionsMenu(m.config)
+			backupMenu := NewBackupMenu(m.menuManager, m.config)
+			backupMenu.Show()
 			
 		case "11": // Environment
 			EnvironmentSettingsMenu(m.config)

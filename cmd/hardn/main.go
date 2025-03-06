@@ -18,7 +18,6 @@ import (
 	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/ssh"
 	"github.com/abbott/hardn/pkg/updates"
-	"github.com/abbott/hardn/pkg/user"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
@@ -252,24 +251,24 @@ var rootCmd = &cobra.Command{
 				installLinuxPackages(cfg, osInfo)
 			}
 
-			if createUser || runAll {
-				// Install sudo if needed
-				if osInfo.OsType == "alpine" {
-					if !packages.IsPackageInstalled("sudo") {
-						packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
-					}
-				} else {
-					if !packages.IsPackageInstalled("sudo") {
-						packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
-					}
-				}
+			// if createUser || runAll {
+			// 	// Install sudo if needed
+			// 	if osInfo.OsType == "alpine" {
+			// 		if !packages.IsPackageInstalled("sudo") {
+			// 			packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
+			// 		}
+			// 	} else {
+			// 		if !packages.IsPackageInstalled("sudo") {
+			// 			packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
+			// 		}
+			// 	}
 
-				err := user.CreateUser(cfg.Username, cfg, osInfo)
-				if err != nil {
-					logging.LogError("Failed to create user: %v", err)
-				}
-				ssh.WriteSSHConfig(cfg, osInfo)
-			}
+			// 	err := user.CreateUser(cfg.Username, cfg, osInfo)
+			// 	if err != nil {
+			// 		logging.LogError("Failed to create user: %v", err)
+			// 	}
+			// 	ssh.WriteSSHConfig(cfg, osInfo)
+			// }
 
 			if runAll && cfg.EnableAppArmor {
 				security.SetupAppArmor(cfg, osInfo)
@@ -343,13 +342,13 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	// Install packages
 	installLinuxPackages(cfg, osInfo)
 
-	// Create user
-	if cfg.Username != "" {
-		err := user.CreateUser(cfg.Username, cfg, osInfo)
-		if err != nil {
-			logging.LogError("Failed to create user: %v", err)
-		}
-	}
+	// // Create user
+	// if cfg.Username != "" {
+	// 	err := user.CreateUser(cfg.Username, cfg, osInfo)
+	// 	if err != nil {
+	// 		logging.LogError("Failed to create user: %v", err)
+	// 	}
+	// }
 
 	// Configure SSH
 	ssh.WriteSSHConfig(cfg, osInfo)
