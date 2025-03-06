@@ -162,7 +162,19 @@ var rootCmd = &cobra.Command{
 		}
 
 		if useNewArchitecture {
+			
 			// Create service factory
+			// provider := interfaces.NewProvider()
+			
+			// Create service factory
+			serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
+			
+			// Create menu factory
+			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
+			
+			// Create and show main menu
+			mainMenu := menuFactory.CreateMainMenu()
+			mainMenu.ShowMainMenu()
 
 			factory := infrastructure.NewServiceFactory(provider, osInfo)
 
@@ -195,6 +207,7 @@ var rootCmd = &cobra.Command{
 					logging.LogSuccess("DNS configured successfully")
 				}
 			}
+			
 		} else {
 
 			// If no flags provided, show menu

@@ -83,3 +83,15 @@ func (f *ServiceFactory) CreateDNSManager() *application.DNSManager {
 	// Create application service
 	return application.NewDNSManager(dnsService)
 }
+
+func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
+	userManager := f.CreateUserManager()
+	sshManager := f.CreateSSHManager()
+	firewallManager := f.CreateFirewallManager() 
+	dnsManager := f.CreateDNSManager()
+	securityManager := application.NewSecurityManager(
+			userManager, sshManager, firewallManager, dnsManager)
+	
+	return application.NewMenuManager(
+			userManager, sshManager, firewallManager, dnsManager, securityManager)
+}
