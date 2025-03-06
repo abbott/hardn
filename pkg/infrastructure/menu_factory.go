@@ -48,26 +48,3 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
     // Create menu
     return menu.NewMainMenu(menuManager, f.config, f.osInfo)
 }
-
-// Example for UserMenu
-type UserMenu struct {
-	menuManager *application.MenuManager
-	config      *config.Config
-	osInfo      *osdetect.OSInfo
-}
-
-func NewUserMenu(
-	menuManager *application.MenuManager,
-	config *config.Config,
-	osInfo *osdetect.OSInfo,
-) *UserMenu {
-	return &UserMenu{
-			menuManager: menuManager,
-			config:      config,
-			osInfo:      osInfo,
-	}
-}
-
-func (m *UserMenu) Show() {
-	// Implementation adapted from UserCreationMenu function
-}

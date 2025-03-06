@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/dns"
-	"github.com/abbott/hardn/pkg/firewall"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/packages"
@@ -16,11 +15,8 @@ import (
 	"github.com/abbott/hardn/pkg/ssh"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/updates"
-	"github.com/abbott/hardn/pkg/user"
 	"github.com/abbott/hardn/pkg/utils"
-	"github.com/abbott/hardn/pkg/interfaces"
 )
-
 
 var provider = interfaces.NewProvider()
 
@@ -51,7 +47,7 @@ func RunAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	}
 
 	// Show SSH port
-	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "SSH Port", fmt.Sprintf("%d", cfg.SshPort), 
+	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "SSH Port", fmt.Sprintf("%d", cfg.SshPort),
 		style.Cyan, "", "light"))
 
 	// Show enabled features
@@ -76,7 +72,7 @@ func RunAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		if feature.enabled {
 			fmt.Println(featuresFormatter.FormatSuccess("Feature: "+feature.name, "Enabled", feature.desc))
 		} else {
-			fmt.Println(featuresFormatter.FormatLine(style.SymInfo, style.Yellow, "Feature: "+feature.name, 
+			fmt.Println(featuresFormatter.FormatLine(style.SymInfo, style.Yellow, "Feature: "+feature.name,
 				"Disabled", style.Yellow, feature.desc, "light"))
 		}
 	}
@@ -139,7 +135,7 @@ func RunAllHardeningMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			fmt.Printf("\n%s Dry-run mode has been %s\n",
 				style.Colored(style.Yellow, style.SymWarning),
 				style.Bolded("disabled", style.Yellow))
-			fmt.Println(style.Bolded("CAUTION: ", style.Red) + 
+			fmt.Println(style.Bolded("CAUTION: ", style.Red) +
 				style.Bolded("Your system will be modified!", style.Yellow))
 		}
 
@@ -202,7 +198,7 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	// Function to show progress
 	showProgress := func(stepName string) {
 		currentStep++
-		fmt.Printf("\n%s [%d/%d] %s\n", 
+		fmt.Printf("\n%s [%d/%d] %s\n",
 			style.Colored(style.Cyan, style.SymArrowRight),
 			currentStep,
 			totalSteps,
@@ -212,30 +208,30 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	// 1. Setup hushlogin
 	showProgress("Setup basic configuration")
 	if err := utils.SetupHushlogin(cfg); err != nil {
-		fmt.Printf("%s Failed to setup hushlogin: %v\n", 
+		fmt.Printf("%s Failed to setup hushlogin: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 	} else if !cfg.DryRun {
-		fmt.Printf("%s Hushlogin configured\n", 
+		fmt.Printf("%s Hushlogin configured\n",
 			style.Colored(style.Green, style.SymCheckMark))
 	}
 
 	// 2. Update package repositories
 	showProgress("Update package repositories")
 	if err := packages.WriteSources(cfg, osInfo); err != nil {
-		fmt.Printf("%s Failed to configure package sources: %v\n", 
+		fmt.Printf("%s Failed to configure package sources: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 	} else if !cfg.DryRun {
-		fmt.Printf("%s Package sources updated\n", 
+		fmt.Printf("%s Package sources updated\n",
 			style.Colored(style.Green, style.SymCheckMark))
 	}
 
 	// 3. Handle Proxmox repositories if needed
 	if osInfo.OsType != "alpine" && osInfo.IsProxmox {
 		if err := packages.WriteProxmoxRepos(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure Proxmox repositories: %v\n", 
+			fmt.Printf("%s Failed to configure Proxmox repositories: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 		} else if !cfg.DryRun {
-			fmt.Printf("%s Proxmox repositories configured\n", 
+			fmt.Printf("%s Proxmox repositories configured\n",
 				style.Colored(style.Green, style.SymCheckMark))
 		}
 	}
@@ -245,28 +241,28 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	installSystemPackages(cfg, osInfo)
 
 	// 5. Create user
-	showProgress("Configure user account")
-	if cfg.Username != "" {
-		if err := user.CreateUser(cfg.Username, cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to create user: %v\n", 
-				style.Colored(style.Red, style.SymCrossMark), err)
-		} else if !cfg.DryRun {
-			fmt.Printf("%s User '%s' configured\n", 
-				style.Colored(style.Green, style.SymCheckMark),
-				cfg.Username)
-		}
-	} else {
-		fmt.Printf("%s No username specified, skipping user creation\n", 
-			style.Colored(style.Yellow, style.SymWarning))
-	}
+	// showProgress("Configure user account")
+	// if cfg.Username != "" {
+	// 	if err := user.CreateUser(cfg.Username, cfg, osInfo); err != nil {
+	// 		fmt.Printf("%s Failed to create user: %v\n",
+	// 			style.Colored(style.Red, style.SymCrossMark), err)
+	// 	} else if !cfg.DryRun {
+	// 		fmt.Printf("%s User '%s' configured\n",
+	// 			style.Colored(style.Green, style.SymCheckMark),
+	// 			cfg.Username)
+	// 	}
+	// } else {
+	// 	fmt.Printf("%s No username specified, skipping user creation\n",
+	// 		style.Colored(style.Yellow, style.SymWarning))
+	// }
 
 	// 6. Configure SSH
 	showProgress("Configure SSH")
 	if err := ssh.WriteSSHConfig(cfg, osInfo); err != nil {
-		fmt.Printf("%s Failed to configure SSH: %v\n", 
+		fmt.Printf("%s Failed to configure SSH: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 	} else if !cfg.DryRun {
-		fmt.Printf("%s SSH configured\n", 
+		fmt.Printf("%s SSH configured\n",
 			style.Colored(style.Green, style.SymCheckMark))
 	}
 
@@ -274,55 +270,55 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	showProgress("Configure root SSH access")
 	if cfg.DisableRoot {
 		if err := ssh.DisableRootSSHAccess(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to disable root SSH access: %v\n", 
+			fmt.Printf("%s Failed to disable root SSH access: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 		} else if !cfg.DryRun {
-			fmt.Printf("%s Root SSH access disabled\n", 
+			fmt.Printf("%s Root SSH access disabled\n",
 				style.Colored(style.Green, style.SymCheckMark))
 		}
 	} else {
-		fmt.Printf("%s Root SSH access will remain enabled (not configured to disable)\n", 
+		fmt.Printf("%s Root SSH access will remain enabled (not configured to disable)\n",
 			style.Colored(style.Yellow, style.SymInfo))
 	}
 
 	// 8. Configure UFW
-	showProgress("Configure firewall")
-	if cfg.EnableUfwSshPolicy {
-		if err := firewall.ConfigureUFW(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure firewall: %v\n", 
-				style.Colored(style.Red, style.SymCrossMark), err)
-		} else if !cfg.DryRun {
-			fmt.Printf("%s Firewall configured\n", 
-				style.Colored(style.Green, style.SymCheckMark))
-		}
-	} else {
-		fmt.Printf("%s Firewall configuration skipped (not enabled in config)\n", 
-			style.Colored(style.Yellow, style.SymInfo))
-	}
+	// showProgress("Configure firewall")
+	// if cfg.EnableUfwSshPolicy {
+	// 	if err := firewall.ConfigureUFW(cfg, osInfo); err != nil {
+	// 		fmt.Printf("%s Failed to configure firewall: %v\n",
+	// 			style.Colored(style.Red, style.SymCrossMark), err)
+	// 	} else if !cfg.DryRun {
+	// 		fmt.Printf("%s Firewall configured\n",
+	// 			style.Colored(style.Green, style.SymCheckMark))
+	// 	}
+	// } else {
+	// 	fmt.Printf("%s Firewall configuration skipped (not enabled in config)\n",
+	// 		style.Colored(style.Yellow, style.SymInfo))
+	// }
 
 	// 9. Configure DNS
-	showProgress("Configure DNS")
-	if cfg.ConfigureDns {
-		if err := dns.ConfigureDNS(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure DNS: %v\n", 
-				style.Colored(style.Red, style.SymCrossMark), err)
-		} else if !cfg.DryRun {
-			fmt.Printf("%s DNS configured\n", 
-				style.Colored(style.Green, style.SymCheckMark))
-		}
-	} else {
-		fmt.Printf("%s DNS configuration skipped (not enabled in config)\n", 
-			style.Colored(style.Yellow, style.SymInfo))
-	}
+	// showProgress("Configure DNS")
+	// if cfg.ConfigureDns {
+	// 	if err := dns.ConfigureDNS(cfg, osInfo); err != nil {
+	// 		fmt.Printf("%s Failed to configure DNS: %v\n",
+	// 			style.Colored(style.Red, style.SymCrossMark), err)
+	// 	} else if !cfg.DryRun {
+	// 		fmt.Printf("%s DNS configured\n",
+	// 			style.Colored(style.Green, style.SymCheckMark))
+	// 	}
+	// } else {
+	// 	fmt.Printf("%s DNS configuration skipped (not enabled in config)\n",
+	// 		style.Colored(style.Yellow, style.SymInfo))
+	// }
 
 	// 10. Setup AppArmor if enabled
 	if cfg.EnableAppArmor {
 		showProgress("Configure AppArmor")
 		if err := security.SetupAppArmor(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure AppArmor: %v\n", 
+			fmt.Printf("%s Failed to configure AppArmor: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 		} else if !cfg.DryRun {
-			fmt.Printf("%s AppArmor configured\n", 
+			fmt.Printf("%s AppArmor configured\n",
 				style.Colored(style.Green, style.SymCheckMark))
 		}
 	}
@@ -331,10 +327,10 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	if cfg.EnableLynis {
 		showProgress("Install Lynis security audit")
 		if err := security.SetupLynis(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure Lynis: %v\n", 
+			fmt.Printf("%s Failed to configure Lynis: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 		} else if !cfg.DryRun {
-			fmt.Printf("%s Lynis installed and audit completed\n", 
+			fmt.Printf("%s Lynis installed and audit completed\n",
 				style.Colored(style.Green, style.SymCheckMark))
 		}
 	}
@@ -343,10 +339,10 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	if cfg.EnableUnattendedUpgrades {
 		showProgress("Configure automatic updates")
 		if err := updates.SetupUnattendedUpgrades(cfg, osInfo); err != nil {
-			fmt.Printf("%s Failed to configure unattended upgrades: %v\n", 
+			fmt.Printf("%s Failed to configure unattended upgrades: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 		} else if !cfg.DryRun {
-			fmt.Printf("%s Automatic updates configured\n", 
+			fmt.Printf("%s Automatic updates configured\n",
 				style.Colored(style.Green, style.SymCheckMark))
 		}
 	}
@@ -354,18 +350,18 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	// Final status
 	fmt.Println()
 	if cfg.DryRun {
-		fmt.Printf("%s System hardening %s (DRY-RUN)\n", 
+		fmt.Printf("%s System hardening %s (DRY-RUN)\n",
 			style.Colored(style.Green, style.SymCheckMark),
 			style.Bolded("simulation completed", style.Green))
 		fmt.Println(style.Dimmed("No actual changes were made to your system."))
 	} else {
-		fmt.Printf("%s System hardening %s\n", 
+		fmt.Printf("%s System hardening %s\n",
 			style.Colored(style.Green, style.SymCheckMark),
 			style.Bolded("completed successfully", style.Green))
 	}
 
 	logging.LogSuccess("System hardening completed")
-	fmt.Printf("\n%s Check the log file at %s for details\n", 
+	fmt.Printf("\n%s Check the log file at %s for details\n",
 		style.Colored(style.Cyan, style.SymInfo),
 		style.Colored(style.Cyan, cfg.LogFile))
 }

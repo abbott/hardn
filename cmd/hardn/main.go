@@ -9,8 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/dns"
-	"github.com/abbott/hardn/pkg/firewall"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
@@ -214,7 +212,7 @@ var rootCmd = &cobra.Command{
 		} else {
 
 			logging.LogSuccess("The value of useNewArchitecture is %t", useNewArchitecture)
-			
+
 			// If no flags provided, show menu
 			if !createUser && !disableRoot && !installLinux && !installPython &&
 				!installAll && !configureUfw && !configureDns && !runAll &&
@@ -271,14 +269,6 @@ var rootCmd = &cobra.Command{
 					logging.LogError("Failed to create user: %v", err)
 				}
 				ssh.WriteSSHConfig(cfg, osInfo)
-			}
-
-			if configureUfw || runAll {
-				firewall.ConfigureUFW(cfg, osInfo)
-			}
-
-			if configureDns || runAll {
-				dns.ConfigureDNS(cfg, osInfo)
 			}
 
 			if runAll && cfg.EnableAppArmor {
@@ -367,16 +357,6 @@ func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	// Disable root SSH access if requested
 	if cfg.DisableRoot {
 		ssh.DisableRootSSHAccess(cfg, osInfo)
-	}
-
-	// Configure UFW
-	if cfg.EnableUfwSshPolicy {
-		firewall.ConfigureUFW(cfg, osInfo)
-	}
-
-	// Configure DNS
-	if cfg.ConfigureDns {
-		dns.ConfigureDNS(cfg, osInfo)
 	}
 
 	// Setup AppArmor if enabled

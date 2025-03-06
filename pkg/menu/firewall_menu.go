@@ -40,8 +40,15 @@ func (m *FirewallMenu) Show() {
 	fmt.Println(style.Bolded("UFW Firewall Configuration", style.Blue))
 
 	// Check current UFW status - this would ideally come from the application layer
-	// but for now we'll continue to use the existing functions until they're refactored
-	isInstalled, isEnabled, isConfigured, rules := checkUfwStatus()
+	isInstalled, isEnabled, isConfigured, rules, err := m.menuManager.GetFirewallStatus()
+	if err != nil {
+			fmt.Printf("\n%s Error getting firewall status: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark), err)
+			isInstalled = false
+			isEnabled = false
+			isConfigured = false
+			rules = []string{}
+	}
 
 	// Display current status
 	fmt.Println()

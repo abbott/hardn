@@ -181,20 +181,9 @@ func (m *MainMenu) ShowMainMenu() {
 		// Process the menu choice - using menuManager instead of direct calls
 		switch choice {
 			case "1": // Sudo User
-    // Create submenu for user management
-    if m.config.Username != "" {
-        err := m.menuManager.CreateUser(m.config.Username, true, m.config.SudoNoPassword, m.config.SshKeys)
-        if err != nil {
-            fmt.Printf("\n%s Error creating user: %v\n", 
-                style.Colored(style.Red, style.SymCrossMark), err)
-        } else {
-            fmt.Printf("\n%s User created successfully\n", 
-                style.Colored(style.Green, style.SymCheckMark))
-        }
-    } else {
-        // Use the existing implementation for now
-        UserCreationMenu(m.config, m.osInfo)
-    }
+			// Create and show user menu
+			userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
+			userMenu.Show()
 		// case "1": // Sudo User
 		// 	// Create submenu for user management
 		// 	if m.config.Username != "" {
@@ -222,14 +211,14 @@ func (m *MainMenu) ShowMainMenu() {
 			}
 			
 		case "3": // DNS
-			ConfigureDnsMenu(m.config, m.osInfo)
-			// dnsMenu := NewDNSMenu(m.menuManager, m.config, m.osInfo)
-			// dnsMenu.Show()
+			// ConfigureDnsMenu(m.config, m.osInfo)
+			dnsMenu := NewDNSMenu(m.menuManager, m.config, m.osInfo)
+			dnsMenu.Show()
 			
 		case "4": // Firewall
-			UfwMenu(m.config, m.osInfo)
-			// firewallMenu := NewFirewallMenu(m.menuManager, m.config, m.osInfo)
-			// firewallMenu.Show()
+			// UfwMenu(m.config, m.osInfo)
+			firewallMenu := NewFirewallMenu(m.menuManager, m.config, m.osInfo)
+			firewallMenu.Show()
 			
 		case "5": // Run All
 			hardening := model.HardeningConfig{

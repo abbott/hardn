@@ -13,7 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// UserMenu handles user-related operations
+// UserMenu handles user-related operations through the menu system
 type UserMenu struct {
 	menuManager *application.MenuManager
 	config      *config.Config
@@ -177,7 +177,11 @@ func (m *UserMenu) Show() {
 				style.Colored(style.Green, style.SymCheckMark), newUsername)
 				
 			// Save config changes
-			config.SaveConfig(m.config, "hardn.yml")
+			err = config.SaveConfig(m.config, "hardn.yml")
+			if err != nil {
+				fmt.Printf("\n%s Failed to save configuration: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark), err)
+			}
 		} else if username != "" {
 			fmt.Printf("\n%s Username unchanged: %s\n", style.BulletItem, username)
 		}
@@ -204,7 +208,11 @@ func (m *UserMenu) Show() {
 		}
 		
 		// Save config changes
-		config.SaveConfig(m.config, "hardn.yml")
+		err := config.SaveConfig(m.config, "hardn.yml")
+		if err != nil {
+			fmt.Printf("\n%s Failed to save configuration: %v\n", 
+				style.Colored(style.Red, style.SymCrossMark), err)
+		}
 		
 		// Return to this menu after toggling sudo
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
@@ -367,7 +375,26 @@ func (m *UserMenu) manageSshKeys() {
 					style.Colored(style.Green, style.SymCheckMark))
 				
 				// Save config changes
-				config.SaveConfig(m.config, "hardn.yml")
+				err := config.SaveConfig(m.config, "hardn.yml")
+				if err != nil {
+					fmt.Printf("\n%s Failed to save configuration: %v\n", 
+						style.Colored(style.Red, style.SymCrossMark), err)
+				}
+				
+				// If user already exists, add key to user
+				if m.config.Username != "" {
+					_, err := osuser.Lookup(m.config.Username)
+					if err == nil {
+						err = m.menuManager.AddSSHKey(m.config.Username, newKey)
+						if err != nil {
+							fmt.Printf("\n%s Failed to add SSH key to user: %v\n", 
+								style.Colored(style.Yellow, style.SymWarning), err)
+						} else if !m.config.DryRun {
+							fmt.Printf("%s Key added to user '%s'\n", 
+								style.BulletItem, m.config.Username)
+						}
+					}
+				}
 			}
 		}
 		
@@ -416,7 +443,11 @@ func (m *UserMenu) manageSshKeys() {
 				style.Colored(style.Yellow, removedKey))
 			
 			// Save config changes
-			config.SaveConfig(m.config, "hardn.yml")
+			err := config.SaveConfig(m.config, "hardn.yml")
+			if err != nil {
+				fmt.Printf("\n%s Failed to save configuration: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark), err)
+			}
 		}
 		
 		// Return to SSH keys menu

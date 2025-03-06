@@ -101,3 +101,8 @@ func (m *MenuManager) UpdatePackageSources() error {
 func (m *MenuManager) UpdateProxmoxSources() error {
 	return m.packageManager.UpdateProxmoxSources()
 }
+
+// GetFirewallStatus retrieves the current status of the firewall
+func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
+	return m.firewallManager.GetFirewallStatus()
+}

@@ -96,3 +96,8 @@ func (m *FirewallManager) EnableFirewall() error {
 func (m *FirewallManager) DisableFirewall() error {
     return m.firewallService.DisableFirewall()
 }
+
+// GetFirewallStatus retrieves the current status of the firewall
+func (m *FirewallManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
+	return m.firewallService.GetFirewallStatus()
+}

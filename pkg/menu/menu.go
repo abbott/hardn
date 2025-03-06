@@ -213,13 +213,13 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Process the menu choice
 		switch choice {
 		case "1":
-			UserCreationMenu(cfg, osInfo)
+			// UserCreationMenu(cfg, osInfo)
 		case "2":
 			DisableRootMenu(cfg, osInfo)
 		case "3":
-			ConfigureDnsMenu(cfg, osInfo)
+			// ConfigureDnsMenu(cfg, osInfo)
 		case "4":
-			UfwMenu(cfg, osInfo)
+			// UfwMenu(cfg, osInfo)
 		case "5":
 			RunAllHardeningMenu(cfg, osInfo)
 		case "6":
