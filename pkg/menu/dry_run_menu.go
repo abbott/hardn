@@ -1,18 +1,34 @@
-// pkg/menu/dry_run.go
-
+// pkg/menu/dry_run_menu.go
 package menu
 
 import (
 	"fmt"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// ToggleDryRunMenu handles toggling the dry-run mode setting
-func ToggleDryRunMenu(cfg *config.Config) {
+// DryRunMenu handles the dry-run mode configuration
+type DryRunMenu struct {
+	menuManager *application.MenuManager
+	config      *config.Config
+}
+
+// NewDryRunMenu creates a new DryRunMenu
+func NewDryRunMenu(
+	menuManager *application.MenuManager,
+	config *config.Config,
+) *DryRunMenu {
+	return &DryRunMenu{
+		menuManager: menuManager,
+		config:      config,
+	}
+}
+
+// Show displays the dry-run mode menu and handles user input
+func (m *DryRunMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Dry-Run Mode Settings", style.Blue))
 	
@@ -21,7 +37,7 @@ func ToggleDryRunMenu(cfg *config.Config) {
 
 	// Display current status
 	fmt.Println()
-	if cfg.DryRun {
+	if m.config.DryRun {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Enabled", style.Green, "", "bold"))
 		fmt.Println(style.Dimmed("\nIn this mode, the script will preview changes without applying them."))
 		
@@ -45,7 +61,7 @@ func ToggleDryRunMenu(cfg *config.Config) {
 		
 		switch choiceStr {
 		case "1":
-			cfg.DryRun = false
+			m.config.DryRun = false
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Disabled", style.Yellow, "", "bold"))
 			fmt.Println(style.Dimmed("\nChanges will now be applied to the system. Proceed with caution."))
 		case "0":
@@ -77,7 +93,7 @@ func ToggleDryRunMenu(cfg *config.Config) {
 		
 		switch choiceStr {
 		case "1":
-			cfg.DryRun = true
+			m.config.DryRun = true
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Enabled", style.Green, "", "bold"))
 			fmt.Println(style.Dimmed("\nChanges will be simulated without affecting the system."))
 		case "0":
@@ -88,9 +104,12 @@ func ToggleDryRunMenu(cfg *config.Config) {
 	}
 
 	// Save config changes
+	// In a future iteration, this could use m.menuManager.SaveConfiguration()
+	// For now, we'll use the direct approach
 	configFile := "hardn.yml" // Default config file
-	if err := config.SaveConfig(cfg, configFile); err != nil {
-		logging.LogError("Failed to save configuration: %v", err)
+	if err := config.SaveConfig(m.config, configFile); err != nil {
+		fmt.Printf("\n%s Failed to save configuration: %v\n", 
+			style.Colored(style.Red, style.SymCrossMark), err)
 	}
 
 	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)

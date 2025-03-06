@@ -7,7 +7,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/status"
 	"github.com/abbott/hardn/pkg/style"
@@ -19,6 +18,11 @@ type MainMenu struct {
 	menuManager *application.MenuManager
 	config      *config.Config
 	osInfo      *osdetect.OSInfo
+	
+	// Additional fields for menu state management could be added here
+	// For example:
+	// lastRefreshTime time.Time
+	// statusFormatter *style.StatusFormatter
 }
 
 // NewMainMenu creates a new MainMenu
@@ -31,12 +35,96 @@ func NewMainMenu(
 		menuManager: menuManager,
 		config:      config,
 		osInfo:      osInfo,
+		// Initialize any additional fields here
 	}
+}
+
+// refreshConfig refreshes any configuration values that might have been changed
+// by sub-menus like RunAllMenu or DryRunMenu
+func (m *MainMenu) refreshConfig() {
+	// If we added ways for sub-menus to notify the main menu of changes,
+	// we would handle them here
+	
+	// For now, we're using a shared config pointer, so changes are automatically visible
+	// This method is a placeholder for future extensibility
+}
+
+// isDryRunEnabled returns the current dry-run mode status
+// func (m *MainMenu) isDryRunEnabled() bool {
+// 	// Return the status and update UI elements
+// 	isDryRun := m.config.DryRun
+	
+// 	// Update menu appearance based on dry-run status
+// 	m.dryRunFormatter = style.NewStatusFormatter(
+// 			[]string{"Operation Mode"}, 
+// 			2,
+// 	)
+	
+// 	if isDryRun {
+// 			logging.LogInfo("Operating in dry-run mode")
+// 			m.menuThemeColor = style.Green
+// 			m.statusMessage = "SIMULATION MODE"
+// 	} else {
+// 			m.menuThemeColor = style.Red
+// 			m.statusMessage = "PRODUCTION MODE"
+// 	}
+	
+// 	return isDryRun
+// }
+
+// showDryRunMenu creates and displays the dry-run configuration menu
+func (m *MainMenu) showDryRunMenu() {
+	// Display contextual information about dry-run mode
+	utils.PrintHeader()
+	fmt.Println(style.Bolded("Dry-Run Mode Configuration", style.Blue))
+	
+	fmt.Println()
+	fmt.Println(style.Dimmed("Dry-run mode allows you to preview changes without applying them to your system."))
+	fmt.Println(style.Dimmed("This is useful for testing and understanding what actions will be performed."))
+	
+	// Check if any critical operations have been performed
+	// This is just an example - you'd need to track this information
+	criticalChanges := false // Placeholder for tracking if changes have been made
+	
+	if criticalChanges && m.config.DryRun {
+			fmt.Printf("\n%s You've already performed operations in dry-run mode.\n", 
+					style.Colored(style.Yellow, style.SymInfo))
+			fmt.Printf("%s Disabling dry-run mode will apply future changes for real.\n", 
+					style.BulletItem)
+	}
+	
+	fmt.Println()
+	fmt.Printf("%s Press any key to continue to dry-run configuration...", style.BulletItem)
+	ReadKey()
+	
+	// Create and show the dry-run menu
+	dryRunMenu := NewDryRunMenu(m.menuManager, m.config)
+	dryRunMenu.Show()
+	
+	// After returning from the dry-run menu, inform about the status
+	utils.PrintHeader()
+	
+	// Quick feedback on the configuration change before returning to main menu
+	fmt.Printf("\n%s Dry-run mode is now %s\n",
+			style.Colored(style.Cyan, style.SymInfo),
+			style.Bolded(map[bool]string{
+					true:  "ENABLED - Changes will only be simulated",
+					false: "DISABLED - Changes will be applied to the system",
+			}[m.config.DryRun], map[bool]string{
+					true:  style.Green,
+					false: style.Yellow,
+			}[m.config.DryRun]))
+	
+	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	ReadKey()
 }
 
 // ShowMainMenu displays the main menu and handles user input
 func (m *MainMenu) ShowMainMenu() {
 	for {
+		// Refresh any configuration that might have been changed
+		m.refreshConfig()
+		
 		utils.PrintLogo()
 
 		// Define separator line
@@ -184,31 +272,12 @@ func (m *MainMenu) ShowMainMenu() {
 			// Create and show user menu
 			userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
 			userMenu.Show()
-		// case "1": // Sudo User
-		// 	// Create submenu for user management
-		// 	if m.config.Username != "" {
-		// 		err := m.menuManager.CreateUser(m.config.Username, true, m.config.SudoNoPassword, m.config.SshKeys)
-		// 		if err != nil {
-		// 			fmt.Printf("\n%s Error creating user: %v\n", 
-		// 				style.Colored(style.Red, style.SymCrossMark), err)
-		// 		} else {
-		// 			fmt.Printf("\n%s User created successfully\n", 
-		// 				style.Colored(style.Green, style.SymCheckMark))
-		// 		}
-		// 	} else {
-		// 		userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
-		// 		userMenu.Show()
-		// 	}
 			
+
 		case "2": // Root SSH
-			err := m.menuManager.DisableRootSsh()
-			if err != nil {
-				fmt.Printf("\n%s Error disabling root SSH: %v\n", 
-					style.Colored(style.Red, style.SymCrossMark), err)
-			} else {
-				fmt.Printf("\n%s Root SSH access disabled successfully\n", 
-					style.Colored(style.Green, style.SymCheckMark))
-			}
+			// Create and show disable root menu
+			disableRootMenu := NewDisableRootMenu(m.menuManager, m.config, m.osInfo)
+			disableRootMenu.Show()
 			
 		case "3": // DNS
 			// ConfigureDnsMenu(m.config, m.osInfo)
@@ -221,52 +290,44 @@ func (m *MainMenu) ShowMainMenu() {
 			firewallMenu.Show()
 			
 		case "5": // Run All
-			hardening := model.HardeningConfig{
-				CreateUser:     true,
-				Username:       m.config.Username,
-				SudoNoPassword: m.config.SudoNoPassword,
-				SshKeys:        m.config.SshKeys,
-				SshPort:        m.config.SshPort,
-				SshListenAddresses: []string{m.config.SshListenAddress},
-				SshAllowedUsers:    m.config.SshAllowedUsers,
-				EnableFirewall:     m.config.EnableUfwSshPolicy,
-				ConfigureDns:       m.config.ConfigureDns,
-				Nameservers:        m.config.Nameservers,
-				EnableAppArmor:     m.config.EnableAppArmor,
-				EnableLynis:        m.config.EnableLynis,
-				EnableUnattendedUpgrades: m.config.EnableUnattendedUpgrades,
+			// Check for prerequisites
+			if m.config.Username == "" && !m.config.DryRun {
+					// For actual runs (not dry-run), having a username is essential
+					fmt.Printf("\n%s No username defined for user creation\n", 
+							style.Colored(style.Yellow, style.SymWarning))
+					fmt.Printf("%s Would you like to set a username now? (y/n): ", style.BulletItem)
+					
+					confirm := ReadInput()
+					if strings.ToLower(confirm) == "y" || strings.ToLower(confirm) == "yes" {
+							// Launch the user menu to set a username first
+							userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
+							userMenu.Show()
+							
+							// If still no username, abort Run All
+							if m.config.Username == "" {
+									fmt.Printf("\n%s Run All requires a username for user creation. Operation cancelled.\n", 
+											style.Colored(style.Red, style.SymCrossMark))
+									fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+									ReadKey()
+									break
+							}
+					} else {
+							// User chose not to set a username, continue with warning
+							fmt.Printf("\n%s Continuing without user creation\n", 
+									style.Colored(style.Yellow, style.SymWarning))
+					}
 			}
 			
-			err := m.menuManager.HardenSystem(&hardening)
-			if err != nil {
-				fmt.Printf("\n%s Error during system hardening: %v\n", 
-					style.Colored(style.Red, style.SymCrossMark), err)
-			} else {
-				fmt.Printf("\n%s System hardening completed successfully\n", 
-					style.Colored(style.Green, style.SymCheckMark))
-			}
+			// Create and show the Run All menu
+			runAllMenu := NewRunAllMenu(m.menuManager, m.config, m.osInfo)
+			runAllMenu.Show()
+    
+    // After returning from Run All menu, check if the dry-run mode was toggled
+    // This affects how the main menu status is displayed
+    // Note: This would automatically be handled on the next menu refresh
 			
 		case "6": // Dry-Run
-			// Toggle dry run mode
-			m.config.DryRun = !m.config.DryRun
-			
-			if m.config.DryRun {
-				fmt.Printf("\n%s Dry-run mode enabled. Changes will only be simulated.\n",
-					style.Colored(style.Green, style.SymCheckMark))
-			} else {
-				fmt.Printf("\n%s Dry-run mode disabled. Changes will be applied to the system.\n", 
-					style.Colored(style.Yellow, style.SymWarning))
-			}
-			
-			// Save config changes
-			err := config.SaveConfig(m.config, "hardn.yml")
-			if err != nil {
-				fmt.Printf("\n%s Error saving configuration: %v\n", 
-					style.Colored(style.Red, style.SymCrossMark), err)
-			}
-			
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-			ReadKey()
+			m.showDryRunMenu()
 			
 		case "7": // Linux Packages
 			// LinuxPackagesMenu(m.config, m.osInfo)
@@ -280,9 +341,9 @@ func (m *MainMenu) ShowMainMenu() {
 			pythonMenu.Show()
 			
 		case "9": // Package Sources
-			UpdateSourcesMenu(m.config, m.osInfo)
-			// sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
-			// sourcesMenu.Show()
+			// UpdateSourcesMenu(m.config, m.osInfo)
+			sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
+			sourcesMenu.Show()
 			
 		case "10": // Backup
 			// BackupOptionsMenu(m.config)
@@ -290,18 +351,20 @@ func (m *MainMenu) ShowMainMenu() {
 			backupMenu.Show()
 			
 		case "11": // Environment
-			EnvironmentSettingsMenu(m.config)
-			// envMenu := NewEnvironmentMenu(m.menuManager, m.config)
-			// envMenu.Show()
+			// EnvironmentSettingsMenu(m.config)
+			envMenu := NewEnvironmentSettingsMenu(m.menuManager, m.config)
+    	envMenu.Show()
 			
 		case "12": // Logs
 			// Viewing logs doesn't need to go through menuManager
-			ViewLogsMenu(m.config)
+			// ViewLogsMenu(m.config)
+			logsMenu := NewLogsMenu(m.menuManager, m.config)
+			logsMenu.Show()
 			
-		case "13": // Help
-			// Help menu doesn't need to go through menuManager
-			HelpMenu()
-			
+		case "13": // Helpcase "13": // Help
+			helpMenu := NewHelpMenu()
+			helpMenu.Show()
+				
 		case "0": // Exit
 			utils.PrintHeader()
 			fmt.Println("Hardn has exited.")

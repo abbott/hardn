@@ -1,5 +1,4 @@
-// pkg/menu/help.go
-
+// pkg/menu/help_menu.go
 package menu
 
 import (
@@ -9,8 +8,19 @@ import (
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// HelpMenu displays usage information and command-line options
-func HelpMenu() {
+// HelpMenu provides usage information and examples
+type HelpMenu struct {
+	// The help menu doesn't need many dependencies
+	// since it just displays information
+}
+
+// NewHelpMenu creates a new HelpMenu
+func NewHelpMenu() *HelpMenu {
+	return &HelpMenu{}
+}
+
+// Show displays the help menu with command line options and examples
+func (m *HelpMenu) Show() {
 	utils.PrintLogo()
 	fmt.Println(style.Bolded("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", style.BrightGreen))
 	
@@ -53,6 +63,8 @@ func HelpMenu() {
 		"View logs", style.Cyan, "", "light"))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-h, --help", 
 		"View usage information", style.Cyan, "", "light"))
+	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-e, --setup-sudo-env", 
+		"Configure sudoers for HARDN_CONFIG", style.Cyan, "", "light"))
 	
 	// Usage examples
 	fmt.Println(style.Bolded("\nExamples:", style.Blue))

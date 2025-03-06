@@ -1,4 +1,4 @@
-// pkg/menu/sources.go
+// pkg/menu/sources_menu.go
 
 package menu
 
@@ -7,16 +7,35 @@ import (
 	"os"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/packages"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// UpdateSourcesMenu handles configuration of package sources
-func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
+// SourcesMenu handles configuration of package sources
+type SourcesMenu struct {
+	menuManager *application.MenuManager
+	config      *config.Config
+	osInfo      *osdetect.OSInfo
+}
+
+// NewSourcesMenu creates a new SourcesMenu
+func NewSourcesMenu(
+	menuManager *application.MenuManager,
+	config *config.Config,
+	osInfo *osdetect.OSInfo,
+) *SourcesMenu {
+	return &SourcesMenu{
+		menuManager: menuManager,
+		config:      config,
+		osInfo:      osInfo,
+	}
+}
+
+// Show displays the sources menu and handles user input
+func (m *SourcesMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Package Sources Configuration", style.Blue))
 
@@ -29,21 +48,21 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	
 	// Show OS type
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Type", 
-		strings.Title(osInfo.OsType), style.Cyan, "", "light"))
+		strings.Title(m.osInfo.OsType), style.Cyan, "", "light"))
 	
 	// Show OS version
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Version", 
-		osInfo.OsVersion, style.Cyan, "", "light"))
+		m.osInfo.OsVersion, style.Cyan, "", "light"))
 		
 	// Show OS codename (if not Alpine)
-	if osInfo.OsType != "alpine" {
+	if m.osInfo.OsType != "alpine" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Codename", 
-			strings.Title(osInfo.OsCodename), style.Cyan, "", "light"))
+			strings.Title(m.osInfo.OsCodename), style.Cyan, "", "light"))
 	}
 	
 	// Show Proxmox status
 	proxmoxStatus := "No"
-	if osInfo.IsProxmox {
+	if m.osInfo.IsProxmox {
 		proxmoxStatus = "Yes"
 	}
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Proxmox", 
@@ -53,18 +72,18 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	fmt.Println()
 	fmt.Println(style.Bolded("Current Source Configuration:", style.Blue))
 	
-	if osInfo.OsType == "alpine" {
+	if m.osInfo.OsType == "alpine" {
 		// Show Alpine repository status
-		showAlpineRepositories(cfg)
+		m.showAlpineRepositories()
 	} else {
 		// Show Debian/Ubuntu repository status
-		showDebianRepositories(cfg, osInfo)
+		m.showDebianRepositories()
 	}
 
 	// Create menu options based on OS type
 	var menuOptions []style.MenuOption
 	
-	if osInfo.OsType == "alpine" {
+	if m.osInfo.OsType == "alpine" {
 		// Alpine specific options
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      1, 
@@ -73,7 +92,7 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		})
 		
 		// Testing repository toggle
-		if cfg.AlpineTestingRepo {
+		if m.config.AlpineTestingRepo {
 			menuOptions = append(menuOptions, style.MenuOption{
 				Number:      2, 
 				Title:       "Disable testing repository", 
@@ -95,7 +114,7 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		})
 		
 		// Proxmox specific options
-		if osInfo.IsProxmox {
+		if m.osInfo.IsProxmox {
 			menuOptions = append(menuOptions, style.MenuOption{
 				Number:      2, 
 				Title:       "Configure Proxmox repositories", 
@@ -129,14 +148,14 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Update main repositories
 		fmt.Println("\nUpdating package sources...")
 		
-		if cfg.DryRun {
+		if m.config.DryRun {
 			fmt.Printf("%s [DRY-RUN] Would update package sources for %s\n", 
-				style.BulletItem, osInfo.OsType)
+				style.BulletItem, m.osInfo.OsType)
 		} else {
-			if err := packages.WriteSources(cfg, osInfo); err != nil {
+			// Use application layer to update sources
+			if err := m.menuManager.UpdatePackageSources(); err != nil {
 				fmt.Printf("\n%s Failed to update package sources: %v\n", 
 					style.Colored(style.Red, style.SymCrossMark), err)
-				logging.LogError("Failed to update package sources: %v", err)
 			} else {
 				fmt.Printf("\n%s Package sources updated successfully\n", 
 					style.Colored(style.Green, style.SymCheckMark))
@@ -144,11 +163,11 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 		
 	case "2":
-		if osInfo.OsType == "alpine" {
+		if m.osInfo.OsType == "alpine" {
 			// Toggle Alpine testing repository
-			cfg.AlpineTestingRepo = !cfg.AlpineTestingRepo
+			m.config.AlpineTestingRepo = !m.config.AlpineTestingRepo
 			
-			if cfg.AlpineTestingRepo {
+			if m.config.AlpineTestingRepo {
 				fmt.Printf("\n%s Alpine testing repository %s\n", 
 					style.Colored(style.Yellow, style.SymWarning),
 					style.Bolded("enabled", style.Green))
@@ -161,30 +180,30 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			}
 			
 			// Save config changes
-			saveSourcesConfig(cfg)
+			m.saveSourcesConfig()
 			
 			// Apply the change
-			if !cfg.DryRun {
-				if err := packages.WriteSources(cfg, osInfo); err != nil {
+			if !m.config.DryRun {
+				// Use application layer to update sources
+				if err := m.menuManager.UpdatePackageSources(); err != nil {
 					fmt.Printf("\n%s Failed to update package sources: %v\n", 
 						style.Colored(style.Red, style.SymCrossMark), err)
-					logging.LogError("Failed to update package sources: %v", err)
 				} else {
 					fmt.Printf("%s Package sources updated successfully\n", 
 						style.Colored(style.Green, style.SymCheckMark))
 				}
 			}
-		} else if osInfo.IsProxmox {
+		} else if m.osInfo.IsProxmox {
 			// Configure Proxmox repositories
 			fmt.Println("\nConfiguring Proxmox repositories...")
 			
-			if cfg.DryRun {
+			if m.config.DryRun {
 				fmt.Printf("%s [DRY-RUN] Would configure Proxmox repositories\n", style.BulletItem)
 			} else {
-				if err := packages.WriteProxmoxRepos(cfg, osInfo); err != nil {
+				// Use application layer to update Proxmox sources
+				if err := m.menuManager.UpdateProxmoxSources(); err != nil {
 					fmt.Printf("\n%s Failed to configure Proxmox repositories: %v\n", 
 						style.Colored(style.Red, style.SymCrossMark), err)
-					logging.LogError("Failed to configure Proxmox repositories: %v", err)
 				} else {
 					fmt.Printf("\n%s Proxmox repositories configured successfully\n", 
 						style.Colored(style.Green, style.SymCheckMark))
@@ -198,10 +217,10 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 		
 	case "3":
-		if osInfo.OsType != "alpine" {
+		if m.osInfo.OsType != "alpine" {
 			// Edit repositories submenu
-			editRepositoriesMenu(cfg, osInfo)
-			UpdateSourcesMenu(cfg, osInfo)
+			m.editRepositoriesMenu()
+			m.Show()
 			return
 		} else {
 			fmt.Printf("\n%s Invalid option for this OS type\n", 
@@ -218,7 +237,7 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		UpdateSourcesMenu(cfg, osInfo)
+		m.Show()
 		return
 	}
 	
@@ -227,7 +246,7 @@ func UpdateSourcesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 }
 
 // Helper function to show Alpine repositories
-func showAlpineRepositories(cfg *config.Config) {
+func (m *SourcesMenu) showAlpineRepositories() {
 	// Check if repositories file exists
 	reposFile := "/etc/apk/repositories"
 	reposContent := ""
@@ -261,7 +280,7 @@ func showAlpineRepositories(cfg *config.Config) {
 	
 	// Show testing repository flag
 	fmt.Println()
-	if cfg.AlpineTestingRepo {
+	if m.config.AlpineTestingRepo {
 		fmt.Printf("%s Testing repository: %s\n", 
 			style.BulletItem, style.Colored(style.Yellow, "Enabled"))
 	} else {
@@ -271,7 +290,7 @@ func showAlpineRepositories(cfg *config.Config) {
 }
 
 // Helper function to show Debian/Ubuntu repositories
-func showDebianRepositories(cfg *config.Config, osInfo *osdetect.OSInfo) {
+func (m *SourcesMenu) showDebianRepositories() {
 	// Check if sources file exists
 	sourcesFile := "/etc/apt/sources.list"
 	sourcesContent := ""
@@ -298,7 +317,7 @@ func showDebianRepositories(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	}
 	
 	// Check Proxmox repositories if relevant
-	if osInfo.IsProxmox {
+	if m.osInfo.IsProxmox {
 		fmt.Println()
 		fmt.Printf("%s %s:\n", style.BulletItem, style.Bolded("Proxmox repositories", style.Cyan))
 		
@@ -343,10 +362,10 @@ func showDebianRepositories(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	fmt.Println()
 	fmt.Printf("%s %s:\n", style.BulletItem, style.Bolded("Configured repositories", style.Cyan))
 	
-	if len(cfg.DebianRepos) > 0 {
-		for _, repo := range cfg.DebianRepos {
+	if len(m.config.DebianRepos) > 0 {
+		for _, repo := range m.config.DebianRepos {
 			// Replace CODENAME placeholder with actual codename
-			displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+			displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 			fmt.Printf("   %s\n", displayRepo)
 		}
 	} else {
@@ -355,37 +374,37 @@ func showDebianRepositories(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	}
 	
 	// Show Proxmox configured repositories if relevant
-	if osInfo.IsProxmox {
+	if m.osInfo.IsProxmox {
 		fmt.Println()
 		fmt.Printf("%s %s:\n", 
 			style.BulletItem, style.Bolded("Configured Proxmox repositories", style.Cyan))
 		
 		// Show Proxmox source repos
-		if len(cfg.ProxmoxSrcRepos) > 0 {
+		if len(m.config.ProxmoxSrcRepos) > 0 {
 			fmt.Printf("   %s Source repositories:\n", style.BulletItem)
-			for _, repo := range cfg.ProxmoxSrcRepos {
+			for _, repo := range m.config.ProxmoxSrcRepos {
 				// Replace CODENAME placeholder with actual codename
-				displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("      %s\n", displayRepo)
 			}
 		}
 		
 		// Show Ceph repos
-		if len(cfg.ProxmoxCephRepo) > 0 {
+		if len(m.config.ProxmoxCephRepo) > 0 {
 			fmt.Printf("   %s Ceph repositories:\n", style.BulletItem)
-			for _, repo := range cfg.ProxmoxCephRepo {
+			for _, repo := range m.config.ProxmoxCephRepo {
 				// Replace CODENAME placeholder with actual codename
-				displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("      %s\n", displayRepo)
 			}
 		}
 		
 		// Show Enterprise repos
-		if len(cfg.ProxmoxEnterpriseRepo) > 0 {
+		if len(m.config.ProxmoxEnterpriseRepo) > 0 {
 			fmt.Printf("   %s Enterprise repositories:\n", style.BulletItem)
-			for _, repo := range cfg.ProxmoxEnterpriseRepo {
+			for _, repo := range m.config.ProxmoxEnterpriseRepo {
 				// Replace CODENAME placeholder with actual codename
-				displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("      %s\n", displayRepo)
 			}
 		}
@@ -393,7 +412,7 @@ func showDebianRepositories(cfg *config.Config, osInfo *osdetect.OSInfo) {
 }
 
 // Helper function to edit repositories
-func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
+func (m *SourcesMenu) editRepositoriesMenu() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Edit Repositories", style.Blue))
 	
@@ -407,7 +426,7 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		Description: "Add a new repository to configuration",
 	})
 	
-	if len(cfg.DebianRepos) > 0 {
+	if len(m.config.DebianRepos) > 0 {
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      2, 
 			Title:       "Remove repository", 
@@ -416,7 +435,7 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	}
 	
 	// Proxmox specific options
-	if osInfo.IsProxmox {
+	if m.osInfo.IsProxmox {
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      3, 
 			Title:       "Edit Proxmox repositories", 
@@ -452,7 +471,7 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		} else {
 			// Check for duplicate
 			isDuplicate := false
-			for _, repo := range cfg.DebianRepos {
+			for _, repo := range m.config.DebianRepos {
 				if repo == newRepo {
 					isDuplicate = true
 					break
@@ -464,10 +483,10 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 					style.Colored(style.Yellow, style.SymWarning))
 			} else {
 				// Add new repository
-				cfg.DebianRepos = append(cfg.DebianRepos, newRepo)
+				m.config.DebianRepos = append(m.config.DebianRepos, newRepo)
 				
 				// Save config
-				saveSourcesConfig(cfg)
+				m.saveSourcesConfig()
 				
 				fmt.Printf("\n%s Repository added to configuration\n", 
 					style.Colored(style.Green, style.SymCheckMark))
@@ -476,42 +495,42 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editRepositoriesMenu(cfg, osInfo)
+		m.editRepositoriesMenu()
 		
 	case "2":
 		// Remove repository
-		if len(cfg.DebianRepos) == 0 {
+		if len(m.config.DebianRepos) == 0 {
 			fmt.Printf("\n%s No repositories to remove\n", 
 				style.Colored(style.Yellow, style.SymWarning))
 		} else {
 			fmt.Println()
-			for i, repo := range cfg.DebianRepos {
+			for i, repo := range m.config.DebianRepos {
 				// Replace CODENAME placeholder with actual codename for display
-				displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("%s %d: %s\n", style.BulletItem, i+1, displayRepo)
 			}
 			
 			fmt.Printf("\n%s Enter repository number to remove (1-%d): ", 
-				style.BulletItem, len(cfg.DebianRepos))
+				style.BulletItem, len(m.config.DebianRepos))
 			numStr := ReadInput()
 			
 			// Parse number
 			num := 0
 			fmt.Sscanf(numStr, "%d", &num)
 			
-			if num < 1 || num > len(cfg.DebianRepos) {
+			if num < 1 || num > len(m.config.DebianRepos) {
 				fmt.Printf("\n%s Invalid repository number\n", 
 					style.Colored(style.Red, style.SymCrossMark))
 			} else {
 				// Remove repository (adjust for 0-based index)
-				removedRepo := cfg.DebianRepos[num-1]
-				cfg.DebianRepos = append(cfg.DebianRepos[:num-1], cfg.DebianRepos[num:]...)
+				removedRepo := m.config.DebianRepos[num-1]
+				m.config.DebianRepos = append(m.config.DebianRepos[:num-1], m.config.DebianRepos[num:]...)
 				
 				// Save config
-				saveSourcesConfig(cfg)
+				m.saveSourcesConfig()
 				
 				// Replace CODENAME placeholder with actual codename for display
-				displayRepo := strings.ReplaceAll(removedRepo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(removedRepo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("\n%s Repository removed from configuration:\n", 
 					style.Colored(style.Green, style.SymCheckMark))
 				fmt.Printf("%s %s\n", style.BulletItem, displayRepo)
@@ -520,13 +539,13 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editRepositoriesMenu(cfg, osInfo)
+		m.editRepositoriesMenu()
 		
 	case "3":
 		// Edit Proxmox repositories (only for Proxmox)
-		if osInfo.IsProxmox {
-			editProxmoxRepositoriesMenu(cfg, osInfo)
-			editRepositoriesMenu(cfg, osInfo)
+		if m.osInfo.IsProxmox {
+			m.editProxmoxRepositoriesMenu()
+			m.editRepositoriesMenu()
 			return
 		} else {
 			fmt.Printf("\n%s Invalid option for this OS type\n", 
@@ -534,7 +553,7 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 			
 			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 			ReadKey()
-			editRepositoriesMenu(cfg, osInfo)
+			m.editRepositoriesMenu()
 		}
 		
 	case "0":
@@ -547,13 +566,13 @@ func editRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editRepositoriesMenu(cfg, osInfo)
+		m.editRepositoriesMenu()
 		return
 	}
 }
 
 // Helper function to edit Proxmox repositories
-func editProxmoxRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
+func (m *SourcesMenu) editProxmoxRepositoriesMenu() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Edit Proxmox Repositories", style.Blue))
 	
@@ -580,23 +599,23 @@ func editProxmoxRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	switch choice {
 	case "1":
 		// Edit source repositories
-		editProxmoxRepoList(cfg, osInfo, "source",
-			"Proxmox Source Repositories", &cfg.ProxmoxSrcRepos)
-		editProxmoxRepositoriesMenu(cfg, osInfo)
+		m.editProxmoxRepoList("source",
+			"Proxmox Source Repositories", &m.config.ProxmoxSrcRepos)
+		m.editProxmoxRepositoriesMenu()
 		return
 		
 	case "2":
 		// Edit Ceph repositories
-		editProxmoxRepoList(cfg, osInfo, "ceph",
-			"Proxmox Ceph Repositories", &cfg.ProxmoxCephRepo)
-		editProxmoxRepositoriesMenu(cfg, osInfo)
+		m.editProxmoxRepoList("ceph",
+			"Proxmox Ceph Repositories", &m.config.ProxmoxCephRepo)
+		m.editProxmoxRepositoriesMenu()
 		return
 		
 	case "3":
 		// Edit Enterprise repositories
-		editProxmoxRepoList(cfg, osInfo, "enterprise",
-			"Proxmox Enterprise Repositories", &cfg.ProxmoxEnterpriseRepo)
-		editProxmoxRepositoriesMenu(cfg, osInfo)
+		m.editProxmoxRepoList("enterprise",
+			"Proxmox Enterprise Repositories", &m.config.ProxmoxEnterpriseRepo)
+		m.editProxmoxRepositoriesMenu()
 		return
 		
 	case "0":
@@ -609,13 +628,13 @@ func editProxmoxRepositoriesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editProxmoxRepositoriesMenu(cfg, osInfo)
+		m.editProxmoxRepositoriesMenu()
 		return
 	}
 }
 
 // Helper function to edit a Proxmox repository list
-func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo, 
+func (m *SourcesMenu) editProxmoxRepoList(
 	repoType, title string, repoList *[]string) {
 	
 	utils.PrintHeader()
@@ -630,7 +649,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 	} else {
 		for i, repo := range *repoList {
 			// Replace CODENAME placeholder with actual codename for display
-			displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+			displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 			fmt.Printf("%s %d: %s\n", style.BulletItem, i+1, displayRepo)
 		}
 	}
@@ -697,7 +716,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 				*repoList = append(*repoList, newRepo)
 				
 				// Save config
-				saveSourcesConfig(cfg)
+				m.saveSourcesConfig()
 				
 				fmt.Printf("\n%s Repository added to configuration\n", 
 					style.Colored(style.Green, style.SymCheckMark))
@@ -706,7 +725,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editProxmoxRepoList(cfg, osInfo, repoType, title, repoList)
+		m.editProxmoxRepoList(repoType, title, repoList)
 		return
 		
 	case "2":
@@ -718,7 +737,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 			fmt.Println()
 			for i, repo := range *repoList {
 				// Replace CODENAME placeholder with actual codename for display
-				displayRepo := strings.ReplaceAll(repo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(repo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("%s %d: %s\n", style.BulletItem, i+1, displayRepo)
 			}
 			
@@ -739,10 +758,10 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 				*repoList = append((*repoList)[:num-1], (*repoList)[num:]...)
 				
 				// Save config
-				saveSourcesConfig(cfg)
+				m.saveSourcesConfig()
 				
 				// Replace CODENAME placeholder with actual codename for display
-				displayRepo := strings.ReplaceAll(removedRepo, "CODENAME", osInfo.OsCodename)
+				displayRepo := strings.ReplaceAll(removedRepo, "CODENAME", m.osInfo.OsCodename)
 				fmt.Printf("\n%s Repository removed from configuration:\n", 
 					style.Colored(style.Green, style.SymCheckMark))
 				fmt.Printf("%s %s\n", style.BulletItem, displayRepo)
@@ -751,7 +770,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editProxmoxRepoList(cfg, osInfo, repoType, title, repoList)
+		m.editProxmoxRepoList(repoType, title, repoList)
 		return
 		
 	case "3":
@@ -782,7 +801,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 			}
 			
 			// Save config
-			saveSourcesConfig(cfg)
+			m.saveSourcesConfig()
 			
 			fmt.Printf("\n%s Repositories reset to defaults\n", 
 				style.Colored(style.Green, style.SymCheckMark))
@@ -792,7 +811,7 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editProxmoxRepoList(cfg, osInfo, repoType, title, repoList)
+		m.editProxmoxRepoList(repoType, title, repoList)
 		return
 		
 	case "0":
@@ -805,17 +824,16 @@ func editProxmoxRepoList(cfg *config.Config, osInfo *osdetect.OSInfo,
 		
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		editProxmoxRepoList(cfg, osInfo, repoType, title, repoList)
+		m.editProxmoxRepoList(repoType, title, repoList)
 		return
 	}
 }
 
 // Helper function to save sources configuration
-func saveSourcesConfig(cfg *config.Config) {
+func (m *SourcesMenu) saveSourcesConfig() {
 	// Save config changes
 	configFile := "hardn.yml" // Default config file
-	if err := config.SaveConfig(cfg, configFile); err != nil {
-		logging.LogError("Failed to save configuration: %v", err)
+	if err := config.SaveConfig(m.config, configFile); err != nil {
 		fmt.Printf("\n%s Failed to save configuration: %v\n", 
 			style.Colored(style.Red, style.SymCrossMark), err)
 	}

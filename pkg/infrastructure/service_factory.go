@@ -93,11 +93,26 @@ func (f *ServiceFactory) CreateDNSManager() *application.DNSManager {
 func (f *ServiceFactory) CreatePackageManager() *application.PackageManager {
 	// Convert config to PackageSources model
 	sources := &model.PackageSources{
+		// Standard repositories
 		DebianRepos:           f.config.DebianRepos,
 		ProxmoxSrcRepos:       f.config.ProxmoxSrcRepos,
 		ProxmoxCephRepo:       f.config.ProxmoxCephRepo,
 		ProxmoxEnterpriseRepo: f.config.ProxmoxEnterpriseRepo,
 		AlpineTestingRepo:     f.config.AlpineTestingRepo,
+		
+		// Package lists
+		DebianCorePackages:    f.config.LinuxCorePackages,
+		DebianDmzPackages:     f.config.LinuxDmzPackages,
+		DebianLabPackages:     f.config.LinuxLabPackages,
+		AlpineCorePackages:    f.config.AlpineCorePackages,
+		AlpineDmzPackages:     f.config.AlpineDmzPackages,
+		AlpineLabPackages:     f.config.AlpineLabPackages,
+		
+		// Python packages
+		DebianPythonPackages:  f.config.PythonPackages,
+		NonWslPythonPackages:  f.config.NonWslPythonPackages,
+		PythonPipPackages:     f.config.PythonPipPackages,
+		AlpinePythonPackages:  f.config.AlpinePythonPackages,
 	}
 	
 	// Create repository
@@ -114,8 +129,19 @@ func (f *ServiceFactory) CreatePackageManager() *application.PackageManager {
 	// Create domain service
 	packageService := service.NewPackageServiceImpl(packageRepo, convertOSInfo(f.osInfo))
 	
-	// Create application service
-	return application.NewPackageManager(packageService)
+	// Create application service with all required dependencies
+	return application.NewPackageManager(
+		packageService,
+		sources,
+		&model.OSInfo{
+			Type:      f.osInfo.OsType,
+			Version:   f.osInfo.OsVersion,
+			Codename:  f.osInfo.OsCodename,
+			IsProxmox: f.osInfo.IsProxmox,
+		},
+		f.provider.Network,
+		f.config.DmzSubnet,
+	)
 }
 
 // CreateMenuManager creates a MenuManager with all required dependencies
@@ -126,11 +152,21 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	dnsManager := f.CreateDNSManager()
 	packageManager := f.CreatePackageManager()
 	backupManager := f.CreateBackupManager()
+	environmentManager := f.CreateEnvironmentManager()
+	logsManager := f.CreateLogsManager()
 	securityManager := application.NewSecurityManager(
 			userManager, sshManager, firewallManager, dnsManager)
 	
 	return application.NewMenuManager(
-			userManager, sshManager, firewallManager, dnsManager, packageManager, backupManager, securityManager)
+			userManager, 
+			sshManager, 
+			firewallManager, 
+			dnsManager, 
+			packageManager, 
+			backupManager, 
+			securityManager,
+			environmentManager,
+			logsManager) 
 }
 
 // CreateBackupManager creates a BackupManager
@@ -148,4 +184,31 @@ func (f *ServiceFactory) CreateBackupManager() *application.BackupManager {
 	
 	// Create application service
 	return application.NewBackupManager(backupService)
+}
+
+// CreateEnvironmentManager creates an EnvironmentManager with all required dependencies
+func (f *ServiceFactory) CreateEnvironmentManager() *application.EnvironmentManager {
+	// Create repository
+	environmentRepo := secondary.NewFileEnvironmentRepository(f.provider.FS, f.provider.Commander)
+	
+	// Create domain service
+	environmentService := service.NewEnvironmentServiceImpl(environmentRepo)
+	
+	// Create application service
+	return application.NewEnvironmentManager(environmentService)
+}
+
+// CreateLogsManager creates a LogsManager
+func (f *ServiceFactory) CreateLogsManager() *application.LogsManager {
+	// Create repository
+	logsRepo := secondary.NewFileLogsRepository(
+		f.provider.FS,
+		f.config.LogFile,
+	)
+	
+	// Create domain service
+	logsService := service.NewLogsServiceImpl(logsRepo)
+	
+	// Create application service
+	return application.NewLogsManager(logsService)
 }

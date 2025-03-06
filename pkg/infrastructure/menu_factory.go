@@ -30,6 +30,22 @@ func NewMenuFactory(
 	}
 }
 
+// CreateRunAllMenu creates a RunAllMenu with all dependencies wired up
+func (f *MenuFactory) CreateRunAllMenu() *menu.RunAllMenu {
+	menuManager := f.serviceFactory.CreateMenuManager()
+	return menu.NewRunAllMenu(menuManager, f.config, f.osInfo)
+}
+
+// CreateDryRunMenu creates a DryRunMenu with all dependencies wired up
+func (f *MenuFactory) CreateDryRunMenu() *menu.DryRunMenu {
+	menuManager := f.serviceFactory.CreateMenuManager()
+	return menu.NewDryRunMenu(menuManager, f.config)
+}
+
+func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
+	return menu.NewHelpMenu()
+}
+
 // CreateMainMenu creates the main menu with all dependencies wired up
 func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	// Create required managers
@@ -39,12 +55,23 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	dnsManager := f.serviceFactory.CreateDNSManager()
 	packageManager := f.serviceFactory.CreatePackageManager()
 	backupManager := f.serviceFactory.CreateBackupManager()
+	environmentManager := f.serviceFactory.CreateEnvironmentManager()
+	logsManager := f.serviceFactory.CreateLogsManager()
+	menuManager := f.serviceFactory.CreateMenuManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
-		// Create menu manager
-		menuManager := application.NewMenuManager(
-			userManager, sshManager, firewallManager, dnsManager, packageManager, backupManager, securityManager)
-			
-			// Create menu
-			return menu.NewMainMenu(menuManager, f.config, f.osInfo)
-	}
+	// Create menu manager
+	menuManager = application.NewMenuManager(
+		userManager, 
+		sshManager, 
+		firewallManager, 
+		dnsManager, 
+		packageManager, 
+		backupManager, 
+		securityManager, 
+		environmentManager,
+		logsManager)
+		
+		// Create menu
+		return menu.NewMainMenu(menuManager, f.config, f.osInfo)
+}

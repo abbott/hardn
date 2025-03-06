@@ -21,9 +21,24 @@ type RepositorySource struct {
 
 // PackageSources represents package repository sources configuration
 type PackageSources struct {
+	// Repository sources
 	DebianRepos           []string
 	ProxmoxSrcRepos       []string
 	ProxmoxCephRepo       []string
 	ProxmoxEnterpriseRepo []string
 	AlpineTestingRepo     bool
+	
+	// Package lists by OS and environment
+	DebianCorePackages    []string
+	DebianDmzPackages     []string
+	DebianLabPackages     []string
+	AlpineCorePackages    []string
+	AlpineDmzPackages     []string
+	AlpineLabPackages     []string
+	
+	// Python packages
+	DebianPythonPackages  []string
+	NonWslPythonPackages  []string
+	PythonPipPackages     []string
+	AlpinePythonPackages  []string
 }

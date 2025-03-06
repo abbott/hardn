@@ -9,15 +9,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/packages"
-	"github.com/abbott/hardn/pkg/security"
-	"github.com/abbott/hardn/pkg/ssh"
-	"github.com/abbott/hardn/pkg/updates"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
@@ -47,9 +43,8 @@ var (
 	cfg           *config.Config
 )
 
+// Create provider as a global for dependency injection
 var provider = interfaces.NewProvider()
-
-var useNewArchitecture bool
 
 func main() {
 	// Setup colors
@@ -72,15 +67,11 @@ func main() {
 }
 
 func init() {
-
-	rootCmd.PersistentFlags().BoolVar(&useNewArchitecture, "use-new-arch", false,
-		"Use new architecture implementation")
-
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
 		"Specify configuration file path")
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	// "Specify configuration file path (optionally set HARDN_CONFIG as variable)")
+	
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
 	rootCmd.PersistentFlags().BoolVarP(&disableRoot, "disable-root", "d", false, "Disable root SSH access")
@@ -158,149 +149,224 @@ var rootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if useNewArchitecture {
+		// Create service factory
+		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
+		serviceFactory.SetConfig(cfg)
+		
+		// If no specific flags provided, show the interactive menu
+		if !createUser && !disableRoot && !installLinux && !installPython &&
+			!installAll && !configureUfw && !configureDns && !runAll &&
+			!updateSources && !printLogs && !setupSudoEnv {
 			
-			// Create service factory
-			// provider := interfaces.NewProvider()
-
-
-			logging.LogSuccess("The value of useNewArchitecture is %t", useNewArchitecture)
-			
-			// Create service factory
-			serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
-			
-			// Create menu factory
+			// Create menu factory and main menu
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			
-			// Create and show main menu
 			mainMenu := menuFactory.CreateMainMenu()
 			mainMenu.ShowMainMenu()
+			return
+		}
 
-			factory := infrastructure.NewServiceFactory(provider, osInfo)
-
-			// Handle SSH operations with new architecture
-			if disableRoot {
-				sshManager := factory.CreateSSHManager()
-				if err := sshManager.DisableRootAccess(); err != nil {
-					logging.LogError("Failed to disable root SSH access: %v", err)
-				} else {
-					logging.LogSuccess("Disabled root SSH access")
-				}
-			}
-
-			// Handle firewall operations with new architecture
-			if configureUfw {
-				firewallManager := factory.CreateFirewallManager()
-				if err := firewallManager.ConfigureSecureFirewall(cfg.SshPort, []int{}); err != nil {
-					logging.LogError("Failed to configure firewall: %v", err)
-				} else {
-					logging.LogSuccess("Firewall configured successfully")
-				}
-			}
-
-			// Handle DNS operations with new architecture
-			if configureDns {
-				dnsManager := factory.CreateDNSManager()
-				if err := dnsManager.ConfigureDNS(cfg.Nameservers, "lan"); err != nil {
-					logging.LogError("Failed to configure DNS: %v", err)
-				} else {
-					logging.LogSuccess("DNS configured successfully")
-				}
+		// Process command line options using the new architecture
+		
+		// Get required managers
+		sshManager := serviceFactory.CreateSSHManager()
+		firewallManager := serviceFactory.CreateFirewallManager()
+		dnsManager := serviceFactory.CreateDNSManager()
+		packageManager := serviceFactory.CreatePackageManager()
+		userManager := serviceFactory.CreateUserManager()
+		menuManager := serviceFactory.CreateMenuManager()
+		
+		// Handle a complete system hardening request
+		if runAll {
+			logging.LogInfo("Running complete system hardening...")
+			
+			// Create a comprehensive hardening configuration
+			hardeningConfig := &model.HardeningConfig{
+				CreateUser:               cfg.Username != "",
+				Username:                 cfg.Username,
+				SudoNoPassword:           cfg.SudoNoPassword,
+				SshKeys:                  cfg.SshKeys,
+				SshPort:                  cfg.SshPort,
+				SshListenAddresses:       []string{cfg.SshListenAddress},
+				SshAllowedUsers:          cfg.SshAllowedUsers,
+				EnableFirewall:           cfg.EnableUfwSshPolicy,
+				AllowedPorts:             []int{},
+				ConfigureDns:             cfg.ConfigureDns,
+				Nameservers:              cfg.Nameservers,
+				EnableAppArmor:           cfg.EnableAppArmor,
+				EnableLynis:              cfg.EnableLynis,
+				EnableUnattendedUpgrades: cfg.EnableUnattendedUpgrades,
 			}
 			
-		} else {
-
-			logging.LogSuccess("The value of useNewArchitecture is %t", useNewArchitecture)
-
-			// If no flags provided, show menu
-			if !createUser && !disableRoot && !installLinux && !installPython &&
-				!installAll && !configureUfw && !configureDns && !runAll &&
-				!updateSources && !printLogs {
-				menu.ShowMainMenu(cfg, osInfo)
-				return
+			// Run all hardening steps
+			if err := menuManager.HardenSystem(hardeningConfig); err != nil {
+				logging.LogError("Failed to complete system hardening: %v", err)
+			} else {
+				logging.LogSuccess("System hardening completed successfully!")
+				fmt.Printf("Check the log file at %s for details.\n", cfg.LogFile)
 			}
-
-			// Process command line flags
-			if runAll {
-				runAllHardening(cfg, osInfo)
-				return
+			return
+		}
+		
+		// Handle individual operations based on flags
+		
+		// Update package sources
+		if updateSources {
+			if err := packageManager.UpdatePackageSources(); err != nil {
+				logging.LogError("Failed to update package sources: %v", err)
+			} else {
+				logging.LogSuccess("Package sources updated")
 			}
-
-			// Handle individual operations
-			if updateSources || installLinux || installPython || installAll || createUser || runAll {
-				packages.WriteSources(cfg, osInfo)
-				if osInfo.OsType != "alpine" && osInfo.IsProxmox {
-					packages.WriteProxmoxRepos(cfg, osInfo)
-				}
-			}
-
-			if disableRoot {
-				err := ssh.DisableRootSSHAccess(cfg, osInfo)
-				if err != nil {
-					logging.LogError("Failed to disable root SSH access: %v", err)
+			
+			// Handle Proxmox-specific sources
+			if osInfo.OsType != "alpine" && osInfo.IsProxmox {
+				if err := packageManager.UpdateProxmoxSources(); err != nil {
+					logging.LogError("Failed to update Proxmox sources: %v", err)
 				} else {
-					logging.LogSuccess("Disabled root SSH access")
+					logging.LogSuccess("Proxmox sources updated")
 				}
 			}
-
-			if installPython || installAll {
-				packages.InstallPythonPackages(cfg, osInfo)
+		}
+		
+		// Disable root SSH access
+		if disableRoot {
+			if err := sshManager.DisableRootAccess(); err != nil {
+				logging.LogError("Failed to disable root SSH access: %v", err)
+			} else {
+				logging.LogSuccess("Root SSH access disabled")
 			}
-
-			if installLinux || installAll || runAll {
-				installLinuxPackages(cfg, osInfo)
-			}
-
-			// if createUser || runAll {
-			// 	// Install sudo if needed
-			// 	if osInfo.OsType == "alpine" {
-			// 		if !packages.IsPackageInstalled("sudo") {
-			// 			packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
-			// 		}
-			// 	} else {
-			// 		if !packages.IsPackageInstalled("sudo") {
-			// 			packages.InstallPackages([]string{"sudo"}, osInfo, cfg)
-			// 		}
-			// 	}
-
-			// 	err := user.CreateUser(cfg.Username, cfg, osInfo)
-			// 	if err != nil {
-			// 		logging.LogError("Failed to create user: %v", err)
-			// 	}
-			// 	ssh.WriteSSHConfig(cfg, osInfo)
-			// }
-
-			if runAll && cfg.EnableAppArmor {
-				security.SetupAppArmor(cfg, osInfo)
-			}
-
-			if runAll && cfg.EnableLynis {
-				security.SetupLynis(cfg, osInfo)
-			}
-
-			if runAll && cfg.EnableUnattendedUpgrades {
-				updates.SetupUnattendedUpgrades(cfg, osInfo)
-			}
-
-			if printLogs {
-				logging.PrintLogs(cfg.LogFile)
-			}
-
-			// Output completion message
-			if runAll {
-				logging.LogSuccess("Script completed all hardening operations.")
-			} else if createUser || disableRoot || installLinux || installPython ||
-				installAll || configureUfw || configureDns || updateSources {
-				logging.LogSuccess("Script completed selected hardening operations.")
-			}
-
-			if setupSudoEnv {
-				if err := utils.SetupSudoEnvPreservation(); err != nil {
-					logging.LogError("Failed to configure sudoers: %v", err)
-					os.Exit(1)
+		}
+		
+		// Install Linux packages
+		if installLinux || installAll {
+			logging.LogInfo("Installing Linux packages...")
+			
+			if installAll {
+				// Use the enhanced method that handles all package types appropriately
+				if err := packageManager.InstallAllLinuxPackages(); err != nil {
+					logging.LogError("Failed to install Linux packages: %v", err)
+				} else {
+					logging.LogSuccess("All Linux packages installed successfully")
 				}
-				return
+			} else {
+				// Just install core packages when specifically requested
+				if osInfo.OsType == "alpine" && len(cfg.AlpineCorePackages) > 0 {
+					if err := packageManager.InstallLinuxPackages(cfg.AlpineCorePackages, "core"); err != nil {
+						logging.LogError("Failed to install Alpine core packages: %v", err)
+					} else {
+						logging.LogSuccess("Alpine core packages installed successfully")
+					}
+				} else if len(cfg.LinuxCorePackages) > 0 {
+					if err := packageManager.InstallLinuxPackages(cfg.LinuxCorePackages, "core"); err != nil {
+						logging.LogError("Failed to install Linux core packages: %v", err)
+					} else {
+						logging.LogSuccess("Linux core packages installed successfully")
+					}
+				}
 			}
+		}
+		
+		// Install Python packages
+		if installPython || installAll {
+			logging.LogInfo("Installing Python packages...")
+			
+			if installAll {
+				// Use the enhanced method for all Python packages
+				if err := packageManager.InstallAllPythonPackages(cfg.UseUvPackageManager); err != nil {
+					logging.LogError("Failed to install Python packages: %v", err)
+				} else {
+					logging.LogSuccess("All Python packages installed successfully")
+				}
+			} else {
+				// Handle specific Python package installation
+				if osInfo.OsType == "alpine" && len(cfg.AlpinePythonPackages) > 0 {
+					if err := packageManager.InstallPythonPackages(
+						cfg.AlpinePythonPackages, 
+						cfg.PythonPipPackages, 
+						cfg.UseUvPackageManager,
+					); err != nil {
+						logging.LogError("Failed to install Alpine Python packages: %v", err)
+					} else {
+						logging.LogSuccess("Alpine Python packages installed successfully")
+					}
+				} else {
+					// For Debian/Ubuntu
+					pythonPackages := cfg.PythonPackages
+					// Add non-WSL packages if not in WSL
+					if os.Getenv("WSL") == "" && len(cfg.NonWslPythonPackages) > 0 {
+						pythonPackages = append(pythonPackages, cfg.NonWslPythonPackages...)
+					}
+					
+					if err := packageManager.InstallPythonPackages(
+						pythonPackages,
+						cfg.PythonPipPackages,
+						cfg.UseUvPackageManager,
+					); err != nil {
+						logging.LogError("Failed to install Python packages: %v", err)
+					} else {
+						logging.LogSuccess("Python packages installed successfully")
+					}
+				}
+			}
+		}
+		
+		// Create user
+		if createUser {
+			if err := userManager.CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys); err != nil {
+				logging.LogError("Failed to create user: %v", err)
+			} else {
+				logging.LogSuccess("User '%s' created successfully", cfg.Username)
+			}
+			
+			// Configure SSH after user creation
+			// TODO: This might need to be refactored to avoid duplicating the SSH configuration
+			if err := sshManager.ConfigureSSH(
+				cfg.SshPort,
+				[]string{cfg.SshListenAddress},
+				cfg.PermitRootLogin,
+				cfg.SshAllowedUsers,
+				[]string{cfg.SshKeyPath},
+			); err != nil {
+				logging.LogError("Failed to configure SSH: %v", err)
+			}
+		}
+		
+		// Configure firewall
+		if configureUfw {
+			if err := firewallManager.ConfigureSecureFirewall(cfg.SshPort, []int{}); err != nil {
+				logging.LogError("Failed to configure firewall: %v", err)
+			} else {
+				logging.LogSuccess("Firewall configured successfully")
+			}
+		}
+		
+		// Configure DNS
+		if configureDns {
+			if err := dnsManager.ConfigureDNS(cfg.Nameservers, "lan"); err != nil {
+				logging.LogError("Failed to configure DNS: %v", err)
+			} else {
+				logging.LogSuccess("DNS configured successfully")
+			}
+		}
+		
+		// Print logs
+		if printLogs {
+			logging.PrintLogs(cfg.LogFile)
+		}
+		
+		// Setting up sudo environment preservation
+		if setupSudoEnv {
+			if err := utils.SetupSudoEnvPreservation(); err != nil {
+				logging.LogError("Failed to configure sudoers: %v", err)
+				os.Exit(1)
+			}
+			logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
+			return
+		}
+		
+		// Output completion message for operations other than the all-in-one run
+		if createUser || disableRoot || installLinux || installPython ||
+			installAll || configureUfw || configureDns || updateSources {
+			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
 }
@@ -322,116 +388,6 @@ Example:
 			logging.LogError("Failed to configure sudoers: %v", err)
 			os.Exit(1)
 		}
+		logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 	},
-}
-
-// Run all hardening operations
-func runAllHardening(cfg *config.Config, osInfo *osdetect.OSInfo) {
-	utils.PrintLogo()
-	logging.LogInfo("Running complete system hardening...")
-
-	// Setup hushlogin
-	utils.SetupHushlogin(cfg)
-
-	// Update package repositories
-	packages.WriteSources(cfg, osInfo)
-	if osInfo.OsType != "alpine" && osInfo.IsProxmox {
-		packages.WriteProxmoxRepos(cfg, osInfo)
-	}
-
-	// Install packages
-	installLinuxPackages(cfg, osInfo)
-
-	// // Create user
-	// if cfg.Username != "" {
-	// 	err := user.CreateUser(cfg.Username, cfg, osInfo)
-	// 	if err != nil {
-	// 		logging.LogError("Failed to create user: %v", err)
-	// 	}
-	// }
-
-	// Configure SSH
-	ssh.WriteSSHConfig(cfg, osInfo)
-
-	// Disable root SSH access if requested
-	if cfg.DisableRoot {
-		ssh.DisableRootSSHAccess(cfg, osInfo)
-	}
-
-	// Setup AppArmor if enabled
-	if cfg.EnableAppArmor {
-		security.SetupAppArmor(cfg, osInfo)
-	}
-
-	// Setup Lynis if enabled
-	if cfg.EnableLynis {
-		security.SetupLynis(cfg, osInfo)
-	}
-
-	// Setup unattended upgrades if enabled
-	if cfg.EnableUnattendedUpgrades {
-		updates.SetupUnattendedUpgrades(cfg, osInfo)
-	}
-
-	logging.LogSuccess("System hardening completed successfully!")
-	fmt.Printf("Check the log file at %s for details.\n", cfg.LogFile)
-}
-
-// Install Linux packages based on OS type
-func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
-	if osInfo.OsType == "alpine" {
-		fmt.Println("\nInstalling Alpine Linux packages...")
-
-		// Install core Alpine packages first
-		if len(cfg.AlpineCorePackages) > 0 {
-			logging.LogInfo("Installing Alpine core packages...")
-			packages.InstallPackages(cfg.AlpineCorePackages, osInfo, cfg)
-		}
-
-		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
-		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
-		if isDmz {
-			if len(cfg.AlpineDmzPackages) > 0 {
-				logging.LogInfo("Installing Alpine DMZ packages...")
-				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
-			}
-		} else {
-			// Install both
-			if len(cfg.AlpineDmzPackages) > 0 {
-				logging.LogInfo("Installing Alpine DMZ packages...")
-				packages.InstallPackages(cfg.AlpineDmzPackages, osInfo, cfg)
-			}
-			if len(cfg.AlpineLabPackages) > 0 {
-				logging.LogInfo("Installing Alpine LAB packages...")
-				packages.InstallPackages(cfg.AlpineLabPackages, osInfo, cfg)
-			}
-		}
-	} else {
-		// Install core Linux packages first
-		if len(cfg.LinuxCorePackages) > 0 {
-			logging.LogInfo("Installing Linux core packages...")
-			packages.InstallPackages(cfg.LinuxCorePackages, osInfo, cfg)
-		}
-
-		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
-		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
-		if isDmz {
-			if len(cfg.LinuxDmzPackages) > 0 {
-				logging.LogInfo("Installing Debian DMZ packages...")
-				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
-			}
-		} else {
-			// Install both
-			if len(cfg.LinuxDmzPackages) > 0 {
-				logging.LogInfo("Installing Debian DMZ packages...")
-				packages.InstallPackages(cfg.LinuxDmzPackages, osInfo, cfg)
-			}
-			if len(cfg.LinuxLabPackages) > 0 {
-				logging.LogInfo("Installing Debian Lab packages...")
-				packages.InstallPackages(cfg.LinuxLabPackages, osInfo, cfg)
-			}
-		}
-	}
 }

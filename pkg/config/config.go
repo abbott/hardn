@@ -88,7 +88,15 @@ type Config struct {
 	LcAll            string `yaml:"lcAll"`
 	Tz               string `yaml:"tz"`
 	PythonUnbuffered string `yaml:"pythonUnbuffered"`
+
+		// Logs Configuration (embedded for easy access to LogFile)
+		LogsConfig struct {
+			LogFilePath string
+		}
+	
+	
 }
+
 
 // Default configuration
 func DefaultConfig() *Config {
@@ -327,7 +335,15 @@ func LoadConfig(filePath string) (*Config, error) {
 		fmt.Println()
 	}
 
-	return LoadConfigWithEnvPriority(filePath)
+	cfg, err := LoadConfigWithEnvPriority(filePath)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Initialize LogsConfig
+	cfg.LogsConfig.LogFilePath = cfg.LogFile
+	
+	return cfg, nil
 }
 
 // GetDefaultConfigLocation returns the appropriate location for a new config file

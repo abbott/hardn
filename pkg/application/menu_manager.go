@@ -15,8 +15,11 @@ type MenuManager struct {
 	packageManager  *PackageManager
 	backupManager   *BackupManager
 	securityManager *SecurityManager
+	environmentManager *EnvironmentManager
+	logsManager     *LogsManager
 }
 
+// In the struct definition:
 func NewMenuManager(
 	userManager *UserManager,
 	sshManager *SSHManager,
@@ -25,6 +28,8 @@ func NewMenuManager(
 	packageManager *PackageManager,
 	backupManager *BackupManager,
 	securityManager *SecurityManager,
+	environmentManager *EnvironmentManager,
+	logsManager *LogsManager,
 ) *MenuManager {
 	return &MenuManager{
 			userManager:     userManager,
@@ -34,6 +39,8 @@ func NewMenuManager(
 			packageManager:  packageManager,
 			backupManager:   backupManager,
 			securityManager: securityManager,
+			environmentManager: environmentManager, 
+			logsManager:     logsManager,
 	}
 }
 
@@ -133,4 +140,36 @@ func (m *MenuManager) SetBackupDirectory(directory string) error {
 // VerifyBackupDirectory ensures the backup directory exists and is writable
 func (m *MenuManager) VerifyBackupDirectory() error {
 	return m.backupManager.VerifyBackupDirectory()
+}
+
+// Add these methods to pkg/application/menu_manager.go
+
+// Add these fields and methods to MenuManager
+
+
+// Replace the existing methods with these:
+
+// SetupSudoPreservation configures sudo to preserve the HARDN_CONFIG environment variable
+func (m *MenuManager) SetupSudoPreservation() error {
+	return m.environmentManager.SetupSudoPreservation()
+}
+
+// IsSudoPreservationEnabled checks if sudo is configured to preserve the HARDN_CONFIG environment variable
+func (m *MenuManager) IsSudoPreservationEnabled() (bool, error) {
+	return m.environmentManager.IsSudoPreservationEnabled()
+}
+
+// GetEnvironmentConfig retrieves the current environment configuration
+func (m *MenuManager) GetEnvironmentConfig() (*model.EnvironmentConfig, error) {
+	return m.environmentManager.GetEnvironmentConfig()
+}
+
+// PrintLogs prints the log file content to the console
+func (m *MenuManager) PrintLogs() error {
+	return m.logsManager.PrintLogs()
+}
+
+// GetLogConfig retrieves the current log configuration
+func (m *MenuManager) GetLogConfig() (*model.LogsConfig, error) {
+	return m.logsManager.GetLogConfig()
 }
