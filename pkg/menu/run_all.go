@@ -378,7 +378,8 @@ func installSystemPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 
 		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
+		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.AlpineDmzPackages) > 0 {
 				fmt.Printf("%s Installing Alpine DMZ packages...\n", style.BulletItem)
@@ -419,7 +420,8 @@ func installSystemPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 
 		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
+		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.LinuxDmzPackages) > 0 {
 				fmt.Printf("%s Installing Debian DMZ packages...\n", style.BulletItem)

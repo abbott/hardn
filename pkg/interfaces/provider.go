@@ -21,7 +21,7 @@ func NewProvider() *Provider {
 func MockProvider() *Provider {
 	return &Provider{
 		FS:        MockFileSystem{},
-		Commander: MockCommander{},
+		Commander: &MockCommander{},
 		Network:   MockNetworkOperations{},
 	}
 }
@@ -31,7 +31,4 @@ type OSNetworkOperations struct{}
 
 // Add implementations for OSNetworkOperations...
 
-// Mock implementations for testing...
-type MockFileSystem struct{}
-type MockCommander struct{}
-type MockNetworkOperations struct{}
+// Mock implementations are defined in mocks.go

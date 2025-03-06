@@ -12,7 +12,10 @@ import (
 	"github.com/abbott/hardn/pkg/packages"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
+	"github.com/abbott/hardn/pkg/interfaces"
 )
+
+var provider = interfaces.NewProvider()
 
 // LinuxPackagesMenu handles installation of Linux packages
 func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
@@ -58,7 +61,8 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	}
 
 	// Check subnet status for package selection
-	isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+	isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
+	// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 	if isDmz {
 		fmt.Printf("\n%s DMZ subnet detected: %s\n", 
 			style.Colored(style.Yellow, style.SymInfo), 

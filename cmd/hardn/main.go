@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/updates"
 	"github.com/abbott/hardn/pkg/user"
 	"github.com/abbott/hardn/pkg/utils"
+  "github.com/abbott/hardn/pkg/interfaces"
 )
 
 // Version information - populated by build flags
@@ -47,6 +48,8 @@ var (
 	setupSudoEnv  bool
 	cfg           *config.Config
 )
+
+var provider = interfaces.NewProvider()
 
 func main() {
 	// Setup colors
@@ -345,7 +348,8 @@ func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 
 		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
+		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.AlpineDmzPackages) > 0 {
 				logging.LogInfo("Installing Alpine DMZ packages...")
@@ -370,7 +374,8 @@ func installLinuxPackages(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		}
 
 		// Check subnet to determine which package sets to install
-		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+		isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
+		// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
 		if isDmz {
 			if len(cfg.LinuxDmzPackages) > 0 {
 				logging.LogInfo("Installing Debian DMZ packages...")
