@@ -16,30 +16,34 @@ type MenuFactory struct {
 }
 
 func NewMenuFactory(
-    serviceFactory *ServiceFactory,
-    config *config.Config,
-    osInfo *osdetect.OSInfo,
+	serviceFactory *ServiceFactory,
+	config *config.Config,
+	osInfo *osdetect.OSInfo,
 ) *MenuFactory {
-    return &MenuFactory{
-        serviceFactory: serviceFactory,
-        config:         config,
-        osInfo:         osInfo,
-    }
+	// Set the config in the service factory
+	serviceFactory.SetConfig(config)
+	
+	return &MenuFactory{
+			serviceFactory: serviceFactory,
+			config:         config,
+			osInfo:         osInfo,
+	}
 }
 
 // CreateMainMenu creates the main menu with all dependencies wired up
 func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
-    // Create required managers
-    userManager := f.serviceFactory.CreateUserManager()
-    sshManager := f.serviceFactory.CreateSSHManager()
-    firewallManager := f.serviceFactory.CreateFirewallManager()
-    dnsManager := f.serviceFactory.CreateDNSManager()
-    securityManager := application.NewSecurityManager(
-        userManager, sshManager, firewallManager, dnsManager)
-    
-    // Create menu manager
-    menuManager := application.NewMenuManager(
-        userManager, sshManager, firewallManager, dnsManager, securityManager)
+	// Create required managers
+	userManager := f.serviceFactory.CreateUserManager()
+	sshManager := f.serviceFactory.CreateSSHManager()
+	firewallManager := f.serviceFactory.CreateFirewallManager()
+	dnsManager := f.serviceFactory.CreateDNSManager()
+	packageManager := f.serviceFactory.CreatePackageManager()
+	securityManager := application.NewSecurityManager(
+		userManager, sshManager, firewallManager, dnsManager)
+	
+	// Create menu manager
+	menuManager := application.NewMenuManager(
+		userManager, sshManager, firewallManager, dnsManager, packageManager, securityManager)
     
     // Create menu
     return menu.NewMainMenu(menuManager, f.config, f.osInfo)

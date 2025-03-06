@@ -225,9 +225,9 @@ func ShowMainMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		case "6":
 			ToggleDryRunMenu(cfg)
 		case "7":
-			LinuxPackagesMenu(cfg, osInfo)
+			// LinuxPackagesMenu(cfg, osInfo)
 		case "8":
-			PythonPackagesMenu(cfg, osInfo)
+			// PythonPackagesMenu(cfg, osInfo)
 		case "9":
 			UpdateSourcesMenu(cfg, osInfo)
 		case "10":

@@ -265,15 +265,15 @@ func (m *MainMenu) ShowMainMenu() {
 			ReadKey()
 			
 		case "7": // Linux Packages
-			LinuxPackagesMenu(m.config, m.osInfo)
+			// LinuxPackagesMenu(m.config, m.osInfo)
 			// This needs a packages manager in application layer
-			// linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
-			// linuxMenu.Show()
+			linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
+			linuxMenu.Show()
 			
 		case "8": // Python Packages
-			PythonPackagesMenu(m.config, m.osInfo)
-			// pythonMenu := NewPythonPackagesMenu(m.menuManager, m.config, m.osInfo)
-			// pythonMenu.Show()
+			// PythonPackagesMenu(m.config, m.osInfo)
+			pythonMenu := NewPythonPackagesMenu(m.menuManager, m.config, m.osInfo)
+			pythonMenu.Show()
 			
 		case "9": // Package Sources
 			UpdateSourcesMenu(m.config, m.osInfo)

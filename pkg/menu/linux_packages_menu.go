@@ -1,24 +1,40 @@
-// pkg/menu/linux.go
-
+// pkg/menu/linux_packages_menu.go
 package menu
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/packages"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/interfaces"
 )
 
-var provider = interfaces.NewProvider()
+// LinuxPackagesMenu handles Linux packages installation
+type LinuxPackagesMenu struct {
+	menuManager *application.MenuManager
+	config      *config.Config
+	osInfo      *osdetect.OSInfo
+}
 
-// LinuxPackagesMenu handles installation of Linux packages
-func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
+// NewLinuxPackagesMenu creates a new LinuxPackagesMenu
+func NewLinuxPackagesMenu(
+	menuManager *application.MenuManager,
+	config *config.Config,
+	osInfo *osdetect.OSInfo,
+) *LinuxPackagesMenu {
+	return &LinuxPackagesMenu{
+		menuManager: menuManager,
+		config:      config,
+		osInfo:      osInfo,
+	}
+}
+
+// Show displays the Linux packages menu and handles user input
+func (m *LinuxPackagesMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Linux Packages Installation", style.Blue))
 
@@ -26,47 +42,48 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	fmt.Println()
 	fmt.Println(style.Bolded("Configured Packages:", style.Blue))
 
-	if osInfo.OsType == "alpine" {
+	if m.osInfo.OsType == "alpine" {
 		// Alpine packages
-		if len(cfg.AlpineCorePackages) > 0 {
+		if len(m.config.AlpineCorePackages) > 0 {
 			fmt.Printf("%s Core packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.AlpineCorePackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.AlpineCorePackages, ", ")))
 		}
 		
-		if len(cfg.AlpineDmzPackages) > 0 {
+		if len(m.config.AlpineDmzPackages) > 0 {
 			fmt.Printf("%s DMZ packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.AlpineDmzPackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.AlpineDmzPackages, ", ")))
 		}
 		
-		if len(cfg.AlpineLabPackages) > 0 {
+		if len(m.config.AlpineLabPackages) > 0 {
 			fmt.Printf("%s Lab packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.AlpineLabPackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.AlpineLabPackages, ", ")))
 		}
 	} else {
 		// Debian/Ubuntu packages
-		if len(cfg.LinuxCorePackages) > 0 {
+		if len(m.config.LinuxCorePackages) > 0 {
 			fmt.Printf("%s Core packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.LinuxCorePackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.LinuxCorePackages, ", ")))
 		}
 		
-		if len(cfg.LinuxDmzPackages) > 0 {
+		if len(m.config.LinuxDmzPackages) > 0 {
 			fmt.Printf("%s DMZ packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.LinuxDmzPackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.LinuxDmzPackages, ", ")))
 		}
 		
-		if len(cfg.LinuxLabPackages) > 0 {
+		if len(m.config.LinuxLabPackages) > 0 {
 			fmt.Printf("%s Lab packages: %s\n", style.BulletItem, 
-				style.Colored(style.Cyan, strings.Join(cfg.LinuxLabPackages, ", ")))
+				style.Colored(style.Cyan, strings.Join(m.config.LinuxLabPackages, ", ")))
 		}
 	}
 
 	// Check subnet status for package selection
-	isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet, provider.Network)
-	// isDmz, _ := utils.CheckSubnet(cfg.DmzSubnet)
+
+	provider := interfaces.NewProvider()
+	isDmz, _ := utils.CheckSubnet(m.config.DmzSubnet, provider.Network)
 	if isDmz {
 		fmt.Printf("\n%s DMZ subnet detected: %s\n", 
 			style.Colored(style.Yellow, style.SymInfo), 
-			style.Colored(style.Yellow, cfg.DmzSubnet))
+			style.Colored(style.Yellow, m.config.DmzSubnet))
 		fmt.Printf("%s Only DMZ packages will be installed\n", style.BulletItem)
 	} else {
 		fmt.Printf("\n%s Not in DMZ subnet\n", 
@@ -100,16 +117,16 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Install core packages
 		fmt.Println("\nInstalling Core Linux packages...")
 		
-		if osInfo.OsType == "alpine" {
-			if len(cfg.AlpineCorePackages) > 0 {
-				installPackages(cfg.AlpineCorePackages, "Core", osInfo, cfg)
+		if m.osInfo.OsType == "alpine" {
+			if len(m.config.AlpineCorePackages) > 0 {
+				m.installPackages(m.config.AlpineCorePackages, "Core")
 			} else {
 				fmt.Printf("\n%s No Alpine Core packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
 			}
 		} else {
-			if len(cfg.LinuxCorePackages) > 0 {
-				installPackages(cfg.LinuxCorePackages, "Core", osInfo, cfg)
+			if len(m.config.LinuxCorePackages) > 0 {
+				m.installPackages(m.config.LinuxCorePackages, "Core")
 			} else {
 				fmt.Printf("\n%s No Linux Core packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
@@ -120,16 +137,16 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Install DMZ packages
 		fmt.Println("\nInstalling DMZ Linux packages...")
 		
-		if osInfo.OsType == "alpine" {
-			if len(cfg.AlpineDmzPackages) > 0 {
-				installPackages(cfg.AlpineDmzPackages, "DMZ", osInfo, cfg)
+		if m.osInfo.OsType == "alpine" {
+			if len(m.config.AlpineDmzPackages) > 0 {
+				m.installPackages(m.config.AlpineDmzPackages, "DMZ")
 			} else {
 				fmt.Printf("\n%s No Alpine DMZ packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
 			}
 		} else {
-			if len(cfg.LinuxDmzPackages) > 0 {
-				installPackages(cfg.LinuxDmzPackages, "DMZ", osInfo, cfg)
+			if len(m.config.LinuxDmzPackages) > 0 {
+				m.installPackages(m.config.LinuxDmzPackages, "DMZ")
 			} else {
 				fmt.Printf("\n%s No Linux DMZ packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
@@ -140,16 +157,16 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		// Install Lab packages
 		fmt.Println("\nInstalling Lab Linux packages...")
 		
-		if osInfo.OsType == "alpine" {
-			if len(cfg.AlpineLabPackages) > 0 {
-				installPackages(cfg.AlpineLabPackages, "Lab", osInfo, cfg)
+		if m.osInfo.OsType == "alpine" {
+			if len(m.config.AlpineLabPackages) > 0 {
+				m.installPackages(m.config.AlpineLabPackages, "Lab")
 			} else {
 				fmt.Printf("\n%s No Alpine Lab packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
 			}
 		} else {
-			if len(cfg.LinuxLabPackages) > 0 {
-				installPackages(cfg.LinuxLabPackages, "Lab", osInfo, cfg)
+			if len(m.config.LinuxLabPackages) > 0 {
+				m.installPackages(m.config.LinuxLabPackages, "Lab")
 			} else {
 				fmt.Printf("\n%s No Linux Lab packages configured\n", 
 					style.Colored(style.Yellow, style.SymWarning))
@@ -161,42 +178,42 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 		fmt.Println("\nInstalling All Linux packages...")
 		fmt.Println(style.Dimmed("This may take some time. Please wait..."))
 		
-		if osInfo.OsType == "alpine" {
+		if m.osInfo.OsType == "alpine" {
 			// Install Alpine packages
-			if len(cfg.AlpineCorePackages) > 0 {
-				installPackages(cfg.AlpineCorePackages, "Core", osInfo, cfg)
+			if len(m.config.AlpineCorePackages) > 0 {
+				m.installPackages(m.config.AlpineCorePackages, "Core")
 			}
 			
 			if isDmz {
-				if len(cfg.AlpineDmzPackages) > 0 {
-					installPackages(cfg.AlpineDmzPackages, "DMZ", osInfo, cfg)
+				if len(m.config.AlpineDmzPackages) > 0 {
+					m.installPackages(m.config.AlpineDmzPackages, "DMZ")
 				}
 			} else {
-				if len(cfg.AlpineDmzPackages) > 0 {
-					installPackages(cfg.AlpineDmzPackages, "DMZ", osInfo, cfg)
+				if len(m.config.AlpineDmzPackages) > 0 {
+					m.installPackages(m.config.AlpineDmzPackages, "DMZ")
 				}
 				
-				if len(cfg.AlpineLabPackages) > 0 {
-					installPackages(cfg.AlpineLabPackages, "Lab", osInfo, cfg)
+				if len(m.config.AlpineLabPackages) > 0 {
+					m.installPackages(m.config.AlpineLabPackages, "Lab")
 				}
 			}
 		} else {
 			// Install Debian/Ubuntu packages
-			if len(cfg.LinuxCorePackages) > 0 {
-				installPackages(cfg.LinuxCorePackages, "Core", osInfo, cfg)
+			if len(m.config.LinuxCorePackages) > 0 {
+				m.installPackages(m.config.LinuxCorePackages, "Core")
 			}
 			
 			if isDmz {
-				if len(cfg.LinuxDmzPackages) > 0 {
-					installPackages(cfg.LinuxDmzPackages, "DMZ", osInfo, cfg)
+				if len(m.config.LinuxDmzPackages) > 0 {
+					m.installPackages(m.config.LinuxDmzPackages, "DMZ")
 				}
 			} else {
-				if len(cfg.LinuxDmzPackages) > 0 {
-					installPackages(cfg.LinuxDmzPackages, "DMZ", osInfo, cfg)
+				if len(m.config.LinuxDmzPackages) > 0 {
+					m.installPackages(m.config.LinuxDmzPackages, "DMZ")
 				}
 				
-				if len(cfg.LinuxLabPackages) > 0 {
-					installPackages(cfg.LinuxLabPackages, "Lab", osInfo, cfg)
+				if len(m.config.LinuxLabPackages) > 0 {
+					m.installPackages(m.config.LinuxLabPackages, "Lab")
 				}
 			}
 		}
@@ -216,8 +233,8 @@ func LinuxPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	ReadKey()
 }
 
-// Helper function to install packages with nice formatting
-func installPackages(pkgs []string, pkgType string, osInfo *osdetect.OSInfo, cfg *config.Config) {
+// installPackages handles installing packages with nice formatting
+func (m *LinuxPackagesMenu) installPackages(pkgs []string, pkgType string) {
 	if len(pkgs) == 0 {
 		return
 	}
@@ -227,15 +244,18 @@ func installPackages(pkgs []string, pkgType string, osInfo *osdetect.OSInfo, cfg
 		pkgType, 
 		style.Dimmed(strings.Join(pkgs, ", ")))
 		
-	if err := packages.InstallPackages(pkgs, osInfo, cfg); err != nil {
-		fmt.Printf("\n%s Failed to install %s packages: %v\n", 
-			style.Colored(style.Red, style.SymCrossMark), 
+	if m.config.DryRun {
+		fmt.Printf("\n%s [DRY-RUN] Would install %s packages: %s\n",
+			style.Colored(style.Green, style.SymInfo),
 			pkgType,
-			err)
-		logging.LogError("Failed to install %s packages: %v", pkgType, err)
-	} else {
-		fmt.Printf("\n%s %s packages installed successfully!\n", 
-			style.Colored(style.Green, style.SymCheckMark),
-			pkgType)
+			strings.Join(pkgs, ", "))
+		return
 	}
+		
+	// TODO: This should call through the application layer
+	// For now, display a message that this isn't implemented yet
+	fmt.Printf("\n%s This operation isn't yet implemented in the new architecture\n", 
+		style.Colored(style.Yellow, style.SymWarning))
+	fmt.Printf("%s Package installation will be handled through the application layer soon\n", 
+		style.BulletItem)
 }

@@ -4,8 +4,6 @@ package menu
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -292,58 +290,4 @@ func saveDnsConfig(cfg *config.Config) {
 		fmt.Printf("\n%s Failed to save configuration: %v\n", 
 			style.Colored(style.Red, style.SymCrossMark), err)
 	}
-}
-
-// Helper function to get current DNS settings
-func getCurrentDnsSettings() ([]string, string) {
-	var nameservers []string
-	dnsImplementation := ""
-	
-	// Check if systemd-resolved is active
-	systemdCmd := exec.Command("systemctl", "is-active", "systemd-resolved")
-	if err := systemdCmd.Run(); err == nil {
-		dnsImplementation = "systemd-resolved"
-		
-		// Get nameservers from resolved
-		resolvectlCmd := exec.Command("resolvectl", "dns")
-		output, err := resolvectlCmd.CombinedOutput()
-		if err == nil {
-			// Parse output to extract nameservers
-			lines := strings.Split(string(output), "\n")
-			for _, line := range lines {
-				if strings.Contains(line, ":") {
-					parts := strings.Split(line, ":")
-					if len(parts) >= 2 {
-						ns := strings.TrimSpace(parts[1])
-						if ns != "" {
-							nameservers = append(nameservers, ns)
-						}
-					}
-				}
-			}
-		}
-	} else if _, err := exec.LookPath("resolvconf"); err == nil {
-		dnsImplementation = "resolvconf"
-	} else {
-		dnsImplementation = "direct (/etc/resolv.conf)"
-	}
-	
-	// If we couldn't get nameservers from implementation-specific means,
-	// try to parse /etc/resolv.conf directly
-	if len(nameservers) == 0 {
-		if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
-			lines := strings.Split(string(data), "\n")
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-				if strings.HasPrefix(line, "nameserver") {
-					parts := strings.Fields(line)
-					if len(parts) >= 2 {
-						nameservers = append(nameservers, parts[1])
-					}
-				}
-			}
-		}
-	}
-	
-	return nameservers, dnsImplementation
 }

@@ -1,5 +1,4 @@
-// pkg/menu/python.go
-
+// pkg/menu/python_packages_menu.go
 package menu
 
 import (
@@ -7,29 +6,48 @@ import (
 	"os"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/packages"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
-// PythonPackagesMenu handles Python package installation and configuration
-func PythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
+// PythonPackagesMenu handles Python packages installation
+type PythonPackagesMenu struct {
+	menuManager *application.MenuManager
+	config      *config.Config
+	osInfo      *osdetect.OSInfo
+}
+
+// NewPythonPackagesMenu creates a new PythonPackagesMenu
+func NewPythonPackagesMenu(
+	menuManager *application.MenuManager,
+	config *config.Config,
+	osInfo *osdetect.OSInfo,
+) *PythonPackagesMenu {
+	return &PythonPackagesMenu{
+		menuManager: menuManager,
+		config:      config,
+		osInfo:      osInfo,
+	}
+}
+
+// Show displays the Python packages menu and handles user input
+func (m *PythonPackagesMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Python Packages Installation", style.Blue))
 
 	// Get OS-specific package information
 	var packageDisplay string
-	if osInfo.OsType == "alpine" {
+	if m.osInfo.OsType == "alpine" {
 		packageDisplay = fmt.Sprintf("Alpine Python packages: %s", 
-			style.Colored(style.Cyan, strings.Join(cfg.AlpinePythonPackages, ", ")))
+			style.Colored(style.Cyan, strings.Join(m.config.AlpinePythonPackages, ", ")))
 	} else {
 		// For Debian/Ubuntu
-		allPackages := append([]string{}, cfg.PythonPackages...)
+		allPackages := append([]string{}, m.config.PythonPackages...)
 		if os.Getenv("WSL") == "" {
-			allPackages = append(allPackages, cfg.NonWslPythonPackages...)
+			allPackages = append(allPackages, m.config.NonWslPythonPackages...)
 		}
 		
 		packageDisplay = fmt.Sprintf("System Python packages: %s", 
@@ -38,10 +56,10 @@ func PythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	
 	// Display pip packages if available
 	pipPackageDisplay := ""
-	if len(cfg.PythonPipPackages) > 0 {
+	if len(m.config.PythonPipPackages) > 0 {
 		pipPackageDisplay = fmt.Sprintf("\n%s Pip packages: %s", 
 			style.BulletItem, 
-			style.Colored(style.Cyan, strings.Join(cfg.PythonPipPackages, ", ")))
+			style.Colored(style.Cyan, strings.Join(m.config.PythonPipPackages, ", ")))
 	}
 
 	// Display current Python package management settings
@@ -52,7 +70,7 @@ func PythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	formatter := style.NewStatusFormatter([]string{"UV Package Manager"}, 2)
 	
 	// Show UV package manager status
-	if cfg.UseUvPackageManager {
+	if m.config.UseUvPackageManager {
 		fmt.Println(formatter.FormatSuccess("UV Package Manager", "Enabled", "Modern, fast package manager"))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "UV Package Manager", "Disabled", 
@@ -69,7 +87,7 @@ func PythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	var menuOptions []style.MenuOption
 	
 	// Toggle UV option
-	if cfg.UseUvPackageManager {
+	if m.config.UseUvPackageManager {
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      1, 
 			Title:       "Disable UV Package Manager", 
@@ -106,40 +124,68 @@ func PythonPackagesMenu(cfg *config.Config, osInfo *osdetect.OSInfo) {
 	switch choice {
 	case "1":
 		// Toggle UV package manager
-		if cfg.UseUvPackageManager {
-			cfg.UseUvPackageManager = false
-			fmt.Printf("\n%s UV package manager has been %s. Will use standard pip.\n", 
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Bolded("disabled", style.Yellow))
-		} else {
-			cfg.UseUvPackageManager = true
+		m.config.UseUvPackageManager = !m.config.UseUvPackageManager
+		
+		if m.config.UseUvPackageManager {
 			fmt.Printf("\n%s UV package manager has been %s. Will use UV for Python packages.\n", 
 				style.Colored(style.Green, style.SymCheckMark),
 				style.Bolded("enabled", style.Green))
+		} else {
+			fmt.Printf("\n%s UV package manager has been %s. Will use standard pip.\n", 
+				style.Colored(style.Green, style.SymCheckMark),
+				style.Bolded("disabled", style.Yellow))
 		}
 
 		// Save config changes
 		configFile := "hardn.yml" // Default config file
-		if err := config.SaveConfig(cfg, configFile); err != nil {
-			logging.LogError("Failed to save configuration: %v", err)
+		if err := config.SaveConfig(m.config, configFile); err != nil {
+			fmt.Printf("\n%s Failed to save configuration: %v\n", 
+				style.Colored(style.Red, style.SymCrossMark), err)
 		}
 		
 		// Return to this menu after toggling
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
-		PythonPackagesMenu(cfg, osInfo)
+		m.Show()
 
 	case "2":
 		// Install packages
 		fmt.Println("\nInstalling Python packages...")
 		fmt.Println(style.Dimmed("This may take some time. Please wait..."))
 		
-		if err := packages.InstallPythonPackages(cfg, osInfo); err != nil {
-			fmt.Printf("\n%s Failed to install Python packages: %v\n", 
-				style.Colored(style.Red, style.SymCrossMark), err)
+		if m.config.DryRun {
+			if m.osInfo.OsType == "alpine" {
+				fmt.Printf("\n%s [DRY-RUN] Would install Alpine Python packages: %s\n",
+					style.Colored(style.Green, style.SymInfo),
+					strings.Join(m.config.AlpinePythonPackages, ", "))
+			} else {
+				allPackages := append([]string{}, m.config.PythonPackages...)
+				if os.Getenv("WSL") == "" {
+					allPackages = append(allPackages, m.config.NonWslPythonPackages...)
+				}
+				
+				fmt.Printf("\n%s [DRY-RUN] Would install Python packages: %s\n",
+					style.Colored(style.Green, style.SymInfo),
+					strings.Join(allPackages, ", "))
+				
+				if len(m.config.PythonPipPackages) > 0 {
+					packageManager := "pip"
+					if m.config.UseUvPackageManager {
+						packageManager = "UV"
+					}
+					fmt.Printf("\n%s [DRY-RUN] Would install Pip packages using %s: %s\n",
+						style.Colored(style.Green, style.SymInfo),
+						packageManager,
+						strings.Join(m.config.PythonPipPackages, ", "))
+				}
+			}
 		} else {
-			fmt.Printf("\n%s Python packages installed successfully!\n", 
-				style.Colored(style.Green, style.SymCheckMark))
+			// TODO: This should call through the application layer
+			// For now, display a message that this isn't implemented yet
+			fmt.Printf("\n%s This operation isn't yet implemented in the new architecture\n", 
+				style.Colored(style.Yellow, style.SymWarning))
+			fmt.Printf("%s Python package installation will be handled through the application layer soon\n", 
+				style.BulletItem)
 		}
 		
 	case "0":
