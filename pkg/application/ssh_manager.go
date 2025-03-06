@@ -46,7 +46,7 @@ func (m *SSHManager) SecureSSH(port int, allowedUsers []string) error {
     config := model.SSHConfig{
         Port:            port,
         ListenAddresses: []string{"0.0.0.0"},
-        PermitRootLogin: false,
+        PermitRootLogin: true,
         AllowedUsers:    allowedUsers,
         AuthMethods:     []string{"publickey"},
         KeyPaths:        []string{".ssh/authorized_keys"},

@@ -180,21 +180,36 @@ func (m *MainMenu) ShowMainMenu() {
 
 		// Process the menu choice - using menuManager instead of direct calls
 		switch choice {
-		case "1": // Sudo User
-			// Create submenu for user management
-			if m.config.Username != "" {
-				err := m.menuManager.CreateUser(m.config.Username, true, m.config.SudoNoPassword, m.config.SshKeys)
-				if err != nil {
-					fmt.Printf("\n%s Error creating user: %v\n", 
-						style.Colored(style.Red, style.SymCrossMark), err)
-				} else {
-					fmt.Printf("\n%s User created successfully\n", 
-						style.Colored(style.Green, style.SymCheckMark))
-				}
-			} else {
-				userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
-				userMenu.Show()
-			}
+			case "1": // Sudo User
+    // Create submenu for user management
+    if m.config.Username != "" {
+        err := m.menuManager.CreateUser(m.config.Username, true, m.config.SudoNoPassword, m.config.SshKeys)
+        if err != nil {
+            fmt.Printf("\n%s Error creating user: %v\n", 
+                style.Colored(style.Red, style.SymCrossMark), err)
+        } else {
+            fmt.Printf("\n%s User created successfully\n", 
+                style.Colored(style.Green, style.SymCheckMark))
+        }
+    } else {
+        // Use the existing implementation for now
+        UserCreationMenu(m.config, m.osInfo)
+    }
+		// case "1": // Sudo User
+		// 	// Create submenu for user management
+		// 	if m.config.Username != "" {
+		// 		err := m.menuManager.CreateUser(m.config.Username, true, m.config.SudoNoPassword, m.config.SshKeys)
+		// 		if err != nil {
+		// 			fmt.Printf("\n%s Error creating user: %v\n", 
+		// 				style.Colored(style.Red, style.SymCrossMark), err)
+		// 		} else {
+		// 			fmt.Printf("\n%s User created successfully\n", 
+		// 				style.Colored(style.Green, style.SymCheckMark))
+		// 		}
+		// 	} else {
+		// 		userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
+		// 		userMenu.Show()
+		// 	}
 			
 		case "2": // Root SSH
 			err := m.menuManager.DisableRootSsh()

@@ -165,6 +165,9 @@ var rootCmd = &cobra.Command{
 			
 			// Create service factory
 			// provider := interfaces.NewProvider()
+
+
+			logging.LogSuccess("The value of useNewArchitecture is %t", useNewArchitecture)
 			
 			// Create service factory
 			serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
@@ -210,6 +213,8 @@ var rootCmd = &cobra.Command{
 			
 		} else {
 
+			logging.LogSuccess("The value of useNewArchitecture is %t", useNewArchitecture)
+			
 			// If no flags provided, show menu
 			if !createUser && !disableRoot && !installLinux && !installPython &&
 				!installAll && !configureUfw && !configureDns && !runAll &&
