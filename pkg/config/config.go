@@ -89,14 +89,11 @@ type Config struct {
 	Tz               string `yaml:"tz"`
 	PythonUnbuffered string `yaml:"pythonUnbuffered"`
 
-		// Logs Configuration (embedded for easy access to LogFile)
-		LogsConfig struct {
-			LogFilePath string
-		}
-	
-	
+	// Logs Configuration (embedded for easy access to LogFile)
+	LogsConfig struct {
+		LogFilePath string
+	}
 }
-
 
 // Default configuration
 func DefaultConfig() *Config {
@@ -118,7 +115,7 @@ func DefaultConfig() *Config {
 		// SshAllowedUsers:  []string{"george"},
 		SshListenAddress: "0.0.0.0",
 		SshKeyPath:       ".ssh_%u",
-		SshConfigFile:    "/etc/ssh/sshd_config.d/manage.conf",
+		SshConfigFile:    "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
 		SudoNoPassword: true,
@@ -339,10 +336,10 @@ func LoadConfig(filePath string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Initialize LogsConfig
 	cfg.LogsConfig.LogFilePath = cfg.LogFile
-	
+
 	return cfg, nil
 }
 

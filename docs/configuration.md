@@ -147,7 +147,7 @@ sshAllowedUsers:                    # List of users allowed to access via SSH
   - "george"
 sshListenAddress: "0.0.0.0"         # IP address to listen on
 sshKeyPath: ".ssh_%u"               # Path to SSH keys (%u = username)
-sshConfigFile: "/etc/ssh/sshd_config.d/manage.conf"  # SSH config file location
+sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # SSH config file location
 ```
 
 **Important**: The `sshPort` setting is the single source of truth for SSH port configuration throughout the application.

@@ -186,8 +186,8 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 
@@ -377,8 +377,8 @@ func checkPasswordAuth(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 
@@ -410,8 +410,8 @@ func CheckRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 
