@@ -3,6 +3,7 @@ package menu
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/application"
@@ -11,9 +12,9 @@ import (
 	"github.com/abbott/hardn/pkg/status"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
+	"github.com/abbott/hardn/pkg/version"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	// "github.com/abbott/hardn/pkg/version"
 )
 
 // MainMenu is the main menu of the application
@@ -22,17 +23,13 @@ type MainMenu struct {
 	config      *config.Config
 	osInfo      *osdetect.OSInfo
 
-	// Add fields for update notification
-	// TODO: Implement update notification ...
+	// Version service for update checks
+	versionService *version.Service
 
-	// updateAvailable bool
-	// latestVersion   string
-	// updateURL       string
-
-	// Additional fields for menu state management could be added here
-	// For example:
-	// lastRefreshTime time.Time
-	// statusFormatter *style.StatusFormatter
+	// Update state fields
+	updateAvailable bool
+	latestVersion   string
+	updateURL       string
 }
 
 // NewMainMenu creates a new MainMenu
@@ -40,12 +37,13 @@ func NewMainMenu(
 	menuManager *application.MenuManager,
 	config *config.Config,
 	osInfo *osdetect.OSInfo,
+	versionService *version.Service,
 ) *MainMenu {
 	return &MainMenu{
-		menuManager: menuManager,
-		config:      config,
-		osInfo:      osInfo,
-		// Initialize any additional fields here
+		menuManager:    menuManager,
+		config:         config,
+		osInfo:         osInfo,
+		versionService: versionService,
 	}
 }
 
@@ -59,47 +57,30 @@ func (m *MainMenu) refreshConfig() {
 	// This method is a placeholder for future extensibility
 }
 
-// isDryRunEnabled returns the current dry-run mode status
-// func (m *MainMenu) isDryRunEnabled() bool {
-// 	// Return the status and update UI elements
-// 	isDryRun := m.config.DryRun
-
-// 	// Update menu appearance based on dry-run status
-// 	m.dryRunFormatter = style.NewStatusFormatter(
-// 			[]string{"Operation Mode"},
-// 			2,
-// 	)
-
-// 	if isDryRun {
-// 			logging.LogInfo("Operating in dry-run mode")
-// 			m.menuThemeColor = style.Green
-// 			m.statusMessage = "SIMULATION MODE"
-// 	} else {
-// 			m.menuThemeColor = style.Red
-// 			m.statusMessage = "PRODUCTION MODE"
-// 	}
-
-// 	return isDryRun
-// }
-
 // CheckForUpdates checks for new versions and updates the menu state
-// func (m *MainMenu) CheckForUpdates(currentVersion string) {
-// 	// Run in a goroutine to avoid blocking the menu display
-// 	go func() {
-// 		// Import the version package in the file
-// 		result := version.CheckForUpdates(currentVersion)
-// 		if result.Error != nil {
-// 			// Silently ignore errors - we don't want to bother users with API issues
-// 			return
-// 		}
+func (m *MainMenu) CheckForUpdates() {
+	if m.versionService == nil || m.versionService.CurrentVersion == "" {
+		return
+	}
 
-// 		if result.UpdateAvailable {
-// 			m.updateAvailable = true
-// 			m.latestVersion = result.LatestVersion
-// 			m.updateURL = result.ReleaseURL
-// 		}
-// 	}()
-// }
+	// Run in a goroutine to avoid blocking the menu display
+	go func() {
+		// Use the unified version service
+		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
+			Debug: os.Getenv("HARDN_DEBUG") != "",
+		})
+
+		if result.Error != nil {
+			return // Silently fail for menu updates
+		}
+
+		if result.UpdateAvailable {
+			m.updateAvailable = true
+			m.latestVersion = result.LatestVersion
+			m.updateURL = result.ReleaseURL
+		}
+	}()
+}
 
 // showDryRunMenu creates and displays the dry-run configuration menu
 func (m *MainMenu) showDryRunMenu() {
@@ -149,8 +130,26 @@ func (m *MainMenu) showDryRunMenu() {
 }
 
 // ShowMainMenu displays the main menu and handles user input
-func (m *MainMenu) ShowMainMenu(version, buildDate, gitCommit string) {
+func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
+	// Initialize version service if not already done
+	if m.versionService == nil && currentVersion != "" {
+		m.versionService = version.NewService(currentVersion, buildDate, gitCommit)
+	}
+
+	// Check for updates when the menu starts
+	if m.versionService != nil {
+		// See if we should force an update notification for testing
+		if os.Getenv("HARDN_FORCE_UPDATE") != "" {
+			m.updateAvailable = true
+			m.latestVersion = "99.0.0"
+			m.updateURL = "https://github.com/abbott/hardn/releases/latest"
+		} else {
+			m.CheckForUpdates()
+		}
+	}
+
 	for {
+
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
 
@@ -201,52 +200,52 @@ func (m *MainMenu) ShowMainMenu(version, buildDate, gitCommit string) {
 		}
 
 		// Display version information after the OS display
-		// if version != "" {
-		// 	versionDisplay := fmt.Sprintf(" Version %s ", version)
+		if m.versionService != nil && m.versionService.CurrentVersion != "" {
+			versionDisplay := fmt.Sprintf(" Version %s ", m.versionService.CurrentVersion)
 
-		// 	// Center version information just like OS display
-		// 	versionDisplayStripped := style.StripAnsi(versionDisplay)
-		// 	versionDisplayWidth := len(versionDisplayStripped)
+			// Center version information just like OS display
+			versionDisplayStripped := style.StripAnsi(versionDisplay)
+			versionDisplayWidth := len(versionDisplayStripped)
 
-		// 	leftPadding := (sepWidth - versionDisplayWidth) / 2
-		// 	rightPadding := sepWidth - versionDisplayWidth - leftPadding
+			leftPadding := (sepWidth - versionDisplayWidth) / 2
+			rightPadding := sepWidth - versionDisplayWidth - leftPadding
 
-		// 	// Print centered version within the separator line
-		// 	versionLine := separator[:leftPadding] + versionDisplay + separator[:rightPadding]
-		// 	fmt.Println(style.Colored(style.BrightCyan, versionLine))
+			// Print centered version within the separator line
+			versionLine := separator[:leftPadding] + versionDisplay + separator[:rightPadding]
+			fmt.Println(style.Colored(style.BrightCyan, versionLine))
 
-		// 	// Show build information if available
-		// 	if buildDate != "" || gitCommit != "" {
-		// 		fmt.Println()
-		// 		if buildDate != "" {
-		// 			fmt.Printf("%s Build Date: %s\n", style.BulletItem, style.Dimmed(buildDate))
-		// 		}
-		// 		if gitCommit != "" {
-		// 			fmt.Printf("%s Git Commit: %s\n", style.BulletItem, style.Dimmed(gitCommit))
-		// 		}
-		// 	}
-		// }
+			// Show build information if available
+			if m.versionService.BuildDate != "" || m.versionService.GitCommit != "" {
+				fmt.Println()
+				if m.versionService.BuildDate != "" {
+					fmt.Printf("%s Build Date: %s\n", style.BulletItem, style.Dimmed(m.versionService.BuildDate))
+				}
+				if m.versionService.GitCommit != "" {
+					fmt.Printf("%s Git Commit: %s\n", style.BulletItem, style.Dimmed(m.versionService.GitCommit))
+				}
+			}
+		}
 
 		// Display update notification if a newer version is available
-		// if m.updateAvailable {
-		// 	fmt.Println()
-		// 	updateMsg := fmt.Sprintf(" Update available: %s → %s ", version, m.latestVersion)
+		if m.updateAvailable {
+			fmt.Println()
+			updateMsg := fmt.Sprintf(" Update available: %s → %s ", m.versionService.CurrentVersion, m.latestVersion)
 
-		// 	// Center the update message
-		// 	updateMsgStripped := style.StripAnsi(updateMsg)
-		// 	msgWidth := len(updateMsgStripped)
+			// Center the update message
+			updateMsgStripped := style.StripAnsi(updateMsg)
+			msgWidth := len(updateMsgStripped)
 
-		// 	leftPadding := (sepWidth - msgWidth) / 2
-		// 	rightPadding := sepWidth - msgWidth - leftPadding
+			leftPadding := (sepWidth - msgWidth) / 2
+			rightPadding := sepWidth - msgWidth - leftPadding
 
-		// 	updateLine := separator[:leftPadding] + updateMsg + separator[:rightPadding]
-		// 	fmt.Println(style.Colored(style.Yellow, updateLine))
+			updateLine := separator[:leftPadding] + updateMsg + separator[:rightPadding]
+			fmt.Println(style.Colored(style.Yellow, updateLine))
 
-		// 	// Show update instructions
-		// 	fmt.Printf("%s Visit: %s\n",
-		// 		style.BulletItem,
-		// 		style.Colored(style.BrightCyan, m.updateURL))
-		// }
+			// Show update instructions
+			fmt.Printf("%s Visit: %s\n",
+				style.BulletItem,
+				style.Colored(style.BrightCyan, m.updateURL))
+		}
 
 		fmt.Println()
 		// 2 spaces buffer
@@ -456,5 +455,18 @@ func (m *MainMenu) ShowMainMenu(version, buildDate, gitCommit string) {
 			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 			ReadKey()
 		}
+	}
+}
+
+func (m *MainMenu) SetTestUpdateAvailable(testVersion string) {
+	if m.versionService != nil {
+		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
+			ForceUpdate:   true,
+			ForcedVersion: testVersion,
+		})
+
+		m.updateAvailable = result.UpdateAvailable
+		m.latestVersion = result.LatestVersion
+		m.updateURL = result.ReleaseURL
 	}
 }

@@ -1,4 +1,4 @@
-// pkg/version/checker.go
+// Package version provides version checking and update notification functionality
 package version
 
 import (
@@ -17,7 +17,7 @@ const (
 	// GitHubAPIURL is the endpoint for checking the latest release
 	GitHubAPIURL = "https://api.github.com/repos/abbott/hardn/releases/latest"
 
-	// CacheFile is where we store the last check results
+	// CacheFileName is where we store the last check results
 	CacheFileName = ".hardn-version-cache.json"
 
 	// CacheTTL defines how long the cache is valid (24 hours)
@@ -48,20 +48,45 @@ type CheckResult struct {
 }
 
 // CheckForUpdates checks if a newer version is available on GitHub
-func CheckForUpdates(currentVersion string) CheckResult {
+func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 	result := CheckResult{
 		CurrentVersion: currentVersion,
 	}
 
+	// Print debug info if enabled
+	if debug {
+		fmt.Println("DEBUG: Checking for updates...")
+		fmt.Println("DEBUG: Current version:", currentVersion)
+	}
+
 	// Skip check if running without version info
 	if currentVersion == "" {
+		if debug {
+			fmt.Println("DEBUG: No version information provided. Skipping update check.")
+		}
 		return result
+	}
+
+	// Use environment variable for cache control
+	if os.Getenv("HARDN_CLEAR_CACHE") != "" {
+		if debug {
+			fmt.Println("DEBUG: Clearing cache file")
+		}
+		os.Remove(getCacheFilePath())
 	}
 
 	// Try to load from cache first
 	cache, cacheValid := loadCache()
 	if cacheValid {
+		if debug {
+			fmt.Println("DEBUG: Using cached version information")
+			fmt.Println("DEBUG: Cached latest version:", cache.LatestRelease.TagName)
+		}
 		return compareVersions(currentVersion, cache.LatestRelease)
+	}
+
+	if debug {
+		fmt.Println("DEBUG: No valid cache found. Fetching from GitHub API...")
 	}
 
 	// Fetch from GitHub API with a short timeout
@@ -71,6 +96,9 @@ func CheckForUpdates(currentVersion string) CheckResult {
 
 	req, err := http.NewRequest("GET", GitHubAPIURL, nil)
 	if err != nil {
+		if debug {
+			fmt.Printf("DEBUG: Failed to create request: %v\n", err)
+		}
 		result.Error = fmt.Errorf("failed to create request: %w", err)
 		return result
 	}
@@ -78,32 +106,63 @@ func CheckForUpdates(currentVersion string) CheckResult {
 	// Add User-Agent header to be a good API citizen
 	req.Header.Set("User-Agent", "hardn-version-checker")
 
+	if debug {
+		fmt.Println("DEBUG: Sending request to GitHub API...")
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
+		if debug {
+			fmt.Printf("DEBUG: Failed to check for updates: %v\n", err)
+		}
 		result.Error = fmt.Errorf("failed to check for updates: %w", err)
 		return result
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if debug {
+			fmt.Printf("DEBUG: GitHub API returned non-OK status: %s\n", resp.Status)
+		}
 		result.Error = fmt.Errorf("GitHub API returned non-OK status: %s", resp.Status)
 		return result
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		if debug {
+			fmt.Printf("DEBUG: Failed to read response: %v\n", err)
+		}
 		result.Error = fmt.Errorf("failed to read response: %w", err)
 		return result
 	}
 
 	var release GitHubRelease
 	if err := json.Unmarshal(body, &release); err != nil {
+		if debug {
+			fmt.Printf("DEBUG: Failed to parse GitHub response: %v\n", err)
+		}
 		result.Error = fmt.Errorf("failed to parse GitHub response: %w", err)
 		return result
 	}
 
+	if debug {
+		fmt.Println("DEBUG: Received latest version:", release.TagName)
+		fmt.Println("DEBUG: Saving to cache...")
+	}
+
 	// Save to cache
 	saveCache(release)
+
+	// Verify cache was written
+	if debug {
+		cacheFile := getCacheFilePath()
+		if _, err := os.Stat(cacheFile); err == nil {
+			fmt.Println("DEBUG: Successfully wrote cache file to:", cacheFile)
+		} else {
+			fmt.Printf("DEBUG: Failed to verify cache file: %v\n", err)
+		}
+	}
 
 	return compareVersions(currentVersion, release)
 }
@@ -211,11 +270,21 @@ func saveCache(release GitHubRelease) {
 	// Convert to JSON
 	data, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
+		fmt.Printf("Warning: Failed to marshal version cache: %v\n", err)
+		return
+	}
+
+	// Get cache file path
+	cacheFile := getCacheFilePath()
+
+	// Ensure directory exists
+	dir := filepath.Dir(cacheFile)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		fmt.Printf("Warning: Failed to create directory for version cache: %v\n", err)
 		return
 	}
 
 	// Write to cache file
-	cacheFile := getCacheFilePath()
 	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
 		// Log the error but don't fail the operation since this is just cache
 		fmt.Printf("Warning: Failed to write version cache: %v\n", err)
@@ -225,11 +294,11 @@ func saveCache(release GitHubRelease) {
 
 // getCacheFilePath returns the path to the cache file
 func getCacheFilePath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		// Fallback to system temp directory if home dir not available
-		return filepath.Join(os.TempDir(), CacheFileName)
+	// Check if HARDN_CACHE_PATH environment variable is set
+	if cachePath := os.Getenv("HARDN_CACHE_PATH"); cachePath != "" {
+		return cachePath
 	}
 
-	return filepath.Join(homeDir, CacheFileName)
+	// Use /tmp for easier access across users
+	return "/tmp/hardn-version-cache.json"
 }

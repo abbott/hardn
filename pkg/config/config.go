@@ -197,9 +197,9 @@ func ConfigFileSearchPath(explicitPath string) []string {
 func FindConfigFile(explicitPath string) (string, bool) {
 	// Log environment variable for debugging
 	envPath := os.Getenv("HARDN_CONFIG")
-	if envPath != "" {
-		logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
-	}
+	// if envPath != "" {
+	// 	logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
+	// }
 
 	// First priority: explicit path from command line
 	if explicitPath != "" {

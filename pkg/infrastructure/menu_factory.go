@@ -6,6 +6,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/version"
 )
 
 // MenuFactory creates menu components
@@ -47,7 +48,7 @@ func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 }
 
 // CreateMainMenu creates the main menu with all dependencies wired up
-func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
+func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.MainMenu {
 	// Create required managers
 	userManager := f.serviceFactory.CreateUserManager()
 	sshManager := f.serviceFactory.CreateSSHManager()
@@ -73,5 +74,5 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 		logsManager)
 
 	// Create menu with all necessary fields initialized
-	return menu.NewMainMenu(menuManager, f.config, f.osInfo)
+	return menu.NewMainMenu(menuManager, f.config, f.osInfo, versionService)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/version"
 )
 
 // Version information - populated by build flags
@@ -24,22 +25,24 @@ var (
 )
 
 var (
-	configFile    string
-	username      string
-	dryRun        bool
-	createUser    bool
-	disableRoot   bool
-	installLinux  bool
-	installPython bool
-	installAll    bool
-	configureUfw  bool
-	configureDns  bool
-	runAll        bool
-	updateSources bool
-	printLogs     bool
-	showVersion   bool // Flag to display version information
-	setupSudoEnv  bool
-	cfg           *config.Config
+	configFile          string
+	username            string
+	dryRun              bool
+	createUser          bool
+	disableRoot         bool
+	installLinux        bool
+	installPython       bool
+	installAll          bool
+	configureUfw        bool
+	configureDns        bool
+	runAll              bool
+	updateSources       bool
+	printLogs           bool
+	showVersion         bool // Flag to display version information
+	setupSudoEnv        bool
+	debugUpdates        bool
+	testUpdateAvailable bool
+	cfg                 *config.Config
 )
 
 // Create provider as a global for dependency injection
@@ -93,6 +96,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false,
 		"Configure sudoers to preserve HARDN_CONFIG environment variable")
+	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, "Enable debugging for update checks")
+	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, "Force update notification for testing")
 }
 
 var rootCmd = &cobra.Command{
@@ -100,16 +105,12 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Create version service
+		versionService := version.NewService(Version, BuildDate, GitCommit)
+
 		// Check if version flag is set and display version info
 		if showVersion {
-			fmt.Println("hardn - Linux hardening tool")
-			fmt.Printf("Version:    %s\n", Version)
-			if BuildDate != "" {
-				fmt.Printf("Build Date: %s\n", BuildDate)
-			}
-			if GitCommit != "" {
-				fmt.Printf("Git Commit: %s\n", GitCommit)
-			}
+			versionService.PrintVersionInfo()
 			return
 		}
 
@@ -164,11 +165,17 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu
+			// Create menu factory and main menu with version service
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := menuFactory.CreateMainMenu()
-			// mainMenu.ShowMainMenu()
-			mainMenu.ShowMainMenu(Version, BuildDate, GitCommit) // Pass version info here
+			mainMenu := menuFactory.CreateMainMenu(versionService)
+
+			if testUpdateAvailable {
+				// Force the update notification to appear with a hard-coded newer version
+				mainMenu.SetTestUpdateAvailable("99.0.0")
+			}
+
+			// Show main menu with version info
+			mainMenu.ShowMainMenu(Version, BuildDate, GitCommit)
 			return
 		}
 
