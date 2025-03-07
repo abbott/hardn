@@ -212,20 +212,20 @@ var rootCmd = &cobra.Command{
 		// Update package sources
 		if updateSources {
 			if err := packageManager.UpdatePackageSources(); err != nil {
-				logging.LogError("Failed to update package sources: %v", err)
+					logging.LogError("Failed to update package sources: %v", err)
 			} else {
-				logging.LogSuccess("Package sources updated")
+					logging.LogSuccess("Package sources updated")
 			}
 			
 			// Handle Proxmox-specific sources
 			if osInfo.OsType != "alpine" && osInfo.IsProxmox {
-				if err := packageManager.UpdateProxmoxSources(); err != nil {
-					logging.LogError("Failed to update Proxmox sources: %v", err)
-				} else {
-					logging.LogSuccess("Proxmox sources updated")
-				}
+					if err := packageManager.UpdateProxmoxSources(); err != nil {
+							logging.LogError("Failed to update Proxmox sources: %v", err)
+					} else {
+							logging.LogSuccess("Proxmox sources updated")
+					}
 			}
-		}
+	}
 		
 		// Disable root SSH access
 		if disableRoot {
@@ -241,71 +241,74 @@ var rootCmd = &cobra.Command{
 			logging.LogInfo("Installing Linux packages...")
 			
 			if installAll {
-				// Use the enhanced method that handles all package types appropriately
-				if err := packageManager.InstallAllLinuxPackages(); err != nil {
-					logging.LogError("Failed to install Linux packages: %v", err)
-				} else {
-					logging.LogSuccess("All Linux packages installed successfully")
-				}
+					// Use the enhanced method that handles all package types appropriately
+					if err := packageManager.InstallAllLinuxPackages(); err != nil {
+							logging.LogError("Failed to install Linux packages: %v", err)
+					} else {
+							logging.LogSuccess("All Linux packages installed successfully")
+					}
 			} else {
-				// Just install core packages when specifically requested
-				if osInfo.OsType == "alpine" && len(cfg.AlpineCorePackages) > 0 {
-					if err := packageManager.InstallLinuxPackages(cfg.AlpineCorePackages, "core"); err != nil {
-						logging.LogError("Failed to install Alpine core packages: %v", err)
-					} else {
-						logging.LogSuccess("Alpine core packages installed successfully")
+					// Just install core packages when specifically requested
+					if osInfo.OsType == "alpine" && len(cfg.AlpineCorePackages) > 0 {
+							if err := packageManager.InstallLinuxPackages(cfg.AlpineCorePackages, "core"); err != nil {
+									logging.LogError("Failed to install Alpine core packages: %v", err)
+							} else {
+									logging.LogSuccess("Alpine core packages installed successfully")
+							}
+					} else if len(cfg.LinuxCorePackages) > 0 {
+							if err := packageManager.InstallLinuxPackages(cfg.LinuxCorePackages, "core"); err != nil {
+									logging.LogError("Failed to install Linux core packages: %v", err)
+							} else {
+									logging.LogSuccess("Linux core packages installed successfully")
+							}
 					}
-				} else if len(cfg.LinuxCorePackages) > 0 {
-					if err := packageManager.InstallLinuxPackages(cfg.LinuxCorePackages, "core"); err != nil {
-						logging.LogError("Failed to install Linux core packages: %v", err)
-					} else {
-						logging.LogSuccess("Linux core packages installed successfully")
-					}
-				}
 			}
-		}
+	}
+	
+	
 		
 		// Install Python packages
+		// Here's the update for installPython code path  
 		if installPython || installAll {
 			logging.LogInfo("Installing Python packages...")
 			
 			if installAll {
-				// Use the enhanced method for all Python packages
-				if err := packageManager.InstallAllPythonPackages(cfg.UseUvPackageManager); err != nil {
-					logging.LogError("Failed to install Python packages: %v", err)
-				} else {
-					logging.LogSuccess("All Python packages installed successfully")
-				}
+					// Use the enhanced method for all Python packages
+					if err := packageManager.InstallAllPythonPackages(cfg.UseUvPackageManager); err != nil {
+							logging.LogError("Failed to install Python packages: %v", err)
+					} else {
+							logging.LogSuccess("All Python packages installed successfully")
+					}
 			} else {
-				// Handle specific Python package installation
-				if osInfo.OsType == "alpine" && len(cfg.AlpinePythonPackages) > 0 {
-					if err := packageManager.InstallPythonPackages(
-						cfg.AlpinePythonPackages, 
-						cfg.PythonPipPackages, 
-						cfg.UseUvPackageManager,
-					); err != nil {
-						logging.LogError("Failed to install Alpine Python packages: %v", err)
+					// Handle specific Python package installation
+					if osInfo.OsType == "alpine" && len(cfg.AlpinePythonPackages) > 0 {
+							if err := packageManager.InstallPythonPackages(
+									cfg.AlpinePythonPackages, 
+									cfg.PythonPipPackages, 
+									cfg.UseUvPackageManager,
+							); err != nil {
+									logging.LogError("Failed to install Alpine Python packages: %v", err)
+							} else {
+									logging.LogSuccess("Alpine Python packages installed successfully")
+							}
 					} else {
-						logging.LogSuccess("Alpine Python packages installed successfully")
+							// For Debian/Ubuntu
+							pythonPackages := cfg.PythonPackages
+							// Add non-WSL packages if not in WSL
+							if os.Getenv("WSL") == "" && len(cfg.NonWslPythonPackages) > 0 {
+									pythonPackages = append(pythonPackages, cfg.NonWslPythonPackages...)
+							}
+							
+							if err := packageManager.InstallPythonPackages(
+									pythonPackages,
+									cfg.PythonPipPackages,
+									cfg.UseUvPackageManager,
+							); err != nil {
+									logging.LogError("Failed to install Python packages: %v", err)
+							} else {
+									logging.LogSuccess("Python packages installed successfully")
+							}
 					}
-				} else {
-					// For Debian/Ubuntu
-					pythonPackages := cfg.PythonPackages
-					// Add non-WSL packages if not in WSL
-					if os.Getenv("WSL") == "" && len(cfg.NonWslPythonPackages) > 0 {
-						pythonPackages = append(pythonPackages, cfg.NonWslPythonPackages...)
-					}
-					
-					if err := packageManager.InstallPythonPackages(
-						pythonPackages,
-						cfg.PythonPipPackages,
-						cfg.UseUvPackageManager,
-					); err != nil {
-						logging.LogError("Failed to install Python packages: %v", err)
-					} else {
-						logging.LogSuccess("Python packages installed successfully")
-					}
-				}
 			}
 		}
 		

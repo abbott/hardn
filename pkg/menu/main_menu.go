@@ -360,10 +360,12 @@ func (m *MainMenu) ShowMainMenu() {
 			// ViewLogsMenu(m.config)
 			logsMenu := NewLogsMenu(m.menuManager, m.config)
 			logsMenu.Show()
-			
+		
 		case "13": // Helpcase "13": // Help
 			helpMenu := NewHelpMenu()
 			helpMenu.Show()
+			// helpMenu := menuFactory.CreateHelpMenu()
+			// helpMenu.Show()
 				
 		case "0": // Exit
 			utils.PrintHeader()

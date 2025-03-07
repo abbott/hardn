@@ -27,4 +27,8 @@ type HardeningConfig struct {
     EnableAppArmor           bool
     EnableLynis              bool
     EnableUnattendedUpgrades bool
+
+    UseUvPackageManager      bool
+    // UpdateRepositories       bool
+    InstallPackages          bool
 }

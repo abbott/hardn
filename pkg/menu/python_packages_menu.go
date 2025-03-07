@@ -149,45 +149,61 @@ func (m *PythonPackagesMenu) Show() {
 		m.Show()
 
 	case "2":
-		// Install packages
-		fmt.Println("\nInstalling Python packages...")
-		fmt.Println(style.Dimmed("This may take some time. Please wait..."))
-		
-		if m.config.DryRun {
-			if m.osInfo.OsType == "alpine" {
-				fmt.Printf("\n%s [DRY-RUN] Would install Alpine Python packages: %s\n",
-					style.Colored(style.Green, style.SymInfo),
-					strings.Join(m.config.AlpinePythonPackages, ", "))
-			} else {
-				allPackages := append([]string{}, m.config.PythonPackages...)
-				if os.Getenv("WSL") == "" {
-					allPackages = append(allPackages, m.config.NonWslPythonPackages...)
-				}
-				
-				fmt.Printf("\n%s [DRY-RUN] Would install Python packages: %s\n",
-					style.Colored(style.Green, style.SymInfo),
-					strings.Join(allPackages, ", "))
-				
-				if len(m.config.PythonPipPackages) > 0 {
-					packageManager := "pip"
-					if m.config.UseUvPackageManager {
-						packageManager = "UV"
-					}
-					fmt.Printf("\n%s [DRY-RUN] Would install Pip packages using %s: %s\n",
-						style.Colored(style.Green, style.SymInfo),
-						packageManager,
-						strings.Join(m.config.PythonPipPackages, ", "))
-				}
-			}
-		} else {
-			// TODO: This should call through the application layer
-			// For now, display a message that this isn't implemented yet
-			fmt.Printf("\n%s This operation isn't yet implemented in the new architecture\n", 
-				style.Colored(style.Yellow, style.SymWarning))
-			fmt.Printf("%s Python package installation will be handled through the application layer soon\n", 
-				style.BulletItem)
-		}
-		
+    // Install packages
+    fmt.Println("\nInstalling Python packages...")
+    fmt.Println(style.Dimmed("This may take some time. Please wait..."))
+    
+    if m.config.DryRun {
+        if m.osInfo.OsType == "alpine" {
+            fmt.Printf("\n%s [DRY-RUN] Would install Alpine Python packages: %s\n",
+                style.Colored(style.Green, style.SymInfo),
+                strings.Join(m.config.AlpinePythonPackages, ", "))
+        } else {
+            allPackages := append([]string{}, m.config.PythonPackages...)
+            if os.Getenv("WSL") == "" {
+                allPackages = append(allPackages, m.config.NonWslPythonPackages...)
+            }
+            
+            fmt.Printf("\n%s [DRY-RUN] Would install Python packages: %s\n",
+                style.Colored(style.Green, style.SymInfo),
+                strings.Join(allPackages, ", "))
+            
+            if len(m.config.PythonPipPackages) > 0 {
+                packageManager := "pip"
+                if m.config.UseUvPackageManager {
+                    packageManager = "UV"
+                }
+                fmt.Printf("\n%s [DRY-RUN] Would install Pip packages using %s: %s\n",
+                    style.Colored(style.Green, style.SymInfo),
+                    packageManager,
+                    strings.Join(m.config.PythonPipPackages, ", "))
+            }
+        }
+    } else {
+        // Use the application layer through menuManager
+        var systemPackages []string
+        if m.osInfo.OsType == "alpine" {
+            systemPackages = m.config.AlpinePythonPackages
+        } else {
+            systemPackages = m.config.PythonPackages
+            if os.Getenv("WSL") == "" {
+                systemPackages = append(systemPackages, m.config.NonWslPythonPackages...)
+            }
+        }
+        
+        err := m.menuManager.InstallPythonPackages(
+            systemPackages,
+            m.config.PythonPipPackages,
+            m.config.UseUvPackageManager)
+            
+        if err != nil {
+            fmt.Printf("\n%s Failed to install Python packages: %v\n", 
+                style.Colored(style.Red, style.SymCrossMark), err)
+        } else {
+            fmt.Printf("\n%s Python packages installed successfully\n", 
+                style.Colored(style.Green, style.SymCheckMark))
+        }
+    }
 	case "0":
 		return
 		

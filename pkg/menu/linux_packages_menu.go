@@ -236,26 +236,32 @@ func (m *LinuxPackagesMenu) Show() {
 // installPackages handles installing packages with nice formatting
 func (m *LinuxPackagesMenu) installPackages(pkgs []string, pkgType string) {
 	if len(pkgs) == 0 {
-		return
+			return
 	}
 	
 	fmt.Printf("\n%s Installing %s packages: %s\n", 
-		style.BulletItem,
-		pkgType, 
-		style.Dimmed(strings.Join(pkgs, ", ")))
-		
+			style.BulletItem,
+			pkgType, 
+			style.Dimmed(strings.Join(pkgs, ", ")))
+			
 	if m.config.DryRun {
-		fmt.Printf("\n%s [DRY-RUN] Would install %s packages: %s\n",
-			style.Colored(style.Green, style.SymInfo),
-			pkgType,
-			strings.Join(pkgs, ", "))
-		return
+			fmt.Printf("\n%s [DRY-RUN] Would install %s packages: %s\n",
+					style.Colored(style.Green, style.SymInfo),
+					pkgType,
+					strings.Join(pkgs, ", "))
+			return
 	}
-		
-	// TODO: This should call through the application layer
-	// For now, display a message that this isn't implemented yet
-	fmt.Printf("\n%s This operation isn't yet implemented in the new architecture\n", 
-		style.Colored(style.Yellow, style.SymWarning))
-	fmt.Printf("%s Package installation will be handled through the application layer soon\n", 
-		style.BulletItem)
+			
+	// Use the application layer through menuManager
+	err := m.menuManager.InstallLinuxPackages(pkgs, pkgType)
+	if err != nil {
+			fmt.Printf("\n%s Failed to install %s packages: %v\n", 
+					style.Colored(style.Red, style.SymCrossMark),
+					pkgType,
+					err)
+	} else {
+			fmt.Printf("\n%s %s packages installed successfully\n", 
+					style.Colored(style.Green, style.SymCheckMark),
+					pkgType)
+	}
 }
