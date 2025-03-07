@@ -72,7 +72,7 @@ func init() {
 	if rootCmd.Version != "" {
 		logging.LogInfo("Current version :::: : %s", rootCmd.Version)
 	}
-	
+
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
 		"Specify configuration file path")
 
@@ -168,7 +168,7 @@ var rootCmd = &cobra.Command{
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
 			mainMenu := menuFactory.CreateMainMenu()
 			// mainMenu.ShowMainMenu()
-    	mainMenu.ShowMainMenu(Version, BuildDate, GitCommit) // Pass version info here
+			mainMenu.ShowMainMenu(Version, BuildDate, GitCommit) // Pass version info here
 			return
 		}
 
@@ -367,7 +367,7 @@ var rootCmd = &cobra.Command{
 			if err := environmentManager.SetupSudoPreservation(); err != nil {
 				logging.LogError("Failed to configure sudoers: %v", err)
 				os.Exit(1)
-		}
+			}
 			logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 			return
 		}
@@ -403,11 +403,11 @@ Example:
 		// Create service factory
 		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
 		environmentManager := serviceFactory.CreateEnvironmentManager()
-		
+
 		if err := environmentManager.SetupSudoPreservation(); err != nil {
 			logging.LogError("Failed to configure sudoers: %v", err)
 			os.Exit(1)
-	}
+		}
 		logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 	},
 }

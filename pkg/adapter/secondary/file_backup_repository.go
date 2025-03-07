@@ -77,10 +77,10 @@ func (r *FileBackupRepository) BackupFile(filePath string) error {
 // ListBackups returns a list of all backups for a specific file
 func (r *FileBackupRepository) ListBackups(filePath string) ([]model.BackupFile, error) {
 	var backups []model.BackupFile
-	
+
 	// Get filename without path
 	fileName := filepath.Base(filePath)
-	
+
 	// Walk through backup directory
 	if err := filepath.Walk(r.config.BackupDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -123,7 +123,7 @@ func (r *FileBackupRepository) RestoreBackup(backupPath, originalPath string) er
 	if err != nil {
 		return fmt.Errorf("failed to access backup file %s: %w", backupPath, err)
 	}
-	
+
 	// Make sure it's not a directory
 	if fileInfo.IsDir() {
 		return fmt.Errorf("backup path %s is a directory, not a file", backupPath)
@@ -160,15 +160,15 @@ func (r *FileBackupRepository) CleanupOldBackups(before time.Time) error {
 		}
 		return fmt.Errorf("failed to access backup directory %s: %w", r.config.BackupDir, err)
 	}
-	
+
 	// Make sure it's a directory
 	if !backupDirInfo.IsDir() {
 		return fmt.Errorf("backup path %s is not a directory", r.config.BackupDir)
 	}
-	
+
 	// Since we don't have ReadDir in our interface, we'll use a different approach
 	// We'll have the repository implementation check known date directories directly
-	
+
 	// Get current and past dates to check (e.g., past 90 days)
 	var datesToCheck []string
 	for i := 0; i < 90; i++ {
@@ -176,11 +176,11 @@ func (r *FileBackupRepository) CleanupOldBackups(before time.Time) error {
 		dateStr := date.Format("2006-01-02")
 		datesToCheck = append(datesToCheck, dateStr)
 	}
-	
+
 	// Check each possible date directory
 	for _, dateStr := range datesToCheck {
 		dirPath := filepath.Join(r.config.BackupDir, dateStr)
-		
+
 		// Check if directory exists
 		dirInfo, err := r.fs.Stat(dirPath)
 		if err != nil {
@@ -192,19 +192,19 @@ func (r *FileBackupRepository) CleanupOldBackups(before time.Time) error {
 			fmt.Printf("Warning: Error checking directory %s: %v\n", dirPath, err)
 			continue
 		}
-		
+
 		// Skip if not a directory
 		if !dirInfo.IsDir() {
 			continue
 		}
-		
+
 		// Parse date from directory name
 		dirDate, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			// Should never happen since we're generating these dates
 			continue
 		}
-		
+
 		// If directory is older than cutoff, remove it
 		if dirDate.Before(before) {
 			if err := r.fs.RemoveAll(dirPath); err != nil {
@@ -247,11 +247,11 @@ func (r *FileBackupRepository) SetBackupConfig(config model.BackupConfig) error 
 	// Update the configuration
 	r.config.Enabled = config.Enabled
 	r.config.BackupDir = config.BackupDir
-	
+
 	// If enabling backups, verify the directory exists and is writable
 	if r.config.Enabled {
 		return r.VerifyBackupDirectory()
 	}
-	
+
 	return nil
 }

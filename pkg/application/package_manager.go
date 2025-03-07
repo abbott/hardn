@@ -44,12 +44,10 @@ func (m *PackageManager) InstallLinuxPackages(packages []string, packageType str
 		PackageType: packageType,
 		IsPython:    false,
 	}
-	
+
 	// Call the domain service
 	return m.packageService.InstallPackages(request)
 }
-
-
 
 // InstallPythonPackages installs Python packages
 func (m *PackageManager) InstallPythonPackages(
@@ -59,16 +57,15 @@ func (m *PackageManager) InstallPythonPackages(
 ) error {
 	// Create a Python package installation request
 	request := model.PackageInstallRequest{
-		Packages:      systemPackages,
-		PipPackages:   pipPackages,
-		UseUv:         useUv,
-		IsPython:      true,
+		Packages:    systemPackages,
+		PipPackages: pipPackages,
+		UseUv:       useUv,
+		IsPython:    true,
 	}
-	
+
 	// Call the domain service
 	return m.packageService.InstallPackages(request)
 }
-
 
 // UpdatePackageSources updates package sources configuration
 func (m *PackageManager) UpdatePackageSources() error {
@@ -80,14 +77,13 @@ func (m *PackageManager) UpdateProxmoxSources() error {
 	return m.packageService.UpdateProxmoxSources()
 }
 
-
 // InstallAllLinuxPackages installs all appropriate packages based on OS type and environment
 func (m *PackageManager) InstallAllLinuxPackages() error {
 	// Check if we're in a DMZ subnet
 	isDMZ, _ := m.networkOps.CheckSubnet(m.dmzSubnet)
-	
+
 	var corePackages, dmzPackages, labPackages []string
-	
+
 	// Determine packages based on OS type
 	if m.osInfo.Type == "alpine" {
 		// Get Alpine packages from the configuration
@@ -104,28 +100,28 @@ func (m *PackageManager) InstallAllLinuxPackages() error {
 			labPackages = m.config.DebianLabPackages
 		}
 	}
-	
+
 	// Install core packages
 	if len(corePackages) > 0 {
 		if err := m.InstallLinuxPackages(corePackages, "core"); err != nil {
 			return err
 		}
 	}
-	
+
 	// Install DMZ packages
 	if len(dmzPackages) > 0 {
 		if err := m.InstallLinuxPackages(dmzPackages, "dmz"); err != nil {
 			return err
 		}
 	}
-	
+
 	// Install lab packages if not in DMZ
 	if !isDMZ && len(labPackages) > 0 {
 		if err := m.InstallLinuxPackages(labPackages, "lab"); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -133,7 +129,7 @@ func (m *PackageManager) InstallAllLinuxPackages() error {
 func (m *PackageManager) InstallAllPythonPackages(useUv bool) error {
 	var systemPackages []string
 	var pipPackages []string
-	
+
 	if m.osInfo.Type == "alpine" {
 		// Get Alpine Python packages
 		if m.config != nil {
@@ -143,20 +139,20 @@ func (m *PackageManager) InstallAllPythonPackages(useUv bool) error {
 		// Get Debian/Ubuntu Python packages
 		if m.config != nil {
 			systemPackages = m.config.DebianPythonPackages
-			
+
 			// Add non-WSL packages if not in WSL
 			if os.Getenv("WSL") == "" && len(m.config.NonWslPythonPackages) > 0 {
 				systemPackages = append(systemPackages, m.config.NonWslPythonPackages...)
 			}
-			
+
 			pipPackages = m.config.PythonPipPackages
 		}
 	}
-	
+
 	// Install Python packages
 	if len(systemPackages) > 0 || len(pipPackages) > 0 {
 		return m.InstallPythonPackages(systemPackages, pipPackages, useUv)
 	}
-	
+
 	return nil
 }

@@ -7,10 +7,10 @@ import "github.com/abbott/hardn/pkg/domain/model"
 type EnvironmentService interface {
 	// SetupSudoPreservation configures sudo to preserve the HARDN_CONFIG environment variable
 	SetupSudoPreservation() error
-	
+
 	// IsSudoPreservationEnabled checks if the HARDN_CONFIG environment variable is preserved in sudo
 	IsSudoPreservationEnabled() (bool, error)
-	
+
 	// GetEnvironmentConfig retrieves the current environment configuration
 	GetEnvironmentConfig() (*model.EnvironmentConfig, error)
 }
@@ -41,11 +41,11 @@ func (s *EnvironmentServiceImpl) SetupSudoPreservation() error {
 	if err != nil {
 		return err
 	}
-	
+
 	if config.Username == "" {
 		return nil // No username, nothing to do
 	}
-	
+
 	return s.repository.SetupSudoPreservation(config.Username)
 }
 
@@ -56,11 +56,11 @@ func (s *EnvironmentServiceImpl) IsSudoPreservationEnabled() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	if config.Username == "" {
 		return false, nil // No username, no preservation
 	}
-	
+
 	return s.repository.IsSudoPreservationEnabled(config.Username)
 }
 

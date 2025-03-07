@@ -31,7 +31,7 @@ func NewDryRunMenu(
 func (m *DryRunMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Dry-Run Mode Settings", style.Blue))
-	
+
 	// Create a formatter with just the label we need
 	formatter := style.NewStatusFormatter([]string{"Dry-run Mode"}, 2)
 
@@ -40,12 +40,12 @@ func (m *DryRunMenu) Show() {
 	if m.config.DryRun {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Enabled", style.Green, "", "bold"))
 		fmt.Println(style.Dimmed("\nIn this mode, the script will preview changes without applying them."))
-		
+
 		// Create menu options
 		menuOptions := []style.MenuOption{
 			{Number: 1, Title: "Disable dry-run mode", Description: "Apply changes to the system for real"},
 		}
-		
+
 		// Create and customize menu
 		menu := style.NewMenu("Select an option", menuOptions)
 		menu.SetExitOption(style.MenuOption{
@@ -53,12 +53,12 @@ func (m *DryRunMenu) Show() {
 			Title:       "Return to main menu",
 			Description: "Keep dry-run mode enabled",
 		})
-		
+
 		// Display the menu
 		menu.Print()
-		
+
 		choiceStr := ReadInput()
-		
+
 		switch choiceStr {
 		case "1":
 			m.config.DryRun = false
@@ -72,12 +72,12 @@ func (m *DryRunMenu) Show() {
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Disabled", style.Yellow, "", "bold"))
 		fmt.Println(style.Dimmed("\nIn this mode, changes will be applied to the system. Proceed with caution."))
-		
+
 		// Create menu options
 		menuOptions := []style.MenuOption{
 			{Number: 1, Title: "Enable dry-run mode", Description: "Preview changes without applying them"},
 		}
-		
+
 		// Create and customize menu
 		menu := style.NewMenu("Select an option", menuOptions)
 		menu.SetExitOption(style.MenuOption{
@@ -85,12 +85,12 @@ func (m *DryRunMenu) Show() {
 			Title:       "Return to main menu",
 			Description: "Keep dry-run mode disabled",
 		})
-		
+
 		// Display the menu
 		menu.Print()
-		
+
 		choiceStr := ReadInput()
-		
+
 		switch choiceStr {
 		case "1":
 			m.config.DryRun = true
@@ -108,7 +108,7 @@ func (m *DryRunMenu) Show() {
 	// For now, we'll use the direct approach
 	configFile := "hardn.yml" // Default config file
 	if err := config.SaveConfig(m.config, configFile); err != nil {
-		fmt.Printf("\n%s Failed to save configuration: %v\n", 
+		fmt.Printf("\n%s Failed to save configuration: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 	}
 

@@ -3,8 +3,8 @@ package model
 
 // User represents a system user
 type User struct {
-	Username  string
-	HasSudo   bool
-	SshKeys   []string
+	Username       string
+	HasSudo        bool
+	SshKeys        []string
 	SudoNoPassword bool
 }

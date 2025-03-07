@@ -5,7 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"strings"
-	
+
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/port/secondary"
@@ -13,7 +13,7 @@ import (
 
 // FileLogsRepository implements LogsRepository using file operations
 type FileLogsRepository struct {
-	fs interfaces.FileSystem
+	fs          interfaces.FileSystem
 	logFilePath string
 }
 
@@ -23,7 +23,7 @@ func NewFileLogsRepository(
 	logFilePath string,
 ) secondary.LogsRepository {
 	return &FileLogsRepository{
-		fs: fs,
+		fs:          fs,
 		logFilePath: logFilePath,
 	}
 }
@@ -35,19 +35,19 @@ func (r *FileLogsRepository) GetLogs() ([]model.LogEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to access log file: %w", err)
 	}
-	
+
 	// Read log file
 	data, err := r.fs.ReadFile(r.logFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read log file: %w", err)
 	}
-	
+
 	// Parse log entries
 	var entries []model.LogEntry
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Parse log line (assuming a simple format of "TIME LEVEL: MESSAGE")
 		parts := strings.SplitN(line, " ", 3)
 		if len(parts) >= 3 {
@@ -55,18 +55,18 @@ func (r *FileLogsRepository) GetLogs() ([]model.LogEntry, error) {
 			timeStr := parts[0]
 			levelStr := strings.TrimSuffix(parts[1], ":")
 			messageStr := parts[2]
-			
+
 			// Create log entry
 			entry := model.LogEntry{
-				Time: timeStr,
-				Level: levelStr,
+				Time:    timeStr,
+				Level:   levelStr,
 				Message: messageStr,
 			}
-			
+
 			entries = append(entries, entry)
 		}
 	}
-	
+
 	return entries, nil
 }
 
@@ -84,16 +84,16 @@ func (r *FileLogsRepository) PrintLogs() error {
 	if err != nil {
 		return fmt.Errorf("failed to access log file %s: %w", r.logFilePath, err)
 	}
-	
+
 	// Read log file
 	data, err := r.fs.ReadFile(r.logFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read log file %s: %w", r.logFilePath, err)
 	}
-	
+
 	// Print log contents
 	fmt.Printf("\n# Contents of %s:\n\n", r.logFilePath)
 	fmt.Println(string(data))
-	
+
 	return nil
 }

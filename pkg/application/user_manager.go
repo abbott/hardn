@@ -26,7 +26,7 @@ func (m *UserManager) CreateUser(username string, hasSudo bool, sudoNoPassword b
 		SudoNoPassword: sudoNoPassword,
 		SshKeys:        sshKeys,
 	}
-	
+
 	return m.userService.CreateUser(user)
 }
 

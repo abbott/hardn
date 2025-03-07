@@ -16,9 +16,9 @@ func (c OSCommander) Execute(command string, args ...string) ([]byte, error) {
 
 func (c OSCommander) ExecuteWithInput(input string, command string, args ...string) ([]byte, error) {
 	cmd := exec.Command(command, args...)
-	
+
 	stdin := bytes.NewBufferString(input)
 	cmd.Stdin = stdin
-	
+
 	return cmd.CombinedOutput()
 }

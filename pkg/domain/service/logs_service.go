@@ -7,10 +7,10 @@ import "github.com/abbott/hardn/pkg/domain/model"
 type LogsService interface {
 	// GetLogs retrieves logs from the configured log file
 	GetLogs() ([]model.LogEntry, error)
-	
+
 	// GetLogConfig retrieves the current log configuration
 	GetLogConfig() (*model.LogsConfig, error)
-	
+
 	// PrintLogs prints the logs to the console
 	PrintLogs() error
 }

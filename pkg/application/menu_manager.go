@@ -6,17 +6,18 @@ import (
 
 	"github.com/abbott/hardn/pkg/domain/model"
 )
+
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	userManager     *UserManager
-	sshManager      *SSHManager
-	firewallManager *FirewallManager
-	dnsManager      *DNSManager
-	packageManager  *PackageManager
-	backupManager   *BackupManager
-	securityManager *SecurityManager
+	userManager        *UserManager
+	sshManager         *SSHManager
+	firewallManager    *FirewallManager
+	dnsManager         *DNSManager
+	packageManager     *PackageManager
+	backupManager      *BackupManager
+	securityManager    *SecurityManager
 	environmentManager *EnvironmentManager
-	logsManager     *LogsManager
+	logsManager        *LogsManager
 }
 
 // In the struct definition:
@@ -32,15 +33,15 @@ func NewMenuManager(
 	logsManager *LogsManager,
 ) *MenuManager {
 	return &MenuManager{
-			userManager:     userManager,
-			sshManager:      sshManager,
-			firewallManager: firewallManager,
-			dnsManager:      dnsManager,
-			packageManager:  packageManager,
-			backupManager:   backupManager,
-			securityManager: securityManager,
-			environmentManager: environmentManager, 
-			logsManager:     logsManager,
+		userManager:        userManager,
+		sshManager:         sshManager,
+		firewallManager:    firewallManager,
+		dnsManager:         dnsManager,
+		packageManager:     packageManager,
+		backupManager:      backupManager,
+		securityManager:    securityManager,
+		environmentManager: environmentManager,
+		logsManager:        logsManager,
 	}
 }
 
@@ -54,16 +55,16 @@ func (m *MenuManager) CreateUser(username string, hasSudo bool, sudoNoPassword b
 	// Create the user
 	err := m.userManager.CreateUser(username, hasSudo, sudoNoPassword, sshKeys)
 	if err != nil {
-			return err
+		return err
 	}
-	
+
 	// If SSH keys are provided, ensure they're added
 	for _, key := range sshKeys {
-			if err := m.sshManager.AddSSHKey(username, key); err != nil {
-					return fmt.Errorf("error adding SSH key: %w", err)
-			}
+		if err := m.sshManager.AddSSHKey(username, key); err != nil {
+			return fmt.Errorf("error adding SSH key: %w", err)
+		}
 	}
-	
+
 	return nil
 }
 
@@ -74,7 +75,7 @@ func (m *MenuManager) AddSSHKey(username, publicKey string) error {
 
 // DisableRootSsh disables SSH access for the root user
 func (m *MenuManager) DisableRootSsh() error {
-    return m.sshManager.DisableRootAccess()
+	return m.sshManager.DisableRootAccess()
 }
 
 // HardenSystem applies comprehensive system hardening
@@ -145,7 +146,6 @@ func (m *MenuManager) VerifyBackupDirectory() error {
 // Add these methods to pkg/application/menu_manager.go
 
 // Add these fields and methods to MenuManager
-
 
 // Replace the existing methods with these:
 

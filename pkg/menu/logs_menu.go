@@ -33,10 +33,10 @@ func (m *LogsMenu) Show() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("View Logs", style.Blue))
 
-	// Get log configuration 
+	// Get log configuration
 	logConfig, err := m.menuManager.GetLogConfig()
 	if err != nil {
-		fmt.Printf("\n%s Error getting log configuration: %v\n", 
+		fmt.Printf("\n%s Error getting log configuration: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 		// Create a domain model LogsConfig from the application config
 		logConfig = &model.LogsConfig{
@@ -45,9 +45,9 @@ func (m *LogsMenu) Show() {
 	}
 
 	// Display log file path
-	fmt.Printf("\n%s Log file: %s\n", 
+	fmt.Printf("\n%s Log file: %s\n",
 		style.BulletItem, style.Colored(style.Cyan, logConfig.LogFilePath))
-	
+
 	// Print separator before log content
 	fmt.Println(style.Bolded("\nLog Contents:", style.Blue))
 	fmt.Println(style.Dimmed("-----------------------------------------------------"))
@@ -55,7 +55,7 @@ func (m *LogsMenu) Show() {
 	// Use the menu manager to print the logs
 	err = m.menuManager.PrintLogs()
 	if err != nil {
-		fmt.Printf("\n%s Error displaying logs: %v\n", 
+		fmt.Printf("\n%s Error displaying logs: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)
 	}
 

@@ -12,13 +12,13 @@ import (
 
 // OSPackageRepository implements PackageRepository using OS operations
 type OSPackageRepository struct {
-	fs        interfaces.FileSystem
-	commander interfaces.Commander
-	osType    string
-	osVersion string
+	fs         interfaces.FileSystem
+	commander  interfaces.Commander
+	osType     string
+	osVersion  string
 	osCodename string
-	isProxmox bool
-	config    *model.PackageSources
+	isProxmox  bool
+	config     *model.PackageSources
 }
 
 // NewOSPackageRepository creates a new OSPackageRepository
@@ -32,13 +32,13 @@ func NewOSPackageRepository(
 	config *model.PackageSources,
 ) secondary.PackageRepository {
 	return &OSPackageRepository{
-		fs:        fs,
-		commander: commander,
-		osType:    osType,
-		osVersion: osVersion,
+		fs:         fs,
+		commander:  commander,
+		osType:     osType,
+		osVersion:  osVersion,
 		osCodename: osCodename,
-		isProxmox: isProxmox,
-		config:    config,
+		isProxmox:  isProxmox,
+		config:     config,
 	}
 }
 
@@ -51,10 +51,10 @@ func (r *OSPackageRepository) InstallPackages(request model.PackageInstallReques
 	if request.IsPython {
 		return r.installPythonPackages(request)
 	}
-	
+
 	// Standard Linux packages installation
 	var args []string
-	
+
 	if r.osType == "alpine" {
 		args = append([]string{"add", "--no-cache"}, request.Packages...)
 		_, err := r.commander.Execute("apk", args...)
@@ -161,7 +161,7 @@ func (r *OSPackageRepository) UpdatePackageSources(sources model.PackageSources)
 	if r.osType == "alpine" {
 		return r.updateAlpineSources(sources)
 	}
-	
+
 	// Debian/Ubuntu
 	return r.updateDebianSources(sources)
 }
@@ -247,7 +247,7 @@ func (r *OSPackageRepository) UpdateProxmoxSources(sources model.PackageSources)
 		cephContent.WriteString(strings.ReplaceAll(repo, "CODENAME", r.osCodename))
 		cephContent.WriteString("\n")
 	}
-	
+
 	if err := r.fs.WriteFile("/etc/apt/sources.list.d/ceph.list", []byte(cephContent.String()), 0644); err != nil {
 		return fmt.Errorf("failed to write Proxmox Ceph repository: %w", err)
 	}
@@ -258,7 +258,7 @@ func (r *OSPackageRepository) UpdateProxmoxSources(sources model.PackageSources)
 		enterpriseContent.WriteString(strings.ReplaceAll(repo, "CODENAME", r.osCodename))
 		enterpriseContent.WriteString("\n")
 	}
-	
+
 	if err := r.fs.WriteFile("/etc/apt/sources.list.d/pve-enterprise.list", []byte(enterpriseContent.String()), 0644); err != nil {
 		return fmt.Errorf("failed to write Proxmox Enterprise repository: %w", err)
 	}
@@ -294,7 +294,7 @@ func (r *OSPackageRepository) GetPackageSources() (*model.PackageSources, error)
 // holdProxmoxPackages holds Proxmox packages to prevent accidental removal
 func (r *OSPackageRepository) holdProxmoxPackages() error {
 	packages := []string{"proxmox-archive-keyring", "proxmox-backup-client", "proxmox-ve", "pve-kernel"}
-	
+
 	for _, pkg := range packages {
 		_, err := r.commander.Execute("apt-mark", "hold", pkg)
 		if err != nil {
@@ -302,14 +302,14 @@ func (r *OSPackageRepository) holdProxmoxPackages() error {
 			fmt.Printf("Warning: Failed to hold package %s: %v\n", pkg, err)
 		}
 	}
-	
+
 	return nil
 }
 
 // unholdProxmoxPackages releases held Proxmox packages
 func (r *OSPackageRepository) unholdProxmoxPackages() error {
 	packages := []string{"proxmox-archive-keyring", "proxmox-backup-client", "proxmox-ve", "pve-kernel"}
-	
+
 	for _, pkg := range packages {
 		_, err := r.commander.Execute("apt-mark", "unhold", pkg)
 		if err != nil {
@@ -317,6 +317,6 @@ func (r *OSPackageRepository) unholdProxmoxPackages() error {
 			fmt.Printf("Warning: Failed to unhold package %s: %v\n", pkg, err)
 		}
 	}
-	
+
 	return nil
 }

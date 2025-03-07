@@ -15,7 +15,7 @@ import (
 type OSUserRepository struct {
 	fs        interfaces.FileSystem
 	commander interfaces.Commander
-	osType    string  // e.g., "alpine", "debian", etc.
+	osType    string // e.g., "alpine", "debian", etc.
 }
 
 // NewOSUserRepository creates a new OSUserRepository
@@ -111,16 +111,16 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 	// Common path for SSH keys
 	var sshDir string
 	var homePath string
-	
+
 	if r.osType == "alpine" {
 		homePath = fmt.Sprintf("/home/%s", username)
 		sshDir = filepath.Join(homePath, ".ssh")
-		
+
 		// Create .ssh directory if it doesn't exist
 		if err := r.fs.MkdirAll(sshDir, 0700); err != nil {
 			return fmt.Errorf("failed to create SSH directory for user %s: %w", username, err)
 		}
-		
+
 		// Create authorized_keys file if it doesn't exist
 		authKeysPath := filepath.Join(sshDir, "authorized_keys")
 		authKeysExists := false
@@ -128,14 +128,14 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 		if err == nil {
 			authKeysExists = true
 		}
-		
+
 		if authKeysExists {
 			// Read existing keys
 			existingContent, err := r.fs.ReadFile(authKeysPath)
 			if err != nil {
 				return fmt.Errorf("failed to read authorized_keys: %w", err)
 			}
-			
+
 			// Append new key if not already present
 			if !strings.Contains(string(existingContent), publicKey) {
 				newContent := string(existingContent)
@@ -143,7 +143,7 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 					newContent += "\n"
 				}
 				newContent += publicKey + "\n"
-				
+
 				if err := r.fs.WriteFile(authKeysPath, []byte(newContent), 0600); err != nil {
 					return fmt.Errorf("failed to update authorized_keys: %w", err)
 				}
@@ -154,7 +154,7 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 				return fmt.Errorf("failed to create authorized_keys: %w", err)
 			}
 		}
-		
+
 		// Set correct ownership
 		_, err = r.commander.Execute("chown", "-R", fmt.Sprintf("%s:%s", username, username), sshDir)
 		if err != nil {
@@ -166,19 +166,19 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create SSH directory for user %s: %w", username, err)
 		}
-		
+
 		// Add the key using a here-document style input
 		_, err = r.commander.ExecuteWithInput(publicKey+"\n", "su", "-", username, "-c", "cat >> ~/.ssh/authorized_keys")
 		if err != nil {
 			return fmt.Errorf("failed to add SSH key for user %s: %w", username, err)
 		}
-		
+
 		_, err = r.commander.Execute("su", "-", username, "-c", "chmod 600 ~/.ssh/authorized_keys")
 		if err != nil {
 			return fmt.Errorf("failed to set permissions for authorized_keys: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -189,20 +189,20 @@ func (r *OSUserRepository) ConfigureSudo(username string, noPassword bool) error
 	if err := r.fs.MkdirAll(sudoersDir, 0755); err != nil {
 		return fmt.Errorf("failed to create sudoers directory: %w", err)
 	}
-	
+
 	// Create user sudoers file
 	sudoersFile := filepath.Join(sudoersDir, username)
-	
+
 	var sudoersContent string
 	if noPassword {
 		sudoersContent = fmt.Sprintf("%s ALL=(ALL) NOPASSWD: ALL\n", username)
 	} else {
 		sudoersContent = fmt.Sprintf("%s ALL=(ALL) ALL\n", username)
 	}
-	
+
 	if err := r.fs.WriteFile(sudoersFile, []byte(sudoersContent), 0440); err != nil {
 		return fmt.Errorf("failed to write sudoers file: %w", err)
 	}
-	
+
 	return nil
 }

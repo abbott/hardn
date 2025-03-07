@@ -38,7 +38,7 @@ func (m *BackupManager) ToggleBackups() error {
 	if err != nil {
 		return fmt.Errorf("failed to get backup config: %w", err)
 	}
-	
+
 	return m.backupService.EnableBackups(!config.Enabled)
 }
 
@@ -51,7 +51,7 @@ func (m *BackupManager) SetBackupDirectory(directory string) error {
 			directory = filepath.Join(home, directory[1:])
 		}
 	}
-	
+
 	return m.backupService.SetBackupDirectory(directory)
 }
 
@@ -72,7 +72,7 @@ func (m *BackupManager) GetBackupStatus() (bool, string, error) {
 	if err != nil {
 		return false, "", fmt.Errorf("failed to get backup status: %w", err)
 	}
-	
+
 	return config.Enabled, config.BackupDir, nil
 }
 
@@ -82,21 +82,21 @@ func (m *BackupManager) VerifyBackupPath() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get backup config: %w", err)
 	}
-	
+
 	// Check if directory exists
 	if _, err := os.Stat(config.BackupDir); os.IsNotExist(err) {
 		return false, nil
 	}
-	
+
 	// Check if directory is writable by trying to create a test file
 	testFile := filepath.Join(config.BackupDir, ".write_test")
 	err = os.WriteFile(testFile, []byte("test"), 0644)
 	if err != nil {
 		return false, nil
 	}
-	
+
 	// Clean up test file
 	os.Remove(testFile)
-	
+
 	return true, nil
 }

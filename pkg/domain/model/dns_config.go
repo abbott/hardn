@@ -3,7 +3,7 @@ package model
 
 // DNSConfig represents DNS configuration settings
 type DNSConfig struct {
-    Nameservers []string
-    Domain      string
-    Search      []string
+	Nameservers []string
+	Domain      string
+	Search      []string
 }

@@ -7,13 +7,13 @@ import "github.com/abbott/hardn/pkg/domain/model"
 type PackageService interface {
 	// InstallPackages installs the specified packages
 	InstallPackages(request model.PackageInstallRequest) error
-	
+
 	// UpdatePackageSources updates package repository sources
 	UpdatePackageSources() error
-	
+
 	// UpdateProxmoxSources updates Proxmox-specific package sources
 	UpdateProxmoxSources() error
-	
+
 	// IsPackageInstalled checks if a package is installed
 	IsPackageInstalled(packageName string) (bool, error)
 }
@@ -51,7 +51,7 @@ func (s *PackageServiceImpl) UpdatePackageSources() error {
 	if err != nil {
 		return err
 	}
-	
+
 	return s.repository.UpdatePackageSources(*sources)
 }
 
@@ -60,7 +60,7 @@ func (s *PackageServiceImpl) UpdateProxmoxSources() error {
 	if err != nil {
 		return err
 	}
-	
+
 	return s.repository.UpdateProxmoxSources(*sources)
 }
 

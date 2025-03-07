@@ -12,25 +12,25 @@ import (
 type BackupService interface {
 	// BackupFile backs up a file with a timestamp
 	BackupFile(filePath string) error
-	
+
 	// ListBackups returns a list of all backups for a specific file
 	ListBackups(filePath string) ([]model.BackupFile, error)
-	
+
 	// RestoreBackup restores a file from backup
 	RestoreBackup(backupPath, originalPath string) error
-	
+
 	// CleanupOldBackups removes backups older than specified days
 	CleanupOldBackups(daysToKeep int) error
-	
+
 	// VerifyBackupDirectory ensures the backup directory exists and is writable
 	VerifyBackupDirectory() error
-	
+
 	// GetBackupConfig retrieves the current backup configuration
 	GetBackupConfig() (*model.BackupConfig, error)
-	
+
 	// EnableBackups enables backups
 	EnableBackups(enabled bool) error
-	
+
 	// SetBackupDirectory changes the backup directory
 	SetBackupDirectory(directory string) error
 }
@@ -90,7 +90,7 @@ func (s *BackupServiceImpl) EnableBackups(enabled bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to get backup config: %w", err)
 	}
-	
+
 	config.Enabled = enabled
 	return s.repository.SetBackupConfig(*config)
 }
@@ -100,7 +100,7 @@ func (s *BackupServiceImpl) SetBackupDirectory(directory string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get backup config: %w", err)
 	}
-	
+
 	config.BackupDir = directory
 	return s.repository.SetBackupConfig(*config)
 }

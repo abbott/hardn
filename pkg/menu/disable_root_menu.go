@@ -85,7 +85,7 @@ func (m *DisableRootMenu) Show() {
 			Number:      1,
 			Title:       "Disable root SSH access",
 			Description: "ALREADY DISABLED",
-			Style: 		   "strike",
+			Style:       "strike",
 		})
 	}
 

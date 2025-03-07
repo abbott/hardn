@@ -2,17 +2,17 @@
 package infrastructure
 
 import (
-    "github.com/abbott/hardn/pkg/application"
-    "github.com/abbott/hardn/pkg/config"
-    "github.com/abbott/hardn/pkg/menu"
-    "github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/application"
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/menu"
+	"github.com/abbott/hardn/pkg/osdetect"
 )
 
 // MenuFactory creates menu components
 type MenuFactory struct {
-    serviceFactory *ServiceFactory
-    config         *config.Config
-    osInfo         *osdetect.OSInfo
+	serviceFactory *ServiceFactory
+	config         *config.Config
+	osInfo         *osdetect.OSInfo
 }
 
 func NewMenuFactory(
@@ -22,11 +22,11 @@ func NewMenuFactory(
 ) *MenuFactory {
 	// Set the config in the service factory
 	serviceFactory.SetConfig(config)
-	
+
 	return &MenuFactory{
-			serviceFactory: serviceFactory,
-			config:         config,
-			osInfo:         osInfo,
+		serviceFactory: serviceFactory,
+		config:         config,
+		osInfo:         osInfo,
 	}
 }
 
@@ -60,19 +60,19 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	menuManager := f.serviceFactory.CreateMenuManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
-	
+
 	// Create menu manager
 	menuManager = application.NewMenuManager(
-		userManager, 
-		sshManager, 
-		firewallManager, 
-		dnsManager, 
-		packageManager, 
-		backupManager, 
-		securityManager, 
+		userManager,
+		sshManager,
+		firewallManager,
+		dnsManager,
+		packageManager,
+		backupManager,
+		securityManager,
 		environmentManager,
 		logsManager)
-		
+
 	// Create menu with all necessary fields initialized
 	return menu.NewMainMenu(menuManager, f.config, f.osInfo)
 }

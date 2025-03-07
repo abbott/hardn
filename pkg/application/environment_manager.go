@@ -41,14 +41,14 @@ func (m *EnvironmentManager) GetConfigPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return config.ConfigPath, nil
 }
 
 // IsEnvironmentVariableSet checks if a specific environment variable is set
 func (m *EnvironmentManager) IsEnvironmentVariableSet(name string) (bool, string) {
 	value, exists := "", false
-	
+
 	// Currently only HARDN_CONFIG is supported
 	if name == "HARDN_CONFIG" {
 		config, err := m.environmentService.GetEnvironmentConfig()
@@ -57,6 +57,6 @@ func (m *EnvironmentManager) IsEnvironmentVariableSet(name string) (bool, string
 			value = config.ConfigPath
 		}
 	}
-	
+
 	return exists, value
 }

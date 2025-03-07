@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/style"
-	"github.com/abbott/hardn/pkg/interfaces"
 )
 
 // PrintHeader prints a standard header
@@ -96,6 +96,7 @@ func RunCommand(name string, args ...string) (string, error) {
 func CheckSubnet(subnet string, networkOps interfaces.NetworkOperations) (bool, error) {
 	return networkOps.CheckSubnet(subnet)
 }
+
 // func CheckSubnet(subnet string) (bool, error) {
 // 	interfaces, err := net.Interfaces()
 // 	if err != nil {
