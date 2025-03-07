@@ -66,7 +66,12 @@ func (m *EnvironmentSettingsMenu) Show() {
 	// Display the menu
 	menu.Print()
 
-	choice := ReadInput()
+	choice := ReadMenuInput()
+
+	// Handle 'q' as a special exit case
+	if choice == "q" {
+		return
+	}
 
 	switch choice {
 	case "1":
@@ -115,7 +120,7 @@ func (m *EnvironmentSettingsMenu) Show() {
 func (m *EnvironmentSettingsMenu) showEnvironmentGuide() {
 	utils.PrintHeader()
 	fmt.Println(style.Bolded("Environment Variables Guide", style.Blue))
-	
+
 	fmt.Printf("\n%s HARDN_CONFIG Environment Variable\n", style.Bolded("", style.Blue))
 	fmt.Println(style.Dimmed("------------------------------------"))
 	fmt.Println("Set this variable to specify a custom config file location:")

@@ -3,6 +3,7 @@ package menu
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -38,4 +39,26 @@ func ReadKey() string {
 	}
 
 	return string(firstByte)
+}
+
+// ReadMenuInput reads input for a menu, handling 'q' as a special case for quitting
+// Returns the user's choice, or "q" to indicate the user wants to quit
+func ReadMenuInput() string {
+	// First check if q is pressed immediately without Enter
+	firstKey := ReadKey()
+	if firstKey == "q" || firstKey == "Q" {
+			fmt.Println("q")
+			return "q" // Special exit code
+	}
+
+	// If we received a key, combine it with the rest of the input
+	if firstKey != "" {
+			// Read the rest of the line (if any)
+			input, _ := reader.ReadString('\n')
+			return firstKey + strings.TrimSpace(input)
+	}
+
+	// If no key was detected (e.g., arrow key), fall back to regular input
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }

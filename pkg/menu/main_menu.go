@@ -238,33 +238,15 @@ func (m *MainMenu) ShowMainMenu() {
 		// Display the menu
 		menu.Print()
 
-		// First check if q is pressed immediately without Enter
-		firstKey := ReadKey()
-		if firstKey == "q" || firstKey == "Q" {
-			fmt.Println("q")
+		choice := ReadMenuInput()
+
+		// Handle the special exit case for main menu
+		if choice == "q" {
 			utils.PrintHeader()
 			fmt.Println("Hardn has exited.")
 			fmt.Println()
 			return
 		}
-
-		// If firstKey is empty (like from an arrow key), try reading again
-		if firstKey == "" {
-			firstKey = ReadKey()
-			if firstKey == "" || firstKey == "q" || firstKey == "Q" {
-				fmt.Println("q")
-				utils.PrintHeader()
-				fmt.Println("Hardn has exited.")
-				fmt.Println()
-				return
-			}
-		}
-
-		// Read the rest of the line with standard input
-		restKey := ReadInput()
-
-		// Combine the inputs for the complete choice
-		choice := firstKey + restKey
 
 		// Process the menu choice - using menuManager instead of direct calls
 		switch choice {

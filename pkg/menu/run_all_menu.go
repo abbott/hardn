@@ -131,7 +131,12 @@ func (m *RunAllMenu) Show() {
 	// Display menu
 	menu.Print()
 
-	choice := ReadInput()
+	choice := ReadMenuInput()
+
+	// Handle 'q' as a special exit case
+	if choice == "q" {
+		return
+	}
 
 	switch choice {
 	case "1":
@@ -190,26 +195,26 @@ func (m *RunAllMenu) Show() {
 	ReadKey()
 }
 
-	// runAllHardening uses the MenuManager to execute all hardening steps
+// runAllHardening uses the MenuManager to execute all hardening steps
 func (m *RunAllMenu) runAllHardening() {
 	utils.PrintLogo()
 	fmt.Println(style.Bolded("Executing All Hardening Steps", style.Blue))
 
 	// Build a comprehensive HardeningConfig from current configuration
 	hardening := model.HardeningConfig{
-		CreateUser:              	m.config.Username != "",
-		Username:                	m.config.Username,
-		SudoNoPassword:          	m.config.SudoNoPassword,
-		SshKeys:                 	m.config.SshKeys,
-		SshPort:                 	m.config.SshPort,
-		SshListenAddresses:      	[]string{m.config.SshListenAddress},
-		SshAllowedUsers:         	m.config.SshAllowedUsers,
-		EnableFirewall:          	m.config.EnableUfwSshPolicy,
-		AllowedPorts:            	m.config.UfwAllowedPorts,
-		ConfigureDns:            	m.config.ConfigureDns,
-		Nameservers:             	m.config.Nameservers,
-		EnableAppArmor:          	m.config.EnableAppArmor,
-		EnableLynis:             	m.config.EnableLynis,
+		CreateUser:               m.config.Username != "",
+		Username:                 m.config.Username,
+		SudoNoPassword:           m.config.SudoNoPassword,
+		SshKeys:                  m.config.SshKeys,
+		SshPort:                  m.config.SshPort,
+		SshListenAddresses:       []string{m.config.SshListenAddress},
+		SshAllowedUsers:          m.config.SshAllowedUsers,
+		EnableFirewall:           m.config.EnableUfwSshPolicy,
+		AllowedPorts:             m.config.UfwAllowedPorts,
+		ConfigureDns:             m.config.ConfigureDns,
+		Nameservers:              m.config.Nameservers,
+		EnableAppArmor:           m.config.EnableAppArmor,
+		EnableLynis:              m.config.EnableLynis,
 		EnableUnattendedUpgrades: m.config.EnableUnattendedUpgrades,
 	}
 
@@ -229,46 +234,46 @@ func (m *RunAllMenu) runAllHardening() {
 
 	// Begin hardening steps
 	showProgress("Preparing system hardening")
-	
+
 	if m.config.DryRun {
 		// In dry-run mode, show what would happen
-			// updateRepositories := true
-	// installPackages := true
+		// updateRepositories := true
+		// installPackages := true
 		useUvPackageManager := m.config.UseUvPackageManager
-    dryRunHardening(&hardening, showProgress, m.osInfo.IsProxmox, useUvPackageManager)
-} else {
+		dryRunHardening(&hardening, showProgress, m.osInfo.IsProxmox, useUvPackageManager)
+	} else {
 		// Execute the hardening through the MenuManager
 		err := m.menuManager.HardenSystem(&hardening)
-		
+
 		if err != nil {
 			fmt.Printf("\n%s System hardening failed: %v\n",
 				style.Colored(style.Red, style.SymCrossMark), err)
 			return
 		}
-		
+
 		// Show steps completed when not in dry-run mode
 		if hardening.CreateUser {
 			showProgress("User account configured")
 		}
-		
+
 		showProgress("SSH configuration completed")
-		
+
 		if hardening.EnableFirewall {
 			showProgress("Firewall configured")
 		}
-		
+
 		if hardening.ConfigureDns {
 			showProgress("DNS settings applied")
 		}
-		
+
 		if hardening.EnableAppArmor {
 			showProgress("AppArmor configured")
 		}
-		
+
 		if hardening.EnableLynis {
 			showProgress("Lynis security audit completed")
 		}
-		
+
 		if hardening.EnableUnattendedUpgrades {
 			showProgress("Automatic updates configured")
 		}
@@ -296,32 +301,32 @@ func (m *RunAllMenu) runAllHardening() {
 func calculateTotalSteps(config *model.HardeningConfig) int {
 	// Start with base steps (always performed)
 	totalSteps := 7 // Preparation, repositories, packages, Python packages, SSH config, completion
-	
+
 	// Add optional steps
 	if config.CreateUser {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	if config.EnableFirewall {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	if config.ConfigureDns {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	if config.EnableAppArmor {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	if config.EnableLynis {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	if config.EnableUnattendedUpgrades {
-			totalSteps++
+		totalSteps++
 	}
-	
+
 	return totalSteps
 }
 
@@ -329,84 +334,84 @@ func calculateTotalSteps(config *model.HardeningConfig) int {
 func dryRunHardening(config *model.HardeningConfig, showProgress func(string), isProxmox bool, useUvPackageManager bool) {
 	// Simulate user creation
 	if config.CreateUser {
-			showProgress("Simulating user account creation")
-			fmt.Printf("%s Would create user '%s' with sudo %s\n", 
-					style.BulletItem, 
-					config.Username,
-					map[bool]string{true: "without password", false: "with password"}[config.SudoNoPassword])
-			
-			if len(config.SshKeys) > 0 {
-					fmt.Printf("%s Would configure %d SSH keys\n", 
-							style.BulletItem, 
-							len(config.SshKeys))
-			}
+		showProgress("Simulating user account creation")
+		fmt.Printf("%s Would create user '%s' with sudo %s\n",
+			style.BulletItem,
+			config.Username,
+			map[bool]string{true: "without password", false: "with password"}[config.SudoNoPassword])
+
+		if len(config.SshKeys) > 0 {
+			fmt.Printf("%s Would configure %d SSH keys\n",
+				style.BulletItem,
+				len(config.SshKeys))
+		}
 	}
-	
+
 	// Simulate package repository update
 	showProgress("Simulating package repository update")
 	fmt.Printf("%s Would update package sources for system\n", style.BulletItem)
-	
+
 	if isProxmox {
-			fmt.Printf("%s Would configure Proxmox-specific repositories\n", style.BulletItem)
+		fmt.Printf("%s Would configure Proxmox-specific repositories\n", style.BulletItem)
 	}
-	
+
 	// Simulate package installation
 	showProgress("Simulating package installation")
 	fmt.Printf("%s Would install core system packages\n", style.BulletItem)
-	
+
 	// Check if DMZ subnet is detected (this is a simulation)
 	fmt.Printf("%s Would determine network environment (DMZ vs. Lab)\n", style.BulletItem)
 	fmt.Printf("%s Would install appropriate packages for environment\n", style.BulletItem)
-	
+
 	// Simulate Python package installation
 	showProgress("Simulating Python package installation")
 	packageManager := "pip"
 	if useUvPackageManager {
-			packageManager = "UV"
+		packageManager = "UV"
 	}
 	fmt.Printf("%s Would install Python packages with %s\n",
-			style.BulletItem,
-			packageManager)
-	
+		style.BulletItem,
+		packageManager)
+
 	// Simulate SSH configuration
 	showProgress("Simulating SSH configuration")
-	fmt.Printf("%s Would configure SSH on port %d\n", 
-			style.BulletItem, 
-			config.SshPort)
-	
+	fmt.Printf("%s Would configure SSH on port %d\n",
+		style.BulletItem,
+		config.SshPort)
+
 	// Simulate firewall configuration
 	if config.EnableFirewall {
-			showProgress("Simulating firewall configuration")
-			fmt.Printf("%s Would configure firewall to allow SSH on port %d\n", 
-					style.BulletItem, 
-					config.SshPort)
+		showProgress("Simulating firewall configuration")
+		fmt.Printf("%s Would configure firewall to allow SSH on port %d\n",
+			style.BulletItem,
+			config.SshPort)
 	}
-	
+
 	// Simulate DNS configuration
 	if config.ConfigureDns {
-			showProgress("Simulating DNS configuration")
-			if len(config.Nameservers) > 0 {
-					fmt.Printf("%s Would configure nameservers: %s\n", 
-							style.BulletItem, 
-							strings.Join(config.Nameservers, ", "))
-			}
+		showProgress("Simulating DNS configuration")
+		if len(config.Nameservers) > 0 {
+			fmt.Printf("%s Would configure nameservers: %s\n",
+				style.BulletItem,
+				strings.Join(config.Nameservers, ", "))
+		}
 	}
-	
+
 	// Simulate AppArmor setup
 	if config.EnableAppArmor {
-			showProgress("Simulating AppArmor configuration")
-			fmt.Printf("%s Would install and activate AppArmor\n", style.BulletItem)
+		showProgress("Simulating AppArmor configuration")
+		fmt.Printf("%s Would install and activate AppArmor\n", style.BulletItem)
 	}
-	
+
 	// Simulate Lynis installation
 	if config.EnableLynis {
-			showProgress("Simulating Lynis security audit")
-			fmt.Printf("%s Would install and run Lynis security audit\n", style.BulletItem)
+		showProgress("Simulating Lynis security audit")
+		fmt.Printf("%s Would install and run Lynis security audit\n", style.BulletItem)
 	}
-	
+
 	// Simulate unattended upgrades setup
 	if config.EnableUnattendedUpgrades {
-			showProgress("Simulating automatic updates configuration")
-			fmt.Printf("%s Would configure unattended security updates\n", style.BulletItem)
+		showProgress("Simulating automatic updates configuration")
+		fmt.Printf("%s Would configure unattended security updates\n", style.BulletItem)
 	}
 }
