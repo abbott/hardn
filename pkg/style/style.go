@@ -14,6 +14,7 @@ type MenuOption struct {
 	Number      int
 	Title       string
 	Description string
+	Style			  string
 }
 
 // Menu provides a formatted menu display
@@ -83,6 +84,7 @@ const (
 	Blink     = "\033[5m"
 	Reverse   = "\033[7m"
 	Hidden    = "\033[8m"
+	Strike		= "\033[9m"
 
 	// Cursor control
 	CursorOn  = "\033[?25h"
@@ -138,6 +140,13 @@ func Dimmed(text string, color ...string) string {
 		return Dim + color[0] + text + Reset
 	}
 	return Dim + text + Reset
+}
+
+func Striked(text string, color ...string) string {
+	if len(color) > 0 {
+		return Strike + color[0] + text + Reset
+	}
+	return Strike + text + Reset
 }
 
 // Apply italic style with an optional color
@@ -222,13 +231,29 @@ func CenterText(text string, width int) string {
 	return strings.Repeat(" ", leftPadding) + text + strings.Repeat(" ", rightPadding)
 }
 
+// PadRight adds spaces to the right of text to reach the specified width
+// Uses StripAnsi to correctly calculate visible text length for styled text
 func PadRight(text string, width int) string {
-	if len(text) >= width {
-		return text
+	// Get the visible length by removing ANSI escape sequences
+	visibleLen := len(StripAnsi(text))
+	
+	if visibleLen >= width {
+			return text
 	}
-
-	return text + strings.Repeat(" ", width-len(text))
+	
+	// Calculate the correct amount of padding based on visible length
+	padding := width - visibleLen
+	
+	return text + strings.Repeat(" ", padding)
 }
+
+// func PadRight(text string, width int) string {
+// 	if len(text) >= width {
+// 		return text
+// 	}
+
+// 	return text + strings.Repeat(" ", width-len(text))
+// }
 
 var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 
@@ -333,7 +358,6 @@ func (sf *StatusFormatter) Initialize() {
 	sf.initialized = true
 }
 
-// FormatLine formats a status line with proper alignment
 // FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	label string, status string, statusColor string, description string, statusWeight string) string {
@@ -518,9 +542,18 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 	
 	// Add spacing after the number
 	numPadded += " "
-	
+
+	titlePadded := ""
 	// Format title with consistent padding
-	titlePadded := PadRight(opt.Title, m.titleWidth + 4) // +4 for extra spacing
+	if opt.Style == "" {
+		// opt.Title = Colored(opt.Style, opt.Title)
+		titlePadded += PadRight(opt.Title, m.titleWidth + 4)
+	} else if opt.Style == "strike" {
+		// opt.Title = Bolded(opt.Title)
+		strikeTitle := Striked(opt.Title)
+		dimmedStrikeTitle := Dimmed(strikeTitle)
+		titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth + 4)
+	}
 	
 	// Add description
 	desc := Dimmed(opt.Description)
@@ -532,6 +565,13 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 func (m *Menu) Render() string {
 	var sb strings.Builder
 	
+	// desc := Dimmed(opt.Description)
+
+	// if m.title != "" {
+	// 	sb.WriteString("\n")
+	// 	sb.WriteString(Header(m.title))
+	// }
+
 	// Title header
 	sb.WriteString("\n")
 	sb.WriteString(SubHeader(m.title))

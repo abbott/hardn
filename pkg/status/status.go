@@ -91,7 +91,7 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	if !status.SecureUsers {
 		fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo privileges"))
+		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo enabled"))
 	}
 
 	// Display SSH port status

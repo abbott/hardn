@@ -66,6 +66,13 @@ func main() {
 }
 
 func init() {
+	// Set version for help output
+	rootCmd.Version = Version
+
+	if rootCmd.Version != "" {
+		logging.LogInfo("Current version :::: : %s", rootCmd.Version)
+	}
+	
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
 		"Specify configuration file path")
 
@@ -160,7 +167,8 @@ var rootCmd = &cobra.Command{
 			// Create menu factory and main menu
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
 			mainMenu := menuFactory.CreateMainMenu()
-			mainMenu.ShowMainMenu()
+			// mainMenu.ShowMainMenu()
+    	mainMenu.ShowMainMenu(Version, BuildDate, GitCommit) // Pass version info here
 			return
 		}
 

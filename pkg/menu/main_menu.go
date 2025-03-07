@@ -11,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/status"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
+	// "github.com/abbott/hardn/pkg/version"
 )
 
 // MainMenu is the main menu of the application
@@ -19,6 +20,10 @@ type MainMenu struct {
 	config      *config.Config
 	osInfo      *osdetect.OSInfo
 
+	// Add fields for update notification
+	updateAvailable bool
+	latestVersion   string
+	updateURL       string
 	// Additional fields for menu state management could be added here
 	// For example:
 	// lastRefreshTime time.Time
@@ -72,6 +77,25 @@ func (m *MainMenu) refreshConfig() {
 // 	return isDryRun
 // }
 
+// CheckForUpdates checks for new versions and updates the menu state
+// func (m *MainMenu) CheckForUpdates(currentVersion string) {
+// 	// Run in a goroutine to avoid blocking the menu display
+// 	go func() {
+// 		// Import the version package in the file
+// 		result := version.CheckForUpdates(currentVersion)
+// 		if result.Error != nil {
+// 			// Silently ignore errors - we don't want to bother users with API issues
+// 			return
+// 		}
+
+// 		if result.UpdateAvailable {
+// 			m.updateAvailable = true
+// 			m.latestVersion = result.LatestVersion
+// 			m.updateURL = result.ReleaseURL
+// 		}
+// 	}()
+// }
+
 // showDryRunMenu creates and displays the dry-run configuration menu
 func (m *MainMenu) showDryRunMenu() {
 	// Display contextual information about dry-run mode
@@ -120,7 +144,7 @@ func (m *MainMenu) showDryRunMenu() {
 }
 
 // ShowMainMenu displays the main menu and handles user input
-func (m *MainMenu) ShowMainMenu() {
+func (m *MainMenu) ShowMainMenu(version, buildDate, gitCommit string) {
 	for {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
@@ -171,22 +195,72 @@ func (m *MainMenu) ShowMainMenu() {
 			fmt.Println(style.Bolded(separator, style.Green))
 		}
 
-		fmt.Println()
+		// Display version information after the OS display
+		// if version != "" {
+		// 	versionDisplay := fmt.Sprintf(" Version %s ", version)
 
-		// Create a formatter that includes all labels (including Risk)
-		formatter := style.NewStatusFormatter([]string{
-			"Risk",
-			"SSH Root Login",
-			"Firewall",
-			"Users",
-			"SSH Port",
-			"SSH Auth",
-			"AppArmor",
-			"Auto Updates",
-		}, 2) // 2 spaces buffer
+		// 	// Center version information just like OS display
+		// 	versionDisplayStripped := style.StripAnsi(versionDisplay)
+		// 	versionDisplayWidth := len(versionDisplayStripped)
+
+		// 	leftPadding := (sepWidth - versionDisplayWidth) / 2
+		// 	rightPadding := sepWidth - versionDisplayWidth - leftPadding
+
+		// 	// Print centered version within the separator line
+		// 	versionLine := separator[:leftPadding] + versionDisplay + separator[:rightPadding]
+		// 	fmt.Println(style.Colored(style.BrightCyan, versionLine))
+
+		// 	// Show build information if available
+		// 	if buildDate != "" || gitCommit != "" {
+		// 		fmt.Println()
+		// 		if buildDate != "" {
+		// 			fmt.Printf("%s Build Date: %s\n", style.BulletItem, style.Dimmed(buildDate))
+		// 		}
+		// 		if gitCommit != "" {
+		// 			fmt.Printf("%s Git Commit: %s\n", style.BulletItem, style.Dimmed(gitCommit))
+		// 		}
+		// 	}
+		// }
+
+		// Display update notification if a newer version is available
+		// if m.updateAvailable {
+		// 	fmt.Println()
+		// 	updateMsg := fmt.Sprintf(" Update available: %s → %s ", version, m.latestVersion)
+
+		// 	// Center the update message
+		// 	updateMsgStripped := style.StripAnsi(updateMsg)
+		// 	msgWidth := len(updateMsgStripped)
+
+		// 	leftPadding := (sepWidth - msgWidth) / 2
+		// 	rightPadding := sepWidth - msgWidth - leftPadding
+
+		// 	updateLine := separator[:leftPadding] + updateMsg + separator[:rightPadding]
+		// 	fmt.Println(style.Colored(style.Yellow, updateLine))
+
+		// 	// Show update instructions
+		// 	fmt.Printf("%s Visit: %s\n",
+		// 		style.BulletItem,
+		// 		style.Colored(style.BrightCyan, m.updateURL))
+		// }
+
+		fmt.Println()
+		// 2 spaces buffer
 
 		// Format and print risk status using the same formatter, with bold label
 		if riskLevel != "" {
+
+			// Create a formatter that includes all labels (including Risk)
+			formatter := style.NewStatusFormatter([]string{
+				"Risk",
+				"SSH Root Login",
+				"Firewall",
+				"Users",
+				"SSH Port",
+				"SSH Auth",
+				"AppArmor",
+				"Auto Updates",
+			}, 2)
+
 			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
 			riskDescription = style.SymApprox + " " + riskDescription
 			fmt.Println(formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light"))
@@ -196,6 +270,18 @@ func (m *MainMenu) ShowMainMenu() {
 
 		// Display detailed security status if available
 		if err == nil {
+			// Create formatter here since it wasn't created in the risk level section
+			formatter := style.NewStatusFormatter([]string{
+				"Risk",
+				"SSH Root Login",
+				"Firewall",
+				"Users",
+				"SSH Port",
+				"SSH Auth",
+				"AppArmor",
+				"Auto Updates",
+			}, 2) // 2 spaces buffer
+
 			status.DisplaySecurityStatus(m.config, securityStatus, formatter)
 		}
 
@@ -203,6 +289,10 @@ func (m *MainMenu) ShowMainMenu() {
 		fmt.Println()
 
 		// Format the dry-run mode status like other status lines
+		formatter := style.NewStatusFormatter([]string{
+			"Dry-run Mode",
+		}, 2)
+
 		if m.config.DryRun {
 			fmt.Println(formatter.FormatLine(style.SymAsterisk, style.BrightGreen, "Dry-run Mode", "Enabled", style.BrightGreen, "", "light"))
 		} else {

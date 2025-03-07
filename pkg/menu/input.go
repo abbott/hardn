@@ -41,24 +41,77 @@ func ReadKey() string {
 	return string(firstByte)
 }
 
-// ReadMenuInput reads input for a menu, handling 'q' as a special case for quitting
-// Returns the user's choice, or "q" to indicate the user wants to quit
+// ReadMenuInput reads input for a menu, supporting both immediate 'q' exit and
+// normal buffered input with backspace support for other entries
 func ReadMenuInput() string {
-	// First check if q is pressed immediately without Enter
-	firstKey := ReadKey()
-	if firstKey == "q" || firstKey == "Q" {
-			fmt.Println("q")
-			return "q" // Special exit code
+	// fmt.Print("> ")
+	
+	var buffer strings.Builder
+	var displayedChars int
+	
+	for {
+			// Read a single key in raw mode
+			key := ReadRawKey()
+			
+			// Handle Enter (return the result)
+			if key == "\r" || key == "\n" {
+					fmt.Println() // Move to next line
+					return buffer.String()
+			}
+			
+			// Handle immediate 'q' exit if it's the first key
+			if buffer.Len() == 0 && (key == "q" || key == "Q") {
+					fmt.Println("q")
+					return "q"
+			}
+			
+			// Handle backspace/delete
+			if key == "\b" || key == "\x7f" { // \b = backspace, \x7f = delete
+					if buffer.Len() > 0 {
+							// Remove last character from our buffer
+							str := buffer.String()
+							buffer.Reset()
+							buffer.WriteString(str[:len(str)-1])
+							
+							// Update display (backspace, space, backspace)
+							fmt.Print("\b \b")
+							displayedChars--
+					}
+					continue
+			}
+			
+			// Only accept digits, q/Q and control characters
+			if (key >= "0" && key <= "9") || key == "q" || key == "Q" {
+					buffer.WriteString(key)
+					fmt.Print(key) // Echo the character
+					displayedChars++
+			}
 	}
+}
 
-	// If we received a key, combine it with the rest of the input
-	if firstKey != "" {
-			// Read the rest of the line (if any)
-			input, _ := reader.ReadString('\n')
-			return firstKey + strings.TrimSpace(input)
+// ReadRawKey reads a single key in raw mode
+func ReadRawKey() string {
+	// Configure terminal for raw input
+	exec.Command("stty", "-F", "/dev/tty", "raw", "-echo").Run()
+	defer exec.Command("stty", "-F", "/dev/tty", "sane").Run()
+	
+	var b = make([]byte, 1)
+	os.Stdin.Read(b)
+	
+	// Convert control characters to strings
+	if b[0] == 13 {
+			return "\r" // Return/Enter key
+	} else if b[0] == 127 {
+			return "\x7f" // Delete key
+	} else if b[0] == 8 {
+			return "\b" // Backspace key
+	} else if b[0] == 27 {
+			// Possibly an arrow key or other escape sequence
+			// Read and discard two more bytes
+			var seq = make([]byte, 2)
+			os.Stdin.Read(seq)
+			return "" // Ignore escape sequences
 	}
-
-	// If no key was detected (e.g., arrow key), fall back to regular input
-	input, _ := reader.ReadString('\n')
-	return strings.TrimSpace(input)
+	
+	return string(b)
 }

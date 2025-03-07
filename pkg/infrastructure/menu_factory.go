@@ -60,6 +60,7 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	menuManager := f.serviceFactory.CreateMenuManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
+	
 	// Create menu manager
 	menuManager = application.NewMenuManager(
 		userManager, 
@@ -72,6 +73,6 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 		environmentManager,
 		logsManager)
 		
-		// Create menu
-		return menu.NewMainMenu(menuManager, f.config, f.osInfo)
+	// Create menu with all necessary fields initialized
+	return menu.NewMainMenu(menuManager, f.config, f.osInfo)
 }

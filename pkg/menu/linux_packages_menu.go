@@ -45,50 +45,49 @@ func (m *LinuxPackagesMenu) Show() {
 	if m.osInfo.OsType == "alpine" {
 		// Alpine packages
 		if len(m.config.AlpineCorePackages) > 0 {
-			fmt.Printf("%s Core packages: %s\n", style.BulletItem,
+			fmt.Printf("%sCore packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.AlpineCorePackages, ", ")))
 		}
 
 		if len(m.config.AlpineDmzPackages) > 0 {
-			fmt.Printf("%s DMZ packages: %s\n", style.BulletItem,
+			fmt.Printf("%sDMZ packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.AlpineDmzPackages, ", ")))
 		}
 
 		if len(m.config.AlpineLabPackages) > 0 {
-			fmt.Printf("%s Lab packages: %s\n", style.BulletItem,
+			fmt.Printf("%sLab packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.AlpineLabPackages, ", ")))
 		}
 	} else {
 		// Debian/Ubuntu packages
 		if len(m.config.LinuxCorePackages) > 0 {
-			fmt.Printf("%s Core packages: %s\n", style.BulletItem,
+			fmt.Printf("%sCore packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.LinuxCorePackages, ", ")))
 		}
 
 		if len(m.config.LinuxDmzPackages) > 0 {
-			fmt.Printf("%s DMZ packages: %s\n", style.BulletItem,
+			fmt.Printf("%sDMZ packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.LinuxDmzPackages, ", ")))
 		}
 
 		if len(m.config.LinuxLabPackages) > 0 {
-			fmt.Printf("%s Lab packages: %s\n", style.BulletItem,
+			fmt.Printf("%sLab packages: %s\n", style.BulletItem,
 				style.Colored(style.Cyan, strings.Join(m.config.LinuxLabPackages, ", ")))
 		}
 	}
 
 	// Check subnet status for package selection
-
 	provider := interfaces.NewProvider()
 	isDmz, _ := utils.CheckSubnet(m.config.DmzSubnet, provider.Network)
 	if isDmz {
 		fmt.Printf("\n%s DMZ subnet detected: %s\n",
 			style.Colored(style.Yellow, style.SymInfo),
 			style.Colored(style.Yellow, m.config.DmzSubnet))
-		fmt.Printf("%s Only DMZ packages will be installed\n", style.BulletItem)
+		fmt.Printf("%sOnly Core and DMZ packages can be installed\n", style.BulletItem)
 	} else {
 		fmt.Printf("\n%s Not in DMZ subnet\n",
 			style.Colored(style.Green, style.SymInfo))
-		fmt.Printf("%s Both DMZ and Lab packages will be installed\n", style.BulletItem)
+		fmt.Printf("%sCore, DMZ and Lab packages can be installed\n", style.BulletItem)
 	}
 
 	// Create menu options
