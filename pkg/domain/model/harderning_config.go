@@ -16,8 +16,9 @@ type HardeningConfig struct {
 	SshKeyPaths        []string
 
 	// Firewall settings
-	EnableFirewall bool
-	AllowedPorts   []int
+	EnableFirewall   bool
+	AllowedPorts     []int
+	FirewallProfiles []FirewallProfile
 
 	// DNS settings
 	ConfigureDns bool

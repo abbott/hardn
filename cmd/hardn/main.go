@@ -198,6 +198,7 @@ var rootCmd = &cobra.Command{
 				SshAllowedUsers:          cfg.SshAllowedUsers,
 				EnableFirewall:           cfg.EnableUfwSshPolicy,
 				AllowedPorts:             []int{},
+				FirewallProfiles:         []model.FirewallProfile{},
 				ConfigureDns:             cfg.ConfigureDns,
 				Nameservers:              cfg.Nameservers,
 				EnableAppArmor:           cfg.EnableAppArmor,
@@ -341,7 +342,7 @@ var rootCmd = &cobra.Command{
 
 		// Configure firewall
 		if configureUfw {
-			if err := firewallManager.ConfigureSecureFirewall(cfg.SshPort, []int{}); err != nil {
+			if err := firewallManager.ConfigureSecureFirewall(cfg.SshPort, []int{}, []model.FirewallProfile{}); err != nil {
 				logging.LogError("Failed to configure firewall: %v", err)
 			} else {
 				logging.LogSuccess("Firewall configured successfully")

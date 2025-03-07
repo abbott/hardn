@@ -79,12 +79,18 @@ func (r *FileEnvironmentRepository) SetupSudoPreservation(username string) error
 	_, err = r.commander.Execute("visudo", "-c", "-f", tempFile)
 	if err != nil {
 		// Clean up temp file
-		r.fs.Remove(tempFile)
+		if err := r.fs.Remove(tempFile); err != nil {
+			// Log warning but don't fail the operation since this is just cleanup
+			fmt.Printf("Warning: Failed to remove test file %s: %v\n", tempFile, err)
+		}
 		return fmt.Errorf("invalid sudoers configuration: %w", err)
 	}
 
 	// Clean up temp file
-	r.fs.Remove(tempFile)
+	if err := r.fs.Remove(tempFile); err != nil {
+		// Log warning but don't fail the operation since this is just cleanup
+		fmt.Printf("Warning: Failed to remove test file %s: %v\n", tempFile, err)
+	}
 
 	// Write the validated content to the actual sudoers file
 	if err := r.fs.WriteFile(sudoersFile, []byte(content), 0440); err != nil {

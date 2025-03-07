@@ -12,6 +12,8 @@ import (
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // SourcesMenu handles configuration of package sources
@@ -47,8 +49,9 @@ func (m *SourcesMenu) Show() {
 	formatter := style.NewStatusFormatter([]string{"OS Type", "Version", "Codename", "Proxmox"}, 2)
 
 	// Show OS type
+	osName := cases.Title(language.English).String(m.osInfo.OsType)
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Type",
-		strings.Title(m.osInfo.OsType), style.Cyan, "", "light"))
+		osName, style.Cyan, "", "light"))
 
 	// Show OS version
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Version",
@@ -56,8 +59,9 @@ func (m *SourcesMenu) Show() {
 
 	// Show OS codename (if not Alpine)
 	if m.osInfo.OsType != "alpine" {
+		osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Codename",
-			strings.Title(m.osInfo.OsCodename), style.Cyan, "", "light"))
+			osCodename, style.Cyan, "", "light"))
 	}
 
 	// Show Proxmox status
@@ -526,10 +530,12 @@ func (m *SourcesMenu) editRepositoriesMenu() {
 
 			// Parse number
 			num := 0
-			fmt.Sscanf(numStr, "%d", &num)
-
-			if num < 1 || num > len(m.config.DebianRepos) {
-				fmt.Printf("\n%s Invalid repository number\n",
+			n, err := fmt.Sscanf(numStr, "%d", &num)
+			if err != nil || n != 1 {
+				fmt.Printf("\n%s Invalid repository number: not a valid number\n",
+					style.Colored(style.Red, style.SymCrossMark))
+			} else if num < 1 || num > len(m.config.DebianRepos) {
+				fmt.Printf("\n%s Invalid repository number: out of range\n",
 					style.Colored(style.Red, style.SymCrossMark))
 			} else {
 				// Remove repository (adjust for 0-based index)
@@ -767,10 +773,12 @@ func (m *SourcesMenu) editProxmoxRepoList(
 
 			// Parse number
 			num := 0
-			fmt.Sscanf(numStr, "%d", &num)
-
-			if num < 1 || num > len(*repoList) {
-				fmt.Printf("\n%s Invalid repository number\n",
+			n, err := fmt.Sscanf(numStr, "%d", &num)
+			if err != nil || n != 1 {
+				fmt.Printf("\n%s Invalid repository number: not a valid number\n",
+					style.Colored(style.Red, style.SymCrossMark))
+			} else if num < 1 || num > len(*repoList) {
+				fmt.Printf("\n%s Invalid repository number: out of range\n",
 					style.Colored(style.Red, style.SymCrossMark))
 			} else {
 				// Remove repository (adjust for 0-based index)

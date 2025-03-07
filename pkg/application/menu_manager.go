@@ -88,9 +88,9 @@ func (m *MenuManager) ConfigureDNS(nameservers []string, domain string) error {
 	return m.dnsManager.ConfigureDNS(nameservers, domain)
 }
 
-// ConfigureFirewall configures the firewall with secure settings
-func (m *MenuManager) ConfigureFirewall(sshPort int, allowedPorts []int) error {
-	return m.firewallManager.ConfigureSecureFirewall(sshPort, allowedPorts)
+// ConfigureSecureFirewall configures the firewall with secure settings
+func (m *MenuManager) ConfigureSecureFirewall(sshPort int, allowedPorts []int, profiles []model.FirewallProfile) error {
+	return m.firewallManager.ConfigureSecureFirewall(sshPort, allowedPorts, profiles)
 }
 
 // InstallLinuxPackages installs Linux packages based on the specified type

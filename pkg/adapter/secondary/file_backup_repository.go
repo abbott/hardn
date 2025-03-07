@@ -230,8 +230,10 @@ func (r *FileBackupRepository) VerifyBackupDirectory() error {
 	}
 
 	// Clean up test file
-	r.fs.Remove(testFile)
-
+	if err := r.fs.Remove(testFile); err != nil {
+		// Log warning but don't fail the operation since this is just cleanup
+		fmt.Printf("Warning: Failed to remove test file %s: %v\n", testFile, err)
+	}
 	return nil
 }
 

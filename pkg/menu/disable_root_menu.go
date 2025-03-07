@@ -150,10 +150,20 @@ func (m *DisableRootMenu) Show() {
 
 				// Restart SSH service
 				fmt.Println(style.Dimmed("Restarting SSH service..."))
+				var restartErr error
 				if m.osInfo.OsType == "alpine" {
-					exec.Command("rc-service", "sshd", "restart").Run()
+					restartErr = exec.Command("rc-service", "sshd", "restart").Run()
 				} else {
-					exec.Command("systemctl", "restart", "ssh").Run()
+					restartErr = exec.Command("systemctl", "restart", "ssh").Run()
+				}
+
+				if restartErr != nil {
+					fmt.Printf("%s Failed to restart SSH service: %v\n",
+						style.Colored(style.Yellow, style.SymWarning), restartErr)
+					fmt.Println(style.Dimmed("You may need to restart the SSH service manually."))
+				} else {
+					fmt.Printf("%s SSH service restarted successfully\n",
+						style.Colored(style.Green, style.SymCheckMark))
 				}
 			}
 		}

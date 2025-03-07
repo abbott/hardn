@@ -82,14 +82,22 @@ func (r *OSPackageRepository) InstallPackages(request model.PackageInstallReques
 			return fmt.Errorf("failed to install Debian/Ubuntu packages: %w", err)
 		}
 
-		// Clean up
-		r.commander.Execute("apt-get", "autoremove", "--yes")
-		r.commander.Execute("apt-get", "clean")
-		r.commander.Execute("rm", "-rf", "/var/lib/apt/lists/*")
+		// Clean up - check errors but don't fail the entire installation for cleanup issues
+		if _, err := r.commander.Execute("apt-get", "autoremove", "--yes"); err != nil {
+			fmt.Printf("Warning: Failed to autoremove packages: %v\n", err)
+		}
+		if _, err := r.commander.Execute("apt-get", "clean"); err != nil {
+			fmt.Printf("Warning: Failed to clean apt cache: %v\n", err)
+		}
+		if _, err := r.commander.Execute("rm", "-rf", "/var/lib/apt/lists/*"); err != nil {
+			fmt.Printf("Warning: Failed to remove apt lists: %v\n", err)
+		}
 
 		// Unhold Proxmox packages
 		if r.isProxmox {
-			r.unholdProxmoxPackages()
+			if err := r.unholdProxmoxPackages(); err != nil {
+				fmt.Printf("Warning: Failed to unhold Proxmox packages: %v\n", err)
+			}
 		}
 	}
 
@@ -219,7 +227,9 @@ func (r *OSPackageRepository) updateDebianSources(sources model.PackageSources) 
 	backupFile := "/etc/apt/sources.list.bak"
 	originalData, err := r.fs.ReadFile("/etc/apt/sources.list")
 	if err == nil {
-		r.fs.WriteFile(backupFile, originalData, 0644)
+		if err := r.fs.WriteFile(backupFile, originalData, 0644); err != nil {
+			fmt.Printf("Warning: Failed to create backup of sources.list: %v\n", err)
+		}
 	}
 
 	// Write the file

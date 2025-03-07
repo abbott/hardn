@@ -212,8 +212,19 @@ func (m *FirewallMenu) Show() {
 			if m.config.DryRun {
 				fmt.Printf("%s [DRY-RUN] Would enable UFW\n", style.BulletItem)
 			} else {
-				// Configure secure firewall with SSH port
-				err := m.menuManager.ConfigureFirewall(m.config.SshPort, []int{})
+				// Convert app profiles to domain model format
+				var profiles []model.FirewallProfile
+				for _, profile := range m.config.UfwAppProfiles {
+					profiles = append(profiles, model.FirewallProfile{
+						Name:        profile.Name,
+						Title:       profile.Title,
+						Description: profile.Description,
+						Ports:       profile.Ports,
+					})
+				}
+
+				// Call application layer to configure firewall with profiles
+				err := m.menuManager.ConfigureSecureFirewall(m.config.SshPort, []int{}, profiles)
 				if err != nil {
 					fmt.Printf("\n%s Failed to enable and configure firewall: %v\n",
 						style.Colored(style.Red, style.SymCrossMark), err)
@@ -249,7 +260,7 @@ func (m *FirewallMenu) Show() {
 			}
 
 			// Call application layer to configure firewall
-			err := m.menuManager.ConfigureFirewall(m.config.SshPort, []int{})
+			err := m.menuManager.ConfigureSecureFirewall(m.config.SshPort, []int{}, profiles)
 			if err != nil {
 				fmt.Printf("\n%s Failed to configure firewall: %v\n",
 					style.Colored(style.Red, style.SymCrossMark), err)

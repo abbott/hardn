@@ -57,12 +57,11 @@ func (f *MenuFactory) CreateMainMenu() *menu.MainMenu {
 	backupManager := f.serviceFactory.CreateBackupManager()
 	environmentManager := f.serviceFactory.CreateEnvironmentManager()
 	logsManager := f.serviceFactory.CreateLogsManager()
-	menuManager := f.serviceFactory.CreateMenuManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
 
-	// Create menu manager
-	menuManager = application.NewMenuManager(
+	// Create menu manager (use := instead of = since we're not declaring it above anymore)
+	menuManager := application.NewMenuManager(
 		userManager,
 		sshManager,
 		firewallManager,

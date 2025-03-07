@@ -216,7 +216,11 @@ func saveCache(release GitHubRelease) {
 
 	// Write to cache file
 	cacheFile := getCacheFilePath()
-	os.WriteFile(cacheFile, data, 0644)
+	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
+		// Log the error but don't fail the operation since this is just cache
+		fmt.Printf("Warning: Failed to write version cache: %v\n", err)
+		return
+	}
 }
 
 // getCacheFilePath returns the path to the cache file

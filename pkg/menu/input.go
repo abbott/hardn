@@ -21,19 +21,32 @@ func ReadInput() string {
 // ReadKey reads a single key pressed by the user
 func ReadKey() string {
 	// Configure terminal for raw input
-	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-	defer exec.Command("stty", "-F", "/dev/tty", "-cbreak").Run()
+	if err := exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run(); err != nil {
+		fmt.Printf("Warning: Failed to configure terminal: %v\n", err)
+		// Try to continue anyway
+	}
+	defer func() {
+		if err := exec.Command("stty", "-F", "/dev/tty", "-cbreak").Run(); err != nil {
+			fmt.Printf("Warning: Failed to restore terminal: %v\n", err)
+		}
+	}()
 
 	// Read the first byte
 	var firstByte = make([]byte, 1)
-	os.Stdin.Read(firstByte)
+	n, err := os.Stdin.Read(firstByte)
+	if err != nil || n != 1 {
+		return "" // Return empty on read error
+	}
 
 	// If it's an escape character (27), read and discard the sequence
 	if firstByte[0] == 27 {
 		// Read and discard the next two bytes (common for arrow keys)
 		var discardBytes = make([]byte, 2)
-		os.Stdin.Read(discardBytes)
-
+		_, err := os.Stdin.Read(discardBytes)
+		if err != nil {
+			// Just log and continue if this fails
+			fmt.Printf("Warning: Failed to read escape sequence: %v\n", err)
+		}
 		// Return empty to indicate a special key was pressed
 		return ""
 	}
@@ -92,11 +105,21 @@ func ReadMenuInput() string {
 // ReadRawKey reads a single key in raw mode
 func ReadRawKey() string {
 	// Configure terminal for raw input
-	exec.Command("stty", "-F", "/dev/tty", "raw", "-echo").Run()
-	defer exec.Command("stty", "-F", "/dev/tty", "sane").Run()
+	if err := exec.Command("stty", "-F", "/dev/tty", "raw", "-echo").Run(); err != nil {
+		fmt.Printf("Warning: Failed to configure terminal: %v\n", err)
+		// Try to continue anyway
+	}
+	defer func() {
+		if err := exec.Command("stty", "-F", "/dev/tty", "sane").Run(); err != nil {
+			fmt.Printf("Warning: Failed to restore terminal: %v\n", err)
+		}
+	}()
 
 	var b = make([]byte, 1)
-	os.Stdin.Read(b)
+	n, err := os.Stdin.Read(b)
+	if err != nil || n != 1 {
+		return "" // Return empty on read error
+	}
 
 	// Convert control characters to strings
 	if b[0] == 13 {
@@ -109,7 +132,11 @@ func ReadRawKey() string {
 		// Possibly an arrow key or other escape sequence
 		// Read and discard two more bytes
 		var seq = make([]byte, 2)
-		os.Stdin.Read(seq)
+		_, err := os.Stdin.Read(seq)
+		if err != nil {
+			// Just log and continue if this fails
+			fmt.Printf("Warning: Failed to read escape sequence: %v\n", err)
+		}
 		return "" // Ignore escape sequences
 	}
 

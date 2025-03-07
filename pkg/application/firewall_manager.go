@@ -37,7 +37,7 @@ func (m *FirewallManager) ConfigureFirewall(
 }
 
 // ConfigureSecureFirewall sets up a firewall with secure defaults
-func (m *FirewallManager) ConfigureSecureFirewall(sshPort int, allowedPorts []int) error {
+func (m *FirewallManager) ConfigureSecureFirewall(sshPort int, allowedPorts []int, profiles []model.FirewallProfile) error {
 	// Create default SSH rule
 	sshRule := model.FirewallRule{
 		Action:      "allow",
@@ -68,7 +68,7 @@ func (m *FirewallManager) ConfigureSecureFirewall(sshPort int, allowedPorts []in
 		DefaultIncoming:     "deny",
 		DefaultOutgoing:     "allow",
 		Rules:               rules,
-		ApplicationProfiles: []model.FirewallProfile{},
+		ApplicationProfiles: profiles, // Use the profiles parameter here
 	}
 
 	return m.firewallService.ConfigureFirewall(config)

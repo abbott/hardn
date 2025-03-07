@@ -11,6 +11,8 @@ import (
 	"github.com/abbott/hardn/pkg/status"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	// "github.com/abbott/hardn/pkg/version"
 )
 
@@ -21,9 +23,12 @@ type MainMenu struct {
 	osInfo      *osdetect.OSInfo
 
 	// Add fields for update notification
-	updateAvailable bool
-	latestVersion   string
-	updateURL       string
+	// TODO: Implement update notification ...
+
+	// updateAvailable bool
+	// latestVersion   string
+	// updateURL       string
+
 	// Additional fields for menu state management could be added here
 	// For example:
 	// lastRefreshTime time.Time
@@ -168,8 +173,8 @@ func (m *MainMenu) ShowMainMenu(version, buildDate, gitCommit string) {
 			if m.osInfo.IsProxmox {
 				osDisplay = " Proxmox "
 			} else {
-				osName := strings.Title(m.osInfo.OsType)
-				osCodename := strings.Title(m.osInfo.OsCodename)
+				osName := cases.Title(language.English).String(m.osInfo.OsType)
+				osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
 
 				if m.osInfo.OsType == "alpine" {
 					osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)

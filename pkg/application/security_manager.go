@@ -58,6 +58,7 @@ func (m *SecurityManager) HardenSystem(config *model.HardeningConfig) error {
 		if err := m.firewallManager.ConfigureSecureFirewall(
 			config.SshPort,
 			config.AllowedPorts,
+			config.FirewallProfiles,
 		); err != nil {
 			return err
 		}

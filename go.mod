@@ -1,11 +1,13 @@
 module github.com/abbott/hardn
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/fatih/color v1.18.0
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

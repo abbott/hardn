@@ -315,10 +315,15 @@ func (m *DNSMenu) removeNameserver() {
 
 	// Parse number
 	num := 0
-	fmt.Sscanf(numStr, "%d", &num)
+	n, err := fmt.Sscanf(numStr, "%d", &num)
+	if err != nil || n != 1 {
+		fmt.Printf("\n%s Invalid nameserver number: not a valid number\n",
+			style.Colored(style.Red, style.SymCrossMark))
+		return
+	}
 
 	if num < 1 || num > len(m.config.Nameservers) {
-		fmt.Printf("\n%s Invalid nameserver number\n",
+		fmt.Printf("\n%s Invalid nameserver number: out of range\n",
 			style.Colored(style.Red, style.SymCrossMark))
 		return
 	}

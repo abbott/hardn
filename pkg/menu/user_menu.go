@@ -429,12 +429,14 @@ func (m *UserMenu) manageSshKeys() {
 		// Remove SSH key
 		fmt.Printf("\n%s Enter key number to remove (1-%d): ", style.BulletItem, len(m.config.SshKeys))
 		keyNumStr := ReadInput()
-		keyNum := 0
 
 		// Parse key number
-		fmt.Sscanf(keyNumStr, "%d", &keyNum)
-
-		if keyNum < 1 || keyNum > len(m.config.SshKeys) {
+		keyNum := 0
+		n, err := fmt.Sscanf(keyNumStr, "%d", &keyNum)
+		if err != nil || n != 1 {
+			fmt.Printf("\n%s Invalid key number: not a valid number\n",
+				style.Colored(style.Red, style.SymCrossMark))
+		} else if keyNum < 1 || keyNum > len(m.config.SshKeys) {
 			fmt.Printf("\n%s Invalid key number. Please enter a number between 1 and %d\n",
 				style.Colored(style.Red, style.SymCrossMark), len(m.config.SshKeys))
 		} else {
