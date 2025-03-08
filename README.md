@@ -2,13 +2,12 @@
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
 
-
 <!-- [![Build]((https://github.com/abbott/hardn/workflows/build/badge.svg)](https://github.com/abbott/hardn/actions)  -->
 
 A simple hardening tool for Linux.
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/1750fcee-c038-4458-bc77-ec5f5ffa35ab" width="800" alt="Hardn CLI menu">
+    <img src="https://github.com/user-attachments/assets/2d4dc4d9-0379-46ad-86ef-eeb2e33f264c" width="800" alt="Hardn CLI menu">
 </p>
 
 ## What is it?
@@ -42,7 +41,7 @@ If you are one of the following, **refrain from deploying this tool in the publi
 | Automated Updates               | Configures unattended security updates                          |
 | System Auditing               | Install Lynis for comprehensive analysis                          |
 | Application Control               | Install AppArmor for application restrictions                          |
-| Preferred Packages               | Specify packages for Linux and Python                          |
+| Preferred Packages               | Specify Linux packages in batches                         |
 | Backup System               | Automatic backup of modified configuration files                          |
 | Interactive Menu               | User-friendly interface for system hardening                          |
 | Dry-Run Mode               | Preview changes without applying them                          |
@@ -159,7 +158,6 @@ sudo hardn
 | Run all (execute)             | `-r, --run-all`     | Run all hardening operations                                     |
 | Dry run (mode)              | `-n, --dry-run`     | Preview changes without applying them                          |
 | Linux packages (install)    | `-l, --install-linux`     | Install specified Linux packages                                     |
-| Python packages (install)   | `-i, --install-python`     | Install specified Python packages                            |
 | All packages (install)     | `-a, --install-all`     | Install all specified packages                                           |
 | Sources (configure)           | `-s, --configure-sources`     | Configure package sources                               |
 | Logs (print)               | `-p, --print-logs`     | View logs                                          |
