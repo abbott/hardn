@@ -14,6 +14,8 @@ linters:
     - ineffassign
     - staticcheck
     - unused
+    - goimports
+    - gofmt
 
 # Linter-specific settings
 linters-settings:
@@ -25,7 +27,11 @@ linters-settings:
 
 # Issues configuration
 issues:
+  exclude-dirs:
+    - vendor
   max-issues-per-linter: 0
   max-same-issues: 0
   exclude:
     - "Error return value is not checked.*\\.Close\\("
+
+

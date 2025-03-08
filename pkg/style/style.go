@@ -14,16 +14,17 @@ type MenuOption struct {
 	Number      int
 	Title       string
 	Description string
+	Style       string
 }
 
 // Menu provides a formatted menu display
 type Menu struct {
-	title       string
-	options     []MenuOption
-	exitOption  *MenuOption
-	prompt      string
-	maxNumLen   int
-	titleWidth  int
+	title      string
+	options    []MenuOption
+	exitOption *MenuOption
+	prompt     string
+	maxNumLen  int
+	titleWidth int
 }
 
 const (
@@ -83,6 +84,7 @@ const (
 	Blink     = "\033[5m"
 	Reverse   = "\033[7m"
 	Hidden    = "\033[8m"
+	Strike    = "\033[9m"
 
 	// Cursor control
 	CursorOn  = "\033[?25h"
@@ -138,6 +140,13 @@ func Dimmed(text string, color ...string) string {
 		return Dim + color[0] + text + Reset
 	}
 	return Dim + text + Reset
+}
+
+func Striked(text string, color ...string) string {
+	if len(color) > 0 {
+		return Strike + color[0] + text + Reset
+	}
+	return Strike + text + Reset
 }
 
 // Apply italic style with an optional color
@@ -222,13 +231,29 @@ func CenterText(text string, width int) string {
 	return strings.Repeat(" ", leftPadding) + text + strings.Repeat(" ", rightPadding)
 }
 
+// PadRight adds spaces to the right of text to reach the specified width
+// Uses StripAnsi to correctly calculate visible text length for styled text
 func PadRight(text string, width int) string {
-	if len(text) >= width {
+	// Get the visible length by removing ANSI escape sequences
+	visibleLen := len(StripAnsi(text))
+
+	if visibleLen >= width {
 		return text
 	}
 
-	return text + strings.Repeat(" ", width-len(text))
+	// Calculate the correct amount of padding based on visible length
+	padding := width - visibleLen
+
+	return text + strings.Repeat(" ", padding)
 }
+
+// func PadRight(text string, width int) string {
+// 	if len(text) >= width {
+// 		return text
+// 	}
+
+// 	return text + strings.Repeat(" ", width-len(text))
+// }
 
 var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 
@@ -334,7 +359,6 @@ func (sf *StatusFormatter) Initialize() {
 }
 
 // FormatLine formats a status line with proper alignment
-// FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	label string, status string, statusColor string, description string, statusWeight string) string {
 
@@ -344,16 +368,16 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
 	labelText := StripAnsi(label)
-	
+
 	// Fix: Ensure padding size is never negative
 	paddingSize := sf.maxLabelLen - len(labelText)
 	if paddingSize < 0 {
 		paddingSize = 0 // Prevent negative repeat count
 	}
-	
+
 	// Always add at least one space padding between label and status
-	padding := strings.Repeat(" ", paddingSize + 1)
-	
+	padding := strings.Repeat(" ", paddingSize+1)
+
 	symbol = Colored(symbolColor, symbol)
 
 	if statusWeight == "bold" {
@@ -419,21 +443,21 @@ func PrintDivider(char string, length int, style ...string) {
 // NewMenu creates a new menu with the given title and options
 func NewMenu(title string, options []MenuOption) *Menu {
 	// Calculate maximum number length and title width
-	maxNumLen := 1 // At least 1 digit
+	maxNumLen := 1   // At least 1 digit
 	titleWidth := 20 // Minimum width
-	
+
 	for _, opt := range options {
 		numLen := len(fmt.Sprintf("%d", opt.Number))
 		if numLen > maxNumLen {
 			maxNumLen = numLen
 		}
-		
+
 		titleLen := len(StripAnsi(opt.Title))
 		if titleLen > titleWidth {
 			titleWidth = titleLen
 		}
 	}
-	
+
 	return &Menu{
 		title:      title,
 		options:    options,
@@ -446,13 +470,13 @@ func NewMenu(title string, options []MenuOption) *Menu {
 // SetExitOption sets a custom exit option (default is 0: Exit)
 func (m *Menu) SetExitOption(option MenuOption) {
 	m.exitOption = &option
-	
+
 	// Update maxNumLen if necessary
 	numLen := len(fmt.Sprintf("%d", option.Number))
 	if numLen > m.maxNumLen {
 		m.maxNumLen = numLen
 	}
-	
+
 	// Update titleWidth if necessary
 	titleLen := len(StripAnsi(option.Title))
 	if titleLen > m.titleWidth {
@@ -470,10 +494,10 @@ func (m *Menu) GetValidRange() string {
 	if len(m.options) == 0 {
 		return "0"
 	}
-	
+
 	min := m.options[0].Number
 	max := m.options[0].Number
-	
+
 	for _, opt := range m.options {
 		if opt.Number < min {
 			min = opt.Number
@@ -482,25 +506,25 @@ func (m *Menu) GetValidRange() string {
 			max = opt.Number
 		}
 	}
-	
+
 	// Include exit option in the range
 	exitNum := 0
 	if m.exitOption != nil {
 		exitNum = m.exitOption.Number
 	}
-	
+
 	if exitNum < min {
 		min = exitNum
 	}
-	
+
 	if exitNum > max {
 		max = exitNum
 	}
-	
+
 	if min == max {
 		return fmt.Sprintf("%d", min)
 	}
-	
+
 	return fmt.Sprintf("%d-%d", min, max)
 }
 
@@ -508,40 +532,56 @@ func (m *Menu) GetValidRange() string {
 func (m *Menu) FormatOption(opt MenuOption) string {
 	// Format number with consistent padding
 	numStr := fmt.Sprintf("%d)", opt.Number)
-	
+
 	// Add extra space for single-digit numbers to align with double-digit numbers
 	if opt.Number < 10 {
 		numStr = " " + numStr
 	}
-	
+
 	numPadded := Bolded(numStr)
-	
+
 	// Add spacing after the number
 	numPadded += " "
-	
+
+	titlePadded := ""
 	// Format title with consistent padding
-	titlePadded := PadRight(opt.Title, m.titleWidth + 4) // +4 for extra spacing
-	
+	if opt.Style == "" {
+		// opt.Title = Colored(opt.Style, opt.Title)
+		titlePadded += PadRight(opt.Title, m.titleWidth+4)
+	} else if opt.Style == "strike" {
+		// opt.Title = Bolded(opt.Title)
+		strikeTitle := Striked(opt.Title)
+		dimmedStrikeTitle := Dimmed(strikeTitle)
+		titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth+4)
+	}
+
 	// Add description
 	desc := Dimmed(opt.Description)
-	
+
 	return numPadded + titlePadded + desc
 }
 
 // Render returns the formatted menu as a string
 func (m *Menu) Render() string {
 	var sb strings.Builder
-	
+
+	// desc := Dimmed(opt.Description)
+
+	// if m.title != "" {
+	// 	sb.WriteString("\n")
+	// 	sb.WriteString(Header(m.title))
+	// }
+
 	// Title header
 	sb.WriteString("\n")
 	sb.WriteString(SubHeader(m.title))
-	
+
 	// Options
 	for _, opt := range m.options {
 		sb.WriteString("\n")
 		sb.WriteString(m.FormatOption(opt))
 	}
-	
+
 	// Exit option
 	sb.WriteString("\n\n")
 	if m.exitOption != nil {
@@ -555,12 +595,12 @@ func (m *Menu) Render() string {
 		}
 		sb.WriteString(m.FormatOption(exit))
 	}
-	
+
 	// Prompt
 	sb.WriteString("\n\n")
 	sb.WriteString(BulletItem)
 	sb.WriteString(fmt.Sprintf("%s [%s or q]: ", m.prompt, m.GetValidRange()))
-	
+
 	return sb.String()
 }
 

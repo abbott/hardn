@@ -2,14 +2,13 @@ package utils
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/style"
 )
@@ -94,63 +93,67 @@ func RunCommand(name string, args ...string) (string, error) {
 }
 
 // CheckSubnet checks if the specified subnet is present in the system's interfaces
-func CheckSubnet(subnet string) (bool, error) {
-	interfaces, err := net.Interfaces()
-	if err != nil {
-		return false, fmt.Errorf("failed to get network interfaces: %w", err)
-	}
-
-	for _, iface := range interfaces {
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			ipNet, ok := addr.(*net.IPNet)
-			if !ok {
-				continue
-			}
-
-			ip := ipNet.IP.To4()
-			if ip == nil {
-				continue
-			}
-
-			// Check if IP matches subnet
-			if strings.HasPrefix(ip.String(), subnet+".") {
-				logging.LogInfo("Target IP subnet %s.x found: %s", subnet, ip.String())
-				return true, nil
-			}
-		}
-	}
-
-	// Get all available IPs for logging
-	var availableIPs []string
-	for _, iface := range interfaces {
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			ipNet, ok := addr.(*net.IPNet)
-			if !ok {
-				continue
-			}
-
-			ip := ipNet.IP.To4()
-			if ip == nil || strings.HasPrefix(ip.String(), "127.") {
-				continue
-			}
-
-			availableIPs = append(availableIPs, ip.String())
-		}
-	}
-
-	logging.LogInfo("Target IP subnet %s.x not found. Available subnets: %s", subnet, strings.Join(availableIPs, ", "))
-	return false, nil
+func CheckSubnet(subnet string, networkOps interfaces.NetworkOperations) (bool, error) {
+	return networkOps.CheckSubnet(subnet)
 }
+
+// func CheckSubnet(subnet string) (bool, error) {
+// 	interfaces, err := net.Interfaces()
+// 	if err != nil {
+// 		return false, fmt.Errorf("failed to get network interfaces: %w", err)
+// 	}
+
+// 	for _, iface := range interfaces {
+// 		addrs, err := iface.Addrs()
+// 		if err != nil {
+// 			continue
+// 		}
+
+// 		for _, addr := range addrs {
+// 			ipNet, ok := addr.(*net.IPNet)
+// 			if !ok {
+// 				continue
+// 			}
+
+// 			ip := ipNet.IP.To4()
+// 			if ip == nil {
+// 				continue
+// 			}
+
+// 			// Check if IP matches subnet
+// 			if strings.HasPrefix(ip.String(), subnet+".") {
+// 				logging.LogInfo("Target IP subnet %s.x found: %s", subnet, ip.String())
+// 				return true, nil
+// 			}
+// 		}
+// 	}
+
+// 	// Get all available IPs for logging
+// 	var availableIPs []string
+// 	for _, iface := range interfaces {
+// 		addrs, err := iface.Addrs()
+// 		if err != nil {
+// 			continue
+// 		}
+
+// 		for _, addr := range addrs {
+// 			ipNet, ok := addr.(*net.IPNet)
+// 			if !ok {
+// 				continue
+// 			}
+
+// 			ip := ipNet.IP.To4()
+// 			if ip == nil || strings.HasPrefix(ip.String(), "127.") {
+// 				continue
+// 			}
+
+// 			availableIPs = append(availableIPs, ip.String())
+// 		}
+// 	}
+
+// 	logging.LogInfo("Target IP subnet %s.x not found. Available subnets: %s", subnet, strings.Join(availableIPs, ", "))
+// 	return false, nil
+// }
 
 // SetupHushlogin creates a .hushlogin file in the home directory
 func SetupHushlogin(cfg *config.Config) error {

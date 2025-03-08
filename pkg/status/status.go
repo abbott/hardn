@@ -91,7 +91,7 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	if !status.SecureUsers {
 		fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo privileges"))
+		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo enabled"))
 	}
 
 	// Display SSH port status
@@ -186,8 +186,8 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 
@@ -377,8 +377,8 @@ func checkPasswordAuth(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 
@@ -410,8 +410,8 @@ func CheckRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 	} else {
 		// For Debian/Ubuntu, check both main config and config.d
 		sshConfigPath = "/etc/ssh/sshd_config"
-		if _, err := os.Stat("/etc/ssh/sshd_config.d/manage.conf"); err == nil {
-			sshConfigPath = "/etc/ssh/sshd_config.d/manage.conf"
+		if _, err := os.Stat("/etc/ssh/sshd_config.d/hardn.conf"); err == nil {
+			sshConfigPath = "/etc/ssh/sshd_config.d/hardn.conf"
 		}
 	}
 

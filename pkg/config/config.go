@@ -88,6 +88,11 @@ type Config struct {
 	LcAll            string `yaml:"lcAll"`
 	Tz               string `yaml:"tz"`
 	PythonUnbuffered string `yaml:"pythonUnbuffered"`
+
+	// Logs Configuration (embedded for easy access to LogFile)
+	LogsConfig struct {
+		LogFilePath string
+	}
 }
 
 // Default configuration
@@ -110,7 +115,7 @@ func DefaultConfig() *Config {
 		// SshAllowedUsers:  []string{"george"},
 		SshListenAddress: "0.0.0.0",
 		SshKeyPath:       ".ssh_%u",
-		SshConfigFile:    "/etc/ssh/sshd_config.d/manage.conf",
+		SshConfigFile:    "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
 		SudoNoPassword: true,
@@ -192,9 +197,9 @@ func ConfigFileSearchPath(explicitPath string) []string {
 func FindConfigFile(explicitPath string) (string, bool) {
 	// Log environment variable for debugging
 	envPath := os.Getenv("HARDN_CONFIG")
-	if envPath != "" {
-		logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
-	}
+	// if envPath != "" {
+	// 	logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
+	// }
 
 	// First priority: explicit path from command line
 	if explicitPath != "" {
@@ -327,7 +332,15 @@ func LoadConfig(filePath string) (*Config, error) {
 		fmt.Println()
 	}
 
-	return LoadConfigWithEnvPriority(filePath)
+	cfg, err := LoadConfigWithEnvPriority(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize LogsConfig
+	cfg.LogsConfig.LogFilePath = cfg.LogFile
+
+	return cfg, nil
 }
 
 // GetDefaultConfigLocation returns the appropriate location for a new config file
