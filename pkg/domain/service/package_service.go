@@ -43,6 +43,10 @@ type PackageRepository interface {
 
 // Implementation of PackageService methods
 func (s *PackageServiceImpl) InstallPackages(request model.PackageInstallRequest) error {
+	// Skip calling repository for empty package requests
+	if len(request.Packages) == 0 && len(request.PipPackages) == 0 {
+		return nil
+	}
 	return s.repository.InstallPackages(request)
 }
 
