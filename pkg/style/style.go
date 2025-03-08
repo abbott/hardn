@@ -19,12 +19,14 @@ type MenuOption struct {
 
 // Menu provides a formatted menu display
 type Menu struct {
-	title      string
-	options    []MenuOption
-	exitOption *MenuOption
-	prompt     string
-	maxNumLen  int
-	titleWidth int
+	title          string
+	options        []MenuOption
+	exitOption     *MenuOption
+	prompt         string
+	maxNumLen      int
+	titleWidth     int
+	dryRunEnabled  bool
+	showDryRunInfo bool
 }
 
 const (
@@ -360,23 +362,35 @@ func (sf *StatusFormatter) Initialize() {
 
 // FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
-	label string, status string, statusColor string, description string, statusWeight string) string {
+	label string, status string, statusColor string, description string, statusWeight string, opts ...bool) string {
 
 	if !sf.initialized {
 		sf.Initialize()
 	}
 
+	// Check if padding should be disabled (optional parameter)
+	disablePadding := false
+	if len(opts) > 0 {
+		disablePadding = opts[0]
+	}
+
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
 	labelText := StripAnsi(label)
 
-	// Fix: Ensure padding size is never negative
-	paddingSize := sf.maxLabelLen - len(labelText)
-	if paddingSize < 0 {
-		paddingSize = 0 // Prevent negative repeat count
-	}
+	var padding string
+	if disablePadding {
+		// Use fixed minimal padding when padding is disabled
+		padding = " " // Just one space between label and status
+	} else {
+		// Fix: Ensure padding size is never negative
+		paddingSize := sf.maxLabelLen - len(labelText)
+		if paddingSize < 0 {
+			paddingSize = 0 // Prevent negative repeat count
+		}
 
-	// Always add at least one space padding between label and status
-	padding := strings.Repeat(" ", paddingSize+1)
+		// Always add at least one space padding between label and status
+		padding = strings.Repeat(" ", paddingSize+1)
+	}
 
 	symbol = Colored(symbolColor, symbol)
 
@@ -489,6 +503,12 @@ func (m *Menu) SetPrompt(prompt string) {
 	m.prompt = prompt
 }
 
+// SetDryRunStatus sets whether to show dry run status and whether it's enabled
+func (m *Menu) SetDryRunStatus(show bool, enabled bool) {
+	m.showDryRunInfo = show
+	m.dryRunEnabled = enabled
+}
+
 // GetValidRange returns the valid range of option numbers as a string
 func (m *Menu) GetValidRange() string {
 	if len(m.options) == 0 {
@@ -565,6 +585,7 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 func (m *Menu) Render() string {
 	var sb strings.Builder
 
+	sb.WriteString("\n")
 	// desc := Dimmed(opt.Description)
 
 	// if m.title != "" {
@@ -573,8 +594,41 @@ func (m *Menu) Render() string {
 	// }
 
 	// Title header
-	sb.WriteString("\n")
-	sb.WriteString(SubHeader(m.title))
+	// sb.WriteString("\n")
+	// sb.WriteString(SubHeader(m.title))
+
+		// Format the title with dry-run status if needed
+		if m.showDryRunInfo {
+			dryRunSymbol := SymAsterisk
+			dryRunStatus := "Disabled"
+			dryRunColorFn := Yellow
+	
+			if m.dryRunEnabled {
+				dryRunStatus = "Enabled"
+				dryRunColorFn = Green
+			}
+	
+			spacing := 12
+			// Create title with underline, bold, blue
+			// titleText := color.New(Underline, Bold, Blue).Sprint(m.title)
+
+			titleText := Underline + Bold + Blue + m.title + Reset
+
+			// titleText := SubHeader(m.title)
+	
+			// Create formatter for dry run status
+			formatter := NewStatusFormatter([]string{"Dry-run Mode"}, 2)
+	
+			// Use FormatLine to format the dry run status
+			dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, "Dry-run Mode", dryRunStatus, dryRunColorFn, "", "light", true)
+	
+			// Write all on one line
+			sb.WriteString(titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")
+		} else {
+			// Just write the title without dry-run info
+			sb.WriteString(SubHeader(m.title))
+		}
+	
 
 	// Options
 	for _, opt := range m.options {

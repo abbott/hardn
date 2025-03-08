@@ -141,8 +141,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		// See if we should force an update notification for testing
 		if os.Getenv("HARDN_FORCE_UPDATE") != "" {
 			m.updateAvailable = true
-			m.latestVersion = "99.0.0"
-			m.updateURL = "https://github.com/abbott/hardn/releases/latest"
+			m.latestVersion = "0.3.3"
+			// m.updateURL = "https://github.com/abbott/hardn/releases/latest"
+			m.updateURL = "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
+
+			// updateCmd := "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
 		} else {
 			m.CheckForUpdates()
 		}
@@ -153,10 +156,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
 
-		utils.PrintLogo()
+		utils.ClearScreen()
 
 		// Define separator line
-		separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		// separator := "-----------------------------------------------------------------------"
 		sepWidth := len(separator)
 
 		// Get security status - this would need to be adapted to use the new architecture
@@ -166,55 +170,40 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			riskLevel, riskDescription, riskColor = status.GetSecurityRiskLevel(securityStatus)
 		}
 
-		// Prepare OS display information
-		var osDisplay string
-		if m.osInfo != nil {
-			if m.osInfo.IsProxmox {
-				osDisplay = " Proxmox "
-			} else {
-				osName := cases.Title(language.English).String(m.osInfo.OsType)
-				osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
 
-				if m.osInfo.OsType == "alpine" {
-					osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
-				} else {
-					osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
-				}
-			}
+		fmt.Println()
 
-			// Remove ANSI codes for accurate length calculation
-			osDisplayStripped := style.StripAnsi(osDisplay)
-			osDisplayWidth := len(osDisplayStripped)
-
-			// Calculate padding for centering OS display, accounting for spaces
-			leftPadding := (sepWidth - osDisplayWidth) / 2
-			rightPadding := sepWidth - osDisplayWidth - leftPadding
-
-			// Print centered OS display within the separator line
-			var envLine = separator[:leftPadding] + osDisplay + separator[:rightPadding]
-
-			fmt.Println(style.Colored(style.Green, envLine))
-		} else {
-			// Print separator without OS info
-			fmt.Println(style.Bolded(separator, style.Green))
-		}
-
-		// Display version information after the OS display
+		// Display update notification if a newer version is available
 		if m.versionService != nil && m.versionService.CurrentVersion != "" {
-			versionDisplay := fmt.Sprintf(" Version %s ", m.versionService.CurrentVersion)
 
-			// Center version information just like OS display
-			versionDisplayStripped := style.StripAnsi(versionDisplay)
-			versionDisplayWidth := len(versionDisplayStripped)
 
-			leftPadding := (sepWidth - versionDisplayWidth) / 2
-			rightPadding := sepWidth - versionDisplayWidth - leftPadding
+			if m.updateAvailable {
 
-			// Print centered version within the separator line
-			versionLine := separator[:leftPadding] + versionDisplay + separator[:rightPadding]
-			fmt.Println(style.Colored(style.BrightCyan, versionLine))
+				hardnLabel := style.Colored(style.Yellow, "hardn")
+				// updateVersion := "v" + m.versionService.CurrentVersion
 
-			// Show build information if available
+				hardnVersion := hardnLabel + " " + style.Dimmed(m.versionService.CurrentVersion,) + " → " + style.Yellow + m.latestVersion + style.Reset
+				fmt.Println(hardnVersion)
+
+				fmt.Println()
+				// fmt.Printf("%s\n",
+				// 	style.Colored(style.Yellow, updatenMsg))
+				fmt.Printf("%s %s\n",
+					style.BulletItem,
+					style.Colored(style.BrightCyan, m.updateURL))
+
+			} else {
+					// updatenMsg = fmt.Sprintf("hardn v%s", m.versionService.CurrentVersion)
+
+					hardnLabel := style.Colored(style.Green, "hardn")
+					currentVersion := m.versionService.CurrentVersion
+					// currentVersion := "v" + m.versionService.CurrentVersion
+
+					hardnVersion := hardnLabel + " " + style.Dimmed(currentVersion)
+					fmt.Println(hardnVersion)
+			
+			}
+							// Show build information if available
 			if m.versionService.BuildDate != "" || m.versionService.GitCommit != "" {
 				fmt.Println()
 				if m.versionService.BuildDate != "" {
@@ -226,26 +215,47 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			}
 		}
 
-		// Display update notification if a newer version is available
-		if m.updateAvailable {
-			fmt.Println()
-			updateMsg := fmt.Sprintf(" Update available: %s → %s ", m.versionService.CurrentVersion, m.latestVersion)
 
-			// Center the update message
-			updateMsgStripped := style.StripAnsi(updateMsg)
-			msgWidth := len(updateMsgStripped)
+		fmt.Println()
 
-			leftPadding := (sepWidth - msgWidth) / 2
-			rightPadding := sepWidth - msgWidth - leftPadding
 
-			updateLine := separator[:leftPadding] + updateMsg + separator[:rightPadding]
-			fmt.Println(style.Colored(style.Yellow, updateLine))
-
-			// Show update instructions
-			fmt.Printf("%s Visit: %s\n",
-				style.BulletItem,
-				style.Colored(style.BrightCyan, m.updateURL))
-		}
+						// Prepare OS display information
+						var osDisplay string
+						if m.osInfo != nil {
+							if m.osInfo.IsProxmox {
+								osDisplay = " Proxmox "
+							} else {
+								osName := cases.Title(language.English).String(m.osInfo.OsType)
+								osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
+				
+								if m.osInfo.OsType == "alpine" {
+									osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
+								} else {
+									osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
+								}
+							}
+				
+							// Remove ANSI codes for accurate length calculation
+							osDisplayStripped := style.StripAnsi(osDisplay)
+							osDisplayWidth := len(osDisplayStripped)
+				
+							// Calculate padding for centering OS display, accounting for spaces
+							leftPadding := (sepWidth - osDisplayWidth) / 2
+							rightPadding := sepWidth - osDisplayWidth - leftPadding
+				
+							// Print centered OS display within the separator line
+							var envLine = separator[:leftPadding] + osDisplay + separator[:rightPadding]
+				
+							// Calculate padding for centering OS display, accounting for spaces
+							// rightPadding := sepWidth - osDisplayWidth
+							// var envLine = osDisplay + separator[:rightPadding]
+				
+							fmt.Println(style.Colored(style.Green, envLine))
+						} else {
+							// Print separator without OS info
+							fmt.Println(style.Bolded(separator, style.Green))
+						}
+				
 
 		fmt.Println()
 		// 2 spaces buffer
@@ -289,20 +299,6 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			status.DisplaySecurityStatus(m.config, securityStatus, formatter)
 		}
 
-		// Display dry-run mode if active
-		fmt.Println()
-
-		// Format the dry-run mode status like other status lines
-		formatter := style.NewStatusFormatter([]string{
-			"Dry-run Mode",
-		}, 2)
-
-		if m.config.DryRun {
-			fmt.Println(formatter.FormatLine(style.SymAsterisk, style.BrightGreen, "Dry-run Mode", "Enabled", style.BrightGreen, "", "light"))
-		} else {
-			fmt.Println(formatter.FormatLine(style.SymAsterisk, style.BrightYellow, "Dry-run Mode", "Disabled", style.BrightYellow, "", "light"))
-		}
-
 		// Create menu options
 		menuOptions := []style.MenuOption{
 			{Number: 1, Title: "Sudo User", Description: "Create non-root user with sudo access"},
@@ -312,16 +308,22 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			{Number: 5, Title: "Run All", Description: "Run all hardening operations"},
 			{Number: 6, Title: "Dry-Run", Description: "Preview changes without applying them"},
 			{Number: 7, Title: "Linux Packages", Description: "Install specified Linux packages"},
-			{Number: 8, Title: "Python Packages", Description: "Install specified Python packages"},
-			{Number: 9, Title: "Package Sources", Description: "Configure package source"},
-			{Number: 10, Title: "Backup", Description: "Configure backup settings"},
-			{Number: 11, Title: "Environment", Description: "Configure environment variable support"},
-			{Number: 12, Title: "Logs", Description: "View log file"},
-			{Number: 13, Title: "Help", Description: "View usage information"},
+			// {Number: 8, Title: "Python Packages", Description: "Install specified Python packages"},
+			{Number: 8, Title: "Package Sources", Description: "Configure package source"},
+			{Number: 9, Title: "Backup", Description: "Configure backup settings"},
+			{Number: 10, Title: "Environment", Description: "Configure environment variable support"},
+			{Number: 11, Title: "Logs", Description: "View log file"},
+			// {Number: 13, Title: "Help", Description: "View usage information"},
 		}
 
+
+		fmt.Println()
 		// Create and customize menu
 		menu := style.NewMenu("Select an option", menuOptions)
+
+		// Set dry-run status to display alongside the title
+		menu.SetDryRunStatus(true, m.config.DryRun)
+
 		// Set custom exit option
 		menu.SetExitOption(style.MenuOption{
 			Number:      0,
@@ -402,45 +404,37 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			// Note: This would automatically be handled on the next menu refresh
 
 		case "6": // Dry-Run
-			m.showDryRunMenu()
+		m.showDryRunMenu()
 
 		case "7": // Linux Packages
-			// LinuxPackagesMenu(m.config, m.osInfo)
-			// This needs a packages manager in application layer
 			linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
 			linuxMenu.Show()
 
-		case "8": // Python Packages
-			// PythonPackagesMenu(m.config, m.osInfo)
-			pythonMenu := NewPythonPackagesMenu(m.menuManager, m.config, m.osInfo)
-			pythonMenu.Show()
+		// case "8": // Python Packages
+		// 	pythonMenu := NewPythonPackagesMenu(m.menuManager, m.config, m.osInfo)
+		// 	pythonMenu.Show()
 
-		case "9": // Package Sources
-			// UpdateSourcesMenu(m.config, m.osInfo)
+		case "8": // Package Sources
 			sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
 			sourcesMenu.Show()
 
-		case "10": // Backup
-			// BackupOptionsMenu(m.config)
+		case "9": // Backup
 			backupMenu := NewBackupMenu(m.menuManager, m.config)
 			backupMenu.Show()
 
-		case "11": // Environment
-			// EnvironmentSettingsMenu(m.config)
+		case "10": // Environment
 			envMenu := NewEnvironmentSettingsMenu(m.menuManager, m.config)
 			envMenu.Show()
 
-		case "12": // Logs
-			// Viewing logs doesn't need to go through menuManager
-			// ViewLogsMenu(m.config)
+		case "11": // Logs
 			logsMenu := NewLogsMenu(m.menuManager, m.config)
 			logsMenu.Show()
 
-		case "13": // Helpcase "13": // Help
-			helpMenu := NewHelpMenu()
-			helpMenu.Show()
-			// helpMenu := menuFactory.CreateHelpMenu()
-			// helpMenu.Show()
+		// case "13": // Help
+		// 	helpMenu := NewHelpMenu()
+		// 	helpMenu.Show()
+
+		// helpMenu := menuFactory.CreateHelpMenu()
 
 		case "0": // Exit
 			utils.PrintHeader()
