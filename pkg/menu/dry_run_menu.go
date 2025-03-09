@@ -93,7 +93,6 @@ func (m *DryRunMenu) Show() {
 		// Display the menu
 		menu.Print()
 
-
 		choice := ReadMenuInput()
 
 		// Handle 'q' as a special exit case

@@ -47,6 +47,12 @@ func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 	return menu.NewHelpMenu()
 }
 
+// CreateHostInfoMenu creates a HostInfoMenu with all dependencies wired up
+func (f *MenuFactory) CreateHostInfoMenu() *menu.HostInfoMenu {
+	menuManager := f.serviceFactory.CreateMenuManager()
+	return menu.NewHostInfoMenu(menuManager, f.config, f.osInfo)
+}
+
 // CreateMainMenu creates the main menu with all dependencies wired up
 func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.MainMenu {
 	// Create required managers
@@ -62,6 +68,7 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 		userManager, sshManager, firewallManager, dnsManager)
 
 	// Create menu manager (use := instead of = since we're not declaring it above anymore)
+	hostInfoManager := f.serviceFactory.CreateHostInfoManager()
 	menuManager := application.NewMenuManager(
 		userManager,
 		sshManager,
@@ -71,7 +78,8 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 		backupManager,
 		securityManager,
 		environmentManager,
-		logsManager)
+		logsManager,
+		hostInfoManager)
 
 	// Create menu with all necessary fields initialized
 	return menu.NewMainMenu(menuManager, f.config, f.osInfo, versionService)

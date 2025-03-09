@@ -3,6 +3,7 @@ package application
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/abbott/hardn/pkg/domain/model"
 )
@@ -18,6 +19,7 @@ type MenuManager struct {
 	securityManager    *SecurityManager
 	environmentManager *EnvironmentManager
 	logsManager        *LogsManager
+	hostInfoManager    *HostInfoManager
 }
 
 // In the struct definition:
@@ -31,6 +33,7 @@ func NewMenuManager(
 	securityManager *SecurityManager,
 	environmentManager *EnvironmentManager,
 	logsManager *LogsManager,
+	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
 		userManager:        userManager,
@@ -42,6 +45,7 @@ func NewMenuManager(
 		securityManager:    securityManager,
 		environmentManager: environmentManager,
 		logsManager:        logsManager,
+		hostInfoManager:    hostInfoManager, // Add this field
 	}
 }
 
@@ -172,4 +176,49 @@ func (m *MenuManager) PrintLogs() error {
 // GetLogConfig retrieves the current log configuration
 func (m *MenuManager) GetLogConfig() (*model.LogsConfig, error) {
 	return m.logsManager.GetLogConfig()
+}
+
+// GetHostInfo retrieves host information
+func (m *MenuManager) GetHostInfo() (*model.HostInfo, error) {
+	return m.hostInfoManager.GetHostInfo()
+}
+
+// GetIPAddresses retrieves system IP addresses
+func (m *MenuManager) GetIPAddresses() ([]string, error) {
+	return m.hostInfoManager.GetIPAddresses()
+}
+
+// GetDNSServers retrieves configured DNS servers
+func (m *MenuManager) GetDNSServers() ([]string, error) {
+	return m.hostInfoManager.GetDNSServers()
+}
+
+// GetHostname retrieves the system hostname and domain
+func (m *MenuManager) GetHostname() (string, string, error) {
+	return m.hostInfoManager.GetHostname()
+}
+
+// GetNonSystemUsers retrieves non-system users
+func (m *MenuManager) GetNonSystemUsers() ([]model.User, error) {
+	return m.hostInfoManager.GetNonSystemUsers()
+}
+
+// GetNonSystemGroups retrieves non-system groups
+func (m *MenuManager) GetNonSystemGroups() ([]string, error) {
+	return m.hostInfoManager.GetNonSystemGroups()
+}
+
+// GetUptime retrieves the system uptime
+func (m *MenuManager) GetUptime() (time.Duration, error) {
+	return m.hostInfoManager.GetUptime()
+}
+
+// FormatUptime formats the uptime in a human-readable format
+func (m *MenuManager) FormatUptime(uptime time.Duration) string {
+	return m.hostInfoManager.FormatUptime(uptime)
+}
+
+// FormatBytes formats byte size to human readable format
+func (m *MenuManager) FormatBytes(bytes int64) string {
+	return m.hostInfoManager.FormatBytes(bytes)
 }

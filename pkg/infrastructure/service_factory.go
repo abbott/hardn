@@ -31,6 +31,18 @@ func (f *ServiceFactory) SetConfig(config *config.Config) {
 	f.config = config
 }
 
+// CreateHostInfoManager creates a HostInfoManager
+func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
+	// Create repository
+	hostInfoRepo := secondary.NewOSHostInfoRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
+
+	// Create domain service
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, convertOSInfo(f.osInfo))
+
+	// Create application service
+	return application.NewHostInfoManager(hostInfoService)
+}
+
 // CreateUserManager creates a UserManager with all required dependencies
 func (f *ServiceFactory) CreateUserManager() *application.UserManager {
 	// Create repository
@@ -154,6 +166,7 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	backupManager := f.CreateBackupManager()
 	environmentManager := f.CreateEnvironmentManager()
 	logsManager := f.CreateLogsManager()
+	hostInfoManager := f.CreateHostInfoManager()
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
 
@@ -166,7 +179,8 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 		backupManager,
 		securityManager,
 		environmentManager,
-		logsManager)
+		logsManager,
+		hostInfoManager)
 }
 
 // CreateBackupManager creates a BackupManager

@@ -355,7 +355,6 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		// }
 
 		fmt.Println()
-		// 2 spaces buffer
 
 		// Display security status with borders if available
 		if err == nil {
@@ -390,11 +389,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			{Number: 8, Title: "Package Sources", Description: "Configure package source"},
 			{Number: 9, Title: "Backup", Description: "Configure backup settings"},
 			{Number: 10, Title: "Environment", Description: "Configure environment variable support"},
-			{Number: 11, Title: "Logs", Description: "View log file"},
+			{Number: 11, Title: "Host Info", Description: "View detailed system information"},
+			{Number: 12, Title: "Logs", Description: "View log file"},
 			// {Number: 13, Title: "Help", Description: "View usage information"},
 		}
 
-		fmt.Println()
 		// Create and customize menu
 		menu := style.NewMenu("Select an option", menuOptions)
 
@@ -506,7 +505,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			envMenu := NewEnvironmentSettingsMenu(m.menuManager, m.config)
 			envMenu.Show()
 
-		case "11": // Logs
+		case "11": // Host Info
+			hostInfoMenu := NewHostInfoMenu(m.menuManager, m.config, m.osInfo)
+			hostInfoMenu.Show()
+
+		case "12": // Logs
 			logsMenu := NewLogsMenu(m.menuManager, m.config)
 			logsMenu.Show()
 

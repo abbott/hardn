@@ -8,6 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
+	"github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/infrastructure"
@@ -80,6 +81,7 @@ func init() {
 		"Specify configuration file path")
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
+	rootCmd.AddCommand(cmd.HostInfoCmd())
 
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
