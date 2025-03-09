@@ -8,16 +8,18 @@
 !go.mod
 !go.sum
 
-# !local.go.mod
-# !local.go.sum
-
-!README.md
 !LICENSE
+!README.md
+!SUPPORT.md
+!SECURITY.md
+!GOVERNANCE.md
+!CONTRIBUTING.md
 
-!makefile
+!Makefile
 !*.example
 
 # Scripts
+!verify.sh
 !install.sh
 !wf-dev-mode.sh
 !wf-prepare-build.sh
@@ -41,6 +43,6 @@
 #!.scratch/
 
 # Ignore all files inside .scratch/
-.scratch/*
-build/*
 dist/*
+build/*
+.scratch/*

@@ -39,10 +39,11 @@ var (
 	runAll              bool
 	updateSources       bool
 	printLogs           bool
-	showVersion         bool // Flag to display version information
+	showVersion         bool
 	setupSudoEnv        bool
 	debugUpdates        bool
 	testUpdateAvailable bool
+	testSecurityUpdate  bool
 	cfg                 *config.Config
 )
 
@@ -100,6 +101,9 @@ func init() {
 		"Configure sudoers to preserve HARDN_CONFIG environment variable")
 	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, "Enable debugging for update checks")
 	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, "Force update notification for testing")
+
+	// Add new flag for testing security updates
+	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, "Test security update notification")
 }
 
 var rootCmd = &cobra.Command{
@@ -171,9 +175,26 @@ var rootCmd = &cobra.Command{
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
 			mainMenu := menuFactory.CreateMainMenu(versionService)
 
+			// Handle test flags
 			if testUpdateAvailable {
 				// Force the update notification to appear with a hard-coded newer version
 				mainMenu.SetTestUpdateAvailable("99.0.0")
+			}
+
+			// Test security update notification if requested
+			if testSecurityUpdate {
+				// Force security update notification to appear
+				mainMenu.SetTestSecurityUpdate("Critical security vulnerability CVE-2023-1234: Privilege escalation in SSH component")
+			}
+
+			if os.Getenv("HARDN_FORCE_UPDATE") != "" {
+				// Force the update notification to appear with a hard-coded newer version
+				mainMenu.SetTestUpdateAvailable("99.0.0")
+			} else if os.Getenv("HARDN_FORCE_SECURITY") != "" {
+				// Test mode for security updates - use the mainMenu method instead of direct field access
+				mainMenu.SetTestSecurityUpdate("CVE-2023-1234: Security update")
+			} else {
+				mainMenu.CheckForUpdates()
 			}
 
 			// Show main menu with version info

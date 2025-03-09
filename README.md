@@ -270,9 +270,9 @@ To verify a `hardn` release with both SLSA provenance and Sigstore signature:
 1. Use our verification script:
    ```bash
    # Download and run verification script
-   curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/scripts/verify-release.sh > verify-release.sh
-   chmod +x verify-release.sh
-   ./verify-release.sh v0.3.2 linux-amd64
+   curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/scripts/verify.sh > verify.sh
+   chmod +x verify.sh
+   ./verify.sh v0.3.2 linux-amd64
    ```
 
 2. Or verify manually:
@@ -305,7 +305,7 @@ To verify a `hardn` release with both SLSA provenance and Sigstore signature:
      hardn-linux-amd64
    ```
 
-3. Or using our makefile targets:
+3. Or using our `Makefile` targets:
    ```bash
    # Install tools
    make install-verifier

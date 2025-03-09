@@ -1,4 +1,3 @@
-// pkg/menu/main_menu.go
 package menu
 
 import (
@@ -13,8 +12,6 @@ import (
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/version"
-	// "golang.org/x/text/cases"
-	// "golang.org/x/text/language"
 )
 
 // MainMenu is the main menu of the application
@@ -30,7 +27,10 @@ type MainMenu struct {
 	updateAvailable bool
 	latestVersion   string
 	updateURL       string
-	// repoURL         string
+
+	// Security update fields
+	securityUpdateAvailable bool
+	securityUpdateDetails   string
 }
 
 // NewMainMenu creates a new MainMenu
@@ -79,194 +79,135 @@ func (m *MainMenu) CheckForUpdates() {
 			m.updateAvailable = true
 			m.latestVersion = result.LatestVersion
 			m.updateURL = result.ReleaseURL
+
+			// Track security updates
+			m.securityUpdateAvailable = result.SecurityUpdateAvailable
+			m.securityUpdateDetails = result.SecurityUpdateDetails
 		}
 	}()
 }
 
-// showDryRunMenu creates and displays the dry-run configuration menu
-func (m *MainMenu) showDryRunMenu() {
-	// Display contextual information about dry-run mode
-	utils.PrintHeader()
-	fmt.Println(style.Bolded("Dry-Run Mode Configuration", style.Blue))
+// SetTestUpdateAvailable sets test update information
+func (m *MainMenu) SetTestUpdateAvailable(testVersion string) {
+	if m.versionService != nil {
+		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
+			ForceUpdate:   true,
+			ForcedVersion: testVersion,
+		})
 
-	fmt.Println()
-	fmt.Println(style.Dimmed("Dry-run mode allows you to preview changes without applying them to your system."))
-	fmt.Println(style.Dimmed("This is useful for testing and understanding what actions will be performed."))
-
-	// Check if any critical operations have been performed
-	// This is just an example - you'd need to track this information
-	criticalChanges := false // Placeholder for tracking if changes have been made
-
-	if criticalChanges && m.config.DryRun {
-		fmt.Printf("\n%s You've already performed operations in dry-run mode.\n",
-			style.Colored(style.Yellow, style.SymInfo))
-		fmt.Printf("%s Disabling dry-run mode will apply future changes for real.\n",
-			style.BulletItem)
+		m.updateAvailable = result.UpdateAvailable
+		m.latestVersion = result.LatestVersion
+		m.updateURL = result.ReleaseURL
 	}
-
-	fmt.Println()
-	fmt.Printf("%s Press any key to continue to dry-run configuration...", style.BulletItem)
-	ReadKey()
-
-	// Create and show the dry-run menu
-	dryRunMenu := NewDryRunMenu(m.menuManager, m.config)
-	dryRunMenu.Show()
-
-	// After returning from the dry-run menu, inform about the status
-	utils.PrintHeader()
-
-	// Quick feedback on the configuration change before returning to main menu
-	fmt.Printf("\n%s Dry-run mode is now %s\n",
-		style.Colored(style.Cyan, style.SymInfo),
-		style.Bolded(map[bool]string{
-			true:  "ENABLED - Changes will only be simulated",
-			false: "DISABLED - Changes will be applied to the system",
-		}[m.config.DryRun], map[bool]string{
-			true:  style.Green,
-			false: style.Yellow,
-		}[m.config.DryRun]))
-
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
-	ReadKey()
 }
 
-// displaySecurityStatusWithBorders displays security status info with borders
+// SetTestSecurityUpdate sets test security update information
+func (m *MainMenu) SetTestSecurityUpdate(details string) {
+	if m.versionService != nil {
+		// Use a shorter default message if none provided
+		if details == "" {
+			details = "CVE-2023-1234 fixed"
+		} else if len(details) > 40 {
+			// Truncate long security details to prevent layout issues
+			details = details[:37] + "..."
+		}
+        
+		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
+			ForceUpdate:         true,
+			ForcedVersion:       m.versionService.CurrentVersion + ".1", // Just a minor increment
+			ForceSecurityUpdate: true,
+			SecurityDetails:     details,
+		})
+
+		m.updateAvailable = result.UpdateAvailable
+		m.latestVersion = result.LatestVersion
+		m.updateURL = result.ReleaseURL
+		m.securityUpdateAvailable = result.SecurityUpdateAvailable
+		m.securityUpdateDetails = result.SecurityUpdateDetails
+	}
+}
+
+func SafePadding(totalWidth int, contentLength int, offset int) string {
+	paddingSize := totalWidth - contentLength + offset
+	if paddingSize < 0 {
+		paddingSize = 0 // Prevent negative padding
+	}
+	return strings.Repeat(" ", paddingSize)
+}
+
+// displaySecurityStatusWithBordersFixed is the corrected version that prevents negative padding
 func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.SecurityStatus, formatter *style.StatusFormatter) {
 	// Define box dimensions
 	boxWidth := 64 // Total inner width of the box
 
+	// Header info construction
 	hardnVersion := ""
 	hardnLabel := style.Colored(style.BgDarkGreen, " hardn ")
 	currentVersion := "v" + m.versionService.CurrentVersion
 	latestVersion := "v" + m.latestVersion
 	repoURL := "https://github.com/abbott/hardn"
 
-	// paddingSize := 20
-	// padding := strings.Repeat(" ", paddingSize)
-	// repoURL := "https://github.com/abbott/hardn"
-
 	// Display update notification if a newer version is available
 	if m.versionService != nil && m.versionService.CurrentVersion != "" {
-
 		if m.updateAvailable {
-
 			hardnVersion = hardnLabel + " " + style.Dimmed(currentVersion) + " → " + style.DarkGreen + latestVersion + style.Reset
-
 			fmt.Println(hardnVersion)
-
 			fmt.Println()
 			fmt.Printf("%s%s\n",
 				style.Colored(style.Royal, style.BulletSpecial),
 				style.Colored(style.Royal, m.updateURL))
-
 			fmt.Println()
 
-			formatter := style.NewStatusFormatter([]string{
+			infoFormatter := style.NewStatusFormatter([]string{
 				"Build Date",
 				"Git Commit",
 			}, 2) // 2 spaces buffer
 
-			fmt.Println(formatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
-			fmt.Println(formatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
+			fmt.Println(infoFormatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
+			fmt.Println(infoFormatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
 		} else {
-
 			hardnVersion = hardnLabel + " " + style.Dimmed(currentVersion)
-			// repo = padding + repoURL
-			// fmt.Println(hardnVersion + repo)
-
 		}
 	}
 
 	fmt.Println()
-
-	// Get OS display information for the border
-	// var osDisplay string
-	// if m.osInfo != nil {
-	// 		if m.osInfo.IsProxmox {
-	// 				osDisplay = " Proxmox "
-	// 		} else {
-	// 				osName := cases.Title(language.English).String(m.osInfo.OsType)
-	// 				osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
-
-	// 				if m.osInfo.OsType == "alpine" {
-	// 						osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
-	// 				} else {
-	// 						osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
-	// 				}
-	// 		}
-	// }
-
-	// // Create top border with OS info
-	// var topBorder string
-	// if osDisplay != "" {
-	// 		// Remove ANSI codes for accurate length calculation
-	// 		osDisplayStripped := style.StripAnsi(osDisplay)
-	// 		osDisplayWidth := len(osDisplayStripped)
-
-	// 		// Calculate padding for centered OS display within border
-	// 		leftBorderLen := (boxWidth - osDisplayWidth) / 2
-	// 		rightBorderLen := boxWidth - osDisplayWidth - leftBorderLen
-
-	// 		// Create the border with OS info
-	// 		topBorder = style.DarkBorder("╭"+strings.Repeat("─", leftBorderLen)) +
-	// 				style.Colored(style.Green, osDisplay) +
-	// 				style.DarkBorder(strings.Repeat("─", rightBorderLen)+"╮")
-	// } else {
-	// 		// Standard border without OS info
-	// 		topBorder = style.DarkBorder("╭" + strings.Repeat("─", boxWidth) + "╮")
-	// }
-
-	// topBorder := style.DarkBorder("╭" + strings.Repeat("─", boxWidth) + "╮")
+	
+	// Create borders and padding elements for the status box
 	topBorder := style.DarkBorder(strings.Repeat("─", boxWidth) + "╮")
-
-	// Define other border elements
-	// bottomBorder := style.DarkBorder("╰" + strings.Repeat("─", boxWidth) + "╯")
 	bottomBorder := style.DarkBorder(strings.Repeat("─", boxWidth) + "╯")
-	// leftBorder := style.DarkBorder("│   ")
 	leftBorder := style.DarkBorder("  ")
 	rightBorder := style.DarkBorder(" │")
-	// Empty line with consistent width
-	// emptyLine := style.DarkBorder("│") + strings.Repeat(" ", boxWidth) + style.DarkBorder("│")
 	emptyLine := strings.Repeat(" ", boxWidth) + style.DarkBorder("│")
-	// divider := style.DarkBorder("│") + style.DarkBorder(strings.Repeat("─", boxWidth)) + style.DarkBorder("│")
-	// divider := style.DarkBorder(strings.Repeat("─", boxWidth)) + style.DarkBorder("│")
 
 	// Define a unified border printing function for regular status items
 	printBorderedLine := func(content string) {
 		// Get visible content length by removing ANSI escape codes
 		visibleLen := len(style.StripAnsi(content))
 
-		// Calculate padding needed for consistent alignment
-		paddingSize := boxWidth - visibleLen - 1 // -2 for the spaces in left border
+		// Calculate padding needed for consistent alignment (with safety check)
+		paddingSize := boxWidth - visibleLen - 1 // -1 for space adjustment
 		if paddingSize < 0 {
-			paddingSize = 0 // Safety check
+			paddingSize = 0 // Safety check to prevent panic
 		}
 		padding := strings.Repeat(" ", paddingSize)
 
 		fmt.Println(leftBorder + content + padding + rightBorder)
 	}
 
-	// hardnLine := hardnVersion + padding + repo
-
+	// Format and display the header line with version info
 	hardnLine := formatter.FormatLine("", "", hardnVersion, repoURL, style.Gray06, "", "light", "no-indent")
-	// printBorderedLine(hardnLine)
-
-	hardnSetPad := boxWidth - len(style.StripAnsi(hardnLine)) - 2
+	
+	// Calculate padding with safety check
+	visibleHardnLength := len(style.StripAnsi(hardnLine))
+	hardnSetPad := boxWidth - visibleHardnLength - 2
+	if hardnSetPad < 0 {
+		hardnSetPad = 0 // Safety check to prevent panic
+	}
 	hardnPadding := strings.Repeat(" ", hardnSetPad)
+	
 	fmt.Println(" " + hardnLine + hardnPadding + rightBorder)
-
-	// fmt.Println(emptyLine)
-	// Print top border with OS info
 	fmt.Println(bottomBorder)
-
 	fmt.Println()
-
-	// 	// Add padding line after top border
-	// 	fmt.Println(emptyLine)
-
-	// fmt.Println(emptyLine)
-	// fmt.Println(divider)
-	// fmt.Println(emptyLine)
 
 	// Get host information
 	hostInfo, err := m.menuManager.GetHostInfo()
@@ -282,33 +223,56 @@ func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.Secur
 		// Format host line
 		hostLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Host",
 			fmt.Sprintf("%s (%s)", hostInfo.Hostname, ipAddress), style.Cyan, "", "light")
-		// printBorderedLine(hostLine)
 		fmt.Println(hostLine)
 
 		// Format OS line
 		osLine := formatter.FormatLine(style.SymInfo, style.Cyan, "OS",
 			fmt.Sprintf("%s %s", hostInfo.OSName, hostInfo.OSVersion), style.Cyan, "", "light")
-		// printBorderedLine(osLine)
 		fmt.Println(osLine)
 
 		// Format uptime line
 		uptimeLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Uptime",
 			m.menuManager.FormatUptime(hostInfo.Uptime), style.Cyan, "", "light")
-		// printBorderedLine(uptimeLine)
 		fmt.Println(uptimeLine)
 
 		fmt.Println()
-		// Add an empty line after host info
-		// fmt.Println(emptyLine)
-		// fmt.Println(divider)
-		// fmt.Println(emptyLine)
 	}
 
 	// Print top border with OS info
 	fmt.Println(topBorder)
-
-	// Add padding line after top border
-	fmt.Println(emptyLine)
+	
+	// Display security update alert if available (at the top of the box for high visibility)
+	if m.securityUpdateAvailable {
+		// First add an empty line for spacing
+		fmt.Println(emptyLine)
+		
+		// Create security update alert with distinctive styling
+		securityHeader := style.Colored(style.BgRed, " SECURITY UPDATE ")
+		securityDetails := m.securityUpdateDetails
+		if securityDetails == "" {
+			securityDetails = "Security updates available in " + latestVersion
+		}
+		
+		// Format the security alert line with alert styling
+		securityLine := formatter.FormatLine(
+			style.SymWarning, 
+			style.Red, 
+			securityHeader,
+			securityDetails, 
+			style.Red, 
+			"Update immediately!", 
+			"bold",
+		)
+		
+		// Print the security alert safely
+		printBorderedLine(securityLine)
+		
+		// Add another empty line after the security alert for emphasis
+		fmt.Println(emptyLine)
+	} else {
+		// Add padding line after top border (when no security alert)
+		fmt.Println(emptyLine)
+	}
 
 	// First display risk level if available - with special handling
 	if securityStatus != nil {
@@ -319,16 +283,14 @@ func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.Secur
 		// Format the risk level line
 		formattedLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light")
 
-		// Special handling for risk level line
-		// The risk level line needs specific calculation due to complex formatting
+		// Special handling for risk level line - with safe padding calculation
 		formattedLen := len(style.StripAnsi(formattedLine))
-
-		// Apply an adjustment factor specific to the risk level line
-		adjustment := 3 // Fine-tune this value based on testing
+		
+		// Apply an adjustment factor but ensure we don't get negative padding
+		adjustment := 3 
 		paddingSize := boxWidth - formattedLen - 2 + adjustment
-
 		if paddingSize < 0 {
-			paddingSize = 0
+			paddingSize = 0 // Prevent negative padding
 		}
 		padding := strings.Repeat(" ", paddingSize)
 
@@ -360,38 +322,34 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	if m.versionService == nil && currentVersion != "" {
 		m.versionService = version.NewService(currentVersion, buildDate, gitCommit)
 	}
+
 	// Check for updates when the menu starts
 	if m.versionService != nil {
-		// See if we should force an update notification for testing
+		// Check for different environment variables to trigger test modes
 		if os.Getenv("HARDN_FORCE_UPDATE") != "" {
 			m.updateAvailable = true
 			m.latestVersion = "0.3.3"
-			// m.updateURL = "https://github.com/abbott/hardn/releases/latest"
 			m.updateURL = "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
+		} else if os.Getenv("HARDN_FORCE_SECURITY") != "" {
+			// Test mode for security updates
+			m.updateAvailable = true
+			m.latestVersion = "0.3.3"
+			m.updateURL = "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
+			m.securityUpdateAvailable = true
+			m.securityUpdateDetails = "Critical security vulnerability fixed - CVE-2023-1234"
 		} else {
 			m.CheckForUpdates()
 		}
 	}
 
 	for {
-
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
 
 		utils.ClearScreen()
 
-		// Define separator line
-		// separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-		// sepWidth := len(separator)
-
-		// Get security status - this would need to be adapted to use the new architecture
+		// Get security status
 		securityStatus, err := status.CheckSecurityStatus(m.config, m.osInfo)
-		// var riskLevel, riskDescription, riskColor string
-		// if err == nil {
-		// 	riskLevel, riskDescription, riskColor = status.GetSecurityRiskLevel(securityStatus)
-		// }
-
-		// fmt.Println()
 
 		// Display security status with borders if available
 		if err == nil {
@@ -425,13 +383,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			{Number: 5, Title: "Run All", Description: "Run all hardening operations"},
 			{Number: 6, Title: "Dry-Run", Description: "Simulate changes"},
 			{Number: 7, Title: "Linux Packages", Description: "Install specified Linux packages"},
-			// {Number: 8, Title: "Python Packages", Description: "Install specified Python packages"},
 			{Number: 8, Title: "Package Sources", Description: "Configure package source"},
 			{Number: 9, Title: "Backup", Description: "Configure backup settings"},
 			{Number: 10, Title: "Environment", Description: "Configure environment variable"},
 			{Number: 11, Title: "Host Info", Description: "View detailed system information"},
 			{Number: 12, Title: "Logs", Description: "View log file"},
-			// {Number: 13, Title: "Help", Description: "View usage information"},
 		}
 
 		// Create and customize menu
@@ -518,20 +474,12 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			runAllMenu := NewRunAllMenu(m.menuManager, m.config, m.osInfo)
 			runAllMenu.Show()
 
-			// After returning from Run All menu, check if the dry-run mode was toggled
-			// This affects how the main menu status is displayed
-			// Note: This would automatically be handled on the next menu refresh
-
 		case "6": // Dry-Run
 			m.showDryRunMenu()
 
 		case "7": // Linux Packages
 			linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
 			linuxMenu.Show()
-
-		// case "8": // Python Packages
-		// 	pythonMenu := NewPythonPackagesMenu(m.menuManager, m.config, m.osInfo)
-		// 	pythonMenu.Show()
 
 		case "8": // Package Sources
 			sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
@@ -553,12 +501,6 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			logsMenu := NewLogsMenu(m.menuManager, m.config)
 			logsMenu.Show()
 
-		// case "13": // Help
-		// 	helpMenu := NewHelpMenu()
-		// 	helpMenu.Show()
-
-		// helpMenu := menuFactory.CreateHelpMenu()
-
 		case "0": // Exit
 			utils.PrintHeader()
 			fmt.Println("Hardn has exited.")
@@ -575,15 +517,49 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	}
 }
 
-func (m *MainMenu) SetTestUpdateAvailable(testVersion string) {
-	if m.versionService != nil {
-		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
-			ForceUpdate:   true,
-			ForcedVersion: testVersion,
-		})
+// showDryRunMenu creates and displays the dry-run configuration menu
+func (m *MainMenu) showDryRunMenu() {
+	// Display contextual information about dry-run mode
+	utils.PrintHeader()
+	fmt.Println(style.Bolded("Dry-Run Mode Configuration", style.Blue))
 
-		m.updateAvailable = result.UpdateAvailable
-		m.latestVersion = result.LatestVersion
-		m.updateURL = result.ReleaseURL
+	fmt.Println()
+	fmt.Println(style.Dimmed("Dry-run mode allows you to preview changes without applying them to your system."))
+	fmt.Println(style.Dimmed("This is useful for testing and understanding what actions will be performed."))
+
+	// Check if any critical operations have been performed
+	// This is just an example - you'd need to track this information
+	criticalChanges := false // Placeholder for tracking if changes have been made
+
+	if criticalChanges && m.config.DryRun {
+		fmt.Printf("\n%s You've already performed operations in dry-run mode.\n",
+			style.Colored(style.Yellow, style.SymInfo))
+		fmt.Printf("%s Disabling dry-run mode will apply future changes for real.\n",
+			style.BulletItem)
 	}
+
+	fmt.Println()
+	fmt.Printf("%s Press any key to continue to dry-run configuration...", style.BulletItem)
+	ReadKey()
+
+	// Create and show the dry-run menu
+	dryRunMenu := NewDryRunMenu(m.menuManager, m.config)
+	dryRunMenu.Show()
+
+	// After returning from the dry-run menu, inform about the status
+	utils.PrintHeader()
+
+	// Quick feedback on the configuration change before returning to main menu
+	fmt.Printf("\n%s Dry-run mode is now %s\n",
+		style.Colored(style.Cyan, style.SymInfo),
+		style.Bolded(map[bool]string{
+			true:  "ENABLED - Changes will only be simulated",
+			false: "DISABLED - Changes will be applied to the system",
+		}[m.config.DryRun], map[bool]string{
+			true:  style.Green,
+			false: style.Yellow,
+		}[m.config.DryRun]))
+
+	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	ReadKey()
 }

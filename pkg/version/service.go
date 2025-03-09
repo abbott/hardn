@@ -20,6 +20,10 @@ type UpdateOptions struct {
 	CacheFilePath string
 	// Force immediate cache expiration
 	ClearCache bool
+	// Force a security update (for testing)
+	ForceSecurityUpdate bool
+	// Custom security details for testing
+	SecurityDetails string
 }
 
 // Service provides version checking functionality
@@ -48,10 +52,12 @@ func (s *Service) CheckForUpdates(options *UpdateOptions) CheckResult {
 	// For testing purposes, we can force an update to be available
 	if options.ForceUpdate {
 		return CheckResult{
-			CurrentVersion:  s.CurrentVersion,
-			LatestVersion:   options.ForcedVersion,
-			UpdateAvailable: true,
-			ReleaseURL:      "https://github.com/abbott/hardn/releases/latest",
+			CurrentVersion:          s.CurrentVersion,
+			LatestVersion:           options.ForcedVersion,
+			UpdateAvailable:         true,
+			ReleaseURL:              "https://github.com/abbott/hardn/releases/latest",
+			SecurityUpdateAvailable: options.ForceSecurityUpdate,
+			SecurityUpdateDetails:   options.SecurityDetails,
 		}
 	}
 
@@ -94,4 +100,16 @@ func (s *Service) GetCacheStatus() (bool, time.Time, error) {
 		return false, time.Time{}, fmt.Errorf("no valid cache found")
 	}
 	return true, cache.LastCheck, nil
+}
+
+// CheckForSecurityUpdates checks specifically for security-related updates
+func (s *Service) CheckForSecurityUpdates(options *UpdateOptions) (bool, string, error) {
+	// Use existing update check mechanism
+	result := s.CheckForUpdates(options)
+
+	if result.Error != nil {
+		return false, "", result.Error
+	}
+
+	return result.SecurityUpdateAvailable, result.SecurityUpdateDetails, nil
 }

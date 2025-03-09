@@ -1,4 +1,4 @@
-// Package version provides version checking and update notification functionality
+// pkg/version/checker.go
 package version
 
 import (
@@ -28,6 +28,7 @@ const (
 type GitHubRelease struct {
 	TagName     string    `json:"tag_name"`
 	Name        string    `json:"name"`
+	Body        string    `json:"body"` // Add body field to check for security notices
 	PublishedAt time.Time `json:"published_at"`
 	HTMLURL     string    `json:"html_url"`
 }
@@ -40,11 +41,13 @@ type VersionCache struct {
 
 // CheckResult contains the result of a version check
 type CheckResult struct {
-	CurrentVersion  string
-	LatestVersion   string
-	UpdateAvailable bool
-	ReleaseURL      string
-	Error           error
+	CurrentVersion          string
+	LatestVersion           string
+	UpdateAvailable         bool
+	ReleaseURL              string
+	Error                   error
+	SecurityUpdateAvailable bool   // New field for security updates
+	SecurityUpdateDetails   string // Details about the security update
 }
 
 // CheckForUpdates checks if a newer version is available on GitHub
@@ -167,6 +170,48 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 	return compareVersions(currentVersion, release)
 }
 
+// isSecurityUpdate checks if the release contains security-related updates
+func isSecurityUpdate(release GitHubRelease) (bool, string) {
+	// Check for security indicators in the release name
+	nameLower := strings.ToLower(release.Name)
+	if strings.Contains(nameLower, "security") ||
+		strings.Contains(nameLower, "[security]") ||
+		strings.Contains(nameLower, "cve-") {
+		return true, release.Name
+	}
+
+	// Check for security indicators in the release body
+	bodyLower := strings.ToLower(release.Body)
+	if strings.Contains(bodyLower, "security") ||
+		strings.Contains(bodyLower, "[security]") ||
+		strings.Contains(bodyLower, "cve-") ||
+		strings.Contains(bodyLower, "vulnerability") ||
+		strings.Contains(bodyLower, "exploit") {
+
+		// Try to extract relevant details from the body
+		lines := strings.Split(release.Body, "\n")
+		for _, line := range lines {
+			lineLower := strings.ToLower(line)
+			if strings.Contains(lineLower, "security") ||
+				strings.Contains(lineLower, "cve-") ||
+				strings.Contains(lineLower, "vulnerability") {
+
+				// Clean up the line for display
+				line = strings.TrimSpace(line)
+				if len(line) > 100 {
+					line = line[:97] + "..."
+				}
+				return true, line
+			}
+		}
+
+		// Default security message if we couldn't extract a specific line
+		return true, "Security updates available"
+	}
+
+	return false, ""
+}
+
 // compareVersions compares the current version with the latest release
 func compareVersions(currentVersion string, release GitHubRelease) CheckResult {
 	result := CheckResult{
@@ -213,9 +258,14 @@ func compareVersions(currentVersion string, release GitHubRelease) CheckResult {
 
 		if latestNum > currentNum {
 			result.UpdateAvailable = true
+
+			// Check if this is a security update
+			isSecurityUpdate, details := isSecurityUpdate(release)
+			result.SecurityUpdateAvailable = isSecurityUpdate
+			result.SecurityUpdateDetails = details
+
 			return result
 		} else if currentNum > latestNum {
-			result.UpdateAvailable = false
 			return result
 		}
 	}
@@ -227,8 +277,11 @@ func compareVersions(currentVersion string, release GitHubRelease) CheckResult {
 
 	if isCurrentPreRelease && !isLatestPreRelease {
 		result.UpdateAvailable = true
-	} else if !isCurrentPreRelease && isLatestPreRelease {
-		result.UpdateAvailable = false
+
+		// Check if this is a security update
+		isSecurityUpdate, details := isSecurityUpdate(release)
+		result.SecurityUpdateAvailable = isSecurityUpdate
+		result.SecurityUpdateDetails = details
 	}
 
 	return result
