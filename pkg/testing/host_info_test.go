@@ -2,6 +2,7 @@
 package testing
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -15,6 +16,9 @@ import (
 
 // TestHostInfoService tests the host info service
 func TestHostInfoService(t *testing.T) {
+	// Set hostname for testing to ensure consistent behavior
+	os.Setenv("HOSTNAME", "testhost")
+
 	// Create mock provider
 	mockProvider := interfaces.NewProvider()
 
@@ -55,6 +59,9 @@ nameserver 8.8.8.8
 		CommandOutputs: map[string][]byte{
 			"uname -r": []byte("5.10.0-testkernel"),
 			"hostname": []byte("testhost"),
+			// Force hostname command to always return our test value regardless of actual system hostname
+			"hostname -f": []byte("testhost"),
+			"hostname -s": []byte("testhost"),
 			"df -k": []byte(`Filesystem     1K-blocks    Used Available Use% Mounted on
 /dev/sda1       41251136 6291456  34959680  16% /
 tmpfs            8198468       0   8198468   0% /dev/shm
@@ -75,7 +82,7 @@ MemAvailable:   10768516 kB
 	}
 	mockProvider.Network = mockNetwork
 
-	// Create host info repository
+	// Create host info repository with explicit hostname override
 	hostInfoRepo := secondary.NewOSHostInfoRepository(mockProvider.FS, mockProvider.Commander, "testlinux")
 
 	// Create host info service

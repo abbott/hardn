@@ -196,8 +196,31 @@ jobs:
           format: spdx-json
           output-file: hardn-sbom.spdx.json
           upload-artifact: false  # Disable artifact upload
-          
+
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v1
         with:
           files: hardn-sbom.spdx.json
+
+  # Add this job to run tests with controlled environment variables
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Set hostname for testing to ensure consistent test environment
+      HOSTNAME: testhost
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+        
+      - name: Run tests
+        run: go test -v ./...
+        env:
+          # Explicitly set test hostname environment variable
+          HOSTNAME: testhost
+          # Ensure hostname is fixed for tests
+          TEST_HOSTNAME_OVERRIDE: testhost
