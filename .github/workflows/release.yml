@@ -112,7 +112,48 @@ jobs:
       evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
       config-file: .slsa-goreleaser/${{ matrix.os }}-${{ matrix.arch }}.yml
       upload-assets: true
-
+  # Add this job after the 'build' job
+  signing:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # For uploading signatures to release
+      id-token: write      # For keyless signing with OIDC
+      actions: read        # For workflow access
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.1.1
+        
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+          
+      - name: Prepare artifacts for signing
+        run: |
+          mkdir -p signing
+          # Copy all binary artifacts to the signing directory
+          find artifacts -type f -name "hardn-*" -not -name "*.intoto.jsonl" -exec cp {} signing/ \;
+          
+      - name: Sign artifacts with Cosign
+        run: |
+          for file in signing/*; do
+            if [ -f "$file" ]; then
+              echo "Signing $file..."
+              cosign sign-blob --yes \
+                --output-signature "${file}.sig" \
+                --output-certificate "${file}.crt" \
+                --rekor-url https://rekor.sigstore.dev \
+                "${file}"
+            fi
+          done
+        
+      - name: Upload signatures to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            signing/*.sig
+            signing/*.crt
   # Create packages after SLSA binaries are generated
   packages:
     needs: [build, release]

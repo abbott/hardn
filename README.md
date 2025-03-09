@@ -1,6 +1,6 @@
 # Hardn
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
 
 <!-- [![Build]((https://github.com/abbott/hardn/workflows/build/badge.svg)](https://github.com/abbott/hardn/actions)  -->
 
@@ -16,7 +16,7 @@ A simple hardening tool that automates basic security configurations for Debian,
 
 ## ⚠️ Security Disclaimer
 
-**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. `hardn` should be part of a broader security strategy, not a "set it and forget it" solution. While the binary distributions are [SLSA3](https://slsa.dev) compliant, they are **<ins>not suitable for enterprise deployments</ins>**.
+**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. `hardn` should be part of a broader security strategy, not a "set it and forget it" solution. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, they are **<ins>not suitable for enterprise deployments</ins>**.
 
 ## 🎯 Target Audience
 
@@ -34,6 +34,7 @@ If you are one of the following, **refrain from deploying this tool in the publi
 | Feature                       | Description                                                    |
 |-------------------------------|----------------------------------------------------------------|
 | Tamper Protected Binary         | Releases are traceable to their source commit                                |
+| Cryptographic Signature         | Binary signed in the public Rekor transparency log                                |
 | SSH Hardening                  | Secure SSH configuration, key-based authentication                             |
 | User Management               | Create non-root users w/sudo access                          |
 | Firewall Configuration               | UFW setup w/secure defaults                          |
@@ -240,55 +241,81 @@ For a complete list of configuration options, review:
 
 ## Release Chain Security
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/)
 
 `hardn` implements [SLSA](https://slsa.dev) Level 3 supply chain security for all releases. This provides the following security guarantees:
+
+### SLSA Level 3 Protection
+
+All releases follow the Supply-chain Levels for Software Artifacts (SLSA) Level 3 requirements, providing:
 
 - **Tamper Protection**: Each binary is signed and includes a provenance attestation
 - **Build Integrity**: Builds are performed in GitHub's trusted environment
 - **Source Verification**: Binaries are traceable back to their source commit
 - **Reproducibility**: The build process is fully documented in the provenance
 
+### Sigstore Artifact Signing
+
+In addition to SLSA provenance, all artifacts are signed using [Sigstore](https://www.sigstore.dev/):
+
+- **Cryptographic Verification**: Each binary is signed with ephemeral keys
+- **Transparency Logs**: All signatures are recorded in the public Rekor transparency log
+- **Identity-based Trust**: Signatures are tied to GitHub's OIDC identity
+- **Keyless Verification**: No need to manage or distribute public keys
+
 ### Verifying Releases
 
-To verify a `hardn` release:
+To verify a `hardn` release with both SLSA provenance and Sigstore signature:
 
-1. Install the SLSA verifier:
+1. Use our verification script:
    ```bash
-   # Using Go
-   go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.0
-   
-   # Or using our makefile target
-   make install-verifier
+   # Download and run verification script
+   curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/scripts/verify-release.sh > verify-release.sh
+   chmod +x verify-release.sh
+   ./verify-release.sh v0.3.2 linux-amd64
    ```
 
-2. Download the binary and its provenance:
+2. Or verify manually:
    ```bash
-   # Example for Linux AMD64
+   # Install verification tools
+   go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.0
+   curl -sSL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o cosign
+   chmod +x cosign
+   sudo mv cosign /usr/local/bin/
+   
+   # Download the binary and verification files
    curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64
    curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.intoto.jsonl
-   ```
-
-3. Verify the binary:
-   ```bash
-   # Using slsa-verifier directly
+   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.sig
+   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.crt
+   
+   # Verify SLSA provenance
    slsa-verifier verify-artifact \
      --artifact-path hardn-linux-amd64 \
      --provenance hardn-linux-amd64.intoto.jsonl \
      --source-uri github.com/abbott/hardn \
      --source-tag v0.3.2
      
-   # Or using our makefile target
-   make verify-release VERSION=0.3.2 OS=linux ARCH=amd64
+   # Verify Sigstore signature
+   cosign verify-blob \
+     --certificate hardn-linux-amd64.crt \
+     --signature hardn-linux-amd64.sig \
+     --certificate-identity-regexp ".*github.com/workflows/.*" \
+     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+     hardn-linux-amd64
    ```
 
-4. A successful verification will return:
-   ```
-   Verification succeeded! Binary artifacts were built from source revision ...
+3. Or using our makefile targets:
+   ```bash
+   # Install tools
+   make install-verifier
+   make install-cosign
+   
+   # Verify both SLSA and Sigstore
+   make verify-release-full VERSION=0.3.2 OS=linux ARCH=amd64
    ```
 
-This ensures the binary was built by GitHub Actions from the official `hardn` repository at the specified tag, and that the artifact has not been tampered with since building
-
+A successful verification confirms the binary was built by GitHub Actions from the official `hardn` repository at the specified tag, has a valid signature tied to the GitHub workflow identity, and has not been tampered with since building.
 
 ## 🤝 Contributing
 

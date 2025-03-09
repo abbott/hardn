@@ -42,13 +42,14 @@ checksum:
   name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
   algorithm: sha256
 
-# Use cosign for signing (optional, can be added later)
-# signs:
-#   - cmd: cosign
-#     artifacts: checksum
-#     args:
-#       - sign-blob
-#       - --key=cosign.key
-#       - --output-signature=${signature}
-#       - ${artifact}
-#       - --yes
+# Uncomment and update the signs section in .slsa-goreleaser.yml
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    args:
+      - sign-blob
+      - --yes
+      - --output-signature=${signature}
+      - --output-certificate=${certificate}
+      - --rekor-url=https://rekor.sigstore.dev
+      - ${artifact}

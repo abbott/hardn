@@ -297,3 +297,46 @@ dev-run:
 		exit 1; \
 	fi
 	@bash scripts/wf-dev-mode.sh $(CMD)
+
+# Install Cosign
+.PHONY: install-cosign
+install-cosign:
+	@echo "Installing Cosign..."
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		brew install cosign; \
+	else \
+		curl -sfL https://github.com/sigstore/cosign/releases/latest/download/cosign-$$(uname -s | tr '[:upper:]' '[:lower:]')-$$(uname -m) -o /tmp/cosign && \
+		chmod +x /tmp/cosign && \
+		sudo mv /tmp/cosign /usr/local/bin/cosign; \
+	fi
+	@echo "✅ Cosign installed successfully"
+
+# Verify artifact signature
+.PHONY: verify-signature
+verify-signature:
+	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
+		echo "Error: Missing parameters"; \
+		echo "Usage: make verify-signature VERSION=0.3.2 OS=linux ARCH=amd64"; \
+		exit 1; \
+	fi
+	@echo "Verifying signature for hardn-$(OS)-$(ARCH) version v$(VERSION)..."
+	@cosign verify-blob \
+		--certificate hardn-$(OS)-$(ARCH).crt \
+		--signature hardn-$(OS)-$(ARCH).sig \
+		--certificate-identity-regexp ".*github.com/workflows/.*" \
+		--certificate-oidc-issuer https://token.actions.githubusercontent.com \
+		hardn-$(OS)-$(ARCH)
+	@echo "✅ Signature verification successful!"
+
+# Comprehensive verification of both SLSA provenance and Sigstore signature
+.PHONY: verify-release-full
+verify-release-full:
+	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
+		echo "Error: Missing parameters"; \
+		echo "Usage: make verify-release-full VERSION=0.3.2 OS=linux ARCH=amd64"; \
+		exit 1; \
+	fi
+	@echo "Performing full verification (SLSA + Sigstore) for hardn-$(OS)-$(ARCH) version v$(VERSION)..."
+	@make verify-release VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
+	@make verify-signature VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
+	@echo "✅ Full verification successful!"
