@@ -127,71 +127,71 @@ func (m *HostInfoMenu) displaySystemInfo(info *model.HostInfo) {
 	// Hostname
 	if info.Hostname != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Hostname",
-			info.Hostname, style.Cyan, "", "light"))
+			info.Hostname, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "Hostname",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// Domain
 	if info.Domain != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Domain",
-			info.Domain, style.Cyan, "", "light"))
+			info.Domain, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "Domain",
-			"Not set", style.Yellow, "", "light"))
+			"Not set", style.Yellow, ""))
 	}
 
 	// OS Name
 	if info.OSName != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Name",
-			info.OSName, style.Cyan, "", "light"))
+			info.OSName, style.Cyan, ""))
 	} else if m.osInfo != nil {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Name",
-			m.osInfo.OsType, style.Cyan, "", "light"))
+			m.osInfo.OsType, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "OS Name",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// OS Version
 	if info.OSVersion != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Version",
-			info.OSVersion, style.Cyan, "", "light"))
+			info.OSVersion, style.Cyan, ""))
 	} else if m.osInfo != nil {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Version",
-			m.osInfo.OsVersion, style.Cyan, "", "light"))
+			m.osInfo.OsVersion, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "OS Version",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// Kernel
 	if info.KernelInfo != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Kernel",
-			info.KernelInfo, style.Cyan, "", "light"))
+			info.KernelInfo, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "Kernel",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// Uptime
 	if info.Uptime > 0 {
 		uptimeStr := m.menuManager.FormatUptime(info.Uptime)
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Uptime",
-			uptimeStr, style.Cyan, "", "light"))
+			uptimeStr, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "Uptime",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// CPU Info
 	if info.CPUInfo != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "CPU Info",
-			info.CPUInfo, style.Cyan, "", "light"))
+			info.CPUInfo, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "CPU Info",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 
 	// Memory
@@ -202,10 +202,10 @@ func (m *HostInfoMenu) displaySystemInfo(info *model.HostInfo) {
 		memDisplay := fmt.Sprintf("%s total, %s used, %s free", memTotal, memUsed, memFree)
 
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Memory",
-			memDisplay, style.Cyan, "", "light"))
+			memDisplay, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Yellow, "Memory",
-			"Unknown", style.Yellow, "", "light"))
+			"Unknown", style.Yellow, ""))
 	}
 }
 

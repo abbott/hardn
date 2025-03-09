@@ -51,17 +51,17 @@ func (m *SourcesMenu) Show() {
 	// Show OS type
 	osName := cases.Title(language.English).String(m.osInfo.OsType)
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "OS Type",
-		osName, style.Cyan, "", "light"))
+		osName, style.Cyan, ""))
 
 	// Show OS version
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Version",
-		m.osInfo.OsVersion, style.Cyan, "", "light"))
+		m.osInfo.OsVersion, style.Cyan, ""))
 
 	// Show OS codename (if not Alpine)
 	if m.osInfo.OsType != "alpine" {
 		osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Codename",
-			osCodename, style.Cyan, "", "light"))
+			osCodename, style.Cyan, ""))
 	}
 
 	// Show Proxmox status
@@ -70,7 +70,7 @@ func (m *SourcesMenu) Show() {
 		proxmoxStatus = "Yes"
 	}
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Proxmox",
-		proxmoxStatus, style.Cyan, "", "light"))
+		proxmoxStatus, style.Cyan, ""))
 
 	// Display current source configuration
 	fmt.Println()

@@ -36,35 +36,35 @@ func (m *HelpMenu) Show() {
 
 	// Display all command line options
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-f, --config-file string",
-		"Configuration file path", style.Cyan, "", "light"))
+		"Configuration file path", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-u, --username string",
-		"Specify username to create", style.Cyan, "", "light"))
+		"Specify username to create", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-c, --create-user",
-		"Create user", style.Cyan, "", "light"))
+		"Create user", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-d, --disable-root",
-		"Disable root SSH access", style.Cyan, "", "light"))
+		"Disable root SSH access", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-g, --configure-dns",
-		"Configure DNS resolvers", style.Cyan, "", "light"))
+		"Configure DNS resolvers", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-w, --configure-ufw",
-		"Configure UFW", style.Cyan, "", "light"))
+		"Configure UFW", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-r, --run-all",
-		"Run all hardening operations", style.Cyan, "", "light"))
+		"Run all hardening operations", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-n, --dry-run",
-		"Preview changes without applying them", style.Cyan, "", "light"))
+		"Preview changes without applying them", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-l, --install-linux",
-		"Install specified Linux packages", style.Cyan, "", "light"))
+		"Install specified Linux packages", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-i, --install-python",
-		"Install specified Python packages", style.Cyan, "", "light"))
+		"Install specified Python packages", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-a, --install-all",
-		"Install all specified packages", style.Cyan, "", "light"))
+		"Install all specified packages", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-s, --configure-sources",
-		"Configure package sources", style.Cyan, "", "light"))
+		"Configure package sources", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-p, --print-logs",
-		"View logs", style.Cyan, "", "light"))
+		"View logs", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-h, --help",
-		"View usage information", style.Cyan, "", "light"))
+		"View usage information", style.Cyan, ""))
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "-e, --setup-sudo-env",
-		"Configure sudoers for HARDN_CONFIG", style.Cyan, "", "light"))
+		"Configure sudoers for HARDN_CONFIG", style.Cyan, ""))
 
 	// Usage examples
 	fmt.Println(style.Bolded("\nExamples:", style.Blue))

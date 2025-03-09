@@ -54,14 +54,14 @@ func (m *RunAllMenu) Show() {
 
 	// Show username (or warn if not set)
 	if m.config.Username != "" {
-		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Username", m.config.Username, style.Cyan, "", "light"))
+		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Username", m.config.Username, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatWarning("Username", "Not set", "User creation will be skipped"))
 	}
 
 	// Show SSH port
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "SSH Port", fmt.Sprintf("%d", m.config.SshPort),
-		style.Cyan, "", "light"))
+		style.Cyan, ""))
 
 	// Show enabled features
 	fmt.Println()
@@ -86,7 +86,7 @@ func (m *RunAllMenu) Show() {
 			fmt.Println(featuresFormatter.FormatSuccess("Feature: "+feature.name, "Enabled", feature.desc))
 		} else {
 			fmt.Println(featuresFormatter.FormatLine(style.SymInfo, style.Yellow, "Feature: "+feature.name,
-				"Disabled", style.Yellow, feature.desc, "light"))
+				"Disabled", style.Yellow, feature.desc))
 		}
 	}
 

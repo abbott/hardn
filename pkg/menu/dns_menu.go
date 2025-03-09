@@ -52,16 +52,14 @@ func (m *DNSMenu) Show() {
 
 	// Show DNS implementation
 	if dnsImplementation != "" {
-		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "DNS Implementation",
-			dnsImplementation, style.Cyan, "", "light"))
+		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "DNS Implementation", dnsImplementation, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatWarning("DNS Implementation", "Unknown", "Could not detect DNS setup"))
 	}
 
 	// Show current nameservers
 	if len(currentNameservers) > 0 {
-		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Nameservers",
-			strings.Join(currentNameservers, ", "), style.Cyan, "", "light"))
+		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Nameservers", strings.Join(currentNameservers, ", "), style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatWarning("Nameservers", "None detected", "DNS resolution may not work"))
 	}

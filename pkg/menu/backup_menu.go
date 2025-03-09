@@ -62,24 +62,10 @@ func (m *BackupMenu) Show() {
 		color = style.Green
 	}
 
-	fmt.Println(formatter.FormatLine(
-		symbol,
-		color,
-		"Backups",
-		backupStatus,
-		statusColor,
-		"",
-		"bold"))
+	fmt.Println(formatter.FormatLine(symbol, color, "Backups", backupStatus, statusColor, "", "bold"))
 
 	// Display backup path
-	fmt.Println(formatter.FormatLine(
-		style.SymInfo,
-		style.Cyan,
-		"Backup Path",
-		backupPath,
-		style.Cyan,
-		"",
-		"light"))
+	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Backup Path", backupPath, style.Cyan, ""))
 
 	// Check backup path status
 	if enabled {

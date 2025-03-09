@@ -78,6 +78,8 @@ const (
 	// Special colors
 	DeepRed = "\033[38;5;88m" // A more intense/deeper red
 
+	BgGray04 = "\033[48;5;234m"
+
 	// Background colors - normal intensity
 	BgBlack = "\033[40m"
 	BgRed   = "\033[41m"
@@ -398,17 +400,20 @@ func (sf *StatusFormatter) Initialize() {
 
 // FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
-	label string, status string, statusColor string, description string, statusWeight string, opts ...string) string {
+	label string, status string, statusColor string, description string, opts ...string) string {
 
 	if !sf.initialized {
 		sf.Initialize()
 	}
 
 	// Check if padding should be disabled (optional parameter)
+	setBold := false
 	padSpacing := true
 	padSymbol := true
 	for _, opt := range opts {
 		switch opt {
+		case "bold":
+			setBold = true
 		case "no-spacing", "nospacing":
 			padSpacing = false
 		case "no-indent", "noindent":
@@ -450,7 +455,7 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 
 	symbol = Colored(symbolColor, symbol)
 
-	if statusWeight == "bold" {
+	if setBold {
 		status = Bolded(status, statusColor)
 	} else {
 		status = Colored(statusColor, status)
@@ -485,27 +490,27 @@ func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status stri
 }
 
 func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
-	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, "light", opts...)
+	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, opts...)
 }
 
 // FormatSuccess creates a success status line
-func (sf *StatusFormatter) FormatSuccess(label string, status string, description string) string {
-	return sf.FormatLine(SymEnabled, Green, label, status, Green, description, "light")
+func (sf *StatusFormatter) FormatSuccess(label string, status string, description string, opts ...string) string {
+	return sf.FormatLine(SymEnabled, Green, label, status, Green, description, opts...)
 }
 
 // FormatError creates an error status line
-func (sf *StatusFormatter) FormatCheck(label string, status string, description string) string {
+func (sf *StatusFormatter) FormatCheck(label string, status string, description string, opts ...string) string {
 	return sf.FormatEmLine(SymCheckMark, label, status, BrightRed, description, "bold")
 }
 
 // FormatError creates an error status line
-func (sf *StatusFormatter) FormatError(label string, status string, description string) string {
-	return sf.FormatLine(SymCrossMark, BrightRed, label, status, BrightRed, description, "bold")
+func (sf *StatusFormatter) FormatError(label string, status string, description string, opts ...string) string {
+	return sf.FormatLine(SymCrossMark, BrightRed, label, status, BrightRed, description, opts...)
 }
 
 // FormatWarning creates a warning status line
-func (sf *StatusFormatter) FormatWarning(label string, status string, description string) string {
-	return sf.FormatLine(SymWarning, Red, label, status, Red, description, "light")
+func (sf *StatusFormatter) FormatWarning(label string, status string, description string, opts ...string) string {
+	return sf.FormatLine(SymWarning, Red, label, status, Red, description, opts...)
 }
 
 func PrintDivider(char string, length int, style ...string) {
@@ -673,7 +678,8 @@ func (m *Menu) Render() string {
 
 	// Format the title with dry-run status if needed
 	if m.showDryRunInfo {
-		dryRunSymbol := SymAsterisk
+		dryRunSymbol := ""            // SymAsterisk
+		dryRunLabel := "Dry-run Mode" //" Dry-run Mode"
 		dryRunStatus := "Disabled"
 		dryRunColorFn := Yellow
 
@@ -693,10 +699,10 @@ func (m *Menu) Render() string {
 		titleText := Underline + Bold + Blue + m.title + Reset
 
 		// Create formatter for dry run status
-		formatter := NewStatusFormatter([]string{"Dry-run Mode"}, 2)
+		formatter := NewStatusFormatter([]string{dryRunLabel}, 2)
 
 		// Use FormatLine to format the dry run status
-		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, " Dry-run Mode", dryRunStatus, dryRunColorFn, "", "light", "no-indent", "no-spacing")
+		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, dryRunLabel, dryRunStatus, dryRunColorFn, "", "light", "no-indent", "no-spacing")
 
 		// Write all on one line with appropriate indentation
 		sb.WriteString(titlePrefix + titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")

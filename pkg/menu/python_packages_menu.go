@@ -74,7 +74,7 @@ func (m *PythonPackagesMenu) Show() {
 		fmt.Println(formatter.FormatSuccess("UV Package Manager", "Enabled", "Modern, fast package manager"))
 	} else {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "UV Package Manager", "Disabled",
-			style.Yellow, "Using standard pip", "light"))
+			style.Yellow, "Using standard pip"))
 	}
 
 	// Show package information

@@ -48,7 +48,7 @@ func (m *UserMenu) Show() {
 	// Username status
 	if m.config.Username != "" {
 		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Username",
-			m.config.Username, style.Cyan, "", "light"))
+			m.config.Username, style.Cyan, ""))
 	} else {
 		fmt.Println(formatter.FormatWarning("Username", "Not set", "Please provide a username"))
 	}
@@ -59,7 +59,7 @@ func (m *UserMenu) Show() {
 		sudoStatus = "Password required"
 	}
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Sudo Access",
-		sudoStatus, style.Cyan, "", "light"))
+		sudoStatus, style.Cyan, ""))
 
 	// SSH key status
 	keyCount := len(m.config.SshKeys)
@@ -68,7 +68,7 @@ func (m *UserMenu) Show() {
 		keyStatus = fmt.Sprintf("%d key(s) configured", keyCount)
 	}
 	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "SSH Keys",
-		keyStatus, style.Cyan, "", "light"))
+		keyStatus, style.Cyan, ""))
 
 	// Check if user already exists
 	var userExists bool
