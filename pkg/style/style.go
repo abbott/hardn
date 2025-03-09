@@ -27,21 +27,41 @@ type Menu struct {
 	titleWidth     int
 	dryRunEnabled  bool
 	showDryRunInfo bool
+	indentation    string // New field to store indentation string
 }
 
 const (
 	// Reset all styles
+
+	Gray01 = "\033[38;5;231m"
+	Gray02 = "\033[38;5;232m"
+	Gray03 = "\033[38;5;233m"
+	Gray04 = "\033[38;5;234m"
+	Gray05 = "\033[38;5;235m"
+	Gray06 = "\033[38;5;236m"
+	Gray07 = "\033[38;5;237m"
+	Gray08 = "\033[38;5;238m"
+	Gray09 = "\033[38;5;239m"
+	Gray10 = "\033[38;5;240m"
+	Gray11 = "\033[38;5;241m"
+	Gray12 = "\033[38;5;242m"
+	Gray13 = "\033[38;5;243m"
+
 	Reset = "\033[0m"
 
 	// Text colors - normal intensity
-	Black   = "\033[30m"
-	Red     = "\033[31m"
-	Green   = "\033[32m"
-	Yellow  = "\033[33m"
-	Blue    = "\033[34m"
-	Magenta = "\033[35m"
-	Cyan    = "\033[36m"
-	White   = "\033[37m"
+	Royal = "\033[38;5;39m"
+
+	Black = "\033[30m"
+	Red   = "\033[31m"
+	Green = "\033[32m"
+	// DarkGreen = "\033[38;5;40m"
+	DarkGreen = "\033[38;5;76m"
+	Yellow    = "\033[33m"
+	Blue      = "\033[34m"
+	Magenta   = "\033[35m"
+	Cyan      = "\033[36m"
+	White     = "\033[37m"
 
 	BoldRed = "\033[1;31;22m"
 
@@ -59,9 +79,12 @@ const (
 	DeepRed = "\033[38;5;88m" // A more intense/deeper red
 
 	// Background colors - normal intensity
-	BgBlack   = "\033[40m"
-	BgRed     = "\033[41m"
-	BgGreen   = "\033[42m"
+	BgBlack = "\033[40m"
+	BgRed   = "\033[41m"
+	BgGreen = "\033[42m"
+	// BgDarkGreen = "\033[22;48;5;28m" // white
+	BgDarkGreen = "\033[1;37;48;5;28m" // white bold
+	// BgDarkGreen = "\033[30;48;5;40m" // dark green
 	BgYellow  = "\033[43m"
 	BgBlue    = "\033[44m"
 	BgMagenta = "\033[45m"
@@ -95,21 +118,31 @@ const (
 	// Common symbols
 	SymAsterisk  = "✱"
 	SymDotTri    = "⛬"
+	SymDotQuad   = "༶"
 	SymInfo      = "ℹ"
 	SymCheckMark = "✓"
 	SymCrossMark = "✗"
+	// SymSpecial   = "◈"
+	// SymSpecial   = "✤"
+	// SymSpecial   = "❖"
+	SymSpecial = "⬗"
 
 	SymEmDash   = "—"
 	SymEnDash   = "–"
 	SymDash     = "-"
-	SymEllipsis = "..."
+	SymEllipsis = "…"
 
-	SymArrowUp     = "↑"
-	SymArrowDown   = "↓"
-	SymArrowLeft   = "←"
-	SymArrowRight  = "→"
+	SymArrowUp         = "↑"
+	SymArrowDown       = "↓"
+	SymArrowLeft       = "←"
+	SymArrowRight      = "→"
+	SymPointerRight    = "➤"
+	SymArrowRightThick = "➜"
+	// SymPointerRight = "›"
 	SymDoubleLeft  = "«"
 	SymDoubleRight = "»"
+	SymRightCarrot = "ᐳ"
+	SymGreaterThan = ">"
 
 	SymMultiply = "×"
 	SymInfinity = "∞"
@@ -117,15 +150,18 @@ const (
 	SymApprox   = "≈"
 	SymPercent  = "%"
 
-	SymEnabled = "◎"
-	SymBolt    = "⌁"
-	SymFlag    = "⚑"
-	SymWarning = "▲"
-	SymStatus  = "▣"
+	SymEnabled    = "◎"
+	SymBolt       = "⌁"
+	SymFlag       = "⚑"
+	SymFlagStripe = "⛿"
+	SymWarning    = "▲"
+	SymStatus     = "▣"
 
 	// Additional constants for layout
-	Indent     = "    "
-	BulletItem = Bold + SymArrowRight + Reset + " "
+	Indent        = "    "
+	BulletItem    = Bold + Dim + SymDash + Reset + " "
+	BulletArrow   = Bold + Dim + SymRightCarrot + Reset + " "
+	BulletSpecial = Bold + SymSpecial + Reset + " "
 )
 
 // Apply bold style with an optional color
@@ -142,6 +178,14 @@ func Dimmed(text string, color ...string) string {
 		return Dim + color[0] + text + Reset
 	}
 	return Dim + text + Reset
+}
+
+// Apply dim style with an optional color
+func DarkBorder(text string, color ...string) string {
+	if len(color) > 0 {
+		return Gray04 + color[0] + text + Reset
+	}
+	return Gray04 + text + Reset
 }
 
 func Striked(text string, color ...string) string {
@@ -249,14 +293,6 @@ func PadRight(text string, width int) string {
 	return text + strings.Repeat(" ", padding)
 }
 
-// func PadRight(text string, width int) string {
-// 	if len(text) >= width {
-// 		return text
-// 	}
-
-// 	return text + strings.Repeat(" ", width-len(text))
-// }
-
 var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 
 // StripAnsi removes ANSI escape codes from a string to get its true display length
@@ -362,23 +398,36 @@ func (sf *StatusFormatter) Initialize() {
 
 // FormatLine formats a status line with proper alignment
 func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
-	label string, status string, statusColor string, description string, statusWeight string, opts ...bool) string {
+	label string, status string, statusColor string, description string, statusWeight string, opts ...string) string {
 
 	if !sf.initialized {
 		sf.Initialize()
 	}
 
 	// Check if padding should be disabled (optional parameter)
-	disablePadding := false
-	if len(opts) > 0 {
-		disablePadding = opts[0]
+	padSpacing := true
+	padSymbol := true
+	for _, opt := range opts {
+		switch opt {
+		case "no-spacing", "nospacing":
+			padSpacing = false
+		case "no-indent", "noindent":
+			padSymbol = false
+		}
 	}
-
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
 	labelText := StripAnsi(label)
 
+	var symbolPadding string
+	if !padSymbol {
+		// Use fixed minimal padding when padding is disabled
+		symbolPadding = "" // Just one space between label and status
+	} else {
+		symbolPadding = "  "
+	}
+
 	var padding string
-	if disablePadding {
+	if !padSpacing {
 		// Use fixed minimal padding when padding is disabled
 		padding = " " // Just one space between label and status
 	} else {
@@ -389,7 +438,14 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 		}
 
 		// Always add at least one space padding between label and status
-		padding = strings.Repeat(" ", paddingSize+1)
+
+		if !padSymbol {
+			paddingSize += 10
+		} else {
+			paddingSize += 5
+		}
+
+		padding = strings.Repeat(" ", paddingSize)
 	}
 
 	symbol = Colored(symbolColor, symbol)
@@ -400,7 +456,12 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 		status = Colored(statusColor, status)
 	}
 
-	return symbol + " " + label + padding + status + " " + Dimmed(description)
+	return symbol + symbolPadding + label + padding + status + " " + Dimmed(description)
+
+	// if !padSpacing {
+	// } else {
+	// 	return symbol + symbolPadding + label + padding + status + " " + Dimmed(description)
+	// }
 }
 
 func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status string,
@@ -421,6 +482,10 @@ func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status stri
 	}
 
 	return symbol + " " + label + padding + status + " " + Dimmed(description)
+}
+
+func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
+	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, "light", opts...)
 }
 
 // FormatSuccess creates a success status line
@@ -458,19 +523,26 @@ func PrintDivider(char string, length int, style ...string) {
 func NewMenu(title string, options []MenuOption) *Menu {
 	// Calculate maximum number length and title width
 	maxNumLen := 1   // At least 1 digit
-	titleWidth := 20 // Minimum width
+	titleWidth := 15 // Minimum width
 
 	for _, opt := range options {
+		// Track the longest option number
 		numLen := len(fmt.Sprintf("%d", opt.Number))
 		if numLen > maxNumLen {
 			maxNumLen = numLen
 		}
 
+		// Track the longest title
 		titleLen := len(StripAnsi(opt.Title))
 		if titleLen > titleWidth {
 			titleWidth = titleLen
 		}
 	}
+
+	// Add consistent fixed padding between title and description
+	// This creates uniform spacing for all menu items
+	const fixedBuffer = 5
+	titleWidth += fixedBuffer
 
 	return &Menu{
 		title:      title,
@@ -507,6 +579,11 @@ func (m *Menu) SetPrompt(prompt string) {
 func (m *Menu) SetDryRunStatus(show bool, enabled bool) {
 	m.showDryRunInfo = show
 	m.dryRunEnabled = enabled
+}
+
+// SetIndentation sets the indentation for menu options
+func (m *Menu) SetIndentation(spaces int) {
+	m.indentation = strings.Repeat(" ", spaces)
 }
 
 // GetValidRange returns the valid range of option numbers as a string
@@ -567,16 +644,23 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 	// Format title with consistent padding
 	if opt.Style == "" {
 		// opt.Title = Colored(opt.Style, opt.Title)
-		titlePadded += PadRight(opt.Title, m.titleWidth+4)
+		titlePadded += PadRight(opt.Title, m.titleWidth)
+		// titlePadded += PadRight(opt.Title, m.titleWidth + 4)
 	} else if opt.Style == "strike" {
 		// opt.Title = Bolded(opt.Title)
 		strikeTitle := Striked(opt.Title)
 		dimmedStrikeTitle := Dimmed(strikeTitle)
-		titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth+4)
+		titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth)
+		// titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth + 4)
 	}
 
 	// Add description
 	desc := Dimmed(opt.Description)
+
+	// Apply indentation if set
+	if m.indentation != "" {
+		return m.indentation + numPadded + titlePadded + desc
+	}
 
 	return numPadded + titlePadded + desc
 }
@@ -586,49 +670,44 @@ func (m *Menu) Render() string {
 	var sb strings.Builder
 
 	sb.WriteString("\n")
-	// desc := Dimmed(opt.Description)
 
-	// if m.title != "" {
-	// 	sb.WriteString("\n")
-	// 	sb.WriteString(Header(m.title))
-	// }
+	// Format the title with dry-run status if needed
+	if m.showDryRunInfo {
+		dryRunSymbol := SymAsterisk
+		dryRunStatus := "Disabled"
+		dryRunColorFn := Yellow
 
-	// Title header
-	// sb.WriteString("\n")
-	// sb.WriteString(SubHeader(m.title))
-
-		// Format the title with dry-run status if needed
-		if m.showDryRunInfo {
-			dryRunSymbol := SymAsterisk
-			dryRunStatus := "Disabled"
-			dryRunColorFn := Yellow
-	
-			if m.dryRunEnabled {
-				dryRunStatus = "Enabled"
-				dryRunColorFn = Green
-			}
-	
-			spacing := 12
-			// Create title with underline, bold, blue
-			// titleText := color.New(Underline, Bold, Blue).Sprint(m.title)
-
-			titleText := Underline + Bold + Blue + m.title + Reset
-
-			// titleText := SubHeader(m.title)
-	
-			// Create formatter for dry run status
-			formatter := NewStatusFormatter([]string{"Dry-run Mode"}, 2)
-	
-			// Use FormatLine to format the dry run status
-			dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, "Dry-run Mode", dryRunStatus, dryRunColorFn, "", "light", true)
-	
-			// Write all on one line
-			sb.WriteString(titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")
-		} else {
-			// Just write the title without dry-run info
-			sb.WriteString(SubHeader(m.title))
+		if m.dryRunEnabled {
+			dryRunStatus = "Enabled"
+			dryRunColorFn = Green
 		}
-	
+
+		spacing := 8
+
+		// Add indentation to the title if set
+		titlePrefix := ""
+		if m.indentation != "" {
+			titlePrefix = m.indentation
+		}
+
+		titleText := Underline + Bold + Blue + m.title + Reset
+
+		// Create formatter for dry run status
+		formatter := NewStatusFormatter([]string{"Dry-run Mode"}, 2)
+
+		// Use FormatLine to format the dry run status
+		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, " Dry-run Mode", dryRunStatus, dryRunColorFn, "", "light", "no-indent", "no-spacing")
+
+		// Write all on one line with appropriate indentation
+		sb.WriteString(titlePrefix + titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")
+	} else {
+		// Add indentation to the title if set
+		if m.indentation != "" {
+			sb.WriteString(m.indentation)
+		}
+		// Just write the title without dry-run info, with indentation if set
+		sb.WriteString(SubHeader(m.title))
+	}
 
 	// Options
 	for _, opt := range m.options {
@@ -650,10 +729,17 @@ func (m *Menu) Render() string {
 		sb.WriteString(m.FormatOption(exit))
 	}
 
+	instruct := Bold + m.prompt + Reset
+
 	// Prompt
-	sb.WriteString("\n\n")
-	sb.WriteString(BulletItem)
-	sb.WriteString(fmt.Sprintf("%s [%s or q]: ", m.prompt, m.GetValidRange()))
+	sb.WriteString("\n\n\n")
+
+	// Apply the same indentation to the prompt as we do for menu items
+	if m.indentation != "" {
+		sb.WriteString(m.indentation)
+	}
+
+	sb.WriteString(fmt.Sprintf("%s %s [%s or q]: ", Dimmed(SymRightCarrot), instruct, m.GetValidRange()))
 
 	return sb.String()
 }

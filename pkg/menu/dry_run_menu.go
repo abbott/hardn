@@ -55,11 +55,15 @@ func (m *DryRunMenu) Show() {
 		})
 
 		// Display the menu
-		menu.Print()
 
-		choiceStr := ReadInput()
+		choice := ReadMenuInput()
 
-		switch choiceStr {
+		// Handle 'q' as a special exit case
+		if choice == "q" {
+			return
+		}
+
+		switch choice {
 		case "1":
 			m.config.DryRun = false
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Disabled", style.Yellow, "", "bold"))
@@ -89,9 +93,15 @@ func (m *DryRunMenu) Show() {
 		// Display the menu
 		menu.Print()
 
-		choiceStr := ReadInput()
 
-		switch choiceStr {
+		choice := ReadMenuInput()
+
+		// Handle 'q' as a special exit case
+		if choice == "q" {
+			return
+		}
+
+		switch choice {
 		case "1":
 			m.config.DryRun = true
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Enabled", style.Green, "", "bold"))

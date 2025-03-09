@@ -129,6 +129,120 @@ func (m *MainMenu) showDryRunMenu() {
 	ReadKey()
 }
 
+// displaySecurityStatusWithBorders displays security status info with borders
+func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.SecurityStatus, formatter *style.StatusFormatter) {
+	// Define box dimensions
+	boxWidth := 68 // Total inner width of the box
+
+	// Get OS display information for the border
+	var osDisplay string
+	if m.osInfo != nil {
+		if m.osInfo.IsProxmox {
+			osDisplay = " Proxmox "
+		} else {
+			osName := cases.Title(language.English).String(m.osInfo.OsType)
+			osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
+
+			if m.osInfo.OsType == "alpine" {
+				osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
+			} else {
+				osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
+			}
+		}
+	}
+
+	// Create top border with OS info
+	var topBorder string
+	if osDisplay != "" {
+		// Remove ANSI codes for accurate length calculation
+		osDisplayStripped := style.StripAnsi(osDisplay)
+		osDisplayWidth := len(osDisplayStripped)
+
+		// Calculate padding for centered OS display within border
+		leftBorderLen := (boxWidth - osDisplayWidth) / 2
+		rightBorderLen := boxWidth - osDisplayWidth - leftBorderLen
+
+		// Create the border with OS info
+		topBorder = style.DarkBorder("╭"+strings.Repeat("─", leftBorderLen)) +
+			style.Colored(style.Green, osDisplay) +
+			style.DarkBorder(strings.Repeat("─", rightBorderLen)+"╮")
+	} else {
+		// Standard border without OS info
+		topBorder = style.DarkBorder("╭" + strings.Repeat("─", boxWidth) + "╮")
+	}
+
+	// Define other border elements
+	bottomBorder := style.DarkBorder("╰" + strings.Repeat("─", boxWidth) + "╯")
+	leftBorder := style.DarkBorder("│   ")
+	rightBorder := style.DarkBorder(" │")
+	// Empty line with consistent width
+	emptyLine := style.DarkBorder("│") + strings.Repeat(" ", boxWidth) + style.DarkBorder("│")
+
+	// Print top border with OS info
+	fmt.Println(topBorder)
+
+	// Add padding line after top border
+	fmt.Println(emptyLine)
+
+	// Define a unified border printing function for regular status items
+	printBorderedLine := func(content string) {
+		// Get visible content length by removing ANSI escape codes
+		visibleLen := len(style.StripAnsi(content))
+
+		// Calculate padding needed for consistent alignment
+		paddingSize := boxWidth - visibleLen - 2 // -2 for the spaces in left border
+		if paddingSize < 0 {
+			paddingSize = 0 // Safety check
+		}
+		padding := strings.Repeat(" ", paddingSize)
+
+		fmt.Println(leftBorder + content + padding + rightBorder)
+	}
+
+	// First display risk level if available - with special handling
+	if securityStatus != nil {
+		riskLevel, riskDescription, riskColor := status.GetSecurityRiskLevel(securityStatus)
+		boldRiskLabel := style.Bold + "Risk Level" + style.Reset
+		riskDescription = style.SymApprox + " " + riskDescription
+
+		// Format the risk level line
+		formattedLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light")
+
+		// Special handling for risk level line
+		// The risk level line needs specific calculation due to complex formatting
+		formattedLen := len(style.StripAnsi(formattedLine))
+
+		// Apply an adjustment factor specific to the risk level line
+		adjustment := 2 // Fine-tune this value based on testing
+		paddingSize := boxWidth - formattedLen - 2 + adjustment
+
+		if paddingSize < 0 {
+			paddingSize = 0
+		}
+		padding := strings.Repeat(" ", paddingSize)
+
+		// Print the risk level line with adjusted padding
+		fmt.Println(leftBorder + formattedLine + padding + rightBorder)
+
+		// Add an empty line after risk level
+		fmt.Println(emptyLine)
+	}
+
+	// Create a custom print function for status items
+	borderPrinter := func(line string) {
+		printBorderedLine(line)
+	}
+
+	// Use the existing DisplaySecurityStatus function with our border printer
+	status.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, borderPrinter)
+
+	// Add padding line before bottom border
+	fmt.Println(emptyLine)
+
+	// Print bottom border
+	fmt.Println(bottomBorder)
+}
+
 // ShowMainMenu displays the main menu and handles user input
 func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	// Initialize version service if not already done
@@ -144,8 +258,6 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			m.latestVersion = "0.3.3"
 			// m.updateURL = "https://github.com/abbott/hardn/releases/latest"
 			m.updateURL = "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
-
-			// updateCmd := "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
 		} else {
 			m.CheckForUpdates()
 		}
@@ -159,132 +271,95 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		utils.ClearScreen()
 
 		// Define separator line
-		separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-		// separator := "-----------------------------------------------------------------------"
-		sepWidth := len(separator)
+		// separator := "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		// sepWidth := len(separator)
 
 		// Get security status - this would need to be adapted to use the new architecture
 		securityStatus, err := status.CheckSecurityStatus(m.config, m.osInfo)
-		var riskLevel, riskDescription, riskColor string
-		if err == nil {
-			riskLevel, riskDescription, riskColor = status.GetSecurityRiskLevel(securityStatus)
-		}
-
+		// var riskLevel, riskDescription, riskColor string
+		// if err == nil {
+		// 	riskLevel, riskDescription, riskColor = status.GetSecurityRiskLevel(securityStatus)
+		// }
 
 		fmt.Println()
+
+		hardnLabel := style.Colored(style.BgDarkGreen, " hardn ")
+		currentVersion := "v" + m.versionService.CurrentVersion
+		latestVersion := "v" + m.latestVersion
 
 		// Display update notification if a newer version is available
 		if m.versionService != nil && m.versionService.CurrentVersion != "" {
 
-
 			if m.updateAvailable {
-
-				hardnLabel := style.Colored(style.Yellow, "hardn")
-				// updateVersion := "v" + m.versionService.CurrentVersion
-
-				hardnVersion := hardnLabel + " " + style.Dimmed(m.versionService.CurrentVersion,) + " → " + style.Yellow + m.latestVersion + style.Reset
+				hardnVersion := hardnLabel + " " + style.Dimmed(currentVersion) + " → " + style.DarkGreen + latestVersion + style.Reset
 				fmt.Println(hardnVersion)
 
 				fmt.Println()
-				// fmt.Printf("%s\n",
-				// 	style.Colored(style.Yellow, updatenMsg))
-				fmt.Printf("%s %s\n",
-					style.BulletItem,
-					style.Colored(style.BrightCyan, m.updateURL))
+				fmt.Printf("%s%s\n",
+					style.Colored(style.Royal, style.BulletSpecial),
+					style.Colored(style.Royal, m.updateURL))
 
-			} else {
-					// updatenMsg = fmt.Sprintf("hardn v%s", m.versionService.CurrentVersion)
-
-					hardnLabel := style.Colored(style.Green, "hardn")
-					currentVersion := m.versionService.CurrentVersion
-					// currentVersion := "v" + m.versionService.CurrentVersion
-
-					hardnVersion := hardnLabel + " " + style.Dimmed(currentVersion)
-					fmt.Println(hardnVersion)
-			
-			}
-							// Show build information if available
-			if m.versionService.BuildDate != "" || m.versionService.GitCommit != "" {
 				fmt.Println()
-				if m.versionService.BuildDate != "" {
-					fmt.Printf("%s Build Date: %s\n", style.BulletItem, style.Dimmed(m.versionService.BuildDate))
-				}
-				if m.versionService.GitCommit != "" {
-					fmt.Printf("%s Git Commit: %s\n", style.BulletItem, style.Dimmed(m.versionService.GitCommit))
-				}
+			} else {
+				hardnVersion := hardnLabel + " " + style.Dimmed(currentVersion)
+				fmt.Println(hardnVersion)
+
 			}
+
+			formatter := style.NewStatusFormatter([]string{
+				"Build Date",
+				"Git Commit",
+			}, 2) // 2 spaces buffer
+
+			fmt.Println(formatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
+			fmt.Println(formatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
 		}
 
+		// fmt.Println()
 
-		fmt.Println()
+		// // Prepare OS display information
+		// var osDisplay string
+		// if m.osInfo != nil {
+		// 	if m.osInfo.IsProxmox {
+		// 		osDisplay = " Proxmox "
+		// 	} else {
+		// 		osName := cases.Title(language.English).String(m.osInfo.OsType)
+		// 		osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
 
+		// 		if m.osInfo.OsType == "alpine" {
+		// 			osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
+		// 		} else {
+		// 			osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
+		// 		}
+		// 	}
 
-						// Prepare OS display information
-						var osDisplay string
-						if m.osInfo != nil {
-							if m.osInfo.IsProxmox {
-								osDisplay = " Proxmox "
-							} else {
-								osName := cases.Title(language.English).String(m.osInfo.OsType)
-								osCodename := cases.Title(language.English).String(m.osInfo.OsCodename)
-				
-								if m.osInfo.OsType == "alpine" {
-									osDisplay = fmt.Sprintf(" %s Linux %s ", osName, m.osInfo.OsVersion)
-								} else {
-									osDisplay = fmt.Sprintf(" %s %s ", osName, osCodename)
-								}
-							}
-				
-							// Remove ANSI codes for accurate length calculation
-							osDisplayStripped := style.StripAnsi(osDisplay)
-							osDisplayWidth := len(osDisplayStripped)
-				
-							// Calculate padding for centering OS display, accounting for spaces
-							leftPadding := (sepWidth - osDisplayWidth) / 2
-							rightPadding := sepWidth - osDisplayWidth - leftPadding
-				
-							// Print centered OS display within the separator line
-							var envLine = separator[:leftPadding] + osDisplay + separator[:rightPadding]
-				
-							// Calculate padding for centering OS display, accounting for spaces
-							// rightPadding := sepWidth - osDisplayWidth
-							// var envLine = osDisplay + separator[:rightPadding]
-				
-							fmt.Println(style.Colored(style.Green, envLine))
-						} else {
-							// Print separator without OS info
-							fmt.Println(style.Bolded(separator, style.Green))
-						}
-				
+		// 	// Remove ANSI codes for accurate length calculation
+		// 	osDisplayStripped := style.StripAnsi(osDisplay)
+		// 	osDisplayWidth := len(osDisplayStripped)
+
+		// 	// Calculate padding for centering OS display, accounting for spaces
+		// 	leftPadding := (sepWidth - osDisplayWidth) / 2
+		// 	rightPadding := sepWidth - osDisplayWidth - leftPadding
+
+		// 	// Print centered OS display within the separator line
+		// 	var envLine = separator[:leftPadding] + osDisplay + separator[:rightPadding]
+
+		// 	// Calculate padding for centering OS display, accounting for spaces
+		// 	// rightPadding := sepWidth - osDisplayWidth
+		// 	// var envLine = osDisplay + separator[:rightPadding]
+
+		// 	fmt.Println(style.Colored(style.Green, envLine))
+		// } else {
+		// 	// Print separator without OS info
+		// 	fmt.Println(style.Bolded(separator, style.Green))
+		// }
 
 		fmt.Println()
 		// 2 spaces buffer
 
-		// Format and print risk status using the same formatter, with bold label
-		if riskLevel != "" {
-
-			// Create a formatter that includes all labels (including Risk)
-			formatter := style.NewStatusFormatter([]string{
-				"Risk",
-				"SSH Root Login",
-				"Firewall",
-				"Users",
-				"SSH Port",
-				"SSH Auth",
-				"AppArmor",
-				"Auto Updates",
-			}, 2)
-
-			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
-			riskDescription = style.SymApprox + " " + riskDescription
-			fmt.Println(formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light"))
-		}
-
-		fmt.Println()
-
-		// Display detailed security status if available
+		// Display security status with borders if available
 		if err == nil {
-			// Create formatter here since it wasn't created in the risk level section
+			// Create formatter for security status
 			formatter := style.NewStatusFormatter([]string{
 				"Risk",
 				"SSH Root Login",
@@ -296,7 +371,10 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 				"Auto Updates",
 			}, 2) // 2 spaces buffer
 
-			status.DisplaySecurityStatus(m.config, securityStatus, formatter)
+			// Use our helper function to display security status with proper borders
+			m.displaySecurityStatusWithBorders(securityStatus, formatter)
+		} else {
+			fmt.Println()
 		}
 
 		// Create menu options
@@ -316,10 +394,12 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			// {Number: 13, Title: "Help", Description: "View usage information"},
 		}
 
-
 		fmt.Println()
 		// Create and customize menu
 		menu := style.NewMenu("Select an option", menuOptions)
+
+		// Set indentation for menu options (4 spaces)
+		menu.SetIndentation(4)
 
 		// Set dry-run status to display alongside the title
 		menu.SetDryRunStatus(true, m.config.DryRun)
@@ -404,7 +484,7 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			// Note: This would automatically be handled on the next menu refresh
 
 		case "6": // Dry-Run
-		m.showDryRunMenu()
+			m.showDryRunMenu()
 
 		case "7": // Linux Packages
 			linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)

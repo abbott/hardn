@@ -123,6 +123,72 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	}
 }
 
+// DisplaySecurityStatusWithCustomPrinter is like DisplaySecurityStatus but uses a custom print function
+func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter, printFn func(string)) {
+	if formatter == nil {
+		formatter = style.NewStatusFormatter([]string{
+			"SSH Root Login",
+			"Firewall",
+			"Users",
+			"SSH Port",
+			"SSH Auth",
+			"AppArmor",
+			"Auto Updates",
+		}, 2)
+	}
+
+	// Display root login status
+	if status.RootLoginEnabled {
+		printFn(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
+	} else {
+		printFn(formatter.FormatSuccess("SSH Root Login", "Disabled", "secure"))
+	}
+
+	// Display firewall status
+	if !status.FirewallEnabled {
+		printFn(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
+	} else if !status.FirewallConfigured {
+		printFn(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
+	} else {
+		printFn(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
+	}
+
+	// Display user security
+	if !status.SecureUsers {
+		printFn(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
+	} else {
+		printFn(formatter.FormatSuccess("Users", "Non-root user found", "sudo enabled"))
+	}
+
+	// Display SSH port status
+	if !status.SshPortNonDefault {
+		printFn(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
+	} else {
+		printFn(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
+	}
+
+	// Display password authentication status
+	if !status.PasswordAuthDisabled {
+		printFn(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
+	} else {
+		printFn(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
+	}
+
+	// Display AppArmor status
+	if !status.AppArmorEnabled {
+		printFn(formatter.FormatWarning("AppArmor", "Not enabled", ""))
+	} else {
+		printFn(formatter.FormatSuccess("AppArmor", "Enabled", ""))
+	}
+
+	// Display unattended upgrades status
+	if !status.UnattendedUpgrades {
+		printFn(formatter.FormatWarning("Auto Updates", "Not configured", ""))
+	} else {
+		printFn(formatter.FormatSuccess("Auto Updates", "Configured", ""))
+	}
+}
+
 func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 	// Calculate overall score
 	score := 0

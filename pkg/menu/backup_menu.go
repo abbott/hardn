@@ -3,7 +3,6 @@ package menu
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
@@ -133,11 +132,15 @@ func (m *BackupMenu) Show() {
 	// Display menu
 	menu.Print()
 
-	choiceStr := ReadInput()
-	choice, _ := strconv.Atoi(choiceStr)
+	choice := ReadMenuInput()
+
+	// Handle 'q' as a special exit case
+	if choice == "q" {
+		return
+	}
 
 	switch choice {
-	case 1:
+	case "1":
 		// Toggle backups using application layer
 		err := m.menuManager.ToggleBackups()
 		if err != nil {
@@ -177,7 +180,7 @@ func (m *BackupMenu) Show() {
 		ReadKey()
 		m.Show()
 
-	case 2:
+	case "2":
 		// Change backup path
 		fmt.Printf("\n%s Current backup path: %s\n",
 			style.BulletItem,
@@ -218,7 +221,7 @@ func (m *BackupMenu) Show() {
 		ReadKey()
 		m.Show()
 
-	case 3:
+	case "3":
 		// Verify backup directory (only available if backups are enabled)
 		if enabled {
 			fmt.Printf("\n%s Verifying backup directory: %s\n",
@@ -243,7 +246,7 @@ func (m *BackupMenu) Show() {
 		ReadKey()
 		m.Show()
 
-	case 0:
+	case "0":
 		// Return to main menu
 		return
 
