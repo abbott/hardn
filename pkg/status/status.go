@@ -124,7 +124,7 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 }
 
 // DisplaySecurityStatusWithCustomPrinter is like DisplaySecurityStatus but uses a custom print function
-func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter, printFn func(string)) {
+func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter, printFn func(string), indent int) {
 	if formatter == nil {
 		formatter = style.NewStatusFormatter([]string{
 			"Users",
@@ -137,65 +137,64 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 		}, 2)
 	}
 
+	// Create indentation prefix if needed
+
+	// Custom print function that applies indentation
+	indentedPrintFn := printFn
+	if indent > 0 {
+		indentedPrintFn = style.IndentPrinter(printFn, indent)
+	}
+
 	// Display user security
 	if !status.SecureUsers {
-		printFn(formatter.FormatWarning("Users", "Not Configured", "root user only"))
-		// printFn(formatter.FormatWarning("Users", "Not Configured", "create non-root user"))
+		indentedPrintFn(formatter.FormatWarning("Users", "Not Configured", "root user only", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("Users", "Configured", "non-root, sudo"))
+		indentedPrintFn(formatter.FormatSuccess("Users", "Configured", "non-root, sudo", "dark"))
 	}
+
 	// Display firewall status
 	if !status.FirewallEnabled {
-		printFn(formatter.FormatWarning("Firewall", "Not Configured", "vulnerable"))
+		indentedPrintFn(formatter.FormatWarning("Firewall", "Not Configured", "vulnerable", "dark"))
 	} else if !status.FirewallConfigured {
-		printFn(formatter.FormatWarning("Firewall", "Enabled", "configure policies"))
+		indentedPrintFn(formatter.FormatWarning("Firewall", "Enabled", "configure policies", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("Firewall", "Configured", "deny policy"))
+		indentedPrintFn(formatter.FormatSuccess("Firewall", "Configured", "deny policy", "dark"))
 	}
 
 	// Display root login status
 	if status.RootLoginEnabled {
-		printFn(formatter.FormatWarning("SSH Login", "Not Configured", "root allowed"))
+		indentedPrintFn(formatter.FormatWarning("SSH Login", "Not Configured", "root allowed", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("SSH Login", "Configured", "root disallowed"))
+		indentedPrintFn(formatter.FormatSuccess("SSH Login", "Configured", "root disallowed", "dark"))
 	}
 
 	// Display password authentication status
 	if !status.PasswordAuthDisabled {
-		printFn(formatter.FormatWarning("SSH Auth", "Not Configured", "password auth enabled"))
-		// printFn(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
+		indentedPrintFn(formatter.FormatWarning("SSH Auth", "Not Configured", "password auth enabled", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("SSH Auth", "Configured", "key-only auth"))
-		// printFn(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
+		indentedPrintFn(formatter.FormatSuccess("SSH Auth", "Configured", "key-only auth", "dark"))
 	}
 
 	// Display SSH port status
 	if !status.SshPortNonDefault {
-		printFn(formatter.FormatWarning("SSH Port", "Not Configured", "default (22)"))
+		indentedPrintFn(formatter.FormatWarning("SSH Port", "Not Configured", "default (22)", "dark"))
 	} else {
 		sshStatus := "non-default " + "(" + strconv.Itoa(cfg.SshPort) + ")"
-		printFn(formatter.FormatSuccess("SSH Port", "Configured", sshStatus))
+		indentedPrintFn(formatter.FormatSuccess("SSH Port", "Configured", sshStatus, "dark"))
 	}
-
-	// Display SSH port status
-	// if !status.SshPortNonDefault {
-	// 	printFn(formatter.FormatWarning("SSH Port", "22", "default port"))
-	// } else {
-	// 	printFn(formatter.FormatSuccess("SSH Port", strconv.Itoa(cfg.SshPort), "non-default port"))
-	// }
 
 	// Display AppArmor status
 	if !status.AppArmorEnabled {
-		printFn(formatter.FormatWarning("AppArmor", "Not Configured", ""))
+		indentedPrintFn(formatter.FormatWarning("AppArmor", "Not Configured", "", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("AppArmor", "Configured", ""))
+		indentedPrintFn(formatter.FormatSuccess("AppArmor", "Configured", "", "dark"))
 	}
 
 	// Display unattended upgrades status
 	if !status.UnattendedUpgrades {
-		printFn(formatter.FormatWarning("Auto Updates", "Not Configured", ""))
+		indentedPrintFn(formatter.FormatWarning("Auto Updates", "Not Configured", "", "dark"))
 	} else {
-		printFn(formatter.FormatSuccess("Auto Updates", "Configured", ""))
+		indentedPrintFn(formatter.FormatSuccess("Auto Updates", "Configured", "", "dark"))
 	}
 }
 

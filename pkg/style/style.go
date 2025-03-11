@@ -27,7 +27,7 @@ type Menu struct {
 	titleWidth     int
 	dryRunEnabled  bool
 	showDryRunInfo bool
-	indentation    string // New field to store indentation string
+	indentation    string
 }
 
 const (
@@ -46,6 +46,10 @@ const (
 	Gray11 = "\033[38;5;241m"
 	Gray12 = "\033[38;5;242m"
 	Gray13 = "\033[38;5;243m"
+	Gray14 = "\033[38;5;244m"
+	Gray15 = "\033[38;5;245m"
+	Gray16 = "\033[38;5;246m"
+	Gray17 = "\033[38;5;247m"
 
 	Reset = "\033[0m"
 
@@ -421,6 +425,7 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	}
 
 	// Check if padding should be disabled (optional parameter)
+	darkDescription := false
 	setBold := false
 	padSpacing := true
 	padSymbol := true
@@ -432,6 +437,8 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 			padSpacing = false
 		case "no-indent", "noindent":
 			padSymbol = false
+		case "dark":
+			darkDescription = true
 		}
 	}
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
@@ -475,12 +482,13 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 		status = Colored(statusColor, status)
 	}
 
-	return symbol + symbolPadding + label + padding + status + " " + Dimmed(description)
+	descripitionStyle := Dimmed(description)
 
-	// if !padSpacing {
-	// } else {
-	// 	return symbol + symbolPadding + label + padding + status + " " + Dimmed(description)
-	// }
+	if darkDescription {
+		descripitionStyle = Dimmed(description, Gray08)
+	}
+
+	return symbol + symbolPadding + label + padding + status + " " + descripitionStyle
 }
 
 func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status string,
@@ -538,6 +546,26 @@ func PrintDivider(char string, length int, style ...string) {
 	fmt.Println(Colored(styleCode, strings.Repeat(char, length)))
 }
 
+// IndentText adds a specific number of spaces at the start of a string
+func IndentText(text string, spaces int) string {
+	if spaces <= 0 {
+		return text
+	}
+	return strings.Repeat(" ", spaces) + text
+}
+
+// IndentPrinter wraps a print function to add indentation to each line
+func IndentPrinter(printFn func(string), spaces int) func(string) {
+	if spaces <= 0 {
+		return printFn
+	}
+
+	indentPrefix := strings.Repeat(" ", spaces)
+	return func(line string) {
+		printFn(indentPrefix + line)
+	}
+}
+
 // NewMenu creates a new menu with the given title and options
 func NewMenu(title string, options []MenuOption) *Menu {
 	// Calculate maximum number length and title width
@@ -558,7 +586,6 @@ func NewMenu(title string, options []MenuOption) *Menu {
 		}
 	}
 
-	// Add consistent fixed padding between title and description
 	// This creates uniform spacing for all menu items
 	const fixedBuffer = 5
 	titleWidth += fixedBuffer
@@ -692,8 +719,8 @@ func (m *Menu) Render() string {
 
 	// Format the title with dry-run status if needed
 	if m.showDryRunInfo {
-		dryRunSymbol := ""            // SymAsterisk
-		dryRunLabel := "Dry-run Mode" //" Dry-run Mode"
+		dryRunSymbol := "" // SymAsterisk
+		dryRunLabel := "Dry-run Mode"
 		dryRunStatus := "Disabled"
 		dryRunColorFn := Yellow
 
