@@ -18,18 +18,18 @@ func PrintPounds() {
 	fmt.Print(style.Colored(style.Green, "#######################################################################"))
 }
 
+func ClearScreen() {
+	fmt.Print("\033[H\033[2J")
+}
+
 // PrintHeader prints a standard header
 func PrintHeader() {
 	// Clear screen
-	fmt.Print("\033[H\033[2J")
+	ClearScreen()
 
 	// Print header without an extra newline
 	PrintPounds()
 	fmt.Println()
-}
-
-func ClearScreen() {
-	fmt.Print("\033[H\033[2J")
 }
 
 // PrintLogo prints the script logo

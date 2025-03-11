@@ -56,6 +56,7 @@ func (s *Service) CheckForUpdates(options *UpdateOptions) CheckResult {
 			LatestVersion:           options.ForcedVersion,
 			UpdateAvailable:         true,
 			ReleaseURL:              "https://github.com/abbott/hardn/releases/latest",
+			InstallURL:              "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh",
 			SecurityUpdateAvailable: options.ForceSecurityUpdate,
 			SecurityUpdateDetails:   options.SecurityDetails,
 		}

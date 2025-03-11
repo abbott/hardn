@@ -45,6 +45,7 @@ type CheckResult struct {
 	LatestVersion           string
 	UpdateAvailable         bool
 	ReleaseURL              string
+	InstallURL              string
 	Error                   error
 	SecurityUpdateAvailable bool   // New field for security updates
 	SecurityUpdateDetails   string // Details about the security update

@@ -127,63 +127,73 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter, printFn func(string)) {
 	if formatter == nil {
 		formatter = style.NewStatusFormatter([]string{
-			"SSH Root Login",
-			"Firewall",
 			"Users",
-			"SSH Port",
+			"Firewall",
+			"SSH Login",
 			"SSH Auth",
+			"SSH Port",
 			"AppArmor",
 			"Auto Updates",
 		}, 2)
 	}
 
-	// Display root login status
-	if status.RootLoginEnabled {
-		printFn(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
-	} else {
-		printFn(formatter.FormatSuccess("SSH Root Login", "Disabled", "secure"))
-	}
-
-	// Display firewall status
-	if !status.FirewallEnabled {
-		printFn(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
-	} else if !status.FirewallConfigured {
-		printFn(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
-	} else {
-		printFn(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
-	}
-
 	// Display user security
 	if !status.SecureUsers {
-		printFn(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
+		printFn(formatter.FormatWarning("Users", "Not Configured", "root user only"))
+		// printFn(formatter.FormatWarning("Users", "Not Configured", "create non-root user"))
 	} else {
-		printFn(formatter.FormatSuccess("Users", "Non-root user found", "sudo enabled"))
+		printFn(formatter.FormatSuccess("Users", "Configured", "non-root, sudo"))
+	}
+	// Display firewall status
+	if !status.FirewallEnabled {
+		printFn(formatter.FormatWarning("Firewall", "Not Configured", "vulnerable"))
+	} else if !status.FirewallConfigured {
+		printFn(formatter.FormatWarning("Firewall", "Enabled", "configure policies"))
+	} else {
+		printFn(formatter.FormatSuccess("Firewall", "Configured", "deny policy"))
 	}
 
-	// Display SSH port status
-	if !status.SshPortNonDefault {
-		printFn(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
+	// Display root login status
+	if status.RootLoginEnabled {
+		printFn(formatter.FormatWarning("SSH Login", "Not Configured", "root allowed"))
 	} else {
-		printFn(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
+		printFn(formatter.FormatSuccess("SSH Login", "Configured", "root disallowed"))
 	}
 
 	// Display password authentication status
 	if !status.PasswordAuthDisabled {
-		printFn(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
+		printFn(formatter.FormatWarning("SSH Auth", "Not Configured", "password auth enabled"))
+		// printFn(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
 	} else {
-		printFn(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
+		printFn(formatter.FormatSuccess("SSH Auth", "Configured", "key-only auth"))
+		// printFn(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
 	}
+
+	// Display SSH port status
+	if !status.SshPortNonDefault {
+		printFn(formatter.FormatWarning("SSH Port", "Not Configured", "default (22)"))
+	} else {
+		sshStatus := "non-default " + "(" + strconv.Itoa(cfg.SshPort) + ")"
+		printFn(formatter.FormatSuccess("SSH Port", "Configured", sshStatus))
+	}
+
+	// Display SSH port status
+	// if !status.SshPortNonDefault {
+	// 	printFn(formatter.FormatWarning("SSH Port", "22", "default port"))
+	// } else {
+	// 	printFn(formatter.FormatSuccess("SSH Port", strconv.Itoa(cfg.SshPort), "non-default port"))
+	// }
 
 	// Display AppArmor status
 	if !status.AppArmorEnabled {
-		printFn(formatter.FormatWarning("AppArmor", "Not enabled", ""))
+		printFn(formatter.FormatWarning("AppArmor", "Not Configured", ""))
 	} else {
-		printFn(formatter.FormatSuccess("AppArmor", "Enabled", ""))
+		printFn(formatter.FormatSuccess("AppArmor", "Configured", ""))
 	}
 
 	// Display unattended upgrades status
 	if !status.UnattendedUpgrades {
-		printFn(formatter.FormatWarning("Auto Updates", "Not configured", ""))
+		printFn(formatter.FormatWarning("Auto Updates", "Not Configured", ""))
 	} else {
 		printFn(formatter.FormatSuccess("Auto Updates", "Configured", ""))
 	}
@@ -221,23 +231,23 @@ func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 	var riskLevel, description, colorCode string
 	if score <= 2 {
 		riskLevel = "Critical"
-		description = "No security detected"
+		description = "no security"
 		colorCode = style.Red // Using DeepRed for Critical
 	} else if score <= 4 {
 		riskLevel = "High"
-		description = "Insufficient measures in place"
+		description = "weak security"
 		colorCode = style.Red // Using DeepRed for High
 	} else if score <= 6 {
 		riskLevel = "Moderate"
-		description = "Some protections active"
+		description = "medium security"
 		colorCode = style.Yellow
 	} else if score <= 8 {
 		riskLevel = "Low"
-		description = "Strong measures implemented"
+		description = "strong security"
 		colorCode = style.Green
 	} else {
 		riskLevel = "Minimal"
-		description = "System well-hardened"
+		description = "hardened security"
 		colorCode = style.Green
 	}
 

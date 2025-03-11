@@ -27,6 +27,7 @@ type MainMenu struct {
 	updateAvailable bool
 	latestVersion   string
 	updateURL       string
+	installURL      string
 
 	// Security update fields
 	securityUpdateAvailable bool
@@ -79,6 +80,7 @@ func (m *MainMenu) CheckForUpdates() {
 			m.updateAvailable = true
 			m.latestVersion = result.LatestVersion
 			m.updateURL = result.ReleaseURL
+			m.installURL = result.InstallURL
 
 			// Track security updates
 			m.securityUpdateAvailable = result.SecurityUpdateAvailable
@@ -98,6 +100,7 @@ func (m *MainMenu) SetTestUpdateAvailable(testVersion string) {
 		m.updateAvailable = result.UpdateAvailable
 		m.latestVersion = result.LatestVersion
 		m.updateURL = result.ReleaseURL
+		m.installURL = result.InstallURL
 	}
 }
 
@@ -107,11 +110,11 @@ func (m *MainMenu) SetTestSecurityUpdate(details string) {
 		// Use a shorter default message if none provided
 		if details == "" {
 			details = "CVE-2023-1234 fixed"
-		} else if len(details) > 40 {
+		} else if len(details) > 80 {
 			// Truncate long security details to prevent layout issues
-			details = details[:37] + "..."
+			details = details[:77] + "..."
 		}
-        
+
 		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
 			ForceUpdate:         true,
 			ForcedVersion:       m.versionService.CurrentVersion + ".1", // Just a minor increment
@@ -122,6 +125,7 @@ func (m *MainMenu) SetTestSecurityUpdate(details string) {
 		m.updateAvailable = result.UpdateAvailable
 		m.latestVersion = result.LatestVersion
 		m.updateURL = result.ReleaseURL
+		m.installURL = result.InstallURL
 		m.securityUpdateAvailable = result.SecurityUpdateAvailable
 		m.securityUpdateDetails = result.SecurityUpdateDetails
 	}
@@ -141,43 +145,35 @@ func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.Secur
 	boxWidth := 64 // Total inner width of the box
 
 	// Header info construction
-	hardnVersion := ""
-	hardnLabel := style.Colored(style.BgDarkGreen, " hardn ")
+
+	hardnBold := style.Bold + "hardn" + style.Reset
+	hardnPad := " " + hardnBold + " "
+	hardnLabel := style.Colored(style.BgGray02, hardnPad)
 	currentVersion := "v" + m.versionService.CurrentVersion
+	currentVersionPad := " " + currentVersion + " "
+	currentVersionDim := style.Dimmed(currentVersionPad)
+	currentVersionBg := style.Colored(style.BgGray03, currentVersionDim)
 	latestVersion := "v" + m.latestVersion
+	// hardnVersion = hardnLabel + currentVersionBg + " → " + style.DarkGreen + latestVersion + style.Reset
+	hardnVersion := hardnLabel + currentVersionBg
 	repoURL := "https://github.com/abbott/hardn"
 
-	// Display update notification if a newer version is available
-	if m.versionService != nil && m.versionService.CurrentVersion != "" {
-		if m.updateAvailable {
-			hardnVersion = hardnLabel + " " + style.Dimmed(currentVersion) + " → " + style.DarkGreen + latestVersion + style.Reset
-			fmt.Println(hardnVersion)
-			fmt.Println()
-			fmt.Printf("%s%s\n",
-				style.Colored(style.Royal, style.BulletSpecial),
-				style.Colored(style.Royal, m.updateURL))
-			fmt.Println()
-
-			infoFormatter := style.NewStatusFormatter([]string{
-				"Build Date",
-				"Git Commit",
-			}, 2) // 2 spaces buffer
-
-			fmt.Println(infoFormatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
-			fmt.Println(infoFormatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
-		} else {
-			hardnVersion = hardnLabel + " " + style.Dimmed(currentVersion)
-		}
-	}
-
-	fmt.Println()
-	
 	// Create borders and padding elements for the status box
-	topBorder := style.DarkBorder(strings.Repeat("─", boxWidth) + "╮")
-	bottomBorder := style.DarkBorder(strings.Repeat("─", boxWidth) + "╯")
-	leftBorder := style.DarkBorder("  ")
-	rightBorder := style.DarkBorder(" │")
-	emptyLine := strings.Repeat(" ", boxWidth) + style.DarkBorder("│")
+	boxHorizontal := "─"  // U+2500 Box Drawings Light Horizontal
+	boxVertical := "│"    // U+2502 Box Drawings Light Vertical
+	boxTopLeft := "╭"     // U+256D Box Drawings Light Arc Down and Right
+	boxTopRight := "╮"    // U+256E Box Drawings Light Arc Down and Left
+	boxBottomLeft := "╰"  // U+256F Box Drawings Light Arc Up and Right
+	boxBottomRight := "╯" // U+2570 Box Drawings Light Arc Up and Left
+	boxSpace := " "       // U+0020 Space
+	// boxNone := "" // intentional: no box character here
+
+	topBorder := style.DarkBorder(boxTopLeft + strings.Repeat(boxHorizontal, boxWidth) + boxTopRight)
+	bottomBorder := style.DarkBorder(boxBottomLeft + strings.Repeat(boxHorizontal, boxWidth) + boxBottomRight)
+	// noHoritontalBorder := style.DarkBorder(boxNone) // intentional: no box character here
+	leftBorder := style.DarkBorder(boxVertical)  // unique border for left side
+	rightBorder := style.DarkBorder(boxVertical) // unique border for right side
+	emptyLine := style.DarkBorder(boxVertical) + strings.Repeat(boxSpace, boxWidth) + style.DarkBorder(boxVertical)
 
 	// Define a unified border printing function for regular status items
 	printBorderedLine := func(content string) {
@@ -194,23 +190,165 @@ func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.Secur
 		fmt.Println(leftBorder + content + padding + rightBorder)
 	}
 
+	securityNoticeLine := ""
+	securityUpdateLine := ""
+	hardnLine := ""
+	repoLine := ""
+	notification := ""
+	message := ""
+
+	hardnLine = formatter.FormatLine(
+		"",
+		"",
+		hardnVersion,
+		repoURL,
+		style.Gray06,
+		"",
+		"no-indent",
+	)
+	repoLine = formatter.FormatLine(
+		"",
+		"",
+		"",
+		repoURL,
+		style.Gray06,
+		"",
+		"no-indent",
+	)
 	// Format and display the header line with version info
-	hardnLine := formatter.FormatLine("", "", hardnVersion, repoURL, style.Gray06, "", "light", "no-indent")
-	
-	// Calculate padding with safety check
-	visibleHardnLength := len(style.StripAnsi(hardnLine))
-	hardnSetPad := boxWidth - visibleHardnLength - 2
-	if hardnSetPad < 0 {
-		hardnSetPad = 0 // Safety check to prevent panic
+	if m.versionService != nil && m.versionService.CurrentVersion != "" {
+
+		// Display security update alert if available (at the top of the box for high visibility)
+		if m.securityUpdateAvailable {
+			// Create security update alert with distinctive styling
+			securityDetails := m.securityUpdateDetails
+			message = latestVersion + " " + "available, update now!"
+
+			// notification = style.Colored(style.Red, securityDetails)
+			// Format the security alert line with alert styling
+			securityNoticeLine = formatter.FormatLine(
+				"",
+				"",
+				hardnVersion,
+				"",
+				"",
+				"",
+				"no-indent",
+			)
+
+			securityUpdateLine = formatter.FormatLine(
+				"",
+				"",
+				"",
+				message,
+				style.Dim,
+				"",
+				"no-indent",
+			)
+
+			// noticeBold := style.Bold + "Critical Update" + style.Reset
+			// noticePad := " " + noticeBold + " "
+			// noticeLabel := style.Colored(style.BgDarkRed, noticePad)
+
+			latestVersion := "v" + m.latestVersion
+			// latestVersionPad := " " + latestVersion + " "
+			// latestVersionRed := style.Colored(style.Red, latestVersionPad)
+			// noticeVersion := noticeLabel + latestVersionRed
+
+			// Create security update alert with distinctive styling
+			securityHeader := style.Colored(style.BgDarkRed, " Update Binary ")
+			// securityDetails := m.securityUpdateDetails
+			// if securityDetails == "" {
+			// 	securityDetails = "Security updates available in " + latestVersion
+			// }
+
+			// Format the security alert line with alert styling
+			securityLine := formatter.FormatLine(
+				"",
+				style.Red,
+				securityHeader,
+				"",
+				"",
+				"",
+				"",
+				"no-indent",
+				"no-spacing",
+			)
+
+			fmt.Println(hardnLine)
+			fmt.Println()
+			fmt.Println()
+
+			fmt.Println("  " + securityLine)
+			fmt.Println()
+			fmt.Println("  " + securityDetails)
+			// fmt.Println(securityUpdateLine)
+
+			fmt.Printf("  %s\n",
+				style.Colored(style.Royal, m.updateURL))
+			fmt.Println()
+
+			infoFormatter := style.NewStatusFormatter([]string{
+				"Build Date",
+				"Git Commit",
+			}, 2) // 2 spaces buffer
+
+			fmt.Println(infoFormatter.FormatBullet("Version", latestVersion, "", "no-indent"))
+			fmt.Println(infoFormatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
+			fmt.Println(infoFormatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
+			fmt.Println()
+			fmt.Println(style.Bolded("  Installer Script:"))
+			fmt.Println(style.Colored(style.Royal, "  "+m.installURL))
+			fmt.Println()
+			fmt.Println()
+			fmt.Print(style.Dimmed("Press any key to exit... "))
+
+			// Print the security alert safely
+			// printBorderedLine(securityLine)
+		} else if m.updateAvailable {
+
+			message = latestVersion + " " + "available"
+
+			notification = style.Colored(style.Royal, message)
+			hardnLine = formatter.FormatLine(
+				"",
+				"",
+				hardnVersion,
+				notification,
+				style.Royal,
+				"",
+				"no-indent",
+			)
+		}
 	}
-	hardnPadding := strings.Repeat(" ", hardnSetPad)
-	
-	fmt.Println(" " + hardnLine + hardnPadding + rightBorder)
-	fmt.Println(bottomBorder)
-	fmt.Println()
+	// hardnLine := formatter.FormatLine("", "", hardnVersion, repoURL, style.Gray06, "", "no-indent")
+
+	if !m.securityUpdateAvailable {
+		// Calculate padding with safety check
+		visibleHardnLength := len(style.StripAnsi(hardnLine))
+		hardnSetPad := boxWidth - visibleHardnLength - 2
+		if hardnSetPad < 0 {
+			hardnSetPad = 0 // Safety check to prevent panic
+		}
+		hardnPadding := strings.Repeat(" ", hardnSetPad)
+
+		fmt.Println(topBorder)
+		if m.securityUpdateAvailable {
+			fmt.Println(leftBorder + securityNoticeLine + hardnPadding + rightBorder)
+			fmt.Println(leftBorder + securityUpdateLine + hardnPadding + rightBorder)
+			fmt.Println(leftBorder + repoLine + hardnPadding + rightBorder)
+		} else {
+			fmt.Println(leftBorder + hardnLine + hardnPadding + rightBorder)
+		}
+		fmt.Println(bottomBorder)
+		fmt.Println()
+	}
 
 	// Get host information
 	hostInfo, err := m.menuManager.GetHostInfo()
+
+	hostLine := ""
+	uptimeLine := ""
 
 	// Display host information if available
 	if err == nil && hostInfo != nil {
@@ -220,100 +358,86 @@ func (m *MainMenu) displaySecurityStatusWithBorders(securityStatus *status.Secur
 			ipAddress = hostInfo.IPAddresses[0]
 		}
 
-		// Format host line
-		hostLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Host",
-			fmt.Sprintf("%s (%s)", hostInfo.Hostname, ipAddress), style.Cyan, "", "light")
-		fmt.Println(hostLine)
+		// hostBold := style.Bold + hostInfo.Hostname + style.Reset
+		hostPad := " " + hostInfo.Hostname + " "
+		hostLabel := style.Colored(style.BgDarkBlue, hostPad)
 
-		// Format OS line
-		osLine := formatter.FormatLine(style.SymInfo, style.Cyan, "OS",
-			fmt.Sprintf("%s %s", hostInfo.OSName, hostInfo.OSVersion), style.Cyan, "", "light")
-		fmt.Println(osLine)
+		// Format host + IP address line
+		// message := latestVersion + " " + "available"
+		hostLine = formatter.FormatLine("", "", hostLabel, ipAddress, style.Dim, "", "bold", "no-indent")
 
 		// Format uptime line
-		uptimeLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Uptime",
-			m.menuManager.FormatUptime(hostInfo.Uptime), style.Cyan, "", "light")
+		uptime := m.menuManager.FormatUptime(hostInfo.Uptime)
+		uptimeLine = formatter.FormatLine("", "", "", uptime, style.Gray06, "", "no-indent")
+
+		// // Format host line
+		// hostLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Host",
+		// 	fmt.Sprintf("%s (%s)", hostInfo.Hostname, ipAddress), style.Cyan, "", "light")
+		// fmt.Println(hostLine)
+
+		// // Format OS line
+		// osLine := formatter.FormatLine(style.SymInfo, style.Cyan, "OS",
+		// 	fmt.Sprintf("%s %s", hostInfo.OSName, hostInfo.OSVersion), style.Cyan, "", "light")
+		// fmt.Println(osLine)
+
+		// // Format uptime line
+		// uptimeLine := formatter.FormatLine(style.SymInfo, style.Cyan, "Uptime",
+		// 	m.menuManager.FormatUptime(hostInfo.Uptime), style.Cyan, "", "light")
+		// fmt.Println(uptimeLine)
+
+		// fmt.Println()
+	}
+
+	if !m.securityUpdateAvailable {
+
+		// Print top border with OS info
+		fmt.Println(topBorder)
+		fmt.Println(emptyLine)
+		fmt.Println(hostLine)
 		fmt.Println(uptimeLine)
-
-		fmt.Println()
-	}
-
-	// Print top border with OS info
-	fmt.Println(topBorder)
-	
-	// Display security update alert if available (at the top of the box for high visibility)
-	if m.securityUpdateAvailable {
-		// First add an empty line for spacing
 		fmt.Println(emptyLine)
-		
-		// Create security update alert with distinctive styling
-		securityHeader := style.Colored(style.BgRed, " SECURITY UPDATE ")
-		securityDetails := m.securityUpdateDetails
-		if securityDetails == "" {
-			securityDetails = "Security updates available in " + latestVersion
+
+		// First display risk level if available - with special handling
+		if securityStatus != nil {
+			riskLevel, riskDescription, riskColor := status.GetSecurityRiskLevel(securityStatus)
+			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
+			riskDescription = style.SymApprox + " " + riskDescription
+
+			// Format the risk level line
+			formattedLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light")
+
+			// Special handling for risk level line - with safe padding calculation
+			formattedLen := len(style.StripAnsi(formattedLine))
+
+			// Apply an adjustment factor but ensure we don't get negative padding
+			adjustment := 3
+			paddingSize := boxWidth - formattedLen - 2 + adjustment
+			if paddingSize < 0 {
+				paddingSize = 0 // Prevent negative padding
+			}
+			padding := strings.Repeat(" ", paddingSize)
+
+			// Print the risk level line with adjusted padding
+			fmt.Println(leftBorder + formattedLine + padding + rightBorder)
+
+			// Add an empty line after risk level
+			fmt.Println(emptyLine)
 		}
-		
-		// Format the security alert line with alert styling
-		securityLine := formatter.FormatLine(
-			style.SymWarning, 
-			style.Red, 
-			securityHeader,
-			securityDetails, 
-			style.Red, 
-			"Update immediately!", 
-			"bold",
-		)
-		
-		// Print the security alert safely
-		printBorderedLine(securityLine)
-		
-		// Add another empty line after the security alert for emphasis
-		fmt.Println(emptyLine)
-	} else {
-		// Add padding line after top border (when no security alert)
-		fmt.Println(emptyLine)
-	}
 
-	// First display risk level if available - with special handling
-	if securityStatus != nil {
-		riskLevel, riskDescription, riskColor := status.GetSecurityRiskLevel(securityStatus)
-		boldRiskLabel := style.Bold + "Risk Level" + style.Reset
-		riskDescription = style.SymApprox + " " + riskDescription
-
-		// Format the risk level line
-		formattedLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light")
-
-		// Special handling for risk level line - with safe padding calculation
-		formattedLen := len(style.StripAnsi(formattedLine))
-		
-		// Apply an adjustment factor but ensure we don't get negative padding
-		adjustment := 3 
-		paddingSize := boxWidth - formattedLen - 2 + adjustment
-		if paddingSize < 0 {
-			paddingSize = 0 // Prevent negative padding
+		// Create a custom print function for status items
+		borderPrinter := func(line string) {
+			printBorderedLine(line)
 		}
-		padding := strings.Repeat(" ", paddingSize)
 
-		// Print the risk level line with adjusted padding
-		fmt.Println(leftBorder + formattedLine + padding + rightBorder)
+		// Use the existing DisplaySecurityStatus function with our border printer
+		status.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, borderPrinter)
 
-		// Add an empty line after risk level
+		// Add padding line before bottom border
 		fmt.Println(emptyLine)
+
+		// Print bottom border
+		fmt.Println(bottomBorder)
 	}
-
-	// Create a custom print function for status items
-	borderPrinter := func(line string) {
-		printBorderedLine(line)
-	}
-
-	// Use the existing DisplaySecurityStatus function with our border printer
-	status.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, borderPrinter)
-
-	// Add padding line before bottom border
-	fmt.Println(emptyLine)
-
-	// Print bottom border
-	fmt.Println(bottomBorder)
 }
 
 // ShowMainMenu displays the main menu and handles user input
@@ -406,16 +530,19 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			Description: "Tip: Press 'q' to exit immediately",
 		})
 
-		// Display the menu
-		menu.Print()
+		if !m.securityUpdateAvailable {
+			// Display the menu
+			menu.Print()
+		}
 
 		choice := ReadMenuInput()
 
 		// Handle the special exit case for main menu
 		if choice == "q" {
-			utils.PrintHeader()
-			fmt.Println("Hardn has exited.")
-			fmt.Println()
+			utils.ClearScreen()
+			// utils.PrintHeader()
+			// fmt.Println("Hardn has exited.")
+			// fmt.Println()
 			return
 		}
 
@@ -502,9 +629,10 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			logsMenu.Show()
 
 		case "0": // Exit
-			utils.PrintHeader()
-			fmt.Println("Hardn has exited.")
-			fmt.Println()
+			utils.ClearScreen()
+			// utils.PrintHeader()
+			// fmt.Println("Hardn has exited.")
+			// fmt.Println()
 			return
 
 		default:

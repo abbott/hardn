@@ -78,14 +78,28 @@ const (
 	// Special colors
 	DeepRed = "\033[38;5;88m" // A more intense/deeper red
 
+	BgGray01 = "\033[48;5;231m"
+	BgGray02 = "\033[48;5;232m"
+	BgGray03 = "\033[48;5;233m"
 	BgGray04 = "\033[48;5;234m"
+	BgGray05 = "\033[48;5;235m"
+	BgGray06 = "\033[48;5;236m"
+	BgGray07 = "\033[48;5;237m"
+	BgGray08 = "\033[48;5;238m"
+	BgGray09 = "\033[48;5;239m"
+	BgGray10 = "\033[48;5;240m"
+	BgGray11 = "\033[48;5;241m"
+	BgGray12 = "\033[48;5;242m"
+	BgGray13 = "\033[48;5;243m"
 
 	// Background colors - normal intensity
 	BgBlack = "\033[40m"
 	BgRed   = "\033[41m"
 	BgGreen = "\033[42m"
 	// BgDarkGreen = "\033[22;48;5;28m" // white
-	BgDarkGreen = "\033[1;37;48;5;28m" // white bold
+	BgDarkGreen = "\033[1;37;48;5;28m"  // white bold
+	BgDarkBlue  = "\033[1;37;48;5;20m"  // white bold
+	BgDarkRed   = "\033[1;37;48;5;160m" // white bold
 	// BgDarkGreen = "\033[30;48;5;40m" // dark green
 	BgYellow  = "\033[43m"
 	BgBlue    = "\033[44m"
@@ -696,13 +710,13 @@ func (m *Menu) Render() string {
 			titlePrefix = m.indentation
 		}
 
-		titleText := Underline + Bold + Blue + m.title + Reset
+		titleText := Underline + Bold + m.title + Reset
 
 		// Create formatter for dry run status
 		formatter := NewStatusFormatter([]string{dryRunLabel}, 2)
 
 		// Use FormatLine to format the dry run status
-		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, dryRunLabel, dryRunStatus, dryRunColorFn, "", "light", "no-indent", "no-spacing")
+		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, dryRunLabel, dryRunStatus, dryRunColorFn, "", "no-indent", "no-spacing")
 
 		// Write all on one line with appropriate indentation
 		sb.WriteString(titlePrefix + titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")
