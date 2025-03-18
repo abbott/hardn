@@ -46,3 +46,4 @@
 dist/*
 build/*
 .scratch/*
+.DS_Store

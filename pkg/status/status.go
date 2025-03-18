@@ -75,7 +75,7 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	if status.RootLoginEnabled {
 		fmt.Println(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("SSH Root Login", "Disabled", "secure"))
+		fmt.Println(formatter.FormatConfigured("SSH Root Login", "Disabled", "secure"))
 	}
 
 	// Display firewall status
@@ -84,42 +84,42 @@ func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter
 	} else if !status.FirewallConfigured {
 		fmt.Println(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("Firewall", "Enabled and configured", "secure"))
+		fmt.Println(formatter.FormatConfigured("Firewall", "Enabled and configured", "secure"))
 	}
 
 	// Display user security
 	if !status.SecureUsers {
 		fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("Users", "Non-root user found", "sudo enabled"))
+		fmt.Println(formatter.FormatConfigured("Users", "Non-root user found", "sudo enabled"))
 	}
 
 	// Display SSH port status
 	if !status.SshPortNonDefault {
 		fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
+		fmt.Println(formatter.FormatConfigured("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
 	}
 
 	// Display password authentication status
 	if !status.PasswordAuthDisabled {
 		fmt.Println(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
 	} else {
-		fmt.Println(formatter.FormatSuccess("SSH Auth", "Key-only authentication", ""))
+		fmt.Println(formatter.FormatConfigured("SSH Auth", "Key-only authentication", ""))
 	}
 
 	// Display AppArmor status
 	if !status.AppArmorEnabled {
 		fmt.Println(formatter.FormatWarning("AppArmor", "Not enabled", ""))
 	} else {
-		fmt.Println(formatter.FormatSuccess("AppArmor", "Enabled", ""))
+		fmt.Println(formatter.FormatConfigured("AppArmor", "Enabled", ""))
 	}
 
 	// Display unattended upgrades status
 	if !status.UnattendedUpgrades {
 		fmt.Println(formatter.FormatWarning("Auto Updates", "Not configured", ""))
 	} else {
-		fmt.Println(formatter.FormatSuccess("Auto Updates", "Configured", ""))
+		fmt.Println(formatter.FormatConfigured("Auto Updates", "Configured", ""))
 	}
 }
 
@@ -149,7 +149,7 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 	if !status.SecureUsers {
 		indentedPrintFn(formatter.FormatWarning("Users", "Not Configured", "root user only", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("Users", "Configured", "non-root, sudo", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("Users", "Configured", "non-root, sudo", "dark"))
 	}
 
 	// Display firewall status
@@ -158,21 +158,21 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 	} else if !status.FirewallConfigured {
 		indentedPrintFn(formatter.FormatWarning("Firewall", "Enabled", "configure policies", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("Firewall", "Configured", "deny policy", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("Firewall", "Configured", "deny policy", "dark"))
 	}
 
 	// Display root login status
 	if status.RootLoginEnabled {
 		indentedPrintFn(formatter.FormatWarning("SSH Login", "Not Configured", "root allowed", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("SSH Login", "Configured", "root disallowed", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("SSH Login", "Configured", "root disallowed", "dark"))
 	}
 
 	// Display password authentication status
 	if !status.PasswordAuthDisabled {
 		indentedPrintFn(formatter.FormatWarning("SSH Auth", "Not Configured", "password auth enabled", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("SSH Auth", "Configured", "key-only auth", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("SSH Auth", "Configured", "key-only auth", "dark"))
 	}
 
 	// Display SSH port status
@@ -180,21 +180,21 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 		indentedPrintFn(formatter.FormatWarning("SSH Port", "Not Configured", "default (22)", "dark"))
 	} else {
 		sshStatus := "non-default " + "(" + strconv.Itoa(cfg.SshPort) + ")"
-		indentedPrintFn(formatter.FormatSuccess("SSH Port", "Configured", sshStatus, "dark"))
+		indentedPrintFn(formatter.FormatConfigured("SSH Port", "Configured", sshStatus, "dark"))
 	}
 
 	// Display AppArmor status
 	if !status.AppArmorEnabled {
 		indentedPrintFn(formatter.FormatWarning("AppArmor", "Not Configured", "", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("AppArmor", "Configured", "", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("AppArmor", "Configured", "", "dark"))
 	}
 
 	// Display unattended upgrades status
 	if !status.UnattendedUpgrades {
 		indentedPrintFn(formatter.FormatWarning("Auto Updates", "Not Configured", "", "dark"))
 	} else {
-		indentedPrintFn(formatter.FormatSuccess("Auto Updates", "Configured", "", "dark"))
+		indentedPrintFn(formatter.FormatConfigured("Auto Updates", "Configured", "", "dark"))
 	}
 }
 
@@ -375,8 +375,9 @@ func checkUserSecurity() bool {
 }
 
 // checkAppArmorStatus checks if AppArmor is enabled
+// checkAppArmorStatus checks if AppArmor is properly configured and enforcing
 func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
-	// If Alpine, check if AppArmor is installed and enabled
+	// If Alpine, check if AppArmor is installed, enabled, and has profiles
 	if osInfo.OsType == "alpine" {
 		// Check if AppArmor package is installed
 		cmd := exec.Command("apk", "info", "-e", "apparmor")
@@ -391,15 +392,46 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 			return false
 		}
 
-		return strings.Contains(string(output), "apparmor")
-	} else {
-		// For Debian/Ubuntu, check AppArmor status
-		cmd := exec.Command("aa-status")
-		if err := cmd.Run(); err != nil {
+		if !strings.Contains(string(output), "apparmor") {
 			return false
 		}
 
-		return true
+		// Check if AppArmor is running and has profiles loaded
+		statusCmd := exec.Command("aa-status")
+		statusOutput, err := statusCmd.CombinedOutput()
+		if err != nil {
+			return false
+		}
+
+		// Check for enforcing profiles
+		statusText := string(statusOutput)
+		if !strings.Contains(statusText, "profiles are in enforce mode") {
+			return false
+		}
+
+		// Make sure there are actual profiles enforced (not 0)
+		return !strings.Contains(statusText, "0 profiles are in enforce mode")
+	} else {
+		// For Debian/Ubuntu, check AppArmor status
+		cmd := exec.Command("aa-status")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return false
+		}
+
+		// Check if the service is loaded and active
+		statusText := string(output)
+		if !strings.Contains(statusText, "apparmor module is loaded") {
+			return false
+		}
+
+		// Check for loaded profiles in enforcing mode
+		if !strings.Contains(statusText, "profiles are in enforce mode") {
+			return false
+		}
+
+		// Ensure there's at least 1 profile in enforce mode
+		return !strings.Contains(statusText, "0 profiles are in enforce mode")
 	}
 }
 

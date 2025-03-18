@@ -8,13 +8,13 @@ type SSHService interface {
 	// ConfigureSSH applies SSH configuration settings
 	ConfigureSSH(config model.SSHConfig) error
 
-	// DisableRootAccess disables SSH access for the root user
+	// disable SSH access for the root user
 	DisableRootAccess() error
 
-	// AddAuthorizedKey adds an SSH public key to a user's authorized_keys
+	// Add an SSH public key to a user's authorized_keys
 	AddAuthorizedKey(username string, publicKey string) error
 
-	// GetCurrentConfig retrieves the current SSH configuration
+	// retrieve the current SSH configuration
 	GetCurrentConfig() (*model.SSHConfig, error)
 }
 
@@ -24,7 +24,7 @@ type SSHServiceImpl struct {
 	osInfo     model.OSInfo
 }
 
-// NewSSHServiceImpl creates a new SSHServiceImpl
+// create a new SSHServiceImpl
 func NewSSHServiceImpl(repository SSHRepository, osInfo model.OSInfo) *SSHServiceImpl {
 	return &SSHServiceImpl{
 		repository: repository,

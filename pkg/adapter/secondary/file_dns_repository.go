@@ -119,7 +119,7 @@ func (r *FileDNSRepository) configureSystemdResolved(config model.DNSConfig) err
 	return nil
 }
 
-// configureResolvconf configures DNS using resolvconf
+// configures DNS using resolvconf
 func (r *FileDNSRepository) configureResolvconf(config model.DNSConfig) error {
 	var content strings.Builder
 

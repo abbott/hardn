@@ -12,6 +12,8 @@ import (
 var (
 	logger  *log.Logger
 	logFile *os.File
+	// Add silent mode flag
+	silentMode bool
 )
 
 // InitLogging initializes the logger for the application
@@ -49,10 +51,22 @@ func CloseLogging() {
 	}
 }
 
+// SetSilentMode enables or disables console logging output
+func SetSilentMode(silent bool) {
+	silentMode = silent
+}
+
+// IsSilent returns the current silent mode state
+func IsSilent() bool {
+	return silentMode
+}
+
 // LogError logs an error message
 func LogError(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Red("[ERROR] %s", msg)
+	if !silentMode {
+		color.Red("[ERROR] %s", msg)
+	}
 	if logger != nil {
 		logger.Printf("ERROR: %s", msg)
 	}
@@ -61,16 +75,20 @@ func LogError(format string, v ...interface{}) {
 // LogWarning logs a warning message
 func LogWarning(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Yellow("[WARNING] %s", msg) // Changed from Red to Yellow for warnings
+	if !silentMode {
+		color.Yellow("[WARNING] %s", msg)
+	}
 	if logger != nil {
-		logger.Printf("WARNING: %s", msg) // Changed from ERROR to WARNING
+		logger.Printf("WARNING: %s", msg)
 	}
 }
 
 // LogInfo logs an info message
 func LogInfo(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Blue("[INFO] %s", msg)
+	if !silentMode {
+		color.Blue("[INFO] %s", msg)
+	}
 	if logger != nil {
 		logger.Printf("INFO: %s", msg)
 	}
@@ -79,7 +97,9 @@ func LogInfo(format string, v ...interface{}) {
 // LogSuccess logs a success message
 func LogSuccess(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Green("[SUCCESS] %s", msg)
+	if !silentMode {
+		color.Green("[SUCCESS] %s", msg)
+	}
 	if logger != nil {
 		logger.Printf("SUCCESS: %s", msg)
 	}
@@ -88,7 +108,9 @@ func LogSuccess(format string, v ...interface{}) {
 // LogInstall logs a package installation
 func LogInstall(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	color.Cyan("[INSTALLED] %s", msg)
+	if !silentMode {
+		color.Cyan("[INSTALLED] %s", msg)
+	}
 	if logger != nil {
 		logger.Printf("INSTALLED: %s", msg)
 	}

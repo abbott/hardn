@@ -411,7 +411,7 @@ func (m *FirewallMenu) manageAppProfiles() {
 	}
 }
 
-// addAppProfile handles adding a new application profile
+// handle adding a new application profile
 func (m *FirewallMenu) addAppProfile() {
 	fmt.Println()
 	fmt.Println(style.Bolded("Add UFW Application Profile:", style.Blue))

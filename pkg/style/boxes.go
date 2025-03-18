@@ -8,7 +8,6 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
-// BoxConfig holds configuration for drawing a box
 type BoxConfig struct {
 	Width          int    // Width of the box content area
 	BorderColor    string // Color for the border
@@ -20,7 +19,7 @@ type BoxConfig struct {
 	TitleColor     string // Color for the title (default is BorderColor)
 }
 
-// Box provides methods for drawing boxes with borders
+// Box methods
 type Box struct {
 	width          int
 	borderColor    string
@@ -30,12 +29,23 @@ type Box struct {
 	indentation    int
 	title          string
 	titleColor     string
-	horizontal     string
-	vertical       string
-	topLeft        string
-	topRight       string
-	bottomLeft     string
-	bottomRight    string
+
+	// Unicode box characters
+	horizontal  string
+	vertical    string
+	topLeft     string
+	topRight    string
+	bottomLeft  string
+	bottomRight string
+
+	// ASCII box characters
+	asciiHorizontal  string
+	asciiVertical    string
+	asciiTopLeft     string
+	asciiTopRight    string
+	asciiBottomLeft  string
+	asciiBottomRight string
+
 	space          string
 	emptyLineCache string
 }
@@ -51,13 +61,24 @@ func NewBox(config BoxConfig) *Box {
 		indentation:    config.Indentation,
 		title:          config.Title,
 		titleColor:     config.TitleColor,
-		horizontal:     "─", // U+2500 Box Drawings Light Horizontal
-		vertical:       "│", // U+2502 Box Drawings Light Vertical
-		topLeft:        "╭", // U+256D Box Drawings Light Arc Down and Right
-		topRight:       "╮", // U+256E Box Drawings Light Arc Down and Left
-		bottomLeft:     "╰", // U+256F Box Drawings Light Arc Up and Right
-		bottomRight:    "╯", // U+2570 Box Drawings Light Arc Up and Left
-		space:          " ", // U+0020 Space
+
+		// Unicode box characters (rounded corners)
+		horizontal:  "─", // U+2500 Box Drawings Light Horizontal
+		vertical:    "│", // U+2502 Box Drawings Light Vertical
+		topLeft:     "╭", // U+256D Box Drawings Light Arc Down and Right
+		topRight:    "╮", // U+256E Box Drawings Light Arc Down and Left
+		bottomLeft:  "╰", // U+256F Box Drawings Light Arc Up and Right
+		bottomRight: "╯", // U+2570 Box Drawings Light Arc Up and Left
+
+		// ASCII box characters
+		asciiHorizontal:  "-",
+		asciiVertical:    "|",
+		asciiTopLeft:     "+",
+		asciiTopRight:    "+",
+		asciiBottomLeft:  "+",
+		asciiBottomRight: "+",
+
+		space: " ", // U+0020 Space
 	}
 
 	// Set defaults for zero values
@@ -83,33 +104,70 @@ func NewBox(config BoxConfig) *Box {
 		box.showLeftBorder = false
 	}
 
-	// Pre-compute the empty line for efficiency - respect left border setting
-	box.emptyLineCache = ""
-	if box.showLeftBorder {
-		box.emptyLineCache += Colored(box.borderColor, box.vertical)
-	} else if box.indentation > 0 {
-		// Add indentation if left border is hidden
-		box.emptyLineCache += strings.Repeat(box.space, box.indentation)
-	}
-	box.emptyLineCache += strings.Repeat(box.space, box.width) + Colored(box.borderColor, box.vertical)
+	// Initialize emptyLineCache
+	box.updateEmptyLineCache()
 
 	return box
 }
 
+// update the cached empty line string based on current settings
+func (b *Box) updateEmptyLineCache() {
+	b.emptyLineCache = ""
+
+	// Choose the appropriate vertical character based on UseColors
+	vertChar := b.vertical
+	if !UseColors {
+		vertChar = b.asciiVertical
+	}
+
+	if b.showLeftBorder {
+		if UseColors {
+			b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
+			// b.emptyLineCache += Colored(b.borderColor, vertChar)
+		} else {
+			b.emptyLineCache += vertChar
+		}
+	} else if b.indentation > 0 {
+		// Add indentation if left border is hidden
+		b.emptyLineCache += strings.Repeat(b.space, b.indentation)
+	}
+
+	b.emptyLineCache += strings.Repeat(b.space, b.width)
+
+	if UseColors {
+
+		b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
+		// b.emptyLineCache += Colored(b.borderColor, vertChar)
+	} else {
+		b.emptyLineCache += vertChar
+	}
+}
+
 // DrawTop draws the top border of the box
 func (b *Box) DrawTop() {
+	// Choose the appropriate characters based on UseColors
+	horizChar := b.horizontal
+	topLeftChar := b.topLeft
+	topRightChar := b.topRight
+
+	if !UseColors {
+		horizChar = b.asciiHorizontal
+		topLeftChar = b.asciiTopLeft
+		topRightChar = b.asciiTopRight
+	}
+
 	// If we have a title, draw the title with borders on each side
 	if b.title != "" && b.showTopBorder {
 		topBorder := ""
 
 		// Add indentation if there's no left border but indentation is set
 		if !b.showLeftBorder && b.indentation > 0 {
-			topBorder = strings.Repeat(b.space, b.indentation)
+			topBorder = Dimmed(strings.Repeat(b.space, b.indentation), b.borderColor)
 		}
 
 		// Only draw left corner if showing left border
 		if b.showLeftBorder {
-			topBorder += b.topLeft
+			topBorder += topLeftChar
 		}
 
 		// Calculate space needed before and after title
@@ -117,13 +175,23 @@ func (b *Box) DrawTop() {
 		beforeTitle := 0 // minimum spacing before title
 
 		// Generate the border with title
-		rightSide := Colored(b.borderColor, strings.Repeat(b.horizontal, b.width-beforeTitle-titleLen-1)+b.topRight)
+		var rightSide string
+		if UseColors {
+			// rightSide = Colored(b.borderColor, strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar)
+			rightSide = Dimmed(strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar, b.borderColor)
+		} else {
+			rightSide = strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1) + topRightChar
+		}
 
-		topBorder += strings.Repeat(b.horizontal, beforeTitle) +
-			"" + Colored(b.titleColor, b.title) + " " + rightSide
+		topBorder += strings.Repeat(horizChar, beforeTitle)
+
+		if UseColors {
+			topBorder += "" + Colored(b.titleColor, b.title) + " " + rightSide
+		} else {
+			topBorder += "" + b.title + " " + rightSide
+		}
 
 		fmt.Println(topBorder)
-
 		return
 	}
 
@@ -137,29 +205,49 @@ func (b *Box) DrawTop() {
 
 	// Only draw left corner if showing left border
 	if b.showLeftBorder {
-		topBorder += b.topLeft
+		topBorder += topLeftChar
 	}
 
-	topBorder += strings.Repeat(b.horizontal, b.width) + b.topRight
-	fmt.Println(Colored(b.borderColor, topBorder))
+	topBorder += strings.Repeat(horizChar, b.width) + topRightChar
+
+	fmt.Println(topBorder)
 }
 
 // DrawBottom draws the bottom border of the box
 func (b *Box) DrawBottom() {
+	// Choose the appropriate characters based on UseColors
+	horizChar := b.horizontal
+	bottomLeftChar := b.bottomLeft
+	bottomRightChar := b.bottomRight
+
+	if !UseColors {
+		horizChar = b.asciiHorizontal
+		bottomLeftChar = b.asciiBottomLeft
+		bottomRightChar = b.asciiBottomRight
+	}
+
 	bottomBorder := ""
 
 	// Add indentation if there's no left border but indentation is set
 	if !b.showLeftBorder && b.indentation > 0 {
+		// bottomBorder = Dimmed(strings.Repeat(b.space, b.indentation), b.borderColor)
 		bottomBorder = strings.Repeat(b.space, b.indentation)
 	}
 
 	// Only draw left corner if showing left border
 	if b.showLeftBorder {
-		bottomBorder += b.bottomLeft
+		bottomBorder += bottomLeftChar
 	}
 
-	bottomBorder += strings.Repeat(b.horizontal, b.width) + b.bottomRight
-	fmt.Println(Colored(b.borderColor, bottomBorder))
+	bottomBorder += strings.Repeat(horizChar, b.width) + bottomRightChar
+
+	if UseColors {
+		fmt.Println(Dimmed(bottomBorder, b.borderColor))
+		// fmt.Println(Colored(b.borderColor, bottomBorder))
+	} else {
+		fmt.Println(bottomBorder)
+	}
+
 }
 
 // DrawEmpty draws an empty row in the box
@@ -177,15 +265,35 @@ func (b *Box) DrawLine(content string) {
 		padding = 0
 	}
 
+	// Choose the appropriate vertical character based on UseColors
+	vertChar := b.vertical
+	if !UseColors {
+		vertChar = b.asciiVertical
+	}
+
 	line := ""
 	if b.showLeftBorder {
-		line += Colored(b.borderColor, b.vertical)
+		line += vertChar
+		if UseColors {
+			line += (Dimmed(vertChar, b.borderColor))
+			// line += Colored(b.borderColor, vertChar)
+		} else {
+			line += vertChar
+		}
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
-	line += content + strings.Repeat(b.space, padding) + Colored(b.borderColor, b.vertical)
+	line += content + strings.Repeat(b.space, padding)
+
+	if UseColors {
+		line += (Dimmed(vertChar, b.borderColor))
+		// line += Colored(b.borderColor, vertChar)
+	} else {
+		line += vertChar
+	}
+
 	fmt.Println(line)
 }
 
@@ -205,6 +313,7 @@ func (b *Box) DrawBox(contentFn func(printLine func(string))) {
 		b.DrawTop()
 	}
 
+	// top padding
 	if b.showEmptyRow {
 		b.DrawEmpty()
 	}
@@ -215,6 +324,7 @@ func (b *Box) DrawBox(contentFn func(printLine func(string))) {
 		})
 	}
 
+	// bottom padding
 	if b.showEmptyRow {
 		b.DrawEmpty()
 	}
@@ -237,15 +347,34 @@ func (b *Box) DrawCenteredText(text string) {
 		rightPadding = 0
 	}
 
+	// Choose the appropriate vertical character based on UseColors
+	vertChar := b.vertical
+	if !UseColors {
+		vertChar = b.asciiVertical
+	}
+
 	line := ""
 	if b.showLeftBorder {
-		line += Colored(b.borderColor, b.vertical)
+		if UseColors {
+			line += Colored(b.borderColor, vertChar)
+		} else {
+			line += vertChar
+		}
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
-	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding) + Colored(b.borderColor, b.vertical)
+	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
+
+	if UseColors {
+
+		line += (Dimmed(vertChar, b.borderColor))
+		// line += Colored(b.borderColor, vertChar)
+	} else {
+		line += vertChar
+	}
+
 	fmt.Println(line)
 }
 
@@ -273,22 +402,43 @@ func (b *Box) DrawTruncatedText(text string, truncateIndicator string) {
 
 // DrawRightAlignedText draws text aligned to the right side of the box
 func (b *Box) DrawRightAlignedText(text string) {
+
 	visibleLen := CalculateVisualWidth(text)
+	
 	padding := b.width - visibleLen
 
 	if padding < 0 {
 		padding = 0
 	}
 
+	// Choose the appropriate vertical character based on UseColors
+	vertChar := b.vertical
+	if !UseColors {
+		vertChar = b.asciiVertical
+	}
+
 	line := ""
 	if b.showLeftBorder {
-		line += Colored(b.borderColor, b.vertical)
+		if UseColors {
+			line += Colored(b.borderColor, vertChar)
+		} else {
+			line += vertChar
+		}
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
-	line += strings.Repeat(b.space, padding) + text + Colored(b.borderColor, b.vertical)
+	line += strings.Repeat(b.space, padding) + text
+
+	if UseColors {
+
+		line += (Dimmed(vertChar, b.borderColor))
+		// line += Colored(b.borderColor, vertChar)
+	} else {
+		line += vertChar
+	}
+
 	fmt.Println(line)
 }
 
@@ -305,14 +455,33 @@ func (b *Box) DrawPaddedText(text string, leftPadding int) {
 		rightPadding = 0
 	}
 
+	// Choose the appropriate vertical character based on UseColors
+	vertChar := b.vertical
+	if !UseColors {
+		vertChar = b.asciiVertical
+	}
+
 	line := ""
 	if b.showLeftBorder {
-		line += Colored(b.borderColor, b.vertical)
+		if UseColors {
+			line += Colored(b.borderColor, vertChar)
+		} else {
+			line += vertChar
+		}
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
-	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding) + Colored(b.borderColor, b.vertical)
+	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
+
+	if UseColors {
+
+		line += (Dimmed(vertChar, b.borderColor))
+		// line += Colored(b.borderColor, vertChar)
+	} else {
+		line += vertChar
+	}
+
 	fmt.Println(line)
 }

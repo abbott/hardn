@@ -15,13 +15,13 @@ type FirewallRepository interface {
 	// GetFirewallConfig retrieves the current firewall configuration
 	GetFirewallConfig() (*model.FirewallConfig, error)
 
-	// AddRule adds a firewall rule
+	// add a firewall rule
 	AddRule(rule model.FirewallRule) error
 
 	// RemoveRule removes a firewall rule
 	RemoveRule(rule model.FirewallRule) error
 
-	// AddProfile adds a firewall application profile
+	// Add  a firewall application profile
 	AddProfile(profile model.FirewallProfile) error
 
 	// EnableFirewall enables the firewall

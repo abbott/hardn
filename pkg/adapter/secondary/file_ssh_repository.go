@@ -154,7 +154,7 @@ func (r *FileSSHRepository) DisableRootAccess() error {
 	return r.SaveSSHConfig(*config)
 }
 
-// AddAuthorizedKey adds an SSH public key to a user's authorized_keys
+// add an SSH public key to a user's authorized_keys
 func (r *FileSSHRepository) AddAuthorizedKey(username string, publicKey string) error {
 	var homeDir string
 	var sshDir string

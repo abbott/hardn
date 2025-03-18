@@ -37,9 +37,9 @@ func HostInfoCmd() *cobra.Command {
 	}
 
 	// Add flags
-	cmd.Flags().StringVarP(&exportFile, "export", "e", "", "Export host information to file")
-	cmd.Flags().StringVarP(&sectionFilter, "section", "s", "", "Display only specific section (system, network, users, storage)")
-	cmd.Flags().StringVarP(&outputFormat, "format", "f", "text", "Output format (text, json, yaml)")
+	cmd.Flags().StringVarP(&exportFile, "export", "E", "", "Export host information to file")
+	cmd.Flags().StringVarP(&sectionFilter, "section", "S", "", "Display only specific section (system, network, users, storage)")
+	cmd.Flags().StringVarP(&outputFormat, "format", "O", "text", "Output format (text, json, yaml)")
 	cmd.Flags().BoolVar(&formatAsJson, "json", false, "Output in JSON format (shorthand)")
 	cmd.Flags().BoolVar(&formatAsYaml, "yaml", false, "Output in YAML format (shorthand)")
 
@@ -50,6 +50,10 @@ func HostInfoCmd() *cobra.Command {
 func runHostInfo() error {
 	// Set up provider
 	provider := interfaces.NewProvider()
+
+	// Enable silent mode to prevent logs from appearing in output
+	logging.SetSilentMode(true)
+	defer logging.SetSilentMode(false) // Restore normal logging when function exits
 
 	// Detect OS
 	osInfo, err := osdetect.DetectOS()

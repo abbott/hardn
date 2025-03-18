@@ -61,7 +61,7 @@ func (m *SSHManager) DisableRootAccess() error {
 	return m.sshService.DisableRootAccess()
 }
 
-// AddSSHKey adds an SSH public key for a user
+// add an SSH public key for a user
 func (m *SSHManager) AddSSHKey(username string, publicKey string) error {
 	return m.sshService.AddAuthorizedKey(username, publicKey)
 }

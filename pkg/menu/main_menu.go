@@ -49,17 +49,14 @@ func NewMainMenu(
 	}
 }
 
-// refreshConfig refreshes any configuration values that might have been changed
-// by sub-menus like RunAllMenu or DryRunMenu
+// refresh any configuration values that might have been
+// changed by sub-menus like RunAllMenu or DryRunMenu
 func (m *MainMenu) refreshConfig() {
-	// If we added ways for sub-menus to notify the main menu of changes,
-	// we would handle them here
+	// add ways for sub-menus to notify the main menu of changes,
 
 	// For now, we're using a shared config pointer, so changes are automatically visible
-	// This method is a placeholder for future extensibility
 }
 
-// updateConstants stores the default values for testing and simulation
 const (
 	repoURL             = "https://github.com/abbott/hardn"
 	testVersionNumber   = "0.3.3"
@@ -68,42 +65,39 @@ const (
 	testSecurityMessage = "Critical security vulnerability fixed - CVE-2023-1234"
 )
 
-// CheckForUpdates checks for new versions and updates the menu state
+// Check for new version
 func (m *MainMenu) CheckForUpdates() {
 	if m.versionService == nil || m.versionService.CurrentVersion == "" {
 		return
 	}
 
-	// Run in a goroutine to avoid blocking the menu display
+	// Use Go outine to Avoid blocking display
 	go func() {
-		// Use the unified version service
 		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
 			Debug: os.Getenv("HARDN_DEBUG") != "",
 		})
 
 		if result.Error != nil {
-			return // Silently fail for menu updates
+			return
 		}
 
 		m.applyUpdateResult(result)
 	}()
 }
 
-// applyUpdateResult applies the update check result to the menu state
+// Apply update check result
 func (m *MainMenu) applyUpdateResult(result version.CheckResult) {
 	if result.UpdateAvailable {
 		m.updateAvailable = true
 		m.latestVersion = result.LatestVersion
 		m.updateURL = result.ReleaseURL
 		m.installURL = result.InstallURL
-
-		// Track security updates
 		m.securityUpdateAvailable = result.SecurityUpdateAvailable
 		m.securityUpdateDetails = result.SecurityUpdateDetails
 	}
 }
 
-// CheckForUpdatesWithEnvVars handles update checks respecting environment variables
+// Update checks respecting environment variables
 func (m *MainMenu) CheckForUpdatesWithEnvVars() {
 	if m.versionService == nil {
 		return
@@ -149,7 +143,7 @@ func (m *MainMenu) SetTestSecurityUpdate(details string) {
 
 	result := m.versionService.CheckForUpdates(&version.UpdateOptions{
 		ForceUpdate:         true,
-		ForcedVersion:       m.versionService.CurrentVersion + ".1", // Just a minor increment
+		ForcedVersion:       m.versionService.CurrentVersion + ".1",
 		ForceSecurityUpdate: true,
 		SecurityDetails:     details,
 	})
@@ -204,7 +198,7 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 		"Git Commit",
 	}, 2) // 2 spaces buffer
 
-	// Add "  " prefix to each line for consistent indentation with other sections
+	// Add "  " prefix to each line for consistent indentation
 	fmt.Println("    " + infoFormatter.FormatBullet("Version", latestVersion, "", "no-indent"))
 	fmt.Println("    " + infoFormatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
 	fmt.Println("    " + infoFormatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
@@ -224,9 +218,11 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *status.SecuritySt
 	// Display version information
 	fmt.Println(hardnLine)
 
+	repo := style.Dimmed(repoURL)
+
 	// When update is available, also display the repo URL on a new line
 	if m.updateAvailable {
-		repoLine := formatter.FormatLine("", "", "", repoURL, style.Gray06, "", "no-indent")
+		repoLine := formatter.FormatLine("", "", "", repo, style.Gray08, "", "no-indent")
 		fmt.Println(repoLine)
 	}
 
@@ -272,7 +268,7 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *status.SecuritySt
 			riskLevel, riskDescription, riskColor := status.GetSecurityRiskLevel(securityStatus)
 			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
 			riskDescription = style.SymApprox + " " + riskDescription
-			riskLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "light")
+			riskLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "dark")
 
 			// Use indented print function for risk level as well
 			indentedPrintLine(riskLine)
@@ -293,9 +289,9 @@ func (m *MainMenu) formatOSTitle() string {
 	}
 
 	boldOsType := style.Bolded(utils.Capitalize(m.osInfo.OsType))
-	dimOsType := style.Colored(style.Gray15, boldOsType)
-	regularVersion := style.Colored(style.Gray15, m.osInfo.OsVersion)
-	grayCodename := style.Colored(style.Gray06, "("+utils.Capitalize(m.osInfo.OsCodename+")"))
+	dimOsType := style.Dimmed(boldOsType, style.Gray15)
+	regularVersion := style.Dimmed(m.osInfo.OsVersion, style.Gray15)
+	grayCodename := style.Dimmed("("+utils.Capitalize(m.osInfo.OsCodename+")"), style.Gray15)
 
 	// Format based on OS type
 	switch m.osInfo.OsType {
@@ -325,6 +321,7 @@ func (m *MainMenu) formatHardnVersionLine(formatter *style.StatusFormatter) stri
 	currentVersionDim := style.Dimmed(currentVersionPad)
 	currentVersionBg := style.Colored(style.BgGray03, currentVersionDim)
 	hardnVersion := hardnBold + " " + currentVersionBg
+	repo := style.Dimmed(repoURL)
 
 	// Format differently based on update availability
 	if m.updateAvailable {
@@ -345,8 +342,8 @@ func (m *MainMenu) formatHardnVersionLine(formatter *style.StatusFormatter) stri
 			"",
 			"",
 			hardnVersion,
-			repoURL,
-			style.Gray06,
+			repo,
+			style.Gray10,
 			"",
 			"no-indent",
 		)
@@ -366,11 +363,13 @@ func (m *MainMenu) formatHostInfoLines(hostInfo *model.HostInfo, formatter *styl
 	hostLabel := style.Colored(style.BgDarkBlue, hostPad)
 
 	// Format host info line
-	hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, style.Dim, "", "bold", "no-indent")
+	hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, "", "", "no-indent")
+	// hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, style.Dim, "", "bold", "no-indent")
 
 	// Format uptime line
 	uptime := m.menuManager.FormatUptime(hostInfo.Uptime)
-	uptimeLine := formatter.FormatLine("", "", "", uptime, style.Gray06, "", "no-indent")
+	uptime = style.Dimmed(uptime)
+	uptimeLine := formatter.FormatLine("", "", "", uptime, style.Gray10, "", "no-indent")
 
 	return hostLine, uptimeLine
 }

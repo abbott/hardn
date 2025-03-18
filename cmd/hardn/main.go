@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
 
@@ -26,6 +27,7 @@ var (
 )
 
 var (
+	noColor             bool
 	configFile          string
 	username            string
 	dryRun              bool
@@ -51,9 +53,6 @@ var (
 var provider = interfaces.NewProvider()
 
 func main() {
-	// Setup colors
-	color.NoColor = false
-
 	// Init utils
 	logging.InitLogging("/var/log/hardn.log")
 
@@ -74,9 +73,12 @@ func init() {
 	// Set version for help output
 	rootCmd.Version = Version
 
-	if rootCmd.Version != "" {
-		logging.LogInfo("Current version :::: : %s", rootCmd.Version)
-	}
+	// if rootCmd.Version != "" {
+	// 	logging.LogInfo("Current version :::: : %s", rootCmd.Version)
+	// }
+
+	// Setup color processing before command execution but after flag parsing
+	cobra.OnInitialize(initializeColor)
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
 		"Specify configuration file path")
@@ -97,13 +99,21 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
-	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false,
-		"Configure sudoers to preserve HARDN_CONFIG environment variable")
+	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Configure sudoers to preserve HARDN_CONFIG environment variable")
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, "Enable debugging for update checks")
 	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, "Force update notification for testing")
-
-	// Add new flag for testing security updates
 	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, "Test security update notification")
+}
+
+func initializeColor() {
+	if noColor {
+		color.NoColor = true
+		style.UseColors = false
+	} else {
+		color.NoColor = false
+		style.UseColors = true
+	}
 }
 
 var rootCmd = &cobra.Command{
@@ -305,7 +315,6 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Install Python packages
-		// Here's the update for installPython code path
 		if installPython || installAll {
 			logging.LogInfo("Installing Python packages...")
 

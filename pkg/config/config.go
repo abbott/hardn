@@ -247,7 +247,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 	return "", false
 }
 
-// Additional helper function to use with LoadConfig
+// helper function to use with LoadConfig
 func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	// Start with default config
 	config := DefaultConfig()

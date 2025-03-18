@@ -1,15 +1,12 @@
 package style
 
-// Style provides consistent terminal formatting constants and functions
-// Example usage: fmt.Printf("Important: %s\n", style.Bolded("This is highlighted text", style.Red))
-
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
 
-// MenuOption represents a menu option with a number, title, and description
 type MenuOption struct {
 	Number      int
 	Title       string
@@ -17,7 +14,6 @@ type MenuOption struct {
 	Style       string
 }
 
-// Menu provides a formatted menu display
 type Menu struct {
 	title          string
 	options        []MenuOption
@@ -31,8 +27,6 @@ type Menu struct {
 }
 
 const (
-	// Reset all styles
-
 	Gray01 = "\033[38;5;231m"
 	Gray02 = "\033[38;5;232m"
 	Gray03 = "\033[38;5;233m"
@@ -138,14 +132,10 @@ const (
 	// Common symbols
 	SymAsterisk  = "✱"
 	SymDotTri    = "⛬"
-	SymDotQuad   = "༶"
 	SymInfo      = "ℹ"
 	SymCheckMark = "✓"
 	SymCrossMark = "✗"
-	// SymSpecial   = "◈"
-	// SymSpecial   = "✤"
-	// SymSpecial   = "❖"
-	SymSpecial = "⬗"
+	SymSpecial   = "⬗"
 
 	SymEmDash   = "—"
 	SymEnDash   = "–"
@@ -158,24 +148,26 @@ const (
 	SymArrowRight      = "→"
 	SymPointerRight    = "➤"
 	SymArrowRightThick = "➜"
-	// SymPointerRight = "›"
-	SymDoubleLeft  = "«"
-	SymDoubleRight = "»"
-	SymRightCarrot = "ᐳ"
-	SymGreaterThan = ">"
+	SymDoubleLeft      = "«"
+	SymDoubleRight     = "»"
+	SymRightCarrot     = "❯" // SymRightCarrot = "ᐳ"
+	SymGreaterThan     = ">"
 
 	SymMultiply = "×"
 	SymInfinity = "∞"
 	SymDegree   = "°"
 	SymApprox   = "≈"
 	SymPercent  = "%"
-
-	SymEnabled    = "◎"
+// 233E
+	SymEnabled    = "⛛"
 	SymBolt       = "⌁"
 	SymFlag       = "⚑"
 	SymFlagStripe = "⛿"
-	SymWarning    = "▲"
+	SymWarning    = "⭘"
 	SymStatus     = "▣"
+
+	// SymEnabled    = "⦿" // 233E
+	// SymWarning    = "⟁"
 
 	// Additional constants for layout
 	Indent        = "    "
@@ -183,6 +175,15 @@ const (
 	BulletArrow   = Bold + Dim + SymRightCarrot + Reset + " "
 	BulletSpecial = Bold + SymSpecial + Reset + " "
 )
+
+var UseColors = true
+
+func init() {
+	// Check for NO_COLOR environment variable
+	if os.Getenv("NO_COLOR") != "" {
+		UseColors = false
+	}
+}
 
 // Apply bold style with an optional color
 func Bolded(text string, color ...string) string {
@@ -233,6 +234,9 @@ func Underlined(text string, color ...string) string {
 
 // Colored applies a color to text and resets afterwards
 func Colored(color string, text string) string {
+	if !UseColors {
+		return text
+	}
 	return color + text + Reset
 }
 
@@ -463,8 +467,6 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 			paddingSize = 0 // Prevent negative repeat count
 		}
 
-		// Always add at least one space padding between label and status
-
 		if !padSymbol {
 			paddingSize += 10
 		} else {
@@ -476,16 +478,23 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 
 	symbol = Colored(symbolColor, symbol)
 
+	// Check if the color is a gray value
+	isGrayColor := strings.Contains(statusColor, "Gray")
+
 	if setBold {
 		status = Bolded(status, statusColor)
+	} else if isGrayColor {
+		// For gray colors, apply both Dimmed and Colored
+		status = Dimmed(Colored(statusColor, status))
 	} else {
 		status = Colored(statusColor, status)
 	}
 
-	descripitionStyle := Dimmed(description)
-
+	var descripitionStyle string
 	if darkDescription {
-		descripitionStyle = Dimmed(description, Gray08)
+		descripitionStyle = Dimmed(description, Gray10)
+	} else {
+		descripitionStyle = Dimmed(description)
 	}
 
 	return symbol + symbolPadding + label + padding + status + " " + descripitionStyle
@@ -515,22 +524,27 @@ func (sf *StatusFormatter) FormatBullet(label string, status string, description
 	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, opts...)
 }
 
-// FormatSuccess creates a success status line
+// success status
 func (sf *StatusFormatter) FormatSuccess(label string, status string, description string, opts ...string) string {
 	return sf.FormatLine(SymEnabled, Green, label, status, Green, description, opts...)
 }
 
-// FormatError creates an error status line
+// Format Configured
+func (sf *StatusFormatter) FormatConfigured(label string, status string, description string, opts ...string) string {
+	symbol := Dimmed(SymEnabled)
+	return sf.FormatLine(symbol, Green, label, status, Green, description, opts...)
+}
+
 func (sf *StatusFormatter) FormatCheck(label string, status string, description string, opts ...string) string {
 	return sf.FormatEmLine(SymCheckMark, label, status, BrightRed, description, "bold")
 }
 
-// FormatError creates an error status line
+// error status
 func (sf *StatusFormatter) FormatError(label string, status string, description string, opts ...string) string {
 	return sf.FormatLine(SymCrossMark, BrightRed, label, status, BrightRed, description, opts...)
 }
 
-// FormatWarning creates a warning status line
+// warning status
 func (sf *StatusFormatter) FormatWarning(label string, status string, description string, opts ...string) string {
 	return sf.FormatLine(SymWarning, Red, label, status, Red, description, opts...)
 }
@@ -741,6 +755,8 @@ func (m *Menu) Render() string {
 
 		// Create formatter for dry run status
 		formatter := NewStatusFormatter([]string{dryRunLabel}, 2)
+
+		dryRunLabel = Dimmed(dryRunLabel)
 
 		// Use FormatLine to format the dry run status
 		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, dryRunLabel, dryRunStatus, dryRunColorFn, "", "no-indent", "no-spacing")

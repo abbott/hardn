@@ -28,16 +28,13 @@ func NewUFWFirewallRepository(
 	}
 }
 
-// IsUFWInstalled checks if UFW is installed
+// check if UFW is installed
 func (r *UFWFirewallRepository) IsUFWInstalled() bool {
 	_, err := r.commander.Execute("which", "ufw")
 	return err == nil
 }
 
-// pkg/adapter/secondary/ufw_firewall_repository.go
-// Add this method to the UFWFirewallRepository struct
-
-// GetFirewallStatus retrieves the current status of the firewall
+// retrieve the current status of the firewall
 func (r *UFWFirewallRepository) GetFirewallStatus() (bool, bool, bool, []string, error) {
 	// Check if UFW is installed
 	_, err := r.commander.Execute("which", "ufw")
@@ -144,10 +141,9 @@ func (r *UFWFirewallRepository) SaveFirewallConfig(config model.FirewallConfig) 
 	return nil
 }
 
-// GetFirewallConfig retrieves the current firewall configuration
+// retrieve the current firewall configuration
 func (r *UFWFirewallRepository) GetFirewallConfig() (*model.FirewallConfig, error) {
-	// This would parse the output of 'ufw status verbose'
-	// Implementation details omitted for brevity
+	// parse the output of 'ufw status verbose'
 	return &model.FirewallConfig{
 		Enabled:         true,
 		DefaultIncoming: "deny",

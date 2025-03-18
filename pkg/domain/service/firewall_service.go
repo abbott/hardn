@@ -12,26 +12,26 @@ type FirewallService interface {
 	// ConfigureFirewall applies the firewall configuration
 	ConfigureFirewall(config model.FirewallConfig) error
 
-	// AddRule adds a firewall rule
+	// add a firewall rule
 	AddRule(rule model.FirewallRule) error
 
-	// RemoveRule removes a firewall rule
+	// remove a firewall rule
 	RemoveRule(rule model.FirewallRule) error
 
-	// AddProfile adds a firewall application profile
+	// Add a firewall application profile
 	AddProfile(profile model.FirewallProfile) error
 
-	// GetCurrentConfig retrieves the current firewall configuration
+	// retrieve the current firewall configuration
 	GetCurrentConfig() (*model.FirewallConfig, error)
 
-	// EnableFirewall enables the firewall
+	// enable the firewall
 	EnableFirewall() error
 
-	// DisableFirewall disables the firewall
+	// disable the firewall
 	DisableFirewall() error
 }
 
-// FirewallServiceImpl implements FirewallService
+// implement FirewallService
 type FirewallServiceImpl struct {
 	repository FirewallRepository
 	osInfo     model.OSInfo

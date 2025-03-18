@@ -107,7 +107,7 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 		return result
 	}
 
-	// Add User-Agent header to be a good API citizen
+	// Add User-Agent header
 	req.Header.Set("User-Agent", "hardn-version-checker")
 
 	if debug {

@@ -14,6 +14,6 @@ type SSHRepository interface {
 	// DisableRootAccess disables SSH access for the root user
 	DisableRootAccess() error
 
-	// AddAuthorizedKey adds an SSH public key to a user's authorized_keys
+	// add an SSH public key to a user's authorized_keys
 	AddAuthorizedKey(username string, publicKey string) error
 }
