@@ -8,7 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/status"
+	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/version"
@@ -152,7 +152,7 @@ func (m *MainMenu) SetTestSecurityUpdate(details string) {
 }
 
 // displaySecurityStatus displays the security status with appropriate borders
-func (m *MainMenu) displaySecurityStatus(securityStatus *status.SecurityStatus, formatter *style.StatusFormatter) {
+func (m *MainMenu) displaySecurityStatus(securityStatus *security.SecurityStatus, formatter *style.StatusFormatter) {
 	// If security update is available, display special alert and return
 	if m.securityUpdateAvailable && m.versionService != nil && m.versionService.CurrentVersion != "" {
 		m.displaySecurityUpdateAlert(formatter)
@@ -211,7 +211,7 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 }
 
 // displayNormalSecurityStatus displays the normal security status in a box
-func (m *MainMenu) displayNormalSecurityStatus(securityStatus *status.SecurityStatus, formatter *style.StatusFormatter) {
+func (m *MainMenu) displayNormalSecurityStatus(securityStatus *security.SecurityStatus, formatter *style.StatusFormatter) {
 	// Format hardn version line with update info if available
 	hardnLine := m.formatHardnVersionLine(formatter)
 
@@ -265,7 +265,7 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *status.SecuritySt
 			indentedPrintLine := style.IndentPrinter(printLine, indentSpaces)
 
 			// Display risk level with appropriate color
-			riskLevel, riskDescription, riskColor := status.GetSecurityRiskLevel(securityStatus)
+			riskLevel, riskDescription, riskColor := security.GetSecurityRiskLevel(securityStatus)
 			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
 			riskDescription = style.SymApprox + " " + riskDescription
 			riskLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "dark")
@@ -277,7 +277,7 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *status.SecuritySt
 			indentedPrintLine("")
 
 			// Display security status items using the same indentation
-			status.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, indentedPrintLine, 0)
+			security.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, indentedPrintLine, 0)
 		}
 	})
 }
@@ -392,7 +392,7 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		utils.ClearScreen()
 
 		// Get security status
-		securityStatus, err := status.CheckSecurityStatus(m.config, m.osInfo)
+		securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo)
 
 		// Create formatter for security status
 		formatter := style.NewStatusFormatter([]string{
@@ -454,7 +454,7 @@ func (m *MainMenu) createMainMenu() *style.Menu {
 		{Number: 8, Title: "Package Sources", Description: "Configure package source"},
 		{Number: 9, Title: "Backup", Description: "Configure backup settings"},
 		{Number: 10, Title: "Environment", Description: "Configure environment variable"},
-		{Number: 11, Title: "Host Info", Description: "View detailed system information"},
+		{Number: 11, Title: "System Details", Description: "View detailed system information"},
 		{Number: 12, Title: "Logs", Description: "View log file"},
 	}
 
@@ -521,8 +521,8 @@ func (m *MainMenu) handleMenuChoice(choice string) {
 		envMenu.Show()
 
 	case "11": // Host Info
-		hostInfoMenu := NewHostInfoMenu(m.menuManager, m.config, m.osInfo)
-		hostInfoMenu.Show()
+		systemDetailsMenu := NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
+		systemDetailsMenu.Show()
 
 	case "12": // Logs
 		logsMenu := NewLogsMenu(m.menuManager, m.config)

@@ -11,14 +11,13 @@ import (
 	"github.com/abbott/hardn/pkg/port/secondary"
 )
 
-// OSUserRepository implements UserRepository using OS operations
 type OSUserRepository struct {
 	fs        interfaces.FileSystem
 	commander interfaces.Commander
-	osType    string // e.g., "alpine", "debian", etc.
+	osType    string
 }
 
-// NewOSUserRepository creates a new OSUserRepository
+// create a new OSUserRepository
 func NewOSUserRepository(
 	fs interfaces.FileSystem,
 	commander interfaces.Commander,
@@ -31,7 +30,7 @@ func NewOSUserRepository(
 	}
 }
 
-// UserExists checks if a user exists
+// check if a user exists
 func (r *OSUserRepository) UserExists(username string) (bool, error) {
 	_, err := r.commander.Execute("id", username)
 	if err != nil {
@@ -41,7 +40,7 @@ func (r *OSUserRepository) UserExists(username string) (bool, error) {
 	return true, nil
 }
 
-// CreateUser creates a new system user
+// Create a new system user
 func (r *OSUserRepository) CreateUser(user model.User) error {
 	// Check if user already exists
 	exists, err := r.UserExists(user.Username)
@@ -182,7 +181,7 @@ func (r *OSUserRepository) AddSSHKey(username, publicKey string) error {
 	return nil
 }
 
-// ConfigureSudo configures sudo access for a user
+// Configure sudo access for a user
 func (r *OSUserRepository) ConfigureSudo(username string, noPassword bool) error {
 	// Create sudoers directory if needed
 	sudoersDir := "/etc/sudoers.d"

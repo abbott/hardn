@@ -211,3 +211,8 @@ func (m *MenuManager) FormatUptime(uptime time.Duration) string {
 func (m *MenuManager) FormatBytes(bytes int64) string {
 	return m.hostInfoManager.FormatBytes(bytes)
 }
+
+// GetHostInfoManager returns the host info manager
+func (m *MenuManager) GetHostInfoManager() *HostInfoManager {
+	return m.hostInfoManager
+}

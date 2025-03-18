@@ -158,7 +158,7 @@ const (
 	SymDegree   = "°"
 	SymApprox   = "≈"
 	SymPercent  = "%"
-// 233E
+	// 233E
 	SymEnabled    = "⛛"
 	SymBolt       = "⌁"
 	SymFlag       = "⚑"

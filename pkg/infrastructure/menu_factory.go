@@ -47,10 +47,11 @@ func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 	return menu.NewHelpMenu()
 }
 
-// CreateHostInfoMenu creates a HostInfoMenu with all dependencies wired up
-func (f *MenuFactory) CreateHostInfoMenu() *menu.HostInfoMenu {
-	menuManager := f.serviceFactory.CreateMenuManager()
-	return menu.NewHostInfoMenu(menuManager, f.config, f.osInfo)
+// CreateSystemDetailsMenu creates a SystemDetailsMenu with all dependencies wired up
+func (f *MenuFactory) CreateSystemDetailsMenu() *menu.SystemDetailsMenu {
+	// Get the host info manager from the service factory
+	hostInfoManager := f.serviceFactory.CreateHostInfoManager()
+	return menu.NewSystemDetailsMenu(f.config, f.osInfo, hostInfoManager)
 }
 
 // CreateMainMenu creates the main menu with all dependencies wired up

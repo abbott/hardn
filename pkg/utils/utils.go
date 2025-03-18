@@ -18,6 +18,10 @@ func PrintPounds() {
 	fmt.Print(style.Colored(style.Green, "#######################################################################"))
 }
 
+func PrintTilda() {
+	fmt.Print(style.Colored(style.Green, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"))
+}
+
 func ClearScreen() {
 	fmt.Print("\033[H\033[2J")
 }
@@ -28,7 +32,8 @@ func PrintHeader() {
 	ClearScreen()
 
 	// Print header without an extra newline
-	PrintPounds()
+	PrintTilda()
+	// PrintPounds()
 	fmt.Println()
 }
 
@@ -128,7 +133,7 @@ func CheckSubnet(subnet string, networkOps interfaces.NetworkOperations) (bool, 
 	return networkOps.CheckSubnet(subnet)
 }
 
-//  create a .hushlogin file in the home directory
+// create a .hushlogin file in the home directory
 func SetupHushlogin(cfg *config.Config) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Write ~/.hushlogin")

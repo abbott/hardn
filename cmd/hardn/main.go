@@ -19,11 +19,11 @@ import (
 	"github.com/abbott/hardn/pkg/version"
 )
 
-// Version information - populated by build flags
+// Populated by build flags
 var (
-	Version   string // Semantic version
-	BuildDate string // Build date in ISO format
-	GitCommit string // Git commit hash
+	Version   string
+	BuildDate string
+	GitCommit string
 )
 
 var (
@@ -53,7 +53,6 @@ var (
 var provider = interfaces.NewProvider()
 
 func main() {
-	// Init utils
 	logging.InitLogging("/var/log/hardn.log")
 
 	// Ensure config directory and example config exist
@@ -77,15 +76,13 @@ func init() {
 	// 	logging.LogInfo("Current version :::: : %s", rootCmd.Version)
 	// }
 
-	// Setup color processing before command execution but after flag parsing
+	// Setup color processing before command execution
 	cobra.OnInitialize(initializeColor)
 
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "",
-		"Specify configuration file path")
-
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	rootCmd.AddCommand(cmd.HostInfoCmd())
+	rootCmd.AddCommand(cmd.SystemDetailsCmd())
 
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
 	rootCmd.PersistentFlags().BoolVarP(&disableRoot, "disable-root", "d", false, "Disable root SSH access")
