@@ -39,109 +39,6 @@ sshKeys:                          # SSH public keys to add for created users
   # Add more keys as needed
 
 #################################################
-# Package Configuration
-#################################################
-# Debian/Ubuntu Packages
-
-# linuxCorePackages: []         
-linuxCorePackages:                # Always installed packages
-  - "apt-transport-https"
-  - "dstat"
-  - "gawk"
-  - "git"
-  - "jq"
-  - "htop"
-  - "iputils-clockdiff"
-  - "sed"
-  - "strace"
-  - "sudo"
-  - "sysstat"
-
-linuxDmzPackages:                 # Packages for DMZ environments 
-  - "dnsutils"
-  - "fail2ban"
-  - "nethogs"
-
-linuxLabPackages:                 # Additional packages for non-DMZ environments
-  - "aria2"
-  - "arping"
-  - "fping"
-  - "iperf3"
-  - "mosh"
-  - "net-tools"
-  - "tree"
-
-# Python packages (Debian/Ubuntu)
-pythonPackages:                   # System python packages
-  - "python3-dev"
-  - "python3-pip"
-
-nonWslPythonPackages:             # Python packages not for WSL environments
-  - "build-essential"
-
-pythonPipPackages:                # Python packages to install via pip
-  - "pytest"
-  - "requests"
-
-# Alpine Packages
-alpineCorePackages:               # Core Alpine packages
-  - "bash"
-  - "openssh"
-  - "shadow"
-  - "sudo"
-  - "ca-certificates"
-
-alpineDmzPackages:                # Alpine packages for DMZ environments
-  - "bind-tools"
-  - "fail2ban"
-  - "git"
-  - "htop"
-  - "jq"
-  - "sudo"
-
-alpineLabPackages:                # Additional Alpine packages for non-DMZ environments
-  - "iperf3"
-  - "mosh"
-  - "net-tools"
-  - "tree"
-
-alpinePythonPackages:             # Alpine Python packages
-  - "python3-dev"
-  - "py3-pip"
-
-#################################################
-# Repository Configuration
-#################################################
-# Replace CODENAME with the OS codename (e.g., bullseye, focal)
-debianRepos:                      # Debian/Ubuntu repositories
-  - "deb http://deb.debian.org/debian CODENAME main contrib non-free"
-  - "deb http://security.debian.org/debian-security CODENAME-security main contrib non-free"
-  - "deb http://deb.debian.org/debian CODENAME-updates main contrib non-free"
-
-# Proxmox specific repositories
-proxmoxSrcRepos:                  # Proxmox source repositories
-  - "deb http://ftp.us.debian.org/debian CODENAME main contrib"
-  - "deb http://ftp.us.debian.org/debian CODENAME-updates main contrib"
-  - "deb http://security.debian.org CODENAME-security main contrib"
-  - "deb http://download.proxmox.com/debian/pve CODENAME pve-no-subscription"
-
-proxmoxCephRepo:                  # Proxmox Ceph repository
-  - "#deb https://enterprise.proxmox.com/debian/ceph-quincy CODENAME enterprise"
-  - "deb http://download.proxmox.com/debian/ceph-reef CODENAME no-subscription"
-
-proxmoxEnterpriseRepo:            # Proxmox Enterprise repository
-  - "#deb https://enterprise.proxmox.com/debian/pve CODENAME pve-enterprise"
-
-proxmoxPackagePatterns:           # Package patterns to protect during operations
-  - "proxmox-archive-keyring"
-  - "proxmox-backup-client"
-  - "proxmox-ve"
-  - "pve-kernel"
-
-# Alpine specific configuration
-alpineTestingRepo: false          # Whether to enable Alpine testing repository
-
-#################################################
 # Firewall Configuration
 #################################################
 # UFW application profiles - these will be written to /etc/ufw/applications.d/hardn
@@ -155,10 +52,8 @@ ufwAppProfiles:
 #################################################
 # Feature Toggles
 #################################################
-useUvPackageManager: false        # Use UV instead of pip for Python packages
 enableAppArmor: false             # Set up and enable AppArmor
 enableLynis: false                # Install and run Lynis security audit
-enableUnattendedUpgrades: false   # Configure automatic security updates
 enableUfwSshPolicy: false         # Configure UFW with SSH rules
 configureDns: false               # Configure DNS settings
 disableRoot: false                # Disable root SSH access
@@ -170,4 +65,3 @@ lang: "en_US.UTF-8"               # System locale
 language: "en_US:en"              # System language
 lcAll: "en_US.UTF-8"              # Locale for all categories
 tz: "America/New_York"            # Timezone
-pythonUnbuffered: "1"             # Python unbuffered mode

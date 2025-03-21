@@ -39,10 +39,8 @@ If you are one of the following, **refrain from deploying this tool in the publi
 | User Management               | Create non-root users w/sudo access                          |
 | Firewall Configuration               | UFW setup w/secure defaults                          |
 | DNS Configuration               | Secure DNS setup with specific resolvers                          |
-| Automated Updates               | Configures unattended security updates                          |
 | System Auditing               | Install Lynis for comprehensive analysis                          |
 | Application Control               | Install AppArmor for application restrictions                          |
-| Preferred Packages               | Specify Linux packages in batches                         |
 | Backup System               | Automatic backup of modified configuration files                          |
 | Interactive Menu               | User-friendly interface for system hardening                          |
 | Dry-Run Mode               | Preview changes without applying them                          |
@@ -53,10 +51,8 @@ If you are one of the following, **refrain from deploying this tool in the publi
 - **User Management**: Create non-root users with sudo access
 - **Firewall Configuration**: UFW setup with sensible defaults
 - **DNS Configuration**: Secure DNS setup with specific resolvers
-- **Automated Updates**: Configures unattended security updates
 - **System Auditing**: Install Lynis for comprehensive analysis
 - **Application Control**: Install AppArmor for application restrictions
-- **Preferred Packages**: Specify packages for Linux and Python
 - **Backup System**: Automatic backup of modified configuration files
 - **Interactive Menu**: User-friendly interface for system hardening
 - **Dry-Run Mode**: Preview changes without applying them
@@ -158,9 +154,6 @@ sudo hardn
 | UFW (configure)             | `-w, --configure-ufw`     | Configure firewall with SSH rules                                 |
 | Run all (execute)             | `-r, --run-all`     | Run all hardening operations                                     |
 | Dry run (mode)              | `-n, --dry-run`     | Preview changes without applying them                          |
-| Linux packages (install)    | `-l, --install-linux`     | Install specified Linux packages                                     |
-| All packages (install)     | `-a, --install-all`     | Install all specified packages                                           |
-| Sources (configure)           | `-s, --configure-sources`     | Configure package sources                               |
 | Logs (print)               | `-p, --print-logs`     | View logs                                          |
 | Version (print)             | `-v --version`     | View version                                         |
 | Help (print)             | `-h, --help`     | View usage information                                         |
@@ -174,9 +167,6 @@ sudo hardn -r
 
 # Create a non-root user w/SSH access
 sudo hardn -u george -c
-
-# Install linux packages
-sudo hardn -l
 
 # Configure firewall
 sudo hardn -w
@@ -319,7 +309,7 @@ A successful verification confirms the binary was built by GitHub Actions from t
 
 ## 🤝 Contributing
 
-Please review the [Contributing Guide](docs/contributing.md) prior to submitting a pull request.
+Please review the [Contributing Guide](docs/CONTRIBUTING.md) prior to submitting a pull request.
 
 ## Issue Reporting
 

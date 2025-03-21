@@ -86,12 +86,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
 	rootCmd.PersistentFlags().BoolVarP(&disableRoot, "disable-root", "d", false, "Disable root SSH access")
-	rootCmd.PersistentFlags().BoolVarP(&installLinux, "install-linux", "l", false, "Install Linux packages")
-	rootCmd.PersistentFlags().BoolVarP(&installPython, "install-python", "i", false, "Install Python packages")
-	rootCmd.PersistentFlags().BoolVarP(&installAll, "install-all", "a", false, "Install all packages")
+	// rootCmd.PersistentFlags().BoolVarP(&installLinux, "install-linux", "l", false, "Install Linux packages")
+	// rootCmd.PersistentFlags().BoolVarP(&installPython, "install-python", "i", false, "Install Python packages")
+	// rootCmd.PersistentFlags().BoolVarP(&installAll, "install-all", "a", false, "Install all packages")
 	rootCmd.PersistentFlags().BoolVarP(&configureDns, "configure-dns", "g", false, "Configure DNS resolvers")
 	rootCmd.PersistentFlags().BoolVarP(&configureUfw, "configure-ufw", "w", false, "Configure UFW")
-	rootCmd.PersistentFlags().BoolVarP(&updateSources, "configure-sources", "s", false, "Update package sources")
+	// rootCmd.PersistentFlags().BoolVarP(&updateSources, "configure-sources", "s", false, "Update package sources")
 	rootCmd.PersistentFlags().BoolVarP(&runAll, "run-all", "r", false, "Run all hardening steps")
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
@@ -226,21 +226,21 @@ var rootCmd = &cobra.Command{
 
 			// Create a comprehensive hardening configuration
 			hardeningConfig := &model.HardeningConfig{
-				CreateUser:               cfg.Username != "",
-				Username:                 cfg.Username,
-				SudoNoPassword:           cfg.SudoNoPassword,
-				SshKeys:                  cfg.SshKeys,
-				SshPort:                  cfg.SshPort,
-				SshListenAddresses:       []string{cfg.SshListenAddress},
-				SshAllowedUsers:          cfg.SshAllowedUsers,
-				EnableFirewall:           cfg.EnableUfwSshPolicy,
-				AllowedPorts:             []int{},
-				FirewallProfiles:         []model.FirewallProfile{},
-				ConfigureDns:             cfg.ConfigureDns,
-				Nameservers:              cfg.Nameservers,
-				EnableAppArmor:           cfg.EnableAppArmor,
-				EnableLynis:              cfg.EnableLynis,
-				EnableUnattendedUpgrades: cfg.EnableUnattendedUpgrades,
+				CreateUser:         cfg.Username != "",
+				Username:           cfg.Username,
+				SudoNoPassword:     cfg.SudoNoPassword,
+				SshKeys:            cfg.SshKeys,
+				SshPort:            cfg.SshPort,
+				SshListenAddresses: []string{cfg.SshListenAddress},
+				SshAllowedUsers:    cfg.SshAllowedUsers,
+				EnableFirewall:     cfg.EnableUfwSshPolicy,
+				AllowedPorts:       []int{},
+				FirewallProfiles:   []model.FirewallProfile{},
+				ConfigureDns:       cfg.ConfigureDns,
+				Nameservers:        cfg.Nameservers,
+				EnableAppArmor:     cfg.EnableAppArmor,
+				EnableLynis:        cfg.EnableLynis,
+				// EnableUnattendedUpgrades: cfg.EnableUnattendedUpgrades,
 			}
 
 			// Run all hardening steps

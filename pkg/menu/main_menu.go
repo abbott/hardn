@@ -447,18 +447,18 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 func (m *MainMenu) createMainMenu() *style.Menu {
 	// Create menu options
 	menuOptions := []style.MenuOption{
-		{Number: 1, Title: "Sudo User", Description: "Create non-root sudo user"},
-		{Number: 2, Title: "Root SSH", Description: "Disable SSH access for root user"},
-		{Number: 3, Title: "DNS", Description: "Configure DNS settings"},
+		{Number: 1, Title: "User Management", Description: "Create, Configure (sudo, SSH keys)"},
+		{Number: 2, Title: "SSH Login", Description: "Toggle SSH root access"},
+		{Number: 3, Title: "DNS", Description: "Configure Nameservers"},
 		{Number: 4, Title: "Firewall", Description: "Configure UFW rules"},
-		{Number: 5, Title: "Run All", Description: "Run all hardening operations"},
+		{Number: 5, Title: "Backup", Description: "Configure Hardn backup settings"},
 		{Number: 6, Title: "Dry-Run", Description: "Simulate changes"},
-		{Number: 7, Title: "Linux Packages", Description: "Install specified Linux packages"},
-		{Number: 8, Title: "Package Sources", Description: "Configure package source"},
-		{Number: 9, Title: "Backup", Description: "Configure backup settings"},
-		{Number: 10, Title: "Environment", Description: "Configure environment variable"},
-		{Number: 11, Title: "System Details", Description: "View detailed system information"},
-		{Number: 12, Title: "Logs", Description: "View log file"},
+		{Number: 7, Title: "Run All", Description: "Execute hardening operations"},
+		// {Number: 7, Title: "Linux Packages", Description: "Install specified Linux packages"},
+		// {Number: 8, Title: "Package Sources", Description: "Configure package source"},
+		{Number: 8, Title: "Environment", Description: "Configure environment variable"},
+		{Number: 9, Title: "System Details", Description: "View system information"},
+		{Number: 10, Title: "Logs", Description: "View log file"},
 	}
 
 	// Create and customize menu
@@ -474,7 +474,7 @@ func (m *MainMenu) createMainMenu() *style.Menu {
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
 		Title:       "Exit",
-		Description: "Tip: Press 'q' to exit immediately",
+		Description: "Press 'q' to exit immediately",
 	})
 
 	return menu
@@ -499,35 +499,35 @@ func (m *MainMenu) handleMenuChoice(choice string) bool {
 		firewallMenu := NewFirewallMenu(m.menuManager, m.config, m.osInfo)
 		firewallMenu.Show()
 
-	case "5": // Run All
-		runAllHandler := NewRunAllHandler(m.menuManager, m.config, m.osInfo)
-		runAllHandler.Handle()
+	case "5": // Backup
+		backupMenu := NewBackupMenu(m.menuManager, m.config)
+		backupMenu.Show()
 
 	case "6": // Dry-Run
 		dryRunHandler := NewDryRunHandler(m.menuManager, m.config)
 		dryRunHandler.Handle()
 
-	case "7": // Linux Packages
-		linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
-		linuxMenu.Show()
+	case "7": // Run All
+		runAllHandler := NewRunAllHandler(m.menuManager, m.config, m.osInfo)
+		runAllHandler.Handle()
 
-	case "8": // Package Sources
-		sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
-		sourcesMenu.Show()
+	// case "7": // Linux Packages
+	// 	linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
+	// 	linuxMenu.Show()
 
-	case "9": // Backup
-		backupMenu := NewBackupMenu(m.menuManager, m.config)
-		backupMenu.Show()
+	// case "8": // Package Sources
+	// 	sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
+	// 	sourcesMenu.Show()
 
-	case "10": // Environment
+	case "8": // Environment
 		envMenu := NewEnvironmentSettingsMenu(m.menuManager, m.config)
 		envMenu.Show()
 
-	case "11": // Host Info
+	case "9": // Host Info
 		systemDetailsMenu := NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
 		systemDetailsMenu.Show()
 
-	case "12": // Logs
+	case "10": // Logs
 		logsMenu := NewLogsMenu(m.menuManager, m.config)
 		logsMenu.Show()
 
