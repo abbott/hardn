@@ -9,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/domain/service"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
+	portsecondary "github.com/abbott/hardn/pkg/port/secondary"
 )
 
 // ServiceFactory creates and wires application components
@@ -16,6 +17,8 @@ type ServiceFactory struct {
 	provider *interfaces.Provider
 	osInfo   *osdetect.OSInfo
 	config   *config.Config
+	// Cache for repositories to avoid creating multiple instances
+	userRepository portsecondary.UserRepository
 }
 
 // NewServiceFactory creates a new ServiceFactory
@@ -31,13 +34,24 @@ func (f *ServiceFactory) SetConfig(config *config.Config) {
 	f.config = config
 }
 
+// getUserRepository returns or creates a UserRepository
+func (f *ServiceFactory) getUserRepository() portsecondary.UserRepository {
+	if f.userRepository == nil {
+		f.userRepository = secondary.NewOSUserRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
+	}
+	return f.userRepository
+}
+
 // CreateHostInfoManager creates a HostInfoManager
 func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
-	// Create repository
-	hostInfoRepo := secondary.NewOSHostInfoRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
+	// Get the shared user repository
+	userRepo := f.getUserRepository()
+
+	// Create host info repository with user repository dependency
+	hostInfoRepo := secondary.NewOSHostInfoRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType, userRepo)
 
 	// Create domain service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, convertOSInfo(f.osInfo))
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, convertOSInfo(f.osInfo))
 
 	// Create application service
 	return application.NewHostInfoManager(hostInfoService)
@@ -45,8 +59,8 @@ func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
 
 // CreateUserManager creates a UserManager with all required dependencies
 func (f *ServiceFactory) CreateUserManager() *application.UserManager {
-	// Create repository
-	userRepo := secondary.NewOSUserRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
+	// Get the shared user repository
+	userRepo := f.getUserRepository()
 
 	// Create domain service
 	userService := service.NewUserServiceImpl(userRepo)

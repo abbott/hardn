@@ -27,7 +27,7 @@ var (
 // SystemDetailsCmd returns the system command
 func SystemDetailsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "details",
+		Use:   "system-details",
 		Short: "Display detailed system summary",
 		Long:  `Generate and display a comprehensive system summary including CPU, memory, disk and network information with a focus on ZFS-based systems.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,11 +69,14 @@ func runSystemDetails() error {
 		outputFormat = "yaml"
 	}
 
+	// Create user repository first
+	userRepo := secondary.NewOSUserRepository(provider.FS, provider.Commander, osInfo.OsType)
+
 	// Create host info repository
-	hostInfoRepo := secondary.NewOSHostInfoRepository(provider.FS, provider.Commander, osInfo.OsType)
+	hostInfoRepo := secondary.NewOSHostInfoRepository(provider.FS, provider.Commander, osInfo.OsType, userRepo)
 
 	// Create domain service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, model.OSInfo{
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, model.OSInfo{
 		Type:      osInfo.OsType,
 		Version:   osInfo.OsVersion,
 		Codename:  osInfo.OsCodename,

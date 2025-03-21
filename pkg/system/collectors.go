@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -501,36 +500,29 @@ func (m *SystemDetails) collectLoginInfo() error {
 		return err
 	}
 
-	// Try to get last login information using lastlog
-	cmd := exec.Command("lastlog", "-u", currentUser.Username)
-	output, err := cmd.Output()
+	// Use the UserLoginPort to get login information
+	lastLoginTime, ipAddress, err := m.userLoginPort.GetLastLoginInfo(currentUser.Username)
 	if err != nil {
 		return nil // Not critical, continue without last login info
 	}
 
-	// Parse lastlog output
-	lines := strings.Split(string(output), "\n")
-	if len(lines) >= 2 {
-		fields := strings.Fields(lines[1])
-		if len(fields) >= 3 {
-			// Check if the third field looks like an IP address
-			ipPattern := regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+$`)
-			if ipPattern.MatchString(fields[2]) {
-				m.LastLoginIP = fields[2]
-				m.LastLoginPresent = true
-				// Format depends on whether an IP is present
-				if len(fields) >= 9 {
-					m.LastLoginTime = strings.Join([]string{fields[5], fields[6], fields[9], fields[7]}, " ")
-				}
-			} else {
-				// No IP in the output
-				if len(fields) >= 7 {
-					m.LastLoginTime = strings.Join([]string{fields[3], fields[4], fields[7], fields[5]}, " ")
-				} else {
-					m.LastLoginTime = "Never logged in"
-				}
-			}
+	// Check if we got a valid login time
+	if !lastLoginTime.IsZero() {
+		m.LastLoginPresent = true
+		// Convert to local timezone first
+		localTime := lastLoginTime.Local()
+		m.LastLoginTime = localTime.Format("Jan 2 15:04:05 -0700")
+
+		// Set IP address if available
+		if ipAddress != "" {
+			m.LastLoginIP = ipAddress
+		} else {
+			m.LastLoginIP = "Unknown"
 		}
+	} else {
+		m.LastLoginTime = "Never logged in"
+		m.LastLoginIP = ""
+		m.LastLoginPresent = false
 	}
 
 	return nil

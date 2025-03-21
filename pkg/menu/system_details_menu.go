@@ -8,8 +8,8 @@ import (
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/system" // Import our new status package
 	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/system"
 	"github.com/abbott/hardn/pkg/utils"
 )
 
@@ -35,8 +35,7 @@ func NewSystemDetailsMenu(
 
 // Show displays the host information menu and handles user input
 func (m *SystemDetailsMenu) Show() {
-	utils.PrintHeader()
-	fmt.Println(style.Bolded("Machine Status", style.Blue))
+	utils.ClearScreen()
 
 	// Get detailed system information using our enhanced status package
 	systemInfo, err := system.GenerateSystemStatus(m.hostInfoManager)
@@ -50,8 +49,8 @@ func (m *SystemDetailsMenu) Show() {
 			BorderColor:    style.Red,
 			ShowEmptyRow:   true,
 			ShowTopBorder:  true,
-			ShowLeftBorder: true,
-			Title:          "MACHINE STATUS ERROR",
+			ShowLeftBorder: false,
+			Title:          "System Details Error",
 			TitleColor:     style.BrightRed,
 		}
 

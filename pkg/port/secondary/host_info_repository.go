@@ -22,12 +22,6 @@ type HostInfoRepository interface {
 	// Returns hostname, domain, error
 	GetHostname() (string, string, error)
 
-	// GetNonSystemUsers retrieves non-system users on the system
-	GetNonSystemUsers() ([]model.User, error)
-
-	// GetNonSystemGroups retrieves non-system groups on the system
-	GetNonSystemGroups() ([]string, error)
-
 	// GetUptime retrieves the system uptime
 	GetUptime() (time.Duration, error)
 }

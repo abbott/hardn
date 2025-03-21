@@ -9,4 +9,11 @@ type UserRepository interface {
 	AddSSHKey(username, publicKey string) error
 	ConfigureSudo(username string, noPassword bool) error
 	UserExists(username string) (bool, error)
+	GetExtendedUserInfo(username string) (*model.User, error)
+
+	// GetNonSystemUsers retrieves non-system users on the system
+	GetNonSystemUsers() ([]model.User, error)
+
+	// GetNonSystemGroups retrieves non-system groups on the system
+	GetNonSystemGroups() ([]string, error)
 }

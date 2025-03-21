@@ -34,3 +34,8 @@ func (m *UserManager) CreateUser(username string, hasSudo bool, sudoNoPassword b
 func (m *UserManager) AddSSHKey(username string, publicKey string) error {
 	return m.userService.AddSSHKey(username, publicKey)
 }
+
+// GetExtendedUserInfo retrieves comprehensive information about a user
+func (m *UserManager) GetExtendedUserInfo(username string) (*model.User, error) {
+	return m.userService.GetExtendedUserInfo(username)
+}

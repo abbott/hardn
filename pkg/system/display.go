@@ -30,19 +30,17 @@ func (m *SystemDetails) generateGraphs() {
 func DisplayMachineStatus(info *SystemDetails) {
 	boxConfig := style.BoxConfig{
 		Width:          50,
-		BorderColor:    style.Cyan,
-		ShowEmptyRow:   false,
+		ShowEmptyRow:   true,
 		ShowTopBorder:  true,
-		ShowLeftBorder: true,
+		ShowLeftBorder: false,
 		Title:          "System Details",
-		TitleColor:     style.BrightCyan,
+		TitleColor:     style.Bold,
 	}
 
 	box := style.NewBox(boxConfig)
 
 	box.DrawBox(func(printLine func(string)) {
 		// operating system
-		printLine("")
 		printLine(fmt.Sprintf("OS: %s %s", info.OSName, info.OSVersion))
 		printLine(fmt.Sprintf("Kernel: %s", info.Kernel))
 		printLine("")

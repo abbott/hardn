@@ -9,6 +9,7 @@ type UserService interface {
 	GetUser(username string) (*model.User, error)
 	AddSSHKey(username, publicKey string) error
 	ConfigureSudo(username string, noPassword bool) error
+	GetExtendedUserInfo(username string) (*model.User, error)
 }
 
 // UserServiceImpl implements UserService
@@ -29,6 +30,11 @@ type UserRepository interface {
 	GetUser(username string) (*model.User, error)
 	AddSSHKey(username, publicKey string) error
 	ConfigureSudo(username string, noPassword bool) error
+	GetExtendedUserInfo(username string) (*model.User, error)
+
+	// Methods moved from host_info_service.go
+	GetNonSystemUsers() ([]model.User, error)
+	GetNonSystemGroups() ([]string, error)
 }
 
 // Implement UserService methods...
@@ -46,4 +52,8 @@ func (s *UserServiceImpl) AddSSHKey(username, publicKey string) error {
 
 func (s *UserServiceImpl) ConfigureSudo(username string, noPassword bool) error {
 	return s.repository.ConfigureSudo(username, noPassword)
+}
+
+func (s *UserServiceImpl) GetExtendedUserInfo(username string) (*model.User, error) {
+	return s.repository.GetExtendedUserInfo(username)
 }

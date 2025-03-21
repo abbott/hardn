@@ -189,8 +189,7 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 	fmt.Println()
 	fmt.Println("  " + m.securityUpdateDetails)
 
-	fmt.Printf("  %s\n",
-		style.Colored(style.Royal, m.updateURL))
+	fmt.Printf("  %s\n", style.Colored(style.Royal, m.updateURL))
 	fmt.Println()
 
 	infoFormatter := style.NewStatusFormatter([]string{
@@ -436,7 +435,11 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		}
 
 		// Process the menu choice
-		m.handleMenuChoice(choice)
+		exitRequested := m.handleMenuChoice(choice)
+		if exitRequested {
+			utils.ClearScreen()
+			return
+		}
 	}
 }
 
@@ -477,8 +480,8 @@ func (m *MainMenu) createMainMenu() *style.Menu {
 	return menu
 }
 
-// handleMenuChoice processes the user's menu selection
-func (m *MainMenu) handleMenuChoice(choice string) {
+// handleMenuChoice processes the user's menu selection and returns true if the application should exit
+func (m *MainMenu) handleMenuChoice(choice string) bool {
 	switch choice {
 	case "1": // Sudo User
 		userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
@@ -530,7 +533,7 @@ func (m *MainMenu) handleMenuChoice(choice string) {
 
 	case "0": // Exit
 		utils.ClearScreen()
-		return
+		return true
 
 	default:
 		utils.PrintHeader()
@@ -539,4 +542,6 @@ func (m *MainMenu) handleMenuChoice(choice string) {
 		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
 		ReadKey()
 	}
+
+	return false
 }

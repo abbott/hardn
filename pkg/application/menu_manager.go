@@ -197,9 +197,14 @@ func (m *MenuManager) GetNonSystemGroups() ([]string, error) {
 	return m.hostInfoManager.GetNonSystemGroups()
 }
 
-// retrieve the system uptime
+// GetUptime returns the host's uptime
 func (m *MenuManager) GetUptime() (time.Duration, error) {
 	return m.hostInfoManager.GetUptime()
+}
+
+// GetExtendedUserInfo retrieves comprehensive information about a user
+func (m *MenuManager) GetExtendedUserInfo(username string) (*model.User, error) {
+	return m.userManager.GetExtendedUserInfo(username)
 }
 
 // format the uptime in a human-readable format

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,9 +17,10 @@ import (
 
 // OSHostInfoRepository implements HostInfoRepository using OS operations
 type OSHostInfoRepository struct {
-	fs        interfaces.FileSystem
-	commander interfaces.Commander
-	osType    string
+	fs             interfaces.FileSystem
+	commander      interfaces.Commander
+	osType         string
+	userRepository secondary.UserRepository
 }
 
 // NewOSHostInfoRepository creates a new OSHostInfoRepository
@@ -28,11 +28,13 @@ func NewOSHostInfoRepository(
 	fs interfaces.FileSystem,
 	commander interfaces.Commander,
 	osType string,
+	userRepository secondary.UserRepository,
 ) secondary.HostInfoRepository {
 	return &OSHostInfoRepository{
-		fs:        fs,
-		commander: commander,
-		osType:    osType,
+		fs:             fs,
+		commander:      commander,
+		osType:         osType,
+		userRepository: userRepository,
 	}
 }
 
@@ -61,12 +63,12 @@ func (r *OSHostInfoRepository) GetHostInfo() (*model.HostInfo, error) {
 	}
 
 	// Get user information
-	users, err := r.GetNonSystemUsers()
+	users, err := r.userRepository.GetNonSystemUsers()
 	if err == nil {
 		info.Users = users
 	}
 
-	groups, err := r.GetNonSystemGroups()
+	groups, err := r.userRepository.GetNonSystemGroups()
 	if err == nil {
 		info.Groups = groups
 	}
@@ -235,170 +237,6 @@ func (r *OSHostInfoRepository) GetHostname() (string, string, error) {
 	}
 
 	return host, domain, nil
-}
-
-// GetNonSystemUsers retrieves non-system users on the system
-func (r *OSHostInfoRepository) GetNonSystemUsers() ([]model.User, error) {
-	var users []model.User
-
-	// Try to read /etc/passwd
-	data, err := r.fs.ReadFile("/etc/passwd")
-	if err != nil {
-		// Try with command if file can't be read
-		output, cmdErr := r.commander.Execute("cat", "/etc/passwd")
-		if cmdErr != nil {
-			return nil, fmt.Errorf("failed to read user information: %w", err)
-		}
-		data = output
-	}
-
-	// Parse user entries
-	scanner := bufio.NewScanner(strings.NewReader(string(data)))
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Split(line, ":")
-		if len(fields) >= 7 {
-			username := fields[0]
-			uid, err := strconv.Atoi(fields[2])
-			if err != nil {
-				continue
-			}
-
-			// Skip system users (UID < 1000 on most systems)
-			if uid < 1000 {
-				continue
-			}
-
-			// Skip system service users
-			if strings.HasSuffix(fields[6], "/nologin") ||
-				strings.HasSuffix(fields[6], "/false") ||
-				strings.HasSuffix(fields[6], "/null") {
-				continue
-			}
-
-			user := model.User{
-				Username: username,
-			}
-
-			// Check if user has sudo access
-			hasSudo, err := r.checkUserSudo(username)
-			if err == nil {
-				user.HasSudo = hasSudo
-			}
-
-			users = append(users, user)
-		}
-	}
-
-	return users, nil
-}
-
-// checkUserSudo checks if a user has sudo access
-func (r *OSHostInfoRepository) checkUserSudo(username string) (bool, error) {
-	// Check if user is in sudo or wheel group
-	groupData, err := r.fs.ReadFile("/etc/group")
-	if err != nil {
-		// Try command if file can't be read
-		output, cmdErr := r.commander.Execute("cat", "/etc/group")
-		if cmdErr != nil {
-			return false, fmt.Errorf("failed to read group information: %w", err)
-		}
-		groupData = output
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(string(groupData)))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "sudo:") || strings.HasPrefix(line, "wheel:") {
-			fields := strings.Split(line, ":")
-			if len(fields) >= 4 {
-				users := strings.Split(fields[3], ",")
-				for _, user := range users {
-					if user == username {
-						return true, nil
-					}
-				}
-			}
-		}
-	}
-
-	// Check sudoers file
-	sudoersFile := filepath.Join("/etc/sudoers.d", username)
-	_, err = r.fs.Stat(sudoersFile)
-	if err == nil {
-		return true, nil
-	}
-
-	// Check main sudoers file
-	output, err := r.commander.Execute("grep", username, "/etc/sudoers")
-	if err == nil && len(output) > 0 {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// GetNonSystemGroups retrieves non-system groups on the system
-func (r *OSHostInfoRepository) GetNonSystemGroups() ([]string, error) {
-	var groups []string
-
-	// Try to read /etc/group
-	data, err := r.fs.ReadFile("/etc/group")
-	if err != nil {
-		// Try command if file can't be read
-		output, cmdErr := r.commander.Execute("cat", "/etc/group")
-		if cmdErr != nil {
-			return nil, fmt.Errorf("failed to read group information: %w", err)
-		}
-		data = output
-	}
-
-	// Parse group entries
-	scanner := bufio.NewScanner(strings.NewReader(string(data)))
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Split(line, ":")
-		if len(fields) >= 4 {
-			groupName := fields[0]
-			gid, err := strconv.Atoi(fields[2])
-			if err != nil {
-				continue
-			}
-
-			// Skip system groups (GID < 1000 on most systems)
-			if gid < 1000 {
-				continue
-			}
-
-			// Skip empty groups if they don't have members
-			if fields[3] == "" {
-				// Only add groups if they're relevant (either not empty or known user groups)
-				if !isUserGroup(groupName) {
-					continue
-				}
-			}
-
-			groups = append(groups, groupName)
-		}
-	}
-
-	return groups, nil
-}
-
-// isUserGroup returns true if the group is a typical user group
-func isUserGroup(name string) bool {
-	userGroups := []string{
-		"users", "staff", "wheel", "sudo", "admin", "adm", "netdev",
-		"lpadmin", "sambashare", "docker", "plugdev", "libvirt",
-	}
-
-	for _, group := range userGroups {
-		if name == group {
-			return true
-		}
-	}
-
-	return false
 }
 
 // GetUptime retrieves the system uptime

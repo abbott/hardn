@@ -2,7 +2,6 @@ package security
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -55,72 +54,6 @@ func CheckSecurityStatus(cfg *config.Config, osInfo *osdetect.OSInfo) (*Security
 	status.PasswordAuthDisabled = checkPasswordAuth(osInfo)
 
 	return status, nil
-}
-
-// DisplaySecurityStatus prints the security status above the main menu
-func DisplaySecurityStatus(cfg *config.Config, status *SecurityStatus, formatter *style.StatusFormatter) {
-	// Create a formatter with all the labels we'll use
-	if formatter == nil {
-		formatter = style.NewStatusFormatter([]string{
-			"SSH Root Login",
-			"Firewall",
-			"Users",
-			"SSH Port",
-			"SSH Auth",
-			"AppArmor",
-			"Auto Updates",
-		}, 2)
-	}
-	// Display root login status
-	if status.RootLoginEnabled {
-		fmt.Println(formatter.FormatWarning("SSH Root Login", "Enabled", "vulnerable"))
-	} else {
-		fmt.Println(formatter.FormatConfigured("SSH Root Login", "Disabled", "secure"))
-	}
-
-	// Display firewall status
-	if !status.FirewallEnabled {
-		fmt.Println(formatter.FormatWarning("Firewall", "Disabled", "vulnerable"))
-	} else if !status.FirewallConfigured {
-		fmt.Println(formatter.FormatWarning("Firewall", "Enabled", "set default policies"))
-	} else {
-		fmt.Println(formatter.FormatConfigured("Firewall", "Enabled and configured", "secure"))
-	}
-
-	// Display user security
-	if !status.SecureUsers {
-		fmt.Println(formatter.FormatWarning("Users", "Root user only", "create non-root user"))
-	} else {
-		fmt.Println(formatter.FormatConfigured("Users", "Non-root user found", "sudo enabled"))
-	}
-
-	// Display SSH port status
-	if !status.SshPortNonDefault {
-		fmt.Println(formatter.FormatWarning("SSH Port", "Default (22)", "non-default recommended"))
-	} else {
-		fmt.Println(formatter.FormatConfigured("SSH Port", "Non-default", strconv.Itoa(cfg.SshPort)))
-	}
-
-	// Display password authentication status
-	if !status.PasswordAuthDisabled {
-		fmt.Println(formatter.FormatWarning("SSH Auth", "Password auth enabled", "vulnerable"))
-	} else {
-		fmt.Println(formatter.FormatConfigured("SSH Auth", "Key-only authentication", ""))
-	}
-
-	// Display AppArmor status
-	if !status.AppArmorEnabled {
-		fmt.Println(formatter.FormatWarning("AppArmor", "Not enabled", ""))
-	} else {
-		fmt.Println(formatter.FormatConfigured("AppArmor", "Enabled", ""))
-	}
-
-	// Display unattended upgrades status
-	if !status.UnattendedUpgrades {
-		fmt.Println(formatter.FormatWarning("Auto Updates", "Not configured", ""))
-	} else {
-		fmt.Println(formatter.FormatConfigured("Auto Updates", "Configured", ""))
-	}
 }
 
 // DisplaySecurityStatusWithCustomPrinter is like DisplaySecurityStatus but uses a custom print function

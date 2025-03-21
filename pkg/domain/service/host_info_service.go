@@ -33,15 +33,17 @@ type HostInfoService interface {
 
 // HostInfoServiceImpl implements HostInfoService
 type HostInfoServiceImpl struct {
-	repository HostInfoRepository
-	osInfo     model.OSInfo
+	hostInfoRepo HostInfoRepository
+	userRepo     UserRepository
+	osInfo       model.OSInfo
 }
 
 // NewHostInfoServiceImpl creates a new HostInfoServiceImpl
-func NewHostInfoServiceImpl(repository HostInfoRepository, osInfo model.OSInfo) *HostInfoServiceImpl {
+func NewHostInfoServiceImpl(hostInfoRepo HostInfoRepository, userRepo UserRepository, osInfo model.OSInfo) *HostInfoServiceImpl {
 	return &HostInfoServiceImpl{
-		repository: repository,
-		osInfo:     osInfo,
+		hostInfoRepo: hostInfoRepo,
+		userRepo:     userRepo,
+		osInfo:       osInfo,
 	}
 }
 
@@ -51,42 +53,40 @@ type HostInfoRepository interface {
 	GetIPAddresses() ([]string, error)
 	GetDNSServers() ([]string, error)
 	GetHostname() (string, string, error)
-	GetNonSystemUsers() ([]model.User, error)
-	GetNonSystemGroups() ([]string, error)
 	GetUptime() (time.Duration, error)
 }
 
 // GetHostInfo retrieves comprehensive host information
 func (s *HostInfoServiceImpl) GetHostInfo() (*model.HostInfo, error) {
-	return s.repository.GetHostInfo()
+	return s.hostInfoRepo.GetHostInfo()
 }
 
 // GetIPAddresses retrieves the IP addresses of the system
 func (s *HostInfoServiceImpl) GetIPAddresses() ([]string, error) {
-	return s.repository.GetIPAddresses()
+	return s.hostInfoRepo.GetIPAddresses()
 }
 
 // GetDNSServers retrieves the configured DNS servers
 func (s *HostInfoServiceImpl) GetDNSServers() ([]string, error) {
-	return s.repository.GetDNSServers()
+	return s.hostInfoRepo.GetDNSServers()
 }
 
 // GetHostname retrieves the system hostname and domain
 func (s *HostInfoServiceImpl) GetHostname() (string, string, error) {
-	return s.repository.GetHostname()
+	return s.hostInfoRepo.GetHostname()
 }
 
 // GetNonSystemUsers retrieves non-system users on the system
 func (s *HostInfoServiceImpl) GetNonSystemUsers() ([]model.User, error) {
-	return s.repository.GetNonSystemUsers()
+	return s.userRepo.GetNonSystemUsers()
 }
 
 // GetNonSystemGroups retrieves non-system groups on the system
 func (s *HostInfoServiceImpl) GetNonSystemGroups() ([]string, error) {
-	return s.repository.GetNonSystemGroups()
+	return s.userRepo.GetNonSystemGroups()
 }
 
 // GetUptime retrieves the system uptime
 func (s *HostInfoServiceImpl) GetUptime() (time.Duration, error) {
-	return s.repository.GetUptime()
+	return s.hostInfoRepo.GetUptime()
 }

@@ -3,8 +3,7 @@ package menu
 
 import (
 	"fmt"
-	osuser "os/user"
-	"strings"
+	"os/user"
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
@@ -33,451 +32,271 @@ func NewUserMenu(
 	}
 }
 
-// Show displays the user menu and handles input
+// ShowUserMenu displays the user menu and handles input
 func (m *UserMenu) Show() {
-	utils.PrintHeader()
-	fmt.Println(style.Bolded("User Creation", style.Blue))
+	utils.ClearScreen()
 
-	// Display current user settings
-	fmt.Println()
-	fmt.Println(style.Bolded("Current User Configuration:", style.Blue))
+	// Initialize status formatter w/specific fields for consistency
+	formatter := style.NewStatusFormatter([]string{
+		"Privileges",
+		"Sudo Password",
+		"SSH Keys",
+		"UID:GID",
+		"Home Directory",
+	}, 2)
 
-	// Format user status
-	formatter := style.NewStatusFormatter([]string{"Username", "Sudo Access", "SSH Keys"}, 2)
+	// Display user configuration box
+	m.displayUserBox(formatter)
 
-	// Username status
-	if m.config.Username != "" {
-		fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Username",
-			m.config.Username, style.Cyan, ""))
-	} else {
-		fmt.Println(formatter.FormatWarning("Username", "Not set", "Please provide a username"))
-	}
+	// Handle menu options
+	continueShowing := m.HandleUserMenuOptions()
 
-	// Sudo access status
-	sudoStatus := "No password required"
-	if !m.config.SudoNoPassword {
-		sudoStatus = "Password required"
-	}
-	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "Sudo Access",
-		sudoStatus, style.Cyan, ""))
-
-	// SSH key status
-	keyCount := len(m.config.SshKeys)
-	keyStatus := "None configured"
-	if keyCount > 0 {
-		keyStatus = fmt.Sprintf("%d key(s) configured", keyCount)
-	}
-	fmt.Println(formatter.FormatLine(style.SymInfo, style.Cyan, "SSH Keys",
-		keyStatus, style.Cyan, ""))
-
-	// Check if user already exists
-	var userExists bool
-	var username string = m.config.Username
-
-	if username != "" {
-		_, err := osuser.Lookup(username)
-		userExists = (err == nil)
-
-		if userExists {
-			fmt.Printf("\n%s User '%s' already exists on the system\n",
-				style.Colored(style.Yellow, style.SymInfo), username)
-		}
-	}
-
-	// Create menu options
-	var menuOptions []style.MenuOption
-
-	// Add or change username option
-	if username == "" {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      1,
-			Title:       "Enter username",
-			Description: "Specify username to create",
-		})
-	} else {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      1,
-			Title:       "Change username",
-			Description: fmt.Sprintf("Current: %s", username),
-		})
-	}
-
-	// Toggle sudo password option
-	if m.config.SudoNoPassword {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      2,
-			Title:       "Require sudo password",
-			Description: "Change sudo to require password",
-		})
-	} else {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      2,
-			Title:       "Allow sudo without password",
-			Description: "Change sudo to not require password",
-		})
-	}
-
-	// Manage SSH keys option
-	menuOptions = append(menuOptions, style.MenuOption{
-		Number:      3,
-		Title:       "Manage SSH keys",
-		Description: "Add or remove SSH public keys",
-	})
-
-	// Create user option (only if username is set and user doesn't exist)
-	if username != "" && !userExists {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      4,
-			Title:       "Create user",
-			Description: fmt.Sprintf("Create user '%s' with current settings", username),
-		})
-	} else if username != "" && userExists {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      4,
-			Title:       "Update user",
-			Description: fmt.Sprintf("Update SSH configuration for user '%s'", username),
-		})
-	}
-
-	// Create menu
-	menu := style.NewMenu("Select an option", menuOptions)
-	menu.SetExitOption(style.MenuOption{
-		Number:      0,
-		Title:       "Return to main menu",
-		Description: "",
-	})
-
-	// Display menu
-	menu.Print()
-
-	choice := ReadMenuInput()
-
-	// Handle 'q' as a special exit case
-	if choice == "q" {
-		return
-	}
-
-	switch choice {
-	case "1":
-		// Set or change username
-		if username == "" {
-			fmt.Printf("\n%s Enter username to create: ", style.BulletItem)
-		} else {
-			fmt.Printf("\n%s Current username: %s\n", style.BulletItem, username)
-			fmt.Printf("%s Enter new username (leave empty to keep current): ", style.BulletItem)
-		}
-
-		newUsername := ReadInput()
-		if newUsername != "" {
-			m.config.Username = newUsername
-
-			// Check if new user exists
-			_, err := osuser.Lookup(newUsername)
-			if err == nil {
-				fmt.Printf("\n%s User '%s' already exists on the system\n",
-					style.Colored(style.Yellow, style.SymInfo), newUsername)
-			}
-
-			fmt.Printf("\n%s Username set to: %s\n",
-				style.Colored(style.Green, style.SymCheckMark), newUsername)
-
-			// Save config changes
-			err = config.SaveConfig(m.config, "hardn.yml")
-			if err != nil {
-				fmt.Printf("\n%s Failed to save configuration: %v\n",
-					style.Colored(style.Red, style.SymCrossMark), err)
-			}
-		} else if username != "" {
-			fmt.Printf("\n%s Username unchanged: %s\n", style.BulletItem, username)
-		}
-
-		// Return to this menu after changing username
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
-		m.Show()
-
-	case "2":
-		// Toggle sudo password requirement
-		m.config.SudoNoPassword = !m.config.SudoNoPassword
-
-		if m.config.SudoNoPassword {
-			fmt.Printf("\n%s Sudo will %s for user '%s'\n",
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Bolded("NOT require a password", style.Green),
-				m.config.Username)
-		} else {
-			fmt.Printf("\n%s Sudo will %s for user '%s'\n",
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Bolded("require a password", style.Green),
-				m.config.Username)
-		}
-
-		// Save config changes
-		err := config.SaveConfig(m.config, "hardn.yml")
-		if err != nil {
-			fmt.Printf("\n%s Failed to save configuration: %v\n",
-				style.Colored(style.Red, style.SymCrossMark), err)
-		}
-
-		// Return to this menu after toggling sudo
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
-		m.Show()
-
-	case "3":
-		// Manage SSH keys
-		m.manageSshKeys()
-		m.Show()
-
-	case "4":
-		// Create or update user
-		if username == "" {
-			fmt.Printf("\n%s No username provided. Please enter a username first.\n",
-				style.Colored(style.Red, style.SymCrossMark))
-
-			// Return to this menu
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-			ReadKey()
-			m.Show()
-			return
-		}
-
-		// Confirm keys are configured
-		if len(m.config.SshKeys) == 0 {
-			fmt.Printf("\n%s Warning: No SSH keys configured. User will not have SSH access.\n",
-				style.Colored(style.Yellow, style.SymWarning))
-			fmt.Printf("%s Would you like to continue anyway? (y/n): ", style.BulletItem)
-
-			confirm := ReadInput()
-			if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
-				fmt.Printf("\n%s Operation cancelled. Please add SSH keys first.\n",
-					style.Colored(style.Yellow, style.SymInfo))
-
-				// Return to this menu
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-				ReadKey()
-				m.Show()
-				return
-			}
-		}
-
-		// Determine action based on whether user exists
-		action := "Creating"
-		if userExists {
-			action = "Updating"
-		}
-
-		// Create or update user using menuManager
-		fmt.Printf("\n%s %s user '%s'...\n", style.BulletItem, action, username)
-
-		err := m.menuManager.CreateUser(username, true, m.config.SudoNoPassword, m.config.SshKeys)
-		if err != nil {
-			fmt.Printf("\n%s Failed to %s user: %v\n",
-				style.Colored(style.Red, style.SymCrossMark), strings.ToLower(action), err)
-		} else if !m.config.DryRun {
-			fmt.Printf("\n%s User '%s' %s successfully\n",
-				style.Colored(style.Green, style.SymCheckMark),
-				username,
-				strings.ToLower(action)+"d")
-		}
-
-	case "0":
-		// Return to main menu
-		return
-
-	default:
-		fmt.Printf("\n%s Invalid option. Please try again.\n",
-			style.Colored(style.Red, style.SymCrossMark))
-
-		// Return to this menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
+	// Recursive loop if needed
+	if continueShowing {
 		m.Show()
 	}
-
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
-	ReadKey()
 }
 
-// manageSshKeys handles SSH key management
-func (m *UserMenu) manageSshKeys() {
-	utils.PrintHeader()
-	fmt.Println(style.Bolded("Manage SSH Keys", style.Blue))
+// format the header for the User Management box
+func (m *UserMenu) formatBoxHeader() string {
+	showLabel := false
 
-	// Display current keys
-	fmt.Println()
-	fmt.Println(style.Bolded("Current SSH Keys:", style.Blue))
+	head := "User Management"
+	label := "Create and manage users"
 
-	if len(m.config.SshKeys) == 0 {
-		fmt.Printf("%s No SSH keys configured\n", style.BulletItem)
-	} else {
-		for i, key := range m.config.SshKeys {
-			// Try to extract comment from key (usually contains email or identifier)
-			keyParts := strings.Fields(key)
-			keyInfo := ""
-			if len(keyParts) >= 3 {
-				keyInfo = keyParts[2]
-			}
+	boldHead := style.Bolded(head)
+	dimHead := style.Dimmed(boldHead, style.Gray15)
+	dimLabel := style.Dimmed(label, style.Gray15)
 
-			// Truncate the key for display
-			truncatedKey := key
-			if len(key) > 30 {
-				truncatedKey = key[:15] + "..." + key[len(key)-15:]
-			}
+	if !showLabel {
+		return dimHead
+	}
 
-			fmt.Printf("%s Key %d: %s", style.BulletItem, i+1,
-				style.Colored(style.Cyan, truncatedKey))
+	return fmt.Sprintf("%s %s", dimHead, dimLabel)
+}
 
-			if keyInfo != "" {
-				fmt.Printf(" (%s)", keyInfo)
-			}
-			fmt.Println()
+// formats title and subtitle for the User Management box
+func (m *UserMenu) formatUserInstanceUsername(username string, formatter *style.StatusFormatter) (string, string) {
+	showMeta := true
+	showSubtext := false
+
+	paddedLabel := " " + username + " "
+	coloredUsername := style.Colored(style.BgDarkBlue, paddedLabel)
+
+	// Format title line
+	formattedUsername := " " + style.Bolded(coloredUsername)
+
+	// Try to get last login from extended user info
+	meta := ""
+	userInfo, err := m.menuManager.GetExtendedUserInfo(username)
+	if err == nil && userInfo != nil && userInfo.LastLogin != "" {
+		// Split the LastLogin string into IP address and login time
+		ipAddress := ""
+		if userInfo.LastLoginIP != "" {
+			ipAddress = style.Dimmed("(" + userInfo.LastLoginIP + ")")
 		}
+		loginTime := userInfo.LastLogin
+		meta = fmt.Sprintf("%s %s", loginTime, ipAddress)
 	}
 
-	// Create menu options
-	menuOptions := []style.MenuOption{
-		{Number: 1, Title: "Add SSH key", Description: "Add a new SSH public key"},
+	usernameLine := formatter.FormatLine("", "", formattedUsername, meta, "", "", "no-indent")
+
+	if !showMeta {
+		usernameLine = formatter.FormatLine("", "", formattedUsername, "", "", "", "no-indent")
 	}
 
-	// Only add remove option if keys exist
-	if len(m.config.SshKeys) > 0 {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      2,
-			Title:       "Remove SSH key",
-			Description: "Remove an existing SSH public key",
-		})
+	// Format subtext line
+	subtext := "Manage user accounts and permissions"
+	formattedSubtext := style.Dimmed(subtext)
+
+	subtextLine := ""
+
+	if showSubtext {
+		subtextLine = formatter.FormatLine("", "", "", formattedSubtext, style.Gray10, "", "no-indent")
 	}
 
-	// Create menu
-	menu := style.NewMenu("Select an option", menuOptions)
-	menu.SetExitOption(style.MenuOption{
-		Number:      0,
-		Title:       "Return to user menu",
-		Description: "",
+	return usernameLine, subtextLine
+}
+
+// displays User Management box
+func (m *UserMenu) displayUserBox(formatter *style.StatusFormatter) {
+	// One line padding before the box
+	fmt.Println()
+
+	// Format box header
+	boxHeader := m.formatBoxHeader()
+
+	// Define primary content box w/standardized settings
+	contentBox := style.NewBox(style.BoxConfig{
+		Width:          64,
+		ShowEmptyRow:   true,
+		ShowTopBorder:  true,
+		ShowLeftBorder: false,
+		Indentation:    0,
+		Title:          boxHeader,
+		TitleColor:     style.Bold,
 	})
 
-	// Display menu
-	menu.Print()
+	// Draw primary box w/content
+	contentBox.DrawBox(func(printLine func(string)) {
+		// Box content settings
+		showTopNotice := true
+		showBottomNotice := true
+		indentSpaces := 2
+		printIndent := style.IndentPrinter(printLine, indentSpaces)
 
-	choice := ReadMenuInput()
+		// Display top notice
+		topLine := formatter.FormatConfigured("User(s)", "Configured", "non-system (UID ≥ 1000)", "dark")
+		if showTopNotice {
+			printIndent(topLine)
+			printIndent("")
+		}
 
-	// Handle 'q' as a special exit case
-	if choice == "q" {
-		return
+		// Display user details
+		m.DisplayUserDetails(m.config, formatter, printLine, indentSpaces)
+
+		// Display bottom notice
+		bottomLine := ""
+		if showBottomNotice && bottomLine != "" {
+			printIndent("")
+			printIndent(bottomLine)
+		}
+	})
+}
+
+// getUserId returns the user ID for the given username
+func (m *UserMenu) getUserId(username string) string {
+	// Try using Go's standard library first
+	u, err := user.Lookup(username)
+	if err == nil {
+		return u.Uid + ":" + u.Gid
 	}
 
-	switch choice {
-	case "1":
-		// Add SSH key
-		fmt.Printf("\n%s Paste SSH public key (e.g., ssh-ed25519 AAAAC3NzaC1lZDI1...): \n", style.BulletItem)
-		newKey := ReadInput()
+	// log.Printf("Failed to get user info via standard library for %s: %v", username, err)
 
-		if newKey != "" {
-			// Validate key format
-			if !strings.HasPrefix(newKey, "ssh-") && !strings.HasPrefix(newKey, "ecdsa-") {
-				fmt.Printf("\n%s Invalid SSH key format. Key should start with 'ssh-' or 'ecdsa-'\n",
-					style.Colored(style.Red, style.SymCrossMark))
-			} else {
-				// Add key
-				m.config.SshKeys = append(m.config.SshKeys, newKey)
-				fmt.Printf("\n%s SSH key added successfully\n",
-					style.Colored(style.Green, style.SymCheckMark))
+	// Fall back to original method
+	userInfo, err := m.menuManager.GetExtendedUserInfo(username)
+	if err != nil {
+		// log.Printf("Error getting extended user info for %s: %v", username, err)
+		return "1000:1000" // Fallback
+	}
 
-				// Save config changes
-				err := config.SaveConfig(m.config, "hardn.yml")
-				if err != nil {
-					fmt.Printf("\n%s Failed to save configuration: %v\n",
-						style.Colored(style.Red, style.SymCrossMark), err)
+	if userInfo == nil || userInfo.UID == "" || userInfo.GID == "" {
+		// log.Printf("Incomplete user info for %s: %+v", username, userInfo)
+		return "1000:1000" // Fallback
+	}
+
+	return userInfo.UID + ":" + userInfo.GID
+}
+
+// Display user configuration details
+// This function can be reused by other menus that need to display user config
+func (m *UserMenu) DisplayUserDetails(
+	cfg *config.Config,
+	formatter *style.StatusFormatter,
+	printFn func(string),
+	indent int,
+) {
+	// Apply additional indentation if requested
+	printIndent := printFn
+	if indent > 0 {
+		printIndent = style.IndentPrinter(printFn, indent)
+	}
+
+	// Get non-system users (UID >= 1000)
+	nonSysUsers, err := m.menuManager.GetNonSystemUsers()
+	if err != nil {
+		printIndent(formatter.FormatWarning(
+			"System Users",
+			"Error",
+			fmt.Sprintf("Failed to retrieve non-system users: %v", err),
+		))
+	} else if len(nonSysUsers) == 0 {
+		printIndent(formatter.FormatBullet("Status", "No non-system users found", "", "dark"))
+	} else {
+		// Display each non-system user with their UID and login status
+		for i, user := range nonSysUsers {
+
+			usernameLine, subtextLine := m.formatUserInstanceUsername(user.Username, formatter)
+
+			// Display username  and supporting line
+			if usernameLine != "" {
+				printFn(usernameLine)
+				if subtextLine != "" {
+					printFn(subtextLine)
 				}
+				printFn("")
+			}
+			// Try to get extended user info
+			userInfo, err := m.menuManager.GetExtendedUserInfo(user.Username)
+			// Display sudo access w/standardized formatting
+			passwordStatus := "Not required"
+			if !cfg.SudoNoPassword {
+				passwordStatus = "Required"
+			}
 
-				// If user already exists, add key to user
-				if m.config.Username != "" {
-					_, err := osuser.Lookup(m.config.Username)
-					if err == nil {
-						err = m.menuManager.AddSSHKey(m.config.Username, newKey)
-						if err != nil {
-							fmt.Printf("\n%s Failed to add SSH key to user: %v\n",
-								style.Colored(style.Yellow, style.SymWarning), err)
-						} else if !m.config.DryRun {
-							fmt.Printf("%s Key added to user '%s'\n",
-								style.BulletItem, m.config.Username)
-						}
+			// Use extended info if available
+			if err == nil && userInfo != nil {
+				// Update sudo status based on extended info
+				if userInfo.HasSudo {
+					printIndent(formatter.FormatBullet("Privileges", "sudo", "", "dark"))
+
+					// Use extended info for sudo password status
+					if userInfo.SudoNoPassword {
+						passwordStatus = "Not required"
+					} else {
+						passwordStatus = "Required"
 					}
+				} else {
+					printIndent(formatter.FormatBullet("Privileges", "regular user", "", "dark"))
 				}
+
+				printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", "dark"))
+
+				// Display SSH keys from extended info
+				keyCount := len(userInfo.SshKeys)
+				keyStatus := "None configured"
+				if keyCount > 0 {
+					keyStatus = fmt.Sprintf("%d key(s) configured", keyCount)
+				}
+				printIndent(formatter.FormatBullet("SSH Keys", keyStatus, "", "dark"))
+
+				// Display UID:GID from extended info
+				if userInfo.UID != "" && userInfo.GID != "" {
+					printIndent(formatter.FormatBullet("UID:GID", userInfo.UID+":"+userInfo.GID, "", "dark"))
+				}
+
+				// Display home directory from extended info
+				if userInfo.HomeDirectory != "" {
+					printIndent(formatter.FormatBullet("Directory", userInfo.HomeDirectory, "", "dark"))
+				} else {
+					printIndent(formatter.FormatBullet("Directory", "/home/"+user.Username, "", "dark"))
+				}
+			} else {
+				// Fallback to config values if extended info isn't available
+				printIndent(formatter.FormatBullet("Privileges", "sudo", "", "dark"))
+				printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", "dark"))
+
+				// Display SSH key status from config
+				keyCount := len(user.SshKeys)
+				keyStatus := "None configured"
+				if keyCount > 0 {
+					keyStatus = fmt.Sprintf("%d key(s) configured", keyCount)
+				}
+				printIndent(formatter.FormatBullet("SSH Keys", keyStatus, "", "dark"))
+
+				// Display UID:GID from the getUserId method
+				meta := m.getUserId(user.Username)
+				if meta != "" {
+					printIndent(formatter.FormatBullet("UID:GID", meta, "", "dark"))
+				}
+				printIndent(formatter.FormatBullet("Directory", "/home/"+user.Username, "", "dark"))
+			}
+
+			// Add section divider for system users list
+			if i < len(nonSysUsers)-1 {
+				printFn("")
 			}
 		}
-
-		// Return to SSH keys menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
-		m.manageSshKeys()
-
-	case "2":
-		// Only process if keys exist
-		if len(m.config.SshKeys) == 0 {
-			fmt.Printf("\n%s No keys to remove\n",
-				style.Colored(style.Yellow, style.SymWarning))
-
-			// Return to SSH keys menu
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-			ReadKey()
-			m.manageSshKeys()
-			return
-		}
-
-		// Remove SSH key
-		fmt.Printf("\n%s Enter key number to remove (1-%d): ", style.BulletItem, len(m.config.SshKeys))
-		keyNumStr := ReadInput()
-
-		// Parse key number
-		keyNum := 0
-		n, err := fmt.Sscanf(keyNumStr, "%d", &keyNum)
-		if err != nil || n != 1 {
-			fmt.Printf("\n%s Invalid key number: not a valid number\n",
-				style.Colored(style.Red, style.SymCrossMark))
-		} else if keyNum < 1 || keyNum > len(m.config.SshKeys) {
-			fmt.Printf("\n%s Invalid key number. Please enter a number between 1 and %d\n",
-				style.Colored(style.Red, style.SymCrossMark), len(m.config.SshKeys))
-		} else {
-			// Remove key (adjusting for 0-based indexing)
-			removedKey := m.config.SshKeys[keyNum-1]
-			m.config.SshKeys = append(m.config.SshKeys[:keyNum-1], m.config.SshKeys[keyNum:]...)
-
-			fmt.Printf("\n%s SSH key %d removed successfully\n",
-				style.Colored(style.Green, style.SymCheckMark), keyNum)
-
-			// Show truncated key that was removed
-			if len(removedKey) > 30 {
-				removedKey = removedKey[:15] + "..." + removedKey[len(removedKey)-15:]
-			}
-			fmt.Printf("%s Removed: %s\n", style.BulletItem,
-				style.Colored(style.Yellow, removedKey))
-
-			// Save config changes
-			err := config.SaveConfig(m.config, "hardn.yml")
-			if err != nil {
-				fmt.Printf("\n%s Failed to save configuration: %v\n",
-					style.Colored(style.Red, style.SymCrossMark), err)
-			}
-		}
-
-		// Return to SSH keys menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
-		m.manageSshKeys()
-
-	case "0":
-		// Return to user menu
-		return
-
-	default:
-		fmt.Printf("\n%s Invalid option. Please try again.\n",
-			style.Colored(style.Red, style.SymCrossMark))
-
-		// Return to SSH keys menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-		ReadKey()
-		m.manageSshKeys()
 	}
 }

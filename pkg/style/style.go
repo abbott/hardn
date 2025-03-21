@@ -275,7 +275,8 @@ func Header(text string) string {
 }
 
 func SubHeader(text string) string {
-	return "\n" + Underline + Bold + Blue + text + Reset + "\n"
+	return Underline + Bold + text + Reset + "\n"
+	// return "\n" + Underline + Bold + Blue + text + Reset + "\n"
 }
 
 // Section creates a formatted section with an indented title
@@ -520,9 +521,9 @@ func (sf *StatusFormatter) FormatEmLine(symbol string, label string, status stri
 	return symbol + " " + label + padding + status + " " + Dimmed(description)
 }
 
-func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
-	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, opts...)
-}
+// func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
+// 	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, opts...)
+// }
 
 // success status
 func (sf *StatusFormatter) FormatSuccess(label string, status string, description string, opts ...string) string {
@@ -547,6 +548,18 @@ func (sf *StatusFormatter) FormatError(label string, status string, description 
 // warning status
 func (sf *StatusFormatter) FormatWarning(label string, status string, description string, opts ...string) string {
 	return sf.FormatLine(SymWarning, Red, label, status, Red, description, opts...)
+}
+
+func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
+	return sf.FormatLine(SymDash, Dim, label, status, Dim, description, opts...)
+}
+
+// GetMaxLabelLen returns the calculated maximum label length
+func (sf *StatusFormatter) GetMaxLabelLen() int {
+	if !sf.initialized {
+		sf.Initialize()
+	}
+	return sf.maxLabelLen
 }
 
 func PrintDivider(char string, length int, style ...string) {

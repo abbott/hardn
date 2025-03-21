@@ -121,27 +121,13 @@ func (b *Box) updateEmptyLineCache() {
 
 	if b.showLeftBorder {
 		b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
-		// if UseColors {
-		// 	b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
-		// 	// b.emptyLineCache += Colored(b.borderColor, vertChar)
-		// } else {
-		// 	b.emptyLineCache += vertChar
-		// }
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		b.emptyLineCache += strings.Repeat(b.space, b.indentation)
 	}
 
 	b.emptyLineCache += strings.Repeat(b.space, b.width)
-
 	b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
-	// if UseColors {
-
-	// 	b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
-	// 	// b.emptyLineCache += Colored(b.borderColor, vertChar)
-	// } else {
-	// 	b.emptyLineCache += vertChar
-	// }
 }
 
 // DrawTop draws the top border of the box
@@ -177,23 +163,18 @@ func (b *Box) DrawTop() {
 
 		// Generate the border with title
 		rightSide := Dimmed(strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar, b.borderColor)
-		// if UseColors {
-		// 	// rightSide = Colored(b.borderColor, strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar)
-		// 	rightSide = Dimmed(strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar, b.borderColor)
-		// } else {
-		// 	rightSide = Dimmed(strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1)+topRightChar, b.borderColor)
-		// 	// rightSide = strings.Repeat(horizChar, b.width-beforeTitle-titleLen-1) + topRightChar
-		// }
 
+		line := ""
 		topBorder += strings.Repeat(horizChar, beforeTitle)
+		line += (Dimmed(topBorder, b.borderColor))
 
 		if UseColors {
-			topBorder += "" + Colored(b.titleColor, b.title) + " " + rightSide
+			line += "" + Colored(b.titleColor, b.title) + " " + rightSide
 		} else {
-			topBorder += "" + b.title + " " + rightSide
+			line += "" + b.title + " " + rightSide
 		}
 
-		fmt.Println(topBorder)
+		fmt.Println(line)
 		return
 	}
 
@@ -212,7 +193,7 @@ func (b *Box) DrawTop() {
 
 	topBorder += strings.Repeat(horizChar, b.width) + topRightChar
 
-	fmt.Println(topBorder)
+	fmt.Println(Dimmed(topBorder, b.borderColor))
 }
 
 // DrawBottom draws the bottom border of the box
@@ -243,14 +224,6 @@ func (b *Box) DrawBottom() {
 
 	bottomBorder += strings.Repeat(horizChar, b.width) + bottomRightChar
 	fmt.Println(Dimmed(bottomBorder, b.borderColor))
-
-	// if UseColors {
-	// 	fmt.Println(Dimmed(bottomBorder, b.borderColor))
-	// 	// fmt.Println(Colored(b.borderColor, bottomBorder))
-	// } else {
-	// 	fmt.Println(bottomBorder)
-	// }
-
 }
 
 // draw an empty row
@@ -277,27 +250,13 @@ func (b *Box) DrawLine(content string) {
 	line := ""
 	if b.showLeftBorder {
 		line += (Dimmed(vertChar, b.borderColor))
-		// line += vertChar
-		// if UseColors {
-		// 	line += (Dimmed(vertChar, b.borderColor))
-		// 	// line += Colored(b.borderColor, vertChar)
-		// } else {
-		// 	line += vertChar
-		// }
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
 	line += content + strings.Repeat(b.space, padding)
-
 	line += (Dimmed(vertChar, b.borderColor))
-	// if UseColors {
-	// 	line += (Dimmed(vertChar, b.borderColor))
-	// 	// line += Colored(b.borderColor, vertChar)
-	// } else {
-	// 	line += vertChar
-	// }
 
 	fmt.Println(line)
 }
@@ -361,26 +320,13 @@ func (b *Box) DrawCenteredText(text string) {
 	line := ""
 	if b.showLeftBorder {
 		line += (Dimmed(vertChar, b.borderColor))
-		// if UseColors {
-		// 	line += Colored(b.borderColor, vertChar)
-		// } else {
-		// 	line += vertChar
-		// }
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
 	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
-
 	line += (Dimmed(vertChar, b.borderColor))
-	// if UseColors {
-
-	// 	line += (Dimmed(vertChar, b.borderColor))
-	// 	// line += Colored(b.borderColor, vertChar)
-	// } else {
-	// 	line += vertChar
-	// }
 
 	fmt.Println(line)
 }
@@ -411,7 +357,6 @@ func (b *Box) DrawTruncatedText(text string, truncateIndicator string) {
 func (b *Box) DrawRightAlignedText(text string) {
 
 	visibleLen := CalculateVisualWidth(text)
-
 	padding := b.width - visibleLen
 
 	if padding < 0 {
@@ -426,29 +371,14 @@ func (b *Box) DrawRightAlignedText(text string) {
 
 	line := ""
 	if b.showLeftBorder {
-
 		line += (Dimmed(vertChar, b.borderColor))
-		// if UseColors {
-		// 	line += Colored(b.borderColor, vertChar)
-		// } else {
-		// 	line += vertChar
-		// }
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
 	line += strings.Repeat(b.space, padding) + text
-
 	line += (Dimmed(vertChar, b.borderColor))
-
-	// if UseColors {
-
-	// 	line += (Dimmed(vertChar, b.borderColor))
-	// 	// line += Colored(b.borderColor, vertChar)
-	// } else {
-	// 	line += vertChar
-	// }
 
 	fmt.Println(line)
 }
@@ -474,29 +404,118 @@ func (b *Box) DrawPaddedText(text string, leftPadding int) {
 
 	line := ""
 	if b.showLeftBorder {
-
 		line += (Dimmed(vertChar, b.borderColor))
-		// if UseColors {
-		// 	line += Colored(b.borderColor, vertChar)
-		// } else {
-		// 	line += vertChar
-		// }
 	} else if b.indentation > 0 {
 		// Add indentation if left border is hidden
 		line += strings.Repeat(b.space, b.indentation)
 	}
 
 	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
-
 	line += (Dimmed(vertChar, b.borderColor))
 
-	// if UseColors {
-
-	// 	line += (Dimmed(vertChar, b.borderColor))
-	// 	// line += Colored(b.borderColor, vertChar)
-	// } else {
-	// 	line += vertChar
-	// }
-
 	fmt.Println(line)
+}
+
+// SectionDivider creates a section divider with a title, matching the box style
+func SectionDivider(title string, width int, color ...string) string {
+	// Set default color if not provided
+	dividerColor := Gray04
+	if len(color) > 0 && color[0] != "" {
+		dividerColor = color[0]
+	}
+
+	// Choose the appropriate horizontal character based on UseColors
+	horizChar := "─" // U+2500 Box Drawings Light Horizontal
+	if !UseColors {
+		horizChar = "-"
+	}
+
+	// Calculate space needed before and after title
+	titleLen := CalculateVisualWidth(title)
+	fullWidth := width
+	targetWidth := (fullWidth - titleLen - 2) // -2 for spacing around title
+
+	// Ensure we have at least some divider on each side
+	if targetWidth < 4 {
+		targetWidth = 4
+	}
+
+	leftWidth := targetWidth / 2
+	rightWidth := targetWidth - leftWidth
+
+	// Build the divider
+	leftSide := strings.Repeat(horizChar, leftWidth)
+	rightSide := strings.Repeat(horizChar, rightWidth)
+
+	divider := ""
+
+	// Format with color if enabled
+	if UseColors {
+		divider = Dimmed(leftSide, dividerColor) + " " + Colored(dividerColor, title) + " " + Dimmed(rightSide, dividerColor)
+	} else {
+		divider = leftSide + " " + title + " " + rightSide
+	}
+
+	return divider
+}
+
+// BoxedTitle creates a boxed title with the specified text, matching the box style
+func BoxedTitle(title string, width int, color ...string) string {
+	// Set default color if not provided
+	boxColor := Gray04
+	if len(color) > 0 && color[0] != "" {
+		boxColor = color[0]
+	}
+
+	// Choose the appropriate characters based on UseColors
+	horizChar := "─"       // U+2500 Box Drawings Light Horizontal
+	vertChar := "│"        // U+2502 Box Drawings Light Vertical
+	topLeftChar := "╭"     // U+256D Box Drawings Light Arc Down and Right
+	topRightChar := "╮"    // U+256E Box Drawings Light Arc Down and Left
+	bottomLeftChar := "╰"  // U+256F Box Drawings Light Arc Up and Right
+	bottomRightChar := "╯" // U+2570 Box Drawings Light Arc Up and Left
+
+	if !UseColors {
+		horizChar = "-"
+		vertChar = "|"
+		topLeftChar = "+"
+		topRightChar = "+"
+		bottomLeftChar = "+"
+		bottomRightChar = "+"
+	}
+
+	// Calculate space needed for title
+	titleLen := CalculateVisualWidth(title)
+
+	// Ensure the box has enough space for the title with padding
+	boxWidth := width
+	innerWidth := boxWidth - 2 // -2 for the left and right borders
+	titlePadding := (innerWidth - titleLen) / 2
+
+	if titlePadding < 1 {
+		titlePadding = 1
+	}
+
+	// Build the box
+	topBorder := topLeftChar + strings.Repeat(horizChar, innerWidth) + topRightChar
+	emptyLine := vertChar + strings.Repeat(" ", innerWidth) + vertChar
+	titleLine := vertChar + strings.Repeat(" ", titlePadding) + title
+	titleLine += strings.Repeat(" ", innerWidth-titlePadding-titleLen) + vertChar
+	bottomBorder := bottomLeftChar + strings.Repeat(horizChar, innerWidth) + bottomRightChar
+
+	result := ""
+
+	// Apply colors if enabled
+	if UseColors {
+		topBorder = Dimmed(topBorder, boxColor)
+		emptyLine = Dimmed(vertChar, boxColor) + strings.Repeat(" ", innerWidth) + Dimmed(vertChar, boxColor)
+		titleLine = Dimmed(vertChar, boxColor) + strings.Repeat(" ", titlePadding) + Colored(boxColor, title)
+		titleLine += strings.Repeat(" ", innerWidth-titlePadding-titleLen) + Dimmed(vertChar, boxColor)
+		bottomBorder = Dimmed(bottomBorder, boxColor)
+	}
+
+	// Combine all lines
+	result = topBorder + "\n" + emptyLine + "\n" + titleLine + "\n" + emptyLine + "\n" + bottomBorder
+
+	return result
 }

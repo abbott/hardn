@@ -89,11 +89,14 @@ MemAvailable:   10768516 kB
 	}
 	mockProvider.Network = mockNetwork
 
+	// Create user repository
+	userRepo := secondary.NewOSUserRepository(mockProvider.FS, mockProvider.Commander, "testlinux")
+
 	// Create host info repository with explicit hostname override
-	hostInfoRepo := secondary.NewOSHostInfoRepository(mockProvider.FS, mockProvider.Commander, "testlinux")
+	hostInfoRepo := secondary.NewOSHostInfoRepository(mockProvider.FS, mockProvider.Commander, "testlinux", userRepo)
 
 	// Create host info service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, model.OSInfo{
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, model.OSInfo{
 		Type:      "testlinux",
 		Version:   "1.0",
 		Codename:  "test",
