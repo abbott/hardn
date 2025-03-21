@@ -309,7 +309,7 @@ A successful verification confirms the binary was built by GitHub Actions from t
 
 ## 🤝 Contributing
 
-Please review the [Contributing Guide](docs/CONTRIBUTING.md) prior to submitting a pull request.
+Please review the [Contributing Guide](docs/contributing.md) prior to submitting a pull request.
 
 ## Issue Reporting
 
