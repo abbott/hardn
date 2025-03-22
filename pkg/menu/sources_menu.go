@@ -244,7 +244,7 @@ func (m *SourcesMenu) Show() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -507,7 +507,7 @@ func (m *SourcesMenu) editRepositoriesMenu() {
 			}
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editRepositoriesMenu()
 
@@ -553,7 +553,7 @@ func (m *SourcesMenu) editRepositoriesMenu() {
 			}
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editRepositoriesMenu()
 
@@ -567,7 +567,7 @@ func (m *SourcesMenu) editRepositoriesMenu() {
 			fmt.Printf("\n%s Invalid option for this OS type\n",
 				style.Colored(style.Red, style.SymCrossMark))
 
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			m.editRepositoriesMenu()
 		}
@@ -580,7 +580,7 @@ func (m *SourcesMenu) editRepositoriesMenu() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editRepositoriesMenu()
 		return
@@ -647,7 +647,7 @@ func (m *SourcesMenu) editProxmoxRepositoriesMenu() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editProxmoxRepositoriesMenu()
 		return
@@ -749,7 +749,7 @@ func (m *SourcesMenu) editProxmoxRepoList(
 			}
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editProxmoxRepoList(repoType, title, repoList)
 		return
@@ -796,7 +796,7 @@ func (m *SourcesMenu) editProxmoxRepoList(
 			}
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editProxmoxRepoList(repoType, title, repoList)
 		return
@@ -837,7 +837,7 @@ func (m *SourcesMenu) editProxmoxRepoList(
 			fmt.Println("\nOperation cancelled.")
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editProxmoxRepoList(repoType, title, repoList)
 		return
@@ -850,7 +850,7 @@ func (m *SourcesMenu) editProxmoxRepoList(
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.editProxmoxRepoList(repoType, title, repoList)
 		return

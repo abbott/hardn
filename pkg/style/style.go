@@ -269,6 +269,24 @@ func Info(text string) string {
 	return Cyan + text + Reset
 }
 
+func HeaderLabel(text string) string {
+	// showLabel := false
+
+	// head := "User Management"
+	// label := "Create and manage users"
+
+	boldHead := Bolded(text)
+	dimHead := Dimmed(boldHead, Gray15)
+	// dimLabel := Dimmed(label, Gray15)
+
+	// if !showLabel {
+	// 	return dimHead
+	// }
+	return dimHead
+
+	// return fmt.Sprintf("%s %s", dimHead, dimLabel)
+}
+
 // Header creates a section header with bold blue text
 func Header(text string) string {
 	return "\n" + Bold + Blue + text + Reset + "\n" + Blue + strings.Repeat("-", len(text)) + Reset
@@ -277,6 +295,24 @@ func Header(text string) string {
 func SubHeader(text string) string {
 	return Underline + Bold + text + Reset + "\n"
 	// return "\n" + Underline + Bold + Blue + text + Reset + "\n"
+}
+
+func MenuHeader(text string) string {
+	return Underlined(text, Gray16)
+	// return "\n" + Underline + Bold + Blue + text + Reset + "\n"
+}
+
+func ColoredLabel(text string, color ...string) string {
+
+	labelColor := BgDarkBlue
+	if len(color) > 0 && color[0] != "" {
+		labelColor = color[0]
+	}
+
+	paddedLabel := " " + text + " "
+	coloredLabel := Colored(labelColor, paddedLabel)
+
+	return " " + Bolded(coloredLabel)
 }
 
 // Section creates a formatted section with an indented title
@@ -620,7 +656,7 @@ func NewMenu(title string, options []MenuOption) *Menu {
 	return &Menu{
 		title:      title,
 		options:    options,
-		prompt:     "Enter your choice",
+		prompt:     "Enter selection",
 		maxNumLen:  maxNumLen,
 		titleWidth: titleWidth,
 	}
@@ -742,7 +778,7 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 func (m *Menu) Render() string {
 	var sb strings.Builder
 
-	sb.WriteString("\n")
+	// sb.WriteString("\n")
 
 	// Format the title with dry-run status if needed
 	if m.showDryRunInfo {
@@ -764,7 +800,9 @@ func (m *Menu) Render() string {
 			titlePrefix = m.indentation
 		}
 
-		titleText := Underline + Bold + m.title + Reset
+		// titleText := Underline + Bold + m.title + Reset
+
+		titleText := MenuHeader(m.title)
 
 		// Create formatter for dry run status
 		formatter := NewStatusFormatter([]string{dryRunLabel}, 2)
@@ -782,7 +820,8 @@ func (m *Menu) Render() string {
 			sb.WriteString(m.indentation)
 		}
 		// Just write the title without dry-run info, with indentation if set
-		sb.WriteString(SubHeader(m.title))
+		sb.WriteString(MenuHeader(m.title) + "\n")
+		// sb.WriteString(SubHeader(m.title))
 	}
 
 	// Options

@@ -149,7 +149,7 @@ func (m *PythonPackagesMenu) Show() {
 		}
 
 		// Return to this menu after toggling
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 

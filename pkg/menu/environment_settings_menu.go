@@ -59,7 +59,7 @@ func (m *EnvironmentSettingsMenu) Show() {
 	menu := style.NewMenu("Select an option", menuOptions)
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
-		Title:       "Return to main menu",
+		Title:       "Return",
 		Description: "",
 	})
 
@@ -96,7 +96,7 @@ func (m *EnvironmentSettingsMenu) Show() {
 			}
 		}
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 
@@ -110,7 +110,7 @@ func (m *EnvironmentSettingsMenu) Show() {
 
 	default:
 		fmt.Printf("\n%s Invalid option. Please try again.\n", style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 	}
@@ -134,7 +134,7 @@ func (m *EnvironmentSettingsMenu) showEnvironmentGuide() {
 	fmt.Printf("\n%s For persistent configuration:\n", style.Bolded("", style.Blue))
 	fmt.Println(style.Colored(style.Cyan, "  echo 'export HARDN_CONFIG=/path/to/config.yml' >> ~/.bashrc"))
 
-	fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+	fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 	ReadKey()
 }
 

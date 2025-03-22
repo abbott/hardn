@@ -8,26 +8,40 @@ import (
 )
 
 type BoxConfig struct {
-	Width          int
-	BorderColor    string
-	ShowEmptyRow   bool
-	ShowTopBorder  bool
-	ShowLeftBorder bool
-	Indentation    int
-	Title          string
-	TitleColor     string
+	Width               int
+	BorderColor         string
+	ShadeColor          string
+	ShowEmptyRow        bool
+	ShowTopBorder       bool
+	ShowTopBlock        bool
+	ShowTopShade        bool
+	ShowLeftBorder      bool
+	ShowBottomBorder    bool
+	ShowRightBorder     bool
+	ShowBottomPadding   bool
+	ShowBottomSeparator bool
+	Indentation         int
+	Title               string
+	TitleColor          string
 }
 
 // Box methods
 type Box struct {
-	width          int
-	borderColor    string
-	showEmptyRow   bool
-	showTopBorder  bool
-	showLeftBorder bool
-	indentation    int
-	title          string
-	titleColor     string
+	width         int
+	borderColor   string
+	shadeColor    string
+	showEmptyRow  bool
+	showTopBorder bool
+	// showTopBlock bool
+	showTopShade        bool
+	showLeftBorder      bool
+	showBottomBorder    bool
+	showRightBorder     bool
+	showBottomPadding   bool
+	showBottomSeparator bool
+	indentation         int
+	title               string
+	titleColor          string
 
 	// Unicode box characters
 	horizontal  string
@@ -45,6 +59,10 @@ type Box struct {
 	asciiBottomLeft  string
 	asciiBottomRight string
 
+	block      string
+	shade      string
+	asciiBlock string
+
 	space          string
 	emptyLineCache string
 }
@@ -52,14 +70,20 @@ type Box struct {
 // NewBox with default settings
 func NewBox(config BoxConfig) *Box {
 	box := &Box{
-		width:          config.Width,
-		borderColor:    config.BorderColor,
-		showEmptyRow:   config.ShowEmptyRow,
-		showTopBorder:  true,
-		showLeftBorder: true,
-		indentation:    config.Indentation,
-		title:          config.Title,
-		titleColor:     config.TitleColor,
+		width:               config.Width,
+		borderColor:         config.BorderColor,
+		shadeColor:          config.ShadeColor,
+		showEmptyRow:        config.ShowEmptyRow,
+		showTopBorder:       config.ShowTopBorder,
+		showTopShade:        config.ShowTopShade,
+		showLeftBorder:      config.ShowLeftBorder,
+		showBottomBorder:    config.ShowBottomBorder,
+		showRightBorder:     config.ShowRightBorder,
+		showBottomPadding:   config.ShowBottomPadding,
+		showBottomSeparator: config.ShowBottomSeparator,
+		indentation:         config.Indentation,
+		title:               config.Title,
+		titleColor:          config.TitleColor,
 
 		// Unicode box characters (rounded corners)
 		horizontal:  "─", // U+2500 Box Drawings Light Horizontal
@@ -77,6 +101,10 @@ func NewBox(config BoxConfig) *Box {
 		asciiBottomLeft:  "+",
 		asciiBottomRight: "+",
 
+		block:      "█",
+		shade:      "░", // U+2591 Light Shade
+		asciiBlock: "#",
+
 		space: " ", // U+0020 Space
 	}
 
@@ -89,9 +117,13 @@ func NewBox(config BoxConfig) *Box {
 		box.borderColor = Gray04
 	}
 
+	if box.shadeColor == "" {
+		box.shadeColor = Gray08
+	}
+
 	// Use border color if title color not specified
 	if box.titleColor == "" {
-		box.titleColor = box.borderColor
+		box.titleColor = Gray15
 	}
 
 	// Only override the defaults if explicitly set to false
@@ -99,8 +131,28 @@ func NewBox(config BoxConfig) *Box {
 		box.showTopBorder = false
 	}
 
+	if !config.ShowTopShade {
+		box.showTopShade = true
+	}
+
 	if !config.ShowLeftBorder {
 		box.showLeftBorder = false
+	}
+
+	if !config.ShowBottomBorder {
+		box.showBottomBorder = false
+	}
+
+	if !config.ShowBottomSeparator {
+		box.showBottomSeparator = false
+	}
+
+	if !config.ShowRightBorder {
+		box.showRightBorder = false
+	}
+
+	if !config.ShowBottomPadding {
+		box.showBottomPadding = false
 	}
 
 	// Initialize emptyLineCache
@@ -127,7 +179,15 @@ func (b *Box) updateEmptyLineCache() {
 	}
 
 	b.emptyLineCache += strings.Repeat(b.space, b.width)
-	b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
+
+	if b.showRightBorder {
+		b.emptyLineCache += (Dimmed(vertChar, b.borderColor))
+	}
+}
+
+// draw an empty row
+func (b *Box) DrawEmpty() {
+	fmt.Println(b.emptyLineCache)
 }
 
 // DrawTop draws the top border of the box
@@ -168,8 +228,10 @@ func (b *Box) DrawTop() {
 		topBorder += strings.Repeat(horizChar, beforeTitle)
 		line += (Dimmed(topBorder, b.borderColor))
 
+		BoldedTitle := Bolded(b.title)
+
 		if UseColors {
-			line += "" + Colored(b.titleColor, b.title) + " " + rightSide
+			line += "" + Dimmed(BoldedTitle, b.titleColor) + " " + rightSide
 		} else {
 			line += "" + b.title + " " + rightSide
 		}
@@ -194,6 +256,224 @@ func (b *Box) DrawTop() {
 	topBorder += strings.Repeat(horizChar, b.width) + topRightChar
 
 	fmt.Println(Dimmed(topBorder, b.borderColor))
+}
+
+func (b *Box) DrawTopHeader() {
+	// Choose the appropriate characters based on UseColors
+	headerChar := b.shade
+	// shadeColor := Gray08
+
+	if !UseColors {
+		headerChar = b.asciiBlock
+	}
+
+	// If we have a title, draw the title with borders on each side
+	if b.title != "" && b.showTopShade {
+		leftSide := ""
+
+		// Calculate space needed before and after title
+		titleLen := CalculateVisualWidth(b.title)
+		beforeTitle := 1 // minimum spacing before title
+
+		line := ""
+		leftSide += strings.Repeat(headerChar, beforeTitle)
+		line += (Colored(b.shadeColor, leftSide))
+
+		rightSide := Colored(b.shadeColor, strings.Repeat(headerChar, b.width-beforeTitle-titleLen-1))
+
+		BoldedTitle := Bolded(b.title)
+
+		if UseColors && b.titleColor != "skip" {
+			line += " " + Dimmed(BoldedTitle, b.titleColor) + " " + rightSide
+		} else {
+			line += " " + b.title + " " + rightSide
+		}
+
+		fmt.Println(line)
+		// fmt.Println()
+
+		return
+	}
+
+	// Otherwise draw a regular top border
+	line := ""
+
+	// Add indentation if there's no left border but indentation is set
+	if !b.showLeftBorder && b.indentation > 0 {
+		line = strings.Repeat(b.space, b.indentation)
+	}
+
+	line += strings.Repeat(headerChar, b.width)
+
+	fmt.Println(line)
+}
+
+func (b *Box) SectionHeader(label string, color ...string) {
+	// Choose the appropriate characters based on UseColors
+	headerChar := b.shade
+	// horizChar := "~"
+	horizChar := b.horizontal
+	// shadeColor := Gray08
+
+	labelColor := Gray08
+	// msgColor := Gray08
+
+	// if secColor == "" {
+	// 	labelColor = b.titleColor
+	// } else {
+	// 	labelColor = secColor
+	// }
+
+	if len(color) > 0 && color[0] != "" {
+		labelColor = color[0]
+	}
+
+	if !UseColors {
+		headerChar = b.asciiBlock
+	}
+
+	// If we have a title, draw the title with borders on each side
+	if label != "" && b.showTopShade {
+		leftSide := ""
+
+		// Calculate space needed before and after title
+		labelLen := CalculateVisualWidth(label)
+		beforeLabel := 1 // minimum spacing before title
+
+		line := ""
+		leftSide += strings.Repeat(headerChar, beforeLabel)
+		line += (Colored(b.shadeColor, leftSide))
+
+		rightSide := Dimmed(strings.Repeat(horizChar, b.width-beforeLabel-labelLen-1), b.borderColor)
+
+		// BoldedLabel := Bolded(label)
+
+		if UseColors && b.titleColor != "skip" {
+			line += " " + Dimmed(label, labelColor) + " " + rightSide
+		} else {
+			line += " " + b.title + " " + rightSide
+		}
+
+		fmt.Println(line)
+		fmt.Println()
+
+		return
+	}
+
+	// Otherwise draw a regular top border
+	line := ""
+
+	// Add indentation if there's no left border but indentation is set
+	if !b.showLeftBorder && b.indentation > 0 {
+		line = strings.Repeat(b.space, b.indentation)
+	}
+
+	line += strings.Repeat(headerChar, b.width)
+
+	fmt.Println(line)
+}
+
+func (b *Box) SectionNotice(label string, message string, notice ...string) {
+	// Choose the appropriate characters based on UseColors
+
+	labelColor := ""
+	secColor := ""
+	for _, opt := range notice {
+		switch opt {
+		case "warning":
+			secColor = Yellow
+		case "success":
+			secColor = Green
+		}
+	}
+
+	headerChar := b.block
+	// horizChar := "~"
+	// horizChar := b.horizontal
+	// shadeColor := Gray08
+
+	// msgColor := Gray08
+
+	if secColor != "" {
+		labelColor = secColor
+	} else {
+		labelColor = b.titleColor
+		secColor = b.shadeColor
+	}
+
+	// if len(color) > 0 && color[0] != "" {
+	// 	msgColor = color[0]
+	// }
+
+	if !UseColors {
+		headerChar = b.asciiBlock
+	}
+
+	// If we have a title, draw the title with borders on each side
+	if label != "" && b.showTopShade {
+		leftSide := ""
+
+		// Calculate space needed before and after title
+		// messageLen := CalculateVisualWidth(message)
+		beforeLabel := 1 // minimum spacing before title
+
+		labelLine := ""
+		messageLine := ""
+		leftSide += strings.Repeat(headerChar, beforeLabel)
+		labelLine += (Colored(secColor, leftSide))
+		messageLine += (Colored(secColor, leftSide))
+
+		// rightSide := Dimmed(strings.Repeat(horizChar, b.width-beforeLabel-labelLen-1), b.borderColor)
+
+		// BoldedLabel := Bolded(label)
+
+		labelLine += " " + Colored(labelColor, label)
+		messageLine += " " + Dimmed(message)
+
+		// if UseColors && b.titleColor != "skip" {
+		// 	labelLine += " " + Dimmed(label, labelColor) + " " + rightSide
+		// } else {
+		// 	labelLine += " " + b.title + " " + rightSide
+		// }
+
+		fmt.Println(labelLine)
+		if message != "" {
+			fmt.Println(messageLine)
+		}
+		fmt.Println()
+
+		return
+	}
+
+	// Otherwise draw a regular top border
+	line := ""
+
+	// Add indentation if there's no left border but indentation is set
+	if !b.showLeftBorder && b.indentation > 0 {
+		line = strings.Repeat(b.space, b.indentation)
+	}
+
+	line += strings.Repeat(headerChar, b.width)
+
+	fmt.Println(line)
+}
+
+func (b *Box) WarningNotice(label string, message string) {
+	if label == "" {
+		label = "Warning"
+	}
+	b.SectionNotice(label, message, "warning")
+}
+
+func (b *Box) SuccessNotice(label string, message string) {
+	if label == "" {
+		label = "Success"
+	}
+	b.SectionNotice(label, message, "success")
+}
+
+func (b *Box) PressAnyKey() {
+	fmt.Printf("\n%s Press any key to continue...", Dimmed(SymRightCarrot))
 }
 
 // DrawBottom draws the bottom border of the box
@@ -226,9 +506,44 @@ func (b *Box) DrawBottom() {
 	fmt.Println(Dimmed(bottomBorder, b.borderColor))
 }
 
-// draw an empty row
-func (b *Box) DrawEmpty() {
-	fmt.Println(b.emptyLineCache)
+func (b *Box) DrawSeparator() {
+
+	b.DrawEmpty()
+	// Choose the appropriate characters based on UseColors
+	// horizChar := "~"
+	horizChar := b.horizontal
+
+	bottomBorder := ""
+
+	// Add indentation if there's no left border but indentation is set
+	if !b.showLeftBorder && b.indentation > 0 {
+		// bottomBorder = Dimmed(strings.Repeat(b.space, b.indentation), b.borderColor)
+		bottomBorder = strings.Repeat(b.space, b.indentation)
+	}
+
+	bottomBorder += strings.Repeat(horizChar, b.width+1)
+	fmt.Println(Dimmed(bottomBorder, b.borderColor))
+
+	b.DrawEmpty()
+}
+
+func (b *Box) DrawBottomSeparator() {
+
+	b.DrawEmpty()
+	// Choose the appropriate characters based on UseColors
+	// horizChar := "~"
+	horizChar := b.horizontal
+
+	bottomBorder := ""
+
+	// Add indentation if there's no left border but indentation is set
+	if !b.showLeftBorder && b.indentation > 0 {
+		// bottomBorder = Dimmed(strings.Repeat(b.space, b.indentation), b.borderColor)
+		bottomBorder = strings.Repeat(b.space, b.indentation)
+	}
+
+	bottomBorder += strings.Repeat(horizChar, b.width+1)
+	fmt.Println(Dimmed(bottomBorder, b.borderColor))
 }
 
 // draw a line of content in the box
@@ -256,7 +571,9 @@ func (b *Box) DrawLine(content string) {
 	}
 
 	line += content + strings.Repeat(b.space, padding)
-	line += (Dimmed(vertChar, b.borderColor))
+	if b.showRightBorder {
+		line += (Dimmed(vertChar, b.borderColor))
+	}
 
 	fmt.Println(line)
 }
@@ -273,8 +590,18 @@ func CalculateVisualWidth(s string) int {
 
 // draw a complete box with the provided content function
 func (b *Box) DrawBox(contentFn func(printLine func(string))) {
+
 	if b.showTopBorder {
 		b.DrawTop()
+	}
+
+	// if b.showTopBlock {
+	// 	b.DrawTopHeader()
+	// }
+
+	if b.showTopShade {
+		fmt.Println()
+		b.DrawTopHeader()
 	}
 
 	// top padding
@@ -288,12 +615,22 @@ func (b *Box) DrawBox(contentFn func(printLine func(string))) {
 		})
 	}
 
+	if b.showBottomSeparator {
+		b.DrawBottomSeparator()
+		// b.DrawEmpty()
+		fmt.Println()
+	}
+
 	// bottom padding
-	if b.showEmptyRow {
+	if b.showBottomPadding {
 		b.DrawEmpty()
 	}
 
-	b.DrawBottom()
+	if b.showBottomBorder {
+		b.DrawBottom()
+	}
+
+	// fmt.Println()
 }
 
 // draw text centered in the box
@@ -326,7 +663,10 @@ func (b *Box) DrawCenteredText(text string) {
 	}
 
 	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
-	line += (Dimmed(vertChar, b.borderColor))
+
+	if b.showRightBorder {
+		line += (Dimmed(vertChar, b.borderColor))
+	}
 
 	fmt.Println(line)
 }
@@ -378,7 +718,10 @@ func (b *Box) DrawRightAlignedText(text string) {
 	}
 
 	line += strings.Repeat(b.space, padding) + text
-	line += (Dimmed(vertChar, b.borderColor))
+
+	if b.showRightBorder {
+		line += (Dimmed(vertChar, b.borderColor))
+	}
 
 	fmt.Println(line)
 }
@@ -411,7 +754,10 @@ func (b *Box) DrawPaddedText(text string, leftPadding int) {
 	}
 
 	line += strings.Repeat(b.space, leftPadding) + text + strings.Repeat(b.space, rightPadding)
-	line += (Dimmed(vertChar, b.borderColor))
+
+	if b.showRightBorder {
+		line += (Dimmed(vertChar, b.borderColor))
+	}
 
 	fmt.Println(line)
 }
@@ -518,4 +864,45 @@ func BoxedTitle(title string, width int, color ...string) string {
 	result = topBorder + "\n" + emptyLine + "\n" + titleLine + "\n" + emptyLine + "\n" + bottomBorder
 
 	return result
+}
+
+func ScreenHeader(title string, width int, options ...string) string {
+
+	// Set default color and border character
+	borderColor := Gray08 // Default border color // Gray07
+
+	// Default border character based on terminal capabilities
+	borderCharacter := "░" // Unicode block // "░"  // "█"
+	if !UseColors {
+		borderCharacter = "#" // ASCII fallback
+	}
+
+	if len(options) > 0 {
+		// Check if the last option is a three characters
+		if len(options[len(options)-1]) == 3 {
+			borderCharacter = options[len(options)-1]
+			options = options[:len(options)-1] // Remove the last option
+		}
+
+		if len(options) > 0 {
+			borderColor = options[0]
+		}
+	}
+
+	// Calculate space needed for title
+	titleLen := CalculateVisualWidth(title)
+	beforeTitle := 1 // minimum spacing before title
+
+	// Format header elements
+	leftSide := Colored(borderColor, strings.Repeat(borderCharacter, beforeTitle))
+	rightSide := Colored(borderColor, strings.Repeat(borderCharacter, width-beforeTitle-titleLen-1)+borderCharacter)
+
+	// leftSide := Dimmed(borderCharacter, borderColor)
+	// rightSide := Dimmed(strings.Repeat(borderCharacter, width-beforeTitle-titleLen-1)+borderCharacter, borderColor)
+
+	// Build header
+	header := leftSide + " " + title + " " + rightSide
+
+	return header
+	// return header + "\n"
 }

@@ -81,7 +81,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 		menuOptions = append(menuOptions, style.MenuOption{
 			Number:      1,
 			Title:       "Manage a user",
-			Description: "Change a configuration (sudo, SSH Keys)",
+			Description: "Configure sudo, SSH Keys",
 		})
 
 		menuOptions = append(menuOptions, style.MenuOption{
@@ -142,11 +142,14 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 	menu := style.NewMenu("Select an option", menuOptions)
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
-		Title:       "Return to main menu",
+		Title:       "Return",
 		Description: "",
 	})
 
 	// Display menu
+
+	menu.SetIndentation(2)
+
 	menu.Print()
 
 	choice := ReadMenuInput()
@@ -168,7 +171,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if err != nil {
 				fmt.Printf("\n%s Error getting users: %v\n",
 					style.Colored(style.Red, style.SymCrossMark), err)
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -176,33 +179,49 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if len(nonSysUsers) == 0 {
 				fmt.Printf("\n%s No non-system users found\n",
 					style.Colored(style.Yellow, style.SymWarning))
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
 
+			// boxHeader := style.HeaderLabel("User Management")
+
 			// Create user selection menu
 			utils.ClearScreen()
-
-			fmt.Println("\nSelect a user to manage:")
-
-			userOptions := []style.MenuOption{}
-			for i, user := range nonSysUsers {
-				userOptions = append(userOptions, style.MenuOption{
-					Number:      i + 1,
-					Title:       user.Username,
-					Description: "",
-				})
-			}
-
-			userMenu := style.NewMenu("Select a user", userOptions)
-			userMenu.SetExitOption(style.MenuOption{
-				Number:      0,
-				Title:       "Return to user menu",
-				Description: "",
+			// Create a separate box for security status
+			securityBox := style.NewBox(style.BoxConfig{
+				Width:        64,
+				ShowEmptyRow: true,
+				ShowTopShade: true,
+				Indentation:  0,
+				Title:        "Manage User",
 			})
 
-			userMenu.Print()
+			// Draw the security box with all content
+			securityBox.DrawBox(func(printLine func(string)) {
+				// fmt.Println(style.ScreenHeader("Manage User", 72))
+
+				userOptions := []style.MenuOption{}
+				for i, user := range nonSysUsers {
+					userOptions = append(userOptions, style.MenuOption{
+						Number:      i + 1,
+						Title:       user.Username,
+						Description: "",
+					})
+				}
+
+				userMenu := style.NewMenu("Select a user", userOptions)
+
+				userMenu.SetExitOption(style.MenuOption{
+					Number:      0,
+					Title:       "Return",
+					Description: "",
+				})
+
+				userMenu.SetIndentation(2)
+				userMenu.Print()
+			})
+
 			userChoice := ReadMenuInput()
 
 			// Handle user selection
@@ -217,7 +236,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if err != nil || userIndex < 1 || userIndex > len(nonSysUsers) {
 				fmt.Printf("\n%s Invalid selection. Please try again.\n",
 					style.Colored(style.Red, style.SymCrossMark))
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -227,97 +246,135 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 
 			// Clear the screen before showing the management submenu
 			utils.ClearScreen()
-
-			fmt.Printf("\n%s Managing user: %s\n",
-				style.Colored(style.Blue, style.SymInfo),
-				style.Bolded(selectedUser.Username))
-
-			// Create a submenu for managing the user
-			manageUserOptions := []style.MenuOption{
-				{
-					Number:      1,
-					Title:       "Toggle sudo password requirement",
-					Description: "Change sudo password settings",
-				},
-				{
-					Number:      2,
-					Title:       "Manage SSH keys",
-					Description: "Add or remove SSH public keys",
-				},
-			}
-
-			manageMenu := style.NewMenu("Select management option", manageUserOptions)
-			manageMenu.SetExitOption(style.MenuOption{
-				Number:      0,
-				Title:       "Return to user menu",
-				Description: "",
+			// Create a separate box for security status
+			manageUserBox := style.NewBox(style.BoxConfig{
+				Width:        64,
+				ShowEmptyRow: true,
+				ShowTopShade: true,
+				Indentation:  0,
+				Title:        "Manage User",
 			})
 
-			// Display management submenu
-			manageMenu.Print()
+			// Draw the security box with all content
+			manageUserBox.DrawBox(func(printLine func(string)) {
+
+				usernameLabel := style.ColoredLabel(selectedUser.Username)
+
+				fmt.Printf("  %s%s\n\n", style.Dimmed("Managing:"), usernameLabel)
+
+				// Create a submenu for managing the user
+				manageUserOptions := []style.MenuOption{
+					{
+						Number:      1,
+						Title:       "Sudo Method",
+						Description: "Toggle password requirement",
+					},
+					{
+						Number:      2,
+						Title:       "Manage SSH keys",
+						Description: "Add or remove SSH keys",
+					},
+				}
+
+				manageMenu := style.NewMenu("Select an option", manageUserOptions)
+				manageMenu.SetExitOption(style.MenuOption{
+					Number:      0,
+					Title:       "Return",
+					Description: "",
+				})
+
+				// Display management submenu
+
+				manageMenu.SetIndentation(2)
+				manageMenu.Print()
+
+			})
+
 			subChoice := ReadMenuInput()
 
 			switch subChoice {
 			case "1":
-				// Toggle sudo password requirement for selected user
-				// Get current user settings
-				userInfo, err := m.menuManager.GetExtendedUserInfo(selectedUser.Username)
-				if err != nil {
-					fmt.Printf("\n%s Error getting user info: %v\n",
-						style.Colored(style.Red, style.SymCrossMark), err)
-					fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
-					ReadKey()
-					break
-				}
 
-				// Toggle the setting
-				sudoNoPassword := !userInfo.SudoNoPassword
+				// Create user selection menu
+				utils.ClearScreen()
+				// Create a separate box for security status
+				sudoBox := style.NewBox(style.BoxConfig{
+					Width:        64,
+					ShowEmptyRow: true,
+					ShowTopShade: true,
+					Indentation:  0,
+					Title:        "Manage Sudo",
+				})
 
-				// Check if we're about to require a password
-				if !sudoNoPassword {
-					// We're about to set sudo to require a password
-					// We don't have direct access to the commander, so use a simpler check
+				// Draw the security box with all content
+				sudoBox.DrawBox(func(printLine func(string)) {
+					// fmt.Println(style.ScreenHeader("Manage User", 72))
 
-					fmt.Printf("\n%s Warning: Setting sudo to require a password.\n",
-						style.Colored(style.Yellow, style.SymWarning))
-					fmt.Printf("  If the user doesn't have a password set, they may be unable to use sudo.\n")
-					fmt.Printf("\n%s Do you want to continue? (y/n): ", style.BulletItem)
-
-					confirm := ReadInput()
-					if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
-						fmt.Printf("\n%s Operation cancelled.\n",
-							style.Colored(style.Yellow, style.SymInfo))
-						fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+					// Toggle sudo password requirement for selected user
+					// Get current user settings
+					userInfo, err := m.menuManager.GetExtendedUserInfo(selectedUser.Username)
+					if err != nil {
+						fmt.Printf("\n%s Error getting user info: %v\n",
+							style.Colored(style.Red, style.SymCrossMark), err)
+						fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 						ReadKey()
-						break
+						return
 					}
-				}
 
-				if sudoNoPassword {
-					fmt.Printf("\n%s Sudo will %s for user '%s'\n",
-						style.Colored(style.Green, style.SymCheckMark),
-						style.Bolded("NOT require a password", style.Green),
-						selectedUser.Username)
-				} else {
-					fmt.Printf("\n%s Sudo will %s for user '%s'\n",
-						style.Colored(style.Green, style.SymCheckMark),
-						style.Bolded("require a password", style.Green),
-						selectedUser.Username)
-				}
+					// Toggle the setting
+					sudoNoPassword := !userInfo.SudoNoPassword
 
-				// Update the user's sudo settings
-				// We're reusing CreateUser which can also update existing users
-				err = m.menuManager.CreateUser(selectedUser.Username, true, sudoNoPassword, userInfo.SshKeys)
-				if err != nil {
-					fmt.Printf("\n%s Failed to update user's sudo settings: %v\n",
-						style.Colored(style.Red, style.SymCrossMark), err)
-				} else if !m.config.DryRun {
-					fmt.Printf("\n%s User sudo settings updated successfully\n",
-						style.Colored(style.Green, style.SymCheckMark))
-				}
+					// Check if we're about to require a password
+					if !sudoNoPassword {
+						// We're about to set sudo to require a password
+						// We don't have direct access to the commander, so use a simpler check
 
-				// Return to this menu after toggling sudo
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+						sudoBox.WarningNotice("", "A user password is required for sudo usage.")
+
+						fmt.Printf("  Require password for sudo? (y/n): ")
+
+						confirm := ReadInput()
+						if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
+
+							fmt.Println()
+
+							sudoBox.WarningNotice("Operation cancelled", "")
+
+							sudoBox.PressAnyKey()
+
+							ReadKey()
+							return
+						}
+					}
+
+					if sudoNoPassword {
+						fmt.Printf("\n%s Sudo will %s for user '%s'\n",
+							style.Colored(style.Green, style.SymCheckMark),
+							style.Bolded("NOT require a password", style.Green),
+							selectedUser.Username)
+					} else {
+						fmt.Printf("\n%s Sudo will %s for user '%s'\n",
+							style.Colored(style.Green, style.SymCheckMark),
+							style.Bolded("require a password", style.Green),
+							selectedUser.Username)
+					}
+
+					// Update the user's sudo settings
+					// We're reusing CreateUser which can also update existing users
+					err = m.menuManager.CreateUser(selectedUser.Username, true, sudoNoPassword, userInfo.SshKeys)
+					if err != nil {
+						fmt.Printf("\n%s Failed to update user's sudo settings: %v\n",
+							style.Colored(style.Red, style.SymCrossMark), err)
+					} else if !m.config.DryRun {
+						fmt.Printf("\n%s User sudo settings updated successfully\n",
+							style.Colored(style.Green, style.SymCheckMark))
+					}
+
+					// Return to this menu after toggling sudo
+					fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
+
+				})
+
 				ReadKey()
 
 			case "2":
@@ -328,7 +385,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 				if err != nil {
 					fmt.Printf("\n%s Error getting user info: %v\n",
 						style.Colored(style.Red, style.SymCrossMark), err)
-					fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+					fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 					ReadKey()
 					break
 				}
@@ -376,10 +433,11 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 				keyMenu := style.NewMenu("Select SSH key operation", keyOptions)
 				keyMenu.SetExitOption(style.MenuOption{
 					Number:      0,
-					Title:       "Return to user management",
+					Title:       "Return",
 					Description: "",
 				})
 
+				keyMenu.SetIndentation(2)
 				keyMenu.Print()
 				keyChoice := ReadMenuInput()
 
@@ -464,7 +522,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 						style.Colored(style.Red, style.SymCrossMark))
 				}
 
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 
 			case "0", "q":
@@ -474,7 +532,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			default:
 				fmt.Printf("\n%s Invalid option. Please try again.\n",
 					style.Colored(style.Red, style.SymCrossMark))
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 			}
 
@@ -529,7 +587,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			}
 
 			// Return to this menu after changing username
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			return true // Continue showing the menu
 		}
@@ -542,7 +600,9 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			utils.ClearScreen()
 
 			// Create a header for the new user creation screen
-			fmt.Println(style.BoxedTitle("Create New User", 72, style.Blue))
+			// fmt.Println(style.BoxedTitle("Create New User", 72, style.Blue))
+
+			fmt.Println(style.ScreenHeader("Create New User", 64, style.Gray10))
 
 			fmt.Printf("\n%s Configure a new user\n",
 				style.Colored(style.Blue, style.SymInfo))
@@ -555,7 +615,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if newUsername == "" {
 				fmt.Printf("\n%s No username provided. Operation cancelled.\n",
 					style.Colored(style.Yellow, style.SymWarning))
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -565,7 +625,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 				fmt.Printf("\n%s Invalid username: %s\n",
 					style.Colored(style.Red, style.SymCrossMark),
 					validationError)
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -575,7 +635,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if err == nil {
 				fmt.Printf("\n%s User '%s' already exists on the system\n",
 					style.Colored(style.Red, style.SymCrossMark), newUsername)
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -640,7 +700,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			if !strings.EqualFold(confirm, "y") && !strings.EqualFold(confirm, "yes") {
 				fmt.Printf("\n%s Operation cancelled.\n",
 					style.Colored(style.Yellow, style.SymInfo))
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true
 			}
@@ -658,7 +718,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 					newUsername)
 			}
 
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			return true
 
@@ -686,7 +746,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			}
 
 			// Return to this menu after toggling sudo
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			return true // Continue showing the menu
 		}
@@ -703,7 +763,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 				style.Colored(style.Red, style.SymCrossMark))
 
 			// Return to this menu
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			return true // Continue showing the menu
 		}
@@ -720,7 +780,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 					style.Colored(style.Yellow, style.SymInfo))
 
 				// Return to this menu
-				fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+				fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 				ReadKey()
 				return true // Continue showing the menu
 			}
@@ -757,7 +817,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 			style.Colored(style.Red, style.SymCrossMark))
 
 		// Return to this menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		return true // Continue showing the menu
 	}

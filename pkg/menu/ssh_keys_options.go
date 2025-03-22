@@ -89,7 +89,7 @@ func (m *UserMenu) HandleSSHKeysOptions() bool {
 		}
 
 		// Wait for key press before continuing
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		return true // Continue showing the SSH keys menu
 
@@ -100,7 +100,7 @@ func (m *UserMenu) HandleSSHKeysOptions() bool {
 				style.Colored(style.Yellow, style.SymWarning))
 
 			// Wait for key press before continuing
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			return true // Continue showing the SSH keys menu
 		}
@@ -142,7 +142,7 @@ func (m *UserMenu) HandleSSHKeysOptions() bool {
 		}
 
 		// Wait for key press before continuing
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		return true // Continue showing the SSH keys menu
 
@@ -151,7 +151,7 @@ func (m *UserMenu) HandleSSHKeysOptions() bool {
 			style.Colored(style.Red, style.SymCrossMark))
 
 		// Wait for key press before continuing
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		return true // Continue showing the SSH keys menu
 	}

@@ -236,7 +236,7 @@ func (m *FirewallMenu) Show() {
 		}
 
 		// Return to firewall menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 
@@ -295,7 +295,7 @@ func (m *FirewallMenu) Show() {
 			style.Colored(style.Red, style.SymCrossMark))
 
 		// Return to firewall menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -404,7 +404,7 @@ func (m *FirewallMenu) manageAppProfiles() {
 			style.Colored(style.Red, style.SymCrossMark))
 
 		// Return to app profiles menu
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.manageAppProfiles()
 		return

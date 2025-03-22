@@ -82,7 +82,7 @@ func (m *SystemDetailsMenu) Show() {
 	menu := style.NewMenu("Select an option", menuOptions)
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
-		Title:       "Return to main menu",
+		Title:       "Return",
 		Description: "",
 	})
 
@@ -109,7 +109,7 @@ func (m *SystemDetailsMenu) Show() {
 		} else {
 			fmt.Printf("\n%s Cannot export: No system information available\n",
 				style.Colored(style.Red, style.SymCrossMark))
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 		}
 		m.Show()
@@ -123,7 +123,7 @@ func (m *SystemDetailsMenu) Show() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 	}
@@ -240,6 +240,6 @@ func (m *SystemDetailsMenu) exportSystemDetails(info *system.SystemDetails) {
 		}
 	}
 
-	fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+	fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 	ReadKey()
 }

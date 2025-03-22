@@ -185,7 +185,7 @@ func (m *RunAllMenu) Show() {
 	default:
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -202,20 +202,20 @@ func (m *RunAllMenu) runAllHardening() {
 
 	// Build a comprehensive HardeningConfig from current configuration
 	hardening := model.HardeningConfig{
-		CreateUser:               m.config.Username != "",
-		Username:                 m.config.Username,
-		SudoNoPassword:           m.config.SudoNoPassword,
-		SshKeys:                  m.config.SshKeys,
-		SshPort:                  m.config.SshPort,
-		SshListenAddresses:       []string{m.config.SshListenAddress},
-		SshAllowedUsers:          m.config.SshAllowedUsers,
-		EnableFirewall:           m.config.EnableUfwSshPolicy,
-		AllowedPorts:             m.config.UfwAllowedPorts,
-		ConfigureDns:             m.config.ConfigureDns,
-		Nameservers:              m.config.Nameservers,
-		EnableAppArmor:           m.config.EnableAppArmor,
-		EnableLynis:              m.config.EnableLynis,
-		EnableUnattendedUpgrades: m.config.EnableUnattendedUpgrades,
+		CreateUser:         m.config.Username != "",
+		Username:           m.config.Username,
+		SudoNoPassword:     m.config.SudoNoPassword,
+		SshKeys:            m.config.SshKeys,
+		SshPort:            m.config.SshPort,
+		SshListenAddresses: []string{m.config.SshListenAddress},
+		SshAllowedUsers:    m.config.SshAllowedUsers,
+		EnableFirewall:     m.config.EnableUfwSshPolicy,
+		AllowedPorts:       m.config.UfwAllowedPorts,
+		ConfigureDns:       m.config.ConfigureDns,
+		Nameservers:        m.config.Nameservers,
+		EnableAppArmor:     m.config.EnableAppArmor,
+		EnableLynis:        m.config.EnableLynis,
+		// EnableUnattendedUpgrades: m.config.EnableUnattendedUpgrades,
 	}
 
 	// Track progress with step counting
@@ -274,9 +274,9 @@ func (m *RunAllMenu) runAllHardening() {
 			showProgress("Lynis security audit completed")
 		}
 
-		if hardening.EnableUnattendedUpgrades {
-			showProgress("Automatic updates configured")
-		}
+		// if hardening.EnableUnattendedUpgrades {
+		// 	showProgress("Automatic updates configured")
+		// }
 	}
 
 	// Final status
@@ -323,9 +323,9 @@ func calculateTotalSteps(config *model.HardeningConfig) int {
 		totalSteps++
 	}
 
-	if config.EnableUnattendedUpgrades {
-		totalSteps++
-	}
+	// if config.EnableUnattendedUpgrades {
+	// 	totalSteps++
+	// }
 
 	return totalSteps
 }
@@ -409,9 +409,9 @@ func dryRunHardening(config *model.HardeningConfig, showProgress func(string), i
 		fmt.Printf("%s Would install and run Lynis security audit\n", style.BulletItem)
 	}
 
-	// Simulate unattended upgrades setup
-	if config.EnableUnattendedUpgrades {
-		showProgress("Simulating automatic updates configuration")
-		fmt.Printf("%s Would configure unattended security updates\n", style.BulletItem)
-	}
+	// // Simulate unattended upgrades setup
+	// if config.EnableUnattendedUpgrades {
+	// 	showProgress("Simulating automatic updates configuration")
+	// 	fmt.Printf("%s Would configure unattended security updates\n", style.BulletItem)
+	// }
 }

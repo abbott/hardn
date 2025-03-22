@@ -114,7 +114,7 @@ func (m *DNSMenu) Show() {
 	menu := style.NewMenu("Select an option", menuOptions)
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
-		Title:       "Return to main menu",
+		Title:       "Return",
 		Description: "",
 	})
 
@@ -135,7 +135,7 @@ func (m *DNSMenu) Show() {
 			fmt.Printf("\n%s No nameservers configured. Please add nameservers first.\n",
 				style.Colored(style.Yellow, style.SymWarning))
 
-			fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+			fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 			ReadKey()
 			m.Show()
 			return
@@ -191,7 +191,7 @@ func (m *DNSMenu) Show() {
 		fmt.Printf("\n%s Nameservers set to Cloudflare DNS: 1.1.1.1, 1.0.0.1\n",
 			style.Colored(style.Green, style.SymCheckMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -210,7 +210,7 @@ func (m *DNSMenu) Show() {
 		fmt.Printf("\n%s Nameservers set to Google DNS: 8.8.8.8, 8.8.4.4\n",
 			style.Colored(style.Green, style.SymCheckMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -229,7 +229,7 @@ func (m *DNSMenu) Show() {
 		fmt.Printf("\n%s Nameservers set to Quad9 DNS: 9.9.9.9, 149.112.112.112\n",
 			style.Colored(style.Green, style.SymCheckMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
@@ -242,7 +242,7 @@ func (m *DNSMenu) Show() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return

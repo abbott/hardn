@@ -57,34 +57,12 @@ func (m *UserMenu) Show() {
 	}
 }
 
-// format the header for the User Management box
-func (m *UserMenu) formatBoxHeader() string {
-	showLabel := false
-
-	head := "User Management"
-	label := "Create and manage users"
-
-	boldHead := style.Bolded(head)
-	dimHead := style.Dimmed(boldHead, style.Gray15)
-	dimLabel := style.Dimmed(label, style.Gray15)
-
-	if !showLabel {
-		return dimHead
-	}
-
-	return fmt.Sprintf("%s %s", dimHead, dimLabel)
-}
-
 // formats title and subtitle for the User Management box
 func (m *UserMenu) formatUserInstanceUsername(username string, formatter *style.StatusFormatter) (string, string) {
 	showMeta := true
 	showSubtext := false
 
-	paddedLabel := " " + username + " "
-	coloredUsername := style.Colored(style.BgDarkBlue, paddedLabel)
-
-	// Format title line
-	formattedUsername := " " + style.Bolded(coloredUsername)
+	usernameLabel := style.ColoredLabel(username)
 
 	// Try to get last login from extended user info
 	meta := ""
@@ -99,10 +77,10 @@ func (m *UserMenu) formatUserInstanceUsername(username string, formatter *style.
 		meta = fmt.Sprintf("%s %s", loginTime, ipAddress)
 	}
 
-	usernameLine := formatter.FormatLine("", "", formattedUsername, meta, "", "", "no-indent")
+	usernameLine := formatter.FormatLine("", "", usernameLabel, meta, "", "", "no-indent")
 
 	if !showMeta {
-		usernameLine = formatter.FormatLine("", "", formattedUsername, "", "", "", "no-indent")
+		usernameLine = formatter.FormatLine("", "", usernameLabel, "", "", "", "no-indent")
 	}
 
 	// Format subtext line
@@ -121,20 +99,17 @@ func (m *UserMenu) formatUserInstanceUsername(username string, formatter *style.
 // displays User Management box
 func (m *UserMenu) displayUserBox(formatter *style.StatusFormatter) {
 	// One line padding before the box
-	fmt.Println()
-
 	// Format box header
-	boxHeader := m.formatBoxHeader()
+	boxHeader := style.HeaderLabel("User Management")
 
 	// Define primary content box w/standardized settings
 	contentBox := style.NewBox(style.BoxConfig{
-		Width:          64,
-		ShowEmptyRow:   true,
-		ShowTopBorder:  true,
-		ShowLeftBorder: false,
-		Indentation:    0,
-		Title:          boxHeader,
-		TitleColor:     style.Bold,
+		Width:               64,
+		ShowEmptyRow:        true,
+		ShowTopShade:        true,
+		ShowBottomSeparator: true,
+		Indentation:         0,
+		Title:               boxHeader,
 	})
 
 	// Draw primary box w/content
@@ -146,11 +121,14 @@ func (m *UserMenu) displayUserBox(formatter *style.StatusFormatter) {
 		printIndent := style.IndentPrinter(printLine, indentSpaces)
 
 		// Display top notice
-		topLine := formatter.FormatConfigured("User(s)", "Configured", "non-system (UID ≥ 1000)", "dark")
+		topLine := formatter.FormatConfigured("Non-root", "Configured", "UID ≥ 1000", "dark")
+
 		if showTopNotice {
 			printIndent(topLine)
 			printIndent("")
 		}
+
+		contentBox.SectionHeader("Configuration")
 
 		// Display user details
 		m.DisplayUserDetails(m.config, formatter, printLine, indentSpaces)

@@ -225,7 +225,6 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *security.Security
 		fmt.Println(repoLine)
 	}
 
-	fmt.Println()
 	// Get host information and format lines for display
 	hostInfo, err := m.menuManager.GetHostInfo()
 	hostLine := ""
@@ -239,13 +238,13 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *security.Security
 
 	// Create a separate box for security status
 	securityBox := style.NewBox(style.BoxConfig{
-		Width:          64,
-		ShowEmptyRow:   true,
-		ShowTopBorder:  true,
-		ShowLeftBorder: false,
-		Indentation:    0,
-		Title:          osTitle,
-		TitleColor:     style.Bold,
+		Width:               64,
+		ShowEmptyRow:        true,
+		ShowTopShade:        true,
+		ShowBottomSeparator: true,
+		Indentation:         0,
+		Title:               osTitle,
+		TitleColor:          "skip",
 	})
 
 	// Draw the security box with all content
@@ -277,6 +276,8 @@ func (m *MainMenu) displayNormalSecurityStatus(securityStatus *security.Security
 
 			// Display security status items using the same indentation
 			security.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, indentedPrintLine, 0)
+
+			// securityBox.DrawSeparator()
 		}
 	})
 }
@@ -358,8 +359,7 @@ func (m *MainMenu) formatHostInfoLines(hostInfo *model.HostInfo, formatter *styl
 	}
 
 	// Format hostname as highlighted label
-	hostPad := " " + hostInfo.Hostname + " "
-	hostLabel := style.Colored(style.BgDarkBlue, hostPad)
+	hostLabel := style.ColoredLabel(hostInfo.Hostname)
 
 	// Format host info line
 	hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, "", "", "no-indent")
@@ -539,7 +539,7 @@ func (m *MainMenu) handleMenuChoice(choice string) bool {
 		utils.PrintHeader()
 		fmt.Printf("%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 	}
 

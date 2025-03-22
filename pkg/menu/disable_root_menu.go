@@ -100,7 +100,7 @@ func (m *DisableRootMenu) Show() {
 	menu := style.NewMenu("Select an option", menuOptions)
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
-		Title:       "Return to main menu",
+		Title:       "Return",
 		Description: "Keep current settings",
 	})
 

@@ -162,7 +162,7 @@ func (m *BackupMenu) Show() {
 		}
 
 		// Return to this menu after changing setting
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 
@@ -203,7 +203,7 @@ func (m *BackupMenu) Show() {
 		}
 
 		// Return to this menu after changing path
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 
@@ -228,7 +228,7 @@ func (m *BackupMenu) Show() {
 		}
 
 		// Return to this menu after verification
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 
@@ -240,7 +240,7 @@ func (m *BackupMenu) Show() {
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
 
-		fmt.Printf("\n%s Press any key to continue...", style.BulletItem)
+		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 	}
