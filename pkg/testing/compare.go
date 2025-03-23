@@ -87,7 +87,7 @@ func (c *ComparisonTester) CompareSSHRootDisable() ComparisonResult {
 
 	// Run new implementation
 	sshManager := c.serviceFactory.CreateSSHManager()
-	if err := sshManager.DisableRootAccess(); err != nil {
+	if err := sshManager.DisableRootSSH(); err != nil {
 		result.Errors = append(result.Errors, fmt.Sprintf("New implementation error: %v", err))
 	}
 

@@ -444,6 +444,10 @@ func NewStatusFormatter(labels []string, buffer int) *StatusFormatter {
 	return formatter
 }
 
+func PressAnyKey() {
+	fmt.Printf("\n%s Press any key to continue...", Dimmed(SymRightCarrot))
+}
+
 // Initialize calculates the maximum label length
 func (sf *StatusFormatter) Initialize() {
 	sf.maxLabelLen = 0
@@ -466,6 +470,7 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	}
 
 	// Check if padding should be disabled (optional parameter)
+	warnDescription := false
 	darkDescription := false
 	setBold := false
 	padSpacing := true
@@ -480,6 +485,8 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 			padSymbol = false
 		case "dark":
 			darkDescription = true
+		case "warn":
+			warnDescription = true
 		}
 	}
 	// Calculate padding needed for label (strip ANSI codes for accuracy)
@@ -530,6 +537,8 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	var descripitionStyle string
 	if darkDescription {
 		descripitionStyle = Dimmed(description, Gray10)
+	} else if warnDescription {
+		descripitionStyle = Colored(Red, description)
 	} else {
 		descripitionStyle = Dimmed(description)
 	}

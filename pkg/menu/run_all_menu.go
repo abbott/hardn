@@ -77,7 +77,7 @@ func (m *RunAllMenu) Show() {
 		{"Unattended Upgrades", m.config.EnableUnattendedUpgrades, "Automatic security updates"},
 		{"UFW SSH Policy", m.config.EnableUfwSshPolicy, "Firewall rules for SSH"},
 		{"DNS Configuration", m.config.ConfigureDns, "DNS settings"},
-		{"Root SSH Disable", m.config.DisableRoot, "Disable root SSH access"},
+		{"Root SSH Disable", m.config.DisableRootSSH, "Disable root SSH access"},
 	}
 
 	featuresFormatter := style.NewStatusFormatter([]string{"Feature"}, 2)

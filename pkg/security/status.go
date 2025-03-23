@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/adapter/secondary"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
@@ -61,6 +62,8 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 	if formatter == nil {
 		formatter = style.NewStatusFormatter([]string{
 			"Users",
+			"Sudo",
+			"Sudo Method",
 			"Firewall",
 			"SSH Login",
 			"SSH Auth",
@@ -83,6 +86,46 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 		indentedPrintFn(formatter.FormatWarning("Users", "Not Configured", "root user only", "dark"))
 	} else {
 		indentedPrintFn(formatter.FormatConfigured("Users", "Configured", "non-root, sudo", "dark"))
+	}
+
+	// Display sudo configuration
+	if !status.SudoConfigured {
+		indentedPrintFn(formatter.FormatWarning("Sudo", "Not Installed", "", "dark"))
+	// } else {
+	// 	indentedPrintFn(formatter.FormatConfigured("Sudo", "Installed", "", "dark"))
+	}
+
+	// Display sudo method
+	// Create repository to check sudo method
+	repo := secondary.NewOSUserRepository(osdetect.NewRealFileSystem(), osdetect.NewRealCommander(), osdetect.GetOS().OsType)
+
+	// First try to find a non-root user with sudo
+	nonRootUser := ""
+	users, err := repo.GetNonSystemUsers()
+	if err == nil {
+		for _, u := range users {
+			if u.HasSudo && u.Username != "root" {
+				nonRootUser = u.Username
+				break
+			}
+		}
+	}
+
+	// If no non-root sudo user found, fall back to root
+	userToCheck := nonRootUser
+	if userToCheck == "" {
+		userToCheck = "root"
+	}
+
+	exUser, err := repo.GetExtendedUserInfo(userToCheck)
+	if err == nil && exUser.HasSudo {
+		if exUser.SudoNoPassword {
+			indentedPrintFn(formatter.FormatWarning("Sudo Method", "Configured", "no password", "dark"))
+		} else {
+			indentedPrintFn(formatter.FormatConfigured("Sudo Method", "Configured", "password required", "dark"))
+		}
+	} else {
+		indentedPrintFn(formatter.FormatWarning("Sudo Method", "Not Configured", "unknown", "dark"))
 	}
 
 	// Display firewall status
@@ -164,11 +207,11 @@ func GetSecurityRiskLevel(status *SecurityStatus) (string, string, string) {
 	if score <= 2 {
 		riskLevel = "Critical"
 		description = "no security"
-		colorCode = style.Red // Using DeepRed for Critical
+		colorCode = style.Red
 	} else if score <= 4 {
 		riskLevel = "High"
 		description = "weak security"
-		colorCode = style.Red // Using DeepRed for High
+		colorCode = style.Red
 	} else if score <= 6 {
 		riskLevel = "Moderate"
 		description = "medium security"

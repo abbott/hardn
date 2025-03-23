@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/utils"
 )
@@ -16,6 +17,32 @@ type OSInfo struct {
 	OsCodename string // release name, e.g., bullseye, focal, etc.
 	OsVersion  string // version number
 	IsProxmox  bool   // is proxmox environment
+}
+
+// Global cached OS info
+var cachedOSInfo *OSInfo
+
+// GetOS returns the cached OS info or detects it if not available
+func GetOS() *OSInfo {
+	if cachedOSInfo == nil {
+		info, err := DetectOS()
+		if err != nil {
+			// Return a default value if detection fails
+			return &OSInfo{OsType: "debian", OsVersion: "11", OsCodename: "bullseye"}
+		}
+		cachedOSInfo = info
+	}
+	return cachedOSInfo
+}
+
+// NewRealFileSystem creates a new real filesystem implementation
+func NewRealFileSystem() interfaces.FileSystem {
+	return interfaces.OSFileSystem{}
+}
+
+// NewRealCommander creates a new real commander implementation
+func NewRealCommander() interfaces.Commander {
+	return interfaces.OSCommander{}
 }
 
 // DetectOS detects the operating system and returns its information

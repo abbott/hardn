@@ -38,11 +38,10 @@ func (m *UserMenu) Show() {
 
 	// Initialize status formatter w/specific fields for consistency
 	formatter := style.NewStatusFormatter([]string{
-		"Privileges",
-		"Sudo Password",
+		"Sudo",
 		"SSH Keys",
 		"UID:GID",
-		"Home Directory",
+		"Directory",
 	}, 2)
 
 	// Display user configuration box
@@ -209,33 +208,44 @@ func (m *UserMenu) DisplayUserDetails(
 			userInfo, err := m.menuManager.GetExtendedUserInfo(user.Username)
 			// Display sudo access w/standardized formatting
 			passwordStatus := "Not required"
+			sudoDescStyle := "dark"
 			if !cfg.SudoNoPassword {
 				passwordStatus = "Required"
+				sudoDescStyle = "warn"
 			}
 
 			// Use extended info if available
 			if err == nil && userInfo != nil {
 				// Update sudo status based on extended info
 				if userInfo.HasSudo {
-					printIndent(formatter.FormatBullet("Privileges", "sudo", "", "dark"))
 
 					// Use extended info for sudo password status
 					if userInfo.SudoNoPassword {
-						passwordStatus = "Not required"
+						passwordStatus = "no password"
+						sudoDescStyle = "warn"
 					} else {
-						passwordStatus = "Required"
+						passwordStatus = "password required"
+						sudoDescStyle = "dark"
 					}
+					printIndent(formatter.FormatBullet("Sudo", "Enabled", passwordStatus, sudoDescStyle))
+
 				} else {
-					printIndent(formatter.FormatBullet("Privileges", "regular user", "", "dark"))
+					printIndent(formatter.FormatBullet("Sudo", "Disabled", "", "dark"))
 				}
 
-				printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", "dark"))
+				// printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", "dark"))
 
 				// Display SSH keys from extended info
 				keyCount := len(userInfo.SshKeys)
-				keyStatus := "None configured"
-				if keyCount > 0 {
-					keyStatus = fmt.Sprintf("%d key(s) configured", keyCount)
+				var keyStatus string
+				if keyCount == 0 {
+					keyStatus = "None"
+				} else {
+					plural := ""
+					if keyCount > 1 {
+						plural = "s"
+					}
+					keyStatus = fmt.Sprintf("%d key%s", keyCount, plural)
 				}
 				printIndent(formatter.FormatBullet("SSH Keys", keyStatus, "", "dark"))
 
@@ -253,7 +263,7 @@ func (m *UserMenu) DisplayUserDetails(
 			} else {
 				// Fallback to config values if extended info isn't available
 				printIndent(formatter.FormatBullet("Privileges", "sudo", "", "dark"))
-				printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", "dark"))
+				printIndent(formatter.FormatBullet("Sudo Password", passwordStatus, "", sudoDescStyle))
 
 				// Display SSH key status from config
 				keyCount := len(user.SshKeys)

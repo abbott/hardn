@@ -30,21 +30,21 @@ If you are one of the following, **refrain from deploying this tool in the publi
 
 ## ✨ Features
 
+| Feature                    | Description                                        |
+|----------------------------|----------------------------------------------------|
+| Tamper Protected Binary    | Releases are traceable to their source commit      |
+| Cryptographic Signature    | Binary signed in the public Rekor transparency log |
+| SSH Hardening              | Secure SSH configuration, key-based authentication |
+| User Management            | Create non-root users w/sudo access                |
+| Firewall Configuration     | UFW setup w/secure defaults                        |
+| DNS Configuration          | Secure DNS setup with specific resolvers           |
+| System Auditing            | Install Lynis for comprehensive analysis           |
+| Application Control        | Install AppArmor for application restrictions      |
+| Backup System              | Automatic backup of modified configuration files   |
+| Interactive Menu           | User-friendly interface for system hardening       |
+| Dry-Run Mode               | Preview changes without applying them              |
+| Multi-Distribution Support | Works with Debian, Ubuntu, Proxmox, and Alpine     |
 
-| Feature                       | Description                                                    |
-|-------------------------------|----------------------------------------------------------------|
-| Tamper Protected Binary         | Releases are traceable to their source commit                                |
-| Cryptographic Signature         | Binary signed in the public Rekor transparency log                                |
-| SSH Hardening                  | Secure SSH configuration, key-based authentication                             |
-| User Management               | Create non-root users w/sudo access                          |
-| Firewall Configuration               | UFW setup w/secure defaults                          |
-| DNS Configuration               | Secure DNS setup with specific resolvers                          |
-| System Auditing               | Install Lynis for comprehensive analysis                          |
-| Application Control               | Install AppArmor for application restrictions                          |
-| Backup System               | Automatic backup of modified configuration files                          |
-| Interactive Menu               | User-friendly interface for system hardening                          |
-| Dry-Run Mode               | Preview changes without applying them                          |
-| Multi-Distribution Support               | Works with Debian, Ubuntu, Proxmox, and Alpine                          |
 
 <!-- - **Tamper Protected Binary**: Releases are traceable to their source commit
 - **SSH Hardening**: Secure SSH configuration, key-based authentication
@@ -144,19 +144,19 @@ sudo hardn
 ### Command Line
 
 
-| Function                  | Flag     | Description                                                    |
-|---------------------------|----------|----------------------------------------------------------------|
-| Config file (string)         | `-f, --config-file string`     | Specify configuration file path                                |
-| Username (string)                  | `-u, --username string`     | Specify username to create                             |
-| User (create)               | `-c, --create-user`     | Create non-root user with sudo access                          |
-| Root SSH (disable)              | `-d, --disable-root`     | Disable SSH access for root user                               |
-| DNS (configure)            | `-g, --configure-dns`     | Configure DNS settings                                         |
-| UFW (configure)             | `-w, --configure-ufw`     | Configure firewall with SSH rules                                 |
-| Run all (execute)             | `-r, --run-all`     | Run all hardening operations                                     |
-| Dry run (mode)              | `-n, --dry-run`     | Preview changes without applying them                          |
-| Logs (print)               | `-p, --print-logs`     | View logs                                          |
-| Version (print)             | `-v --version`     | View version                                         |
-| Help (print)             | `-h, --help`     | View usage information                                         |
+| Function             | Flag                       | Description                           |
+|----------------------|----------------------------|---------------------------------------|
+| Config file (string) | `-f, --config-file string` | Specify configuration file path       |
+| Username (string)    | `-u, --username string`    | Specify username to create            |
+| User (create)        | `-c, --create-user`        | Create non-root user with sudo access |
+| Root SSH (disable)   | `-d, --disable-root`       | Disable SSH access for root user      |
+| DNS (configure)      | `-g, --configure-dns`      | Configure DNS settings                |
+| UFW (configure)      | `-w, --configure-ufw`      | Configure firewall with SSH rules     |
+| Run all (execute)    | `-r, --run-all`            | Run all hardening operations          |
+| Dry run (mode)       | `-n, --dry-run`            | Preview changes without applying them |
+| Logs (print)         | `-p, --print-logs`         | View logs                             |
+| Version (print)      | `-v --version`             | View version                          |
+| Help (print)         | `-h, --help`               | View usage information                |
 
 
 CLI Examples

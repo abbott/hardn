@@ -68,7 +68,7 @@ enableAppArmor: false             # Set up and enable AppArmor
 enableLynis: false                # Install and run Lynis security audit
 enableUfwSshPolicy: false         # Configure UFW with SSH rules
 configureDns: false               # Configure DNS settings
-disableRoot: false                # Disable root SSH access
+disableRootSSH: false             # Disable root SSH access
 
 #################################################
 # Localization

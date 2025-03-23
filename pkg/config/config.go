@@ -80,7 +80,7 @@ type Config struct {
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
 	ConfigureDns             bool `yaml:"configureDns"`
-	DisableRoot              bool `yaml:"disableRoot"`
+	DisableRootSSH           bool `yaml:"disableRootSSH"`
 
 	// Localization
 	Lang             string `yaml:"lang"`
@@ -134,7 +134,7 @@ func DefaultConfig() *Config {
 		EnableUnattendedUpgrades: false,
 		EnableUfwSshPolicy:       false,
 		ConfigureDns:             false,
-		DisableRoot:              false,
+		DisableRootSSH:           false,
 
 		// Localization
 		// Lang:             "en_US.UTF-8",

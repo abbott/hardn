@@ -140,7 +140,7 @@ func (m *DisableRootMenu) Show() {
 			fmt.Printf("%s [DRY-RUN] Would disable root SSH access\n", style.BulletItem)
 		} else {
 			// Call application layer to disable root SSH access
-			err := m.menuManager.DisableRootSsh()
+			err := m.menuManager.DisableRootSSH()
 			if err != nil {
 				fmt.Printf("\n%s Failed to disable root SSH access: %v\n",
 					style.Colored(style.Red, style.SymCrossMark), err)

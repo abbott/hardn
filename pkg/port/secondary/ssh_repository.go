@@ -11,8 +11,8 @@ type SSHRepository interface {
 	// GetSSHConfig retrieves the current SSH configuration
 	GetSSHConfig() (*model.SSHConfig, error)
 
-	// DisableRootAccess disables SSH access for the root user
-	DisableRootAccess() error
+	// DisableRootSSH disables SSH access for the root user
+	DisableRootSSH() error
 
 	// add an SSH public key to a user's authorized_keys
 	AddAuthorizedKey(username string, publicKey string) error

@@ -68,11 +68,11 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	content.WriteString("PubkeyAuthentication yes\n\n")
 
 	// Root login setting
-	rootLoginValue := "no"
+	rootSSHValue := "no"
 	if config.PermitRootLogin {
-		rootLoginValue = "yes"
+		rootSSHValue = "yes"
 	}
-	content.WriteString(fmt.Sprintf("PermitRootLogin %s\n", rootLoginValue))
+	content.WriteString(fmt.Sprintf("PermitRootLogin %s\n", rootSSHValue))
 
 	// Allowed users
 	if len(config.AllowedUsers) > 0 {
@@ -130,8 +130,8 @@ func (r *FileSSHRepository) GetSSHConfig() (*model.SSHConfig, error) {
 	return &model.SSHConfig{Port: 22}, nil
 }
 
-// DisableRootAccess disables SSH access for the root user
-func (r *FileSSHRepository) DisableRootAccess() error {
+// DisableRootSSH disables SSH access for the root user
+func (r *FileSSHRepository) DisableRootSSH() error {
 	// Get current config
 	config, err := r.GetSSHConfig()
 	if err != nil {

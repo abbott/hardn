@@ -73,8 +73,8 @@ func (m *MenuManager) AddSSHKey(username, publicKey string) error {
 }
 
 // disable SSH access for the root user
-func (m *MenuManager) DisableRootSsh() error {
-	return m.sshManager.DisableRootAccess()
+func (m *MenuManager) DisableRootSSH() error {
+	return m.sshManager.DisableRootSSH()
 }
 
 // apply comprehensive system hardening

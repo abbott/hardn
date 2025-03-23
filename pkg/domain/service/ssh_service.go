@@ -9,7 +9,7 @@ type SSHService interface {
 	ConfigureSSH(config model.SSHConfig) error
 
 	// disable SSH access for the root user
-	DisableRootAccess() error
+	DisableRootSSH() error
 
 	// Add an SSH public key to a user's authorized_keys
 	AddAuthorizedKey(username string, publicKey string) error
@@ -36,7 +36,7 @@ func NewSSHServiceImpl(repository SSHRepository, osInfo model.OSInfo) *SSHServic
 type SSHRepository interface {
 	SaveSSHConfig(config model.SSHConfig) error
 	GetSSHConfig() (*model.SSHConfig, error)
-	DisableRootAccess() error
+	DisableRootSSH() error
 	AddAuthorizedKey(username string, publicKey string) error
 }
 
@@ -45,8 +45,8 @@ func (s *SSHServiceImpl) ConfigureSSH(config model.SSHConfig) error {
 	return s.repository.SaveSSHConfig(config)
 }
 
-func (s *SSHServiceImpl) DisableRootAccess() error {
-	return s.repository.DisableRootAccess()
+func (s *SSHServiceImpl) DisableRootSSH() error {
+	return s.repository.DisableRootSSH()
 }
 
 func (s *SSHServiceImpl) AddAuthorizedKey(username string, publicKey string) error {

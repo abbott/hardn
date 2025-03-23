@@ -34,7 +34,7 @@ func (m *MockSSHRepository) GetSSHConfig() (*model.SSHConfig, error) {
 	return config, args.Error(1)
 }
 
-func (m *MockSSHRepository) DisableRootAccess() error {
+func (m *MockSSHRepository) DisableRootSSH() error {
 	args := m.Called()
 	return args.Error(0)
 }
@@ -108,7 +108,7 @@ func TestSSHServiceImpl_ConfigureSSH_Error(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestSSHServiceImpl_DisableRootAccess(t *testing.T) {
+func TestSSHServiceImpl_DisableRootSSH(t *testing.T) {
 	// Setup
 	mockRepo := new(MockSSHRepository)
 	osInfo := model.OSInfo{
@@ -119,17 +119,17 @@ func TestSSHServiceImpl_DisableRootAccess(t *testing.T) {
 	service := NewSSHServiceImpl(mockRepo, osInfo)
 
 	// Setup expectations
-	mockRepo.On("DisableRootAccess").Return(nil)
+	mockRepo.On("DisableRootSSH").Return(nil)
 
 	// Execute
-	err := service.DisableRootAccess()
+	err := service.DisableRootSSH()
 
 	// Assert
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
 }
 
-func TestSSHServiceImpl_DisableRootAccess_Error(t *testing.T) {
+func TestSSHServiceImpl_DisableRootSSH_Error(t *testing.T) {
 	// Setup
 	mockRepo := new(MockSSHRepository)
 	osInfo := model.OSInfo{
@@ -141,10 +141,10 @@ func TestSSHServiceImpl_DisableRootAccess_Error(t *testing.T) {
 
 	// Setup expectations
 	expectedErr := fmt.Errorf("failed to disable root access")
-	mockRepo.On("DisableRootAccess").Return(expectedErr)
+	mockRepo.On("DisableRootSSH").Return(expectedErr)
 
 	// Execute
-	err := service.DisableRootAccess()
+	err := service.DisableRootSSH()
 
 	// Assert
 	assert.Error(t, err)

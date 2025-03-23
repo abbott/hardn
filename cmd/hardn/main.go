@@ -32,7 +32,7 @@ var (
 	username            string
 	dryRun              bool
 	createUser          bool
-	disableRoot         bool
+	disableRootSSH      bool
 	installLinux        bool
 	installPython       bool
 	installAll          bool
@@ -85,7 +85,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
-	rootCmd.PersistentFlags().BoolVarP(&disableRoot, "disable-root", "d", false, "Disable root SSH access")
+	rootCmd.PersistentFlags().BoolVarP(&disableRootSSH, "disable-root", "d", false, "Disable root SSH access")
 	// rootCmd.PersistentFlags().BoolVarP(&installLinux, "install-linux", "l", false, "Install Linux packages")
 	// rootCmd.PersistentFlags().BoolVarP(&installPython, "install-python", "i", false, "Install Python packages")
 	// rootCmd.PersistentFlags().BoolVarP(&installAll, "install-all", "a", false, "Install all packages")
@@ -174,7 +174,7 @@ var rootCmd = &cobra.Command{
 		serviceFactory.SetConfig(cfg)
 
 		// If no specific flags provided, show the interactive menu
-		if !createUser && !disableRoot && !installLinux && !installPython &&
+		if !createUser && !disableRootSSH && !installLinux && !installPython &&
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
@@ -274,8 +274,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Disable root SSH access
-		if disableRoot {
-			if err := sshManager.DisableRootAccess(); err != nil {
+		if disableRootSSH {
+			if err := sshManager.DisableRootSSH(); err != nil {
 				logging.LogError("Failed to disable root SSH access: %v", err)
 			} else {
 				logging.LogSuccess("Root SSH access disabled")
@@ -410,7 +410,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Output completion message for operations other than the all-in-one run
-		if createUser || disableRoot || installLinux || installPython ||
+		if createUser || disableRootSSH || installLinux || installPython ||
 			installAll || configureUfw || configureDns || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}

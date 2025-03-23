@@ -315,7 +315,7 @@ func (b *Box) SectionHeader(label string, color ...string) {
 	horizChar := b.horizontal
 	// shadeColor := Gray08
 
-	labelColor := Gray08
+	labelColor := Gray15
 	// msgColor := Gray08
 
 	// if secColor == "" {
@@ -346,13 +346,21 @@ func (b *Box) SectionHeader(label string, color ...string) {
 
 		rightSide := Dimmed(strings.Repeat(horizChar, b.width-beforeLabel-labelLen-1), b.borderColor)
 
-		// BoldedLabel := Bolded(label)
+		// boldLabel := Bolded(label)
+		// b.titleColor
+		dimLabel := Dimmed(label, labelColor)
 
-		if UseColors && b.titleColor != "skip" {
-			line += " " + Dimmed(label, labelColor) + " " + rightSide
+		if UseColors && labelColor != "skip" {
+			line += " " + dimLabel + " " + rightSide
 		} else {
-			line += " " + b.title + " " + rightSide
+			line += " " + label + " " + rightSide
 		}
+
+		// if UseColors && b.titleColor != "skip" {
+		// 	line += " " + Dimmed(label, labelColor) + " " + rightSide
+		// } else {
+		// 	line += " " + b.title + " " + rightSide
+		// }
 
 		fmt.Println(line)
 		fmt.Println()
@@ -436,11 +444,13 @@ func (b *Box) SectionNotice(label string, message string, notice ...string) {
 		// 	labelLine += " " + b.title + " " + rightSide
 		// }
 
+		fmt.Printf("\n")
 		fmt.Println(labelLine)
 		if message != "" {
 			fmt.Println(messageLine)
 		}
-		fmt.Println()
+		fmt.Printf("\n\n")
+		// fmt.Println()
 
 		return
 	}
@@ -470,10 +480,6 @@ func (b *Box) SuccessNotice(label string, message string) {
 		label = "Success"
 	}
 	b.SectionNotice(label, message, "success")
-}
-
-func (b *Box) PressAnyKey() {
-	fmt.Printf("\n%s Press any key to continue...", Dimmed(SymRightCarrot))
 }
 
 // DrawBottom draws the bottom border of the box
@@ -534,7 +540,7 @@ func (b *Box) DrawBottomSeparator() {
 	// horizChar := "~"
 	horizChar := b.horizontal
 
-	bottomBorder := ""
+	bottomBorder := "  "
 
 	// Add indentation if there's no left border but indentation is set
 	if !b.showLeftBorder && b.indentation > 0 {
@@ -542,7 +548,7 @@ func (b *Box) DrawBottomSeparator() {
 		bottomBorder = strings.Repeat(b.space, b.indentation)
 	}
 
-	bottomBorder += strings.Repeat(horizChar, b.width+1)
+	bottomBorder += strings.Repeat(horizChar, b.width-1)
 	fmt.Println(Dimmed(bottomBorder, b.borderColor))
 }
 

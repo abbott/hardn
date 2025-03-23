@@ -56,9 +56,9 @@ func (m *SSHManager) SecureSSH(port int, allowedUsers []string) error {
 	return m.sshService.ConfigureSSH(config)
 }
 
-// DisableRootAccess disables SSH access for the root user
-func (m *SSHManager) DisableRootAccess() error {
-	return m.sshService.DisableRootAccess()
+// DisableRootSSH disables SSH access for the root user
+func (m *SSHManager) DisableRootSSH() error {
+	return m.sshService.DisableRootSSH()
 }
 
 // add an SSH public key for a user
