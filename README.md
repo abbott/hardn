@@ -7,7 +7,12 @@
 A simple hardening tool for Linux.
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/2d4dc4d9-0379-46ad-86ef-eeb2e33f264c" width="800" alt="Hardn CLI menu">
+    <img src="https://github.com/user-attachments/assets/2d4dc4d9-0379-46ad-86ef-eeb2e33f264c" width="800" alt="Hardn CLI menu v0.3.2">
+</p>
+
+## 🚀 New v0.4.0 releasing in April 2025!
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/10b06e6c-fffa-4423-82ff-c4073d013a05" width="800" alt="Hardn CLI menu v0.4.0">
 </p>
 
 ## What is it?
