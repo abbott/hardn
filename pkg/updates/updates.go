@@ -3,16 +3,16 @@ package updates
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 )
 
 // SetupUnattendedUpgrades configures automatic system updates
-func SetupUnattendedUpgrades(cfg *config.Config, osInfo *osdetect.OSInfo) error {
+func SetupUnattendedUpgrades(cfg *config.Config, osInfo *osdetect.OSInfo, commander interfaces.Commander) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Configure automatic security updates:")
 		if osInfo.OsType == "alpine" {
@@ -47,21 +47,18 @@ apk update && apk upgrade --available
 		}
 
 		// Make sure crond is running
-		rcUpdateCmd := exec.Command("rc-update", "add", "crond", "default")
-		if err := rcUpdateCmd.Run(); err != nil {
+		if _, err := commander.Execute("rc-update", "add", "crond", "default"); err != nil {
 			logging.LogError("Failed to add crond to Alpine boot services: %v", err)
 		}
 
-		rcServiceCmd := exec.Command("rc-service", "crond", "start")
-		if err := rcServiceCmd.Run(); err != nil {
+		if _, err := commander.Execute("rc-service", "crond", "start"); err != nil {
 			logging.LogError("Failed to start crond service on Alpine: %v", err)
 		}
 
 		logging.LogSuccess("Alpine periodic updates configured")
 	} else {
 		// Install unattended-upgrades on Debian/Ubuntu
-		installCmd := exec.Command("apt-get", "install", "-y", "unattended-upgrades")
-		if err := installCmd.Run(); err != nil {
+		if _, err := commander.Execute("apt-get", "install", "-y", "unattended-upgrades"); err != nil {
 			return fmt.Errorf("failed to install unattended-upgrades package: %w", err)
 		}
 
@@ -70,23 +67,20 @@ apk update && apk upgrade --available
 		os.Setenv("DEBIAN_FRONTEND", "noninteractive")
 
 		// Use debconf-set-selections to configure unattended-upgrades
-		debconfCmd := exec.Command("debconf-set-selections")
-		debconfCmd.Stdin = strings.NewReader(`unattended-upgrades unattended-upgrades/enable_auto_updates boolean true
+		debconfCmdInput := `unattended-upgrades unattended-upgrades/enable_auto_updates boolean true
 unattended-upgrades unattended-upgrades/origins_pattern string origin=Debian,codename=${distro_codename},label=Debian-Security
-`)
-		if err := debconfCmd.Run(); err != nil {
+`
+		if _, err := commander.ExecuteWithInput(debconfCmdInput, "debconf-set-selections"); err != nil {
 			logging.LogError("Failed to set unattended-upgrades preferences: %v", err)
 		}
 
 		// Run dpkg-reconfigure
-		reconfigureCmd := exec.Command("dpkg-reconfigure", "-f", "noninteractive", "unattended-upgrades")
-		if err := reconfigureCmd.Run(); err != nil {
+		if _, err := commander.Execute("dpkg-reconfigure", "-f", "noninteractive", "unattended-upgrades"); err != nil {
 			return fmt.Errorf("failed to reconfigure unattended-upgrades: %w", err)
 		}
 
 		// Enable the unattended-upgrades service
-		enableCmd := exec.Command("systemctl", "enable", "unattended-upgrades")
-		if err := enableCmd.Run(); err != nil {
+		if _, err := commander.Execute("systemctl", "enable", "unattended-upgrades"); err != nil {
 			logging.LogError("Failed to enable unattended-upgrades service: %v", err)
 		}
 
@@ -97,29 +91,25 @@ unattended-upgrades unattended-upgrades/origins_pattern string origin=Debian,cod
 }
 
 // UpdateSystem performs a manual system update
-func UpdateSystem(osInfo *osdetect.OSInfo) error {
+func UpdateSystem(osInfo *osdetect.OSInfo, commander interfaces.Commander) error {
 	logging.LogInfo("Updating system packages...")
 
 	if osInfo.OsType == "alpine" {
 		// Alpine update
-		updateCmd := exec.Command("apk", "update")
-		if err := updateCmd.Run(); err != nil {
+		if _, err := commander.Execute("apk", "update"); err != nil {
 			return fmt.Errorf("failed to update Alpine package list: %w", err)
 		}
 
-		upgradeCmd := exec.Command("apk", "upgrade")
-		if err := upgradeCmd.Run(); err != nil {
+		if _, err := commander.Execute("apk", "upgrade"); err != nil {
 			return fmt.Errorf("failed to upgrade Alpine packages: %w", err)
 		}
 	} else {
 		// Debian/Ubuntu update
-		updateCmd := exec.Command("apt-get", "update")
-		if err := updateCmd.Run(); err != nil {
+		if _, err := commander.Execute("apt-get", "update"); err != nil {
 			return fmt.Errorf("failed to update Debian/Ubuntu package list: %w", err)
 		}
 
-		upgradeCmd := exec.Command("apt-get", "upgrade", "-y")
-		if err := upgradeCmd.Run(); err != nil {
+		if _, err := commander.Execute("apt-get", "upgrade", "-y"); err != nil {
 			return fmt.Errorf("failed to upgrade Debian/Ubuntu packages: %w", err)
 		}
 	}

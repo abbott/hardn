@@ -87,7 +87,7 @@ func runSystemDetails() error {
 	hostInfoManager := application.NewHostInfoManager(hostInfoService)
 
 	// Generate system status information with our enhanced implementation
-	info, err := system.GenerateSystemStatus(hostInfoManager)
+	info, err := system.GenerateSystemStatus(hostInfoManager, provider.Commander)
 	if err != nil {
 		return fmt.Errorf("failed to generate system status: %w", err)
 	}

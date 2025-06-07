@@ -7,6 +7,7 @@ import (
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
@@ -19,6 +20,7 @@ type MainMenu struct {
 	menuManager *application.MenuManager
 	config      *config.Config
 	osInfo      *osdetect.OSInfo
+	commander   interfaces.Commander
 
 	// Version service for update checks
 	versionService *version.Service
@@ -40,12 +42,14 @@ func NewMainMenu(
 	config *config.Config,
 	osInfo *osdetect.OSInfo,
 	versionService *version.Service,
+	commander interfaces.Commander,
 ) *MainMenu {
 	return &MainMenu{
 		menuManager:    menuManager,
 		config:         config,
 		osInfo:         osInfo,
 		versionService: versionService,
+		commander:      commander,
 	}
 }
 
@@ -391,7 +395,7 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 		utils.ClearScreen()
 
 		// Get security status
-		securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo)
+		securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo, m.commander)
 
 		// Create formatter for security status
 		formatter := style.NewStatusFormatter([]string{
@@ -524,7 +528,7 @@ func (m *MainMenu) handleMenuChoice(choice string) bool {
 		envMenu.Show()
 
 	case "9": // Host Info
-		systemDetailsMenu := NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
+		systemDetailsMenu := NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager(), m.commander)
 		systemDetailsMenu.Show()
 
 	case "10": // Logs

@@ -51,7 +51,7 @@ func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 func (f *MenuFactory) CreateSystemDetailsMenu() *menu.SystemDetailsMenu {
 	// Get the host info manager from the service factory
 	hostInfoManager := f.serviceFactory.CreateHostInfoManager()
-	return menu.NewSystemDetailsMenu(f.config, f.osInfo, hostInfoManager)
+	return menu.NewSystemDetailsMenu(f.config, f.osInfo, hostInfoManager, f.serviceFactory.provider.Commander)
 }
 
 // CreateMainMenu creates the main menu with all dependencies wired up
@@ -83,5 +83,5 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 		hostInfoManager)
 
 	// Create menu with all necessary fields initialized
-	return menu.NewMainMenu(menuManager, f.config, f.osInfo, versionService)
+	return menu.NewMainMenu(menuManager, f.config, f.osInfo, versionService, f.serviceFactory.provider.Commander)
 }

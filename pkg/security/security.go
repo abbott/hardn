@@ -3,16 +3,16 @@ package security
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 )
 
 // SetupAppArmor installs and configures AppArmor
-func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
+func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo, commander interfaces.Commander) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Install and configure AppArmor:")
 		if osInfo.OsType == "alpine" {
@@ -31,19 +31,16 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 	// Install AppArmor
 	if osInfo.OsType == "alpine" {
 		// Alpine installation
-		cmd := exec.Command("apk", "add", "apparmor")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("apk", "add", "apparmor"); err != nil {
 			return fmt.Errorf("failed to install AppArmor on Alpine: %w", err)
 		}
 
 		// Enable AppArmor in OpenRC
-		rcUpdateCmd := exec.Command("rc-update", "add", "apparmor", "default")
-		if err := rcUpdateCmd.Run(); err != nil {
+		if _, err := commander.Execute("rc-update", "add", "apparmor", "default"); err != nil {
 			logging.LogError("Failed to add AppArmor to Alpine boot services: %v", err)
 		}
 
-		rcServiceCmd := exec.Command("rc-service", "apparmor", "start")
-		if err := rcServiceCmd.Run(); err != nil {
+		if _, err := commander.Execute("rc-service", "apparmor", "start"); err != nil {
 			logging.LogError("Failed to start AppArmor service on Alpine: %v", err)
 		}
 
@@ -57,8 +54,7 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 				for _, file := range files {
 					if !file.IsDir() {
 						profilePath := filepath.Join(profilesDir, file.Name())
-						aaEnforceCmd := exec.Command("aa_enforce", profilePath)
-						if err := aaEnforceCmd.Run(); err != nil {
+						if _, err := commander.Execute("aa_enforce", profilePath); err != nil {
 							logging.LogError("Failed to enforce AppArmor profile %s: %v", profilePath, err)
 						}
 					}
@@ -67,14 +63,12 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 		}
 	} else {
 		// Debian/Ubuntu installation
-		cmd := exec.Command("apt-get", "install", "-y", "apparmor")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("apt-get", "install", "-y", "apparmor"); err != nil {
 			return fmt.Errorf("failed to install AppArmor on Debian/Ubuntu: %w", err)
 		}
 
 		// Apply profiles
-		aaEnforceCmd := exec.Command("aa-enforce", "/etc/apparmor.d/*")
-		if err := aaEnforceCmd.Run(); err != nil {
+		if _, err := commander.Execute("aa-enforce", "/etc/apparmor.d/*"); err != nil {
 			logging.LogError("Failed to enforce AppArmor profiles with wildcard: %v", err)
 			// Try individual profiles if wildcard fails
 			profilesDir := "/etc/apparmor.d"
@@ -86,8 +80,7 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 					for _, file := range files {
 						if !file.IsDir() {
 							profilePath := filepath.Join(profilesDir, file.Name())
-							aaEnforceCmd := exec.Command("aa-enforce", profilePath)
-							if err := aaEnforceCmd.Run(); err != nil {
+							if _, err := commander.Execute("aa-enforce", profilePath); err != nil {
 								logging.LogError("Failed to enforce AppArmor profile %s: %v", profilePath, err)
 							}
 						}
@@ -102,7 +95,7 @@ func SetupAppArmor(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 }
 
 // SetupLynis installs and runs the Lynis security audit tool
-func SetupLynis(cfg *config.Config, osInfo *osdetect.OSInfo) error {
+func SetupLynis(cfg *config.Config, osInfo *osdetect.OSInfo, commander interfaces.Commander) error {
 	if cfg.DryRun {
 		logging.LogInfo("[DRY-RUN] Install and run Lynis security audit tool:")
 		if osInfo.OsType == "alpine" {
@@ -119,20 +112,17 @@ func SetupLynis(cfg *config.Config, osInfo *osdetect.OSInfo) error {
 
 	// Install Lynis
 	if osInfo.OsType == "alpine" {
-		cmd := exec.Command("apk", "add", "lynis")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("apk", "add", "lynis"); err != nil {
 			return fmt.Errorf("failed to install Lynis on Alpine: %w", err)
 		}
 	} else {
-		cmd := exec.Command("apt-get", "install", "-y", "lynis")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("apt-get", "install", "-y", "lynis"); err != nil {
 			return fmt.Errorf("failed to install Lynis on Debian/Ubuntu: %w", err)
 		}
 	}
 
 	// Run Lynis audit
-	auditCmd := exec.Command("lynis", "audit", "system")
-	output, err := auditCmd.CombinedOutput()
+	output, err := commander.Execute("lynis", "audit", "system")
 	if err != nil {
 		return fmt.Errorf("failed to run Lynis audit: %w\nOutput: %s", err, string(output))
 	}

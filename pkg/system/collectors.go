@@ -37,7 +37,7 @@ func (m *SystemDetails) collectOSInfo(hostInfoManager *application.HostInfoManag
 		m.Kernel = "Linux " + hostInfo.KernelInfo
 	} else {
 		// Fallback to direct command
-		kernelInfo, err := exec.Command("uname", "-r").Output()
+		kernelInfo, err := m.commander.Execute("uname", "-r")
 		if err == nil {
 			m.Kernel = "Linux " + strings.TrimSpace(string(kernelInfo))
 		}
@@ -75,8 +75,7 @@ func (m *SystemDetails) collectOSInfo(hostInfoManager *application.HostInfoManag
 		m.UptimeLongFormat = hostInfoManager.FormatUptime(m.Uptime) // Use the manager's formatter
 	} else {
 		// Fallback to old implementation if necessary
-		hostInfoCmd := exec.Command("uptime")
-		hostInfoOutput, err := hostInfoCmd.Output()
+		hostInfoOutput, err := m.commander.Execute("uptime")
 		if err == nil {
 			// Parse uptime output - this is just a fallback, so simple parsing
 			uptimeStr := strings.TrimSpace(string(hostInfoOutput))
@@ -207,8 +206,7 @@ func (m *SystemDetails) collectCPUInfo(hostInfoManager *application.HostInfoMana
 		cpuInfo, err := cpu.Info()
 		if err != nil {
 			// Further fallback to direct command
-			cmd := exec.Command("cat", "/proc/cpuinfo")
-			output, err := cmd.Output()
+			output, err := m.commander.Execute("cat", "/proc/cpuinfo")
 			if err != nil {
 				// Just set a placeholder if all methods fail
 				m.CPUModel = "Unknown CPU"
@@ -233,8 +231,7 @@ func (m *SystemDetails) collectCPUInfo(hostInfoManager *application.HostInfoMana
 	}
 
 	// Get CPU cores count
-	cmd := exec.Command("nproc")
-	output, err := cmd.Output()
+	output, err := m.commander.Execute("nproc")
 	if err == nil {
 		cores, err := strconv.Atoi(strings.TrimSpace(string(output)))
 		if err == nil {
@@ -254,8 +251,7 @@ func (m *SystemDetails) collectCPUInfo(hostInfoManager *application.HostInfoMana
 	}
 
 	// Check for hypervisor using lscpu
-	hypervisorCmd := exec.Command("lscpu")
-	hypervisorOutput, err := hypervisorCmd.Output()
+	hypervisorOutput, err := m.commander.Execute("lscpu")
 	if err == nil {
 		scanner := bufio.NewScanner(strings.NewReader(string(hypervisorOutput)))
 		for scanner.Scan() {
@@ -334,8 +330,7 @@ func (m *SystemDetails) collectMemoryInfo(hostInfoManager *application.HostInfoM
 		}
 	} else {
 		// Fallback to direct command if Host Info service fails
-		cmd := exec.Command("free", "-b")
-		output, err := cmd.Output()
+		output, err := m.commander.Execute("free", "-b")
 		if err != nil {
 			return fmt.Errorf("failed to get memory info: %w", err)
 		}
@@ -382,14 +377,13 @@ func (m *SystemDetails) collectDiskInfo(hostInfoManager *application.HostInfoMan
 	// First check if ZFS is present regardless of Host Info
 	if _, err := exec.LookPath("zfs"); err == nil {
 		// Try to get ZFS information
-		if out, err := exec.Command("zpool", "status", "-x").Output(); err == nil {
+		if out, err := m.commander.Execute("zpool", "status", "-x"); err == nil {
 			if strings.Contains(string(out), "is healthy") {
 				m.ZFSPresent = true
 				m.ZFSHealth = "HEALTH O.K."
 
 				// Get ZFS filesystem usage
-				cmd := exec.Command("zfs", "get", "-Hp", "available", m.ZFSFilesystem)
-				out, err := cmd.Output()
+				out, err := m.commander.Execute("zfs", "get", "-Hp", "available", m.ZFSFilesystem)
 				if err == nil {
 					fields := strings.Fields(string(out))
 					if len(fields) >= 3 {
@@ -399,8 +393,7 @@ func (m *SystemDetails) collectDiskInfo(hostInfoManager *application.HostInfoMan
 					}
 				}
 
-				cmd = exec.Command("zfs", "get", "-Hp", "used", m.ZFSFilesystem)
-				out, err = cmd.Output()
+				out, err = m.commander.Execute("zfs", "get", "-Hp", "used", m.ZFSFilesystem)
 				if err == nil {
 					fields := strings.Fields(string(out))
 					if len(fields) >= 3 {
@@ -445,8 +438,7 @@ func (m *SystemDetails) collectDiskInfo(hostInfoManager *application.HostInfoMan
 		usage, err := disk.Usage(m.RootPartition)
 		if err != nil {
 			// Last resort: use df command
-			cmd := exec.Command("df", "-k", m.RootPartition)
-			output, cmdErr := cmd.Output()
+			output, cmdErr := m.commander.Execute("df", "-k", m.RootPartition)
 			if cmdErr != nil {
 				return fmt.Errorf("failed to get disk info: %w", err)
 			}

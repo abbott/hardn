@@ -3,12 +3,12 @@ package security
 import (
 	"bufio"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/adapter/secondary"
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
 )
@@ -27,26 +27,26 @@ type SecurityStatus struct {
 }
 
 // CheckSecurityStatus examines the system and returns the security status
-func CheckSecurityStatus(cfg *config.Config, osInfo *osdetect.OSInfo) (*SecurityStatus, error) {
+func CheckSecurityStatus(cfg *config.Config, osInfo *osdetect.OSInfo, commander interfaces.Commander) (*SecurityStatus, error) {
 	status := &SecurityStatus{}
 
 	// Check SSH root login status
 	status.RootLoginEnabled = checkRootLoginEnabled(osInfo)
 
 	// Check firewall status
-	status.FirewallEnabled, status.FirewallConfigured = checkFirewallStatus()
+	status.FirewallEnabled, status.FirewallConfigured = checkFirewallStatus(commander)
 
 	// Check user security (non-root users with sudo)
-	status.SecureUsers = checkUserSecurity()
+	status.SecureUsers = checkUserSecurity(commander)
 
 	// Check AppArmor status
-	status.AppArmorEnabled = checkAppArmorStatus(osInfo)
+	status.AppArmorEnabled = checkAppArmorStatus(osInfo, commander)
 
 	// Check unattended upgrades
-	status.UnattendedUpgrades = checkUnattendedUpgrades(osInfo)
+	status.UnattendedUpgrades = checkUnattendedUpgrades(osInfo, commander)
 
 	// Check sudo configuration
-	status.SudoConfigured = checkSudoConfiguration()
+	status.SudoConfigured = checkSudoConfiguration(commander)
 
 	// Check SSH port configuration
 	status.SshPortNonDefault = (cfg.SshPort != 22)
@@ -91,8 +91,8 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 	// Display sudo configuration
 	if !status.SudoConfigured {
 		indentedPrintFn(formatter.FormatWarning("Sudo", "Not Installed", "", "dark"))
-	// } else {
-	// 	indentedPrintFn(formatter.FormatConfigured("Sudo", "Installed", "", "dark"))
+		// } else {
+		// 	indentedPrintFn(formatter.FormatConfigured("Sudo", "Installed", "", "dark"))
 	}
 
 	// Display sudo method
@@ -264,13 +264,12 @@ func checkRootLoginEnabled(osInfo *osdetect.OSInfo) bool {
 }
 
 // checkFirewallStatus checks if the firewall is enabled and properly configured
-func checkFirewallStatus() (bool, bool) {
+func checkFirewallStatus(commander interfaces.Commander) (bool, bool) {
 	enabled := false
 	configured := false
 
 	// Check if UFW is installed and enabled
-	cmd := exec.Command("ufw", "status", "verbose")
-	output, err := cmd.CombinedOutput()
+	output, err := commander.Execute("ufw", "status", "verbose")
 	if err == nil {
 		statusOutput := string(output)
 		enabled = strings.Contains(statusOutput, "Status: active")
@@ -300,8 +299,7 @@ func checkFirewallStatus() (bool, bool) {
 
 	// Check for iptables if UFW not found
 	if !enabled {
-		iptablesCmd := exec.Command("iptables", "-L")
-		iptablesOutput, err := iptablesCmd.CombinedOutput()
+		iptablesOutput, err := commander.Execute("iptables", "-L")
 		if err == nil {
 			rules := strings.Count(string(iptablesOutput), "Chain")
 			enabled = rules > 3
@@ -314,7 +312,7 @@ func checkFirewallStatus() (bool, bool) {
 }
 
 // checkUserSecurity checks if there are non-root users with sudo access
-func checkUserSecurity() bool {
+func checkUserSecurity(commander interfaces.Commander) bool {
 	// Check /etc/sudoers.d for non-root user entries
 	sudoersDir := "/etc/sudoers.d"
 	if _, err := os.Stat(sudoersDir); err == nil {
@@ -352,18 +350,16 @@ func checkUserSecurity() bool {
 
 // checkAppArmorStatus checks if AppArmor is enabled
 // checkAppArmorStatus checks if AppArmor is properly configured and enforcing
-func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
+func checkAppArmorStatus(osInfo *osdetect.OSInfo, commander interfaces.Commander) bool {
 	// If Alpine, check if AppArmor is installed, enabled, and has profiles
 	if osInfo.OsType == "alpine" {
 		// Check if AppArmor package is installed
-		cmd := exec.Command("apk", "info", "-e", "apparmor")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("apk", "info", "-e", "apparmor"); err != nil {
 			return false
 		}
 
 		// Check if AppArmor is in runlevel
-		rcCmd := exec.Command("rc-status", "default")
-		output, err := rcCmd.CombinedOutput()
+		output, err := commander.Execute("rc-status", "default")
 		if err != nil {
 			return false
 		}
@@ -373,8 +369,7 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 		}
 
 		// Check if AppArmor is running and has profiles loaded
-		statusCmd := exec.Command("aa-status")
-		statusOutput, err := statusCmd.CombinedOutput()
+		statusOutput, err := commander.Execute("aa-status")
 		if err != nil {
 			return false
 		}
@@ -389,8 +384,7 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 		return !strings.Contains(statusText, "0 profiles are in enforce mode")
 	} else {
 		// For Debian/Ubuntu, check AppArmor status
-		cmd := exec.Command("aa-status")
-		output, err := cmd.CombinedOutput()
+		output, err := commander.Execute("aa-status")
 		if err != nil {
 			return false
 		}
@@ -412,7 +406,7 @@ func checkAppArmorStatus(osInfo *osdetect.OSInfo) bool {
 }
 
 // checkUnattendedUpgrades checks if unattended upgrades are configured
-func checkUnattendedUpgrades(osInfo *osdetect.OSInfo) bool {
+func checkUnattendedUpgrades(osInfo *osdetect.OSInfo, commander interfaces.Commander) bool {
 	if osInfo.OsType == "alpine" {
 		// Check for daily cron job
 		if _, err := os.Stat("/etc/periodic/daily/apk-upgrade"); err == nil {
@@ -421,14 +415,12 @@ func checkUnattendedUpgrades(osInfo *osdetect.OSInfo) bool {
 		return false
 	} else {
 		// Check for unattended-upgrades package and configuration
-		cmd := exec.Command("dpkg", "-l", "unattended-upgrades")
-		if err := cmd.Run(); err != nil {
+		if _, err := commander.Execute("dpkg", "-l", "unattended-upgrades"); err != nil {
 			return false
 		}
 
 		// Check if service is enabled
-		svcCmd := exec.Command("systemctl", "is-enabled", "unattended-upgrades")
-		if err := svcCmd.Run(); err != nil {
+		if _, err := commander.Execute("systemctl", "is-enabled", "unattended-upgrades"); err != nil {
 			return false
 		}
 
@@ -437,10 +429,9 @@ func checkUnattendedUpgrades(osInfo *osdetect.OSInfo) bool {
 }
 
 // checkSudoConfiguration checks if sudo is configured securely
-func checkSudoConfiguration() bool {
+func checkSudoConfiguration(commander interfaces.Commander) bool {
 	// Check if sudo is installed
-	sudoCmd := exec.Command("which", "sudo")
-	if err := sudoCmd.Run(); err != nil {
+	if _, err := commander.Execute("which", "sudo"); err != nil {
 		return false
 	}
 

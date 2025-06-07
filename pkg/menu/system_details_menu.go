@@ -7,6 +7,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/system"
@@ -18,6 +19,7 @@ type SystemDetailsMenu struct {
 	config          *config.Config
 	osInfo          *osdetect.OSInfo
 	hostInfoManager *application.HostInfoManager
+	commander       interfaces.Commander
 }
 
 // NewSystemDetailsMenu creates a new SystemDetailsMenu
@@ -25,11 +27,13 @@ func NewSystemDetailsMenu(
 	config *config.Config,
 	osInfo *osdetect.OSInfo,
 	hostInfoManager *application.HostInfoManager,
+	commander interfaces.Commander,
 ) *SystemDetailsMenu {
 	return &SystemDetailsMenu{
 		config:          config,
 		osInfo:          osInfo,
 		hostInfoManager: hostInfoManager,
+		commander:       commander,
 	}
 }
 
@@ -38,7 +42,7 @@ func (m *SystemDetailsMenu) Show() {
 	utils.ClearScreen()
 
 	// Get detailed system information using our enhanced status package
-	systemInfo, err := system.GenerateSystemStatus(m.hostInfoManager)
+	systemInfo, err := system.GenerateSystemStatus(m.hostInfoManager, m.commander)
 	if err != nil {
 		fmt.Printf("\n%s Error retrieving system status: %v\n",
 			style.Colored(style.Red, style.SymCrossMark), err)

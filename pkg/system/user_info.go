@@ -5,12 +5,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/domain/model"
+	"github.com/abbott/hardn/pkg/interfaces"
 )
 
 // collectUserInfo gathers non-system user information
@@ -62,7 +62,7 @@ func getNonSystemUsers() ([]model.User, error) {
 			}
 
 			// Check if user has sudo access (either in sudo group or in sudoers file)
-			hasSudo := checkSudoAccess(username)
+			hasSudo := checkSudoAccess(username, m.commander)
 
 			users = append(users, model.User{
 				Username: username,
@@ -75,19 +75,17 @@ func getNonSystemUsers() ([]model.User, error) {
 }
 
 // checkSudoAccess checks if a user has sudo access
-func checkSudoAccess(username string) bool {
+func checkSudoAccess(username string, commander interfaces.Commander) bool {
 	// Check if user is in sudo/wheel/admin group
 	for _, group := range []string{"sudo", "wheel", "admin"} {
-		cmd := exec.Command("groups", username)
-		output, err := cmd.Output()
+		output, err := commander.Execute("groups", username)
 		if err == nil && strings.Contains(string(output), group) {
 			return true
 		}
 	}
 
 	// Check sudoers file
-	cmd := exec.Command("sudo", "-l", "-U", username)
-	output, err := cmd.Output()
+	output, err := commander.Execute("sudo", "-l", "-U", username)
 	if err == nil && !strings.Contains(string(output), "not allowed to run sudo") {
 		return true
 	}

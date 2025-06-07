@@ -9,12 +9,14 @@ import (
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/domain/model"
 	domainports "github.com/abbott/hardn/pkg/domain/ports/secondary"
+	"github.com/abbott/hardn/pkg/interfaces"
 )
 
 // SystemDetails represents the complete system information
 type SystemDetails struct {
 	// User login port for retrieving login information
 	userLoginPort domainports.UserLoginPort
+	commander     interfaces.Commander
 	// System info
 	OSName      string
 	OSVersion   string
@@ -80,11 +82,12 @@ type SystemDetails struct {
 }
 
 // GenerateSystemStatus collects system information and returns a SystemDetails struct
-func GenerateSystemStatus(hostInfoManager *application.HostInfoManager) (*SystemDetails, error) {
+func GenerateSystemStatus(hostInfoManager *application.HostInfoManager, commander interfaces.Commander) (*SystemDetails, error) {
 	info := &SystemDetails{
 		ZFSFilesystem: "zroot/ROOT/os",                      // Default ZFS filesystem
 		RootPartition: "/",                                  // Default root partition
 		userLoginPort: secondary.NewLastlogCommandAdapter(), // Use lastlog adapter
+		commander:     commander,
 	}
 
 	// Collect all system information
