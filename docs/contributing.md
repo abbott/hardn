@@ -20,7 +20,7 @@ Thank you for your interest in contributing to Hardn! This document outlines the
    cd hardn
    ```
 
-2. **Install dependencies**
+2. **[Install go](https://go.dev/dl/), then add dependencies**
 
    ```bash
    go mod download
