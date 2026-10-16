@@ -48,6 +48,7 @@
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
 | [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 | [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
+| [P-25](#p-25) | Navigation: `b` and `q` in free text, `0` off menus, and the refusals' words | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -468,3 +469,30 @@
 - **Effort:** S. The words are built, so this approves them; another wording is strings and goldens.
 - **Risk:** Low: display only. Nothing shows them before the canonical flow (`next/p1c-flow`) and confirm-or-revert (`next/p2-revert`) use the components.
 - **Screenshots:** Before: none (no Figma frame or origin/main screen). After: `docs/refactor/img/p-24-after.png` (placeholder); the `stepprogress/*` and `confirmcountdown/*` goldens show the built form meanwhile.
+
+<a id="p-25"></a>
+### P-25: Navigation: `b` and `q` in free text, `0` off menus, and the refusals' words
+
+- **Status:** proposed
+- **Source:** `next/p1c-nav`, which builds brief 1C's navigation grammar in `pkg/ui/nav`. Related: [P-10](#p-10), [P-22](#p-22), [P-23](#p-23), [P-09](#p-09).
+- **Problem:** brief 1C fixes the grammar (numbers select, `0` or `b` goes back, `q` quits, y/N questions, typed confirmations, the same at every level) but leaves three things open, and gives no words for a line a prompt refuses:
+  - a free-text question, such as a user name, where `b` and `q` are legal values: Linux allows the user names `b` and `q`, and origin/main takes either as one (pkg/menu input.go `ReadInput`);
+  - what `0` does where no item is numbered 0: a y/N question, a typed confirmation, free text;
+  - how a typed confirmation shows the phrase to type, which a narrow terminal must not hide.
+- **Proposal:** built as below (DEV-044, DEV-045, README §9.8); the maintainer decides.
+  - **(a) Free text:** `b` and `q`, in any case, navigate at every prompt, free text included, so a value can never be `b` or `q`, and every free-text question's hint says so: `1. Username [b or q]:` where Figma draws `1. Username:`. Cost: hardn's forms cannot create a user named `b` or `q` (one can still be chosen from a numbered list). Alternatives:
+    - (a2) free text takes every line as its value, with no `b` or `q` there and no hint; leaving a field then takes Ctrl-C, which ends hardn. The grammar is no longer the same at every level.
+    - (a3) an escape, such as a leading `\` that takes the rest as typed (`\q`): one more rule to learn, shown nowhere unless the hint grows.
+  - **(b) 0 goes back only on a menu,** where it is the Exit or Return item's number, shown as "0)"; `b` goes back everywhere. Elsewhere `0` is not an input: a y/N question refuses it, a typed confirmation compares it with the phrase, and free text takes it as a value. Alternative: `0` goes back at every prompt and every hint shows it, `[y/N, 0, b or q]` and `[0, b or q]`: longer hints, a `0` typed at a y/N question meant as "no" goes back instead, and `0` can never be a free-text value.
+  - **(c) The refusals' words,** each written under the prompt as an error message (`✗ Error: ...`, P-23's word), then the prompt again:
+    - a menu: origin/main's "Invalid option. Please try again." (pkg/menu main_menu.go:540);
+    - a disabled item's key: "<Label> is unavailable.", such as "Root SSH Login is unavailable.";
+    - a y/N question: "Invalid answer. Please try again.";
+    - a typed confirmation: "That does not match '<phrase>'. Please try again.", which names the phrase in prose that wraps, so it shows whole whatever the width.
+
+    Alternatives: one sentence for every prompt ("Invalid input. Please try again."); naming the inputs ("Please answer y or n."); no "Please try again." where the prompt is asked again anyway.
+  - **(d) The typed confirmation's layout:** the phrase is shown as the answer the hint offers, `Type the hostname [bos-san-l01, b or q]:`, so that it is cut last; the label is the flow's (P-10). Alternative: the phrase in the label, as origin/main's Run All asks "Type 'yes' to confirm you want to apply real changes:" (pkg/menu run_all_menu.go:162): a narrow terminal cuts the label first, phrase included.
+  - Each word is one constant in `pkg/ui/nav/nav.go`, so changing one is a string and the goldens.
+- **Effort:** S. (a) to (d) are built, so this approves them; (a2), (b)'s alternative or (d)'s are each a small change to `pkg/ui/nav` and its goldens, and (a3) one more to `nav.Text`.
+- **Risk:** Low. (a) changes what a free-text field accepts compared with origin/main, for two one-letter values; nothing else is applied differently.
+- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-25-after.png` (placeholder); the `nav/*` goldens show the built form meanwhile.
