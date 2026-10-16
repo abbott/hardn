@@ -48,7 +48,7 @@
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
 | [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 | [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
-| [P-25](#p-25) | Navigation: `b` and `q` in free text, `0` off menus, and the refusals' words | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed |
+| [P-25](#p-25) | Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -471,28 +471,37 @@
 - **Screenshots:** Before: none (no Figma frame or origin/main screen). After: `docs/refactor/img/p-24-after.png` (placeholder); the `stepprogress/*` and `confirmcountdown/*` goldens show the built form meanwhile.
 
 <a id="p-25"></a>
-### P-25: Navigation: `b` and `q` in free text, `0` off menus, and the refusals' words
+### P-25: Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs
 
 - **Status:** proposed
 - **Source:** `next/p1c-nav`, which builds brief 1C's navigation grammar in `pkg/ui/nav`. Related: [P-10](#p-10), [P-22](#p-22), [P-23](#p-23), [P-09](#p-09).
-- **Problem:** brief 1C fixes the grammar (numbers select, `0` or `b` goes back, `q` quits, y/N questions, typed confirmations, the same at every level) but leaves three things open, and gives no words for a line a prompt refuses:
-  - a free-text question, such as a user name, where `b` and `q` are legal values: Linux allows the user names `b` and `q`, and origin/main takes either as one (pkg/menu input.go `ReadInput`);
-  - what `0` does where no item is numbered 0: a y/N question, a typed confirmation, free text;
-  - how a typed confirmation shows the phrase to type, which a narrow terminal must not hide.
-- **Proposal:** built as below (DEV-044, DEV-045, README §9.8); the maintainer decides.
-  - **(a) Free text:** `b` and `q`, in any case, navigate at every prompt, free text included, so a value can never be `b` or `q`, and every free-text question's hint says so: `1. Username [b or q]:` where Figma draws `1. Username:`. Cost: hardn's forms cannot create a user named `b` or `q` (one can still be chosen from a numbered list). Alternatives:
-    - (a2) free text takes every line as its value, with no `b` or `q` there and no hint; leaving a field then takes Ctrl-C, which ends hardn. The grammar is no longer the same at every level.
+- **Problem:** brief 1C decides the grammar, "the same at every level": numbers select, `0` or `b` goes back, `q` quits, y/N questions, typed confirmations; and the plan's p1c-nav row asks for identical back and quit on the main menu, a sub-menu and a workflow step. `next/p1c-nav` builds that (DEV-044, DEV-045). The brief leaves open, or does not word:
+  - a free-text question, such as a user name, where `0`, `b` and `q` are legal values: Linux allows the user names `b` and `q`, and origin/main takes any line as one (pkg/menu input.go `ReadInput`);
+  - the words for a line a prompt refuses;
+  - how a typed confirmation shows the phrase to type, which a narrow terminal must not hide;
+  - how the navigation inputs are explained. Brief 1C has prompts say what `q` does "in those terms, e.g. 'q to quit'", but only the main menu's Exit row does (DEV-030); nothing says what `0` and `b` do (sub-menus show "0) Return" with no description, as Figma draws them), and the hint puts them in the brackets where `[y/N]` lists a question's answers, so `1. Username [0, b or q]:` can read as if the name must be `0`, `b` or `q`, and `Type the hostname [bos-san-l01, 0, b or q]:` lists the phrase among them.
+
+  And one narrowing of the brief, which the first build made and this proposal offers instead as a choice: `0` going back on menus only.
+- **Proposal:** built as below (DEV-044, DEV-045, README §9.8); the maintainer decides (a), (c), (d) and (e), and whether to depart from the brief as (b) describes.
+  - **(a) Free text:** `0`, `b` and `q`, in any case, navigate at every prompt, free text included, so a value can never be `0`, `b` or `q`, and every free-text question's hint says so: `1. Username [0, b or q]:` where Figma draws `1. Username:`. Cost: hardn's forms cannot create a user named `b` or `q` (one can still be chosen from a numbered list); origin/main's free-text fields take no `0` as a value (their numbered prompts start at 1, and one already takes "0 to cancel", [interaction.md](phase0/interaction.md) §5, anti-pattern 7). Alternatives:
+    - (a2) free text takes every line as its value, with no navigation there and no hint; leaving a field then takes Ctrl-C, which ends hardn. The grammar is no longer the same at every level, a departure from brief 1C.
     - (a3) an escape, such as a leading `\` that takes the rest as typed (`\q`): one more rule to learn, shown nowhere unless the hint grows.
-  - **(b) 0 goes back only on a menu,** where it is the Exit or Return item's number, shown as "0)"; `b` goes back everywhere. Elsewhere `0` is not an input: a y/N question refuses it, a typed confirmation compares it with the phrase, and free text takes it as a value. Alternative: `0` goes back at every prompt and every hint shows it, `[y/N, 0, b or q]` and `[0, b or q]`: longer hints, a `0` typed at a y/N question meant as "no" goes back instead, and `0` can never be a free-text value.
+  - **(b) `0` at every prompt:** built as brief 1C and the plan have it. `0` goes back from a y/N question, a typed confirmation and free text as from a menu, where it is also the Exit or Return item's number, and every hint shows it: `[y/N, 0, b or q]`, `[0, b or q]`. A `0` typed at a y/N question meant as "no" goes back instead, which applies nothing. Alternative, **a departure from brief 1C and the plan's p1c-nav row**, for the maintainer to choose knowingly: `0` goes back only on a menu, where it is shown as "0)"; elsewhere it is not an input (a y/N question refuses it, a typed confirmation compares it with the phrase, free text takes it as a value). Hints are shorter (`[y/N, b or q]`, `[b or q]`), but back is then not the same at every level, and the plan's "identical back/quit" holds for `b` only.
   - **(c) The refusals' words,** each written under the prompt as an error message (`✗ Error: ...`, P-23's word), then the prompt again:
     - a menu: origin/main's "Invalid option. Please try again." (pkg/menu main_menu.go:540);
     - a disabled item's key: "<Label> is unavailable.", such as "Root SSH Login is unavailable.";
     - a y/N question: "Invalid answer. Please try again.";
-    - a typed confirmation: "That does not match '<phrase>'. Please try again.", which names the phrase in prose that wraps, so it shows whole whatever the width.
+    - free text, which refuses one line only, one longer than the reader's limit (64 KiB): "Invalid answer. Please try again." too;
+    - a typed confirmation: "That does not match exactly. Please try again." It does not repeat the phrase: the prompt under it shows the phrase whole ((d)), while the message's prose would wrap at a hyphen inside it (x/ansi `wrap.go:270-276`: a hyphen is always a breakpoint), so "bos-san-l01" would read "bos-" / "san-l01". The first build named it ("That does not match 'bos-san-l01'.").
 
     Alternatives: one sentence for every prompt ("Invalid input. Please try again."); naming the inputs ("Please answer y or n."); no "Please try again." where the prompt is asked again anyway.
-  - **(d) The typed confirmation's layout:** the phrase is shown as the answer the hint offers, `Type the hostname [bos-san-l01, b or q]:`, so that it is cut last; the label is the flow's (P-10). Alternative: the phrase in the label, as origin/main's Run All asks "Type 'yes' to confirm you want to apply real changes:" (pkg/menu run_all_menu.go:162): a narrow terminal cuts the label first, phrase included.
+  - **(d) The typed confirmation's layout:** the phrase is shown as the answer the hint offers, `Type the hostname [bos-san-l01, 0, b or q]:`, and always whole: the prompt cuts the label first, and hardn asks only when the whole hint shows after some of the label. A phrase too long for that is refused before anything is written, and the flow asks with a shorter phrase or label: with the label "Type the hostname", up to 45 cells from 64 columns up and 41 at 60 (43 and 39 in ASCII). Linux allows a hostname of 64 bytes, so a long one needs another phrase, such as its first label. The label is the flow's (P-10). Alternatives:
+    - (d2) the phrase in the label, as origin/main's Run All asks "Type 'yes' to confirm you want to apply real changes:" (pkg/menu run_all_menu.go:162): a narrow terminal cuts the label first, phrase included.
+    - (d3) when the hint does not fit, the phrase on a line of its own above the prompt, at column 6: room for 58 cells at 64 columns, but a second layout for one prompt.
+  - **(e) Explaining the navigation inputs:** built, nothing explains `0` and `b`, and the hint lists them with a prompt's answers. Alternatives:
+    - (e2) a help line generated from the bindings (`keys.Set.Help`, which writes the Exit row's "q to quit"; nav uses it nowhere else): "0 or b to go back, q to quit", under the first question of a form and under each menu's prompt, or as the description of a sub-menu's "0) Return" row, as the main menu's Exit row says "q to quit". One line more per screen, or none on the Return row.
+    - (e3) a hint that sets the navigation apart from the answers: `Create user 'george'? [y/N] (0 or b back, q quit):`, `1. Username (0 or b back, q quit):`. Longer prompts, cut sooner on a narrow terminal.
   - Each word is one constant in `pkg/ui/nav/nav.go`, so changing one is a string and the goldens.
-- **Effort:** S. (a) to (d) are built, so this approves them; (a2), (b)'s alternative or (d)'s are each a small change to `pkg/ui/nav` and its goldens, and (a3) one more to `nav.Text`.
-- **Risk:** Low. (a) changes what a free-text field accepts compared with origin/main, for two one-letter values; nothing else is applied differently.
+- **Effort:** S. (a) to (e) are built, so this approves them; (a2), (b)'s alternative, (d2), (d3), (e2) or (e3) are each a small change to `pkg/ui/nav` (and `keys` for (b)) and its goldens, and (a3) one more to `nav.Text`.
+- **Risk:** Low. (a) changes what a free-text field accepts compared with origin/main, for three one-character values; (b)'s alternative departs from the brief; nothing else is applied differently.
 - **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-25-after.png` (placeholder); the `nav/*` goldens show the built form meanwhile.
