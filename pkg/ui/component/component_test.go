@@ -50,8 +50,8 @@ var (
 	}}
 	sshPort = StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)"}
 	// quit is the navigation grammar's q, whose help gives the Exit row its
-	// words (brief 1C); next/p1c-nav will own the real binding.
-	quit = keys.Binding{Keys: []string{"q"}, Help: "quit"}
+	// words (brief 1C).
+	quit = keys.Quit()
 	// figmaMenu is Figma's main menu, its Exit row in the brief's words.
 	figmaMenu = Menu{Items: []MenuItem{
 		{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
@@ -95,10 +95,11 @@ var (
 		{Key: "If SSH fails, a fallback access method is available"},
 	}}
 	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
-	// yesNo is a y/n question's inputs; next/p1c-nav owns the default and
-	// its hint form (y/N).
-	yesNo  = keys.Set{{Keys: []string{"y"}}, {Keys: []string{"n"}}}
-	sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
+	// yesNo is a y/N question's answers, no by default; yesDefault's
+	// default is yes, as P-11 proposes for "Require sudo password?".
+	yesNo      = keys.YesNo(false)
+	yesDefault = keys.YesNo(true)
+	sshKey     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
 )
 
 // The plan group's fixtures: changes as the engine would plan them on
@@ -295,7 +296,7 @@ var states = []struct {
 	{"answeredfield/text", AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
 	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
 	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
-	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}},
+	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesDefault}},
 	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
 	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
 	{"answeredfield/empty", AnsweredField{Answer: "george"}},
@@ -621,11 +622,11 @@ func TestLayout(t *testing.T) {
 			"  > [0-10 or q]:"},
 		{"prompt: empty is the glyph", PromptLine{}, 80, false, "  >"},
 		// 用户名称 is double-width: beside the ellipsis, its first letter
-		// needs 5 cells, which width 18 leaves 4 of.
-		{"prompt: a wide letter that cannot fit leaves the label out", PromptLine{Label: "用户名称", Accepts: yesNo}, 18, false,
-			"  > [y or n]:"},
-		{"prompt: a wide letter that fits is kept", PromptLine{Label: "用户名称", Accepts: yesNo}, 19, false,
-			"  > 用... [y or n]:"},
+		// needs 5 cells, which width 15 leaves 4 of.
+		{"prompt: a wide letter that cannot fit leaves the label out", PromptLine{Label: "用户名称", Accepts: yesNo}, 15, false,
+			"  > [y/N]:"},
+		{"prompt: a wide letter that fits is kept", PromptLine{Label: "用户名称", Accepts: yesNo}, 16, false,
+			"  > 用... [y/N]:"},
 		{"badge: at the indent", Badge{Text: "web-01"}, 80, false, "  [web-01]"},
 		{"badge: a long name is cut inside the brackets", Badge{Text: strings.Repeat("x", 70)}, 60, false,
 			"  [" + strings.Repeat("x", 53) + "...]"},
@@ -696,17 +697,17 @@ func TestLayout(t *testing.T) {
 		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
 			"   1. Username: george"},
 		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
-			"   2. Grant sudo privilege? [y or n]: y"},
+			"   2. Grant sudo privilege? [y/N]: y"},
 		{"field: unnumbered at the indent", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 80, false,
-			"  Disable SSH login for 'root'? [y or n]: y"},
-		{"field: unanswered ends at the colon", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}, 80, false,
-			"   3. Require sudo password? [y or n]:"},
+			"  Disable SSH login for 'root'? [y/N]: y"},
+		{"field: unanswered ends at the colon", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesDefault}, 80, false,
+			"   3. Require sudo password? [Y/n]:"},
 		{"field: a long answer goes under the question", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}, 80, false,
 			"   4. Paste SSH public key:\n      " + sshKey[:maxWidth(AnsweredField{}, 80)-theme.StackCol-3] + "..."},
-		{"field: the question is cut to keep a short answer beside it", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 40, false,
-			"  Disable SSH login for '... [y or n]: y"},
+		{"field: the question is cut to keep a short answer beside it", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 37, false,
+			"  Disable SSH login for '... [y/N]: y"},
 		{"field: typographic quotes are shown as ASCII (C12)", AnsweredField{Label: "Disable SSH login for \u2018root\u2019?", Accepts: yesNo, Answer: "y"}, 80, true,
-			"  Disable SSH login for 'root'? [y or n]: y"},
+			"  Disable SSH login for 'root'? [y/N]: y"},
 		{"message: typographic double quotes are shown as ASCII (C12)", Message{Kind: MessageBad, Text: "sshd: \u201cPort 2230\u201d is in use"}, 80, true,
 			"   ✗  Error: sshd: \"Port 2230\" is in use"},
 		{"field: a wide number pushes the question", AnsweredField{Number: 12345, Label: "Username"}, 80, false, "12345. Username:"},
@@ -922,7 +923,7 @@ func TestBlockStyles(t *testing.T) {
 			{" ", th.Callout.Warn.Bar}, {th.Glyphs.Warn + " Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
 		}},
 		{"field", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, []part{
-			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y or n]:", th.Field.Hint}, {"y", th.Field.Answer},
+			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y/N]:", th.Field.Hint}, {"y", th.Field.Answer},
 		}},
 		{"field with no hint", AnsweredField{Label: "Username", Answer: "george"}, []part{{":", th.Field.Label}}},
 	}
