@@ -160,6 +160,27 @@ func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 	if _, err := io.WriteString(w, prompt+" "); err != nil {
 		return "", fmt.Errorf("prompt: write: %w", err)
 	}
+	return r.answer(w)
+}
+
+// Answer reads the answer to a prompt the caller has already written to
+// w, as Ask reads the answer to the prompt it writes: it discards
+// typeahead (Flush), reads a line (ReadLine) and ends the prompt's line in
+// w where no echoed Enter ended it, by Ask's rules. It is for prompts that
+// cannot be handed to Ask, such as the legacy menus' (pkg/menu), which
+// print their own with pkg/style. Its flush comes after the prompt is
+// written, so a key typed in the instant between the two is discarded
+// too; Ask, which flushes before it writes, has no such window.
+func (r *Reader) Answer(w io.Writer) (string, error) {
+	if err := r.Flush(); err != nil {
+		return "", err
+	}
+	return r.answer(w)
+}
+
+// answer reads the answer to the prompt just written to w and ends the
+// prompt's line where no echoed Enter did (Ask).
+func (r *Reader) answer(w io.Writer) (string, error) {
 	r.asked = true
 	line, err := r.ReadLine()
 	if !r.tty || errors.Is(err, ErrAborted) || err == nil && r.unended {
@@ -170,7 +191,8 @@ func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 	return line, err
 }
 
-// Asked reports whether Ask has written a prompt, whatever the answer:
+// Asked reports whether Ask has written a prompt, or Answer has read the
+// answer to one, whatever the answer:
 // output then stands above the next thing written, the prompt's line at
 // least. A caller that draws a screen, such as pkg/ui/nav's Run, separates
 // the drawing from it by a blank line then, and not before the first

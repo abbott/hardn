@@ -302,6 +302,65 @@ func TestAsk(t *testing.T) {
 	})
 }
 
+// TestAnswer checks Answer against Ask's rules: the caller has written
+// the prompt, so Answer writes only the line end that no echoed Enter
+// wrote, and it flushes a terminal Reader first.
+func TestAnswer(t *testing.T) {
+	tests := []struct {
+		name   string
+		in     string
+		tty    bool
+		answer string
+		err    error
+		want   []string // the writes
+	}{
+		{"a terminal echoes the Enter", "q\n", true, "q", nil, nil},
+		{"an answer Ctrl-D ended on a terminal", "q", true, "q", nil, []string{"\n"}},
+		{"without a terminal Answer ends the line", "q\n", false, "q", nil, []string{"\n"}},
+		{"an abort ends the line", "", true, "", ErrAborted, []string{"\n"}},
+		{"an abort without a terminal", "", false, "", ErrEndOfInput, []string{"\n"}},
+		{"too long on a terminal", strings.Repeat("x", MaxLine+1) + "\n", true, "", ErrLineTooLong, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var w writes
+			r := New(strings.NewReader(tt.in), tt.tty)
+			got, err := r.Answer(&w)
+			if got != tt.answer || !errors.Is(err, tt.err) || tt.err == nil && err != nil {
+				t.Errorf("Answer() = %q, %v; want %q, %v", got, err, tt.answer, tt.err)
+			}
+			if fmt.Sprintf("%q", w) != fmt.Sprintf("%q", tt.want) {
+				t.Errorf("writes = %q, want %q", w, tt.want)
+			}
+			if !r.Asked() {
+				t.Error("Asked() = false after Answer")
+			}
+		})
+	}
+	t.Run("Answer flushes a terminal Reader", func(t *testing.T) {
+		r := New(strings.NewReader("1\n2\n"), true)
+		if line, err := r.ReadLine(); line != "1" || err != nil {
+			t.Fatalf("ReadLine() = %q, %v", line, err)
+		}
+		if line, err := r.Answer(io.Discard); !errors.Is(err, ErrAborted) {
+			t.Errorf("Answer() = %q, %v; want the typeahead dropped and the end of input", line, err)
+		}
+	})
+	t.Run("scripted answers are never flushed", func(t *testing.T) {
+		r := New(strings.NewReader("1\n2\n"), false)
+		for _, want := range []string{"1", "2"} {
+			if line, err := r.Answer(io.Discard); line != want || err != nil {
+				t.Fatalf("Answer() = %q, %v; want %q", line, err, want)
+			}
+		}
+	})
+	t.Run("a failed line end", func(t *testing.T) {
+		if _, err := New(strings.NewReader("q\n"), false).Answer(failing{}); err == nil || errors.Is(err, ErrAborted) {
+			t.Errorf("Answer() = %v, want a write error", err)
+		}
+	})
+}
+
 // TestAsked checks that a Reader reports a prompt once Ask has written
 // one, whatever the answer, and not before.
 func TestAsked(t *testing.T) {
