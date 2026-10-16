@@ -54,7 +54,11 @@ type Glyphs struct {
 	Skipped    string // a step left out, such as one already done
 
 	// A plan, an error report and the confirm countdown (no Figma value;
-	// DEV-038, DEV-041).
+	// DEV-038, DEV-041). Wrap opens each further line of code too long
+	// for one, which may be a command the user types, so its ASCII form is
+	// "|": a continuation pasted into a shell is then a syntax error, where
+	// ">" would redirect into the file it names, and no diff starts a line
+	// with it, as classic diff starts an added line with ">".
 	Command string // before a command hardn runs
 	Wrap    string // starts the rest of a code line too long for its line
 	Urgent  string // the confirm countdown's last seconds
@@ -123,6 +127,6 @@ var asciiGlyphs = Glyphs{
 	RolledBack:    "[<]",
 	Skipped:       "[-]",
 	Command:       "$",
-	Wrap:          ">",
+	Wrap:          "|",
 	Urgent:        "[!]",
 }

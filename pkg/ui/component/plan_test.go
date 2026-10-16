@@ -46,7 +46,7 @@ func TestPlanGroupLayout(t *testing.T) {
 		}}}, 30, true,
 			"   -  Allow users\n      +AllowUsers alice bob\n      ↪replication-service\n      +    Match"},
 		{"plan: a word longer than the line", PlanView{Changes: []PlanChange{{Title: "Write", Target: "/var/backups/hardn/web-01.example.net"}}}, 30, false,
-			"   -  Write\n      /var/backups/hardn/web-0\n      >1.example.net"},
+			"   -  Write\n      /var/backups/hardn/web-0\n      |1.example.net"},
 		{"plan: code keeps its quotes and indent", PlanView{Changes: []PlanChange{{Title: "Echo", Commands: []string{"echo ‘hi’ \x1b[1mbold\x1b[m"}}}}, 64, true,
 			"   -  Echo\n      $ echo ‘hi’ bold"},
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},

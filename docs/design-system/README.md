@@ -246,7 +246,7 @@ That is 27 typography roles: 26 bold slots and one underlined. `TestTypography` 
 | `RolledBack` | ↺ | U+21BA, N | 1 | `[<]` | 3 | DEV-039 |
 | `Skipped` | ↷ | U+21B7, N | 1 | `[-]` | 3 | DEV-039 (ASCII shared with `NotApplicable`) |
 | `Command` | `$` | U+0024, Na | 1 | `$` | 1 | DEV-038: before a command hardn runs |
-| `Wrap` | ↪ | U+21AA, N | 1 | `>` | 1 | DEV-038: starts the rest of a code line too long for its line |
+| `Wrap` | ↪ | U+21AA, N | 1 | `\|` | 1 | DEV-038: starts the rest of a code line too long for its line. ASCII `\|` starts no shell or diff line: a pasted continuation is a syntax error, where `>` would redirect into the file it names |
 | `Urgent` | `!` | U+0021, Na | 1 | `[!]` | 3 | DEV-041 (ASCII shared with `Bad`) |
 
 - The status markers and the risk icon fit the three-cell marker column even when drawn two cells wide (`TestStatusMarkers`), and no two states share a marker. The same holds for a message's five kinds (`TestMessageMarkers`), whose glyphs a `Callout` also draws before its title (DEV-032); a `KeyValue`'s states take the status markers (DEV-034). A step's six states (`OK` and `Bad` for done and failed), each spinner frame and the countdown's `Urgent` fit it too, and no two step states share a glyph (`TestStepMarkers`).

@@ -92,24 +92,24 @@ $
       ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-5 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-5 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-6 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-6 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-7 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-7 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-8 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-8 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-9 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-9 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-10 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-10 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-11 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-11 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-12 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-12 [1024 B]␛[m$
       ␛[38;2;129;134;156mProgress: 100%␛[m$
       ␛[38;2;129;134;156mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;2;129;134;156m>(1)␛[m$
+      ␛[38;2;129;134;156m|(1)␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;129;134;156mdetails␛[m$
@@ -121,21 +121,21 @@ $
       ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-5 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-5 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-6 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-6 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-7 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-7 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-8 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-8 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-9 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-9 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-10 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-10 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-11 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-11 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-12 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-12 [1024 B]␛[m$
       ␛[38;2;129;134;156mProgress: 100%␛[m$
       ␛[38;2;129;134;156mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -148,21 +148,21 @@ $
       ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-5 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-5 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-6 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-6 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-7 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-7 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-8 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-8 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-9 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-9 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-10 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-10 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-11 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-11 [1024 B]␛[m$
       ␛[38;2;129;134;156mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;129;134;156m>package-12 [1024 B]␛[m$
+      ␛[38;2;129;134;156m|package-12 [1024 B]␛[m$
       ␛[38;2;129;134;156mProgress: 100%␛[m$
       ␛[38;2;129;134;156mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -258,24 +258,24 @@ $
       ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-5 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-5 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-6 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-6 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-7 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-7 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-8 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-8 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-9 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-9 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-10 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-10 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-11 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-11 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-12 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-12 [1024 B]␛[m$
       ␛[38;2;87;92;110mProgress: 100%␛[m$
       ␛[38;2;87;92;110mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;2;87;92;110m>(1)␛[m$
+      ␛[38;2;87;92;110m|(1)␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;87;92;110mdetails␛[m$
@@ -287,21 +287,21 @@ $
       ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-5 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-5 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-6 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-6 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-7 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-7 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-8 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-8 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-9 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-9 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-10 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-10 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-11 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-11 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-12 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-12 [1024 B]␛[m$
       ␛[38;2;87;92;110mProgress: 100%␛[m$
       ␛[38;2;87;92;110mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -314,21 +314,21 @@ $
       ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-5 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-5 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-6 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-6 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-7 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-7 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-8 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-8 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-9 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-9 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-10 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-10 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-11 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-11 [1024 B]␛[m$
       ␛[38;2;87;92;110mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;2;87;92;110m>package-12 [1024 B]␛[m$
+      ␛[38;2;87;92;110m|package-12 [1024 B]␛[m$
       ␛[38;2;87;92;110mProgress: 100%␛[m$
       ␛[38;2;87;92;110mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -424,24 +424,24 @@ $
       ␛[38;5;103m$ apk add apk-cron␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-5 [1024 B]␛[m$
+      ␛[38;5;103m|package-5 [1024 B]␛[m$
       ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-6 [1024 B]␛[m$
+      ␛[38;5;103m|package-6 [1024 B]␛[m$
       ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-7 [1024 B]␛[m$
+      ␛[38;5;103m|package-7 [1024 B]␛[m$
       ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-8 [1024 B]␛[m$
+      ␛[38;5;103m|package-8 [1024 B]␛[m$
       ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-9 [1024 B]␛[m$
+      ␛[38;5;103m|package-9 [1024 B]␛[m$
       ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-10 [1024 B]␛[m$
+      ␛[38;5;103m|package-10 [1024 B]␛[m$
       ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-11 [1024 B]␛[m$
+      ␛[38;5;103m|package-11 [1024 B]␛[m$
       ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-12 [1024 B]␛[m$
+      ␛[38;5;103m|package-12 [1024 B]␛[m$
       ␛[38;5;103mProgress: 100%␛[m$
       ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;5;103m>(1)␛[m$
+      ␛[38;5;103m|(1)␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;103mdetails␛[m$
@@ -453,21 +453,21 @@ $
       ␛[38;5;103m$ apk add apk-cron␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-5 [1024 B]␛[m$
+      ␛[38;5;103m|package-5 [1024 B]␛[m$
       ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-6 [1024 B]␛[m$
+      ␛[38;5;103m|package-6 [1024 B]␛[m$
       ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-7 [1024 B]␛[m$
+      ␛[38;5;103m|package-7 [1024 B]␛[m$
       ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-8 [1024 B]␛[m$
+      ␛[38;5;103m|package-8 [1024 B]␛[m$
       ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-9 [1024 B]␛[m$
+      ␛[38;5;103m|package-9 [1024 B]␛[m$
       ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-10 [1024 B]␛[m$
+      ␛[38;5;103m|package-10 [1024 B]␛[m$
       ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-11 [1024 B]␛[m$
+      ␛[38;5;103m|package-11 [1024 B]␛[m$
       ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-12 [1024 B]␛[m$
+      ␛[38;5;103m|package-12 [1024 B]␛[m$
       ␛[38;5;103mProgress: 100%␛[m$
       ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -480,21 +480,21 @@ $
       ␛[38;5;103m$ apk add apk-cron␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-5 [1024 B]␛[m$
+      ␛[38;5;103m|package-5 [1024 B]␛[m$
       ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-6 [1024 B]␛[m$
+      ␛[38;5;103m|package-6 [1024 B]␛[m$
       ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-7 [1024 B]␛[m$
+      ␛[38;5;103m|package-7 [1024 B]␛[m$
       ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-8 [1024 B]␛[m$
+      ␛[38;5;103m|package-8 [1024 B]␛[m$
       ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-9 [1024 B]␛[m$
+      ␛[38;5;103m|package-9 [1024 B]␛[m$
       ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-10 [1024 B]␛[m$
+      ␛[38;5;103m|package-10 [1024 B]␛[m$
       ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-11 [1024 B]␛[m$
+      ␛[38;5;103m|package-11 [1024 B]␛[m$
       ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m>package-12 [1024 B]␛[m$
+      ␛[38;5;103m|package-12 [1024 B]␛[m$
       ␛[38;5;103mProgress: 100%␛[m$
       ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -590,24 +590,24 @@ $
       ␛[38;5;59m$ apk add apk-cron␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-5 [1024 B]␛[m$
+      ␛[38;5;59m|package-5 [1024 B]␛[m$
       ␛[38;5;59mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-6 [1024 B]␛[m$
+      ␛[38;5;59m|package-6 [1024 B]␛[m$
       ␛[38;5;59mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-7 [1024 B]␛[m$
+      ␛[38;5;59m|package-7 [1024 B]␛[m$
       ␛[38;5;59mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-8 [1024 B]␛[m$
+      ␛[38;5;59m|package-8 [1024 B]␛[m$
       ␛[38;5;59mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-9 [1024 B]␛[m$
+      ␛[38;5;59m|package-9 [1024 B]␛[m$
       ␛[38;5;59mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-10 [1024 B]␛[m$
+      ␛[38;5;59m|package-10 [1024 B]␛[m$
       ␛[38;5;59mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-11 [1024 B]␛[m$
+      ␛[38;5;59m|package-11 [1024 B]␛[m$
       ␛[38;5;59mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-12 [1024 B]␛[m$
+      ␛[38;5;59m|package-12 [1024 B]␛[m$
       ␛[38;5;59mProgress: 100%␛[m$
       ␛[38;5;59mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;5;59m>(1)␛[m$
+      ␛[38;5;59m|(1)␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;59mdetails␛[m$
@@ -619,21 +619,21 @@ $
       ␛[38;5;59m$ apk add apk-cron␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-5 [1024 B]␛[m$
+      ␛[38;5;59m|package-5 [1024 B]␛[m$
       ␛[38;5;59mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-6 [1024 B]␛[m$
+      ␛[38;5;59m|package-6 [1024 B]␛[m$
       ␛[38;5;59mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-7 [1024 B]␛[m$
+      ␛[38;5;59m|package-7 [1024 B]␛[m$
       ␛[38;5;59mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-8 [1024 B]␛[m$
+      ␛[38;5;59m|package-8 [1024 B]␛[m$
       ␛[38;5;59mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-9 [1024 B]␛[m$
+      ␛[38;5;59m|package-9 [1024 B]␛[m$
       ␛[38;5;59mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-10 [1024 B]␛[m$
+      ␛[38;5;59m|package-10 [1024 B]␛[m$
       ␛[38;5;59mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-11 [1024 B]␛[m$
+      ␛[38;5;59m|package-11 [1024 B]␛[m$
       ␛[38;5;59mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-12 [1024 B]␛[m$
+      ␛[38;5;59m|package-12 [1024 B]␛[m$
       ␛[38;5;59mProgress: 100%␛[m$
       ␛[38;5;59mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -646,21 +646,21 @@ $
       ␛[38;5;59m$ apk add apk-cron␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-5 [1024 B]␛[m$
+      ␛[38;5;59m|package-5 [1024 B]␛[m$
       ␛[38;5;59mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-6 [1024 B]␛[m$
+      ␛[38;5;59m|package-6 [1024 B]␛[m$
       ␛[38;5;59mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-7 [1024 B]␛[m$
+      ␛[38;5;59m|package-7 [1024 B]␛[m$
       ␛[38;5;59mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-8 [1024 B]␛[m$
+      ␛[38;5;59m|package-8 [1024 B]␛[m$
       ␛[38;5;59mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-9 [1024 B]␛[m$
+      ␛[38;5;59m|package-9 [1024 B]␛[m$
       ␛[38;5;59mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-10 [1024 B]␛[m$
+      ␛[38;5;59m|package-10 [1024 B]␛[m$
       ␛[38;5;59mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-11 [1024 B]␛[m$
+      ␛[38;5;59m|package-11 [1024 B]␛[m$
       ␛[38;5;59mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;59m>package-12 [1024 B]␛[m$
+      ␛[38;5;59m|package-12 [1024 B]␛[m$
       ␛[38;5;59mProgress: 100%␛[m$
       ␛[38;5;59mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -756,24 +756,24 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[90m>(1)␛[m$
+      ␛[90m|(1)␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -785,21 +785,21 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -812,21 +812,21 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -922,24 +922,24 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[90m>(1)␛[m$
+      ␛[90m|(1)␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -951,21 +951,21 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -978,21 +978,21 @@ $
       ␛[90m$ apk add apk-cron␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-5 [1024 B]␛[m$
+      ␛[90m|package-5 [1024 B]␛[m$
       ␛[90mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-6 [1024 B]␛[m$
+      ␛[90m|package-6 [1024 B]␛[m$
       ␛[90mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-7 [1024 B]␛[m$
+      ␛[90m|package-7 [1024 B]␛[m$
       ␛[90mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-8 [1024 B]␛[m$
+      ␛[90m|package-8 [1024 B]␛[m$
       ␛[90mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-9 [1024 B]␛[m$
+      ␛[90m|package-9 [1024 B]␛[m$
       ␛[90mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-10 [1024 B]␛[m$
+      ␛[90m|package-10 [1024 B]␛[m$
       ␛[90mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-11 [1024 B]␛[m$
+      ␛[90m|package-11 [1024 B]␛[m$
       ␛[90mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[90m>package-12 [1024 B]␛[m$
+      ␛[90m|package-12 [1024 B]␛[m$
       ␛[90mProgress: 100%␛[m$
       ␛[90mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
@@ -1088,24 +1088,24 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code$
-      >(1)$
+      |(1)$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -1117,21 +1117,21 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code (1)$
 $
@@ -1144,21 +1144,21 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code (1)$
 $
@@ -1254,24 +1254,24 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code$
-      >(1)$
+      |(1)$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -1283,21 +1283,21 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code (1)$
 $
@@ -1310,21 +1310,21 @@ $
       $ apk add apk-cron$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
-      >package-5 [1024 B]$
+      |package-5 [1024 B]$
       Get:6 http://deb.example.net/debian trixie/main amd64$
-      >package-6 [1024 B]$
+      |package-6 [1024 B]$
       Get:7 http://deb.example.net/debian trixie/main amd64$
-      >package-7 [1024 B]$
+      |package-7 [1024 B]$
       Get:8 http://deb.example.net/debian trixie/main amd64$
-      >package-8 [1024 B]$
+      |package-8 [1024 B]$
       Get:9 http://deb.example.net/debian trixie/main amd64$
-      >package-9 [1024 B]$
+      |package-9 [1024 B]$
       Get:10 http://deb.example.net/debian trixie/main amd64$
-      >package-10 [1024 B]$
+      |package-10 [1024 B]$
       Get:11 http://deb.example.net/debian trixie/main amd64$
-      >package-11 [1024 B]$
+      |package-11 [1024 B]$
       Get:12 http://deb.example.net/debian trixie/main amd64$
-      >package-12 [1024 B]$
+      |package-12 [1024 B]$
       Progress: 100%$
       E: Sub-process /usr/bin/dpkg returned an error code (1)$
 $

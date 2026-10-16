@@ -60,9 +60,9 @@ $
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
       ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;129;134;156m>exited with error code.␛[m$
+      ␛[38;2;129;134;156m|exited with error code.␛[m$
       ␛[38;2;129;134;156mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;2;129;134;156m>-xeu ssh.service" for details.␛[m$
+      ␛[38;2;129;134;156m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;129;134;156mdetails␛[m$
@@ -77,9 +77,9 @@ $
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
       ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;129;134;156m>exited with error code.␛[m$
+      ␛[38;2;129;134;156m|exited with error code.␛[m$
       ␛[38;2;129;134;156mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;2;129;134;156m>ssh.service" for details.␛[m$
+      ␛[38;2;129;134;156m|ssh.service" for details.␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -93,9 +93,9 @@ $
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
       ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;129;134;156m>exited with error code.␛[m$
+      ␛[38;2;129;134;156m|exited with error code.␛[m$
       ␛[38;2;129;134;156mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;2;129;134;156m>ssh.service" for details.␛[m$
+      ␛[38;2;129;134;156m|ssh.service" for details.␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -158,9 +158,9 @@ $
 $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
       ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;87;92;110m>exited with error code.␛[m$
+      ␛[38;2;87;92;110m|exited with error code.␛[m$
       ␛[38;2;87;92;110mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;2;87;92;110m>-xeu ssh.service" for details.␛[m$
+      ␛[38;2;87;92;110m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;87;92;110mdetails␛[m$
@@ -175,9 +175,9 @@ $
 $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
       ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;87;92;110m>exited with error code.␛[m$
+      ␛[38;2;87;92;110m|exited with error code.␛[m$
       ␛[38;2;87;92;110mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;2;87;92;110m>ssh.service" for details.␛[m$
+      ␛[38;2;87;92;110m|ssh.service" for details.␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -191,9 +191,9 @@ $
 $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
       ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
-      ␛[38;2;87;92;110m>exited with error code.␛[m$
+      ␛[38;2;87;92;110m|exited with error code.␛[m$
       ␛[38;2;87;92;110mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;2;87;92;110m>ssh.service" for details.␛[m$
+      ␛[38;2;87;92;110m|ssh.service" for details.␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -256,9 +256,9 @@ $
 $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
       ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m>exited with error code.␛[m$
+      ␛[38;5;103m|exited with error code.␛[m$
       ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;5;103m>-xeu ssh.service" for details.␛[m$
+      ␛[38;5;103m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;103mdetails␛[m$
@@ -273,9 +273,9 @@ $
 $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
       ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m>exited with error code.␛[m$
+      ␛[38;5;103m|exited with error code.␛[m$
       ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m>ssh.service" for details.␛[m$
+      ␛[38;5;103m|ssh.service" for details.␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -289,9 +289,9 @@ $
 $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
       ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m>exited with error code.␛[m$
+      ␛[38;5;103m|exited with error code.␛[m$
       ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m>ssh.service" for details.␛[m$
+      ␛[38;5;103m|ssh.service" for details.␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -354,9 +354,9 @@ $
 $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
       ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;59m>exited with error code.␛[m$
+      ␛[38;5;59m|exited with error code.␛[m$
       ␛[38;5;59mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;5;59m>-xeu ssh.service" for details.␛[m$
+      ␛[38;5;59m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;59mdetails␛[m$
@@ -371,9 +371,9 @@ $
 $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
       ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;59m>exited with error code.␛[m$
+      ␛[38;5;59m|exited with error code.␛[m$
       ␛[38;5;59mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;59m>ssh.service" for details.␛[m$
+      ␛[38;5;59m|ssh.service" for details.␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -387,9 +387,9 @@ $
 $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
       ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;59m>exited with error code.␛[m$
+      ␛[38;5;59m|exited with error code.␛[m$
       ␛[38;5;59mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;59m>ssh.service" for details.␛[m$
+      ␛[38;5;59m|ssh.service" for details.␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -452,9 +452,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[90m>-xeu ssh.service" for details.␛[m$
+      ␛[90m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -469,9 +469,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[90m>ssh.service" for details.␛[m$
+      ␛[90m|ssh.service" for details.␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -485,9 +485,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[90m>ssh.service" for details.␛[m$
+      ␛[90m|ssh.service" for details.␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -550,9 +550,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[90m>-xeu ssh.service" for details.␛[m$
+      ␛[90m|-xeu ssh.service" for details.␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -567,9 +567,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[90m>ssh.service" for details.␛[m$
+      ␛[90m|ssh.service" for details.␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -583,9 +583,9 @@ $
 $
       ␛[90m$ systemctl reload ssh␛[m$
       ␛[90mJob for ssh.service failed because the control process␛[m$
-      ␛[90m>exited with error code.␛[m$
+      ␛[90m|exited with error code.␛[m$
       ␛[90mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[90m>ssh.service" for details.␛[m$
+      ␛[90m|ssh.service" for details.␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRun sudo sshd -t to see what sshd rejected.␛[m$
@@ -648,9 +648,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl$
-      >-xeu ssh.service" for details.$
+      |-xeu ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -665,9 +665,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl -xeu$
-      >ssh.service" for details.$
+      |ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Run sudo sshd -t to see what sshd rejected.$
@@ -681,9 +681,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl -xeu$
-      >ssh.service" for details.$
+      |ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Run sudo sshd -t to see what sshd rejected.$
@@ -746,9 +746,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl$
-      >-xeu ssh.service" for details.$
+      |-xeu ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -763,9 +763,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl -xeu$
-      >ssh.service" for details.$
+      |ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Run sudo sshd -t to see what sshd rejected.$
@@ -779,9 +779,9 @@ $
 $
       $ systemctl reload ssh$
       Job for ssh.service failed because the control process$
-      >exited with error code.$
+      |exited with error code.$
       See "systemctl status ssh.service" and "journalctl -xeu$
-      >ssh.service" for details.$
+      |ssh.service" for details.$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Run sudo sshd -t to see what sshd rejected.$

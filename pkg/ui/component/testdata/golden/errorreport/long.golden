@@ -69,11 +69,11 @@ $
   ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
-      ␛[38;2;129;134;156m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[38;2;129;134;156m>61016␛[m$
+      ␛[38;2;129;134;156m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[38;2;129;134;156m|61016␛[m$
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[38;2;129;134;156m>1016: line 3: Bad configuration option:␛[m$
-      ␛[38;2;129;134;156m>AllowUsersForReplication␛[m$
+      ␛[38;2;129;134;156m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;129;134;156mdetails␛[m$
@@ -89,11 +89,11 @@ $
   ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
-      ␛[38;2;129;134;156m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;2;129;134;156m>6␛[m$
+      ␛[38;2;129;134;156m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;2;129;134;156m|6␛[m$
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;2;129;134;156m>: line 3: Bad configuration option:␛[m$
-      ␛[38;2;129;134;156m>AllowUsersForReplication␛[m$
+      ␛[38;2;129;134;156m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -108,11 +108,11 @@ $
   ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
-      ␛[38;2;129;134;156m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;2;129;134;156m>6␛[m$
+      ␛[38;2;129;134;156m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;2;129;134;156m|6␛[m$
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;2;129;134;156m>: line 3: Bad configuration option:␛[m$
-      ␛[38;2;129;134;156m>AllowUsersForReplication␛[m$
+      ␛[38;2;129;134;156m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -185,11 +185,11 @@ $
   ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
-      ␛[38;2;87;92;110m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[38;2;87;92;110m>61016␛[m$
+      ␛[38;2;87;92;110m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[38;2;87;92;110m|61016␛[m$
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[38;2;87;92;110m>1016: line 3: Bad configuration option:␛[m$
-      ␛[38;2;87;92;110m>AllowUsersForReplication␛[m$
+      ␛[38;2;87;92;110m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;2;87;92;110mdetails␛[m$
@@ -205,11 +205,11 @@ $
   ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
-      ␛[38;2;87;92;110m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;2;87;92;110m>6␛[m$
+      ␛[38;2;87;92;110m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;2;87;92;110m|6␛[m$
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;2;87;92;110m>: line 3: Bad configuration option:␛[m$
-      ␛[38;2;87;92;110m>AllowUsersForReplication␛[m$
+      ␛[38;2;87;92;110m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -224,11 +224,11 @@ $
   ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
-      ␛[38;2;87;92;110m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;2;87;92;110m>6␛[m$
+      ␛[38;2;87;92;110m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;2;87;92;110m|6␛[m$
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;2;87;92;110m>: line 3: Bad configuration option:␛[m$
-      ␛[38;2;87;92;110m>AllowUsersForReplication␛[m$
+      ␛[38;2;87;92;110m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -301,11 +301,11 @@ $
   ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
-      ␛[38;5;103m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[38;5;103m>61016␛[m$
+      ␛[38;5;103m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[38;5;103m|61016␛[m$
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[38;5;103m>1016: line 3: Bad configuration option:␛[m$
-      ␛[38;5;103m>AllowUsersForReplication␛[m$
+      ␛[38;5;103m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;103mdetails␛[m$
@@ -321,11 +321,11 @@ $
   ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
-      ␛[38;5;103m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;5;103m>6␛[m$
+      ␛[38;5;103m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;5;103m|6␛[m$
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;5;103m>: line 3: Bad configuration option:␛[m$
-      ␛[38;5;103m>AllowUsersForReplication␛[m$
+      ␛[38;5;103m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -340,11 +340,11 @@ $
   ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
-      ␛[38;5;103m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;5;103m>6␛[m$
+      ␛[38;5;103m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;5;103m|6␛[m$
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;5;103m>: line 3: Bad configuration option:␛[m$
-      ␛[38;5;103m>AllowUsersForReplication␛[m$
+      ␛[38;5;103m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -417,11 +417,11 @@ $
   ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
-      ␛[38;5;59m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[38;5;59m>61016␛[m$
+      ␛[38;5;59m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[38;5;59m|61016␛[m$
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[38;5;59m>1016: line 3: Bad configuration option:␛[m$
-      ␛[38;5;59m>AllowUsersForReplication␛[m$
+      ␛[38;5;59m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[38;5;59mdetails␛[m$
@@ -437,11 +437,11 @@ $
   ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
-      ␛[38;5;59m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;5;59m>6␛[m$
+      ␛[38;5;59m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;5;59m|6␛[m$
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;5;59m>: line 3: Bad configuration option:␛[m$
-      ␛[38;5;59m>AllowUsersForReplication␛[m$
+      ␛[38;5;59m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -456,11 +456,11 @@ $
   ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
-      ␛[38;5;59m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[38;5;59m>6␛[m$
+      ␛[38;5;59m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[38;5;59m|6␛[m$
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[38;5;59m>: line 3: Bad configuration option:␛[m$
-      ␛[38;5;59m>AllowUsersForReplication␛[m$
+      ␛[38;5;59m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m|AllowUsersForReplication␛[m$
 $
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -533,11 +533,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[90m>61016␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[90m|61016␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[90m>1016: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|1016: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -553,11 +553,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[90m>6␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[90m|6␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[90m>: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -572,11 +572,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[90m>6␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[90m|6␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[90m>: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -649,11 +649,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and th...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
-      ␛[90m>61016␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202␛[m$
+      ␛[90m|61016␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
-      ␛[90m>1016: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|1016: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
       ␛[90mdetails␛[m$
@@ -669,11 +669,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[90m>6␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[90m|6␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[90m>: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -688,11 +688,11 @@ $
   ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the ba...␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
-      ␛[90m>/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
-      ␛[90m>6␛[m$
+      ␛[90m|/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101␛[m$
+      ␛[90m|6␛[m$
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
-      ␛[90m>: line 3: Bad configuration option:␛[m$
-      ␛[90m>AllowUsersForReplication␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m|AllowUsersForReplication␛[m$
 $
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
@@ -765,11 +765,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and th...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202$
-      >61016$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202$
+      |61016$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
-      >1016: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |1016: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -785,11 +785,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
-      >6$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
+      |6$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
-      >: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
@@ -804,11 +804,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
-      >6$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
+      |6$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
-      >: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
@@ -881,11 +881,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and th...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202$
-      >61016$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202$
+      |61016$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
-      >1016: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |1016: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
       details$
@@ -901,11 +901,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
-      >6$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
+      |6$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
-      >: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
@@ -920,11 +920,11 @@ $
   [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
 $
       $ sshd -t -f$
-      >/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
-      >6$
+      |/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026101$
+      |6$
       /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
-      >: line 3: Bad configuration option:$
-      >AllowUsersForReplication$
+      |: line 3: Bad configuration option:$
+      |AllowUsersForReplication$
 $
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
   ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
