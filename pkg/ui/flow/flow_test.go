@@ -157,15 +157,27 @@ var sudoFails = Fixture{Planned: createUserPlan, FailAt: 2, Detail: "exit status
 	Next:    "Check that the sudo group exists, then try again.",
 }}
 
+// rootWarning is Figma's warning before disabling root SSH login, with
+// its checklist.
+var rootWarning = &Notice{
+	Callout: component.Callout{Kind: component.MessageWarn, Body: []string{"Before disabling root SSH login, ensure:"}},
+	Items: []string{
+		"Non-root user has sudo privileges",
+		"Non-root user SSH access has been tested",
+		"If SSH fails, a fallback access method is available",
+	},
+}
+
 // disableRoot is Figma's root SSH login action (SSH_LOGIN-TOGGLE_CONFIRMATION)
-// in the canonical flow: nothing to collect, its "SSH Configuration"
-// review, with alice for Figma's allowed user, and its question, "Disable
-// SSH login for 'root'?", asked as y/N, or above a typed confirmation of
-// the hostname when the plan has lockout risk.
+// in the canonical flow: nothing to collect; its warning and checklist,
+// and its "SSH Configuration" review, with alice for Figma's allowed
+// user; and its question, "Disable SSH login for 'root'?", asked as y/N,
+// or above a typed confirmation of the hostname when the plan has lockout
+// risk.
 func disableRoot(e Engine) Flow {
 	return Flow{
 		Review: func() Review {
-			return Review{Title: "SSH Configuration", Items: []component.KeyValue{
+			return Review{Notice: rootWarning, Title: "SSH Configuration", Items: []component.KeyValue{
 				{Key: "Root SSH Login", Value: "Enabled", State: component.ValueBad},
 				{Key: "SSH Port", Value: "2230"},
 				{Key: "Allowed Users", Value: "alice"},
@@ -195,7 +207,7 @@ func longHost(e Engine) Flow {
 }
 
 // rootDisabled is disableRoot on a host where root SSH login is disabled
-// already, so that its engine plans nothing.
+// already, so that it warns of nothing and its engine plans nothing.
 func rootDisabled(e Engine) Flow {
 	f := disableRoot(e)
 	f.Review = func() Review {
@@ -332,6 +344,32 @@ func TestPaths(t *testing.T) {
 	}
 	if rep := failure(&Failure{}, nil); rep.Failed != "" {
 		t.Errorf("a Failure with no Err reports %q as what failed, want nothing", rep.Failed)
+	}
+}
+
+// TestReview checks the Review step's blocks, plain: the notice's callout
+// and its checklist, then the section, each after one blank line, and
+// whichever is missing left out with its gap.
+func TestReview(t *testing.T) {
+	warning := "# [*] Warning\n# Before disabling root SSH login, ensure:"
+	checklist := "   -  Non-root user has sudo privileges\n   -  Non-root user SSH access has been tested\n   -  If SSH fails, a fallback access method is available"
+	section := "# SSH Configuration --------------------------------------------\n\n   -  SSH Port             2230"
+	port := []component.KeyValue{{Key: "SSH Port", Value: "2230"}}
+	tests := []struct {
+		name   string
+		review Review
+		want   string
+	}{
+		{"a notice and the answers", Review{Notice: rootWarning, Title: "SSH Configuration", Items: port}, warning + "\n\n" + checklist + "\n\n" + section},
+		{"the answers alone", Review{Title: "SSH Configuration", Items: port}, section},
+		{"a notice alone", Review{Notice: rootWarning, Title: "SSH Configuration"}, warning + "\n\n" + checklist},
+		{"a notice with no checklist", Review{Notice: &Notice{Callout: rootWarning.Callout}, Title: "SSH Configuration", Items: port}, warning + "\n\n" + section},
+		{"nothing", Review{Title: "SSH Configuration"}, ""},
+	}
+	for _, tt := range tests {
+		if got := ansi.Strip(tt.review.render(component.NewCtx(plain80))); got != tt.want {
+			t.Errorf("%s:\n%s\nwant\n%s", tt.name, got, tt.want)
+		}
 	}
 }
 

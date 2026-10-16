@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -127,24 +128,52 @@ func (f *Failure) Error() string {
 // Unwrap returns Err.
 func (f *Failure) Unwrap() error { return f.Err }
 
-// Review is the Review step: the answers collected, as Figma sums up a new
-// user under "User Configuration".
+// Review is the Review step: the action's notice, if it has one, then the
+// answers collected, as Figma sums up a new user under "User
+// Configuration".
 type Review struct {
+	// Notice is said above the answers, as Figma warns before disabling
+	// root SSH login; nil says nothing.
+	Notice *Notice
 	// Title is the section's title, such as "User Configuration".
 	Title string
 	// Items are the answers, as key-value rows, such as "Sudo" and
-	// "Enabled, No password". With none the step shows nothing.
+	// "Enabled, No password". With none no section is shown.
 	Items []component.KeyValue
 }
 
-// render renders the review: a SectionHeader, theme.SectionGap blank
-// lines, then the rows as a BulletList.
+// Notice is what an action says before its review and its plan, such as
+// the Warning Figma draws above the review before disabling root SSH
+// login (SSH_LOGIN-TOGGLE_CONFIRMATION) and before requiring a password
+// for sudo (USER-MANAGE_SUDO-CONFIRMATION): a Callout, then what it lists
+// as bullet items, outside the callout's bar, as Figma draws its
+// checklist (component.Callout).
+type Notice struct {
+	// Callout is the notice, such as a Warning whose body is "Before
+	// disabling root SSH login, ensure:".
+	Callout component.Callout
+	// Items are listed under the callout, such as "Non-root user has
+	// sudo privileges"; empty lists none.
+	Items []string
+}
+
+// render renders the review: the notice's Callout and its items as a
+// BulletList, then a SectionHeader and the rows as a BulletList, each
+// block after theme.SectionGap blank lines.
 func (v Review) render(c component.Ctx) string {
-	list := component.BulletList{Items: v.Items}.Render(c)
-	if list == "" {
-		return ""
+	var blocks []string
+	if n := v.Notice; n != nil {
+		items := make([]component.KeyValue, len(n.Items))
+		for i, it := range n.Items {
+			items[i].Key = it
+		}
+		blocks = append(blocks, n.Callout.Render(c), component.BulletList{Items: items}.Render(c))
 	}
-	return component.SectionHeader{Title: v.Title}.Render(c) + strings.Repeat("\n", theme.SectionGap+1) + list
+	if list := (component.BulletList{Items: v.Items}).Render(c); list != "" {
+		blocks = append(blocks, component.SectionHeader{Title: v.Title}.Render(c), list)
+	}
+	blocks = slices.DeleteFunc(blocks, func(b string) bool { return b == "" })
+	return strings.Join(blocks, strings.Repeat("\n", theme.SectionGap+1))
 }
 
 // Confirm is what the Confirm step asks: the action's question, asked as

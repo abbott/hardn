@@ -9,9 +9,13 @@
 //
 //  1. Collect: the form runs (pkg/ui/form). Nothing is planned or applied
 //     until every answer is in, so no prompt is interleaved with a change.
-//  2. Review: the answers, summed up as Figma sums up a new user: a
-//     SectionHeader, such as "User Configuration", over a BulletList of
-//     key-value rows.
+//  2. Review: the action's notice, if it has one, such as the Warning
+//     Figma draws before disabling root SSH login, a Callout and the
+//     checklist under it; then the answers, summed up as Figma sums up a
+//     new user: a SectionHeader, such as "User Configuration", over a
+//     BulletList of key-value rows. What a workflow screen draws above
+//     the flow, its title bar and a subject line such as "Managing sudo
+//     method for: george", is the screen's (next/p1d-slice).
 //  3. Plan: the Engine plans, and the plan is shown as a PlanView. In
 //     dry-run mode the flow stops here, the PlanView's footer saying that
 //     nothing was changed. A plan with no changes says that nothing needs
