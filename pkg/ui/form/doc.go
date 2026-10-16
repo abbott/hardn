@@ -42,11 +42,19 @@
 //
 //   - A field with no description and no options is asked on one line, an
 //     AnsweredField with no answer: "1. Username [0, b or q]:", as nav
-//     asks its questions and as Figma draws a form's fields, numbered.
-//   - A field with a description or options shows a FieldHead (the
-//     title, the description, then the options as a menu's rows), then
-//     theme.PromptGap blank lines, then a PromptLine of its own with no
-//     label, since the title above is the question: "> [1-2, 0, b or q]:".
+//     asks its questions and as Figma draws a form's fields, numbered;
+//     but only while that line shows the question and its hint whole
+//     (component.AnsweredField.ShowsWhole).
+//   - A field with a description or options, and one whose one line
+//     would cut its question, on a narrow terminal or for a long title,
+//     shows a FieldHead (the title, the description, then the options as
+//     a menu's rows), then theme.PromptGap blank lines, then a PromptLine
+//     of its own with no label, since the title above is the question:
+//     "> [0, b or q]:". The head's title has its line to itself, so it
+//     shows whole at widths where the one line would not; it is still one
+//     line, cut with the ellipsis when it must be, so words a user has to
+//     read whole, such as what a default is, belong in the description,
+//     which wraps.
 //   - A line the field does not take, and a value its Validate rejects,
 //     is answered under the prompt by an error Message, the words being
 //     nav's or the validation's, then the prompt is asked again alone;

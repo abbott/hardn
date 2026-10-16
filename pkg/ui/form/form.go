@@ -97,7 +97,8 @@ func ask(p nav.Prompter, field Field, number int) error {
 		return fieldError{err}
 	}
 	accepts := append(slices.Clone(v.accepts), keys.Navigation()...)
-	question := component.AnsweredField{Number: number, Label: v.title, Accepts: accepts}.Render(p.Ctx)
+	asked := component.AnsweredField{Number: number, Label: v.title, Accepts: accepts}
+	question := asked.Render(p.Ctx)
 	if question == "" {
 		// An AnsweredField, as a FieldHead, renders nothing only for a
 		// title that shows nothing.
@@ -107,10 +108,13 @@ func ask(p nav.Prompter, field Field, number int) error {
 	if p.In.Asked() {
 		out = strings.Repeat("\n", theme.SectionGap)
 	}
-	own := strings.TrimSpace(v.description) != "" || len(v.options) > 0
+	// The field gets a prompt line of its own when its head shows more
+	// than the title, as FieldHead decides what shows, or when the one
+	// line would cut the question.
+	head := component.FieldHead{Number: number, Title: v.title, Description: v.description, Options: v.options}.Render(p.Ctx)
+	own := strings.Contains(head, "\n") || !asked.ShowsWhole(p.Ctx)
 	if own {
-		head := component.FieldHead{Number: number, Title: v.title, Description: v.description, Options: v.options}
-		out += head.Render(p.Ctx) + strings.Repeat("\n", theme.PromptGap+1)
+		out += head + strings.Repeat("\n", theme.PromptGap+1)
 		question = component.PromptLine{Accepts: accepts}.Render(p.Ctx)
 	}
 	if err := write(p.Out, out); err != nil {

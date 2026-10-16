@@ -51,8 +51,9 @@ type Text struct {
 	// Description says what to type, under the title; empty shows none.
 	Description string
 	// Default is the value an empty line gives. Nothing shows it before
-	// the answer unless the title or description says so, in the screen's
-	// words; the answer's echo shows it after (P-26 (c)).
+	// the answer unless the screen's words say so, best in the
+	// description, which wraps, since a title is cut to one line; the
+	// answer's echo shows it after (P-26 (c)).
 	Default string
 	// Validate, when set, checks the value. Its error is shown under the
 	// prompt, and the field is asked again. It may read the system, such

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -55,7 +57,12 @@ func newPrompter(env term.Env, lines []string) (nav.Prompter, *strings.Builder) 
 // play runs f in ASCII at 80 columns with the user typing lines, and
 // returns its error and the transcript without escape sequences.
 func play(f Form, lines ...string) (string, error) {
-	p, out := newPrompter(term.Fixed(80, colorprofile.NoTTY, false, true), lines)
+	return playAt(80, f, lines...)
+}
+
+// playAt is play at width columns.
+func playAt(width int, f Form, lines ...string) (string, error) {
+	p, out := newPrompter(term.Fixed(width, colorprofile.NoTTY, false, true), lines)
 	err := f.Run(p)
 	return ansi.Strip(out.String()), err
 }
@@ -227,6 +234,79 @@ func TestDefaults(t *testing.T) {
 	f = Form{Fields: []Field{&Text{Title: "Username", Value: &path}}}
 	if out, err := play(f, ""); err != nil || path != "" || out != "  Username [0, b or q]: \n" {
 		t.Errorf("Run: %v, %q, transcript %q", err, path, out)
+	}
+}
+
+// TestLayout checks when a field is asked on one line and when under a
+// head of its own: a description that shows nothing leaves it on one
+// line, and a question the one line would cut goes under a head, whose
+// title has the line to itself, with the hint on the prompt line.
+func TestLayout(t *testing.T) {
+	var name string
+	var sudo, password bool
+	// newName is origin/main's label for a text default (pkg/menu
+	// user_options.go:580).
+	const newName = "Enter new username (leave empty to keep current)"
+	tests := []struct {
+		name  string
+		width int
+		form  Form
+		lines []string
+		want  string
+	}{
+		{"a description that shows nothing", 80, Form{Fields: []Field{
+			&Text{Title: "Username", Description: "\x1b[0m", Value: &name},
+		}}, []string{"george"}, "  Username [0, b or q]: george\n"},
+		{"a question too long for its line", 80, Form{Fields: []Field{
+			&Text{Title: newName, Value: &name},
+			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
+		}}, []string{"george", "y"},
+			"   1. " + newName + "\n\n  > [0, b or q]: george\n   1. " + newName + ": george\n\n" +
+				"   2. Grant sudo privilege? [y/N, 0, b or q]: y\n"},
+		{"a narrow terminal", 40, Form{Fields: []Field{
+			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
+			&YesNo{Title: "Require sudo password?", Value: &password},
+		}}, []string{"y", "n"},
+			"   1. Grant sudo privilege?\n\n  > [y/N, 0, b or q]: y\n   1. Grant sudo privilege? [y/N]: y\n\n" +
+				"   2. Require sudo password?\n\n  > [y/N, 0, b or q]: n\n   2. Require sudo password? [y/N]: n\n"},
+	}
+	for _, tt := range tests {
+		if out, err := playAt(tt.width, tt.form, tt.lines...); err != nil || out != tt.want {
+			t.Errorf("%s: %v, transcript\n%s\nwant\n%s", tt.name, err, out, tt.want)
+		}
+	}
+}
+
+// TestNarrow checks the create-user form at every width from 20 to 130:
+// each question shows whole wherever its head's line has room for it, and
+// its hint whole wherever the prompt line has room for it, so no question
+// is cut before its hint or dropped for it.
+func TestNarrow(t *testing.T) {
+	questions := []struct{ title, hint string }{
+		{"Username", "[0, b or q]:"},
+		{"Grant sudo privilege?", "[y/N, 0, b or q]:"},
+		{"Require sudo password?", "[y/N, 0, b or q]:"},
+		{"Add SSH key?", "[y/N, 0, b or q]:"},
+		{"Paste SSH public key", "[0, b or q]:"},
+	}
+	for w := 20; w <= 130; w++ {
+		var u newUser
+		out, err := playAt(w, createUser(&u), "george", "y", "n", "y", "key")
+		if err != nil {
+			t.Fatalf("width %d: %v", w, err)
+		}
+		room := min(w, theme.ContentWidth)
+		for i, q := range questions {
+			// field is the transcript from the field's number to the next's.
+			field, _, _ := strings.Cut(out[strings.Index(out, fmt.Sprintf("   %d. ", i+1)):], fmt.Sprintf("   %d. ", i+2))
+			head := fmt.Sprintf("   %d. %s", i+1, q.title)
+			if lipgloss.Width(head) <= room && !strings.HasPrefix(field, head+" "+q.hint) && !strings.HasPrefix(field, head+"\n") {
+				t.Errorf("width %d: %q is not shown whole:\n%s", w, q.title, field)
+			}
+			if lipgloss.Width("  > "+q.hint) <= room && !strings.HasPrefix(field, head+" "+q.hint) && !strings.Contains(field, "\n  > "+q.hint) {
+				t.Errorf("width %d: the hint of %q is not shown whole:\n%s", w, q.title, field)
+			}
+		}
 	}
 }
 
