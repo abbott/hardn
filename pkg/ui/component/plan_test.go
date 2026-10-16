@@ -70,8 +70,8 @@ func TestPlanGroupLayout(t *testing.T) {
 			Title: "Write", Commands: []string{"\ncat <<EOF >" + dropIn + "\nPort 2230\n  Match\n\nEOF\n"},
 		}}}, 64, false, "   -  Write\n      $ cat <<EOF >" + dropIn + "\n        Port 2230\n          Match\n\n        EOF"},
 		{"plan: characters that draw as nothing show their code points", PlanView{Changes: []PlanChange{{
-			Title: "Allow users", After: "AllowUsers alice\u200b\u202ebob\u00a0carol\ufe0f",
-		}}}, 90, false, "   -  Allow users\n      +AllowUsers alice<U+200B><U+202E>bob<U+00A0>carol<U+FE0F>"},
+			Title: "Allow users", After: "AllowUsers alice\u200b\u202ebob\u00a0george\ufe0f",
+		}}}, 90, false, "   -  Allow users\n      +AllowUsers alice<U+200B><U+202E>bob<U+00A0>george<U+FE0F>"},
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},
 		{"steps: one line each, the spinner still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
 			"   ✓  Done: Allow 2230/tcp in UFW\n   ▸  Running: Set Port 2230\n   ◦  Pending: Reload ssh.service"},
