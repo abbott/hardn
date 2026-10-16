@@ -44,7 +44,7 @@
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
-| [P-21](#p-21) | Pending-reboot line in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
+| [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
 
 ---
 
@@ -384,15 +384,21 @@
 ## Design-system units: further proposals
 
 <a id="p-21"></a>
-### P-21: Pending-reboot line in the HostBlock
+### P-21: Pending-reboot wording and place in the HostBlock
 
 - **Status:** proposed
 - **Source:** `next/p1b-header`, which builds the HostBlock's pending-reboot slot (brief 1B puts the finding in HostBlock). Depends on [P-04](#p-04).
-- **Problem:** P-04 proposes the pending-reboot finding but gives it no wording or place, and Figma draws none.
+- **Problem:**
+  - P-04 proposes the pending-reboot finding and places it "next to the uptime", as the plan's `next/p4-header` row does, but gives it no wording. Figma draws none.
+  - Next to the uptime does not fit beside the label. Figma's uptime, "182 days, 2 hours, 26 minutes", is 29 cells from col 27; a space and "⛬ Reboot pending" (16 cells; "[*] Reboot pending", 18, in ASCII) make the line 73 cells (75), against the 64-cell content width. The flag fits only beside an uptime of at most 20 cells (18 in ASCII), so it would be cut on the long-uptime hosts P-04 is about. Stacked, below 70 columns, the line is 6 + 29 + 1 + 16 = 52 cells (54 in ASCII), which fits at 60 columns.
 - **Proposal:**
-  - A line under the uptime, at the value column: the warning marker (`⛬`, `[*]` in ASCII) and "Reboot pending", both in `status.warn`, so the finding never rests on colour alone.
+  - The wording: the warning marker (`⛬`, `[*]` in ASCII) and "Reboot pending", both in `status.warn`, so the finding never rests on colour alone.
+  - The place, for the maintainer to choose:
+    - (a) its own line under the uptime, at the value column. Built in `next/p1b-header`: always fits, one line more when set.
+    - (b) next to the uptime, as P-04 says: no extra line, but cut with the ellipsis whenever the uptime is over 20 cells (18 in ASCII) beside the label.
+    - (c) next to the uptime when it fits, else under it: never cut, but its place changes with the uptime's length.
   - Shown only when the status model reports a pending reboot; the reason (a newer kernel installed, `/var/run/reboot-required`) is not shown.
   - "Reboot pending" follows the brief's own term, "pending reboot"; the component holds the wording, so changing it is one string and the goldens.
-- **Effort:** S (the slot is built; this approves its wording and place).
+- **Effort:** S. (a) is built, so this approves its wording and place; (b) or (c) is a change to `HostBlock` and its goldens.
 - **Risk:** Low: display only, and nothing sets it before P-04 is approved.
-- **Screenshots:** Before: none (Figma `00-TUI-MAIN.png` has no such line). After: `docs/refactor/img/p-21-after.png` (placeholder); the `hostblock/reboot-pending` golden shows it meanwhile.
+- **Screenshots:** Before: none (Figma `00-TUI-MAIN.png` has no such line). After: `docs/refactor/img/p-21-after.png` (placeholder); the `hostblock/reboot-pending` golden shows (a) meanwhile.
