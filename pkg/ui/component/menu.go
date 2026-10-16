@@ -24,10 +24,12 @@ const (
 //	  Select an option         Dry-run Mode Disabled
 //
 // The title starts at theme.Indent (C11, DEV-029). Below theme.StackBelow,
-// or when the title reaches the value column, the mode goes under it at
-// theme.StackCol (DEV-021). A title wider than the content is cut with the
-// ellipsis glyph. With no title the heading is the ModeIndicator alone, and
-// with neither it renders as the empty string.
+// when the title reaches the value column, or when not even the mode's
+// word fits beside it, the mode goes under it at theme.StackCol (DEV-021),
+// placed as the ModeIndicator places itself, so its word stays whole. A
+// title wider than the content is cut with the ellipsis glyph. With no
+// title the heading is the ModeIndicator alone, and with neither it
+// renders as the empty string.
 type MenuHeading struct {
 	// Title is the heading, such as "Select an option".
 	Title string
@@ -47,13 +49,14 @@ func (vm MenuHeading) Render(c Ctx) string {
 	}
 	w := c.width()
 	head := line{gap(theme.Indent), {title, c.Theme.Menu.Heading}}
-	switch {
-	case vm.Mode == nil:
+	if vm.Mode == nil {
 		return c.fit(head, w)
-	case c.stacked() || head.width() >= theme.ValueCol:
+	}
+	beside := append(head.to(theme.ValueCol), vm.Mode.spans(c, w-theme.ValueCol)...)
+	if c.stacked() || head.width() >= theme.ValueCol || beside.width() > w {
 		return c.fit(head, w) + "\n" + vm.Mode.at(c, theme.StackCol)
 	}
-	return c.fit(append(head.to(theme.ValueCol), vm.Mode.spans(c, w-theme.ValueCol)...), w)
+	return beside.String()
 }
 
 // MenuItem is one numbered choice of a Menu, as plain data: what the user
