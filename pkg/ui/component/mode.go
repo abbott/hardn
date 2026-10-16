@@ -1,6 +1,10 @@
 package component
 
-import "github.com/abbott/hardn/pkg/ui/theme"
+import (
+	"charm.land/lipgloss/v2"
+
+	"github.com/abbott/hardn/pkg/ui/theme"
+)
 
 // The ModeIndicator's words, as origin/main shows them on the main menu
 // (pkg/style style.go:793-824, Menu.Render) and Figma draws the live mode.
@@ -25,8 +29,13 @@ const (
 //	  Select an option         Dry-run Mode Disabled
 //
 // Alone it keeps that column, and stacks to theme.StackCol below
-// theme.StackBelow (DEV-021), as the heading's row does. It has no unknown
-// state: hardn always knows its own mode.
+// theme.StackBelow (DEV-021), as the heading's row does. The word is what
+// tells the modes apart, so on a terminal too narrow for the whole text
+// the label gives way first: it is cut with the ellipsis glyph, and left
+// out once none of its letters fits. The word then moves left of its
+// column only as far as it must to stay whole, and is cut only on a
+// terminal narrower than itself. It has no unknown state: hardn always
+// knows its own mode.
 type ModeIndicator struct {
 	// DryRun is true when changes are only previewed. The zero value is
 	// the live mode, as Figma draws it.
@@ -39,16 +48,24 @@ func (vm ModeIndicator) Render(c Ctx) string {
 	if c.stacked() {
 		col = theme.StackCol
 	}
-	return c.fit(append(line{gap(col)}, vm.spans(c)...), c.width())
+	w := c.width()
+	text := vm.spans(c, w-col)
+	return c.fit(append(line{gap(min(col, w-text.width()))}, text...), w)
 }
 
-// spans is the indicator's text, which the menu heading's row places at
-// its value column.
-func (vm ModeIndicator) spans(c Ctx) line {
+// spans is the indicator's text in at most room cells, which the menu
+// heading's row places at its value column. When the whole text is wider,
+// the label is cut to leave room for the word, and left out when no letter
+// of it would remain; the word alone may still be wider than room.
+func (vm ModeIndicator) spans(c Ctx, room int) line {
 	t := c.Theme.Mode
 	word := span{modeLive, t.Live}
 	if vm.DryRun {
 		word = span{modeDryRun, t.DryRun}
 	}
-	return line{{modeLabel, t.Label}, gap(1), word}
+	labelRoom := room - lipgloss.Width(word.text) - 1
+	if labelRoom < lipgloss.Width(modeLabel) && labelRoom <= lipgloss.Width(c.Theme.Glyphs.Ellipsis) {
+		return line{word}
+	}
+	return line{{c.truncate(modeLabel, labelRoom), t.Label}, gap(1), word}
 }

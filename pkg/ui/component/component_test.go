@@ -245,6 +245,11 @@ func TestLayout(t *testing.T) {
 			strings.Repeat(" ", theme.ValueCol) + "Dry-run Mode Disabled"},
 		{"mode: dry run stacked", ModeIndicator{DryRun: true}, below, false,
 			strings.Repeat(" ", theme.StackCol) + "Dry-run Mode Enabled"},
+		{"mode: too narrow, the label is cut, not the word", ModeIndicator{}, min(below, 20), false,
+			strings.Repeat(" ", theme.StackCol) + "Dr... Disabled"},
+		{"mode: with no letter of the label left, the word alone", ModeIndicator{DryRun: true}, min(below, 17), false,
+			strings.Repeat(" ", theme.StackCol) + "Enabled"},
+		{"mode: the word moves left to stay whole", ModeIndicator{}, 10, false, "  Disabled"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -256,6 +261,26 @@ func TestLayout(t *testing.T) {
 				t.Errorf("got\n%s\nwant\n%s", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestModeWord checks that the ModeIndicator ends with its whole word, the
+// one thing that tells the modes apart, at every width the word fits, in
+// both glyph sets.
+func TestModeWord(t *testing.T) {
+	modes := []struct {
+		vm   ModeIndicator
+		word string
+	}{{ModeIndicator{}, modeLive}, {ModeIndicator{DryRun: true}, modeDryRun}}
+	for w := 1; w <= 130; w++ {
+		for _, unicode := range []bool{true, false} {
+			for _, m := range modes {
+				got := ansi.Strip(m.vm.Render(NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))))
+				if w >= lipgloss.Width(m.word) && !strings.HasSuffix(got, m.word) {
+					t.Errorf("width %d, unicode %v: got %q, want it to end with %q", w, unicode, got, m.word)
+				}
+			}
+		}
 	}
 }
 
