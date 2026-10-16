@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"io"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -70,6 +71,21 @@ var readers = []struct {
 	{"data with EOF", iotest.DataErrReader},
 }
 
+// resumed reads first until it reports io.EOF, then then: an input that
+// goes on after its end, as a terminal does after Ctrl-D.
+type resumed struct{ first, then io.Reader }
+
+func (r *resumed) Read(p []byte) (int, error) {
+	if r.first == nil {
+		return r.then.Read(p)
+	}
+	n, err := r.first.Read(p)
+	if errors.Is(err, io.EOF) {
+		r.first = nil
+	}
+	return n, err
+}
+
 func TestReadLine(t *testing.T) {
 	long := strings.Repeat("x", MaxLine)
 	tests := []struct {
@@ -98,9 +114,13 @@ func TestReadLine(t *testing.T) {
 	for _, tt := range tests {
 		for _, rd := range readers {
 			t.Run(tt.name+"/"+rd.name, func(t *testing.T) {
-				got := readAll(t, New(rd.wrap(strings.NewReader(tt.in)), false))
-				if fmt.Sprint(got) != fmt.Sprint(tt.want) {
-					t.Errorf("lines = %q, want %q", got, tt.want)
+				// The input goes on after its end, as a terminal does
+				// after Ctrl-D: the line after the end is read whole.
+				in := &resumed{rd.wrap(strings.NewReader(tt.in)), rd.wrap(strings.NewReader("after\n"))}
+				r := New(in, false)
+				got := append(readAll(t, r), readAll(t, r)...)
+				if want := slices.Concat(tt.want, []string{"after", aborted}); fmt.Sprint(got) != fmt.Sprint(want) {
+					t.Errorf("lines = %q, want %q", got, want)
 				}
 			})
 		}
@@ -117,7 +137,8 @@ func (endless) Read(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// script returns its reads in turn, then io.EOF.
+// script returns its reads in turn, then io.EOF. A read's data longer
+// than p comes over several reads, its error with the last of it.
 type script []struct {
 	data string
 	err  error
@@ -127,9 +148,14 @@ func (s *script) Read(p []byte) (int, error) {
 	if len(*s) == 0 {
 		return 0, io.EOF
 	}
-	next := (*s)[0]
+	next := &(*s)[0]
+	n := copy(p, next.data)
+	if next.data = next.data[n:]; next.data != "" {
+		return n, nil
+	}
+	err := next.err
 	*s = (*s)[1:]
-	return copy(p, next.data), next.err
+	return n, err
 }
 
 // empty reads nothing and reports nothing, forever.
@@ -157,6 +183,17 @@ func TestReadLineFailures(t *testing.T) {
 			}
 		})
 	}
+	t.Run("a read error leaves the rest of a long line to drop", func(t *testing.T) {
+		r := New(&script{{strings.Repeat("x", MaxLine+1), nil}, {"", boom}, {"tail\nnext\n", nil}}, false)
+		for _, want := range []error{ErrLineTooLong, boom} {
+			if line, err := r.ReadLine(); !errors.Is(err, want) {
+				t.Fatalf("ReadLine() = %q, %v; want %v", line, err, want)
+			}
+		}
+		if line, err := r.ReadLine(); line != "next" || err != nil {
+			t.Errorf("after the error, ReadLine() = %q, %v; want the line after the long one", line, err)
+		}
+	})
 }
 
 func TestAbortMessages(t *testing.T) {

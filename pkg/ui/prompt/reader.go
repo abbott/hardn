@@ -185,6 +185,10 @@ func (r *Reader) ready() bool {
 // ready, or reports the end of the input or its error.
 func (r *Reader) take() (string, error) {
 	if r.skip {
+		// The end of the input ends the over-long line too, so what comes
+		// after it, as on a terminal after Ctrl-D, is a new line. Another
+		// error leaves the rest of the line to drop.
+		r.skip = !errors.Is(r.err, io.EOF)
 		return "", r.end()
 	}
 	line, rest, found := bytes.Cut(r.buf, []byte("\n"))
