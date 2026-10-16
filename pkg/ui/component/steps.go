@@ -114,8 +114,8 @@ func (s Step) row(c Ctx, frame int) (string, bool) {
 // StepProgress is the canonical flow's Apply step (brief 1C): one line
 // per step, as a Message is laid out, the state's glyph centred in the
 // marker column and its word and a colon at theme.LabelCol, both in the
-// state's colour, then the title and any detail in parentheses. Here with no colour and
-// ASCII glyphs, an SSH port change whose reload failed:
+// state's colour, then the title and any detail in parentheses. Here with
+// no colour and ASCII glyphs, an SSH port change whose reload failed:
 //
 //	0 2   6
 //	  [<] Rolled back: Allow 2230/tcp in UFW
