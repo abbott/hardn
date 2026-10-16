@@ -45,6 +45,7 @@
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
+| [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 5–8 | S | Low | proposed |
 
 ---
 
@@ -402,3 +403,24 @@
 - **Effort:** S. (a) is built, so this approves its wording and place; (b) or (c) is a change to `HostBlock` and its goldens.
 - **Risk:** Low: display only, and nothing sets it before P-04 is approved.
 - **Screenshots:** Before: none (Figma `00-TUI-MAIN.png` has no such line). After: `docs/refactor/img/p-21-after.png` (placeholder); the `hostblock/reboot-pending` golden shows (a) meanwhile.
+
+<a id="p-22"></a>
+### P-22: Menu item markers: lockout risk and unavailable
+
+- **Status:** proposed
+- **Source:** `next/p1b-menu`, which builds brief 1B's Menu fields "enabled" and "risk". Related: [P-02](#p-02), [P-10](#p-10), [P-12](#p-12), [P-01](#p-01).
+- **Problem:**
+  - Figma's menus mark no item. Nothing on the main menu says that SSH Login, Firewall or Run All can lock the user out, though the confirm step treats those changes differently (a typed confirmation and confirm-or-revert: brief 1C and Phase 2.4, P-10), and no item is ever shown as unavailable.
+  - Some items will be unavailable: brief §2 and Phase 2.5 keep root SSH key-only on Proxmox, which P-12 makes a read-only item, and P-01 marks controls read-only.
+  - A state shown by colour alone is lost without colour, and at 16 colours the faint of a disabled item is the bright black of every description.
+- **Proposal:**
+  - The wording, built in `next/p1b-menu` (DEV-028): a note line under the item's description. A risky item: `⛬ Lockout risk` (`[*] Lockout risk` in ASCII) in `status.warn`, bold, as a plan's lockout-risk change. An unavailable item: `∅ Unavailable` (`[-] Unavailable`), the whole item in `text.faint`, and its key left out of the prompt's hint ("0-2, 4-10 or q"). "Unavailable", not "Disabled", which the same screens use for a setting's state ("Dry-run Mode Disabled").
+  - The place, for the maintainer to choose:
+    - (a) a line of its own under the description (built): never cuts the description, the same in both glyph sets; one line more per marked item.
+    - (b) the glyph alone after the label, with one legend line under the menu (`⛬ Lockout risk`): one line in all; the glyph fits labels of up to 18 cells (16 in ASCII), but reads only with the legend.
+    - (c) after the description when it fits, else under it: no extra line for descriptions of up to 22 cells (20 in ASCII), so "Configure UFW rules" keeps its line and "Execute hardening operations" does not; the place changes with the description's length.
+  - Which items, on the main menu [I]: SSH Login (2) and Firewall (4), whose changes brief Phase 2.4 puts under confirm-or-revert, and Run All (7), which brief 1C and P-02 put under a typed confirmation; User Management (1) when it changes the sudo method (P-10). Nothing is marked until this is approved: the main-menu golden (`menu/main`) marks no item, as Figma.
+  - Each word is one constant in `pkg/ui/component/menu.go`, so changing the wording is one string and the goldens.
+- **Effort:** S. (a) is built, so this approves its words and place; (b) or (c) is a change to `Menu` and its goldens. Marking items is data in the screens (`next/p1d-slice`, Phase 4).
+- **Risk:** Low: display only. Under (a), three marked items make the main menu three lines longer, against the compact menu's 24 lines (refactor plan §3.15).
+- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `02-SSH_LOGIN.png` (reference only). After: `docs/refactor/img/p-22-after.png` (placeholder); the `menu/risk` and `menu/disabled` goldens show (a) meanwhile.
