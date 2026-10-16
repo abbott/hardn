@@ -1,0 +1,46 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > User Management > Manage User$
+$
+  Select a user$
+$
+   1) george$
+   2) alice$
+$
+   0) Return$
+$
+  > Enter your choice [0-2, b or q]:$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$

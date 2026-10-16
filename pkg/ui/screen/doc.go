@@ -49,10 +49,12 @@
 // MainMenuFixture, UserFixture and ManageSudoFixture fill the three
 // layouts with synthetic data after the Figma screenshots each is named
 // for. Mocks is the dev-only gallery's catalogue of screen mocks, which
-// the goldens pin: those three, each with its source label (Source). A
-// workflow's mock is its sequences, the canonical flow
+// the goldens pin: those three, every other Figma frame that fits a
+// layout and origin/main's DNS screen, inferred, each with its source
+// label (Source). A workflow's mock is its sequences, the canonical flow
 // played on scripted answers and fixture plans (Sequence.Play), shown
 // step by step. Nothing but the tests and the gallery uses them. Figma's
-// mock host BOS-SAN-L01 and user george are mock data; the address is
-// from 192.0.2.0/24 and the SSH port is 2230.
+// mock host BOS-SAN-L01 and user george are mock data; the other user is
+// alice, the hosts' addresses are from 192.0.2.0/24 and the SSH port is
+// 2230.
 package screen

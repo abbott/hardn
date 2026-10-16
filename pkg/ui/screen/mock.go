@@ -66,9 +66,11 @@ type Sequence struct {
 // such as "confirm".
 type Answer struct{ Step, Line string }
 
-// Mocks returns the gallery's screen mocks, by layout, then by name: the
-// three layouts' fixtures, after the Figma frames each is named for. The
-// workflow's sequences run on fixture plans (flow.Fixture).
+// Mocks returns the gallery's screen mocks, by layout, then by name: each
+// Figma frame that fits a layout, and origin/main's DNS screen, inferred.
+// SSH_LOGIN-SSH_SETTINGS_DISPLAY fits none (P-28), nor does origin/main's
+// Firewall screen, of which the Figma export holds a screenshot (P-30).
+// The workflows' sequences run on fixture plans (flow.Fixture).
 func Mocks() []Mock {
 	figma := func(png, delta, pending string) Source {
 		return Source{Label: "Figma " + png + ".png", Delta: delta, Pending: pending}
@@ -77,7 +79,10 @@ func Mocks() []Mock {
 	sudo := func(e flow.Engine, dryRun bool) func() (WorkflowStep, flow.Flow) {
 		return func() (WorkflowStep, flow.Flow) { return manageSudo(e, dryRun) }
 	}
-	const unreleased = "v0.3.2 has no such screen; origin/main adds it (pkg/menu/user_options.go)."
+	const (
+		unreleased = "v0.3.2 has no such screen; origin/main adds it (pkg/menu/user_options.go)."
+		figmaWords = "Figma's words where origin/main's differ, pending P-31."
+	)
 	return []Mock{
 		{Name: "main-menu/00-tui-main", Screen: MainMenuFixture(), Source: figma("00-TUI-MAIN",
 			"v0.3.2 (pkg/menu/menu.go:72-265) has no header, host badge or divider: the OS name sits in a ~~~ rule "+
@@ -89,6 +94,42 @@ func Mocks() []Mock {
 			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
 				"with no question or confirmation (pkg/menu/menu.go:317-349). origin/main adds this menu.",
 			"Figma's words where origin/main's differ, pending P-29 (b).")},
+		{Name: "sub-menu/02-ssh-login", Screen: sshLoginFixture(), Source: figma("02-SSH_LOGIN",
+			"v0.3.2's Root SSH item warns and asks \"Do you want to continue? (y/n)\", then restarts ssh "+
+				"(pkg/menu/menu.go:352-381). origin/main adds the root-login state, a checklist and two items, "+
+				"to disable root SSH access and to view the SSH configuration (pkg/menu/disable_root_menu.go).",
+			figmaWords+" Item 1's description, pending P-12.")},
+		{Name: "sub-menu/03-dns", Screen: dnsFixture(), Source: Source{
+			Label: "inferred from origin/main; the Figma export holds a screenshot of its legacy screen, images/03-dns-legacy-tui.png",
+			Delta: "v0.3.2's DNS item warns and asks \"Do you want to continue? (y/n)\", then applies the configured " +
+				"nameservers (pkg/menu/menu.go:519-541). origin/main shows the nameservers in use and those configured, " +
+				"and six items, item 1 applying them with no confirmation (pkg/menu/dns_menu.go).",
+			Pending: "Its state with no nameserver configured has no block in the layout, pending P-30.",
+		}},
+		{Name: "sub-menu/05-backup", Screen: backupFixture(), Source: figma("05-BACKUP",
+			"v0.3.2's Backup Settings prints the two settings and two items, to toggle backups and change the path "+
+				"(pkg/menu/menu.go:710-770). origin/main adds a status block and a third item, to verify the "+
+				"directory (pkg/menu/backup_menu.go).",
+			figmaWords)},
+		{Name: "sub-menu/user-manage-user-management", Screen: manageUserFixture(),
+			Source: figma("USER-MANAGE_USER-MANAGEMENT", unreleased, "The prompt, Figma's, pending P-29 (a).")},
+		{Name: "sub-menu/user-manage-user-select-user", Screen: selectUserFixture(),
+			Source: figma("USER-MANAGE_USER-SELECT_USER", unreleased, "The prompt, Figma's, pending P-29 (a).")},
+		{Name: "sub-menu/user-ssh-keys", Screen: sshKeysFixture(), Source: figma("USER-SSH_KEYS", unreleased, figmaWords)},
+		{Name: "workflow-step/ssh-login-toggle-confirmation", Source: figma("SSH_LOGIN-TOGGLE_CONFIRMATION",
+			"v0.3.2 warns, asks \"Do you want to continue? (y/n)\" and restarts ssh (pkg/menu/menu.go:352-381). "+
+				"origin/main asks \"Are you sure you want to disable root SSH access? (y/n)\" under the SSH Login "+
+				"screen's state and checklist (pkg/menu/disable_root_menu.go).",
+			"Confirmed by typing the hostname, as brief 1C asks for a lockout-risk change, where Figma asks (y/n): "+
+				"pending P-10 (DEV-057). "+figmaWords),
+			Sequences: []Sequence{{Name: "normal", Build: rootLoginFixture, Answers: confirm(hostname), Ends: flow.Applied}}},
+		{Name: "workflow-step/user-create-user", Source: figma("USER-CREATE_USER",
+			"v0.3.2's User Creation Menu asks for a username only when none is configured, then creates the user "+
+				"at once (pkg/menu/menu.go:317-349). origin/main adds this form, a summary and \"Create user 'x'? (y/n)\".",
+			"The confirmation after the plan, unnumbered, pending P-10 (DEV-048)."),
+			Sequences: []Sequence{{Name: "cancelled", Build: createUserFixture, Ends: flow.Cancelled, Answers: []Answer{
+				{"username", "george"}, {"sudo", "y"}, {"sudo-password", "n"}, {"ssh-key", "n"}, {"confirm", "n"},
+			}}}},
 		{Name: "workflow-step/user-manage-sudo-confirmation", Source: figma("USER-MANAGE_SUDO-CONFIRMATION", unreleased+
 			" It asks \"Require password for sudo? (y/n)\" only when moving to a password, and changes the other "+
 			"way with no confirmation.",
