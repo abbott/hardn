@@ -51,7 +51,7 @@
 // they do not import uitest, because each package's tests build a separate
 // binary. A test binary that does not link uitest rejects -update as an
 // unknown flag, so make golden-update passes it only to the packages whose
-// tests import uitest.
+// test binaries link uitest, directly or through another package.
 //
 // # Determinism
 //

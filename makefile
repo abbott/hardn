@@ -466,7 +466,10 @@ check-cross:
 # under pkg/ui from the current render; review the diff and give its reason in
 # the review description. pkg/ui/uitest defines -update, and a test binary
 # that does not link uitest fails on the unknown flag, so -update goes only to
-# uitest and to the packages whose tests import it.
+# the packages whose test binaries link uitest, directly or through another
+# package. go list -test lists each test binary as <pkg>.test with all its
+# dependencies; one recompiled for the test reads "<path> [<pkg>.test]", whose
+# first word is still the path.
 UITEST_PKG = github.com/abbott/hardn/pkg/ui/uitest
 
 .PHONY: golden-update
@@ -475,8 +478,8 @@ golden-update: export GOWORK = off
 golden-update: export GOFLAGS = $(CHECK_GOFLAGS)
 golden-update:
 	@echo "==> $@"
-	@list=$$(go list -f '{{.ImportPath}} {{join .TestImports " "}} {{join .XTestImports " "}}' ./pkg/ui/...) || exit 1; \
-	pkgs=$$(printf '%s\n' "$$list" | awk '{ for (i = 1; i <= NF; i++) if ($$i == "$(UITEST_PKG)") { print $$1; next } }'); \
+	@list=$$(go list -test -f '{{.ImportPath}} {{join .Deps " "}}' ./pkg/ui/...) || exit 1; \
+	pkgs=$$(printf '%s\n' "$$list" | awk '$$1 ~ /\.test$$/ { for (i = 2; i <= NF; i++) if ($$i == "$(UITEST_PKG)") { sub(/\.test$$/, "", $$1); print $$1; next } }'); \
 	[ -n "$$pkgs" ] || { echo "$@: no package under pkg/ui uses $(UITEST_PKG)" >&2; exit 1; }; \
 	echo go test $$pkgs -update; \
 	go test $$pkgs -update
