@@ -34,13 +34,16 @@
 // uigallery.local.json, which the repository's allow-list .gitignore
 // keeps out of git, and pass its path.
 //
-// The gallery reads nothing but its flags and the override file: no
-// environment variable and no terminal query (it builds each environment
-// with term.Fixed, never term.Detect). Lip Gloss's own init still runs its
-// profile detection on stdout, as in every binary that links pkg/ui
+// The gallery's code reads nothing but its flags and the override file:
+// no environment variable and no terminal query (it builds each
+// environment with term.Fixed, never term.Detect), no root, nothing under
+// /etc. Lip Gloss's package initialisation still runs, as in every binary
+// that links pkg/ui: an ioctl on stdout and, on a terminal, a read-only
+// terminfo lookup and "tmux info" under tmux
 // (docs/refactor/phase0/side-effects.md §13.1); the gallery ignores the
-// result. It writes to stdout only, through each environment's
-// term.Env.Writer, one write per state and environment.
+// profile it detects. It writes to stdout only, through each
+// environment's term.Env.Writer, one write per state and environment:
+// what the state's golden file holds for the same cell.
 package main
 
 import (

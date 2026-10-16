@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -86,6 +89,81 @@ func TestMatrix(t *testing.T) {
 		want.Width = w
 		if c.name != fmt.Sprintf("plain-%d", w) || c.env != want {
 			t.Errorf("plain cell %d is %s %+v, want plain-%d %+v", i, c.name, c.env, w, want)
+		}
+	}
+}
+
+// goldenSections returns the cells of the golden file at path, by cell
+// name, decoded from golden notation (pkg/ui/uitest): each output line
+// without its closing $, and each Unicode Control Picture back to its
+// control character.
+func goldenSections(path string) (map[string]string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	decode := strings.NewReplacer("\u2421", "\x7f")
+	sections, lines, name := map[string]string{}, []string(nil), ""
+	flush := func() {
+		if name != "" {
+			sections[name] = strings.Join(lines, "\n")
+		}
+	}
+	for _, l := range strings.Split(string(b), "\n") {
+		if h, ok := strings.CutPrefix(l, "=== "); ok && !strings.HasSuffix(l, "$") {
+			flush()
+			name, _, _ = strings.Cut(h, ":")
+			lines = nil
+			continue
+		}
+		if out, ok := strings.CutSuffix(l, "$"); ok && name != "" {
+			lines = append(lines, decode.Replace(strings.Map(func(r rune) rune {
+				if r >= 0x2400 && r <= 0x241f {
+					return r - 0x2400
+				}
+				return r
+			}, out)))
+		}
+	}
+	flush()
+	return sections, nil
+}
+
+// written returns s as env's Env.Writer passes it on.
+func written(t *testing.T, env term.Env, s string) string {
+	t.Helper()
+	var b strings.Builder
+	if _, err := io.WriteString(env.Writer(&b), s); err != nil {
+		t.Fatal(err)
+	}
+	return b.String()
+}
+
+// TestRendersAsGoldens checks that the gallery writes each state exactly
+// as its golden file holds it, in every cell of the golden matrix: the
+// file's section for the cell, between the gallery's header for the state
+// and the blank line after it.
+func TestRendersAsGoldens(t *testing.T) {
+	g := gallery{}
+	cells := matrix()[:len(uitest.Full())]
+	for _, s := range catalogue() {
+		sections, err := goldenSections(filepath.Join(goldenDir, filepath.FromSlash(s.Name)+".golden"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(sections) != len(cells) {
+			t.Errorf("%s: the golden file has %d cells, want %d", s.Name, len(sections), len(cells))
+		}
+		for _, c := range cells {
+			out, err := g.render(s, c, s.Name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			head := component.SectionHeader{Title: s.Name}.Render(component.NewCtx(c.env))
+			want := written(t, c.env, head) + "\n\n" + sections[c.name] + "\n\n"
+			if got := written(t, c.env, out); got != want {
+				t.Errorf("%s in %s: the gallery writes\n%q\nwant, from the golden file,\n%q", s.Name, c.name, got, want)
+			}
 		}
 	}
 }
