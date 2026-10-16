@@ -141,6 +141,21 @@ var states = []struct {
 	{"promptline/normal", figmaPrompt},
 	{"promptline/no-hint", PromptLine{Label: "Username"}},
 	{"promptline/empty", PromptLine{}},
+	{"badge/normal", Badge{Text: "george"}},
+	{"badge/long", Badge{Text: longHost}},
+	{"badge/empty", Badge{}},
+	{"subjectline/normal", SubjectLine{Label: "Managing", Subject: "george"}},
+	{"subjectline/long-label", SubjectLine{Label: "Managing sudo method for", Subject: "george"}},
+	{"subjectline/long", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}},
+	{"subjectline/no-label", SubjectLine{Subject: "george"}},
+	{"subjectline/empty", SubjectLine{Label: "Managing"}},
+	{"sectionheader/normal", SectionHeader{Title: "User Configuration"}},
+	{"sectionheader/long", SectionHeader{Title: "Backup configuration for every host in the web-01.example.net cluster"}},
+	{"sectionheader/empty", SectionHeader{}},
+	{"breadcrumb/normal", Breadcrumb{Items: []string{"hardn", "Firewall"}}},
+	{"breadcrumb/deep", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}},
+	{"breadcrumb/long", Breadcrumb{Items: []string{"hardn", "Firewall application profiles", "Manage application profiles", "Allow 2230/tcp from 192.0.2.0/24"}}},
+	{"breadcrumb/empty", Breadcrumb{}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -149,7 +164,7 @@ var states = []struct {
 // width when theme.BarsFillContent is off.
 func maxWidth(vm renderer, w int) int {
 	switch vm.(type) {
-	case ContextBar, TitleBar, Divider:
+	case ContextBar, TitleBar, Divider, SectionHeader:
 		if !theme.BarsFillContent {
 			return w
 		}
@@ -172,7 +187,8 @@ func TestGolden(t *testing.T) {
 }
 
 // empty reports whether vm renders nothing by design: a list or menu with
-// no items, or a menu heading with neither title nor mode.
+// no items, a menu heading with neither title nor mode, and a block with
+// nothing to show.
 func empty(vm renderer) bool {
 	switch v := vm.(type) {
 	case StatusList:
@@ -181,6 +197,12 @@ func empty(vm renderer) bool {
 		return len(v.Items) == 0 && v.Exit == MenuItem{}
 	case MenuHeading:
 		return v == MenuHeading{}
+	case Badge:
+		return v.Text == ""
+	case SubjectLine:
+		return v.Subject == ""
+	case Breadcrumb:
+		return len(v.Items) == 0
 	}
 	return false
 }
@@ -375,6 +397,27 @@ func TestLayout(t *testing.T) {
 		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 20, false,
 			"  > [0-10 or q]:"},
 		{"prompt: empty is the glyph", PromptLine{}, 80, false, "  >"},
+		{"badge: at the indent", Badge{Text: "web-01"}, 80, false, "  [web-01]"},
+		{"badge: a long name is cut inside the brackets", Badge{Text: strings.Repeat("x", 70)}, 60, false,
+			"  [" + strings.Repeat("x", 53) + "...]"},
+		{"subject: the badge one cell after the colon", SubjectLine{Label: "Managing", Subject: " george "}, 80, false,
+			"  Managing: [george]"},
+		{"subject: too long for one line, the badge goes under the label", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}, 60, false,
+			"  Managing sudo method for:\n      [alice-backup-replication-service]"},
+		{"subject: no label is the badge alone", SubjectLine{Subject: "george"}, 80, true, "  [george]"},
+		{"section: stub, title and rule", SectionHeader{Title: "User Configuration"}, 80, false,
+			"# User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
+		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "█ " + strings.Repeat("─", 58)},
+		{"section: a long title is cut", SectionHeader{Title: strings.Repeat("x", 70)}, 60, false,
+			"# " + strings.Repeat("x", 53) + "... -"},
+		{"breadcrumb: items joined by the separator", Breadcrumb{Items: []string{"hardn", " Firewall", ""}}, 80, true,
+			"  hardn › Firewall"},
+		{"breadcrumb: too long, the middle items go first", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}, 40, false,
+			"  hardn > ... > SSH Keys"},
+		{"breadcrumb: then the first item", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}, 20, false,
+			"  ... > SSH Keys"},
+		{"breadcrumb: and last the current item is cut", Breadcrumb{Items: []string{"hardn", "Firewall application profiles"}}, 20, false,
+			"  Firewall applic..."},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -545,6 +588,39 @@ func TestMenuBindings(t *testing.T) {
 		}
 		if h := b.Help(); h != "" {
 			t.Errorf("%s: the item bindings have help %q, want none", tt.name, h)
+		}
+	}
+}
+
+// TestBlockStyles checks that each part of the block group takes its slot.
+func TestBlockStyles(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	th := c.Theme
+	type part struct {
+		text  string
+		style lipgloss.Style
+	}
+	tests := []struct {
+		name  string
+		vm    renderer
+		parts []part
+	}{
+		{"badge", Badge{Text: "george"}, []part{{" george ", th.Badge}}},
+		{"subject", SubjectLine{Label: "Managing", Subject: "george"}, []part{{"Managing:", th.Text.Muted}, {" george ", th.Badge}}},
+		{"section", SectionHeader{Title: "User Configuration"}, []part{
+			{" ", th.Section.Fill}, {"User Configuration", th.Section.Title},
+			{strings.Repeat(th.Glyphs.Rule, maxWidth(SectionHeader{}, 80)-21), th.Section.Rule},
+		}},
+		{"breadcrumb", Breadcrumb{Items: []string{"hardn", "Firewall"}}, []part{
+			{"hardn", th.Breadcrumb.Item}, {th.Glyphs.Separator, th.Breadcrumb.Separator}, {"Firewall", th.Breadcrumb.Current},
+		}},
+	}
+	for _, tt := range tests {
+		got := tt.vm.Render(c)
+		for _, want := range tt.parts {
+			if !strings.Contains(got, want.style.Render(want.text)) {
+				t.Errorf("%s: got %q, want it to hold %q in its style", tt.name, got, want.text)
+			}
 		}
 	}
 }

@@ -212,25 +212,36 @@ func (c Ctx) badge(s string, limit int) span {
 	return span{left + s + right, c.Theme.Badge}
 }
 
+// paint returns n cells painted in fill: spaces on its background or, with
+// no colour to paint them, a run of Glyphs.Bar (DEV-015, DEV-018).
+func (c Ctx) paint(fill lipgloss.Style, n int) span {
+	if c.Env.HasColor() {
+		return span{strings.Repeat(" ", max(0, n)), fill}
+	}
+	return span{strings.Repeat(c.Theme.Glyphs.Bar, max(0, n)), fill}
+}
+
+// rule returns a run of Glyphs.Rule n cells wide in style.
+func (c Ctx) rule(style lipgloss.Style, n int) span {
+	g := c.Theme.Glyphs.Rule
+	return span{strings.Repeat(g, max(0, n)/lipgloss.Width(g)), style}
+}
+
+// barFrame is the cells a bar keeps around its text: the stub, a cell
+// either side of the text and at least one cell of fill.
+const barFrame = 4
+
 // bar renders a context or title bar across c.barWidth(): a one-cell
 // stub, the text on the terminal's own background with a cell either side,
-// and the fill (DEV-018). With no colour to paint them, the stub and the
-// fill are runs of Glyphs.Bar (DEV-015). Text too wide for the bar is cut;
-// a bar with no text, or too narrow for any, is all fill.
+// and the fill (DEV-018), painted as paint paints them. Text too wide for
+// the bar is cut; a bar with no text, or too narrow for any, is all fill.
 func (c Ctx) bar(fill lipgloss.Style, text line) string {
 	w := c.barWidth()
-	paint := func(n int) string {
-		if c.Env.HasColor() {
-			return span{strings.Repeat(" ", n), fill}.String()
-		}
-		return span{strings.Repeat(c.Theme.Glyphs.Bar, n), fill}.String()
+	if text.width() == 0 || w <= barFrame {
+		return c.paint(fill, w).String()
 	}
-	const frame = 4 // the stub, a cell either side of the text, one cell of fill
-	if text.width() == 0 || w <= frame {
-		return paint(w)
-	}
-	body := c.fit(text, w-frame)
-	return paint(1) + " " + body + " " + paint(w-3-lipgloss.Width(body))
+	body := c.fit(text, w-barFrame)
+	return c.paint(fill, 1).String() + " " + body + " " + c.paint(fill, w-3-lipgloss.Width(body)).String()
 }
 
 // clean makes a view-model string one line of plain text: escape sequences
