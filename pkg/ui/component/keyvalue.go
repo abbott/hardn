@@ -43,10 +43,10 @@ func (s ValueState) style(t theme.KeyValueStyles) lipgloss.Style {
 	return t.Value
 }
 
-// glyph returns the status marker that stands in for the state's colour
-// when there is none, as StatusRow marks the same verdicts: Configured for
-// ValueOK, NotConfigured for ValueBad, Partial for ValueWarn. A plain
-// value has none.
+// glyph returns the status marker that shows the state in place of the
+// bullet, as StatusRow marks the same verdicts: Configured for ValueOK,
+// NotConfigured for ValueBad, Partial for ValueWarn. A plain value has
+// none.
 func (s ValueState) glyph(g theme.Glyphs) string {
 	switch s {
 	case ValueOK:
@@ -77,8 +77,8 @@ func (s ValueState) word() string {
 }
 
 // KeyValue is one row of a sub-screen's details: Glyphs.Bullet, the key
-// and its value. Here with no colour and ASCII glyphs, Figma's rows from
-// 02-SSH_LOGIN and 05-BACKUP:
+// and its value. Here with ASCII glyphs, Figma's rows from 02-SSH_LOGIN
+// and 05-BACKUP:
 //
 //	0 2   6                    27
 //	  [ ] Root SSH Login       Enabled
@@ -87,10 +87,12 @@ func (s ValueState) word() string {
 //
 // The bullet is centred in the marker column (DEV-020), the key starts at
 // theme.LabelCol and the value at theme.ValueCol (DEV-034). The value
-// takes its state's colour, as Figma colours it. With no colour to show
-// the state, the bullet gives way to the state's status marker, so the
-// verdict never rests on colour alone: [+] for ValueOK, [ ] for ValueBad,
-// [*] for ValueWarn, [?] for ValueUnknown and [-] for ValueNotApplicable.
+// takes its state's colour, as Figma colours it, and a stated value's
+// bullet gives way to the state's status marker in that colour, at every
+// colour profile, so the verdict never rests on colour alone: ⛛ [+] for
+// ValueOK, ⭘ [ ] for ValueBad, ⛬ [*] for ValueWarn, ? [?] for
+// ValueUnknown and ∅ [-] for ValueNotApplicable. A plain value keeps the
+// bullet.
 // Below theme.StackBelow, or when the key reaches the value column, or
 // when the value column has no room for one letter, the value goes under
 // the key at theme.StackCol (DEV-021). A value wider than its line is cut
@@ -162,7 +164,7 @@ func (vm KeyValue) row(c Ctx) (r entry, ok bool) {
 		return entry{}, false
 	}
 	head := marker(g.Bullet, t.Bullet)
-	if m := vm.State.glyph(g); m != "" && value != nil && !c.Env.HasColor() {
+	if m := vm.State.glyph(g); m != "" && value != nil {
 		head = marker(m, state)
 	}
 	if key != "" {

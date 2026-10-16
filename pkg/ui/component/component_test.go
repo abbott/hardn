@@ -499,7 +499,7 @@ func TestLayout(t *testing.T) {
 			"   -  SSH Port             2230"},
 		{"keyvalue: stacked below StackBelow", KeyValue{Key: "SSH Port", Value: "2230"}, below, false,
 			"   -  SSH Port\n      2230"},
-		{"keyvalue: without colour a state's marker replaces the bullet", BulletList{Items: []KeyValue{
+		{"keyvalue: a state's marker replaces the bullet", BulletList{Items: []KeyValue{
 			{Key: "a", Value: "ok", State: ValueOK}, {Key: "b", Value: "warn", State: ValueWarn},
 			{Key: "c", Value: "bad", State: ValueBad}, {Key: "d", State: ValueUnknown},
 			{Key: "e", State: ValueNotApplicable}, {Key: "f", Value: "plain", State: ValueState(9)},
@@ -777,40 +777,43 @@ func TestBlockStyles(t *testing.T) {
 }
 
 // TestValueStates checks that each value state shows in the value's
-// colour where there is colour, and as its own status marker in place of
-// the bullet where there is none, so that no state rests on colour alone.
+// colour and as its own status marker in place of the bullet, in the same
+// colour, and that the marker is there without colour too, so that no
+// state rests on colour alone. A plain value keeps the bullet.
 func TestValueStates(t *testing.T) {
 	colour := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	none := NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))
 	kv, g := colour.Theme.KeyValue, colour.Theme.Glyphs
 	tests := []struct {
-		state ValueState
-		style lipgloss.Style
-		glyph string
+		state       ValueState
+		style, mark lipgloss.Style
+		glyph       string
 	}{
-		{ValuePlain, kv.Value, g.Bullet},
-		{ValueOK, kv.ValueOK, g.Configured},
-		{ValueWarn, kv.ValueWarn, g.Partial},
-		{ValueBad, kv.ValueBad, g.NotConfigured},
-		{ValueUnknown, kv.ValueUnknown, g.Unknown},
-		{ValueNotApplicable, kv.ValueNotApplicable, g.NotApplicable},
-		{ValueState(-1), kv.Value, g.Bullet},
+		{ValuePlain, kv.Value, kv.Bullet, g.Bullet},
+		{ValueOK, kv.ValueOK, kv.ValueOK, g.Configured},
+		{ValueWarn, kv.ValueWarn, kv.ValueWarn, g.Partial},
+		{ValueBad, kv.ValueBad, kv.ValueBad, g.NotConfigured},
+		{ValueUnknown, kv.ValueUnknown, kv.ValueUnknown, g.Unknown},
+		{ValueNotApplicable, kv.ValueNotApplicable, kv.ValueNotApplicable, g.NotApplicable},
+		{ValueState(-1), kv.Value, kv.Bullet, g.Bullet},
 	}
 	shown := map[string]bool{}
 	for _, tt := range tests {
 		vm := KeyValue{Key: "SSH Port", Value: "2230", State: tt.state}
 		got := vm.Render(colour)
-		if !strings.Contains(got, tt.style.Render("2230")) || !strings.Contains(got, kv.Bullet.Render(g.Bullet)) {
-			t.Errorf("state %d with colour: got %q, want the bullet and the value in its style", tt.state, got)
+		if !strings.Contains(got, tt.style.Render("2230")) || !strings.Contains(got, tt.mark.Render(tt.glyph)) {
+			t.Errorf("state %d with colour: got %q, want the marker %q and the value in their styles", tt.state, got, tt.glyph)
 		}
-		plain := ansi.Strip(vm.Render(none))
-		if want := marker(tt.glyph, lipgloss.NewStyle()).String(); !strings.HasPrefix(plain, want+" ") {
-			t.Errorf("state %d without colour: got %q, want it to start with %q", tt.state, plain, want)
+		want := marker(tt.glyph, lipgloss.NewStyle()).String() + " "
+		for _, c := range []Ctx{colour, none} {
+			if plain := ansi.Strip(vm.Render(c)); !strings.HasPrefix(plain, want) {
+				t.Errorf("state %d, %v: got %q, want it to start with %q", tt.state, c.Env.Profile, plain, want)
+			}
 		}
 		shown[tt.glyph] = true
 	}
 	if len(shown) != 6 {
-		t.Errorf("the six states show %d different markers without colour, want 6: %v", len(shown), shown)
+		t.Errorf("the six states show %d different markers, want 6: %v", len(shown), shown)
 	}
 }
 

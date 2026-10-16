@@ -37,7 +37,10 @@
 //     Env.HasColor is false there is no background to paint, so a bar is a
 //     run of Glyphs.Bar (DEV-015, DEV-018) and a badge is bracketed by
 //     Glyphs.BadgeOpen and BadgeClose (DEV-019). A state is never shown by
-//     colour alone: it has a word, and a glyph where Figma draws one.
+//     colour alone, at any colour profile: it has a glyph and a word, as a
+//     StatusRow or a Message has them, or, on a key-value row, a marker
+//     beside the value that says it. Where Figma draws a state in colour
+//     only, the glyph is added (DEV-032, DEV-034).
 //   - States. Each component documents and tests the states that apply to
 //     it: normal, empty, unknown, not applicable and error. A value hardn
 //     could not read shows the word "Unknown" in status.unknown, origin/main's
