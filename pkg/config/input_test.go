@@ -3,6 +3,7 @@ package config
 import (
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -96,4 +97,38 @@ func TestShouldCreateDefaultConfig(t *testing.T) {
 			t.Errorf("answers read as %v, %v; want false, true", first, second)
 		}
 	})
+	// On a terminal Reader, the second answer, already in its buffer
+	// when the first is read, is typeahead. The question can follow a
+	// long step, so it is dropped: the second question meets the end of
+	// the input and takes the default, yes. prompt's tests flush a
+	// pseudo-terminal's queue.
+	t.Run("typeahead is dropped on a terminal", func(t *testing.T) {
+		useReader(t, prompt.New(strings.NewReader("n\nn\n"), true))
+		var first, second bool
+		ask(t, func() { first, second = ShouldCreateDefaultConfig(), ShouldCreateDefaultConfig() })
+		if first || !second {
+			t.Errorf("answers read as %v, %v; want false, true", first, second)
+		}
+	})
+}
+
+// TestReadAnswer checks the read behind CreateDefaultConfig's questions,
+// which writes /etc/hardn/hardn.yml.example and is not driven here: the
+// questions are asked back to back, so an answer typed ahead on a
+// terminal is kept for the question after it, as origin/main's bufio
+// reader kept it; the end of the input reads as an empty answer.
+func TestReadAnswer(t *testing.T) {
+	useReader(t, prompt.New(strings.NewReader("alice\n2230"), true))
+	var got []string
+	out, _, ended := ask(t, func() {
+		for range 3 {
+			got = append(got, readAnswer())
+		}
+	})
+	if want := []string{"alice", "2230", ""}; !slices.Equal(got, want) || ended {
+		t.Errorf("read %q (ended %v), want %q", got, ended, want)
+	}
+	if out != "" {
+		t.Errorf("printed %q, want nothing", out)
+	}
 }

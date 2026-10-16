@@ -367,6 +367,13 @@ func GetDefaultConfigLocation() string {
 
 // ShouldCreateDefaultConfig determines if we should offer to create a default config
 func ShouldCreateDefaultConfig() bool {
+	// On a terminal, discard what was typed before the question shows
+	// (brief 1C). It can follow a long step: LoadConfig runs mid-session
+	// too (getConfigForSSHKeyPath in pkg/adapter/secondary, from the main
+	// menu's status and the user screens) and asks again while no file
+	// exists. The questions after it are asked back to back, so
+	// readAnswer keeps what is typed ahead of them.
+	_ = input().Flush() // a terminal that cannot be flushed keeps its typeahead
 	fmt.Println("No configuration file found. Would you like to create one? [Y/n]")
 	response := readAnswer()
 	response = strings.TrimSpace(strings.ToLower(response))
@@ -478,16 +485,18 @@ var (
 	exit = os.Exit
 )
 
-// readAnswer reads one answer line through input, after discarding
-// typeahead on a terminal. As with the bufio reader each prompt made
-// before, the end of the input and a read error read as an empty answer,
-// so the default applies, and nothing more is written. Ctrl-C ends hardn
-// with exit status 130, as SIGINT's default action did while the bufio
-// reader waited.
+// readAnswer reads one answer line through input. As with the bufio
+// reader each prompt made before, the end of the input and a read error
+// read as an empty answer, so the default applies, and nothing more is
+// written. Nor does it discard typeahead, as the bufio reader did not:
+// CreateDefaultConfig's questions follow one another with no long step
+// between them, so an answer typed or pasted ahead is read by the
+// question it was meant for (ShouldCreateDefaultConfig discards what was
+// typed before the first question). Ctrl-C ends hardn with exit status
+// 130, the status a shell reports for a process Ctrl-C ended (brief
+// Phase 3).
 func readAnswer() string {
-	r := input()
-	_ = r.Flush() // a terminal that cannot be flushed keeps its typeahead
-	line, err := r.ReadLine()
+	line, err := input().ReadLine()
 	if errors.Is(err, prompt.ErrInterrupted) {
 		exit(prompt.ExitInterrupted)
 	}
