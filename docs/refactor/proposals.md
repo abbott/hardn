@@ -50,6 +50,7 @@
 | [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
 | [P-25](#p-25) | Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed |
 | [P-26](#p-26) | Forms: back through the fields, the earlier answer and a free-text default | `next/p1c-form` | Every form; Phase 1C | S | Low | proposed |
+| [P-27](#p-27) | The canonical flow: back at the confirmation, an empty plan, the plan's heading and the steps' lines | `next/p1c-flow` | Every action; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -524,3 +525,24 @@
 - **Effort:** S. (a), (b) and (c) are built, so this approves them; (a2), (b2), (c2) or (c3) is a small change to `pkg/ui/form` and its goldens.
 - **Risk:** Low. Under (a) a user who types `b` to leave a long form steps back through it, field by field; `q` still quits. Nothing is applied before a form ends, whatever is chosen.
 - **Screenshots:** Before: Figma `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-26-after.png` (placeholder); the `form/back` and `form/yes-no` goldens show the built form meanwhile.
+
+<a id="p-27"></a>
+### P-27: The canonical flow: back at the confirmation, an empty plan, the plan's heading and the steps' lines
+
+- **Status:** proposed
+- **Source:** `next/p1c-flow`, which builds brief 1C's canonical action flow in `pkg/ui/flow`. Related: [P-09](#p-09), [P-10](#p-10), [P-23](#p-23), [P-24](#p-24), [P-25](#p-25), [P-26](#p-26).
+- **Problem:** brief 1C decides the steps: collect with a form, review the answers, show the plan (dry-run stops there), confirm with y/N or, for lockout risk and Run All, a typed confirmation, apply with rollback, and return to the menu without wiping the result. It leaves open:
+  - what `0` or `b` does at the confirmation, where the grammar has it go back one level ([P-25](#p-25) (b)), and where a typed confirmation has no "no";
+  - what a plan with no changes says, and whether the flow then asks anything;
+  - how the plan reads apart from the review above it: both are rows from column 2 under the review's section header, and Figma draws no plan;
+  - what the steps show where nothing animates, since "rolled back" is a second state of a step already shown done.
+- **Proposal:** built as below (DEV-048, DEV-049, [README](../design-system/README.md) §9.10); the maintainer decides (a) to (d).
+  - **(a) Back at the confirmation** declines, as `n` does: Figma's "Operation Cancelled" callout, nothing applied, then the menu. At a typed confirmation it is the only way to decline short of `q`. Alternatives: (a2) back returns to the form, asked again from its first field, the review and plan following it again (an action with no form would only draw them again); (a3) back returns to the menu with no callout, as back from the form's first field does.
+  - **(b) An empty plan** says "Nothing needs changing.", brief Phase 3's words for a plan that finds nothing to change, as an info message, and the flow asks nothing more. Alternatives: Figma's "Operation Successful" callout with that sentence as its body; words that name the state, such as "Already configured", as origin/main's "already DISABLED" for root SSH login.
+  - **(c) The plan's heading:** none; the plan follows the review after a blank line, and no words are added. Alternative: a section header of its own, such as "Planned Changes", so that the plan never reads as more rows of the review.
+  - **(d) The steps without animation** (a pipe, plain mode, `TERM=dumb`): each step's line is written once, when it is done, failed or skipped, and a rollback shows only in the error report after them, which names each change undone. Alternative: a line for each rollback too, such as "Rolled back: Create user george", which the report then repeats.
+  - Not new here, listed so the flow's words are in one place: the result callouts are Figma's ("Operation Successful", "Operation Cancelled") and the failure's are [P-23](#p-23)'s; the step words are [P-24](#p-24)'s; the dry-run footer is origin/main's. Each confirmation's words are the action's: the fixtures ask Figma's "Create user 'george'?" and, at lockout risk, "Type the hostname", nav's example label, which [P-10](#p-10) and [P-25](#p-25) (d) decide. No continue prompt is asked before the menu returns, pending [P-09](#p-09): the result stays on screen above the menu.
+  - Each choice is a few lines in `pkg/ui/flow/flow.go` and `progress.go` (the sentence is the `nothingToChange` constant), so changing one is code of that size and the `flow/*` goldens.
+- **Effort:** S. (a) to (d) are built, so this approves them; each alternative is a small change to `pkg/ui/flow` and its goldens.
+- **Risk:** Low. Under every alternative nothing is applied without the confirmation, and nothing after a decline or an abort; (a2) makes the flow a loop.
+- **Screenshots:** Before: Figma `USER-CREATE_USER.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-27-after.png` (placeholder); the `flow/*` goldens show the built form meanwhile.
