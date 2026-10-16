@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -435,7 +435,37 @@ Not applicable, unknown and error by component: a plan change with no title show
 - Paging a long plan, and opening the full log in `$PAGER` (P-18), are the screen's: both components render in full.
 - The countdown's local-console form (brief Phase 2.4: confirm in the same session, with a warning, when hardn is not over SSH), the timeout flag and the command's path are `next/p2-revert`'s, which fills `Remaining`, `Port` and `Command`.
 
-### 9.7 Still to come (placeholders)
+### 9.7 Line reader (`next/p1c-reader`)
+
+`pkg/ui/prompt` is the one reader every prompt in hardn uses (brief §2 and 1C); its package doc is the full statement. It renders nothing, so it has no goldens.
+
+| Part | What it does |
+|---|---|
+| `New(in, tty)` | A `Reader` over `in`, normally `os.Stdin`, with `tty` from `term.Env.InputTTY`: `term.Detect` stays the only code that asks whether stdin is a terminal |
+| `ReadLine` | One line without its ending (`\n` or `\r\n`), otherwise as typed: nothing trimmed, nothing checked. A last line with no ending is returned, and the call after it reports the end. A line over `MaxLine`, 64 KiB (`bufio.MaxScanTokenSize`), is `ErrLineTooLong` and is dropped up to its ending, never cut short |
+| `ErrAborted`, `ExitCode` | The end of the input (Ctrl-D on an empty line, the end of a pipe or file) and Ctrl-C return an error wrapping `ErrAborted`. `ExitCode` maps it to `ExitInterrupted`, 130, brief Phase 3's code; nothing calls it yet |
+| `Flush` | On a terminal Reader, discards typeahead: the terminal's input queue (`TCFLSH` with `TCIFLUSH` on Linux, `TIOCFLUSH` with `FREAD` on macOS, nothing elsewhere; build-tagged `flush_*.go`) and the Reader's own buffer. Never for piped or scripted input |
+| `Ask(w, prompt)` | `Flush`, then the prompt and exactly one space in one write to `w`, the `Env.Writer` around stdout, then `ReadLine`. `PromptLine` ends at its colon (C8, DEV-029); the space puts the terminal's own cursor one cell after it. Without a terminal, or after an abort, no echoed Enter ended the line, so `Ask` ends it |
+
+**Ctrl-C.** The terminal stays in cooked mode (DEV-042), so Ctrl-C is SIGINT. Only while `ReadLine` waits on a file does it relay `os.Interrupt` with `signal.Notify`; `signal.Stop` gives SIGINT back its default action, which ends hardn, before `ReadLine` returns, and an ignored SIGINT stays ignored. It waits with select(2) on the input and on a wake pipe, and reads only once the input is readable, so a call that Ctrl-C ends has read nothing, and no goroutine is left reading that could take the next line from the next call or from a process hardn runs. macOS's poll(2) does not support devices (poll(2), BUGS), hence select on both systems. Rejected:
+- a goroutine reading ahead into a channel: it loses nothing, but after an interrupt its read stays blocked on the terminal, and a line it takes just before a flush can slip past the flush;
+- `github.com/muesli/cancelreader` v0.2.2, already linked through Lip Gloss and ultraviolet: it cancels a read of a pipe or a terminal (a probe on a macOS pseudo-terminal named `/dev/stdin` took its kqueue path and cancelled), but on Linux epoll rejects a regular file (epoll_ctl(2), `EPERM`), so stdin redirected from a file fails (`cancelreader_linux.go:44-51`); its fallback for other readers drops the data of a read it cancels (`cancelreader.go:53-62`); a cancelled reader stays cancelled (`cancelreader.go:49-51`), so each call would need a new one; and it takes the descriptor with `File.Fd`, which sets the file to blocking mode.
+
+A reader that is not a file, such as a test's `strings.Reader`, is read directly, as on systems other than Linux and macOS: there Ctrl-C keeps its default action.
+
+**Typeahead.** On a terminal, what was typed during a long step, a line not yet ended included, is discarded before the next prompt (brief 1C). The same flush drops a late reply to the background query (§2.3) that has arrived by the first prompt, since it is pending input like any other; that case is not tested with a real reply.
+
+**Without a terminal** (plain mode) the Reader needs nothing special: it never flushes, the end of the input aborts, and `Ask` ends each prompt's line. Whether hardn prompts at all without a terminal is `next/p3-output`'s (brief Phase 3: never prompt without a TTY).
+
+**Echo.** The terminal echoes the answer in its own colour; a screen that shows it again uses `AnsweredField`, muted (DEV-043).
+
+**Dependencies.** `golang.org/x/sys` v0.49.0 (BSD-3-Clause), in the graph already, is now a direct requirement, for `unix.Select` and the flush ioctls; `cancelreader` stays indirect; no module was added. The package imports only the standard library and `x/sys` (`TestImports`), so `next/p1c-legacy-input` can route the legacy menus through it without linking Lip Gloss and its import side effect (§2.3).
+
+**Tested.** Scripted readers (CRLF, no last line ending, empty lines, `MaxLine` exactly and one over, a runaway input, read errors), split across reads; `Ask`'s writes; Ctrl-C (SIGINT sent to the test process) during a read of an `os.Pipe` and of a pseudo-terminal, then the next line, with a direct read of the pipe proving no read outlived the call; SIGINT's default action after a read (a child process must die of it), and an ignored SIGINT left ignored (another child); the flush on a pseudo-terminal in cooked mode, against a Reader that does not flush. All on macOS: Linux's `TCFLSH` and its pseudo-terminal helper are cross-compiled and vetted (`GOOS=linux go vet`, `go test -c`), not run, and no terminal emulator was used. `make check`'s `check-cross` builds only `cmd/hardn`, which does not import `pkg/ui` yet.
+
+**Open for later units.** `next/p1c-legacy-input` puts `pkg/menu`'s input on one Reader over stdin; `next/p1c-nav` trims and matches lines; Ctrl-C outside a read, during an apply, is the engine's (Phases 2 and 3).
+
+### 9.8 Still to come (placeholders)
 
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
