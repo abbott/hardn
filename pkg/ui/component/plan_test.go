@@ -237,6 +237,32 @@ func TestPlanGroupStyles(t *testing.T) {
 	}
 }
 
+// TestCountdownHeight checks that the confirm countdown keeps its lines
+// at a given width while the time left falls, through the switch to
+// urgent and as the minutes lose a digit, so that the caller can redraw
+// it in place: at every width wide enough for the word and the time
+// whole beside the word's column, in both glyph sets, with and without a
+// port.
+func TestCountdownHeight(t *testing.T) {
+	left := []int{5999, 600, 599, 180, 61, 60, UrgentBelow, UrgentBelow - 1, 9, 0, -3}
+	for _, unicode := range []bool{true, false} {
+		for w := theme.LabelCol + lipgloss.Width(MessageWarn.String()+":"); w <= 90; w++ {
+			c := NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))
+			for _, port := range []int{0, 2230} {
+				height := func(remaining int) int {
+					return strings.Count(ConfirmCountdown{Remaining: remaining, Port: port}.Render(c), "\n") + 1
+				}
+				want := height(left[0])
+				for _, r := range left[1:] {
+					if got := height(r); got != want {
+						t.Errorf("width %d, unicode %v, port %d: %d lines with %d seconds left, %d with %d", w, unicode, port, got, r, want, left[0])
+					}
+				}
+			}
+		}
+	}
+}
+
 // TestStepStates checks that each step state shows its own glyph and
 // word, both in the state's style, that no two states share either, and
 // that without colour, at the ASCII profile and in plain mode, the six

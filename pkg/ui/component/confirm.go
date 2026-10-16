@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"charm.land/lipgloss/v2"
+
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
@@ -23,6 +25,10 @@ const (
 // UrgentBelow is the number of seconds left under which the confirm
 // countdown turns urgent.
 const UrgentBelow = 30
+
+// clockWidth is the cells the countdown's first sentence keeps for the
+// time left: "99:59", the widest under 100 minutes.
+const clockWidth = 5
 
 // ConfirmCountdown is the notice the session that applied a lockout-risk
 // change shows while it waits to be confirmed (brief §2 and Phase 2.4,
@@ -45,7 +51,12 @@ const UrgentBelow = 30
 // (DEV-041). The sentences wrap at spaces under the word; the command, in
 // Confirm.Command, is code, never cut. The view-model holds the seconds
 // left, not a deadline, so Render stays pure: on a terminal that can
-// animate the caller renders it again each second.
+// animate the caller renders it again each second. So that it can redraw
+// the block in place, the first sentence is wrapped as though its word
+// were the longer of "Warning:" and "Urgent:" and its time five cells
+// wide: at a given width the block keeps its lines, and so its height,
+// for every Remaining under 100 minutes, urgent or not. Only on a line
+// too narrow for the word or the time whole do they wrap where they fall.
 type ConfirmCountdown struct {
 	// Remaining is the number of seconds left before the change reverts;
 	// less than zero shows 0:00.
@@ -79,16 +90,28 @@ func (vm ConfirmCountdown) Render(c Ctx) string {
 	lead := marker(glyph, style).to(theme.LabelCol)
 	var out []string
 	// The first sentence opens with the word and its colon and ends with
-	// the clock, both in style. Neither holds a space, so the wrap keeps
-	// each whole unless the line is narrower than it.
+	// the clock, both in style. It is wrapped with stand-ins in their
+	// places, a run of letters as wide as the longer word and a run of
+	// digits clockWidth wide (or the clock's width, if wider), so that its
+	// breaks depend on neither; the word and the clock then replace them.
+	// No stand-in holds a space or a hyphen, so the wrap keeps each whole
+	// unless the line is narrower than it; then the word and the clock
+	// themselves are wrapped.
 	word += ":"
-	for i, l := range wrap(word+" "+confirmReverts+" "+clock, w-theme.LabelCol) {
+	wordRun := strings.Repeat("W", max(lipgloss.Width(MessageWarn.String()+":"), lipgloss.Width(confirmUrgent+":")))
+	clockRun := strings.Repeat("0", max(clockWidth, lipgloss.Width(clock)))
+	lines := wrap(wordRun+" "+confirmReverts+" "+clockRun, w-theme.LabelCol)
+	if !strings.HasPrefix(lines[0], wordRun) || !strings.HasSuffix(lines[len(lines)-1], clockRun) {
+		wordRun, clockRun = word, clock
+		lines = wrap(word+" "+confirmReverts+" "+clock, w-theme.LabelCol)
+	}
+	for i, l := range lines {
 		var head, tail string
-		if i == 0 && strings.HasPrefix(l, word) {
-			head, l = word, l[len(word):]
+		if i == 0 && strings.HasPrefix(l, wordRun) {
+			head, l = word, l[len(wordRun):]
 		}
-		if rest, ok := strings.CutSuffix(l, clock); ok {
-			l, tail = rest, clock
+		if i == len(lines)-1 && strings.HasSuffix(l, clockRun) {
+			l, tail = l[:len(l)-len(clockRun)], clock
 		}
 		out = append(out, c.fit(append(lead, span{head, style}, span{l, t.Text}, span{tail, style}), w))
 		lead = line{gap(theme.LabelCol)}
