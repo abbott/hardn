@@ -53,6 +53,8 @@
 | [P-27](#p-27) | The canonical flow: back at the confirmation, an empty plan, the plan's heading, the steps' lines, a long hostname and a narrow terminal | `next/p1c-flow` | Every action; Phase 1C | S | Low | proposed |
 | [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | proposed |
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed |
+| [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | proposed |
+| [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
 
 ---
 
@@ -582,3 +584,38 @@
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
 - **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png` (reference only). After: `docs/refactor/img/p-29-after.png` (placeholder); the `main-menu/00-tui-main` and `sub-menu/01-user` goldens show origin/main's and Figma's prompt meanwhile.
+
+<a id="p-30"></a>
+### P-30: A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list
+
+- **Status:** proposed
+- **Source:** `next/p1d-gallery-screens`, which mocks the screens that fit a layout; brief 1B: a screen that fits no layout becomes a proposal, not a one-off. Related: [P-16](#p-16), [P-23](#p-23), [P-28](#p-28).
+- **Problem:**
+  - origin/main's Firewall screen (pkg/menu firewall_menu.go), of which the export holds a legacy screenshot (images/04-firewall-legacy-tui.png), shows three status rows, then, with UFW installed and no rule listed, a warning line, "No firewall rules configured", before its menu. That is what it shows on every host with UFW, since the rules list is effectively unreachable ([interaction.md](phase0/interaction.md) §4.3). With rules it shows a "Current Firewall Rules:" heading over a line per rule, marked ✓ for allow, ✗ for deny and - otherwise.
+  - The sub-menu layout has status rows, sections of key-value rows under a header, and a menu, but no line of its own for a notice: as a section, the line would need a header origin/main does not show; as a key-value row, a key it does not have. So no Firewall mock is built ([README](../design-system/README.md) §9.12).
+  - The DNS screen's empty state is the same case: with no nameserver configured, origin/main shows "No nameservers configured" under its "Configured Nameservers:" heading. The DNS mock shows two nameservers configured instead (DEV-058).
+- **Proposal:** for the maintainer to choose:
+  - (a) a notice block in the sub-menu layout, after the status rows and the sections: one or more `Message`s, such as "⛬ Warning: No firewall rules configured", the kind's word added as every glyph sentence has it (DEV-031, [P-23](#p-23)); the DNS screen's empty state the same, under its section's place.
+  - (b) no new block: the empty state as a bullet item of its section, such as "No nameservers configured" under "Configured Nameservers", and for the Firewall a "Firewall Rules" section with the item "No firewall rules configured" (a header origin/main shows only over rules).
+  - (c) no line: the state said by a status row, such as "Firewall Rules" "Not Configured" (new words).
+  - With rules, under any of them: a section of rows, a rule's state shown by a value state's marker (`ValueOK` for allow, `ValueBad` for deny) beside the rule, so that the mark is never colour alone (DEV-034).
+- **Effort:** S (a block of `SubMenu` and its goldens for (a); fixture data for (b) and (c)).
+- **Risk:** Low: display only.
+- **Screenshots:** Before: the export's `images/04-firewall-legacy-tui.png` (reference only). After: `docs/refactor/img/p-30-after.png` (placeholder).
+
+<a id="p-31"></a>
+### P-31: Figma's words or origin/main's on the other Figma frames
+
+- **Status:** proposed (each frame is decided separately)
+- **Source:** `next/p1d-gallery-screens`, whose mocks draw each Figma frame as Figma fills it, while origin/main is the baseline for wording (refactor plan, decision 6). It asks of the other frames what [P-29](#p-29) (b) asks of 01-USER. Related: [P-07](#p-07), [P-11](#p-11), [P-12](#p-12), [P-29](#p-29).
+- **Problem:** the frames' words differ from origin/main's (origin/main pkg/menu; [interaction.md](phase0/interaction.md) §4.3, §9.1):
+  - **02-SSH_LOGIN, SSH_LOGIN-TOGGLE_CONFIRMATION:** the title "Manage Root SSH Login" against "Disable Root SSH Access"; the items "Root SSH Login" (Toggle root SSH access) and "View SSH Settings" (Show SSH configuration) against "Disable root SSH access" (Modify SSH config to prevent root login) and "View current SSH configuration" (Show details of SSH security settings); "0) Return" with no description against "Keep current settings"; the question "Disable SSH login for 'root'?" against "Are you sure you want to disable root SSH access?" (disable_root_menu.go). Item 1's words are also [P-12](#p-12)'s.
+  - **05-BACKUP:** the title "Manage Hardn Backups" against "Backup Settings"; the section "Backup Configuration" against the heading "Current Backup Configuration:"; the items "Backup State" (Toggle backups of modified files), "Backup Path" (Change backup path) and "Verify Directory" (Test if path is writable) against "Toggle backups (currently: <state>)" (Enable or disable automatic backups of modified files), "Change backup path" (Current: <path>) and "Verify backup directory" (Test if backup directory exists and is writable); "Return" against "Return to main menu" (backup_menu.go).
+  - **USER-SSH_KEYS:** "Managing SSH keys for: [user]" over "Select an option" and "1) Add SSH key", against "ℹ Managing SSH keys for user: <user>", the user's keys, "Select SSH key operation" and "1) Add SSH key" (Add a new SSH public key), with "2) Remove SSH key" when there are keys (user_options.go).
+  - **USER-CREATE_USER:** "Username", "Grant sudo privilege?", "Require sudo password?", "Add SSH key?" and the section "User Configuration", against "Enter username to create", "Allow sudo access?", "Allow sudo without password?" (the opposite polarity, [P-11](#p-11)), "Add SSH public key?" and "Summary".
+  - **USER-MANAGE_SUDO-CONFIRMATION:** its title bar, "Manage User", against "Manage Sudo", which the breadcrumb's current item would take.
+  - USER-MANAGE_USER-SELECT_USER and USER-MANAGE_USER-MANAGEMENT differ from origin/main only in the prompt ([P-29](#p-29) (a)).
+- **Proposal:** the maintainer decides each frame, for the screens Phase 5 moves onto the layouts: Figma's words, as the gallery's mocks and their goldens show them (`sub-menu/02-ssh-login`, `sub-menu/05-backup`, `sub-menu/user-ssh-keys`, `workflow-step/*`); or origin/main's, the baseline, which the real screens keep until this is decided. Each is a string of the screen's fixture or definition and the goldens.
+- **Effort:** S.
+- **Risk:** Low (wording only; goldens are updated deliberately).
+- **Screenshots:** Before: Figma `02-SSH_LOGIN.png`, `05-BACKUP.png`, `USER-SSH_KEYS.png`, `USER-CREATE_USER.png`, `USER-MANAGE_SUDO-CONFIRMATION.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-31-after.png` (placeholder); the mocks' goldens show Figma's words meanwhile.
