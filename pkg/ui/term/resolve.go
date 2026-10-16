@@ -18,8 +18,8 @@ type Facts struct {
 	Environ   []string // the environment as "KEY=value" entries, as os.Environ returns it
 }
 
-// Environment variables Resolve reads itself. colorprofile.Env also reads
-// TERM, COLORTERM, CLICOLOR and CLICOLOR_FORCE (see Resolve).
+// Environment variables Resolve reads itself. colorprofile.Env reads more
+// (see Resolve).
 const (
 	envPlain   = "HARDN_PLAIN"
 	envASCII   = "HARDN_ASCII"
@@ -62,7 +62,9 @@ var localeVars = []string{"LC_ALL", "LC_CTYPE", "LANG"}
 // NO_COLOR caps the profile at ASCII and beats CLICOLOR_FORCE. A true
 // CLICOLOR_FORCE raises it to at least ANSI, even for TERM=dumb, and
 // colorprofile.Detect also honours it when output is not a terminal. A true
-// CLICOLOR raises a terminal to ANSI; CLICOLOR=0 is ignored. Our rules win
+// CLICOLOR raises a TERM that is set but empty to ANSI (env.go:104-108) and
+// does nothing else: outside Windows an unset TERM counts as dumb
+// (env.go:76), and any other TERM already starts at ANSI. Our rules win
 // where these differ: NO_COLOR, TERM=dumb and the TTY check are decided
 // above before colorprofile is asked, so CLICOLOR_FORCE can neither colour
 // piped output nor a dumb terminal (--color=always does), and --color=never

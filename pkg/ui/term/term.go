@@ -90,6 +90,9 @@ func (e Env) HasColor() bool {
 // downsampled to e.Profile (see the Profile field). The profile is fixed:
 // nothing is detected again. All rendered output goes through this writer;
 // renderers return full-colour strings and never downsample themselves.
+// e.Profile was resolved for stdout: wrap stdout with it. Another stream,
+// such as a redirected stderr, needs its own profile decision, which this
+// package does not make yet.
 //
 // colorprofile parses each Write on its own (writer.go:54-80 in v0.4.3), so
 // write whole rendered strings: an escape sequence split across two writes

@@ -22,14 +22,14 @@ var queryDarkBackground = lipgloss.HasDarkBackground
 // stdout are both terminals and the Env is not plain. It then calls
 // lipgloss.HasDarkBackground once and keeps the dark theme if the query
 // fails. The query is not free, which is why it is opt-in. In Lip Gloss
-// v2.0.6 (query.go, terminal.go) it puts the terminal into raw mode with
-// ISIG, ICANON and ECHO off (x/term term_unix.go:31), writes an OSC 11
-// background request and a DA1 request, and reads the reply for up to 2 s
-// (defaultQueryTimeout, query.go:49). It tries stdin first and, if that
-// fails or times out, stdout for another 2 s (terminal.go:60-64): up to
-// about 4 s in which Ctrl-C does not interrupt, keys typed ahead are read
-// and discarded, and a reply that arrives after the timeout is left in stdin
-// for the next reader.
+// v2.0.6 it puts the terminal into raw mode with ISIG, ICANON and ECHO off
+// (query.go:13; x/term term_unix.go:31), writes an OSC 11 background request
+// and a DA1 request, and reads the reply for up to 2 s (defaultQueryTimeout,
+// terminal.go:49). It tries stdin first and, if that fails or times out,
+// stdout for another 2 s (query.go:60-64): up to about 4 s in which Ctrl-C
+// does not interrupt, keys typed ahead are read and discarded, and a reply
+// that arrives after the timeout is left in stdin for the next reader. On
+// any error HasDarkBackground reports dark (query.go:86-91).
 func Detect(opts Options, stdin, stdout *os.File) Env {
 	f := Facts{
 		StdoutTTY: xterm.IsTerminal(stdout.Fd()),
