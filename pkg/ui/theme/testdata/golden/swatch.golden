@@ -1,0 +1,2595 @@
+# Golden file of TestSwatch, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, profile TrueColor, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-dark-unicode-80: width 80, profile TrueColor, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-dark-unicode-120: width 120, profile TrueColor, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-dark-ascii-60: width 60, profile TrueColor, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-dark-ascii-80: width 80, profile TrueColor, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-dark-ascii-120: width 120, profile TrueColor, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
+  ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;86;91;107mtext.faint␛[m      ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
+  ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
+  ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
+  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
+  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
+  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
+  ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
+  ␛[1;38;2;129;134;156mContextBar.Name␛[m$
+  ␛[1;38;2;192;196;216mHeader.Wordmark␛[m$
+  ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
+  ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
+  ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;231;70;105mMessage.Bad␛[m$
+  ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
+  ␛[1;38;2;192;196;216mMessage.Info␛[m$
+  ␛[1;38;2;112;212;127mMessage.OK␛[m$
+  ␛[1;38;2;219;184;83mMessage.Warn␛[m$
+  ␛[1;38;2;219;184;83mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Glyph␛[m$
+  ␛[1;38;2;129;134;156mPrompt.Label␛[m$
+  ␛[1;38;2;192;196;216mRisk.Label␛[m$
+  ␛[1;38;2;129;134;156mSection.Title␛[m$
+  ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
+
+=== truecolor-light-unicode-60: width 60, profile TrueColor, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== truecolor-light-unicode-80: width 80, profile TrueColor, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== truecolor-light-unicode-120: width 120, profile TrueColor, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== truecolor-light-ascii-60: width 60, profile TrueColor, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== truecolor-light-ascii-80: width 80, profile TrueColor, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== truecolor-light-ascii-120: width 120, profile TrueColor, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
+  ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
+  ␛[38;2;129;134;156mtext.faint␛[m      ␛[48;2;129;134;156m      ␛[m$
+  ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
+  ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
+  ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
+  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
+  ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
+  ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
+  ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
+  ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
+  ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
+  ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
+  ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
+  ␛[1;38;2;87;92;110mContextBar.Name␛[m$
+  ␛[1;38;2;30;34;48mHeader.Wordmark␛[m$
+  ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
+  ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
+  ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;194;37;74mMessage.Bad␛[m$
+  ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
+  ␛[1;38;2;30;34;48mMessage.Info␛[m$
+  ␛[1;38;2;26;127;55mMessage.OK␛[m$
+  ␛[1;38;2;138;97;0mMessage.Warn␛[m$
+  ␛[1;38;2;138;97;0mPlan.LockoutRisk␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Glyph␛[m$
+  ␛[1;38;2;87;92;110mPrompt.Label␛[m$
+  ␛[1;38;2;30;34;48mRisk.Label␛[m$
+  ␛[1;38;2;87;92;110mSection.Title␛[m$
+  ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
+
+=== 256-dark-unicode-60: width 60, profile ANSI256, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-dark-unicode-80: width 80, profile ANSI256, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-dark-unicode-120: width 120, profile ANSI256, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-dark-ascii-60: width 60, profile ANSI256, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-dark-ascii-80: width 80, profile ANSI256, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-dark-ascii-120: width 120, profile ANSI256, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
+  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
+  ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
+  ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
+  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
+  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
+  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;254;48;5;19mBadge␛[m$
+  ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;78mCallout.OK.Title␛[m$
+  ␛[1;38;5;179mCallout.Warn.Title␛[m$
+  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;251mHeader.Wordmark␛[m$
+  ␛[1;38;5;103mMenu.ExitKey␛[m$
+  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;204mMessage.Bad␛[m$
+  ␛[1;38;5;179mMessage.Cancelled␛[m$
+  ␛[1;38;5;251mMessage.Info␛[m$
+  ␛[1;38;5;78mMessage.OK␛[m$
+  ␛[1;38;5;179mMessage.Warn␛[m$
+  ␛[1;38;5;179mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;103mPrompt.Glyph␛[m$
+  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;251mRisk.Label␛[m$
+  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;251mTitleBar.Title␛[m$
+
+=== 256-light-unicode-60: width 60, profile ANSI256, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 256-light-unicode-80: width 80, profile ANSI256, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 256-light-unicode-120: width 120, profile ANSI256, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 256-light-ascii-60: width 60, profile ANSI256, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 256-light-ascii-80: width 80, profile ANSI256, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 256-light-ascii-120: width 120, profile ANSI256, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
+  ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
+  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
+  ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
+  ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
+  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
+  ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
+  ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
+  ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
+  ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
+  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;38;5;231;48;5;19mBadge␛[m$
+  ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;22mCallout.OK.Title␛[m$
+  ␛[1;38;5;94mCallout.Warn.Title␛[m$
+  ␛[1;38;5;59mContextBar.Name␛[m$
+  ␛[1;38;5;235mHeader.Wordmark␛[m$
+  ␛[1;38;5;59mMenu.ExitKey␛[m$
+  ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
+  ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;161mMessage.Bad␛[m$
+  ␛[1;38;5;94mMessage.Cancelled␛[m$
+  ␛[1;38;5;235mMessage.Info␛[m$
+  ␛[1;38;5;22mMessage.OK␛[m$
+  ␛[1;38;5;94mMessage.Warn␛[m$
+  ␛[1;38;5;94mPlan.LockoutRisk␛[m$
+  ␛[1;38;5;59mPrompt.Glyph␛[m$
+  ␛[1;38;5;59mPrompt.Label␛[m$
+  ␛[1;38;5;235mRisk.Label␛[m$
+  ␛[1;38;5;59mSection.Title␛[m$
+  ␛[1;38;5;235mTitleBar.Title␛[m$
+
+=== 16-dark-unicode-60: width 60, profile ANSI, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-dark-unicode-80: width 80, profile ANSI, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-dark-unicode-120: width 120, profile ANSI, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-dark-ascii-60: width 60, profile ANSI, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-dark-ascii-80: width 80, profile ANSI, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-dark-ascii-120: width 120, profile ANSI, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
+  ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;92mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;37mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;37mMenu.Key␛[m$
+  ␛[1;91mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;37mMessage.Info␛[m$
+  ␛[1;92mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;37mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;37mTitleBar.Title␛[m$
+
+=== 16-light-unicode-60: width 60, profile ANSI, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== 16-light-unicode-80: width 80, profile ANSI, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== 16-light-unicode-120: width 120, profile ANSI, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== 16-light-ascii-60: width 60, profile ANSI, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== 16-light-ascii-80: width 80, profile ANSI, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== 16-light-ascii-120: width 120, profile ANSI, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
+  ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
+  ␛[90mtext.faint␛[m      ␛[100m      ␛[m$
+  ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
+  ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
+  ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
+  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
+  ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
+  ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
+  ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
+  ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
+  ␛[90mdivider␛[m         ␛[100m      ␛[m$
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1;97;44mBadge␛[m$
+  ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;32mCallout.OK.Title␛[m$
+  ␛[1;33mCallout.Warn.Title␛[m$
+  ␛[1;90mContextBar.Name␛[m$
+  ␛[1;30mHeader.Wordmark␛[m$
+  ␛[1;90mMenu.ExitKey␛[m$
+  ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
+  ␛[1;30mMenu.Key␛[m$
+  ␛[1;31mMessage.Bad␛[m$
+  ␛[1;33mMessage.Cancelled␛[m$
+  ␛[1;30mMessage.Info␛[m$
+  ␛[1;32mMessage.OK␛[m$
+  ␛[1;33mMessage.Warn␛[m$
+  ␛[1;33mPlan.LockoutRisk␛[m$
+  ␛[1;90mPrompt.Glyph␛[m$
+  ␛[1;90mPrompt.Label␛[m$
+  ␛[1;30mRisk.Label␛[m$
+  ␛[1;90mSection.Title␛[m$
+  ␛[1;30mTitleBar.Title␛[m$
+
+=== none-dark-unicode-60: width 60, profile Ascii, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-dark-unicode-80: width 80, profile Ascii, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-dark-unicode-120: width 120, profile Ascii, dark, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-dark-ascii-60: width 60, profile Ascii, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-dark-ascii-80: width 80, profile Ascii, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-dark-ascii-120: width 120, profile Ascii, dark, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-unicode-60: width 60, profile Ascii, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-unicode-80: width 80, profile Ascii, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-unicode-120: width 120, profile Ascii, light, glyphs unicode
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      ⛛$
+  NotConfigured   ⭘$
+  Partial         ⛬$
+  Unknown         ?$
+  NotApplicable   ∅$
+  Risk            ⛬$
+  Prompt          ❯$
+  Approx          ≈$
+  Bullet          -$
+  Separator       ›$
+  Ellipsis        …$
+  Bar             █$
+  Rule            ─$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-ascii-60: width 60, profile Ascii, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-ascii-80: width 80, profile Ascii, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
+
+=== none-light-ascii-120: width 120, profile Ascii, light, glyphs ascii
+Tokens: the name in its colour, then as a background$
+  text.primary          $
+  text.muted            $
+  text.faint            $
+  status.ok             $
+  status.bad            $
+  status.warn           $
+  status.unknown        $
+  badge.bg              $
+  badge.fg              $
+  bar.bg                $
+  accent.ok             $
+  accent.warn           $
+  divider               $
+$
+Glyphs$
+  Configured      [+]$
+  NotConfigured   [ ]$
+  Partial         [*]$
+  Unknown         [?]$
+  NotApplicable   [-]$
+  Risk            [*]$
+  Prompt          >$
+  Approx          ~$
+  Bullet          -$
+  Separator       >$
+  Ellipsis        ...$
+  Bar             #$
+  Rule            -$
+$
+Typography: the slots that set bold or underline$
+  ␛[1mBadge␛[m$
+  ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.OK.Title␛[m$
+  ␛[1mCallout.Warn.Title␛[m$
+  ␛[1mContextBar.Name␛[m$
+  ␛[1mHeader.Wordmark␛[m$
+  ␛[1mMenu.ExitKey␛[m$
+  ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
+  ␛[1mMenu.Key␛[m$
+  ␛[1mMessage.Bad␛[m$
+  ␛[1mMessage.Cancelled␛[m$
+  ␛[1mMessage.Info␛[m$
+  ␛[1mMessage.OK␛[m$
+  ␛[1mMessage.Warn␛[m$
+  ␛[1mPlan.LockoutRisk␛[m$
+  ␛[1mPrompt.Glyph␛[m$
+  ␛[1mPrompt.Label␛[m$
+  ␛[1mRisk.Label␛[m$
+  ␛[1mSection.Title␛[m$
+  ␛[1mTitleBar.Title␛[m$
