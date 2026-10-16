@@ -252,6 +252,44 @@ func TestEmptyBlocks(t *testing.T) {
 	}
 }
 
+// TestSubMenuFrames checks that the sub-menu layout draws Figma's other
+// sub-menu frames by leaving out the blocks they have no data for:
+// USER-MANAGE_USER-SELECT_USER, a menu of users under its own heading, and
+// USER-MANAGE_USER-MANAGEMENT, a subject line over a menu (origin/main's
+// items there, pkg/menu user_options.go). Plain, at 80 columns.
+func TestSubMenuFrames(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	trail := component.Breadcrumb{Items: []string{"hardn", "User Management", "Manage User"}}
+	head := "hardn  v0.4.0              https://github.com/abbott/hardn\n\n  hardn > User Management > Manage User\n\n"
+	tests := []struct {
+		name string
+		vm   SubMenu
+		want string
+	}{
+		{"USER-MANAGE_USER-SELECT_USER", SubMenu{
+			Header: fixtureHeader(), Breadcrumb: trail, Heading: "Select a user",
+			Menu: component.Menu{Items: []component.MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}},
+				Exit: component.MenuItem{Key: "0", Label: "Return"}},
+			Prompt: fixturePrompt,
+		}, head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+		{"USER-MANAGE_USER-MANAGEMENT", SubMenu{
+			Header: fixtureHeader(), Breadcrumb: trail, Subject: component.SubjectLine{Label: "Managing", Subject: "george"},
+			Heading: fixtureHeading,
+			Menu: component.Menu{Items: []component.MenuItem{
+				{Key: "1", Label: "Sudo Method", Description: "Toggle password requirement"},
+				{Key: "2", Label: "Manage SSH keys", Description: "Add or remove SSH keys"},
+			}, Exit: component.MenuItem{Key: "0", Label: "Return"}},
+			Prompt: fixturePrompt,
+		}, head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
+			"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+	}
+	for _, tt := range tests {
+		if out := ansi.Strip(tt.vm.Render(c)); out != tt.want {
+			t.Errorf("%s:\n%s\nwant\n%s", tt.name, out, tt.want)
+		}
+	}
+}
+
 // TestRunGap checks where the workflow step's gap goes: after the screen
 // before any prompt, whether the flow opens with its review or with a
 // form, and before it once a prompt was asked, as when a menu's action
