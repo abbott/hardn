@@ -534,10 +534,13 @@ func TestLayout(t *testing.T) {
 			"  [i] Info: No\n      automatic\n      backups will\n      be created"},
 		{"message: a word too wide for its line breaks, as the text does", Message{Kind: MessageCancelled, Text: "Stopped"}, 12, false,
 			"  [-] Cancel\n      led:\n      Stoppe\n      d"},
-		{"callout: bar, title and body", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
-		{"callout: no title is the kind's word", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
-		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Done", Body: []string{"aaa bbb ccc"}}, 9, false,
-			"# Done\n# aaa bbb\n# ccc"},
+		{"callout: bar, glyph, title and body", figmaWarning, 80, false, "# [*] Warning\n# Before disabling root SSH login, ensure:"},
+		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ ⊘ Operation Cancelled"},
+		{"callout: a title of its own follows the kind's word", Callout{Kind: MessageBad, Title: " Port 2230 refused "}, 80, true, "█ ✗ Error: Port 2230 refused"},
+		{"callout: a title that is the kind's word is not repeated", Callout{Kind: MessageOK, Title: "Success"}, 80, false, "# [+] Success"},
+		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Success", Body: []string{"aaa bbb ccc ddd"}}, 13, false,
+			"# [+] Success\n# aaa bbb ccc\n# ddd"},
+		{"callout: a long title is cut", Callout{Kind: MessageOK, Title: "Done"}, 9, false, "# [+]..."},
 		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
 			"   1. Username: george"},
 		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
@@ -756,7 +759,7 @@ func TestBlockStyles(t *testing.T) {
 			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
 		}},
 		{"callout", figmaWarning, []part{
-			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
+			{" ", th.Callout.Warn.Bar}, {th.Glyphs.Warn + " Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
 		}},
 		{"field", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, []part{
 			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y or n]:", th.Field.Hint}, {"y", th.Field.Answer},
@@ -812,10 +815,10 @@ func TestValueStates(t *testing.T) {
 }
 
 // TestMessageKinds checks that each kind has its own glyph and word, both
-// in its style, on a Message, and its own bar, title style and title on a
-// Callout; and that without colour, at the ASCII profile and in plain
-// mode, the five kinds' messages still differ. A value outside the kinds
-// is MessageInfo.
+// in its style, on a Message, and its own bar, glyph, title style and
+// title on a Callout; and that without colour, at the ASCII profile and in
+// plain mode, the five kinds' messages, and their callouts given one title
+// of their own, still differ. A value outside the kinds is MessageInfo.
 func TestMessageKinds(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
@@ -842,7 +845,7 @@ func TestMessageKinds(t *testing.T) {
 			}
 		}
 		got = Callout{Kind: tt.kind}.Render(c)
-		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.title); got != want {
+		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.glyph+" "+tt.title); got != want {
 			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
 		}
 		if tt.kind.String() != tt.word {
@@ -866,12 +869,18 @@ func TestMessageKinds(t *testing.T) {
 		term.Fixed(80, colorprofile.ASCII, true, true),
 		term.Fixed(80, colorprofile.NoTTY, false, true),
 	} {
-		shown := map[string]bool{}
+		messages, callouts := map[string]bool{}, map[string]bool{}
 		for k := MessageInfo; k <= MessageCancelled; k++ {
-			shown[Message{Kind: k, Text: "Port 2230 changed"}.Render(NewCtx(env))] = true
+			messages[Message{Kind: k, Text: "Port 2230 changed"}.Render(NewCtx(env))] = true
+			callout := Callout{Kind: k, Title: "Changing the SSH port", Body: []string{"Keep this session open."}}.Render(NewCtx(env))
+			if !strings.Contains(ansi.Strip(callout), k.String()+": Changing the SSH port") {
+				t.Errorf("%v, unicode %v: callout %q, want the kind's word before its title", env.Profile, env.Unicode, callout)
+			}
+			callouts[callout] = true
 		}
-		if len(shown) != 5 {
-			t.Errorf("%v, unicode %v: the five kinds show %d different messages, want 5: %v", env.Profile, env.Unicode, len(shown), shown)
+		if len(messages) != 5 || len(callouts) != 5 {
+			t.Errorf("%v, unicode %v: the five kinds show %d different messages and %d different callouts, want 5: %v %v",
+				env.Profile, env.Unicode, len(messages), len(callouts), messages, callouts)
 		}
 	}
 }

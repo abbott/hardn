@@ -3,241 +3,241 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mchanged.␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mchanged.␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mchanged.␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
 ␛[101m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[101m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
 ␛[41m ␛[m ␛[90msshd -t rejected the new configuration, so nothing was␛[m$
 ␛[41m ␛[m ␛[90mchanged.␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-█ ␛[1mOperation Failed␛[m$
+█ ␛[1m✗ Operation Failed␛[m$
 █ sshd -t rejected the new configuration, so nothing was$
 █ changed.$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-# ␛[1mOperation Failed␛[m$
+# ␛[1m[!] Operation Failed␛[m$
 # sshd -t rejected the new configuration, so nothing was$
 # changed.$

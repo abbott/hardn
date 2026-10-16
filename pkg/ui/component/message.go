@@ -156,29 +156,36 @@ func (vm Message) Render(c Ctx) string {
 
 // Callout is a block that stands out from the screen, as Figma's "Warning"
 // before a lockout-risk change and its "Operation Successful" and
-// "Operation Cancelled" results: an accent bar beside a bold title and the
-// body lines under it. Here with no colour and ASCII glyphs:
+// "Operation Cancelled" results: an accent bar beside the kind's glyph and
+// a bold title, and the body lines under them. Here with no colour and
+// ASCII glyphs:
 //
 //	0 2
-//	# Warning
+//	# [*] Warning
 //	# Before disabling root SSH login, ensure:
 //
 // The bar runs down column 0 beside every line, a space painted in the
 // kind's accent colour (Callout.<Kind>.Bar; D14) or, with no colour,
-// Glyphs.Bar (DEV-015). The title starts at column 2 in the kind's
-// colour, bold, and is cut with the ellipsis glyph when too long; with no
-// title it is the kind's own, Figma's words where Figma draws the kind,
-// so the kind never rests on the bar's colour alone (DEV-032). Each body
-// paragraph starts under the title in Callout.Body and, being prose,
-// wraps at spaces. A list that belongs to the callout, such as Figma's
-// checklist under its warning, is a BulletList after it, as Figma draws
-// it outside the bar.
+// Glyphs.Bar (DEV-015). The title line starts at column 2 with the kind's
+// glyph, as a Message has it, then a space and the title, all bold in the
+// kind's colour (Callout.<Kind>.Title), and is cut with the ellipsis
+// glyph when too long. With no title the kind's own title is shown,
+// Figma's words where Figma draws the kind. A title of the screen's own
+// follows the kind's word (MessageKind.String) and a colon, as in
+// "Warning: Changing the SSH port", unless it is that word or the kind's
+// own title. So whatever the title, the kind has a glyph, a word and a
+// colour, and never rests on the bar's colour alone (DEV-032). Each body
+// paragraph starts at column 2, under the glyph, in Callout.Body and,
+// being prose, wraps at spaces. A list that belongs to the callout, such
+// as Figma's checklist under its warning, is a BulletList after it, as
+// Figma draws it outside the bar.
 type Callout struct {
-	// Kind sets the bar's colour, the title's and its default title; the
-	// zero value is MessageInfo.
+	// Kind sets the glyph, the word, the default title and their colours;
+	// the zero value is MessageInfo.
 	Kind MessageKind
-	// Title heads the callout, such as "Warning". Empty shows the kind's
-	// own.
+	// Title heads the callout, such as "Warning", after the kind's word
+	// unless it is that word or the kind's own title. Empty shows the
+	// kind's own title.
 	Title string
 	// Body holds the paragraphs under the title, in order; empty ones are
 	// skipped.
@@ -190,10 +197,13 @@ func (vm Callout) Render(c Ctx) string {
 	k, w := vm.Kind.callout(c.Theme.Callout), c.width()
 	bar := line{c.paint(k.Bar, 1), gap(1)}
 	title := clean(vm.Title)
-	if title == "" {
+	switch {
+	case title == "":
 		title = vm.Kind.title()
+	case title != vm.Kind.title() && title != vm.Kind.String():
+		title = vm.Kind.String() + ": " + title
 	}
-	out := []string{c.fit(append(bar, span{title, k.Title}), w)}
+	out := []string{c.fit(append(bar, span{vm.Kind.glyph(c.Theme.Glyphs) + " " + title, k.Title}), w)}
 	for _, p := range vm.Body {
 		if p = clean(p); p == "" {
 			continue
