@@ -3,6 +3,7 @@ package testing
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,18 +15,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// isCIEnvironment returns true if running in CI environment
-func isCIEnvironment() bool {
-	// GitHub Actions sets CI=true
-	ciEnv := os.Getenv("CI")
-	return ciEnv == "true" || ciEnv == "1"
+// expectedShortHostname returns what OSHostInfoRepository.GetHostname reports
+// as the host part. GetHostname reads the kernel hostname with os.Hostname
+// (pkg/adapter/secondary/os_host_info_repository.go:208-221), not through the
+// mocked file system or commander, so a fixed value such as "testhost" only
+// matched on a machine with that name. Deriving the expectation from the same
+// source keeps the test independent of the machine without changing
+// production code. Making the hostname injectable is a production change.
+func expectedShortHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		// GetHostname then falls back to the mocked `hostname -f`.
+		return "testhost"
+	}
+	return strings.Split(hostname, ".")[0]
 }
 
 // TestHostInfoService tests the host info service
 func TestHostInfoService(t *testing.T) {
-	// Set hostname for testing to ensure consistent behavior
-	os.Setenv("HOSTNAME", "testhost")
-
 	// Create mock provider
 	mockProvider := interfaces.NewProvider()
 
@@ -112,14 +119,7 @@ MemAvailable:   10768516 kB
 	assert.NotNil(t, hostInfo)
 
 	// Check basic info
-	if !isCIEnvironment() {
-		// Only check hostname in non-CI environments
-		assert.Equal(t, "testhost", hostInfo.Hostname)
-	} else {
-		// In CI, just check that the hostname is not empty and log it
-		t.Logf("Running in CI - hostname: %s (not verifying exact value)", hostInfo.Hostname)
-		assert.NotEmpty(t, hostInfo.Hostname)
-	}
+	assert.Equal(t, expectedShortHostname(), hostInfo.Hostname)
 
 	assert.Equal(t, "Test Linux", hostInfo.OSName)
 	assert.Equal(t, "1.0", hostInfo.OSVersion)
@@ -145,14 +145,7 @@ MemAvailable:   10768516 kB
 	// blank identifier (_) for the domain variable since it's not used
 	assert.NoError(t, err)
 
-	if !isCIEnvironment() {
-		// Only check exact hostname in non-CI environments
-		assert.Equal(t, "testhost", hostname)
-	} else {
-		// In CI, just check that hostname is not empty
-		t.Logf("Running in CI - GetHostname returned: %s (not verifying exact value)", hostname)
-		assert.NotEmpty(t, hostname)
-	}
+	assert.Equal(t, expectedShortHostname(), hostname)
 
 	// Test formatting functions
 	assert.Equal(t, "5 hours, 25 minutes", hostInfoManager.FormatUptime(5*time.Hour+25*time.Minute))
