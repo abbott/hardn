@@ -5,8 +5,9 @@ package theme
 // a non-UTF-8 or CJK locale, HARDN_ASCII, term.Options.ASCII (the future
 // --ascii, §3.14) and plain mode.
 //
-// The status markers sit in the three-cell marker column (MarkerCol,
-// MarkerWidth), so an ASCII marker such as "[+]" fits it exactly.
+// The status markers and a message's kind sit in the three-cell marker
+// column (MarkerCol, MarkerWidth), so an ASCII marker such as "[+]" fits it
+// exactly.
 //
 // East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ ≈ … █ ─.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
@@ -33,10 +34,18 @@ type Glyphs struct {
 	Rule          string // draws a divider or a section header's rule
 	BadgeOpen     string // opens a badge when there is no colour to paint it
 	BadgeClose    string // closes a badge when there is no colour to paint it
+
+	// A one-line message's kind (no Figma value): origin/main's ✓ and ✗,
+	// the warning marker of Partial, ℹ, and a cancel sign (DEV-031).
+	OK        string // an operation that succeeded
+	Warn      string // a warning
+	Bad       string // an operation that failed
+	Info      string // information
+	Cancelled string // an operation the user stopped
 }
 
-// unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015 for the glyphs
-// Figma does not draw, DEV-019 for the badge brackets).
+// unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015 and DEV-031 for
+// the glyphs Figma does not draw, DEV-019 for the badge brackets).
 var unicodeGlyphs = Glyphs{
 	Configured:    "⛛",
 	NotConfigured: "⭘",
@@ -53,9 +62,15 @@ var unicodeGlyphs = Glyphs{
 	Rule:          "─",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
+	OK:            "✓",
+	Warn:          "⛬",
+	Bad:           "✗",
+	Info:          "ℹ",
+	Cancelled:     "⊘",
 }
 
-// asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets).
+// asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets,
+// DEV-031 for the message kinds).
 var asciiGlyphs = Glyphs{
 	Configured:    "[+]",
 	NotConfigured: "[ ]",
@@ -72,4 +87,9 @@ var asciiGlyphs = Glyphs{
 	Rule:          "-",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
+	OK:            "[+]",
+	Warn:          "[*]",
+	Bad:           "[!]",
+	Info:          "[i]",
+	Cancelled:     "[-]",
 }

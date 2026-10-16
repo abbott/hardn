@@ -36,14 +36,13 @@ import (
 // state, grouped by component. Build it with New.
 //
 // Not here yet, because their components come later, by unit:
-//   - next/p1b-blocks: Callout.Bad and Callout.Info, which need accent.bad
-//     and accent.info tokens; a glyph for each Message kind; AnsweredField.
 //   - next/p1b-plan: ErrorReport, the confirm countdown, and the glyphs of
 //     PlanView and StepProgress.
-//   - next/p1c-form: form fields and inline validation errors.
+//   - next/p1c-form: the rest of a form field (its description and inline
+//     validation error) beside Field's answered line.
 //
-// SubjectLine and BulletList compose Text, Badge and KeyValue.Bullet. The
-// cursor has no slot: the terminal draws its own (candidate C8).
+// SubjectLine composes Text.Muted and Badge, and BulletList is KeyValue
+// rows. The cursor has no slot: the terminal draws its own (candidate C8).
 type Theme struct {
 	Glyphs Glyphs
 
@@ -58,6 +57,7 @@ type Theme struct {
 	Mode       ModeStyles
 	Menu       MenuStyles
 	Prompt     PromptStyles
+	Field      FieldStyles
 	Message    MessageStyles
 	Callout    CalloutStyles
 	KeyValue   KeyValueStyles
@@ -156,12 +156,19 @@ type PromptStyles struct {
 	Glyph lipgloss.Style // bold
 	Label lipgloss.Style // bold
 	Hint  lipgloss.Style
-	Input lipgloss.Style // the echoed answer (drift D4)
 }
 
-// MessageStyles style one-line messages: a bold word for the kind, then the
-// text. A kind's style also colours its glyph, which Glyphs gains with the
-// Message component (next/p1b-blocks).
+// FieldStyles style an answered form field: the question and the answer
+// typed to it, such as "1. Username: george".
+type FieldStyles struct {
+	Number lipgloss.Style // "1."
+	Label  lipgloss.Style // the question
+	Hint   lipgloss.Style // the accepted inputs in brackets, and the colon
+	Answer lipgloss.Style // the echoed answer, muted (drift D4)
+}
+
+// MessageStyles style one-line messages: the kind's glyph (Glyphs.OK,
+// Warn, Bad, Info or Cancelled), bold in the kind's colour, then the text.
 type MessageStyles struct {
 	OK        lipgloss.Style
 	Warn      lipgloss.Style
@@ -173,9 +180,14 @@ type MessageStyles struct {
 
 // CalloutStyles style a callout: an accent bar beside a bold title, with
 // body lines under the title, such as "Warning" or "Operation Successful".
+// Figma draws the OK, Warn and Cancelled kinds; Bad and Info take their
+// bars from existing tokens, status.bad and text.muted, so that no new
+// colour enters (DEV-016).
 type CalloutStyles struct {
 	OK        CalloutKind
 	Warn      CalloutKind
+	Bad       CalloutKind
+	Info      CalloutKind
 	Cancelled CalloutKind
 	Body      lipgloss.Style
 }
@@ -187,14 +199,17 @@ type CalloutKind struct {
 }
 
 // KeyValueStyles style key-value rows: "- Sudo  Enabled, No password". A
-// value that carries a state takes ValueOK, ValueWarn or ValueBad.
+// value that carries a state takes the state's style; a plain value takes
+// Value.
 type KeyValueStyles struct {
-	Bullet    lipgloss.Style
-	Key       lipgloss.Style
-	Value     lipgloss.Style
-	ValueOK   lipgloss.Style
-	ValueWarn lipgloss.Style
-	ValueBad  lipgloss.Style
+	Bullet             lipgloss.Style
+	Key                lipgloss.Style
+	Value              lipgloss.Style
+	ValueOK            lipgloss.Style
+	ValueWarn          lipgloss.Style
+	ValueBad           lipgloss.Style
+	ValueUnknown       lipgloss.Style
+	ValueNotApplicable lipgloss.Style
 }
 
 // SectionStyles style a section header: a stub, a title and a rule, such as
@@ -303,7 +318,8 @@ func New(env term.Env) *Theme {
 			Disabled:    faint,
 			Risk:        warn.Bold(true),
 		},
-		Prompt: PromptStyles{Glyph: muted.Bold(true), Label: muted.Bold(true), Hint: muted, Input: muted},
+		Prompt: PromptStyles{Glyph: muted.Bold(true), Label: muted.Bold(true), Hint: muted},
+		Field:  FieldStyles{Number: primary, Label: primary, Hint: primary, Answer: muted},
 		Message: MessageStyles{
 			OK: ok.Bold(true), Warn: warn.Bold(true), Bad: bad.Bold(true),
 			Info: primary.Bold(true), Cancelled: warn.Bold(true), Text: muted,
@@ -311,12 +327,15 @@ func New(env term.Env) *Theme {
 		Callout: CalloutStyles{
 			OK:        CalloutKind{Bar: bg(p.AccentOK), Title: ok.Bold(true)},
 			Warn:      CalloutKind{Bar: bg(p.AccentWarn), Title: warn.Bold(true)},
+			Bad:       CalloutKind{Bar: bg(p.StatusBad), Title: bad.Bold(true)},
+			Info:      CalloutKind{Bar: bg(p.TextMuted), Title: primary.Bold(true)},
 			Cancelled: CalloutKind{Bar: bg(p.AccentWarn), Title: warn.Bold(true)},
 			Body:      muted,
 		},
 		KeyValue: KeyValueStyles{
 			Bullet: muted, Key: primary, Value: muted,
 			ValueOK: ok, ValueWarn: warn, ValueBad: bad,
+			ValueUnknown: unknown, ValueNotApplicable: muted,
 		},
 		Badge:      fg(p.BadgeFG).Background(c(p.BadgeBG)).Bold(true),
 		Section:    SectionStyles{Fill: fill, Title: muted.Bold(true), Rule: fg(p.Divider)},

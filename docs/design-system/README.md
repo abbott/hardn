@@ -178,24 +178,25 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 83 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 92 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
-| `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Message.Info`, `KeyValue.Key`, `Breadcrumb.Current`, `Step.Running` |
-| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Prompt.Input`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
+| `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Field.Number`, `Field.Label`, `Field.Hint`, `Message.Info`, `Callout.Info.Title`, `KeyValue.Key`, `Breadcrumb.Current`, `Step.Running` |
+| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Field.Answer`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `KeyValue.ValueNotApplicable`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
 | `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Message.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
-| `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed` |
+| `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `Callout.Bad.Title`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed` |
 | `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Mode.Live`, `Menu.Risk`, `Message.Warn`, `Message.Cancelled`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack` |
-| `status.unknown` | `ContextBar.Unknown`, `Host.Unknown`, `Risk.Unknown`, `Status.Unknown` |
+| `status.unknown` | `ContextBar.Unknown`, `Host.Unknown`, `Risk.Unknown`, `Status.Unknown`, `KeyValue.ValueUnknown` |
 | `badge.fg`, `badge.bg` | `Badge` |
 | `bar.bg` (background) | `ContextBar.Fill`, `TitleBar.Fill`, `Section.Fill`; the `Header.Version` box above 16 colours only (DEV-005) |
 | `accent.ok` (background) | `Callout.OK.Bar` |
 | `accent.warn` (background) | `Callout.Warn.Bar`, `Callout.Cancelled.Bar` |
+| `status.bad`, `text.muted` (background) | `Callout.Bad.Bar`, `Callout.Info.Bar`: kinds Figma does not draw, from existing tokens (DEV-032) |
 | `divider` | `Divider`, `Section.Rule` |
 
-Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
+Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022; the block group's `Callout.Bad`, `Callout.Info`, `KeyValue.ValueUnknown` and `KeyValue.ValueNotApplicable` are DEV-032 and DEV-034. `Field` styles the answered form field (`next/p1b-blocks`); its answer slot was `Prompt.Input` until then. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
 
 ## 5. Typography
 
@@ -209,9 +210,9 @@ Terminals have one cell size, so the export's type styles map onto bold, underli
 | `type.header.strong` | Bold, 28 px (one-off: wordmark, host badge; the user badge is `type.body.strong`) | bold | `Header.Wordmark`, `Badge` |
 | `type.header` | Regular, 28 px (one-off: version, URL) | normal | `Header.Version`, `Header.URL` |
 | not in the export (seen in the PNGs) | underline on "Select an option" | underline | `Menu.Heading` |
-| no Figma value (DEV-016) | | bold | `Menu.Risk`, `Message.OK`, `Message.Warn`, `Message.Bad`, `Message.Info`, `Message.Cancelled`, `Breadcrumb.Current`, `Plan.LockoutRisk` |
+| no Figma value (DEV-016) | | bold | `Menu.Risk`, `Message.OK`, `Message.Warn`, `Message.Bad`, `Message.Info`, `Message.Cancelled`, `Callout.Bad.Title`, `Callout.Info.Title` (DEV-032), `Breadcrumb.Current`, `Plan.LockoutRisk` |
 
-That is 22 typography roles: 21 bold slots and one underlined. `TestTypography` pins exactly this set in every environment, and the swatch golden shows each one (§8). Letter spacing (0 and −0.5% within one style, drift D2) is dropped (DEV-007). Muted and faint are colours, never SGR 2 (DEV-009, `TestSlotsSetWithoutBannedAttributes`). At the ASCII profile the colours drop and bold and underline stay; at NoTTY the writer strips every escape sequence, attributes included.
+That is 24 typography roles: 23 bold slots and one underlined. `TestTypography` pins exactly this set in every environment, and the swatch golden shows each one (§8). Letter spacing (0 and −0.5% within one style, drift D2) is dropped (DEV-007). Muted and faint are colours, never SGR 2 (DEV-009, `TestSlotsSetWithoutBannedAttributes`). At the ASCII profile the colours drop and bold and underline stay; at NoTTY the writer strips every escape sequence, attributes included.
 
 ## 6. Glyph sets
 
@@ -233,8 +234,13 @@ That is 22 typography roles: 21 bold slots and one underlined. `TestTypography` 
 | `Bar` | █ | U+2588, A | 1 (2) | `#` | 1 | DEV-015 |
 | `Rule` | ─ | U+2500, A | 1 (2) | `-` | 1 | DEV-015 |
 | `BadgeOpen`, `BadgeClose` | `[` `]` | U+005B, U+005D, Na | 1 each | `[` `]` | 1 each | DEV-019: a badge with no colour to paint it |
+| `OK` | ✓ | U+2713, N | 1 | `[+]` | 3 | origin/main's success mark; DEV-031 |
+| `Warn` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma's warning marker (shared with `Partial`); DEV-031 |
+| `Bad` | ✗ | U+2717, N | 1 | `[!]` | 3 | origin/main's failure mark; DEV-031 |
+| `Info` | ℹ | U+2139, N | 1 | `[i]` | 3 | origin/main's information mark; DEV-031 |
+| `Cancelled` | ⊘ | U+2298, N | 1 | `[-]` | 3 | DEV-031 (ASCII shared with `NotApplicable`) |
 
-- The status markers and the risk icon fit the three-cell marker column even when drawn two cells wide (`TestStatusMarkers`), and no two states share a marker.
+- The status markers and the risk icon fit the three-cell marker column even when drawn two cells wide (`TestStatusMarkers`), and no two states share a marker. The same holds for a message's five kinds (`TestMessageMarkers`).
 - `Bar` and `Rule` are drawn in runs, so in an ambiguous-wide terminal a 64-cell rule takes 128 cells and wraps at 80 columns (accepted in DEV-015). `term.Resolve` picks ASCII in zh, ja and ko locales; elsewhere `HARDN_ASCII=1` avoids it.
 - `TestAmbiguousGlyphs` keeps the ambiguous list in the `Glyphs` doc comment in step with the Unicode set; `TestGlyphSetsComplete` checks that the ASCII set is printable ASCII.
 
