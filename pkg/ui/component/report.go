@@ -30,20 +30,24 @@ const checkLog = "Check the log file at %s for details"
 //	      $ systemctl reload ssh
 //	      ...
 //	      Job for ssh.service failed because the control process
-//	      exited with error code.
+//	      | exited with error code.
 //
 //	  [i] Info: Check the log file at /var/log/hardn.log for details
 //	  [i] Info: Run sudo sshd -t to see the error.
 //
 // It is built from the other components (DEV-040). What failed is a
 // Callout of kind MessageBad with its own title, "Operation Failed", and
-// Failed as its body. Each rolled-back change is a StepProgress line in
-// StepRolledBack. The output is code, as a plan's lines are: the command
-// after Glyphs.Command, then the last Tail lines of Output, at
-// theme.LabelCol in Output, muted, never cut but broken after Glyphs.Wrap;
-// a line of Glyphs.Ellipsis first says that earlier lines were left out,
-// and the log holds them all. The log path is origin/main's sentence and
-// the next step a sentence of its own, each a Message of kind MessageInfo.
+// Failed as its body. Each rolled-back change is laid out as a
+// StepProgress line in StepRolledBack, but its name wraps under the word,
+// as a Message's text does, rather than being cut: a report is not
+// redrawn in place, and it names in full every change it undid. A change
+// with no name shows "Unknown", so the report hides none. The output is
+// code, as a plan's lines are: the command after Glyphs.Command, then the
+// last Tail lines of Output, at theme.LabelCol in Output, muted, never
+// cut but broken after Glyphs.Wrap; a line of Glyphs.Ellipsis first says
+// that earlier lines were left out, and the log holds them all. The log
+// path is origin/main's sentence and the next step a sentence of its own,
+// each a Message of kind MessageInfo.
 // Parts with nothing to show are left out, and theme.SectionGap blank
 // lines separate the rest. An ErrorReport always reports a failure, so
 // even the zero value shows the callout.
@@ -52,7 +56,8 @@ type ErrorReport struct {
 	// failed: exit status 1".
 	Failed string
 	// RolledBack names the changes undone after the failure, in the order
-	// they were undone, such as "Set Port 2230".
+	// they were undone, such as "Set Port 2230"; an empty name shows
+	// "Unknown".
 	RolledBack []string
 	// Command is the command whose output Output holds, such as
 	// "systemctl reload ssh"; empty shows none.
@@ -74,12 +79,7 @@ type ErrorReport struct {
 
 // Render renders the report for c. See ErrorReport for the layout.
 func (vm ErrorReport) Render(c Ctx) string {
-	blocks := []string{Callout{Kind: MessageBad, Body: []string{vm.Failed}}.Render(c)}
-	var steps []Step
-	for _, s := range vm.RolledBack {
-		steps = append(steps, Step{Title: s, State: StepRolledBack})
-	}
-	blocks = append(blocks, StepProgress{Steps: steps}.Render(c), vm.output(c))
+	blocks := []string{Callout{Kind: MessageBad, Body: []string{vm.Failed}}.Render(c), vm.rolledBack(c), vm.output(c)}
 	var info []string
 	if p := clean(vm.LogPath); p != "" {
 		info = append(info, Message{Text: fmt.Sprintf(checkLog, p)}.Render(c))
@@ -87,6 +87,22 @@ func (vm ErrorReport) Render(c Ctx) string {
 	info = append(info, Message{Text: vm.Next}.Render(c))
 	blocks = append(blocks, strings.Join(nonEmpty(info), "\n"))
 	return strings.Join(nonEmpty(blocks), strings.Repeat("\n", theme.SectionGap+1))
+}
+
+// rolledBack renders the changes undone, each as a StepProgress line in
+// StepRolledBack whose name wraps under the word.
+func (vm ErrorReport) rolledBack(c Ctx) string {
+	style := StepRolledBack.style(c.Theme.Step)
+	var out []string
+	for _, name := range vm.RolledBack {
+		title, titleStyle := clean(name), c.Theme.Step.Title
+		if title == "" {
+			title, titleStyle = unknown, c.Theme.Status.Unknown
+		}
+		lead := marker(StepRolledBack.glyph(c.Theme.Glyphs, 0, false), style).to(theme.LabelCol)
+		out = append(out, c.worded(lead, StepRolledBack.String()+":", style, title, titleStyle)...)
+	}
+	return strings.Join(out, "\n")
 }
 
 // output renders the command and the tail of its output.

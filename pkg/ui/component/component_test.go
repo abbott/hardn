@@ -338,6 +338,9 @@ var states = []struct {
 		Failed: "Installing apk-cron failed: exit status 1", Command: "apk add apk-cron",
 		Output: installLog(), LogPath: "/var/log/hardn.log",
 	}},
+	{"errorreport/unknown", ErrorReport{
+		Failed: "Reloading ssh.service failed: exit status 1", RolledBack: []string{"Set Port 2230", ""}, LogPath: "/var/log/hardn.log",
+	}},
 	{"errorreport/nothing-rolled-back", ErrorReport{Failed: "Writing /etc/ssh/sshd_config.d/00-hardn.conf failed: read-only file system", LogPath: "/var/log/hardn.log"}},
 	{"errorreport/long", ErrorReport{
 		Failed:     "Rolling back Set Port 2230 failed: sshd -t rejected the restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service still runs the new configuration",

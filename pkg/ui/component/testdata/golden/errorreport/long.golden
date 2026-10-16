@@ -8,7 +8,8 @@
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service still runs the new configuration␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -28,7 +29,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -47,7 +49,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -66,7 +69,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service still runs the new configuration␛[m$
 $
-  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -86,7 +90,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
 $
-  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -105,7 +110,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
 $
-  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
 $
       ␛[38;2;129;134;156m$ sshd -t -f␛[m$
       ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -124,7 +130,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mssh.service still runs the new configuration␛[m$
 $
-   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -144,7 +151,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
 $
-   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -163,7 +171,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
 $
-   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -182,7 +191,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mssh.service still runs the new configuration␛[m$
 $
-  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -202,7 +212,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
 $
-  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -221,7 +232,8 @@ $
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
 $
-  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
 $
       ␛[38;2;87;92;110m$ sshd -t -f␛[m$
       ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -240,7 +252,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mssh.service still runs the new configuration␛[m$
 $
-   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -260,7 +273,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
 $
-   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -279,7 +293,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
 $
-   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -298,7 +313,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mssh.service still runs the new configuration␛[m$
 $
-  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -318,7 +334,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
 $
-  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -337,7 +354,8 @@ $
 ␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
 $
-  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
 $
       ␛[38;5;103m$ sshd -t -f␛[m$
       ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -356,7 +374,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mssh.service still runs the new configuration␛[m$
 $
-   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -376,7 +395,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
 $
-   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -395,7 +415,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
 $
-   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -414,7 +435,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mssh.service still runs the new configuration␛[m$
 $
-  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -434,7 +456,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
 $
-  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -453,7 +476,8 @@ $
 ␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
 $
-  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
 $
       ␛[38;5;59m$ sshd -t -f␛[m$
       ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -472,7 +496,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[101m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -492,7 +517,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -511,7 +537,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -530,7 +557,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[101m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -550,7 +578,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -569,7 +598,8 @@ $
 ␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -588,7 +618,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[41m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -608,7 +639,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -627,7 +659,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the back…␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -646,7 +679,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
 ␛[41m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and th...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
@@ -666,7 +700,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -685,7 +720,8 @@ $
 ␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
 ␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
 $
-  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the ba...␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
 $
       ␛[90m$ sshd -t -f␛[m$
       ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
@@ -704,7 +740,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
 █ ssh.service still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
@@ -724,7 +761,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 █ still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the back…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -743,7 +781,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 █ still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the back…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -762,7 +801,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
 # ssh.service still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and th...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
@@ -782,7 +822,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 # still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -801,7 +842,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 # still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -820,7 +862,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
 █ ssh.service still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
@@ -840,7 +883,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 █ still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the back…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -859,7 +903,8 @@ $
 █ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 █ still runs the new configuration$
 $
-   ↺  Rolled back: Allow SSH logins for alice, bob and the back…$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -878,7 +923,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
 # ssh.service still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and th...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
@@ -898,7 +944,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 # still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
@@ -917,7 +964,8 @@ $
 # restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
 # still runs the new configuration$
 $
-  [<] Rolled back: Allow SSH logins for alice, bob and the ba...$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
 $
       $ sshd -t -f$
       | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$

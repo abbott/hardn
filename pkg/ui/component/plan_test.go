@@ -87,6 +87,9 @@ func TestPlanGroupLayout(t *testing.T) {
 		{"report: the tail, an ellipsis before it, a progress line overwritten", ErrorReport{
 			Command: "apt-get install -y ufw", Output: "one\ntwo\r\n10%\r100%\nfour\n\n", Tail: 3,
 		}, 64, false, "# [!] Operation Failed\n\n      $ apt-get install -y ufw\n      ...\n      two\n      100%\n      four"},
+		{"report: a rolled-back name wraps, and an empty one is Unknown", ErrorReport{
+			RolledBack: []string{"Allow SSH logins for alice, bob and the backup replication service", " "},
+		}, 40, false, "# [!] Operation Failed\n\n  [<] Rolled back: Allow SSH logins for\n      alice, bob and the backup\n      replication service\n  [<] Rolled back: Unknown"},
 		{"report: the parts in order", sshFailure, 64, true,
 			"█ ✗ Operation Failed\n█ Reloading ssh.service failed: exit status 1\n\n" +
 				"   ↺  Rolled back: Set Port 2230\n   ↺  Rolled back: Allow 2230/tcp in UFW\n\n" +
@@ -212,6 +215,9 @@ func TestPlanGroupStyles(t *testing.T) {
 			{g.Bad + " Operation Failed", th.Callout.Bad.Title}, {g.RolledBack, th.Step.RolledBack},
 			{g.Command + " systemctl reload ssh", th.Plan.Command}, {g.Wrap + " exited with error code.", th.Output},
 			{"Info:", th.Message.Info}, {"Check the log file at /var/log/hardn.log for details", th.Message.Text},
+		}},
+		{"report: a rolled-back change with no name", ErrorReport{RolledBack: []string{""}}, []part{
+			{g.RolledBack, th.Step.RolledBack}, {"Rolled back:", th.Step.RolledBack}, {unknown, th.Status.Unknown},
 		}},
 		{"countdown", ConfirmCountdown{Remaining: 165}, []part{
 			{g.Warn, th.Confirm.Waiting}, {"Warning:", th.Confirm.Waiting}, {"2:45", th.Confirm.Waiting},
