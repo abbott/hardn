@@ -25,11 +25,19 @@ type Mock struct {
 	Source Source
 	// Screen is a menu screen's layout, a MainMenu or a SubMenu; nil for a
 	// workflow.
-	Screen interface{ Render(component.Ctx) string }
+	Screen MenuScreen
 	// Sequences are a workflow's paths, such as the normal path, the
 	// dry-run path, which stops at the plan, and the failure path, which
 	// shows what was rolled back.
 	Sequences []Sequence
+}
+
+// MenuScreen is a menu screen's layout, a MainMenu or a SubMenu: Render
+// draws it, and Screen returns what nav.Run draws for it, its menu's
+// options bound to their actions.
+type MenuScreen interface {
+	Render(c component.Ctx) string
+	Screen(c component.Ctx, m nav.Menu) nav.Screen
 }
 
 // Source says where a mock's design comes from (refactor plan, the
