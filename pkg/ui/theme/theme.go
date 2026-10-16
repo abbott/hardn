@@ -35,14 +35,14 @@ import (
 // Theme holds the glyph set and a named style for every component and
 // state, grouped by component. Build it with New.
 //
-// Not here yet, because their components come later, by unit:
-//   - next/p1b-plan: ErrorReport, the confirm countdown, and the glyphs of
-//     PlanView and StepProgress.
-//   - next/p1c-form: the rest of a form field (its description and inline
-//     validation error) beside Field's answered line.
+// Not here yet, because its component comes later: the rest of a form
+// field (its description and inline validation error) beside Field's
+// answered line, in next/p1c-form.
 //
 // SubjectLine composes Text.Muted and Badge, and BulletList is KeyValue
-// rows. The cursor has no slot: the terminal draws its own (candidate C8).
+// rows. ErrorReport composes a bad Callout, StepProgress rows, Plan.Command,
+// Output and Messages. The cursor has no slot: the terminal draws its own
+// (candidate C8).
 type Theme struct {
 	Glyphs Glyphs
 
@@ -66,6 +66,8 @@ type Theme struct {
 	Breadcrumb BreadcrumbStyles
 	Plan       PlanStyles
 	Step       StepStyles
+	Output     lipgloss.Style // captured command output in an error report
+	Confirm    ConfirmStyles
 }
 
 // TextStyles are the plain text roles, for runs no component names, such
@@ -227,21 +229,40 @@ type BreadcrumbStyles struct {
 	Separator lipgloss.Style
 }
 
-// PlanStyles style the lines of a PlanView.
+// PlanStyles style a PlanView: each change's title, target and commands,
+// and the lines of its diff.
 type PlanStyles struct {
+	Title       lipgloss.Style // what the change does
+	Target      lipgloss.Style // the file or service it changes
 	Added       lipgloss.Style
 	Removed     lipgloss.Style
-	Context     lipgloss.Style
+	Context     lipgloss.Style // an unchanged line, and a change's bullet
+	Meta        lipgloss.Style // a diff's file and hunk headers and "\ No newline" markers
+	Command     lipgloss.Style // a command the change runs
 	LockoutRisk lipgloss.Style // a change that could lock the user out, bold
 }
 
-// StepStyles style StepProgress, one style per step state.
+// StepStyles style StepProgress: one style per step state, which colours
+// the state's glyph and word, then the step's title and detail.
 type StepStyles struct {
 	Pending    lipgloss.Style
 	Running    lipgloss.Style
 	Done       lipgloss.Style
 	Failed     lipgloss.Style
 	RolledBack lipgloss.Style
+	Skipped    lipgloss.Style
+	Title      lipgloss.Style
+	Detail     lipgloss.Style // such as why a step was skipped
+}
+
+// ConfirmStyles style the confirm-or-revert countdown: the glyph, word
+// and time, bold, while there is time and in the last seconds; the notice;
+// and the command to run from a new session, bold.
+type ConfirmStyles struct {
+	Waiting lipgloss.Style
+	Urgent  lipgloss.Style
+	Text    lipgloss.Style
+	Command lipgloss.Style
 }
 
 // New returns the theme for env: the dark palette when env.Dark is true,
@@ -340,9 +361,19 @@ func New(env term.Env) *Theme {
 		Badge:      fg(p.BadgeFG).Background(c(p.BadgeBG)).Bold(true),
 		Section:    SectionStyles{Fill: fill, Title: muted.Bold(true), Rule: fg(p.Divider)},
 		Breadcrumb: BreadcrumbStyles{Item: muted, Current: primary.Bold(true), Separator: faint},
-		Plan:       PlanStyles{Added: ok, Removed: bad, Context: muted, LockoutRisk: warn.Bold(true)},
+		Plan: PlanStyles{
+			Title: primary, Target: muted,
+			Added: ok, Removed: bad, Context: muted, Meta: faint,
+			Command: muted, LockoutRisk: warn.Bold(true),
+		},
 		Step: StepStyles{
 			Pending: muted, Running: primary, Done: ok, Failed: bad, RolledBack: warn,
+			Skipped: muted, Title: primary, Detail: faint,
+		},
+		Output: muted,
+		Confirm: ConfirmStyles{
+			Waiting: warn.Bold(true), Urgent: bad.Bold(true),
+			Text: primary, Command: primary.Bold(true),
 		},
 	}
 }
