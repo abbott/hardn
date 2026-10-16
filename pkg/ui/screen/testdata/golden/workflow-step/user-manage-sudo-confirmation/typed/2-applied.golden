@@ -1,0 +1,24 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+$
+  [+] Done: Require george's password for sudo$
+  [+] Done: Check the sudo configuration$
+$
+# [+] Operation Successful$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$

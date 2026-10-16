@@ -118,11 +118,14 @@ const (
 // sudoPlan is what requiring george's password for sudo plans, two steps:
 // the drop-in's rule, the file checked alone with visudo -cf, then the
 // whole sudo configuration checked with visudo -c, so that the failure
-// path has a step to roll back. Illustrative, as sudoersFile is.
-func sudoPlan() flow.Plan {
+// path has a step to roll back. Illustrative, as sudoersFile is. With
+// lockout set, the rule is marked a lockout risk, so that the flow asks a
+// typed confirmation, as P-10 proposes for sudo-method changes.
+func sudoPlan(lockout bool) flow.Plan {
 	return flow.Plan{View: component.PlanView{Changes: []component.PlanChange{{
-		Title:  "Require george's password for sudo",
-		Target: sudoersFile,
+		Title:       "Require george's password for sudo",
+		Target:      sudoersFile,
+		LockoutRisk: lockout,
 		Diff: diff.Unified(sudoersFile, sudoersFile,
 			"george ALL=(ALL:ALL) NOPASSWD: ALL\n", "george ALL=(ALL:ALL) ALL\n"),
 		Commands: []string{"visudo -cf " + sudoersFile},
@@ -135,7 +138,7 @@ func sudoPlan() flow.Plan {
 // sudoFails fails sudoPlan's check, so that the drop-in's change is
 // rolled back.
 func sudoFails() flow.Fixture {
-	return flow.Fixture{Planned: sudoPlan(), FailAt: 2, Detail: "exit status 1", Failure: flow.Failure{
+	return flow.Fixture{Planned: sudoPlan(false), FailAt: 2, Detail: "exit status 1", Failure: flow.Failure{
 		Err:     errors.New("Checking the sudo configuration failed: exit status 1"),
 		Command: "visudo -c",
 		LogPath: "/var/log/hardn.log",
@@ -153,11 +156,12 @@ func sudoFails() flow.Fixture {
 // for sudo?", as a y/N question, as Figma does (P-10 proposes a typed
 // confirmation for sudo-method changes).
 func ManageSudoFixture() (WorkflowStep, flow.Flow) {
-	return manageSudo(flow.Fixture{Planned: sudoPlan()}, false)
+	return manageSudo(flow.Fixture{Planned: sudoPlan(false)}, false)
 }
 
 // manageSudo is ManageSudoFixture on engine e, in dry-run mode when
-// dryRun is set.
+// dryRun is set. For a plan with lockout risk the flow asks a typed
+// confirmation of the hostname under Figma's question (typedHostname).
 func manageSudo(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
 	step := WorkflowStep{
 		Header:     fixtureHeader(),
@@ -176,7 +180,7 @@ func manageSudo(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
 			}
 		},
 		Engine:  e,
-		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Require password for sudo?"} },
+		Confirm: typedHostname("Require password for sudo?"),
 		DryRun:  dryRun,
 	}
 	return step, f

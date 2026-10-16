@@ -152,11 +152,13 @@ func Mocks() []Mock {
 		{Name: "workflow-step/user-manage-sudo-confirmation", Source: figma("USER-MANAGE_SUDO-CONFIRMATION", unreleased+
 			" It asks \"Require password for sudo? (y/n)\" only when moving to a password, and changes the other "+
 			"way with no confirmation.",
-			"A y/N question, as Figma asks; P-10 proposes a typed confirmation for sudo-method changes."),
+			"A y/N question, as Figma asks; the typed sequence confirms by typing the hostname, as P-10 proposes "+
+				"for sudo-method changes, pending P-10."),
 			Sequences: []Sequence{
-				{Name: "normal", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan()}, false), Answers: confirm("y"), Ends: flow.Applied},
-				{Name: "dry-run", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan()}, true), Ends: flow.Planned},
+				{Name: "normal", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan(false)}, false), Answers: confirm("y"), Ends: flow.Applied},
+				{Name: "dry-run", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan(false)}, true), Ends: flow.Planned},
 				{Name: "failure", Build: on(manageSudo, sudoFails(), false), Answers: confirm("y"), Ends: flow.Failed},
+				{Name: "typed", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan(true)}, false), Answers: confirm(hostname), Ends: flow.Applied},
 			}},
 	}
 }
