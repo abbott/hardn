@@ -53,7 +53,10 @@ const (
 	CapContent = true
 	// StackBelow is the terminal width, in columns, below which a
 	// two-column row stacks: the label on one line and the value under it.
-	StackBelow = 70
+	// It is ContentWidth, within the brief's "below about 70 columns": from
+	// that width up, CapContent gives the same 64-cell content box as at 80
+	// columns, so a row that fits side by side there fits here (DEV-021).
+	StackBelow = ContentWidth
 	// BarsFillContent makes bars (the context bar, title bars and section
 	// rules) fill ContentWidth rather than the whole terminal.
 	BarsFillContent = true
