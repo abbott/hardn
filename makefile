@@ -350,13 +350,17 @@ verify-release-full:
 #   make check-<step>   run one step: check-tools, check-mod-verify, check-tidy,
 #                       check-build, check-vet, check-test, check-lint,
 #                       check-vuln, check-cross
+#   make golden-update  rewrite the pkg/ui golden files after an intended
+#                       change (pkg/ui/uitest's -update). Not part of check:
+#                       check-test compares against the committed files.
 #
 # Nothing here executes the hardn binary: main() writes under /var/log and /etc
 # before it parses flags. check-build discards its output and check-cross builds
 # into a temporary directory, so nothing touches $(BUILD_DIR). Container and VM
 # tests are the separate it-containers and it-vm targets.
 #
-# Environment, set for the check targets only (other targets are unchanged):
+# Environment, set for the check targets and golden-update only (other
+# targets are unchanged):
 #   GOTOOLCHAIN=local       use the Go on PATH; never download a toolchain.
 #   GOWORK=off              ignore any go.work in a parent directory.
 #   GOFLAGS=$(CHECK_GOFLAGS)  default -mod=readonly. The committed vendor/ is
@@ -457,6 +461,25 @@ check-cross:
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
 			go build -trimpath -tags=netgo -o "$$out/hardn-$$os-$$arch" ./cmd/hardn || exit 1; \
 	done
+
+# golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
+# under pkg/ui from the current render; review the diff and give its reason in
+# the review description. pkg/ui/uitest defines -update, and a test binary
+# that does not link uitest fails on the unknown flag, so -update goes only to
+# uitest and to the packages whose tests import it.
+UITEST_PKG = github.com/abbott/hardn/pkg/ui/uitest
+
+.PHONY: golden-update
+golden-update: export GOTOOLCHAIN = local
+golden-update: export GOWORK = off
+golden-update: export GOFLAGS = $(CHECK_GOFLAGS)
+golden-update:
+	@echo "==> $@"
+	@list=$$(go list -f '{{.ImportPath}} {{join .TestImports " "}} {{join .XTestImports " "}}' ./pkg/ui/...) || exit 1; \
+	pkgs=$$(printf '%s\n' "$$list" | awk '{ for (i = 1; i <= NF; i++) if ($$i == "$(UITEST_PKG)") { print $$1; next } }'); \
+	[ -n "$$pkgs" ] || { echo "$@: no package under pkg/ui uses $(UITEST_PKG)" >&2; exit 1; }; \
+	echo go test $$pkgs -update; \
+	go test $$pkgs -update
 
 # Container and VM integration tests need a disposable host and never run on a
 # development machine. Placeholders until those suites exist.
