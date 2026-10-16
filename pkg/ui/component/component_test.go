@@ -128,7 +128,49 @@ var (
 		Before: "inactive", After: "active\ndeny (incoming), allow (outgoing)",
 		Commands: []string{"ufw allow 2230/tcp", "ufw --force enable"},
 	}
+	// stepTitles are the steps of the SSH port change, as it applies.
+	stepTitles = []string{"Allow 2230/tcp in UFW", "Set Port 2230", "Reload ssh.service", "Remove the rule for port 22"}
+	// sshOutput is what a failed reload of ssh.service writes.
+	sshOutput = "Job for ssh.service failed because the control process exited with error code.\n" +
+		"See \"systemctl status ssh.service\" and \"journalctl -xeu ssh.service\" for details.\n"
+	sshFailure = ErrorReport{
+		Failed:     "Reloading ssh.service failed: exit status 1",
+		RolledBack: []string{"Set Port 2230", "Allow 2230/tcp in UFW"},
+		Command:    "systemctl reload ssh", Output: sshOutput,
+		LogPath: "/var/log/hardn.log", Next: "Run sudo sshd -t to see what sshd rejected.",
+	}
 )
+
+// steps returns stepTitles in the given states, in order.
+func steps(states ...StepState) []Step {
+	out := make([]Step, len(states))
+	for i, st := range states {
+		out[i] = Step{Title: stepTitles[i], State: st}
+	}
+	return out
+}
+
+// animated renders its view-model on a terminal that can animate: TestGolden
+// sets Env.Animate in every cell, and Render sets it for other tests.
+type animated struct{ vm renderer }
+
+// Render renders a.vm with Env.Animate set.
+func (a animated) Render(c Ctx) string {
+	c.Env.Animate = true
+	return a.vm.Render(c)
+}
+
+// installLog is the output of a package install: 14 lines, one of them a
+// progress line overwritten with carriage returns.
+func installLog() string {
+	var b strings.Builder
+	for i := 1; i <= 12; i++ {
+		fmt.Fprintf(&b, "Get:%d http://deb.example.net/debian trixie/main amd64 package-%d [1024 B]\n", i, i)
+	}
+	b.WriteString("Progress: 10%\rProgress: 60%\rProgress: 100%\r\n")
+	b.WriteString("E: Sub-process /usr/bin/dpkg returned an error code (1)\n")
+	return b.String()
+}
 
 // withItem returns m with item i replaced by it.
 func withItem(m Menu, i int, it MenuItem) Menu {
@@ -277,6 +319,39 @@ var states = []struct {
 	}}}},
 	{"planview/unknown", PlanView{Changes: []PlanChange{{Target: "ssh.service", Commands: []string{"systemctl reload ssh"}}}}},
 	{"planview/empty", PlanView{DryRun: true}},
+	{"stepprogress/apply", StepProgress{Steps: steps(StepDone, StepDone, StepRunning, StepPending)}},
+	{"stepprogress/animated", animated{StepProgress{Steps: steps(StepDone, StepDone, StepRunning, StepPending), Frame: 3}}},
+	{"stepprogress/failed", StepProgress{Steps: append(steps(StepRolledBack, StepRolledBack),
+		Step{Title: stepTitles[2], State: StepFailed, Detail: "exit status 1"},
+		Step{Title: stepTitles[3], State: StepSkipped, Detail: "not run after the failure"})}},
+	{"stepprogress/skipped", StepProgress{Steps: []Step{
+		{Title: "Allow 2230/tcp in UFW", State: StepSkipped, Detail: "already allowed"},
+		{Title: "Install apk-cron", State: StepDone},
+	}}},
+	{"stepprogress/long", StepProgress{Steps: []Step{
+		{Title: "Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf", State: StepFailed, Detail: "sshd -t: Bad configuration option: Portt"},
+	}}},
+	{"stepprogress/empty", StepProgress{Steps: []Step{{State: StepDone}}}},
+	{"errorreport/normal", sshFailure},
+	{"errorreport/tail", ErrorReport{
+		Failed: "Installing apk-cron failed: exit status 1", Command: "apk add apk-cron",
+		Output: installLog(), LogPath: "/var/log/hardn.log",
+	}},
+	{"errorreport/nothing-rolled-back", ErrorReport{Failed: "Writing /etc/ssh/sshd_config.d/00-hardn.conf failed: read-only file system", LogPath: "/var/log/hardn.log"}},
+	{"errorreport/long", ErrorReport{
+		Failed:     "Rolling back Set Port 2230 failed: sshd -t rejected the restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service still runs the new configuration",
+		RolledBack: []string{"Allow SSH logins for alice, bob and the backup replication service"},
+		Command:    "sshd -t -f /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016",
+		Output:     "/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016: line 3: Bad configuration option: AllowUsersForReplication",
+		LogPath:    "/var/log/hardn.log",
+		Next:       "Restore /etc/ssh/sshd_config.d/00-hardn.conf from /var/backups/hardn before you close this session.",
+	}},
+	{"errorreport/empty", ErrorReport{}},
+	{"confirmcountdown/waiting", ConfirmCountdown{Remaining: 165}},
+	{"confirmcountdown/port", ConfirmCountdown{Remaining: 180, Port: 2230}},
+	{"confirmcountdown/urgent", ConfirmCountdown{Remaining: 25, Port: 2230}},
+	{"confirmcountdown/zero", ConfirmCountdown{Remaining: -3}},
+	{"confirmcountdown/command", ConfirmCountdown{Remaining: 3600, Command: "sudo /usr/local/bin/hardn confirm --config /etc/hardn/web-01.example.net.yml"}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -300,7 +375,13 @@ func maxWidth(vm renderer, w int) int {
 func TestGolden(t *testing.T) {
 	for _, s := range states {
 		t.Run(s.name, func(t *testing.T) {
-			uitest.Golden(t, s.name, uitest.Full(), func(env term.Env) string {
+			cells := uitest.Full()
+			if _, ok := s.vm.(animated); ok {
+				for i := range cells {
+					cells[i].Env.Animate = true
+				}
+			}
+			uitest.Golden(t, s.name, cells, func(env term.Env) string {
 				return s.vm.Render(NewCtx(env))
 			})
 		})
@@ -334,6 +415,13 @@ func empty(vm renderer) bool {
 		return v.Label == ""
 	case PlanView:
 		return len(v.Changes) == 0
+	case StepProgress:
+		for _, st := range v.Steps {
+			if st.Title != "" {
+				return false
+			}
+		}
+		return true
 	}
 	return false
 }

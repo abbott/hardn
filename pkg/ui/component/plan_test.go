@@ -14,7 +14,8 @@ import (
 )
 
 // TestPlanGroupLayout checks the plan group on plain text at the ASCII
-// profile: PlanView's lines and the code wrap.
+// profile: PlanView's lines, the code wrap, StepProgress's rows and
+// spinner, ErrorReport's tail and ConfirmCountdown's clock and urgency.
 // The widths are at most theme.ContentWidth, where no §3.15 rule changes
 // the result.
 func TestPlanGroupLayout(t *testing.T) {
@@ -42,6 +43,34 @@ func TestPlanGroupLayout(t *testing.T) {
 		{"plan: code keeps its quotes and indent", PlanView{Changes: []PlanChange{{Title: "Echo", Commands: []string{"echo ‘hi’ \x1b[1mbold\x1b[m"}}}}, 64, true,
 			"   -  Echo\n      $ echo ‘hi’ bold"},
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},
+		{"steps: one line each, the spinner still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
+			"   ✓  Done: Allow 2230/tcp in UFW\n   ▸  Running: Set Port 2230\n   ◦  Pending: Reload ssh.service"},
+		{"steps: animated, the frame wraps", animated{StepProgress{Steps: steps(StepRunning), Frame: 13}}, 64, false,
+			"   /  Running: Allow 2230/tcp in UFW"},
+		{"steps: a negative frame", animated{StepProgress{Steps: steps(StepRunning), Frame: -1}}, 64, true,
+			"   ⠏  Running: Allow 2230/tcp in UFW"},
+		{"steps: a detail in parentheses, a step with no title skipped", StepProgress{Steps: []Step{
+			{State: StepDone}, {Title: "Install apk-cron", State: StepSkipped, Detail: "already installed"},
+		}}, 64, false, "  [-] Skipped: Install apk-cron (already installed)"},
+		{"steps: a long step is cut", StepProgress{Steps: []Step{{Title: "Set Port 2230 in " + dropIn, State: StepFailed}}}, 40, false,
+			"  [!] Failed: Set Port 2230 in /etc/s..."},
+		{"report: the tail, an ellipsis before it, a progress line overwritten", ErrorReport{
+			Command: "apt-get install -y ufw", Output: "one\ntwo\r\n10%\r100%\nfour\n\n", Tail: 3,
+		}, 64, false, "# [!] Operation Failed\n\n      $ apt-get install -y ufw\n      ...\n      two\n      100%\n      four"},
+		{"report: the parts in order", sshFailure, 64, true,
+			"█ ✗ Operation Failed\n█ Reloading ssh.service failed: exit status 1\n\n" +
+				"   ↺  Rolled back: Set Port 2230\n   ↺  Rolled back: Allow 2230/tcp in UFW\n\n" +
+				"      $ systemctl reload ssh\n      Job for ssh.service failed because the control process\n      ↪exited with error code.\n" +
+				"      See \"systemctl status ssh.service\" and \"journalctl -xeu\n      ↪ssh.service\" for details.\n\n" +
+				"   ℹ  Info: Check the log file at /var/log/hardn.log for details\n   ℹ  Info: Run sudo sshd -t to see what sshd rejected."},
+		{"countdown: waiting at UrgentBelow", ConfirmCountdown{Remaining: UrgentBelow}, 64, false,
+			"  [*] Warning: This change reverts automatically in 0:30\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+		{"countdown: urgent below it, on the new port", ConfirmCountdown{Remaining: UrgentBelow - 1, Port: 2230}, 64, true,
+			"   !  Urgent: This change reverts automatically in 0:29\n      To keep it, open a new SSH session on port 2230 and run:\n      sudo hardn confirm"},
+		{"countdown: minutes and seconds", ConfirmCountdown{Remaining: 61, Command: " sudo hardn confirm \n"}, 64, false,
+			"  [*] Warning: This change reverts automatically in 1:01\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+		{"countdown: the clock stays whole", ConfirmCountdown{Remaining: 600}, 24, false,
+			"  [*] Warning: This\n      change reverts\n      automatically in\n      10:00\n      To keep it, open a\n      new SSH session\n      and run:\n      sudo hardn confirm"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -93,8 +122,8 @@ func TestCodeKeepsText(t *testing.T) {
 }
 
 // TestPlanGroupStyles checks that each part of the plan group takes its
-// slot, and that a lockout-risk change shows a glyph and a word as well as
-// a colour.
+// slot, and that a lockout-risk change, each step state and the
+// countdown's urgency show a glyph and a word as well as a colour.
 func TestPlanGroupStyles(t *testing.T) {
 	c := NewCtx(term.Fixed(theme.ContentWidth, colorprofile.TrueColor, true, true))
 	th, g := c.Theme, c.Theme.Glyphs
@@ -116,6 +145,21 @@ func TestPlanGroupStyles(t *testing.T) {
 		{"plan: a change with no title", PlanView{Changes: []PlanChange{{Target: "ufw"}}}, []part{
 			{g.Bullet, th.Plan.Context}, {unknown, th.Status.Unknown},
 		}},
+		{"steps", StepProgress{Steps: []Step{{Title: "Reload ssh.service", State: StepFailed, Detail: "exit status 1"}}}, []part{
+			{g.Bad, th.Step.Failed}, {"Failed:", th.Step.Failed}, {"Reload ssh.service", th.Step.Title}, {"(exit status 1)", th.Step.Detail},
+		}},
+		{"report", sshFailure, []part{
+			{g.Bad + " Operation Failed", th.Callout.Bad.Title}, {g.RolledBack, th.Step.RolledBack},
+			{g.Command + " systemctl reload ssh", th.Plan.Command}, {g.Wrap + "exited with error code.", th.Output},
+			{"Info:", th.Message.Info}, {"Check the log file at /var/log/hardn.log for details", th.Message.Text},
+		}},
+		{"countdown", ConfirmCountdown{Remaining: 165}, []part{
+			{g.Warn, th.Confirm.Waiting}, {"Warning:", th.Confirm.Waiting}, {"2:45", th.Confirm.Waiting},
+			{" " + confirmReverts + " ", th.Confirm.Text}, {confirmKeep, th.Confirm.Text}, {confirmCommand, th.Confirm.Command},
+		}},
+		{"countdown: urgent", ConfirmCountdown{Remaining: 5}, []part{
+			{g.Urgent, th.Confirm.Urgent}, {"Urgent:", th.Confirm.Urgent}, {"0:05", th.Confirm.Urgent},
+		}},
 	}
 	for _, tt := range tests {
 		got := tt.vm.Render(c)
@@ -123,6 +167,57 @@ func TestPlanGroupStyles(t *testing.T) {
 			if !strings.Contains(got, want.style.Render(want.text)) {
 				t.Errorf("%s: got %q, want it to hold %q in its style", tt.name, got, want.text)
 			}
+		}
+	}
+}
+
+// TestStepStates checks that each step state shows its own glyph and
+// word, both in the state's style, that no two states share either, and
+// that without colour, at the ASCII profile and in plain mode, the six
+// still differ. A value outside the states is StepPending.
+func TestStepStates(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	st, g := c.Theme.Step, c.Theme.Glyphs
+	tests := []struct {
+		state       StepState
+		glyph, word string
+		style       lipgloss.Style
+	}{
+		{StepPending, g.Pending, "Pending", st.Pending},
+		{StepRunning, g.Running, "Running", st.Running},
+		{StepDone, g.OK, "Done", st.Done},
+		{StepFailed, g.Bad, "Failed", st.Failed},
+		{StepRolledBack, g.RolledBack, "Rolled back", st.RolledBack},
+		{StepSkipped, g.Skipped, "Skipped", st.Skipped},
+		{StepState(-1), g.Pending, "Pending", st.Pending},
+	}
+	glyphs, words := map[string]bool{}, map[string]bool{}
+	for _, tt := range tests {
+		got := StepProgress{Steps: []Step{{Title: "Set Port 2230", State: tt.state}}}.Render(c)
+		for _, want := range []string{tt.style.Render(tt.glyph), tt.style.Render(tt.word + ":")} {
+			if !strings.Contains(got, want) {
+				t.Errorf("state %d: got %q, want it to hold %q", tt.state, got, want)
+			}
+		}
+		if tt.state.String() != tt.word {
+			t.Errorf("state %d: String() = %q, want %q", tt.state, tt.state.String(), tt.word)
+		}
+		glyphs[tt.glyph], words[tt.word] = true, true
+	}
+	if len(glyphs) != 6 || len(words) != 6 {
+		t.Errorf("the six states show %d glyphs and %d words, want 6 of each", len(glyphs), len(words))
+	}
+	for _, env := range []term.Env{
+		term.Fixed(80, colorprofile.ASCII, true, true),
+		term.Fixed(80, colorprofile.ASCII, false, true),
+		term.Fixed(80, colorprofile.NoTTY, false, true),
+	} {
+		shown := map[string]bool{}
+		for s := StepPending; s <= StepSkipped; s++ {
+			shown[StepProgress{Steps: []Step{{Title: "x", State: s}}}.Render(NewCtx(env))] = true
+		}
+		if len(shown) != 6 {
+			t.Errorf("%v, unicode %v: the six states render %d ways, want 6", env.Profile, env.Unicode, len(shown))
 		}
 	}
 }
