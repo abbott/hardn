@@ -107,6 +107,7 @@ const (
 	dropIn      = "/etc/ssh/sshd_config.d/00-hardn.conf"
 	resolv      = "/etc/resolv.conf"
 	sudoersFile = "/etc/sudoers.d/hardn-alice"
+	ufwRules    = "/etc/ufw/user.rules"
 )
 
 var (

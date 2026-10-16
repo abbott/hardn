@@ -28,7 +28,8 @@ type PlanChange struct {
 	// Phase 3's LockoutRisk): an SSH or firewall change.
 	LockoutRisk bool
 	// Diff is the change to a file, as a unified diff such as
-	// diff.Unified writes; empty shows none.
+	// diff.Unified writes; empty shows none. A diff of several files
+	// shows the "---" and "+++" headers of each but the target.
 	Diff string
 	// Before and After are a service's or setting's state before and after
 	// the change, such as "inactive" and "active", for a change with no
@@ -66,8 +67,10 @@ type PlanChange struct {
 // commands after Glyphs.Command, all at theme.LabelCol. A diff's lines
 // keep their "+", "-" or space, so they never rest on colour alone, and
 // take Plan.Added, Plan.Removed, Plan.Context or, for its headers and
-// markers, Plan.Meta; its "---" and "+++" file headers are left out when
-// one of them names the target, which the target line already shows.
+// markers, Plan.Meta. A file's "---" and "+++" headers are left out when
+// one of the two names the target, which the target line already shows;
+// those of any other file in the diff are kept, so that its hunks never
+// read as the target's.
 // These lines are code: shown as they are, never cut, broken where the
 // line ends, the rest after Glyphs.Wrap (DEV-038). Long plans are
 // rendered in full; the screen decides paging.
@@ -129,18 +132,16 @@ func (ch PlanChange) render(c Ctx) string {
 		diff.Context: t.Context, diff.Removed: t.Removed, diff.Added: t.Added,
 	}
 	lines := diff.Classify(ch.Diff)
-	// named reports whether the target line already names the file of
-	// the diff's "---" and "+++" headers: one of them names the target.
-	named := false
-	for _, l := range lines {
-		if f, ok := fileHeader(l); ok && strings.Trim(raw(f), " ") == target && target != "" {
-			named = true
+	for i := 0; i < len(lines); i++ {
+		if target != "" && i+1 < len(lines) {
+			old, isOld := fileHeader(lines[i], "--- ")
+			now, isNew := fileHeader(lines[i+1], "+++ ")
+			if isOld && isNew && (old == target || now == target) {
+				i++
+				continue
+			}
 		}
-	}
-	for _, l := range lines {
-		if _, ok := fileHeader(l); ok && named {
-			continue
-		}
+		l := lines[i]
 		style, ok := kinds[l.Kind]
 		if !ok {
 			style = t.Meta
@@ -164,17 +165,14 @@ func (ch PlanChange) render(c Ctx) string {
 	return strings.Join(out, "\n")
 }
 
-// fileHeader returns the file a diff's "---" or "+++" header names, up to
-// any tab and timestamp after it; ok is false for any other line.
-func fileHeader(l diff.Line) (file string, ok bool) {
-	if l.Kind != diff.Header {
+// fileHeader returns the file a diff's file header l names after prefix,
+// "--- " or "+++ ", up to any tab and timestamp after it, as code so that
+// it compares with a target; ok is false for any other line.
+func fileHeader(l diff.Line, prefix string) (file string, ok bool) {
+	f, ok := strings.CutPrefix(l.Text, prefix)
+	if l.Kind != diff.Header || !ok {
 		return "", false
 	}
-	for _, p := range []string{"--- ", "+++ "} {
-		if f, found := strings.CutPrefix(l.Text, p); found {
-			f, _, _ = strings.Cut(f, "\t")
-			return f, true
-		}
-	}
-	return "", false
+	f, _, _ = strings.Cut(f, "\t")
+	return strings.Trim(raw(f), " "), true
 }
