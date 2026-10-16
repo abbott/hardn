@@ -31,8 +31,9 @@
 //     are measured with lipgloss.Width, never len. Text that does not fit is
 //     cut and ends with theme.Glyphs.Ellipsis. Only prose wraps, at spaces,
 //     under its own first line: a Message's text, a Callout's body and a
-//     bullet item, which have nothing beside them. Quotes in view-model
-//     text are ASCII (C12); components add none.
+//     bullet item, which have nothing beside them. Typographic quotes in
+//     view-model text, ‘ ’ and “ ”, are shown as ASCII ' and " (C12,
+//     DEV-036); components add none.
 //   - Degrading. Colours, glyphs and columns come only from the theme. When
 //     Env.HasColor is false there is no background to paint, so a bar is a
 //     run of Glyphs.Bar (DEV-015, DEV-018) and a badge is bracketed by

@@ -264,16 +264,21 @@ func wrap(s string, limit int) []string {
 
 // clean makes a view-model string one line of plain text: escape sequences
 // are removed, tabs and line breaks become spaces, other control
-// characters and invalid UTF-8 are dropped, and surrounding spaces are
-// trimmed. Text that then measures no cells, such as a lone zero-width
-// space, is empty, so it shows as a missing value. What remains measures
-// as it shows.
+// characters and invalid UTF-8 are dropped, typographic quotes become
+// ASCII ones (C12: ‘ ’ and “ ” are East Asian ambiguous width), and
+// surrounding spaces are trimmed. Text that then measures no cells, such
+// as a lone zero-width space, is empty, so it shows as a missing value.
+// What remains measures as it shows.
 func clean(s string) string {
 	s = ansi.Strip(strings.ToValidUTF8(s, ""))
 	s = strings.Map(func(r rune) rune {
 		switch {
 		case r == '\t' || r == '\n' || r == '\r':
 			return ' '
+		case r == '\u2018' || r == '\u2019':
+			return '\''
+		case r == '\u201C' || r == '\u201D':
+			return '"'
 		case unicode.IsControl(r):
 			return -1
 		}
