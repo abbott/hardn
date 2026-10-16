@@ -251,6 +251,68 @@ func (g gallery) render(s fixture.State, c cell, title string) (string, error) {
 	return header(ctx, title) + gap + s.VM.Render(ctx) + gap, nil
 }
 
+// look holds the flags that pick the render environment and its colours,
+// which every mode of the gallery takes.
+type look struct {
+	theme, profile, override *string
+	ascii                    *bool
+	width, height            *int
+}
+
+// lookFlags defines the look flags on fs.
+func lookFlags(fs *flag.FlagSet) look {
+	return look{
+		theme:    fs.String("theme", "dark", "the palette: dark or light"),
+		profile:  fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain"),
+		ascii:    fs.Bool("ascii", false, "use the ASCII glyph set"),
+		width:    fs.Int("width", term.DefaultWidth, "the terminal width in cells"),
+		height:   fs.Int("height", term.DefaultHeight, "the terminal height in lines"),
+		override: fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)"),
+	}
+}
+
+// cell returns the environment the look flags describe, or the usage
+// error that says why they describe none.
+func (l look) cell() (cell, error) {
+	i := slices.IndexFunc(profiles, func(p profile) bool { return p.name == *l.profile })
+	switch {
+	case i < 0:
+		return cell{}, fmt.Errorf("-profile %q is not truecolor, 256, 16, none or plain", *l.profile)
+	case *l.theme != "dark" && *l.theme != "light":
+		return cell{}, fmt.Errorf("-theme %q is not dark or light", *l.theme)
+	case *l.width < 1:
+		return cell{}, fmt.Errorf("-width %d is not a positive number of cells", *l.width)
+	case *l.height < 1:
+		return cell{}, fmt.Errorf("-height %d is not a positive number of lines", *l.height)
+	}
+	c := newCell(profiles[i], *l.theme == "dark", !*l.ascii, *l.width)
+	c.env.Height = *l.height
+	return c, nil
+}
+
+// gallery returns the gallery with the override file's colours, if the
+// flags name one, once it has checked that the glyphs measure as the
+// components assume. On a failure it writes why to stderr and returns
+// false: the exit status is then exitError.
+func (l look) gallery(stderr io.Writer) (gallery, bool) {
+	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
+	// is true, ambiguous-width glyphs measure two cells and no layout
+	// matches its golden. uitest.Golden makes the same check.
+	if w := ansi.StringWidth("─"); w != 1 {
+		fmt.Fprintf(stderr, "uigallery: x/ansi measures the ambiguous-width ─ as %d cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN\n", w)
+		return gallery{}, false
+	}
+	g := gallery{}
+	if *l.override != "" {
+		var err error
+		if g.colours, err = readOverride(*l.override); err != nil {
+			fmt.Fprintf(stderr, "uigallery: %v\n", err)
+			return gallery{}, false
+		}
+	}
+	return g, true
+}
+
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status.
 func run(args []string, stdout, stderr io.Writer) int {
@@ -261,14 +323,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
-	themeName := fs.String("theme", "dark", "the palette: dark or light")
-	profileName := fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain")
-	ascii := fs.Bool("ascii", false, "use the ASCII glyph set")
-	width := fs.Int("width", term.DefaultWidth, "the terminal width in cells")
-	height := fs.Int("height", term.DefaultHeight, "the terminal height in lines")
+	look := lookFlags(fs)
 	screens := fs.Bool("screens", false, "render the screen mocks, in place of the component states")
 	inMatrix := fs.Bool("matrix", false, "render each state in every cell of the golden matrix and plain mode, in place of -theme, -profile, -ascii, -width and -height")
-	overridePath := fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return exitOK
@@ -319,35 +376,16 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		cells = matrix()
 	} else {
-		i := slices.IndexFunc(profiles, func(p profile) bool { return p.name == *profileName })
-		switch {
-		case i < 0:
-			return usage("-profile %q is not truecolor, 256, 16, none or plain", *profileName)
-		case *themeName != "dark" && *themeName != "light":
-			return usage("-theme %q is not dark or light", *themeName)
-		case *width < 1:
-			return usage("-width %d is not a positive number of cells", *width)
-		case *height < 1:
-			return usage("-height %d is not a positive number of lines", *height)
+		c, err := look.cell()
+		if err != nil {
+			return usage("%v", err)
 		}
-		cells = []cell{newCell(profiles[i], *themeName == "dark", !*ascii, *width)}
-		cells[0].env.Height = *height
+		cells = []cell{c}
 	}
 
-	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
-	// is true, ambiguous-width glyphs measure two cells and no layout
-	// matches its golden. uitest.Golden makes the same check.
-	if w := ansi.StringWidth("─"); w != 1 {
-		fmt.Fprintf(stderr, "uigallery: x/ansi measures the ambiguous-width ─ as %d cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN\n", w)
+	g, ok := look.gallery(stderr)
+	if !ok {
 		return exitError
-	}
-
-	g := gallery{}
-	if *overridePath != "" {
-		if g.colours, err = readOverride(*overridePath); err != nil {
-			fmt.Fprintf(stderr, "uigallery: %v\n", err)
-			return exitError
-		}
 	}
 	if *screens {
 		for _, m := range screen.Mocks() {
