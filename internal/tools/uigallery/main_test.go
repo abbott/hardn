@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -298,17 +299,88 @@ func writeFile(t *testing.T, s string) string {
 	return path
 }
 
-// TestOverride checks the colour override file: the committed example
-// loads and, holding the current values, changes nothing; a new value
-// shows at its profile and only in its palette; and a bad file stops the
-// gallery with exit status 1 before any output.
-func TestOverride(t *testing.T) {
-	_, base, _ := runGallery("divider")
-	code, out, errs := runGallery("-override", "uigallery.local.json.example", "divider")
-	if code != exitOK || errs != "" || out != base {
-		t.Errorf("the example: exit %d, stderr %q, output changed: %v", code, errs, out != base)
+// TestOverrideExample checks the committed template: holding the current
+// values, it changes no state in either palette at any colour profile;
+// and each value it holds, changed, changes some state at its own profile
+// and palette, so that the first check can fail when the template drifts
+// from palette.go.
+func TestOverrideExample(t *testing.T) {
+	const example = "uigallery.local.json.example"
+	tmpl, err := readOverride(example)
+	if err != nil {
+		t.Fatal(err)
 	}
+	// changes are the template's three values: the profile each shows at,
+	// and a different value for it, false when the template leaves it out.
+	changes := []struct {
+		profile string
+		change  func(tokenValues) (tokenValues, bool)
+	}{
+		{"truecolor", func(v tokenValues) (tokenValues, bool) {
+			hex := "#FF0000"
+			if strings.EqualFold(v.Hex, hex) {
+				hex = "#00FF00"
+			}
+			return tokenValues{Hex: hex}, v.Hex != ""
+		}},
+		{"256", func(v tokenValues) (tokenValues, bool) {
+			if v.ANSI256 == nil {
+				return tokenValues{}, false
+			}
+			i := (*v.ANSI256 + 1) % 256
+			return tokenValues{ANSI256: &i}, true
+		}},
+		{"16", func(v tokenValues) (tokenValues, bool) {
+			if v.ANSI == nil {
+				return tokenValues{}, false
+			}
+			i := (*v.ANSI + 1) % 16
+			return tokenValues{ANSI: &i}, true
+		}},
+	}
+	for _, th := range []string{"dark", "light"} {
+		values := tmpl.Light
+		if th == "dark" {
+			values = tmpl.Dark
+		}
+		if len(values) == 0 {
+			t.Errorf("the example sets nothing for the %s palette", th)
+		}
+		for _, ch := range changes {
+			args := []string{"-profile", ch.profile, "-theme", th}
+			_, base, _ := runGallery(args...)
+			code, out, errs := runGallery(append(args, "-override", example)...)
+			if code != exitOK || errs != "" || out != base {
+				t.Errorf("the example, %v: exit %d, stderr %q, output changed: %v", args, code, errs, out != base)
+			}
+			for token, v := range values {
+				changed, ok := ch.change(v)
+				if !ok {
+					continue
+				}
+				f := overrideFile{}
+				if th == "dark" {
+					f.Dark = map[string]tokenValues{token: changed}
+				} else {
+					f.Light = map[string]tokenValues{token: changed}
+				}
+				b, err := json.Marshal(f)
+				if err != nil {
+					t.Fatal(err)
+				}
+				code, out, errs := runGallery(append(args, "-override", writeFile(t, string(b)))...)
+				if code != exitOK || errs != "" || out == base {
+					t.Errorf("%s changed to %s, %v: exit %d, stderr %q, output changed: %v; want a change", token, b, args, code, errs, out != base)
+				}
+			}
+		}
+	}
+}
 
+// TestOverride checks the colour override file: a new value shows at its
+// profile and only in its palette, and a bad file stops the gallery with
+// exit status 1 before any output.
+func TestOverride(t *testing.T) {
 	file := writeFile(t, `{"dark": {"divider": {"hex": "#123456", "256": 200}}}`)
 	tests := []struct {
 		args []string
