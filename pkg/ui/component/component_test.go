@@ -102,8 +102,9 @@ var (
 	yesNo      = keys.YesNo(false)
 	yesDefault = keys.YesNo(true)
 	sshKey     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
-	// users are the options of Figma's "Select a user"
-	// (USER-MANAGE_USER-SELECT_USER), with george and alice.
+	// users are a form choice's options, george and alice. Figma draws a
+	// choice of user only as a menu screen (USER-MANAGE_USER-SELECT_USER),
+	// which nav builds; no Figma screen draws a form's choice (DEV-046).
 	users = []MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}}
 )
 
@@ -305,8 +306,10 @@ var states = []struct {
 	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
 	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
 	{"answeredfield/empty", AnsweredField{Answer: "george"}},
-	// The field heads' descriptions are origin/main's (pkg/menu
-	// user_options.go:84 and 99), and the long one its username rule (:39).
+	// The field heads' descriptions are Figma's "Configure sudo, SSH keys"
+	// (01-USER; origin/main's pkg/menu user_options.go:84 has "SSH Keys")
+	// and origin/main's "Specify username to create" (:99), and the long
+	// one origin/main's username rule (:39).
 	{"fieldhead/description", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}},
 	{"fieldhead/options", FieldHead{Number: 2, Title: "Select a user", Options: users}},
 	{"fieldhead/both", FieldHead{Number: 2, Title: "Select a user", Description: "Configure sudo, SSH keys", Options: users}},

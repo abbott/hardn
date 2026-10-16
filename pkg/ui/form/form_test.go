@@ -92,9 +92,11 @@ type newUser struct {
 }
 
 // createUser is Figma's create-user form (USER-CREATE_USER): its four
-// questions, the second asked only after sudo is granted, and origin/main's
-// key question, asked only when a key is added. Figma shows no default;
-// P-11 proposes one for the password question.
+// questions, the third asked only after sudo is granted, and a key
+// question, asked only when a key is added, shortened from origin/main's
+// "Paste SSH public key (e.g., ssh-ed25519 AAAAC3NzaC1lZDI1...):" (pkg/menu
+// ssh_keys_options.go:53). Figma shows no default; P-11 proposes one for
+// the password question.
 func createUser(u *newUser) Form {
 	return Form{Fields: []Field{
 		&Text{Title: "Username", Validate: validUsername, Value: &u.name},
@@ -108,8 +110,9 @@ func createUser(u *newUser) Form {
 // sshKey is a synthetic public key for alice.
 const sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnly alice@web-01.example.net"
 
-// users are the options of Figma's "Select a user", with george and
-// alice.
+// users are a form choice's options, george and alice. Figma draws a
+// choice of user only as a menu screen (USER-MANAGE_USER-SELECT_USER),
+// which nav builds; no Figma screen draws a form's choice (DEV-046).
 func users() []Option[string] {
 	return []Option[string]{{Label: "george", Value: "george"}, {Label: "alice", Value: "alice"}}
 }
