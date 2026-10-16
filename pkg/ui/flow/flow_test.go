@@ -160,8 +160,8 @@ var sudoFails = Fixture{Planned: createUserPlan, FailAt: 2, Detail: "exit status
 // disableRoot is Figma's root SSH login action (SSH_LOGIN-TOGGLE_CONFIRMATION)
 // in the canonical flow: nothing to collect, its "SSH Configuration"
 // review, with alice for Figma's allowed user, and its question, "Disable
-// SSH login for 'root'?", or a typed confirmation of the hostname when
-// the plan has lockout risk.
+// SSH login for 'root'?", asked as y/N, or above a typed confirmation of
+// the hostname when the plan has lockout risk.
 func disableRoot(e Engine) Flow {
 	return Flow{
 		Review: func() Review {
@@ -173,20 +173,23 @@ func disableRoot(e Engine) Flow {
 		},
 		Engine: e,
 		Confirm: func(p Plan) Confirm {
+			c := Confirm{Question: "Disable SSH login for 'root'?"}
 			if p.Typed() {
-				return Confirm{Question: "Type the hostname", Phrase: hostname}
+				c.Label, c.Phrase = "Type the hostname", hostname
 			}
-			return Confirm{Question: "Disable SSH login for 'root'?"}
+			return c
 		},
 	}
 }
 
 // longHost is disableRoot on a host whose name, 57 cells, is too long to
-// show whole beside "Type the hostname" under the 64-cell content cap.
+// show whole beside "Type the hostname" under the 64-cell content cap,
+// with its first label as the short phrase.
 func longHost(e Engine) Flow {
 	f := disableRoot(e)
 	f.Confirm = func(Plan) Confirm {
-		return Confirm{Question: "Type the hostname", Phrase: hostname + ".a-subdomain-long-enough-to-be-cut.example.net"}
+		return Confirm{Question: "Disable SSH login for 'root'?", Label: "Type the hostname",
+			Phrase: hostname + ".a-subdomain-long-enough-to-be-cut.example.net", Short: hostname}
 	}
 	return f
 }
@@ -267,6 +270,11 @@ func TestPaths(t *testing.T) {
 	zeroWidth, zeroWidthEngine := untitled("\u200b")
 	bell, bellEngine := untitled("\a")
 	null, nullEngine := untitled("\x00")
+	labelless := func(e Engine) Flow {
+		f := disableRoot(e)
+		f.Confirm = func(Plan) Confirm { return Confirm{Question: "Type the hostname", Phrase: hostname} }
+		return f
+	}
 	unknownSteps := "  Apply? [y/N, 0, b or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# [!] Operation Failed\n\n  [<] Rolled back: Unknown\n"
 	tests := []struct {
 		name    string
@@ -299,7 +307,9 @@ func TestPaths(t *testing.T) {
 		{"typed", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"y", hostname}, Applied, true,
 			"  [!] Error: That does not match exactly. Please try again.\n"},
 		{"typed for a change at lockout risk", disableRoot, spy{Fixture: Fixture{Planned: planOf(RiskLow, rootLogin)}}, false, []string{hostname}, Applied, true,
-			"  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+			"$ systemctl reload ssh\n\n  Disable SSH login for 'root'?\n\n  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+		{"typed with the question for its label", labelless, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
+			"$ systemctl reload ssh\n\n  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
 		{"y/N with no lockout risk", disableRoot, spy{Fixture: Fixture{Planned: low}}, false, []string{"y"}, Applied, true,
 			"  Disable SSH login for 'root'? [y/N, 0, b or q]: y\n"},
 		{"back at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"b"}, Cancelled, false,
@@ -373,13 +383,18 @@ func TestAbort(t *testing.T) {
 }
 
 // TestRefused checks the flows that cannot be run, or not confirmed: no
-// Engine, no Confirm, a lockout-risk plan with no phrase to type, and a
-// terminal too narrow for the phrase. None applies anything.
+// Engine, no Confirm, and a lockout-risk plan with no phrase to type,
+// with a short phrase nav refuses, or with neither label nor question to
+// ask it by. None applies anything, and none writes anything for the
+// Confirm step, not even the gap: the transcript ends with the plan.
 func TestRefused(t *testing.T) {
 	applied := false
 	s := spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}, applied: &applied}
-	noPhrase := disableRoot(s)
-	noPhrase.Confirm = func(Plan) Confirm { return Confirm{Question: "Type the hostname"} }
+	confirming := func(c Confirm) Flow {
+		f := disableRoot(s)
+		f.Confirm = func(Plan) Confirm { return c }
+		return f
+	}
 	noConfirm := disableRoot(s)
 	noConfirm.Confirm = nil
 	tests := []struct {
@@ -390,40 +405,105 @@ func TestRefused(t *testing.T) {
 	}{
 		{"no engine", Flow{Confirm: func(Plan) Confirm { return Confirm{} }}, ErrFlow, false},
 		{"no confirm", noConfirm, ErrFlow, false},
-		{"no phrase", noPhrase, nav.ErrPhrase, true},
+		{"no phrase", confirming(Confirm{Question: "Disable SSH login for 'root'?", Label: "Type the hostname"}), nav.ErrPhrase, true},
+		{"a short phrase that navigates", confirming(Confirm{Label: "Type the hostname", Phrase: hostname, Short: "b"}), nav.ErrPhrase, true},
+		{"no label or question", confirming(Confirm{Phrase: hostname}), ErrFlow, true},
 	}
 	for _, tt := range tests {
-		if o, out, err := play(plain80, tt.flow); o != NotRun || !errors.Is(err, tt.want) || applied || (out != "") != tt.wrote {
+		o, out, err := play(plain80, tt.flow)
+		if o != NotRun || !errors.Is(err, tt.want) || applied || (out != "") != tt.wrote || tt.wrote && !strings.HasSuffix(out, "$ systemctl reload ssh\n") {
 			t.Errorf("%s: %d, %v, applied %t, transcript %q", tt.name, o, err, applied, out)
 		}
 	}
-	// At 28 columns "bos-san-l01" does not show whole beside the label.
-	if o, _, err := play(term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(s)); o != NotRun || !errors.Is(err, nav.ErrPhrase) || applied {
-		t.Errorf("28 columns: %d, %v, applied %t; want NotRun, ErrPhrase, nothing applied", o, err, applied)
+}
+
+// TestNarrow checks a typed confirmation at the widths around the
+// narrowest that shows "bos-san-l01" whole beside "Type the hostname":
+// 30 columns in Unicode glyphs and 32 in ASCII ones, plain mode's.
+// Narrower, the flow says "Operation Cancelled" and that the terminal is
+// too narrow, after one gap, with nothing asked or applied and no error,
+// so that a menu carries on (TestReturn). A dotted phrase is never cut to
+// fit: only a short phrase the action gives is asked in its place.
+func TestNarrow(t *testing.T) {
+	dotted := func(e Engine) Flow {
+		f := disableRoot(e)
+		f.Confirm = func(Plan) Confirm {
+			return Confirm{Question: "Allow 2230/tcp?", Label: "Type the address", Phrase: "192.0.2.123"}
+		}
+		return f
+	}
+	tests := []struct {
+		name  string
+		env   term.Env
+		flow  func(Engine) Flow
+		lines []string
+		want  Outcome
+	}{
+		{"Unicode, 29 columns", term.Fixed(29, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Cancelled},
+		{"Unicode, 30 columns", term.Fixed(30, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Applied},
+		{"plain, 31 columns", term.Fixed(31, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Cancelled},
+		{"plain, 32 columns", term.Fixed(32, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Applied},
+		{"a dotted phrase, 29 columns", term.Fixed(29, colorprofile.ASCII, true, true), dotted, []string{"192"}, Cancelled},
+		{"a long hostname's short phrase, 30 columns", term.Fixed(30, colorprofile.ASCII, true, true), longHost, []string{hostname}, Applied},
+	}
+	for _, tt := range tests {
+		applied := false
+		o, out, err := play(tt.env, tt.flow(spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}, applied: &applied}), tt.lines...)
+		out = ansi.Strip(out)
+		asked := strings.Contains(out, ", 0, b or q]: ")
+		// What follows the plan and one blank line: the callout's title,
+		// then its body, each line after the bar and a space.
+		_, after, said := strings.Cut(out, "$ systemctl reload ssh\n\n")
+		lines := strings.Split(strings.TrimSuffix(after, "\n"), "\n")
+		var body []string
+		for _, l := range lines[1:] {
+			_, text, _ := strings.Cut(l, " ")
+			body = append(body, text)
+		}
+		said = said && strings.HasSuffix(lines[0], " Operation Cancelled") && strings.Join(body, " ") == tooNarrow
+		if o != tt.want || err != nil || applied != (tt.want == Applied) || asked != (tt.want == Applied) || said == asked {
+			t.Errorf("%s: %d, %v, applied %t, asked %t, said too narrow %t; want %d, nil:\n%s", tt.name, o, err, applied, asked, said, tt.want, out)
+		}
 	}
 }
 
 // TestReturn runs a flow as a menu's action: it starts apart from the
 // answer that chose it, and once it returns the menu is drawn again under
-// its result, which stays on screen, as brief 1C's Return step has it.
+// its result, which stays on screen, as brief 1C's Return step has it;
+// so too when the terminal is too narrow for a typed confirmation.
 func TestReturn(t *testing.T) {
-	out := new(buffer)
-	lines := slices.Concat([]string{"1"}, answers, []string{"y", "q"})
-	p := nav.Prompter{Ctx: component.NewCtx(plain80), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: plain80.Writer(out)}
-	menu := nav.Menu{Options: []nav.Option{{
-		Item: component.MenuItem{Key: "1", Label: "Create User"},
-		Action: func() error {
-			_, err := createUser(Fixture{Planned: createUserPlan}).Run(context.Background(), p)
-			return err
-		},
-	}}, Exit: component.MenuItem{Key: "0", Label: "Return"}}
-	err := p.Run(func() nav.Screen { return nav.Screen{Menu: menu, Label: "Enter your choice"} })
-	for _, want := range []string{
-		"  > Enter your choice [0-1, b or q]: 1\n\n   1. Username [0, b or q]: george\n",
-		"# [+] Operation Successful\n\n   1) Create User\n",
-	} {
-		if !errors.Is(err, nav.ErrQuit) || !strings.Contains(out.String(), want) {
-			t.Errorf("Run: %v; transcript\n%s\nwant it to hold\n%s", err, out, want)
+	tests := []struct {
+		name  string
+		env   term.Env
+		flow  Flow
+		label string
+		lines []string
+		holds []string
+	}{
+		{"applied", plain80, createUser(Fixture{Planned: createUserPlan}), "Create User", slices.Concat(answers, []string{"y"}), []string{
+			"  > Enter your choice [0-1, b or q]: 1\n\n   1. Username [0, b or q]: george\n",
+			"# [+] Operation Successful\n\n   1) Create User\n",
+		}},
+		{"too narrow to confirm", term.Fixed(31, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{
+			"# again.\n\n   1) Root SSH Login\n",
+		}},
+	}
+	for _, tt := range tests {
+		out := new(buffer)
+		lines := slices.Concat([]string{"1"}, tt.lines, []string{"q"})
+		p := nav.Prompter{Ctx: component.NewCtx(tt.env), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: tt.env.Writer(out)}
+		menu := nav.Menu{Options: []nav.Option{{
+			Item: component.MenuItem{Key: "1", Label: tt.label},
+			Action: func() error {
+				_, err := tt.flow.Run(context.Background(), p)
+				return err
+			},
+		}}, Exit: component.MenuItem{Key: "0", Label: "Return"}}
+		err := p.Run(func() nav.Screen { return nav.Screen{Menu: menu, Label: "Enter your choice"} })
+		for _, want := range tt.holds {
+			if !errors.Is(err, nav.ErrQuit) || !strings.Contains(out.String(), want) {
+				t.Errorf("%s: Run: %v; transcript\n%s\nwant it to hold\n%s", tt.name, err, out, want)
+			}
 		}
 	}
 }

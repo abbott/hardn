@@ -14,12 +14,22 @@ import (
 )
 
 // ErrFlow reports a Flow that cannot be run: it has no Engine or no
-// Confirm.
+// Confirm, or its typed confirmation has nothing to ask it by, neither a
+// label nor a question.
 var ErrFlow = errors.New("flow: cannot be run")
 
 // nothingToChange is what a plan with no changes says, in brief Phase 3's
 // words for a plan that finds nothing to change (proposal P-27).
 const nothingToChange = "Nothing needs changing."
+
+// tooNarrow is what the flow says under "Operation Cancelled" when a
+// typed confirmation does not show at the terminal's width; new words
+// (proposal P-27 (e)).
+const tooNarrow = "The terminal is too narrow to confirm. Widen it and try again."
+
+// errNarrow reports a typed confirmation that does not show whole at the
+// terminal's width, by its phrase or by its short one.
+var errNarrow = errors.New("flow: the typed confirmation does not show at this width")
 
 // Risk is a plan's risk class, which decides what the Confirm step asks
 // (brief 1C).
@@ -82,10 +92,10 @@ type Engine interface {
 	// step failed, stops, rolls back the steps done, in reverse order,
 	// reporting each rolled back, and returns an error, a *Failure for
 	// the ErrorReport's details. It returns nil once every step is done.
-	// Report may be called from any goroutine until Apply returns; a
-	// report after that is ignored. The reports are the one record of
-	// what was undone: the ErrorReport names only the steps reported
-	// rolled back before Apply returned.
+	// Report may be called from any goroutine until Apply returns; once
+	// the flow has drawn the steps a last time, a report is ignored. The
+	// reports are the one record of what was undone: the ErrorReport
+	// names only the steps reported rolled back before Apply returned.
 	Apply(ctx context.Context, report Report) error
 }
 
@@ -137,18 +147,30 @@ func (v Review) render(c component.Ctx) string {
 	return component.SectionHeader{Title: v.Title}.Render(c) + strings.Repeat("\n", theme.SectionGap+1) + list
 }
 
-// Confirm is what the Confirm step asks.
+// Confirm is what the Confirm step asks: the action's question, asked as
+// a y/N question, or, for a plan Typed reports, shown above a typed
+// confirmation of Phrase.
 type Confirm struct {
-	// Question is asked of the user: for a y/N question, such as Figma's
-	// "Create user 'george'?"; for a typed confirmation, the label
-	// before the phrase, such as "Type the hostname", which
-	// nav.Prompter.Typed cuts before the phrase.
+	// Question is the action's question, such as Figma's "Create user
+	// 'george'?" or "Disable SSH login for 'root'?". It is asked as a y/N
+	// question; above a typed confirmation it is shown on a line of its
+	// own, as a form shows a question above a prompt line of its own (a
+	// component.FieldHead, cut with the ellipsis when too long), so that
+	// the screen still says what is confirmed.
 	Question string
+	// Label is a typed confirmation's label, before the phrase, such as
+	// "Type the hostname", which nav.Prompter.Typed cuts before the
+	// phrase. Empty asks Question there instead, with nothing above it.
+	Label string
 	// Phrase is what a typed confirmation must be answered with, exactly,
-	// such as the hostname. One too long to show whole at the terminal's
-	// width is asked by its first label, the part before its first dot; a
-	// typed confirmation with no phrase is not asked (nav.ErrPhrase).
+	// such as the hostname. A typed confirmation with no phrase, or one
+	// nav.CheckPhrase refuses, is not asked (nav.ErrPhrase).
 	Phrase string
+	// Short is asked in Phrase's place when Phrase does not show whole
+	// beside the label at the terminal's width, such as a long hostname's
+	// first label; the action words it, and it must still name what is
+	// confirmed. Empty asks nothing in Phrase's place.
+	Short string
 }
 
 // Outcome is how a flow ended.
@@ -160,7 +182,7 @@ const (
 	NotRun    Outcome = iota
 	Applied           // every step was applied
 	Failed            // planning or a step failed; what was applied was rolled back
-	Cancelled         // the user declined at the Confirm step
+	Cancelled         // the user declined at the Confirm step, or a typed confirmation did not show at the width
 	Planned           // dry-run: the plan was shown, nothing applied
 	Unchanged         // the plan had no changes
 )
@@ -185,12 +207,15 @@ type Flow struct {
 // Run runs f through p's prompts and writer, with ctx for the Engine.
 // Once the flow reaches a result it returns the Outcome, with a nil error
 // unless writing the result failed; a write that fails during Apply does
-// not stop the Engine. When the flow ends before a result it returns
-// NotRun and why: nav.ErrBack when the user goes back from the form's
-// first field (at the Confirm step 0 or b declines instead), nav.ErrQuit,
-// prompt.ErrAborted (form.ErrAborted), ctx's error when ctx is done before
-// Apply, ErrFlow, form.ErrField, nav.ErrPhrase, or a write error. Nothing
-// is applied unless Run reaches the Apply step.
+// not stop the Engine. A typed confirmation that does not show whole at
+// the terminal's width is such a result: "Operation Cancelled", saying
+// that the terminal is too narrow, and Cancelled. When the flow ends
+// before a result it returns NotRun and why: nav.ErrBack when the user
+// goes back from the form's first field (at the Confirm step 0 or b
+// declines instead), nav.ErrQuit, prompt.ErrAborted (form.ErrAborted),
+// ctx's error when ctx is done before Apply, ErrFlow, form.ErrField,
+// nav.ErrPhrase for a phrase nav.CheckPhrase refuses, or a write error.
+// Nothing is applied unless Run reaches the Apply step.
 func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 	if f.Engine == nil || f.Confirm == nil {
 		return NotRun, fmt.Errorf("%w: it has no Engine or no Confirm", ErrFlow)
@@ -227,6 +252,8 @@ func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 	switch {
 	case errors.Is(err, nav.ErrBack), err == nil && !yes:
 		return Cancelled, r.block(component.Callout{Kind: component.MessageCancelled}.Render(c))
+	case errors.Is(err, errNarrow):
+		return Cancelled, r.block(component.Callout{Kind: component.MessageCancelled, Body: []string{tooNarrow}}.Render(c))
 	case err != nil:
 		return NotRun, err
 	case ctx.Err() != nil:
@@ -302,21 +329,9 @@ func (r *run) put(s string) error {
 // as a one-field form, unnumbered, its default no. Either is set apart by
 // the gap: nav's Typed writes none, and a form writes it only once a
 // prompt was asked.
-//
-// A phrase Typed cannot show whole at the width, such as a long hostname,
-// is asked by its first label, up to the first dot, as nav suggests
-// (P-27 (e)); when that does not show either, the error is returned.
 func (r *run) confirm(plan Plan, c Confirm) (bool, error) {
 	if plan.Typed() {
-		if err := r.put(r.gap()); err != nil {
-			return false, err
-		}
-		q := nav.Question{Label: c.Question}
-		err := r.p.Typed(q, c.Phrase)
-		if first, _, ok := strings.Cut(c.Phrase, "."); ok && errors.Is(err, nav.ErrPhrase) && nav.CheckPhrase(c.Phrase) == nil {
-			err = r.p.Typed(q, first)
-		}
-		return err == nil, err
+		return r.typed(c)
 	}
 	if !r.p.In.Asked() {
 		if err := r.put(r.gap()); err != nil {
@@ -326,4 +341,47 @@ func (r *run) confirm(plan Plan, c Confirm) (bool, error) {
 	var yes bool
 	err := form.Form{Fields: []form.Field{&form.YesNo{Title: c.Question, Value: &yes}}}.Run(r.p)
 	return yes, err
+}
+
+// typed asks c as a typed confirmation and reports whether the phrase was
+// typed: the gap, c's question on a line of its own and theme.PromptGap
+// blank lines, as a form shows a field's head, then the label and the
+// phrase (nav.Prompter.Typed). A phrase that does not show whole beside
+// the label at the width is asked by c.Short when that shows (P-27 (e)).
+// Everything is checked before anything is written: a phrase
+// nav.CheckPhrase refuses, Phrase's or Short's, returns its error, and
+// one that does not show at the width, errNarrow, so that nothing is
+// written for a prompt never asked.
+func (r *run) typed(c Confirm) (bool, error) {
+	q, head := nav.Question{Label: c.Label}, c.Question
+	if c.Label == "" {
+		q.Label, head = c.Question, ""
+	}
+	if q.Label == "" {
+		return false, fmt.Errorf("%w: its typed confirmation has no label or question", ErrFlow)
+	}
+	if err := nav.CheckPhrase(c.Phrase); err != nil {
+		return false, err
+	}
+	if c.Short != "" {
+		if err := nav.CheckPhrase(c.Short); err != nil {
+			return false, err
+		}
+	}
+	phrase := c.Phrase
+	if r.p.CheckTyped(q, phrase) != nil {
+		if c.Short == "" || r.p.CheckTyped(q, c.Short) != nil {
+			return false, errNarrow
+		}
+		phrase = c.Short
+	}
+	above := r.gap()
+	if h := (component.FieldHead{Title: head}).Render(r.p.Ctx); h != "" {
+		above += h + strings.Repeat("\n", theme.PromptGap+1)
+	}
+	if err := r.put(above); err != nil {
+		return false, err
+	}
+	err := r.p.Typed(q, phrase)
+	return err == nil, err
 }

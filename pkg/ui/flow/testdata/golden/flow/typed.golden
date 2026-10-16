@@ -20,6 +20,8 @@ $
       ␛[38;2;129;134;156m$ sshd -t␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
+$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m y$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m bos-san-l01$
@@ -45,6 +47,8 @@ $
       +PermitRootLogin no$
       $ sshd -t$
       $ systemctl reload ssh$
+$
+  Disable SSH login for 'root'?$
 $
   Type the hostname [bos-san-l01, 0, b or q]: y$
   [!] Error: That does not match exactly. Please try again.$
@@ -74,6 +78,8 @@ $
       ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
       ␛[38;2;129;134;156m$ sshd -t␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
+$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m y$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$

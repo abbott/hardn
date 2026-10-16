@@ -16,12 +16,15 @@
 //     dry-run mode the flow stops here, the PlanView's footer saying that
 //     nothing was changed. A plan with no changes says that nothing needs
 //     changing, brief Phase 3's words, and the flow stops too.
-//  4. Confirm: a y/N question whose default is no, as a one-field form
-//     asks it; or, for a plan with lockout risk (Plan.Typed), a typed
+//  4. Confirm: the action's question, a y/N question whose default is
+//     no, as a one-field form asks it; or, for a plan with lockout risk
+//     (Plan.Typed), the question on a line of its own above a typed
 //     confirmation of a phrase such as the hostname (nav.Prompter.Typed),
-//     by its first label when the whole name does not show. The answer
-//     no, and 0 or b, decline: an "Operation Cancelled" Callout, and
-//     nothing applied.
+//     or of the short phrase the action gives, such as the hostname's
+//     first label, when the whole does not show. The answer no, and 0 or
+//     b, decline: an "Operation Cancelled" Callout, and nothing applied.
+//     A typed confirmation that does not show at the terminal's width
+//     ends the same way, saying that the terminal is too narrow.
 //  5. Apply: the Engine applies the plan, one step per change, and the
 //     steps show as a StepProgress. A failure is rolled back by the
 //     Engine; the flow then shows an ErrorReport naming what was rolled
@@ -67,8 +70,9 @@
 // No code here reads or changes the system.
 //
 // Proposal P-27 puts the flow's own choices to the maintainer: back at the
-// confirmation, what an empty plan says (the one sentence the flow adds),
-// the plan with no heading of its own, the steps' lines without animation
-// and a hostname asked by its first label. Each confirmation's words are
-// the action's (P-10).
+// confirmation, what an empty plan says and what a terminal too narrow to
+// confirm says (the two sentences the flow adds), the plan with no
+// heading of its own, the steps' lines without animation, and a long
+// hostname asked by a short phrase the action gives. Each confirmation's
+// words are the action's (P-10).
 package flow
