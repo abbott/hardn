@@ -134,6 +134,13 @@ type Menu struct {
 	Exit MenuItem
 }
 
+// Shown reports whether the menu shows the item: one whose label is
+// empty once its escape sequences, control characters and surrounding
+// spaces are removed, or measures no cells, renders nothing and is not
+// accepted (Bindings). pkg/ui/nav decides with it which items it checks
+// and dispatches, so that it agrees with the menu drawn.
+func (it MenuItem) Shown() bool { return clean(it.Label) != "" }
+
 // Render renders the menu for c. See Menu for the layout.
 func (vm Menu) Render(c Ctx) string {
 	var rows []entry
@@ -167,7 +174,7 @@ func (vm Menu) Render(c Ctx) string {
 func (vm Menu) Bindings() keys.Set {
 	var out keys.Set
 	add := func(it MenuItem, exit bool) {
-		if k := clean(it.Key); k != "" && clean(it.Label) != "" && (exit || !it.Disabled) {
+		if k := clean(it.Key); k != "" && it.Shown() && (exit || !it.Disabled) {
 			out = append(out, keys.Binding{Keys: []string{k}})
 		}
 	}
@@ -200,10 +207,10 @@ func (r entry) cramped(c Ctx) bool {
 // An item with no label is not shown: ok is false.
 func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
 	m, g := c.Theme.Menu, c.Theme.Glyphs
-	label := clean(it.Label)
-	if label == "" {
+	if !it.Shown() {
 		return entry{}, false
 	}
+	label := clean(it.Label)
 	keyStyle, labelStyle, descStyle, asideStyle := m.Key, m.Label, m.Description, m.Aside
 	var note line
 	switch {

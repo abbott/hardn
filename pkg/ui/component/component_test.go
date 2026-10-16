@@ -889,6 +889,18 @@ func TestMenuBindings(t *testing.T) {
 	}
 }
 
+// TestMenuItemShown checks that an item is shown exactly when it renders.
+func TestMenuItemShown(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	for _, label := range []string{"DNS", " DNS ", "", "  ", "\x1b[0m", "\u200b", "\t\n", "\x1b[1mDNS\x1b[0m"} {
+		it := MenuItem{Key: "1", Label: label}
+		rendered := Menu{Items: []MenuItem{it}}.Render(c) != ""
+		if it.Shown() != rendered {
+			t.Errorf("label %q: Shown() = %v, but the menu renders it: %v", label, it.Shown(), rendered)
+		}
+	}
+}
+
 // TestBlockStyles checks that each part of the block group takes its slot.
 func TestBlockStyles(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
