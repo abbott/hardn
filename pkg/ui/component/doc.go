@@ -45,7 +45,7 @@
 //
 //   - JoinHorizontal pads every line of a block to the block's width with
 //     plain spaces (join.go:88 in lipgloss v2.0.6), and PlaceHorizontal pads
-//     to the full width it is given (position.go:43-61), so both leave
+//     to the full width it is given (position.go:43-64), so both leave
 //     trailing spaces. Header, HostBlock and RiskSummary place their columns
 //     with spaces up to the grid column instead, which never pads after the
 //     last cell.

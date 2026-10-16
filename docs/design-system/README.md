@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness). Components, screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components, the header group in `pkg/ui/component` (`next/p1b-header`). The other components, screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -16,7 +16,7 @@
 6. [Glyph sets](#6-glyph-sets)
 7. [Grid and spacing](#7-grid-and-spacing)
 8. [Golden tests](#8-golden-tests)
-9. [Components, screens and usage rules (placeholders)](#9-components-screens-and-usage-rules-placeholders)
+9. [Components, screens and usage rules](#9-components-screens-and-usage-rules)
 10. [Token report](#10-token-report)
 
 ## 1. Purpose and Figma fidelity
@@ -81,7 +81,8 @@ Checked against the module source at the versions above; citations are `file:lin
 | Background detection | `lipgloss.HasDarkBackground` puts the terminal in raw mode with ISIG, ICANON and ECHO off (lipgloss `query.go:13`; x/term `term_unix.go:31`), sends an OSC 11 and a DA1 request (`terminal.go:45`) and waits up to 2 s for the reply on stdin and, if that fails, another 2 s on stdout (`terminal.go:49`, `query.go:60-64`): about 4 s in all. Meanwhile Ctrl-C does not interrupt, type-ahead is read and discarded, and a late reply is left in stdin. It reports dark on any error (`query.go:86-91`). The `compat` package runs this query, and a second `Detect`, at import (`compat/color.go:13`, `16`). | Opt-in (an adjustment to the brief's "detect the background where possible"): dark by default; `term.Detect` queries once, only for theme `auto` with stdin and stdout both terminals and plain mode off. `compat` must never be imported (depguard rule in `next/p1d-lint`). |
 | Width | `lipgloss.Width` is the widest line's `ansi.StringWidth` (lipgloss `size.go:15-24`). x/ansi measures grapheme clusters with East Asian width off (`method.go:16-18`, `parser_decode.go:442`), so ambiguous-width characters count as one cell. The only switch is `RUNEWIDTH_EASTASIAN`, read once at init (`method.go:20-25`); the locale is not consulted. Control characters count as no cells (`width.go:79-119`), and `Style.Render` turns a tab into 4 spaces by default (`style.go:14`, `528-540`). | A terminal that draws ambiguous characters two cells wide draws ⛛ ⭘ ⛬ ≈ … █ ─ wider than Lip Gloss measures (§6). `term.Resolve` picks ASCII glyphs in zh, ja and ko locales; `HARDN_ASCII=1` covers other cases. `uitest.Golden` stops if x/ansi measures ─ as two cells, and fails a line that holds a tab. |
 | Underline | An underlined style renders one SGR per rune (lipgloss `style.go:310`, `318`, `428-436`) and repeats the `4` attribute (`style.go:340` and `384`, with x/ansi `style.go:103-104`). | The second `4` sets the same attribute again. The cost is verbose goldens for underlined text (`Menu.Heading` in `swatch.golden`). |
-| table, list, tree | `table.New` draws a box-drawing border on every side and wraps cells (lipgloss `table/table.go:80-93`); each border can be switched off (`table.go:166-212`). It always truncates headers to one line, whatever `Wrap` says (`table.go:436-437`, `561-564`), and with `Wrap(false)` it truncates cells too (`table.go:509-510`); both use a fixed `…` (`table.go:567`), and only when the text is wider than its column (x/ansi `truncate.go:67-69`). A height-limited table marks hidden rows with `…` (`table.go:503`). `list.New` uses the `•` bullet (`list/list.go:50-53`, `list/enumerator.go:105`). The default tree branches are `├──` and `└──` with a `│` indent (`tree/enumerator.go:23-28`, `69-74`). All of `• … ├ └ │ ─` are East Asian ambiguous width. | For the planned KeyValue, StatusRow and Menu rows: a table with every border off, or a list with an enumerator from `theme.Glyphs`. In ASCII mode the bullet, box drawing and `…` must come from `Glyphs`, so there a table must never truncate: no `Height`, no header wider than its column, and no cell wider than its column under `Wrap(false)`. A component that needs to shorten text does it itself with `Glyphs.Ellipsis` before handing the text to the table. Decided per component in `next/p1b-*`. |
+| table, list, tree | `table.New` draws a box-drawing border on every side and wraps cells (lipgloss `table/table.go:80-93`); each border can be switched off (`table.go:166-212`). It always truncates headers to one line, whatever `Wrap` says (`table.go:436-437`, `561-564`), and with `Wrap(false)` it truncates cells too (`table.go:509-510`); both use a fixed `…` (`table.go:567`), and only when the text is wider than its column (x/ansi `truncate.go:67-69`). A height-limited table marks hidden rows with `…` (`table.go:503`). `list.New` uses the `•` bullet (`list/list.go:50-53`, `list/enumerator.go:105`). The default tree branches are `├──` and `└──` with a `│` indent (`tree/enumerator.go:23-28`, `69-74`). All of `• … ├ └ │ ─` are East Asian ambiguous width. | For the planned KeyValue, StatusRow and Menu rows: a table with every border off, or a list with an enumerator from `theme.Glyphs`. In ASCII mode the bullet, box drawing and `…` must come from `Glyphs`, so there a table must never truncate: no `Height`, no header wider than its column, and no cell wider than its column under `Wrap(false)`. A component that needs to shorten text does it itself with `Glyphs.Ellipsis` before handing the text to the table. Decided per component in `next/p1b-*`; the header group uses none of them (§9.2). |
+| Join and place | `JoinHorizontal` pads every line of each block to the block's width with plain spaces (lipgloss `join.go:88`); `PlaceHorizontal` pads to the whole width it is given (`position.go:43-64`). | Both leave trailing spaces after the last cell, so components place their columns with spaces up to the grid column instead (§9.2). |
 
 ## 3. Render environment
 
@@ -278,7 +279,7 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 | `CompactBelow` | 40 | Below this height the main menu renders in its compact form |
 | `CompactBudget` | `term.DefaultHeight` (24) | The most lines the compact main menu may use, prompt included |
 
-Not yet consumed: the components that apply them land in `next/p1b-*`.
+`CapContent`, `StackBelow` and `BarsFillContent` are applied by the components from `next/p1b-header` on; `CompactBelow` and `CompactBudget` wait for the main-menu layout (`next/p1d-slice`).
 
 ## 8. Golden tests
 
@@ -293,6 +294,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 **Files today:**
 - `pkg/ui/theme/testdata/golden/swatch.golden`: `TestSwatch` on `Full()`. Every token's name in its colour and as a background, every glyph by role, and the 21 typography roles.
 - `pkg/ui/uitest/testdata/golden/harness.golden`: the harness's own check, one render at each profile and in plain mode, at width 20.
+- `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2).
 
 **Running and regenerating:**
 - `make check` runs every golden in its `check-test` step, and fails on a mismatch.
@@ -308,9 +310,34 @@ Golden rejects output it could not show unambiguously: invalid UTF-8, C1 control
 
 **Guards:** each cell renders twice and the two results must match; Golden stops if `RUNEWIDTH_EASTASIAN` makes x/ansi measure ─ as two cells; a line wider than the cell or holding a tab fails. On a mismatch the report names the changed, added and removed cells and shows a line diff of each, numbered by line of the golden file.
 
-## 9. Components, screens and usage rules (placeholders)
+## 9. Components, screens and usage rules
 
-- **Components:** each component with its view-model, states and narrow, ASCII and no-colour behaviour lands with `next/p1b-header`, `next/p1b-status`, `next/p1b-menu`, `next/p1b-blocks` and `next/p1b-plan`.
+### 9.1 Component conventions
+
+`pkg/ui/component` holds the components; its package doc is the full statement of these rules, which every `next/p1b-*` unit follows.
+- **Render context:** `component.NewCtx(env)` builds a `Ctx` holding the `term.Env` and the `theme.Theme` built once from it. The brief's `Render(vm, env)` is `vm.Render(ctx)`.
+- **View-models** are exported structs of plain data (no funcs, actions or I/O handles) with a pure value method `Render(c Ctx) string`.
+- **Output:** no line wider than the content width, `min(Env.Width, ContentWidth)`; no trailing newline; no trailing space outside a painted background. The caller joins blocks with `SectionGap` blank lines.
+- **Grid:** rows at `Indent`, the header and bars at column 0; a state glyph centred in the marker column (DEV-020); labels at `LabelCol`, values at `ValueCol`. Below `StackBelow` two-column layouts stack, values at `StackCol` (DEV-021).
+- **Text:** view-model strings are shown as one line of plain text (escape sequences removed, control characters dropped or turned into spaces, trimmed), measured with `lipgloss.Width`, and cut with `Glyphs.Ellipsis`, never wrapped.
+- **Degrading:** without colour (`Env.HasColor` false) a bar is a run of `Glyphs.Bar` and a badge is bracketed (DEV-018, DEV-019). A value hardn could not read shows "Unknown" in `status.unknown` (DEV-022).
+- **Goldens:** each state on `uitest.Full()`, in `pkg/ui/component/testdata/golden/<component>/<state>.golden`.
+
+### 9.2 Header group (`next/p1b-header`)
+
+| Component | View-model | States (goldens) | Narrow, ASCII, no colour | Lip Gloss helpers |
+|---|---|---|---|---|
+| `Header` | `Version`, `URL` | `normal`, `no-version`, `no-url` | URL at `ValueCol` (C14, DEV-017); under the wordmark below 70 columns or when it does not fit. The version box only above 16 colours (DEV-005) | none: columns placed with spaces, as `JoinHorizontal` and `PlaceHorizontal` pad with trailing spaces (§2.3) |
+| `ContextBar` | `Name`, `Version`, `Codename` | `normal`, `unknown`, `no-codename`, `long` | Fills the content width; text cut with the ellipsis; `Glyphs.Bar` without colour (C13, DEV-018). Empty name: "Unknown" | none |
+| `TitleBar` | `Title` | `normal`, `long` | As `ContextBar`; an empty title is all fill. P-08 decides whether sub-screens use it | none |
+| `HostBlock` | `Hostname`, `Address`, `Uptime`, `RebootPending` | `normal`, `unknown-address`, `unknown-uptime`, `no-hostname`, `long-hostname`, `reboot-pending` | Stacks below 70 columns or for a badge reaching `ValueCol`; brackets without colour (DEV-019); the badge cut inside them. Pending-reboot line only when set (P-04, P-21) | none |
+| `RiskSummary` | `Band` (zero: `RiskUnknown`), `Level`, `Gloss`, `Factors` | `moderate`, `low`, `high`, `unknown`, `factors` | Stacks below 70 columns; ASCII `[*]` and `~`; factors one line each, cut with the ellipsis (P-06, P-14, DEV-022) | `list` evaluated: its default bullet is `•` and each line would still need the indent and the cut, so one line per factor is placed by hand |
+
+Not applicable and error are not separate states here: a value hardn could not read, including a failed read, is the unknown state. The panel outline around the host block, risk line and status rows is not drawn (C9, DEV-023).
+
+### 9.3 Still to come (placeholders)
+
+- **Components:** the rest land with `next/p1b-status`, `next/p1b-menu`, `next/p1b-blocks` and `next/p1b-plan`.
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
 
