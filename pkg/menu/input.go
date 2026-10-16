@@ -18,10 +18,13 @@ import (
 // typeahead is discarded before each read (brief 1C).
 //
 // Ctrl-C at a prompt, or the end of the input, ends hardn with exit
-// status 130 (prompt.ExitCode). The legacy screens return no error to
+// status 130 (prompt.ExitCode), the status a shell reports for a process
+// Ctrl-C ended (brief Phase 3). The legacy screens return no error to
 // carry an abort out of their nested loops, and ShowMainMenu returns
-// nothing to cmd/hardn, so the read ends the process itself, as SIGINT's
-// default action did at a ReadInput prompt before; no call site changes.
+// nothing to cmd/hardn, so the read ends the process itself; no call
+// site changes. A waiting parent now sees an exit with status 130 where
+// hardn used to die of SIGINT, at a pause or a ReadInput prompt (raw mode
+// dropped Ctrl-C at a menu prompt).
 var (
 	// input returns the Reader the prompts read from. Tests replace it.
 	input = prompt.Stdin

@@ -76,7 +76,8 @@ type Reader struct {
 	// unended is set when the line take last returned had no line
 	// ending: the end of the input ended it, as Ctrl-D after text does.
 	unended bool
-	// asked is set once Ask has written a prompt.
+	// asked is set once Ask has written a prompt or Answer has read the
+	// answer to one.
 	asked bool
 }
 

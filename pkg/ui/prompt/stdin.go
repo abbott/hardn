@@ -20,9 +20,12 @@ var stdin = sync.OnceValue(func() *Reader {
 //
 // It is a terminal Reader when stdin is a terminal, asked as term.Detect
 // asks it for term.Env.InputTTY: by reading the terminal's attributes, as
-// x/term's IsTerminal does (term_unix.go:13-16, TCGETS on Linux and
-// TIOCGETA on macOS), so the two agree. This package cannot ask term,
-// which links Lip Gloss (see the package doc).
+// IsTerminal does in github.com/charmbracelet/x/term v0.2.2
+// (term_unix.go:14-17; TCGETS on Linux, term_unix_other.go:9, and
+// TIOCGETA on macOS, term_unix_bsd.go:9). On Linux and macOS the two
+// therefore agree; elsewhere Stdin is never a terminal Reader
+// (tty_other.go). This package cannot ask term, which links Lip Gloss
+// (see the package doc).
 func Stdin() *Reader { return stdin() }
 
 // isTerminal reports whether in is a file whose descriptor is a terminal.

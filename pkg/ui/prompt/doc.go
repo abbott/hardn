@@ -110,8 +110,8 @@
 // prompts (pkg/config) and the new screens alike, so stdin has one buffer
 // and no line one reader took ahead is lost to another (refactor plan,
 // risk R17). It asks whether stdin is a terminal the way term.Detect
-// does, so it is a terminal Reader exactly when term.Env.InputTTY is
-// true.
+// does, so on Linux and macOS it is a terminal Reader exactly when
+// term.Env.InputTTY is true; elsewhere it never is.
 //
 // This package imports only the standard library and golang.org/x/sys, so
 // the legacy menus and the config prompts read through it without
