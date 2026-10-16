@@ -41,7 +41,7 @@ $
   \x1b[1m 9)\x1b[0m System Details      \x1b[2mView system information\x1b[0m$
   \x1b[1m10)\x1b[0m Logs                \x1b[2mView log file\x1b[0m$
 $
-  \x1b[1m 0)\x1b[0m Exit                \x1b[2mPress 'q' to exit immediately\x1b[0m$
+  \x1b[1m 0)\x1b[0m Exit                \x1b[2mq to quit\x1b[0m$
 $
 $
   \x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-10 or q]: <no-newline>

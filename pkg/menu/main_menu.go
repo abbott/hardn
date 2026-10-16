@@ -474,7 +474,7 @@ func (m *MainMenu) createMainMenu() *style.Menu {
 	menu.SetExitOption(style.MenuOption{
 		Number:      0,
 		Title:       "Exit",
-		Description: "Press 'q' to exit immediately",
+		Description: "q to quit",
 	})
 
 	return menu

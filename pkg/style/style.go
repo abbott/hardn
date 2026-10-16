@@ -848,7 +848,7 @@ func (m *Menu) Render() string {
 		exit := MenuOption{
 			Number:      0,
 			Title:       "Exit",
-			Description: "Tip: Press 'q' to exit immediately",
+			Description: "Tip: q to quit",
 		}
 		sb.WriteString(m.FormatOption(exit))
 	}
