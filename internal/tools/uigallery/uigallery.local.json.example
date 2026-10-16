@@ -1,5 +1,5 @@
 {
-  "comment": "A template for the gallery's colour override file. Copy it to uigallery.local.json in this directory, which git ignores, edit the values, and run: go run ./internal/tools/uigallery -override internal/tools/uigallery/uigallery.local.json. Each palette maps a token name (docs/design-system/README.md section 4.1) to a hex for truecolor, an xterm index for 256 colours and an index for 16 colours; leave out any you keep. The entries below are text.faint's values when this template was written (DEV-001).",
+  "comment": "A template for the gallery's colour override file. Copy it to uigallery.local.json in this directory, which git ignores, edit the values, and run: go run ./internal/tools/uigallery -override internal/tools/uigallery/uigallery.local.json. Each palette maps a token name (docs/design-system/README.md section 4.1) to a hex for truecolor, an xterm index for 256 colours and an index for 16 colours; leave out any you keep. The entries below are text.faint's values when this template was written (dark: DEV-001; light: DEV-011).",
   "dark": {
     "text.faint": {"hex": "#565B6B", "256": 59, "16": 8}
   },
