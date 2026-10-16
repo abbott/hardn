@@ -71,6 +71,28 @@ var (
 	}, Exit: MenuItem{Key: "0", Label: "Return"}}
 	figmaHeading = MenuHeading{Title: "Select an option", Mode: &ModeIndicator{}}
 	figmaPrompt  = PromptLine{Label: "Enter your choice", Accepts: append(figmaMenu.Bindings(), quit)}
+	// figmaUser is Figma's details for george on 01-USER, its "Enabled,"
+	// plain and "No password" red.
+	figmaUser = BulletList{Items: []KeyValue{
+		{Key: "Sudo", Value: "Enabled,", State: ValueBad, Note: "No password"},
+		{Key: "SSH Keys", Value: "7 keys"},
+		{Key: "UID:GID", Value: "1000:1000"},
+		{Key: "Directory", Value: "/home/george"},
+	}}
+	// figmaSSH is Figma's SSH Configuration details (02-SSH_LOGIN), with
+	// alice as the allowed user.
+	figmaSSH = BulletList{Items: []KeyValue{
+		{Key: "Root SSH Login", Value: "Enabled", State: ValueBad},
+		{Key: "SSH Port", Value: "2230"},
+		{Key: "Allowed Users", Value: "alice"},
+	}}
+	// figmaChecklist is the checklist under Figma's warning
+	// (SSH_LOGIN-TOGGLE_CONFIRMATION).
+	figmaChecklist = BulletList{Items: []KeyValue{
+		{Key: "Non-root user has sudo privileges"},
+		{Key: "Non-root user SSH access has been tested"},
+		{Key: "If SSH fails, a fallback access method is available"},
+	}}
 )
 
 // withItem returns m with item i replaced by it.
@@ -156,6 +178,25 @@ var states = []struct {
 	{"breadcrumb/deep", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}},
 	{"breadcrumb/long", Breadcrumb{Items: []string{"hardn", "Firewall application profiles", "Manage application profiles", "Allow 2230/tcp from 192.0.2.0/24"}}},
 	{"breadcrumb/empty", Breadcrumb{}},
+	{"keyvalue/plain", KeyValue{Key: "SSH Port", Value: "2230"}},
+	{"keyvalue/ok", KeyValue{Key: "Sudo Method", Value: "Password required", State: ValueOK}},
+	{"keyvalue/warn", KeyValue{Key: "SSH Keys", Value: "None", State: ValueWarn}},
+	{"keyvalue/bad", KeyValue{Key: "Root SSH Login", Value: "Enabled", State: ValueBad}},
+	{"keyvalue/unknown", KeyValue{Key: "Allowed Users", State: ValueUnknown}},
+	{"keyvalue/not-applicable", KeyValue{Key: "UFW", State: ValueNotApplicable}},
+	{"keyvalue/note", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}},
+	{"keyvalue/long-key", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}},
+	{"keyvalue/long-value", KeyValue{Key: "Allowed Users", Value: "alice bob carol dave erin frank grace heidi ivan judy mallory"}},
+	{"keyvalue/item", KeyValue{Key: "If SSH fails, a fallback access method is available"}},
+	{"keyvalue/empty", KeyValue{}},
+	{"bulletlist/user", figmaUser},
+	{"bulletlist/ssh", figmaSSH},
+	{"bulletlist/checklist", figmaChecklist},
+	{"bulletlist/long", BulletList{Items: []KeyValue{
+		{Key: "Backup State", Value: "Enabled", State: ValueOK},
+		{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
+	}}},
+	{"bulletlist/empty", BulletList{}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -202,6 +243,10 @@ func empty(vm renderer) bool {
 	case SubjectLine:
 		return v.Subject == ""
 	case Breadcrumb:
+		return len(v.Items) == 0
+	case KeyValue:
+		return v == KeyValue{}
+	case BulletList:
 		return len(v.Items) == 0
 	}
 	return false
@@ -418,6 +463,38 @@ func TestLayout(t *testing.T) {
 			"  ... > SSH Keys"},
 		{"breadcrumb: and last the current item is cut", Breadcrumb{Items: []string{"hardn", "Firewall application profiles"}}, 20, false,
 			"  Firewall applic..."},
+		{"keyvalue: side by side from StackBelow", KeyValue{Key: "SSH Port", Value: "2230"}, from, false,
+			"   -  SSH Port             2230"},
+		{"keyvalue: stacked below StackBelow", KeyValue{Key: "SSH Port", Value: "2230"}, below, false,
+			"   -  SSH Port\n      2230"},
+		{"keyvalue: without colour a state's marker replaces the bullet", BulletList{Items: []KeyValue{
+			{Key: "a", Value: "ok", State: ValueOK}, {Key: "b", Value: "warn", State: ValueWarn},
+			{Key: "c", Value: "bad", State: ValueBad}, {Key: "d", State: ValueUnknown},
+			{Key: "e", State: ValueNotApplicable}, {Key: "f", Value: "plain", State: ValueState(9)},
+		}}, from, false,
+			"  [+] a                    ok\n  [*] b                    warn\n  [ ] c                    bad\n" +
+				"  [?] d                    Unknown\n  [-] e                    Not Applicable\n   -  f                    plain"},
+		{"keyvalue: a note follows the plain value", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}, from, true,
+			"   ⛛  Backup Path          /var/backups/hardn Writable"},
+		{"keyvalue: a long key stacks the row", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}, 80, false,
+			"   -  Unattended Upgrades Mail Reports\n      alice"},
+		{"keyvalue: a long value is cut", KeyValue{Key: "Allowed Users", Value: strings.Repeat("x", 60)}, from, false,
+			"   -  Allowed Users        " + strings.Repeat("x", maxWidth(KeyValue{}, from)-theme.ValueCol-3) + "..."},
+		{"keyvalue: a state with no value shows nothing", KeyValue{Key: "Sudo", State: ValueBad}, 80, false, "   -  Sudo"},
+		{"keyvalue: no key leaves the key column blank", KeyValue{Value: "2230"}, from, false,
+			"   -                       2230"},
+		{"bulletlist: a long key stacks the whole list", BulletList{Items: []KeyValue{
+			{Key: "Backup State", Value: "Enabled", State: ValueOK},
+			{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
+			{Key: "Non-root user has sudo privileges"},
+		}}, 80, false,
+			"  [+] Backup State\n      Enabled\n   -  Unattended Upgrades Mail Reports\n      alice\n   -  Non-root user has sudo privileges"},
+		// The next three hold whatever theme.StackBelow is.
+		{"bulletlist: no room beside for a letter stacks the list", BulletList{Items: []KeyValue{{Key: "SSH Port", Value: "2230"}}}, 29, false,
+			"   -  SSH Port\n      2230"},
+		{"bulletlist: a bullet item wraps under itself", BulletList{Items: []KeyValue{{Key: "If SSH fails, a fallback access method is available"}}}, 40, false,
+			"   -  If SSH fails, a fallback access\n      method is available"},
+		{"bulletlist: an empty list is nothing", BulletList{Items: []KeyValue{{}, {Key: " "}}}, 80, false, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -614,6 +691,11 @@ func TestBlockStyles(t *testing.T) {
 		{"breadcrumb", Breadcrumb{Items: []string{"hardn", "Firewall"}}, []part{
 			{"hardn", th.Breadcrumb.Item}, {th.Glyphs.Separator, th.Breadcrumb.Separator}, {"Firewall", th.Breadcrumb.Current},
 		}},
+		{"key-value", figmaUser, []part{
+			{th.Glyphs.Bullet, th.KeyValue.Bullet}, {"Sudo", th.KeyValue.Key},
+			{"Enabled,", th.KeyValue.Value}, {"No password", th.KeyValue.ValueBad}, {"7 keys", th.KeyValue.Value},
+		}},
+		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
 	}
 	for _, tt := range tests {
 		got := tt.vm.Render(c)
@@ -622,5 +704,43 @@ func TestBlockStyles(t *testing.T) {
 				t.Errorf("%s: got %q, want it to hold %q in its style", tt.name, got, want.text)
 			}
 		}
+	}
+}
+
+// TestValueStates checks that each value state shows in the value's
+// colour where there is colour, and as its own status marker in place of
+// the bullet where there is none, so that no state rests on colour alone.
+func TestValueStates(t *testing.T) {
+	colour := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	none := NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))
+	kv, g := colour.Theme.KeyValue, colour.Theme.Glyphs
+	tests := []struct {
+		state ValueState
+		style lipgloss.Style
+		glyph string
+	}{
+		{ValuePlain, kv.Value, g.Bullet},
+		{ValueOK, kv.ValueOK, g.Configured},
+		{ValueWarn, kv.ValueWarn, g.Partial},
+		{ValueBad, kv.ValueBad, g.NotConfigured},
+		{ValueUnknown, kv.ValueUnknown, g.Unknown},
+		{ValueNotApplicable, kv.ValueNotApplicable, g.NotApplicable},
+		{ValueState(-1), kv.Value, g.Bullet},
+	}
+	shown := map[string]bool{}
+	for _, tt := range tests {
+		vm := KeyValue{Key: "SSH Port", Value: "2230", State: tt.state}
+		got := vm.Render(colour)
+		if !strings.Contains(got, tt.style.Render("2230")) || !strings.Contains(got, kv.Bullet.Render(g.Bullet)) {
+			t.Errorf("state %d with colour: got %q, want the bullet and the value in its style", tt.state, got)
+		}
+		plain := ansi.Strip(vm.Render(none))
+		if want := marker(tt.glyph, lipgloss.NewStyle()).String(); !strings.HasPrefix(plain, want+" ") {
+			t.Errorf("state %d without colour: got %q, want it to start with %q", tt.state, plain, want)
+		}
+		shown[tt.glyph] = true
+	}
+	if len(shown) != 6 {
+		t.Errorf("the six states show %d different markers without colour, want 6: %v", len(shown), shown)
 	}
 }

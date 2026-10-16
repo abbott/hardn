@@ -1,0 +1,147 @@
+# Golden file of TestGolden/bulletlist/empty, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+$

@@ -136,7 +136,7 @@ type Menu struct {
 
 // Render renders the menu for c. See Menu for the layout.
 func (vm Menu) Render(c Ctx) string {
-	var rows []menuRow
+	var rows []entry
 	for _, it := range vm.Items {
 		if r, ok := it.row(c, false); ok {
 			rows = append(rows, r)
@@ -178,15 +178,16 @@ func (vm Menu) Bindings() keys.Set {
 	return out
 }
 
-// menuRow is a menu item in its parts: the key and label, the description
-// with its aside, and the note line.
-type menuRow struct{ head, value, note line }
+// entry is one entry of a list on the grid, in its parts: the head (a menu
+// item's key and label, a key-value row's bullet and key), the value (the
+// description with its aside, the value) and a note line under the value.
+// Menu and BulletList share it, so both decide their stacking alike.
+type entry struct{ head, value, note line }
 
-// cramped reports whether r cannot sit beside its label: it has a
-// description or note, and its label reaches the value column, or the
-// value column has no room for the whole note or for one letter of the
-// description.
-func (r menuRow) cramped(c Ctx) bool {
+// cramped reports whether r cannot sit beside its head: it has a value or
+// note, and its head reaches the value column, or the value column has no
+// room for the whole note or for one letter of the value.
+func (r entry) cramped(c Ctx) bool {
 	if r.value.width() == 0 && r.note.width() == 0 {
 		return false
 	}
@@ -197,11 +198,11 @@ func (r menuRow) cramped(c Ctx) bool {
 
 // row returns the parts of one item, or of the exit item when exit is set.
 // An item with no label is not shown: ok is false.
-func (it MenuItem) row(c Ctx, exit bool) (r menuRow, ok bool) {
+func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
 	m, g := c.Theme.Menu, c.Theme.Glyphs
 	label := clean(it.Label)
 	if label == "" {
-		return menuRow{}, false
+		return entry{}, false
 	}
 	keyStyle, labelStyle, descStyle, asideStyle := m.Key, m.Label, m.Description, m.Aside
 	var note line
@@ -230,5 +231,5 @@ func (it MenuItem) row(c Ctx, exit bool) (r menuRow, ok bool) {
 		}
 		value = append(value, span{"(" + a + ")", asideStyle})
 	}
-	return menuRow{head, value, note}, true
+	return entry{head, value, note}, true
 }

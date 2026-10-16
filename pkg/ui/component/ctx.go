@@ -244,6 +244,24 @@ func (c Ctx) bar(fill lipgloss.Style, text line) string {
 	return c.paint(fill, 1).String() + " " + body + " " + c.paint(fill, w-3-lipgloss.Width(body)).String()
 }
 
+// wrap breaks plain text s into lines of at most limit cells: at spaces
+// and hyphens where it can and inside a word where it must, as
+// lipgloss.Wrap breaks it (wrap.go:12-19, x/ansi wrap.go:293-463). The
+// lines keep no trailing spaces, and empty ones are dropped. With limit
+// under 1, s is one line.
+func wrap(s string, limit int) []string {
+	if limit < 1 {
+		return []string{s}
+	}
+	var out []string
+	for _, l := range strings.Split(lipgloss.Wrap(s, limit, ""), "\n") {
+		if l = strings.TrimRight(l, " "); l != "" {
+			out = append(out, l)
+		}
+	}
+	return out
+}
+
 // clean makes a view-model string one line of plain text: escape sequences
 // are removed, tabs and line breaks become spaces, other control
 // characters and invalid UTF-8 are dropped, and surrounding spaces are
