@@ -76,8 +76,8 @@ func Mocks() []Mock {
 		return Source{Label: "Figma " + png + ".png", Delta: delta, Pending: pending}
 	}
 	confirm := func(line string) []Answer { return []Answer{{Step: "confirm", Line: line}} }
-	sudo := func(e flow.Engine, dryRun bool) func() (WorkflowStep, flow.Flow) {
-		return func() (WorkflowStep, flow.Flow) { return manageSudo(e, dryRun) }
+	on := func(build func(flow.Engine, bool) (WorkflowStep, flow.Flow), e flow.Engine, dryRun bool) func() (WorkflowStep, flow.Flow) {
+		return func() (WorkflowStep, flow.Flow) { return build(e, dryRun) }
 	}
 	const (
 		unreleased = "v0.3.2 has no such screen; origin/main adds it (pkg/menu/user_options.go)."
@@ -122,7 +122,11 @@ func Mocks() []Mock {
 				"screen's state and checklist (pkg/menu/disable_root_menu.go).",
 			"Confirmed by typing the hostname, as brief 1C asks for a lockout-risk change, where Figma asks (y/n): "+
 				"pending P-10 (DEV-057). "+figmaWords),
-			Sequences: []Sequence{{Name: "normal", Build: rootLoginFixture, Answers: confirm(hostname), Ends: flow.Applied}}},
+			Sequences: []Sequence{
+				{Name: "normal", Build: on(rootLogin, flow.Fixture{Planned: rootLoginPlan()}, false), Answers: confirm(hostname), Ends: flow.Applied},
+				{Name: "dry-run", Build: on(rootLogin, flow.Fixture{Planned: rootLoginPlan()}, true), Ends: flow.Planned},
+				{Name: "failure", Build: on(rootLogin, rootLoginFails(), false), Answers: confirm(hostname), Ends: flow.Failed},
+			}},
 		{Name: "workflow-step/user-create-user", Source: figma("USER-CREATE_USER",
 			"v0.3.2's User Creation Menu asks for a username only when none is configured, then creates the user "+
 				"at once (pkg/menu/menu.go:317-349). origin/main adds this form, a summary and \"Create user 'x'? (y/n)\".",
@@ -135,9 +139,9 @@ func Mocks() []Mock {
 			"way with no confirmation.",
 			"A y/N question, as Figma asks; P-10 proposes a typed confirmation for sudo-method changes."),
 			Sequences: []Sequence{
-				{Name: "normal", Build: sudo(flow.Fixture{Planned: sudoPlan()}, false), Answers: confirm("y"), Ends: flow.Applied},
-				{Name: "dry-run", Build: sudo(flow.Fixture{Planned: sudoPlan()}, true), Ends: flow.Planned},
-				{Name: "failure", Build: sudo(sudoFails(), false), Answers: confirm("y"), Ends: flow.Failed},
+				{Name: "normal", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan()}, false), Answers: confirm("y"), Ends: flow.Applied},
+				{Name: "dry-run", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan()}, true), Ends: flow.Planned},
+				{Name: "failure", Build: on(manageSudo, sudoFails(), false), Answers: confirm("y"), Ends: flow.Failed},
 			}},
 	}
 }

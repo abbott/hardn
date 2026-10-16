@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/abbott/hardn/pkg/diff"
@@ -178,21 +179,43 @@ const (
 	dropIn   = "/etc/ssh/sshd_config.d/00-hardn.conf"
 )
 
-// rootLoginFixture returns Figma's SSH_LOGIN-TOGGLE_CONFIRMATION as a
-// workflow step and its flow: disabling root SSH login, under Figma's
-// "Manage Root SSH Login" title. The review is Figma's warning, its
-// checklist and its "SSH Configuration" rows; the plan sets
-// PermitRootLogin no in hardn's drop-in, a lockout risk, so the flow asks
-// Figma's question above a typed confirmation of the hostname, as brief
-// 1C has it, where Figma asks (y/n): P-10 is pending.
-func rootLoginFixture() (WorkflowStep, flow.Flow) {
-	plan := flow.Plan{Risk: flow.RiskLockout, View: component.PlanView{Changes: []component.PlanChange{{
+// rootLoginPlan is what disabling root SSH login plans, two steps, as
+// brief Phase 2.3 orders them: PermitRootLogin no in hardn's drop-in,
+// checked with sshd -t, a lockout risk; then the SSH service reloaded,
+// not restarted, so that open sessions survive. The second step gives the
+// failure path one to roll back. Illustrative, as sudoPlan is.
+func rootLoginPlan() flow.Plan {
+	return flow.Plan{Risk: flow.RiskLockout, View: component.PlanView{Changes: []component.PlanChange{{
 		Title: "Set PermitRootLogin no", Target: dropIn, LockoutRisk: true,
 		Diff: diff.Unified(dropIn, dropIn,
 			"# Managed by hardn\nPort 2230\nPermitRootLogin yes\n",
 			"# Managed by hardn\nPort 2230\nPermitRootLogin no\n"),
-		Commands: []string{"sshd -t", "systemctl reload ssh"},
+		Commands: []string{"sshd -t"},
+	}, {
+		Title:    "Reload the SSH service",
+		Commands: []string{"systemctl reload ssh"},
 	}}}}
+}
+
+// rootLoginFails fails rootLoginPlan's reload, so that the drop-in's
+// change is rolled back.
+func rootLoginFails() flow.Fixture {
+	return flow.Fixture{Planned: rootLoginPlan(), FailAt: 2, Detail: "exit status 1", Failure: flow.Failure{
+		Err:     errors.New("Reloading the SSH service failed: exit status 1"),
+		Command: "systemctl reload ssh",
+		LogPath: "/var/log/hardn.log",
+		Next:    "Run systemctl status ssh to see why it failed.",
+	}}
+}
+
+// rootLogin returns Figma's SSH_LOGIN-TOGGLE_CONFIRMATION as a workflow
+// step and its flow on engine e, in dry-run mode when dryRun is set:
+// disabling root SSH login, under Figma's "Manage Root SSH Login" title.
+// The review is Figma's warning, its checklist and its "SSH
+// Configuration" rows; the plan (rootLoginPlan) is a lockout risk, so the
+// flow asks Figma's question above a typed confirmation of the hostname,
+// as brief 1C has it, where Figma asks (y/n): P-10 is pending.
+func rootLogin(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
 	f := flow.Flow{
 		Review: func() flow.Review {
 			return flow.Review{
@@ -208,12 +231,20 @@ func rootLoginFixture() (WorkflowStep, flow.Flow) {
 				Items: sshSettings(),
 			}
 		},
-		Engine: flow.Fixture{Planned: plan},
-		Confirm: func(flow.Plan) flow.Confirm {
-			return flow.Confirm{Question: "Disable SSH login for 'root'?", Label: "Type the hostname", Phrase: hostname}
-		},
+		Engine:  e,
+		Confirm: typedHostname("Disable SSH login for 'root'?"),
+		DryRun:  dryRun,
 	}
 	return WorkflowStep{Header: fixtureHeader(), Breadcrumb: trail("Manage Root SSH Login")}, f
+}
+
+// typedHostname returns a flow's Confirm that asks question, and above a
+// typed confirmation, which the flow asks for a plan with lockout risk,
+// asks for the hostname: nav's example label, under the question.
+func typedHostname(question string) func(flow.Plan) flow.Confirm {
+	return func(flow.Plan) flow.Confirm {
+		return flow.Confirm{Question: question, Label: "Type the hostname", Phrase: hostname}
+	}
 }
 
 // createUserFixture returns Figma's USER-CREATE_USER as a workflow step

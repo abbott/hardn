@@ -29,6 +29,8 @@ $
       ␛[38;2;231;70;105m-PermitRootLogin yes␛[m$
       ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
       ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
@@ -62,6 +64,8 @@ $
       -PermitRootLogin yes$
       +PermitRootLogin no$
       $ sshd -t$
+$
+   -  Reload the SSH service$
       $ systemctl reload ssh$
 $
   Disable SSH login for 'root'?$
@@ -99,6 +103,8 @@ $
       ␛[38;2;231;70;105m-PermitRootLogin yes␛[m$
       ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
       ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
