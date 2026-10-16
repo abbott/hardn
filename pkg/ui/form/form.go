@@ -115,7 +115,7 @@ func ask(p nav.Prompter, field Field, number int) error {
 	own := strings.Contains(head, "\n") || !asked.ShowsWhole(p.Ctx)
 	if own {
 		out += head + strings.Repeat("\n", theme.PromptGap+1)
-		question = component.PromptLine{Accepts: accepts}.Render(p.Ctx)
+		question = component.PromptLine{Label: v.label, Accepts: accepts}.Render(p.Ctx)
 	}
 	if err := write(p.Out, out); err != nil {
 		return err

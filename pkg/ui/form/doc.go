@@ -48,8 +48,11 @@
 //   - A field with a description or options, and one whose one line
 //     would cut its question, on a narrow terminal or for a long title,
 //     shows a FieldHead (the title, the description, then the options as
-//     a menu's rows), then theme.PromptGap blank lines, then a PromptLine
-//     of its own with no label, since the title above is the question:
+//     a menu's rows, set apart by a blank line), then theme.PromptGap
+//     blank lines, then a PromptLine of its own. A Select's asks "Enter
+//     your choice", Figma's words for a numbered choice, as a menu's
+//     prompt does: "> Enter your choice [1-2, 0, b or q]:". A text or y/N
+//     field's has no label, since the title right above is the question:
 //     "> [0, b or q]:". The head's title has its line to itself, so it
 //     shows whole at widths where the one line would not; it is still one
 //     line, cut with the ellipsis when it must be, so words a user has to

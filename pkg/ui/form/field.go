@@ -35,6 +35,7 @@ type view struct {
 	title       string
 	description string
 	options     []component.MenuItem // a Select's, keyed from 1
+	label       string               // its own prompt line's: a Select's choice; empty for the rest
 	accepts     keys.Set             // the field's own inputs: a y/N's answers, a Select's keys
 	echo        keys.Set             // the hint its answered echo shows: a y/N's answers
 	invalid     string               // nav's words for a line the field does not take
@@ -140,6 +141,12 @@ func (f *YesNo) skipped() bool { return f.Skip != nil && f.Skip() }
 func (f *YesNo) save() error   { return save(f.Value, &f.before) }
 func (f *YesNo) restore()      { *f.Value = f.before }
 
+// choice is the label of a Select's prompt line, Figma's words for a
+// numbered choice ("Enter your choice", USER-MANAGE_USER-SELECT_USER and
+// 00-TUI-MAIN), which a menu's prompt says too (nav.Prompter.Choose), so
+// that a numbered choice is asked alike wherever it is asked.
+const choice = "Enter your choice"
+
 // Option is one choice of a Select: the label shown, an optional
 // description beside it, as a menu item's, and the value it gives.
 type Option[T any] struct {
@@ -148,12 +155,18 @@ type Option[T any] struct {
 	Value       T
 }
 
-// Select is a numbered choice, such as the user whose SSH keys to manage:
-// its options are listed as a menu's items, keyed from 1 in order, and it
-// takes the number of one. Any other line is refused with nav's words for
-// a menu; 0, b and q navigate. A Select has no Default: a numbered list's
-// hint has no way to mark one, and an empty line chooses nothing, as on a
-// menu. Its echo names the option chosen.
+// Select is a numbered choice whose answer the form collects, such as
+// the SSH key to remove (origin/main's "Select a key to remove", pkg/menu
+// user_options.go:502): its options are listed as a menu's items, keyed
+// from 1 in order, under its title, and its prompt line asks "Enter your
+// choice", as a menu's does; it takes the number of one. Any other line is
+// refused with nav's words for a menu; 0, b and q navigate. A Select has
+// no Default: a numbered list's hint has no way to mark one, and an empty
+// line chooses nothing, as on a menu. Its echo names the option chosen.
+//
+// A choice that opens a screen of its own, such as Figma's "Select a
+// user" (USER-MANAGE_USER-SELECT_USER), whose user's management menu
+// follows, is a menu (nav.Menu), not a form field (DEV-046).
 type Select[T any] struct {
 	// Title is the question, such as "Select a user". TitleFunc, when
 	// set, gives it instead each time the field is asked.
@@ -198,7 +211,7 @@ func (f *Select[T]) view() (view, error) {
 	f.asked, f.inputs = options, component.Menu{Items: items}.Bindings()
 	return view{
 		title: pick(f.Title, f.TitleFunc), description: f.Description,
-		options: items, accepts: f.inputs, invalid: nav.InvalidOption,
+		options: items, label: choice, accepts: f.inputs, invalid: nav.InvalidOption,
 	}, nil
 }
 
