@@ -105,14 +105,17 @@ func Mocks() []Mock {
 	)
 	return []Mock{
 		{Name: "main-menu/00-tui-main", Screen: MainMenuFixture(), Source: figma("00-TUI-MAIN",
-			"v0.3.2 (pkg/menu/menu.go:72-265) has no header, host badge or divider: the OS name sits in a ~~~ rule "+
-				"over the risk, the status rows and a dry-run line, then twelve items, the package screens and Help "+
-				"among them, and \"Enter your choice [0-12 or q]\". origin/main has this layout and ten items: the "+
-				"package screens and Help gone, User Management, SSH Login, Environment and System Details new.",
+			"v0.3.2 (pkg/menu/menu.go:72-265) opens with an ASCII \"Hardn Linux\" logo under a ### rule, no version, "+
+				"where the header stands (pkg/utils/utils.go:35-47), and has no host badge or divider: the OS name "+
+				"sits in a ~~~ rule over the risk, the status rows and a dry-run line, then twelve items, the "+
+				"package screens and Help among them, and \"Enter your choice [0-12 or q]\". origin/main has this "+
+				"layout and ten items: the package screens and Help gone, User Management, SSH Login, Environment "+
+				"and System Details new.",
 			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a).")},
 		{Name: "sub-menu/01-user", Screen: UserFixture(), Source: figma("01-USER",
 			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
-				"with no question or confirmation (pkg/menu/menu.go:317-349). origin/main adds this menu.",
+				"asking only for a username when none is configured, with no confirmation (pkg/menu/menu.go:317-349). "+
+				"origin/main adds this menu.",
 			"Figma's words where origin/main's differ, pending P-29 (b).")},
 		{Name: "sub-menu/02-ssh-login", Screen: sshLoginFixture(), Source: figma("02-SSH_LOGIN",
 			"v0.3.2's Root SSH item warns and asks \"Do you want to continue? (y/n)\", then restarts ssh "+
@@ -150,7 +153,8 @@ func Mocks() []Mock {
 		{Name: "workflow-step/user-create-user", Source: figma("USER-CREATE_USER",
 			"v0.3.2's User Creation Menu asks for a username only when none is configured, then creates the user "+
 				"at once (pkg/menu/menu.go:317-349). origin/main adds this form, a summary and \"Create user 'x'? (y/n)\".",
-			"The confirmation after the plan, unnumbered, pending P-10 (DEV-048)."),
+			"The confirmation after the plan, unnumbered, pending P-10 (DEV-048). \"Require sudo password?\" "+
+				"asked y/N, as Figma asks it, pending P-11. "+figmaWords),
 			Sequences: []Sequence{
 				{Name: "normal", Build: creating(false, false), Answers: george("y"), Ends: flow.Applied},
 				{Name: "dry-run", Build: creating(false, true), Answers: george(), Ends: flow.Planned},
@@ -161,7 +165,7 @@ func Mocks() []Mock {
 			" It asks \"Require password for sudo? (y/n)\" only when moving to a password, and changes the other "+
 			"way with no confirmation.",
 			"A y/N question, as Figma asks; the typed sequence confirms by typing the hostname, as P-10 proposes "+
-				"for sudo-method changes, pending P-10."),
+				"for sudo-method changes, pending P-10. "+figmaWords),
 			Sequences: []Sequence{
 				{Name: "normal", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan(false)}, false), Answers: confirm("y"), Ends: flow.Applied},
 				{Name: "dry-run", Build: on(manageSudo, flow.Fixture{Planned: sudoPlan(false)}, true), Ends: flow.Planned},
