@@ -318,7 +318,10 @@ func TestLayout(t *testing.T) {
 		{"heading: no mode", MenuHeading{Title: " Select an option\t"}, from, false, "  Select an option"},
 		{"heading: no title is the mode alone", MenuHeading{Mode: &ModeIndicator{DryRun: true}}, from, false,
 			strings.Repeat(" ", theme.ValueCol) + "Dry-run Mode Enabled"},
-		{"heading: under a cut title the mode's word stays whole", figmaHeading, min(below, 10), false,
+		// At a fixed width, so that it also runs with theme.StackBelow
+		// refused: the mode then goes under the title only because its
+		// word would not fit beside it.
+		{"heading: under a cut title the mode's word stays whole", figmaHeading, 10, false,
 			"  Selec...\n  Disabled"},
 		{"menu: keys right-aligned, descriptions at the value column", Menu{Items: []MenuItem{
 			{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
