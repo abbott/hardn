@@ -355,3 +355,30 @@ Feasibility is proven: `MockCommander.ExecutedCommands` and `MockFileSystem.File
 6. DNS: the three strategies, including empty nameservers (V19).
 7. Menu flows with dry-run on: they must show **no** adapter calls once fixed (V2). This needs the menu reader injected (`next/p0-input-seam`).
 8. Status functions against fixture `sshd_config` sets (V13).
+
+---
+
+## 13. Added in Phase 1
+
+Side effects that new dependencies bring with them, recorded when the dependency lands. Line numbers are in the module source at the pinned versions.
+
+### 13.1 Lip Gloss v2 and colorprofile at package initialisation (`next/p1a-term`)
+
+**Scope.** The effects below run in every process that links `charm.land/lipgloss/v2` (the root package), before `main`. In `next/p1a-term` only `pkg/ui/term` imports it, and nothing in `cmd/hardn` imports `pkg/ui` yet (`go list -deps ./cmd/hardn` lists no `charm.land` or `charmbracelet` package) [V]. So the hardn binary is unchanged; the effects reach it with the first unit that wires `pkg/ui` into `cmd/hardn`. The `pkg/ui` test binaries run them today.
+
+**What runs at init** [V code: lipgloss v2.0.6, colorprofile v0.4.3, x/term v0.2.2, xo/terminfo v0.0.0-20220910002029-abceb7e1c41e]:
+
+1. `var Writer = colorprofile.NewWriter(os.Stdout, os.Environ())` (lipgloss `writer.go:14`). `NewWriter` calls `Detect` (colorprofile `writer.go:23-28`).
+2. `Detect` (colorprofile `env.go:33-54`):
+   - copies the environment and checks whether stdout is a terminal with one `ioctl` (`TIOCGETA` on darwin and the BSDs, `TCGETS` on Linux; x/term `term_unix.go:14-16`, `term_unix_bsd.go`, `term_unix_other.go`);
+   - stops there when the environment alone gives TrueColor or `NO_COLOR` parses as true (`env.go:40-43`);
+   - otherwise, **only when stdout is a terminal and `TERM` is set and not `dumb`** (`env.go:45`):
+     - **reads terminfo:** `terminfo.Load(TERM)` (`env.go:208-229`) calls `user.Current()` and then reads `<dir>/<first letter>/<TERM>` from `$TERMINFO`, `~/.terminfo`, `$TERMINFO_DIRS`, `/etc/terminfo`, `/lib/terminfo` and `/usr/share/terminfo` until one exists (xo/terminfo `load.go:22-58`, `terminfo.go:218-231`);
+     - **runs `tmux info` when `$TMUX` is non-empty:** `exec.CommandContext(context.Background(), "tmux", "info").Output()` (`env.go:239-262`), so `tmux` is found through `$PATH` and there is no timeout. Whether `TMUX` survives `sudo` depends on the host's sudoers environment policy; not checked here.
+3. In-memory only: x/ansi reads `RUNEWIDTH_EASTASIAN` (`method.go:20-25`) and builds width tables (`wcwidth.go:24`); ultraviolet fills a key map (`decoder.go:1320`); x/termios fills option tables (`syscalls_linux.go:8`, `syscalls_darwin.go:8`).
+
+Nothing at init writes a file, changes a terminal mode or sends anything to the terminal.
+
+**How hardn handles it.** The init-time `Detect` cannot be switched off while Lip Gloss is linked; hardn ignores its result. `pkg/ui/term` never uses `lipgloss.Writer` or `lipgloss.Print*`/`Fprint*`/`Sprint*` (the `Fprint*` functions run `Detect` again on every call, `writer.go:67-97`). Its profile comes from `term.Resolve`, which calls only `colorprofile.Env` (environment variables; no isatty, terminfo or tmux), and `Env.Writer` is a `colorprofile.Writer` with that profile fixed.
+
+**Background query: not at init.** The terminal is queried only by `term.Detect`, and only when the user opts in (`--theme=auto`, `HARDN_THEME=auto`) with stdin and stdout both terminals and plain mode off. `lipgloss.HasDarkBackground` then switches the terminal to raw mode, with ISIG, ICANON and ECHO off (x/term `term_unix.go:31`), for up to 2 s per descriptor, stdin and then stdout (lipgloss `query.go:49`, `terminal.go:60-64`). Type-ahead is read and discarded, Ctrl-C does not interrupt, and a late reply stays in stdin. `charm.land/lipgloss/v2/compat` runs this query at import (`compat/color.go:13`) as well as a second `Detect` (`compat/color.go:16`), so hardn must never import it (depguard rule planned in `next/p1d-lint`).
