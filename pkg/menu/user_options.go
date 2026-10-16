@@ -855,7 +855,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 		return true // Continue showing the menu
 	}
 
-	// fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	// fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	// ReadKey()
 	// return false // Exit to main menu as default behavior
 }

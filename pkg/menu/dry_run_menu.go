@@ -121,6 +121,6 @@ func (m *DryRunMenu) Show() {
 			style.Colored(style.Red, style.SymCrossMark), err)
 	}
 
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
 }

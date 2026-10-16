@@ -206,7 +206,7 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 	fmt.Println(style.Colored(style.Royal, "  "+m.installURL))
 	fmt.Println()
 	fmt.Println()
-	fmt.Print(style.Dimmed("Press any key to exit... "))
+	fmt.Print(style.Dimmed("Press Enter to exit... "))
 }
 
 // displayNormalSecurityStatus displays the normal security status in a box
@@ -539,7 +539,7 @@ func (m *MainMenu) handleMenuChoice(choice string) bool {
 		utils.PrintHeader()
 		fmt.Printf("%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
+		fmt.Printf("\n%s Press Enter to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 	}
 

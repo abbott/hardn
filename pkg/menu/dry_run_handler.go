@@ -49,7 +49,7 @@ func (h *DryRunHandler) Handle() {
 	}
 
 	fmt.Println()
-	fmt.Printf("%s Press any key to continue to dry-run configuration...", style.BulletItem)
+	fmt.Printf("%s Press Enter to continue to dry-run configuration...", style.BulletItem)
 	ReadKey()
 
 	// Create and show the dry-run menu
@@ -70,6 +70,6 @@ func (h *DryRunHandler) Handle() {
 			false: style.Yellow,
 		}[h.config.DryRun]))
 
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
 }
