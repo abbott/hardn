@@ -1,0 +1,177 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[48;2;16;17;20m                                         ␛[m$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter your choice [0-10, b or q]:$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[48;2;16;17;20m                                     ␛[m$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m$
+
+=== truecolor-dark-unicode-80x40: width 80, height 40, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[48;2;16;17;20m                                         ␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+␛[38;2;86;91;107m────────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle SSH root access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m$
+
+=== truecolor-light-unicode-80x40: width 80, height 40, profile truecolor, light, glyphs unicode
+␛[1;38;2;30;34;48mhardn␛[m ␛[38;2;87;92;110;48;2;230;232;238m v0.4.0 ␛[m             ␛[38;2;129;134;156mhttps://github.com/abbott/hardn␛[m$
+$
+␛[48;2;230;232;238m ␛[m ␛[1;38;2;87;92;110mDebian␛[m ␛[38;2;87;92;110m12␛[m ␛[38;2;129;134;156m(Bookworm)␛[m ␛[48;2;230;232;238m                                         ␛[m$
+$
+  ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;87;92;110m192.0.2.10␛[m$
+                           ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;138;97;0m⛬␛[m  ␛[1;38;2;30;34;48mRisk Level␛[m           ␛[38;2;138;97;0mModerate␛[m ␛[38;2;129;134;156m≈ medium security␛[m$
+$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUser␛[m                 ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Port␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;194;37;74mNot Configured␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m$
+$
+␛[38;2;129;134;156m────────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m         ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m      ␛[38;2;87;92;110mCreate, Configure␛[m ␛[38;2;129;134;156m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;87;92;110mToggle SSH root access␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                  ␛[38;2;87;92;110mConfigure Nameservers␛[m$
+   ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;87;92;110mConfigure UFW rules␛[m$
+   ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m              ␛[38;2;87;92;110mSimulate changes␛[m$
+   ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
+  ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
+$
+   ␛[1;38;2;87;92;110m0)␛[m ␛[38;2;87;92;110mExit␛[m                 ␛[38;2;87;92;110mq to quit␛[m$
+$
+  ␛[1;38;2;87;92;110m❯␛[m ␛[1;38;2;87;92;110mEnter your choice␛[m ␛[38;2;87;92;110m[0-10, b or q]:␛[m$
