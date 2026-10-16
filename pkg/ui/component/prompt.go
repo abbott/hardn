@@ -55,10 +55,13 @@ func (c Ctx) ask(head line, label, hint string, labelStyle, hintStyle lipgloss.S
 		end = line{gap(1), {"[" + hint + "]:", hintStyle}}
 	}
 	room := limit - head.width() - 1 - end.width()
-	switch {
-	case label != "" && (room >= lipgloss.Width(label) || room > lipgloss.Width(c.Theme.Glyphs.Ellipsis)):
-		return slices.Concat(head, line{gap(1), {c.truncate(label, room), labelStyle}}, end), true
-	case hint != "":
+	// The cut label shows some of the label when it is whole or longer
+	// than the ellipsis: a letter wider than the room left beside the
+	// ellipsis, such as a double-width one, leaves the ellipsis alone.
+	if cut := c.truncate(label, room); label != "" && (cut == label || lipgloss.Width(cut) > lipgloss.Width(c.Theme.Glyphs.Ellipsis)) {
+		return slices.Concat(head, line{gap(1), {cut, labelStyle}}, end), true
+	}
+	if hint != "" {
 		return slices.Concat(head, end), false
 	}
 	return head, false

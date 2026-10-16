@@ -223,6 +223,7 @@ var states = []struct {
 	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
 	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
 	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}},
+	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
 	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
 	{"answeredfield/empty", AnsweredField{Answer: "george"}},
 }
@@ -474,6 +475,12 @@ func TestLayout(t *testing.T) {
 		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 20, false,
 			"  > [0-10 or q]:"},
 		{"prompt: empty is the glyph", PromptLine{}, 80, false, "  >"},
+		// 用户名称 is double-width: beside the ellipsis, its first letter
+		// needs 5 cells, which width 18 leaves 4 of.
+		{"prompt: a wide letter that cannot fit leaves the label out", PromptLine{Label: "用户名称", Accepts: yesNo}, 18, false,
+			"  > [y or n]:"},
+		{"prompt: a wide letter that fits is kept", PromptLine{Label: "用户名称", Accepts: yesNo}, 19, false,
+			"  > 用... [y or n]:"},
 		{"badge: at the indent", Badge{Text: "web-01"}, 80, false, "  [web-01]"},
 		{"badge: a long name is cut inside the brackets", Badge{Text: strings.Repeat("x", 70)}, 60, false,
 			"  [" + strings.Repeat("x", 53) + "...]"},
@@ -554,6 +561,10 @@ func TestLayout(t *testing.T) {
 		{"field: the question is cut to keep a short answer beside it", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 40, false,
 			"  Disable SSH login for '... [y or n]: y"},
 		{"field: a wide number pushes the question", AnsweredField{Number: 12345, Label: "Username"}, 80, false, "12345. Username:"},
+		{"field: too narrow for the colon, an unnumbered question is cut, not left as its indent", AnsweredField{Label: "Username", Answer: "george"}, 6, false,
+			"  U...\n..."},
+		{"field: with no letter left, an unnumbered question is the ellipsis", AnsweredField{Label: "Username"}, 5, false, "..."},
+		{"field: a numbered question keeps its number", AnsweredField{Number: 1, Label: "Username"}, 6, false, "   1."},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

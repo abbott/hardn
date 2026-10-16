@@ -2,6 +2,7 @@ package component
 
 import (
 	"math"
+	"slices"
 	"strconv"
 
 	"charm.land/lipgloss/v2"
@@ -57,13 +58,19 @@ func (vm AnsweredField) Render(c Ctx) string {
 	if label == "" {
 		return ""
 	}
+	numbered := vm.Number > 0
 	head := line{gap(theme.Indent - 1)} // ask puts a cell before the label
-	if vm.Number > 0 {
+	if numbered {
 		n := strconv.Itoa(vm.Number) + "."
 		head = line{gap(theme.MarkerCol + theme.MarkerWidth - lipgloss.Width(n)), {n, t.Number}}
 	}
 	hint, answer := clean(vm.Accepts.Hint()), clean(vm.Answer)
-	asked, _ := c.ask(head, label, hint, t.Label, t.Hint, w)
+	asked, shown := c.ask(head, label, hint, t.Label, t.Hint, w)
+	if !shown && hint == "" && !numbered {
+		// ask left nothing but the indent: cut the question itself, so
+		// that as much of it as fits, or of the ellipsis, shows.
+		asked = slices.Concat(head, line{gap(1), {label + ":", t.Label}})
+	}
 	if answer == "" {
 		return c.fit(asked, w)
 	}
