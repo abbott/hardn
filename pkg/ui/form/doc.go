@@ -70,10 +70,19 @@
 //
 // The fields of a form of more than one field are numbered by their
 // place among the fields asked, so a skipped field takes no number and
-// the numbers run on (DEV-047). Each field is set apart from what is
-// above it by theme.SectionGap blank lines once any prompt has been asked
-// (prompt.Reader.Asked), as Figma spaces its form and as nav.Run spaces a
-// menu from the answer that opened it.
+// the numbers run on (DEV-047). They are numbered even when Skip leaves
+// only one to ask: a field's number is shown as it is asked, before the
+// fields after it can tell whether they are skipped, since their Skip
+// may read its answer.
+//
+// Each field is set apart from what is above it by theme.SectionGap blank
+// lines once any prompt has been asked (prompt.Reader.Asked), as Figma
+// spaces its form and as nav.Run spaces a menu from the answer that
+// opened it. Before any prompt, Run cannot tell whether anything stands
+// above its first field, so it writes no gap there: a caller that draws
+// something above a form, such as a workflow step's title bar, ends it
+// with theme.SectionGap blank lines itself when Asked reports false, and
+// leaves them to Run when it reports true.
 //
 // # Navigation
 //
