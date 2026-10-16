@@ -55,6 +55,11 @@
 //     from Glyphs, but each line still needs the value-column indent and
 //     the ellipsis cut, which leaves list nothing to do for one line per
 //     factor.
-//   - table and tree are not used here: no component in this group has
-//     rows of cells or nesting.
+//   - table (the label and value rows of HostBlock and RiskSummary, and
+//     the columns helper that later two-column rows share): a borderless
+//     table pads every cell to its column's width (table/table.go:512-518)
+//     and joins the cells with JoinHorizontal (table.go:534), so each value
+//     shorter than the last column leaves trailing spaces. columns places
+//     values with spaces up to the grid column instead.
+//   - tree is not used: nothing in this group nests.
 package component
