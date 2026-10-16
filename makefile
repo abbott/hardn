@@ -463,3 +463,9 @@ check-cross:
 .PHONY: it-containers it-vm
 it-containers it-vm:
 	@echo "$@: run on the VM host (see docs/refactor)"
+
+# Safety gate (refactor plan P0.4): the first target in this file is `tag`,
+# which runs `git tag -a` and `git push origin`, so a bare `make` would publish.
+# Nothing is pushed during the refactor, so the default goal is `check` instead.
+# `make tag` and `make release` still work when invoked explicitly.
+.DEFAULT_GOAL := check
