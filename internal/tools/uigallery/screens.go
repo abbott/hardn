@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -49,38 +50,64 @@ func source(ctx component.Ctx, s screen.Source) string {
 	return component.Callout{Kind: component.MessageInfo, Body: []string{"Source: " + s.Label, s.Delta, s.Pending}}.Render(ctx)
 }
 
+// diverged is the gallery's note over a sequence that ends otherwise in
+// cell c than it says (a *screen.Diverged), as one whose typed
+// confirmation the terminal is too narrow to ask: the run is shown whole,
+// since its steps are not the sequence's.
+func diverged(ctx component.Ctx, d *screen.Diverged, c cell) string {
+	return component.Callout{Kind: component.MessageInfo, Body: []string{fmt.Sprintf(
+		"In %s the %s sequence ends %s, not %s, so its run is shown whole, not step by step.",
+		c.name, d.Sequence, screen.Ending(d.Ended), screen.Ending(d.Want))}}.Render(ctx)
+}
+
 // renderMock returns the drawings of m that want holds, in cell c: under
 // the gallery's header naming m, its source note, then each drawing,
 // after a header naming its sequence and step for a workflow's, the
 // step's own blank lines before it, which set it apart from the step
-// before, giving way to the header's. Each is followed by a blank line.
-// It returns "" when want holds none of m's.
+// before, giving way to the header's. Each is followed by a blank line. A
+// sequence that ends otherwise in c than it says, as one whose typed
+// confirmation the terminal is too narrow to ask, is shown whole under a
+// header naming it and a note saying so (diverged), so that the other
+// mocks still show. It returns "" when want holds none of m's.
 func (g gallery) renderMock(m screen.Mock, want []string, c cell) (string, error) {
-	names := slices.DeleteFunc(m.Names(), func(n string) bool { return !slices.Contains(want, n) })
-	if len(names) == 0 {
+	if !slices.ContainsFunc(m.Names(), func(n string) bool { return slices.Contains(want, n) }) {
 		return "", nil
 	}
 	ctx, err := g.ctx(c.env)
 	if err != nil {
 		return "", err
 	}
-	drawings, err := m.Render(ctx)
-	if err != nil {
-		return "", err
-	}
 	gap := strings.Repeat("\n", theme.SectionGap+1)
 	var b strings.Builder
 	b.WriteString(header(ctx, m.Name) + gap + source(ctx, m.Source) + gap)
-	for i, n := range m.Names() {
-		if !slices.Contains(names, n) {
+	if m.Screen != nil {
+		b.WriteString(m.Screen.Render(ctx) + gap)
+		return b.String(), nil
+	}
+	for _, s := range m.Sequences {
+		var names []string
+		for _, step := range s.Steps() {
+			if slices.Contains(want, m.Name+"/"+s.Name+"/"+step) {
+				names = append(names, step)
+			}
+		}
+		if len(names) == 0 {
 			continue
 		}
-		d := drawings[i]
-		if step, ok := strings.CutPrefix(n, m.Name+"/"); ok {
-			b.WriteString(header(ctx, step) + gap)
-			d = strings.TrimLeft(d, "\n")
+		steps, err := s.Play(ctx)
+		var d *screen.Diverged
+		switch {
+		case errors.As(err, &d):
+			b.WriteString(header(ctx, s.Name) + gap + diverged(ctx, d, c) + gap + strings.TrimLeft(d.Transcript, "\n") + gap)
+			continue
+		case err != nil:
+			return "", err
 		}
-		b.WriteString(d + gap)
+		for i, step := range s.Steps() {
+			if slices.Contains(names, step) {
+				b.WriteString(header(ctx, s.Name+"/"+step) + gap + strings.TrimLeft(steps[i], "\n") + gap)
+			}
+		}
 	}
 	return b.String(), nil
 }

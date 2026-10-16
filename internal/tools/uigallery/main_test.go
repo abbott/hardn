@@ -600,3 +600,105 @@ func TestScreenSelect(t *testing.T) {
 		t.Errorf("one step: exit %d, output\n%s", code, out)
 	}
 }
+
+// TestScreenSmoke runs -screens in-process for every profile, both themes
+// and both glyph sets, at 80 and 60 columns and at the narrow widths where
+// a typed confirmation stops fitting (29 to 32 columns, below which the
+// flow cancels it), and at 1 and 20, and checks the output: the exit
+// status 0; every mock under its header; every sequence step by step, or,
+// one that ends otherwise at the width (screen.Diverged), whole under its
+// own name's header; the escape sequences the profile allows and no more;
+// only ASCII where asked, but for data such as 01-USER's "≥"; and no line
+// wider than the terminal but a header, which shows its whole name.
+func TestScreenSmoke(t *testing.T) {
+	narrowed := 0
+	var typed []string
+	for _, m := range screen.Mocks() {
+		for _, s := range m.Sequences {
+			for _, a := range s.Answers {
+				typed = append(typed, a.Line)
+			}
+		}
+	}
+	for _, p := range profiles {
+		for _, th := range []string{"dark", "light"} {
+			for _, ascii := range []bool{false, true} {
+				for _, w := range []int{1, 20, 29, 30, 31, 32, 60, 80} {
+					args := []string{"-screens", "-profile", p.name, "-theme", th, fmt.Sprintf("-ascii=%t", ascii), fmt.Sprintf("-width=%d", w)}
+					code, out, errs := runGallery(args...)
+					where := strings.Join(args, " ")
+					if code != exitOK || errs != "" {
+						t.Fatalf("%s: exit %d, stderr %q", where, code, errs)
+					}
+					c := newCell(profiles[slices.Index(profiles, p)], th == "dark", !ascii, w)
+					ctx := component.NewCtx(c.env)
+					lines := strings.Split(ansi.Strip(out), "\n")
+					headers := map[string]bool{}
+					has := func(title string) bool {
+						h := ansi.Strip(header(ctx, title))
+						headers[h] = true
+						return slices.Contains(lines, h)
+					}
+					for _, m := range screen.Mocks() {
+						if !has(m.Name) {
+							t.Errorf("%s: no header for %s", where, m.Name)
+						}
+						for _, s := range m.Sequences {
+							_, err := s.Play(ctx)
+							var d *screen.Diverged
+							if errors.As(err, &d) {
+								narrowed++
+								if !has(s.Name) {
+									t.Errorf("%s: %s/%s ends %s, and has no header of its own", where, m.Name, s.Name, screen.Ending(d.Ended))
+								}
+								continue
+							}
+							for _, step := range s.Steps() {
+								if !has(s.Name + "/" + step) {
+									t.Errorf("%s: no header for %s/%s/%s", where, m.Name, s.Name, step)
+								}
+							}
+						}
+					}
+					switch p.name {
+					case "plain":
+						if strings.Contains(out, "\x1b") {
+							t.Errorf("%s: an escape sequence in plain mode", where)
+						}
+					case "none":
+						if strings.Contains(out, "38;") || strings.Contains(out, "48;") || !strings.Contains(out, "\x1b[1m") {
+							t.Errorf("%s: want bold and no colour", where)
+						}
+					default:
+						if !strings.Contains(out, "\x1b[") {
+							t.Errorf("%s: no colour", where)
+						}
+					}
+					if data := strings.ReplaceAll(ansi.Strip(out), "≥", ""); (p.name == "plain" || ascii) && strings.ContainsFunc(data, func(r rune) bool { return r > 0x7e }) {
+						t.Errorf("%s: a glyph outside ASCII", where)
+					}
+					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
+						if headers[ansi.Strip(l)] {
+							continue
+						}
+						// A prompt's line ends with the space the line
+						// reader writes and the answer the terminal
+						// echoes, which the terminal wraps.
+						for _, a := range typed {
+							if cut, ok := strings.CutSuffix(l, " "+a); ok {
+								l = cut
+								break
+							}
+						}
+						if ansi.StringWidth(l) > w {
+							t.Errorf("%s: line %q is wider than %d", where, ansi.Strip(l), w)
+						}
+					}
+				}
+			}
+		}
+	}
+	if narrowed == 0 {
+		t.Error("no sequence ended otherwise at any width: the narrow path went untested")
+	}
+}

@@ -26,7 +26,11 @@
 // mock is its sequences, each step printed in order under a header naming
 // the sequence and the step, so that the steps read as the transcript of
 // one run: "workflow-step/user-manage-sudo-confirmation/failure" is one
-// sequence, ".../failure/2-failed" its last step. Flags:
+// sequence, ".../failure/2-failed" its last step. A sequence that ends
+// otherwise at the width than it says, as one whose typed confirmation
+// the terminal is too narrow to ask (below 30 columns in Unicode glyphs,
+// 32 in ASCII), which the flow cancels, is printed whole under its name,
+// after a note saying so, and the other mocks still show. Flags:
 //
 //	-list             print the names of the states it would render, and exit
 //	-theme dark|light the palette (default dark)
