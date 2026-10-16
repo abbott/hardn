@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`) and the navigation grammar in `pkg/ui/nav` (`next/p1c-nav`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -314,6 +314,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 - `pkg/ui/theme/testdata/golden/swatch.golden`: `TestSwatch` on `Full()`. Every token's name in its colour and as a background, every glyph by role, and the 27 typography roles.
 - `pkg/ui/uitest/testdata/golden/harness.golden`: the harness's own check, one render at each profile and in plain mode, at width 20.
 - `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2 to §9.6).
+- `pkg/ui/nav/testdata/golden/nav/<prompt>.golden`: `TestGolden` on `Core()`, a transcript per prompt of the grammar, the answers echoed as a terminal shows them (§9.8).
 
 **Running and regenerating:**
 - `make check` runs every golden in its `check-test` step, and fails on a mismatch.
@@ -381,17 +382,18 @@ Error is not a separate state: a check that failed is Unknown, with the reason i
 
 **Accepted inputs as data** (`pkg/ui/keys`, brief 1C's Bubbles `key.Binding` pattern). A `keys.Binding` names the inputs that select one choice (`Keys`, each a typed line such as `1`, `10` or `q`) and what it does (`Help`, the words after "to"). A `keys.Set` generates both:
 - the hint, `Set.Hint`: numbers first, in order, each run of two or more consecutive numbers collapsed into a range, then the other inputs in first-seen order, joined as "x, y or z": `0-10 or q`, `1-3, 5 or q`, the plan's `0-10, b or q`;
-- the help line, `Set.Help`: `q to quit`, `0 or b to go back, q to quit`.
+- the help line, `Set.Help`: `q to quit`, `b to go back, q to quit`;
+- for a question, a Set with a `Default` binding, its answers as one term, the default in capitals: `y/N`, `y/N, b or q` (§9.8).
 
-`Menu.Bindings` gives the keys of the items that can be chosen, and the exit item's, so a screen builds its prompt as `PromptLine{Label: "Enter your choice", Accepts: append(menu.Bindings(), quit)}` and its Exit row's description as `keys.Set{quit}.Help()`: one binding, no hand-written hint. Matching a typed line to a binding, and the navigation grammar's own bindings, are `next/p1c-nav`'s. Bindings carry no actions, and neither do the menu's items: `next/p1c-nav` binds each key to what it does.
+`Menu.Bindings` gives the keys of the items that can be chosen, and the exit item's, so a screen builds its prompt as `PromptLine{Label: "Enter your choice", Accepts: append(menu.Bindings(), keys.Navigation()...)}` and its Exit row's description as `keys.Set{keys.Quit()}.Help()`: one binding, no hand-written hint; `nav.Menu.Accepts` does the first. Bindings carry no actions, and neither do the menu's items: `pkg/ui/nav` binds each item to what it does, and matches a typed line to its binding with `keys.Set.Match` (§9.8).
 
 Not applicable is a menu item's `Disabled` state: an item that does not apply to the host cannot be chosen, and its aside can say why ("Proxmox" in `menu/disabled`). Unknown and error are not menu states: the screen fixes the items, and an action that fails reports through `Message` or `ErrorReport` (`next/p1b-blocks`, `next/p1b-plan`). A prompt with no accepted inputs shows no hint.
 
 **Open for later units.** `PromptLine` always ends with a colon, and `keys.Set.Hint` joins inputs with "or" and marks no default, so two prompts the flow needs cannot be written yet:
 - a continue prompt with no colon: Figma's "❯ Press any key to continue...", which `next/p1c-legacy-input` turns into an Enter prompt and P-09 limits to where output must be read; today `PromptLine{Label: "Press Enter to continue..."}` renders `> Press Enter to continue...:` (ASCII glyphs);
-- a `y/N` confirmation, the capital marking the default (brief 1C; Figma draws "(y/n):"): a `keys.Set` of y and N renders the hint `[y or N]:`.
+- a `y/N` confirmation, the capital marking the default (brief 1C; Figma draws "(y/n):"): a `keys.Set` of y and N rendered the hint `[y or N]:`.
 
-Both are additive: `next/p1c-nav`, which owns `y/N` confirmations, adds a default to `keys.Binding` and the hint form that shows it, and `next/p1c-legacy-input` a prompt that ends without the colon, its wording per P-09.
+Both are additive. `next/p1c-nav` added the second: `keys.Binding.Default` and the question's hint form, `[y/N]:` (DEV-045, §9.8). `next/p1c-legacy-input` adds a prompt that ends without the colon, its wording per P-09.
 
 ### 9.5 Block group (`next/p1b-blocks`)
 
@@ -413,7 +415,7 @@ Both are additive: `next/p1c-nav`, which owns `y/N` confirmations, adds a defaul
 
 Not applicable, unknown and error by component: a `KeyValue` has both as value states; a `Badge` or `SubjectLine` names what the screen already holds (a user read from the password file, or chosen from a list), so it has no unknown state and renders nothing without its subject; a failure is a `Message` or `Callout` of kind bad, and a full failure report is `ErrorReport` (`next/p1b-plan`). The other components have no state of their own.
 
-**Open for later units.** `AnsweredField` with no answer is the question as asked, so `next/p1c-form` can use it for both the asking line and its echo. Its y/n hint reads `[y or n]:` until `next/p1c-nav` gives `keys.Binding` a default and the hint form that shows it (§9.4). No screen uses `Breadcrumb` before P-08 is decided.
+**Open for later units.** `AnsweredField` with no answer is the question as asked, so `next/p1c-form` can use it for both the asking line and its echo; `pkg/ui/nav` asks its questions so (§9.8). Its y/N hint reads `[y/N]:`, the default in capitals, since `next/p1c-nav` (DEV-045). No screen uses `Breadcrumb` before P-08 is decided.
 
 ### 9.6 Plan group (`next/p1b-plan`)
 
@@ -467,9 +469,44 @@ A reader that is not a file, such as a test's `strings.Reader`, is read directly
 
 **Tested.** Scripted readers (CRLF, no last line ending, empty lines, `MaxLine` exactly and one over, a runaway input, read errors), split across reads; every case again with the input going on after its end, as a terminal does after Ctrl-D; `Ask`'s writes, scripted and typed at a pseudo-terminal (Enter, Ctrl-D after the answer, Ctrl-D on an empty line); answers queued on an `os.Pipe` through `Ask`, none flushed; a failed flush keeping the buffer; Ctrl-C (SIGINT sent to the test process) during a read of an `os.Pipe` and of a pseudo-terminal, then the next line, with a direct read of the pipe proving no read outlived the call; SIGINT's default action after a read (a child process must die of it), and an ignored SIGINT left ignored (another child); the flush on a pseudo-terminal in cooked mode, against a Reader that does not flush. All on macOS: Linux's `TCFLSH` and its pseudo-terminal helper are cross-compiled and vetted (`GOOS=linux go vet`, `go test -c`), not run, and no terminal emulator was used. `make check`'s `check-cross` builds only `cmd/hardn`, which does not import `pkg/ui` yet.
 
-**Open for later units.** `next/p1c-legacy-input` puts `pkg/menu`'s input on one Reader over stdin; `next/p1c-nav` trims and matches lines, and decides whether the end of the input at a sub-prompt goes back or ends hardn; `next/p3-output` decides the exit code for a script that ran out of answers and where prompts go when stdout is not a terminal (above); Ctrl-C outside a read, during an apply, is the engine's (Phases 2 and 3).
+**Open for later units.** `next/p1c-legacy-input` puts `pkg/menu`'s input on one Reader over stdin; `next/p1c-nav` matches lines, and the end of the input never goes back (§9.8); `next/p3-output` decides the exit code for a script that ran out of answers and where prompts go when stdout is not a terminal (above); Ctrl-C outside a read, during an apply, is the engine's (Phases 2 and 3).
 
-### 9.8 Still to come (placeholders)
+### 9.8 Navigation grammar (`next/p1c-nav`)
+
+`pkg/ui/nav` decides what each typed line does at a prompt, the same at every level (brief 1C), and asks until a line is accepted; its package doc is the full statement. The inputs are data in `pkg/ui/keys` (`Back`, `Quit`, `Navigation`, `YesNo`), defined once there because the components' tests use them and cannot import `nav`, and because `keys` imports only the standard library, so the legacy menus can use them without Lip Gloss. A `nav.Prompter` holds the render context, the one `prompt.Reader` over stdin and the `Env.Writer` around stdout. It renders nothing of its own: menus ask with `PromptLine`, questions with `AnsweredField` (no answer yet, so the line reads as Figma draws it once answered), and a refused line with `Message`, so no Lip Gloss helper applies.
+
+| Line | At | Does |
+|---|---|---|
+| a number | a menu (`Choose`, `Run`) | selects the item with that key |
+| `0` | a menu with an Exit or Return item | goes back: it is that item's number, shown as "0)" |
+| `b` | every prompt | goes back (`ErrBack`); at the top level, exits |
+| `q` | every prompt | quits hardn (`ErrQuit`, returned level by level to the top) |
+| `y`, `yes`, `n`, `no`, or Enter | a y/N question (`Confirm`) | the answer; Enter takes the default, the capital in the hint |
+| the phrase | a typed confirmation (`Typed`) | confirms: exactly, case included |
+| any other line | a free-text question (`Text`) | the value, the white space around it removed |
+| end of input, Ctrl-C | every prompt | aborts (`prompt.ErrAborted`, exit 130), never back |
+| anything else | every prompt | an error `Message` under the prompt, then the prompt again; nothing above is drawn again |
+
+Lines match as `keys.Set.Match` compares them: the white space around a line ignored, letters in any case, numbers as typed (`01` is not `1`).
+
+**Hints**, generated from what each prompt accepts, end alike (DEV-044, DEV-045): the main menu `[0-10, b or q]`, a sub-menu `[0-2, b or q]` (with item 1 disabled, `[0, 2, b or q]`), a y/N question `[y/N, b or q]` (`[Y/n, b or q]` when yes is the default), a typed confirmation `[bos-san-l01, b or q]`, free text `[b or q]`.
+
+**Decisions:**
+- **Back at the top level** exits, so `b` is accepted and shown on the main menu too: no input is accepted that its hint leaves out (DEV-044).
+- **0 goes back only on a menu**, where it is the Exit or Return item's number. Elsewhere it is not an input: shown in every hint it would lengthen them, a 0 typed at a y/N question could be meant as "no", and at a free-text question it is a value (P-25 (b)).
+- **Free text:** `b` and `q` navigate there too, so a value can never be `b` or `q`, and the hint `[b or q]` says so. Linux allows the user names `b` and `q`; hardn's forms cannot create them. That changes meaning, so P-25 (a) puts it to the maintainer.
+- **A typed phrase** is shown as the answer the hint offers, the part of the line cut last when it does not fit: the label goes first, and the whole hint stays for a phrase of up to 47 cells at 60 columns and 51 from 64 columns up (measured; Linux allows a hostname of up to 64 bytes, `HOST_NAME_MAX`). Past that the hint is cut, its end first, and the refusal names the phrase in prose that wraps. `CheckPhrase` refuses, before anything is written, a phrase that is empty, not printable ASCII (components drop control characters and map typographic quotes, C12, so it would show other than it must be typed), has a space at either end, or is `b` or `q` in any case, which could never be typed; the caller picks another, such as the fully qualified name.
+- **A disabled item** stays out of the hint, as P-22 has it; its key typed anyway is answered "<Label> is unavailable.".
+- **The end of the input** aborts at every prompt and never goes back, so a script that runs out of answers ends as an abort rather than unwinding to the top and exiting 0.
+- **Words:** origin/main's "Invalid option. Please try again." on a menu; "Invalid answer. Please try again.", "<Label> is unavailable." and "That does not match '<phrase>'. Please try again." are new (P-25). The labels of confirmations are the flow's (P-10).
+
+**Menus bound to actions.** A `nav.Menu` pairs each `component.MenuItem` with its `Action` (`nav.Option`), after arch3's option ↔ action binding (refactor plan §6), as an idea only. The one list gives the items rendered (`View`), the accepted inputs and their hint (`Accepts`), and the dispatch, which matches against the same bindings the hint comes from, so no key reaches an action the menu does not show (origin/main's hidden options, [interaction.md](../refactor/phase0/interaction.md) §1 item 4). `Check` refuses a shown item with no action, a key that is not a whole number from 1 or is used twice, and an exit item not numbered 0. `Run` draws a menu screen (what is above the menu, the menu, then the prompt after `PromptGap`), asks, and runs the chosen action, until the user goes back (it returns nil) or quits (`ErrQuit`); the next round draws again below what the action wrote, clearing nothing.
+
+**Tested.** Matching and `Check` table-tested; the loops on scripted input, a typist that echoes each line as a terminal would: `TestGrammar` puts `b`, `B`, `q`, `Q`, `0` and the end of the input to a main menu, a sub-menu, a y/N question, a typed confirmation and free text; `TestRun` nests a sub-menu, goes back and quits from it. Goldens on `Core()`, each asked a line it refuses and then left with `b`: `nav/main-menu`, `nav/sub-menu` (a disabled item), `nav/workflow-step` (free text, then y/N) and `nav/typed-confirmation`. No real terminal was used: the reader's own tests cover the terminal (§9.7).
+
+**Open for later units.** `next/p1c-form` builds fields on `Text` and `Confirm`, with validation and the inline error's own slot (`theme.Theme` lists it), and may then move the refusal to that style; `next/p1c-flow` words the confirmations and chooses y/N or typed per step; `next/p1d-slice` composes what `Run` draws above the menu; `next/p3-output` decides the exit codes of a quit and of a script that ran out of answers.
+
+### 9.9 Still to come (placeholders)
 
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
