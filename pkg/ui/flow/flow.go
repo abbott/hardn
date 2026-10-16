@@ -82,7 +82,10 @@ type Engine interface {
 	// step failed, stops, rolls back the steps done, in reverse order,
 	// reporting each rolled back, and returns an error, a *Failure for
 	// the ErrorReport's details. It returns nil once every step is done.
-	// Report may be called from any goroutine until Apply returns.
+	// Report may be called from any goroutine until Apply returns; a
+	// report after that is ignored. The reports are the one record of
+	// what was undone: the ErrorReport names only the steps reported
+	// rolled back before Apply returned.
 	Apply(ctx context.Context, report Report) error
 }
 

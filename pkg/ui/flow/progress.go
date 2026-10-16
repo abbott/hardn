@@ -11,6 +11,11 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 )
 
+// unknownStep titles the step of a change whose title shows nothing: the
+// word PlanView shows for it, so that the steps never hide a change the
+// plan showed.
+const unknownStep = "Unknown"
+
 // spinEvery is how often the spinner of a running step turns when the
 // steps animate; a variable so that tests can turn it faster.
 var spinEvery = 100 * time.Millisecond
@@ -22,8 +27,9 @@ type progress struct {
 	mu      sync.Mutex
 	r       *run
 	steps   []component.Step
+	titles  []string              // the changes' own titles, which the ErrorReport names
 	printed []component.StepState // without animation, the state each step's line showed; pending for none
-	rolled  []string              // the steps rolled back, in the order reported
+	rolled  []string              // the titles of the steps rolled back, in the order reported
 	frame   int
 	lines   int // with animation, the lines drawn, to go back up over
 	animate bool
@@ -36,14 +42,18 @@ type progress struct {
 
 // newProgress returns the progress of changes, one step each, all pending,
 // and draws it when it animates, with a spinner turning every spinEvery.
-// An untitled change's step is titled "Unknown", as PlanView shows it,
-// since StepProgress leaves out a step with no title.
+// StepProgress leaves out a step whose title shows nothing, such as an
+// empty one or one of control or zero-width characters alone, while
+// PlanView shows such a change as "Unknown"; so a step StepProgress would
+// leave out, by its own rule, is titled so. The ErrorReport is given the
+// change's own title, which it shows as "Unknown" by the same rule.
 func newProgress(r *run, changes []component.PlanChange) *progress {
-	pr := &progress{r: r, steps: make([]component.Step, len(changes)), printed: make([]component.StepState, len(changes))}
+	n := len(changes)
+	pr := &progress{r: r, steps: make([]component.Step, n), titles: make([]string, n), printed: make([]component.StepState, n)}
 	for i, ch := range changes {
-		pr.steps[i].Title = ch.Title
-		if strings.TrimSpace(ansi.Strip(ch.Title)) == "" {
-			pr.steps[i].Title = "Unknown"
+		pr.steps[i].Title, pr.titles[i] = ch.Title, ch.Title
+		if (component.StepProgress{Steps: pr.steps[i : i+1]}).Render(r.p.Ctx) == "" {
+			pr.steps[i].Title = unknownStep
 		}
 	}
 	env := r.p.Ctx.Env
@@ -89,7 +99,7 @@ func (pr *progress) report(step int, state component.StepState, detail string) {
 	}
 	s.State, s.Detail = state, detail
 	if state == component.StepRolledBack {
-		pr.rolled = append(pr.rolled, s.Title)
+		pr.rolled = append(pr.rolled, pr.titles[step])
 	}
 	switch {
 	case pr.animate:
@@ -146,11 +156,12 @@ func (pr *progress) draw() {
 }
 
 // write writes s and a line break: the first time after the gap, as a
-// block, and then right under what it wrote before. It keeps the first
-// write that failed and writes nothing after it.
+// block, and then right under what it wrote before. An empty s writes
+// nothing, and the gap is left for the first line written. It keeps the
+// first write that failed and writes nothing after it.
 func (pr *progress) write(s string) {
 	switch {
-	case pr.err != nil:
+	case pr.err != nil, s == "":
 	case pr.started:
 		pr.err = pr.r.put(s + "\n")
 	default:

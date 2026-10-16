@@ -243,6 +243,18 @@ func (s spy) Apply(ctx context.Context, report Report) error {
 	return s.Fixture.Apply(ctx, report)
 }
 
+// untitled is an action with nothing to collect or review, and an engine
+// whose plan's first change has title, failing at its second change: for
+// a title that shows nothing, the steps and the report name the change
+// "Unknown", as PlanView does.
+func untitled(title string) (func(Engine) Flow, spy) {
+	f := func(e Engine) Flow {
+		return Flow{Engine: e, Confirm: func(Plan) Confirm { return Confirm{Question: "Apply?"} }}
+	}
+	plan := planOf(RiskLow, component.PlanChange{Title: title}, component.PlanChange{Title: "Second change"})
+	return f, spy{Fixture: Fixture{Planned: plan, FailAt: 2}}
+}
+
 // answers are Figma's answers to the create-user form.
 var answers = []string{"george", "y", "n", "n"}
 
@@ -251,6 +263,11 @@ var answers = []string{"george", "y", "n", "n"}
 func TestPaths(t *testing.T) {
 	low, lockout := planOf(RiskLow, rootLogin), planOf(RiskLockout, rootLogin)
 	low.View.Changes[0].LockoutRisk = false
+	// A title of a zero-width space, a bell or a NUL alone shows nothing.
+	zeroWidth, zeroWidthEngine := untitled("\u200b")
+	bell, bellEngine := untitled("\a")
+	null, nullEngine := untitled("\x00")
+	unknownSteps := "  Apply? [y/N, 0, b or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# [!] Operation Failed\n\n  [<] Rolled back: Unknown\n"
 	tests := []struct {
 		name    string
 		flow    func(Engine) Flow
@@ -289,6 +306,9 @@ func TestPaths(t *testing.T) {
 			"Operation Cancelled"},
 		{"typed by the first label of a long hostname", longHost, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
 			"  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+		{"a zero-width title", zeroWidth, zeroWidthEngine, false, []string{"y"}, Failed, true, unknownSteps},
+		{"a bell for a title", bell, bellEngine, false, []string{"y"}, Failed, true, unknownSteps},
+		{"a NUL for a title", null, nullEngine, false, []string{"y"}, Failed, true, unknownSteps},
 	}
 	for _, tt := range tests {
 		applied := false
