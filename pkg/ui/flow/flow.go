@@ -233,6 +233,21 @@ type Flow struct {
 	DryRun bool
 }
 
+// Check returns the error Run returns before it asks or writes anything:
+// ErrFlow for a flow with no Engine or no Confirm, or ctx's error once ctx
+// is done; nil when Run would go on to the Collect step. A caller that
+// draws a screen above the flow checks first, so that nothing is drawn
+// for a flow that will not run (pkg/ui/screen's WorkflowStep.Run). What
+// Run refuses later, such as a field that cannot be asked (form.ErrField)
+// or a typed confirmation with no phrase, is found only when Run gets
+// there.
+func (f Flow) Check(ctx context.Context) error {
+	if f.Engine == nil || f.Confirm == nil {
+		return fmt.Errorf("%w: it has no Engine or no Confirm", ErrFlow)
+	}
+	return ctx.Err()
+}
+
 // Run runs f through p's prompts and writer, with ctx for the Engine.
 // Once the flow reaches a result it returns the Outcome, with a nil error
 // unless writing the result failed; a write that fails during Apply does
@@ -246,10 +261,7 @@ type Flow struct {
 // nav.ErrPhrase for a phrase nav.CheckPhrase refuses, or a write error.
 // Nothing is applied unless Run reaches the Apply step.
 func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
-	if f.Engine == nil || f.Confirm == nil {
-		return NotRun, fmt.Errorf("%w: it has no Engine or no Confirm", ErrFlow)
-	}
-	if err := ctx.Err(); err != nil {
+	if err := f.Check(ctx); err != nil {
 		return NotRun, err
 	}
 	if err := f.Form.Run(p); err != nil {

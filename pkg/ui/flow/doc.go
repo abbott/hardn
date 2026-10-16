@@ -55,7 +55,9 @@
 // asked (prompt.Reader.Asked) or the flow wrote a block. A caller that
 // draws something above a flow that asks nothing first, such as a
 // workflow screen's title bar, ends it with those blank lines itself when
-// Asked reports false, as for a form (pkg/ui/form).
+// Asked reports false, as for a form (pkg/ui/form), and calls Flow.Check
+// before it draws, so that nothing is drawn for a flow Run refuses before
+// writing.
 //
 // The Apply step animates only when term.Env.Animate is set: the steps
 // are drawn once and drawn again in place, a spinner on the running step,
