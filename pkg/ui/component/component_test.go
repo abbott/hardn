@@ -96,7 +96,9 @@ var (
 	}}
 	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
 	// yesNo is a y/N question's answers, no by default; yesDefault's
-	// default is yes, as P-11 proposes for "Require sudo password?".
+	// default is yes. answeredfield/unanswered asks Figma's "Require sudo
+	// password?" with it to show the capital Y: that is the default P-11
+	// proposes, not a decision; the screens set each question's default.
 	yesNo      = keys.YesNo(false)
 	yesDefault = keys.YesNo(true)
 	sshKey     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
@@ -296,7 +298,7 @@ var states = []struct {
 	{"answeredfield/text", AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
 	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
 	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
-	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesDefault}},
+	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesDefault}}, // [Y/n]: P-11's proposal, not a decision
 	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
 	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
 	{"answeredfield/empty", AnsweredField{Answer: "george"}},
