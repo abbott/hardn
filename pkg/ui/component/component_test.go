@@ -93,6 +93,7 @@ var (
 		{Key: "Non-root user SSH access has been tested"},
 		{Key: "If SSH fails, a fallback access method is available"},
 	}}
+	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
 )
 
 // withItem returns m with item i replaced by it.
@@ -197,6 +198,23 @@ var states = []struct {
 		{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
 	}}},
 	{"bulletlist/empty", BulletList{}},
+	{"message/ok", Message{Kind: MessageOK, Text: "DNS configured successfully"}},
+	{"message/warn", Message{Kind: MessageWarn, Text: "No nameservers configured"}},
+	{"message/bad", Message{Kind: MessageBad, Text: "Failed to configure sudo: exit status 1"}},
+	{"message/info", Message{Text: "No automatic backups will be created"}},
+	{"message/cancelled", Message{Kind: MessageCancelled, Text: "Operation cancelled. No changes were made."}},
+	{"message/long", Message{Kind: MessageBad, Text: "Failed to restart ssh.service: Job for ssh.service failed because the control process exited with error code; port 2230 is still in use"}},
+	{"message/empty", Message{Kind: MessageOK}},
+	{"callout/warn", figmaWarning},
+	{"callout/ok", Callout{Kind: MessageOK, Title: "Operation Successful"}},
+	{"callout/cancelled", Callout{Kind: MessageCancelled, Title: "Operation Cancelled"}},
+	{"callout/bad", Callout{Kind: MessageBad, Body: []string{"sshd -t rejected the new configuration, so nothing was changed."}}},
+	{"callout/info", Callout{Body: []string{"Dry-run mode: the plan was not applied."}}},
+	{"callout/no-title", Callout{Kind: MessageWarn}},
+	{"callout/long", Callout{Kind: MessageWarn, Title: "Changing the SSH port of web-01.example.net from 22 to 2230", Body: []string{
+		"A user password is required for sudo usage.",
+		"Keep this session open until a new connection to port 2230 from 192.0.2.0/24 succeeds.",
+	}}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -248,6 +266,8 @@ func empty(vm renderer) bool {
 		return v == KeyValue{}
 	case BulletList:
 		return len(v.Items) == 0
+	case Message:
+		return v.Text == ""
 	}
 	return false
 }
@@ -495,6 +515,15 @@ func TestLayout(t *testing.T) {
 		{"bulletlist: a bullet item wraps under itself", BulletList{Items: []KeyValue{{Key: "If SSH fails, a fallback access method is available"}}}, 40, false,
 			"   -  If SSH fails, a fallback access\n      method is available"},
 		{"bulletlist: an empty list is nothing", BulletList{Items: []KeyValue{{}, {Key: " "}}}, 80, false, ""},
+		{"message: the glyph in the marker column, the text at the label column", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
+			"  [+] DNS configured successfully"},
+		{"message: a Unicode glyph is centred", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "   ✗  Failed"},
+		{"message: a long text wraps under itself", Message{Text: "No automatic backups will be created"}, 20, false,
+			"  [i] No automatic\n      backups will\n      be created"},
+		{"callout: bar, title and body", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
+		{"callout: no title is the kind's word", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
+		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Done", Body: []string{"aaa bbb ccc"}}, 9, false,
+			"# Done\n# aaa bbb\n# ccc"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -696,6 +725,12 @@ func TestBlockStyles(t *testing.T) {
 			{"Enabled,", th.KeyValue.Value}, {"No password", th.KeyValue.ValueBad}, {"7 keys", th.KeyValue.Value},
 		}},
 		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
+		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
+			{th.Glyphs.Warn, th.Message.Warn}, {"No nameservers configured", th.Message.Text},
+		}},
+		{"callout", figmaWarning, []part{
+			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
+		}},
 	}
 	for _, tt := range tests {
 		got := tt.vm.Render(c)
@@ -742,5 +777,44 @@ func TestValueStates(t *testing.T) {
 	}
 	if len(shown) != 6 {
 		t.Errorf("the six states show %d different markers without colour, want 6: %v", len(shown), shown)
+	}
+}
+
+// TestMessageKinds checks that each kind has its own glyph in its style on
+// a Message, and its own bar, title style and word on a Callout. A value
+// outside the kinds is MessageInfo.
+func TestMessageKinds(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
+	tests := []struct {
+		kind  MessageKind
+		glyph string
+		style lipgloss.Style
+		bar   theme.CalloutKind
+		word  string
+	}{
+		{MessageInfo, g.Info, m.Info, co.Info, "Note"},
+		{MessageOK, g.OK, m.OK, co.OK, "Operation Successful"},
+		{MessageWarn, g.Warn, m.Warn, co.Warn, "Warning"},
+		{MessageBad, g.Bad, m.Bad, co.Bad, "Operation Failed"},
+		{MessageCancelled, g.Cancelled, m.Cancelled, co.Cancelled, "Operation Cancelled"},
+		{MessageKind(9), g.Info, m.Info, co.Info, "Note"},
+	}
+	words := map[string]bool{}
+	for _, tt := range tests {
+		if got := (Message{Kind: tt.kind, Text: "x"}).Render(c); !strings.Contains(got, tt.style.Render(tt.glyph)) {
+			t.Errorf("kind %d: message %q, want its glyph %q in its style", tt.kind, got, tt.glyph)
+		}
+		got := Callout{Kind: tt.kind}.Render(c)
+		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.word); got != want {
+			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
+		}
+		if tt.kind.String() != tt.word {
+			t.Errorf("kind %d: String() = %q, want %q", tt.kind, tt.kind.String(), tt.word)
+		}
+		words[tt.word] = true
+	}
+	if len(words) != 5 {
+		t.Errorf("the five kinds have %d different words, want 5: %v", len(words), words)
 	}
 }
