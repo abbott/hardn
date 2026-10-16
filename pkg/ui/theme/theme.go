@@ -11,6 +11,12 @@
 // The values derive from the Figma export, which is a reference and never
 // loaded; departures are logged in docs/design-system/deviations.md.
 //
+// NewWithOverrides builds the same theme with some token values replaced:
+// the dev-only gallery's colour hook (internal/tools/uigallery), for
+// trying new values without editing palette.go. Production code uses New,
+// and TestOverrideReach keeps every package but the gallery from naming
+// the hook.
+//
 // Rules the tests enforce:
 //   - Every token has a value for truecolor, 256 colours and 16 colours.
 //   - Muted and faint text are gray tokens. No slot sets SGR faint, blink or
@@ -284,6 +290,12 @@ func New(env term.Env) *Theme {
 	if env.Dark {
 		p = &darkPalette
 	}
+	return build(env, p)
+}
+
+// build returns the theme for env from palette p: New's work, shared with
+// NewWithOverrides.
+func build(env term.Env, p *palette) *Theme {
 	complete := lipgloss.Complete(env.Profile)
 	c := func(t token) color.Color {
 		return complete(t.ansi, t.ansi256, lipgloss.Color(t.hex))
