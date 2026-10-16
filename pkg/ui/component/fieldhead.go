@@ -19,8 +19,8 @@ import (
 //	      Specify username to create
 //
 //	   2. Select a user
-//	    1) george
-//	    2) alice
+//	   1) george
+//	   2) alice
 //
 // The title is laid out as an AnsweredField's question, the number
 // right-aligned to end at column 4 and the title at theme.LabelCol, or
