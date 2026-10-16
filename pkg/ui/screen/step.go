@@ -50,7 +50,10 @@ func (vm WorkflowStep) Render(c component.Ctx) string {
 
 // Run writes the screen to p's writer in one write, then runs f through
 // p and returns what f.Run returns; an error writing the screen returns
-// flow.NotRun and runs nothing.
+// flow.NotRun and runs nothing. A flow that f.Run would refuse before
+// writing anything (flow.Flow.Check: no Engine or no Confirm, or ctx
+// already done) returns flow.NotRun and that error with nothing written,
+// so that no screen is left on the terminal above nothing.
 //
 // The screen is set apart by theme.SectionGap blank lines on the side the
 // flow leaves bare: the flow, and the form it opens with, write their gap
@@ -61,6 +64,9 @@ func (vm WorkflowStep) Render(c component.Ctx) string {
 // then stands apart from the answer that chose it, and the flow writes
 // the gap under it.
 func (vm WorkflowStep) Run(ctx context.Context, p nav.Prompter, f flow.Flow) (flow.Outcome, error) {
+	if err := f.Check(ctx); err != nil {
+		return flow.NotRun, err
+	}
 	if s := vm.Render(p.Ctx); s != "" {
 		gap := strings.Repeat("\n", theme.SectionGap)
 		out := s + "\n" + gap

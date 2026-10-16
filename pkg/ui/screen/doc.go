@@ -39,9 +39,10 @@
 // space the line reader writes after the prompt: Screen returns the
 // nav.Screen to draw, its Above holding everything above the menu, and
 // nav.Run draws the menu from the options it dispatches. A WorkflowStep's
-// Run writes the screen, then runs the flow under it, and sets the two
-// apart with theme.SectionGap blank lines as the flow and its form expect
-// of a caller that draws above them.
+// Run checks the flow (flow.Flow.Check), writes the screen, then runs the
+// flow under it, and sets the two apart with theme.SectionGap blank lines
+// as the flow and its form expect of a caller that draws above them; a
+// flow refused before it writes leaves no screen.
 //
 // # Fixtures
 //

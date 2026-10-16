@@ -299,7 +299,9 @@ func TestSubMenuFrames(t *testing.T) {
 // TestRunGap checks where the workflow step's gap goes: after the screen
 // before any prompt, whether the flow opens with its review or with a
 // form, and before it once a prompt was asked, as when a menu's action
-// opens the workflow. Each block stands one blank line from the next.
+// opens the workflow. Each block stands one blank line from the next. A
+// failed write runs nothing, and a flow the flow refuses before writing
+// (no Engine, no Confirm, a context already done) leaves no screen.
 func TestRunGap(t *testing.T) {
 	env := term.Fixed(80, colorprofile.NoTTY, false, true)
 	step, sudo := ManageSudoFixture()
@@ -334,6 +336,26 @@ func TestRunGap(t *testing.T) {
 	p.Out = failing{}
 	if o, err := step.Run(context.Background(), p, sudo); o != flow.NotRun || !errors.Is(err, io.ErrClosedPipe) {
 		t.Errorf("a failed write: Run() = %v, %v; want NotRun and the write's error", o, err)
+	}
+	noEngine, noConfirm := sudo, sudo
+	noEngine.Engine, noConfirm.Confirm = nil, nil
+	done, cancel := context.WithCancel(context.Background())
+	cancel()
+	refused := []struct {
+		name string
+		ctx  context.Context
+		f    flow.Flow
+		want error
+	}{
+		{"no engine", context.Background(), noEngine, flow.ErrFlow},
+		{"no confirm", context.Background(), noConfirm, flow.ErrFlow},
+		{"a context done before the run", done, sudo, context.Canceled},
+	}
+	for _, tt := range refused {
+		p, out := prompter(env, "y")
+		if o, err := step.Run(tt.ctx, p, tt.f); o != flow.NotRun || !errors.Is(err, tt.want) || out.String() != "" {
+			t.Errorf("%s: Run() = %v, %v, transcript %q; want NotRun, %v and nothing written", tt.name, o, err, out.String(), tt.want)
+		}
 	}
 }
 
