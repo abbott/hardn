@@ -12,8 +12,9 @@
 //   - View-model. A component is an exported struct of plain data: strings,
 //     numbers, bools, slices and small enums, or a pointer to another
 //     component's view-model, nil for none (MenuHeading.Mode); no funcs,
-//     actions or I/O handles. Its value method Render(c Ctx) string is a pure function of
-//     the struct and c: no I/O, no clock, no environment reads.
+//     actions or I/O handles. Its value method Render(c Ctx) string is a
+//     pure function of the struct and c: no I/O, no clock, no environment
+//     reads.
 //   - Output. No line wider than the content width, min(Env.Width,
 //     theme.ContentWidth) under theme.CapContent; a bar fills it, or the
 //     terminal's width when theme.BarsFillContent is off. No trailing
