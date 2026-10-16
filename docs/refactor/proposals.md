@@ -45,7 +45,7 @@
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
-| [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 5–8 | S | Low | proposed |
+| [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
 
 ---
 
