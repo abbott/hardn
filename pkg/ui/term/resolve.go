@@ -88,7 +88,12 @@ var localeVars = []string{"LC_ALL", "LC_CTYPE", "LANG"}
 // is known, else COLUMNS and LINES when they are positive integers, else
 // DefaultWidth and DefaultHeight. Each dimension is resolved on its own.
 //
-// Animate: stdout is a terminal and the Env is not Plain.
+// Animate: stdout is a terminal, the Env is not Plain, and TERM is set, not
+// empty and not dumb. The TERM condition refines the plan's rule (a terminal
+// and not plain): animation redraws in place with cursor control, which a
+// dumb terminal lacks and which Writer strips at NoTTY, the auto profile of an
+// unset or empty TERM. With it, Animate implies a profile of at least ASCII,
+// at which Writer passes cursor control through.
 func Resolve(opts Options, f Facts) Env {
 	env := environMap(f.Environ)
 	e := Env{TTY: f.StdoutTTY, InputTTY: f.StdinTTY}
@@ -105,7 +110,8 @@ func Resolve(opts Options, f Facts) Env {
 	e.Dark = e.Theme != ThemeLight
 	e.Width = dimension(f.StdoutTTY, f.Width, env[envColumns], DefaultWidth)
 	e.Height = dimension(f.StdoutTTY, f.Height, env[envLines], DefaultHeight)
-	e.Animate = f.StdoutTTY && !e.Plain
+	t := env[envTerm]
+	e.Animate = f.StdoutTTY && !e.Plain && t != "" && t != "dumb"
 	return e
 }
 

@@ -186,10 +186,16 @@ func TestResolveTerminalState(t *testing.T) {
 		wantTTY, wantInput, wantPlain, anim bool
 	}{
 		{"interactive", Options{}, tty(term256), true, true, false, true},
-		{"stdout piped", Options{}, Facts{StdinTTY: true}, false, true, true, false},
-		{"stdin piped", Options{}, Facts{StdoutTTY: true}, true, false, false, true},
+		{"stdout piped", Options{}, Facts{StdinTTY: true, Environ: []string{term256}}, false, true, true, false},
+		{"stdin piped", Options{}, Facts{StdoutTTY: true, Environ: []string{term256}}, true, false, false, true},
 		{"--plain on a terminal", Options{Plain: true}, tty(term256), true, true, true, false},
-		{"HARDN_PLAIN=on", Options{}, tty("HARDN_PLAIN=on"), true, true, true, false},
+		{"HARDN_PLAIN=on", Options{}, tty(term256, "HARDN_PLAIN=on"), true, true, true, false},
+		{"TERM unset", Options{}, tty(), true, true, false, false},
+		{"TERM empty", Options{}, tty("TERM="), true, true, false, false},
+		{"TERM=dumb", Options{}, tty("TERM=dumb"), true, true, false, false},
+		{"TERM unset with --color=always", Options{Color: ColorAlways}, tty(), true, true, false, false},
+		{"NO_COLOR keeps cursor control", Options{}, tty(term256, "NO_COLOR=1"), true, true, false, true},
+		{"--color=never keeps cursor control", Options{Color: ColorNever}, tty(term256), true, true, false, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -197,6 +203,10 @@ func TestResolveTerminalState(t *testing.T) {
 			if e.TTY != tt.wantTTY || e.InputTTY != tt.wantInput || e.Plain != tt.wantPlain || e.Animate != tt.anim {
 				t.Errorf("TTY, InputTTY, Plain, Animate = %v, %v, %v, %v; want %v, %v, %v, %v",
 					e.TTY, e.InputTTY, e.Plain, e.Animate, tt.wantTTY, tt.wantInput, tt.wantPlain, tt.anim)
+			}
+			// Writer strips cursor control at NoTTY (see Resolve).
+			if e.Animate && e.Profile <= colorprofile.NoTTY {
+				t.Errorf("Animate with Profile %v", e.Profile)
 			}
 		})
 	}

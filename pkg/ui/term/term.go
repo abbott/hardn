@@ -50,7 +50,9 @@ type Env struct {
 	// ASCII glyphs, no animation and, unless --color=always, no colour or
 	// text attributes.
 	Plain bool
-	// Animate allows spinners and in-place progress updates.
+	// Animate allows spinners and in-place progress updates: stdout is a
+	// terminal with cursor control (see Resolve). When false, print one line
+	// per step instead.
 	Animate bool
 }
 
