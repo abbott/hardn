@@ -12,12 +12,15 @@
 // loaded; departures are logged in docs/design-system/deviations.md.
 //
 // Rules the tests enforce:
-//   - Each palette is one struct literal, and every token has a value for
-//     truecolor, 256 colours and 16 colours.
+//   - Every token has a value for truecolor, 256 colours and 16 colours.
 //   - Muted and faint text are gray tokens. No slot sets SGR faint, blink or
 //     reverse (DEV-009).
-//   - Slots carry colour and text attributes only. Layout (padding, width,
-//     alignment) belongs to the components and the grid constants.
+//   - Slots carry colour and text attributes only. Layout (a size or maximum
+//     size, padding, margins, a border, alignment, inline) belongs to the
+//     components and the grid constants.
+//
+// By convention, and unchecked, each palette is one struct literal in
+// palette.go.
 package theme
 
 import (

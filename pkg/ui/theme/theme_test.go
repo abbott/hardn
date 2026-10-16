@@ -56,6 +56,44 @@ func slots(th *Theme) map[string]lipgloss.Style {
 	return out
 }
 
+// setsLayout reports whether s sets any layout: a size or maximum size,
+// padding, margins, a border, an alignment other than the default, or
+// inline.
+func setsLayout(s lipgloss.Style) bool {
+	return s.GetWidth() != 0 || s.GetHeight() != 0 ||
+		s.GetMaxWidth() != 0 || s.GetMaxHeight() != 0 ||
+		s.GetHorizontalFrameSize() != 0 || s.GetVerticalFrameSize() != 0 ||
+		s.GetAlignHorizontal() != lipgloss.Left || s.GetAlignVertical() != lipgloss.Top ||
+		s.GetInline()
+}
+
+// TestSetsLayout checks that setsLayout sees each kind of layout.
+func TestSetsLayout(t *testing.T) {
+	base := lipgloss.NewStyle().Foreground(lipgloss.Red).Bold(true)
+	tests := []struct {
+		name string
+		s    lipgloss.Style
+		want bool
+	}{
+		{"colour and bold", base, false},
+		{"width", base.Width(10), true},
+		{"height", base.Height(2), true},
+		{"max width", base.MaxWidth(10), true},
+		{"max height", base.MaxHeight(2), true},
+		{"padding", base.PaddingLeft(1), true},
+		{"margin", base.MarginTop(1), true},
+		{"border", base.Border(lipgloss.NormalBorder()), true},
+		{"horizontal alignment", base.Align(lipgloss.Center), true},
+		{"vertical alignment", base.AlignVertical(lipgloss.Bottom), true},
+		{"inline", base.Inline(true), true},
+	}
+	for _, tt := range tests {
+		if got := setsLayout(tt.s); got != tt.want {
+			t.Errorf("%s: setsLayout = %t, want %t", tt.name, got, tt.want)
+		}
+	}
+}
+
 // TestSlotsSetWithoutBannedAttributes checks every slot in every
 // environment: each is set, none uses SGR faint (muted and faint text are
 // gray tokens, DEV-009), blink or reverse, and none carries layout, which
@@ -73,8 +111,8 @@ func TestSlotsSetWithoutBannedAttributes(t *testing.T) {
 			if s.GetFaint() || s.GetBlink() || s.GetReverse() {
 				t.Errorf("%s: %s sets faint, blink or reverse", envName(env), path)
 			}
-			if s.GetWidth() != 0 || s.GetHeight() != 0 || s.GetHorizontalFrameSize() != 0 || s.GetVerticalFrameSize() != 0 {
-				t.Errorf("%s: %s sets a size, padding, margin or border", envName(env), path)
+			if setsLayout(s) {
+				t.Errorf("%s: %s sets layout", envName(env), path)
 			}
 		}
 	}
