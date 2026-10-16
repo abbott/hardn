@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
+
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
@@ -33,7 +36,7 @@ const (
 	invalidOption = "Invalid option. Please try again."
 	invalidAnswer = "Invalid answer. Please try again."
 	unavailable   = "%s is unavailable."
-	noMatch       = "That does not match '%s'. Please try again."
+	noMatch       = "That does not match exactly. Please try again."
 )
 
 // Prompter asks the questions of a run. It writes each prompt to Out and
@@ -130,28 +133,57 @@ func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 // changes with lockout risk and for Run All: the user must type phrase,
 // such as the hostname, exactly, case included; only the white space
 // around the line is ignored. The phrase is shown as the answer the hint
-// offers, "[web-01, 0, b or q]", the part of the line that is cut last
-// when it does not fit. Typed returns nil once the phrase is typed,
-// ErrBack or ErrQuit for 0, b or q, and asks again for any other line, an
-// Enter alone
-// included, naming the phrase in the error, whose prose wraps rather than
-// being cut. A phrase that CheckPhrase refuses returns its error before
-// anything is written.
+// offers, "[web-01, 0, b or q]", and always whole: the prompt cuts the
+// question's label first, and Typed asks only when the whole hint fits
+// beside some of the label (shows). The phrase's binding is there for the
+// hint; the line is compared with the phrase itself. Typed returns nil
+// once the phrase is typed, ErrBack or ErrQuit for 0, b or q, and asks
+// again for any other line, an Enter alone included, under an error that
+// does not repeat the phrase: the prompt under it shows it whole, while
+// the error's prose would wrap at a hyphen inside it (x/ansi wrap.go
+// 270-276: a hyphen is always a breakpoint).
+//
+// Before anything is written, Typed returns an error wrapping ErrPhrase
+// for a phrase that CheckPhrase refuses, and for one too long to show
+// whole at the width of p.Ctx: with the label "Type the hostname", a
+// phrase of up to 45 cells from 64 columns up, and 41 at 60, in Unicode
+// glyphs (43 and 39 in ASCII, whose ellipsis is wider). The caller then
+// asks with a shorter phrase or a shorter label, as the flow words them
+// (P-10).
 func (p Prompter) Typed(q Question, phrase string) error {
 	if err := CheckPhrase(phrase); err != nil {
 		return err
 	}
-	again := fmt.Sprintf(noMatch, phrase)
 	accepts := append(keys.Set{{Keys: []string{phrase}}}, keys.Navigation()...)
-	return p.ask(q.render(p.Ctx, accepts), again, func(line string) error {
+	question := q.render(p.Ctx, accepts)
+	if question != "" && !shows(question, q.Number, "["+accepts.Hint()+"]:") {
+		return fmt.Errorf("%w: %q does not show whole beside the question at %d columns", ErrPhrase, phrase, p.Ctx.Env.Width)
+	}
+	return p.ask(question, noMatch, func(line string) error {
 		if err := Navigate(line); err != nil {
 			return err
 		}
 		if strings.TrimSpace(line) != phrase {
-			return refused(again)
+			return refused(noMatch)
 		}
 		return nil
 	})
+}
+
+// shows reports whether question, an AnsweredField rendered with no
+// answer and the field number number, shows hint whole after some of its
+// label: PromptLine's layout, which AnsweredField shares, cuts the label
+// first, then leaves it out, then cuts the hint.
+func shows(question string, number int, hint string) bool {
+	before, _, ok := strings.Cut(ansi.Strip(question), hint)
+	if !ok {
+		return false
+	}
+	before = strings.TrimSpace(before)
+	if number > 0 {
+		before = strings.TrimSpace(strings.TrimPrefix(before, strconv.Itoa(number)+"."))
+	}
+	return before != ""
 }
 
 // CheckPhrase returns nil when phrase can be typed to confirm, and else an
@@ -159,10 +191,13 @@ func (p Prompter) Typed(q Question, phrase string) error {
 // hostname or a user name is, so that it shows as it must be typed:
 // components drop control characters and show typographic quotes as ASCII
 // ones (C12). It must have no white space at either end, which Typed
-// trims from the line typed. And it must not be 0, b or q in any case:
-// those navigate at every prompt, so the phrase could never be typed. The
-// caller then asks for another phrase, such as a host's fully qualified
-// name.
+// trims from the line typed. It must not be 0, b or q in any case: those
+// navigate at every prompt, so the phrase could never be typed. And it
+// must hold none of what a hint lists its inputs with, a comma, a slash,
+// a bracket or " or ", so that "[web-01, 0, b or q]" reads one way; no
+// hostname holds them. A number other than 0, such as a port, is a
+// phrase. CheckPhrase does not know the width: Typed also refuses a
+// phrase too long to show whole.
 func CheckPhrase(phrase string) error {
 	for _, r := range phrase {
 		if r < ' ' || r > '~' {
@@ -176,6 +211,8 @@ func CheckPhrase(phrase string) error {
 		return fmt.Errorf("%w: %q starts or ends with a space", ErrPhrase, phrase)
 	case Navigate(phrase) != nil:
 		return fmt.Errorf("%w: %q is a navigation input", ErrPhrase, phrase)
+	case strings.ContainsAny(phrase, ",/[]") || strings.Contains(phrase, " or "):
+		return fmt.Errorf("%w: %q holds a comma, a slash, a bracket or \" or \", which a hint lists its inputs with", ErrPhrase, phrase)
 	}
 	return nil
 }

@@ -4,18 +4,15 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match 'bos-san-l01'. Please try␛[m$
-      ␛[38;2;129;134;156magain.␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m q$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Type the hostname [bos-san-l01, 0, b or q]: BOS-SAN-L01$
-  [!] Error: That does not match 'bos-san-l01'. Please try$
-      again.$
+  [!] Error: That does not match exactly. Please try again.$
   Type the hostname [bos-san-l01, 0, b or q]: q$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match 'bos-san-l01'. Please try␛[m$
-      ␛[38;2;129;134;156magain.␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m q$

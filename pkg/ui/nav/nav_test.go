@@ -175,7 +175,8 @@ func TestNavigate(t *testing.T) {
 func TestCheckPhrase(t *testing.T) {
 	for phrase, ok := range map[string]bool{
 		"bos-san-l01": true, "web-01.example.net": true, "BOS-SAN-L01": true, "2230": true, "disable root": true,
-		"": false, "0": false, "b": false, "Q": false, " web-01": false, "web-01 ": false,
+		"": false, "0": false, "b": false, "Q": false, "web,01": false, "web/01": false, "[web]": false, "b or q": false,
+		"order": true, " web-01": false, "web-01 ": false,
 		"wéb-01": false, "web\x1b[1m": false, "‘root’": false, "web\t01": false,
 	} {
 		err := CheckPhrase(phrase)
@@ -338,7 +339,7 @@ func TestConfirm(t *testing.T) {
 }
 
 func TestTyped(t *testing.T) {
-	mismatch := "does not match" // the message wraps at 64 cells
+	mismatch := "does not match exactly"
 	tests := []struct {
 		lines    []string
 		err      error
@@ -366,6 +367,36 @@ func TestTyped(t *testing.T) {
 		out, err := play([]string{phrase}, func(p Prompter) error { return p.Typed(typeHost, phrase) })
 		if !errors.Is(err, ErrPhrase) || out != "" {
 			t.Errorf("Typed(phrase %q) = %v, wrote %q; want ErrPhrase, nothing", phrase, err, out)
+		}
+	}
+}
+
+// TestTypedWhole checks that a typed confirmation shows its phrase whole,
+// after some of its label, or refuses it before writing anything, at
+// every width and in both glyph sets, and the longest phrase it takes.
+func TestTypedWhole(t *testing.T) {
+	tests := []struct {
+		width   int
+		unicode bool
+		longest int // 17 cells of hint around the phrase and the indent, and the label cut to a letter and the ellipsis
+	}{
+		{40, true, 21}, {60, true, 41}, {64, true, 45}, {80, true, 45}, {120, true, 45},
+		{40, false, 19}, {60, false, 39}, {64, false, 43}, {80, false, 43},
+	}
+	for _, tt := range tests {
+		for n := 1; n <= 64; n++ {
+			phrase := strings.Repeat("h", n)
+			p, out := newPrompter(term.Fixed(tt.width, colorprofile.ASCII, tt.unicode, true), []string{phrase})
+			err := p.Typed(typeHost, phrase)
+			first, _, _ := strings.Cut(ansi.Strip(out.String()), "\n")
+			switch {
+			case n > tt.longest:
+				if !errors.Is(err, ErrPhrase) || out.Len() != 0 {
+					t.Errorf("%d columns, unicode %v, %d cells: Typed() = %v, wrote %q; want ErrPhrase, nothing", tt.width, tt.unicode, n, err, out)
+				}
+			case err != nil || !strings.HasPrefix(first, "  T") || !strings.HasSuffix(first, " ["+phrase+", 0, b or q]: "+phrase):
+				t.Errorf("%d columns, unicode %v, %d cells: Typed() = %v, prompt %q; want the phrase whole after the label", tt.width, tt.unicode, n, err, first)
+			}
 		}
 	}
 }

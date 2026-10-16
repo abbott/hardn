@@ -45,9 +45,11 @@
 // drawn again (brief 1C: re-ask only that field, keeping context). The
 // words are origin/main's "Invalid option. Please try again." on a menu,
 // and P-25's for the rest: a disabled item's key says the item is
-// unavailable, a y/N question says "Invalid answer", and a typed
-// confirmation names its phrase, in prose that wraps rather than being
-// cut. A line longer than prompt.MaxLine is refused the same way.
+// unavailable, a y/N question says "Invalid answer", and so does a
+// free-text question for the one line it refuses, one longer than
+// prompt.MaxLine (which every prompt refuses with its own words); a typed
+// confirmation says the line does not match exactly, and the prompt under
+// it shows the phrase whole (Typed).
 //
 // # Aborting
 //
