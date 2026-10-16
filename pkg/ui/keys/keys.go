@@ -4,8 +4,9 @@
 // and a Set of bindings generates the hint a prompt shows, such as Figma's
 // "0-10 or q", and a help line, such as "q to quit", and matches a typed
 // line to its binding. The one Set is the source of truth for all three,
-// so neither the hint nor the help is written by hand, and a prompt
-// accepts exactly what its hint shows.
+// so neither the hint nor the help is written by hand: Match accepts every
+// input the hint shows and, besides them, only a question's other answer
+// keys, such as "yes", and an empty line for its default.
 //
 // Every input is a whole line, typed and confirmed with Enter (brief §2),
 // so a key is a string such as "1", "10" or "q", not a keypress. The
@@ -72,42 +73,55 @@ func YesNo(defaultYes bool) Set {
 }
 
 // Hint returns the inputs s accepts, as a prompt's hint shows them:
-// "0-10 or q" for Figma's main menu. Each input appears once. Numbers
-// come first, in order, and a run of consecutive numbers collapses into a
-// range, so 1, 2, 3 and 5 read "1-3 or 5". The other inputs follow in the
-// order they first appear. The terms are joined as "x, y or z". A number
-// is a key in canonical decimal form; "01" or "+1" is kept as it is.
+// "0-10 or q" for Figma's main menu. The prompt's own inputs come first:
+// the bindings with no Help, such as a menu's items or a phrase to type.
+// The inputs every prompt shares follow, the bindings with Help such as
+// Navigation's, so that they end every hint alike: "0-10, b or q", or
+// "web-01, b or q" for a phrase. Each input appears once, where it first
+// appears in that order: a menu's exit item, 0, is one of its own inputs.
+// In each part numbers come first, in order, and a run of consecutive
+// numbers collapses into a range, so 1, 2, 3 and 5 read "1-3 or 5"; the
+// other inputs follow in the order they first appear. The terms are
+// joined as "x, y or z". A number is a key in canonical decimal form; "01"
+// or "+1" is kept as it is.
 //
 // A Set with a Default binding is a question. Its answers, the bindings
-// with no Help and the Default ones, come first as one term: the first
-// key of each, in order, joined by "/", the first default's in capitals,
-// as in "y/N"; only that default counts (Binding.Default). Their other
-// keys, such as "yes", are accepted (Match) but not shown, as the y/N
-// convention has it. The other bindings follow as above: "y/N, b or q".
+// with no Help and the Default ones, are its own inputs, shown as one
+// term: the first key of each, in order, joined by "/", the first
+// default's in capitals, as in "y/N"; only that default counts
+// (Binding.Default). Their other keys, such as "yes", are accepted (Match)
+// but not shown, as the y/N convention has it. The shared inputs follow as
+// above: "y/N, b or q".
 //
 // An empty Set, or one with no keys, has no hint: "".
 func (s Set) Hint() string {
 	question := slices.ContainsFunc(s, func(b Binding) bool { return b.Default })
-	var answers, rest []string
+	var answers, own, shared, seen []string
 	capital := true // the first default is still to come
 	for _, b := range s {
-		if !question || b.Help != "" && !b.Default {
-			rest = append(rest, b.Keys...)
+		switch {
+		case b.Help != "" && !b.Default:
+			shared = append(shared, b.Keys...)
 			continue
-		}
-		if i := slices.IndexFunc(b.Keys, func(k string) bool { return k != "" }); i >= 0 {
-			k := b.Keys[i]
-			if b.Default && capital {
-				k, capital = strings.ToUpper(k), false
+		case !question:
+			own = append(own, b.Keys...)
+		default:
+			if i := slices.IndexFunc(b.Keys, func(k string) bool { return k != "" }); i >= 0 {
+				k := b.Keys[i]
+				if b.Default && capital {
+					k, capital = strings.ToUpper(k), false
+				}
+				answers = append(answers, k)
 			}
-			answers = append(answers, k)
 		}
+		seen = append(seen, b.Keys...)
 	}
-	t := terms(rest)
+	shared = slices.DeleteFunc(shared, func(k string) bool { return slices.Contains(seen, k) })
+	t := terms(own)
 	if len(answers) > 0 {
 		t = append([]string{strings.Join(answers, "/")}, t...)
 	}
-	return join(t)
+	return join(append(t, terms(shared)...))
 }
 
 // Help returns the help line for s: each binding that has Help, as its
@@ -130,8 +144,8 @@ func (s Set) Help() string {
 // selects q; numbers compare as typed, so "01" does not select "1". A key
 // that two bindings share selects the first. A line with nothing but
 // white space selects the first Default binding, and no other. So a
-// prompt accepts the keys its hint shows, and a question's other answer
-// keys such as "yes", and nothing else.
+// prompt accepts the keys its hint shows, a question's other answer keys
+// such as "yes", and Enter alone for its default, and nothing else.
 func (s Set) Match(line string) (int, bool) {
 	line = strings.TrimSpace(line)
 	for i, b := range s {
