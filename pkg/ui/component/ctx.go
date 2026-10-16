@@ -17,7 +17,8 @@ import (
 const unknown = "Unknown"
 
 // Ctx is the render context every component renders with: the environment
-// and the theme built once from it. Build it with NewCtx.
+// and the theme built once from it. Build it with NewCtx: a Ctx with no
+// Theme, such as the zero Ctx, makes every Render panic.
 type Ctx struct {
 	Env   term.Env
 	Theme *theme.Theme
@@ -92,32 +93,51 @@ func (l line) width() int {
 	return w
 }
 
+// String renders the line.
+func (l line) String() string {
+	var b strings.Builder
+	for _, s := range l {
+		b.WriteString(s.String())
+	}
+	return b.String()
+}
+
 // to returns l followed by the spaces that bring it to column col.
 func (l line) to(col int) line {
 	return append(slices.Clip(l), gap(col-l.width()))
 }
 
-// fit renders l in at most limit cells. A wider line is cut inside the
-// span that crosses the limit; spaces before the cut are dropped and the
-// ellipsis glyph ends the line in that span's style.
+// fit renders l in at most limit cells. A wider line is cut where the
+// ellipsis glyph still fits after it; the spaces before the cut are
+// dropped, in whichever spans they are, and the ellipsis ends the last
+// span that keeps any text, in that span's style. So a cut looks the same
+// wherever the line's spans begin and end. With no text left, or no room
+// for the whole glyph, the line is as much of the ellipsis as fits.
 func (c Ctx) fit(l line, limit int) string {
+	if l.width() <= limit {
+		return l.String()
+	}
 	ellipsis := c.Theme.Glyphs.Ellipsis
-	room := limit
-	if l.width() > limit {
-		room = limit - lipgloss.Width(ellipsis)
-	}
-	var b strings.Builder
+	room := limit - lipgloss.Width(ellipsis)
+	var kept line
 	for _, s := range l {
-		if w := lipgloss.Width(s.text); w <= room {
-			b.WriteString(s.String())
-			room -= w
-			continue
+		w := lipgloss.Width(s.text)
+		if w > room {
+			kept = append(kept, span{ansi.Truncate(s.text, max(0, room), ""), s.style})
+			break
 		}
-		cut := strings.TrimRight(ansi.Truncate(s.text, max(0, room), ""), " ")
-		b.WriteString(span{cut + ansi.Truncate(ellipsis, max(0, limit), ""), s.style}.String())
-		break
+		kept = append(kept, s)
+		room -= w
 	}
-	return b.String()
+	for len(kept) > 0 {
+		last := &kept[len(kept)-1]
+		if last.text = strings.TrimRight(last.text, " "); last.text != "" {
+			last.text += ellipsis
+			return kept.String()
+		}
+		kept = kept[:len(kept)-1]
+	}
+	return ansi.Truncate(ellipsis, max(0, limit), "")
 }
 
 // truncate shortens plain text s to at most limit cells, ending it with
@@ -198,7 +218,9 @@ func (c Ctx) bar(fill lipgloss.Style, text line) string {
 // clean makes a view-model string one line of plain text: escape sequences
 // are removed, tabs and line breaks become spaces, other control
 // characters and invalid UTF-8 are dropped, and surrounding spaces are
-// trimmed. What remains measures as it shows.
+// trimmed. Text that then measures no cells, such as a lone zero-width
+// space, is empty, so it shows as a missing value. What remains measures
+// as it shows.
 func clean(s string) string {
 	s = ansi.Strip(strings.ToValidUTF8(s, ""))
 	s = strings.Map(func(r rune) rune {
@@ -210,7 +232,10 @@ func clean(s string) string {
 		}
 		return r
 	}, s)
-	return strings.TrimSpace(s)
+	if s = strings.TrimSpace(s); lipgloss.Width(s) == 0 {
+		return ""
+	}
+	return s
 }
 
 // known returns s in style, or the word Unknown in alt when s is empty.

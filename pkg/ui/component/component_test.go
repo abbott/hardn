@@ -156,6 +156,8 @@ func TestLayout(t *testing.T) {
 			"  [web-01.staging.example.net]\n      192.0.2.10\n      5 minutes"},
 		{"host: unknown values", HostBlock{}, 80, false,
 			"  Unknown                  Unknown\n                           Unknown"},
+		{"host: zero-width values are unknown", HostBlock{Hostname: "\u200b", Address: "\u200b", Uptime: "\u200d"}, 80, false,
+			"  Unknown                  Unknown\n                           Unknown"},
 		{"risk: a Unicode icon is centred in the marker column", figmaRisk, 80, true,
 			"   ⛬  Risk Level           Moderate ≈ medium security"},
 		{"risk: an ASCII icon fills it", RiskSummary{Band: RiskBand(9)}, 80, false,
@@ -164,6 +166,8 @@ func TestLayout(t *testing.T) {
 			"# Debian " + strings.Repeat("#", maxWidth(ContextBar{}, 120)-9)},
 		{"bar: long text is cut", TitleBar{Title: strings.Repeat("x", 70)}, 60, false,
 			"# " + strings.Repeat("x", 53) + "... #"},
+		{"bar: a cut between spans drops the spaces before it", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, 17, false,
+			"# Debian 12... ##"},
 		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("█", 60)},
 		{"bar: view-model text is cleaned", ContextBar{Name: " Deb\x1b[31mian\x00\t", Version: "1\n2"}, 60, false,
 			"# Debian 1 2 " + strings.Repeat("#", 47)},
@@ -178,5 +182,15 @@ func TestLayout(t *testing.T) {
 				t.Errorf("got\n%s\nwant\n%s", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestCutStyle checks that a cut falling between spans ends the last span
+// that keeps any text, in that span's style, as a cut inside a span does.
+func TestCutStyle(t *testing.T) {
+	c := NewCtx(term.Fixed(17, colorprofile.TrueColor, false, true))
+	got := ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}.Render(c)
+	if want := c.Theme.ContextBar.Version.Render("12" + c.Theme.Glyphs.Ellipsis); !strings.Contains(got, want) {
+		t.Errorf("got %q, want it to hold %q", got, want)
 	}
 }
