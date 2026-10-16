@@ -24,9 +24,9 @@ const (
 
 // Synthetic fixtures; BOS-SAN-L01 is Figma's mock hostname.
 var (
-	figmaHost  = HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime}
-	figmaRisk  = RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security"}
-	longHost   = "ci-runner-0042.build-cluster.eu-west-1.web-01.example.net"
+	figmaHost = HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime}
+	figmaRisk = RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security"}
+	longHost  = "ci-runner-0042.build-cluster.eu-west-1.web-01.example.net"
 	// riskFactor fits the 35 cells a factor has beside the label (DEV-022);
 	// longFactor does not.
 	riskFactor = []string{
