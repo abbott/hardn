@@ -38,13 +38,19 @@
 // The gallery's code reads nothing but its flags and the override file:
 // no environment variable and no terminal query (it builds each
 // environment with term.Fixed, never term.Detect), no root, nothing under
-// /etc. Lip Gloss's package initialisation still runs, as in every binary
-// that links pkg/ui: an ioctl on stdout and, on a terminal, a read-only
-// terminfo lookup and "tmux info" under tmux
-// (docs/refactor/phase0/side-effects.md §13.1); the gallery ignores the
-// profile it detects. It writes to stdout only, through each
-// environment's term.Env.Writer, one write per state and environment:
-// what the state's golden file holds for the same cell.
+// /etc. The package initialisation of Lip Gloss and x/ansi still runs, as
+// in every binary that links Lip Gloss (today the pkg/ui test binaries
+// and this gallery; cmd/hardn links none): an ioctl on stdout and, on a
+// terminal, a read-only terminfo lookup and "tmux info" under tmux, and
+// x/ansi's read of RUNEWIDTH_EASTASIAN
+// (docs/refactor/phase0/side-effects.md §13.1). The gallery ignores the
+// profile Lip Gloss detects. A true RUNEWIDTH_EASTASIAN makes x/ansi
+// measure ambiguous-width glyphs such as "─" as two cells, which moves
+// every layout off its golden, so the gallery then refuses to render
+// (exit status 1), as the golden harness refuses to run. It writes to
+// stdout only, through each environment's term.Env.Writer, one write per
+// state and environment: what the state's golden file holds for the same
+// cell.
 package main
 
 import (
@@ -72,7 +78,7 @@ func main() {
 // Exit statuses.
 const (
 	exitOK    = 0
-	exitError = 1 // a write or the override file failed
+	exitError = 1 // a write or the override file failed, or RUNEWIDTH_EASTASIAN is true
 	exitUsage = 2 // a flag or an argument is wrong
 )
 
@@ -277,6 +283,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return usage("-width %d is not a positive number of cells", *width)
 		}
 		cells = []cell{newCell(profiles[i], *themeName == "dark", !*ascii, *width)}
+	}
+
+	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
+	// is true, ambiguous-width glyphs measure two cells and no layout
+	// matches its golden. uitest.Golden makes the same check.
+	if w := ansi.StringWidth("─"); w != 1 {
+		fmt.Fprintf(stderr, "uigallery: x/ansi measures the ambiguous-width ─ as %d cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN\n", w)
+		return exitError
 	}
 
 	g := gallery{}

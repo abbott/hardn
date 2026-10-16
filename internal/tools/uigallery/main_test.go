@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -311,6 +313,45 @@ func TestUsage(t *testing.T) {
 	}
 	if code, _, _ := runGallery("-h"); code != exitOK {
 		t.Errorf("-h: exit %d, want %d", code, exitOK)
+	}
+}
+
+// TestEastAsian checks that with RUNEWIDTH_EASTASIAN=1, which makes x/ansi
+// measure ambiguous-width glyphs such as ─ as two cells, the gallery
+// refuses to render, with exit status 1, a message and no output, and
+// still lists its states. x/ansi reads the variable at its init, so the
+// test runs this test binary again with it set, as the gallery with the
+// arguments in UIGALLERY_TEST_ARGS.
+func TestEastAsian(t *testing.T) {
+	if args, ok := os.LookupEnv("UIGALLERY_TEST_ARGS"); ok {
+		os.Exit(run(strings.Fields(args), os.Stdout, os.Stderr))
+	}
+	tests := []struct {
+		args string
+		code int
+		out  string
+		errs string // what stderr holds, or "" for nothing
+	}{
+		{"divider", exitError, "", "as 2 cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN"},
+		{"-profile plain -width 20", exitError, "", "unset RUNEWIDTH_EASTASIAN"},
+		{"-list divider", exitOK, "divider/normal\n", ""},
+	}
+	for _, tt := range tests {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestEastAsian$")
+		cmd.Env = append(os.Environ(), "RUNEWIDTH_EASTASIAN=1", "UIGALLERY_TEST_ARGS="+tt.args)
+		var out, errs bytes.Buffer
+		cmd.Stdout, cmd.Stderr = &out, &errs
+		code := 0
+		if err := cmd.Run(); err != nil {
+			exit := (*exec.ExitError)(nil)
+			if !errors.As(err, &exit) {
+				t.Fatal(err)
+			}
+			code = exit.ExitCode()
+		}
+		if code != tt.code || out.String() != tt.out || (tt.errs == "") != (errs.Len() == 0) || !strings.Contains(errs.String(), tt.errs) {
+			t.Errorf("%s with RUNEWIDTH_EASTASIAN=1: exit %d, stdout %q, stderr %q; want exit %d, stdout %q, stderr with %q", tt.args, code, out.String(), errs.String(), tt.code, tt.out, tt.errs)
+		}
 	}
 }
 
