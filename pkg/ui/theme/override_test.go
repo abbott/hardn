@@ -130,15 +130,15 @@ const themePath = "github.com/abbott/hardn/pkg/ui/theme"
 // internal/tools/uigallery may name.
 var overrideAPI = []string{"NewWithOverrides", "Overrides", "TokenOverride"}
 
-// overrideUses returns where the Go source src (or the file filename, when
-// src is nil) names overrideAPI through an import of this package: as
-// theme.X, as X under another import name, or as any identifier X when
-// the package is dot-imported.
-func overrideUses(filename string, src any) ([]string, error) {
+// overrideUses returns the package the Go source src (or the file
+// filename, when src is nil) belongs to, and where it names overrideAPI
+// through an import of this package: as theme.X, as X under another
+// import name, or as any identifier X when the package is dot-imported.
+func overrideUses(filename string, src any) (pkg string, uses []string, err error) {
 	fset := gotoken.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	local := ""
 	for _, imp := range f.Imports {
@@ -150,9 +150,8 @@ func overrideUses(filename string, src any) ([]string, error) {
 		}
 	}
 	if local == "" || local == "_" {
-		return nil, nil
+		return f.Name.Name, nil, nil
 	}
-	var uses []string
 	ast.Inspect(f, func(n ast.Node) bool {
 		var name string
 		switch n := n.(type) {
@@ -170,7 +169,7 @@ func overrideUses(filename string, src any) ([]string, error) {
 		}
 		return true
 	})
-	return uses, nil
+	return f.Name.Name, uses, nil
 }
 
 // TestOverrideUses checks that overrideUses finds the hook under each
@@ -188,19 +187,27 @@ func TestOverrideUses(t *testing.T) {
 		{`package p; var theme struct{ NewWithOverrides int }; var _ = theme.NewWithOverrides`, 0},
 	}
 	for _, tt := range tests {
-		uses, err := overrideUses("src.go", tt.src)
+		pkg, uses, err := overrideUses("src.go", tt.src)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(uses) != tt.uses {
-			t.Errorf("%s: found %d uses %v, want %d", tt.src, len(uses), uses, tt.uses)
+		if pkg != "p" || len(uses) != tt.uses {
+			t.Errorf("%s: package %s, found %d uses %v, want p and %d", tt.src, pkg, len(uses), uses, tt.uses)
 		}
 	}
 }
 
-// hookAllowed are the module paths that may name the colour hook: the
-// package that defines it and the gallery.
-var hookAllowed = []string{"pkg/ui/theme/", "internal/tools/uigallery/"}
+// hookAllowed maps the directories, relative to the module root, whose
+// files may name the colour hook to the package those files must be in:
+// the package that defines the hook and the gallery's main package, or
+// their external test packages, which nothing can import. Only the
+// directories themselves: a package below either could pass the hook on
+// (module-root internal/ is open to the whole module), and a main package
+// cannot be imported.
+var hookAllowed = map[string]string{
+	"pkg/ui/theme":             "theme",
+	"internal/tools/uigallery": "main",
+}
 
 // strayUses walks the Go files of the module at root, test files
 // included, and returns every use of the colour hook outside hookAllowed,
@@ -208,11 +215,11 @@ var hookAllowed = []string{"pkg/ui/theme/", "internal/tools/uigallery/"}
 // vendor, testdata and hidden directories, which the go command ignores
 // or which hold no module code.
 func strayUses(root string) (uses, scanned []string, err error) {
-	err = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(root, func(file string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		rel, err := filepath.Rel(root, path)
+		rel, err := filepath.Rel(root, file)
 		if err != nil {
 			return err
 		}
@@ -223,11 +230,14 @@ func strayUses(root string) (uses, scanned []string, err error) {
 			}
 			return nil
 		}
-		if !strings.HasSuffix(rel, ".go") || slices.ContainsFunc(hookAllowed, func(a string) bool { return strings.HasPrefix(rel, a) }) {
+		if !strings.HasSuffix(rel, ".go") {
 			return nil
 		}
 		scanned = append(scanned, rel)
-		found, err := overrideUses(path, nil)
+		pkg, found, err := overrideUses(file, nil)
+		if want, ok := hookAllowed[filepath.ToSlash(filepath.Dir(rel))]; ok && (pkg == want || pkg == want+"_test") {
+			return err
+		}
 		uses = append(uses, found...)
 		return err
 	})
@@ -235,10 +245,11 @@ func strayUses(root string) (uses, scanned []string, err error) {
 }
 
 // TestOverrideReach enforces that the colour hook is the gallery's alone:
-// no Go file in the module outside pkg/ui/theme and
-// internal/tools/uigallery names NewWithOverrides, Overrides or
-// TokenOverride, so no production code can apply an override, and the
-// linker leaves the hook out of every binary but the gallery's.
+// no Go file in the module names NewWithOverrides, Overrides or
+// TokenOverride but those of package theme in pkg/ui/theme and of package
+// main in internal/tools/uigallery, not their subdirectories (hookAllowed),
+// so no production code can apply an override, and the linker leaves the
+// hook out of every binary but the gallery's.
 func TestOverrideReach(t *testing.T) {
 	root := filepath.Join("..", "..", "..")
 	if b, err := os.ReadFile(filepath.Join(root, "go.mod")); err != nil || !strings.Contains(string(b), "module github.com/abbott/hardn\n") {
@@ -257,20 +268,29 @@ func TestOverrideReach(t *testing.T) {
 }
 
 // TestStrayUses checks the walk on a module made up for the test: it
-// reports a use in production code and in a test file, and none in the
-// allowed packages, vendor or testdata.
+// reports a use in production code and in a test file, and in a package
+// below an allowed directory, which could pass the hook on to production
+// code (var Build = theme.NewWithOverrides in internal/tools/uigallery/hook
+// or pkg/ui/theme/extra), and none in the allowed packages, vendor or
+// testdata.
 func TestStrayUses(t *testing.T) {
 	root := t.TempDir()
-	use := "package p\n\nimport \"" + themePath + "\"\n\nvar _, _ = theme.NewWithOverrides(term.Env{}, nil)\n"
+	use := func(pkg string) string {
+		return "package " + pkg + "\n\nimport \"" + themePath + "\"\n\nvar Build = theme.NewWithOverrides\n"
+	}
 	files := map[string]string{
-		"go.mod":                               "module example.net/m\n",
-		"cmd/tool/main.go":                     use,
-		"pkg/feature/feature_test.go":          use,
-		"pkg/feature/feature.go":               "package feature\n",
-		"pkg/ui/theme/override.go":             use,
-		"internal/tools/uigallery/override.go": use,
-		"vendor/example.net/v/v.go":            use,
-		"pkg/feature/testdata/t.go":            use,
+		"go.mod":                                     "module example.net/m\n",
+		"cmd/tool/main.go":                           use("main"),
+		"pkg/feature/feature_test.go":                use("feature"),
+		"pkg/feature/feature.go":                     "package feature\n",
+		"pkg/ui/theme/override_test.go":              use("theme_test"),
+		"pkg/ui/theme/extra/extra.go":                use("extra"),
+		"internal/tools/uigallery/override.go":       use("main"),
+		"internal/tools/uigallery/main_test.go":      use("main"),
+		"internal/tools/uigallery/hook/hook.go":      use("hook"),
+		"internal/tools/uigallery/hook/hook_test.go": use("hook_test"),
+		"vendor/example.net/v/v.go":                  use("v"),
+		"pkg/feature/testdata/t.go":                  use("t"),
 	}
 	for name, src := range files {
 		path := filepath.Join(root, filepath.FromSlash(name))
@@ -285,10 +305,32 @@ func TestStrayUses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{"cmd/tool/main.go", "pkg/feature/feature.go", "pkg/feature/feature_test.go"}; !slices.Equal(scanned, want) {
+	if want := []string{
+		"cmd/tool/main.go",
+		"internal/tools/uigallery/hook/hook.go",
+		"internal/tools/uigallery/hook/hook_test.go",
+		"internal/tools/uigallery/main_test.go",
+		"internal/tools/uigallery/override.go",
+		"pkg/feature/feature.go",
+		"pkg/feature/feature_test.go",
+		"pkg/ui/theme/extra/extra.go",
+		"pkg/ui/theme/override_test.go",
+	}; !slices.Equal(scanned, want) {
 		t.Errorf("scanned %v, want %v", scanned, want)
 	}
-	if len(uses) != 2 || !strings.Contains(uses[0], "main.go") || !strings.Contains(uses[1], "feature_test.go") {
-		t.Errorf("found %v, want the uses in cmd/tool/main.go and pkg/feature/feature_test.go", uses)
+	want := []string{
+		"cmd/tool/main.go",
+		"internal/tools/uigallery/hook/hook.go",
+		"internal/tools/uigallery/hook/hook_test.go",
+		"pkg/feature/feature_test.go",
+		"pkg/ui/theme/extra/extra.go",
+	}
+	if len(uses) != len(want) {
+		t.Errorf("found %v, want one use in each of %v", uses, want)
+	}
+	for i, w := range want {
+		if i < len(uses) && !strings.Contains(filepath.ToSlash(uses[i]), w+":") {
+			t.Errorf("use %d is %s, want one in %s", i, uses[i], w)
+		}
 	}
 }
