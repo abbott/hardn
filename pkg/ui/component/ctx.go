@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"unicode"
@@ -294,60 +295,117 @@ func clean(s string) string {
 // (style.go:14 in lipgloss v2.0.6).
 const tabWidth = 4
 
-// raw makes code (a diff line, a command, a line of captured output) one
-// line of plain text that keeps its characters: escape sequences are
-// removed, a tab becomes tabWidth spaces, line breaks become spaces, and
-// other control characters and invalid UTF-8 are dropped. Unlike clean it
-// trims nothing and maps no quotes, so that a plan shows a file's line as
-// it is.
+// raw makes code (a diff line, a target, one line of a command or of
+// captured output) one line of plain text that keeps its characters:
+// escape sequences are removed, a tab becomes tabWidth spaces, a line
+// break becomes a space, and other control characters and invalid UTF-8
+// are dropped. A character that draws as nothing, or as a blank other than
+// the space, is shown as its code point, such as <U+200B>: a format
+// character (Cf) such as a zero-width space or a bidi override, a
+// variation selector or other default-ignorable character, or a separator
+// such as a no-break space. So a plan never hides a character in a line
+// that looks like another. Unlike clean it trims nothing and maps no
+// quotes, so that a plan shows a file's line as it is.
 func raw(s string) string {
-	s = ansi.Strip(strings.ToValidUTF8(s, ""))
-	s = strings.ReplaceAll(s, "\t", strings.Repeat(" ", tabWidth))
-	return strings.Map(func(r rune) rune {
+	var b strings.Builder
+	for _, r := range ansi.Strip(strings.ToValidUTF8(s, "")) {
 		switch {
+		case r == '\t':
+			b.WriteString(strings.Repeat(" ", tabWidth))
 		case r == '\n' || r == '\r':
-			return ' '
+			b.WriteByte(' ')
 		case unicode.IsControl(r):
-			return -1
+		case invisible(r):
+			fmt.Fprintf(&b, "<U+%04X>", r)
+		default:
+			b.WriteRune(r)
 		}
-		return r
-	}, s)
+	}
+	return b.String()
+}
+
+// invisible reports whether r draws as nothing, or as a blank other than
+// the space, and so is shown in code by its code point (raw).
+func invisible(r rune) bool {
+	return r != ' ' && unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp,
+		unicode.Variation_Selector, unicode.Other_Default_Ignorable_Code_Point)
+}
+
+// commandLines returns the lines of the command s, each made by raw: a
+// command with a heredoc keeps its line breaks rather than reading as one
+// line. Blank lines before and after the command, the spaces before it and
+// the spaces at the end of each line are left out; a command with nothing
+// to show has no lines.
+func commandLines(s string) []string {
+	var lines []string
+	for _, l := range strings.Split(s, "\n") {
+		lines = append(lines, strings.TrimRight(raw(l), " "))
+	}
+	for len(lines) > 0 && strings.TrimLeft(lines[0], " ") == "" {
+		lines = lines[1:]
+	}
+	for len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	if len(lines) > 0 {
+		lines[0] = strings.TrimLeft(lines[0], " ")
+	}
+	return lines
+}
+
+// command lays out the command s (commandLines) from column col in style,
+// as code: its first line after prefix, such as Glyphs.Command and a space,
+// and each further line under the first line's text, where a heredoc's
+// lines start. A command with nothing to show is no lines.
+func (c Ctx) command(col int, prefix, s string, style lipgloss.Style) []string {
+	var out []string
+	for i, l := range commandLines(s) {
+		if i == 0 {
+			out = append(out, c.code(col, prefix+l, style)...)
+			continue
+		}
+		out = append(out, c.code(col+lipgloss.Width(prefix), l, style)...)
+	}
+	return out
 }
 
 // code lays out the code s, made by raw, from column col in style. It is
 // never cut: where the content width ends it breaks, at the last space
 // after its indent or else inside a word, and each further piece starts
-// at col with Glyphs.Wrap (DEV-038), so that a plan shows every character
-// it will write. The spaces at a break, and at the end, are not shown, and
-// a line of spaces is an empty line. Only when not one more character fits
-// beside col, on a terminal a few cells wide, is the rest cut with the
-// ellipsis glyph.
+// at col with Glyphs.Wrap (DEV-038). The spaces at a break open the next
+// piece, after the glyph, where they show: a break at a space reads apart
+// from a break inside a word, and an indent carries over. So a plan shows
+// every character it will write but the spaces at a line's end. A run of
+// spaces too long to show beside the glyph, on a line a few cells wide, is
+// left out, and a line of spaces is an empty line. Only when not one more
+// character fits beside col is the rest cut with the ellipsis glyph.
 func (c Ctx) code(col int, s string, style lipgloss.Style) []string {
 	if s = strings.TrimRight(s, " "); s == "" {
 		return []string{""}
 	}
 	w := c.width()
 	var out []string
-	for lead := ""; ; lead = c.Theme.Glyphs.Wrap {
+	for lead := ""; ; {
 		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(lead)), "")
 		rest, ok := strings.CutPrefix(s, head)
 		if head == "" || !ok {
 			return append(out, c.fit(line{gap(col), {lead + s, style}}, w))
 		}
-		if rest != "" && rest[0] != ' ' {
+		if rest == "" {
+			return append(out, line{gap(col), {lead + head, style}}.String())
+		}
+		if rest[0] != ' ' {
 			if i := strings.LastIndexByte(head, ' '); i > 0 && strings.TrimLeft(head[:i], " ") != "" {
-				head, rest = head[:i], s[i:]
+				head = head[:i]
 			}
 		}
-		rest = strings.TrimLeft(rest, " ")
-		piece := ""
-		if t := strings.TrimRight(lead+head, " "); t != "" {
-			piece = line{gap(col), {t, style}}.String()
+		if head = strings.TrimRight(head, " "); head == "" {
+			// Only spaces fit: the run cannot show, so it is left out.
+			s = strings.TrimLeft(s, " ")
+			continue
 		}
-		out = append(out, piece)
-		if s = rest; s == "" {
-			return out
-		}
+		out = append(out, line{gap(col), {lead + head, style}}.String())
+		s, lead = s[len(head):], c.Theme.Glyphs.Wrap
 	}
 }
 

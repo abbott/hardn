@@ -41,14 +41,29 @@ func TestPlanGroupLayout(t *testing.T) {
 		}}}, 64, false, "   -  Add\n      " + sudoersFile + "\n      @@ -0,0 +1 @@\n      +x"},
 		{"plan: the dry-run footer", PlanView{Changes: []PlanChange{{Title: "Enable UFW"}}, DryRun: true}, 64, false,
 			"   -  Enable UFW\n\n  [i] Info: No actual changes were made to your system."},
-		{"plan: code breaks at a space, then inside a word", PlanView{Changes: []PlanChange{{
+		{"plan: code breaks at a space, the space opening the next piece", PlanView{Changes: []PlanChange{{
 			Title: "Allow users", After: "AllowUsers alice bob replication-service\n\tMatch",
 		}}}, 30, true,
-			"   -  Allow users\n      +AllowUsers alice bob\n      ↪replication-service\n      +    Match"},
-		{"plan: a word longer than the line", PlanView{Changes: []PlanChange{{Title: "Write", Target: "/var/backups/hardn/web-01.example.net"}}}, 30, false,
+			"   -  Allow users\n      +AllowUsers alice bob\n      ↪ replication-service\n      +    Match"},
+		{"plan: a word longer than the line breaks inside it", PlanView{Changes: []PlanChange{{Title: "Write", Target: "/var/backups/hardn/web-01.example.net"}}}, 30, false,
 			"   -  Write\n      /var/backups/hardn/web-0\n      |1.example.net"},
+		{"plan: a break at a space reads apart from one inside a word", PlanView{Changes: []PlanChange{{Title: "Write", Target: "/var/backups/hardn/web-0 1.example.net"}}}, 30, false,
+			"   -  Write\n      /var/backups/hardn/web-0\n      | 1.example.net"},
+		{"plan: the spaces at a break carry over", PlanView{Changes: []PlanChange{{Title: "Set", After: "key:        value"}}}, 20, false,
+			"   -  Set\n      +key:\n      |        value"},
+		{"plan: a run of spaces too long for the line is left out", PlanView{Changes: []PlanChange{{Title: "Set", After: "\t\t\t\tb: 1"}}}, 20, false,
+			"   -  Set\n      +\n      |b: 1"},
 		{"plan: code keeps its quotes and indent", PlanView{Changes: []PlanChange{{Title: "Echo", Commands: []string{"echo ‘hi’ \x1b[1mbold\x1b[m"}}}}, 64, true,
 			"   -  Echo\n      $ echo ‘hi’ bold"},
+		{"plan: a target is code", PlanView{Changes: []PlanChange{{
+			Title: "Write", Target: " /etc/‘quoted’\tname ", Diff: diff.Unified("/etc/‘quoted’    name", "/etc/‘quoted’    name", "a\n", "b\n"),
+		}}}, 64, false, "   -  Write\n      /etc/‘quoted’    name\n      @@ -1 +1 @@\n      -a\n      +b"},
+		{"plan: a command keeps its lines", PlanView{Changes: []PlanChange{{
+			Title: "Write", Commands: []string{"\ncat <<EOF >" + dropIn + "\nPort 2230\n  Match\n\nEOF\n"},
+		}}}, 64, false, "   -  Write\n      $ cat <<EOF >" + dropIn + "\n        Port 2230\n          Match\n\n        EOF"},
+		{"plan: characters that draw as nothing show their code points", PlanView{Changes: []PlanChange{{
+			Title: "Allow users", After: "AllowUsers alice\u200b\u202ebob\u00a0carol\ufe0f",
+		}}}, 90, false, "   -  Allow users\n      +AllowUsers alice<U+200B><U+202E>bob<U+00A0>carol<U+FE0F>"},
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},
 		{"steps: one line each, the spinner still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
 			"   ✓  Done: Allow 2230/tcp in UFW\n   ▸  Running: Set Port 2230\n   ◦  Pending: Reload ssh.service"},
@@ -67,8 +82,8 @@ func TestPlanGroupLayout(t *testing.T) {
 		{"report: the parts in order", sshFailure, 64, true,
 			"█ ✗ Operation Failed\n█ Reloading ssh.service failed: exit status 1\n\n" +
 				"   ↺  Rolled back: Set Port 2230\n   ↺  Rolled back: Allow 2230/tcp in UFW\n\n" +
-				"      $ systemctl reload ssh\n      Job for ssh.service failed because the control process\n      ↪exited with error code.\n" +
-				"      See \"systemctl status ssh.service\" and \"journalctl -xeu\n      ↪ssh.service\" for details.\n\n" +
+				"      $ systemctl reload ssh\n      Job for ssh.service failed because the control process\n      ↪ exited with error code.\n" +
+				"      See \"systemctl status ssh.service\" and \"journalctl -xeu\n      ↪ ssh.service\" for details.\n\n" +
 				"   ℹ  Info: Check the log file at /var/log/hardn.log for details\n   ℹ  Info: Run sudo sshd -t to see what sshd rejected."},
 		{"countdown: waiting at UrgentBelow", ConfirmCountdown{Remaining: UrgentBelow}, 64, false,
 			"  [*] Warning: This change reverts automatically in 0:30\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
@@ -91,7 +106,11 @@ func TestPlanGroupLayout(t *testing.T) {
 
 // TestCodeKeepsText checks the code wrap on long lines at every width
 // from 1 to 90: each piece fits and ends in no space, and the pieces hold
-// every character of the line but the spaces at the breaks, in order.
+// every character of the line but the spaces at its end, in order, once
+// the line is wide enough for its longest run of spaces beside the wrap
+// glyph. Narrower, such a run may be left out, and the pieces hold every
+// other character. Two lines that differ only by a space at a break
+// render apart.
 func TestCodeKeepsText(t *testing.T) {
 	lines := []string{
 		"+AllowUsers alice bob backup-replication-service monitoring-agent deploy-bot",
@@ -99,11 +118,12 @@ func TestCodeKeepsText(t *testing.T) {
 		"Get:12 http://deb.example.net/debian trixie/main amd64 package-12 [1024 B]",
 		"日本語のテキストと English words mixed together in one line of output",
 	}
+	nospace := func(s string) string { return strings.ReplaceAll(s, " ", "") }
 	for _, unicode := range []bool{true, false} {
 		for w := 1; w <= 90; w++ {
 			c := NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))
 			glyph := c.Theme.Glyphs.Wrap
-			for _, l := range lines {
+			pieces := func(l string) string {
 				var kept strings.Builder
 				for i, p := range c.code(theme.LabelCol, l, lipgloss.NewStyle()) {
 					where := fmt.Sprintf("width %d, unicode %v, piece %d of %q", w, unicode, i, l)
@@ -116,16 +136,41 @@ func TestCodeKeepsText(t *testing.T) {
 					}
 					kept.WriteString(p)
 				}
-				if w <= theme.LabelCol+2 {
-					continue // too narrow for a character beside the column: cut
+				return kept.String()
+			}
+			if w <= theme.LabelCol+2 {
+				continue // too narrow for a character beside the column: cut
+			}
+			room := c.width() - theme.LabelCol - lipgloss.Width(glyph)
+			for _, l := range lines {
+				got := pieces(l)
+				if longestSpaces(l) < room {
+					if got != l {
+						t.Errorf("width %d, unicode %v: the pieces hold %q, want %q", w, unicode, got, l)
+					}
+				} else if nospace(got) != nospace(l) {
+					t.Errorf("width %d, unicode %v: the pieces hold %q, want %q but for spaces", w, unicode, got, l)
 				}
-				nospace := func(s string) string { return strings.ReplaceAll(s, " ", "") }
-				if got, want := nospace(kept.String()), nospace(l); got != want {
-					t.Errorf("width %d, unicode %v: the pieces hold %q, want %q", w, unicode, got, want)
-				}
+			}
+			if a, b := "/var/backups/hardn/web-0 1.example.net", "/var/backups/hardn/web-01.example.net"; pieces(a) == pieces(b) {
+				t.Errorf("width %d, unicode %v: %q and %q render the same", w, unicode, a, b)
 			}
 		}
 	}
+}
+
+// longestSpaces returns the length of the longest run of spaces in s.
+func longestSpaces(s string) int {
+	n, run := 0, 0
+	for _, r := range s {
+		if r == ' ' {
+			run++
+			n = max(n, run)
+		} else {
+			run = 0
+		}
+	}
+	return n
 }
 
 // TestPlanGroupStyles checks that each part of the plan group takes its
@@ -157,7 +202,7 @@ func TestPlanGroupStyles(t *testing.T) {
 		}},
 		{"report", sshFailure, []part{
 			{g.Bad + " Operation Failed", th.Callout.Bad.Title}, {g.RolledBack, th.Step.RolledBack},
-			{g.Command + " systemctl reload ssh", th.Plan.Command}, {g.Wrap + "exited with error code.", th.Output},
+			{g.Command + " systemctl reload ssh", th.Plan.Command}, {g.Wrap + " exited with error code.", th.Output},
 			{"Info:", th.Message.Info}, {"Check the log file at /var/log/hardn.log for details", th.Message.Text},
 		}},
 		{"countdown", ConfirmCountdown{Remaining: 165}, []part{

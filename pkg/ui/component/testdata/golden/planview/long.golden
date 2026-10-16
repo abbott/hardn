@@ -10,10 +10,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -23,10 +23,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -36,10 +36,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup␛[m$
@@ -49,10 +49,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -62,10 +62,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -75,10 +75,10 @@
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
       ␛[38;2;231;70;105m-AllowUsers alice␛[m$
       ␛[38;2;112;212;127m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;112;212;127m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;112;212;127m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;112;212;127m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;129;134;156m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;129;134;156m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
@@ -88,10 +88,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -101,10 +101,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -114,10 +114,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
@@ -127,10 +127,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -140,10 +140,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -153,10 +153,10 @@
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
       ␛[38;2;194;37;74m-AllowUsers alice␛[m$
       ␛[38;2;26;127;55m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;2;26;127;55m|monitoring-agent deploy-bot␛[m$
+      ␛[38;2;26;127;55m| monitoring-agent deploy-bot␛[m$
       ␛[38;2;26;127;55m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;2;87;92;110m$ systemd-run --on-active=180s␛[m$
-      ␛[38;2;87;92;110m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
@@ -166,10 +166,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -179,10 +179,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -192,10 +192,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
@@ -205,10 +205,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -218,10 +218,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -231,10 +231,10 @@
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;78m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
@@ -244,10 +244,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -257,10 +257,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -270,10 +270,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m↪monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
@@ -283,10 +283,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -296,10 +296,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -309,10 +309,10 @@
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[38;5;22m|monitoring-agent deploy-bot␛[m$
+      ␛[38;5;22m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;22m+    Match Address 192.0.2.0/24␛[m$
       ␛[38;5;59m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;59m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
@@ -322,10 +322,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m↪monitoring-agent deploy-bot␛[m$
+      ␛[92m↪ monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -335,10 +335,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m↪monitoring-agent deploy-bot␛[m$
+      ␛[92m↪ monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -348,10 +348,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m↪monitoring-agent deploy-bot␛[m$
+      ␛[92m↪ monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
@@ -361,10 +361,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m|monitoring-agent deploy-bot␛[m$
+      ␛[92m| monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -374,10 +374,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m|monitoring-agent deploy-bot␛[m$
+      ␛[92m| monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -387,10 +387,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[91m-AllowUsers alice␛[m$
       ␛[92m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[92m|monitoring-agent deploy-bot␛[m$
+      ␛[92m| monitoring-agent deploy-bot␛[m$
       ␛[92m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
@@ -400,10 +400,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m↪monitoring-agent deploy-bot␛[m$
+      ␛[32m↪ monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -413,10 +413,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m↪monitoring-agent deploy-bot␛[m$
+      ␛[32m↪ monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -426,10 +426,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m↪monitoring-agent deploy-bot␛[m$
+      ␛[32m↪ monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m↪--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
@@ -439,10 +439,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m|monitoring-agent deploy-bot␛[m$
+      ␛[32m| monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -452,10 +452,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m|monitoring-agent deploy-bot␛[m$
+      ␛[32m| monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
@@ -465,10 +465,10 @@
       ␛[90m@@ -1 +1,2 @@␛[m$
       ␛[31m-AllowUsers alice␛[m$
       ␛[32m+AllowUsers alice bob backup-replication-service␛[m$
-      ␛[32m|monitoring-agent deploy-bot␛[m$
+      ␛[32m| monitoring-agent deploy-bot␛[m$
       ␛[32m+    Match Address 192.0.2.0/24␛[m$
       ␛[90m$ systemd-run --on-active=180s␛[m$
-      ␛[90m|--unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup$
@@ -478,10 +478,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
@@ -491,10 +491,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
@@ -504,10 +504,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup$
@@ -517,10 +517,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
@@ -530,10 +530,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
@@ -543,10 +543,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup$
@@ -556,10 +556,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
@@ -569,10 +569,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
@@ -582,10 +582,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      ↪monitoring-agent deploy-bot$
+      ↪ monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      ↪--unit=hardn-revert-20261016 hardn rollback 20261016$
+      ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup$
@@ -595,10 +595,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
@@ -608,10 +608,10 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
@@ -621,7 +621,7 @@
       @@ -1 +1,2 @@$
       -AllowUsers alice$
       +AllowUsers alice bob backup-replication-service$
-      |monitoring-agent deploy-bot$
+      | monitoring-agent deploy-bot$
       +    Match Address 192.0.2.0/24$
       $ systemd-run --on-active=180s$
-      |--unit=hardn-revert-20261016 hardn rollback 20261016$
+      | --unit=hardn-revert-20261016 hardn rollback 20261016$

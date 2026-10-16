@@ -36,7 +36,9 @@ type PlanChange struct {
 	// line; empty shows none.
 	Before, After string
 	// Commands are the commands the change runs, in order, such as
-	// "systemctl reload ssh"; empty ones are skipped.
+	// "systemctl reload ssh"; empty ones are skipped. A command of several
+	// lines, such as one with a heredoc, shows each line under the first
+	// line's text.
 	Commands []string
 }
 
@@ -119,7 +121,7 @@ func (ch PlanChange) render(c Ctx) string {
 	add := func(s string, style lipgloss.Style) {
 		out = append(out, c.code(theme.LabelCol, s, style)...)
 	}
-	target := clean(ch.Target)
+	target := strings.Trim(raw(ch.Target), " ")
 	if target != "" {
 		add(target, t.Target)
 	}
@@ -131,7 +133,7 @@ func (ch PlanChange) render(c Ctx) string {
 	// the diff's "---" and "+++" headers: one of them names the target.
 	named := false
 	for _, l := range lines {
-		if f, ok := fileHeader(l); ok && f == target && target != "" {
+		if f, ok := fileHeader(l); ok && strings.Trim(raw(f), " ") == target && target != "" {
 			named = true
 		}
 	}
@@ -157,9 +159,7 @@ func (ch PlanChange) render(c Ctx) string {
 		}
 	}
 	for _, cmd := range ch.Commands {
-		if cmd = strings.TrimSpace(raw(cmd)); cmd != "" {
-			add(g.Command+" "+cmd, t.Command)
-		}
+		out = append(out, c.command(theme.LabelCol, g.Command+" ", cmd, t.Command)...)
 	}
 	return strings.Join(out, "\n")
 }

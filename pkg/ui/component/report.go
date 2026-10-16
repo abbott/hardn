@@ -91,10 +91,7 @@ func (vm ErrorReport) Render(c Ctx) string {
 
 // output renders the command and the tail of its output.
 func (vm ErrorReport) output(c Ctx) string {
-	var out []string
-	if cmd := strings.TrimSpace(raw(vm.Command)); cmd != "" {
-		out = append(out, c.code(theme.LabelCol, c.Theme.Glyphs.Command+" "+cmd, c.Theme.Plan.Command)...)
-	}
+	out := c.command(theme.LabelCol, c.Theme.Glyphs.Command+" ", vm.Command, c.Theme.Plan.Command)
 	lines := strings.Split(strings.TrimRight(vm.Output, "\r\n"), "\n")
 	if strings.TrimSpace(vm.Output) == "" {
 		lines = nil

@@ -72,8 +72,8 @@ func (vm ConfirmCountdown) Render(c Ctx) string {
 	if vm.Port > 0 {
 		keep = fmt.Sprintf(confirmKeepOn, vm.Port)
 	}
-	cmd := strings.TrimSpace(raw(vm.Command))
-	if cmd == "" {
+	cmd := vm.Command
+	if len(commandLines(cmd)) == 0 {
 		cmd = confirmCommand
 	}
 	lead := marker(glyph, style).to(theme.LabelCol)
@@ -96,6 +96,6 @@ func (vm ConfirmCountdown) Render(c Ctx) string {
 	for _, l := range wrap(keep, w-theme.LabelCol) {
 		out = append(out, c.fit(line{gap(theme.LabelCol), {l, t.Text}}, w))
 	}
-	out = append(out, c.code(theme.LabelCol, cmd, t.Command)...)
+	out = append(out, c.command(theme.LabelCol, "", cmd, t.Command)...)
 	return strings.Join(out, "\n")
 }

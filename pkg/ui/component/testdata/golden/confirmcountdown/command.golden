@@ -6,286 +6,286 @@
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m60:00␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;192;196;216msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;192;196;216m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;192;196;216m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m␛[38;2;30;34;48m This change reverts automatically in ␛[m␛[1;38;2;138;97;0m60:00␛[m$
       ␛[38;2;30;34;48mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;2;30;34;48msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;2;30;34;48m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;2;30;34;48m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m␛[38;5;251m This change reverts automatically in ␛[m␛[1;38;5;179m60:00␛[m$
       ␛[38;5;251mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;251msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;251m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;251m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m␛[38;5;235m This change reverts automatically in ␛[m␛[1;38;5;94m60:00␛[m$
       ␛[38;5;235mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;38;5;235msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;38;5;235m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;38;5;235m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[37m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[37mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;37msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;37m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;37m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
    ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
   ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m␛[30m This change reverts automatically in ␛[m␛[1;33m60:00␛[m$
       ␛[30mTo keep it, open a new SSH session and run:␛[m$
       ␛[1;30msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1;30m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1;30m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
    ␛[1m⛬␛[m  ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m↪/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m↪ /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
   ␛[1m[*]␛[m ␛[1mWarning:␛[m This change reverts automatically in ␛[1m60:00␛[m$
       To keep it, open a new SSH session and run:$
       ␛[1msudo /usr/local/bin/hardn confirm --config␛[m$
-      ␛[1m|/etc/hardn/web-01.example.net.yml␛[m$
+      ␛[1m| /etc/hardn/web-01.example.net.yml␛[m$
