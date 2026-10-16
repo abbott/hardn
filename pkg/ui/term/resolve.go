@@ -73,9 +73,12 @@ var localeVars = []string{"LC_ALL", "LC_CTYPE", "LANG"}
 // Unicode is false with --ascii, HARDN_ASCII or Plain; when TERM is linux or
 // dumb; when the effective locale (the first non-empty of LC_ALL, LC_CTYPE
 // and LANG) does not name a UTF-8 codeset (".UTF-8" or ".utf8", in any
-// case), which covers an unset locale, C, POSIX and a name with no codeset;
-// and when the locale's language is zh, ja or ko, because CJK terminals draw
-// the ambiguous-width glyphs two cells wide. C.UTF-8 is UTF-8.
+// case), which covers an unset locale, C, POSIX and a name with no codeset
+// such as en_US; and when the locale's language is zh, ja or ko, because CJK
+// terminals draw the ambiguous-width glyphs two cells wide. C.UTF-8 is
+// UTF-8, and so is a bare codeset such as LC_CTYPE=UTF-8, a locale name
+// macOS accepts; its ssh client forwards LC_* by default, and on the server
+// that LC_CTYPE outranks a UTF-8 LANG.
 //
 // Theme: --theme, else a valid HARDN_THEME (an invalid value is ignored),
 // else dark. Dark is false only for light; auto leaves Dark true and Theme
@@ -139,9 +142,12 @@ func unicodeTerminal(env map[string]string) bool {
 			break
 		}
 	}
-	// language[_territory][.codeset][@modifier]
+	// language[_territory][.codeset][@modifier], or a bare codeset
 	name, _, _ := strings.Cut(locale, "@")
-	lang, codeset, _ := strings.Cut(name, ".")
+	lang, codeset, ok := strings.Cut(name, ".")
+	if !ok {
+		lang, codeset = "", name
+	}
 	if strings.ReplaceAll(strings.ToLower(codeset), "-", "") != "utf8" {
 		return false
 	}
