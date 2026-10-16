@@ -364,11 +364,22 @@ type failing struct{}
 
 func (failing) Write([]byte) (int, error) { return 0, io.ErrClosedPipe }
 
+// maxWidth is the widest a line of a screen may be at terminal width w,
+// worked out from the §3.15 constants: the content width under
+// theme.CapContent, unless theme.BarsFillContent is off, when a bar or the
+// divider takes the terminal's width.
+func maxWidth(w int) int {
+	if theme.CapContent && theme.BarsFillContent {
+		return min(w, theme.ContentWidth)
+	}
+	return w
+}
+
 // TestOutputRules renders each layout at every width from 1 to 130, with
 // colour, without it and in plain mode, on a 24-row terminal and a 40-row
 // one, and checks the components' output rules hold for the screen: no
-// line wider than the terminal, no line holding a tab, no trailing space
-// outside a painted background, and no trailing newline.
+// line wider than the content (maxWidth), no line holding a tab, no
+// trailing space outside a painted background, and no trailing newline.
 func TestOutputRules(t *testing.T) {
 	step, _ := ManageSudoFixture()
 	layouts := map[string]func(component.Ctx) string{
@@ -391,7 +402,7 @@ func TestOutputRules(t *testing.T) {
 						t.Errorf("%s: ends in a newline", where)
 					}
 					for _, l := range strings.Split(out, "\n") {
-						if lw := lipgloss.Width(l); lw > w || strings.Contains(l, "\t") {
+						if lw := lipgloss.Width(l); lw > maxWidth(w) || strings.Contains(l, "\t") {
 							t.Errorf("%s: line %q is %d cells or holds a tab", where, ansi.Strip(l), lw)
 						}
 						if strings.HasSuffix(l, " ") || !env.HasColor() && strings.HasSuffix(ansi.Strip(l), " ") {
