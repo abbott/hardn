@@ -11,12 +11,13 @@ import "github.com/abbott/hardn/pkg/ui/term"
 // them:
 //
 //	0 2   6                    27
-//	  [+] SSH Port             Configured  non-default (2230)
+//	  [+] SSH Port             Configured non-default (2230)
 //	   1) User Management      Create, Configure
 //	  10) Logs                 View log file
 const (
-	// ContentWidth is the width of the content box: the most cells any
-	// line uses. A narrower terminal uses its own width instead.
+	// ContentWidth is the width of Figma's content box, 64 cells. Under
+	// CapContent it is the most cells any line uses. A narrower terminal
+	// uses its own width instead.
 	ContentWidth = 64
 	// Indent is the left indent of rows, headings and the prompt. Bars and
 	// the header start at column 0.
@@ -38,10 +39,13 @@ const (
 	PromptGap = 1
 )
 
-// Width and height rules from the brief's §1A proposals. They are pending
-// maintainer approval (refactor plan §3.15); if it is refused, only these
-// constants and the goldens change.
+// Width and height rules from the brief's §1A proposals, one constant per
+// rule. They are pending maintainer approval (refactor plan §3.15); if it is
+// refused, only these constants and the goldens change.
 const (
+	// CapContent caps lines at ContentWidth on a terminal wider than it,
+	// rather than letting them use the terminal's whole width.
+	CapContent = true
 	// StackBelow is the terminal width, in columns, below which a
 	// two-column row stacks: the label on one line and the value under it.
 	StackBelow = 70
