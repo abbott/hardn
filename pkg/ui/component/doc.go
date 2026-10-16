@@ -34,6 +34,12 @@
 //     bullet item, which have nothing beside them. Typographic quotes in
 //     view-model text, ‘ ’ and “ ”, are shown as ASCII ' and " (C12,
 //     DEV-036); components add none.
+//   - Code. A diff's lines, a plan's target and commands, and captured
+//     output are code: shown as they are, quotes and indent kept, escape
+//     and control characters dropped and a tab four spaces. Code is never
+//     cut, since the user confirms every character of a plan: a line too
+//     long breaks at its last space, else inside a word, and each further
+//     piece starts with Glyphs.Wrap (DEV-038).
 //   - Degrading. Colours, glyphs and columns come only from the theme. When
 //     Env.HasColor is false there is no background to paint, so a bar is a
 //     run of Glyphs.Bar (DEV-015, DEV-018) and a badge is bracketed by
@@ -47,6 +53,8 @@
 //     could not read shows the word "Unknown" in status.unknown, origin/main's
 //     word for an address it could not read. A list with no items renders
 //     as the empty string, so the caller leaves out the block and its gap.
+//     A component that animates, such as StepProgress, takes its frame from
+//     the view-model and Env.Animate, never from a clock.
 //   - Goldens. Each state renders on uitest.Full() into
 //     testdata/golden/<component>/<state>.golden.
 //
@@ -126,4 +134,26 @@
 //     (style.go:489-497, align.go:43-48): trailing spaces again. The
 //     callout's bar is painted cell by cell beside each line, so no join
 //     is needed.
+//   - PlanView: list could draw each change's bullet or risk glyph as its
+//     enumerator, but a change is many lines, which the tree renderer
+//     joins to the enumerator with JoinHorizontal, padding each to the
+//     widest (tree/renderer.go:126-131, join.go:88); tree could hang a
+//     diff under its change, but with box-drawing branches
+//     (tree/enumerator.go:23-28) and the same padding; a diff is not a
+//     table. Code wraps with Ctx.code, a loop over ansi.Truncate: x/ansi's
+//     Hardwrap and Wrap break every line at one limit (x/ansi wrap.go:
+//     21-31, 276-278), while a piece after the first has one cell less,
+//     for Glyphs.Wrap, and Wrap also breaks at every hyphen
+//     (wrap.go:270-271), which in a command such as "--unit=" reads as
+//     two words.
+//   - StepProgress: list with an Enumerator returning the state's glyph
+//     would pad a narrower glyph on the left to the widest sibling's
+//     (tree/renderer.go:79-81, 100-103), so in ASCII a one-cell spinner
+//     frame among three-cell markers would sit at column 4, not centred
+//     at column 3, and the line still needs the cut. Each step is a line
+//     of spans placed with marker and fit.
+//   - ErrorReport is built from Callout, StepProgress rows, code and
+//     Message, joined with the section gap; ConfirmCountdown is lines of
+//     spans, its sentences wrapped with lipgloss.Wrap as a Message's text.
+//     Neither needs a join or place helper.
 package component
