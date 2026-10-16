@@ -267,6 +267,7 @@ func TestAsk(t *testing.T) {
 		want   []string // the writes
 	}{
 		{"a terminal echoes the Enter", "q\n", true, "q", nil, []string{p + " "}},
+		{"an answer Ctrl-D ended on a terminal", "q", true, "q", nil, []string{p + " ", "\n"}},
 		{"without a terminal Ask ends the line", "q\n", false, "q", nil, []string{p + " ", "\n"}},
 		{"an abort ends the line", "", true, "", ErrAborted, []string{p + " ", "\n"}},
 		{"too long on a terminal", strings.Repeat("x", MaxLine+1), true, "", ErrLineTooLong, []string{p + " "}},

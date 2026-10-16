@@ -4,6 +4,7 @@ package prompt
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -240,4 +241,50 @@ func TestTerminalTypeahead(t *testing.T) {
 		}
 		wantLines(t, New(pr, false), "kept")
 	})
+}
+
+// typist records Ask's writes and, at the first, the prompt, types keys
+// at the terminal's master, as the user does once the prompt shows: after
+// Ask's flush.
+type typist struct {
+	t    *testing.T
+	m    *os.File
+	keys string
+	writes
+}
+
+func (ty *typist) Write(p []byte) (int, error) {
+	if len(ty.writes) == 0 {
+		write(ty.t, ty.m, ty.keys)
+	}
+	return ty.writes.Write(p)
+}
+
+// TestTerminalAsk checks on a pseudo-terminal where Ask ends the prompt's
+// line: only where the terminal echoed no Enter.
+func TestTerminalAsk(t *testing.T) {
+	tests := []struct {
+		name   string
+		keys   string
+		answer string
+		err    error
+		want   []string // the writes
+	}{
+		{"Enter", "abc\n", "abc", nil, []string{"Q: "}},
+		{"Ctrl-D after the answer", "abc\x04\x04", "abc", nil, []string{"Q: ", "\n"}},
+		{"Ctrl-D on an empty line", "\x04", "", ErrAborted, []string{"Q: ", "\n"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m, s := openPTY(t)
+			w := &typist{t: t, m: m, keys: tt.keys}
+			got, err := New(s, true).Ask(w, "Q:")
+			if got != tt.answer || !errors.Is(err, tt.err) {
+				t.Errorf("Ask() = %q, %v; want %q, %v", got, err, tt.answer, tt.err)
+			}
+			if fmt.Sprintf("%q", w.writes) != fmt.Sprintf("%q", tt.want) {
+				t.Errorf("writes = %q, want %q", w.writes, tt.want)
+			}
+		})
+	}
 }

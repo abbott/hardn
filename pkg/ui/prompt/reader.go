@@ -66,6 +66,9 @@ type Reader struct {
 	// skip is set while the rest of an over-long line is still to come
 	// and to be dropped.
 	skip bool
+	// unended is set when the line take last returned had no line
+	// ending: the end of the input ended it, as Ctrl-D after text does.
+	unended bool
 }
 
 // New returns a Reader over in. Set tty when in is the terminal
@@ -126,10 +129,16 @@ func (r *Reader) Flush() error {
 // Ask asks one question. It discards typeahead (Flush), writes prompt and
 // exactly one space to w in a single write, and reads the answer
 // (ReadLine). prompt is a rendered component.PromptLine, which ends at its
-// colon, and w is term.Env.Writer around stdout. Ask ends the prompt's
-// line itself when the input is not a terminal, or the user aborted, so
-// that no echoed Enter ended it: what the caller writes next starts on a
-// line of its own.
+// colon, and w is term.Env.Writer around stdout.
+//
+// On a terminal Reader, Ask takes w to write to the same terminal, whose
+// echo of the Enter ends the prompt's line. Where no echoed Enter ended
+// it, Ask ends it with "\n" itself: when the input is not a terminal,
+// when the answer ended with Ctrl-D rather than Enter, and when the user
+// aborted. What the caller writes next to w then starts on a line of its
+// own. When stdin is a terminal and stdout is not (hardn | tee), the echo
+// goes to the terminal and not to w, so w's next output joins the
+// prompt's line there (see the package doc).
 func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 	if err := r.Flush(); err != nil {
 		return "", err
@@ -138,7 +147,7 @@ func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 		return "", fmt.Errorf("prompt: write: %w", err)
 	}
 	line, err := r.ReadLine()
-	if !r.tty || errors.Is(err, ErrAborted) {
+	if !r.tty || errors.Is(err, ErrAborted) || err == nil && r.unended {
 		if _, werr := io.WriteString(w, "\n"); werr != nil && err == nil {
 			return "", fmt.Errorf("prompt: write: %w", werr)
 		}
@@ -198,12 +207,12 @@ func (r *Reader) take() (string, error) {
 		r.buf, r.skip = rest, !found
 		return "", ErrLineTooLong
 	case found:
-		r.buf = rest
+		r.buf, r.unended = rest, false
 		return string(line), nil
 	case len(r.buf) > 0 && errors.Is(r.err, io.EOF):
 		// The last line has no line ending. r.err stays, so the next
 		// call reports the end.
-		r.buf = nil
+		r.buf, r.unended = nil, true
 		return string(line), nil
 	}
 	return "", r.end()

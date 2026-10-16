@@ -80,6 +80,14 @@
 // Whether hardn prompts at all without a terminal is next/p3-output's
 // decision (brief Phase 3: never prompt without a TTY).
 //
+// On a terminal, Ask takes stdout to be the same terminal. When stdin is
+// a terminal and stdout is not, as in hardn | tee hardn.log, the terminal
+// echoes the answer and its Enter to itself, not to stdout, so the
+// captured output holds neither and each prompt runs into what follows
+// it. Ending the line in stdout there would put an empty line on the
+// screen tee writes to; where hardn writes its prompts when stdout is not
+// a terminal is next/p3-output's to decide.
+//
 // # Writing a prompt
 //
 // component.PromptLine renders up to its colon, with no trailing space
