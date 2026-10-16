@@ -60,16 +60,20 @@ type SubMenu struct {
 	// Heading is the menu heading's title, such as "Select an option",
 	// with no mode beside it; empty shows none.
 	Heading string
-	// Menu is the numbered menu and its Return item.
+	// Menu is the numbered menu and its Return item. Its Compact is
+	// ignored: a sub-menu has no compact form.
 	Menu component.Menu
 	// Prompt is the prompt's label, such as "Enter your choice".
 	Prompt string
 }
 
 // Render renders the sub-menu for c, down to its prompt. See SubMenu for
-// the layout.
+// the layout. The menu is laid out in one column whatever vm.Menu.Compact
+// says, as nav.Run draws it from Screen.
 func (vm SubMenu) Render(c component.Ctx) string {
-	return withMenu(c, vm.above(c), vm.Menu, vm.Prompt)
+	menu := vm.Menu
+	menu.Compact = false
+	return withMenu(c, vm.above(c), menu, vm.Prompt)
 }
 
 // Screen returns what nav.Run draws for the sub-menu, with m as its menu

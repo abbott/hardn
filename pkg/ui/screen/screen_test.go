@@ -128,9 +128,13 @@ func TestGolden(t *testing.T) {
 
 // TestScreen checks that nav.Run, given a layout's Screen, draws what the
 // layout's Render renders, in every golden cell: the drawing, then the
-// prompt and the one space the line reader writes after it.
+// prompt and the one space the line reader writes after it. A view-model
+// whose Menu.Compact is set draws as one whose is not: the main menu sets
+// it from the terminal's height, and a sub-menu has no compact form.
 func TestScreen(t *testing.T) {
 	main, user := MainMenuFixture(), UserFixture()
+	mainCompact, userCompact := main, user
+	mainCompact.Menu.Compact, userCompact.Menu.Compact = true, true
 	tests := []struct {
 		name   string
 		render func(component.Ctx) string
@@ -138,6 +142,8 @@ func TestScreen(t *testing.T) {
 	}{
 		{"main menu", main.Render, func(c component.Ctx) nav.Screen { return main.Screen(c, menuOf(main.Menu)) }},
 		{"sub-menu", user.Render, func(c component.Ctx) nav.Screen { return user.Screen(c, menuOf(user.Menu)) }},
+		{"main menu, Menu.Compact set", mainCompact.Render, func(c component.Ctx) nav.Screen { return main.Screen(c, menuOf(main.Menu)) }},
+		{"sub-menu, Menu.Compact set", userCompact.Render, func(c component.Ctx) nav.Screen { return user.Screen(c, menuOf(user.Menu)) }},
 	}
 	for _, tt := range tests {
 		for _, cell := range mainCells() {
