@@ -48,9 +48,9 @@
 //   - JoinHorizontal pads every line of a block to the block's width with
 //     plain spaces (join.go:88 in lipgloss v2.0.6), and PlaceHorizontal pads
 //     to the full width it is given (position.go:43-64), so both leave
-//     trailing spaces. Header, HostBlock and RiskSummary place their columns
-//     with spaces up to the grid column instead, which never pads after the
-//     last cell.
+//     trailing spaces. Header, HostBlock, RiskSummary, StatusRow and
+//     ModeIndicator place their columns with spaces up to the grid column
+//     instead, which never pads after the last cell.
 //   - list (the RiskSummary factors) renders through the tree renderer and
 //     defaults to the • bullet (list/list.go:50-54); the bullet can come
 //     from Glyphs, but each line still needs the value-column indent and
@@ -64,13 +64,16 @@
 //     values with spaces up to the grid column instead.
 //   - tree is not used: nothing in the header or status groups nests.
 //   - StatusList: list could draw each row's glyph as its enumerator,
-//     styled per row with EnumeratorStyleFunc (list/list.go:143), but the
-//     tree renderer pads every enumerator on the left to the widest
-//     sibling's (tree/renderer.go:100-103), where the marker column centres
-//     it (DEV-020), and each item would still need the label and value
-//     columns, the stacking and the cut. table is ruled out as for
-//     HostBlock, and its own cut is a fixed "…" (table/table.go:567), not
-//     Glyphs.Ellipsis. Each row is placed with columns instead.
-//   - Divider and ModeIndicator are one run of text each; no helper
-//     applies.
+//     styled per row with EnumeratorStyleFunc (list/list.go:143). The tree
+//     renderer pads an enumerator on the left only up to a wider sibling's
+//     (tree/renderer.go:79-81, 100-103), and the status markers of one
+//     glyph set share a width, so an Enumerator returning the marker
+//     already centred (DEV-020) puts the glyph at column 3, once
+//     EnumeratorStyle replaces the default PaddingRight(1)
+//     (tree/renderer.go:24-26). list still adds nothing: each item would
+//     need the label and value columns, the stacking and the cut. table is
+//     ruled out as for HostBlock, and its own cut is a fixed "…"
+//     (table/table.go:567), not Glyphs.Ellipsis. Each row is placed with
+//     columns instead.
+//   - Divider is one run of text; no helper applies.
 package component
