@@ -644,6 +644,12 @@ func TestLayout(t *testing.T) {
 			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Environment\n" +
 				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
 				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
+		// 60 columns stacks a one-column menu while StackBelow is 64; two
+		// columns, and the exit item beside its label, do not stack.
+		{"menu: compact, the exit item stays beside its label wherever the columns fit", compactMenu, 60, false,
+			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Environment\n" +
+				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
+				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		{"menu: compact, an odd item ends the first column", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}, {Key: "2", Label: "Logs"}, {Key: "3", Label: "Backup"}}, Compact: true}, 80, false,
 			"   1) DNS                   3) Backup\n   2) Logs"},
 		{"menu: compact, a note line keeps one column", Menu{Items: []MenuItem{

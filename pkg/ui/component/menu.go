@@ -136,11 +136,14 @@ type MenuItem struct {
 // The first column is laid out as above; the second mirrors it from the
 // value column, its keys right-aligned to end at column 29 and its labels
 // at column 31. Descriptions and asides are left out; the exit item keeps
-// its own. A menu that two columns cannot show whole is laid out in one,
-// as above: when an item has a note line, whose glyph and word would not
-// fit beside it; when a label of the first column reaches the value
-// column; or when a key of the second column is wider than the marker
-// column, or a label of it runs past the content width.
+// its own beside its label, at the value column where the second column
+// stands, wherever the two columns fit, below theme.StackBelow too, and
+// stacks only when it has no room there. A menu that two columns cannot
+// show whole is laid out in one, as above: when an item has a note line,
+// whose glyph and word would not fit beside it; when a label of the first
+// column reaches the value column; or when a key of the second column is
+// wider than the marker column, or a label of it runs past the content
+// width.
 //
 // The view-model holds no actions: pkg/ui/nav binds each item to what it
 // does (nav.Menu). Bindings gives the keys the menu accepts, from which a
@@ -179,12 +182,13 @@ func (vm Menu) Render(c Ctx) string {
 		}
 	}
 	exit, hasExit := vm.Exit.row(c, true)
-	stack := c.stacked() || exit.cramped(c)
 	out, paired := []string(nil), false
 	if vm.Compact {
 		out, paired = pairs(c, shown)
 	}
+	stack := exit.cramped(c)
 	if !paired {
+		stack = stack || c.stacked()
 		for _, r := range rows {
 			stack = stack || r.cramped(c)
 		}

@@ -693,7 +693,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
   > Enter your choice [0-10, b or q]:
 ```
 
-Known limits: below 64 columns the rows stack (DEV-021) and Figma's content takes 35 lines compact (57 in full); a pending-reboot line, each risk factor and each status row past Figma's seven add a line; a menu with a marked item keeps one column. Past 24 lines the top scrolls, as the full form's does on a short terminal.
+Known limits: below 64 columns the rows stack (DEV-021) and Figma's content takes 34 lines compact (57 in full), the two columns and the exit row beside its label staying as they are; a pending-reboot line, each risk factor and each status row past Figma's seven add a line; a menu with a marked item keeps one column. Past 24 lines the top scrolls, as the full form's does on a short terminal.
 
 **Running.** A menu layout's `Render` is what `nav.Run` draws for it: `MainMenu.Screen(c, m)` and `SubMenu.Screen(c, m)` return the `nav.Screen` to draw, with the caller's `nav.Menu` in place of the view-model's menu, `Above` holding every block down to the menu heading and `Compact` set for the compact form; call it in each round of `Run`'s draw so that the screen shows the state the last action left. `TestScreen` holds the drawing to `Render` in every golden cell. `WorkflowStep.Run(ctx, p, f)` writes the screen in one write and then runs the flow. The flow and the form it opens with write their gap before their first block or field only once a prompt has been asked (§9.9, §9.10), so the screen takes the gap on the side they leave bare: after itself before any prompt, before itself once one was asked, as when a menu's action opens the workflow. Every block then stands one blank line from the next.
 
