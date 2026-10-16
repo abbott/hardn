@@ -48,6 +48,13 @@ func (vm ModeIndicator) Render(c Ctx) string {
 	if c.stacked() {
 		col = theme.StackCol
 	}
+	return vm.at(c, col)
+}
+
+// at renders the indicator on a line of its own from column col, which
+// the word leaves only to stay whole. The menu heading's row places it
+// under a heading too long to share its line.
+func (vm ModeIndicator) at(c Ctx, col int) string {
 	w := c.width()
 	text := vm.spans(c, w-col)
 	return c.fit(append(line{gap(min(col, w-text.width()))}, text...), w)

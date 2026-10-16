@@ -1,0 +1,51 @@
+package component
+
+import (
+	"charm.land/lipgloss/v2"
+
+	"github.com/abbott/hardn/pkg/ui/keys"
+	"github.com/abbott/hardn/pkg/ui/theme"
+)
+
+// PromptLine is the prompt under a menu or a question: Glyphs.Prompt, the
+// label, the hint in brackets and a colon, as Figma draws
+// "❯ Enter your choice [0-10 or q]:". Here with no colour and ASCII
+// glyphs:
+//
+//	0 2
+//	  > Enter your choice [0-10 or q]:
+//
+// The hint is generated from Accepts (keys.Set.Hint), never written by
+// hand. The line starts at theme.Indent (C11, DEV-029) and ends at the
+// colon, with no trailing space: the line reader writes one space after
+// it, where the terminal's own cursor then stands (C8, DEV-029). On a
+// terminal too narrow for the whole line the label is cut first with the
+// ellipsis glyph, and left out once none of its letters fits, so the hint
+// stays whole as long as it can.
+type PromptLine struct {
+	// Label asks the question, such as "Enter your choice". With no hint,
+	// the colon follows it in its style.
+	Label string
+	// Accepts are the inputs the prompt accepts; their hint is shown in
+	// brackets. Empty shows no hint.
+	Accepts keys.Set
+}
+
+// Render renders the prompt for c. See PromptLine for the layout.
+func (vm PromptLine) Render(c Ctx) string {
+	t, w := c.Theme.Prompt, c.width()
+	out := line{gap(theme.Indent), {c.Theme.Glyphs.Prompt, t.Glyph}}
+	end := line{{":", t.Label}} // what follows the label: the colon, or the hint and colon
+	if h := clean(vm.Accepts.Hint()); h != "" {
+		end = line{gap(1), {"[" + h + "]:", t.Hint}}
+	}
+	label := clean(vm.Label)
+	room := w - out.width() - 1 - end.width()
+	switch {
+	case label != "" && (room >= lipgloss.Width(label) || room > lipgloss.Width(c.Theme.Glyphs.Ellipsis)):
+		out = append(append(out, gap(1), span{c.truncate(label, room), t.Label}), end...)
+	case len(end) > 1: // a hint, with no label or no room for one
+		out = append(out, end...)
+	}
+	return c.fit(out, w)
+}
