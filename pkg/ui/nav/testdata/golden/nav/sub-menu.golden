@@ -1,0 +1,44 @@
+# Golden file of TestGolden/sub-menu, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[38;2;86;91;107m1)␛[m ␛[38;2;86;91;107mRoot SSH Login␛[m       ␛[38;2;86;91;107mToggle root SSH access␛[m ␛[38;2;86;91;107m(Proxmox)␛[m$
+                           ␛[38;2;86;91;107m∅ Unavailable␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m 1$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mRoot SSH Login is unavailable.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m b$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  Select an option$
+$
+   1) Root SSH Login       Toggle root SSH access (Proxmox)$
+                           [-] Unavailable$
+   2) View SSH Settings    Show SSH configuration$
+$
+   0) Return$
+$
+  > Enter your choice [0, 2, b or q]: 1$
+  [!] Error: Root SSH Login is unavailable.$
+  > Enter your choice [0, 2, b or q]: b$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[38;2;86;91;107m1)␛[m ␛[38;2;86;91;107mRoot SSH Login␛[m$
+      ␛[38;2;86;91;107mToggle root SSH access␛[m ␛[38;2;86;91;107m(Proxmox)␛[m$
+      ␛[38;2;86;91;107m∅ Unavailable␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
+      ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m 1$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mRoot SSH Login is unavailable.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m b$
