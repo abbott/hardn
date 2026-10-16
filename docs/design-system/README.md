@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`), the navigation grammar in `pkg/ui/nav` (`next/p1c-nav`) and the forms in `pkg/ui/form`, with the `FieldHead` component (`next/p1c-form`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`), the navigation grammar in `pkg/ui/nav` (`next/p1c-nav`) the forms in `pkg/ui/form`, with the `FieldHead` component (`next/p1c-form`), and the canonical action flow in `pkg/ui/flow` (`next/p1c-flow`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -316,6 +316,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 - `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2 to §9.6).
 - `pkg/ui/nav/testdata/golden/nav/<prompt>.golden`: `TestGolden` on `Core()`, a transcript per prompt of the grammar, the answers echoed as a terminal shows them (§9.8).
 - `pkg/ui/form/testdata/golden/form/<case>.golden`: `TestGolden` on `Core()`, a transcript per kind of field, asked, refused and answered, and of Figma's form (§9.9).
+- `pkg/ui/flow/testdata/golden/flow/<path>.golden`: `TestGolden` on `Core()`, the full transcript of each path of the canonical flow (§9.10).
 
 **Running and regenerating:**
 - `make check` runs every golden in its `check-test` step, and fails on a mismatch.
@@ -432,7 +433,7 @@ Not applicable, unknown and error by component: a `KeyValue` has both as value s
 Not applicable, unknown and error by component: a plan change with no title shows "Unknown" (a plan never hides a change); a step has no unknown state, since the engine knows where each step stands, and a step that could not run is failed or skipped, with the reason in its detail; an `ErrorReport` is the error state of the Apply step, and a rolled-back change with no name shows "Unknown" (a report never hides a rollback); the countdown has none.
 
 **Open for later units.**
-- What an empty plan says, and whether the flow then asks anything, is `next/p1c-flow`'s: `PlanView` renders nothing.
+- What an empty plan says, and whether the flow then asks anything, was `next/p1c-flow`'s: `PlanView` renders nothing, and the flow says "Nothing needs changing." and asks nothing (§9.10).
 - Paging a long plan, and opening the full log in `$PAGER` (P-18), are the screen's: both components render in full.
 - The countdown's local-console form (brief Phase 2.4: confirm in the same session, with a warning, when hardn is not over SSH), the timeout flag and the command's path are `next/p2-revert`'s, which fills `Remaining`, `Port` and `Command`.
 
@@ -560,9 +561,62 @@ Lines match as `keys.Set.Match` compares them: the white space around a line ign
 
 **Tested.** Scripted readers, a typist echoing each line as a terminal would (as `nav`'s tests): Figma's create-user form answered as Figma shows it; a value refused by its validation, then fixed, at a text field with a head (the head written once), a y/N question and a choice; refusals in `nav`'s words; defaults taken by Enter and their echo; skip rules, a skipped field put back and the numbers running on; `TitleFunc` and `OptionsFunc` called again after back; `b`, `q` and the end of the input at every field of the form, with every value put back on failure, and `0` as `b`; fields that cannot be asked (`ErrField`, nothing written for them, a nil field included); a failed write at the prompt (the reader's), and at the gap and the echo (the form's own, `form: write`); when a field is asked on one line and when under its head (`TestLayout`, a description that shows nothing staying on one line), and the create-user form at every width from 20 to 130 (`TestNarrow`). Goldens on `Core()`: `form/text`, `form/text-description`, `form/yes-no` and `form/select` (its options set apart and its prompt labelled since the review fixes), each asked, refused and answered; `form/create-user`; `form/back` (back from field 3 to 2, whose new answer skips 3, so the key question is 4). No real terminal was used: the reader's own tests cover the terminal (§9.7).
 
-**Open for later units.** `next/p1c-flow` runs a form as its Collect step, then reviews the answers (Figma's "User Configuration" list), plans and confirms; the confirmation Figma numbers as a form's last field ("5. Create user 'george'?") is the flow's Confirm step there (P-10). Whether hardn prompts at all without a terminal, and whether a form then echoes each answer for a log, is `next/p3-output`'s. No screen uses a form before `next/p1d-slice`.
+**Open for later units.** `next/p1c-flow` runs a form as its Collect step, then reviews the answers (Figma's "User Configuration" list), plans and confirms; the confirmation Figma numbers as a form's last field ("5. Create user 'george'?") is the flow's Confirm step there, unnumbered (P-10, §9.10). Whether hardn prompts at all without a terminal, and whether a form then echoes each answer for a log, is `next/p3-output`'s. No screen uses a form before `next/p1d-slice`.
 
-### 9.10 Still to come (placeholders)
+### 9.10 Canonical flow (`next/p1c-flow`)
+
+`pkg/ui/flow` runs brief 1C's canonical action flow, which every action that changes the system follows: Collect, Review, Plan, Confirm, Apply, Return. Its package doc is the full statement. It renders nothing of its own: each step is written as components, through the `Prompter`'s writer (`Env.Writer` around stdout), and asked through its reader, so no Lip Gloss helper applies.
+
+| Part | What it is |
+|---|---|
+| `Flow{Form, Review, Engine, Confirm, DryRun}`, `Run(ctx, p nav.Prompter)` | One action. `Run` returns an `Outcome` once a result is on screen, with a nil error unless writing it failed, so a menu's action carries on after a failure; and `NotRun` with an error when the flow ends before a result: `nav.ErrBack` from the form's first field, `nav.ErrQuit`, `prompt.ErrAborted`, the context's error before Apply, `ErrFlow` (no `Engine` or `Confirm`), `form.ErrField`, `nav.ErrPhrase`, a failed write |
+| `Outcome` | `NotRun`, `Applied`, `Failed` (planning or a step), `Cancelled`, `Planned` (dry-run), `Unchanged` (no changes), for `next/p3-output`'s exit codes |
+| `Review{Title, Items}` | The Review step, built from the answers once collected: a `SectionHeader`, `SectionGap` blank lines and a `BulletList` of `KeyValue` rows, as Figma's "User Configuration". No rows, no review |
+| `Engine`: `Plan(ctx) (Plan, error)`, `Apply(ctx, Report) error` | The minimal interface the Phase 3 engine (`next/p3-engine`) will satisfy, through an adapter per action holding its answers: `Plan` turns its changes into `PlanChange`s in the order it applies them; `Apply` applies them, one step each, reports each running, then done, and on the first failure reports it failed, rolls back the steps done in reverse, reporting each, and returns an error, a `*Failure` for the report's command, output, log path and next step. `Report` may be called from any goroutine |
+| `Plan{View, Risk}`, `Plan.Typed` | The `PlanView` and the risk class, `RiskLow` (y/N) or `RiskLockout` (typed: lockout risk, and Run All); a plan with a lockout-risk change is typed whatever its class, so it never asks less than it shows |
+| `Confirm{Question, Phrase}` | What the Confirm step asks, from the definition, given the plan: a y/N question such as Figma's "Create user 'george'?", or a typed confirmation's label and phrase (P-10 words them) |
+| `Fixture` | An `Engine` that touches nothing: a fixed plan, applied by reporting each step, failing at `FailAt` with a `Failure`. Phase 1 runs only on it; nothing in the package reads or changes the system |
+
+The failure path, plain, after the create-user form (§9.9), with `[...]` for the plan's lines:
+
+```text
+0 2   6
+# User Configuration -------------------------------------------
+
+  [ ] Sudo                 Enabled, No password
+  [*] SSH Keys             None
+
+   -  Create user george
+      $ useradd --create-home --shell /bin/bash george
+  [...]
+
+  Create user 'george'? [y/N, 0, b or q]: y
+
+  [+] Done: Create user george
+  [!] Failed: Add george to the sudo group (exit status 6)
+  [-] Skipped: Let george use sudo without a password
+
+# [!] Operation Failed
+# Adding george to the sudo group failed: exit status 6
+
+  [<] Rolled back: Create user george
+  [...]
+```
+
+**Decisions** (DEV-048, DEV-049; P-27 puts the flow's own to the maintainer):
+- **Collect** is the form, run to its end before anything is planned, so no prompt is interleaved with a change.
+- **Plan:** dry-run stops after the plan, whose footer says "No actual changes were made to your system." (origin/main's). A plan with no changes says "Nothing needs changing." (brief Phase 3's words), an info `Message`, and asks nothing (P-27 (b)). A plan that cannot be made is an `ErrorReport` with nothing rolled back. The plan follows the review with no heading of its own (P-27 (c)).
+- **Confirm:** a y/N question is asked as a one-field form, unnumbered, its default no, so an Enter that took the default is echoed (DEV-047); Figma numbers it as the form's fifth field, but it now comes after the plan (DEV-048, P-10). A plan `Typed` reports is confirmed by typing the phrase (`nav.Prompter.Typed`, P-25 (d)); one with no phrase is refused with `nav.ErrPhrase`, never asked as y/N. n, and 0 or b, decline: Figma's "Operation Cancelled" callout, nothing applied (P-27 (a)); q quits and the end of the input aborts.
+- **Apply:** one step per change, titled by it. With `Env.Animate`, and fewer steps than the terminal has lines, the `StepProgress` block is drawn in place, moving up over it with CPL and erasing each line with EL, the spinner turning every 100 ms while a step runs; otherwise each step's line is written once it settles, done, failed or skipped (DEV-049, P-27 (d)). Steps never reached after a failure are skipped. Then Figma's "Operation Successful" callout, or an `ErrorReport` naming each change rolled back, in the order undone (DEV-040).
+- **Return:** `Run` returns; nothing is cleared, and no continue prompt is asked (P-09): `nav.Run` draws the menu again under the result, its status read again.
+- **Gaps:** each block after `SectionGap` blank lines once anything stands above it (a prompt asked or a block written), as for a form (§9.9): a caller that draws a title bar above a flow that asks nothing first ends it with the gap itself while `Asked` is false.
+- **Concurrency:** the spinner turns on a goroutine of its own; it and `Report` write under one lock, each drawing in one write, and stop before `Run` writes again.
+
+**Tested.** Scripted readers, a typist echoing each line, and fixture engines: each path (`TestPaths`: applied, cancelled by n, by the default and by 0, dry-run, failed at a middle step and at the last, failed to plan, unchanged, typed after a refused line, typed for a lockout-risk change in a low-risk plan, y/N with no lockout risk, back at a typed confirmation); `TestAbort`, nothing applied for q and the end of the input at every prompt of the create-user flow and at a typed confirmation, b at the first field, and a context done before the run, while planning and before applying; `TestRefused` (no engine, no confirm, no phrase); `TestReturn`, a flow as a menu's action; `TestWriteFails`; `TestProgress`, the animated screen emulated (CPL, EL, SGR) against the lines written without animation, the spinner turning on its own, and a terminal too short for the steps. Goldens on `Core()`: `flow/applied`, `flow/cancelled` (Figma's frame), `flow/dry-run`, `flow/failed`, `flow/typed` (Figma's root SSH login, at lockout risk) and `flow/unchanged`; these are the sequences the gallery shows (`next/p1d-gallery-screens`). No real terminal was used; the race detector ran on the package.
+
+**Open for later units.** `next/p1d-slice` draws the workflow screen around a flow (the title bar or breadcrumb, P-08) and `next/p1d-gallery-*` steps through these sequences on `Fixture`s; `next/p2-revert` adds the confirm-or-revert countdown after a lockout-risk apply; `next/p3-engine` satisfies `Engine`; `next/p3-output` maps `Outcome` to exit codes and decides whether a flow runs without a terminal (`--yes`).
+
+### 9.11 Still to come (placeholders)
 
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
