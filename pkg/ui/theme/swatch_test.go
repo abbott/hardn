@@ -45,7 +45,7 @@ func swatch(t *testing.T, env term.Env) string {
 		}
 		fmt.Fprintf(&b, "  %s%s%s\n",
 			lipgloss.NewStyle().Foreground(c).Render(tk.name),
-			strings.Repeat(" ", nameWidth-len(tk.name)),
+			strings.Repeat(" ", max(1, nameWidth-len(tk.name))),
 			lipgloss.NewStyle().Background(c).Render("      "))
 	}
 	b.WriteString("\nGlyphs\n")
