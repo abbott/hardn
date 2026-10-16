@@ -817,6 +817,37 @@ func TestTruncate(t *testing.T) {
 	}
 }
 
+// TestShowsWhole checks that ShowsWhole agrees with Render at every width
+// from 1 to 130, in both glyph sets: it reports true exactly when the
+// question asked renders whole, number, question and hint uncut.
+func TestShowsWhole(t *testing.T) {
+	navigation := keys.Navigation()
+	tests := []struct {
+		vm    AnsweredField
+		whole string // the question asked, rendered with room to spare
+	}{
+		{AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: append(slices.Clone(yesNo), navigation...)},
+			"   2. Grant sudo privilege? [y/N, 0, b or q]:"},
+		{AnsweredField{Label: "Username"}, "  Username:"},
+		{AnsweredField{Number: 1, Label: "Username", Accepts: navigation}, "   1. Username [0, b or q]:"},
+		// origin/main's label (pkg/menu user_options.go:580) beside the
+		// navigation is wider than the content: never whole.
+		{AnsweredField{Number: 1, Label: "Enter new username (leave empty to keep current)", Accepts: navigation}, ""},
+		{AnsweredField{Accepts: navigation}, ""},
+	}
+	for _, tt := range tests {
+		for w := 1; w <= 130; w++ {
+			for _, unicode := range []bool{true, false} {
+				c := NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))
+				want := tt.whole != "" && ansi.Strip(tt.vm.Render(c)) == tt.whole
+				if got := tt.vm.ShowsWhole(c); got != want {
+					t.Errorf("%q at width %d, unicode %v: ShowsWhole %v, want %v", tt.vm.Label, w, unicode, got, want)
+				}
+			}
+		}
+	}
+}
+
 // TestStatusStates checks that each state shows its own glyph and word,
 // both in the state's style, and that no two states share both, so that
 // no state rests on colour alone. A value outside the states is Unknown.
