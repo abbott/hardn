@@ -128,18 +128,19 @@ func TestGrammar(t *testing.T) {
 		name string
 		ask  func(Prompter) error
 		hint string
-		zero error // what 0 does: back on a menu, else asked again
 	}{
-		{"main menu", chooseMain, "[0-10, b or q]:", ErrBack},
-		{"sub-menu", chooseSSH, "[0, 2, b or q]:", ErrBack},
-		{"y/N question", confirm, "[y/N, b or q]:", prompt.ErrEndOfInput},
-		{"typed confirmation", typed, "[bos-san-l01, b or q]:", prompt.ErrEndOfInput},
-		{"free text", text, "[b or q]:", nil},
+		{"main menu", chooseMain, "[0-10, b or q]:"},
+		{"sub-menu", chooseSSH, "[0, 2, b or q]:"},
+		{"y/N question", confirm, "[y/N, 0, b or q]:"},
+		{"typed confirmation", typed, "[bos-san-l01, 0, b or q]:"},
+		{"free text", text, "[0, b or q]:"},
 	}
 	inputs := []struct {
 		lines []string
 		want  error
 	}{
+		{[]string{"0"}, ErrBack},
+		{[]string{" 0\t"}, ErrBack},
 		{[]string{"b"}, ErrBack},
 		{[]string{" B "}, ErrBack},
 		{[]string{"q"}, ErrQuit},
@@ -156,16 +157,13 @@ func TestGrammar(t *testing.T) {
 				t.Errorf("%s: the prompt %q does not end with the hint %q", pr.name, first, pr.hint)
 			}
 		}
-		if _, err := play([]string{"0"}, pr.ask); !errors.Is(err, pr.zero) {
-			t.Errorf("%s: 0 = %v, want %v", pr.name, err, pr.zero)
-		}
 	}
 }
 
 func TestNavigate(t *testing.T) {
 	for line, want := range map[string]error{
-		"b": ErrBack, " B ": ErrBack, "\tq": ErrQuit, "Q": ErrQuit,
-		"0": nil, "": nil, "bq": nil, "back": nil, "quit": nil, "q q": nil,
+		"0": ErrBack, " 0 ": ErrBack, "b": ErrBack, " B ": ErrBack, "\tq": ErrQuit, "Q": ErrQuit,
+		"": nil, "00": nil, "10": nil, "bq": nil, "back": nil, "quit": nil, "q q": nil,
 	} {
 		if err := Navigate(line); err != want {
 			t.Errorf("Navigate(%q) = %v, want %v", line, err, want)
@@ -175,8 +173,8 @@ func TestNavigate(t *testing.T) {
 
 func TestCheckPhrase(t *testing.T) {
 	for phrase, ok := range map[string]bool{
-		"bos-san-l01": true, "web-01.example.net": true, "BOS-SAN-L01": true, "0": true, "disable root": true,
-		"": false, "b": false, "Q": false, " web-01": false, "web-01 ": false,
+		"bos-san-l01": true, "web-01.example.net": true, "BOS-SAN-L01": true, "2230": true, "disable root": true,
+		"": false, "0": false, "b": false, "Q": false, " web-01": false, "web-01 ": false,
 		"wéb-01": false, "web\x1b[1m": false, "‘root’": false, "web\t01": false,
 	} {
 		err := CheckPhrase(phrase)
@@ -246,7 +244,7 @@ func TestResolve(t *testing.T) {
 		{"the item after it", ssh, "2", 1, nil},
 		{"Return", ssh, "0", 0, ErrBack},
 		{"an item not shown", hidden, "4", 0, refused(invalidOption)},
-		{"no exit item", hidden, "0", 0, refused(invalidOption)},
+		{"0 with no exit item", hidden, "0", 0, ErrBack},
 	}
 	for _, tt := range tests {
 		got, err := tt.menu.resolve(tt.line)
@@ -311,7 +309,8 @@ func TestConfirm(t *testing.T) {
 		{[]string{""}, false, false, nil, 0},
 		{[]string{"  "}, true, true, nil, 0},
 		{[]string{"maybe", "y"}, false, true, nil, 1},
-		{[]string{"0", "1", "n"}, false, false, nil, 2},
+		{[]string{"1", "nope", "n"}, false, false, nil, 2},
+		{[]string{"0"}, false, false, ErrBack, 0}, // never "no"
 		{[]string{"yes please", "b"}, false, false, ErrBack, 1},
 		{[]string{"q"}, true, false, ErrQuit, 0},
 		{nil, true, false, prompt.ErrEndOfInput, 0},
@@ -329,7 +328,7 @@ func TestConfirm(t *testing.T) {
 		}
 	}
 	out, _ := play([]string{"y"}, func(p Prompter) error { _, err := p.Confirm(createUser, true); return err })
-	if want := "  Create user 'george'? [Y/n, b or q]: y\n"; out != want {
+	if want := "  Create user 'george'? [Y/n, 0, b or q]: y\n"; out != want {
 		t.Errorf("transcript %q, want %q", out, want)
 	}
 }
@@ -356,10 +355,10 @@ func TestTyped(t *testing.T) {
 		}
 	}
 	out, _ := play([]string{hostname}, typed)
-	if want := "  Type the hostname [bos-san-l01, b or q]: bos-san-l01\n"; out != want {
+	if want := "  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"; out != want {
 		t.Errorf("transcript %q, want %q", out, want)
 	}
-	for _, phrase := range []string{"q", "B", ""} {
+	for _, phrase := range []string{"q", "B", "0", ""} {
 		out, err := play([]string{phrase}, func(p Prompter) error { return p.Typed(typeHost, phrase) })
 		if !errors.Is(err, ErrPhrase) || out != "" {
 			t.Errorf("Typed(phrase %q) = %v, wrote %q; want ErrPhrase, nothing", phrase, err, out)
@@ -382,7 +381,7 @@ func TestText(t *testing.T) {
 	}{
 		{[]string{" george "}, "george", nil},
 		{[]string{""}, "", nil},
-		{[]string{"0"}, "0", nil},
+		{[]string{"0"}, "", ErrBack},
 		{[]string{"bob"}, "bob", nil},
 		{[]string{"b"}, "", ErrBack},
 		{[]string{"Q"}, "", ErrQuit},
@@ -400,7 +399,7 @@ func TestText(t *testing.T) {
 		}
 	}
 	out, _ := play([]string{"george"}, text)
-	if want := "   1. Username [b or q]: george\n"; out != want {
+	if want := "   1. Username [0, b or q]: george\n"; out != want {
 		t.Errorf("transcript %q, want %q", out, want)
 	}
 }
@@ -480,8 +479,9 @@ func TestWriteFails(t *testing.T) {
 
 // TestGolden records the grammar on the core set (brief Phase 6): a main
 // menu, a sub-menu, a workflow step and a typed confirmation, each asked
-// with a line it refuses, then left with b. The answers are echoed as a
-// terminal shows them.
+// a line it refuses, then left with 0 (back, which exits at the top) or q
+// (quit), so that both are on record at the menus and the workflow step
+// alike. The answers are echoed as a terminal shows them.
 func TestGolden(t *testing.T) {
 	heading := func(p Prompter, mode bool) string {
 		h := component.MenuHeading{Title: "Select an option"}
@@ -496,20 +496,20 @@ func TestGolden(t *testing.T) {
 		want  error
 		ask   func(Prompter) error
 	}{
-		{"main-menu", []string{"11", "b"}, nil, func(p Prompter) error {
+		{"main-menu", []string{"11", "0"}, nil, func(p Prompter) error {
 			return p.Run(func() Screen { return Screen{Above: heading(p, true), Menu: mainMenu(new([]string)), Label: choice} })
 		}},
-		{"sub-menu", []string{"1", "b"}, nil, func(p Prompter) error {
+		{"sub-menu", []string{"1", "q"}, ErrQuit, func(p Prompter) error {
 			return p.Run(func() Screen { return Screen{Above: heading(p, false), Menu: sshMenu(new([]string)), Label: choice} })
 		}},
-		{"workflow-step", []string{"george", "maybe", "b"}, ErrBack, func(p Prompter) error {
+		{"workflow-step", []string{"george", "maybe", "0"}, ErrBack, func(p Prompter) error {
 			if _, err := p.Text(username); err != nil {
 				return err
 			}
 			_, err := p.Confirm(createUser, false)
 			return err
 		}},
-		{"typed-confirmation", []string{"BOS-SAN-L01", "b"}, ErrBack, typed},
+		{"typed-confirmation", []string{"BOS-SAN-L01", "q"}, ErrQuit, typed},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

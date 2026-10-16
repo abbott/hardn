@@ -33,9 +33,9 @@ type Menu struct {
 	Options []Option
 	// Exit is the Exit or Return item shown after the options, such as
 	// Figma's "0) Exit" on the main menu and "0) Return" on a sub-menu.
-	// Its key is 0, and choosing it goes back, as b does; at the top
-	// level that exits. With no label it is not shown, and only b goes
-	// back.
+	// Its key is 0, which goes back at every prompt, as b does; at the
+	// top level that exits. With no label it is not shown, and 0 and b
+	// still go back.
 	Exit component.MenuItem
 }
 
@@ -50,7 +50,7 @@ func (m Menu) View() component.Menu {
 
 // Accepts returns the inputs the menu's prompt accepts, from which its
 // hint is generated: the key of each item shown that can be chosen and
-// the exit item's (component.Menu.Bindings), then b and q
+// the exit item's (component.Menu.Bindings), then 0, b and q
 // (keys.Navigation), as "0-10, b or q". A disabled item's key is left
 // out, so the hint lists only what is accepted ("0-2, 4-10, b or q");
 // typed anyway, it is answered with the item's being unavailable.
@@ -94,9 +94,10 @@ func (m Menu) Check() error {
 }
 
 // resolve returns the index of the option that line chooses, or ErrBack,
-// ErrQuit or the refusal to write. It matches the line against the
-// bindings Accepts generates the hint from, so the menu accepts exactly
-// what its hint shows. m has passed Check.
+// ErrQuit or the refusal to write. Past the navigation inputs, among them
+// 0, the exit item's key, it matches the line against the item bindings
+// Accepts generates the hint from, so the menu accepts exactly what its
+// hint shows. m has passed Check.
 func (m Menu) resolve(line string) (int, error) {
 	if err := Navigate(line); err != nil {
 		return -1, err
@@ -104,9 +105,6 @@ func (m Menu) resolve(line string) (int, error) {
 	typed := strings.TrimSpace(line)
 	shown := func(it component.MenuItem) bool { return strings.TrimSpace(it.Label) != "" && it.Key == typed }
 	if _, ok := m.View().Bindings().Match(typed); ok {
-		if shown(m.Exit) {
-			return -1, ErrBack
-		}
 		for i, o := range m.Options {
 			if shown(o.Item) && !o.Item.Disabled {
 				return i, nil

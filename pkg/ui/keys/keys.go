@@ -44,21 +44,21 @@ type Binding struct {
 // Set is the bindings a prompt accepts.
 type Set []Binding
 
-// The navigation grammar (brief 1C) is the same at every prompt: b goes
-// back and q quits, besides the prompt's own answers. On a menu the Exit
-// or Return item, shown as "0)", goes back too: 0 is its number, so it is
-// one of the menu's own keys (pkg/ui/nav).
+// The navigation grammar (brief 1C) is the same at every prompt: 0 or b
+// goes back and q quits, besides the prompt's own inputs. On a menu 0 is
+// also the number of the Exit or Return item, shown as "0)" (pkg/ui/nav).
 
-// Back returns the binding of b, which goes back one level from any
-// prompt, and at the top level exits: its help reads "b to go back".
-func Back() Binding { return Binding{Keys: []string{"b"}, Help: "go back"} }
+// Back returns the binding of 0 and b, which go back one level from any
+// prompt, and at the top level exit: its help reads "0 or b to go back".
+func Back() Binding { return Binding{Keys: []string{"0", "b"}, Help: "go back"} }
 
 // Quit returns the binding of q, which quits hardn from any prompt: its
 // help reads "q to quit", the Exit row's words (DEV-030).
 func Quit() Binding { return Binding{Keys: []string{"q"}, Help: "quit"} }
 
-// Navigation returns the inputs every prompt accepts besides its own
-// answers, Back and Quit, which a hint shows as "b or q".
+// Navigation returns the inputs every prompt accepts besides its own,
+// Back and Quit, which a hint shows as "0, b or q", or "0-10, b or q"
+// after a menu's items.
 func Navigation() Set { return Set{Back(), Quit()} }
 
 // YesNo returns the answers of a y/N question, in this order: y or yes,
@@ -77,8 +77,9 @@ func YesNo(defaultYes bool) Set {
 // the bindings with no Help, such as a menu's items or a phrase to type.
 // The inputs every prompt shares follow, the bindings with Help such as
 // Navigation's, so that they end every hint alike: "0-10, b or q", or
-// "web-01, b or q" for a phrase. Each input appears once, where it first
-// appears in that order: a menu's exit item, 0, is one of its own inputs.
+// "web-01, 0, b or q" for a phrase. Each input appears once, where it
+// first appears in that order: a menu's exit item, 0, is one of its own
+// inputs.
 // In each part numbers come first, in order, and a run of consecutive
 // numbers collapses into a range, so 1, 2, 3 and 5 read "1-3 or 5"; the
 // other inputs follow in the order they first appear. The terms are
@@ -91,7 +92,7 @@ func YesNo(defaultYes bool) Set {
 // default's in capitals, as in "y/N"; only that default counts
 // (Binding.Default). Their other keys, such as "yes", are accepted (Match)
 // but not shown, as the y/N convention has it. The shared inputs follow as
-// above: "y/N, b or q".
+// above: "y/N, 0, b or q".
 //
 // An empty Set, or one with no keys, has no hint: "".
 func (s Set) Hint() string {

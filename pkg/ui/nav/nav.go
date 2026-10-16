@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	// ErrBack reports that the user went back: b at any prompt, or 0, a
-	// menu's Exit or Return item. The caller returns to the level above;
-	// at the top level, back exits.
+	// ErrBack reports that the user went back with 0 or b, at any prompt;
+	// on a menu 0 is also the Exit or Return item's number. The caller
+	// returns to the level above; at the top level, back exits.
 	ErrBack = errors.New("nav: back")
 	// ErrQuit reports that the user quit with q. Each level returns it to
 	// the one above, so that it ends hardn from any depth.
@@ -70,10 +70,10 @@ func (q Question) render(c component.Ctx, accepts keys.Set) string {
 	return component.AnsweredField{Number: q.Number, Label: q.Label, Accepts: accepts}.Render(c)
 }
 
-// Navigate returns ErrBack when line is b and ErrQuit when it is q, as
-// keys.Set.Match compares lines (the white space around it and case
+// Navigate returns ErrBack when line is 0 or b and ErrQuit when it is q,
+// as keys.Set.Match compares lines (the white space around it and case
 // ignored), and nil for any other line. Every prompt applies it before
-// its own answers, so b and q navigate wherever they are typed.
+// its own answers, so 0, b and q navigate wherever they are typed.
 func Navigate(line string) error {
 	if _, ok := (keys.Set{keys.Back()}).Match(line); ok {
 		return ErrBack
@@ -86,11 +86,11 @@ func Navigate(line string) error {
 
 // Text asks a free-text question, such as a user name, once. It returns
 // the line typed without the white space around it, as origin/main reads
-// text (pkg/menu input.go), possibly empty; or ErrBack or ErrQuit for b
-// or q (Navigate), so a value can never be b or q (P-25). The hint, "b or
-// q" (keys.Navigation), shows where that rule applies. Text checks
-// nothing else: a form (next/p1c-form) validates the value and asks
-// again.
+// text (pkg/menu input.go), possibly empty; or ErrBack or ErrQuit for 0,
+// b or q (Navigate), so a value can never be 0, b or q (P-25 (a)). The
+// hint, "0, b or q" (keys.Navigation), shows where that rule applies.
+// Text checks nothing else: a form (next/p1c-form) validates the value
+// and asks again.
 func (p Prompter) Text(q Question) (string, error) {
 	var value string
 	err := p.ask(q.render(p.Ctx, keys.Navigation()), invalidAnswer, func(line string) error {
@@ -105,9 +105,10 @@ func (p Prompter) Text(q Question) (string, error) {
 
 // Confirm asks a y/N question and returns the answer: true for y or yes,
 // false for n or no, in any case, and defaultYes for an empty line. The
-// hint shows the default in capitals, "[y/N, b or q]" or "[Y/n, b or q]"
-// (brief 1C). Confirm returns ErrBack or ErrQuit for b or q, and asks
-// again for any other line.
+// hint shows the default in capitals, "[y/N, 0, b or q]" or
+// "[Y/n, 0, b or q]" (brief 1C). Confirm returns ErrBack or ErrQuit for
+// 0, b or q, so 0 is never taken for "no", and asks again for any other
+// line.
 func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 	answers := keys.YesNo(defaultYes)
 	var yes bool
@@ -129,9 +130,10 @@ func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 // changes with lockout risk and for Run All: the user must type phrase,
 // such as the hostname, exactly, case included; only the white space
 // around the line is ignored. The phrase is shown as the answer the hint
-// offers, "[web-01, b or q]", the part of the line that is cut last when
-// it does not fit. Typed returns nil once the phrase is typed, ErrBack or
-// ErrQuit for b or q, and asks again for any other line, an Enter alone
+// offers, "[web-01, 0, b or q]", the part of the line that is cut last
+// when it does not fit. Typed returns nil once the phrase is typed,
+// ErrBack or ErrQuit for 0, b or q, and asks again for any other line, an
+// Enter alone
 // included, naming the phrase in the error, whose prose wraps rather than
 // being cut. A phrase that CheckPhrase refuses returns its error before
 // anything is written.
@@ -157,8 +159,8 @@ func (p Prompter) Typed(q Question, phrase string) error {
 // hostname or a user name is, so that it shows as it must be typed:
 // components drop control characters and show typographic quotes as ASCII
 // ones (C12). It must have no white space at either end, which Typed
-// trims from the line typed. And it must not be b or q in any case: those
-// navigate at every prompt, so the phrase could never be typed. The
+// trims from the line typed. And it must not be 0, b or q in any case:
+// those navigate at every prompt, so the phrase could never be typed. The
 // caller then asks for another phrase, such as a host's fully qualified
 // name.
 func CheckPhrase(phrase string) error {

@@ -10,10 +10,11 @@
 // is matched without the white space around it, and letters in any case
 // (keys.Set.Match).
 //
-//   - Numbers select a menu's items. 0 is the Exit or Return item's
-//     number, so on a menu it goes back.
-//   - b goes back one level from any prompt (ErrBack). At the top level,
-//     back exits: Run returns, and its caller ends hardn.
+//   - Numbers select a menu's items.
+//   - 0 or b goes back one level from any prompt (ErrBack). At the top
+//     level, back exits: Run returns, and its caller ends hardn. On a
+//     menu 0 is also the number of the Exit or Return item, shown as
+//     "0)".
 //   - q quits hardn from any prompt (ErrQuit): each level returns it to
 //     the one above.
 //   - A y/N question (Confirm) takes y or yes, n or no, and Enter alone
@@ -22,18 +23,20 @@
 //     hostname, exactly, case included. An Enter alone never confirms.
 //   - A free-text question (Text) takes any other line.
 //
-// So b and q navigate wherever they are typed, and are never an answer:
-// not a free-text value (a user named b or q cannot be typed in, P-25),
-// nor a phrase (CheckPhrase refuses one). 0 goes back only where it is
-// shown as "0)": elsewhere it is not an input, so a prompt never accepts
-// a key its hint leaves out, and 0 at a y/N question is never taken for
-// "no" (P-25 puts the choice to the maintainer).
+// So 0, b and q navigate wherever they are typed, as brief 1C and the
+// refactor plan have it (the same at every level), and are never an
+// answer: not a "no" at a y/N question, not a free-text value (a user
+// named b or q cannot be typed in, P-25 (a)), nor a phrase (CheckPhrase
+// refuses one).
 //
-// Each prompt's hint is generated from what it accepts (keys.Set.Hint),
-// so the navigation inputs end every hint alike: "[0-10, b or q]" on the
-// main menu, "[0-2, b or q]" on a sub-menu, "[y/N, b or q]" for a y/N
-// question, "[web-01, b or q]" for a typed confirmation and "[b or q]"
-// for free text (DEV-044, DEV-045).
+// Each prompt's hint is generated from what it accepts (keys.Set.Hint):
+// the prompt's own inputs, then the navigation inputs, so that these end
+// every hint alike: "[0-10, b or q]" on the main menu, where 0 is the
+// Exit item's number too, "[0-2, b or q]" on a sub-menu,
+// "[y/N, 0, b or q]" for a y/N question, "[web-01, 0, b or q]" for a
+// typed confirmation and "[0, b or q]" for free text (DEV-044, DEV-045;
+// P-25 puts the free-text and typed forms, and how the navigation inputs
+// are explained, to the maintainer).
 //
 // # Asking again
 //
