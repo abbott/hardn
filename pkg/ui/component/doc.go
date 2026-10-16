@@ -84,9 +84,10 @@
 //     or stacked, is several lines, and the renderer joins enumerator and
 //     item with JoinHorizontal (tree/renderer.go:126-131), which pads each
 //     line of the item to its widest (join.go:88): trailing spaces. The
-//     exit item also sits apart, after a blank line. So columns places
-//     each item, and a key is right-aligned with one gap. table is ruled
-//     out as for HostBlock, and its cut is a fixed "…".
+//     exit item also sits apart, after a blank line. So each item is
+//     placed as columns places a row, once the menu has decided whether
+//     all of its items stack, and a key is right-aligned with one gap.
+//     table is ruled out as for HostBlock, and its cut is a fixed "…".
 //   - MenuHeading: an underlined style renders each rune with its own SGR
 //     sequence, spaces included (style.go:310, 318 and 428-436), so
 //     "Select an option" costs 16 sequences. Accepted: the terminal draws

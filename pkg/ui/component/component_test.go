@@ -337,7 +337,28 @@ func TestLayout(t *testing.T) {
 			"   7) Run All              [*] Lockout risk"},
 		{"menu: a long label stacks the item rather than being cut", Menu{Items: []MenuItem{{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Daily"}}}, 80, false,
 			"   1) Unattended Upgrades Mail Reports\n      Daily"},
-		{"menu: a key wider than the marker column pushes its label", Menu{Items: []MenuItem{{Key: "12345", Label: "DNS"}}}, 80, false,
+		{"menu: a long label stacks the whole menu", Menu{Items: []MenuItem{
+			{Key: "1", Label: "Firewall", Description: "Configure UFW rules"},
+			{Key: "2", Label: "Manage application profiles", Description: "Allow 2230/tcp"},
+		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
+			"   1) Firewall\n      Configure UFW rules\n   2) Manage application profiles\n      Allow 2230/tcp" +
+				strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
+		{"menu: a long label with nothing beside it stacks nothing", Menu{Items: []MenuItem{
+			{Key: "1", Label: "DNS", Description: "Configure Nameservers"},
+		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
+			"   1) DNS                  Configure Nameservers" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
+		// The next two hold whatever theme.StackBelow is: the menu stacks
+		// because its value column is too narrow, not only below StackBelow.
+		{"menu: no room beside for a whole note stacks the menu", Menu{Items: []MenuItem{
+			{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true},
+			{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true},
+		}}, 40, false,
+			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
+		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers"}}}, 29, false,
+			"   3) DNS\n      Configure Nameservers"},
+		{"menu: a key of up to five cells grows into the indent", Menu{Items: []MenuItem{{Key: "100", Label: "Logs"}, {Key: "1234", Label: "DNS"}}}, 80, false,
+			" 100) Logs\n1234) DNS"},
+		{"menu: a wider key pushes its label", Menu{Items: []MenuItem{{Key: "12345", Label: "DNS"}}}, 80, false,
 			"12345) DNS"},
 		{"menu: the exit item has no states", Menu{Exit: MenuItem{Key: "0", Label: "Return", Disabled: true, Risk: true}}, 80, false,
 			"   0) Return"},

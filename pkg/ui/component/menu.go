@@ -101,16 +101,23 @@ type MenuItem struct {
 //	   0) Exit                 q to quit
 //
 // Keys are right-aligned in the marker column, so "1)" and "10)" end at
-// the same column (DEV-020), labels start at theme.LabelCol and
-// descriptions at theme.ValueCol (DEV-027). An item's states never rest on
+// the same column (DEV-020), and labels start at theme.LabelCol: a key of
+// up to five cells, such as "100)", grows left into the indent to keep its
+// label there, and a wider one pushes its label right. Descriptions start
+// at theme.ValueCol (DEV-027). An item's states never rest on
 // colour alone: under its description a note line gives a glyph and a word,
 // Glyphs.NotApplicable and "Unavailable" in Menu.Disabled for a disabled
 // item, or Glyphs.Risk and "Lockout risk" in Menu.Risk for a risky one
-// (DEV-028). Below theme.StackBelow, or when a label reaches the value
-// column, an item stacks: the description and note go under the label at
-// theme.StackCol (DEV-021). A label is never cut beside the description,
-// since it names the choice; text wider than the content is cut with the
-// ellipsis glyph.
+// (DEV-028).
+//
+// The whole menu stacks, every item's description and note under its
+// label at theme.StackCol (DEV-021), so that one description column holds
+// for the menu: below theme.StackBelow; when the label of an item with a
+// description or note reaches the value column (DEV-027); and when the
+// value column has no room for a whole note or for one letter of a
+// description. A label is never cut beside the description, since it
+// names the choice; text wider than the content is cut with the ellipsis
+// glyph.
 //
 // The view-model holds no actions: next/p1c-nav binds each key to what it
 // does. Bindings gives the keys the menu accepts, from which a PromptLine
@@ -129,17 +136,26 @@ type Menu struct {
 
 // Render renders the menu for c. See Menu for the layout.
 func (vm Menu) Render(c Ctx) string {
-	var out []string
+	var rows []menuRow
 	for _, it := range vm.Items {
-		if r := it.render(c, false); r != "" {
-			out = append(out, r)
+		if r, ok := it.row(c, false); ok {
+			rows = append(rows, r)
 		}
 	}
-	if exit := vm.Exit.render(c, true); exit != "" {
+	exit, hasExit := vm.Exit.row(c, true)
+	stack := c.stacked() || exit.cramped(c)
+	for _, r := range rows {
+		stack = stack || r.cramped(c)
+	}
+	var out []string
+	for _, r := range rows {
+		out = append(out, c.layout(stack, r.head, r.value, r.note))
+	}
+	if hasExit {
 		if len(out) > 0 {
 			out = append(out, make([]string, theme.SectionGap)...)
 		}
-		out = append(out, exit)
+		out = append(out, c.layout(stack, exit.head, exit.value, exit.note))
 	}
 	return strings.Join(out, "\n")
 }
@@ -162,13 +178,30 @@ func (vm Menu) Bindings() keys.Set {
 	return out
 }
 
-// render renders one item, or the exit item when exit is set. An item with
-// no label renders as the empty string.
-func (it MenuItem) render(c Ctx, exit bool) string {
+// menuRow is a menu item in its parts: the key and label, the description
+// with its aside, and the note line.
+type menuRow struct{ head, value, note line }
+
+// cramped reports whether r cannot sit beside its label: it has a
+// description or note, and its label reaches the value column, or the
+// value column has no room for the whole note or for one letter of the
+// description.
+func (r menuRow) cramped(c Ctx) bool {
+	if r.value.width() == 0 && r.note.width() == 0 {
+		return false
+	}
+	room := c.width() - theme.ValueCol
+	return r.head.width() >= theme.ValueCol || r.note.width() > room ||
+		(r.value.width() > 0 && room <= lipgloss.Width(c.Theme.Glyphs.Ellipsis))
+}
+
+// row returns the parts of one item, or of the exit item when exit is set.
+// An item with no label is not shown: ok is false.
+func (it MenuItem) row(c Ctx, exit bool) (r menuRow, ok bool) {
 	m, g := c.Theme.Menu, c.Theme.Glyphs
 	label := clean(it.Label)
 	if label == "" {
-		return ""
+		return menuRow{}, false
 	}
 	keyStyle, labelStyle, descStyle, asideStyle := m.Key, m.Label, m.Description, m.Aside
 	var note line
@@ -197,5 +230,5 @@ func (it MenuItem) render(c Ctx, exit bool) string {
 		}
 		value = append(value, span{"(" + a + ")", asideStyle})
 	}
-	return c.columns(head, value, note)
+	return menuRow{head, value, note}, true
 }
