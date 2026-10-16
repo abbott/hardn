@@ -29,7 +29,10 @@
 //     sequences are removed, tabs and line breaks become spaces, other
 //     control characters are dropped and surrounding spaces trimmed. Widths
 //     are measured with lipgloss.Width, never len. Text that does not fit is
-//     cut and ends with theme.Glyphs.Ellipsis; nothing wraps.
+//     cut and ends with theme.Glyphs.Ellipsis. Only prose wraps, at spaces,
+//     under its own first line: a Message's text, a Callout's body and a
+//     bullet item, which have nothing beside them. Quotes in view-model
+//     text are ASCII (C12); components add none.
 //   - Degrading. Colours, glyphs and columns come only from the theme. When
 //     Env.HasColor is false there is no background to paint, so a bar is a
 //     run of Glyphs.Bar (DEV-015, DEV-018) and a badge is bracketed by
@@ -99,4 +102,24 @@
 //     not help: the spaces would lose their underline and every rune still
 //     be styled alone (style.go:318).
 //   - PromptLine is one line of spans; no helper applies.
+//   - Badge, SubjectLine, Breadcrumb and AnsweredField are lines of spans
+//     placed with spaces, as JoinHorizontal would pad them (join.go:88);
+//     AnsweredField shares PromptLine's question and hint. SectionHeader
+//     is laid out as a bar, its fill a rule.
+//   - KeyValue and BulletList: list could draw the bullet as its
+//     enumerator from Glyphs, in place of its default • (list/list.go:
+//     50-54), and switch it for a state's marker per row with
+//     EnumeratorStyleFunc and an Enumerator (list/list.go:143). But a
+//     stacked row, or a bullet item that wraps, is several lines, which the
+//     tree renderer joins to the enumerator with JoinHorizontal
+//     (tree/renderer.go:126-131), padding each to the item's widest line
+//     (join.go:88): trailing spaces. The list shares Menu's stacking rule,
+//     so its rows are placed as the menu's items are. table is ruled out as
+//     for HostBlock.
+//   - Message and Callout wrap their prose with lipgloss.Wrap (wrap.go:
+//     12-19), over x/ansi's Wrap. A style's Width wraps the same way
+//     (style.go:412-414) but then pads every line to the width
+//     (style.go:489-497, align.go:43-48): trailing spaces again. The
+//     callout's bar is painted cell by cell beside each line, so no join
+//     is needed.
 package component
