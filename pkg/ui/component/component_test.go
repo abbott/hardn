@@ -61,6 +61,23 @@ var states = []struct {
 	{"risksummary/factors", RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security", Factors: riskFactor}},
 }
 
+// maxWidth is the widest a line of vm may be at terminal width w, worked
+// out from the §3.15 constants rather than from Ctx: the content width
+// under theme.CapContent, and for a bar the terminal's width when
+// theme.BarsFillContent is off.
+func maxWidth(vm renderer, w int) int {
+	switch vm.(type) {
+	case ContextBar, TitleBar:
+		if !theme.BarsFillContent {
+			return w
+		}
+	}
+	if theme.CapContent {
+		return min(w, theme.ContentWidth)
+	}
+	return w
+}
+
 // TestGolden pins every state on the full component matrix.
 func TestGolden(t *testing.T) {
 	for _, s := range states {
@@ -74,9 +91,8 @@ func TestGolden(t *testing.T) {
 
 // TestOutputRules renders every state at every width from 1 to 130, with
 // colour, without colour and in plain mode, and checks the package's
-// output rules: no line wider than the content width, no line holding a
-// tab, no trailing newline, and no trailing space outside a painted
-// background.
+// output rules: no line wider than maxWidth, no line holding a tab, no
+// trailing newline, and no trailing space outside a painted background.
 func TestOutputRules(t *testing.T) {
 	for _, s := range states {
 		for w := 1; w <= 130; w++ {
@@ -90,8 +106,9 @@ func TestOutputRules(t *testing.T) {
 				if out == "" || strings.HasSuffix(out, "\n") {
 					t.Errorf("%s: output %q is empty or ends in a newline", where, out)
 				}
+				limit := maxWidth(s.vm, w)
 				for _, l := range strings.Split(out, "\n") {
-					if lw := lipgloss.Width(l); lw > min(w, theme.ContentWidth) || strings.Contains(l, "\t") {
+					if lw := lipgloss.Width(l); lw > limit || strings.Contains(l, "\t") {
 						t.Errorf("%s: line %q is %d cells or holds a tab", where, ansi.Strip(l), lw)
 					}
 					if strings.HasSuffix(l, " ") || !env.HasColor() && strings.HasSuffix(ansi.Strip(l), " ") {
@@ -104,9 +121,20 @@ func TestOutputRules(t *testing.T) {
 }
 
 // TestLayout checks the grid on plain text: columns, stacking, the marker,
-// the bar, cuts and the Unknown word.
+// the bar, cuts and the Unknown word. The cases that test a §3.15 rule
+// take their widths and fills from its constant, and the others use widths
+// at which no such rule changes the result, so that refusing a rule
+// (CapContent or BarsFillContent false, StackBelow 0) changes only the
+// constants and the goldens.
 func TestLayout(t *testing.T) {
 	host := HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "3 hours, 5 minutes"}
+	// below is the widest terminal that stacks, under 1 when nothing
+	// stacks; from is the narrowest that does not, or ContentWidth when
+	// nothing stacks.
+	below, from := theme.StackBelow-1, theme.StackBelow
+	if from < 1 {
+		from = theme.ContentWidth
+	}
 	tests := []struct {
 		name    string
 		vm      renderer
@@ -116,13 +144,13 @@ func TestLayout(t *testing.T) {
 	}{
 		{"header: URL at the value column", Header{Version: "v0.4.0", URL: repo}, 80, false,
 			"hardn  v0.4.0              " + repo},
-		{"header: stacks below StackBelow", Header{Version: "v0.4.0", URL: repo}, 69, false,
+		{"header: stacks below StackBelow", Header{Version: "v0.4.0", URL: repo}, below, false,
 			"hardn  v0.4.0\n" + repo},
 		{"header: a URL too long for its column moves down", Header{URL: repo + "/tree/main/docs/design-system"}, 80, false,
 			"hardn\n" + repo + "/tree/main/docs/design-system"},
-		{"host: side by side from StackBelow", host, 70, false,
+		{"host: side by side from StackBelow", host, from, false,
 			"  [web-01]                 192.0.2.10\n                           3 hours, 5 minutes"},
-		{"host: stacked below StackBelow", host, 69, false,
+		{"host: stacked below StackBelow", host, below, false,
 			"  [web-01]\n      192.0.2.10\n      3 hours, 5 minutes"},
 		{"host: a badge reaching the value column stacks", HostBlock{Hostname: "web-01.staging.example.net", Address: "192.0.2.10", Uptime: "5 minutes"}, 80, false,
 			"  [web-01.staging.example.net]\n      192.0.2.10\n      5 minutes"},
@@ -132,16 +160,19 @@ func TestLayout(t *testing.T) {
 			"   ⛬  Risk Level           Moderate ≈ medium security"},
 		{"risk: an ASCII icon fills it", RiskSummary{Band: RiskBand(9)}, 80, false,
 			"  [*] Risk Level           Unknown"},
-		{"bar: fills the content width", ContextBar{Name: "Debian"}, 120, false,
-			"# Debian " + strings.Repeat("#", 55)},
-		{"bar: long text is cut", TitleBar{Title: strings.Repeat("x", 70)}, 80, false,
-			"# " + strings.Repeat("x", 57) + "... #"},
+		{"bar: fills its width", ContextBar{Name: "Debian"}, 120, false,
+			"# Debian " + strings.Repeat("#", maxWidth(ContextBar{}, 120)-9)},
+		{"bar: long text is cut", TitleBar{Title: strings.Repeat("x", 70)}, 60, false,
+			"# " + strings.Repeat("x", 53) + "... #"},
 		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("█", 60)},
-		{"bar: view-model text is cleaned", ContextBar{Name: " Deb\x1b[31mian\x00\t", Version: "1\n2"}, 70, false,
-			"# Debian 1 2 " + strings.Repeat("#", 51)},
+		{"bar: view-model text is cleaned", ContextBar{Name: " Deb\x1b[31mian\x00\t", Version: "1\n2"}, 60, false,
+			"# Debian 1 2 " + strings.Repeat("#", 47)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.width < 1 {
+				t.Skip("theme.StackBelow is 0: nothing stacks")
+			}
 			got := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(tt.width, colorprofile.ASCII, tt.unicode, true))))
 			if got != tt.want {
 				t.Errorf("got\n%s\nwant\n%s", got, tt.want)

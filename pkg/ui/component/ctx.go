@@ -46,6 +46,15 @@ func (c Ctx) width() int {
 	return c.termWidth()
 }
 
+// barWidth is the width a bar fills: the content width under
+// theme.BarsFillContent, else the terminal's.
+func (c Ctx) barWidth() int {
+	if theme.BarsFillContent {
+		return c.width()
+	}
+	return c.termWidth()
+}
+
 // stacked reports whether two-column layouts stack (theme.StackBelow).
 func (c Ctx) stacked() bool {
 	return c.termWidth() < theme.StackBelow
@@ -165,13 +174,13 @@ func (c Ctx) badge(s string, limit int) span {
 	return span{left + s + right, c.Theme.Badge}
 }
 
-// bar renders a context or title bar across the content width: a one-cell
+// bar renders a context or title bar across c.barWidth(): a one-cell
 // stub, the text on the terminal's own background with a cell either side,
 // and the fill (DEV-018). With no colour to paint them, the stub and the
 // fill are runs of Glyphs.Bar (DEV-015). Text too wide for the bar is cut;
 // a bar with no text, or too narrow for any, is all fill.
 func (c Ctx) bar(fill lipgloss.Style, text line) string {
-	w := c.width()
+	w := c.barWidth()
 	paint := func(n int) string {
 		if c.Env.HasColor() {
 			return span{strings.Repeat(" ", n), fill}.String()

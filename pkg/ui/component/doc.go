@@ -14,9 +14,10 @@
 //     handles. Its value method Render(c Ctx) string is a pure function of
 //     the struct and c: no I/O, no clock, no environment reads.
 //   - Output. No line wider than the content width, min(Env.Width,
-//     theme.ContentWidth) under theme.CapContent; no trailing spaces outside
-//     a painted background; no trailing newline. The caller joins blocks
-//     with theme.SectionGap blank lines.
+//     theme.ContentWidth) under theme.CapContent; a bar fills it, or the
+//     terminal's width when theme.BarsFillContent is off. No trailing
+//     spaces outside a painted background; no trailing newline. The caller
+//     joins blocks with theme.SectionGap blank lines.
 //   - Grid. Rows start at theme.Indent, the header and bars at column 0. A
 //     state glyph is centred in the marker column (DEV-020), a label starts
 //     at theme.LabelCol and a value at theme.ValueCol. Below

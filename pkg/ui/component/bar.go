@@ -5,11 +5,11 @@ package component
 //
 //	█ Debian 12 (Bookworm) █████████████████████████████████████████
 //
-// It spans the content width (theme.BarsFillContent): a one-cell stub,
-// the text on the terminal's background with a cell either side, then the
-// fill, painted in bar.bg, or drawn with Glyphs.Bar when there is no colour
-// (C13, DEV-015, DEV-018). Text too long for the bar is cut with the
-// ellipsis glyph.
+// It spans the content width, or the terminal's when
+// theme.BarsFillContent is off: a one-cell stub, the text on the
+// terminal's background with a cell either side, then the fill, painted in
+// bar.bg, or drawn with Glyphs.Bar when there is no colour (C13, DEV-015,
+// DEV-018). Text too long for the bar is cut with the ellipsis glyph.
 type ContextBar struct {
 	// Name is the distribution, in bold, such as "Debian". Empty shows
 	// "Unknown".
