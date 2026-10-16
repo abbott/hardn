@@ -109,28 +109,33 @@ func (r *Reader) ReadLine() (string, error) {
 // Flush discards typeahead on a terminal Reader: the input the terminal
 // holds that nothing has read yet, and the Reader's own buffered bytes. An
 // end of input or error already reported by the input is kept. On a
-// Reader that is not a terminal it does nothing.
+// Reader that is not a terminal it does nothing. When the terminal's
+// input cannot be flushed, as for a pipe that New was wrongly told is a
+// terminal, Flush returns the error and keeps the buffer.
 func (r *Reader) Flush() error {
 	if !r.tty {
 		return nil
 	}
-	r.buf, r.skip = nil, false
-	c, ok := r.in.(syscall.Conn)
-	if !ok {
-		return nil
+	if c, ok := r.in.(syscall.Conn); ok {
+		if err := flushConn(c); err != nil {
+			return fmt.Errorf("prompt: flush: %w", err)
+		}
 	}
+	r.buf, r.skip = nil, false
+	return nil
+}
+
+// flushConn discards the input queue of c's descriptor (flushInput).
+func flushConn(c syscall.Conn) error {
 	rc, err := c.SyscallConn()
 	if err != nil {
-		return fmt.Errorf("prompt: flush: %w", err)
+		return err
 	}
 	var ferr error
 	if err := rc.Control(func(fd uintptr) { ferr = flushInput(int(fd)) }); err != nil {
-		return fmt.Errorf("prompt: flush: %w", err)
+		return err
 	}
-	if ferr != nil {
-		return fmt.Errorf("prompt: flush: %w", ferr)
-	}
-	return nil
+	return ferr
 }
 
 // Ask asks one question. It discards typeahead (Flush), writes prompt and

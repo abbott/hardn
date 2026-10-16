@@ -7,8 +7,10 @@ import "golang.org/x/sys/unix"
 // tcflush(fd, TCIFLUSH) passes it (x/sys unix zerrors_linux_*.go: TCFLSH
 // per architecture, TCIFLUSH 0).
 //
-// Written, not run on a terminal: tests run on macOS and have no terminal;
-// they check only that the ioctl is made (it fails on a pipe).
+// Written, not run on a TTY: the tests have run on macOS only, where a
+// pseudo-terminal exercises flush_darwin.go; this file is cross-compiled
+// and vetted. On Linux, TestTerminalTypeahead runs it on a pseudo-terminal
+// (pty_linux_test.go), and its pipe case expects ENOTTY.
 func flushInput(fd int) error {
 	return unix.IoctlSetInt(fd, unix.TCFLSH, unix.TCIFLUSH)
 }

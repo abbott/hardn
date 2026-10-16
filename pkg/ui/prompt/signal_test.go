@@ -234,12 +234,32 @@ func TestTerminalTypeahead(t *testing.T) {
 		})
 	}
 	t.Run("the flush is a terminal's", func(t *testing.T) {
+		// One read takes both lines; the failed flush keeps the second.
 		pr, pw := pipe(t)
-		write(t, pw, "kept\n")
-		if err := New(pr, true).Flush(); !errors.Is(err, syscall.ENOTTY) {
+		write(t, pw, "first\nkept\n")
+		_ = pw.Close()
+		r := New(pr, true)
+		wantLines(t, r, "first")
+		if err := r.Flush(); !errors.Is(err, syscall.ENOTTY) {
 			t.Errorf("Flush() on a pipe called a terminal = %v, want ENOTTY", err)
 		}
-		wantLines(t, New(pr, false), "kept")
+		wantLines(t, r, "kept")
+	})
+	t.Run("a pipe is never flushed", func(t *testing.T) {
+		// Scripted answers queued on a pipe, as with hardn < answers:
+		// Ask takes each in turn, then the end of the input aborts.
+		pr, pw := pipe(t)
+		write(t, pw, "1\n2\n3\n")
+		_ = pw.Close()
+		r := New(pr, false)
+		for _, want := range []string{"1", "2", "3"} {
+			if line, err := r.Ask(io.Discard, ">"); line != want || err != nil {
+				t.Fatalf("Ask() = %q, %v; want %q", line, err, want)
+			}
+		}
+		if _, err := r.Ask(io.Discard, ">"); !errors.Is(err, ErrEndOfInput) {
+			t.Errorf("at the end of the pipe, Ask() = %v", err)
+		}
 	})
 }
 
