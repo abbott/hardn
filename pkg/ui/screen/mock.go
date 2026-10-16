@@ -1,0 +1,249 @@
+package screen
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"strings"
+	"sync"
+
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/flow"
+	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/prompt"
+)
+
+// Mock is one screen mock of the dev-only gallery (brief 1D): a screen
+// drawn by its real layout from fixture data. A menu screen is one
+// drawing. A workflow is shown as sequences, each a run of the canonical
+// flow on a fixture plan, and each sequence as its steps.
+type Mock struct {
+	// Name is "<layout>/<screen>", the screen named after its Figma PNG,
+	// in lower case with "_" as "-": "sub-menu/01-user" for 01-USER.png.
+	Name string
+	// Source says where the screen's design comes from.
+	Source Source
+	// Screen is a menu screen's layout, a MainMenu or a SubMenu; nil for a
+	// workflow.
+	Screen interface{ Render(component.Ctx) string }
+	// Sequences are a workflow's paths, such as the normal path, the
+	// dry-run path, which stops at the plan, and the failure path, which
+	// shows what was rolled back.
+	Sequences []Sequence
+}
+
+// Source says where a mock's design comes from (refactor plan, the
+// next/p1d-gallery-screens row).
+type Source struct {
+	// Label is "Figma <file>" for a screen after a Figma frame; for one
+	// with no frame, "inferred from origin/main", "inferred from v0.3.2",
+	// or "inferred from origin/main (unreleased)" for a screen v0.3.2
+	// never had (refactor plan §3.25, pending).
+	Label string
+	// Delta says how origin/main's screen differs from v0.3.2's.
+	Delta string
+	// Pending says where the mock departs from its source until a
+	// proposal is decided, beyond the layouts' own departures (DEV-053,
+	// DEV-054); empty for nowhere.
+	Pending string
+}
+
+// Sequence is one path through a workflow: its screen and flow, and the
+// lines the user types.
+type Sequence struct {
+	// Name is the path, such as "normal", "dry-run" or "failure".
+	Name string
+	// Build returns the screen and a fresh flow, whose form binds its
+	// answers to variables of its own.
+	Build func() (WorkflowStep, flow.Flow)
+	// Answers are the lines typed, in order.
+	Answers []Answer
+	// Ends is how the flow ends, which names the last step.
+	Ends flow.Outcome
+}
+
+// Answer is a line the user types, and the name of the step it ends,
+// such as "confirm".
+type Answer struct{ Step, Line string }
+
+// Mocks returns the gallery's screen mocks, by layout, then by name: the
+// three layouts' fixtures, after the Figma frames each is named for. The
+// workflow's sequences run on fixture plans (flow.Fixture).
+func Mocks() []Mock {
+	figma := func(png, delta, pending string) Source {
+		return Source{Label: "Figma " + png + ".png", Delta: delta, Pending: pending}
+	}
+	confirm := func(line string) []Answer { return []Answer{{Step: "confirm", Line: line}} }
+	sudo := func(e flow.Engine, dryRun bool) func() (WorkflowStep, flow.Flow) {
+		return func() (WorkflowStep, flow.Flow) { return manageSudo(e, dryRun) }
+	}
+	const unreleased = "v0.3.2 has no such screen; origin/main adds it (pkg/menu/user_options.go)."
+	return []Mock{
+		{Name: "main-menu/00-tui-main", Screen: MainMenuFixture(), Source: figma("00-TUI-MAIN",
+			"v0.3.2 (pkg/menu/menu.go:72-265) has no header, host badge or divider: the OS name sits in a ~~~ rule "+
+				"over the risk, the status rows and a dry-run line, then twelve items, the package screens and Help "+
+				"among them, and \"Enter your choice [0-12 or q]\". origin/main has this layout and ten items: the "+
+				"package screens and Help gone, User Management, SSH Login, Environment and System Details new.",
+			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a).")},
+		{Name: "sub-menu/01-user", Screen: UserFixture(), Source: figma("01-USER",
+			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
+				"with no question or confirmation (pkg/menu/menu.go:317-349). origin/main adds this menu.",
+			"Figma's words where origin/main's differ, pending P-29 (b).")},
+		{Name: "workflow-step/user-manage-sudo-confirmation", Source: figma("USER-MANAGE_SUDO-CONFIRMATION", unreleased+
+			" It asks \"Require password for sudo? (y/n)\" only when moving to a password, and changes the other "+
+			"way with no confirmation.",
+			"A y/N question, as Figma asks; P-10 proposes a typed confirmation for sudo-method changes."),
+			Sequences: []Sequence{
+				{Name: "normal", Build: sudo(flow.Fixture{Planned: sudoPlan()}, false), Answers: confirm("y"), Ends: flow.Applied},
+				{Name: "dry-run", Build: sudo(flow.Fixture{Planned: sudoPlan()}, true), Ends: flow.Planned},
+				{Name: "failure", Build: sudo(sudoFails(), false), Answers: confirm("y"), Ends: flow.Failed},
+			}},
+	}
+}
+
+// endings name a sequence's last step by how its flow ends.
+var endings = map[flow.Outcome]string{
+	flow.NotRun:    "not-run",
+	flow.Applied:   "applied",
+	flow.Failed:    "failed",
+	flow.Cancelled: "cancelled",
+	flow.Planned:   "planned",
+	flow.Unchanged: "unchanged",
+}
+
+// Steps returns the names of the sequence's steps, in order: "1-confirm",
+// a step for each answer, named after it, then the last step, named after
+// how the flow ends, such as "2-applied".
+func (s Sequence) Steps() []string {
+	out := make([]string, 0, len(s.Answers)+1)
+	for i, a := range s.Answers {
+		out = append(out, fmt.Sprintf("%d-%s", i+1, a.Step))
+	}
+	return append(out, fmt.Sprintf("%d-%s", len(s.Answers)+1, endings[s.Ends]))
+}
+
+// Names returns the names of the mock's drawings, in the order Render
+// returns them: the mock's own for a menu screen; for a workflow,
+// "<name>/<sequence>/<step>" for each step of each sequence.
+func (m Mock) Names() []string {
+	if m.Screen != nil {
+		return []string{m.Name}
+	}
+	var out []string
+	for _, s := range m.Sequences {
+		for _, step := range s.Steps() {
+			out = append(out, m.Name+"/"+s.Name+"/"+step)
+		}
+	}
+	return out
+}
+
+// Render returns the mock's drawings in c, in the order Names names them:
+// the menu screen's Render, or each sequence's steps (Sequence.Play).
+func (m Mock) Render(c component.Ctx) ([]string, error) {
+	if m.Screen != nil {
+		return []string{m.Screen.Render(c)}, nil
+	}
+	var out []string
+	for _, s := range m.Sequences {
+		steps, err := s.Play(c)
+		if err != nil {
+			return nil, fmt.Errorf("screen: %s: %w", m.Name, err)
+		}
+		out = append(out, steps...)
+	}
+	return out, nil
+}
+
+// Play runs the sequence in c: its screen and flow (WorkflowStep.Run) on
+// input that types each answer as a terminal would, echoing it after its
+// prompt. It returns what each step writes, through c.Env.Writer, each
+// without its last line break: a step for each answer, up to its prompt
+// and the answer's line, then the last step, what the flow writes after
+// the last answer. Played in order, the steps are the whole transcript.
+// It fails when the flow returns an error, ends otherwise than s.Ends, or
+// leaves an answer unread.
+func (s Sequence) Play(c component.Ctx) ([]string, error) {
+	step, f := s.Build()
+	out := new(transcript)
+	in := &script{out: out}
+	for _, a := range s.Answers {
+		in.lines = append(in.lines, a.Line)
+	}
+	p := nav.Prompter{Ctx: c, In: prompt.New(in, false), Out: c.Env.Writer(out)}
+	o, err := step.Run(context.Background(), p, f)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("sequence %s: %w", s.Name, err)
+	case o != s.Ends:
+		return nil, fmt.Errorf("sequence %s ended %s, want %s", s.Name, endings[o], endings[s.Ends])
+	case len(in.lines) > 0:
+		return nil, fmt.Errorf("sequence %s left %d answers unread", s.Name, len(in.lines))
+	}
+	text, start := out.String(), 0
+	var steps []string
+	for _, at := range in.starts {
+		// The answer's line ends at the line break the line reader
+		// writes after it (prompt.Reader.Ask): the echo holds none.
+		end := strings.IndexByte(text[at:], '\n')
+		if end < 0 {
+			return nil, fmt.Errorf("sequence %s: an answer's line has no end", s.Name)
+		}
+		steps = append(steps, text[start:at+end])
+		start = at + end + 1
+	}
+	return append(steps, strings.TrimSuffix(text[start:], "\n")), nil
+}
+
+// script types a sequence's answers: each Read that needs a new line
+// echoes it to out, as a terminal shows it, notes where it starts in the
+// transcript, and returns it with its line break.
+type script struct {
+	lines   []string
+	pending []byte
+	out     *transcript
+	starts  []int
+}
+
+func (s *script) Read(p []byte) (int, error) {
+	if len(s.pending) == 0 {
+		if len(s.lines) == 0 {
+			return 0, io.EOF
+		}
+		line := s.lines[0]
+		s.lines = s.lines[1:]
+		s.starts = append(s.starts, s.out.echo(line))
+		s.pending = []byte(line + "\n")
+	}
+	n := copy(p, s.pending)
+	s.pending = s.pending[n:]
+	return n, nil
+}
+
+// transcript is what a sequence writes, safe for the flow's reports from
+// any goroutine.
+type transcript struct {
+	mu sync.Mutex
+	b  strings.Builder
+}
+
+func (t *transcript) Write(p []byte) (int, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.b.Write(p)
+}
+
+// echo writes line and returns where it starts.
+func (t *transcript) echo(line string) int {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	at := t.b.Len()
+	t.b.WriteString(line)
+	return at
+}
+
+func (t *transcript) String() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.b.String()
+}

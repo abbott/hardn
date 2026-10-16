@@ -1,6 +1,8 @@
 package screen
 
 import (
+	"errors"
+
 	"github.com/abbott/hardn/pkg/diff"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
@@ -110,28 +112,55 @@ func UserFixture() SubMenu {
 // and Phase 3's engine decides the file.
 const sudoersFile = "/etc/sudoers.d/hardn-george"
 
-// ManageSudoFixture returns Figma's USER-MANAGE_SUDO-CONFIRMATION as a
-// workflow step and the flow it runs: requiring a password for george's
-// sudo. The screen names george under Figma's "Manage User" title; the
-// flow asks nothing before its review, which warns as Figma does ("A user
-// password is required for sudo usage.") and sums up the change as
-// "Sudo Method: Password required"; it plans one change to george's
-// sudoers drop-in on a flow.Fixture, which touches nothing; and it asks
-// Figma's question, "Require password for sudo?", as a y/N question, as
-// Figma does (P-10 proposes a typed confirmation for sudo-method changes).
-func ManageSudoFixture() (WorkflowStep, flow.Flow) {
-	step := WorkflowStep{
-		Header:     fixtureHeader(),
-		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "User Management", "Manage User"}},
-		Subject:    component.SubjectLine{Label: "Managing sudo method for", Subject: "george"},
-	}
-	plan := flow.Plan{View: component.PlanView{Changes: []component.PlanChange{{
+// sudoPlan is what requiring george's password for sudo plans, two steps:
+// the drop-in's rule, the file checked alone with visudo -cf, then the
+// whole sudo configuration checked with visudo -c, so that the failure
+// path has a step to roll back. Illustrative, as sudoersFile is.
+func sudoPlan() flow.Plan {
+	return flow.Plan{View: component.PlanView{Changes: []component.PlanChange{{
 		Title:  "Require george's password for sudo",
 		Target: sudoersFile,
 		Diff: diff.Unified(sudoersFile, sudoersFile,
 			"george ALL=(ALL:ALL) NOPASSWD: ALL\n", "george ALL=(ALL:ALL) ALL\n"),
 		Commands: []string{"visudo -cf " + sudoersFile},
+	}, {
+		Title:    "Check the sudo configuration",
+		Commands: []string{"visudo -c"},
 	}}}}
+}
+
+// sudoFails fails sudoPlan's check, so that the drop-in's change is
+// rolled back.
+func sudoFails() flow.Fixture {
+	return flow.Fixture{Planned: sudoPlan(), FailAt: 2, Detail: "exit status 1", Failure: flow.Failure{
+		Err:     errors.New("Checking the sudo configuration failed: exit status 1"),
+		Command: "visudo -c",
+		LogPath: "/var/log/hardn.log",
+		Next:    "Run sudo visudo -c to see which file it rejects.",
+	}}
+}
+
+// ManageSudoFixture returns Figma's USER-MANAGE_SUDO-CONFIRMATION as a
+// workflow step and the flow it runs: requiring a password for george's
+// sudo. The screen names george under Figma's "Manage User" title; the
+// flow asks nothing before its review, which warns as Figma does ("A user
+// password is required for sudo usage.") and sums up the change as
+// "Sudo Method: Password required"; it plans sudoPlan on a flow.Fixture,
+// which touches nothing; and it asks Figma's question, "Require password
+// for sudo?", as a y/N question, as Figma does (P-10 proposes a typed
+// confirmation for sudo-method changes).
+func ManageSudoFixture() (WorkflowStep, flow.Flow) {
+	return manageSudo(flow.Fixture{Planned: sudoPlan()}, false)
+}
+
+// manageSudo is ManageSudoFixture on engine e, in dry-run mode when
+// dryRun is set.
+func manageSudo(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
+	step := WorkflowStep{
+		Header:     fixtureHeader(),
+		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "User Management", "Manage User"}},
+		Subject:    component.SubjectLine{Label: "Managing sudo method for", Subject: "george"},
+	}
 	f := flow.Flow{
 		Review: func() flow.Review {
 			return flow.Review{
@@ -143,8 +172,9 @@ func ManageSudoFixture() (WorkflowStep, flow.Flow) {
 				Items: []component.KeyValue{{Key: "Sudo Method", Value: "Password required", State: component.ValueOK}},
 			}
 		},
-		Engine:  flow.Fixture{Planned: plan},
+		Engine:  e,
 		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Require password for sudo?"} },
+		DryRun:  dryRun,
 	}
 	return step, f
 }
