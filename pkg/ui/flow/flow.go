@@ -142,8 +142,9 @@ type Confirm struct {
 	// nav.Prompter.Typed cuts before the phrase.
 	Question string
 	// Phrase is what a typed confirmation must be answered with, exactly,
-	// such as the hostname; a typed confirmation with no phrase is not
-	// asked (nav.ErrPhrase).
+	// such as the hostname. One too long to show whole at the terminal's
+	// width is asked by its first label, the part before its first dot; a
+	// typed confirmation with no phrase is not asked (nav.ErrPhrase).
 	Phrase string
 }
 
@@ -298,12 +299,20 @@ func (r *run) put(s string) error {
 // as a one-field form, unnumbered, its default no. Either is set apart by
 // the gap: nav's Typed writes none, and a form writes it only once a
 // prompt was asked.
+//
+// A phrase Typed cannot show whole at the width, such as a long hostname,
+// is asked by its first label, up to the first dot, as nav suggests
+// (P-27 (e)); when that does not show either, the error is returned.
 func (r *run) confirm(plan Plan, c Confirm) (bool, error) {
 	if plan.Typed() {
 		if err := r.put(r.gap()); err != nil {
 			return false, err
 		}
-		err := r.p.Typed(nav.Question{Label: c.Question}, c.Phrase)
+		q := nav.Question{Label: c.Question}
+		err := r.p.Typed(q, c.Phrase)
+		if first, _, ok := strings.Cut(c.Phrase, "."); ok && errors.Is(err, nav.ErrPhrase) && nav.CheckPhrase(c.Phrase) == nil {
+			err = r.p.Typed(q, first)
+		}
 		return err == nil, err
 	}
 	if !r.p.In.Asked() {

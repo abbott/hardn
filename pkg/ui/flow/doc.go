@@ -18,9 +18,10 @@
 //     changing, brief Phase 3's words, and the flow stops too.
 //  4. Confirm: a y/N question whose default is no, as a one-field form
 //     asks it; or, for a plan with lockout risk (Plan.Typed), a typed
-//     confirmation of a phrase such as the hostname (nav.Prompter.Typed).
-//     The answer no, and 0 or b, decline: an "Operation Cancelled"
-//     Callout, and nothing applied.
+//     confirmation of a phrase such as the hostname (nav.Prompter.Typed),
+//     by its first label when the whole name does not show. The answer
+//     no, and 0 or b, decline: an "Operation Cancelled" Callout, and
+//     nothing applied.
 //  5. Apply: the Engine applies the plan, one step per change, and the
 //     steps show as a StepProgress. A failure is rolled back by the
 //     Engine; the flow then shows an ErrorReport naming what was rolled
@@ -67,6 +68,7 @@
 //
 // Proposal P-27 puts the flow's own choices to the maintainer: back at the
 // confirmation, what an empty plan says (the one sentence the flow adds),
-// the plan with no heading of its own, and the steps' lines without
-// animation. Each confirmation's words are the action's (P-10).
+// the plan with no heading of its own, the steps' lines without animation
+// and a hostname asked by its first label. Each confirmation's words are
+// the action's (P-10).
 package flow

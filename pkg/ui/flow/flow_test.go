@@ -181,6 +181,16 @@ func disableRoot(e Engine) Flow {
 	}
 }
 
+// longHost is disableRoot on a host whose name, 57 cells, is too long to
+// show whole beside "Type the hostname" under the 64-cell content cap.
+func longHost(e Engine) Flow {
+	f := disableRoot(e)
+	f.Confirm = func(Plan) Confirm {
+		return Confirm{Question: "Type the hostname", Phrase: hostname + ".a-subdomain-long-enough-to-be-cut.example.net"}
+	}
+	return f
+}
+
 // rootDisabled is disableRoot on a host where root SSH login is disabled
 // already, so that its engine plans nothing.
 func rootDisabled(e Engine) Flow {
@@ -277,6 +287,8 @@ func TestPaths(t *testing.T) {
 			"  Disable SSH login for 'root'? [y/N, 0, b or q]: y\n"},
 		{"back at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"b"}, Cancelled, false,
 			"Operation Cancelled"},
+		{"typed by the first label of a long hostname", longHost, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
+			"  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
 	}
 	for _, tt := range tests {
 		applied := false
@@ -341,8 +353,8 @@ func TestAbort(t *testing.T) {
 }
 
 // TestRefused checks the flows that cannot be run, or not confirmed: no
-// Engine, no Confirm, and a lockout-risk plan with no phrase to type. None
-// applies anything.
+// Engine, no Confirm, a lockout-risk plan with no phrase to type, and a
+// terminal too narrow for the phrase. None applies anything.
 func TestRefused(t *testing.T) {
 	applied := false
 	s := spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}, applied: &applied}
@@ -364,6 +376,10 @@ func TestRefused(t *testing.T) {
 		if o, out, err := play(plain80, tt.flow); o != NotRun || !errors.Is(err, tt.want) || applied || (out != "") != tt.wrote {
 			t.Errorf("%s: %d, %v, applied %t, transcript %q", tt.name, o, err, applied, out)
 		}
+	}
+	// At 28 columns "bos-san-l01" does not show whole beside the label.
+	if o, _, err := play(term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(s)); o != NotRun || !errors.Is(err, nav.ErrPhrase) || applied {
+		t.Errorf("28 columns: %d, %v, applied %t; want NotRun, ErrPhrase, nothing applied", o, err, applied)
 	}
 }
 
