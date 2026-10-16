@@ -32,8 +32,13 @@ func TestInterrupt(t *testing.T) {
 			}
 			t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
 			useReader(t, prompt.New(pr, false))
-			stop := make(chan struct{})
+			// The sender is stopped and waited for as the subtest ends,
+			// before the parent stops guard, so no SIGINT follows
+			// signal.Stop.
+			stop, sent := make(chan struct{}), make(chan struct{})
+			t.Cleanup(func() { close(stop); <-sent })
 			go func() {
+				defer close(sent)
 				tick := time.NewTicker(10 * time.Millisecond)
 				defer tick.Stop()
 				giveUp := time.After(10 * time.Second)
@@ -50,7 +55,6 @@ func TestInterrupt(t *testing.T) {
 				}
 			}()
 			out, code, ended := session(t, func() { r.read() })
-			close(stop)
 			if !ended || code != prompt.ExitInterrupted {
 				t.Errorf("ended %v with %d, want exit status %d", ended, code, prompt.ExitInterrupted)
 			}
