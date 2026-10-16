@@ -154,6 +154,8 @@ func TestOverflows(t *testing.T) {
 		{"one line over", "ab\nabcde\nabc", 4, []string{"line 2 is 5 cells wide, over the width of 4: abcde"}},
 		{"wide characters take two cells", "日本語", 5, []string{"line 1 is 6 cells wide, over the width of 5: 日本語"}},
 		{"shown in golden notation", "\x1b[1mabcde\x1b[m", 4, []string{"line 1 is 5 cells wide, over the width of 4: ␛[1mabcde␛[m"}},
+		{"a tab cannot be measured", "ab\n\x1b[1mabc\tdef\x1b[m", 80, []string{"line 2 holds a tab, which lipgloss.Width counts as no cells; render spaces instead: ␛[1mabc␉def␛[m"}},
+		{"a carriage return measures wider than it shows", "abcdef\rxy", 7, []string{"line 1 is 8 cells wide, over the width of 7: abcdef␍xy"}},
 	}
 	for _, tt := range tests {
 		if got := overflows(tt.out, tt.width); !slices.Equal(got, tt.want) {

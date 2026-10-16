@@ -227,6 +227,12 @@ func Golden(t *testing.T, name string, cells []Cell, render func(term.Env) strin
 // AssertFits fails t for every line of out wider than width cells, as
 // lipgloss.Width measures it: escape sequences take no cells. Golden checks
 // every cell this way at the cell's Env.Width.
+//
+// A line that holds a tab fails too, whatever its width: lipgloss.Width
+// counts a tab, like every control character, as no cells (ansi.StringWidth,
+// width.go:79-119 in x/ansi v0.11.8), but a terminal moves the cursor to the
+// next tab stop. The other control characters move the cursor back or down,
+// so they can make a line measure wider than it shows, never narrower.
 func AssertFits(t *testing.T, out string, width int) {
 	t.Helper()
 	for _, msg := range overflows(out, width) {
@@ -234,10 +240,15 @@ func AssertFits(t *testing.T, out string, width int) {
 	}
 }
 
-// overflows describes each line of out wider than width cells.
+// overflows describes each line of out wider than width cells, and each
+// line whose width it cannot know because it holds a tab outside an escape
+// sequence.
 func overflows(out string, width int) []string {
 	var msgs []string
 	for i, line := range strings.Split(out, "\n") {
+		if strings.Contains(ansi.Strip(line), "\t") {
+			msgs = append(msgs, fmt.Sprintf("line %d holds a tab, which lipgloss.Width counts as no cells; render spaces instead: %s", i+1, strings.Map(picture, line)))
+		}
 		if w := lipgloss.Width(line); w > width {
 			msgs = append(msgs, fmt.Sprintf("line %d is %d cells wide, over the width of %d: %s", i+1, w, width, strings.Map(picture, line)))
 		}
