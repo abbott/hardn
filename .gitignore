@@ -9,13 +9,20 @@
 !go.sum
 
 !LICENSE
-!README.md
+# README.md only at the root and under source/doc trees (not any README.md anywhere: that re-included
+# untracked export READMEs). docs/**/README.md is covered by !docs/**/*.md.
+!/README.md
+!cmd/**/README.md
+!pkg/**/README.md
+!internal/**/README.md
 !SUPPORT.md
 !SECURITY.md
 !GOVERNANCE.md
 !CONTRIBUTING.md
 
 !Makefile
+# Tracked as lowercase; listed explicitly so case-sensitive filesystems agree with macOS.
+!makefile
 !*.example
 
 # Scripts
@@ -32,6 +39,13 @@
 !.github/**/*.yml
 !.slsa-goreleaser/**/*.yml
 !.golangci.yml
+
+# Test fixtures and golden files (Phase 0.7, 1D, 6)
+!**/testdata/**
+!*.golden
+
+# Design-system review screenshots (freeze PNGs) and README images
+!docs/**/*.png
 
 # SLSA
 !.slsa-goreleaser.yml
