@@ -303,6 +303,7 @@ func TestUsage(t *testing.T) {
 		{"-width", "0"},
 		{"-nope"},
 		{"menu/nope"},
+		{"menu", "-profile", "plain"},
 		{"-matrix", "-width", "80"},
 		{"-matrix", "-theme", "light", "-ascii"},
 	} {
@@ -310,6 +311,9 @@ func TestUsage(t *testing.T) {
 		if code != exitUsage || out != "" || errs == "" {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q; want exit %d, a message and no output", args, code, out, errs, exitUsage)
 		}
+	}
+	if code, _, errs := runGallery("menu", "-profile", "plain"); code != exitUsage || !strings.Contains(errs, "flag -profile comes after a component or state name; flags go before them") {
+		t.Errorf("a flag after a name: exit %d, stderr %q; want exit %d and a hint at the order", code, errs, exitUsage)
 	}
 	if code, _, _ := runGallery("-h"); code != exitOK {
 		t.Errorf("-h: exit %d, want %d", code, exitOK)

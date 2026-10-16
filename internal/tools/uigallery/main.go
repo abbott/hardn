@@ -150,7 +150,8 @@ func catalogue() []fixture.State {
 
 // selectStates returns the states args name, in the catalogue's order:
 // every state for no argument or "all", a component's states for its
-// name, and one state for its full name.
+// name, and one state for its full name. An argument that starts with
+// "-" is a flag the flag package left unparsed, after a name.
 func selectStates(states []fixture.State, args []string) ([]fixture.State, error) {
 	if len(args) == 0 || slices.Contains(args, "all") {
 		return states, nil
@@ -163,7 +164,10 @@ func selectStates(states []fixture.State, args []string) ([]fixture.State, error
 				want[s.Name], found = true, true
 			}
 		}
-		if !found {
+		switch {
+		case !found && strings.HasPrefix(a, "-"):
+			return nil, fmt.Errorf("flag %s comes after a component or state name; flags go before them", a)
+		case !found:
 			return nil, fmt.Errorf("no component or state %q; -list shows them", a)
 		}
 	}
