@@ -127,8 +127,8 @@ func (s Set) Hint() string {
 
 // Help returns the help line for s: each binding that has Help, as its
 // own keys joined as in Hint, "to" and the help, in order, joined by
-// commas: "b to go back, q to quit". A binding with no keys or no help is
-// left out.
+// commas: "0 or b to go back, q to quit". A binding with no keys or no
+// help is left out.
 func (s Set) Help() string {
 	var out []string
 	for _, b := range s {
