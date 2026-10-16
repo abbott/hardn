@@ -201,7 +201,7 @@
 - **Source:** plan §5.2.
 - **Problem:**
   - origin/main has 32 such strings, 55 `ReadKey` call sites and 23 `PressAnyKey` calls [V]. Figma shows the prompt in 4 frames.
-  - `ReadKey` relies on GNU-only `stty -F` in cbreak mode, against the brief's Enter-based input decision.
+  - `ReadKey` relies on GNU-only `stty -F` in cbreak mode, against the brief's Enter-based input decision. *(Resolved by `next/p1c-legacy-input`, DEV-050: no `stty` call remains and every legacy pause now reads "Press Enter ...". What is left for this proposal is which pauses stay.)*
 - **Proposal:**
   - "Enter to continue" only where output must be read before the screen changes.
   - Otherwise, return to the menu with the result left on screen (canonical flow, step 6).
