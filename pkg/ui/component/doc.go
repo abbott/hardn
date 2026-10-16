@@ -35,11 +35,14 @@
 //     view-model text, ‘ ’ and “ ”, are shown as ASCII ' and " (C12,
 //     DEV-036); components add none.
 //   - Code. A diff's lines, a plan's target and commands, and captured
-//     output are code: shown as they are, quotes and indent kept, escape
-//     and control characters dropped and a tab four spaces. Code is never
-//     cut, since the user confirms every character of a plan: a line too
-//     long breaks at its last space, else inside a word, and each further
-//     piece starts with Glyphs.Wrap (DEV-038).
+//     output are code: shown as they are, quotes (typographic ones too)
+//     and indent kept, escape and control characters dropped, a tab four
+//     spaces, and a character that draws as nothing or as a blank other
+//     than the space shown as its code point, such as <U+200B>. A command
+//     keeps its line breaks. Code is never cut, since the user confirms
+//     every character of a plan: a line too long breaks at its last space,
+//     else inside a word, and each further piece starts with Glyphs.Wrap,
+//     then the spaces at the break (DEV-038).
 //   - Degrading. Colours, glyphs and columns come only from the theme. When
 //     Env.HasColor is false there is no background to paint, so a bar is a
 //     run of Glyphs.Bar (DEV-015, DEV-018) and a badge is bracketed by
@@ -152,8 +155,10 @@
 //     frame among three-cell markers would sit at column 4, not centred
 //     at column 3, and the line still needs the cut. Each step is a line
 //     of spans placed with marker and fit.
-//   - ErrorReport is built from Callout, StepProgress rows, code and
-//     Message, joined with the section gap; ConfirmCountdown is lines of
-//     spans, its sentences wrapped with lipgloss.Wrap as a Message's text.
-//     Neither needs a join or place helper.
+//   - ErrorReport is built from Callout, rolled-back lines laid out as
+//     StepProgress rows but wrapped as a Message's text is (Ctx.worded,
+//     over lipgloss.Wrap), code and Message, joined with the section gap;
+//     ConfirmCountdown is lines of spans, its sentences wrapped with
+//     lipgloss.Wrap as a Message's text. Neither needs a join or place
+//     helper.
 package component
