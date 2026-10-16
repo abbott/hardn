@@ -49,6 +49,7 @@
 | [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 | [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
 | [P-25](#p-25) | Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed |
+| [P-26](#p-26) | Forms: back through the fields, the earlier answer and a free-text default | `next/p1c-form` | Every form; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -505,3 +506,21 @@
 - **Effort:** S. (a) to (e) are built, so this approves them; (a2), (b)'s alternative, (d2), (d3), (e2) or (e3) are each a small change to `pkg/ui/nav` (and `keys` for (b)) and its goldens, and (a3) one more to `nav.Text`.
 - **Risk:** Low. (a) changes what a free-text field accepts compared with origin/main, for three one-character values; (b)'s alternative departs from the brief; nothing else is applied differently.
 - **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-25-after.png` (placeholder); the `nav/*` goldens show the built form meanwhile.
+
+<a id="p-26"></a>
+### P-26: Forms: back through the fields, the earlier answer and a free-text default
+
+- **Status:** proposed
+- **Source:** `next/p1c-form`, which builds brief 1C's forms in `pkg/ui/form`. Related: [P-25](#p-25), [P-10](#p-10), [P-11](#p-11).
+- **Problem:**
+  - Brief 1C's grammar has `0` or `b` go back, the same at every level, but does not say what back means inside a form, where each field is a prompt and the whole form is one step of the flow. origin/main's forms have no back at all: an invalid user name returns to the User Management menu, and an invalid port discards all four fields of a firewall profile ([interaction.md](phase0/interaction.md) §5, anti-pattern 4).
+  - When back returns to a field, its earlier answer is on screen above it; nothing decides what Enter does there.
+  - A free-text field's default (brief 1C's fields have a `Default`) cannot show in the hint: the brackets list the inputs a prompt takes, and a y/N question marks its default with a capital, which a value cannot take without changing it. origin/main words its few text defaults in the label: "Enter new username (leave empty to keep current)" (pkg/menu user_options.go:580), "Enter filename to export system status (default: system_status.txt)" (system_details_menu.go:134).
+- **Proposal:** built as below (DEV-046, DEV-047, [README](../design-system/README.md) §9.9); the maintainer decides (a), (b) and (c).
+  - **(a) Back:** `0` or `b` goes back to the field asked before, one field at a time, passing over a skipped one, and from the first field leaves the form for the menu. Alternative (a2): `0` or `b` leaves the form from any field, in one line however far the user got; correcting an earlier answer then means leaving and starting again.
+  - **(b) The earlier answer:** a field asked again starts afresh. Enter takes its `Default`, as the first time, not the earlier answer, which stays on screen above. Alternative (b2): Enter keeps the earlier answer; the prompt would then have to show it, as (c) asks for a default, or the user cannot tell what Enter does.
+  - **(c) A free-text default:** nothing shows it before the answer unless the screen's own title or description says so, in its words, as origin/main's labels do; after an empty line the form echoes the value applied, as in `1. Backup path: /var/backups/hardn`. Alternatives: (c2) the form puts it in the hint in fixed words, such as `[Enter for /var/backups/hardn, 0, b or q]`; (c3) a fixed description line, such as "Enter keeps /var/backups/hardn.".
+  - The form adds no words of its own: its refusals are `pkg/ui/nav`'s ([P-25](#p-25) (c)), and its validation errors are the screens', such as origin/main's username rule.
+- **Effort:** S. (a), (b) and (c) are built, so this approves them; (a2), (b2), (c2) or (c3) is a small change to `pkg/ui/form` and its goldens.
+- **Risk:** Low. Under (a) a user who types `b` to leave a long form steps back through it, field by field; `q` still quits. Nothing is applied before a form ends, whatever is chosen.
+- **Screenshots:** Before: Figma `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-26-after.png` (placeholder); the `form/back` and `form/yes-no` goldens show the built form meanwhile.
