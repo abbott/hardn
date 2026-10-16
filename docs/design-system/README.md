@@ -178,7 +178,7 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 82 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 83 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
@@ -187,7 +187,7 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 | `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Message.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
 | `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed` |
-| `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Mode.Live`, `Message.Warn`, `Message.Cancelled`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack` |
+| `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Mode.Live`, `Menu.Risk`, `Message.Warn`, `Message.Cancelled`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack` |
 | `status.unknown` | `ContextBar.Unknown`, `Host.Unknown`, `Risk.Unknown`, `Status.Unknown` |
 | `badge.fg`, `badge.bg` | `Badge` |
 | `bar.bg` (background) | `ContextBar.Fill`, `TitleBar.Fill`, `Section.Fill`; the `Header.Version` box above 16 colours only (DEV-005) |
@@ -209,9 +209,9 @@ Terminals have one cell size, so the export's type styles map onto bold, underli
 | `type.header.strong` | Bold, 28 px (one-off: wordmark, host badge; the user badge is `type.body.strong`) | bold | `Header.Wordmark`, `Badge` |
 | `type.header` | Regular, 28 px (one-off: version, URL) | normal | `Header.Version`, `Header.URL` |
 | not in the export (seen in the PNGs) | underline on "Select an option" | underline | `Menu.Heading` |
-| no Figma value (DEV-016) | | bold | `Message.OK`, `Message.Warn`, `Message.Bad`, `Message.Info`, `Message.Cancelled`, `Breadcrumb.Current`, `Plan.LockoutRisk` |
+| no Figma value (DEV-016) | | bold | `Menu.Risk`, `Message.OK`, `Message.Warn`, `Message.Bad`, `Message.Info`, `Message.Cancelled`, `Breadcrumb.Current`, `Plan.LockoutRisk` |
 
-That is 21 typography roles: 20 bold slots and one underlined. `TestTypography` pins exactly this set in every environment, and the swatch golden shows each one (§8). Letter spacing (0 and −0.5% within one style, drift D2) is dropped (DEV-007). Muted and faint are colours, never SGR 2 (DEV-009, `TestSlotsSetWithoutBannedAttributes`). At the ASCII profile the colours drop and bold and underline stay; at NoTTY the writer strips every escape sequence, attributes included.
+That is 22 typography roles: 21 bold slots and one underlined. `TestTypography` pins exactly this set in every environment, and the swatch golden shows each one (§8). Letter spacing (0 and −0.5% within one style, drift D2) is dropped (DEV-007). Muted and faint are colours, never SGR 2 (DEV-009, `TestSlotsSetWithoutBannedAttributes`). At the ASCII profile the colours drop and bold and underline stay; at NoTTY the writer strips every escape sequence, attributes included.
 
 ## 6. Glyph sets
 
@@ -294,7 +294,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 **Writing a golden test:** `uitest.Golden(t, "<case>", uitest.Full(), func(env term.Env) string { ... })`. For each cell it renders, writes the result through `env.Writer` in one write, checks every line against the cell's width (`uitest.AssertFits`), and compares with `testdata/golden/<case>.golden` in the test's package directory.
 
 **Files today:**
-- `pkg/ui/theme/testdata/golden/swatch.golden`: `TestSwatch` on `Full()`. Every token's name in its colour and as a background, every glyph by role, and the 21 typography roles.
+- `pkg/ui/theme/testdata/golden/swatch.golden`: `TestSwatch` on `Full()`. Every token's name in its colour and as a background, every glyph by role, and the 22 typography roles.
 - `pkg/ui/uitest/testdata/golden/harness.golden`: the harness's own check, one render at each profile and in plain mode, at width 20.
 - `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2, §9.3).
 

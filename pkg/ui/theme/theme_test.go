@@ -126,7 +126,7 @@ func TestTypography(t *testing.T) {
 		"Menu.Key", "Menu.ExitKey", "Prompt.Glyph", "Prompt.Label",
 		"Message.OK", "Message.Warn", "Message.Bad", "Message.Info", "Message.Cancelled",
 		"Callout.OK.Title", "Callout.Warn.Title", "Callout.Cancelled.Title",
-		"Badge", "Section.Title", "Breadcrumb.Current", "Plan.LockoutRisk",
+		"Badge", "Section.Title", "Breadcrumb.Current", "Plan.LockoutRisk", "Menu.Risk",
 	}
 	underline := []string{"Menu.Heading"}
 	for _, env := range envs() {
@@ -171,6 +171,8 @@ func TestColourRoles(t *testing.T) {
 		{"Menu.Key", false, "text.primary"},
 		{"Menu.Description", false, "text.muted"},
 		{"Menu.Aside", false, "text.faint"},
+		{"Menu.Disabled", false, "text.faint"},
+		{"Menu.Risk", false, "status.warn"},
 		{"Prompt.Input", false, "text.muted"}, // drift D4
 		{"Callout.OK.Bar", true, "accent.ok"},
 		{"Callout.Warn.Bar", true, "accent.warn"},

@@ -46,6 +46,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -102,6 +103,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -158,6 +160,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -214,6 +217,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -270,6 +274,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -326,6 +331,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mMenu.ExitKey␛[m$
   ␛[4;38;2;129;134;156;4mM␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4m.␛[m␛[4;38;2;129;134;156;4mH␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4md␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4mg␛[m$
   ␛[1;38;2;192;196;216mMenu.Key␛[m$
+  ␛[1;38;2;219;184;83mMenu.Risk␛[m$
   ␛[1;38;2;231;70;105mMessage.Bad␛[m$
   ␛[1;38;2;219;184;83mMessage.Cancelled␛[m$
   ␛[1;38;2;192;196;216mMessage.Info␛[m$
@@ -382,6 +388,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -438,6 +445,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -494,6 +502,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -550,6 +559,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -606,6 +616,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -662,6 +673,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mMenu.ExitKey␛[m$
   ␛[4;38;2;87;92;110;4mM␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mu␛[m␛[4;38;2;87;92;110;4m.␛[m␛[4;38;2;87;92;110;4mH␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4md␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mn␛[m␛[4;38;2;87;92;110;4mg␛[m$
   ␛[1;38;2;30;34;48mMenu.Key␛[m$
+  ␛[1;38;2;138;97;0mMenu.Risk␛[m$
   ␛[1;38;2;194;37;74mMessage.Bad␛[m$
   ␛[1;38;2;138;97;0mMessage.Cancelled␛[m$
   ␛[1;38;2;30;34;48mMessage.Info␛[m$
@@ -718,6 +730,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -774,6 +787,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -830,6 +844,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -886,6 +901,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -942,6 +958,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -998,6 +1015,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mMenu.ExitKey␛[m$
   ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
+  ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;204mMessage.Bad␛[m$
   ␛[1;38;5;179mMessage.Cancelled␛[m$
   ␛[1;38;5;251mMessage.Info␛[m$
@@ -1054,6 +1072,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1110,6 +1129,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1166,6 +1186,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1222,6 +1243,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1278,6 +1300,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1334,6 +1357,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mMenu.ExitKey␛[m$
   ␛[4;38;5;59;4mM␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mu␛[m␛[4;38;5;59;4m.␛[m␛[4;38;5;59;4mH␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4md␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mn␛[m␛[4;38;5;59;4mg␛[m$
   ␛[1;38;5;235mMenu.Key␛[m$
+  ␛[1;38;5;94mMenu.Risk␛[m$
   ␛[1;38;5;161mMessage.Bad␛[m$
   ␛[1;38;5;94mMessage.Cancelled␛[m$
   ␛[1;38;5;235mMessage.Info␛[m$
@@ -1390,6 +1414,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1446,6 +1471,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1502,6 +1528,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1558,6 +1585,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1614,6 +1642,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1670,6 +1699,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;37mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;91mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;37mMessage.Info␛[m$
@@ -1726,6 +1756,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -1782,6 +1813,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -1838,6 +1870,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -1894,6 +1927,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -1950,6 +1984,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -2006,6 +2041,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mMenu.ExitKey␛[m$
   ␛[4;90;4mM␛[m␛[4;90;4me␛[m␛[4;90;4mn␛[m␛[4;90;4mu␛[m␛[4;90;4m.␛[m␛[4;90;4mH␛[m␛[4;90;4me␛[m␛[4;90;4ma␛[m␛[4;90;4md␛[m␛[4;90;4mi␛[m␛[4;90;4mn␛[m␛[4;90;4mg␛[m$
   ␛[1;30mMenu.Key␛[m$
+  ␛[1;33mMenu.Risk␛[m$
   ␛[1;31mMessage.Bad␛[m$
   ␛[1;33mMessage.Cancelled␛[m$
   ␛[1;30mMessage.Info␛[m$
@@ -2062,6 +2098,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2118,6 +2155,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2174,6 +2212,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2230,6 +2269,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2286,6 +2326,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2342,6 +2383,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2398,6 +2440,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2454,6 +2497,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2510,6 +2554,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2566,6 +2611,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2622,6 +2668,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
@@ -2678,6 +2725,7 @@ Typography: the slots that set bold or underline$
   ␛[1mMenu.ExitKey␛[m$
   ␛[4;4mM␛[m␛[4;4me␛[m␛[4;4mn␛[m␛[4;4mu␛[m␛[4;4m.␛[m␛[4;4mH␛[m␛[4;4me␛[m␛[4;4ma␛[m␛[4;4md␛[m␛[4;4mi␛[m␛[4;4mn␛[m␛[4;4mg␛[m$
   ␛[1mMenu.Key␛[m$
+  ␛[1mMenu.Risk␛[m$
   ␛[1mMessage.Bad␛[m$
   ␛[1mMessage.Cancelled␛[m$
   ␛[1mMessage.Info␛[m$
