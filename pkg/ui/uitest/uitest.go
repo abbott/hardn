@@ -32,7 +32,9 @@
 // Golden fails on output this notation could not show unambiguously:
 // invalid UTF-8, C1 control characters, and the Control Pictures it uses
 // (U+2400 to U+2421). On a mismatch it names the cells that changed and
-// shows a line diff of each, plus any cells added or removed.
+// shows a line diff of each, plus any cells added or removed. The diff
+// numbers lines as in the golden file, and as in the file -update would
+// write.
 //
 // # Updating
 //
@@ -372,6 +374,7 @@ type section struct {
 	name   string
 	header string   // the "=== " line
 	lines  []string // the output, in golden notation
+	first  int      // the line of lines[0] in the file, from 1; set by parse
 }
 
 // format returns the golden file for test's sections.
@@ -392,11 +395,12 @@ func format(test string, sections []section) string {
 // parse splits a golden file into its header lines and sections. Blank
 // lines between sections are dropped.
 func parse(file string) (head []string, sections []section) {
-	for _, l := range strings.Split(strings.TrimSuffix(file, "\n"), "\n") {
+	for i, l := range strings.Split(strings.TrimSuffix(file, "\n"), "\n") {
 		switch {
 		case strings.HasPrefix(l, sectionPrefix) && !strings.HasSuffix(l, "$"):
 			name, _, _ := strings.Cut(strings.TrimPrefix(l, sectionPrefix), ":")
-			sections = append(sections, section{name: name, header: l})
+			// The header is line i+1; the section's output starts on the next.
+			sections = append(sections, section{name: name, header: l, first: i + 2})
 		case len(sections) == 0:
 			head = append(head, l)
 		case l != "":
@@ -408,7 +412,9 @@ func parse(file string) (head []string, sections []section) {
 }
 
 // compare returns "" when the golden file want equals got, and otherwise a
-// report that names the cells that changed, with a line diff of each.
+// report that names the cells that changed, with a line diff of each. The
+// diff's line numbers are lines of the files: of want, the golden file, and
+// of got, the file -update would write.
 func compare(want, got string) string {
 	if want == got {
 		return ""
@@ -421,7 +427,7 @@ func compare(want, got string) string {
 	}
 	var changed, added, diffs []string
 	if !slices.Equal(wantHead, gotHead) {
-		diffs = append(diffs, "file header (- golden, + render):\n"+lineDiff(wantHead, gotHead))
+		diffs = append(diffs, "file header (- golden, + render):\n"+lineDiff(wantHead, gotHead, 1, 1))
 	}
 	for _, g := range gotSections {
 		w, ok := byName[g.name]
@@ -435,7 +441,7 @@ func compare(want, got string) string {
 			if w.header != g.header {
 				d += "- " + w.header + "\n+ " + g.header + "\n"
 			}
-			diffs = append(diffs, d+lineDiff(w.lines, g.lines))
+			diffs = append(diffs, d+lineDiff(w.lines, g.lines, w.first, g.first))
 		}
 	}
 	var removed []string
@@ -472,8 +478,9 @@ const diffContext = 2
 // lineDiff returns a line diff of a and b from a longest common
 // subsequence: "- " marks a line only in a, "+ " a line only in b, and "  "
 // an unchanged line near a change. Each hunk starts with the numbers of its
-// first line in a and in b, counted from 1. Equal a and b give "".
-func lineDiff(a, b []string) string {
+// first line in a and in b, where a[0] is line aFirst and b[0] is line
+// bFirst. Equal a and b give "".
+func lineDiff(a, b []string, aFirst, bFirst int) string {
 	// lcs[i][j] is the length of the longest common subsequence of a[i:]
 	// and b[j:].
 	lcs := make([][]int, len(a)+1)
@@ -522,7 +529,7 @@ func lineDiff(a, b []string) string {
 			continue
 		}
 		if k != last+1 {
-			fmt.Fprintf(&out, "@@ golden line %d, render line %d @@\n", e.ai+1, e.bi+1)
+			fmt.Fprintf(&out, "@@ golden line %d, render line %d @@\n", aFirst+e.ai, bFirst+e.bi)
 		}
 		out.WriteString(e.mark + e.line + "\n")
 		last = k

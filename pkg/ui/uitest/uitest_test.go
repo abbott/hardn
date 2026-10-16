@@ -218,7 +218,7 @@ func goldenFile(out map[string]string, names ...string) string {
 }
 
 // TestCompare shows that a mismatch is reported by cell, with a diff of
-// the changed lines.
+// the changed lines numbered as in the files.
 func TestCompare(t *testing.T) {
 	base := map[string]string{
 		"a": "one\ntwo\nthree",
@@ -235,12 +235,12 @@ func TestCompare(t *testing.T) {
 	want := `1 of 3 cells differ: b
 
 cell b (- golden, + render):
-@@ golden line 1, render line 1 @@
+@@ golden line 11, render line 11 @@
 - ␛[1mbold␛[m$
 + ␛[4mbold␛[m$
   same$
   same$
-@@ golden line 5, render line 5 @@
+@@ golden line 15, render line 15 @@
   same$
   same$
 - end$
@@ -248,6 +248,30 @@ cell b (- golden, + render):
 `
 	if got := compare(golden, goldenFile(changed, "a", "b", "c")); got != want {
 		t.Errorf("one cell changed: got\n%s\nwant\n%s", got, want)
+	}
+	if lines := strings.Split(golden, "\n"); lines[11-1] != "␛[1mbold␛[m$" || lines[15-1] != "same$" {
+		t.Errorf("golden lines 11 and 15 are %q and %q, not the first lines of the hunks", lines[11-1], lines[15-1])
+	}
+
+	// a grows by one line, which moves b down one line in the render's file.
+	grown := map[string]string{"a": base["a"] + "\nfour", "b": strings.Replace(base["b"], "end", "finish", 1), "c": base["c"]}
+	want = `2 of 3 cells differ: a, b
+
+cell a (- golden, + render):
+@@ golden line 7, render line 7 @@
+  two$
+  three$
++ four$
+
+cell b (- golden, + render):
+@@ golden line 15, render line 16 @@
+  same$
+  same$
+- end$
++ finish$
+`
+	if got := compare(golden, goldenFile(grown, "a", "b", "c")); got != want {
+		t.Errorf("two cells changed: got\n%s\nwant\n%s", got, want)
 	}
 
 	got := compare(golden, goldenFile(base, "a", "c", "d"))
@@ -268,17 +292,19 @@ cell b (- golden, + render):
 
 func TestLineDiff(t *testing.T) {
 	tests := []struct {
-		name string
-		a, b []string
-		want string
+		name           string
+		a, b           []string
+		aFirst, bFirst int
+		want           string
 	}{
-		{"equal", []string{"x", "y"}, []string{"x", "y"}, ""},
-		{"added at end", []string{"x"}, []string{"x", "y"}, "@@ golden line 1, render line 1 @@\n  x\n+ y\n"},
-		{"removed at start", []string{"x", "y"}, []string{"y"}, "@@ golden line 1, render line 1 @@\n- x\n  y\n"},
-		{"from nothing", nil, []string{"x"}, "@@ golden line 1, render line 1 @@\n+ x\n"},
+		{"equal", []string{"x", "y"}, []string{"x", "y"}, 1, 1, ""},
+		{"added at end", []string{"x"}, []string{"x", "y"}, 1, 1, "@@ golden line 1, render line 1 @@\n  x\n+ y\n"},
+		{"removed at start", []string{"x", "y"}, []string{"y"}, 1, 1, "@@ golden line 1, render line 1 @@\n- x\n  y\n"},
+		{"from nothing", nil, []string{"x"}, 1, 1, "@@ golden line 1, render line 1 @@\n+ x\n"},
+		{"numbered from aFirst and bFirst", []string{"x", "y"}, []string{"x", "z"}, 10, 20, "@@ golden line 10, render line 20 @@\n  x\n- y\n+ z\n"},
 	}
 	for _, tt := range tests {
-		if got := lineDiff(tt.a, tt.b); got != tt.want {
+		if got := lineDiff(tt.a, tt.b, tt.aFirst, tt.bFirst); got != tt.want {
 			t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
 		}
 	}
