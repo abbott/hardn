@@ -174,8 +174,9 @@ func TestLayout(t *testing.T) {
 		from = theme.ContentWidth
 	}
 	// cut is the room a status detail has beside the label at width from,
-	// after "Configured " and the three-cell ASCII ellipsis.
-	cut := maxWidth(StatusRow{}, from) - theme.ValueCol - len("Configured ") - 3
+	// after "Configured " and the ASCII ellipsis.
+	ascii := NewCtx(term.Fixed(from, colorprofile.ASCII, false, true))
+	cut := maxWidth(StatusRow{}, from) - theme.ValueCol - lipgloss.Width("Configured ") - lipgloss.Width(ascii.Theme.Glyphs.Ellipsis)
 	tests := []struct {
 		name    string
 		vm      renderer
