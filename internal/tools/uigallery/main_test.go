@@ -15,6 +15,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/component/fixture"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
@@ -258,10 +259,35 @@ func TestSelect(t *testing.T) {
 	if want := "# menuheading/no-mode " + strings.Repeat("-", 42) + "\n\n  Select an option\n\n"; code != exitOK || out != want {
 		t.Errorf("one state: exit %d, output %q, want %q", code, out, want)
 	}
-	code, out, _ = runGallery("-matrix", "divider")
-	for _, c := range matrix() {
-		if n := strings.Count(ansi.Strip(out), " divider/normal "+c.name+" "); code != exitOK || n != 1 {
-			t.Errorf("-matrix: exit %d, cell %s shown %d times", code, c.name, n)
+	// Each cell's title holds the state's and the cell's whole names, for
+	// the longest state name too, which cuts nothing at 60 columns.
+	longest := slices.MaxFunc(all, func(a, b fixture.State) int {
+		return ansi.StringWidth(a.Name) - ansi.StringWidth(b.Name)
+	}).Name
+	for _, name := range []string{"divider/normal", longest} {
+		code, out, _ = runGallery("-matrix", name)
+		for _, c := range matrix() {
+			if n := strings.Count(ansi.Strip(out), " "+name+" "+c.name+" "); code != exitOK || n != 1 {
+				t.Errorf("-matrix %s: exit %d, cell %s shown %d times", name, code, c.name, n)
+			}
+		}
+	}
+}
+
+// TestNarrow checks the gallery's header on terminals too narrow for a
+// state's name: it holds the whole name, so that no two states look the
+// same, and runs past the terminal's width only as far as the name needs.
+func TestNarrow(t *testing.T) {
+	for _, p := range []string{"truecolor", "plain"} {
+		for _, w := range []int{1, 20, 24} {
+			for _, s := range catalogue() {
+				args := []string{"-profile", p, fmt.Sprintf("-width=%d", w), s.Name}
+				code, out, errs := runGallery(args...)
+				head, _, _ := strings.Cut(ansi.Strip(out), "\n")
+				if code != exitOK || errs != "" || !strings.Contains(head, " "+s.Name+" ") || ansi.StringWidth(head) > max(w, ansi.StringWidth(s.Name)+headerFrame) {
+					t.Errorf("%v: exit %d, stderr %q, header %q; want the whole name, as wide as it needs", args, code, errs, head)
+				}
+			}
 		}
 	}
 }

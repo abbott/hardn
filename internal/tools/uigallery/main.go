@@ -12,7 +12,8 @@
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
-// order, each under its name. Flags:
+// order, each under a header with its whole name, which on a terminal too
+// narrow for the name runs past its width. Flags:
 //
 //	-list             print the names of the states it would render, and exit
 //	-theme dark|light the palette (default dark)
@@ -56,6 +57,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
@@ -186,17 +188,32 @@ func (g gallery) ctx(env term.Env) (component.Ctx, error) {
 	return component.Ctx{Env: env, Theme: th}, nil
 }
 
-// render returns state s rendered in cell c under a section header titled
-// title, and a blank line after it. An Animated state sets Env.Animate
-// itself, as the goldens render it.
+// headerFrame is the cells a SectionHeader adds to its title: the stub, a
+// cell either side of the title and one cell of rule.
+const headerFrame = 4
+
+// header returns the gallery's header for title in ctx: a SectionHeader.
+// On a terminal too narrow for the whole title it is rendered as if the
+// terminal were just wide enough, so that no state's name is cut and
+// states stay told apart at any width; that line, the gallery's chrome
+// and no component's output, then runs past the terminal's width. The
+// content width (theme.ContentWidth) still caps it, which every title
+// fits (TestNarrow).
+func header(ctx component.Ctx, title string) string {
+	ctx.Env.Width = max(ctx.Env.Width, ansi.StringWidth(title)+headerFrame)
+	return component.SectionHeader{Title: title}.Render(ctx)
+}
+
+// render returns state s rendered in cell c under the gallery's header
+// titled title, and a blank line after it. An Animated state sets
+// Env.Animate itself, as the goldens render it.
 func (g gallery) render(s fixture.State, c cell, title string) (string, error) {
 	ctx, err := g.ctx(c.env)
 	if err != nil {
 		return "", err
 	}
-	head := component.SectionHeader{Title: title}.Render(ctx)
 	gap := strings.Repeat("\n", theme.SectionGap+1)
-	return head + gap + s.VM.Render(ctx) + gap, nil
+	return header(ctx, title) + gap + s.VM.Render(ctx) + gap, nil
 }
 
 // run is the gallery: it parses args, renders to stdout and reports
