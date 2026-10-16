@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -464,6 +465,29 @@ func TestRun(t *testing.T) {
 	})
 }
 
+// TestRunGap checks that each drawing but the first stands apart from what
+// is above it: a sub-menu from the answer that opened it, and the menu
+// drawn again from what an action wrote or from a sub-menu's last answer.
+func TestRunGap(t *testing.T) {
+	out, err := play([]string{"1", "2", "b", "0"}, func(p Prompter) error {
+		sub := Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "DNS"}, Action: func() error { return nil }}}}
+		sub.Options = append(sub.Options, Option{Item: component.MenuItem{Key: "2", Label: "Logs"}, Action: func() error {
+			_, err := io.WriteString(p.Out, "\n  done\n")
+			return err
+		}})
+		top := Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "Firewall"}, Action: func() error {
+			return p.Run(func() Screen { return Screen{Above: "  Firewall", Menu: sub, Label: choice} })
+		}}}}
+		return p.Run(func() Screen { return Screen{Above: "  Main", Menu: top, Label: choice} })
+	})
+	main := "  Main\n\n   1) Firewall\n\n  > Enter your choice [1, 0, b or q]: "
+	firewall := "  Firewall\n\n   1) DNS\n   2) Logs\n\n  > Enter your choice [1-2, 0, b or q]: "
+	want := main + "1\n\n" + firewall + "2\n\n  done\n\n" + firewall + "b\n\n" + main + "0\n"
+	if err != nil || out != want {
+		t.Errorf("Run() = %v, transcript\n%s\nwant\n%s", err, out, want)
+	}
+}
+
 // failing fails every Write.
 type failing struct{}
 
@@ -484,7 +508,9 @@ func TestWriteFails(t *testing.T) {
 // menu, a sub-menu, a workflow step and a typed confirmation, each asked
 // a line it refuses, then left with 0 (back, which exits at the top) or q
 // (quit), so that both are on record at the menus and the workflow step
-// alike. The answers are echoed as a terminal shows them.
+// alike; and rounds of the main menu, which show b on a sub-menu, q on
+// the main menu and the gap before each drawing. The answers are echoed
+// as a terminal shows them.
 func TestGolden(t *testing.T) {
 	heading := func(p Prompter, mode bool) string {
 		h := component.MenuHeading{Title: "Select an option"}
@@ -513,6 +539,21 @@ func TestGolden(t *testing.T) {
 			return err
 		}},
 		{"typed-confirmation", []string{"BOS-SAN-L01", "q"}, ErrQuit, typed},
+		// rounds: an action's result, then the menu again; the SSH Login
+		// sub-menu (item 2), left with b; then q from the main menu.
+		{"rounds", []string{"3", "2", "b", "q"}, ErrQuit, func(p Prompter) error {
+			sub := func() Screen { return Screen{Above: heading(p, false), Menu: sshMenu(new([]string)), Label: choice} }
+			return p.Run(func() Screen {
+				m := mainMenu(new([]string))
+				m.Options[1].Action = func() error { return p.Run(sub) }
+				m.Options[2].Action = func() error {
+					done := component.Message{Kind: component.MessageOK, Text: "DNS configured successfully"}.Render(p.Ctx)
+					_, err := io.WriteString(p.Out, strings.Repeat("\n", theme.SectionGap)+done+"\n")
+					return err
+				}
+				return Screen{Above: heading(p, true), Menu: m, Label: choice}
+			})
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

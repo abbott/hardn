@@ -161,6 +161,16 @@ type Screen struct {
 // under what the action wrote, clearing nothing (brief 1C: never wipe a
 // result). A line the prompt refuses does not draw the screen again.
 //
+// Once any prompt has been asked (prompt.Reader.Asked), something stands
+// above the drawing: the answer that opened this menu, for a sub-menu, or
+// the last round's answer and what its action wrote. Run then writes
+// theme.SectionGap blank lines before the drawing, so that the screen
+// keeps the system's rhythm between blocks; only the first drawing of a
+// run, with nothing above it, starts at once. An action starts on the
+// line under the answer that chose it, so one that writes, such as a
+// result Message or a flow's first step, writes theme.SectionGap blank
+// lines first, as Run does; a sub-menu's Run does so itself.
+//
 // Run returns nil when the user goes back with 0 or b: the caller returns
 // to the screen above, and at the top level exits. It returns ErrQuit
 // when they quit with q, or when an action returns it, so that q quits
@@ -179,8 +189,14 @@ func (p Prompter) Run(draw func() Screen) error {
 				parts = append(parts, part)
 			}
 		}
+		var out string
+		if p.In.Asked() {
+			out = strings.Repeat("\n", theme.SectionGap)
+		}
 		if len(parts) > 0 {
-			out := strings.Join(parts, strings.Repeat("\n", theme.SectionGap+1)) + strings.Repeat("\n", theme.PromptGap+1)
+			out += strings.Join(parts, strings.Repeat("\n", theme.SectionGap+1)) + strings.Repeat("\n", theme.PromptGap+1)
+		}
+		if out != "" {
 			if _, err := io.WriteString(p.Out, out); err != nil {
 				return fmt.Errorf("nav: write: %w", err)
 			}
