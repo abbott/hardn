@@ -28,7 +28,10 @@ type HostBlock struct {
 	// Uptime is shown as given, such as "182 days, 2 hours, 26 minutes".
 	Uptime string
 	// RebootPending adds the pending-reboot line: Glyphs.Partial, the
-	// warning marker, and "Reboot pending", in status.warn.
+	// warning marker, and "Reboot pending", in status.warn. P-04 places
+	// the flag next to the uptime, which a long uptime leaves no room for
+	// beside the label, so proposal P-21 puts its wording and place to the
+	// maintainer.
 	RebootPending bool
 }
 
