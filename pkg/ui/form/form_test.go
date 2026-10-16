@@ -3,7 +3,6 @@ package form
 import (
 	"errors"
 	"fmt"
-	"io"
 	"regexp"
 	"strings"
 	"testing"
@@ -20,38 +19,11 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// typist plays the user at a terminal, as nav's tests do: each Read
-// returns the next line, typed and ended with Enter, and echoes it to
-// echo as a terminal shows it. With no lines left it reports the end of
-// the input.
-type typist struct {
-	lines   []string
-	pending []byte
-	echo    io.Writer
-}
-
-func (t *typist) Read(p []byte) (int, error) {
-	if len(t.pending) == 0 {
-		if len(t.lines) == 0 {
-			return 0, io.EOF
-		}
-		line := t.lines[0]
-		t.lines = t.lines[1:]
-		if _, err := io.WriteString(t.echo, line); err != nil {
-			return 0, err
-		}
-		t.pending = []byte(line + "\n")
-	}
-	n := copy(p, t.pending)
-	t.pending = t.pending[n:]
-	return n, nil
-}
-
 // newPrompter returns a Prompter for env whose user types lines, and the
 // transcript it writes, the echoed answers included.
 func newPrompter(env term.Env, lines []string) (nav.Prompter, *strings.Builder) {
 	out := new(strings.Builder)
-	return nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: out}, out
+	return nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(out, lines...), false), Out: out}, out
 }
 
 // play runs f in ASCII at 80 columns with the user typing lines, and
