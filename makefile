@@ -340,3 +340,126 @@ verify-release-full:
 	@make verify-release VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
 	@make verify-signature VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
 	@echo "✅ Full verification successful!"
+
+# ---------------------------------------------------------------------------
+# Local check (refactor plan P0.4; brief Phase 6 "local check script")
+#
+#   make check          run every step in order, print a per-step summary and
+#                       exit non-zero if any step failed. check-tools runs first
+#                       and stops everything if a tool is missing.
+#   make check-<step>   run one step: check-tools, check-mod-verify, check-tidy,
+#                       check-build, check-vet, check-test, check-lint,
+#                       check-vuln, check-cross
+#
+# Nothing here executes the hardn binary: main() writes under /var/log and /etc
+# before it parses flags. check-build discards its output and check-cross builds
+# into a temporary directory, so nothing touches $(BUILD_DIR). Container and VM
+# tests are the separate it-containers and it-vm targets.
+#
+# Environment, set for the check targets only (other targets are unchanged):
+#   GOTOOLCHAIN=local       use the Go on PATH; never download a toolchain.
+#   GOWORK=off              ignore any go.work in a parent directory.
+#   GOFLAGS=$(CHECK_GOFLAGS)  default -mod=readonly. The committed vendor/ is
+#                           incomplete (the allow-list .gitignore drops its .s,
+#                           .c and .h files), so Go's default vendor mode cannot
+#                           build a clean checkout. -mod=readonly ignores vendor/
+#                           and, unlike -mod=mod, never rewrites go.mod or
+#                           go.sum. It is also Go's default once vendor/ is gone,
+#                           so it needs no change when vendor/ stops being
+#                           committed. Override: make check CHECK_GOFLAGS=...
+#
+# Tools come from PATH. check-tools fails if one is missing and warns when a
+# version differs from the CHECK_*_VERSION values below.
+# ---------------------------------------------------------------------------
+
+CHECK_GOFLAGS ?= -mod=readonly
+CHECK_GOLANGCI_LINT_VERSION ?= 2.14.0
+CHECK_GOVULNCHECK_VERSION ?= v1.9.0
+# Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
+CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
+CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
+	check-lint check-vuln check-cross
+
+check check-%: export GOTOOLCHAIN = local
+check check-%: export GOWORK = off
+check check-%: export GOFLAGS = $(CHECK_GOFLAGS)
+
+# $(call check_need,<tool>,<step>): fail with a clear message if <tool> is not on PATH.
+check_need = command -v $(1) >/dev/null 2>&1 || { \
+	echo "$(2): '$(1)' not found on PATH. Install go, golangci-lint $(CHECK_GOLANGCI_LINT_VERSION) and govulncheck $(CHECK_GOVULNCHECK_VERSION) (for example with mise) and retry." >&2; \
+	exit 1; }
+
+.PHONY: check check-tools $(CHECK_STEPS)
+
+check: check-tools
+	@results=; failed=; \
+	for s in $(CHECK_STEPS); do \
+		if $(MAKE) --no-print-directory $$s; then results="$$results ok:$$s"; \
+		else results="$$results FAIL:$$s"; failed="$$failed $$s"; fi; \
+	done; \
+	echo; echo "check summary:"; \
+	for r in $$results; do printf '  %-5s %s\n' "$${r%%:*}" "$${r#*:}"; done; \
+	if [ -n "$$failed" ]; then echo "check: FAILED:$$failed" >&2; exit 1; fi; \
+	echo "check: all steps passed"
+
+check-tools:
+	@echo "==> $@"
+	@$(call check_need,go,$@)
+	@$(call check_need,golangci-lint,$@)
+	@$(call check_need,govulncheck,$@)
+	@go version
+	@v=$$(golangci-lint version --short 2>/dev/null); echo "golangci-lint $$v"; \
+	[ "$$v" = "$(CHECK_GOLANGCI_LINT_VERSION)" ] || \
+		echo "$@: warning: expected golangci-lint $(CHECK_GOLANGCI_LINT_VERSION)" >&2
+	@v=$$(go version -m "$$(command -v govulncheck)" | awk '$$1 == "mod" && $$2 == "golang.org/x/vuln" { print $$3 }'); \
+	echo "govulncheck $$v"; \
+	[ "$$v" = "$(CHECK_GOVULNCHECK_VERSION)" ] || \
+		echo "$@: warning: expected govulncheck $(CHECK_GOVULNCHECK_VERSION)" >&2
+	@echo "GOTOOLCHAIN=$$GOTOOLCHAIN GOWORK=$$GOWORK GOFLAGS=$$GOFLAGS"
+
+check-mod-verify:
+	@echo "==> $@"
+	go mod verify
+
+check-tidy:
+	@echo "==> $@"
+	go mod tidy -diff
+
+check-build:
+	@echo "==> $@"
+	go build ./...
+
+check-vet:
+	@echo "==> $@"
+	go vet ./...
+
+check-test:
+	@echo "==> $@"
+	go test -count=1 ./...
+
+check-lint:
+	@echo "==> $@"
+	@$(call check_need,golangci-lint,$@)
+	golangci-lint run
+
+check-vuln:
+	@echo "==> $@"
+	@$(call check_need,govulncheck,$@)
+	govulncheck -show version ./...
+
+check-cross:
+	@echo "==> $@"
+	@out=$$(mktemp -d "$${TMPDIR:-/tmp}/hardn-check-cross.XXXXXX") || exit 1; \
+	trap 'rm -rf "$$out"' EXIT; \
+	for t in $(CHECK_CROSS_TARGETS); do \
+		os=$${t%/*}; arch=$${t#*/}; \
+		echo "CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -tags=netgo -o <tmp>/hardn-$$os-$$arch ./cmd/hardn"; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
+			go build -trimpath -tags=netgo -o "$$out/hardn-$$os-$$arch" ./cmd/hardn || exit 1; \
+	done
+
+# Container and VM integration tests need a disposable host and never run on a
+# development machine. Placeholders until those suites exist.
+.PHONY: it-containers it-vm
+it-containers it-vm:
+	@echo "$@: run on the VM host (see docs/refactor)"
