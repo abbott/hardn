@@ -290,6 +290,67 @@ func clean(s string) string {
 	return s
 }
 
+// tabWidth is the cells a tab takes in code, as Lip Gloss's own default
+// (style.go:14 in lipgloss v2.0.6).
+const tabWidth = 4
+
+// raw makes code (a diff line, a command, a line of captured output) one
+// line of plain text that keeps its characters: escape sequences are
+// removed, a tab becomes tabWidth spaces, line breaks become spaces, and
+// other control characters and invalid UTF-8 are dropped. Unlike clean it
+// trims nothing and maps no quotes, so that a plan shows a file's line as
+// it is.
+func raw(s string) string {
+	s = ansi.Strip(strings.ToValidUTF8(s, ""))
+	s = strings.ReplaceAll(s, "\t", strings.Repeat(" ", tabWidth))
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r == '\n' || r == '\r':
+			return ' '
+		case unicode.IsControl(r):
+			return -1
+		}
+		return r
+	}, s)
+}
+
+// code lays out the code s, made by raw, from column col in style. It is
+// never cut: where the content width ends it breaks, at the last space
+// after its indent or else inside a word, and each further piece starts
+// at col with Glyphs.Wrap (DEV-038), so that a plan shows every character
+// it will write. The spaces at a break, and at the end, are not shown, and
+// a line of spaces is an empty line. Only when not one more character fits
+// beside col, on a terminal a few cells wide, is the rest cut with the
+// ellipsis glyph.
+func (c Ctx) code(col int, s string, style lipgloss.Style) []string {
+	if s = strings.TrimRight(s, " "); s == "" {
+		return []string{""}
+	}
+	w := c.width()
+	var out []string
+	for lead := ""; ; lead = c.Theme.Glyphs.Wrap {
+		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(lead)), "")
+		rest, ok := strings.CutPrefix(s, head)
+		if head == "" || !ok {
+			return append(out, c.fit(line{gap(col), {lead + s, style}}, w))
+		}
+		if rest != "" && rest[0] != ' ' {
+			if i := strings.LastIndexByte(head, ' '); i > 0 && strings.TrimLeft(head[:i], " ") != "" {
+				head, rest = head[:i], s[i:]
+			}
+		}
+		rest = strings.TrimLeft(rest, " ")
+		piece := ""
+		if t := strings.TrimRight(lead+head, " "); t != "" {
+			piece = line{gap(col), {t, style}}.String()
+		}
+		out = append(out, piece)
+		if s = rest; s == "" {
+			return out
+		}
+	}
+}
+
 // known returns s in style, or the word Unknown in alt when s is empty.
 func known(s string, style, alt lipgloss.Style) line {
 	if s = clean(s); s != "" {
