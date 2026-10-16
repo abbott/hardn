@@ -63,12 +63,12 @@ type PlanChange struct {
 // the before and after states as removed and added lines, and the
 // commands after Glyphs.Command, all at theme.LabelCol. A diff's lines
 // keep their "+", "-" or space, so they never rest on colour alone, and
-// take Plan.Added, Plan.Removed, Plan.Context or, for its hunk headers and
+// take Plan.Added, Plan.Removed, Plan.Context or, for its headers and
 // markers, Plan.Meta; its "---" and "+++" file headers are left out when
-// there is a target, which names the file. These lines are code: shown as
-// they are, never cut, broken where the line ends, the rest after
-// Glyphs.Wrap (DEV-038). Long plans are rendered in full; the screen
-// decides paging.
+// one of them names the target, which the target line already shows.
+// These lines are code: shown as they are, never cut, broken where the
+// line ends, the rest after Glyphs.Wrap (DEV-038). Long plans are
+// rendered in full; the screen decides paging.
 //
 // Changes are separated by theme.SectionGap blank lines. In dry-run mode
 // a footer says that nothing was changed, as a Message in origin/main's
@@ -126,9 +126,18 @@ func (ch PlanChange) render(c Ctx) string {
 	kinds := map[diff.Kind]lipgloss.Style{
 		diff.Context: t.Context, diff.Removed: t.Removed, diff.Added: t.Added,
 	}
-	for _, l := range diff.Classify(ch.Diff) {
-		if target != "" && l.Kind == diff.Header && (strings.HasPrefix(l.Text, "--- ") || strings.HasPrefix(l.Text, "+++ ")) {
-			continue // the target line names the file
+	lines := diff.Classify(ch.Diff)
+	// named reports whether the target line already names the file of
+	// the diff's "---" and "+++" headers: one of them names the target.
+	named := false
+	for _, l := range lines {
+		if f, ok := fileHeader(l); ok && f == target && target != "" {
+			named = true
+		}
+	}
+	for _, l := range lines {
+		if _, ok := fileHeader(l); ok && named {
+			continue
 		}
 		style, ok := kinds[l.Kind]
 		if !ok {
@@ -153,4 +162,19 @@ func (ch PlanChange) render(c Ctx) string {
 		}
 	}
 	return strings.Join(out, "\n")
+}
+
+// fileHeader returns the file a diff's "---" or "+++" header names, up to
+// any tab and timestamp after it; ok is false for any other line.
+func fileHeader(l diff.Line) (file string, ok bool) {
+	if l.Kind != diff.Header {
+		return "", false
+	}
+	for _, p := range []string{"--- ", "+++ "} {
+		if f, found := strings.CutPrefix(l.Text, p); found {
+			f, _, _ = strings.Cut(f, "\t")
+			return f, true
+		}
+	}
+	return "", false
 }
