@@ -144,15 +144,15 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 | `color.text.input` | `text:#DFDFDF` | #DFDFDF | `badge.fg` (merged) | #DFDFDF | 254 | 15 BrightWhite | #FFFFFF / 231 / 15 BrightWhite | DEV-003; D3, D4: used only on badges, merged with the host badge's #C0C4D8 text; echoed input is `text.muted` |
 | `color.surface.base` | `surface:#000000` | #000000 | none (dropped) | | | | | D8: the terminal's own background, never painted. Dark contrast is measured against it |
 | `color.surface.raised` | `surface:#101114` | #101114 | `bar.bg` | #101114 | 233 | **8 BrightBlack** | #E6E8EE / 254 / 7 White | DEV-004, DEV-005; D7: one token for the bar, section stub and version box |
-| `color.cursor` | `surface:#C0C4D8` | #C0C4D8 | none (dropped) | | | | | D5, candidate C8 (open): the terminal draws its own cursor |
+| `color.cursor` | `surface:#C0C4D8` | #C0C4D8 | none (no token) | | | | | D5; candidate C8, open until the prompt component lands: the terminal draws its own cursor |
 | `color.badge.host` | `surface:#0C2AC0` | #0C2AC0 | `badge.bg` | #0C2AC0 | 19 | 4 Blue | #0C2AC0 / 19 / 4 Blue | light DEV-011 |
 | `color.bar.warn` | `surface:#D2BC13` | #D2BC13 | `accent.warn` | #D2BC13 | 178 | 3 Yellow | #B88A00 / 136 / 3 Yellow | D14: a pair with `status.warn`, kept separate; light DEV-011 |
 | `color.bar.ok` | `surface:#008A00` | #008A00 | `accent.ok` | #008A00 | 28 | 2 Green | #008A00 / 28 / 2 Green | D14: a pair with `status.ok`, kept separate; light DEV-011 |
 | `color.border.divider` | `border:#16181D` | #16181D | `divider` | **#565B6B** | **59** | 8 BrightBlack | #81869C / 103 / 8 BrightBlack | DEV-002; D6 |
 
-**Values that are not export tokens:**
-- The host badge text, #C0C4D8 (drift D3), merges into `badge.fg` (DEV-003).
-- The main-menu panel outline, #17181C, sits in a collapsed SVG in the export. It gets no token (DEV-002); whether the outline is drawn stays open (candidate C9).
+**A use mapped to a different Go token, and a value outside the token export:**
+- The host badge text uses the export's `color.text.primary` (#C0C4D8). That use maps to `badge.fg`, not `text.primary` (drift D3, DEV-003).
+- The main-menu panel outline, #17181C, sits in a collapsed SVG in the export and is not an export token. It gets no Go token (DEV-002); whether the outline is drawn stays open (candidate C9).
 
 **Go tokens with no export value:**
 - `status.unknown`: dark #6AB0D8 / 74 / 14 BrightCyan, light #0A6E8C / 24 / 6 Cyan (DEV-010).
@@ -161,7 +161,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 ### 4.2 Rules the tests hold
 
 - **256 colours:** the xterm index from 16 to 255 nearest the hex by CIE76 ΔE; indexes 0-15 are never used, because they are the user's own 16 colours. The only overrides are dark `text.faint` and `divider`: 59 instead of the nearest, 240, which is under 3:1 (DEV-001). `TestANSI256Nearest`.
-- **16 colours:** picked by hand, never by distance, because terminals redefine them. Muted and faint share BrightBlack in both themes. `TestDeliberateANSIPicks` pins the picks the deviation log records.
+- **16 colours:** picked by hand, never by distance, because terminals redefine them. Muted and faint share BrightBlack in both themes. `TestDeliberateANSIPicks` pins the dark picks DEV-001 to DEV-004 record; every other 16-colour pick, including DEV-010's and DEV-011's, is held by the swatch golden (§8), and its contrast floor by `TestContrast`.
 - **Contrast** (WCAG, against #000000 for dark and #FFFFFF for light, at truecolor, 256 and 16 colours; 16 colours in x/ansi's RGB table, `color.go:269-284`, standing in for the user's palette). `TestContrast`:
 
 | Token | Dark floor | Light floor |
