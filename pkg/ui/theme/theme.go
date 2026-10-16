@@ -35,14 +35,12 @@ import (
 // Theme holds the glyph set and a named style for every component and
 // state, grouped by component. Build it with New.
 //
-// Not here yet, because its component comes later: the rest of a form
-// field (its description and inline validation error) beside Field's
-// answered line, in next/p1c-form.
-//
 // SubjectLine composes Text.Muted and Badge, and BulletList is KeyValue
 // rows. ErrorReport composes a bad Callout, StepProgress rows, Plan.Command,
-// Output and Messages. The cursor has no slot: the terminal draws its own
-// (candidate C8).
+// Output and Messages. A form field's options are Menu rows, and its
+// inline error is a Message of kind bad, as every refused line is
+// (pkg/ui/nav), so neither has a Field slot. The cursor has no slot: the
+// terminal draws its own (candidate C8).
 type Theme struct {
 	Glyphs Glyphs
 
@@ -160,13 +158,15 @@ type PromptStyles struct {
 	Hint  lipgloss.Style
 }
 
-// FieldStyles style an answered form field: the question and the answer
-// typed to it, such as "1. Username: george".
+// FieldStyles style a form field: the question and the answer typed to
+// it, such as "1. Username: george", and the description under a field's
+// title.
 type FieldStyles struct {
-	Number lipgloss.Style // "1."
-	Label  lipgloss.Style // the question
-	Hint   lipgloss.Style // the accepted inputs in brackets, and the colon
-	Answer lipgloss.Style // the echoed answer, muted (drift D4)
+	Number      lipgloss.Style // "1."
+	Label       lipgloss.Style // the question
+	Hint        lipgloss.Style // the accepted inputs in brackets, and the colon
+	Answer      lipgloss.Style // the echoed answer, muted (drift D4)
+	Description lipgloss.Style // what the field asks for, muted (DEV-046)
 }
 
 // MessageStyles style one-line messages: the kind's glyph (Glyphs.OK,
@@ -340,7 +340,7 @@ func New(env term.Env) *Theme {
 			Risk:        warn.Bold(true),
 		},
 		Prompt: PromptStyles{Glyph: muted.Bold(true), Label: muted.Bold(true), Hint: muted},
-		Field:  FieldStyles{Number: primary, Label: primary, Hint: primary, Answer: muted},
+		Field:  FieldStyles{Number: primary, Label: primary, Hint: primary, Answer: muted, Description: muted},
 		Message: MessageStyles{
 			OK: ok.Bold(true), Warn: warn.Bold(true), Bad: bad.Bold(true),
 			Info: primary.Bold(true), Cancelled: warn.Bold(true), Text: muted,
