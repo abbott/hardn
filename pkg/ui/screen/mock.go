@@ -181,6 +181,10 @@ var endings = map[flow.Outcome]string{
 	flow.Unchanged: "unchanged",
 }
 
+// Ending names how a flow ends, as a sequence's last step is named after
+// it: "applied", "cancelled", "planned" and so on.
+func Ending(o flow.Outcome) string { return endings[o] }
+
 // Steps returns the names of the sequence's steps, in order: "1-confirm",
 // a step for each answer, named after it, then the last step, named after
 // how the flow ends, such as "2-applied".
@@ -225,14 +229,35 @@ func (m Mock) Render(c component.Ctx) ([]string, error) {
 	return out, nil
 }
 
+// Diverged is the error Sequence.Play returns when the flow, with no
+// error, ends otherwise than the sequence says: as when the terminal is
+// too narrow to ask a typed confirmation, and the flow cancels without
+// asking it (flow.Cancelled, P-27 (e)). Transcript is what the run wrote,
+// whole and without its last line break, since its steps are not the
+// sequence's.
+type Diverged struct {
+	// Sequence is the sequence's name.
+	Sequence string
+	// Ended is how the flow ended, and Want how the sequence says it
+	// ends.
+	Ended, Want flow.Outcome
+	// Transcript is what the run wrote.
+	Transcript string
+}
+
+// Error says how the sequence ended.
+func (e *Diverged) Error() string {
+	return fmt.Sprintf("sequence %s ended %s, want %s", e.Sequence, endings[e.Ended], endings[e.Want])
+}
+
 // Play runs the sequence in c: its screen and flow (WorkflowStep.Run) on
 // input that types each answer as a terminal would, echoing it after its
 // prompt. It returns what each step writes, through c.Env.Writer, each
 // without its last line break: a step for each answer, up to its prompt
 // and the answer's line, then the last step, what the flow writes after
 // the last answer. Played in order, the steps are the whole transcript.
-// It fails when the flow returns an error, ends otherwise than s.Ends, or
-// leaves an answer unread.
+// It fails when the flow returns an error, ends otherwise than s.Ends (a
+// *Diverged), or leaves an answer unread.
 func (s Sequence) Play(c component.Ctx) ([]string, error) {
 	step, f := s.Build()
 	out := new(transcript)
@@ -246,7 +271,7 @@ func (s Sequence) Play(c component.Ctx) ([]string, error) {
 	case err != nil:
 		return nil, fmt.Errorf("sequence %s: %w", s.Name, err)
 	case o != s.Ends:
-		return nil, fmt.Errorf("sequence %s ended %s, want %s", s.Name, endings[o], endings[s.Ends])
+		return nil, &Diverged{Sequence: s.Name, Ended: o, Want: s.Ends, Transcript: strings.TrimSuffix(out.String(), "\n")}
 	case len(in.lines) > 0:
 		return nil, fmt.Errorf("sequence %s left %d answers unread", s.Name, len(in.lines))
 	}

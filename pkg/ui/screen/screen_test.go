@@ -189,6 +189,34 @@ func TestMocks(t *testing.T) {
 	}
 }
 
+// TestDiverged checks that a sequence that ends otherwise than it says,
+// with no error, fails with a *Diverged that holds the whole transcript:
+// the root-login toggle's normal path on a terminal too narrow for its
+// typed confirmation, below 30 columns in Unicode glyphs, which the flow
+// cancels without asking it. Mock.Render's error wraps it.
+func TestDiverged(t *testing.T) {
+	var toggle Mock
+	for _, m := range Mocks() {
+		if m.Name == "workflow-step/ssh-login-toggle-confirmation" {
+			toggle = m
+		}
+	}
+	if len(toggle.Sequences) == 0 || toggle.Sequences[0].Name != "normal" {
+		t.Fatalf("no normal sequence for the root-login toggle: %+v", toggle)
+	}
+	c := component.NewCtx(term.Fixed(29, colorprofile.NoTTY, false, true))
+	steps, err := toggle.Sequences[0].Play(c)
+	var d *Diverged
+	if !errors.As(err, &d) || steps != nil || d.Ended != flow.Cancelled || d.Want != flow.Applied ||
+		!strings.Contains(d.Transcript, "Operation Cancelled") || strings.HasSuffix(d.Transcript, "\n") ||
+		err.Error() != "sequence normal ended cancelled, want applied" {
+		t.Fatalf("Play() = %q, %v; want a *Diverged, cancelled for applied, with the transcript", steps, err)
+	}
+	if _, err := toggle.Render(c); !errors.As(err, &d) {
+		t.Errorf("Render() = %v, want it to wrap a *Diverged", err)
+	}
+}
+
 // TestCreateUserPlan checks that the create-user fixture plans what its
 // form was answered, so that its review, plan and confirmation agree for
 // any answers: a step per answer that needs one, named for the user; and,
