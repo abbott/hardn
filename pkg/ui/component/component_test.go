@@ -161,8 +161,8 @@ func (a animated) Render(c Ctx) string {
 	return a.vm.Render(c)
 }
 
-// installLog is the output of a package install: 14 lines, one of them a
-// progress line overwritten with carriage returns.
+// installLog is the output of a failed apt-get install: 14 lines, one of
+// them a progress line overwritten with carriage returns.
 func installLog() string {
 	var b strings.Builder
 	for i := 1; i <= 12; i++ {
@@ -335,7 +335,7 @@ var states = []struct {
 	{"stepprogress/empty", StepProgress{Steps: []Step{{State: StepDone}}}},
 	{"errorreport/normal", sshFailure},
 	{"errorreport/tail", ErrorReport{
-		Failed: "Installing apk-cron failed: exit status 1", Command: "apk add apk-cron",
+		Failed: "Installing unattended-upgrades failed: exit status 100", Command: "apt-get install -y unattended-upgrades",
 		Output: installLog(), LogPath: "/var/log/hardn.log",
 	}},
 	{"errorreport/unknown", ErrorReport{

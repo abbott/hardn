@@ -4,9 +4,9 @@
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m…␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m↪ package-5 [1024 B]␛[m$
@@ -33,9 +33,9 @@ $
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m…␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m↪ package-5 [1024 B]␛[m$
@@ -60,9 +60,9 @@ $
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m…␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m↪ package-5 [1024 B]␛[m$
@@ -87,9 +87,9 @@ $
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m| package-5 [1024 B]␛[m$
@@ -116,9 +116,9 @@ $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m| package-5 [1024 B]␛[m$
@@ -143,9 +143,9 @@ $
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;129;134;156m...␛[m$
       ␛[38;2;129;134;156mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;129;134;156m| package-5 [1024 B]␛[m$
@@ -170,9 +170,9 @@ $
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m…␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m↪ package-5 [1024 B]␛[m$
@@ -199,9 +199,9 @@ $
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m…␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m↪ package-5 [1024 B]␛[m$
@@ -226,9 +226,9 @@ $
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m…␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m↪ package-5 [1024 B]␛[m$
@@ -253,9 +253,9 @@ $
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m| package-5 [1024 B]␛[m$
@@ -282,9 +282,9 @@ $
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m| package-5 [1024 B]␛[m$
@@ -309,9 +309,9 @@ $
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
 ␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
-␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;2;87;92;110m$ apk add apk-cron␛[m$
+      ␛[38;2;87;92;110m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;2;87;92;110m...␛[m$
       ␛[38;2;87;92;110mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;2;87;92;110m| package-5 [1024 B]␛[m$
@@ -336,9 +336,9 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m…␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m↪ package-5 [1024 B]␛[m$
@@ -365,9 +365,9 @@ $
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m…␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m↪ package-5 [1024 B]␛[m$
@@ -392,9 +392,9 @@ $
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m…␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m↪ package-5 [1024 B]␛[m$
@@ -419,9 +419,9 @@ $
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m| package-5 [1024 B]␛[m$
@@ -448,9 +448,9 @@ $
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m| package-5 [1024 B]␛[m$
@@ -475,9 +475,9 @@ $
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apk add apk-cron␛[m$
+      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;103m...␛[m$
       ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;103m| package-5 [1024 B]␛[m$
@@ -502,9 +502,9 @@ $
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m…␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m↪ package-5 [1024 B]␛[m$
@@ -531,9 +531,9 @@ $
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m…␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m↪ package-5 [1024 B]␛[m$
@@ -558,9 +558,9 @@ $
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m…␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m↪ package-5 [1024 B]␛[m$
@@ -585,9 +585,9 @@ $
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
 ␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m| package-5 [1024 B]␛[m$
@@ -614,9 +614,9 @@ $
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
 ␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m| package-5 [1024 B]␛[m$
@@ -641,9 +641,9 @@ $
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
 ␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
-␛[48;5;161m ␛[m ␛[38;5;59mInstalling apk-cron failed: exit status 1␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;59m$ apk add apk-cron␛[m$
+      ␛[38;5;59m$ apt-get install -y unattended-upgrades␛[m$
       ␛[38;5;59m...␛[m$
       ␛[38;5;59mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[38;5;59m| package-5 [1024 B]␛[m$
@@ -668,9 +668,9 @@ $
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
 ␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -697,9 +697,9 @@ $
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
 ␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -724,9 +724,9 @@ $
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
 ␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -751,9 +751,9 @@ $
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
 ␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -780,9 +780,9 @@ $
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
 ␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -807,9 +807,9 @@ $
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
 ␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
-␛[101m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[101m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -834,9 +834,9 @@ $
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
 ␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -863,9 +863,9 @@ $
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
 ␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -890,9 +890,9 @@ $
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
 ␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m…␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m↪ package-5 [1024 B]␛[m$
@@ -917,9 +917,9 @@ $
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
 ␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -946,9 +946,9 @@ $
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
 ␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -973,9 +973,9 @@ $
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
 ␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
-␛[41m ␛[m ␛[90mInstalling apk-cron failed: exit status 1␛[m$
+␛[41m ␛[m ␛[90mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[90m$ apk add apk-cron␛[m$
+      ␛[90m$ apt-get install -y unattended-upgrades␛[m$
       ␛[90m...␛[m$
       ␛[90mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
       ␛[90m| package-5 [1024 B]␛[m$
@@ -1000,9 +1000,9 @@ $
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1029,9 +1029,9 @@ $
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1056,9 +1056,9 @@ $
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1083,9 +1083,9 @@ $
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
@@ -1112,9 +1112,9 @@ $
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
@@ -1139,9 +1139,9 @@ $
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
@@ -1166,9 +1166,9 @@ $
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1195,9 +1195,9 @@ $
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1222,9 +1222,9 @@ $
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
 █ ␛[1m✗ Operation Failed␛[m$
-█ Installing apk-cron failed: exit status 1$
+█ Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       …$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       ↪ package-5 [1024 B]$
@@ -1249,9 +1249,9 @@ $
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
@@ -1278,9 +1278,9 @@ $
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
@@ -1305,9 +1305,9 @@ $
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
 # ␛[1m[!] Operation Failed␛[m$
-# Installing apk-cron failed: exit status 1$
+# Installing unattended-upgrades failed: exit status 100$
 $
-      $ apk add apk-cron$
+      $ apt-get install -y unattended-upgrades$
       ...$
       Get:5 http://deb.example.net/debian trixie/main amd64$
       | package-5 [1024 B]$
