@@ -7,6 +7,7 @@
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;129;134;156mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;129;134;156munderscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -14,6 +15,7 @@
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;129;134;156monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -21,6 +23,7 @@
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;129;134;156monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -29,6 +32,7 @@
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;129;134;156mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;129;134;156munderscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -36,6 +40,7 @@
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;129;134;156monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -43,6 +48,7 @@
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;2;129;134;156mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;129;134;156monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mbackup-replication-service␛[m$
       ␛[38;2;129;134;156mSudo without password␛[m$
 
@@ -51,6 +57,7 @@
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;87;92;110mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;87;92;110munderscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -58,6 +65,7 @@
    ␛[38;2;30;34;48m1.␛[m ␛[38;2;30;34;48mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;87;92;110monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -65,6 +73,7 @@
    ␛[38;2;30;34;48m1.␛[m ␛[38;2;30;34;48mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;87;92;110monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -73,6 +82,7 @@
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;87;92;110mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;87;92;110munderscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -80,6 +90,7 @@
    ␛[38;2;30;34;48m1.␛[m ␛[38;2;30;34;48mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;87;92;110monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -87,6 +98,7 @@
    ␛[38;2;30;34;48m1.␛[m ␛[38;2;30;34;48mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;2;87;92;110mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;2;87;92;110monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mbackup-replication-service␛[m$
       ␛[38;2;87;92;110mSudo without password␛[m$
 
@@ -95,6 +107,7 @@
       ␛[38;5;103mUsername must start with a lowercase letter and␛[m$
       ␛[38;5;103mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;5;103munderscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -102,6 +115,7 @@
    ␛[38;5;251m1.␛[m ␛[38;5;251mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;5;103mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;103monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -109,6 +123,7 @@
    ␛[38;5;251m1.␛[m ␛[38;5;251mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;5;103mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;103monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -117,6 +132,7 @@
       ␛[38;5;103mUsername must start with a lowercase letter and␛[m$
       ␛[38;5;103mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;5;103munderscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -124,6 +140,7 @@
    ␛[38;5;251m1.␛[m ␛[38;5;251mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;5;103mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;103monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -131,6 +148,7 @@
    ␛[38;5;251m1.␛[m ␛[38;5;251mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;5;103mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;103monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mbackup-replication-service␛[m$
       ␛[38;5;103mSudo without password␛[m$
 
@@ -139,6 +157,7 @@
       ␛[38;5;59mUsername must start with a lowercase letter and␛[m$
       ␛[38;5;59mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;5;59munderscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -146,6 +165,7 @@
    ␛[38;5;235m1.␛[m ␛[38;5;235mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;5;59mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;59monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -153,6 +173,7 @@
    ␛[38;5;235m1.␛[m ␛[38;5;235mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[38;5;59mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;59monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -161,6 +182,7 @@
       ␛[38;5;59mUsername must start with a lowercase letter and␛[m$
       ␛[38;5;59mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;5;59munderscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -168,6 +190,7 @@
    ␛[38;5;235m1.␛[m ␛[38;5;235mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;5;59mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;59monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -175,6 +198,7 @@
    ␛[38;5;235m1.␛[m ␛[38;5;235mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[38;5;59mUsername must start with a lowercase letter and contain␛[m$
       ␛[38;5;59monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mbackup-replication-service␛[m$
       ␛[38;5;59mSudo without password␛[m$
 
@@ -183,6 +207,7 @@
       ␛[90mUsername must start with a lowercase letter and␛[m$
       ␛[90mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[90munderscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -190,6 +215,7 @@
    ␛[37m1.␛[m ␛[37mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -197,6 +223,7 @@
    ␛[37m1.␛[m ␛[37mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -205,6 +232,7 @@
       ␛[90mUsername must start with a lowercase letter and␛[m$
       ␛[90mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[90munderscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -212,6 +240,7 @@
    ␛[37m1.␛[m ␛[37mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -219,6 +248,7 @@
    ␛[37m1.␛[m ␛[37mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;37m1)␛[m ␛[37mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -227,6 +257,7 @@
       ␛[90mUsername must start with a lowercase letter and␛[m$
       ␛[90mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[90munderscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -234,6 +265,7 @@
    ␛[30m1.␛[m ␛[30mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -241,6 +273,7 @@
    ␛[30m1.␛[m ␛[30mSelect the user whose sudo method to change on web-01.exa…␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -249,6 +282,7 @@
       ␛[90mUsername must start with a lowercase letter and␛[m$
       ␛[90mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[90munderscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -256,6 +290,7 @@
    ␛[30m1.␛[m ␛[30mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -263,6 +298,7 @@
    ␛[30m1.␛[m ␛[30mSelect the user whose sudo method to change on web-01.e...␛[m$
       ␛[90mUsername must start with a lowercase letter and contain␛[m$
       ␛[90monly lowercase letters, numbers, hyphens, and underscores␛[m$
+$
    ␛[1;30m1)␛[m ␛[30mbackup-replication-service␛[m$
       ␛[90mSudo without password␛[m$
 
@@ -271,6 +307,7 @@
       Username must start with a lowercase letter and$
       contain only lowercase letters, numbers, hyphens, and$
       underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -278,6 +315,7 @@
    1. Select the user whose sudo method to change on web-01.exa…$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -285,6 +323,7 @@
    1. Select the user whose sudo method to change on web-01.exa…$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -293,6 +332,7 @@
       Username must start with a lowercase letter and$
       contain only lowercase letters, numbers, hyphens, and$
       underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -300,6 +340,7 @@
    1. Select the user whose sudo method to change on web-01.e...$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -307,6 +348,7 @@
    1. Select the user whose sudo method to change on web-01.e...$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -315,6 +357,7 @@
       Username must start with a lowercase letter and$
       contain only lowercase letters, numbers, hyphens, and$
       underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -322,6 +365,7 @@
    1. Select the user whose sudo method to change on web-01.exa…$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -329,6 +373,7 @@
    1. Select the user whose sudo method to change on web-01.exa…$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -337,6 +382,7 @@
       Username must start with a lowercase letter and$
       contain only lowercase letters, numbers, hyphens, and$
       underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -344,6 +390,7 @@
    1. Select the user whose sudo method to change on web-01.e...$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$
 
@@ -351,5 +398,6 @@
    1. Select the user whose sudo method to change on web-01.e...$
       Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
+$
    ␛[1m1)␛[m backup-replication-service$
       Sudo without password$

@@ -10,15 +10,17 @@ import (
 )
 
 // FieldHead is what a form field shows above a prompt line of its own
-// when it has more to show than its question: the title, then the
-// description of what to type, then the options to choose from. Here
-// with no colour, a head with a description and one with options:
+// when it has more to show than its question, or when its question would
+// be cut beside its hint: the title, then the description of what to
+// type, then the options to choose from. Here with no colour, a head with
+// a description and, under it, one with options:
 //
 //	0 2   6
 //	   1. Username
 //	      Specify username to create
 //
 //	   2. Select a user
+//
 //	   1) george
 //	   2) alice
 //
@@ -29,6 +31,8 @@ import (
 // AnsweredField (pkg/ui/form). A title too long for the line is cut with
 // the ellipsis glyph. The description is prose in Field.Description,
 // wrapped at spaces from theme.LabelCol. The options are a Menu's rows,
+// set apart from what is above them by theme.SectionGap blank lines, as
+// Figma sets a menu apart from its heading (USER-MANAGE_USER-SELECT_USER),
 // keyed and laid out as the Menu lays out its items, stacked as a whole
 // as it stacks them (DEV-046). A field with no title renders as the empty
 // string.
@@ -65,7 +69,7 @@ func (vm FieldHead) Render(c Ctx) string {
 		}
 	}
 	if options := (Menu{Items: vm.Options}).Render(c); options != "" {
-		out = append(out, options)
+		out = append(out, strings.Repeat("\n", theme.SectionGap)+options)
 	}
 	return strings.Join(out, "\n")
 }

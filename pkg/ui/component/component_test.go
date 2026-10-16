@@ -738,7 +738,7 @@ func TestLayout(t *testing.T) {
 		{"field head: a title with no colon, the description under it", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}, 80, false,
 			"   1. Username\n      Specify username to create"},
 		{"field head: the options as a menu's rows", FieldHead{Number: 2, Title: "Select a user", Options: users}, 80, false,
-			"   2. Select a user\n   1) george\n   2) alice"},
+			"   2. Select a user\n\n   1) george\n   2) alice"},
 		{"field head: unnumbered at the indent", FieldHead{Title: "Select a user", Description: "Configure sudo, SSH keys"}, 80, false,
 			"  Select a user\n      Configure sudo, SSH keys"},
 		{"field head: a wide number pushes the title", FieldHead{Number: 12345, Title: "Username"}, 80, false, "12345. Username"},

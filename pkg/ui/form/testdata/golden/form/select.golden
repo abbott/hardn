@@ -4,6 +4,7 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mSelect a user␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
 $
@@ -14,6 +15,7 @@ $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Select a user$
+$
    1) george$
    2) alice$
 $
@@ -24,6 +26,7 @@ $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mSelect a user␛[m$
+$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
 $
