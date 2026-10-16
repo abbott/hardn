@@ -47,6 +47,9 @@
 // The -update flag is defined here, once. A package that uses uitest must
 // not define its own -update: the flag package panics when a name is
 // defined twice ("flag redefined", flag/flag.go:1020-1029 in Go 1.27).
+// Nor may its tests link github.com/charmbracelet/x/exp/golden, directly or
+// through another package: it is in the module graph, and it defines -update
+// at init too (golden.go:16 in v0.0.0-20250806222409-83e3a29d542f).
 // pkg/characterization and pkg/menu define their own, which is fine while
 // they do not import uitest, because each package's tests build a separate
 // binary. A test binary that does not link uitest rejects -update as an
