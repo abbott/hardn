@@ -59,6 +59,12 @@ func TestFixed(t *testing.T) {
 			want: Env{Width: 120, Height: DefaultHeight, Profile: colorprofile.NoTTY,
 				Dark: true, Theme: ThemeDark, Plain: true},
 		},
+		{
+			name: "plain ignores unicode",
+			got:  Fixed(80, colorprofile.NoTTY, true, false),
+			want: Env{Width: 80, Height: DefaultHeight, Profile: colorprofile.NoTTY,
+				Theme: ThemeLight, Plain: true},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

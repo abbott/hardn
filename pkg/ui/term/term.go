@@ -61,7 +61,8 @@ type Env struct {
 // DefaultHeight and Animate is false, so output is deterministic. A profile
 // of NoTTY or lower makes the Env plain with no TTY, as Resolve does for piped
 // output; any other profile is an interactive terminal (TTY and InputTTY
-// true). Unicode is used as given. Set fields directly for other combinations.
+// true). Unicode is used as given, except that a plain Env always uses ASCII
+// glyphs, as from Resolve. Set fields directly for other combinations.
 func Fixed(width int, profile colorprofile.Profile, unicode, dark bool) Env {
 	plain := profile <= colorprofile.NoTTY
 	theme := ThemeLight
@@ -72,7 +73,7 @@ func Fixed(width int, profile colorprofile.Profile, unicode, dark bool) Env {
 		Width:    width,
 		Height:   DefaultHeight,
 		Profile:  profile,
-		Unicode:  unicode,
+		Unicode:  unicode && !plain,
 		TTY:      !plain,
 		InputTTY: !plain,
 		Dark:     dark,
