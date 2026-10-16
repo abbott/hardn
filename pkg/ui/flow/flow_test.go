@@ -619,8 +619,9 @@ func screen(out string) string {
 
 // TestProgress checks the Apply step where it animates: the steps drawn
 // in place, the spinner turning while a step runs, and the screen left as
-// the steps' lines without animation leave it; and, when the steps would
-// not fit the terminal's height, one line per step with no cursor moved.
+// the steps' lines without animation leave it; what an Enter typed while
+// a step runs leaves on screen; and, when the steps would not fit the
+// terminal's height, one line per step with no cursor moved.
 func TestProgress(t *testing.T) {
 	defer func(d time.Duration) { spinEvery = d }(spinEvery)
 	spinEvery = time.Millisecond
@@ -646,6 +647,24 @@ func TestProgress(t *testing.T) {
 	moved := strings.Count(out.String(), ansi.CursorPreviousLine(3))
 	if got, want := screen(out.String()), ansi.Strip(still); !turned || moved < 7 || got != want {
 		t.Errorf("animated: the spinner turned %t, drawn again %d times; the screen\n%s\nwant\n%s", turned, moved, got, want)
+	}
+
+	// An Enter typed while a step runs is echoed by the terminal, which
+	// stays in cooked mode, and moves the cursor down a line, so each
+	// redraw after it lands a line lower: the block's first line keeps
+	// the frame drawn last before it, and the steps and the result follow
+	// whole under it (DEV-049, a terminal limit).
+	echoed := new(buffer)
+	typing := waiting{Fixture: Fixture{Planned: createUserPlan}, wait: func() { _, _ = io.WriteString(echoed, "\n") }}
+	p = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&typist{lines: lines, echo: echoed}, false), Out: echoed}
+	if o, err := createUser(typing).Run(context.Background(), p); o != Applied || err != nil {
+		t.Fatalf("an Enter typed while a step ran: %d, %v", o, err)
+	}
+	got, want := strings.Split(screen(echoed.String()), "\n"), strings.Split(ansi.Strip(still), "\n")
+	first := slices.IndexFunc(want, func(l string) bool { return strings.HasSuffix(l, "Done: Create user george") })
+	if len(got) != len(want)+1 || first < 0 || !slices.Equal(got[:first], want[:first]) ||
+		!strings.HasSuffix(got[first], "Running: Create user george") || !slices.Equal(got[first+1:], want[first:]) {
+		t.Errorf("an Enter typed while a step ran: the screen\n%s\nwant\n%s\nwith a stale running line before the steps", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 
 	env.Height = 3
