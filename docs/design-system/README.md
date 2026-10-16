@@ -177,24 +177,24 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 79 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 82 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
 | `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Message.Info`, `KeyValue.Key`, `Breadcrumb.Current`, `Step.Running` |
-| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Prompt.Input`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
+| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Prompt.Input`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
 | `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Message.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
 | `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed` |
 | `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Mode.Live`, `Message.Warn`, `Message.Cancelled`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack` |
-| `status.unknown` | `Risk.Unknown`, `Status.Unknown` |
+| `status.unknown` | `ContextBar.Unknown`, `Host.Unknown`, `Risk.Unknown`, `Status.Unknown` |
 | `badge.fg`, `badge.bg` | `Badge` |
 | `bar.bg` (background) | `ContextBar.Fill`, `TitleBar.Fill`, `Section.Fill`; the `Header.Version` box above 16 colours only (DEV-005) |
 | `accent.ok` (background) | `Callout.OK.Bar` |
 | `accent.warn` (background) | `Callout.Warn.Bar`, `Callout.Cancelled.Bar` |
 | `divider` | `Divider`, `Section.Rule` |
 
-Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
+Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
 
 ## 5. Typography
 
@@ -231,6 +231,7 @@ That is 21 typography roles: 20 bold slots and one underlined. `TestTypography` 
 | `Ellipsis` | … | U+2026, A | 1 (2) | `...` | 3 | DEV-015 |
 | `Bar` | █ | U+2588, A | 1 (2) | `#` | 1 | DEV-015 |
 | `Rule` | ─ | U+2500, A | 1 (2) | `-` | 1 | DEV-015 |
+| `BadgeOpen`, `BadgeClose` | `[` `]` | U+005B, U+005D, Na | 1 each | `[` `]` | 1 each | DEV-019: a badge with no colour to paint it |
 
 - The status markers and the risk icon fit the three-cell marker column even when drawn two cells wide (`TestStatusMarkers`), and no two states share a marker.
 - `Bar` and `Rule` are drawn in runs, so in an ambiguous-wide terminal a 64-cell rule takes 128 cells and wraps at 80 columns (accepted in DEV-015). `term.Resolve` picks ASCII in zh, ja and ko locales; elsewhere `HARDN_ASCII=1` avoids it.
@@ -244,10 +245,11 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 |---|---|---|
 | `ContentWidth` | 64 | Figma's content box; a narrower terminal uses its own width |
 | `Indent` | 2 | Left indent of rows, headings and the prompt; bars and the header start at column 0 |
-| `MarkerCol`, `MarkerWidth` | 2, 3 | The marker column: a status glyph, or a menu key such as `10)`, right-aligned |
+| `MarkerCol`, `MarkerWidth` | 2, 3 | The marker column: a state glyph, centred (a one-cell glyph at column 3, DEV-020), or a menu key such as `10)`, right-aligned |
 | `LabelCol` | 6 | Where a row's label starts |
 | `LabelWidth` | 21 | The label column, including the gap before the value |
 | `ValueCol` | 27 | Where a row's value, state or description starts, on every screen |
+| `StackCol` | 6 | Where a stacked row's value starts, under the label (DEV-021) |
 | `SectionGap` | 1 | Blank lines between sections |
 | `PromptGap` | 1 | Blank lines before the prompt (drift D11) |
 

@@ -22,8 +22,10 @@ const (
 	// Indent is the left indent of rows, headings and the prompt. Bars and
 	// the header start at column 0.
 	Indent = 2
-	// MarkerCol and MarkerWidth place the marker column: a status glyph,
-	// or a menu key such as "10)", right-aligned.
+	// MarkerCol and MarkerWidth place the marker column: a state glyph,
+	// centred, so that a one-cell glyph sits at column 3 where its ASCII
+	// marker such as "[+]" fills columns 2 to 4 (DEV-020); or a menu key
+	// such as "10)", right-aligned.
 	MarkerCol   = Indent
 	MarkerWidth = 3
 	// LabelCol is where a row's label starts, one cell after the markers.
@@ -33,6 +35,9 @@ const (
 	LabelWidth = 21
 	// ValueCol is where a row's value, state or description starts.
 	ValueCol = LabelCol + LabelWidth
+	// StackCol is where a value starts in a stacked row, under the label
+	// (StackBelow, DEV-021).
+	StackCol = LabelCol
 	// SectionGap is the number of blank lines between sections.
 	SectionGap = 1
 	// PromptGap is the number of blank lines before the prompt (drift D11).
