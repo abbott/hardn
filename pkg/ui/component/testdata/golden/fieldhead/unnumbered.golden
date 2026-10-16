@@ -1,0 +1,243 @@
+# Golden file of TestGolden/fieldhead/unnumbered, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;192;196;216mSelect a user␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;30;34;48mSelect a user␛[m$
+   ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mgeorge␛[m$
+   ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48malice␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;251mSelect a user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;235mSelect a user␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mgeorge␛[m$
+   ␛[1;38;5;235m2)␛[m ␛[38;5;235malice␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[37mSelect a user␛[m$
+   ␛[1;37m1)␛[m ␛[37mgeorge␛[m$
+   ␛[1;37m2)␛[m ␛[37malice␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[30mSelect a user␛[m$
+   ␛[1;30m1)␛[m ␛[30mgeorge␛[m$
+   ␛[1;30m2)␛[m ␛[30malice␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  Select a user$
+   ␛[1m1)␛[m george$
+   ␛[1m2)␛[m alice$

@@ -102,6 +102,9 @@ var (
 	yesNo      = keys.YesNo(false)
 	yesDefault = keys.YesNo(true)
 	sshKey     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
+	// users are the options of Figma's "Select a user"
+	// (USER-MANAGE_USER-SELECT_USER), with george and alice.
+	users = []MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}}
 )
 
 // The plan group's fixtures: changes as the engine would plan them on
@@ -302,6 +305,19 @@ var states = []struct {
 	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
 	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
 	{"answeredfield/empty", AnsweredField{Answer: "george"}},
+	// The field heads' descriptions are origin/main's (pkg/menu
+	// user_options.go:84 and 99), and the long one its username rule (:39).
+	{"fieldhead/description", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}},
+	{"fieldhead/options", FieldHead{Number: 2, Title: "Select a user", Options: users}},
+	{"fieldhead/both", FieldHead{Number: 2, Title: "Select a user", Description: "Configure sudo, SSH keys", Options: users}},
+	{"fieldhead/unnumbered", FieldHead{Title: "Select a user", Options: users}},
+	{"fieldhead/title", FieldHead{Number: 4, Title: "Paste SSH public key"}},
+	{"fieldhead/long", FieldHead{
+		Number: 1, Title: "Select the user whose sudo method to change on web-01.example.net",
+		Description: "Username must start with a lowercase letter and contain only lowercase letters, numbers, hyphens, and underscores",
+		Options:     []MenuItem{{Key: "1", Label: "backup-replication-service", Description: "Sudo without password"}},
+	}},
+	{"fieldhead/empty", FieldHead{Description: "Specify username to create", Options: users}},
 	{"planview/normal", PlanView{Changes: []PlanChange{dnsChange, {Title: "Install apk-cron", Target: "apk-cron", Before: "not installed", After: "installed", Commands: []string{"apk add apk-cron"}}}}},
 	{"planview/lockout-risk", PlanView{Changes: []PlanChange{ufwChange, sshChange}}},
 	{"planview/dry-run", PlanView{Changes: []PlanChange{dnsChange}, DryRun: true}},
@@ -420,6 +436,8 @@ func empty(vm renderer) bool {
 		return v.Text == ""
 	case AnsweredField:
 		return v.Label == ""
+	case FieldHead:
+		return v.Title == ""
 	case PlanView:
 		return len(v.Changes) == 0
 	case StepProgress:
@@ -717,6 +735,17 @@ func TestLayout(t *testing.T) {
 			"  U...\n..."},
 		{"field: with no letter left, an unnumbered question is the ellipsis", AnsweredField{Label: "Username"}, 5, false, "..."},
 		{"field: a numbered question keeps its number", AnsweredField{Number: 1, Label: "Username"}, 6, false, "   1."},
+		{"field head: a title with no colon, the description under it", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}, 80, false,
+			"   1. Username\n      Specify username to create"},
+		{"field head: the options as a menu's rows", FieldHead{Number: 2, Title: "Select a user", Options: users}, 80, false,
+			"   2. Select a user\n   1) george\n   2) alice"},
+		{"field head: unnumbered at the indent", FieldHead{Title: "Select a user", Description: "Configure sudo, SSH keys"}, 80, false,
+			"  Select a user\n      Configure sudo, SSH keys"},
+		{"field head: a wide number pushes the title", FieldHead{Number: 12345, Title: "Username"}, 80, false, "12345. Username"},
+		{"field head: a long title is cut", FieldHead{Number: 1, Title: "Paste SSH public key"}, 16, false, "   1. Paste S..."},
+		{"field head: the description wraps under itself", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}, 20, false,
+			"   1. Username\n      Specify\n      username to\n      create"},
+		{"field head: no title is nothing", FieldHead{Description: "Specify username to create", Options: users}, 80, false, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -940,6 +969,10 @@ func TestBlockStyles(t *testing.T) {
 			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y/N]:", th.Field.Hint}, {"y", th.Field.Answer},
 		}},
 		{"field with no hint", AnsweredField{Label: "Username", Answer: "george"}, []part{{":", th.Field.Label}}},
+		{"field head", FieldHead{Number: 2, Title: "Select a user", Description: "Configure sudo, SSH keys", Options: users}, []part{
+			{"2.", th.Field.Number}, {"Select a user", th.Field.Label}, {"Configure sudo, SSH keys", th.Field.Description},
+			{"1)", th.Menu.Key}, {"george", th.Menu.Label},
+		}},
 	}
 	for _, tt := range tests {
 		got := tt.vm.Render(c)

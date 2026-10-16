@@ -121,6 +121,10 @@
 //     placed with spaces, as JoinHorizontal would pad them (join.go:88);
 //     AnsweredField shares PromptLine's question and hint. SectionHeader
 //     is laid out as a bar, its fill a rule.
+//   - FieldHead is a line of spans, then its description wrapped as a
+//     Message's text is (lipgloss.Wrap), then its options rendered by
+//     Menu, joined with line breaks: list is ruled out as for Menu, and no
+//     join or place helper is needed.
 //   - KeyValue and BulletList: list could draw the bullet as its
 //     enumerator from Glyphs, in place of its default • (list/list.go:
 //     50-54), and switch it for a state's marker per row with
