@@ -52,6 +52,7 @@
 | [P-26](#p-26) | Forms: back through the fields, the earlier answer and a free-text default | `next/p1c-form` | Every form; Phase 1C | S | Low | proposed |
 | [P-27](#p-27) | The canonical flow: back at the confirmation, an empty plan, the plan's heading, the steps' lines, a long hostname and a narrow terminal | `next/p1c-flow` | Every action; Phase 1C | S | Low | proposed |
 | [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | proposed |
+| [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed |
 
 ---
 
@@ -565,3 +566,19 @@
 - **Effort:** S for (a); M for (b) (a layout, a pause in `pkg/ui/nav`, goldens).
 - **Risk:** Low: display only.
 - **Screenshots:** Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only). After: `docs/refactor/img/p-28-after.png` (placeholder).
+
+<a id="p-29"></a>
+### P-29: Figma's words or origin/main's: the menu prompt and the User Management sub-menu
+
+- **Status:** proposed (each part is decided separately)
+- **Source:** `next/p1d-slice`, whose fixtures fill the layouts after Figma's frames while origin/main is the baseline for wording (refactor plan, decision 6). Related: [P-07](#p-07), [P-13](#p-13), [P-25](#p-25).
+- **Problem:**
+  - **(a) The menu prompt.** Every Figma menu frame, the brief's main-menu transcription and v0.3.2 ask "Enter your choice"; origin/main asks "Enter selection" on every menu since 607eafa (2025-03-22), `style.Menu`'s default prompt (pkg/style style.go:668), which the main menu never changes ([interaction.md](phase0/interaction.md) §8.2). The design system took Figma's words in `next/p1b-menu` and `next/p1c-form` (the `PromptLine` and `nav` examples, and `form.Select`'s prompt, the `choice` constant in `pkg/ui/form/field.go`) with no proposal behind them; on the main menu, the first screen users see, they would replace origin/main's words.
+  - **(b) The User Management sub-menu (01-USER).** Figma's words differ from origin/main's ([interaction.md](phase0/interaction.md) §9.1): the items "Manage User" and "Create User" against "Manage a user" and "Create a user", and "Configure sudo, SSH keys" against "Configure sudo, SSH Keys" (pkg/menu user_options.go:83-90); the section "User Configuration" against "Configuration" (user_menu.go:130); the sudo row "Enabled, No password" against "Enabled no password" (user_menu.go:220-230); and the prompt, as (a).
+- **Proposal:** the maintainer decides each, for every screen Phase 5 moves onto the layouts:
+  - (a) one prompt label for every menu and `form.Select`: Figma's "Enter your choice", as the components, `nav`, `form` and the `sub-menu/01-user` golden have it; or origin/main's "Enter selection", the baseline, as the main-menu fixture has it meanwhile (`main-menu/00-tui-main`).
+  - (b) Figma's words for the User Management sub-menu, as the 01-USER fixture and the `sub-menu/01-user` golden show the frame; or origin/main's, the baseline, which the real screen keeps until this is decided.
+  - Each is a string: the fixtures' prompt constants in `pkg/ui/screen/fixture.go`, `form`'s `choice`, and the screen's own item and section words, so changing one is a string and the goldens.
+- **Effort:** S.
+- **Risk:** Low (wording only; goldens are updated deliberately).
+- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png` (reference only). After: `docs/refactor/img/p-29-after.png` (placeholder); the `main-menu/00-tui-main` and `sub-menu/01-user` goldens show origin/main's and Figma's prompt meanwhile.

@@ -223,7 +223,7 @@ func TestCompactForm(t *testing.T) {
 
    0) Exit                 q to quit
 
-  > Enter your choice [0-10, b or q]:`
+  > Enter selection [0-10, b or q]:`
 	if out != want {
 		t.Errorf("compact main menu:\n%s\nwant\n%s", out, want)
 	}
@@ -276,7 +276,7 @@ func TestSubMenuFrames(t *testing.T) {
 			Header: fixtureHeader(), Breadcrumb: trail, Heading: "Select a user",
 			Menu: component.Menu{Items: []component.MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}},
 				Exit: component.MenuItem{Key: "0", Label: "Return"}},
-			Prompt: fixturePrompt,
+			Prompt: figmaPrompt,
 		}, head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
 		{"USER-MANAGE_USER-MANAGEMENT", SubMenu{
 			Header: fixtureHeader(), Breadcrumb: trail, Subject: component.SubjectLine{Label: "Managing", Subject: "george"},
@@ -285,7 +285,7 @@ func TestSubMenuFrames(t *testing.T) {
 				{Key: "1", Label: "Sudo Method", Description: "Toggle password requirement"},
 				{Key: "2", Label: "Manage SSH keys", Description: "Add or remove SSH keys"},
 			}, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-			Prompt: fixturePrompt,
+			Prompt: figmaPrompt,
 		}, head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
 			"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
 	}

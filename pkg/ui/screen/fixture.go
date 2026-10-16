@@ -7,13 +7,18 @@ import (
 	"github.com/abbott/hardn/pkg/ui/keys"
 )
 
-// The fixtures' shared words: the header's, and the prompt Figma's menus
-// end with.
+// The fixtures' shared words: the header's, the menu heading and the two
+// menu prompts, whose choice P-29 (a) puts to the maintainer.
 const (
 	fixtureVersion = "v0.4.0"
 	fixtureURL     = "https://github.com/abbott/hardn"
-	fixturePrompt  = "Enter your choice"
 	fixtureHeading = "Select an option"
+	// mainPrompt is origin/main's menu prompt (pkg/style style.go:668),
+	// the baseline for the main menu's words.
+	mainPrompt = "Enter selection"
+	// figmaPrompt is the prompt Figma's menu frames end with, kept where
+	// a fixture draws a sub-menu frame as Figma fills it.
+	figmaPrompt = "Enter your choice"
 )
 
 // fixtureHeader is the header every fixture opens with.
@@ -27,8 +32,8 @@ func fixtureHeader() component.Header {
 // live mode. The menu's items are origin/main's (pkg/menu main_menu.go),
 // the baseline: they differ from the PNG only in item 2, "Toggle SSH root
 // access" where Figma has "Toggle root SSH access" (P-07 (a), P-12). The
-// Exit item says "q to quit" (DEV-030), and the prompt keeps Figma's
-// "Enter your choice".
+// Exit item says "q to quit" (DEV-030), and the prompt is origin/main's
+// "Enter selection" where Figma's says "Enter your choice" (P-29 (a)).
 func MainMenuFixture() MainMenu {
 	configured := func(label, detail string) component.StatusRow {
 		return component.StatusRow{Label: label, State: component.StatusConfigured, Detail: detail}
@@ -60,14 +65,18 @@ func MainMenuFixture() MainMenu {
 			{Key: "9", Label: "System Details", Description: "View system information"},
 			{Key: "10", Label: "Logs", Description: "View log file"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}},
-		Prompt: fixturePrompt,
+		Prompt: mainPrompt,
 	}
 }
 
 // UserFixture returns the User Management sub-menu as Figma's 01-USER
 // fills it: the "Non-root" status row, the "User Configuration" section
 // for george, whose sudo needs no password, and Figma's two items. The
-// breadcrumb's current item is Figma's title bar, "User Management".
+// breadcrumb's current item is Figma's title bar, "User Management". Its
+// words are the frame's, where origin/main's differ: "Manage a user" and
+// "Create a user", "Configure sudo, SSH Keys", the section
+// "Configuration", "Enabled no password" and the prompt "Enter
+// selection" (P-29 (b)).
 func UserFixture() SubMenu {
 	return SubMenu{
 		Header:     fixtureHeader(),
@@ -90,7 +99,7 @@ func UserFixture() SubMenu {
 			{Key: "1", Label: "Manage User", Description: "Configure sudo, SSH keys"},
 			{Key: "2", Label: "Create User", Description: "Configure a new user"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt: fixturePrompt,
+		Prompt: figmaPrompt,
 	}
 }
 

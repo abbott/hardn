@@ -32,7 +32,7 @@ import (
 //
 //	   0) Exit                 q to quit
 //
-//	  > Enter your choice [0-10, b or q]:
+//	  > Enter selection [0-10, b or q]:
 //
 // The blocks follow Figma's order: Header, ContextBar, HostBlock,
 // RiskSummary, StatusList, Divider, the MenuHeading with the
@@ -69,7 +69,7 @@ type MainMenu struct {
 	// Menu is the numbered menu and its Exit item. Its Compact is set by
 	// the layout, from the terminal's height.
 	Menu component.Menu
-	// Prompt is the prompt's label, such as "Enter your choice".
+	// Prompt is the prompt's label, such as "Enter selection".
 	Prompt string
 }
 
