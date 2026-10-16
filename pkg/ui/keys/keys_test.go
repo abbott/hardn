@@ -52,6 +52,8 @@ func TestHint(t *testing.T) {
 		{"a question at a prompt", append(YesNo(false), Navigation()...), "y/N, b or q"},
 		{"a question's answers in order", Set{{Keys: []string{"n"}, Default: true}, {Keys: []string{"y"}}}, "N/y"},
 		{"an answer's first key", Set{{Keys: []string{"", "yes", "y"}, Default: true}, {Keys: []string{"no"}}}, "YES/no"},
+		{"only the first default", Set{{Keys: []string{"a"}, Default: true}, {Keys: []string{"b"}, Default: true}}, "A/b"},
+		{"a default with help is an answer", Set{{Keys: []string{"y"}, Help: "confirm", Default: true}, {Keys: []string{"n"}}}, "Y/n"},
 		{"only a question joins its answers", Set{{Keys: []string{"y", "yes"}}, {Keys: []string{"n"}}}, "y, yes or n"},
 		{"each key once", Set{quit, quit, {Keys: []string{"1", "1"}}}, "1 or q"},
 		{"a word", Set{{Keys: []string{"yes"}}, {Keys: []string{"no"}}}, "yes or no"},

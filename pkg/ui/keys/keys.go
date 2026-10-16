@@ -79,8 +79,9 @@ func YesNo(defaultYes bool) Set {
 // is a key in canonical decimal form; "01" or "+1" is kept as it is.
 //
 // A Set with a Default binding is a question. Its answers, the bindings
-// with no Help, come first as one term: the first key of each, in order,
-// joined by "/", the default's in capitals, as in "y/N". Their other
+// with no Help and the Default ones, come first as one term: the first
+// key of each, in order, joined by "/", the first default's in capitals,
+// as in "y/N"; only that default counts (Binding.Default). Their other
 // keys, such as "yes", are accepted (Match) but not shown, as the y/N
 // convention has it. The other bindings follow as above: "y/N, b or q".
 //
@@ -88,15 +89,16 @@ func YesNo(defaultYes bool) Set {
 func (s Set) Hint() string {
 	question := slices.ContainsFunc(s, func(b Binding) bool { return b.Default })
 	var answers, rest []string
+	capital := true // the first default is still to come
 	for _, b := range s {
-		if !question || b.Help != "" {
+		if !question || b.Help != "" && !b.Default {
 			rest = append(rest, b.Keys...)
 			continue
 		}
 		if i := slices.IndexFunc(b.Keys, func(k string) bool { return k != "" }); i >= 0 {
 			k := b.Keys[i]
-			if b.Default {
-				k = strings.ToUpper(k)
+			if b.Default && capital {
+				k, capital = strings.ToUpper(k), false
 			}
 			answers = append(answers, k)
 		}
