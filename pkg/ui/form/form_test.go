@@ -422,6 +422,10 @@ func TestFieldErrors(t *testing.T) {
 		name  string
 		field Field
 	}{
+		{"nil", nil},
+		{"a nil *Text", (*Text)(nil)},
+		{"a nil *YesNo", (*YesNo)(nil)},
+		{"a nil *Select", (*Select[string])(nil)},
 		{"no value", &Text{Title: "Username"}},
 		{"no title", &Text{Value: new(string)}},
 		{"a title that shows nothing", &YesNo{Title: "\x1b[0m", Value: new(bool)}},

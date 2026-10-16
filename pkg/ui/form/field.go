@@ -85,8 +85,14 @@ func (f *Text) resolve(line string) (string, error) {
 }
 
 func (f *Text) skipped() bool { return f.Skip != nil && f.Skip() }
-func (f *Text) save() error   { return save(f.Value, &f.before) }
 func (f *Text) restore()      { *f.Value = f.before }
+
+func (f *Text) save() error {
+	if f == nil {
+		return errNil
+	}
+	return save(f.Value, &f.before)
+}
 
 // YesNo is a y/N question (brief 1C), such as "Grant sudo privilege?".
 // It takes y or yes for true and n or no for false, in any case, and an
@@ -138,8 +144,14 @@ func (f *YesNo) resolve(line string) (string, error) {
 }
 
 func (f *YesNo) skipped() bool { return f.Skip != nil && f.Skip() }
-func (f *YesNo) save() error   { return save(f.Value, &f.before) }
 func (f *YesNo) restore()      { *f.Value = f.before }
+
+func (f *YesNo) save() error {
+	if f == nil {
+		return errNil
+	}
+	return save(f.Value, &f.before)
+}
 
 // choice is the label of a Select's prompt line, Figma's words for a
 // numbered choice ("Enter your choice", USER-MANAGE_USER-SELECT_USER and
@@ -229,8 +241,14 @@ func (f *Select[T]) resolve(line string) (string, error) {
 }
 
 func (f *Select[T]) skipped() bool { return f.Skip != nil && f.Skip() }
-func (f *Select[T]) save() error   { return save(f.Value, &f.before) }
 func (f *Select[T]) restore()      { *f.Value = f.before }
+
+func (f *Select[T]) save() error {
+	if f == nil {
+		return errNil
+	}
+	return save(f.Value, &f.before)
+}
 
 // pick returns fn's title when fn is set, else title.
 func pick(title string, fn func() string) string {

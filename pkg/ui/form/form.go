@@ -20,10 +20,14 @@ var (
 	// it as the reader reports it, so errors.Is tells prompt.ErrEndOfInput
 	// from prompt.ErrInterrupted too.
 	ErrAborted = prompt.ErrAborted
-	// ErrField reports a field that cannot be asked: one with no Value,
-	// with no title, or a Select with no options or an option with no
-	// label.
+	// ErrField reports a field that cannot be asked: a nil one, one with
+	// no Value, with no title, or a Select with no options or an option
+	// with no label.
 	ErrField = errors.New("form: field cannot be asked")
+
+	// errNil is why a nil field, or a nil *Text, *YesNo or *Select, cannot
+	// be asked.
+	errNil = errors.New("is nil")
 )
 
 // Form is fields asked one after another, in order (brief 1C, after huh's
@@ -45,7 +49,11 @@ type Form struct {
 // once.
 func (f Form) Run(p nav.Prompter) (err error) {
 	for i, field := range f.Fields {
-		if err := field.save(); err != nil {
+		err := errNil
+		if field != nil {
+			err = field.save()
+		}
+		if err != nil {
 			return fmt.Errorf("%w: field %d %v", ErrField, i+1, err)
 		}
 	}
