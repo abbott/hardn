@@ -2,7 +2,7 @@
 # One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
-=== truecolor-dark-unicode-60: width 60, profile TrueColor, dark, glyphs unicode
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -56,7 +56,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-dark-unicode-80: width 80, profile TrueColor, dark, glyphs unicode
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -110,7 +110,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-dark-unicode-120: width 120, profile TrueColor, dark, glyphs unicode
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -164,7 +164,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-dark-ascii-60: width 60, profile TrueColor, dark, glyphs ascii
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -218,7 +218,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-dark-ascii-80: width 80, profile TrueColor, dark, glyphs ascii
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -272,7 +272,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-dark-ascii-120: width 120, profile TrueColor, dark, glyphs ascii
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;192;196;216mtext.primary␛[m    ␛[48;2;192;196;216m      ␛[m$
   ␛[38;2;129;134;156mtext.muted␛[m      ␛[48;2;129;134;156m      ␛[m$
@@ -326,7 +326,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;129;134;156mSection.Title␛[m$
   ␛[1;38;2;192;196;216mTitleBar.Title␛[m$
 
-=== truecolor-light-unicode-60: width 60, profile TrueColor, light, glyphs unicode
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -380,7 +380,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== truecolor-light-unicode-80: width 80, profile TrueColor, light, glyphs unicode
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -434,7 +434,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== truecolor-light-unicode-120: width 120, profile TrueColor, light, glyphs unicode
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -488,7 +488,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== truecolor-light-ascii-60: width 60, profile TrueColor, light, glyphs ascii
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -542,7 +542,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== truecolor-light-ascii-80: width 80, profile TrueColor, light, glyphs ascii
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -596,7 +596,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== truecolor-light-ascii-120: width 120, profile TrueColor, light, glyphs ascii
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;2;30;34;48mtext.primary␛[m    ␛[48;2;30;34;48m      ␛[m$
   ␛[38;2;87;92;110mtext.muted␛[m      ␛[48;2;87;92;110m      ␛[m$
@@ -650,7 +650,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;2;87;92;110mSection.Title␛[m$
   ␛[1;38;2;30;34;48mTitleBar.Title␛[m$
 
-=== 256-dark-unicode-60: width 60, profile ANSI256, dark, glyphs unicode
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -704,7 +704,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-dark-unicode-80: width 80, profile ANSI256, dark, glyphs unicode
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -758,7 +758,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-dark-unicode-120: width 120, profile ANSI256, dark, glyphs unicode
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -812,7 +812,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-dark-ascii-60: width 60, profile ANSI256, dark, glyphs ascii
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -866,7 +866,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-dark-ascii-80: width 80, profile ANSI256, dark, glyphs ascii
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -920,7 +920,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-dark-ascii-120: width 120, profile ANSI256, dark, glyphs ascii
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
   ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
@@ -974,7 +974,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;103mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
-=== 256-light-unicode-60: width 60, profile ANSI256, light, glyphs unicode
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1028,7 +1028,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 256-light-unicode-80: width 80, profile ANSI256, light, glyphs unicode
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1082,7 +1082,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 256-light-unicode-120: width 120, profile ANSI256, light, glyphs unicode
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1136,7 +1136,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 256-light-ascii-60: width 60, profile ANSI256, light, glyphs ascii
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1190,7 +1190,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 256-light-ascii-80: width 80, profile ANSI256, light, glyphs ascii
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1244,7 +1244,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 256-light-ascii-120: width 120, profile ANSI256, light, glyphs ascii
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
@@ -1298,7 +1298,7 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;59mSection.Title␛[m$
   ␛[1;38;5;235mTitleBar.Title␛[m$
 
-=== 16-dark-unicode-60: width 60, profile ANSI, dark, glyphs unicode
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1352,7 +1352,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-dark-unicode-80: width 80, profile ANSI, dark, glyphs unicode
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1406,7 +1406,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-dark-unicode-120: width 120, profile ANSI, dark, glyphs unicode
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1460,7 +1460,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-dark-ascii-60: width 60, profile ANSI, dark, glyphs ascii
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1514,7 +1514,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-dark-ascii-80: width 80, profile ANSI, dark, glyphs ascii
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1568,7 +1568,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-dark-ascii-120: width 120, profile ANSI, dark, glyphs ascii
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[37mtext.primary␛[m    ␛[47m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1622,7 +1622,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;37mTitleBar.Title␛[m$
 
-=== 16-light-unicode-60: width 60, profile ANSI, light, glyphs unicode
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1676,7 +1676,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== 16-light-unicode-80: width 80, profile ANSI, light, glyphs unicode
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1730,7 +1730,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== 16-light-unicode-120: width 120, profile ANSI, light, glyphs unicode
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1784,7 +1784,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== 16-light-ascii-60: width 60, profile ANSI, light, glyphs ascii
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1838,7 +1838,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== 16-light-ascii-80: width 80, profile ANSI, light, glyphs ascii
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1892,7 +1892,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== 16-light-ascii-120: width 120, profile ANSI, light, glyphs ascii
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[30mtext.primary␛[m    ␛[40m      ␛[m$
   ␛[90mtext.muted␛[m      ␛[100m      ␛[m$
@@ -1946,7 +1946,7 @@ Typography: the slots that set bold or underline$
   ␛[1;90mSection.Title␛[m$
   ␛[1;30mTitleBar.Title␛[m$
 
-=== none-dark-unicode-60: width 60, profile Ascii, dark, glyphs unicode
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2000,7 +2000,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-dark-unicode-80: width 80, profile Ascii, dark, glyphs unicode
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2054,7 +2054,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-dark-unicode-120: width 120, profile Ascii, dark, glyphs unicode
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2108,7 +2108,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-dark-ascii-60: width 60, profile Ascii, dark, glyphs ascii
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2162,7 +2162,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-dark-ascii-80: width 80, profile Ascii, dark, glyphs ascii
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2216,7 +2216,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-dark-ascii-120: width 120, profile Ascii, dark, glyphs ascii
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2270,7 +2270,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-unicode-60: width 60, profile Ascii, light, glyphs unicode
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2324,7 +2324,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-unicode-80: width 80, profile Ascii, light, glyphs unicode
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2378,7 +2378,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-unicode-120: width 120, profile Ascii, light, glyphs unicode
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2432,7 +2432,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-ascii-60: width 60, profile Ascii, light, glyphs ascii
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2486,7 +2486,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-ascii-80: width 80, profile Ascii, light, glyphs ascii
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $
@@ -2540,7 +2540,7 @@ Typography: the slots that set bold or underline$
   ␛[1mSection.Title␛[m$
   ␛[1mTitleBar.Title␛[m$
 
-=== none-light-ascii-120: width 120, profile Ascii, light, glyphs ascii
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
 Tokens: the name in its colour, then as a background$
   text.primary          $
   text.muted            $

@@ -162,6 +162,49 @@ func TestOverflows(t *testing.T) {
 	}
 }
 
+// TestHeader shows that a section header describes the whole Env: each
+// case changes one field of a Full or plain cell, and no two headers match.
+func TestHeader(t *testing.T) {
+	full := term.Fixed(80, colorprofile.TrueColor, true, true)
+	plain := term.Fixed(80, colorprofile.NoTTY, false, true)
+	with := func(e term.Env, set func(*term.Env)) term.Env {
+		set(&e)
+		return e
+	}
+	tests := []struct {
+		env  term.Env
+		want string // after "=== x: width 80, "
+	}{
+		{full, "height 24, profile truecolor, dark, glyphs unicode"},
+		{plain, "height 24, profile notty, dark, glyphs ascii, plain"},
+		{term.Fixed(80, colorprofile.ANSI256, true, true), "height 24, profile 256, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.ANSI, true, true), "height 24, profile 16, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.ASCII, true, true), "height 24, profile none, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.TrueColor, false, false), "height 24, profile truecolor, light, glyphs ascii"},
+		{with(full, func(e *term.Env) { e.Height = 40 }), "height 40, profile truecolor, dark, glyphs unicode"},
+		{with(full, func(e *term.Env) { e.TTY = false }), "height 24, profile truecolor, dark, glyphs unicode, output is not a tty"},
+		{with(full, func(e *term.Env) { e.InputTTY = false }), "height 24, profile truecolor, dark, glyphs unicode, input is not a tty"},
+		{with(full, func(e *term.Env) { e.Animate = true }), "height 24, profile truecolor, dark, glyphs unicode, animated"},
+		{with(full, func(e *term.Env) { e.Theme = term.ThemeAuto }), "height 24, profile truecolor, dark, glyphs unicode, theme auto"},
+		{with(full, func(e *term.Env) { e.Plain = true }), "height 24, profile truecolor, dark, glyphs unicode, plain"},
+		{with(plain, func(e *term.Env) { e.Plain = false }), "height 24, profile notty, dark, glyphs ascii, not plain"},
+		{with(plain, func(e *term.Env) { e.TTY = true }), "height 24, profile notty, dark, glyphs ascii, plain, output is a tty"},
+		{with(plain, func(e *term.Env) { e.Unicode = true }), "height 24, profile notty, dark, glyphs unicode, plain"},
+		{with(full, func(e *term.Env) { e.Profile = colorprofile.Unknown }), "height 24, profile unknown (0), dark, glyphs unicode, not plain, output is a tty, input is a tty"},
+	}
+	seen := map[string]bool{}
+	for _, tt := range tests {
+		got := header(Cell{"x", tt.env})
+		if want := "=== x: width 80, " + tt.want; got != want {
+			t.Errorf("%+v:\n got %q\nwant %q", tt.env, got, want)
+		}
+		if seen[got] {
+			t.Errorf("%+v: header %q is shared with another Env", tt.env, got)
+		}
+		seen[got] = true
+	}
+}
+
 // goldenFile builds a golden file of cells a, b and c, with outputs from
 // out.
 func goldenFile(out map[string]string, names ...string) string {

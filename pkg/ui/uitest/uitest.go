@@ -12,8 +12,13 @@
 // calling test's package directory. After a short header, the file holds
 // one section per cell, in the order of cells:
 //
-//	=== truecolor-dark-unicode-80: width 80, profile TrueColor, dark, glyphs unicode
+//	=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 //	  ␛[38;2;192;196;216mtext.primary␛[m$
+//
+// The words after the cell's name describe its whole Env: the size,
+// profile, background and glyph set, plain mode when on, and any other
+// field that differs from what term.Fixed would set, such as "input is not
+// a tty". A name therefore cannot misdescribe its cell.
 //
 // A section holds what the terminal would receive: render's string written
 // through the cell's Env.Writer, which downsamples it to the cell's fixed
@@ -299,13 +304,63 @@ func notate(out string) []string {
 	return lines
 }
 
+// header returns the "=== " line of c's section. It describes every field
+// of c.Env, so two different Envs never share a description, whatever their
+// cells are named. The size, profile, background and glyph set are always
+// shown, and plain mode when it is on. The fields term.Fixed derives from
+// those (TTY, InputTTY, Animate, Theme and Plain) are shown where they
+// differ from what Fixed would set, as for a hand-built Env.
 func header(c Cell) string {
-	bg, glyphs := axisNames(c.Env.Dark, c.Env.Unicode)
-	h := fmt.Sprintf("%s%s: width %d, profile %v, %s, glyphs %s", sectionPrefix, c.Name, c.Env.Width, c.Env.Profile, bg, glyphs)
-	if c.Env.Plain {
-		h += ", plain"
+	e := c.Env
+	bg, glyphs := axisNames(e.Dark, e.Unicode)
+	h := fmt.Sprintf("%s%s: width %d, height %d, profile %s, %s, glyphs %s",
+		sectionPrefix, c.Name, e.Width, e.Height, profileName(e.Profile), bg, glyphs)
+	fixed := term.Fixed(e.Width, e.Profile, e.Unicode, e.Dark)
+	if e.Plain || fixed.Plain {
+		h += ", " + choose(e.Plain, "plain", "not plain")
+	}
+	for _, f := range []struct {
+		got, fixed bool
+		on, off    string
+	}{
+		{e.TTY, fixed.TTY, "output is a tty", "output is not a tty"},
+		{e.InputTTY, fixed.InputTTY, "input is a tty", "input is not a tty"},
+		{e.Animate, fixed.Animate, "animated", "not animated"},
+	} {
+		if f.got != f.fixed {
+			h += ", " + choose(f.got, f.on, f.off)
+		}
+	}
+	if e.Theme != fixed.Theme {
+		h += ", theme " + e.Theme.String()
 	}
 	return h
+}
+
+// choose returns on when b is true and off otherwise.
+func choose(b bool, on, off string) string {
+	if b {
+		return on
+	}
+	return off
+}
+
+// profileName returns the word for p in section headers: Full's colour
+// names, "notty" (no escape sequences at all) and "unknown". These words
+// belong to uitest. Profile.String's belong to colorprofile, which has
+// renamed its Ascii constant to ASCII while String still returns "Ascii"
+// (profile.go:18-41 in v0.4.3); finishing that rename would otherwise
+// rewrite every golden file.
+func profileName(p colorprofile.Profile) string {
+	for _, c := range colours {
+		if c.profile == p {
+			return c.name
+		}
+	}
+	if p == colorprofile.NoTTY {
+		return "notty"
+	}
+	return fmt.Sprintf("unknown (%d)", int(p))
 }
 
 // sectionPrefix starts a section's header line. Output lines always end
