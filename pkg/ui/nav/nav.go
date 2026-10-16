@@ -30,11 +30,14 @@ var (
 )
 
 // The words written under a prompt that refused a line (proposal P-25).
-// The first is origin/main's (pkg/menu main_menu.go:540); the others are
-// new.
+// InvalidOption is origin/main's (pkg/menu main_menu.go:540); the others
+// are new. The two exported ones are for prompts asked with Ask, such as
+// a form's (pkg/ui/form): InvalidOption for a line that chooses none of
+// a numbered list's items, InvalidAnswer for any other line a question
+// does not take.
 const (
-	invalidOption = "Invalid option. Please try again."
-	invalidAnswer = "Invalid answer. Please try again."
+	InvalidOption = "Invalid option. Please try again."
+	InvalidAnswer = "Invalid answer. Please try again."
 	unavailable   = "%s is unavailable."
 	noMatch       = "That does not match exactly. Please try again."
 )
@@ -92,11 +95,11 @@ func Navigate(line string) error {
 // text (pkg/menu input.go), possibly empty; or ErrBack or ErrQuit for 0,
 // b or q (Navigate), so a value can never be 0, b or q (P-25 (a)). The
 // hint, "0, b or q" (keys.Navigation), shows where that rule applies.
-// Text checks nothing else: a form (next/p1c-form) validates the value
-// and asks again.
+// Text checks nothing else: a form (pkg/ui/form) asks its own text
+// fields with Ask, and refuses there a value its validation rejects.
 func (p Prompter) Text(q Question) (string, error) {
 	var value string
-	err := p.ask(q.render(p.Ctx, keys.Navigation()), invalidAnswer, func(line string) error {
+	err := p.Ask(q.render(p.Ctx, keys.Navigation()), InvalidAnswer, func(line string) error {
 		value = strings.TrimSpace(line)
 		return Navigate(line)
 	})
@@ -115,13 +118,13 @@ func (p Prompter) Text(q Question) (string, error) {
 func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 	answers := keys.YesNo(defaultYes)
 	var yes bool
-	err := p.ask(q.render(p.Ctx, append(answers, keys.Navigation()...)), invalidAnswer, func(line string) error {
+	err := p.Ask(q.render(p.Ctx, append(answers, keys.Navigation()...)), InvalidAnswer, func(line string) error {
 		if err := Navigate(line); err != nil {
 			return err
 		}
 		i, ok := answers.Match(line)
 		if !ok {
-			return refused(invalidAnswer)
+			return refused(InvalidAnswer)
 		}
 		yes = i == 0 // YesNo lists yes first
 		return nil
@@ -159,7 +162,7 @@ func (p Prompter) Typed(q Question, phrase string) error {
 	if question != "" && !shows(question, q.Number, "["+accepts.Hint()+"]:") {
 		return fmt.Errorf("%w: %q does not show whole beside the question at %d columns", ErrPhrase, phrase, p.Ctx.Env.Width)
 	}
-	return p.ask(question, noMatch, func(line string) error {
+	return p.Ask(question, noMatch, func(line string) error {
 		if err := Navigate(line); err != nil {
 			return err
 		}
@@ -217,21 +220,35 @@ func CheckPhrase(phrase string) error {
 	return nil
 }
 
-// refused is a line a prompt does not accept, and why: ask writes the
+// refused is a line a prompt does not accept, and why: Ask writes the
 // reason under the prompt and asks again.
 type refused string
 
 func (r refused) Error() string { return string(r) }
 
-// ask writes question and reads lines until resolve accepts one. resolve
-// returns nil to accept the line; ErrBack or ErrQuit to navigate; or a
-// refused reason, which ask writes under the prompt as an error Message
-// before it asks again, leaving the screen above as it is. A line longer
-// than prompt.MaxLine is refused for the reason tooLong. Any other error,
-// from resolve or from the reader, is returned: the end of the input and
-// Ctrl-C (prompt.ErrAborted) abort, and never go back. An empty
-// question, as a Question with no label renders, is an error.
-func (p Prompter) ask(question, tooLong string, resolve func(line string) error) error {
+// Refuse returns the error with which a resolve function passed to Ask
+// refuses a line: Ask writes reason under the prompt as an error Message
+// and asks again. A form refuses so a value its field's validation
+// rejects, with the validation's words.
+func Refuse(reason string) error { return refused(reason) }
+
+// Ask writes question, a prompt rendered by the caller, and reads lines
+// until resolve accepts one; every prompt of the grammar asks so, and a
+// form (pkg/ui/form) asks its fields so. The question is an AnsweredField
+// with no answer or a PromptLine, its hint generated from what resolve
+// accepts, ending with keys.Navigation's inputs, which resolve hands to
+// Navigate first.
+//
+// resolve returns nil to accept the line; ErrBack or ErrQuit to navigate;
+// or a reason from Refuse, which Ask writes under the prompt as an error
+// Message before it writes question again, leaving the screen above as it
+// is (brief 1C: re-ask only that field, keeping context). A line longer
+// than prompt.MaxLine is refused for the reason invalid, and so is a line
+// refused for a reason that shows nothing. Any other error, from resolve
+// or from the reader, is returned: the end of the input and Ctrl-C
+// (prompt.ErrAborted) abort, and never go back. An empty question, as a
+// Question with no label renders, is an error.
+func (p Prompter) Ask(question, invalid string, resolve func(line string) error) error {
 	if question == "" {
 		return errors.New("nav: the question has no label")
 	}
@@ -240,7 +257,7 @@ func (p Prompter) ask(question, tooLong string, resolve func(line string) error)
 		var why refused
 		switch {
 		case errors.Is(err, prompt.ErrLineTooLong):
-			why = refused(tooLong)
+			why = refused(invalid)
 		case err != nil:
 			return err
 		default:
@@ -249,6 +266,9 @@ func (p Prompter) ask(question, tooLong string, resolve func(line string) error)
 			}
 		}
 		msg := component.Message{Kind: component.MessageBad, Text: string(why)}.Render(p.Ctx)
+		if msg == "" {
+			msg = component.Message{Kind: component.MessageBad, Text: invalid}.Render(p.Ctx)
+		}
 		if _, err := io.WriteString(p.Out, msg+"\n"); err != nil {
 			return fmt.Errorf("nav: write: %w", err)
 		}

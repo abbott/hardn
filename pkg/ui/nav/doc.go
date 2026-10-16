@@ -51,6 +51,11 @@
 // confirmation says the line does not match exactly, and the prompt under
 // it shows the phrase whole (Typed).
 //
+// Prompter.Ask is that loop. Other packages ask with it too: a form
+// (pkg/ui/form) asks each field with it, hands each line to Navigate
+// first, and refuses a value its validation rejects with Refuse, so a
+// validation error shows under the prompt as every refused line does.
+//
 // # Aborting
 //
 // The end of the input and Ctrl-C are returned as the reader reports them
