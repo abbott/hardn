@@ -293,10 +293,32 @@ func TestAsk(t *testing.T) {
 		if _, err := r.Ask(failing{}, p); err == nil {
 			t.Fatal("Ask() succeeded on a failed write")
 		}
+		if r.Asked() {
+			t.Error("Asked() = true after a failed write")
+		}
 		if line, err := r.ReadLine(); line != "q" || err != nil {
 			t.Errorf("the answer was read: next ReadLine() = %q, %v", line, err)
 		}
 	})
+}
+
+// TestAsked checks that a Reader reports a prompt once Ask has written
+// one, whatever the answer, and not before.
+func TestAsked(t *testing.T) {
+	for _, in := range []string{"q\n", "", strings.Repeat("x", MaxLine+1)} {
+		r := New(strings.NewReader(in), false)
+		if r.Asked() {
+			t.Errorf("%.8q: Asked() = true before Ask", in)
+		}
+		if _, err := r.ReadLine(); r.Asked() {
+			t.Errorf("%.8q: Asked() = true after ReadLine (%v)", in, err)
+		}
+		r = New(strings.NewReader(in), false)
+		_, err := r.Ask(io.Discard, mainPrompt())
+		if !r.Asked() {
+			t.Errorf("%.8q: Asked() = false after Ask (%v)", in, err)
+		}
+	}
 }
 
 func TestFlush(t *testing.T) {
