@@ -54,8 +54,10 @@ func (vm SectionHeader) Render(c Ctx) string {
 // with the ellipsis glyph, so the screen's own name goes last. Empty items
 // are skipped, and with none it renders as the empty string.
 //
-// Figma's sub-screens show a TitleBar and no breadcrumb; proposal P-08
-// decides which the sub-menu layout uses, so no screen uses Breadcrumb yet.
+// Figma's sub-screens show a TitleBar and no breadcrumb. The sub-menu and
+// workflow-step layouts (pkg/ui/screen) open with the Header and a
+// Breadcrumb, as brief 1B has them, while proposal P-08 asks which they
+// use.
 type Breadcrumb struct {
 	// Items are the screens from the main menu to the current one, such as
 	// "hardn", "Firewall".

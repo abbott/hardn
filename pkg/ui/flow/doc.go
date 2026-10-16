@@ -14,8 +14,9 @@
 //     checklist under it; then the answers, summed up as Figma sums up a
 //     new user: a SectionHeader, such as "User Configuration", over a
 //     BulletList of key-value rows. What a workflow screen draws above
-//     the flow, its title bar and a subject line such as "Managing sudo
-//     method for: george", is the screen's (next/p1d-slice).
+//     the flow, its header and breadcrumb and a subject line such as
+//     "Managing sudo method for: george", is the screen's
+//     (screen.WorkflowStep in pkg/ui/screen).
 //  3. Plan: the Engine plans, and the plan is shown as a PlanView. In
 //     dry-run mode the flow stops here, the PlanView's footer saying that
 //     nothing was changed. A plan with no changes says that nothing needs
