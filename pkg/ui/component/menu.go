@@ -61,7 +61,7 @@ func (vm MenuHeading) Render(c Ctx) string {
 
 // MenuItem is one numbered choice of a Menu, as plain data: what the user
 // types to choose it and what it says. What choosing it does is bound to
-// the item elsewhere (next/p1c-nav), never here.
+// the item elsewhere (pkg/ui/nav's Option), never here.
 type MenuItem struct {
 	// Key is what the user types to choose the item, such as "1" or "10";
 	// it shows as "1)". Empty shows none, and the item is not accepted.
@@ -119,9 +119,9 @@ type MenuItem struct {
 // names the choice; text wider than the content is cut with the ellipsis
 // glyph.
 //
-// The view-model holds no actions: next/p1c-nav binds each key to what it
-// does. Bindings gives the keys the menu accepts, from which a PromptLine
-// generates its hint. A menu with no items and no exit renders as the
+// The view-model holds no actions: pkg/ui/nav binds each item to what it
+// does (nav.Menu). Bindings gives the keys the menu accepts, from which a
+// PromptLine generates its hint. A menu with no items and no exit renders as the
 // empty string.
 type Menu struct {
 	// Items are the numbered choices, in order.

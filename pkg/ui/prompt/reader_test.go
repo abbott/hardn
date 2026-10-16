@@ -250,8 +250,7 @@ func (failing) Write([]byte) (int, error) { return 0, errors.New("closed") }
 
 // mainPrompt is Figma's main-menu prompt, rendered as a screen would.
 func mainPrompt() string {
-	quit := keys.Binding{Keys: []string{"q"}, Help: "quit"}
-	accepts := keys.Set{{Keys: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}}, quit}
+	accepts := keys.Set{{Keys: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}}, keys.Quit()}
 	env := term.Fixed(80, colorprofile.TrueColor, true, true)
 	return component.PromptLine{Label: "Enter your choice", Accepts: accepts}.Render(component.NewCtx(env))
 }

@@ -60,9 +60,10 @@ func Quit() Binding { return Binding{Keys: []string{"q"}, Help: "quit"} }
 // answers, Back and Quit, which a hint shows as "b or q".
 func Navigation() Set { return Set{Back(), Quit()} }
 
-// YesNo returns the answers of a y/N question: y or yes, and n or no. The
-// default, n unless defaultYes is set, is what an empty line selects, and
-// the hint shows it in capitals: "y/N", or "Y/n" with defaultYes.
+// YesNo returns the answers of a y/N question, in this order: y or yes,
+// then n or no. The default, n unless defaultYes is set, is what an empty
+// line selects, and the hint shows it in capitals: "y/N", or "Y/n" with
+// defaultYes.
 func YesNo(defaultYes bool) Set {
 	return Set{
 		{Keys: []string{"y", "yes"}, Default: defaultYes},
