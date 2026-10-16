@@ -36,7 +36,8 @@
 //   - States. Each component documents and tests the states that apply to
 //     it: normal, empty, unknown, not applicable and error. A value hardn
 //     could not read shows the word "Unknown" in status.unknown, origin/main's
-//     word for an address it could not read.
+//     word for an address it could not read. A list with no items renders
+//     as the empty string, so the caller leaves out the block and its gap.
 //   - Goldens. Each state renders on uitest.Full() into
 //     testdata/golden/<component>/<state>.golden.
 //
@@ -61,5 +62,15 @@
 //     and joins the cells with JoinHorizontal (table.go:534), so each value
 //     shorter than the last column leaves trailing spaces. columns places
 //     values with spaces up to the grid column instead.
-//   - tree is not used: nothing in this group nests.
+//   - tree is not used: nothing in the header or status groups nests.
+//   - StatusList: list could draw each row's glyph as its enumerator,
+//     styled per row with EnumeratorStyleFunc (list/list.go:143), but the
+//     tree renderer pads every enumerator on the left to the widest
+//     sibling's (tree/renderer.go:100-103), where the marker column centres
+//     it (DEV-020), and each item would still need the label and value
+//     columns, the stacking and the cut. table is ruled out as for
+//     HostBlock, and its own cut is a fixed "…" (table/table.go:567), not
+//     Glyphs.Ellipsis. Each row is placed with columns instead.
+//   - Divider and ModeIndicator are one run of text each; no helper
+//     applies.
 package component

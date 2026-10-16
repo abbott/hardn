@@ -1,0 +1,163 @@
+# Golden file of TestGolden/statusrow/long-detail, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also allowed for alice a…␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also al…␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also al…␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also allowed for alice...␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also...␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth also...␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mSSH Auth␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also allowed for alice a…␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also al…␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also al…␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mSSH Auth␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also allowed for alice...␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also...␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mpassword auth also...␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSSH Auth␛[m$
+      ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also allowed for alice a…␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSSH Auth␛[m             ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also al…␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSSH Auth␛[m             ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also al…␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSSH Auth␛[m$
+      ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also allowed for alice...␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSSH Auth␛[m             ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also...␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSSH Auth␛[m             ␛[38;5;204mNot Configured␛[m ␛[38;5;59mpassword auth also...␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also allowed for alice a…␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also al…␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also al…␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also allowed for alice...␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also...␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also...␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mSSH Auth␛[m$
+      ␛[91mNot Configured␛[m ␛[90mpassword auth also allowed for alice a…␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mSSH Auth␛[m             ␛[91mNot Configured␛[m ␛[90mpassword auth also al…␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mSSH Auth␛[m             ␛[91mNot Configured␛[m ␛[90mpassword auth also al…␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mSSH Auth␛[m$
+      ␛[91mNot Configured␛[m ␛[90mpassword auth also allowed for alice...␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mSSH Auth␛[m             ␛[91mNot Configured␛[m ␛[90mpassword auth also...␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mSSH Auth␛[m             ␛[91mNot Configured␛[m ␛[90mpassword auth also...␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mSSH Auth␛[m$
+      ␛[31mNot Configured␛[m ␛[90mpassword auth also allowed for alice a…␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mSSH Auth␛[m             ␛[31mNot Configured␛[m ␛[90mpassword auth also al…␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mSSH Auth␛[m             ␛[31mNot Configured␛[m ␛[90mpassword auth also al…␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mSSH Auth␛[m$
+      ␛[31mNot Configured␛[m ␛[90mpassword auth also allowed for alice...␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mSSH Auth␛[m             ␛[31mNot Configured␛[m ␛[90mpassword auth also...␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mSSH Auth␛[m             ␛[31mNot Configured␛[m ␛[90mpassword auth also...␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ⭘  SSH Auth$
+      Not Configured password auth also allowed for alice a…$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ⭘  SSH Auth             Not Configured password auth also al…$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ⭘  SSH Auth             Not Configured password auth also al…$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  [ ] SSH Auth$
+      Not Configured password auth also allowed for alice...$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  [ ] SSH Auth             Not Configured password auth also...$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  [ ] SSH Auth             Not Configured password auth also...$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ⭘  SSH Auth$
+      Not Configured password auth also allowed for alice a…$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ⭘  SSH Auth             Not Configured password auth also al…$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ⭘  SSH Auth             Not Configured password auth also al…$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  [ ] SSH Auth$
+      Not Configured password auth also allowed for alice...$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  [ ] SSH Auth             Not Configured password auth also...$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  [ ] SSH Auth             Not Configured password auth also...$
