@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/application"
-	"github.com/shirou/gopsutil/v3/cpu"  // Still needed for detailed CPU info
-	"github.com/shirou/gopsutil/v3/disk" // Still needed for ZFS support
-	"github.com/shirou/gopsutil/v3/load" // Still needed for load averages
+	"github.com/shirou/gopsutil/v4/cpu"  // Still needed for detailed CPU info
+	"github.com/shirou/gopsutil/v4/disk" // Still needed for ZFS support
+	"github.com/shirou/gopsutil/v4/load" // Still needed for load averages
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
