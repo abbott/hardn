@@ -35,12 +35,18 @@ import (
 // Theme holds the glyph set and a named style for every component and
 // state, grouped by component. Build it with New.
 //
-// Not here yet, because their components come later: form fields and
-// inline validation errors (next/p1c-form), ErrorReport and the confirm
-// countdown (next/p1b-plan), and the glyphs of PlanView and StepProgress
-// (next/p1b-plan). SubjectLine and BulletList compose Text, Badge and
-// KeyValue.Bullet. The cursor has no slot: the terminal draws its own
-// (candidate C8).
+// Not here yet, because their components come later, by unit:
+//   - next/p1b-header: the RiskSummary factors.
+//   - next/p1b-menu: the marker of a risky menu item (the Menu VM's risk
+//     field; proposal P-02 is related).
+//   - next/p1b-blocks: Callout.Bad and Callout.Info, which need accent.bad
+//     and accent.info tokens; a glyph for each Message kind; AnsweredField.
+//   - next/p1b-plan: ErrorReport, the confirm countdown, and the glyphs of
+//     PlanView and StepProgress.
+//   - next/p1c-form: form fields and inline validation errors.
+//
+// SubjectLine and BulletList compose Text, Badge and KeyValue.Bullet. The
+// cursor has no slot: the terminal draws its own (candidate C8).
 type Theme struct {
 	Glyphs Glyphs
 
@@ -152,8 +158,9 @@ type PromptStyles struct {
 	Input lipgloss.Style // the echoed answer (drift D4)
 }
 
-// MessageStyles style one-line messages: a bold word for the kind, with its
-// glyph, then the text.
+// MessageStyles style one-line messages: a bold word for the kind, then the
+// text. A kind's style also colours its glyph, which Glyphs gains with the
+// Message component (next/p1b-blocks).
 type MessageStyles struct {
 	OK        lipgloss.Style
 	Warn      lipgloss.Style

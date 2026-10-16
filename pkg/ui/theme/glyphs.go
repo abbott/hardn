@@ -2,15 +2,21 @@ package theme
 
 // Glyphs is one glyph set, named by role. New picks unicodeGlyphs or
 // asciiGlyphs from term.Env.Unicode, which is false for TERM=linux or dumb,
-// a non-UTF-8 or CJK locale, --ascii, HARDN_ASCII and plain mode.
+// a non-UTF-8 or CJK locale, HARDN_ASCII, term.Options.ASCII (the future
+// --ascii, §3.14) and plain mode.
 //
 // The status markers sit in the three-cell marker column (MarkerCol,
 // MarkerWidth), so an ASCII marker such as "[+]" fits it exactly.
 //
 // East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ ≈ … █ ─.
-// Lip Gloss measures each as one cell, so a terminal that draws ambiguous
-// characters two cells wide shifts the rest of their line. term.Resolve
-// already picks the ASCII set in a zh, ja or ko locale for that reason.
+// Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
+// characters two cells wide draws each as two. A single glyph then shifts
+// the rest of its line by one cell. Bar and Rule are drawn in runs, so a run
+// doubles in width: a 64-cell rule takes 128 cells and wraps at 80 columns.
+// term.Resolve picks the ASCII set in a zh, ja or ko locale for that reason,
+// but cannot see an ambiguous-wide terminal under another UTF-8 locale, such
+// as an SSH session to a server set to C.UTF-8; HARDN_ASCII=1 avoids it
+// there. DEV-015 accepts this cost for Bar and Rule.
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
