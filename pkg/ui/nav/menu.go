@@ -60,20 +60,20 @@ func (m Menu) Accepts() keys.Set {
 
 // Check returns nil when m keeps the grammar, and else an error wrapping
 // ErrMenu that names the first item breaking it:
-//   - every item with a label has a key that is a whole number from 1,
-//     written as such ("1", not "01" or " 1"), and no other item has it:
-//     digits select, each one item;
-//   - every item with a label that is not disabled has an Action;
-//   - an exit item with a label has the key 0.
+//   - every item shown has a key that is a whole number from 1, written
+//     as such ("1", not "01" or " 1"), and no other item has it: digits
+//     select, each one item;
+//   - every item shown that is not disabled has an Action;
+//   - an exit item shown has the key 0.
 //
-// An item with no label is not shown and accepts nothing
-// (component.Menu), so it is not checked. Choose and Run check the menu
-// before they write anything.
+// An item that is not shown (component.MenuItem.Shown: no label, or one
+// that is only escape sequences or invisible) accepts nothing, so it is
+// not checked. Choose and Run check the menu before they write anything.
 func (m Menu) Check() error {
 	seen := map[string]bool{}
 	for i, o := range m.Options {
 		it := o.Item
-		if strings.TrimSpace(it.Label) == "" {
+		if !it.Shown() {
 			continue
 		}
 		n, err := strconv.Atoi(it.Key)
@@ -87,7 +87,7 @@ func (m Menu) Check() error {
 		}
 		seen[it.Key] = true
 	}
-	if strings.TrimSpace(m.Exit.Label) != "" && m.Exit.Key != "0" {
+	if m.Exit.Shown() && m.Exit.Key != "0" {
 		return fmt.Errorf("%w: the exit item, %q, has the key %q, not 0", ErrMenu, m.Exit.Label, m.Exit.Key)
 	}
 	return nil
@@ -103,7 +103,7 @@ func (m Menu) resolve(line string) (int, error) {
 		return -1, err
 	}
 	typed := strings.TrimSpace(line)
-	shown := func(it component.MenuItem) bool { return strings.TrimSpace(it.Label) != "" && it.Key == typed }
+	shown := func(it component.MenuItem) bool { return it.Shown() && it.Key == typed }
 	if _, ok := m.View().Bindings().Match(typed); ok {
 		for i, o := range m.Options {
 			if shown(o.Item) && !o.Item.Disabled {

@@ -198,6 +198,8 @@ func TestCheck(t *testing.T) {
 		{"a disabled item needs no action", sshMenu(new([]string)), true},
 		{"no options", Menu{}, true},
 		{"an item with no label is not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "x"}}}}, true},
+		{"nor one whose label is invisible", Menu{Options: []Option{{Item: component.MenuItem{Label: "\u200b"}}}}, true},
+		{"nor an exit item whose label is an escape sequence", Menu{Exit: component.MenuItem{Key: "9", Label: "\x1b[0m"}}, true},
 		{"a key that is not a number", Menu{Options: []Option{item("a", "Add")}}, false},
 		{"a key that navigates", Menu{Options: []Option{item("q", "Quit")}}, false},
 		{"a key not in canonical form", Menu{Options: []Option{item("01", "DNS")}}, false},
@@ -244,6 +246,7 @@ func TestResolve(t *testing.T) {
 		{"the item after it", ssh, "2", 1, nil},
 		{"Return", ssh, "0", 0, ErrBack},
 		{"an item not shown", hidden, "4", 0, refused(invalidOption)},
+		{"a disabled item not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "\x1b[0m", Disabled: true}}}}, "1", 0, refused(invalidOption)},
 		{"0 with no exit item", hidden, "0", 0, ErrBack},
 	}
 	for _, tt := range tests {
