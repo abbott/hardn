@@ -14,11 +14,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -306,6 +309,11 @@ func TestUsage(t *testing.T) {
 		{"menu", "-profile", "plain"},
 		{"-matrix", "-width", "80"},
 		{"-matrix", "-theme", "light", "-ascii"},
+		{"-matrix", "-height", "40"},
+		{"-height", "0"},
+		{"-screens", "-matrix"},
+		{"-screens", "nope"},
+		{"-screens", "sub-menu", "-width", "60"},
 	} {
 		code, out, errs := runGallery(args...)
 		if code != exitUsage || out != "" || errs == "" {
@@ -491,5 +499,104 @@ func TestOverride(t *testing.T) {
 	}
 	if code, _, _ := runGallery("-override", filepath.Join(t.TempDir(), "missing.json")); code != exitError {
 		t.Errorf("a missing file: exit %d, want %d", code, exitError)
+	}
+}
+
+// screenGoldenDir holds the screen goldens, one file per drawing:
+// <layout>/<screen>.golden, and <layout>/<screen>/<sequence>/<step>.golden
+// for a workflow's steps.
+var screenGoldenDir = filepath.Join("..", "..", "..", "pkg", "ui", "screen", "testdata", "golden")
+
+// TestScreensRenderAsGoldens checks that -screens writes each mock's
+// drawings exactly as their golden files hold them, in each golden cell
+// the flags can name: the core set, and the main menu at 80x40 on both
+// themes. Each drawing comes between the gallery's headers and source
+// note and the blank line after it, a step without the blank lines that
+// open it.
+func TestScreensRenderAsGoldens(t *testing.T) {
+	cells := map[string][]string{
+		"truecolor-dark-unicode-80":     nil,
+		"plain-80":                      {"-profile", "plain"},
+		"truecolor-dark-unicode-60":     {"-width", "60"},
+		"truecolor-dark-unicode-80x40":  {"-height", "40"},
+		"truecolor-light-unicode-80x40": {"-height", "40", "-theme", "light"},
+	}
+	for _, m := range screen.Mocks() {
+		for name, args := range cells {
+			if strings.HasSuffix(name, "x40") && !strings.HasPrefix(m.Name, "main-menu/") {
+				continue
+			}
+			code, got, errs := runGallery(append(append([]string{"-screens"}, args...), m.Name)...)
+			env := term.Fixed(80, colorprofile.TrueColor, true, !strings.Contains(name, "light"))
+			switch name {
+			case "plain-80":
+				env = term.Fixed(80, colorprofile.NoTTY, false, true)
+			case "truecolor-dark-unicode-60":
+				env.Width = 60
+			}
+			if strings.HasSuffix(name, "x40") {
+				env.Height = 40
+			}
+			c := component.NewCtx(env)
+			gap := "\n\n"
+			want := written(t, env, header(c, m.Name)+gap+source(c, m.Source)+gap)
+			for _, n := range m.Names() {
+				sections, err := goldenSections(filepath.Join(screenGoldenDir, filepath.FromSlash(n)+".golden"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				section, ok := sections[name]
+				if !ok {
+					t.Fatalf("%s: no cell %s", n, name)
+				}
+				if step, ok := strings.CutPrefix(n, m.Name+"/"); ok {
+					want += written(t, env, header(c, step)+gap)
+					section = strings.TrimLeft(section, "\n")
+				}
+				want += section + gap
+			}
+			if code != exitOK || errs != "" || got != want {
+				t.Errorf("%s in %s: exit %d, stderr %q, the gallery writes\n%q\nwant, from the golden files,\n%q", m.Name, name, code, errs, got, want)
+			}
+		}
+	}
+}
+
+// TestScreenSelect checks -screens with -list and the screen arguments,
+// and that every header the screens take shows its whole name.
+func TestScreenSelect(t *testing.T) {
+	var every []string
+	for _, m := range screen.Mocks() {
+		every = append(every, m.Names()...)
+		for _, n := range m.Names() {
+			title := strings.TrimPrefix(n, m.Name+"/")
+			if w := ansi.StringWidth(title) + headerFrame; w > theme.ContentWidth || ansi.StringWidth(m.Name)+headerFrame > theme.ContentWidth {
+				t.Errorf("%s: its header would be cut", n)
+			}
+		}
+	}
+	sudo := "workflow-step/user-manage-sudo-confirmation"
+	tests := []struct {
+		args []string
+		want []string
+	}{
+		{nil, every},
+		{[]string{"all"}, every},
+		{[]string{"main-menu"}, []string{"main-menu/00-tui-main"}},
+		{[]string{sudo + "/failure", "sub-menu/01-user"}, []string{"sub-menu/01-user", sudo + "/failure/1-confirm", sudo + "/failure/2-failed"}},
+		{[]string{sudo + "/dry-run/1-planned"}, []string{sudo + "/dry-run/1-planned"}},
+	}
+	for _, tt := range tests {
+		code, out, errs := runGallery(append([]string{"-screens", "-list"}, tt.args...)...)
+		if got := strings.Fields(out); code != exitOK || errs != "" || !slices.Equal(got, tt.want) {
+			t.Errorf("-screens -list %v: exit %d, stderr %q, listed %v, want %v", tt.args, code, errs, got, tt.want)
+		}
+	}
+	// One step: the mock's header and note, then the step under its own.
+	code, out, _ := runGallery("-screens", "-profile", "plain", sudo+"/normal/2-applied")
+	plain := strings.Split(out, "\n")
+	if code != exitOK || !strings.HasPrefix(plain[0], "# "+sudo+" ") || !strings.Contains(out, "\n# normal/2-applied ") ||
+		strings.Contains(out, "normal/1-confirm") || !strings.HasSuffix(out, "# [+] Operation Successful\n\n") {
+		t.Errorf("one step: exit %d, output\n%s", code, out)
 	}
 }
