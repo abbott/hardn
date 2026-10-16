@@ -442,20 +442,25 @@ func TestFieldErrors(t *testing.T) {
 	}
 }
 
+// errDiskFull is failWriter's error.
+var errDiskFull = errors.New("disk full")
+
 // failWriter fails each write once left writes have succeeded.
 type failWriter struct{ left *int }
 
 func (w failWriter) Write(b []byte) (int, error) {
 	if *w.left == 0 {
-		return 0, errors.New("disk full")
+		return 0, errDiskFull
 	}
 	*w.left--
 	return len(b), nil
 }
 
 // TestWriteFails checks that a write that fails ends the form, the
-// values put back: the first prompt, the gap before the next field, and
-// an echo.
+// values put back: the first prompt, which the reader writes, and the
+// form's own writes, the gap before the next field and an echo. The
+// reader's newline after a line read from a pipe comes between the
+// prompt and either of the form's writes, so they are the third write.
 func TestWriteFails(t *testing.T) {
 	var u newUser
 	sudo := true
@@ -464,16 +469,18 @@ func TestWriteFails(t *testing.T) {
 		form  Form
 		lines []string
 		left  int
+		by    string // the prefix of the error: whose write failed
 	}{
-		{"the prompt", createUser(&u), []string{"george"}, 0},
-		{"the gap", createUser(&u), []string{"george"}, 1},
-		{"the echo", Form{Fields: []Field{&YesNo{Title: "Grant sudo privilege?", Value: &sudo}}}, []string{""}, 1},
+		{"the prompt", createUser(&u), []string{"george"}, 0, "prompt: write: "},
+		{"the gap", createUser(&u), []string{"george"}, 2, "form: write: "},
+		{"the echo", Form{Fields: []Field{&YesNo{Title: "Grant sudo privilege?", Value: &sudo}}}, []string{""}, 2, "form: write: "},
 	}
 	for _, tt := range tests {
 		p, _ := newPrompter(term.Fixed(80, colorprofile.NoTTY, false, true), tt.lines)
 		p.Out = failWriter{&tt.left}
-		if err := tt.form.Run(p); err == nil || u != (newUser{}) || !sudo {
-			t.Errorf("%s: %v, %+v, %t; want an error and the values before", tt.name, err, u, sudo)
+		err := tt.form.Run(p)
+		if !errors.Is(err, errDiskFull) || !strings.HasPrefix(fmt.Sprint(err), tt.by) || u != (newUser{}) || !sudo {
+			t.Errorf("%s: %v, %+v, %t; want %q from errDiskFull and the values before", tt.name, err, u, sudo, tt.by)
 		}
 	}
 }
