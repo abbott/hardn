@@ -624,16 +624,16 @@ The failure path, plain, after the create-user form (§9.9), with `[...]` for th
 
 ### 9.11 Components and their states
 
-Every component of `pkg/ui/component`, the section that records it, and its golden states (`<component>/<state>.golden` on `Full()`) by brief 1B's five states. A dash is a state the component does not have, for the reason its section gives: hardn always knows its own mode and version, an engine knows where each step stands, a value hardn could not read, a failed read included, is the unknown state, and a failure is a `Message` or `Callout` of kind bad or an `ErrorReport`.
+Every component of `pkg/ui/component`, the section that records it, and its golden states (`<component>/<state>.golden` on `Full()`) by brief 1B's five states. A dash is a state the component does not have, for the reason its section gives: hardn always knows its own mode and version, an engine knows where each step stands, a value hardn could not read, a failed read included, is the unknown state, and a failure is a `Message` or `Callout` of kind bad or an `ErrorReport`. "As unknown" is a state the component shows as its unknown state: an empty `ContextBar`, `HostBlock`, `RiskSummary` or `StatusRow` (its zero value) has nothing hardn read, and shows "Unknown".
 
 | Component | § | Normal | Empty | Unknown | Not applicable | Error | Also |
 |---|---|---|---|---|---|---|---|
 | `Header` | 9.2 | `normal` | `no-version`, `no-url` | – | – | – | |
-| `ContextBar` | 9.2 | `normal` | | `unknown` | – | – | `no-codename`, `long` |
+| `ContextBar` | 9.2 | `normal` | as unknown | `unknown` | – | – | `no-codename`, `long` |
 | `TitleBar` | 9.2 | `normal` | `empty` | – | – | – | `long` |
-| `HostBlock` | 9.2 | `normal` | | `unknown-address`, `unknown-uptime`, `no-hostname`, `all-unknown` | – | as unknown | `long-hostname`, `reboot-pending` |
-| `RiskSummary` | 9.2 | `moderate`, `low`, `high` | | `unknown` | – | as unknown | `factors`, `factors-no-gloss`, `long-factor` |
-| `StatusRow` | 9.3 | `configured`, `not-configured`, `partial` | | `unknown` | `not-applicable` | as unknown | `word`, `long-label`, `long-detail` |
+| `HostBlock` | 9.2 | `normal` | as unknown | `unknown-address`, `unknown-uptime`, `no-hostname`, `all-unknown` | – | as unknown | `long-hostname`, `reboot-pending` |
+| `RiskSummary` | 9.2 | `moderate`, `low`, `high` | as unknown | `unknown` | – | as unknown | `factors`, `factors-no-gloss`, `long-factor` |
+| `StatusRow` | 9.3 | `configured`, `not-configured`, `partial` | as unknown | `unknown` | `not-applicable` | as unknown | `word`, `long-label`, `long-detail` |
 | `StatusList` | 9.3 | `normal` | `empty` | per row | per row | per row | |
 | `Divider` | 9.3 | `normal` | – | – | – | – | |
 | `ModeIndicator` | 9.3 | `live`, `dry-run` | – | – | – | – | |
