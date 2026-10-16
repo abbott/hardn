@@ -34,7 +34,6 @@
 !bin-postinstall.sh
 !bin-verify-release.sh
 
-!vendor/*
 !docs/**/*.md
 !.github/**/*.yml
 !.slsa-goreleaser/**/*.yml
@@ -52,6 +51,9 @@
 
 # Allow directories (to enable more granular allow rules)
 !*/
+
+# vendor/ is not committed (go mod vendor regenerates it); keep below !*/ so this wins
+/vendor/
 
 # Allow .scratch directory itself
 #!.scratch/
