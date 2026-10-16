@@ -196,13 +196,18 @@ func TestReadLineFailures(t *testing.T) {
 	})
 }
 
-func TestAbortMessages(t *testing.T) {
+// TestAbortErrors checks that a caller can tell the end of the input from
+// Ctrl-C, and that both are aborts.
+func TestAbortErrors(t *testing.T) {
 	_, err := New(strings.NewReader(""), false).ReadLine()
-	if !errors.Is(err, ErrAborted) || err.Error() != "prompt: aborted: end of input" {
+	if !errors.Is(err, ErrEndOfInput) || errors.Is(err, ErrInterrupted) || err.Error() != "prompt: aborted: end of input" {
 		t.Errorf("at EOF: %v", err)
 	}
-	if !errors.Is(errInterrupted, ErrAborted) || errInterrupted.Error() != "prompt: aborted: interrupted" {
-		t.Errorf("on Ctrl-C: %v", errInterrupted)
+	if !errors.Is(ErrInterrupted, ErrAborted) || errors.Is(ErrInterrupted, ErrEndOfInput) || ErrInterrupted.Error() != "prompt: aborted: interrupted" {
+		t.Errorf("on Ctrl-C: %v", ErrInterrupted)
+	}
+	if !errors.Is(ErrEndOfInput, ErrAborted) {
+		t.Errorf("%v does not wrap ErrAborted", ErrEndOfInput)
 	}
 }
 
@@ -215,9 +220,9 @@ func TestExitCode(t *testing.T) {
 	}{
 		{"nil", nil, 0, false},
 		{"ErrAborted", ErrAborted, 130, true},
-		{"end of input", errEnded, 130, true},
-		{"interrupted", errInterrupted, 130, true},
-		{"wrapped", fmt.Errorf("asking: %w", errEnded), 130, true},
+		{"end of input", ErrEndOfInput, 130, true},
+		{"interrupted", ErrInterrupted, 130, true},
+		{"wrapped", fmt.Errorf("asking: %w", ErrEndOfInput), 130, true},
 		{"io.EOF itself", io.EOF, 0, false},
 		{"another error", ErrLineTooLong, 0, false},
 	}

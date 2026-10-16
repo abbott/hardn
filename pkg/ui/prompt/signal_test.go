@@ -43,7 +43,7 @@ func interrupted(t *testing.T, r *Reader) {
 		}
 		select {
 		case err := <-done:
-			if !errors.Is(err, errInterrupted) {
+			if !errors.Is(err, ErrInterrupted) {
 				t.Fatalf("ReadLine() = %v, want an interrupt", err)
 			}
 			return
@@ -104,7 +104,7 @@ func TestInterrupt(t *testing.T) {
 		write(t, pw, "one\ntwo\n")
 		wantLines(t, r, "one", "two")
 		_ = pw.Close()
-		if _, err := r.ReadLine(); !errors.Is(err, errEnded) {
+		if _, err := r.ReadLine(); !errors.Is(err, ErrEndOfInput) {
 			t.Errorf("at the end of the pipe, ReadLine() = %v", err)
 		}
 	})
@@ -123,7 +123,7 @@ func TestInterrupt(t *testing.T) {
 		write(t, m, "after\n")
 		wantLines(t, r, "after")
 		write(t, m, "\x04") // Ctrl-D (VEOF) on an empty line
-		if _, err := r.ReadLine(); !errors.Is(err, errEnded) {
+		if _, err := r.ReadLine(); !errors.Is(err, ErrEndOfInput) {
 			t.Fatalf("after Ctrl-D, ReadLine() = %v, want the end of input", err)
 		}
 		write(t, m, "again\n") // a terminal goes on after Ctrl-D

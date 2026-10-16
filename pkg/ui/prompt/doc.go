@@ -20,11 +20,15 @@
 // # Aborting
 //
 // ReadLine returns an error wrapping ErrAborted at the end of the input
-// (Ctrl-D on an empty line of a terminal, or the end of a pipe or file)
-// and when Ctrl-C interrupts it. A last line with no line ending before
-// the end of the input is still returned, and the call after it reports
-// the abort. Nothing is applied after an abort (brief 1C): the caller
-// stops, and ExitCode gives the CLI its exit status, 130.
+// (Ctrl-D on an empty line of a terminal, or the end of a pipe or file),
+// ErrEndOfInput, and when Ctrl-C interrupts it, ErrInterrupted. A last
+// line with no line ending before the end of the input is still returned,
+// and the call after it reports the abort. Nothing is applied after an
+// abort (brief 1C): the caller stops, and ExitCode gives the CLI its exit
+// status, 130. The two are told apart for callers that may treat them
+// differently: whether the end of the input at a sub-prompt goes back is
+// next/p1c-nav's decision, and the exit code for a script that ran out of
+// answers next/p3-output's.
 //
 // In cooked mode the terminal turns Ctrl-C into SIGINT. While ReadLine
 // waits for input from a file, such as os.Stdin or a pipe, it relays

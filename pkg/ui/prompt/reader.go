@@ -33,22 +33,29 @@ const ExitInterrupted = 130
 
 var (
 	// ErrAborted reports that the user aborted a prompt: the input ended
-	// or Ctrl-C interrupted the read. Test for it with errors.Is.
+	// (ErrEndOfInput) or Ctrl-C interrupted the read (ErrInterrupted).
+	// Test for it with errors.Is.
 	ErrAborted = errors.New("prompt: aborted")
+	// ErrEndOfInput wraps ErrAborted: the input ended, by Ctrl-D on an
+	// empty line of a terminal or at the end of a pipe or file.
+	ErrEndOfInput = fmt.Errorf("%w: end of input", ErrAborted)
+	// ErrInterrupted wraps ErrAborted: Ctrl-C (os.Interrupt) interrupted
+	// the read.
+	ErrInterrupted = fmt.Errorf("%w: interrupted", ErrAborted)
 	// ErrLineTooLong reports a line longer than MaxLine. The line is
 	// dropped up to its line ending, so the next ReadLine returns the
 	// line after it.
 	ErrLineTooLong = errors.New("prompt: line too long")
 
-	errEnded       = fmt.Errorf("%w: end of input", ErrAborted)
-	errInterrupted = fmt.Errorf("%w: interrupted", ErrAborted)
 	// errWoken reports that a wait ended on the wake pipe (wait).
 	errWoken = errors.New("prompt: woken")
 )
 
 // ExitCode returns ExitInterrupted and true when err is or wraps
 // ErrAborted, and 0 and false otherwise: the exit code for any other
-// outcome (brief Phase 3: 0, 1, 2 or 3) is the caller's.
+// outcome (brief Phase 3: 0, 1, 2 or 3) is the caller's. It maps the end
+// of the input to 130 too; a caller that wants another code for it tests
+// ErrEndOfInput first.
 func ExitCode(err error) (int, bool) {
 	if errors.Is(err, ErrAborted) {
 		return ExitInterrupted, true
@@ -91,7 +98,7 @@ func (r *Reader) ReadLine() (string, error) {
 	}
 	err = r.fill(it)
 	if it.stop() {
-		return "", errInterrupted
+		return "", ErrInterrupted
 	}
 	if err != nil {
 		return "", err
@@ -224,7 +231,7 @@ func (r *Reader) end() error {
 	err := r.err
 	r.err = nil
 	if errors.Is(err, io.EOF) {
-		return errEnded
+		return ErrEndOfInput
 	}
 	return fmt.Errorf("prompt: read: %w", err)
 }
