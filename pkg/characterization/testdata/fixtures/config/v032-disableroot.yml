@@ -1,0 +1,4 @@
+# Synthetic fixture: a v0.3.2-era file. v0.3.2 read `disableRoot`
+# (v0.3.2 pkg/config/config.go:82); origin/main declares `disableRootSSH`.
+username: "alice"
+disableRoot: true

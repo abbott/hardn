@@ -1,0 +1,587 @@
+package characterization
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"testing"
+
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/domain/model"
+	"github.com/abbott/hardn/pkg/infrastructure"
+	"github.com/abbott/hardn/pkg/interfaces"
+	"github.com/abbott/hardn/pkg/osdetect"
+)
+
+// Synthetic fixture values. Never real hosts, users or keys.
+const (
+	fixtureUser = "alice"
+	fixturePort = 2230
+	// An ed25519-shaped public key line; the key body is not a real key.
+	fixtureKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"
+)
+
+var fixtureNameservers = []string{"192.0.2.53", "192.0.2.54"}
+
+// osCell is one column of the distro matrix.
+type osCell struct {
+	name     string // golden file stem
+	osType   string
+	version  string
+	codename string
+	proxmox  bool
+}
+
+func (c osCell) alpine() bool { return c.osType == "alpine" }
+
+// osdetect.DetectOS sets OsCodename to the version on Alpine (osdetect.go:91-93).
+var osCells = []osCell{
+	{name: "debian", osType: "debian", version: "13", codename: "trixie"},
+	{name: "ubuntu", osType: "ubuntu", version: "24.04", codename: "noble"},
+	{name: "alpine", osType: "alpine", version: "3.23.0", codename: "3.23.0"},
+	{name: "proxmox", osType: "debian", version: "13", codename: "trixie", proxmox: true},
+}
+
+// Fixture errors returned by the mock for commands that fail on the fixture host.
+var (
+	errNoSuchUser   = errors.New("fixture: id: 'alice': no such user")
+	errResolvedOff  = errors.New("fixture: systemd-resolved inactive")
+	errNoSystemctl  = errors.New("fixture: systemctl not installed")
+	errNoResolvconf = errors.New("fixture: resolvconf not installed")
+)
+
+// opEnv is one run of one operation on one cell.
+type opEnv struct {
+	cell    osCell
+	cfg     *config.Config
+	fs      *interfaces.MockFileSystem
+	mc      *interfaces.MockCommander
+	cmd     *recordingCommander
+	log     *trace
+	factory *infrastructure.ServiceFactory
+	// fixtureNotes describe host state that the maps alone do not show.
+	fixtureNotes []string
+}
+
+// fixtureConfig is config.DefaultConfig() with synthetic overrides, then the
+// dry-run flag applied the way main.go:152 applies -n.
+func fixtureConfig(dryRun bool) *config.Config {
+	cfg := config.DefaultConfig()
+	cfg.Username = fixtureUser
+	cfg.SshPort = fixturePort
+	cfg.SshAllowedUsers = []string{fixtureUser}
+	cfg.SshKeys = []string{fixtureKey}
+	cfg.EnableUfwSshPolicy = true
+	cfg.ConfigureDns = true
+	cfg.Nameservers = append([]string(nil), fixtureNameservers...)
+	cfg.UfwAppProfiles = []config.UfwAppProfile{{
+		Name:        "ExampleHTTPS",
+		Title:       "Example web server (HTTPS)",
+		Description: "Example HTTPS port",
+		Ports:       []string{"8443/tcp"},
+	}}
+	cfg.DryRun = dryRun
+	return cfg
+}
+
+func newOpEnv(cell osCell, dryRun bool) *opEnv {
+	fs := interfaces.NewMockFileSystem()
+	mc := interfaces.NewMockCommander()
+	log := &trace{}
+	rc := &recordingCommander{inner: mc, log: log}
+	provider := &interfaces.Provider{
+		FS:        recordingFS{inner: fs, log: log},
+		Commander: rc,
+		Network:   interfaces.NewMockNetworkOperations(),
+	}
+	osInfo := &osdetect.OSInfo{OsType: cell.osType, OsVersion: cell.version, OsCodename: cell.codename, IsProxmox: cell.proxmox}
+	cfg := fixtureConfig(dryRun)
+	factory := infrastructure.NewServiceFactory(provider, osInfo)
+	factory.SetConfig(cfg)
+	env := &opEnv{cell: cell, cfg: cfg, fs: fs, mc: mc, cmd: rc, log: log, factory: factory}
+	env.defaultHostProbes()
+	return env
+}
+
+// defaultHostProbes models each distro's default resolver set-up (Phase 0
+// findings: Ubuntu uses systemd-resolved; Debian and Proxmox standard installs
+// and Alpine use a regular /etc/resolv.conf), and assumes UFW is installed
+// everywhere (`which ufw` succeeds).
+func (e *opEnv) defaultHostProbes() {
+	switch {
+	case e.cell.alpine():
+		e.mc.CommandErrors["systemctl is-active systemd-resolved"] = errNoSystemctl
+	case e.cell.osType == "ubuntu":
+		// systemd-resolved active: the mock's default success.
+	default:
+		e.mc.CommandErrors["systemctl is-active systemd-resolved"] = errResolvedOff
+	}
+	e.mc.CommandErrors["which resolvconf"] = errNoResolvconf
+}
+
+// newUser makes `id alice` fail until `adduser ... alice` has run, as on a real host.
+func (e *opEnv) newUser() {
+	key := "id " + fixtureUser
+	e.mc.CommandErrors[key] = errNoSuchUser
+	e.cmd.afterExec = func(argv []string) {
+		if argv[0] == "adduser" && argv[len(argv)-1] == fixtureUser {
+			delete(e.mc.CommandErrors, key)
+		}
+	}
+	e.fixtureNotes = append(e.fixtureNotes, "user alice does not exist until `adduser ... alice` runs; `id alice` succeeds afterwards")
+}
+
+// setDNSStrategy forces SaveDNSConfig's probes (file_dns_repository.go:35-55).
+func (e *opEnv) setDNSStrategy(strategy string) {
+	delete(e.mc.CommandErrors, "systemctl is-active systemd-resolved")
+	delete(e.mc.CommandErrors, "which resolvconf")
+	switch strategy {
+	case "systemd-resolved":
+		e.mc.CommandErrors["which resolvconf"] = errNoResolvconf
+	case "resolvconf":
+		e.mc.CommandErrors["systemctl is-active systemd-resolved"] = errResolvedOff
+	case "direct":
+		e.mc.CommandErrors["systemctl is-active systemd-resolved"] = errResolvedOff
+		e.mc.CommandErrors["which resolvconf"] = errNoResolvconf
+	default:
+		panic("unknown DNS strategy " + strategy)
+	}
+	e.fixtureNotes = append(e.fixtureNotes, "DNS probe results forced to select the "+strategy+" strategy, whatever this distro ships")
+}
+
+// hardeningConfigFromCLI mirrors cmd/hardn/main.go:228-244 (hardn -r).
+func hardeningConfigFromCLI(cfg *config.Config) *model.HardeningConfig {
+	return &model.HardeningConfig{
+		CreateUser:         cfg.Username != "",
+		Username:           cfg.Username,
+		SudoNoPassword:     cfg.SudoNoPassword,
+		SshKeys:            cfg.SshKeys,
+		SshPort:            cfg.SshPort,
+		SshListenAddresses: []string{cfg.SshListenAddress},
+		SshAllowedUsers:    cfg.SshAllowedUsers,
+		EnableFirewall:     cfg.EnableUfwSshPolicy,
+		AllowedPorts:       []int{},
+		FirewallProfiles:   []model.FirewallProfile{},
+		ConfigureDns:       cfg.ConfigureDns,
+		Nameservers:        cfg.Nameservers,
+		EnableAppArmor:     cfg.EnableAppArmor,
+		EnableLynis:        cfg.EnableLynis,
+	}
+}
+
+// profilesFromMenu mirrors pkg/menu/firewall_menu.go:252-260.
+func profilesFromMenu(cfg *config.Config) []model.FirewallProfile {
+	var profiles []model.FirewallProfile
+	for _, p := range cfg.UfwAppProfiles {
+		profiles = append(profiles, model.FirewallProfile{Name: p.Name, Title: p.Title, Description: p.Description, Ports: p.Ports})
+	}
+	return profiles
+}
+
+// callResult is the error returned by one top-level call of a scenario.
+type callResult struct {
+	call string
+	err  error
+}
+
+type opScenario struct {
+	name    string // golden directory
+	op      string // what is called
+	entry   string // how a user reaches it on origin/main
+	cliFlag bool   // reachable from a CLI operation flag (so V1 applies)
+	notes   []string
+	setup   func(e *opEnv)
+	run     func(e *opEnv) []callResult
+	defects func(c osCell) []string
+}
+
+// Short texts for the V-list (Phase 0 side-effect inventory, V1-V27).
+var vText = map[string]string{
+	"V1":  "CLI -n/--dry-run is ignored below the menu layer: the cfg.DryRun=true section repeats every command and write",
+	"V4":  "disable-root rebuilds the SSH config from a stub (Port 22, no ListenAddress/AllowUsers, key-only) instead of editing PermitRootLogin",
+	"V5":  "-c writes a single 'AuthorizedKeysFile .ssh_%u' while keys are written to ~/.ssh/authorized_keys",
+	"V6":  "password auth disabled and AuthenticationMethods publickey set in the same step that adds keys; nothing proves a key works",
+	"V7":  "no sshd -t before the restart and no sshd -T after; restart instead of reload",
+	"V8":  "the SSH port changes (sshd restart) before any firewall rule allows the new port",
+	"V9":  "ufw default deny, disable and reset run before the allow rule; only cfg.SshPort is allowed, not the effective sshd port",
+	"V10": "UFW is configured and enabled on a Proxmox host",
+	"V11": "PermitRootLogin no is forced regardless of config, including on Proxmox",
+	"V12": "no ssh.socket handling (socket-activated sshd on Ubuntu), so the port change may not take effect",
+	"V13": "the drop-in is named hardn.conf, which sorts after 50-cloud-init.conf (sshd uses the first value)",
+	"V14": "Alpine: sudo is never installed; the user is only added to wheel",
+	"V15": "Alpine: the whole /etc/ssh/sshd_config is replaced (no Subsystem sftp, no Include)",
+	"V16": "sudoers file written without visudo -c and non-atomically; the overwrite drops any env_keep line",
+	"V17": "the user is created without a password",
+	"V18": "writes are non-atomic and nothing is backed up first",
+	"V20": "a predictable temp file (os.TempDir()/hardn_sudoers_temp) is written as root",
+	"V21": "Alpine: root writes /home/<user>/.ssh/authorized_keys (home path assumed; write follows symlinks)",
+	"V22": "the key is appended again with no dedupe (cat >>) on every run for an existing user",
+	"V24": "a single AuthorizedKeysFile drops v0.3.2's ~/.ssh_<user>/authorized_keys, so keys on upgraded hosts stop working",
+	"V27": "ListenAddress 0.0.0.0 makes sshd IPv4-only",
+
+	// Variants: one V-number, wording specific to the recorded behaviour.
+	"V11:disable-root":     "PermitRootLogin no is written on a Proxmox host, where root SSH is to stay key-only (prohibit-password)",
+	"V19:systemd-resolved": "DNS: /etc/systemd/resolved.conf overwritten wholesale and systemd-resolved restarted; Domains=lan forced",
+	"V19:resolvconf":       "DNS: /etc/resolvconf/resolv.conf.d/head overwritten; domain and search lan forced",
+	"V19:direct":           "DNS: /etc/resolv.conf overwritten in place (a write through a symlink lands in its target); domain and search lan forced",
+	"V19:empty":            "DNS: an empty nameserver list is accepted and written",
+}
+
+// dnsStrategyFor returns the strategy defaultHostProbes selects for a cell.
+func dnsStrategyFor(c osCell) string {
+	if c.osType == "ubuntu" {
+		return "systemd-resolved"
+	}
+	return "direct"
+}
+
+func sshWriteDefects(c osCell) []string {
+	var d []string
+	if c.alpine() {
+		d = append(d, "V15")
+	} else {
+		d = append(d, "V13")
+	}
+	if c.osType == "ubuntu" {
+		d = append(d, "V12")
+	}
+	return d
+}
+
+func newUserDefects(c osCell) []string {
+	d := []string{"V16", "V17"}
+	if c.alpine() {
+		d = append(d, "V14", "V21")
+	}
+	return d
+}
+
+var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:152 does for -n. No layer below pkg/menu reads it."
+
+func opScenarios() []opScenario {
+	return []opScenario{
+		{
+			name:    "harden_system",
+			op:      "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
+			entry:   "hardn -r (cmd/hardn/main.go:224-254); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:204-246)",
+			cliFlag: true,
+			notes:   []string{"HardeningConfig is built as cmd/hardn/main.go:228-244 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile."},
+			setup:   func(e *opEnv) { e.newUser() },
+			run: func(e *opEnv) []callResult {
+				err := e.factory.CreateMenuManager().HardenSystem(hardeningConfigFromCLI(e.cfg))
+				return []callResult{{"MenuManager.HardenSystem", err}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V6", "V7", "V8", "V9", "V11", "V18", "V19:" + dnsStrategyFor(c), "V24", "V27"}
+				d = append(d, sshWriteDefects(c)...)
+				d = append(d, newUserDefects(c)...)
+				if c.proxmox {
+					d = append(d, "V10")
+				}
+				return d
+			},
+		},
+		{
+			name:    "disable_root_ssh",
+			op:      "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
+			entry:   "hardn -d (cmd/hardn/main.go:277-283); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
+			cliFlag: true,
+			notes:   []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (file_ssh_repository.go:127-131), so the seed is never read."},
+			setup: func(e *opEnv) {
+				e.fs.Files["/etc/ssh/sshd_config"] = []byte("Port 2230\nListenAddress 192.0.2.10\nAllowUsers root alice\nPermitRootLogin yes\nSubsystem sftp /usr/lib/ssh/sftp-server\n")
+				if !e.cell.alpine() {
+					e.fs.Files["/etc/ssh/sshd_config.d/hardn.conf"] = []byte("Port 2230\nListenAddress 0.0.0.0\nPermitRootLogin yes\nAllowUsers root alice\n")
+				}
+			},
+			run: func(e *opEnv) []callResult {
+				return []callResult{{"SSHManager.DisableRootSSH", e.factory.CreateSSHManager().DisableRootSSH()}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V4", "V7", "V18", "V24"}
+				d = append(d, sshWriteDefects(c)...)
+				if c.proxmox {
+					d = append(d, "V11:disable-root")
+				}
+				return d
+			},
+		},
+		{
+			name:    "create_user_c_path",
+			op:      "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath",
+			entry:   "hardn -c -u alice (cmd/hardn/main.go:359-377); ConfigureSSH runs even when CreateUser fails",
+			cliFlag: true,
+			setup:   func(e *opEnv) { e.newUser() },
+			run: func(e *opEnv) []callResult {
+				cfg := e.cfg
+				errUser := e.factory.CreateUserManager().CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys)
+				errSSH := e.factory.CreateSSHManager().ConfigureSSH(cfg.SshPort, []string{cfg.SshListenAddress}, cfg.PermitRootLogin, cfg.SshAllowedUsers, []string{cfg.SshKeyPath})
+				return []callResult{{"UserManager.CreateUser", errUser}, {"SSHManager.ConfigureSSH", errSSH}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V5", "V6", "V7", "V8", "V18", "V24", "V27"}
+				d = append(d, sshWriteDefects(c)...)
+				d = append(d, newUserDefects(c)...)
+				return d
+			},
+		},
+		{
+			name:    "configure_secure_firewall",
+			op:      "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
+			entry:   "hardn -w (cmd/hardn/main.go:380-386)",
+			cliFlag: true,
+			run: func(e *opEnv) []callResult {
+				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
+				return []callResult{{"FirewallManager.ConfigureSecureFirewall", err}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V9"}
+				if c.proxmox {
+					d = append(d, "V10")
+				}
+				return d
+			},
+		},
+		{
+			name:  "configure_secure_firewall_profiles",
+			op:    "MenuManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, cfg.UfwAppProfiles)",
+			entry: "Firewall menu option 2 (pkg/menu/firewall_menu.go:243-263); menu-only, the CLI passes no profiles",
+			notes: []string{"Menu path: when cfg.DryRun is true the menu prints a preview and skips this call (pkg/menu/firewall_menu.go:247-249). The cfg.DryRun=true section shows that the managers and adapters themselves ignore it."},
+			run: func(e *opEnv) []callResult {
+				err := e.factory.CreateMenuManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, profilesFromMenu(e.cfg))
+				return []callResult{{"MenuManager.ConfigureSecureFirewall", err}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V9", "V18"}
+				if c.proxmox {
+					d = append(d, "V10")
+				}
+				return d
+			},
+		},
+		{
+			name:    "configure_sudo",
+			op:      "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
+			entry:   "hardn -c -u alice when alice exists (cmd/hardn/main.go:360); also every user-menu sudo toggle and key change (pkg/menu/user_options.go)",
+			cliFlag: true,
+			notes:   []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
+			setup: func(e *opEnv) {
+				e.fs.Directories["/etc/sudoers.d"] = true
+				e.fs.Files["/etc/sudoers.d/alice"] = []byte("Defaults:alice env_keep += \"HARDN_CONFIG\"\n")
+				e.fs.Files["/home/alice/.ssh/authorized_keys"] = []byte(fixtureKey + "\n")
+				e.fixtureNotes = append(e.fixtureNotes, "user alice exists (`id alice` succeeds)")
+			},
+			run: func(e *opEnv) []callResult {
+				err := e.factory.CreateUserManager().CreateUser(e.cfg.Username, true, e.cfg.SudoNoPassword, e.cfg.SshKeys)
+				return []callResult{{"UserManager.CreateUser", err}}
+			},
+			defects: func(c osCell) []string {
+				d := []string{"V16", "V18"}
+				if c.alpine() {
+					d = append(d, "V21")
+				} else {
+					d = append(d, "V22")
+				}
+				return d
+			},
+		},
+		{
+			name:    "setup_sudo_preservation",
+			op:      "EnvironmentManager.SetupSudoPreservation -> FileEnvironmentRepository.SetupSudoPreservation",
+			entry:   "hardn -e (cmd/hardn/main.go:403-410), hardn setup-sudo-env (cmd/hardn/main.go:420-450), Environment menu",
+			cliFlag: true,
+			notes:   []string{"Environment: SUDO_USER=alice, USER=root, HARDN_CONFIG and TMPDIR unset (so os.TempDir() is /tmp on Linux and macOS). Seed: the sudoers file ConfigureSudo writes."},
+			setup: func(e *opEnv) {
+				e.fs.Directories["/etc/sudoers.d"] = true
+				e.fs.Files["/etc/sudoers.d/alice"] = []byte("alice ALL=(ALL) NOPASSWD: ALL\n")
+			},
+			run: func(e *opEnv) []callResult {
+				return []callResult{{"EnvironmentManager.SetupSudoPreservation", e.factory.CreateEnvironmentManager().SetupSudoPreservation()}}
+			},
+			defects: func(c osCell) []string { return []string{"V18", "V20"} },
+		},
+		dnsScenario("systemd-resolved"),
+		dnsScenario("resolvconf"),
+		dnsScenario("direct"),
+		{
+			name:    "dns_empty_nameservers",
+			op:      "DNSManager.ConfigureDNS(no nameservers, \"lan\")",
+			entry:   "hardn -g with no nameservers in the config (cmd/hardn/main.go:389-395)",
+			cliFlag: true,
+			notes:   []string{"Resolver set-up as defaultHostProbes: systemd-resolved on Ubuntu, a regular /etc/resolv.conf elsewhere."},
+			setup:   func(e *opEnv) { e.cfg.Nameservers = nil },
+			run: func(e *opEnv) []callResult {
+				return []callResult{{"DNSManager.ConfigureDNS", e.factory.CreateDNSManager().ConfigureDNS(e.cfg.Nameservers, "lan")}}
+			},
+			defects: func(c osCell) []string { return []string{"V18", "V19:empty", "V19:" + dnsStrategyFor(c)} },
+		},
+	}
+}
+
+func dnsScenario(strategy string) opScenario {
+	return opScenario{
+		name:    "dns_" + strings.ReplaceAll(strategy, "-", "_"),
+		op:      "DNSManager.ConfigureDNS(cfg.Nameservers, \"lan\") -> FileDNSRepository.SaveDNSConfig, " + strategy + " strategy",
+		entry:   "hardn -g (cmd/hardn/main.go:389-395); also Run All and the DNS menu",
+		cliFlag: true,
+		setup:   func(e *opEnv) { e.setDNSStrategy(strategy) },
+		run: func(e *opEnv) []callResult {
+			return []callResult{{"DNSManager.ConfigureDNS", e.factory.CreateDNSManager().ConfigureDNS(e.cfg.Nameservers, "lan")}}
+		},
+		defects: func(c osCell) []string { return []string{"V18", "V19:" + strategy} },
+	}
+}
+
+// defectLines renders KNOWN-DEFECT lines in V-number order.
+func defectLines(ids []string) []string {
+	type item struct {
+		n    int
+		id   string
+		text string
+	}
+	var items []item
+	seen := map[string]bool{}
+	for _, id := range ids {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		base, _, _ := strings.Cut(id, ":")
+		text := vText[id]
+		if text == "" {
+			panic("no V-list text for " + id)
+		}
+		n, err := strconv.Atoi(strings.TrimPrefix(base, "V"))
+		if err != nil {
+			panic("bad V-number " + id)
+		}
+		items = append(items, item{n, base, text})
+	}
+	sort.SliceStable(items, func(i, j int) bool { return items[i].n < items[j].n })
+	lines := make([]string, len(items))
+	for i, it := range items {
+		lines[i] = fmt.Sprintf("# KNOWN-DEFECT: %s — %s", it.id, it.text)
+	}
+	return lines
+}
+
+// runCell runs one scenario on one cell with one DryRun value and returns the section text.
+func runCell(t *testing.T, sc opScenario, cell osCell, dryRun bool) (fixture, section string) {
+	t.Helper()
+	e := newOpEnv(cell, dryRun)
+	if sc.setup != nil {
+		sc.setup(e)
+	}
+	fixture = describeFixture(e)
+	results := sc.run(e)
+
+	var b strings.Builder
+	for _, r := range results {
+		fmt.Fprintf(&b, "result %s: %s\n", r.call, errText(r.err))
+	}
+	b.WriteString("trace:\n")
+	b.WriteString(e.log.String())
+	return fixture, b.String()
+}
+
+func describeFixture(e *opEnv) string {
+	var b strings.Builder
+	cfg := e.cfg
+	fmt.Fprintf(&b, "host: os=%s version=%s codename=%s proxmox=%t\n", e.cell.osType, e.cell.version, e.cell.codename, e.cell.proxmox)
+	fmt.Fprintf(&b, "config (DefaultConfig plus overrides): username=%s sshPort=%d sshListenAddress=%s sshAllowedUsers=%v permitRootLogin=%t sshKeyPath=%s sudoNoPassword=%t enableUfwSshPolicy=%t configureDns=%t nameservers=%v ufwAppProfiles=%d\n",
+		cfg.Username, cfg.SshPort, cfg.SshListenAddress, cfg.SshAllowedUsers, cfg.PermitRootLogin, cfg.SshKeyPath, cfg.SudoNoPassword, cfg.EnableUfwSshPolicy, cfg.ConfigureDns, cfg.Nameservers, len(cfg.UfwAppProfiles))
+	fmt.Fprintf(&b, "config sshKeys: %v\n", cfg.SshKeys)
+
+	b.WriteString("commands that fail on this host (every other command succeeds with empty output):\n")
+	var failing []string
+	for k, v := range e.mc.CommandErrors {
+		failing = append(failing, fmt.Sprintf("  %s -> %v", k, v))
+	}
+	sort.Strings(failing)
+	if len(failing) == 0 {
+		b.WriteString("  (none)\n")
+	}
+	for _, f := range failing {
+		b.WriteString(f + "\n")
+	}
+	for _, n := range e.fixtureNotes {
+		fmt.Fprintf(&b, "note: %s\n", n)
+	}
+
+	var dirs []string
+	for d := range e.fs.Directories {
+		dirs = append(dirs, d)
+	}
+	sort.Strings(dirs)
+	for _, d := range dirs {
+		fmt.Fprintf(&b, "seed dir: %s\n", d)
+	}
+	var files []string
+	for f := range e.fs.Files {
+		files = append(files, f)
+	}
+	sort.Strings(files)
+	for _, f := range files {
+		fmt.Fprintf(&b, "seed file: %s\n", f)
+		seed := &trace{entries: []traceEntry{{}}}
+		seed.addContent(e.fs.Files[f])
+		for _, c := range seed.entries[0].content {
+			b.WriteString("        " + c + "\n")
+		}
+	}
+	return b.String()
+}
+
+// TestOperationGoldens records origin/main's commands and file writes for each
+// operation, distro cell and DryRun value.
+func TestOperationGoldens(t *testing.T) {
+	// SetupSudoPreservation reads SUDO_USER/USER (file_environment_repository.go:135-138)
+	// and os.TempDir(); pin them so the goldens match on every machine.
+	t.Setenv("SUDO_USER", fixtureUser)
+	t.Setenv("USER", "root")
+	t.Setenv("HARDN_CONFIG", "")
+	t.Setenv("TMPDIR", "")
+	if err := os.Unsetenv("TMPDIR"); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, sc := range opScenarios() {
+		for _, cell := range osCells {
+			t.Run(sc.name+"/"+cell.name, func(t *testing.T) {
+				fixture, apply := runCell(t, sc, cell, false)
+				fixtureDry, dry := runCell(t, sc, cell, true)
+				if fixture != fixtureDry {
+					t.Fatalf("fixture differs between DryRun runs:\n%s\n---\n%s", fixture, fixtureDry)
+				}
+
+				var b strings.Builder
+				b.WriteString(baselineHeader + "\n")
+				b.WriteString("# Generated by TestOperationGoldens (pkg/characterization); regenerate with -update. Do not edit.\n")
+				fmt.Fprintf(&b, "# Operation: %s\n", sc.op)
+				fmt.Fprintf(&b, "# Reached by: %s\n", sc.entry)
+				ids := sc.defects(cell)
+				if sc.cliFlag {
+					ids = append([]string{"V1"}, ids...)
+				}
+				for _, l := range defectLines(ids) {
+					b.WriteString(l + "\n")
+				}
+				fmt.Fprintf(&b, "# NOTE: %s\n", dryRunNote)
+				for _, n := range sc.notes {
+					fmt.Fprintf(&b, "# NOTE: %s\n", n)
+				}
+				b.WriteString("\n== fixture\n")
+				b.WriteString(fixture)
+				b.WriteString("\n== cfg.DryRun=false\n")
+				b.WriteString(apply)
+				b.WriteString("\n== cfg.DryRun=true\n")
+				b.WriteString(dry)
+				fmt.Fprintf(&b, "\ncfg.DryRun=true section identical to cfg.DryRun=false: %t\n", apply == dry)
+
+				assertGolden(t, "ops/"+sc.name+"/"+cell.name+".golden", b.String())
+			})
+		}
+	}
+}

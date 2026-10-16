@@ -1,0 +1,3 @@
+# Synthetic fixture: a string where an integer is expected.
+username: "alice"
+sshPort: twenty-two

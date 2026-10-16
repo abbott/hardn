@@ -1,0 +1,63 @@
+# Synthetic fixture for TestConfigLoadGoldens: every key Config declares, plus
+# one unknown key. Not a real host's configuration.
+username: "alice"                 # comment after a value
+logFile: "/var/log/hardn.log"
+dryRun: true
+enableBackups: false
+backupPath: "/var/backups/hardn"
+dmzSubnet: "192.0.2"
+nameservers:
+  - "192.0.2.53"
+  - "192.0.2.54"
+sshPort: 2230
+permitRootLogin: false
+sshAllowedUsers:
+  - "alice"
+sshListenAddress: "192.0.2.10"
+sshKeyPath: ".ssh_%u"
+sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"
+sudoNoPassword: false
+sshKeys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"
+linuxCorePackages: ["sudo", "curl"]
+linuxDmzPackages: ["fail2ban"]
+linuxLabPackages: ["tree"]
+pythonPackages: ["python3-pip"]
+nonWslPythonPackages: ["python3-venv"]
+pythonPipPackages: ["example-package"]
+alpineCorePackages: ["sudo", "openssh"]
+alpineDmzPackages: ["fail2ban"]
+alpineLabPackages: ["tree"]
+alpinePythonPackages: ["py3-pip"]
+debianRepos:
+  - "deb http://deb.example.invalid/debian trixie main"
+proxmoxSrcRepos:
+  - "deb http://pve.example.invalid/debian/pve trixie pve-no-subscription"
+proxmoxCephRepo:
+  - "deb http://pve.example.invalid/debian/ceph-squid trixie no-subscription"
+proxmoxEnterpriseRepo:
+  - "# deb https://enterprise.example.invalid/debian/pve trixie pve-enterprise"
+proxmoxPackagePatterns: ["proxmox-ve"]
+alpineTestingRepo: true
+ufwAppProfiles:
+  - name: ExampleHTTPS
+    title: Example web server (HTTPS)
+    description: Example HTTPS port
+    ports:
+      - "8443/tcp"
+ufwDefaultIncomingPolicy: "deny"
+ufwDefaultOutgoingPolicy: "allow"
+ufwAllowedPorts: [8080, 8443]
+useUvPackageManager: true
+enableAppArmor: true
+enableLynis: true
+enableUnattendedUpgrades: true
+enableUfwSshPolicy: true
+configureDns: true
+disableRootSSH: true
+lang: "en_US.UTF-8"
+language: "en_US:en"
+lcAll: "en_US.UTF-8"
+tz: "Etc/UTC"
+pythonUnbuffered: "0"
+notAConfigKey: "unknown keys are ignored"
