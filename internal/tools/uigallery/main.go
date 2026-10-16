@@ -32,7 +32,8 @@
 // 32 in ASCII), which the flow cancels, is printed whole under its name,
 // after a note saying so, and the other mocks still show. Flags:
 //
-//	-list             print the names of the states it would render, and exit
+//	-list             print the names of the states, or with -screens the
+//	                  screen drawings, it would render, and exit
 //	-theme dark|light the palette (default dark)
 //	-profile name     truecolor, 256, 16, none (no colour; bold and
 //	                  underline kept) or plain (no escape sequences, ASCII
@@ -259,7 +260,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fs.PrintDefaults()
 	}
-	list := fs.Bool("list", false, "print the names of the states it would render, and exit")
+	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
 	themeName := fs.String("theme", "dark", "the palette: dark or light")
 	profileName := fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain")
 	ascii := fs.Bool("ascii", false, "use the ASCII glyph set")
