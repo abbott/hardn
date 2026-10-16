@@ -91,8 +91,8 @@ func DisplaySecurityStatusWithCustomPrinter(cfg *config.Config, status *Security
 	// Display sudo configuration
 	if !status.SudoConfigured {
 		indentedPrintFn(formatter.FormatWarning("Sudo", "Not Installed", "", "dark"))
-	// } else {
-	// 	indentedPrintFn(formatter.FormatConfigured("Sudo", "Installed", "", "dark"))
+		// } else {
+		// 	indentedPrintFn(formatter.FormatConfigured("Sudo", "Installed", "", "dark"))
 	}
 
 	// Display sudo method

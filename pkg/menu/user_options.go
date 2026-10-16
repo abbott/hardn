@@ -357,7 +357,7 @@ func (m *UserMenu) HandleUserMenuOptions() bool {
 
 						fmt.Printf("\n\n")
 
-						fmt.Printf(indentSpaces + "Require password for sudo? (y/n): ")
+						fmt.Print(indentSpaces + "Require password for sudo? (y/n): ")
 
 						confirm := ReadInput()
 
