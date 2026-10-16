@@ -527,11 +527,13 @@ func TestLayout(t *testing.T) {
 		{"bulletlist: a bullet item wraps under itself", BulletList{Items: []KeyValue{{Key: "If SSH fails, a fallback access method is available"}}}, 40, false,
 			"   -  If SSH fails, a fallback access\n      method is available"},
 		{"bulletlist: an empty list is nothing", BulletList{Items: []KeyValue{{}, {Key: " "}}}, 80, false, ""},
-		{"message: the glyph in the marker column, the text at the label column", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
-			"  [+] DNS configured successfully"},
-		{"message: a Unicode glyph is centred", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "   ✗  Failed"},
-		{"message: a long text wraps under itself", Message{Text: "No automatic backups will be created"}, 20, false,
-			"  [i] No automatic\n      backups will\n      be created"},
+		{"message: the glyph in the marker column, the word at the label column, then the text", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
+			"  [+] Success: DNS configured successfully"},
+		{"message: a Unicode glyph is centred", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "   ✗  Error: Failed"},
+		{"message: a long text wraps under the word", Message{Text: "No automatic backups will be created"}, 20, false,
+			"  [i] Info: No\n      automatic\n      backups will\n      be created"},
+		{"message: a word too wide for its line breaks, as the text does", Message{Kind: MessageCancelled, Text: "Stopped"}, 12, false,
+			"  [-] Cancel\n      led:\n      Stoppe\n      d"},
 		{"callout: bar, title and body", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
 		{"callout: no title is the kind's word", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
 		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Done", Body: []string{"aaa bbb ccc"}}, 9, false,
@@ -751,7 +753,7 @@ func TestBlockStyles(t *testing.T) {
 		}},
 		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
 		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
-			{th.Glyphs.Warn, th.Message.Warn}, {"No nameservers configured", th.Message.Text},
+			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
 		}},
 		{"callout", figmaWarning, []part{
 			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
@@ -809,41 +811,67 @@ func TestValueStates(t *testing.T) {
 	}
 }
 
-// TestMessageKinds checks that each kind has its own glyph in its style on
-// a Message, and its own bar, title style and word on a Callout. A value
-// outside the kinds is MessageInfo.
+// TestMessageKinds checks that each kind has its own glyph and word, both
+// in its style, on a Message, and its own bar, title style and title on a
+// Callout; and that without colour, at the ASCII profile and in plain
+// mode, the five kinds' messages still differ. A value outside the kinds
+// is MessageInfo.
 func TestMessageKinds(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
 	tests := []struct {
-		kind  MessageKind
-		glyph string
-		style lipgloss.Style
-		bar   theme.CalloutKind
-		word  string
+		kind        MessageKind
+		glyph       string
+		style       lipgloss.Style
+		bar         theme.CalloutKind
+		word, title string
 	}{
-		{MessageInfo, g.Info, m.Info, co.Info, "Note"},
-		{MessageOK, g.OK, m.OK, co.OK, "Operation Successful"},
-		{MessageWarn, g.Warn, m.Warn, co.Warn, "Warning"},
-		{MessageBad, g.Bad, m.Bad, co.Bad, "Operation Failed"},
-		{MessageCancelled, g.Cancelled, m.Cancelled, co.Cancelled, "Operation Cancelled"},
-		{MessageKind(9), g.Info, m.Info, co.Info, "Note"},
+		{MessageInfo, g.Info, m.Info, co.Info, "Info", "Note"},
+		{MessageOK, g.OK, m.OK, co.OK, "Success", "Operation Successful"},
+		{MessageWarn, g.Warn, m.Warn, co.Warn, "Warning", "Warning"},
+		{MessageBad, g.Bad, m.Bad, co.Bad, "Error", "Operation Failed"},
+		{MessageCancelled, g.Cancelled, m.Cancelled, co.Cancelled, "Cancelled", "Operation Cancelled"},
+		{MessageKind(9), g.Info, m.Info, co.Info, "Info", "Note"},
 	}
-	words := map[string]bool{}
+	words, titles := map[string]bool{}, map[string]bool{}
 	for _, tt := range tests {
-		if got := (Message{Kind: tt.kind, Text: "x"}).Render(c); !strings.Contains(got, tt.style.Render(tt.glyph)) {
-			t.Errorf("kind %d: message %q, want its glyph %q in its style", tt.kind, got, tt.glyph)
+		got := Message{Kind: tt.kind, Text: "x"}.Render(c)
+		for _, want := range []string{tt.style.Render(tt.glyph), tt.style.Render(tt.word + ":")} {
+			if !strings.Contains(got, want) {
+				t.Errorf("kind %d: message %q, want it to hold %q", tt.kind, got, want)
+			}
 		}
-		got := Callout{Kind: tt.kind}.Render(c)
-		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.word); got != want {
+		got = Callout{Kind: tt.kind}.Render(c)
+		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.title); got != want {
 			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
 		}
 		if tt.kind.String() != tt.word {
 			t.Errorf("kind %d: String() = %q, want %q", tt.kind, tt.kind.String(), tt.word)
 		}
-		words[tt.word] = true
+		words[tt.word], titles[tt.title] = true, true
 	}
-	if len(words) != 5 {
-		t.Errorf("the five kinds have %d different words, want 5: %v", len(words), words)
+	if len(words) != 5 || len(titles) != 5 {
+		t.Errorf("the five kinds have %d different words and %d different titles, want 5: %v %v", len(words), len(titles), words, titles)
+	}
+	// A word broken over lines keeps its style on each.
+	narrow := NewCtx(term.Fixed(12, colorprofile.TrueColor, false, true))
+	got := Message{Kind: MessageCancelled, Text: "Stopped"}.Render(narrow)
+	for _, want := range []string{m.Cancelled.Render("Cancel"), m.Cancelled.Render("led:"), m.Text.Render("Stoppe")} {
+		if !strings.Contains(got, want) {
+			t.Errorf("narrow message %q, want it to hold %q", got, want)
+		}
+	}
+	for _, env := range []term.Env{
+		term.Fixed(80, colorprofile.ASCII, false, true),
+		term.Fixed(80, colorprofile.ASCII, true, true),
+		term.Fixed(80, colorprofile.NoTTY, false, true),
+	} {
+		shown := map[string]bool{}
+		for k := MessageInfo; k <= MessageCancelled; k++ {
+			shown[Message{Kind: k, Text: "Port 2230 changed"}.Render(NewCtx(env))] = true
+		}
+		if len(shown) != 5 {
+			t.Errorf("%v, unicode %v: the five kinds show %d different messages, want 5: %v", env.Profile, env.Unicode, len(shown), shown)
+		}
 	}
 }
