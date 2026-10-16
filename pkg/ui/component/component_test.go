@@ -94,6 +94,10 @@ var (
 		{Key: "If SSH fails, a fallback access method is available"},
 	}}
 	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
+	// yesNo is a y/n question's inputs; next/p1c-nav owns the default and
+	// its hint form (y/N).
+	yesNo  = keys.Set{{Keys: []string{"y"}}, {Keys: []string{"n"}}}
+	sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
 )
 
 // withItem returns m with item i replaced by it.
@@ -215,6 +219,12 @@ var states = []struct {
 		"A user password is required for sudo usage.",
 		"Keep this session open until a new connection to port 2230 from 192.0.2.0/24 succeeds.",
 	}}},
+	{"answeredfield/text", AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
+	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
+	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
+	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}},
+	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
+	{"answeredfield/empty", AnsweredField{Answer: "george"}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -268,6 +278,8 @@ func empty(vm renderer) bool {
 		return len(v.Items) == 0
 	case Message:
 		return v.Text == ""
+	case AnsweredField:
+		return v.Label == ""
 	}
 	return false
 }
@@ -524,6 +536,19 @@ func TestLayout(t *testing.T) {
 		{"callout: no title is the kind's word", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
 		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Done", Body: []string{"aaa bbb ccc"}}, 9, false,
 			"# Done\n# aaa bbb\n# ccc"},
+		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
+			"   1. Username: george"},
+		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
+			"   2. Grant sudo privilege? [y or n]: y"},
+		{"field: unnumbered at the indent", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 80, false,
+			"  Disable SSH login for 'root'? [y or n]: y"},
+		{"field: unanswered ends at the colon", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}, 80, false,
+			"   3. Require sudo password? [y or n]:"},
+		{"field: a long answer goes under the question", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}, 80, false,
+			"   4. Paste SSH public key:\n      " + sshKey[:maxWidth(AnsweredField{}, 80)-theme.StackCol-3] + "..."},
+		{"field: the question is cut to keep a short answer beside it", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 40, false,
+			"  Disable SSH login for '... [y or n]: y"},
+		{"field: a wide number pushes the question", AnsweredField{Number: 12345, Label: "Username"}, 80, false, "12345. Username:"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -731,6 +756,10 @@ func TestBlockStyles(t *testing.T) {
 		{"callout", figmaWarning, []part{
 			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
 		}},
+		{"field", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, []part{
+			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y or n]:", th.Field.Hint}, {"y", th.Field.Answer},
+		}},
+		{"field with no hint", AnsweredField{Label: "Username", Answer: "george"}, []part{{":", th.Field.Label}}},
 	}
 	for _, tt := range tests {
 		got := tt.vm.Render(c)
