@@ -201,3 +201,30 @@ func TestCutStyle(t *testing.T) {
 		t.Errorf("got %q, want it to hold %q", got, want)
 	}
 }
+
+// TestTruncate checks the plain-text cut: it drops the spaces before the
+// ellipsis, as fit does, and shows as much of the ellipsis as fits when
+// no text does.
+func TestTruncate(t *testing.T) {
+	tests := []struct {
+		s       string
+		limit   int
+		unicode bool
+		want    string
+	}{
+		{"web-01", 6, false, "web-01"},
+		{"web-01.example.net", 10, false, "web-01...."},
+		{"web-01.example.net", 10, true, "web-01.ex…"},
+		{"Security Updates Mail", 20, false, "Security Updates..."},
+		{"Security Updates Mail", 18, true, "Security Updates…"},
+		{"   x", 3, false, "..."},
+		{"web-01", 2, false, ".."},
+		{"web-01", 0, true, ""},
+	}
+	for _, tt := range tests {
+		c := NewCtx(term.Fixed(80, colorprofile.ASCII, tt.unicode, true))
+		if got := c.truncate(tt.s, tt.limit); got != tt.want {
+			t.Errorf("truncate(%q, %d), unicode %v = %q, want %q", tt.s, tt.limit, tt.unicode, got, tt.want)
+		}
+	}
+}
