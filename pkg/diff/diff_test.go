@@ -2,6 +2,7 @@ package diff
 
 import (
 	"fmt"
+	"math"
 	"math/rand/v2"
 	"strconv"
 	"strings"
@@ -43,6 +44,9 @@ func TestUnified(t *testing.T) {
 		{"no context: removed", "a\nb\nc\n", "a\nc\n", 0, head + "@@ -2 +1,0 @@\n-b\n"},
 		{"no context: added", "a\nc\n", "a\nb\nc\n", 0, head + "@@ -1,0 +2 @@\n+b\n"},
 		{"negative context is none", "a\nb\nc\n", "a\nc\n", -1, head + "@@ -2 +1,0 @@\n-b\n"},
+		{"the largest context keeps the whole file", lines(ten), strings.Replace(with(9, "ten\n"), "l2\n", "two\n", 1), math.MaxInt,
+			head + "@@ -1,10 +1,10 @@\n l1\n-l2\n+two\n l3\n l4\n l5\n l6\n l7\n l8\n l9\n-l10\n+ten\n"},
+		{"half the largest context", "a\nb\nc\n", "a\nB\nc\n", math.MaxInt/2 + 1, head + "@@ -1,3 +1,3 @@\n a\n-b\n+B\n c\n"},
 		{"old has no newline", "a", "a\n", 3, head + "@@ -1 +1 @@\n-a\n" + NoNewline + "\n+a\n"},
 		{"new has no newline", "a\n", "a", 3, head + "@@ -1 +1 @@\n-a\n+a\n" + NoNewline + "\n"},
 		{"neither has one", "a\nb", "a\nc", 3,
@@ -92,7 +96,7 @@ func TestApplyYieldsNew(t *testing.T) {
 		if i%7 == 0 {
 			to = from
 		}
-		for _, n := range []int{0, 1, 3} {
+		for _, n := range []int{0, 1, 3, math.MaxInt} {
 			u := UnifiedContext("a", "b", from, to, n)
 			if (u == "") != (from == to) {
 				t.Fatalf("pair %d, context %d: diff %q for %q and %q", i, n, u, from, to)

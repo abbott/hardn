@@ -42,17 +42,21 @@ func Unified(oldName, newName, oldText, newText string) string {
 }
 
 // UnifiedContext is Unified with context lines of context around each
-// change; a negative context is 0. Hunks closer than twice the context
-// merge, as in diff -u. Each hunk header is "@@ -start,count +start,count
-// @@": a count of 1 is left out, and an empty range starts at the line
-// before it, 0 at the top. A line that ends its text with no newline is
-// followed by NoNewline.
+// change; a negative context is 0, and one longer than both texts, such
+// as math.MaxInt for the whole file, keeps every line. Changes at most
+// twice the context apart share a hunk, as in diff -u. Each hunk header is
+// "@@ -start,count +start,count @@": a count of 1 is left out, and an
+// empty range starts at the line before it, 0 at the top. A line that ends
+// its text with no newline is followed by NoNewline.
 func UnifiedContext(oldName, newName, oldText, newText string, context int) string {
 	if oldText == newText {
 		return ""
 	}
-	context = max(0, context)
 	ops := edits(split(oldText), split(newText))
+	// No hunk reaches past the edit script, so a longer context changes
+	// nothing; clamping it keeps next+context and 2*context from
+	// overflowing.
+	context = min(max(0, context), len(ops))
 	var b strings.Builder
 	b.WriteString("--- " + oldName + "\n+++ " + newName + "\n")
 	// at[i] is the number of old and new lines before ops[i].
