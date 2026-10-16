@@ -46,6 +46,7 @@
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
+| [P-23](#p-23) | Words for the message kinds Figma does not draw | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -424,3 +425,20 @@
 - **Effort:** S. (a) is built, so this approves its words and place; (b) or (c) is a change to `Menu` and its goldens. Marking items is data in the screens (`next/p1d-slice`, Phase 4).
 - **Risk:** Low: display only. Under (a), three marked items make the main menu three lines longer, against the compact menu's 24 lines (refactor plan §3.15).
 - **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `02-SSH_LOGIN.png` (reference only). After: `docs/refactor/img/p-22-after.png` (placeholder); the `menu/risk` and `menu/disabled` goldens show (a) meanwhile.
+
+<a id="p-23"></a>
+### P-23: Words for the message kinds Figma does not draw
+
+- **Status:** proposed
+- **Source:** `next/p1b-blocks`, which builds brief 1B's `Message` (success, info, warn and error) and Figma's `Callout`. Related: [P-09](#p-09), [P-10](#p-10).
+- **Problem:**
+  - Figma draws three callouts: "Warning", "Operation Successful" and "Operation Cancelled". Brief 1B's messages also report errors and information, which the canonical flow's result step (brief 1C step 5, P-10) and dry-run's stop at the plan will need. Figma draws no failure and no information callout.
+  - A callout's kind shows in its bar's colour, which is lost without colour, so its title must say the kind; a callout given no title needs a word of its own.
+  - origin/main's one-line messages are a glyph and a sentence ("✓ DNS configured successfully"), with no word for the kind.
+- **Proposal:**
+  - The callout words, built in `next/p1b-blocks` (DEV-032): a callout with no title shows its kind's word, Figma's three for ok, warn and cancelled, and "Operation Failed" for bad and "Note" for info. Alternatives: "Error" or "Failed"; "Info" or "Information".
+  - One-line messages keep origin/main's form, the kind's glyph and the sentence, with no kind word (built, DEV-031). The alternative, a bold kind word before the text ("Failed: ..."), as the theme's first plan had it, repeats what the glyph says and changes the wording of origin/main's ~244 message lines.
+  - Each word is one string in `MessageKind.String` (`pkg/ui/component/message.go`), so changing one is a string and the goldens.
+- **Effort:** S. The words are built, so this approves them; a kind word on messages is a change to `Message` and its goldens.
+- **Risk:** Low: display only.
+- **Screenshots:** Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-23-after.png` (placeholder); the `callout/bad`, `callout/info` and `message/*` goldens show the built form meanwhile.
