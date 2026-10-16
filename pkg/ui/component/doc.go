@@ -59,7 +59,9 @@
 //     A component that animates, such as StepProgress, takes its frame from
 //     the view-model and Env.Animate, never from a clock.
 //   - Goldens. Each state renders on uitest.Full() into
-//     testdata/golden/<component>/<state>.golden.
+//     testdata/golden/<component>/<state>.golden. The states are defined
+//     once, in pkg/ui/component/fixture (fixture.States), which the
+//     dev-only gallery (internal/tools/uigallery) shows too.
 //
 // # Lip Gloss helpers
 //
