@@ -79,6 +79,18 @@ func Mocks() []Mock {
 	on := func(build func(flow.Engine, bool) (WorkflowStep, flow.Flow), e flow.Engine, dryRun bool) func() (WorkflowStep, flow.Flow) {
 		return func() (WorkflowStep, flow.Flow) { return build(e, dryRun) }
 	}
+	creating := func(failing, dryRun bool) func() (WorkflowStep, flow.Flow) {
+		return func() (WorkflowStep, flow.Flow) { return createUser(failing, dryRun) }
+	}
+	// george are Figma's answers to the create-user form, then the
+	// confirmation's, if any.
+	george := func(confirmed ...string) []Answer {
+		out := []Answer{{"username", "george"}, {"sudo", "y"}, {"sudo-password", "n"}, {"ssh-key", "n"}}
+		for _, l := range confirmed {
+			out = append(out, Answer{"confirm", l})
+		}
+		return out
+	}
 	const (
 		unreleased = "v0.3.2 has no such screen; origin/main adds it (pkg/menu/user_options.go)."
 		figmaWords = "Figma's words where origin/main's differ, pending P-31."
@@ -131,9 +143,12 @@ func Mocks() []Mock {
 			"v0.3.2's User Creation Menu asks for a username only when none is configured, then creates the user "+
 				"at once (pkg/menu/menu.go:317-349). origin/main adds this form, a summary and \"Create user 'x'? (y/n)\".",
 			"The confirmation after the plan, unnumbered, pending P-10 (DEV-048)."),
-			Sequences: []Sequence{{Name: "cancelled", Build: createUserFixture, Ends: flow.Cancelled, Answers: []Answer{
-				{"username", "george"}, {"sudo", "y"}, {"sudo-password", "n"}, {"ssh-key", "n"}, {"confirm", "n"},
-			}}}},
+			Sequences: []Sequence{
+				{Name: "normal", Build: creating(false, false), Answers: george("y"), Ends: flow.Applied},
+				{Name: "dry-run", Build: creating(false, true), Answers: george(), Ends: flow.Planned},
+				{Name: "failure", Build: creating(true, false), Answers: george("y"), Ends: flow.Failed},
+				{Name: "cancelled", Build: creating(false, false), Answers: george("n"), Ends: flow.Cancelled},
+			}},
 		{Name: "workflow-step/user-manage-sudo-confirmation", Source: figma("USER-MANAGE_SUDO-CONFIRMATION", unreleased+
 			" It asks \"Require password for sudo? (y/n)\" only when moving to a password, and changes the other "+
 			"way with no confirmation.",

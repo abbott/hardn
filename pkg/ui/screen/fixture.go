@@ -105,12 +105,15 @@ func UserFixture() SubMenu {
 	}
 }
 
-// sudoersFile is the drop-in the sudo fixture changes. Figma draws no
-// plan, so the plan is illustrative, named as the component and flow
-// fixtures name theirs: origin/main writes /etc/sudoers.d/george, as
-// "george ALL=(ALL) ALL" (pkg/adapter/secondary os_user_repository.go),
-// and Phase 3's engine decides the file.
-const sudoersFile = "/etc/sudoers.d/hardn-george"
+// sudoersFile is the drop-in the sudo fixture changes, sudoersPrefix and
+// the user's name. Figma draws no plan, so the plan is illustrative, named
+// as the component and flow fixtures name theirs: origin/main writes
+// /etc/sudoers.d/george, as "george ALL=(ALL) ALL" (pkg/adapter/secondary
+// os_user_repository.go), and Phase 3's engine decides the file.
+const (
+	sudoersPrefix = "/etc/sudoers.d/hardn-"
+	sudoersFile   = sudoersPrefix + "george"
+)
 
 // sudoPlan is what requiring george's password for sudo plans, two steps:
 // the drop-in's rule, the file checked alone with visudo -cf, then the

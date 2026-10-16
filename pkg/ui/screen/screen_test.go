@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -185,6 +186,39 @@ func TestMocks(t *testing.T) {
 	}
 	for n := range seen {
 		t.Errorf("mock %s has no golden", n)
+	}
+}
+
+// TestCreateUserPlan checks that the create-user fixture plans what its
+// form was answered, so that its review, plan and confirmation agree for
+// any answers: a step per answer that needs one, named for the user; and,
+// played on the flow, bob's answers give bob's plan and question.
+func TestCreateUserPlan(t *testing.T) {
+	tests := []struct {
+		u    newUser
+		want []string
+	}{
+		{newUser{name: "george", sudo: true}, []string{"Create user george", "Add george to the sudo group", "Let george use sudo without a password"}},
+		{newUser{name: "bob"}, []string{"Create user bob"}},
+		{newUser{name: "bob", sudo: true, password: true}, []string{"Create user bob", "Add bob to the sudo group"}},
+		{newUser{name: "bob", addKey: true, key: "ssh-ed25519 AAAA bob"}, []string{"Create user bob", "Add an SSH key for bob"}},
+	}
+	for _, tt := range tests {
+		var got []string
+		for _, ch := range tt.u.plan().View.Changes {
+			got = append(got, ch.Title)
+		}
+		if !slices.Equal(got, tt.want) {
+			t.Errorf("%+v: plans %q, want %q", tt.u, got, tt.want)
+		}
+	}
+	env := term.Fixed(80, colorprofile.NoTTY, false, true)
+	step, f := createUser(false, false)
+	p, out := prompter(env, "bob", "n", "n", "y")
+	o, err := step.Run(context.Background(), p, f)
+	if got := out.String(); o != flow.Applied || err != nil || !strings.Contains(got, "Create user 'bob'?") ||
+		!strings.Contains(got, "Done: Create user bob") || strings.Contains(got, "george") || strings.Contains(got, "sudo group") {
+		t.Errorf("bob, no sudo, no key: Run() = %v, %v, transcript\n%s", o, err, got)
 	}
 }
 

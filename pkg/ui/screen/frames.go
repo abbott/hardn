@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -247,51 +248,106 @@ func typedHostname(question string) func(flow.Plan) flow.Confirm {
 	}
 }
 
-// createUserFixture returns Figma's USER-CREATE_USER as a workflow step
-// and its flow, under Figma's "Create User" title: the form asks Figma's
-// four questions, and origin/main's "Paste SSH public key" after a yes to
-// "Add SSH key?"; the review sums the answers up as Figma does; the plan
-// is fixed, for Figma's answers (george, with sudo and no password); and
-// Figma's question, "Create user 'george'?", is asked after the plan,
-// unnumbered, not as the form's fifth field (DEV-048, P-10).
-func createUserFixture() (WorkflowStep, flow.Flow) {
-	var (
-		name, key              string
-		sudo, password, addKey bool
-	)
-	plan := flow.Plan{View: component.PlanView{Changes: []component.PlanChange{
-		{Title: "Create user george", Commands: []string{"useradd --create-home --shell /bin/bash george"}},
-		{Title: "Add george to the sudo group", Commands: []string{"usermod -aG sudo george"}},
-		{
-			Title: "Let george use sudo without a password", Target: sudoersFile,
-			Diff:     diff.Unified(sudoersFile, sudoersFile, "", "george ALL=(ALL:ALL) NOPASSWD: ALL\n"),
-			Commands: []string{"visudo -cf " + sudoersFile},
-		},
-	}}}
+// newUser is the create-user form's answers.
+type newUser struct {
+	name, key              string
+	sudo, password, addKey bool
+}
+
+// plan is what creating u plans: the user; with sudo, the sudo group;
+// with sudo and no password for it, a drop-in that lets the user use sudo
+// with none, checked with visudo -cf; with a key, the user's
+// authorized_keys. For Figma's answers (george, with sudo and no
+// password, no key) that is three steps. Illustrative, as sudoPlan is.
+func (u *newUser) plan() flow.Plan {
+	changes := []component.PlanChange{{
+		Title: "Create user " + u.name, Commands: []string{"useradd --create-home --shell /bin/bash " + u.name},
+	}}
+	if u.sudo {
+		changes = append(changes, component.PlanChange{
+			Title: "Add " + u.name + " to the sudo group", Commands: []string{"usermod -aG sudo " + u.name},
+		})
+	}
+	if u.sudo && !u.password {
+		file := sudoersPrefix + u.name
+		changes = append(changes, component.PlanChange{
+			Title: "Let " + u.name + " use sudo without a password", Target: file,
+			Diff:     diff.Unified(file, file, "", u.name+" ALL=(ALL:ALL) NOPASSWD: ALL\n"),
+			Commands: []string{"visudo -cf " + file},
+		})
+	}
+	if u.addKey {
+		file := "/home/" + u.name + "/.ssh/authorized_keys"
+		changes = append(changes, component.PlanChange{
+			Title: "Add an SSH key for " + u.name, Target: file, Diff: diff.Unified(file, file, "", u.key+"\n"),
+		})
+	}
+	return flow.Plan{View: component.PlanView{Changes: changes}}
+}
+
+// fails fails u's plan at its second step, when it has one: the sudo
+// group, for Figma's answers, as on a host with no sudo group, so that
+// the user is rolled back and the drop-in skipped.
+func (u *newUser) fails() flow.Fixture {
+	return flow.Fixture{Planned: u.plan(), FailAt: 2, Detail: "exit status 6", Failure: flow.Failure{
+		Err:     fmt.Errorf("Adding %s to the sudo group failed: exit status 6", u.name),
+		Command: "usermod -aG sudo " + u.name,
+		Output:  "usermod: group 'sudo' does not exist\n",
+		LogPath: "/var/log/hardn.log",
+		Next:    "Check that the sudo group exists, then try again.",
+	}}
+}
+
+// answered is a flow.Engine whose plan follows a form's answers: the
+// fixture it returns is made when the flow asks for the plan, after the
+// form, and applied as flow.Fixture applies it.
+type answered func() flow.Fixture
+
+func (a answered) Plan(ctx context.Context) (flow.Plan, error) { return a().Plan(ctx) }
+
+func (a answered) Apply(ctx context.Context, report flow.Report) error { return a().Apply(ctx, report) }
+
+// createUser returns Figma's USER-CREATE_USER as a workflow step and its
+// flow, under Figma's "Create User" title, in dry-run mode when dryRun is
+// set: the form asks Figma's four questions, and origin/main's "Paste SSH
+// public key" after a yes to "Add SSH key?"; the review sums the answers
+// up as Figma does; the plan follows the answers (newUser.plan), failing
+// at its second step when failing is set; and Figma's question, "Create
+// user 'george'?", is asked after the plan, unnumbered, not as the form's
+// fifth field (DEV-048, P-10).
+func createUser(failing, dryRun bool) (WorkflowStep, flow.Flow) {
+	u := new(newUser)
+	engine := answered(func() flow.Fixture {
+		if failing {
+			return u.fails()
+		}
+		return flow.Fixture{Planned: u.plan()}
+	})
 	f := flow.Flow{
 		Form: form.Form{Fields: []form.Field{
-			&form.Text{Title: "Username", Value: &name},
-			&form.YesNo{Title: "Grant sudo privilege?", Value: &sudo},
-			&form.YesNo{Title: "Require sudo password?", Value: &password, Skip: func() bool { return !sudo }},
-			&form.YesNo{Title: "Add SSH key?", Value: &addKey},
-			&form.Text{Title: "Paste SSH public key", Value: &key, Skip: func() bool { return !addKey }},
+			&form.Text{Title: "Username", Value: &u.name},
+			&form.YesNo{Title: "Grant sudo privilege?", Value: &u.sudo},
+			&form.YesNo{Title: "Require sudo password?", Value: &u.password, Skip: func() bool { return !u.sudo }},
+			&form.YesNo{Title: "Add SSH key?", Value: &u.addKey},
+			&form.Text{Title: "Paste SSH public key", Value: &u.key, Skip: func() bool { return !u.addKey }},
 		}},
 		Review: func() flow.Review {
 			sudoRow := component.KeyValue{Key: "Sudo", Value: "Enabled, No password", State: component.ValueBad}
 			switch {
-			case !sudo:
+			case !u.sudo:
 				sudoRow = component.KeyValue{Key: "Sudo", Value: "Disabled"}
-			case password:
+			case u.password:
 				sudoRow = component.KeyValue{Key: "Sudo", Value: "Enabled", State: component.ValueOK}
 			}
 			keyRow := component.KeyValue{Key: "SSH Keys", Value: "None", State: component.ValueWarn}
-			if addKey {
+			if u.addKey {
 				keyRow = component.KeyValue{Key: "SSH Keys", Value: "1 key"}
 			}
 			return flow.Review{Title: "User Configuration", Items: []component.KeyValue{sudoRow, keyRow}}
 		},
-		Engine:  flow.Fixture{Planned: plan},
-		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: fmt.Sprintf("Create user '%s'?", name)} },
+		Engine:  engine,
+		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: fmt.Sprintf("Create user '%s'?", u.name)} },
+		DryRun:  dryRun,
 	}
 	return WorkflowStep{Header: fixtureHeader(), Breadcrumb: trail("User Management", "Create User")}, f
 }
