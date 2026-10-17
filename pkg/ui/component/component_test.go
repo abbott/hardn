@@ -71,6 +71,33 @@ var (
 	}, Exit: MenuItem{Key: "0", Label: "Return"}}
 	figmaHeading = MenuHeading{Title: "Select an option", Mode: &ModeIndicator{}}
 	figmaPrompt  = PromptLine{Label: "Enter your choice", Accepts: append(figmaMenu.Bindings(), quit)}
+	// figmaUser is Figma's details for george on 01-USER, its "Enabled,"
+	// plain and "No password" red.
+	figmaUser = BulletList{Items: []KeyValue{
+		{Key: "Sudo", Value: "Enabled,", State: ValueBad, Note: "No password"},
+		{Key: "SSH Keys", Value: "7 keys"},
+		{Key: "UID:GID", Value: "1000:1000"},
+		{Key: "Directory", Value: "/home/george"},
+	}}
+	// figmaSSH is Figma's SSH Configuration details (02-SSH_LOGIN), with
+	// alice as the allowed user.
+	figmaSSH = BulletList{Items: []KeyValue{
+		{Key: "Root SSH Login", Value: "Enabled", State: ValueBad},
+		{Key: "SSH Port", Value: "2230"},
+		{Key: "Allowed Users", Value: "alice"},
+	}}
+	// figmaChecklist is the checklist under Figma's warning
+	// (SSH_LOGIN-TOGGLE_CONFIRMATION).
+	figmaChecklist = BulletList{Items: []KeyValue{
+		{Key: "Non-root user has sudo privileges"},
+		{Key: "Non-root user SSH access has been tested"},
+		{Key: "If SSH fails, a fallback access method is available"},
+	}}
+	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
+	// yesNo is a y/n question's inputs; next/p1c-nav owns the default and
+	// its hint form (y/N).
+	yesNo  = keys.Set{{Keys: []string{"y"}}, {Keys: []string{"n"}}}
+	sshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
 )
 
 // withItem returns m with item i replaced by it.
@@ -141,6 +168,64 @@ var states = []struct {
 	{"promptline/normal", figmaPrompt},
 	{"promptline/no-hint", PromptLine{Label: "Username"}},
 	{"promptline/empty", PromptLine{}},
+	{"badge/normal", Badge{Text: "george"}},
+	{"badge/long", Badge{Text: longHost}},
+	{"badge/empty", Badge{}},
+	{"subjectline/normal", SubjectLine{Label: "Managing", Subject: "george"}},
+	{"subjectline/long-label", SubjectLine{Label: "Managing sudo method for", Subject: "george"}},
+	{"subjectline/long", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}},
+	{"subjectline/no-label", SubjectLine{Subject: "george"}},
+	{"subjectline/empty", SubjectLine{Label: "Managing"}},
+	{"sectionheader/normal", SectionHeader{Title: "User Configuration"}},
+	{"sectionheader/long", SectionHeader{Title: "Backup configuration for every host in the web-01.example.net cluster"}},
+	{"sectionheader/empty", SectionHeader{}},
+	{"breadcrumb/normal", Breadcrumb{Items: []string{"hardn", "Firewall"}}},
+	{"breadcrumb/deep", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}},
+	{"breadcrumb/long", Breadcrumb{Items: []string{"hardn", "Firewall application profiles", "Manage application profiles", "Allow 2230/tcp from 192.0.2.0/24"}}},
+	{"breadcrumb/empty", Breadcrumb{}},
+	{"keyvalue/plain", KeyValue{Key: "SSH Port", Value: "2230"}},
+	{"keyvalue/ok", KeyValue{Key: "Sudo Method", Value: "Password required", State: ValueOK}},
+	{"keyvalue/warn", KeyValue{Key: "SSH Keys", Value: "None", State: ValueWarn}},
+	{"keyvalue/bad", KeyValue{Key: "Root SSH Login", Value: "Enabled", State: ValueBad}},
+	{"keyvalue/unknown", KeyValue{Key: "Allowed Users", State: ValueUnknown}},
+	{"keyvalue/not-applicable", KeyValue{Key: "UFW", State: ValueNotApplicable}},
+	{"keyvalue/note", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}},
+	{"keyvalue/long-key", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}},
+	{"keyvalue/long-value", KeyValue{Key: "Allowed Users", Value: "alice bob carol dave erin frank grace heidi ivan judy mallory"}},
+	{"keyvalue/item", KeyValue{Key: "If SSH fails, a fallback access method is available"}},
+	{"keyvalue/empty", KeyValue{}},
+	{"bulletlist/user", figmaUser},
+	{"bulletlist/ssh", figmaSSH},
+	{"bulletlist/checklist", figmaChecklist},
+	{"bulletlist/long", BulletList{Items: []KeyValue{
+		{Key: "Backup State", Value: "Enabled", State: ValueOK},
+		{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
+	}}},
+	{"bulletlist/empty", BulletList{}},
+	{"message/ok", Message{Kind: MessageOK, Text: "DNS configured successfully"}},
+	{"message/warn", Message{Kind: MessageWarn, Text: "No nameservers configured"}},
+	{"message/bad", Message{Kind: MessageBad, Text: "Failed to configure sudo: exit status 1"}},
+	{"message/info", Message{Text: "No automatic backups will be created"}},
+	{"message/cancelled", Message{Kind: MessageCancelled, Text: "Operation cancelled. No changes were made."}},
+	{"message/long", Message{Kind: MessageBad, Text: "Failed to restart ssh.service: Job for ssh.service failed because the control process exited with error code; port 2230 is still in use"}},
+	{"message/empty", Message{Kind: MessageOK}},
+	{"callout/warn", figmaWarning},
+	{"callout/ok", Callout{Kind: MessageOK, Title: "Operation Successful"}},
+	{"callout/cancelled", Callout{Kind: MessageCancelled, Title: "Operation Cancelled"}},
+	{"callout/bad", Callout{Kind: MessageBad, Body: []string{"sshd -t rejected the new configuration, so nothing was changed."}}},
+	{"callout/info", Callout{Body: []string{"Dry-run mode: the plan was not applied."}}},
+	{"callout/no-title", Callout{Kind: MessageWarn}},
+	{"callout/long", Callout{Kind: MessageWarn, Title: "Changing the SSH port of web-01.example.net from 22 to 2230", Body: []string{
+		"A user password is required for sudo usage.",
+		"Keep this session open until a new connection to port 2230 from 192.0.2.0/24 succeeds.",
+	}}},
+	{"answeredfield/text", AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
+	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
+	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
+	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}},
+	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
+	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
+	{"answeredfield/empty", AnsweredField{Answer: "george"}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -149,7 +234,7 @@ var states = []struct {
 // width when theme.BarsFillContent is off.
 func maxWidth(vm renderer, w int) int {
 	switch vm.(type) {
-	case ContextBar, TitleBar, Divider:
+	case ContextBar, TitleBar, Divider, SectionHeader:
 		if !theme.BarsFillContent {
 			return w
 		}
@@ -172,7 +257,8 @@ func TestGolden(t *testing.T) {
 }
 
 // empty reports whether vm renders nothing by design: a list or menu with
-// no items, or a menu heading with neither title nor mode.
+// no items, a menu heading with neither title nor mode, and a block with
+// nothing to show.
 func empty(vm renderer) bool {
 	switch v := vm.(type) {
 	case StatusList:
@@ -181,6 +267,20 @@ func empty(vm renderer) bool {
 		return len(v.Items) == 0 && v.Exit == MenuItem{}
 	case MenuHeading:
 		return v == MenuHeading{}
+	case Badge:
+		return v.Text == ""
+	case SubjectLine:
+		return v.Subject == ""
+	case Breadcrumb:
+		return len(v.Items) == 0
+	case KeyValue:
+		return v == KeyValue{}
+	case BulletList:
+		return len(v.Items) == 0
+	case Message:
+		return v.Text == ""
+	case AnsweredField:
+		return v.Label == ""
 	}
 	return false
 }
@@ -375,6 +475,100 @@ func TestLayout(t *testing.T) {
 		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 20, false,
 			"  > [0-10 or q]:"},
 		{"prompt: empty is the glyph", PromptLine{}, 80, false, "  >"},
+		// 用户名称 is double-width: beside the ellipsis, its first letter
+		// needs 5 cells, which width 18 leaves 4 of.
+		{"prompt: a wide letter that cannot fit leaves the label out", PromptLine{Label: "用户名称", Accepts: yesNo}, 18, false,
+			"  > [y or n]:"},
+		{"prompt: a wide letter that fits is kept", PromptLine{Label: "用户名称", Accepts: yesNo}, 19, false,
+			"  > 用... [y or n]:"},
+		{"badge: at the indent", Badge{Text: "web-01"}, 80, false, "  [web-01]"},
+		{"badge: a long name is cut inside the brackets", Badge{Text: strings.Repeat("x", 70)}, 60, false,
+			"  [" + strings.Repeat("x", 53) + "...]"},
+		{"subject: the badge one cell after the colon", SubjectLine{Label: "Managing", Subject: " george "}, 80, false,
+			"  Managing: [george]"},
+		{"subject: too long for one line, the badge goes under the label", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}, 60, false,
+			"  Managing sudo method for:\n      [alice-backup-replication-service]"},
+		{"subject: no label is the badge alone", SubjectLine{Subject: "george"}, 80, true, "  [george]"},
+		{"section: stub, title and rule", SectionHeader{Title: "User Configuration"}, 80, false,
+			"# User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
+		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "█ " + strings.Repeat("─", 58)},
+		{"section: a long title is cut", SectionHeader{Title: strings.Repeat("x", 70)}, 60, false,
+			"# " + strings.Repeat("x", 53) + "... -"},
+		{"breadcrumb: items joined by the separator", Breadcrumb{Items: []string{"hardn", " Firewall", ""}}, 80, true,
+			"  hardn › Firewall"},
+		{"breadcrumb: too long, the middle items go first", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}, 40, false,
+			"  hardn > ... > SSH Keys"},
+		{"breadcrumb: then the first item", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}, 20, false,
+			"  ... > SSH Keys"},
+		{"breadcrumb: and last the current item is cut", Breadcrumb{Items: []string{"hardn", "Firewall application profiles"}}, 20, false,
+			"  Firewall applic..."},
+		{"keyvalue: side by side from StackBelow", KeyValue{Key: "SSH Port", Value: "2230"}, from, false,
+			"   -  SSH Port             2230"},
+		{"keyvalue: stacked below StackBelow", KeyValue{Key: "SSH Port", Value: "2230"}, below, false,
+			"   -  SSH Port\n      2230"},
+		{"keyvalue: a state's marker replaces the bullet", BulletList{Items: []KeyValue{
+			{Key: "a", Value: "ok", State: ValueOK}, {Key: "b", Value: "warn", State: ValueWarn},
+			{Key: "c", Value: "bad", State: ValueBad}, {Key: "d", State: ValueUnknown},
+			{Key: "e", State: ValueNotApplicable}, {Key: "f", Value: "plain", State: ValueState(9)},
+		}}, from, false,
+			"  [+] a                    ok\n  [*] b                    warn\n  [ ] c                    bad\n" +
+				"  [?] d                    Unknown\n  [-] e                    Not Applicable\n   -  f                    plain"},
+		{"keyvalue: a note follows the plain value", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}, from, true,
+			"   ⛛  Backup Path          /var/backups/hardn Writable"},
+		{"keyvalue: a long key stacks the row", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}, 80, false,
+			"   -  Unattended Upgrades Mail Reports\n      alice"},
+		{"keyvalue: a long value is cut", KeyValue{Key: "Allowed Users", Value: strings.Repeat("x", 60)}, from, false,
+			"   -  Allowed Users        " + strings.Repeat("x", maxWidth(KeyValue{}, from)-theme.ValueCol-3) + "..."},
+		{"keyvalue: a state with no value shows nothing", KeyValue{Key: "Sudo", State: ValueBad}, 80, false, "   -  Sudo"},
+		{"keyvalue: no key leaves the key column blank", KeyValue{Value: "2230"}, from, false,
+			"   -                       2230"},
+		{"bulletlist: a long key stacks the whole list", BulletList{Items: []KeyValue{
+			{Key: "Backup State", Value: "Enabled", State: ValueOK},
+			{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
+			{Key: "Non-root user has sudo privileges"},
+		}}, 80, false,
+			"  [+] Backup State\n      Enabled\n   -  Unattended Upgrades Mail Reports\n      alice\n   -  Non-root user has sudo privileges"},
+		// The next three hold whatever theme.StackBelow is.
+		{"bulletlist: no room beside for a letter stacks the list", BulletList{Items: []KeyValue{{Key: "SSH Port", Value: "2230"}}}, 29, false,
+			"   -  SSH Port\n      2230"},
+		{"bulletlist: a bullet item wraps under itself", BulletList{Items: []KeyValue{{Key: "If SSH fails, a fallback access method is available"}}}, 40, false,
+			"   -  If SSH fails, a fallback access\n      method is available"},
+		{"bulletlist: an empty list is nothing", BulletList{Items: []KeyValue{{}, {Key: " "}}}, 80, false, ""},
+		{"message: the glyph in the marker column, the word at the label column, then the text", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
+			"  [+] Success: DNS configured successfully"},
+		{"message: a Unicode glyph is centred", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "   ✗  Error: Failed"},
+		{"message: a long text wraps under the word", Message{Text: "No automatic backups will be created"}, 20, false,
+			"  [i] Info: No\n      automatic\n      backups will\n      be created"},
+		{"message: a word too wide for its line breaks, as the text does", Message{Kind: MessageCancelled, Text: "Stopped"}, 12, false,
+			"  [-] Cancel\n      led:\n      Stoppe\n      d"},
+		{"callout: bar, glyph, title and body", figmaWarning, 80, false, "# [*] Warning\n# Before disabling root SSH login, ensure:"},
+		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ ⊘ Operation Cancelled"},
+		{"callout: a title of its own follows the kind's word", Callout{Kind: MessageBad, Title: " Port 2230 refused "}, 80, true, "█ ✗ Error: Port 2230 refused"},
+		{"callout: a title that is the kind's word is not repeated", Callout{Kind: MessageOK, Title: "Success"}, 80, false, "# [+] Success"},
+		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Success", Body: []string{"aaa bbb ccc ddd"}}, 13, false,
+			"# [+] Success\n# aaa bbb ccc\n# ddd"},
+		{"callout: a long title is cut", Callout{Kind: MessageOK, Title: "Done"}, 9, false, "# [+]..."},
+		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
+			"   1. Username: george"},
+		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
+			"   2. Grant sudo privilege? [y or n]: y"},
+		{"field: unnumbered at the indent", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 80, false,
+			"  Disable SSH login for 'root'? [y or n]: y"},
+		{"field: unanswered ends at the colon", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesNo}, 80, false,
+			"   3. Require sudo password? [y or n]:"},
+		{"field: a long answer goes under the question", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}, 80, false,
+			"   4. Paste SSH public key:\n      " + sshKey[:maxWidth(AnsweredField{}, 80)-theme.StackCol-3] + "..."},
+		{"field: the question is cut to keep a short answer beside it", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}, 40, false,
+			"  Disable SSH login for '... [y or n]: y"},
+		{"field: typographic quotes are shown as ASCII (C12)", AnsweredField{Label: "Disable SSH login for \u2018root\u2019?", Accepts: yesNo, Answer: "y"}, 80, true,
+			"  Disable SSH login for 'root'? [y or n]: y"},
+		{"message: typographic double quotes are shown as ASCII (C12)", Message{Kind: MessageBad, Text: "sshd: \u201cPort 2230\u201d is in use"}, 80, true,
+			"   ✗  Error: sshd: \"Port 2230\" is in use"},
+		{"field: a wide number pushes the question", AnsweredField{Number: 12345, Label: "Username"}, 80, false, "12345. Username:"},
+		{"field: too narrow for the colon, an unnumbered question is cut, not left as its indent", AnsweredField{Label: "Username", Answer: "george"}, 6, false,
+			"  U...\n..."},
+		{"field: with no letter left, an unnumbered question is the ellipsis", AnsweredField{Label: "Username"}, 5, false, "..."},
+		{"field: a numbered question keeps its number", AnsweredField{Number: 1, Label: "Username"}, 6, false, "   1."},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -545,6 +739,166 @@ func TestMenuBindings(t *testing.T) {
 		}
 		if h := b.Help(); h != "" {
 			t.Errorf("%s: the item bindings have help %q, want none", tt.name, h)
+		}
+	}
+}
+
+// TestBlockStyles checks that each part of the block group takes its slot.
+func TestBlockStyles(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	th := c.Theme
+	type part struct {
+		text  string
+		style lipgloss.Style
+	}
+	tests := []struct {
+		name  string
+		vm    renderer
+		parts []part
+	}{
+		{"badge", Badge{Text: "george"}, []part{{" george ", th.Badge}}},
+		{"subject", SubjectLine{Label: "Managing", Subject: "george"}, []part{{"Managing:", th.Text.Muted}, {" george ", th.Badge}}},
+		{"section", SectionHeader{Title: "User Configuration"}, []part{
+			{" ", th.Section.Fill}, {"User Configuration", th.Section.Title},
+			{strings.Repeat(th.Glyphs.Rule, maxWidth(SectionHeader{}, 80)-21), th.Section.Rule},
+		}},
+		{"breadcrumb", Breadcrumb{Items: []string{"hardn", "Firewall"}}, []part{
+			{"hardn", th.Breadcrumb.Item}, {th.Glyphs.Separator, th.Breadcrumb.Separator}, {"Firewall", th.Breadcrumb.Current},
+		}},
+		{"key-value", figmaUser, []part{
+			{th.Glyphs.Bullet, th.KeyValue.Bullet}, {"Sudo", th.KeyValue.Key},
+			{"Enabled,", th.KeyValue.Value}, {"No password", th.KeyValue.ValueBad}, {"7 keys", th.KeyValue.Value},
+		}},
+		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
+		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
+			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
+		}},
+		{"callout", figmaWarning, []part{
+			{" ", th.Callout.Warn.Bar}, {th.Glyphs.Warn + " Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
+		}},
+		{"field", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, []part{
+			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y or n]:", th.Field.Hint}, {"y", th.Field.Answer},
+		}},
+		{"field with no hint", AnsweredField{Label: "Username", Answer: "george"}, []part{{":", th.Field.Label}}},
+	}
+	for _, tt := range tests {
+		got := tt.vm.Render(c)
+		for _, want := range tt.parts {
+			if !strings.Contains(got, want.style.Render(want.text)) {
+				t.Errorf("%s: got %q, want it to hold %q in its style", tt.name, got, want.text)
+			}
+		}
+	}
+}
+
+// TestValueStates checks that each value state shows in the value's
+// colour and as its own status marker in place of the bullet, in the same
+// colour, and that the marker is there without colour too, so that no
+// state rests on colour alone. A plain value keeps the bullet.
+func TestValueStates(t *testing.T) {
+	colour := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	none := NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))
+	kv, g := colour.Theme.KeyValue, colour.Theme.Glyphs
+	tests := []struct {
+		state       ValueState
+		style, mark lipgloss.Style
+		glyph       string
+	}{
+		{ValuePlain, kv.Value, kv.Bullet, g.Bullet},
+		{ValueOK, kv.ValueOK, kv.ValueOK, g.Configured},
+		{ValueWarn, kv.ValueWarn, kv.ValueWarn, g.Partial},
+		{ValueBad, kv.ValueBad, kv.ValueBad, g.NotConfigured},
+		{ValueUnknown, kv.ValueUnknown, kv.ValueUnknown, g.Unknown},
+		{ValueNotApplicable, kv.ValueNotApplicable, kv.ValueNotApplicable, g.NotApplicable},
+		{ValueState(-1), kv.Value, kv.Bullet, g.Bullet},
+	}
+	shown := map[string]bool{}
+	for _, tt := range tests {
+		vm := KeyValue{Key: "SSH Port", Value: "2230", State: tt.state}
+		got := vm.Render(colour)
+		if !strings.Contains(got, tt.style.Render("2230")) || !strings.Contains(got, tt.mark.Render(tt.glyph)) {
+			t.Errorf("state %d with colour: got %q, want the marker %q and the value in their styles", tt.state, got, tt.glyph)
+		}
+		want := marker(tt.glyph, lipgloss.NewStyle()).String() + " "
+		for _, c := range []Ctx{colour, none} {
+			if plain := ansi.Strip(vm.Render(c)); !strings.HasPrefix(plain, want) {
+				t.Errorf("state %d, %v: got %q, want it to start with %q", tt.state, c.Env.Profile, plain, want)
+			}
+		}
+		shown[tt.glyph] = true
+	}
+	if len(shown) != 6 {
+		t.Errorf("the six states show %d different markers, want 6: %v", len(shown), shown)
+	}
+}
+
+// TestMessageKinds checks that each kind has its own glyph and word, both
+// in its style, on a Message, and its own bar, glyph, title style and
+// title on a Callout; and that without colour, at the ASCII profile and in
+// plain mode, the five kinds' messages, and their callouts given one title
+// of their own, still differ. A value outside the kinds is MessageInfo.
+func TestMessageKinds(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
+	tests := []struct {
+		kind        MessageKind
+		glyph       string
+		style       lipgloss.Style
+		bar         theme.CalloutKind
+		word, title string
+	}{
+		{MessageInfo, g.Info, m.Info, co.Info, "Info", "Note"},
+		{MessageOK, g.OK, m.OK, co.OK, "Success", "Operation Successful"},
+		{MessageWarn, g.Warn, m.Warn, co.Warn, "Warning", "Warning"},
+		{MessageBad, g.Bad, m.Bad, co.Bad, "Error", "Operation Failed"},
+		{MessageCancelled, g.Cancelled, m.Cancelled, co.Cancelled, "Cancelled", "Operation Cancelled"},
+		{MessageKind(9), g.Info, m.Info, co.Info, "Info", "Note"},
+	}
+	words, titles := map[string]bool{}, map[string]bool{}
+	for _, tt := range tests {
+		got := Message{Kind: tt.kind, Text: "x"}.Render(c)
+		for _, want := range []string{tt.style.Render(tt.glyph), tt.style.Render(tt.word + ":")} {
+			if !strings.Contains(got, want) {
+				t.Errorf("kind %d: message %q, want it to hold %q", tt.kind, got, want)
+			}
+		}
+		got = Callout{Kind: tt.kind}.Render(c)
+		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.glyph+" "+tt.title); got != want {
+			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
+		}
+		if tt.kind.String() != tt.word {
+			t.Errorf("kind %d: String() = %q, want %q", tt.kind, tt.kind.String(), tt.word)
+		}
+		words[tt.word], titles[tt.title] = true, true
+	}
+	if len(words) != 5 || len(titles) != 5 {
+		t.Errorf("the five kinds have %d different words and %d different titles, want 5: %v %v", len(words), len(titles), words, titles)
+	}
+	// A word broken over lines keeps its style on each.
+	narrow := NewCtx(term.Fixed(12, colorprofile.TrueColor, false, true))
+	got := Message{Kind: MessageCancelled, Text: "Stopped"}.Render(narrow)
+	for _, want := range []string{m.Cancelled.Render("Cancel"), m.Cancelled.Render("led:"), m.Text.Render("Stoppe")} {
+		if !strings.Contains(got, want) {
+			t.Errorf("narrow message %q, want it to hold %q", got, want)
+		}
+	}
+	for _, env := range []term.Env{
+		term.Fixed(80, colorprofile.ASCII, false, true),
+		term.Fixed(80, colorprofile.ASCII, true, true),
+		term.Fixed(80, colorprofile.NoTTY, false, true),
+	} {
+		messages, callouts := map[string]bool{}, map[string]bool{}
+		for k := MessageInfo; k <= MessageCancelled; k++ {
+			messages[Message{Kind: k, Text: "Port 2230 changed"}.Render(NewCtx(env))] = true
+			callout := Callout{Kind: k, Title: "Changing the SSH port", Body: []string{"Keep this session open."}}.Render(NewCtx(env))
+			if !strings.Contains(ansi.Strip(callout), k.String()+": Changing the SSH port") {
+				t.Errorf("%v, unicode %v: callout %q, want the kind's word before its title", env.Profile, env.Unicode, callout)
+			}
+			callouts[callout] = true
+		}
+		if len(messages) != 5 || len(callouts) != 5 {
+			t.Errorf("%v, unicode %v: the five kinds show %d different messages and %d different callouts, want 5: %v %v",
+				env.Profile, env.Unicode, len(messages), len(callouts), messages, callouts)
 		}
 	}
 }

@@ -65,6 +65,23 @@ func TestStatusMarkers(t *testing.T) {
 	}
 }
 
+// TestMessageMarkers checks the glyphs of a message's kind: they fit the
+// marker column, even where ambiguous-width glyphs are drawn two cells
+// wide, and no two kinds share one, so a kind never rests on colour alone.
+func TestMessageMarkers(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		kinds := []string{g.OK, g.Warn, g.Bad, g.Info, g.Cancelled}
+		for i, m := range kinds {
+			if w := max(wideWidth(m), lipgloss.Width(m)); w > MarkerWidth {
+				t.Errorf("%s: kind glyph %q is %d cells wide, over MarkerWidth %d", name, m, w, MarkerWidth)
+			}
+			if slices.Contains(kinds[i+1:], m) {
+				t.Errorf("%s: glyph %q marks two kinds", name, m)
+			}
+		}
+	}
+}
+
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {

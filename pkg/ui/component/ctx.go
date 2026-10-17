@@ -212,39 +212,73 @@ func (c Ctx) badge(s string, limit int) span {
 	return span{left + s + right, c.Theme.Badge}
 }
 
+// paint returns n cells painted in fill: spaces on its background or, with
+// no colour to paint them, a run of Glyphs.Bar (DEV-015, DEV-018).
+func (c Ctx) paint(fill lipgloss.Style, n int) span {
+	if c.Env.HasColor() {
+		return span{strings.Repeat(" ", max(0, n)), fill}
+	}
+	return span{strings.Repeat(c.Theme.Glyphs.Bar, max(0, n)), fill}
+}
+
+// rule returns a run of Glyphs.Rule n cells wide in style.
+func (c Ctx) rule(style lipgloss.Style, n int) span {
+	g := c.Theme.Glyphs.Rule
+	return span{strings.Repeat(g, max(0, n)/lipgloss.Width(g)), style}
+}
+
+// barFrame is the cells a bar keeps around its text: the stub, a cell
+// either side of the text and at least one cell of fill.
+const barFrame = 4
+
 // bar renders a context or title bar across c.barWidth(): a one-cell
 // stub, the text on the terminal's own background with a cell either side,
-// and the fill (DEV-018). With no colour to paint them, the stub and the
-// fill are runs of Glyphs.Bar (DEV-015). Text too wide for the bar is cut;
-// a bar with no text, or too narrow for any, is all fill.
+// and the fill (DEV-018), painted as paint paints them. Text too wide for
+// the bar is cut; a bar with no text, or too narrow for any, is all fill.
 func (c Ctx) bar(fill lipgloss.Style, text line) string {
 	w := c.barWidth()
-	paint := func(n int) string {
-		if c.Env.HasColor() {
-			return span{strings.Repeat(" ", n), fill}.String()
+	if text.width() == 0 || w <= barFrame {
+		return c.paint(fill, w).String()
+	}
+	body := c.fit(text, w-barFrame)
+	return c.paint(fill, 1).String() + " " + body + " " + c.paint(fill, w-3-lipgloss.Width(body)).String()
+}
+
+// wrap breaks plain text s into lines of at most limit cells: at spaces
+// and hyphens where it can and inside a word where it must, as
+// lipgloss.Wrap breaks it (wrap.go:12-19, x/ansi wrap.go:293-463). The
+// lines keep no trailing spaces, and empty ones are dropped. With limit
+// under 1, s is one line.
+func wrap(s string, limit int) []string {
+	if limit < 1 {
+		return []string{s}
+	}
+	var out []string
+	for _, l := range strings.Split(lipgloss.Wrap(s, limit, ""), "\n") {
+		if l = strings.TrimRight(l, " "); l != "" {
+			out = append(out, l)
 		}
-		return span{strings.Repeat(c.Theme.Glyphs.Bar, n), fill}.String()
 	}
-	const frame = 4 // the stub, a cell either side of the text, one cell of fill
-	if text.width() == 0 || w <= frame {
-		return paint(w)
-	}
-	body := c.fit(text, w-frame)
-	return paint(1) + " " + body + " " + paint(w-3-lipgloss.Width(body))
+	return out
 }
 
 // clean makes a view-model string one line of plain text: escape sequences
 // are removed, tabs and line breaks become spaces, other control
-// characters and invalid UTF-8 are dropped, and surrounding spaces are
-// trimmed. Text that then measures no cells, such as a lone zero-width
-// space, is empty, so it shows as a missing value. What remains measures
-// as it shows.
+// characters and invalid UTF-8 are dropped, typographic quotes become
+// ASCII ones (C12: ‘ ’ and “ ” are East Asian ambiguous width), and
+// surrounding spaces are trimmed. Text that then measures no cells, such
+// as a lone zero-width space, is empty, so it shows as a missing value.
+// What remains measures as it shows.
 func clean(s string) string {
 	s = ansi.Strip(strings.ToValidUTF8(s, ""))
 	s = strings.Map(func(r rune) rune {
 		switch {
 		case r == '\t' || r == '\n' || r == '\r':
 			return ' '
+		case r == '\u2018' || r == '\u2019':
+			return '\''
+		case r == '\u201C' || r == '\u201D':
+			return '"'
 		case unicode.IsControl(r):
 			return -1
 		}

@@ -46,6 +46,7 @@
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
+| [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 
 ---
 
@@ -391,7 +392,7 @@
 - **Source:** `next/p1b-header`, which builds the HostBlock's pending-reboot slot (brief 1B puts the finding in HostBlock). Depends on [P-04](#p-04).
 - **Problem:**
   - P-04 proposes the pending-reboot finding and places it "next to the uptime", as the plan's `next/p4-header` row does, but gives it no wording. Figma draws none.
-  - Next to the uptime does not fit beside the label. Figma's uptime, "182 days, 2 hours, 26 minutes", is 29 cells from col 27; a space and "⛬ Reboot pending" (16 cells; "[*] Reboot pending", 18, in ASCII) make the line 73 cells (75), against the 64-cell content width. The flag fits only beside an uptime of at most 20 cells (18 in ASCII), so it would be cut on the long-uptime hosts P-04 is about. Stacked, below 70 columns, the line is 6 + 29 + 1 + 16 = 52 cells (54 in ASCII), which fits at 60 columns.
+  - Next to the uptime does not fit beside the label. Figma's uptime, "182 days, 2 hours, 26 minutes", is 29 cells from col 27; a space and "⛬ Reboot pending" (16 cells; "[*] Reboot pending", 18, in ASCII) make the line 73 cells (75), against the 64-cell content width. The flag fits only beside an uptime of at most 20 cells (18 in ASCII), so it would be cut on the long-uptime hosts P-04 is about. Stacked, below `StackBelow` (64 columns since `next/p1b-menu`), the line is 6 + 29 + 1 + 16 = 52 cells (54 in ASCII), which fits at 60 columns.
 - **Proposal:**
   - The wording: the warning marker (`⛬`, `[*]` in ASCII) and "Reboot pending", both in `status.warn`, so the finding never rests on colour alone.
   - The place, for the maintainer to choose:
@@ -424,3 +425,22 @@
 - **Effort:** S. (a) is built, so this approves its words and place; (b) or (c) is a change to `Menu` and its goldens. Marking items is data in the screens (`next/p1d-slice`, Phase 4).
 - **Risk:** Low: display only. Under (a), three marked items make the main menu three lines longer, against the compact menu's 24 lines (refactor plan §3.15).
 - **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `02-SSH_LOGIN.png` (reference only). After: `docs/refactor/img/p-22-after.png` (placeholder); the `menu/risk` and `menu/disabled` goldens show (a) meanwhile.
+
+<a id="p-23"></a>
+### P-23: Words for the message kinds
+
+- **Status:** proposed
+- **Source:** `next/p1b-blocks`, which builds brief 1B's `Message` (success, info, warn and error) and Figma's `Callout`. Related: [P-09](#p-09), [P-10](#p-10).
+- **Problem:**
+  - Brief 1B defines a message as "glyph, color and a word, never color alone". origin/main's ~244 one-line messages are a glyph and a sentence ("✓ DNS configured successfully") with no word for the kind, and Figma draws no one-line message, so neither gives the words.
+  - Figma draws three callouts: "Warning", "Operation Successful" and "Operation Cancelled". Brief 1B's messages also report errors and information, which the canonical flow's result step (brief 1C step 5, P-10) and dry-run's stop at the plan will need. Figma draws no failure and no information callout.
+  - A callout's kind shows in its bar's colour, which is lost without colour and to a colour-blind reader, so a callout needs its kind's glyph and word whatever its title, and a word of its own when it has no title.
+- **Proposal:** that a message carries its kind's word is brief-decided (brief 1B), and a callout carries its kind's glyph and word by the same never-colour-alone rule; both are built (DEV-031, DEV-032). The maintainer decides the words.
+  - Message words, before the text, bold in the kind's colour: "Success", "Info", "Warning", "Error" and "Cancelled", brief 1B's kind names and Figma's "Warning" and "Cancelled": `[!] Error: Failed to configure sudo: exit status 1`. Alternatives: "Done" or "OK"; "Note"; "Failed".
+  - Callout titles for a callout given none: Figma's three for ok, warn and cancelled, and "Operation Failed" for bad and "Note" for info. Alternatives: "Error" or "Failed"; "Info" or "Information".
+  - A callout given a title of the screen's own puts its kind's word before it, `[*] Warning: Changing the SSH port`, unless the title is that word or the kind's own title. The alternative is the title as given, its kind then told by the glyph alone.
+  - Not built, and a departure from brief 1B, for the maintainer to choose knowingly: no word on one-line messages, as origin/main has them. It keeps the ~244 lines as they read today, many of whose sentences already say the kind ("Error: Failed to ..." repeats it), but the kind then rests on the glyph, and in ASCII `[-]` is also Not Applicable's marker and `[*]` Partial's.
+  - Each word is one string in `MessageKind.String` (message words) or `MessageKind.title` (callout titles), in `pkg/ui/component/message.go`, so changing one is a string and the goldens.
+- **Effort:** S. The words are built, so this approves them; dropping the word from messages, or from before a callout's own title, is a small change to `Message` or `Callout` and their goldens.
+- **Risk:** Low: display only.
+- **Screenshots:** Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-23-after.png` (placeholder); the `callout/bad`, `callout/info`, `callout/long` and `message/*` goldens show the built form meanwhile.

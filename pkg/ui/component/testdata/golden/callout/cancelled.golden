@@ -1,0 +1,147 @@
+# Golden file of TestGolden/callout/cancelled, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m[-] Operation Cancelled␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m[-] Operation Cancelled␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m[-] Operation Cancelled␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m⊘ Operation Cancelled␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m⊘ Operation Cancelled␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m⊘ Operation Cancelled␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m[-] Operation Cancelled␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m[-] Operation Cancelled␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0m[-] Operation Cancelled␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+␛[48;5;178m ␛[m ␛[1;38;5;179m⊘ Operation Cancelled␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+␛[48;5;178m ␛[m ␛[1;38;5;179m⊘ Operation Cancelled␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+␛[48;5;178m ␛[m ␛[1;38;5;179m⊘ Operation Cancelled␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+␛[48;5;178m ␛[m ␛[1;38;5;179m[-] Operation Cancelled␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+␛[48;5;178m ␛[m ␛[1;38;5;179m[-] Operation Cancelled␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+␛[48;5;178m ␛[m ␛[1;38;5;179m[-] Operation Cancelled␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+␛[48;5;136m ␛[m ␛[1;38;5;94m⊘ Operation Cancelled␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+␛[48;5;136m ␛[m ␛[1;38;5;94m⊘ Operation Cancelled␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+␛[48;5;136m ␛[m ␛[1;38;5;94m⊘ Operation Cancelled␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+␛[48;5;136m ␛[m ␛[1;38;5;94m[-] Operation Cancelled␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+␛[48;5;136m ␛[m ␛[1;38;5;94m[-] Operation Cancelled␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+␛[48;5;136m ␛[m ␛[1;38;5;94m[-] Operation Cancelled␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+␛[43m ␛[m ␛[1;33m⊘ Operation Cancelled␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+␛[43m ␛[m ␛[1;33m[-] Operation Cancelled␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+█ ␛[1m⊘ Operation Cancelled␛[m$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+# ␛[1m[-] Operation Cancelled␛[m$

@@ -125,7 +125,8 @@ func TestTypography(t *testing.T) {
 		"Header.Wordmark", "ContextBar.Name", "TitleBar.Title", "Risk.Label",
 		"Menu.Key", "Menu.ExitKey", "Prompt.Glyph", "Prompt.Label",
 		"Message.OK", "Message.Warn", "Message.Bad", "Message.Info", "Message.Cancelled",
-		"Callout.OK.Title", "Callout.Warn.Title", "Callout.Cancelled.Title",
+		"Callout.OK.Title", "Callout.Warn.Title", "Callout.Bad.Title", "Callout.Info.Title",
+		"Callout.Cancelled.Title",
 		"Badge", "Section.Title", "Breadcrumb.Current", "Plan.LockoutRisk", "Menu.Risk",
 	}
 	underline := []string{"Menu.Heading"}
@@ -173,9 +174,15 @@ func TestColourRoles(t *testing.T) {
 		{"Menu.Aside", false, "text.faint"},
 		{"Menu.Disabled", false, "text.faint"},
 		{"Menu.Risk", false, "status.warn"},
-		{"Prompt.Input", false, "text.muted"}, // drift D4
+		{"Field.Label", false, "text.primary"},
+		{"Field.Answer", false, "text.muted"}, // drift D4
 		{"Callout.OK.Bar", true, "accent.ok"},
 		{"Callout.Warn.Bar", true, "accent.warn"},
+		{"Callout.Bad.Bar", true, "status.bad"},
+		{"Callout.Info.Bar", true, "text.muted"},
+		{"Callout.Info.Title", false, "text.primary"},
+		{"KeyValue.ValueUnknown", false, "status.unknown"},
+		{"KeyValue.ValueNotApplicable", false, "text.muted"},
 		{"Badge", false, "badge.fg"},
 		{"Badge", true, "badge.bg"},
 	}

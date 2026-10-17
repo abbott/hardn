@@ -34,11 +34,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -91,11 +98,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -148,11 +162,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -205,11 +226,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -262,11 +290,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -319,11 +354,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;192;196;216mBreadcrumb.Current␛[m$
+  ␛[1;38;2;231;70;105mCallout.Bad.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;192;196;216mCallout.Info.Title␛[m$
   ␛[1;38;2;112;212;127mCallout.OK.Title␛[m$
   ␛[1;38;2;219;184;83mCallout.Warn.Title␛[m$
   ␛[1;38;2;129;134;156mContextBar.Name␛[m$
@@ -376,11 +418,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -433,11 +482,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -490,11 +546,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -547,11 +610,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -604,11 +674,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -661,11 +738,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
   ␛[1;38;2;30;34;48mBreadcrumb.Current␛[m$
+  ␛[1;38;2;194;37;74mCallout.Bad.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Cancelled.Title␛[m$
+  ␛[1;38;2;30;34;48mCallout.Info.Title␛[m$
   ␛[1;38;2;26;127;55mCallout.OK.Title␛[m$
   ␛[1;38;2;138;97;0mCallout.Warn.Title␛[m$
   ␛[1;38;2;87;92;110mContextBar.Name␛[m$
@@ -718,11 +802,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -775,11 +866,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -832,11 +930,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -889,11 +994,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -946,11 +1058,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -1003,11 +1122,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
   ␛[1;38;5;251mBreadcrumb.Current␛[m$
+  ␛[1;38;5;204mCallout.Bad.Title␛[m$
   ␛[1;38;5;179mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;251mCallout.Info.Title␛[m$
   ␛[1;38;5;78mCallout.OK.Title␛[m$
   ␛[1;38;5;179mCallout.Warn.Title␛[m$
   ␛[1;38;5;103mContextBar.Name␛[m$
@@ -1060,11 +1186,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1117,11 +1250,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1174,11 +1314,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1231,11 +1378,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1288,11 +1442,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1345,11 +1506,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
   ␛[1;38;5;235mBreadcrumb.Current␛[m$
+  ␛[1;38;5;161mCallout.Bad.Title␛[m$
   ␛[1;38;5;94mCallout.Cancelled.Title␛[m$
+  ␛[1;38;5;235mCallout.Info.Title␛[m$
   ␛[1;38;5;22mCallout.OK.Title␛[m$
   ␛[1;38;5;94mCallout.Warn.Title␛[m$
   ␛[1;38;5;59mContextBar.Name␛[m$
@@ -1402,11 +1570,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1459,11 +1634,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1516,11 +1698,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1573,11 +1762,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1630,11 +1826,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1687,11 +1890,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;37mBreadcrumb.Current␛[m$
+  ␛[1;91mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;37mCallout.Info.Title␛[m$
   ␛[1;92mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1744,11 +1954,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1801,11 +2018,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1858,11 +2082,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1915,11 +2146,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -1972,11 +2210,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -2029,11 +2274,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
   ␛[1;30mBreadcrumb.Current␛[m$
+  ␛[1;31mCallout.Bad.Title␛[m$
   ␛[1;33mCallout.Cancelled.Title␛[m$
+  ␛[1;30mCallout.Info.Title␛[m$
   ␛[1;32mCallout.OK.Title␛[m$
   ␛[1;33mCallout.Warn.Title␛[m$
   ␛[1;90mContextBar.Name␛[m$
@@ -2086,11 +2338,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2143,11 +2402,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2200,11 +2466,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2257,11 +2530,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2314,11 +2594,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2371,11 +2658,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2428,11 +2722,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2485,11 +2786,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2542,11 +2850,18 @@ Glyphs$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              ✓$
+  Warn            ⛬$
+  Bad             ✗$
+  Info            ℹ$
+  Cancelled       ⊘$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2599,11 +2914,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2656,11 +2978,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$
@@ -2713,11 +3042,18 @@ Glyphs$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
+  OK              [+]$
+  Warn            [*]$
+  Bad             [!]$
+  Info            [i]$
+  Cancelled       [-]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
   ␛[1mBreadcrumb.Current␛[m$
+  ␛[1mCallout.Bad.Title␛[m$
   ␛[1mCallout.Cancelled.Title␛[m$
+  ␛[1mCallout.Info.Title␛[m$
   ␛[1mCallout.OK.Title␛[m$
   ␛[1mCallout.Warn.Title␛[m$
   ␛[1mContextBar.Name␛[m$

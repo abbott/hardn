@@ -1,6 +1,8 @@
 package component
 
 import (
+	"slices"
+
 	"charm.land/lipgloss/v2"
 
 	"github.com/abbott/hardn/pkg/ui/keys"
@@ -34,18 +36,33 @@ type PromptLine struct {
 // Render renders the prompt for c. See PromptLine for the layout.
 func (vm PromptLine) Render(c Ctx) string {
 	t, w := c.Theme.Prompt, c.width()
-	out := line{gap(theme.Indent), {c.Theme.Glyphs.Prompt, t.Glyph}}
-	end := line{{":", t.Label}} // what follows the label: the colon, or the hint and colon
-	if h := clean(vm.Accepts.Hint()); h != "" {
-		end = line{gap(1), {"[" + h + "]:", t.Hint}}
-	}
-	label := clean(vm.Label)
-	room := w - out.width() - 1 - end.width()
-	switch {
-	case label != "" && (room >= lipgloss.Width(label) || room > lipgloss.Width(c.Theme.Glyphs.Ellipsis)):
-		out = append(append(out, gap(1), span{c.truncate(label, room), t.Label}), end...)
-	case len(end) > 1: // a hint, with no label or no room for one
-		out = append(out, end...)
-	}
+	head := line{gap(theme.Indent), {c.Theme.Glyphs.Prompt, t.Glyph}}
+	out, _ := c.ask(head, clean(vm.Label), clean(vm.Accepts.Hint()), t.Label, t.Hint, w)
 	return c.fit(out, w)
+}
+
+// ask returns head, then a space and the label, then the hint in brackets
+// and the colon or, with no hint, the colon alone in the label's style, in
+// at most limit cells. When they do not fit, the label is cut first with
+// the ellipsis glyph, and left out once none of its letters fits, so the
+// hint stays whole as long as it can; shown reports whether any of the
+// label is left. With neither label nor hint, it is head alone.
+// PromptLine and AnsweredField share it, so a question reads the same
+// asked and answered.
+func (c Ctx) ask(head line, label, hint string, labelStyle, hintStyle lipgloss.Style, limit int) (out line, shown bool) {
+	end := line{{":", labelStyle}}
+	if hint != "" {
+		end = line{gap(1), {"[" + hint + "]:", hintStyle}}
+	}
+	room := limit - head.width() - 1 - end.width()
+	// The cut label shows some of the label when it is whole or longer
+	// than the ellipsis: a letter wider than the room left beside the
+	// ellipsis, such as a double-width one, leaves the ellipsis alone.
+	if cut := c.truncate(label, room); label != "" && (cut == label || lipgloss.Width(cut) > lipgloss.Width(c.Theme.Glyphs.Ellipsis)) {
+		return slices.Concat(head, line{gap(1), {cut, labelStyle}}, end), true
+	}
+	if hint != "" {
+		return slices.Concat(head, end), false
+	}
+	return head, false
 }
