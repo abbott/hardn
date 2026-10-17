@@ -32,7 +32,8 @@ type Change struct {
 	Path string
 	Data []byte
 	// Remove validates the configuration as if the drop-in Path were gone
-	// (a migration removing a legacy drop-in). Not allowed for MainConfig.
+	// (a migration removing a legacy drop-in). Not allowed for MainConfig,
+	// nor with Data.
 	Remove bool
 }
 
@@ -44,7 +45,8 @@ type Request struct {
 	// RunDir is an existing absolute directory, reached with no symlink,
 	// whose every directory from / is owned by root and writable by neither
 	// group nor others. The copy is made in RunDir/WorkDir, which must not
-	// exist yet.
+	// exist yet. Validate is not safe for concurrent use with the same
+	// RunDir: two calls would share, and remove, one copy.
 	RunDir string
 	// Platform decides the PrivsepDir check (detect.Detect's Platform).
 	Platform detect.Platform
@@ -67,9 +69,13 @@ type Block struct {
 type Probe struct {
 	Block Block
 	Conn  Conn
-	// Reasons lists the criteria Conn could not be made to satisfy. Empty
-	// means the block applies to Conn; an earlier block that matches Conn
-	// too still wins for the keywords it sets (first value wins).
+	// Reasons lists why the block may not apply to Conn: a criterion Conn
+	// could not be made to satisfy (a list of negations alone, which sshd
+	// never matches; Group; a Host name under UseDNS no), or a line OpenSSH
+	// 9.x and 10.x read differently. Empty means the block applies to Conn,
+	// by sshd's matching rules as target mirrors them; an earlier block
+	// that matches Conn too still wins for the keywords it sets (first
+	// value wins).
 	Reasons []string
 	Output  []byte // sshd -T -C's stdout
 }
@@ -117,8 +123,10 @@ type Finding struct {
 type Report struct {
 	// Include classifies the sshd_config the candidate leaves in place.
 	Include Include
-	// Files are the real paths of the configuration checked, in the order
-	// sshd reads the drop-ins after sshd_config.
+	// Files are the real paths of the configuration checked: MainConfig,
+	// then the drop-ins in the order sshd reads them. It is not precedence
+	// order: in IncludeFirst mode sshd reads the drop-ins at the Include
+	// (Include.Line), before the settings of sshd_config.
 	Files     []string
 	Effective []byte // sshd -T's stdout
 	Probes    []Probe
@@ -131,10 +139,12 @@ type Report struct {
 // Validate checks the host's sshd configuration with req.Changes applied,
 // as sshd will read it once they are installed, and installs nothing. It
 // returns nil only when sshd -t, sshd -T and every Match probe exit 0.
-// Errors: *ConfigError (ErrConfig), *EnvError (ErrEnvironment), ErrUnexpected,
-// ErrUnsupportedInclude, ErrNotIncluded, ErrUnsafeRunDir, ErrNotRegular,
-// fs.ErrInvalid for a bad request, fs.ErrExist when RunDir/WorkDir exists,
-// and the host's own errors (host.ErrNotFound when sshd is not installed).
+// Errors: *ConfigError (ErrConfig), *EnvError (ErrEnvironment),
+// *UnexpectedError (ErrUnexpected), ErrUnsupportedInclude, ErrNotIncluded,
+// ErrUnsafeRunDir, ErrNotRegular, fs.ErrInvalid for a bad request or a
+// configuration file with a NUL byte, fs.ErrExist when RunDir/WorkDir
+// exists, and the host's own errors (host.ErrNotFound when sshd is not
+// installed).
 func Validate(ctx context.Context, sys host.System, req Request) (rep Report, err error) {
 	if err := ctx.Err(); err != nil {
 		return rep, fmt.Errorf("sshd: validate: %w", err)
@@ -168,7 +178,8 @@ func Validate(ctx context.Context, sys host.System, req Request) (rep Report, er
 		return rep, fmt.Errorf("sshd: %s: %w", work, err)
 	}
 	// work was absent, and only root can create a name in RunDir, so what
-	// is there from now on is this call's to remove.
+	// is there from now on is this call's to remove, unless another
+	// Validate with the same RunDir runs at once (Request.RunDir).
 	defer func() { rep.Cleanup = sys.RemoveAll(context.WithoutCancel(ctx), work) }()
 	if err := sys.MkdirAll(ctx, work+"/sshd_config.d", 0o700); err != nil {
 		return rep, fmt.Errorf("sshd: %w", err)
@@ -202,6 +213,9 @@ func assemble(ctx context.Context, sys host.System, changes []Change, rep *Repor
 	} else if c.main, err = readRegular(ctx, sys, MainConfig); err != nil {
 		return c, err
 	}
+	if err := refuseNUL(MainConfig, c.main); err != nil {
+		return c, err
+	}
 	rep.Include = ParseInclude(c.main)
 	switch rep.Include.Mode {
 	case IncludeNone:
@@ -228,12 +242,42 @@ func assemble(ctx context.Context, sys host.System, changes []Change, rep *Repor
 	}
 	rep.Files = append(rep.Files, MainConfig)
 	for _, d := range c.drops {
+		if err := refuseNUL(d.path, d.data); err != nil {
+			return c, err
+		}
 		if ds := includes(d.data); len(ds) > 0 {
 			return c, fmt.Errorf("sshd: %s line %d: %q: %w", d.path, ds[0].line, ds[0].text, ErrUnsupportedInclude)
 		}
 		rep.Files = append(rep.Files, d.path)
 	}
 	return c, nil
+}
+
+// refuseNUL: sshd's loader keeps a line only up to a NUL byte and drops its
+// newline, so the next line is joined to it (servconf.c,
+// load_server_config); what sshd reads is then not what directives sees.
+func refuseNUL(name string, data []byte) error {
+	if i := hasNUL(data); i >= 0 {
+		return fmt.Errorf("sshd: %s: NUL byte at offset %d: %w", name, i, fs.ErrInvalid)
+	}
+	return nil
+}
+
+// setsHostKey reports whether a file of c has a HostKey line, so sshd will
+// not fall back to its default key files.
+func (c config) setsHostKey() bool {
+	files := [][]byte{c.main}
+	for _, d := range c.drops {
+		files = append(files, d.data)
+	}
+	for _, f := range files {
+		for _, d := range directives(f) {
+			if d.keyword == "hostkey" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // check writes the copy into work and runs sshd on it. Only IncludeLine is
@@ -255,9 +299,10 @@ func (c config) check(ctx context.Context, sys host.System, req Request, work st
 		}
 	}
 	paths := strings.NewReplacer(work+"/sshd_config.d/", DropInDir+"/", cfg, MainConfig)
+	hostKeys := c.setsHostKey()
 	run := func(mode string, extra ...string) (host.Result, error) {
 		res, err := sys.Run(ctx, req.Binary, append([]string{mode, "-f", cfg}, extra...)...)
-		return res, classify(res, err, paths)
+		return res, classify(res, err, paths, hostKeys)
 	}
 
 	res, err := run("-t")
@@ -271,9 +316,10 @@ func (c config) check(ctx context.Context, sys host.System, req Request, work st
 		return err
 	}
 	rep.Effective = res.Stdout
+	dns := useDNS(rep.Effective)
 	for _, m := range c.matches() {
 		p := Probe{Block: m.Block}
-		p.Conn, p.Reasons = target(m.args, req.Conn)
+		p.Conn, p.Reasons = target(m.args, req.Conn, dns)
 		if err := p.Conn.check(); err != nil {
 			p.Conn, p.Reasons = req.Conn, append(p.Reasons, err.Error())
 		}
@@ -289,10 +335,10 @@ func (c config) check(ctx context.Context, sys host.System, req Request, work st
 	return nil
 }
 
-// match is a Match line and its criteria.
+// match is a Match line and its criteria, the text after the keyword.
 type match struct {
 	Block
-	args []string
+	args string
 }
 
 // matches lists the Match lines of sshd_config, then of each drop-in in
@@ -303,8 +349,7 @@ func (c config) matches() []match {
 	add := func(file string, data []byte) {
 		for _, d := range directives(data) {
 			if d.keyword == "match" {
-				args, _ := splitArgs(d.args) // unbalanced quotes fail sshd -t first
-				ms = append(ms, match{Block{file, d.line, d.text}, args})
+				ms = append(ms, match{Block{file, d.line, d.text}, d.args})
 			}
 		}
 	}
@@ -332,6 +377,8 @@ func changeSet(changes []Change) (map[string]*Change, error) {
 			return nil, fmt.Errorf("sshd: %s changed twice: %w", c.Path, fs.ErrInvalid)
 		case c.Path == MainConfig && c.Remove:
 			return nil, fmt.Errorf("sshd: removing %s: %w", MainConfig, fs.ErrInvalid)
+		case c.Remove && c.Data != nil:
+			return nil, fmt.Errorf("sshd: %s: both removed and written: %w", c.Path, fs.ErrInvalid)
 		case c.Path != MainConfig && (dir != DropInDir+"/" || !included(name)):
 			return nil, fmt.Errorf("sshd: %s is neither %s nor a *.conf file in %s: %w", c.Path, MainConfig, DropInDir, fs.ErrInvalid)
 		}

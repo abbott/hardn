@@ -17,7 +17,6 @@ package sshd
 import (
 	"context"
 	"fmt"
-	"net/netip"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -39,47 +38,78 @@ type directive struct {
 	line    int    // 1-based
 	text    string // the line without trailing whitespace
 	keyword string // lower case: sshd compares keywords case-insensitively
-	args    string // the rest of the line, after the keyword and an optional "="
+	args    string // the rest of the line after the keyword, as strdelim leaves it
 }
 
-// directives splits data as sshd reads a configuration file: trailing
-// whitespace is dropped, a line whose first word starts with '#' is a
-// comment, and the keyword ends at whitespace or '=', with double quotes
-// removed (servconf.c, process_server_config_line_depth; misc.c, strdelim).
+// directives splits data as sshd reads a configuration file. The loader
+// drops each line's leading spaces, tabs and carriage returns
+// (load_server_config); trailing whitespace and form feeds go next; the
+// keyword is strdelim's first token, or its second when the first is empty
+// (a leading '=' or ""); a line with no keyword, or whose keyword starts
+// with '#', is skipped (servconf.c, process_server_config_line_depth).
+// The caller refuses data with a NUL byte (hasNUL): sshd's loader joins the
+// line to the next one there, which this does not model.
 func directives(data []byte) []directive {
 	var ds []directive
 	for i, raw := range strings.Split(string(data), "\n") {
-		text := strings.TrimRight(raw, " \t\r\f")
-		kw, args := splitKeyword(strings.TrimLeft(text, " \t\r"))
-		if kw == "" || kw[0] == '#' {
+		text := strings.TrimRight(raw, " \t\r\n\f")
+		c := cursor{s: strings.TrimLeft(text, " \t\r")}
+		kw, ok := c.next()
+		if ok && kw == "" {
+			kw, ok = c.next()
+		}
+		if !ok || kw == "" || kw[0] == '#' {
 			continue
 		}
-		ds = append(ds, directive{line: i + 1, text: text, keyword: strings.ToLower(kw), args: args})
+		ds = append(ds, directive{line: i + 1, text: text, keyword: strings.ToLower(kw), args: c.s})
 	}
 	return ds
 }
 
-func splitKeyword(s string) (kw, rest string) {
-	var b strings.Builder
-	quoted, i := false, 0
-	for ; i < len(s); i++ {
-		c := s[i]
-		switch {
-		case c == '"':
-			quoted = !quoted
-			continue
-		case !quoted && (c == ' ' || c == '\t' || c == '\r' || c == '='):
-		default:
-			b.WriteByte(c)
-			continue
+// hasNUL returns the offset of the first NUL byte in data, or -1.
+func hasNUL(data []byte) int {
+	return strings.IndexByte(string(data), 0)
+}
+
+// cursor is OpenSSH's strdelim (misc.c, strdelim_internal with
+// split_equals) over one line: s is what is left, and null is sshd's NULL
+// pointer, the end of the line.
+type cursor struct {
+	s    string
+	null bool
+}
+
+// next returns the next token: up to a space, tab, CR, LF or '=', which is
+// dropped with the whitespace after it (and one '=' after whitespace), or,
+// when a double quote comes first, the text before it joined to the text up
+// to the closing quote. ok is false where strdelim returns NULL: at the end
+// of the line, or when the closing quote is missing.
+func (c *cursor) next() (tok string, ok bool) {
+	if c.null {
+		return "", false
+	}
+	const ws = " \t\r\n"
+	i := strings.IndexAny(c.s, ws+`"=`)
+	if i < 0 {
+		tok, c.s, c.null = c.s, "", true
+		return tok, true
+	}
+	if c.s[i] == '"' {
+		rest := c.s[i+1:]
+		j := strings.IndexByte(rest, '"')
+		if j < 0 {
+			c.s, c.null = "", true
+			return "", false
 		}
-		break
+		tok, c.s = c.s[:i]+rest[:j], strings.TrimLeft(rest[j+1:], ws)
+		return tok, true
 	}
-	rest = strings.TrimLeft(s[i:], " \t\r")
-	if strings.HasPrefix(rest, "=") {
-		rest = strings.TrimLeft(rest[1:], " \t\r")
+	tok, rest := c.s[:i], strings.TrimLeft(c.s[i+1:], ws)
+	if c.s[i] != '=' && strings.HasPrefix(rest, "=") {
+		rest = strings.TrimLeft(rest[1:], ws)
 	}
-	return b.String(), rest
+	c.s = rest
+	return tok, true
 }
 
 // splitArgs splits a directive's arguments as sshd's argv_split does: words
@@ -228,87 +258,4 @@ func (c Conn) check() error {
 		return fmt.Errorf("sshd: test connection %q: user, host and addr are required", c.Spec())
 	}
 	return nil
-}
-
-// target returns base changed so that it satisfies the criteria of a Match
-// line (its arguments), and whether that was possible for every criterion.
-// From a pattern list it takes the first pattern that is not negated, with
-// '*' and '?' replaced ("x" in names, "1" in addresses) and a CIDR suffix
-// dropped; a list of negations only keeps base's value. Group, Version and
-// Invalid-User depend on the host or on sshd, not on the spec.
-func target(args []string, base Conn) (c Conn, reasons []string) {
-	c = base
-	for i := 0; i < len(args); i++ {
-		attr, val, eq := strings.Cut(args[i], "=")
-		name := strings.ToLower(attr)
-		switch name {
-		case "all":
-			continue
-		case "invalid-user":
-			reasons = append(reasons, "Invalid-User needs the test spec of OpenSSH 10")
-			continue
-		}
-		if !eq {
-			if i+1 == len(args) {
-				return c, append(reasons, attr+" has no value")
-			}
-			i++
-			val = args[i]
-		}
-		var dst *string
-		addr := false
-		switch name {
-		case "user":
-			dst = &c.User
-		case "host":
-			dst = &c.Host
-		case "address":
-			dst, addr = &c.Addr, true
-		case "localaddress":
-			dst, addr = &c.LAddr, true
-		case "rdomain":
-			dst = &c.RDomain
-		case "localport":
-			if strings.Trim(val, "0123456789") != "" || val == "" {
-				reasons = append(reasons, "LocalPort "+val+" is not a port number")
-				continue
-			}
-			c.LPort = val
-			continue
-		case "group":
-			reasons = append(reasons, "Group is decided by the host's group database")
-			continue
-		default:
-			reasons = append(reasons, attr+" cannot be set in a test spec")
-			continue
-		}
-		if v, ok := pick(val, addr); !ok {
-			reasons = append(reasons, attr+" "+val+": no address matches")
-		} else if v != "" {
-			*dst = v
-		}
-	}
-	return c, reasons
-}
-
-// pick returns a value matching the pattern list, "" to keep the base value.
-func pick(list string, addr bool) (string, bool) {
-	for _, p := range strings.Split(list, ",") {
-		if p == "" || p[0] == '!' {
-			continue
-		}
-		if strings.Trim(p, "*?") == "" {
-			return "", true // matches anything, the base value included
-		}
-		if !addr {
-			return strings.NewReplacer("*", "x", "?", "x").Replace(p), true
-		}
-		p, _, _ = strings.Cut(p, "/")
-		p = strings.NewReplacer("*", "1", "?", "1").Replace(p)
-		if _, err := netip.ParseAddr(p); err != nil {
-			return "", false
-		}
-		return p, true
-	}
-	return "", true
 }

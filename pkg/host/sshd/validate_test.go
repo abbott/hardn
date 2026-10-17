@@ -3,6 +3,7 @@ package sshd_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"slices"
 	"strings"
@@ -22,6 +23,11 @@ const candidate = "# hardn\nPort 2230\nPermitRootLogin prohibit-password\nPasswo
 
 var debian = detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported}
 
+// runDir is the run directory of every fake host: a path in the fake only,
+// so the suite does not depend on the real TMPDIR (Validate refuses a run
+// directory with a space in it).
+const runDir = "/run/hardn/test-1"
+
 // fakeHost is a fake Debian host with stockMain, cloud-init's drop-in, a
 // leftover atomic-write temporary file, /run/sshd and a run directory.
 type fakeHost struct {
@@ -33,7 +39,7 @@ type fakeHost struct {
 
 func newHost(t *testing.T, main string) *fakeHost {
 	t.Helper()
-	h := &fakeHost{System: hostfake.New(host.Options{}), run: t.TempDir()}
+	h := &fakeHost{System: hostfake.New(host.Options{}), run: runDir}
 	h.work = h.run + "/" + sshd.WorkDir
 	h.cfg = h.work + "/sshd_config"
 	h.AddDir(h.run, 0o700, 0, 0)
@@ -150,9 +156,22 @@ func TestValidateSSHDFailures(t *testing.T) {
 			wantConfig(sshd.Problem{File: sshd.MainConfig, Line: 5, Message: `unsupported option "maybe".`})},
 		{"no privsep dir", hostfake.Response{ExitCode: 255, Stderr: "Missing privilege separation directory: /run/sshd\n"}, wantEnv(sshd.EnvPrivsepDir, "/run/sshd")},
 		{"privsep dir not root's", hostfake.Response{ExitCode: 255, Stderr: "/run/sshd must be owned by root and not group or world-writable.\n"}, wantEnv(sshd.EnvPrivsepDir, "/run/sshd")},
+		{"privsep message ends with CRLF", hostfake.Response{ExitCode: 255, Stderr: "Missing privilege separation directory: /run/sshd\r\n"}, wantEnv(sshd.EnvPrivsepDir, "/run/sshd")},
+		{"no privsep user", hostfake.Response{ExitCode: 255, Stderr: "Privilege separation user sshd does not exist\r\n"},
+			wantEnvErr(sshd.EnvError{Kind: sshd.EnvPrivsepUser, User: "sshd"})},
+		{"privsep text quoted in a config message", hostfake.Response{ExitCode: 255,
+			Stderr: "RUN" + d + " line 2: unsupported option \"/x must be owned by root and not group or world-writable.\".\n"},
+			wantConfig(sshd.Problem{File: sshd.HardnDropIn, Line: 2, Message: `unsupported option "/x must be owned by root and not group or world-writable.".`})},
 		{"no hostkeys", hostfake.Response{ExitCode: 1, Stderr: "sshd: no hostkeys available -- exiting.\n"}, wantEnv(sshd.EnvHostKeys, "")},
-		{"other exit 1", hostfake.Response{ExitCode: 1, Stderr: "Invalid test mode specification x\n"}, wantIs(sshd.ErrUnexpected)},
-		{"killed", hostfake.Response{ExitCode: -1, Err: errors.New("signal: killed")}, wantNot(sshd.ErrConfig, sshd.ErrEnvironment)},
+		{"other exit 1", hostfake.Response{ExitCode: 1, Stderr: "RUN/sshd-validate/sshd_config: Invalid test mode specification x\n"},
+			wantUnexpected(1, sshd.MainConfig+": Invalid test mode specification x")},
+		{"killed", hostfake.Response{ExitCode: -1}, wantUnexpected(-1, "")},
+		{"failed to start", hostfake.Response{Err: fmt.Errorf("host: run sshd -t -f %s/sshd-validate/sshd_config: %w", runDir, errBroken)},
+			func(t *testing.T, err error) {
+				t.Helper()
+				wantIs(errBroken)(t, err)
+				wantNot(sshd.ErrConfig, sshd.ErrEnvironment, sshd.ErrUnexpected)(t, err)
+			}},
 		{"not installed", hostfake.Response{Err: host.ErrNotFound}, wantIs(host.ErrNotFound)},
 	}
 	for _, tt := range tests {
@@ -165,7 +184,7 @@ func TestValidateSSHDFailures(t *testing.T) {
 			if n := len(h.Runs()); n != 1 {
 				t.Errorf("%d sshd runs, want 1: nothing runs after a failed sshd -t", n)
 			}
-			if (errors.Is(err, sshd.ErrConfig) || errors.Is(err, sshd.ErrEnvironment)) && strings.Contains(err.Error(), h.run) {
+			if err != nil && strings.Contains(err.Error(), h.run) {
 				t.Errorf("error %q names the copy, not the real file", err)
 			}
 			h.checkClean(t)
@@ -187,15 +206,46 @@ func wantConfig(p sshd.Problem) func(*testing.T, error) {
 	}
 }
 
+var errBroken = errors.New("broken pipe")
+
 func wantEnv(kind sshd.EnvKind, path string) func(*testing.T, error) {
+	return wantEnvErr(sshd.EnvError{Kind: kind, Path: path})
+}
+
+// wantEnvErr wants an *EnvError from a run with want's Kind, Path, User and
+// HostKeysSet.
+func wantEnvErr(want sshd.EnvError) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 		var ee *sshd.EnvError
 		if !errors.As(err, &ee) || !errors.Is(err, sshd.ErrEnvironment) || errors.Is(err, sshd.ErrConfig) {
 			t.Fatalf("err = %v, want an *EnvError", err)
 		}
-		if ee.Kind != kind || ee.Path != path || ee.Argv == nil {
-			t.Errorf("EnvError = %+v, want kind %v, path %q, from a run", ee, kind, path)
+		if ee.Kind != want.Kind || ee.Path != want.Path || ee.User != want.User || ee.HostKeysSet != want.HostKeysSet || ee.Argv == nil {
+			t.Errorf("EnvError = %+v, want %+v from a run", ee, want)
+		}
+	}
+}
+
+// wantUnexpected wants an *UnexpectedError with code, whose last Tail line
+// is last ("" for no output).
+func wantUnexpected(code int, last string) func(*testing.T, error) {
+	return func(t *testing.T, err error) {
+		t.Helper()
+		var ue *sshd.UnexpectedError
+		var xe *host.ExitError
+		if !errors.As(err, &ue) || !errors.Is(err, sshd.ErrUnexpected) || !errors.As(err, &xe) || errors.Is(err, sshd.ErrConfig) {
+			t.Fatalf("err = %v, want an *UnexpectedError wrapping a *host.ExitError", err)
+		}
+		got := ""
+		if len(ue.Tail) > 0 {
+			got = ue.Tail[len(ue.Tail)-1]
+		}
+		if ue.ExitCode != code || got != last {
+			t.Errorf("UnexpectedError = %+v, want exit %d, last line %q", ue, code, last)
+		}
+		if last != "" && !strings.Contains(err.Error(), last) {
+			t.Errorf("err = %q, want it to show %q", err, last)
 		}
 	}
 }
@@ -264,6 +314,29 @@ func TestValidateRefuses(t *testing.T) {
 			h.AddFile(sshd.DropInDir+"/10-x.conf", []byte("Include /etc/ssh/sshd_config.d/*.conf\n"), 0o644, 0, 0)
 		}, sshd.ErrUnsupportedInclude},
 		{"directory drop-in", func(h *fakeHost, _ *sshd.Request) { h.AddDir(sshd.DropInDir+"/10-x.conf", 0o755, 0, 0) }, sshd.ErrNotRegular},
+		{"no sshd_config", func(h *fakeHost, _ *sshd.Request) { _ = h.Remove(context.Background(), sshd.MainConfig) }, fs.ErrNotExist},
+		{"sshd_config a directory", func(h *fakeHost, _ *sshd.Request) { h.AddDir(sshd.MainConfig, 0o755, 0, 0) }, sshd.ErrNotRegular},
+		{"removed and written", func(_ *fakeHost, r *sshd.Request) {
+			r.Changes = []sshd.Change{{Path: sshd.DropInDir + "/50-cloud-init.conf", Remove: true, Data: []byte("ignored")}}
+		}, fs.ErrInvalid},
+		// sshd's strdelim reads "=Include" as Include, of the real directory.
+		{"Include after a leading =", func(h *fakeHost, _ *sshd.Request) {
+			h.AddFile(sshd.MainConfig, []byte(stockMain+"=Include /etc/ssh/sshd_config.d/*.conf\n"), 0o644, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		// sshd's loader joins "Inc" and "lude" at the NUL into an Include.
+		{"NUL in sshd_config", func(h *fakeHost, _ *sshd.Request) {
+			h.AddFile(sshd.MainConfig, []byte(stockMain+"Inc\x00\nlude /etc/ssh/sshd_config.d/*.conf\n"), 0o644, 0, 0)
+		}, fs.ErrInvalid},
+		{"NUL in a drop-in", func(h *fakeHost, _ *sshd.Request) {
+			h.AddFile(sshd.DropInDir+"/10-x.conf", []byte("Port 22\x00\n"), 0o644, 0, 0)
+		}, fs.ErrInvalid},
+		{"NUL in the candidate", func(_ *fakeHost, r *sshd.Request) {
+			r.Changes = []sshd.Change{{Path: sshd.HardnDropIn, Data: []byte("Port 2230\x00\n")}}
+		}, fs.ErrInvalid},
+		{"Proxmox VE without /run/sshd", func(h *fakeHost, r *sshd.Request) {
+			_ = h.RemoveAll(context.Background(), sshd.PrivsepDir)
+			r.Platform = detect.Platform{Distro: detect.DistroProxmox, Version: "9"}
+		}, sshd.ErrEnvironment},
 		{"no /run/sshd", func(h *fakeHost, _ *sshd.Request) { _ = h.RemoveAll(context.Background(), sshd.PrivsepDir) }, sshd.ErrEnvironment},
 		{"/run/sshd group-writable", func(h *fakeHost, r *sshd.Request) {
 			h.AddDir(sshd.PrivsepDir, 0o775, 0, 0)
@@ -287,6 +360,18 @@ func TestValidateRefuses(t *testing.T) {
 			}
 		})
 	}
+	t.Run("pre-check", func(t *testing.T) {
+		h := newHost(t, stockMain)
+		_ = h.RemoveAll(context.Background(), sshd.PrivsepDir)
+		_, err := sshd.Validate(context.Background(), h, h.request(drop))
+		var ee *sshd.EnvError
+		if !errors.As(err, &ee) || ee.Kind != sshd.EnvPrivsepDir || ee.Path != sshd.PrivsepDir || ee.Argv != nil || !errors.Is(err, fs.ErrNotExist) {
+			t.Fatalf("err = %#v, want the pre-check's EnvError for %s, with no Argv", err, sshd.PrivsepDir)
+		}
+		if want := "privilege separation directory " + sshd.PrivsepDir + ": "; !strings.Contains(err.Error(), want) || len(h.Runs()) != 0 {
+			t.Errorf("err = %q after %d runs, want it to contain %q, and no run", err, len(h.Runs()), want)
+		}
+	})
 	t.Run("cancelled", func(t *testing.T) {
 		h := newHost(t, stockMain)
 		ctx, cancel := context.WithCancel(context.Background())
@@ -345,12 +430,12 @@ func wrapStderr(next func([]string, []byte) hostfake.Response, run string) func(
 // copied; a failed probe fails the validation.
 func TestValidateProbes(t *testing.T) {
 	h := newHost(t, sshd.IncludeLine+"\nMatch Group admins\n  PasswordAuthentication yes\n")
-	h.AddFile(sshd.DropInDir+"/40-lan.conf", []byte("Match Address 192.0.2.0/24\n  PermitRootLogin yes\n"), 0o644, 0, 0)
+	h.AddFile(sshd.DropInDir+"/40-lan.conf", []byte("Match Address 192.0.2.128/25\n  PermitRootLogin yes\n"), 0o644, 0, 0)
 	h.script(hostfake.Response{}, "")
 	base := sshd.DefaultConn().Spec()
 	h.Respond(hostfake.Response{Stdout: "passwordauthentication no\n"}, "sshd", "-T", "-f", h.cfg, "-C", base)
 	h.Respond(hostfake.Response{ExitCode: 255, Stderr: h.run + "/sshd-validate/sshd_config.d/40-lan.conf line 2: Bad Match condition\n"},
-		"sshd", "-T", "-f", h.cfg, "-C", "user=hardn-probe,host=probe.invalid,addr=192.0.2.0")
+		"sshd", "-T", "-f", h.cfg, "-C", "user=hardn-probe,host=probe.invalid,addr=192.0.2.128")
 
 	rep, err := sshd.Validate(context.Background(), h, h.request(sshd.Change{Path: sshd.DropInDir + "/50-cloud-init.conf", Remove: true}))
 	wantConfig(sshd.Problem{File: sshd.DropInDir + "/40-lan.conf", Line: 2, Message: "Bad Match condition"})(t, err)
@@ -412,4 +497,141 @@ func TestValidateEffectiveFails(t *testing.T) {
 		t.Fatalf("err = %v after %d runs, want ErrEnvironment after sshd -T, with no probe", err, len(h.Runs()))
 	}
 	h.checkClean(t)
+}
+
+// TestValidateProbeReasons: a block sshd never applies (negations alone; a
+// Host name under UseDNS no) is probed and reported, not shown as applied;
+// one whose first address is negated is probed with another.
+func TestValidateProbeReasons(t *testing.T) {
+	main := sshd.IncludeLine + "\nMatch User !root\n  PasswordAuthentication yes\n" +
+		"Match Host *.example.net\n  PermitRootLogin no\n" +
+		"Match Address 192.0.2.128/25,!192.0.2.128/26\n  PubkeyAuthentication no\n"
+	h := newHost(t, main)
+	h.script(hostfake.Response{}, "usedns no\n")
+	h.Respond(hostfake.Response{}, "sshd", "-T", "-f", h.cfg, "-C", sshd.DefaultConn().Spec())
+	h.Respond(hostfake.Response{Stdout: "pubkeyauthentication no\n"}, "sshd", "-T", "-f", h.cfg, "-C", "user=hardn-probe,host=probe.invalid,addr=192.0.2.255")
+
+	rep, err := sshd.Validate(context.Background(), h, h.request())
+	if err != nil {
+		t.Fatalf("Validate: %v", err)
+	}
+	want := []struct {
+		addr   string
+		reason string
+	}{
+		{"192.0.2.1", "User !root: only negated patterns"},
+		{"192.0.2.1", "UseDNS is no"},
+		{"192.0.2.255", ""},
+	}
+	if len(rep.Probes) != len(want) {
+		t.Fatalf("Probes = %+v, want %d", rep.Probes, len(want))
+	}
+	for i, w := range want {
+		p := rep.Probes[i]
+		joined := strings.Join(p.Reasons, "; ")
+		if p.Conn.Addr != w.addr || w.reason == "" && joined != "" || !strings.Contains(joined, w.reason) {
+			t.Errorf("probe %d (%s) = %+v, want addr %s and a reason containing %q", i, p.Block.Text, p, w.addr, w.reason)
+		}
+	}
+	if len(rep.Findings) != 2 || rep.Findings[0].Line != 2 || rep.Findings[1].Line != 4 || rep.Findings[1].Kind != sshd.FindingMatchUntargeted {
+		t.Errorf("Findings = %+v, want match-untargeted on lines 2 and 4", rep.Findings)
+	}
+	h.checkClean(t)
+}
+
+// TestValidateHostKeysSet: with HostKey lines, "no hostkeys" names the
+// configuration's own key files.
+func TestValidateHostKeysSet(t *testing.T) {
+	h := newHost(t, stockMain)
+	h.script(hostfake.Response{ExitCode: 1, Stderr: "Unable to load host key: /etc/ssh/ssh_host_x_key\nsshd: no hostkeys available -- exiting.\n"}, "")
+	_, err := sshd.Validate(context.Background(), h, h.request(sshd.Change{Path: sshd.HardnDropIn, Data: []byte("HostKey /etc/ssh/ssh_host_x_key\n")}))
+	wantEnvErr(sshd.EnvError{Kind: sshd.EnvHostKeys, HostKeysSet: true})(t, err)
+	if !strings.Contains(err.Error(), "HostKey files") {
+		t.Errorf("err = %q, want it to name the configuration's HostKey files", err)
+	}
+	h.checkClean(t)
+}
+
+// TestValidateNoDropInDir: a missing sshd_config.d reads as empty in
+// IncludeFirst mode, so the copy holds sshd_config and the candidate.
+func TestValidateNoDropInDir(t *testing.T) {
+	h := newHost(t, stockMain)
+	_ = h.RemoveAll(context.Background(), sshd.DropInDir)
+	h.script(hostfake.Response{}, "")
+	h.Respond(hostfake.Response{}, "sshd", "-T", "-f", h.cfg, "-C", "user=bob,host=probe.invalid,addr=192.0.2.1")
+	rep, err := sshd.Validate(context.Background(), h, h.request(sshd.Change{Path: sshd.HardnDropIn, Data: []byte(candidate)}))
+	if err != nil {
+		t.Fatalf("Validate: %v", err)
+	}
+	if want := []string{sshd.MainConfig, sshd.HardnDropIn}; !slices.Equal(rep.Files, want) || len(h.seen) != 2 {
+		t.Errorf("Files = %q, copy = %q; want %q", rep.Files, h.seen, want)
+	}
+	h.checkClean(t)
+}
+
+// failing is a host whose op on path fails with errInjected.
+type failing struct {
+	*fakeHost
+	op, path string
+}
+
+var errInjected = errors.New("injected")
+
+func (f failing) fail(op, name string) error {
+	if op == f.op && name == f.path {
+		return errInjected
+	}
+	return nil
+}
+
+func (f failing) MkdirAll(ctx context.Context, name string, perm fs.FileMode) error {
+	if err := f.fail("mkdir", name); err != nil {
+		return err
+	}
+	return f.fakeHost.MkdirAll(ctx, name, perm)
+}
+
+func (f failing) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if err := f.fail("write", name); err != nil {
+		return err
+	}
+	return f.fakeHost.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+func (f failing) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
+	if err := f.fail("readdir", name); err != nil {
+		return nil, err
+	}
+	return f.fakeHost.ReadDir(ctx, name)
+}
+
+func (f failing) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if err := f.fail("read", name); err != nil {
+		return nil, err
+	}
+	return f.fakeHost.ReadFile(ctx, name)
+}
+
+// TestValidateHostFailures: a failed host operation stops the validation
+// before sshd runs, and the copy is removed.
+func TestValidateHostFailures(t *testing.T) {
+	work := runDir + "/" + sshd.WorkDir
+	tests := []struct{ op, path string }{
+		{"read", sshd.MainConfig},
+		{"readdir", sshd.DropInDir},
+		{"read", sshd.DropInDir + "/50-cloud-init.conf"},
+		{"mkdir", work + "/sshd_config.d"},
+		{"write", work + "/sshd_config"},
+		{"write", work + "/sshd_config.d/50-cloud-init.conf"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.op+" "+tt.path, func(t *testing.T) {
+			h := newHost(t, stockMain)
+			rep, err := sshd.Validate(context.Background(), failing{h, tt.op, tt.path}, h.request(sshd.Change{Path: sshd.HardnDropIn, Data: []byte(candidate)}))
+			if !errors.Is(err, errInjected) || len(h.Runs()) != 0 || rep.Cleanup != nil {
+				t.Fatalf("err = %v after %d runs, Cleanup = %v; want the injected error, no run, a clean removal", err, len(h.Runs()), rep.Cleanup)
+			}
+			h.checkClean(t)
+		})
+	}
 }
