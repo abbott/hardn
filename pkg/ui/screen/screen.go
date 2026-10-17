@@ -20,6 +20,9 @@ func stack(blocks ...string) string {
 	return glue("\n", blocks)
 }
 
+// lines counts the lines of a drawing.
+func lines(s string) int { return strings.Count(s, "\n") + 1 }
+
 // glue joins the non-empty blocks with sep.
 func glue(sep string, blocks []string) string {
 	var kept []string

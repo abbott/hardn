@@ -515,7 +515,7 @@ var screenGoldenDir = filepath.Join("..", "..", "..", "pkg", "ui", "screen", "te
 // TestScreensRenderAsGoldens checks that -screens writes each mock's
 // drawings exactly as their golden files hold them, in each golden cell
 // the flags can name: the core set, and the main menu at 80x40 on both
-// themes. Each drawing comes between the gallery's headers and source
+// themes and at 60x40. Each drawing comes between the gallery's headers and source
 // note and the blank line after it, a step without the blank lines that
 // open it.
 func TestScreensRenderAsGoldens(t *testing.T) {
@@ -525,6 +525,7 @@ func TestScreensRenderAsGoldens(t *testing.T) {
 		"truecolor-dark-unicode-60":     {"-width", "60"},
 		"truecolor-dark-unicode-80x40":  {"-height", "40"},
 		"truecolor-light-unicode-80x40": {"-height", "40", "-theme", "light"},
+		"truecolor-dark-unicode-60x40":  {"-width", "60", "-height", "40"},
 	}
 	for _, m := range screen.Mocks() {
 		for name, args := range cells {
@@ -536,7 +537,7 @@ func TestScreensRenderAsGoldens(t *testing.T) {
 			switch name {
 			case "plain-80":
 				env = term.Fixed(80, colorprofile.NoTTY, false, true)
-			case "truecolor-dark-unicode-60":
+			case "truecolor-dark-unicode-60", "truecolor-dark-unicode-60x40":
 				env.Width = 60
 			}
 			if strings.HasSuffix(name, "x40") {

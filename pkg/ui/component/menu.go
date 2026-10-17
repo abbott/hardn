@@ -160,7 +160,8 @@ type Menu struct {
 	Exit MenuItem
 	// Compact lays the items out in two columns, keys and labels alone,
 	// where they fit (see above): the main menu's compact form on a
-	// terminal shorter than theme.CompactBelow (pkg/ui/screen).
+	// terminal shorter than theme.CompactBelow, or too short for its full
+	// form (pkg/ui/screen).
 	Compact bool
 }
 

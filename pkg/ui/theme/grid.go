@@ -61,7 +61,9 @@ const (
 	// rules) fill ContentWidth rather than the whole terminal.
 	BarsFillContent = true
 	// CompactBelow is the terminal height, in rows, below which the main
-	// menu renders in its compact form. The full menu is about 36 lines.
+	// menu renders in its compact form; a taller terminal gets it too when
+	// the full form's lines do not fit it. The full menu is 35 lines from
+	// StackBelow columns up, and more below, where its rows stack.
 	CompactBelow = 40
 	// CompactBudget is the most lines the compact main menu may use,
 	// prompt included, so that it fits an 80x24 console.

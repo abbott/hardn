@@ -66,10 +66,11 @@ func sized(width, height int, dark bool) uitest.Cell {
 
 // mainCells are the main menu's cells: the core set, whose terminals are
 // term.DefaultHeight (24) rows high, so its 80- and 60-column cells show
-// the compact form and plain mode, no terminal, the full one; and the
-// full form at 80x40, on both themes.
+// the compact form and plain mode, no terminal, the full one; the full
+// form at 80x40, on both themes; and 60x40, where the full form's stacked
+// rows take 57 lines and the compact form is drawn.
 func mainCells() []uitest.Cell {
-	return append(uitest.Core(), sized(80, 40, true), sized(80, 40, false))
+	return append(uitest.Core(), sized(80, 40, true), sized(80, 40, false), sized(60, 40, true))
 }
 
 // menuOf binds every item of m to an action that does nothing, as a
@@ -84,7 +85,8 @@ func menuOf(m component.Menu) nav.Menu {
 
 // TestGolden pins every mock (Mocks) on the core set, a file per drawing:
 // a menu screen, the main menu also at 80x40, where it shows its full
-// form; and each step of each workflow sequence.
+// form, and at 60x40, where it shows its compact one; and each step of
+// each workflow sequence.
 func TestGolden(t *testing.T) {
 	for _, m := range Mocks() {
 		cells := uitest.Core()
@@ -268,35 +270,72 @@ func TestScreen(t *testing.T) {
 	}
 }
 
-// lines counts the lines of a drawing.
-func lines(s string) int { return strings.Count(s, "\n") + 1 }
-
-// TestCompact checks the main menu's height budget (refactor plan §3.15):
-// on a terminal shorter than theme.CompactBelow, Figma's main menu takes
-// at most theme.CompactBudget lines, prompt included, at every width from
-// theme.StackBelow up, where its rows sit side by side; from
-// theme.CompactBelow rows, and with no terminal at any height, it takes
-// its full form, which fits theme.CompactBelow rows.
+// TestCompact checks the main menu's height rules (refactor plan §3.15)
+// on a terminal at every width from 1 to 130 columns and at 0, 1 and 24
+// to 60 rows: the full form wherever it fits the terminal, prompt
+// included, from theme.CompactBelow rows, and the compact form elsewhere,
+// so that the drawing fits the terminal whenever either form does, the
+// host badge and the risk line on screen; never the full form on a
+// terminal it does not fit. From theme.StackBelow columns, where the rows
+// sit side by side, the compact form takes at most theme.CompactBudget
+// lines and the full form fits theme.CompactBelow rows. At 60 columns,
+// where they stack, the full form takes 57 lines and the compact form 34
+// (DEV-052). With no terminal, the full form whatever the height.
 func TestCompact(t *testing.T) {
 	vm := MainMenuFixture()
-	for w := max(theme.StackBelow, 1); w <= 130; w++ {
-		for _, h := range []int{0, 1, term.DefaultHeight, theme.CompactBelow - 1} {
-			env := term.Fixed(w, colorprofile.TrueColor, true, true)
+	heights := []int{0, 1}
+	for h := term.DefaultHeight; h <= 60; h++ {
+		heights = append(heights, h)
+	}
+	for w := 1; w <= 130; w++ {
+		env := term.Fixed(w, colorprofile.TrueColor, true, true)
+		c := component.NewCtx(env)
+		full, short := vm.form(c, false), vm.form(c, true)
+		nFull, nShort := lines(full), lines(short)
+		if nShort > nFull {
+			t.Errorf("%d columns: the compact form takes %d lines, more than the full form's %d", w, nShort, nFull)
+		}
+		if w >= theme.StackBelow && nFull >= theme.CompactBelow {
+			t.Errorf("%d columns: the full form takes %d lines, not under %d", w, nFull, theme.CompactBelow)
+		}
+		for _, h := range heights {
 			env.Height = h
-			if n := lines(vm.Render(component.NewCtx(env))); n > theme.CompactBudget {
-				t.Errorf("%dx%d: the compact main menu takes %d lines, over the budget of %d", w, h, n, theme.CompactBudget)
+			rows := h
+			if rows < 1 {
+				rows = term.DefaultHeight
+			}
+			want, form := short, "compact"
+			if rows >= theme.CompactBelow && nFull <= rows {
+				want, form = full, "full"
+			}
+			got := vm.Render(component.NewCtx(env))
+			if got != want {
+				t.Errorf("%dx%d: want the %s form (full %d lines, compact %d), got:\n%s", w, h, form, nFull, nShort, ansi.Strip(got))
+			}
+			if n := lines(got); n > rows && (nFull <= rows || nShort <= rows) {
+				t.Errorf("%dx%d: %d lines drawn, where the %s form takes %d", w, h, n, form, lines(want))
+			}
+			if w >= theme.StackBelow && rows < theme.CompactBelow && lines(got) > theme.CompactBudget {
+				t.Errorf("%dx%d: the compact main menu takes %d lines, over the budget of %d", w, h, lines(got), theme.CompactBudget)
 			}
 		}
-		full := term.Fixed(w, colorprofile.TrueColor, true, true)
-		full.Height = theme.CompactBelow
 		piped := term.Fixed(w, colorprofile.NoTTY, false, true)
-		piped.Height = 1
-		for _, env := range []term.Env{full, piped} {
-			out := ansi.Strip(vm.Render(component.NewCtx(env)))
-			if n := lines(out); n >= theme.CompactBelow || !strings.HasPrefix(out, "hardn") || !strings.Contains(out, "View log file") {
-				t.Errorf("%dx%d, %v: want the full form in under %d lines, got %d:\n%s", w, env.Height, env.Profile, theme.CompactBelow, n, out)
+		whole := vm.form(component.NewCtx(piped), false)
+		for _, h := range []int{0, 1, term.DefaultHeight, theme.CompactBelow, 60} {
+			piped.Height = h
+			if got := vm.Render(component.NewCtx(piped)); got != whole {
+				t.Errorf("%dx%d, no terminal: want the full form, got:\n%s", w, h, got)
 			}
 		}
+	}
+	env := term.Fixed(60, colorprofile.TrueColor, true, true)
+	env.Height = theme.CompactBelow
+	c := component.NewCtx(env)
+	if nFull, nShort := lines(vm.form(c, false)), lines(vm.form(c, true)); nFull != 57 || nShort != 34 {
+		t.Errorf("60 columns: the full form takes %d lines and the compact %d, want 57 and 34 (README §9.12)", nFull, nShort)
+	}
+	if out := ansi.Strip(vm.Render(c)); strings.HasPrefix(out, "hardn") || !strings.Contains(out, "BOS-SAN-L01") || !strings.Contains(out, "Risk Level") {
+		t.Errorf("60x40: want the compact form, the host badge and the risk line on screen, got:\n%s", out)
 	}
 }
 
