@@ -134,8 +134,7 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	return nil
 }
 
-// authorizedKeysFileLinePerPath: DISABLED 2026-10-17. Flip to true to
-// restore.
+// authorizedKeysFileLinePerPath: DISABLED 2026-10-17. Flip to true to restore.
 //
 // With it true, SaveSSHConfig writes one "AuthorizedKeysFile <path>" line
 // per key path, as origin/main did. sshd uses the first AuthorizedKeysFile
