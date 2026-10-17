@@ -584,7 +584,7 @@ There is no typeahead discard and no `signal.Notify` on origin/main. `pkg/menu/i
 
 - Proposed additions: `status.unknown`, `status.na`, `status.partial`, `accent.bad`, `accent.info`.
 - The dark palette fails on white (primary 1.73:1), so the light theme needs its own values.
-- The 14 drift items and the 14 candidate deviations are logged in [../design-system/deviations.md](../design-system/deviations.md#candidates-not-yet-implemented).
+- The 14 drift items and the 14 candidate deviations are logged in [../design-system/deviations.md](../design-system/deviations.md#candidates).
 
 **Geometry:**
 - 1 cell = 19.2 px; content width = **64 cells**, which equals origin/main's `style.NewBox(Width: 64)`.
