@@ -152,15 +152,11 @@ func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 // phrase of up to 45 cells from 64 columns up, and 41 at 60, in Unicode
 // glyphs (43 and 39 in ASCII, whose ellipsis is wider). The caller then
 // asks with a shorter phrase or a shorter label, as the flow words them
-// (P-10).
+// (P-10). CheckTyped tells so without asking.
 func (p Prompter) Typed(q Question, phrase string) error {
-	if err := CheckPhrase(phrase); err != nil {
+	question, err := p.typed(q, phrase)
+	if err != nil {
 		return err
-	}
-	accepts := append(keys.Set{{Keys: []string{phrase}}}, keys.Navigation()...)
-	question := q.render(p.Ctx, accepts)
-	if question != "" && !shows(question, q.Number, "["+accepts.Hint()+"]:") {
-		return fmt.Errorf("%w: %q does not show whole beside the question at %d columns", ErrPhrase, phrase, p.Ctx.Env.Width)
 	}
 	return p.Ask(question, noMatch, func(line string) error {
 		if err := Navigate(line); err != nil {
@@ -171,6 +167,31 @@ func (p Prompter) Typed(q Question, phrase string) error {
 		}
 		return nil
 	})
+}
+
+// CheckTyped returns the error Typed returns before it asks, and asks
+// nothing and writes nothing: nil when Typed would ask q with phrase,
+// else an error wrapping ErrPhrase, for a phrase CheckPhrase refuses or
+// one too long to show whole beside q's label at the width of p.Ctx. A
+// caller that writes something above the prompt checks so first, so that
+// it writes nothing for a prompt that is never asked.
+func (p Prompter) CheckTyped(q Question, phrase string) error {
+	_, err := p.typed(q, phrase)
+	return err
+}
+
+// typed returns q rendered as Typed asks it with phrase, or the error
+// with which Typed refuses before asking.
+func (p Prompter) typed(q Question, phrase string) (string, error) {
+	if err := CheckPhrase(phrase); err != nil {
+		return "", err
+	}
+	accepts := append(keys.Set{{Keys: []string{phrase}}}, keys.Navigation()...)
+	question := q.render(p.Ctx, accepts)
+	if question != "" && !shows(question, q.Number, "["+accepts.Hint()+"]:") {
+		return "", fmt.Errorf("%w: %q does not show whole beside the question at %d columns", ErrPhrase, phrase, p.Ctx.Env.Width)
+	}
+	return question, nil
 }
 
 // shows reports whether question, an AnsweredField rendered with no

@@ -368,12 +368,17 @@ func TestTyped(t *testing.T) {
 		if !errors.Is(err, ErrPhrase) || out != "" {
 			t.Errorf("Typed(phrase %q) = %v, wrote %q; want ErrPhrase, nothing", phrase, err, out)
 		}
+		if err := (Prompter{}).CheckTyped(typeHost, phrase); !errors.Is(err, ErrPhrase) {
+			t.Errorf("CheckTyped(phrase %q) = %v, want ErrPhrase", phrase, err)
+		}
 	}
 }
 
 // TestTypedWhole checks that a typed confirmation shows its phrase whole,
 // after some of its label, or refuses it before writing anything, at
-// every width and in both glyph sets, and the longest phrase it takes.
+// every width and in both glyph sets, and the longest phrase it takes;
+// and that CheckTyped, which writes nothing, refuses exactly what Typed
+// refuses.
 func TestTypedWhole(t *testing.T) {
 	tests := []struct {
 		width   int
@@ -387,7 +392,14 @@ func TestTypedWhole(t *testing.T) {
 		for n := 1; n <= 64; n++ {
 			phrase := strings.Repeat("h", n)
 			p, out := newPrompter(term.Fixed(tt.width, colorprofile.ASCII, tt.unicode, true), []string{phrase})
+			checked := p.CheckTyped(typeHost, phrase)
+			if out.Len() != 0 {
+				t.Errorf("%d columns, unicode %v, %d cells: CheckTyped() wrote %q, want nothing", tt.width, tt.unicode, n, out)
+			}
 			err := p.Typed(typeHost, phrase)
+			if (checked == nil) != (err == nil) {
+				t.Errorf("%d columns, unicode %v, %d cells: CheckTyped() = %v, Typed() = %v; want both nil or both ErrPhrase", tt.width, tt.unicode, n, checked, err)
+			}
 			first, _, _ := strings.Cut(ansi.Strip(out.String()), "\n")
 			switch {
 			case n > tt.longest:

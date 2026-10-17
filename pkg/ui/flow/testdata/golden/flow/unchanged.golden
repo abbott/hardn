@@ -1,0 +1,33 @@
+# Golden file of TestGolden/unchanged, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;112;212;127mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# SSH Configuration --------------------------------------------$
+$
+  [+] Root SSH Login       Disabled$
+   -  SSH Port             2230$
+   -  Allowed Users        alice$
+$
+  [i] Info: Nothing needs changing.$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;112;212;127mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
