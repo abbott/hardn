@@ -233,7 +233,7 @@ func (m *LinuxPackagesMenu) Show() {
 			style.Colored(style.Yellow, style.SymWarning))
 	}
 
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
 }
 

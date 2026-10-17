@@ -445,7 +445,7 @@ func NewStatusFormatter(labels []string, buffer int) *StatusFormatter {
 }
 
 func PressAnyKey() {
-	fmt.Printf("\n%s Press any key to continue...", Dimmed(SymRightCarrot))
+	fmt.Printf("\n%s Press Enter to continue...", Dimmed(SymRightCarrot))
 }
 
 // Initialize calculates the maximum label length
@@ -848,7 +848,7 @@ func (m *Menu) Render() string {
 		exit := MenuOption{
 			Number:      0,
 			Title:       "Exit",
-			Description: "Tip: Press 'q' to exit immediately",
+			Description: "Tip: q to quit",
 		}
 		sb.WriteString(m.FormatOption(exit))
 	}

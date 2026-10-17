@@ -164,7 +164,7 @@ func (m *RunAllMenu) Show() {
 			if strings.ToLower(confirm) != "yes" {
 				fmt.Printf("\n%s Operation cancelled. No changes were made.\n",
 					style.Colored(style.Yellow, style.SymInfo))
-				fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+				fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 				ReadKey()
 				return
 			}
@@ -185,13 +185,13 @@ func (m *RunAllMenu) Show() {
 	default:
 		fmt.Printf("\n%s Invalid option. Please try again.\n",
 			style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press any key to continue...", style.Dimmed(style.SymRightCarrot))
+		fmt.Printf("\n%s Press Enter to continue...", style.Dimmed(style.SymRightCarrot))
 		ReadKey()
 		m.Show()
 		return
 	}
 
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
 }
 

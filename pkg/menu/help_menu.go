@@ -82,6 +82,6 @@ func (m *HelpMenu) Show() {
 	fmt.Printf("    %s\n", style.Colored(style.Cyan, "export HARDN_CONFIG=/path/to/config.yml"))
 	fmt.Printf("    %s\n", style.Colored(style.Cyan, "sudo hardn"))
 
-	fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
 }

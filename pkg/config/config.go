@@ -1,7 +1,7 @@
 package config
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +11,7 @@ import (
 	"go.yaml.in/yaml/v3"
 
 	"github.com/abbott/hardn/pkg/logging"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
 // UfwAppProfile represents a UFW application profile
@@ -366,9 +367,15 @@ func GetDefaultConfigLocation() string {
 
 // ShouldCreateDefaultConfig determines if we should offer to create a default config
 func ShouldCreateDefaultConfig() bool {
+	// On a terminal, discard what was typed before the question shows
+	// (brief 1C). It can follow a long step: LoadConfig runs mid-session
+	// too (getConfigForSSHKeyPath in pkg/adapter/secondary, from the main
+	// menu's status and the user screens) and asks again while no file
+	// exists. The questions after it are asked back to back, so
+	// readAnswer keeps what is typed ahead of them.
+	_ = input().Flush() // a terminal that cannot be flushed keeps its typeahead
 	fmt.Println("No configuration file found. Would you like to create one? [Y/n]")
-	reader := bufio.NewReader(os.Stdin)
-	response, _ := reader.ReadString('\n')
+	response := readAnswer()
 	response = strings.TrimSpace(strings.ToLower(response))
 
 	return response == "" || response == "y" || response == "yes"
@@ -387,11 +394,9 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 	// Ask for basic configuration if interactive
 	if isInteractive() {
-		reader := bufio.NewReader(os.Stdin)
-
 		// Ask for username
 		fmt.Print("Enter default username [george]: ")
-		username, _ := reader.ReadString('\n')
+		username := readAnswer()
 		username = strings.TrimSpace(username)
 		if username != "" {
 			config.Username = username
@@ -401,7 +406,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 		// Ask for SSH port
 		fmt.Printf("Enter SSH port [%d]: ", config.SshPort)
-		portStr, _ := reader.ReadString('\n')
+		portStr := readAnswer()
 		portStr = strings.TrimSpace(portStr)
 		if portStr != "" {
 			var port int
@@ -412,13 +417,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 		// Ask for automatic updates
 		fmt.Print("Enable automatic security updates? [y/N]: ")
-		autoUpdates, _ := reader.ReadString('\n')
+		autoUpdates := readAnswer()
 		autoUpdates = strings.TrimSpace(strings.ToLower(autoUpdates))
 		config.EnableUnattendedUpgrades = (autoUpdates == "y" || autoUpdates == "yes")
 
 		// Ask for SSH key
 		fmt.Print("Add SSH public key (optional, press Enter to skip): ")
-		sshKey, _ := reader.ReadString('\n')
+		sshKey := readAnswer()
 		sshKey = strings.TrimSpace(sshKey)
 		if sshKey != "" {
 			config.SshKeys = []string{sshKey}
@@ -469,4 +474,31 @@ func SaveConfig(config *Config, filePath string) error {
 func isInteractive() bool {
 	fileInfo, _ := os.Stdin.Stat()
 	return (fileInfo.Mode() & os.ModeCharDevice) != 0
+}
+
+var (
+	// input returns the Reader the prompts above read from: the
+	// process-wide prompt.Stdin, which pkg/menu shares, so stdin has one
+	// buffer (refactor plan risk R17). Tests replace it.
+	input = prompt.Stdin
+	// exit ends hardn. Tests replace it.
+	exit = os.Exit
+)
+
+// readAnswer reads one answer line through input. As with the bufio
+// reader each prompt made before, the end of the input and a read error
+// read as an empty answer, so the default applies, and nothing more is
+// written. Nor does it discard typeahead, as the bufio reader did not:
+// CreateDefaultConfig's questions follow one another with no long step
+// between them, so an answer typed or pasted ahead is read by the
+// question it was meant for (ShouldCreateDefaultConfig discards what was
+// typed before the first question). Ctrl-C ends hardn with exit status
+// 130, the status a shell reports for a process Ctrl-C ended (brief
+// Phase 3).
+func readAnswer() string {
+	line, err := input().ReadLine()
+	if errors.Is(err, prompt.ErrInterrupted) {
+		exit(prompt.ExitInterrupted)
+	}
+	return line
 }

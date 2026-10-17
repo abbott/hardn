@@ -99,8 +99,22 @@
 // it, where the terminal's own cursor then stands, and reads the answer.
 // The terminal echoes what is typed in its own colours (DEV-043).
 //
+// A prompt written by code that cannot hand it to Ask, such as the legacy
+// menus' (pkg/menu), which print theirs with pkg/style, is answered with
+// Answer: Ask's flush, read and line end, after the caller's own write.
+//
+// # One reader
+//
+// Stdin is the process-wide Reader over os.Stdin, built on first use.
+// Every prompt reads through it: the legacy menus, the first-run config
+// prompts (pkg/config) and the new screens alike, so stdin has one buffer
+// and no line one reader took ahead is lost to another (refactor plan,
+// risk R17). It asks whether stdin is a terminal the way term.Detect
+// does, so on Linux and macOS it is a terminal Reader exactly when
+// term.Env.InputTTY is true; elsewhere it never is.
+//
 // This package imports only the standard library and golang.org/x/sys, so
-// next/p1c-legacy-input can route the legacy menus through it without
+// the legacy menus and the config prompts read through it without
 // linking Lip Gloss, whose import runs a colour profile detection
 // (docs/design-system/README.md §2.3).
 package prompt

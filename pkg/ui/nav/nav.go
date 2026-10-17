@@ -43,12 +43,13 @@ const (
 )
 
 // Prompter asks the questions of a run. It writes each prompt to Out and
-// reads the answer through In, the one line reader over stdin, and it
-// renders with Ctx. Every field is required:
+// reads the answer through In, the one line reader over stdin
+// (prompt.Stdin, which every prompt in hardn shares), and it renders
+// with Ctx. Every field is required:
 //
 //	p := nav.Prompter{
 //		Ctx: component.NewCtx(env),
-//		In:  prompt.New(os.Stdin, env.InputTTY),
+//		In:  prompt.Stdin(),
 //		Out: env.Writer(os.Stdout),
 //	}
 type Prompter struct {

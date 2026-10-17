@@ -50,7 +50,7 @@ func (h *RunAllHandler) Handle() {
 			if h.config.Username == "" {
 				fmt.Printf("\n%s Run All requires a username for user creation. Operation cancelled.\n",
 					style.Colored(style.Red, style.SymCrossMark))
-				fmt.Printf("\n%s Press any key to return to the main menu...", style.BulletItem)
+				fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 				ReadKey()
 				return
 			}
