@@ -54,7 +54,9 @@ func TestDetectProxmox(t *testing.T) {
 		{"/etc/pve alone is not Proxmox", hostfake.Response{ExitCode: 1}, false, hostMounts, true,
 			want{detect.No, "", detect.No, detect.Yes, nil}},
 		{"pveversion alone: no version", hostfake.Response{ExitCode: 1}, true, hostMounts, false,
-			want{detect.Yes, "", detect.No, detect.No, nil}},
+			want{detect.Yes, "", detect.No, detect.No, detect.ErrNoSignal}},
+		{"pveversion, dpkg database error: the version's cause kept", hostfake.Response{Stderr: "dpkg-query: error: ...\n", ExitCode: 2}, true, hostMounts, false,
+			want{detect.Yes, "", detect.No, detect.No, new(host.ExitError)}},
 		{"half-configured", out("install ok half-configured\t9.2.22\n", 0), false, hostMounts, false,
 			want{detect.Unknown, "", detect.No, detect.No, detect.ErrUnrecognised}},
 		{"dpkg database error", hostfake.Response{Stderr: "dpkg-query: error: ...\n", ExitCode: 2}, false, hostMounts, false,
@@ -81,6 +83,17 @@ func TestDetectProxmox(t *testing.T) {
 		}
 		readOnly(t, f)
 	}
+
+	t.Run("pveversion not a regular file", func(t *testing.T) {
+		f := newFake(t, "")
+		f.Respond(hostfake.Response{ExitCode: 1}, dpkgQuery[0], dpkgQuery[1:]...)
+		f.AddDir(detect.PVEVersionBin, 0o755, 0, 0)
+		f.AddFile(detect.SelfMounts, []byte(hostMounts), 0o444, 0, 0)
+		got := detect.DetectProxmox(ctx, f)
+		if got.Installed != detect.No || got.Err != nil {
+			t.Errorf("DetectProxmox = %+v, want not installed", got)
+		}
+	})
 
 	t.Run("mount table unreadable", func(t *testing.T) {
 		f := newFake(t, "")

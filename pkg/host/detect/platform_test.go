@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 )
 
@@ -14,6 +15,7 @@ func TestClassify(t *testing.T) {
 	notPVE := detect.Proxmox{Installed: detect.No}
 	pve := func(v string) detect.Proxmox { return detect.Proxmox{Installed: detect.Yes, Version: v} }
 	errFixture := errors.New("fixture: read failed")
+	errExit := &host.ExitError{Argv: []string{"dpkg-query"}, ExitCode: 2}
 
 	tests := []struct {
 		name    string
@@ -47,6 +49,7 @@ func TestClassify(t *testing.T) {
 		{"empty OSRelease", detect.OSRelease{}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, detect.ErrNoSignal},
 		{"Debian with Proxmox not established", read("debian-13"), detect.Proxmox{Err: errFixture}, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
 		{"Proxmox VE version not established", read("debian-13"), pve(""), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrNoSignal},
+		{"Proxmox VE version: dpkg failed", read("debian-13"), detect.Proxmox{Installed: detect.Yes, Err: errExit}, detect.DistroProxmox, "", detect.SupportUnknown, errExit},
 		{"Proxmox VE version unparsable", read("debian-13"), pve("nine"), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrUnrecognised},
 	}
 	for _, tt := range tests {

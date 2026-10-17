@@ -99,7 +99,7 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 		p := Platform{Distro: DistroProxmox, Version: pveMajor(pve.Version)}
 		switch {
 		case pve.Version == "":
-			p.Err = fmt.Errorf("detect: platform: Proxmox VE version not established (%s): %w", pve.Source, ErrNoSignal)
+			p.Err = fmt.Errorf("detect: platform: Proxmox VE version not established (%s): %w", pve.Source, errOr(pve.Err, ErrNoSignal))
 		case p.Version == "":
 			p.Err = fmt.Errorf("detect: platform: Proxmox VE version %q: %w", pve.Version, ErrUnrecognised)
 		default:

@@ -37,7 +37,10 @@ type Proxmox struct {
 	// EtcPVE is whether /etc/pve exists: a hint only, since pmxcfs leaves
 	// the empty directory behind when it stops.
 	EtcPVE Tri
-	Err    error
+	// Err says why a field is not established: Installed, Version while
+	// Installed is Yes, ClusterFS or EtcPVE. It can be set while Installed
+	// is known, so decide on the fields, not on Err.
+	Err error
 }
 
 // DetectProxmox asks dpkg about pve-manager, looks for pveversion, and reads
@@ -55,6 +58,12 @@ func DetectProxmox(ctx context.Context, sys host.System) Proxmox {
 		p.Installed, p.Version, p.Source = Yes, version, "dpkg-query: pve-manager installed"
 	case bin == Yes:
 		p.Installed, p.Source = Yes, PVEVersionBin
+		// The version comes from dpkg alone: say why it is missing.
+		why := dpkgErr
+		if dpkg == No {
+			why = fmt.Errorf("dpkg does not have pve-manager installed, yet %s exists: %w", PVEVersionBin, ErrNoSignal)
+		}
+		errs[0] = fmt.Errorf("pve-manager version: %w", why)
 	case dpkg == No && bin == No:
 		p.Installed, p.Source = No, "dpkg-query and "+PVEVersionBin
 	default:
