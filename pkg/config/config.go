@@ -94,6 +94,10 @@ type Config struct {
 	LogsConfig struct {
 		LogFilePath string
 	}
+
+	// loaded is what the YAML said beyond the fields: permitRootLogin's
+	// string value and the deprecated forms read (rootlogin.go).
+	loaded loaded
 }
 
 // Default configuration
