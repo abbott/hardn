@@ -138,7 +138,7 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 	t, w := c.Theme.KeyValue, c.width()
 	lead := marker(c.Theme.Glyphs.Bullet, t.Bullet).to(theme.LabelCol)
 	var out []string
-	for _, l := range wrap(clean(vm.Key), w-theme.LabelCol) {
+	for _, l := range wrap(c.text(vm.Key), w-theme.LabelCol) {
 		out = append(out, c.fit(append(lead, span{l, t.Key}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
@@ -151,7 +151,7 @@ func (vm KeyValue) row(c Ctx) (r entry, ok bool) {
 	t, g := c.Theme.KeyValue, c.Theme.Glyphs
 	state := vm.State.style(t)
 	var value line
-	switch v, n := clean(vm.Value), clean(vm.Note); {
+	switch v, n := c.text(vm.Value), c.text(vm.Note); {
 	case n != "" && v != "":
 		value = line{{v, t.Value}, gap(1), {n, state}}
 	case n != "" || v != "":
@@ -159,7 +159,7 @@ func (vm KeyValue) row(c Ctx) (r entry, ok bool) {
 	case vm.State.word() != "":
 		value = line{{vm.State.word(), state}}
 	}
-	key := clean(vm.Key)
+	key := c.text(vm.Key)
 	if key == "" && value == nil {
 		return entry{}, false
 	}

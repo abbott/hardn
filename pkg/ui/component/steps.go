@@ -98,14 +98,14 @@ type Step struct {
 // ok is false for a step with no title.
 func (s Step) row(c Ctx, frame int) (string, bool) {
 	t := c.Theme.Step
-	title := clean(s.Title)
+	title := c.text(s.Title)
 	if title == "" {
 		return "", false
 	}
 	style := s.State.style(t)
 	l := append(marker(s.State.glyph(c.Theme.Glyphs, frame, c.Env.Animate), style).to(theme.LabelCol),
 		span{s.State.String() + ":", style}, gap(1), span{title, t.Title})
-	if d := clean(s.Detail); d != "" {
+	if d := c.text(s.Detail); d != "" {
 		l = append(l, gap(1), span{"(" + d + ")", t.Detail})
 	}
 	return c.fit(l, c.width()), true

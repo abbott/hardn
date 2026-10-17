@@ -303,7 +303,8 @@ func TestNarrow(t *testing.T) {
 }
 
 // TestUsage checks that a wrong flag or argument stops the gallery with
-// exit status 2, a message and no output.
+// exit status 2, a message and no output, and that -h prints the flags'
+// help, -height's saying which height shows the main menu's full form.
 func TestUsage(t *testing.T) {
 	for _, args := range [][]string{
 		{"-profile", "ansi"},
@@ -328,8 +329,8 @@ func TestUsage(t *testing.T) {
 	if code, _, errs := runGallery("menu", "-profile", "plain"); code != exitUsage || !strings.Contains(errs, "flag -profile comes after a component or state name; flags go before them") {
 		t.Errorf("a flag after a name: exit %d, stderr %q; want exit %d and a hint at the order", code, errs, exitUsage)
 	}
-	if code, _, _ := runGallery("-h"); code != exitOK {
-		t.Errorf("-h: exit %d, want %d", code, exitOK)
+	if code, _, errs := runGallery("-h"); code != exitOK || !strings.Contains(errs, "compact form under 40 rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height 40") {
+		t.Errorf("-h: exit %d, stderr %q; want %d, and -height's help to say when the main menu takes its compact form", code, errs, exitOK)
 	}
 }
 
@@ -515,7 +516,7 @@ var screenGoldenDir = filepath.Join("..", "..", "..", "pkg", "ui", "screen", "te
 // TestScreensRenderAsGoldens checks that -screens writes each mock's
 // drawings exactly as their golden files hold them, in each golden cell
 // the flags can name: the core set, and the main menu at 80x40 on both
-// themes. Each drawing comes between the gallery's headers and source
+// themes and at 60x40. Each drawing comes between the gallery's headers and source
 // note and the blank line after it, a step without the blank lines that
 // open it.
 func TestScreensRenderAsGoldens(t *testing.T) {
@@ -525,6 +526,7 @@ func TestScreensRenderAsGoldens(t *testing.T) {
 		"truecolor-dark-unicode-60":     {"-width", "60"},
 		"truecolor-dark-unicode-80x40":  {"-height", "40"},
 		"truecolor-light-unicode-80x40": {"-height", "40", "-theme", "light"},
+		"truecolor-dark-unicode-60x40":  {"-width", "60", "-height", "40"},
 	}
 	for _, m := range screen.Mocks() {
 		for name, args := range cells {
@@ -536,7 +538,7 @@ func TestScreensRenderAsGoldens(t *testing.T) {
 			switch name {
 			case "plain-80":
 				env = term.Fixed(80, colorprofile.NoTTY, false, true)
-			case "truecolor-dark-unicode-60":
+			case "truecolor-dark-unicode-60", "truecolor-dark-unicode-60x40":
 				env.Width = 60
 			}
 			if strings.HasSuffix(name, "x40") {
@@ -613,8 +615,9 @@ func TestScreenSelect(t *testing.T) {
 // status 0; every mock under its header; every sequence step by step, or,
 // one that ends otherwise at the width (screen.Diverged), whole under its
 // own name's header; the escape sequences the profile allows and no more;
-// only ASCII where asked, but for data such as 01-USER's "≥"; and no line
-// wider than the terminal but a header, which shows its whole name.
+// only ASCII where asked, data such as 01-USER's "UID ≥ 1000" included
+// (DEV-036); and no line wider than the terminal but a header, which
+// shows its whole name.
 func TestScreenSmoke(t *testing.T) {
 	narrowed := 0
 	var typed []string
@@ -679,7 +682,7 @@ func TestScreenSmoke(t *testing.T) {
 							t.Errorf("%s: no colour", where)
 						}
 					}
-					if data := strings.ReplaceAll(ansi.Strip(out), "≥", ""); (p.name == "plain" || ascii) && strings.ContainsFunc(data, func(r rune) bool { return r > 0x7e }) {
+					if (p.name == "plain" || ascii) && strings.ContainsFunc(ansi.Strip(out), func(r rune) bool { return r > 0x7e }) {
 						t.Errorf("%s: a glyph outside ASCII", where)
 					}
 					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {

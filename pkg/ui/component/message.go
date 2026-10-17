@@ -130,7 +130,13 @@ type Message struct {
 
 // Render renders the message for c. See Message for the layout.
 func (vm Message) Render(c Ctx) string {
-	text := clean(vm.Text)
+	return vm.render(c, c.text(vm.Text))
+}
+
+// render renders the message for c with text, already made one line of
+// plain text, in place of vm.Text: an ErrorReport's log line keeps its
+// path's characters in it (Ctx.text).
+func (vm Message) render(c Ctx, text string) string {
 	if text == "" {
 		return ""
 	}
@@ -204,7 +210,7 @@ type Callout struct {
 func (vm Callout) Render(c Ctx) string {
 	k, w := vm.Kind.callout(c.Theme.Callout), c.width()
 	bar := line{c.paint(k.Bar, 1), gap(1)}
-	title := clean(vm.Title)
+	title := c.text(vm.Title)
 	switch {
 	case title == "":
 		title = vm.Kind.title()
@@ -213,7 +219,7 @@ func (vm Callout) Render(c Ctx) string {
 	}
 	out := []string{c.fit(append(bar, span{vm.Kind.glyph(c.Theme.Glyphs) + " " + title, k.Title}), w)}
 	for _, p := range vm.Body {
-		if p = clean(p); p == "" {
+		if p = c.text(p); p == "" {
 			continue
 		}
 		for _, l := range wrap(p, w-bar.width()) {

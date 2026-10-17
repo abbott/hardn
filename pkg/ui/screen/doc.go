@@ -10,8 +10,9 @@
 //   - MainMenu, after Figma's 00-TUI-MAIN: the Header, ContextBar,
 //     HostBlock, RiskSummary, StatusList and Divider, the MenuHeading with
 //     the ModeIndicator, the Menu and the PromptLine. On a terminal
-//     shorter than theme.CompactBelow it renders its compact form, which
-//     fits theme.CompactBudget lines (see MainMenu).
+//     shorter than theme.CompactBelow, or too short for its full form, it
+//     renders its compact form, which fits theme.CompactBudget lines (see
+//     MainMenu).
 //   - SubMenu, after 01-USER: the Header and a Breadcrumb, a SubjectLine,
 //     the area's StatusList, its sections (Section: a SectionHeader, a
 //     Badge and a BulletList), a MenuHeading, the Menu and the PromptLine.

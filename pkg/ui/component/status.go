@@ -106,16 +106,16 @@ type StatusRow struct {
 func (vm StatusRow) Render(c Ctx) string {
 	t := c.Theme.Status
 	state := vm.State.style(t)
-	label := clean(vm.Label)
+	label := c.text(vm.Label)
 	if !c.stacked() {
 		label = c.truncate(label, theme.LabelWidth-1)
 	}
-	word := clean(vm.Word)
+	word := c.text(vm.Word)
 	if word == "" {
 		word = vm.State.String()
 	}
 	value := line{{word, state}}
-	if d := clean(vm.Detail); d != "" {
+	if d := c.text(vm.Detail); d != "" {
 		value = append(value, gap(1), span{d, t.Detail})
 	}
 	head := marker(vm.State.glyph(c.Theme.Glyphs), state)

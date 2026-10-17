@@ -20,17 +20,23 @@ import (
 )
 
 // exited is what the stubbed exit panics with, in place of ending the
-// test binary: the exit status hardn would have ended with.
+// test binary: the exit status hardn would have ended with, or sigint.
 type exited int
 
-// useReader makes every legacy prompt read from r and stubs exit, until
-// the test ends.
+// sigint is what the stubbed reraise panics with: hardn ended by SIGINT
+// after Ctrl-C (prompt.Reraise), which a parent sees as a signal, not an
+// exit status.
+const sigint exited = -2
+
+// useReader makes every legacy prompt read from r and stubs exit and
+// reraise, until the test ends.
 func useReader(t *testing.T, r *prompt.Reader) {
 	t.Helper()
-	prevInput, prevExit := input, exit
+	prevInput, prevExit, prevReraise := input, exit, reraise
 	input = func() *prompt.Reader { return r }
 	exit = func(code int) { panic(exited(code)) }
-	t.Cleanup(func() { input, exit = prevInput, prevExit })
+	reraise = func() { panic(sigint) }
+	t.Cleanup(func() { input, exit, reraise = prevInput, prevExit, prevReraise })
 }
 
 // scripted makes every legacy prompt read script, as from a pipe or a
@@ -124,6 +130,65 @@ func TestReads(t *testing.T) {
 		_, _, ended := session(t, func() { first, second = ReadMenuInput(), ReadMenuInput() })
 		if ended || first != "" || second != "2" {
 			t.Errorf("reads = %q, %q (ended %v); want \"\", \"2\"", first, second, ended)
+		}
+	})
+}
+
+// TestPastedAnswers checks that answers pasted at once into back-to-back
+// free-text questions each reach their own, on a terminal Reader as with
+// scripted input: ReadInput keeps typeahead, as origin/main's one bufio
+// reader did and pkg/config's questions do. In each case one read takes
+// every line into the Reader's buffer, as a paste arrives. A menu choice
+// and a pause, which follow long steps, still discard it on a terminal,
+// and not with scripted input. The firewall screen's four profile
+// questions take their answers so; the fourth, a port with no protocol,
+// stops the screen before it saves the configuration.
+func TestPastedAnswers(t *testing.T) {
+	for _, tty := range []bool{true, false} {
+		t.Run(fmt.Sprintf("ReadInput keeps them, terminal %v", tty), func(t *testing.T) {
+			useReader(t, prompt.New(strings.NewReader("alice\nAlice Example\n2230\n"), tty))
+			var got []string
+			_, code, ended := session(t, func() {
+				for range 3 {
+					got = append(got, ReadInput())
+				}
+			})
+			if want := []string{"alice", "Alice Example", "2230"}; ended || strings.Join(got, "|") != strings.Join(want, "|") {
+				t.Errorf("reads = %q (ended %v, %d); want %q", got, ended, code, want)
+			}
+		})
+	}
+	for _, r := range reads[1:] {
+		for _, tty := range []bool{true, false} {
+			t.Run(fmt.Sprintf("%s after ReadInput, terminal %v", r.name, tty), func(t *testing.T) {
+				useReader(t, prompt.New(strings.NewReader("alice\n1\n"), tty))
+				var first, second string
+				_, code, ended := session(t, func() { first = ReadInput(); second = r.read() })
+				switch {
+				case first != "alice":
+					t.Errorf("ReadInput = %q, want alice", first)
+				case tty && (!ended || code != prompt.ExitInterrupted):
+					t.Errorf("%s = %q (ended %v, %d); want the typeahead dropped, then exit status %d", r.name, second, ended, code, prompt.ExitInterrupted)
+				case !tty && (ended || second != "1"):
+					t.Errorf("%s = %q (ended %v, %d); want the scripted line 1", r.name, second, ended, code)
+				}
+			})
+		}
+	}
+	t.Run("the firewall profile's questions", func(t *testing.T) {
+		useReader(t, prompt.New(strings.NewReader("Example\nExample Service\nAn example\n8080\n"), true))
+		cfg := config.DefaultConfig()
+		out, code, ended := session(t, func() { NewFirewallMenu(nil, cfg, nil).addAppProfile() })
+		if ended {
+			t.Fatalf("ended hardn with %d:\n%s", code, out)
+		}
+		for _, w := range []string{"Enter profile name", "Enter profile title", "Enter profile description", "Enter ports", "Invalid port format '8080'"} {
+			if !strings.Contains(out, w) {
+				t.Errorf("output lacks %q:\n%s", w, out)
+			}
+		}
+		if len(cfg.UfwAppProfiles) != 0 {
+			t.Errorf("profiles = %v, want none added", cfg.UfwAppProfiles)
 		}
 	})
 }

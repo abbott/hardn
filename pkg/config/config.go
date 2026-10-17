@@ -483,6 +483,8 @@ var (
 	input = prompt.Stdin
 	// exit ends hardn. Tests replace it.
 	exit = os.Exit
+	// reraise ends hardn by SIGINT after Ctrl-C. Tests replace it.
+	reraise = prompt.Reraise
 )
 
 // readAnswer reads one answer line through input. As with the bufio
@@ -492,12 +494,15 @@ var (
 // CreateDefaultConfig's questions follow one another with no long step
 // between them, so an answer typed or pasted ahead is read by the
 // question it was meant for (ShouldCreateDefaultConfig discards what was
-// typed before the first question). Ctrl-C ends hardn with exit status
-// 130, the status a shell reports for a process Ctrl-C ended (brief
-// Phase 3).
+// typed before the first question). Ctrl-C ends hardn as Ctrl-C ends any
+// program, by SIGINT (prompt.Reraise), as the bufio reader's Ctrl-C did:
+// a waiting parent sees it killed by the signal, so a shell running hardn
+// in a loop or a script stops, and reports status 130 for it (brief
+// Phase 3). If SIGINT cannot end it, it exits with 130.
 func readAnswer() string {
 	line, err := input().ReadLine()
 	if errors.Is(err, prompt.ErrInterrupted) {
+		reraise()
 		exit(prompt.ExitInterrupted)
 	}
 	return line

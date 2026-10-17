@@ -132,7 +132,9 @@ func TestInterrupt(t *testing.T) {
 }
 
 // TestInterruptChild runs this test binary as a child process, in one of
-// childModes, to check what SIGINT does once no test guards against it.
+// childModes, to check what SIGINT does once no test guards against it,
+// and that Reraise ends the process by SIGINT, or with ExitInterrupted
+// where SIGINT is ignored.
 func TestInterruptChild(t *testing.T) {
 	if mode := os.Getenv("HARDN_PROMPT_CHILD"); mode != "" {
 		childModes[mode]()
@@ -140,10 +142,13 @@ func TestInterruptChild(t *testing.T) {
 	}
 	tests := []struct {
 		mode     string
-		signaled bool // the child died of SIGINT; else it exited 0
+		signaled bool // the child died of SIGINT; else it exited with code
+		code     int
 	}{
-		{"restored", true},
-		{"ignored", false},
+		{"restored", true, 0},
+		{"ignored", false, 0},
+		{"reraise", true, 0},
+		{"reraise-ignored", false, ExitInterrupted},
 	}
 	for _, tt := range tests {
 		t.Run(tt.mode, func(t *testing.T) {
@@ -151,12 +156,16 @@ func TestInterruptChild(t *testing.T) {
 			cmd.Env = append(os.Environ(), "HARDN_PROMPT_CHILD="+tt.mode)
 			err := cmd.Run()
 			var signaled bool
+			code := 0
 			if exit := (*exec.ExitError)(nil); errors.As(err, &exit) {
 				ws, ok := exit.Sys().(syscall.WaitStatus)
 				signaled = ok && ws.Signaled() && ws.Signal() == syscall.SIGINT
+				code = exit.ExitCode()
+			} else if err != nil {
+				t.Fatalf("child: %v", err)
 			}
-			if signaled != tt.signaled || !signaled && err != nil {
-				t.Errorf("child: %v; want it ended by SIGINT: %v", err, tt.signaled)
+			if signaled != tt.signaled || !signaled && code != tt.code {
+				t.Errorf("child: %v; want it ended by SIGINT: %v, else exit status %d", err, tt.signaled, tt.code)
 			}
 		})
 	}
@@ -196,6 +205,18 @@ var childModes = map[string]func(){
 		if line, err := New(pr, false).ReadLine(); line != "x" || err != nil {
 			os.Exit(4)
 		}
+	},
+	// Reraise ends the child by SIGINT, undoing the signal.Notify that
+	// would otherwise catch it.
+	"reraise": func() {
+		signal.Notify(make(chan os.Signal, 1), os.Interrupt)
+		Reraise()
+	},
+	// With SIGINT ignored, Reraise cannot end the child by it, and exits
+	// with ExitInterrupted instead.
+	"reraise-ignored": func() {
+		signal.Ignore(os.Interrupt)
+		Reraise()
 	},
 }
 

@@ -47,7 +47,9 @@ const checkLog = "Check the log file at %s for details"
 // cut but broken after Glyphs.Wrap; a line of Glyphs.Ellipsis first says
 // that earlier lines were left out, and the log holds them all. The log
 // path is origin/main's sentence and the next step a sentence of its own,
-// each a Message of kind MessageInfo.
+// each a Message of kind MessageInfo. The path names a file to open, so
+// it keeps its characters with the ASCII glyph set too, where the
+// typography of the text around it is mapped (Ctx.text).
 // Parts with nothing to show are left out, and theme.SectionGap blank
 // lines separate the rest. An ErrorReport always reports a failure, so
 // even the zero value shows the callout.
@@ -82,7 +84,9 @@ func (vm ErrorReport) Render(c Ctx) string {
 	blocks := []string{Callout{Kind: MessageBad, Body: []string{vm.Failed}}.Render(c), vm.rolledBack(c), vm.output(c)}
 	var info []string
 	if p := clean(vm.LogPath); p != "" {
-		info = append(info, Message{Text: fmt.Sprintf(checkLog, p)}.Render(c))
+		// The sentence is prose, made plain text for c; the path names a
+		// file to open, so it keeps its characters, through clean alone.
+		info = append(info, Message{}.render(c, fmt.Sprintf(c.text(checkLog), p)))
 	}
 	info = append(info, Message{Text: vm.Next}.Render(c))
 	blocks = append(blocks, strings.Join(nonEmpty(info), "\n"))
@@ -95,7 +99,7 @@ func (vm ErrorReport) rolledBack(c Ctx) string {
 	style := StepRolledBack.style(c.Theme.Step)
 	var out []string
 	for _, name := range vm.RolledBack {
-		title, titleStyle := clean(name), c.Theme.Step.Title
+		title, titleStyle := c.text(name), c.Theme.Step.Title
 		if title == "" {
 			title, titleStyle = unknown, c.Theme.Status.Unknown
 		}

@@ -37,7 +37,7 @@ type PromptLine struct {
 func (vm PromptLine) Render(c Ctx) string {
 	t, w := c.Theme.Prompt, c.width()
 	head := line{gap(theme.Indent), {c.Theme.Glyphs.Prompt, t.Glyph}}
-	out, _ := c.ask(head, clean(vm.Label), clean(vm.Accepts.Hint()), t.Label, t.Hint, w)
+	out, _ := c.ask(head, c.text(vm.Label), clean(vm.Accepts.Hint()), t.Label, t.Hint, w)
 	return c.fit(out, w)
 }
 

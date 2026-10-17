@@ -53,7 +53,7 @@ type FieldHead struct {
 // Render renders the head for c. See FieldHead for the layout.
 func (vm FieldHead) Render(c Ctx) string {
 	t, w := c.Theme.Field, c.width()
-	title := clean(vm.Title)
+	title := c.text(vm.Title)
 	if title == "" {
 		return ""
 	}
@@ -63,7 +63,7 @@ func (vm FieldHead) Render(c Ctx) string {
 		head = line{gap(theme.MarkerCol + theme.MarkerWidth - lipgloss.Width(n)), {n, t.Number}, gap(1)}
 	}
 	out := []string{c.fit(append(head, span{title, t.Label}), w)}
-	if d := clean(vm.Description); d != "" {
+	if d := c.text(vm.Description); d != "" {
 		for _, l := range wrap(d, w-theme.LabelCol) {
 			out = append(out, c.fit(line{gap(theme.LabelCol), {l, t.Description}}, w))
 		}

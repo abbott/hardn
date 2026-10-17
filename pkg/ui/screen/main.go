@@ -38,18 +38,23 @@ import (
 // RiskSummary, StatusList, Divider, the MenuHeading with the
 // ModeIndicator beside it, Menu, then the PromptLine after
 // theme.PromptGap blank lines. An empty StatusList is left out with its
-// gap. Figma's 35 lines fit a terminal from theme.CompactBelow rows.
+// gap. From theme.StackBelow columns up Figma's content takes 35 lines,
+// which fit a terminal from theme.CompactBelow rows; below that width the
+// rows stack (DEV-021), and at 60 columns it takes 57.
 //
-// On a terminal shorter than that (term.Env.TTY, Env.Height under
-// theme.CompactBelow) the main menu renders its compact form, which fits
-// theme.CompactBudget lines, an 80x24 console, with Figma's content
-// (DEV-052): the Header and the Divider are left out; the ContextBar and
-// the HostBlock are one group and the RiskSummary and the StatusList
-// another, each with no blank line inside it; and the menu is laid out in
-// two columns, its items' keys and labels alone (component.Menu.Compact).
-// The host, the risk, every status row, the mode and every item stay on
-// screen. Output that is not a terminal has no height to fit, and gets
-// the full form.
+// On a terminal (term.Env.TTY) shorter than theme.CompactBelow, or too
+// short for the full form, prompt included, the main menu renders its
+// compact form, which fits theme.CompactBudget lines, an 80x24 console,
+// with Figma's content from theme.StackBelow columns up (DEV-052): the
+// Header and the Divider are left out; the ContextBar and the HostBlock
+// are one group and the RiskSummary and the StatusList another, each with
+// no blank line inside it; and the menu is laid out in two columns, its
+// items' keys and labels alone (component.Menu.Compact). The host, the
+// risk, every status row, the mode and every item stay on screen. Below
+// theme.StackBelow columns the compact form stacks its rows too, 34 lines
+// at 60 columns, so a 60-column terminal shows the full form from 57 rows
+// and the compact form below. Output that is not a terminal has no height
+// to fit, and gets the full form.
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
@@ -76,26 +81,38 @@ type MainMenu struct {
 // Render renders the main menu for c, down to its prompt. See MainMenu for
 // the layout and its compact form.
 func (vm MainMenu) Render(c component.Ctx) string {
-	menu := vm.Menu
-	menu.Compact = compact(c.Env)
-	return withMenu(c, vm.above(c), menu, vm.Prompt)
+	if out, ok := vm.full(c); ok {
+		return out
+	}
+	return vm.form(c, true)
 }
 
 // Screen returns what nav.Run draws for the main menu, with m as its menu
 // in place of vm.Menu: Above holds every block down to the menu heading,
-// and Compact is set on a terminal too short for the full form, so that
-// nav.Run draws what Render renders. Call it in each round of Run's draw,
-// so that the screen shows the state the last action left.
+// and Compact is set on a terminal too short for the full form drawn with
+// m, the menu nav.Run draws, so that nav.Run draws what Render renders
+// for a view-model whose Menu holds m's items. Call it in each round of
+// Run's draw, so that the screen shows the state the last action left.
 func (vm MainMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
-	return nav.Screen{Above: vm.above(c), Menu: m, Label: vm.Prompt, Compact: compact(c.Env)}
+	vm.Menu = m.View()
+	short := vm.compact(c)
+	return nav.Screen{Above: vm.above(c, short), Menu: m, Label: vm.Prompt, Compact: short}
+}
+
+// form renders the main menu down to its prompt, in its compact form when
+// short is set and in its full form otherwise.
+func (vm MainMenu) form(c component.Ctx, short bool) string {
+	menu := vm.Menu
+	menu.Compact = short
+	return withMenu(c, vm.above(c, short), menu, vm.Prompt)
 }
 
 // above renders every block above the menu: the full form's, or the
-// compact form's on a short terminal.
-func (vm MainMenu) above(c component.Ctx) string {
+// compact form's when short is set.
+func (vm MainMenu) above(c component.Ctx, short bool) string {
 	mode := vm.Mode
 	heading := component.MenuHeading{Title: vm.Heading, Mode: &mode}.Render(c)
-	if compact(c.Env) {
+	if short {
 		return join(
 			stack(vm.Context.Render(c), vm.Host.Render(c)),
 			stack(vm.Risk.Render(c), vm.Status.Render(c)),
@@ -113,14 +130,30 @@ func (vm MainMenu) above(c component.Ctx) string {
 	)
 }
 
-// compact reports whether the main menu takes its compact form in env: on
-// a terminal shorter than theme.CompactBelow. Output that is not a
-// terminal has no height to fit. An unknown height counts as
-// term.DefaultHeight, as term.Resolve counts it.
-func compact(env term.Env) bool {
-	h := env.Height
+// compact reports whether the main menu takes its compact form in c.
+func (vm MainMenu) compact(c component.Ctx) bool {
+	_, ok := vm.full(c)
+	return !ok
+}
+
+// full reports whether the main menu takes its full form in c, and if so
+// returns it: on output that is not a terminal, which has no height to
+// fit, and on a terminal from theme.CompactBelow rows whose height holds
+// the full form's lines, prompt included. Below theme.StackBelow columns
+// the rows stack, and the full form may not fit 40 rows (57 lines at 60
+// columns). An unknown height counts as term.DefaultHeight, as
+// term.Resolve counts it.
+func (vm MainMenu) full(c component.Ctx) (string, bool) {
+	if !c.Env.TTY {
+		return vm.form(c, false), true
+	}
+	h := c.Env.Height
 	if h < 1 {
 		h = term.DefaultHeight
 	}
-	return env.TTY && h < theme.CompactBelow
+	if h < theme.CompactBelow {
+		return "", false
+	}
+	out := vm.form(c, false)
+	return out, lines(out) <= h
 }

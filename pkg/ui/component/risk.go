@@ -82,16 +82,16 @@ func (vm RiskSummary) Render(c Ctx) string {
 	t, g := c.Theme.Risk, c.Theme.Glyphs
 	band := vm.Band.style(t)
 	label := append(marker(g.Risk, band).to(theme.LabelCol), span{riskLabel, t.Label})
-	level := clean(vm.Level)
+	level := c.text(vm.Level)
 	if level == "" {
 		level = vm.Band.String()
 	}
 	values := []line{{{level, band}}}
-	if gloss := clean(vm.Gloss); gloss != "" {
+	if gloss := c.text(vm.Gloss); gloss != "" {
 		values[0] = append(values[0], gap(1), span{g.Approx + " " + gloss, t.Gloss})
 	}
 	for _, f := range vm.Factors {
-		if f = clean(f); f != "" {
+		if f = c.text(f); f != "" {
 			values = append(values, line{{g.Bullet + " " + f, t.Factor}})
 		}
 	}

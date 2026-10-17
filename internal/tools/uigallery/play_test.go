@@ -363,8 +363,11 @@ func TestPlayWriteFails(t *testing.T) {
 // starts a process or changes the environment or the working directory,
 // or names anything of syscall or golang.org/x/sys/unix but what the
 // line reader (pkg/ui/prompt) uses to ask whether stdin is a terminal, to
-// discard typeahead and to wait for a line or Ctrl-C. The simulated
-// system records; it never applies. Lip Gloss's own init effects, such as
+// discard typeahead and to wait for a line or Ctrl-C, and, in
+// reraise_unix.go alone, to send the process its own SIGINT
+// (prompt.Reraise, which the gallery must not call: play returns
+// ExitCode's 130 instead). The simulated system records; it never
+// applies. Lip Gloss's own init effects, such as
 // colorprofile's "tmux info", are outside this check
 // (docs/refactor/phase0/side-effects.md §13.1).
 func TestPlayTouchesNothing(t *testing.T) {
@@ -386,6 +389,10 @@ func TestPlayTouchesNothing(t *testing.T) {
 		// Waiting for a line or Ctrl-C (wait_unix.go).
 		"Select": true, "FdSet": true, "FD_SETSIZE": true, "EINTR": true,
 	}
+	// Ending the process by its own SIGINT after Ctrl-C (prompt.Reraise,
+	// for the legacy menus and the config prompts), in reraise_unix.go
+	// alone.
+	reraise := map[string]bool{"Kill": true, "Getpid": true, "SIGINT": true}
 	dirs, seen, files := []string{"."}, map[string]bool{}, 0
 	for len(dirs) > 0 {
 		dir := dirs[0]
@@ -432,8 +439,11 @@ func TestPlayTouchesNothing(t *testing.T) {
 					switch p := pkgs[x.Name]; {
 					case p == "os" && banned[sel.Sel.Name]:
 						t.Errorf("%s calls os.%s", path, sel.Sel.Name)
-					case (p == "syscall" || p == "golang.org/x/sys/unix") && !sys[sel.Sel.Name]:
+					case (p == "syscall" || p == "golang.org/x/sys/unix") && !sys[sel.Sel.Name] &&
+						(filepath.Base(path) != "reraise_unix.go" || !reraise[sel.Sel.Name]):
 						t.Errorf("%s names %s.%s, which the line reader does not use", path, p, sel.Sel.Name)
+					case dir == "." && sel.Sel.Name == "Reraise":
+						t.Errorf("%s names %s.Reraise, which would end the gallery by SIGINT", path, x.Name)
 					}
 				}
 				return true
