@@ -113,7 +113,11 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 	case DistroDebian, DistroUbuntu:
 		return lookup(Platform{Distro: d, Version: osr.VersionID})
 	case DistroAlpine:
-		return lookup(Platform{Distro: d, Version: majorMinor(osr.VersionID)})
+		p := lookup(Platform{Distro: d, Version: majorMinor(osr.VersionID)})
+		if p.Version != "" && !alpineStable(osr.VersionID) {
+			p.Support, p.Note = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z"
+		}
+		return p
 	}
 	p := Platform{Distro: DistroOther, Support: Unlisted}
 	for _, id := range osr.IDLike {
@@ -158,6 +162,15 @@ func majorMinor(v string) string {
 		return ""
 	}
 	return parts[0] + "." + parts[1]
+}
+
+// alpineStable reports a VERSION_ID of three numeric components, the form a
+// stable branch's alpine-base writes ("3.24.2"). A suffixed one, as edge's
+// "3.25.0_alpha20261001" or a release candidate's, is not a release the
+// matrix names even when its major.minor is a row.
+func alpineStable(v string) bool {
+	parts := strings.Split(v, ".")
+	return len(parts) == 3 && digits(parts[0]) && digits(parts[1]) && digits(parts[2])
 }
 
 // pveMajor is "9" for pve-manager's "9.2.22".

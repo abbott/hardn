@@ -43,6 +43,12 @@ func TestClassify(t *testing.T) {
 		{"Debian 11", detect.OSRelease{ID: "debian", VersionID: "11"}, notPVE, detect.DistroDebian, "11", detect.Unlisted, nil},
 		{"Debian sid has no VERSION_ID", read("debian-sid"), notPVE, detect.DistroDebian, "", detect.Unlisted, nil},
 		{"Alpine edge", detect.OSRelease{ID: "alpine", VersionID: "3.25.0_alpha20261001"}, notPVE, detect.DistroAlpine, "3.25", detect.Unlisted, nil},
+		{"Alpine release candidate of a supported row", detect.OSRelease{ID: "alpine", VersionID: "3.24.0_rc1"}, notPVE, detect.DistroAlpine, "3.24", detect.Unlisted, nil},
+		{"Alpine pre-release of a best-effort row", detect.OSRelease{ID: "alpine", VersionID: "3.21.0_alpha20241001"}, notPVE, detect.DistroAlpine, "3.21", detect.Unlisted, nil},
+		{"Alpine two-part VERSION_ID", detect.OSRelease{ID: "alpine", VersionID: "3.24"}, notPVE, detect.DistroAlpine, "3.24", detect.Unlisted, nil},
+		{"Alpine VERSION_ID missing", detect.OSRelease{ID: "alpine"}, notPVE, detect.DistroAlpine, "", detect.Unlisted, nil},
+		{"Alpine VERSION_ID not numeric", detect.OSRelease{ID: "alpine", VersionID: "edge"}, notPVE, detect.DistroAlpine, "", detect.Unlisted, nil},
+		{"Ubuntu VERSION_ID not YY.MM", detect.OSRelease{ID: "ubuntu", VersionID: "24.04.1"}, notPVE, detect.DistroUbuntu, "24.04.1", detect.Unlisted, nil},
 		{"Proxmox on Ubuntu not established is still Ubuntu", read("ubuntu-24.04"), detect.Proxmox{}, detect.DistroUbuntu, "24.04", detect.Supported, nil},
 
 		{"os-release unreadable", detect.OSRelease{Err: errFixture}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
