@@ -316,23 +316,37 @@ func (c config) check(ctx context.Context, sys host.System, req Request, work st
 		return err
 	}
 	rep.Effective = res.Stdout
-	dns := useDNS(rep.Effective)
+	probes, findings, err := c.probe(req.Conn, rep.Effective, func(extra ...string) (host.Result, error) {
+		return run("-T", extra...)
+	})
+	rep.Probes, rep.Findings = probes, append(rep.Findings, findings...)
+	return err
+}
+
+// probe runs runT("-C", spec) for each Match block of c, with a connection
+// made to satisfy the block's criteria (target), starting from base;
+// effective is sshd -T's output, for UseDNS. A block the connection may not
+// satisfy is a FindingMatchUntargeted, and is probed all the same. It stops
+// at the first failed run, returning the probes made before it.
+func (c config) probe(base Conn, effective []byte, runT func(extra ...string) (host.Result, error)) (ps []Probe, found []Finding, err error) {
+	dns := useDNS(effective)
 	for _, m := range c.matches() {
 		p := Probe{Block: m.Block}
-		p.Conn, p.Reasons = target(m.args, req.Conn, dns)
+		p.Conn, p.Reasons = target(m.args, base, dns)
 		if err := p.Conn.check(); err != nil {
-			p.Conn, p.Reasons = req.Conn, append(p.Reasons, err.Error())
+			p.Conn, p.Reasons = base, append(p.Reasons, err.Error())
 		}
 		if len(p.Reasons) > 0 {
-			rep.Findings = append(rep.Findings, Finding{FindingMatchUntargeted, m.File, m.Line, strings.Join(p.Reasons, "; ")})
+			found = append(found, Finding{FindingMatchUntargeted, m.File, m.Line, strings.Join(p.Reasons, "; ")})
 		}
-		if res, err = run("-T", "-C", p.Conn.Spec()); err != nil {
-			return err
+		res, err := runT("-C", p.Conn.Spec())
+		if err != nil {
+			return ps, found, err
 		}
 		p.Output = res.Stdout
-		rep.Probes = append(rep.Probes, p)
+		ps = append(ps, p)
 	}
-	return nil
+	return ps, found, nil
 }
 
 // match is a Match line and its criteria, the text after the keyword.
