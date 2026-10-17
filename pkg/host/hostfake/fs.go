@@ -14,7 +14,9 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 )
 
-// maxSymlinks is Linux's limit on symlinks followed in one lookup (ELOOP).
+// maxSymlinks is Linux's limit on symlinks followed in one lookup, past which
+// it returns ELOOP: "the maximum number of symbolic links that will be
+// followed while resolving a pathname is 40" (path_resolution(7)).
 const maxSymlinks = 40
 
 type node struct {
@@ -67,8 +69,8 @@ func (s *System) AddSymlink(name, target string) {
 func (s *System) add(name string, n *node) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if !path.IsAbs(name) || path.Clean(name) == "/" {
-		panic("hostfake: seed path must be absolute and not /: " + name)
+	if !validPath(name) || path.Clean(name) == "/" {
+		panic("hostfake: seed path must be absolute, not /, with no trailing slash: " + name)
 	}
 	p := path.Clean(name)
 	if err := s.mkdirAll(path.Dir(p), 0o755); err != nil {
@@ -81,11 +83,17 @@ func (s *System) add(name string, n *node) {
 	s.nodes[path.Join(parent, path.Base(p))] = n
 }
 
+// validPath reports whether the fake accepts name: absolute, and no trailing
+// slash, whose rules (path_resolution(7)) the fake does not model.
+func validPath(name string) bool {
+	return path.IsAbs(name) && (name == "/" || !strings.HasSuffix(name, "/"))
+}
+
 // resolve returns the path name refers to, following symlinks in every
 // component but the last, and in the last too when follow is set. The result
 // may not exist; a missing or non-directory parent is an error.
 func (s *System) resolve(name string, follow bool) (string, error) {
-	if !path.IsAbs(name) {
+	if !validPath(name) {
 		return "", fs.ErrInvalid
 	}
 	rest := split(path.Clean(name))
@@ -242,7 +250,7 @@ func (s *System) MkdirAll(ctx context.Context, name string, perm fs.FileMode) er
 }
 
 func (s *System) mkdirAll(name string, perm fs.FileMode) error {
-	if !path.IsAbs(name) {
+	if !validPath(name) {
 		return perr("mkdir", name, fs.ErrInvalid)
 	}
 	p, n, err := s.lookup(name, true)
@@ -308,8 +316,10 @@ func (s *System) RemoveAll(ctx context.Context, name string) error {
 	})
 }
 
-// Rename follows rename(2): a symlink at either name is moved or replaced
-// itself; a directory replaces only an empty directory.
+// Rename follows os.Rename: a symlink at either name is moved or replaced
+// itself (rename(2)); an existing directory at newname is refused with EEXIST
+// before rename(2) runs, as os.Rename refuses it (os/file_unix.go), even an
+// empty one rename(2) would replace; a directory does not replace a file.
 func (s *System) Rename(ctx context.Context, oldname, newname string) error {
 	return s.do(ctx, Call{Op: "rename", Path: oldname, To: newname}, func() error {
 		lerr := func(err error) error { return &os.LinkError{Op: "rename", Old: oldname, New: newname, Err: err} }
@@ -332,12 +342,10 @@ func (s *System) Rename(ctx context.Context, oldname, newname string) error {
 		}
 		if nn := s.nodes[pn]; nn != nil {
 			switch {
-			case nn.mode.IsDir() && !no.mode.IsDir():
-				return lerr(syscall.EISDIR)
-			case !nn.mode.IsDir() && no.mode.IsDir():
+			case nn.mode.IsDir():
+				return lerr(syscall.EEXIST)
+			case no.mode.IsDir():
 				return lerr(syscall.ENOTDIR)
-			case nn.mode.IsDir() && s.hasChildren(pn):
-				return lerr(syscall.ENOTEMPTY)
 			}
 		}
 		moved := map[string]*node{pn: no}

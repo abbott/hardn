@@ -33,9 +33,8 @@ func TestSystemCommander(t *testing.T) {
 		t.Errorf("Execute(scripted error) = %v, want it verbatim", err)
 	}
 	out, err = c.Execute("visudo", "-c", "-f", "/tmp/x")
-	var xe *host.ExitError
-	if !errors.As(err, &xe) || xe.ExitCode != 1 || string(out) != "partial\n" {
-		t.Errorf("Execute(exit 1) = %q, %v; want the output and an ExitError", out, err)
+	if err == nil || err.Error() != "exit status 1" || string(out) != "partial\n" {
+		t.Errorf("Execute(exit 1) = %q, %v; want the output and \"exit status 1\", as over host.Real", out, err)
 	}
 	if _, err := c.ExecuteWithInput("ssh-ed25519 KEY alice\n", "su", "-", "alice", "-c", "cat >> ~/.ssh/authorized_keys"); err != nil || string(stdin) != "ssh-ed25519 KEY alice\n" {
 		t.Errorf("ExecuteWithInput: stdin %q, err %v", stdin, err)

@@ -125,6 +125,23 @@ func TestContract(t *testing.T) {
 			wantFile(t, w, "authorized_keys", "replaced\n", 0o600)
 			wantFile(t, w, "keys", "cluster\n", 0o600)
 		}},
+		{"rename refuses an existing directory at newname, even an empty one", func(t *testing.T, w world) {
+			w.dir("run-1")
+			w.file("run-1/f", "x", 0o600)
+			w.dir("current")
+			w.file("f", "y", 0o600)
+			if err := w.sys.Rename(ctx, w.path("run-1"), w.path("current")); !errors.Is(err, syscall.EEXIST) {
+				t.Errorf("directory over an empty directory: err = %v, want EEXIST", err)
+			}
+			if err := w.sys.Rename(ctx, w.path("f"), w.path("current")); !errors.Is(err, syscall.EEXIST) {
+				t.Errorf("file over a directory: err = %v, want EEXIST", err)
+			}
+			if err := w.sys.Rename(ctx, w.path("run-1"), w.path("f")); !errors.Is(err, syscall.ENOTDIR) {
+				t.Errorf("directory over a file: err = %v, want ENOTDIR", err)
+			}
+			wantNames(t, w, "", "current", "f", "run-1")
+			wantFile(t, w, "run-1/f", "x", 0o600)
+		}},
 		{"rename moves a directory tree", func(t *testing.T, w world) {
 			w.dir("a")
 			w.file("a/f", "x", 0o600)

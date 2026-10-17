@@ -1,28 +1,39 @@
 // Package hostfake is a recording, in-memory host.System for tests, in the
 // style of the legacy interfaces.MockCommander and MockFileSystem: commands
 // answer from a script keyed by argv, and every call is recorded in order.
+// Unlike MockCommander, a command nothing scripted fails with ErrUnscripted,
+// so a check a test forgot to script cannot read as a pass.
 //
 // Its file system keeps modes, owners and symlinks, and follows the os
 // package's rules for them (a contract test runs the same cases against
 // host.Real in a temporary directory), so tests of the safety primitives see
 // the hazards a real host has: a write through a symlink, a rename over one,
-// a chown that would follow one. Nothing here touches the machine.
+// a chown or chmod that would follow one. Nothing here touches the machine.
 //
-// The fake has no umask, no hard links and no permission checks (it acts as
-// root); ".." in a symlink target is resolved lexically. Paths must be
-// absolute: a relative one is refused with fs.ErrInvalid.
+// The fake has no umask, no hard links, no permission checks (it acts as
+// root) and no setuid, setgid or sticky bits; ".." in a symlink target is
+// resolved lexically. Paths must be absolute and must not end in a slash:
+// either is refused with fs.ErrInvalid, where a host may accept them. Where
+// the fake departs from a host, it fails where the host would not, never the
+// other way round.
 package hostfake
 
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/abbott/hardn/pkg/host"
 )
+
+// ErrUnscripted: Run was given a command no Respond entry matches and the
+// fake has no Handler.
+var ErrUnscripted = errors.New("unscripted command")
 
 // Response is a scripted outcome of one command.
 type Response struct {
@@ -89,7 +100,8 @@ type System struct {
 	// lock held, so it may call the fake (Entry, AddFile) to model the
 	// command's effect; calls it makes are recorded before the run, which is
 	// recorded when it finishes. Without a Handler an unscripted command
-	// succeeds with no output, as MockCommander's do.
+	// fails with ErrUnscripted; a Handler returning Response{} gives
+	// MockCommander's empty success instead.
 	Handler func(argv []string, stdin []byte) Response
 
 	mu     sync.Mutex
@@ -198,8 +210,14 @@ func (s *System) answer(ctx context.Context, argv []string, stdin []byte) (host.
 	if err := ctx.Err(); err != nil {
 		return res, fmt.Errorf("host: run %s: %w", host.FormatArgv(argv), err)
 	}
+	if err := checkName(argv[0]); err != nil {
+		return res, err
+	}
 	r, ok := s.next(argv)
-	if !ok && s.Handler != nil {
+	switch {
+	case !ok && s.Handler == nil:
+		return res, fmt.Errorf("hostfake: %s: %w", host.FormatArgv(argv), ErrUnscripted)
+	case !ok:
 		r = s.Handler(append([]string(nil), argv...), stdin)
 	}
 	res.Stdout, res.Stderr = []byte(r.Stdout), []byte(r.Stderr)
@@ -213,10 +231,30 @@ func (s *System) answer(ctx context.Context, argv []string, stdin []byte) (host.
 		}
 		return res, r.Err
 	case r.ExitCode != 0:
-		return res, &host.ExitError{Argv: argv, ExitCode: r.ExitCode, Tail: res.Tail}
+		return res, &host.ExitError{Argv: argv, ExitCode: r.ExitCode, Tail: res.Tail, Err: exitStatus(r.ExitCode)}
 	}
 	return res, nil
 }
+
+// checkName refuses the command names host.Real refuses before it looks for
+// a file: an empty name and a relative path. The fake has no executables, so
+// it cannot refuse a name host.Real would not find in host.SearchPath.
+func checkName(name string) error {
+	switch {
+	case name == "":
+		return fmt.Errorf("host: empty command name: %w", host.ErrNotFound)
+	case strings.Contains(name, "/") && !strings.HasPrefix(name, "/"):
+		return fmt.Errorf("host: %q: relative command path refused: %w", name, host.ErrNotFound)
+	}
+	return nil
+}
+
+// exitStatus is the error behind a scripted non-zero exit. Its text is
+// os/exec's for an exit code, so the legacy adapter, which unwraps a
+// host.ExitError, shows the same text over the fake as over host.Real.
+type exitStatus int
+
+func (e exitStatus) Error() string { return "exit status " + strconv.Itoa(int(e)) }
 
 // next pops the scripted response for argv; the last one stays.
 func (s *System) next(argv []string) (Response, bool) {
