@@ -49,15 +49,28 @@
 // only records what each step would do: the record is shown when play
 // ends. A sequence plays for its screen and fixture, the answers being the
 // user's, so one that ends cancelled, as create-user's does, cannot be
-// named: declining the confirmation plays it. Its own flags, with -theme,
-// -profile, -ascii, -width, -height and -override:
+// named: declining the confirmation plays it. Its flags, besides -theme,
+// -profile, -ascii and -override, as below:
 //
 //	-sequence name    the sequence each workflow plays where it has one,
 //	                  such as dry-run, failure or typed (default normal)
 //	-fail N           fail step N of each plan applied, to show the
 //	                  rollback (default 0: none)
+//	-width N          the terminal width in cells (default: the
+//	                  terminal's own, when stdout is a terminal, else 80)
+//	-height N         the terminal height in lines (default: the
+//	                  terminal's own, when stdout is a terminal, else 24)
 //
-// The flags of the other modes:
+// Play sizes itself to the terminal: where -width or -height is not given
+// and stdout is a terminal, it takes the terminal's size, as term.Detect,
+// which builds the render environment, reads it, once at the start, so
+// that a terminal of 40 rows or more, from 64 columns, shows the main
+// menu's full form, as 00-TUI-MAIN.png does, and a shorter one its
+// compact form. A flag given wins, each on its own; with stdout not a
+// terminal, as in the tests and through a pipe, play keeps 80 and 24, so
+// that its goldens stay deterministic.
+//
+// The flags of the other modes, whose environment is the flags' alone:
 //
 //	-list             print the names of the states, or with -screens the
 //	                  screen drawings, it would render, and exit
@@ -89,9 +102,16 @@
 // keeps out of git, and pass its path.
 //
 // The gallery's code reads nothing but its flags, the override file and,
-// in the playable mode, stdin: no environment variable and no terminal
-// query for its output (it builds each environment with term.Fixed, never
-// term.Detect), no root, nothing under /etc. The playable mode reads
+// in the playable mode, stdin and the terminal's size: no root, nothing
+// under /etc. It builds each environment with term.Fixed. Only to size
+// itself, where -width or -height is not given, the playable mode calls
+// term.Detect, given the dark theme so that it never queries the
+// terminal's background: Detect asks whether stdin and stdout are
+// terminals, reads the size of the terminal stdout is and os.Environ
+// (COLUMNS and LINES, for a terminal whose size it cannot read), and of
+// what it resolves play takes the size alone. The other modes read no
+// environment variable and query no terminal for their output. The
+// playable mode reads
 // stdin through prompt.Stdin, the line reader every hardn prompt uses,
 // which asks whether stdin is a terminal by reading its attributes
 // (TCGETS or TIOCGETA), on one discards typeahead before each prompt
@@ -137,7 +157,23 @@ import (
 )
 
 func main() {
-	os.Exit(run(os.Args[1:], prompt.Stdin, os.Stdout, os.Stderr))
+	os.Exit(run(os.Args[1:], prompt.Stdin, stdoutSize, os.Stdout, os.Stderr))
+}
+
+// sizer returns the size of the terminal stdout is, in cells and lines,
+// and whether stdout is a terminal at all. The playable mode sizes itself
+// with it where -width or -height is not given (look.sizeTo); the tests
+// pass their own, so that no test depends on its own terminal.
+type sizer func() (width, height int, tty bool)
+
+// stdoutSize is the gallery's sizer: the size of the terminal stdout is,
+// as term.Detect reads it for the render environment (the terminal's own,
+// else COLUMNS and LINES, else 80x24), and whether stdout is a terminal. Detect is given
+// the dark theme, so that it never queries the terminal's background; play
+// takes the size alone of what Detect resolves.
+func stdoutSize() (width, height int, tty bool) {
+	env := term.Detect(term.Options{Theme: term.ThemeDark}, os.Stdin, os.Stdout)
+	return env.Width, env.Height, env.TTY
 }
 
 // Exit statuses.
@@ -299,15 +335,55 @@ type look struct {
 	width, height            *int
 }
 
-// lookFlags defines the look flags on fs.
-func lookFlags(fs *flag.FlagSet) look {
+// lookFlags defines the look flags on fs. With sized set, as in the
+// playable mode, -width and -height default to the terminal's size
+// (look.sizeTo), 0 standing for it until then, and their help says so;
+// otherwise they default to term.DefaultWidth and term.DefaultHeight.
+func lookFlags(fs *flag.FlagSet, sized bool) look {
+	width, height := term.DefaultWidth, term.DefaultHeight
+	widthHelp := "the terminal width in cells"
+	heightHelp := fmt.Sprintf("the terminal height in lines; the main menu takes its compact form under %d rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height %d", theme.CompactBelow, theme.CompactBelow)
+	if sized {
+		width, height = 0, 0
+		widthHelp = fmt.Sprintf("the terminal width in cells: by default the terminal's own when stdout is a terminal, else %d", term.DefaultWidth)
+		heightHelp = fmt.Sprintf("the terminal height in lines: by default the terminal's own when stdout is a terminal, else %d. The main menu takes its compact form under %d rows, or when its full form does not fit, so a terminal of %d rows or more, from %d columns, shows its full form, as 00-TUI-MAIN.png", term.DefaultHeight, theme.CompactBelow, theme.CompactBelow, theme.StackBelow)
+	}
 	return look{
 		theme:    fs.String("theme", "dark", "the palette: dark or light"),
 		profile:  fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain"),
 		ascii:    fs.Bool("ascii", false, "use the ASCII glyph set"),
-		width:    fs.Int("width", term.DefaultWidth, "the terminal width in cells"),
-		height:   fs.Int("height", term.DefaultHeight, fmt.Sprintf("the terminal height in lines; the main menu takes its compact form under %d rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height %d", theme.CompactBelow, theme.CompactBelow)),
+		width:    fs.Int("width", width, widthHelp),
+		height:   fs.Int("height", height, heightHelp),
 		override: fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)"),
+	}
+}
+
+// sizeTo sets -width and -height where the command line did not give
+// them, as the playable mode does before it builds its environment: to
+// the size of the terminal stdout is (size), so that play draws what the
+// screens draw on that terminal, the main menu's full form on one tall
+// enough; and where stdout is not a terminal, as in the tests and through
+// a pipe, to term.DefaultWidth and term.DefaultHeight, so that play's
+// goldens stay deterministic. A flag given wins, each on its own, even
+// one that look.cell refuses; with both given, size is not called.
+func (l look) sizeTo(fs *flag.FlagSet, size sizer) {
+	given := map[string]bool{}
+	fs.Visit(func(f *flag.Flag) { given[f.Name] = true })
+	if given["width"] && given["height"] {
+		return
+	}
+	w, h, tty := size()
+	pick := func(measured, fallback int) int {
+		if tty && measured > 0 {
+			return measured
+		}
+		return fallback
+	}
+	if !given["width"] {
+		*l.width = pick(w, term.DefaultWidth)
+	}
+	if !given["height"] {
+		*l.height = pick(h, term.DefaultHeight)
 	}
 }
 
@@ -356,10 +432,11 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns; no other mode calls it.
-func run(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) int {
+// line reader stdin returns and sizes itself with size; no other mode
+// calls either.
+func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
-		return play(args[1:], stdin, stdout, stderr)
+		return play(args[1:], stdin, size, stdout, stderr)
 	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -370,7 +447,7 @@ func run(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) i
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
-	look := lookFlags(fs)
+	look := lookFlags(fs, false)
 	screens := fs.Bool("screens", false, "render the screen mocks, in place of the component states")
 	inMatrix := fs.Bool("matrix", false, "render each state in every cell of the golden matrix and plain mode, in place of -theme, -profile, -ascii, -width and -height")
 	if err := fs.Parse(args); err != nil {

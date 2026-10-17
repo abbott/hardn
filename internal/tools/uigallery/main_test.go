@@ -180,11 +180,16 @@ func TestRendersAsGoldens(t *testing.T) {
 // anything: its input has ended.
 func noInput() *prompt.Reader { return prompt.New(strings.NewReader(""), false) }
 
+// offTerminal is the sizer of a gallery whose stdout is not a terminal,
+// as a test's is not: play keeps -width's and -height's defaults, 80 and
+// 24, whatever terminal the test runs in.
+func offTerminal() (int, int, bool) { return 0, 0, false }
+
 // runGallery runs the gallery with args and returns its exit status, stdout
 // and stderr.
 func runGallery(args ...string) (int, string, string) {
 	var out, errs bytes.Buffer
-	code := run(args, noInput, &out, &errs)
+	code := run(args, noInput, offTerminal, &out, &errs)
 	return code, out.String(), errs.String()
 }
 
@@ -342,7 +347,7 @@ func TestUsage(t *testing.T) {
 // arguments in UIGALLERY_TEST_ARGS.
 func TestEastAsian(t *testing.T) {
 	if args, ok := os.LookupEnv("UIGALLERY_TEST_ARGS"); ok {
-		os.Exit(run(strings.Fields(args), noInput, os.Stdout, os.Stderr))
+		os.Exit(run(strings.Fields(args), noInput, offTerminal, os.Stdout, os.Stderr))
 	}
 	tests := []struct {
 		args string
