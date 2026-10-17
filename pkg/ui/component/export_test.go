@@ -1,0 +1,25 @@
+package component
+
+// The tests are in package component_test because they take their
+// fixtures from pkg/ui/component/fixture, which imports this package.
+// These names give them what they test that the package does not export.
+
+// Unexported functions and methods.
+var (
+	Truncate = Ctx.truncate
+	Width    = Ctx.width
+	Code     = Ctx.code
+	Marker   = marker
+)
+
+// Unexported words.
+const (
+	Unknown        = unknown
+	ModeLive       = modeLive
+	ModeDryRun     = modeDryRun
+	LockoutRisk    = lockoutRisk
+	Unavailable    = unavailable
+	ConfirmReverts = confirmReverts
+	ConfirmKeep    = confirmKeep
+	ConfirmCommand = confirmCommand
+)

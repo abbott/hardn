@@ -1,4 +1,4 @@
-package component
+package component_test
 
 import (
 	"fmt"
@@ -10,8 +10,27 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/diff"
+	. "github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/component/fixture"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
+)
+
+// The plan group's fixtures, defined once in package fixture, which the
+// gallery shares.
+const (
+	dropIn      = fixture.DropIn
+	resolv      = fixture.Resolv
+	sudoersFile = fixture.SudoersFile
+	ufwRules    = fixture.UFWRules
+)
+
+var (
+	sshChange  = fixture.SSHChange()
+	dnsChange  = fixture.DNSChange()
+	ufwChange  = fixture.UFWChange()
+	sshFailure = fixture.SSHFailure()
+	steps      = fixture.Steps
 )
 
 // TestPlanGroupLayout checks the plan group on plain text at the ASCII
@@ -75,9 +94,9 @@ func TestPlanGroupLayout(t *testing.T) {
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},
 		{"steps: one line each, the spinner still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
 			"   ✓  Done: Allow 2230/tcp in UFW\n   ▸  Running: Set Port 2230\n   ◦  Pending: Reload ssh.service"},
-		{"steps: animated, the frame wraps", animated{StepProgress{Steps: steps(StepRunning), Frame: 13}}, 64, false,
+		{"steps: animated, the frame wraps", animated{VM: StepProgress{Steps: steps(StepRunning), Frame: 13}}, 64, false,
 			"   /  Running: Allow 2230/tcp in UFW"},
-		{"steps: a negative frame", animated{StepProgress{Steps: steps(StepRunning), Frame: -1}}, 64, true,
+		{"steps: a negative frame", animated{VM: StepProgress{Steps: steps(StepRunning), Frame: -1}}, 64, true,
 			"   ⠏  Running: Allow 2230/tcp in UFW"},
 		{"steps: a detail in parentheses, a step with no title skipped", StepProgress{Steps: []Step{
 			{State: StepDone}, {Title: "Install apk-cron", State: StepSkipped, Detail: "already installed"},
@@ -136,9 +155,9 @@ func TestCodeKeepsText(t *testing.T) {
 			glyph := c.Theme.Glyphs.Wrap
 			pieces := func(l string) string {
 				var kept strings.Builder
-				for i, p := range c.code(theme.LabelCol, l, lipgloss.NewStyle()) {
+				for i, p := range Code(c, theme.LabelCol, l, lipgloss.NewStyle()) {
 					where := fmt.Sprintf("width %d, unicode %v, piece %d of %q", w, unicode, i, l)
-					if lipgloss.Width(p) > c.width() || strings.HasSuffix(p, " ") {
+					if lipgloss.Width(p) > Width(c) || strings.HasSuffix(p, " ") {
 						t.Fatalf("%s: %q is too wide or ends in a space", where, p)
 					}
 					p = strings.TrimPrefix(p, strings.Repeat(" ", theme.LabelCol))
@@ -152,7 +171,7 @@ func TestCodeKeepsText(t *testing.T) {
 			if w <= theme.LabelCol+2 {
 				continue // too narrow for a character beside the column: cut
 			}
-			room := c.width() - theme.LabelCol - lipgloss.Width(glyph)
+			room := Width(c) - theme.LabelCol - lipgloss.Width(glyph)
 			for _, l := range lines {
 				got := pieces(l)
 				if longestSpaces(l) < room {
@@ -200,13 +219,13 @@ func TestPlanGroupStyles(t *testing.T) {
 		parts []part
 	}{
 		{"plan", PlanView{Changes: []PlanChange{sshChange, ufwChange}}, []part{
-			{g.Risk, th.Plan.LockoutRisk}, {"Set Port 2230", th.Plan.Title}, {lockoutRisk, th.Plan.LockoutRisk},
+			{g.Risk, th.Plan.LockoutRisk}, {"Set Port 2230", th.Plan.Title}, {LockoutRisk, th.Plan.LockoutRisk},
 			{dropIn, th.Plan.Target}, {"@@ -1,3 +1,3 @@", th.Plan.Meta}, {" # Managed by hardn", th.Plan.Context},
 			{"-Port 22", th.Plan.Removed}, {"+Port 2230", th.Plan.Added}, {g.Command + " systemctl reload ssh", th.Plan.Command},
 			{"-inactive", th.Plan.Removed}, {"+active", th.Plan.Added},
 		}},
 		{"plan: a change with no title", PlanView{Changes: []PlanChange{{Target: "ufw"}}}, []part{
-			{g.Bullet, th.Plan.Context}, {unknown, th.Status.Unknown},
+			{g.Bullet, th.Plan.Context}, {Unknown, th.Status.Unknown},
 		}},
 		{"steps", StepProgress{Steps: []Step{{Title: "Reload ssh.service", State: StepFailed, Detail: "exit status 1"}}}, []part{
 			{g.Bad, th.Step.Failed}, {"Failed:", th.Step.Failed}, {"Reload ssh.service", th.Step.Title}, {"(exit status 1)", th.Step.Detail},
@@ -217,11 +236,11 @@ func TestPlanGroupStyles(t *testing.T) {
 			{"Info:", th.Message.Info}, {"Check the log file at /var/log/hardn.log for details", th.Message.Text},
 		}},
 		{"report: a rolled-back change with no name", ErrorReport{RolledBack: []string{""}}, []part{
-			{g.RolledBack, th.Step.RolledBack}, {"Rolled back:", th.Step.RolledBack}, {unknown, th.Status.Unknown},
+			{g.RolledBack, th.Step.RolledBack}, {"Rolled back:", th.Step.RolledBack}, {Unknown, th.Status.Unknown},
 		}},
 		{"countdown", ConfirmCountdown{Remaining: 165}, []part{
 			{g.Warn, th.Confirm.Waiting}, {"Warning:", th.Confirm.Waiting}, {"2:45", th.Confirm.Waiting},
-			{" " + confirmReverts + " ", th.Confirm.Text}, {confirmKeep, th.Confirm.Text}, {confirmCommand, th.Confirm.Command},
+			{" " + ConfirmReverts + " ", th.Confirm.Text}, {ConfirmKeep, th.Confirm.Text}, {ConfirmCommand, th.Confirm.Command},
 		}},
 		{"countdown: urgent", ConfirmCountdown{Remaining: 5}, []part{
 			{g.Urgent, th.Confirm.Urgent}, {"Urgent:", th.Confirm.Urgent}, {"0:05", th.Confirm.Urgent},

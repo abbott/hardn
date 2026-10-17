@@ -1,4 +1,4 @@
-package component
+package component_test
 
 import (
 	"fmt"
@@ -10,378 +10,58 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/abbott/hardn/pkg/diff"
+	. "github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/component/fixture"
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
+// The tests are in package component_test, with the component package
+// dot-imported, because they take their fixtures from package fixture,
+// which imports package component; export_test.go names what they test
+// that the package does not export.
+
 // renderer is any component's view-model.
 type renderer interface{ Render(Ctx) string }
 
+// animated renders its view-model on a terminal that can animate.
+type animated = fixture.Animated
+
+// The fixtures the goldens render are defined once, in package fixture,
+// which the gallery (internal/tools/uigallery) shares. These names keep
+// the tests' own.
 const (
-	repo   = "https://github.com/abbott/hardn"
-	uptime = "182 days, 2 hours, 26 minutes"
+	repo   = fixture.URL
+	sshKey = fixture.SSHKey
 )
 
-// Synthetic fixtures; BOS-SAN-L01 is Figma's mock hostname.
 var (
-	figmaHost = HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime}
-	figmaRisk = RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security"}
-	longHost  = "ci-runner-0042.build-cluster.eu-west-1.web-01.example.net"
-	// riskFactor fits the 35 cells a factor has beside the label (DEV-022);
-	// longFactor does not.
-	riskFactor = []string{
-		"AppArmor not configured",
-		"Auto Updates not configured",
-		"Up 182 days without auto updates",
-	}
-	longFactor = "Uptime of 182 days with automatic updates not configured"
-	// figmaStatus is Figma's main-menu status rows, with port 2230.
-	figmaStatus = StatusList{Rows: []StatusRow{
-		{Label: "User", State: StatusConfigured, Detail: "non-root, sudo"},
-		{Label: "Firewall", State: StatusConfigured, Detail: "deny policy"},
-		{Label: "SSH Login", State: StatusConfigured, Detail: "root disallowed"},
-		{Label: "SSH Auth", State: StatusConfigured, Detail: "key-only auth"},
-		{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)"},
-		{Label: "AppArmor", State: StatusNotConfigured},
-		{Label: "Auto Updates", State: StatusNotConfigured},
-	}}
-	sshPort = StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)"}
-	// quit is the navigation grammar's q, whose help gives the Exit row its
-	// words (brief 1C).
-	quit = keys.Quit()
-	// figmaMenu is Figma's main menu, its Exit row in the brief's words.
-	figmaMenu = Menu{Items: []MenuItem{
-		{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
-		{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access"},
-		{Key: "3", Label: "DNS", Description: "Configure Nameservers"},
-		{Key: "4", Label: "Firewall", Description: "Configure UFW rules"},
-		{Key: "5", Label: "Backup", Description: "Configure Hardn backup settings"},
-		{Key: "6", Label: "Dry-Run", Description: "Simulate changes"},
-		{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
-		{Key: "8", Label: "Environment", Description: "Configure environment variable"},
-		{Key: "9", Label: "System Details", Description: "View system information"},
-		{Key: "10", Label: "Logs", Description: "View log file"},
-	}, Exit: MenuItem{Key: "0", Label: "Exit", Description: keys.Set{quit}.Help()}}
-	// compactMenu is Figma's main menu in two columns, as the main menu's
-	// compact form lays it out on a short terminal.
-	compactMenu = Menu{Items: figmaMenu.Items, Exit: figmaMenu.Exit, Compact: true}
-	// sshMenu is Figma's SSH Login sub-menu (02-SSH_LOGIN).
-	sshMenu = Menu{Items: []MenuItem{
-		{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access"},
-		{Key: "2", Label: "View SSH Settings", Description: "Show SSH configuration"},
-	}, Exit: MenuItem{Key: "0", Label: "Return"}}
-	figmaHeading = MenuHeading{Title: "Select an option", Mode: &ModeIndicator{}}
-	figmaPrompt  = PromptLine{Label: "Enter your choice", Accepts: append(figmaMenu.Bindings(), quit)}
-	// figmaUser is Figma's details for george on 01-USER, its "Enabled,"
-	// plain and "No password" red.
-	figmaUser = BulletList{Items: []KeyValue{
-		{Key: "Sudo", Value: "Enabled,", State: ValueBad, Note: "No password"},
-		{Key: "SSH Keys", Value: "7 keys"},
-		{Key: "UID:GID", Value: "1000:1000"},
-		{Key: "Directory", Value: "/home/george"},
-	}}
-	// figmaSSH is Figma's SSH Configuration details (02-SSH_LOGIN), with
-	// alice as the allowed user.
-	figmaSSH = BulletList{Items: []KeyValue{
-		{Key: "Root SSH Login", Value: "Enabled", State: ValueBad},
-		{Key: "SSH Port", Value: "2230"},
-		{Key: "Allowed Users", Value: "alice"},
-	}}
-	// figmaChecklist is the checklist under Figma's warning
-	// (SSH_LOGIN-TOGGLE_CONFIRMATION).
-	figmaChecklist = BulletList{Items: []KeyValue{
-		{Key: "Non-root user has sudo privileges"},
-		{Key: "Non-root user SSH access has been tested"},
-		{Key: "If SSH fails, a fallback access method is available"},
-	}}
-	figmaWarning = Callout{Kind: MessageWarn, Title: "Warning", Body: []string{"Before disabling root SSH login, ensure:"}}
-	// yesNo is a y/N question's answers, no by default; yesDefault's
-	// default is yes. answeredfield/unanswered asks Figma's "Require sudo
-	// password?" with it to show the capital Y: that is the default P-11
-	// proposes, not a decision; the screens set each question's default.
+	figmaRisk      = fixture.FigmaRisk()
+	figmaStatus    = fixture.FigmaStatus()
+	sshPort        = fixture.SSHPort()
+	figmaMenu      = fixture.FigmaMenu()
+	compactMenu    = fixture.CompactMenu()
+	sshMenu        = fixture.SSHMenu()
+	figmaHeading   = fixture.FigmaHeading()
+	figmaPrompt    = fixture.FigmaPrompt()
+	figmaUser      = fixture.FigmaUser()
+	figmaChecklist = fixture.FigmaChecklist()
+	figmaWarning   = fixture.FigmaWarning()
+	users          = fixture.Users()
+	// quit is the navigation grammar's q. yesNo is a y/N question's
+	// answers, no by default; yesDefault's default is yes.
+	quit       = keys.Quit()
 	yesNo      = keys.YesNo(false)
 	yesDefault = keys.YesNo(true)
-	sshKey     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOnlyNotARealKey0000000000 alice@web-01.example.net"
-	// users are a form choice's options, george and alice. Figma draws a
-	// choice of user only as a menu screen (USER-MANAGE_USER-SELECT_USER),
-	// which nav builds; no Figma screen draws a form's choice (DEV-046).
-	users = []MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}}
 )
-
-// The plan group's fixtures: changes as the engine would plan them on
-// web-01.example.net, with alice as the admin user.
-const (
-	dropIn      = "/etc/ssh/sshd_config.d/00-hardn.conf"
-	resolv      = "/etc/resolv.conf"
-	sudoersFile = "/etc/sudoers.d/hardn-alice"
-	ufwRules    = "/etc/ufw/user.rules"
-)
-
-var (
-	sshChange = PlanChange{
-		Title: "Set Port 2230", Target: dropIn, LockoutRisk: true,
-		Diff: diff.Unified(dropIn, dropIn,
-			"# Managed by hardn\nPort 22\nPermitRootLogin no\n",
-			"# Managed by hardn\nPort 2230\nPermitRootLogin no\n"),
-		Commands: []string{"sshd -t", "systemctl reload ssh"},
-	}
-	dnsChange = PlanChange{
-		Title: "Set the nameservers", Target: resolv,
-		Diff: diff.Unified(resolv, resolv,
-			"# Generated by hardn\nnameserver 192.0.2.1\n",
-			"# Generated by hardn\nnameserver 192.0.2.53\nnameserver 192.0.2.54\n"),
-	}
-	ufwChange = PlanChange{
-		Title: "Enable UFW", Target: "ufw", LockoutRisk: true,
-		Before: "inactive", After: "active\ndeny (incoming), allow (outgoing)",
-		Commands: []string{"ufw allow 2230/tcp", "ufw --force enable"},
-	}
-	// stepTitles are the steps of the SSH port change, as it applies.
-	stepTitles = []string{"Allow 2230/tcp in UFW", "Set Port 2230", "Reload ssh.service", "Remove the rule for port 22"}
-	// sshOutput is what a failed reload of ssh.service writes.
-	sshOutput = "Job for ssh.service failed because the control process exited with error code.\n" +
-		"See \"systemctl status ssh.service\" and \"journalctl -xeu ssh.service\" for details.\n"
-	sshFailure = ErrorReport{
-		Failed:     "Reloading ssh.service failed: exit status 1",
-		RolledBack: []string{"Set Port 2230", "Allow 2230/tcp in UFW"},
-		Command:    "systemctl reload ssh", Output: sshOutput,
-		LogPath: "/var/log/hardn.log", Next: "Run sudo sshd -t to see what sshd rejected.",
-	}
-)
-
-// steps returns stepTitles in the given states, in order.
-func steps(states ...StepState) []Step {
-	out := make([]Step, len(states))
-	for i, st := range states {
-		out[i] = Step{Title: stepTitles[i], State: st}
-	}
-	return out
-}
-
-// animated renders its view-model on a terminal that can animate: TestGolden
-// sets Env.Animate in every cell, and Render sets it for other tests.
-type animated struct{ vm renderer }
-
-// Render renders a.vm with Env.Animate set.
-func (a animated) Render(c Ctx) string {
-	c.Env.Animate = true
-	return a.vm.Render(c)
-}
-
-// installLog is the output of a failed apt-get install: 14 lines, one of
-// them a progress line overwritten with carriage returns.
-func installLog() string {
-	var b strings.Builder
-	for i := 1; i <= 12; i++ {
-		fmt.Fprintf(&b, "Get:%d http://deb.example.net/debian trixie/main amd64 package-%d [1024 B]\n", i, i)
-	}
-	b.WriteString("Progress: 10%\rProgress: 60%\rProgress: 100%\r\n")
-	b.WriteString("E: Sub-process /usr/bin/dpkg returned an error code (1)\n")
-	return b.String()
-}
 
 // withItem returns m with item i replaced by it.
 func withItem(m Menu, i int, it MenuItem) Menu {
 	m.Items = slices.Clone(m.Items)
 	m.Items[i] = it
 	return m
-}
-
-// states is every component state, by golden name: <component>/<state>.
-var states = []struct {
-	name string
-	vm   renderer
-}{
-	{"header/normal", Header{Version: "v0.4.0", URL: repo}},
-	{"header/no-version", Header{URL: repo}},
-	{"header/no-url", Header{Version: "v0.4.0"}},
-	{"contextbar/normal", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}},
-	{"contextbar/unknown", ContextBar{}},
-	{"contextbar/no-codename", ContextBar{Name: "Alpine Linux", Version: "3.24"}},
-	{"contextbar/long", ContextBar{Name: "Proxmox Virtual Environment", Version: "9.0.10", Codename: "Trixie, vendor build"}},
-	{"titlebar/normal", TitleBar{Title: "User Management"}},
-	{"titlebar/long", TitleBar{Title: "Firewall application profiles and port rules for web-01.example.net"}},
-	{"titlebar/empty", TitleBar{}},
-	{"hostblock/normal", figmaHost},
-	{"hostblock/unknown-address", HostBlock{Hostname: "BOS-SAN-L01", Uptime: uptime}},
-	{"hostblock/unknown-uptime", HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10"}},
-	{"hostblock/no-hostname", HostBlock{Address: "192.0.2.10", Uptime: uptime}},
-	{"hostblock/long-hostname", HostBlock{Hostname: longHost, Address: "192.0.2.10", Uptime: uptime}},
-	{"hostblock/reboot-pending", HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime, RebootPending: true}},
-	{"hostblock/all-unknown", HostBlock{}},
-	{"risksummary/moderate", figmaRisk},
-	{"risksummary/low", RiskSummary{Band: RiskLow, Level: "Low", Gloss: "strong security"}},
-	{"risksummary/high", RiskSummary{Band: RiskHigh, Level: "Critical", Gloss: "no security"}},
-	{"risksummary/unknown", RiskSummary{}},
-	{"risksummary/factors", RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security", Factors: riskFactor}},
-	{"risksummary/factors-no-gloss", RiskSummary{Band: RiskModerate, Level: "Moderate", Factors: riskFactor}},
-	{"risksummary/long-factor", RiskSummary{Band: RiskModerate, Level: "Moderate", Gloss: "medium security", Factors: []string{longFactor}}},
-	{"statusrow/configured", sshPort},
-	{"statusrow/not-configured", StatusRow{Label: "AppArmor", State: StatusNotConfigured}},
-	{"statusrow/partial", StatusRow{Label: "Auto Updates", State: StatusPartial, Detail: "crond not enabled"}},
-	{"statusrow/not-applicable", StatusRow{Label: "AppArmor", State: StatusNotApplicable, Detail: "container"}},
-	{"statusrow/unknown", StatusRow{Label: "SSH Port", Detail: "sshd -T failed"}},
-	{"statusrow/word", StatusRow{Label: "SSH Port", State: StatusConfigured, Word: "2230/tcp", Detail: "non-default"}},
-	{"statusrow/long-label", StatusRow{Label: "Unattended Upgrades Mail Reports", State: StatusConfigured, Detail: "root"}},
-	{"statusrow/long-detail", StatusRow{Label: "SSH Auth", State: StatusNotConfigured, Detail: "password auth also allowed for alice and bob"}},
-	{"statuslist/normal", figmaStatus},
-	{"statuslist/empty", StatusList{}},
-	{"divider/normal", Divider{}},
-	{"modeindicator/live", ModeIndicator{}},
-	{"modeindicator/dry-run", ModeIndicator{DryRun: true}},
-	{"menuheading/normal", figmaHeading},
-	{"menuheading/no-mode", MenuHeading{Title: "Select an option"}},
-	{"menuheading/long", MenuHeading{Title: "Select an option for web-01.example.net", Mode: &ModeIndicator{DryRun: true}}},
-	{"menuheading/empty", MenuHeading{}},
-	{"menu/main", figmaMenu},
-	{"menu/sub", Menu{Items: []MenuItem{
-		{Key: "1", Label: "Manage User", Description: "Configure sudo, SSH keys"},
-		{Key: "2", Label: "Create User", Description: "Configure a new user"},
-	}, Exit: MenuItem{Key: "0", Label: "Return"}}},
-	{"menu/risk", withItem(sshMenu, 0, MenuItem{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Risk: true})},
-	{"menu/disabled", withItem(sshMenu, 0, MenuItem{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Aside: "Proxmox", Disabled: true})},
-	{"menu/long", Menu{Items: []MenuItem{
-		{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Send the daily report to alice"},
-		{Key: "2", Label: "Firewall", Description: "Allow port 2230/tcp from 192.0.2.0/24 and deny the rest"},
-	}, Exit: MenuItem{Key: "0", Label: "Return"}}},
-	{"menu/compact", compactMenu},
-	{"menu/empty", Menu{}},
-	{"promptline/normal", figmaPrompt},
-	{"promptline/no-hint", PromptLine{Label: "Username"}},
-	{"promptline/empty", PromptLine{}},
-	{"badge/normal", Badge{Text: "george"}},
-	{"badge/long", Badge{Text: longHost}},
-	{"badge/empty", Badge{}},
-	{"subjectline/normal", SubjectLine{Label: "Managing", Subject: "george"}},
-	{"subjectline/long-label", SubjectLine{Label: "Managing sudo method for", Subject: "george"}},
-	{"subjectline/long", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}},
-	{"subjectline/no-label", SubjectLine{Subject: "george"}},
-	{"subjectline/empty", SubjectLine{Label: "Managing"}},
-	{"sectionheader/normal", SectionHeader{Title: "User Configuration"}},
-	{"sectionheader/long", SectionHeader{Title: "Backup configuration for every host in the web-01.example.net cluster"}},
-	{"sectionheader/empty", SectionHeader{}},
-	{"breadcrumb/normal", Breadcrumb{Items: []string{"hardn", "Firewall"}}},
-	{"breadcrumb/deep", Breadcrumb{Items: []string{"hardn", "User Management", "Manage User", "SSH Keys"}}},
-	{"breadcrumb/long", Breadcrumb{Items: []string{"hardn", "Firewall application profiles", "Manage application profiles", "Allow 2230/tcp from 192.0.2.0/24"}}},
-	{"breadcrumb/empty", Breadcrumb{}},
-	{"keyvalue/plain", KeyValue{Key: "SSH Port", Value: "2230"}},
-	{"keyvalue/ok", KeyValue{Key: "Sudo Method", Value: "Password required", State: ValueOK}},
-	{"keyvalue/warn", KeyValue{Key: "SSH Keys", Value: "None", State: ValueWarn}},
-	{"keyvalue/bad", KeyValue{Key: "Root SSH Login", Value: "Enabled", State: ValueBad}},
-	{"keyvalue/unknown", KeyValue{Key: "Allowed Users", State: ValueUnknown}},
-	{"keyvalue/not-applicable", KeyValue{Key: "UFW", State: ValueNotApplicable}},
-	{"keyvalue/note", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}},
-	{"keyvalue/long-key", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}},
-	{"keyvalue/long-value", KeyValue{Key: "Allowed Users", Value: "alice bob carol dave erin frank grace heidi ivan judy mallory"}},
-	{"keyvalue/item", KeyValue{Key: "If SSH fails, a fallback access method is available"}},
-	{"keyvalue/empty", KeyValue{}},
-	{"bulletlist/user", figmaUser},
-	{"bulletlist/ssh", figmaSSH},
-	{"bulletlist/checklist", figmaChecklist},
-	{"bulletlist/long", BulletList{Items: []KeyValue{
-		{Key: "Backup State", Value: "Enabled", State: ValueOK},
-		{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
-	}}},
-	{"bulletlist/empty", BulletList{}},
-	{"message/ok", Message{Kind: MessageOK, Text: "DNS configured successfully"}},
-	{"message/warn", Message{Kind: MessageWarn, Text: "No nameservers configured"}},
-	{"message/bad", Message{Kind: MessageBad, Text: "Failed to configure sudo: exit status 1"}},
-	{"message/info", Message{Text: "No automatic backups will be created"}},
-	{"message/cancelled", Message{Kind: MessageCancelled, Text: "Operation cancelled. No changes were made."}},
-	{"message/long", Message{Kind: MessageBad, Text: "Failed to restart ssh.service: Job for ssh.service failed because the control process exited with error code; port 2230 is still in use"}},
-	{"message/empty", Message{Kind: MessageOK}},
-	{"callout/warn", figmaWarning},
-	{"callout/ok", Callout{Kind: MessageOK, Title: "Operation Successful"}},
-	{"callout/cancelled", Callout{Kind: MessageCancelled, Title: "Operation Cancelled"}},
-	{"callout/bad", Callout{Kind: MessageBad, Body: []string{"sshd -t rejected the new configuration, so nothing was changed."}}},
-	{"callout/info", Callout{Body: []string{"Dry-run mode: the plan was not applied."}}},
-	{"callout/no-title", Callout{Kind: MessageWarn}},
-	{"callout/long", Callout{Kind: MessageWarn, Title: "Changing the SSH port of web-01.example.net from 22 to 2230", Body: []string{
-		"A user password is required for sudo usage.",
-		"Keep this session open until a new connection to port 2230 from 192.0.2.0/24 succeeds.",
-	}}},
-	{"answeredfield/text", AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
-	{"answeredfield/yes-no", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
-	{"answeredfield/confirm", AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},
-	{"answeredfield/unanswered", AnsweredField{Number: 3, Label: "Require sudo password?", Accepts: yesDefault}}, // [Y/n]: P-11's proposal, not a decision
-	{"answeredfield/unnumbered", AnsweredField{Label: "Username", Answer: "george"}},
-	{"answeredfield/long-answer", AnsweredField{Number: 4, Label: "Paste SSH public key", Answer: sshKey}},
-	{"answeredfield/empty", AnsweredField{Answer: "george"}},
-	// The field heads' descriptions are Figma's "Configure sudo, SSH keys"
-	// (01-USER; origin/main's pkg/menu user_options.go:84 has "SSH Keys")
-	// and origin/main's "Specify username to create" (:99), and the long
-	// one origin/main's username rule (:39).
-	{"fieldhead/description", FieldHead{Number: 1, Title: "Username", Description: "Specify username to create"}},
-	{"fieldhead/options", FieldHead{Number: 2, Title: "Select a user", Options: users}},
-	{"fieldhead/both", FieldHead{Number: 2, Title: "Select a user", Description: "Configure sudo, SSH keys", Options: users}},
-	{"fieldhead/unnumbered", FieldHead{Title: "Select a user", Options: users}},
-	{"fieldhead/title", FieldHead{Number: 4, Title: "Paste SSH public key"}},
-	{"fieldhead/long", FieldHead{
-		Number: 1, Title: "Select the user whose sudo method to change on web-01.example.net",
-		Description: "Username must start with a lowercase letter and contain only lowercase letters, numbers, hyphens, and underscores",
-		Options:     []MenuItem{{Key: "1", Label: "backup-replication-service", Description: "Sudo without password"}},
-	}},
-	{"fieldhead/empty", FieldHead{Description: "Specify username to create", Options: users}},
-	{"planview/normal", PlanView{Changes: []PlanChange{dnsChange, {Title: "Install apk-cron", Target: "apk-cron", Before: "not installed", After: "installed", Commands: []string{"apk add apk-cron"}}}}},
-	{"planview/lockout-risk", PlanView{Changes: []PlanChange{ufwChange, sshChange}}},
-	{"planview/dry-run", PlanView{Changes: []PlanChange{dnsChange}, DryRun: true}},
-	{"planview/new-file", PlanView{Changes: []PlanChange{{
-		Title: "Require a password for sudo", Target: sudoersFile,
-		Diff:     diff.Unified("/dev/null", sudoersFile, "", "# Managed by hardn\nalice ALL=(ALL:ALL) ALL\n"),
-		Commands: []string{"visudo -cf " + sudoersFile},
-	}}}},
-	{"planview/no-newline", PlanView{Changes: []PlanChange{{
-		Title: "Set the domain", Target: "/etc/hostname",
-		Diff: diff.Unified("/etc/hostname", "/etc/hostname", "web-01", "web-01.example.net\n"),
-	}}}},
-	{"planview/long", PlanView{Changes: []PlanChange{{
-		Title:  "Allow SSH logins for alice, bob and the backup replication service on web-01.example.net",
-		Target: dropIn, LockoutRisk: true,
-		Diff: diff.Unified(dropIn, dropIn, "AllowUsers alice\n",
-			"AllowUsers alice bob backup-replication-service monitoring-agent deploy-bot\n\tMatch Address 192.0.2.0/24\n"),
-		Commands: []string{"systemd-run --on-active=180s --unit=hardn-revert-20261016 hardn rollback 20261016"},
-	}}}},
-	{"planview/unknown", PlanView{Changes: []PlanChange{{Target: "ssh.service", Commands: []string{"systemctl reload ssh"}}}}},
-	{"planview/empty", PlanView{DryRun: true}},
-	{"stepprogress/apply", StepProgress{Steps: steps(StepDone, StepDone, StepRunning, StepPending)}},
-	{"stepprogress/animated", animated{StepProgress{Steps: steps(StepDone, StepDone, StepRunning, StepPending), Frame: 3}}},
-	{"stepprogress/failed", StepProgress{Steps: append(steps(StepRolledBack, StepRolledBack),
-		Step{Title: stepTitles[2], State: StepFailed, Detail: "exit status 1"},
-		Step{Title: stepTitles[3], State: StepSkipped, Detail: "not run after the failure"})}},
-	{"stepprogress/skipped", StepProgress{Steps: []Step{
-		{Title: "Allow 2230/tcp in UFW", State: StepSkipped, Detail: "already allowed"},
-		{Title: "Install apk-cron", State: StepDone},
-	}}},
-	{"stepprogress/long", StepProgress{Steps: []Step{
-		{Title: "Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf", State: StepFailed, Detail: "sshd -t: Bad configuration option: Portt"},
-	}}},
-	{"stepprogress/empty", StepProgress{Steps: []Step{{State: StepDone}}}},
-	{"errorreport/normal", sshFailure},
-	{"errorreport/tail", ErrorReport{
-		Failed: "Installing unattended-upgrades failed: exit status 100", Command: "apt-get install -y unattended-upgrades",
-		Output: installLog(), LogPath: "/var/log/hardn.log",
-	}},
-	{"errorreport/unknown", ErrorReport{
-		Failed: "Reloading ssh.service failed: exit status 1", RolledBack: []string{"Set Port 2230", ""}, LogPath: "/var/log/hardn.log",
-	}},
-	{"errorreport/nothing-rolled-back", ErrorReport{Failed: "Writing /etc/ssh/sshd_config.d/00-hardn.conf failed: read-only file system", LogPath: "/var/log/hardn.log"}},
-	{"errorreport/long", ErrorReport{
-		Failed:     "Rolling back Set Port 2230 failed: sshd -t rejected the restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service still runs the new configuration",
-		RolledBack: []string{"Allow SSH logins for alice, bob and the backup replication service"},
-		Command:    "sshd -t -f /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016",
-		Output:     "/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016: line 3: Bad configuration option: AllowUsersForReplication",
-		LogPath:    "/var/log/hardn.log",
-		Next:       "Restore /etc/ssh/sshd_config.d/00-hardn.conf from /var/backups/hardn before you close this session.",
-	}},
-	{"errorreport/empty", ErrorReport{}},
-	{"confirmcountdown/waiting", ConfirmCountdown{Remaining: 165}},
-	{"confirmcountdown/port", ConfirmCountdown{Remaining: 180, Port: 2230}},
-	{"confirmcountdown/urgent", ConfirmCountdown{Remaining: 25, Port: 2230}},
-	{"confirmcountdown/zero", ConfirmCountdown{Remaining: -3}},
-	{"confirmcountdown/command", ConfirmCountdown{Remaining: 3600, Command: "sudo /usr/local/bin/hardn confirm --config /etc/hardn/web-01.example.net.yml"}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -401,18 +81,19 @@ func maxWidth(vm renderer, w int) int {
 	return w
 }
 
-// TestGolden pins every state on the full component matrix.
+// TestGolden pins every state of fixture.States on the full component
+// matrix.
 func TestGolden(t *testing.T) {
-	for _, s := range states {
-		t.Run(s.name, func(t *testing.T) {
+	for _, s := range fixture.States() {
+		t.Run(s.Name, func(t *testing.T) {
 			cells := uitest.Full()
-			if _, ok := s.vm.(animated); ok {
+			if _, ok := s.VM.(animated); ok {
 				for i := range cells {
 					cells[i].Env.Animate = true
 				}
 			}
-			uitest.Golden(t, s.name, cells, func(env term.Env) string {
-				return s.vm.Render(NewCtx(env))
+			uitest.Golden(t, s.Name, cells, func(env term.Env) string {
+				return s.VM.Render(NewCtx(env))
 			})
 		})
 	}
@@ -458,24 +139,25 @@ func empty(vm renderer) bool {
 	return false
 }
 
-// TestOutputRules renders every state at every width from 1 to 130, with
-// colour, without colour and in plain mode, and checks the package's
-// output rules: no line wider than maxWidth, no line holding a tab, no
-// trailing newline, and no trailing space outside a painted background.
+// TestOutputRules renders every state of fixture.States at every width
+// from 1 to 130, with colour, without colour and in plain mode, and checks
+// the package's output rules: no line wider than maxWidth, no line holding
+// a tab, no trailing newline, and no trailing space outside a painted
+// background.
 func TestOutputRules(t *testing.T) {
-	for _, s := range states {
+	for _, s := range fixture.States() {
 		for w := 1; w <= 130; w++ {
 			for _, env := range []term.Env{
 				term.Fixed(w, colorprofile.TrueColor, true, true),
 				term.Fixed(w, colorprofile.ASCII, true, false),
 				term.Fixed(w, colorprofile.NoTTY, false, true),
 			} {
-				out := s.vm.Render(NewCtx(env))
-				where := fmt.Sprintf("%s, width %d, %v", s.name, w, env.Profile)
-				if out == "" && !empty(s.vm) || strings.HasSuffix(out, "\n") {
+				out := s.VM.Render(NewCtx(env))
+				where := fmt.Sprintf("%s, width %d, %v", s.Name, w, env.Profile)
+				if out == "" && !empty(s.VM) || strings.HasSuffix(out, "\n") {
 					t.Errorf("%s: output %q is empty or ends in a newline", where, out)
 				}
-				limit := maxWidth(s.vm, w)
+				limit := maxWidth(s.VM, w)
 				for _, l := range strings.Split(out, "\n") {
 					if lw := lipgloss.Width(l); lw > limit || strings.Contains(l, "\t") {
 						t.Errorf("%s: line %q is %d cells or holds a tab", where, ansi.Strip(l), lw)
@@ -803,7 +485,7 @@ func TestModeWord(t *testing.T) {
 	modes := []struct {
 		vm   ModeIndicator
 		word string
-	}{{ModeIndicator{}, modeLive}, {ModeIndicator{DryRun: true}, modeDryRun}}
+	}{{ModeIndicator{}, ModeLive}, {ModeIndicator{DryRun: true}, ModeDryRun}}
 	for w := 1; w <= 130; w++ {
 		for _, unicode := range []bool{true, false} {
 			for _, m := range modes {
@@ -847,7 +529,7 @@ func TestTruncate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		c := NewCtx(term.Fixed(80, colorprofile.ASCII, tt.unicode, true))
-		if got := c.truncate(tt.s, tt.limit); got != tt.want {
+		if got := Truncate(c, tt.s, tt.limit); got != tt.want {
 			t.Errorf("truncate(%q, %d), unicode %v = %q, want %q", tt.s, tt.limit, tt.unicode, got, tt.want)
 		}
 	}
@@ -944,9 +626,9 @@ func TestMenuStyles(t *testing.T) {
 		{"exit", figmaMenu, []part{{"0)", m.ExitKey}, {"Exit", m.Exit}, {"q to quit", m.Exit}}},
 		{"disabled", Menu{Items: []MenuItem{{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Aside: "key-only", Disabled: true}}}, []part{
 			{"1)", m.Disabled}, {"Root SSH Login", m.Disabled}, {"Toggle root SSH access", m.Disabled},
-			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + unavailable, m.Disabled},
+			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + Unavailable, m.Disabled},
 		}},
-		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Risk + " " + lockoutRisk, m.Risk}}},
+		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Risk + " " + LockoutRisk, m.Risk}}},
 		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-10 or q]:", p.Hint}}},
 		{"prompt with no hint", PromptLine{Label: "Username"}, []part{{"Username", p.Label}, {":", p.Label}}},
 	}
@@ -1079,7 +761,7 @@ func TestValueStates(t *testing.T) {
 		if !strings.Contains(got, tt.style.Render("2230")) || !strings.Contains(got, tt.mark.Render(tt.glyph)) {
 			t.Errorf("state %d with colour: got %q, want the marker %q and the value in their styles", tt.state, got, tt.glyph)
 		}
-		want := marker(tt.glyph, lipgloss.NewStyle()).String() + " "
+		want := Marker(tt.glyph, lipgloss.NewStyle()).String() + " "
 		for _, c := range []Ctx{colour, none} {
 			if plain := ansi.Strip(vm.Render(c)); !strings.HasPrefix(plain, want) {
 				t.Errorf("state %d, %v: got %q, want it to start with %q", tt.state, c.Env.Profile, plain, want)
