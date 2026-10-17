@@ -80,11 +80,14 @@ func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) 
 		}
 		*sequence = named
 	}
+	has := func(ok func(screen.Sequence) bool) bool {
+		return slices.ContainsFunc(mocks, func(m screen.Mock) bool { return slices.ContainsFunc(m.Sequences, ok) })
+	}
 	switch {
-	case !slices.ContainsFunc(mocks, func(m screen.Mock) bool {
-		return slices.ContainsFunc(m.Sequences, func(q screen.Sequence) bool { return q.Name == *sequence })
-	}):
+	case !has(func(q screen.Sequence) bool { return q.Name == *sequence }):
 		return usage("-sequence %q: no workflow has that sequence; -screens -list shows them", *sequence)
+	case !has(func(q screen.Sequence) bool { return q.Name == *sequence && !declines(q) }):
+		return usage("-sequence %s: that sequence ends as the user declines, which play leaves to the user; decline the confirmation to play it", *sequence)
 	case *failAt < 0:
 		return usage("-fail %d is not a step", *failAt)
 	}
@@ -117,7 +120,7 @@ func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) 
 // sequence they name, if any: no argument is the main menu; one is a
 // mock's name, a prefix that only one mock's name has (such as
 // "main-menu"), or a workflow's sequence, "<workflow>/<sequence>", as
-// -screens -list names them.
+// -screens -list names them, unless the sequence declines.
 func startAt(mocks []screen.Mock, args []string) (screen.Mock, string, error) {
 	if len(args) == 0 {
 		args = []string{"main-menu"}
@@ -134,9 +137,13 @@ func startAt(mocks []screen.Mock, args []string) (screen.Mock, string, error) {
 	var found []screen.Mock
 	for _, m := range mocks {
 		for _, s := range m.Sequences {
-			if a == m.Name+"/"+s.Name {
-				return m, s.Name, nil
+			if a != m.Name+"/"+s.Name {
+				continue
 			}
+			if declines(s) {
+				return screen.Mock{}, "", fmt.Errorf("%s ends as the user declines, which play leaves to the user; start at %s and decline its confirmation", a, m.Name)
+			}
+			return m, s.Name, nil
 		}
 		if m.Name == a {
 			return m, "", nil
@@ -158,13 +165,23 @@ func startAt(mocks []screen.Mock, args []string) (screen.Mock, string, error) {
 	return screen.Mock{}, "", fmt.Errorf("%q names %d screens; name one of %s", a, len(found), strings.Join(names, ", "))
 }
 
-// sequenceOf returns the sequence of workflow mock m named name, else its
-// first; the zero Sequence for a menu mock.
+// declines reports whether sequence s ends as the user declines
+// (flow.Cancelled). Play plays a sequence for what Build makes, its screen
+// and its fixture plan, and the user types the answers; the flow cancels
+// only when the user declines its confirmation, or when the terminal is
+// too narrow to ask a typed one. A sequence that ends cancelled is
+// therefore made by its answers alone, not by a fixture of its own
+// (create-user's cancelled builds as its normal does), so play does not
+// offer it: declining the confirmation plays it.
+func declines(s screen.Sequence) bool { return s.Ends == flow.Cancelled }
+
+// sequenceOf returns the sequence of workflow mock m named name, unless it
+// declines, else its first; the zero Sequence for a menu mock.
 func sequenceOf(m screen.Mock, name string) screen.Sequence {
 	if len(m.Sequences) == 0 {
 		return screen.Sequence{}
 	}
-	if i := slices.IndexFunc(m.Sequences, func(s screen.Sequence) bool { return s.Name == name }); i >= 0 {
+	if i := slices.IndexFunc(m.Sequences, func(s screen.Sequence) bool { return s.Name == name && !declines(s) }); i >= 0 {
 		return m.Sequences[i]
 	}
 	return m.Sequences[0]

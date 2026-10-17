@@ -46,7 +46,10 @@
 // 0, and the end of the input or Ctrl-C at a prompt with 130. Each
 // workflow runs its flow (pkg/ui/flow) on its sequence's fixture plan,
 // and applies it to the simulated system, which only records what each
-// step would do: the record is shown when play ends. Its own flags, with
+// step would do: the record is shown when play ends. A sequence plays for
+// its screen and fixture, the answers being the user's, so one that ends
+// cancelled, as create-user's does, cannot be named: declining the
+// confirmation plays it. Its own flags, with
 // -theme, -profile, -ascii, -width, -height and -override:
 //
 //	-sequence name    the sequence each workflow plays where it has one,

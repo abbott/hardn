@@ -812,7 +812,7 @@ go run ./internal/tools/uigallery play workflow-step/ssh-login-toggle-confirmati
 
 | Flag | Meaning |
 |---|---|
-| `-sequence NAME` | the sequence each workflow plays where it has one (`normal`, `dry-run`, `failure`, `typed`, `cancelled`), else its first; default `normal`. A start that names a sequence sets it |
+| `-sequence NAME` | the sequence each workflow plays where it has one (`normal`, `dry-run`, `failure`, `typed`), else its first; default `normal`. A start that names a sequence sets it. A sequence plays for its screen and fixture, `Sequence.Build`, and the user types the answers, so one that ends cancelled (create-user's `cancelled`, which builds as its `normal` does) is refused, as `-sequence` and as a start: declining the confirmation plays it |
 | `-fail N` | step N of each plan applied fails, and the steps before it roll back; a plan with fewer steps applies as its sequence does; default 0, none |
 | `-theme`, `-profile`, `-ascii`, `-width`, `-height`, `-override` | as above; `-height` decides the main menu's form |
 

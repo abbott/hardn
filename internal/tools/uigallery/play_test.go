@@ -277,8 +277,8 @@ func TestPlaySmoke(t *testing.T) {
 }
 
 // TestPlayUsage checks that play stops with exit status 2, a message and
-// no output, reading nothing, for a wrong flag or argument, and that -h
-// prints its usage.
+// no output, reading nothing, for a wrong flag or argument, a sequence
+// that ends cancelled among them, and that -h prints its usage.
 func TestPlayUsage(t *testing.T) {
 	for _, args := range [][]string{
 		{"nope"},
@@ -289,6 +289,8 @@ func TestPlayUsage(t *testing.T) {
 		{"-sequence", "nope"},
 		{"-sequence", ""},
 		{"-sequence", "dry-run", "workflow-step/user-manage-sudo-confirmation/typed"},
+		{"-sequence", "cancelled"},
+		{"workflow-step/user-create-user/cancelled"},
 		{"workflow-step/user-manage-sudo-confirmation/normal/1-confirm"},
 		{"-screens"},
 		{"-profile", "ansi"},
