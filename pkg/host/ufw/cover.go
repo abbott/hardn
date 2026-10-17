@@ -70,15 +70,19 @@ func Needs(ls sshd.Listeners, add, keep []uint16) []Need {
 	}{{add, "new port"}, {keep, "kept port"}} {
 		for _, p := range ps.ports {
 			for _, f := range fams {
-				a := netip.IPv4Unspecified()
-				if f == IPv6 {
-					a = netip.IPv6Unspecified()
-				}
-				put(Need{Port: p, Family: f, Addr: a, New: ps.why == "new port", Why: ps.why})
+				put(Need{Port: p, Family: f, Addr: anywhere(f), New: ps.why == "new port", Why: ps.why})
 			}
 		}
 	}
 	return ns
+}
+
+// anywhere is f's unspecified address: every address of the host.
+func anywhere(f Family) netip.Addr {
+	if f == IPv6 {
+		return netip.IPv6Unspecified()
+	}
+	return netip.IPv4Unspecified()
 }
 
 // Verdict is what the firewall does with new connections to a Need.
@@ -86,20 +90,33 @@ type Verdict uint8
 
 const (
 	VerdictUnknown Verdict = iota // a rule or the policy could not be read
-	Allowed                       // an unrestricted allow rule, or the policy, accepts every source
+	Allowed                       // an unrestricted allow rule, the policy, or loopback accepts every source
 	Limited                       // an unrestricted limit rule accepts it, rate-limited per source
 	Restricted                    // accepted for some sources, addresses or interfaces only
 	Blocked                       // no rule accepts it, and the default policy drops or rejects it
 	Denied                        // an unrestricted deny or reject rule matches first
+	// Excepted: accepted from everywhere but some sources, addresses or
+	// interfaces, which a restricted deny or reject rule matches first (a
+	// blocklist).
+	Excepted
+	// Unreachable: IPv6 on a kernel without IPv6; no connection can arrive.
+	Unreachable
 )
 
+var verdictNames = [...]string{"unknown", "allowed", "limited", "restricted", "blocked", "denied", "excepted", "unreachable"}
+
 func (v Verdict) String() string {
-	return [...]string{"unknown", "allowed", "limited", "restricted", "blocked", "denied"}[v]
+	if int(v) >= len(verdictNames) {
+		return "unknown"
+	}
+	return verdictNames[v]
 }
 
-// OK: every new connection from anywhere is accepted (rate-limited when
-// Limited).
-func (v Verdict) OK() bool { return v == Allowed || v == Limited }
+// OK: nothing to let through. Every new connection from anywhere is
+// accepted (rate-limited when Limited), or none can arrive (Unreachable).
+// Excepted is not OK: the session's own address may be among the
+// exceptions, which this package cannot tell.
+func (v Verdict) OK() bool { return v == Allowed || v == Limited || v == Unreachable }
 
 // Coverage is a Need's Verdict and what decided it.
 type Coverage struct {
@@ -172,25 +189,39 @@ func portIn(spec string, p uint16) (in, ok bool) {
 	return in, true
 }
 
+// Firewall is what decides a Verdict besides the rules.
+type Firewall struct {
+	Active bool // ufw's chains are loaded; stopped, ufw accepts everything
+	// IPv6: ufw's IPv6 handling is on (State.IPv6); without it, started,
+	// ufw drops all IPv6 but loopback. NoKernelIPv6: the kernel has no
+	// IPv6, so an IPv6 need is Unreachable.
+	IPv6, NoKernelIPv6 bool
+	Incoming           Policy // the default incoming policy
+}
+
 // Evaluate gives each need's Verdict under the rules (each family's in
-// order, the first match winning, as ufw's chains do), the incoming
-// policy, whether ufw is active (stopped, it accepts everything) and
-// whether its IPv6 handling is on (without it, ufw drops all IPv6).
-func Evaluate(rules []Rule, active, ipv6 bool, incoming Policy, needs []Need) []Coverage {
+// order, the first match winning, as ufw's chains do) and fw. A loopback
+// listener is Allowed while ufw is active: before.rules accepts lo before
+// any user rule.
+func Evaluate(rules []Rule, fw Firewall, needs []Need) []Coverage {
 	cs := make([]Coverage, len(needs))
 	for i, n := range needs {
-		v, by := verdict(rules, active, ipv6, incoming, n)
+		v, by := verdict(rules, fw, n)
 		cs[i] = Coverage{Need: n, Verdict: v, By: by}
 	}
 	return cs
 }
 
-func verdict(rules []Rule, active, ipv6 bool, incoming Policy, n Need) (Verdict, string) {
-	if !active {
+func verdict(rules []Rule, fw Firewall, n Need) (Verdict, string) {
+	switch {
+	case !fw.Active:
 		return Allowed, "ufw is inactive"
-	}
-	if n.Family == IPv6 && !ipv6 {
-		return Blocked, "IPv6 is off in " + DefaultsFile + ": ufw drops all IPv6"
+	case n.Family == IPv6 && fw.NoKernelIPv6:
+		return Unreachable, "the kernel has no IPv6 (" + KernelIPv6 + " is missing)"
+	case n.Addr.IsLoopback():
+		return Allowed, "loopback: ufw's before.rules accepts lo first"
+	case n.Family == IPv6 && !fw.IPv6:
+		return Blocked, "IPV6 is not yes in " + DefaultsFile + " or " + ConfFile + ": once started, ufw drops all IPv6"
 	}
 	var allowSome, denySome string // the first restricted rules of each kind
 	for _, r := range rules {
@@ -211,16 +242,16 @@ func verdict(rules []Rule, active, ipv6 bool, incoming Policy, n Need) (Verdict,
 				}
 				return Denied, r.Line
 			case denySome != "":
-				return Restricted, denySome
+				return Excepted, denySome
 			case r.Action == "limit":
 				return Limited, r.Line
 			}
 			return Allowed, r.Line
 		}
 	}
-	switch {
+	switch incoming := fw.Incoming; {
 	case incoming == PolicyAllow && denySome != "":
-		return Restricted, denySome
+		return Excepted, denySome
 	case incoming == PolicyAllow:
 		return Allowed, "default allow (incoming)"
 	case incoming.drops() && allowSome != "":
@@ -252,17 +283,34 @@ const (
 	FindingRestricted
 	// FindingUnknown: the verdict, or ufw's status, could not be read.
 	FindingUnknown
+	// FindingExcepted: active, and a listener is accepted from everywhere
+	// but some sources, addresses or interfaces (Excepted).
+	FindingExcepted
+	// FindingAtStart: ufw is inactive, and once it starts (at boot with
+	// ENABLED=yes, or a later "ufw enable") its saved rules would not let
+	// the listener through; Coverage is the verdict then.
+	FindingAtStart
+	// FindingWidened: the plan lets a new port through from anywhere while
+	// a listener of the same IP version is Restricted or Excepted now
+	// (proposal P-XX-ufw).
+	FindingWidened
 )
 
+var findingNames = [...]string{"", "ssh-not-allowed", "ssh-restricted", "ufw-unknown", "ssh-allowed-except",
+	"ssh-not-allowed-at-start", "ssh-new-port-wider"}
+
 func (k FindingKind) String() string {
-	return [...]string{"", "ssh-not-allowed", "ssh-restricted", "ufw-unknown"}[k]
+	if int(k) >= len(findingNames) {
+		return "unknown"
+	}
+	return findingNames[k]
 }
 
 // Finding is one cross-check result.
 type Finding struct {
 	Kind     FindingKind
 	Coverage Coverage
-	Incoming Policy // the default incoming policy in force
+	Incoming Policy // the default incoming policy the verdicts were made under
 }
 
 func (f Finding) String() string {
@@ -270,16 +318,29 @@ func (f Finding) String() string {
 		f.Coverage.Need.Port, f.Coverage.Verdict, f.Coverage.By)
 }
 
-// Check is the cross-check of what is in force: each need's Verdict under
-// "ufw status verbose" (st.Status), and a Finding for each that is not OK
-// while ufw is active. A status that was not read whole is one
-// FindingUnknown.
+// Check is the cross-check of what ufw shows: each need's Verdict under
+// "ufw status verbose" (st.Status: the saved rules and policies, with the
+// chains loaded), and a Finding for each that is not OK while ufw is
+// active. Inactive with ENABLED=yes, ufw starts at boot: each need its
+// saved rules would not let through then is a FindingAtStart. A status that
+// was not read whole is one FindingUnknown. ufw not installed (!Installed)
+// is neither: no coverage and no finding, so the caller reports it as not
+// configured.
 func Check(st State, needs []Need) ([]Coverage, []Finding) {
+	if !st.Installed {
+		return nil, nil
+	}
 	if !st.Status.Known || len(st.Status.Bad) > 0 {
 		return nil, []Finding{{Kind: FindingUnknown, Coverage: Coverage{By: "ufw status verbose was not read whole"}}}
 	}
-	cs := Evaluate(st.Status.Rules, st.Status.Active, st.IPv6, st.Status.Incoming, needs)
-	return cs, findings(cs, st.Status.Active, st.Status.Incoming)
+	fw := Firewall{Active: st.Status.Active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}
+	cs := Evaluate(st.Status.Rules, fw, needs)
+	fs := findings(cs, fw.Active, fw.Incoming)
+	if !fw.Active && st.Enabled && st.Known() {
+		fw.Active, fw.Incoming = true, st.Incoming
+		fs = append(fs, atStart(Evaluate(st.Rules, fw, needs), fw.Incoming)...)
+	}
+	return cs, fs
 }
 
 func findings(cs []Coverage, active bool, incoming Policy) []Finding {
@@ -292,10 +353,24 @@ func findings(cs []Coverage, active bool, incoming Policy) []Finding {
 		switch c.Verdict {
 		case Restricted:
 			k = FindingRestricted
+		case Excepted:
+			k = FindingExcepted
 		case VerdictUnknown:
 			k = FindingUnknown
 		}
 		fs = append(fs, Finding{Kind: k, Coverage: c, Incoming: incoming})
+	}
+	return fs
+}
+
+// atStart is a FindingAtStart for each coverage, under an active ufw,
+// that is not OK.
+func atStart(cs []Coverage, incoming Policy) []Finding {
+	var fs []Finding
+	for _, c := range cs {
+		if !c.Verdict.OK() {
+			fs = append(fs, Finding{Kind: FindingAtStart, Coverage: c, Incoming: incoming})
+		}
 	}
 	return fs
 }

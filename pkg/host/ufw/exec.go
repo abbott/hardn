@@ -2,7 +2,6 @@ package ufw
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/fs"
 	"slices"
@@ -16,9 +15,12 @@ type StepReport struct {
 	Step   Step
 	Result host.Result
 	// Undo is what undoes the step, or nil: an allow ufw skipped as an
-	// existing rule changed nothing, and one whose answer does not show
-	// what it added is not undone (Note says why), so that an undo never
-	// deletes a rule hardn did not add.
+	// existing rule changed nothing, and one that failed or whose answer
+	// does not show what it added is not undone (Note says why), so that an
+	// undo never deletes a rule hardn did not add. A default or enable is
+	// undone once it ran, even when it failed: ufw saves the policy or
+	// ENABLED before it restarts the firewall, and a failed start can leave
+	// chains loaded.
 	Undo []string
 	Note string
 }
@@ -26,13 +28,16 @@ type StepReport struct {
 // Report is what Execute did.
 type Report struct {
 	Steps []StepReport // in order, up to and including a failed step
-	// Undo are the commands that undo the steps that took effect, last
-	// first: the input to Rollback (and p2-revert's journal).
+	// Undo are the commands that undo the steps that ran, last first, a
+	// failed allow left out: the input to Rollback (and p2-revert's
+	// journal).
 	Undo [][]string
 	// Status is "ufw status verbose" after the steps, Coverage each
 	// Need's Verdict under it. Verified: ufw shows the planned state, with
-	// every Need the plan lets through let through. Unverified says why
-	// a Report without an error is not Verified.
+	// every Need the plan lets through let through by its saved rules, its
+	// chains loaded; the proof that new connections pass is the
+	// confirmation from a new session (brief 2.4). Unverified says why a
+	// Report without an error is not Verified.
 	Status     Status
 	Coverage   []Coverage
 	Verified   bool
@@ -49,12 +54,14 @@ var (
 
 // Execute runs p's steps in order, stopping at the first that fails, then
 // reads "ufw status verbose" and checks it shows the plan's state: active
-// or not, the default incoming policy, and every Need that p.After lets
-// through still let through (ErrVerify otherwise; an "Aborted" from ufw
-// exits 0 and is caught here). On any error the caller rolls back with
+// or not, the default policies, and every Need that p.After lets through
+// still let through (ErrVerify otherwise; an "Aborted" from ufw exits 0 and
+// is caught here). On any error the caller rolls back with
 // Rollback(ctx, sys, report) while the session is still open. A done ctx is
 // refused before anything runs; a rollback after Ctrl-C must pass
-// context.WithoutCancel. Nothing runs for a NotApplicable plan.
+// context.WithoutCancel. Nothing runs for a NotApplicable plan. A caller
+// that journals undos (p2-revert) journals p.PreUndo() before Execute, and
+// Report.Undo after it.
 func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 	var rep Report
 	if err := ctx.Err(); err != nil {
@@ -69,10 +76,13 @@ func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 		}
 		res, err := sys.Run(ctx, s.Argv[0], s.Argv[1:]...)
 		sr := StepReport{Step: s, Result: res}
-		if err == nil {
+		switch {
+		case err == nil:
 			sr.Undo, sr.Note = undo(s, res.Stdout)
-		} else if s.Kind == StepAllow {
+		case s.Kind == StepAllow:
 			sr.Note = "not undone: the allow failed, so what it saved is not established"
+		default:
+			sr.Undo, sr.Note = s.Undo, "undone although it failed: ufw may have applied part of it"
 		}
 		rep.Steps = append(rep.Steps, sr)
 		if sr.Undo != nil {
@@ -124,12 +134,16 @@ func verify(rep *Report, p Plan) error {
 	case st.Active != p.Active:
 		return fmt.Errorf("ufw: %w: active is %t, planned %t", ErrVerify, st.Active, p.Active)
 	case !st.Active:
-		rep.Unverified = "ufw is inactive: its rules are saved, not in force"
+		rep.Unverified = "ufw is inactive: its rules are saved, not loaded"
 		return nil
 	case st.Incoming != p.Incoming:
 		return fmt.Errorf("ufw: %w: default incoming policy %q, planned %q", ErrVerify, st.Incoming, p.Incoming)
+	case p.Outgoing != "" && st.Outgoing != p.Outgoing:
+		return fmt.Errorf("ufw: %w: default outgoing policy %q, planned %q", ErrVerify, st.Outgoing, p.Outgoing)
 	}
-	rep.Coverage = Evaluate(st.Rules, true, p.IPv6, st.Incoming, p.Needs)
+	fw := p.firewall()
+	fw.Incoming = st.Incoming
+	rep.Coverage = Evaluate(st.Rules, fw, p.Needs)
 	var missing []string
 	for i, c := range rep.Coverage {
 		if (i >= len(p.After) || p.After[i].Verdict.OK()) && !c.Verdict.OK() {
@@ -143,18 +157,39 @@ func verify(rep *Report, p Plan) error {
 	return nil
 }
 
-// Rollback runs rep.Undo in order, each command even after one fails, and
-// returns their errors joined. After Ctrl-C pass context.WithoutCancel(ctx):
-// host.System refuses a done context.
+// RollbackError is Rollback's: the undo that failed, and those after it,
+// which did not run. Unwrap gives the command's error.
+type RollbackError struct {
+	Argv   []string
+	Err    error
+	NotRun [][]string
+}
+
+func (e *RollbackError) Error() string {
+	var rest []string
+	for _, argv := range e.NotRun {
+		rest = append(rest, host.FormatArgv(argv))
+	}
+	return fmt.Sprintf("ufw: %s: %v (not run: %q)", host.FormatArgv(e.Argv), e.Err, rest)
+}
+
+func (e *RollbackError) Unwrap() error { return e.Err }
+
+// Rollback runs rep.Undo in order and stops at the first that fails (a
+// *RollbackError). The order is last step first, so "ufw disable" and the
+// policies' undos run before any "ufw delete allow": deleting an SSH rule
+// while the firewall that drops what no rule accepts is still up would
+// lock new connections out, and an allow left behind never does. After
+// Ctrl-C pass context.WithoutCancel(ctx): host.System refuses a done
+// context.
 func Rollback(ctx context.Context, sys host.System, rep Report) error {
-	var errs []error
-	for _, argv := range rep.Undo {
+	for i, argv := range rep.Undo {
 		if len(argv) == 0 {
 			continue
 		}
 		if _, err := sys.Run(ctx, argv[0], argv[1:]...); err != nil {
-			errs = append(errs, fmt.Errorf("ufw: %s: %w", host.FormatArgv(argv), err))
+			return &RollbackError{Argv: argv, Err: err, NotRun: rep.Undo[i+1:]}
 		}
 	}
-	return errors.Join(errs...)
+	return nil
 }

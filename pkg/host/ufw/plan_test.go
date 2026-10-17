@@ -3,6 +3,7 @@ package ufw_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"slices"
 	"strings"
@@ -90,17 +91,84 @@ func TestPlanFor(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got := argvs(p.Steps); !slices.Equal(got, tc.want) {
-				t.Errorf("steps\n got %q\nwant %q", got, tc.want)
+			checkPlan(t, p, tc.want, tc.finding)
+		})
+	}
+}
+
+func checkPlan(t *testing.T, p ufw.Plan, want, finding []string) {
+	t.Helper()
+	if got := argvs(p.Steps); !slices.Equal(got, want) {
+		t.Errorf("steps\n got %q\nwant %q", got, want)
+	}
+	var fs []string
+	for _, f := range p.Findings {
+		fs = append(fs, fmt.Sprintf("%s %s %d", f.Kind, f.Coverage.Need.Family, f.Coverage.Need.Port))
+	}
+	if !slices.Equal(fs, finding) {
+		t.Errorf("findings %q, want %q", fs, finding)
+	}
+	noDisableOrReset(t, p)
+}
+
+// TestPlanForRules: what the allow would change, the states ufw can be in,
+// and the findings beside the steps.
+func TestPlanForRules(t *testing.T) {
+	v4 := []sshd.Listener{listener("0.0.0.0", 22)}
+	v4only := sshd.Listeners{SSHD: v4, All: v4, Known: true}
+	lo := []sshd.Listener{listener("127.0.0.1", 22), listener("0.0.0.0", 2230), listener("::", 2230)}
+	deny := func(fam ufw.Family, port string) modelRule { return modelRule{fam: fam, action: "deny", port: port} }
+	allow := func(fam ufw.Family, port string) modelRule { return modelRule{fam: fam, action: "allow", port: port} }
+	for _, tc := range []struct {
+		name    string
+		setup   func(m *model)
+		ls      sshd.Listeners // stock22 when not Known
+		add     []uint16
+		desired ufw.Desired
+		want    []string
+		finding []string
+	}{
+		{name: "IPv4 listeners, a deny in IPv6: the allow would turn it round, so no rule",
+			setup: func(m *model) { m.rules = []modelRule{deny(ufw.IPv6, "22")} }, ls: v4only,
+			finding: []string{"ssh-not-allowed-at-start IPv4 22"}},
+		{name: "a limit of OpenSSH in IPv4 only: another tuple, not replaced", setup: func(m *model) {
+			m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### limit tcp 22 0.0.0.0/0 any 0.0.0.0/0 OpenSSH - in"}}
+		}, desired: hardening, want: []string{"ufw allow 22/tcp", "ufw --force enable"}},
+		{name: "a new port under a saved deny, ufw staying inactive: reported", setup: func(m *model) {
+			m.rules = []modelRule{deny(ufw.IPv4, "2230"), deny(ufw.IPv6, "2230")}
+		}, add: []uint16{2230}, want: []string{"ufw allow 22/tcp"},
+			finding: []string{"ssh-not-allowed-at-start IPv4 2230", "ssh-not-allowed-at-start IPv6 2230"}},
+		{name: "NoSaveWhileInactive: nothing saved, and what a start would block reported", add: []uint16{2230},
+			desired: ufw.Desired{NoSaveWhileInactive: true}, finding: []string{"ssh-not-allowed-at-start IPv4 22",
+				"ssh-not-allowed-at-start IPv6 22", "ssh-not-allowed-at-start IPv4 2230", "ssh-not-allowed-at-start IPv6 2230"}},
+		{name: "NoSaveWhileInactive does not stop an enable's rules", desired: ufw.Desired{Enable: true, NoSaveWhileInactive: true},
+			want: []string{"ufw allow 22/tcp", "ufw --force enable"}},
+		{name: "a loopback listener: before.rules lets it through", setup: func(m *model) {
+			m.active = true
+			m.rules = []modelRule{allow(ufw.IPv4, "2230"), allow(ufw.IPv6, "2230")}
+		}, ls: sshd.Listeners{SSHD: lo, All: lo, Known: true}, desired: hardening},
+		{name: "no IPv6 in the kernel: IPv6 needs nothing", setup: func(m *model) { m.noKernel6 = true }, add: []uint16{2230},
+			desired: hardening, want: []string{"ufw allow 22/tcp", "ufw allow 2230/tcp", "ufw --force enable"}},
+		{name: "the new port opened wider than the restricted current one", setup: func(m *model) {
+			m.active, m.ipv6 = true, false
+			m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 22 0.0.0.0/0 any 192.0.2.0/24 in",
+				row: "22/tcp                     ALLOW IN    192.0.2.0/24"}}
+		}, ls: v4only, add: []uint16{2230}, desired: hardening, want: []string{"ufw allow 2230/tcp"},
+			finding: []string{"ssh-restricted IPv4 22", "ssh-new-port-wider IPv4 2230"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newModel(t)
+			if tc.setup != nil {
+				tc.setup(m)
 			}
-			var fs []string
-			for _, f := range p.Findings {
-				fs = append(fs, strings.Join([]string{f.Kind.String(), f.Coverage.Need.Family.String(), "22"}, " "))
+			if !tc.ls.Known {
+				tc.ls = stock22()
 			}
-			if !slices.Equal(fs, tc.finding) {
-				t.Errorf("findings %q, want %q", fs, tc.finding)
+			p, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: tc.ls, Add: tc.add, State: read(t, m), Desired: tc.desired})
+			if err != nil {
+				t.Fatal(err)
 			}
-			noDisableOrReset(t, p)
+			checkPlan(t, p, tc.want, tc.finding)
 		})
 	}
 }
@@ -147,6 +215,18 @@ func TestPlanForRefuses(t *testing.T) {
 			m.active = true
 			m.rules = []modelRule{{fam: ufw.IPv4, action: "deny", port: "2230"}}
 		}), []uint16{2230}, hardening, ufw.ErrBlocks},
+		{"a saved limit in IPv4 only: the allow would replace it", notPVE, stock22(), stateOf(func(m *model) {
+			m.rules = []modelRule{{fam: ufw.IPv4, action: "limit", port: "22"}}
+		}), nil, hardening, ufw.ErrBlocks},
+		{"a saved allow with a comment in IPv4 only: the allow would replace it", notPVE, stock22(), stateOf(func(m *model) {
+			m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 22 0.0.0.0/0 any 0.0.0.0/0 in comment=6b657074"}}
+		}), nil, hardening, ufw.ErrBlocks},
+		{"a saved blocklist would take effect", notPVE, stock22(), stateOf(func(m *model) {
+			m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### deny tcp 22 0.0.0.0/0 any 198.51.100.0/24 in"},
+				{fam: ufw.IPv4, action: "allow", port: "22"}, {fam: ufw.IPv6, action: "allow", port: "22"}}
+		}), nil, hardening, ufw.ErrBlocks},
+		{"enabled at boot, not running", notPVE, stock22(), stateOf(func(m *model) { m.mismatch = true }), nil, ufw.Desired{}, ufw.ErrEnabledMismatch},
+		{"running, not enabled at boot", notPVE, stock22(), stateOf(func(m *model) { m.active, m.mismatch = true, true }), nil, ufw.Desired{}, ufw.ErrEnabledMismatch},
 		{"a policy ufw does not have", notPVE, stock22(), stateOf(nil), nil, ufw.Desired{Incoming: "drop"}, fs.ErrInvalid},
 		{"port 0", notPVE, stock22(), stateOf(nil), []uint16{0}, hardening, fs.ErrInvalid},
 	} {
@@ -173,5 +253,17 @@ func TestPlanForProxmox(t *testing.T) {
 	h := m.host()
 	if _, err := ufw.Execute(context.Background(), h, p); err != nil || len(h.Calls()) != 0 {
 		t.Errorf("Execute: %v, calls %v", err, h.Calls())
+	}
+}
+
+// TestPlanForSaysWhy: a need left blocked on a port the allow would change
+// names the saved rule.
+func TestPlanForSaysWhy(t *testing.T) {
+	m := newModel(t)
+	m.rules = []modelRule{{fam: ufw.IPv4, action: "limit", port: "22"}}
+	_, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: stock22(), State: read(t, m), Desired: hardening})
+	want := `listener [::]:22 (IPv6 22) would be blocked by "default deny (incoming); no rule added: \"ufw allow 22/tcp\" would change \"### tuple ### limit tcp 22 0.0.0.0/0 any 0.0.0.0/0 in\""`
+	if !errors.Is(err, ufw.ErrBlocks) || !strings.Contains(err.Error(), want) {
+		t.Errorf("PlanFor: %v\nwant it to contain %s", err, want)
 	}
 }

@@ -15,8 +15,9 @@ import (
 )
 
 // The answers below follow ufw 0.36.2's sources (backend_iptables.py
-// get_status and set_rule, frontend.py, ufw-init-functions; docs/safety/
-// ufw.md §3), not output captured from a host.
+// get_status and set_rule, frontend.py set_enabled and set_default_policy,
+// ufw-init-functions; docs/safety/ufw.md §3), not output captured from a
+// host.
 
 var notPVE = detect.Proxmox{Installed: detect.No}
 
@@ -45,19 +46,30 @@ type modelRule struct {
 }
 
 // model is a small ufw: saved rules per IP version, the defaults, whether
-// it is active, and the answers ufw 0.36.2 gives.
+// it is active (and ENABLED=yes in ufw.conf, unless mismatch), and the
+// answers ufw 0.36.2 gives.
 type model struct {
 	t        *testing.T
 	active   bool
+	mismatch bool // ENABLED in ufw.conf is the opposite of active
 	ipv6     bool
 	incoming string // allow, deny, reject
 	outgoing string
 	rules    []modelRule
+	conf     string // ufw.conf's content, when set
 	// enableOut, when set, is enable's answer, and ufw stays inactive (an
 	// "Aborted" exit 0).
 	enableOut string
-	fail      string // an argv, joined by spaces, that exits 1
+	fail      string // an argv, joined by spaces, that exits 1 and does nothing
+	// partial is an argv that does its work, then exits 1, as ufw does
+	// when the restart after a saved policy, or the start after
+	// ENABLED=yes, fails: the policy stays saved; the chains stay loaded
+	// with ENABLED put back to no.
+	partial   string
+	noop      string // an argv answered as done that changes nothing
 	forget    string // a port whose allow is answered as added but not saved
+	garbage   bool   // the status is followed by a line ufw does not print
+	noKernel6 bool   // no /proc/sys/net/ipv6
 }
 
 func newModel(t *testing.T) *model {
@@ -69,7 +81,9 @@ var policyWord = map[string]string{"allow": "ACCEPT", "deny": "DROP", "reject": 
 // host builds a fake host whose ufw is the model.
 func (m *model) host() *hostfake.System {
 	h := hostfake.New(host.Options{})
-	h.AddDir("/proc/sys/net/ipv6", 0o555, 0, 0)
+	if !m.noKernel6 {
+		h.AddDir("/proc/sys/net/ipv6", 0o555, 0, 0)
+	}
 	m.files(h)
 	h.Handler = func(argv []string, _ []byte) hostfake.Response { return m.run(h, argv) }
 	return h
@@ -83,6 +97,15 @@ func (m *model) files(h *hostfake.System) {
 	}
 	h.AddFile(ufw.DefaultsFile, []byte(fmt.Sprintf("# /etc/default/ufw\nIPV6=%s\nDEFAULT_INPUT_POLICY=%q\nDEFAULT_OUTPUT_POLICY=%q\n",
 		v6, policyWord[m.incoming], policyWord[m.outgoing])), 0o644, 0, 0)
+	conf := m.conf
+	if conf == "" {
+		enabled := "no"
+		if m.active != m.mismatch {
+			enabled = "yes"
+		}
+		conf = "# /etc/ufw/ufw.conf\nENABLED=" + enabled + "\nLOGLEVEL=low\n"
+	}
+	h.AddFile(ufw.ConfFile, []byte(conf), 0o644, 0, 0)
 	for _, f := range []struct {
 		path string
 		fam  ufw.Family
@@ -107,6 +130,9 @@ func (m *model) files(h *hostfake.System) {
 }
 
 func (m *model) status() string {
+	if m.garbage {
+		return "Status: active\ngarbage\n"
+	}
 	if !m.active {
 		return "Status: inactive\n"
 	}
@@ -139,6 +165,9 @@ func (m *model) run(h *hostfake.System, argv []string) hostfake.Response {
 	cmd := strings.Join(argv, " ")
 	if cmd == m.fail {
 		return hostfake.Response{Stderr: "ERROR: Could not update running firewall\n", ExitCode: 1}
+	}
+	if cmd == m.noop {
+		return hostfake.Response{Stdout: "Rule added\n"}
 	}
 	var out string
 	switch {
@@ -184,11 +213,16 @@ func (m *model) run(h *hostfake.System, argv []string) hostfake.Response {
 		m.active = true
 		out = "Firewall is active and enabled on system startup\n"
 	case cmd == "ufw disable":
-		m.active = false
+		m.active, m.mismatch = false, false
 		out = "Firewall stopped and disabled on system startup\n"
 	default:
 		m.t.Errorf("unexpected command %q", cmd)
 		return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
+	}
+	if cmd == m.partial {
+		m.mismatch = cmd == "ufw --force enable"
+		m.files(h)
+		return hostfake.Response{Stderr: "ERROR: problem running ufw-init\n", ExitCode: 1}
 	}
 	m.files(h)
 	return hostfake.Response{Stdout: out}

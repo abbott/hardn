@@ -9,7 +9,9 @@
 // policy, then "ufw --force enable", and refuses a plan after which an SSH
 // listener that is reachable now would be blocked. Execute runs the steps,
 // then checks "ufw status verbose"; Check is the same cross-check for a
-// status report.
+// status report. What ufw shows is its saved rules with its chains loaded:
+// the proof that new connections pass is the confirmation from a new
+// session (brief 2.4).
 //
 // docs/safety/ufw.md describes the guarantees, the ufw facts they rest on and
 // what is written but not yet run on a Linux host.
@@ -22,11 +24,13 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 )
 
-// The files Read reads besides "ufw status verbose": ufw's defaults, the
-// saved rules it loads when it starts, and the kernel's IPv6 directory,
-// whose absence turns ufw's IPv6 handling off.
+// The files Read reads besides "ufw status verbose": ufw's defaults and its
+// configuration (read in that order, a later key winning: ENABLED is in
+// ConfFile), the saved rules it loads when it starts, and the kernel's IPv6
+// directory, whose absence turns ufw's IPv6 handling off.
 const (
 	DefaultsFile = "/etc/default/ufw"
+	ConfFile     = "/etc/ufw/ufw.conf"
 	UserRules    = "/etc/ufw/user.rules"
 	User6Rules   = "/etc/ufw/user6.rules"
 	KernelIPv6   = "/proc/sys/net/ipv6"
@@ -41,6 +45,10 @@ var (
 	ErrStateUnknown     = errors.New("ufw's state is not established")
 	ErrBlocks           = errors.New("the change would block an SSH listener")
 	ErrVerify           = errors.New("ufw status does not show the planned state")
+	// ErrEnabledMismatch: ENABLED in ConfFile and whether ufw's chains are
+	// loaded disagree, so ufw's commands would not do what the plan
+	// expects (State.Enabled).
+	ErrEnabledMismatch = errors.New("ufw's ENABLED setting and its loaded chains disagree")
 )
 
 // Applies says whether UFW may be used: ErrNotApplicable on Proxmox VE,
@@ -97,8 +105,11 @@ type Rule struct {
 	DPort  string // destination ports: "22", "6000:6007", "80,443"; "" for any
 	// Src is whatever restricts the source (address, port, application),
 	// as read; "" for any source.
-	Src    string
-	Iface  string // the interface the rule is limited to; "" for any
+	Src   string
+	Iface string // the interface the rule is limited to; "" for any
+	// App is the destination application of a saved rule ("" for none):
+	// ufw tells "allow OpenSSH" from "allow 22/tcp" by it.
+	App    string
 	Family Family
 	Line   string // as read
 }

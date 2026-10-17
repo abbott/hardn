@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"net/netip"
 	"regexp"
 	"strings"
@@ -14,7 +15,9 @@ import (
 )
 
 // Status is "ufw status verbose" read. ufw prints the rules of its saved
-// lists (the same ones ParseTuples reads) and whether its chains are loaded.
+// lists (the same ones ParseTuples reads) and the policies of its saved
+// defaults, and says active when its user chains exist: not what the
+// kernel's chains hold rule by rule.
 type Status struct {
 	Known  bool // the status line was read, and while active every line
 	Active bool // "Status: active": ufw's chains are loaded
@@ -206,9 +209,13 @@ func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string) {
 		if len(f) == 9 && f[7] != "-" {
 			src = append(src, "app "+f[7])
 		}
+		app := ""
+		if len(f) == 9 && f[6] != "-" {
+			app = f[6]
+		}
 		rules = append(rules, Rule{
 			Action: action, Dir: dir, Proto: f[1], Dst: anyAddr(f[3]), DPort: anyPort(f[2]),
-			Src: strings.Join(src, " "), Iface: iface, Family: fam, Line: line,
+			Src: strings.Join(src, " "), Iface: iface, App: app, Family: fam, Line: line,
 		})
 	}
 	return rules, bad
@@ -232,9 +239,9 @@ func anyPort(p string) string {
 	return p
 }
 
-// readDefaults reads /etc/default/ufw as ufw does: lines starting
-// `\w+="?\w+"?`, split at "=", key and value lower-cased, quotes stripped;
-// a later line wins.
+// readDefaults reads /etc/default/ufw or /etc/ufw/ufw.conf as ufw does:
+// lines starting `\w+="?\w+"?`, split at "=", key and value lower-cased,
+// quotes stripped; a later line wins.
 func readDefaults(data []byte) map[string]string {
 	pat := regexp.MustCompile(`^\w+="?\w+"?`)
 	d := map[string]string{}
@@ -263,16 +270,24 @@ func defaultPolicy(v string, ok bool) Policy {
 	return PolicyDeny
 }
 
-// State is what Read established.
+// State is what Read established. The settings are DefaultsFile's keys
+// overridden by ConfFile's, as ufw reads them.
 type State struct {
 	Installed bool   // "ufw status verbose" ran
-	Status    Status // its answer: what is in force
-	// IPv6: IPV6=yes in /etc/default/ufw and the kernel has IPv6; without
-	// it ufw adds IPv4 rules only and, once started, drops all IPv6.
-	IPv6               bool
+	Status    Status // its answer: active (chains loaded) or not, and while active the saved rules and policies
+	// Enabled: ENABLED=yes. ufw starts at boot, and its commands change
+	// the loaded chains as well as the saved files; without it they change
+	// the files only. Enabled and Status.Active should agree; PlanFor
+	// refuses a State where they do not (ErrEnabledMismatch).
+	Enabled bool
+	// IPv6: IPV6=yes and the kernel has IPv6 (ufw's use_ipv6); without
+	// it ufw adds IPv4 rules only and, once started, drops all IPv6 but
+	// loopback. NoKernelIPv6: KernelIPv6 is missing, so no IPv6
+	// connection can arrive at all.
+	IPv6, NoKernelIPv6 bool
 	Incoming, Outgoing Policy // DEFAULT_INPUT_POLICY, DEFAULT_OUTPUT_POLICY
 	// Rules are the saved rules, IPv4's then IPv6's (IPv6's only with
-	// IPv6): what ufw loads when it starts, in force only while active.
+	// IPv6): what ufw loads when it starts, loaded only while active.
 	Rules []Rule
 	Bad   []string // lines of the status or the rule files not read
 }
@@ -285,8 +300,9 @@ func (s State) Known() bool {
 // Read establishes UFW's state. On Proxmox VE it runs nothing and returns
 // ErrNotApplicable (ErrProxmoxUnknown when that is not established). ufw
 // missing is State{} with no error. It runs "ufw status verbose" and reads
-// DefaultsFile, KernelIPv6, UserRules and, with IPv6, User6Rules, changing
-// nothing; an I/O failure is an error, content it cannot read is in Bad.
+// DefaultsFile, ConfFile, KernelIPv6, UserRules and, with IPv6, User6Rules,
+// changing nothing; an I/O failure is an error, content it cannot read is
+// in Bad.
 func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, error) {
 	var st State
 	if err := Applies(pve); err != nil {
@@ -307,6 +323,11 @@ func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, erro
 		return st, fmt.Errorf("ufw: %w", err)
 	}
 	d := readDefaults(data)
+	if data, err = sys.ReadFile(ctx, ConfFile); err != nil {
+		return st, fmt.Errorf("ufw: %w", err)
+	}
+	maps.Copy(d, readDefaults(data))
+	st.Enabled = d["enabled"] == "yes"
 	in, inOK := d["default_input_policy"]
 	out, outOK := d["default_output_policy"]
 	st.Incoming, st.Outgoing = defaultPolicy(in, inOK), defaultPolicy(out, outOK)
@@ -314,7 +335,8 @@ func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, erro
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return st, fmt.Errorf("ufw: %w", err)
 	}
-	st.IPv6 = d["ipv6"] == "yes" && err == nil
+	st.NoKernelIPv6 = err != nil
+	st.IPv6 = d["ipv6"] == "yes" && !st.NoKernelIPv6
 	files := []struct {
 		path string
 		fam  Family

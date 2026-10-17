@@ -3,7 +3,9 @@ package ufw_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"slices"
+	"syscall"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -109,17 +111,17 @@ func TestParseTuples(t *testing.T) {
 ### END RULES ###
 `
 	rules, bad := ufw.ParseTuples([]byte(data), ufw.IPv4)
-	type r struct{ action, dir, proto, dst, dport, src, iface string }
+	type r struct{ action, dir, proto, dst, dport, src, iface, app string }
 	want := []r{
-		{"allow", "in", "tcp", "", "2230", "", ""},
-		{"limit", "in", "tcp", "", "22", "", ""},
-		{"allow", "in", "any", "", "22", "192.0.2.0/24", "eth0"},
-		{"deny", "in", "tcp", "", "2230", "port 1234 app web", ""},
-		{"allow", "fwd", "any", "", "", "", "eth0!out_eth1"},
+		{"allow", "in", "tcp", "", "2230", "", "", ""},
+		{"limit", "in", "tcp", "", "22", "", "", "OpenSSH"},
+		{"allow", "in", "any", "", "22", "192.0.2.0/24", "eth0", ""},
+		{"deny", "in", "tcp", "", "2230", "port 1234 app web", "", ""},
+		{"allow", "fwd", "any", "", "", "", "eth0!out_eth1", ""},
 	}
 	var got []r
 	for _, x := range rules {
-		got = append(got, r{x.Action, x.Dir, x.Proto, x.Dst, x.DPort, x.Src, x.Iface})
+		got = append(got, r{x.Action, x.Dir, x.Proto, x.Dst, x.DPort, x.Src, x.Iface, x.App})
 		if x.Family != ufw.IPv4 {
 			t.Errorf("%q: family %s", x.Line, x.Family)
 		}
@@ -168,30 +170,36 @@ func TestRead(t *testing.T) {
 			}
 		}
 	})
-	// /etc/default/ufw as ufw's _get_defaults reads it: a line must start
-	// `\w+="?\w+"?` (double quotes only); keys and values are lower-cased,
-	// quotes stripped, the last line wins; accept is allow, reject reject,
+	// /etc/default/ufw, then /etc/ufw/ufw.conf, as ufw's _get_defaults
+	// reads them: a line must start `\w+="?\w+"?` (double quotes only);
+	// keys and values are lower-cased, quotes stripped, the last line wins,
+	// ufw.conf's over the defaults'; accept is allow, reject reject,
 	// anything else deny.
 	for _, tc := range []struct {
-		name, data string
-		ipv6       bool
-		in, out    ufw.Policy
+		name, data, conf string
+		ipv6, enabled    bool
+		in, out          ufw.Policy
 	}{
-		{"stock", stockDefaults, true, ufw.PolicyDeny, ufw.PolicyAllow},
+		{"stock", stockDefaults, "", true, false, ufw.PolicyDeny, ufw.PolicyAllow},
 		{"double quotes and case; a single-quoted value is not read; the last line wins", "ipv6=\"YES\"\nIPV6='no'\nDEFAULT_INPUT_POLICY=\"accept\"\nDEFAULT_INPUT_POLICY=REJECT\nDEFAULT_OUTPUT_POLICY=\"DROP\"\n",
-			true, ufw.PolicyReject, ufw.PolicyDeny},
+			"", true, false, ufw.PolicyReject, ufw.PolicyDeny},
 		{"indented and commented lines are not read", " IPV6=yes\n#DEFAULT_INPUT_POLICY=\"ACCEPT\"\nIPV6=no\nDEFAULT_INPUT_POLICY=\"BOGUS\"\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n",
-			false, ufw.PolicyDeny, ufw.PolicyAllow},
-		{"no policy lines", "IPV6=yes\n", true, "", ""},
+			"", false, false, ufw.PolicyDeny, ufw.PolicyAllow},
+		{"no policy lines", "IPV6=yes\n", "", true, false, "", ""},
+		{"ufw.conf's keys win", stockDefaults, "ENABLED=yes\nLOGLEVEL=low\nIPV6=no\nDEFAULT_INPUT_POLICY=\"ACCEPT\"\n",
+			false, true, ufw.PolicyAllow, ufw.PolicyAllow},
 	} {
 		t.Run("defaults: "+tc.name, func(t *testing.T) {
 			h := newModel(t).host()
-			h.Handler = nil // the model would rewrite the file
+			h.Handler = nil // the model would rewrite the files
 			h.Respond(hostfake.Response{Stdout: "Status: inactive\n"}, "ufw", "status", "verbose")
 			h.AddFile(ufw.DefaultsFile, []byte(tc.data), 0o644, 0, 0)
+			if tc.conf != "" {
+				h.AddFile(ufw.ConfFile, []byte(tc.conf), 0o644, 0, 0)
+			}
 			st, err := ufw.Read(ctx, h, notPVE)
-			if err != nil || st.IPv6 != tc.ipv6 || st.Incoming != tc.in || st.Outgoing != tc.out {
-				t.Errorf("Read: %v, IPv6 %t, in %q, out %q", err, st.IPv6, st.Incoming, st.Outgoing)
+			if err != nil || st.IPv6 != tc.ipv6 || st.Enabled != tc.enabled || st.Incoming != tc.in || st.Outgoing != tc.out {
+				t.Errorf("Read: %v, IPv6 %t, Enabled %t, in %q, out %q", err, st.IPv6, st.Enabled, st.Incoming, st.Outgoing)
 			}
 			if st.Known() != (tc.in != "") {
 				t.Errorf("Known %t", st.Known())
@@ -203,10 +211,40 @@ func TestRead(t *testing.T) {
 		if err := h.RemoveAll(ctx, ufw.KernelIPv6); err != nil {
 			t.Fatal(err)
 		}
-		if st, err := ufw.Read(ctx, h, notPVE); err != nil || st.IPv6 {
-			t.Errorf("Read: %v, IPv6 %t", err, st.IPv6)
+		if st, err := ufw.Read(ctx, h, notPVE); err != nil || st.IPv6 || !st.NoKernelIPv6 {
+			t.Errorf("Read: %v, IPv6 %t, NoKernelIPv6 %t", err, st.IPv6, st.NoKernelIPv6)
 		}
 	})
+	// An I/O failure on any file Read reads is an error, never a guess.
+	for _, tc := range []struct {
+		name   string
+		breaks func(h *hostfake.System) error
+		want   error
+	}{
+		{"defaults missing", func(h *hostfake.System) error { return h.Remove(ctx, ufw.DefaultsFile) }, fs.ErrNotExist},
+		{"ufw.conf missing", func(h *hostfake.System) error { return h.Remove(ctx, ufw.ConfFile) }, fs.ErrNotExist},
+		{"user.rules missing", func(h *hostfake.System) error { return h.Remove(ctx, ufw.UserRules) }, fs.ErrNotExist},
+		{"user6.rules missing", func(h *hostfake.System) error { return h.Remove(ctx, ufw.User6Rules) }, fs.ErrNotExist},
+		{"the kernel's IPv6 directory unreadable", func(h *hostfake.System) error {
+			if err := h.RemoveAll(ctx, ufw.KernelIPv6); err != nil {
+				return err
+			}
+			h.AddSymlink(ufw.KernelIPv6, ufw.KernelIPv6)
+			return nil
+		}, syscall.ELOOP},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := newModel(t).host()
+			h.Handler = nil // the model would write the files back
+			h.Respond(hostfake.Response{Stdout: "Status: inactive\n"}, "ufw", "status", "verbose")
+			if err := tc.breaks(h); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := ufw.Read(ctx, h, notPVE); !errors.Is(err, tc.want) {
+				t.Errorf("Read: %v, want %v", err, tc.want)
+			}
+		})
+	}
 	t.Run("not installed", func(t *testing.T) {
 		h := hostfake.New(host.Options{})
 		h.Respond(hostfake.Response{Err: host.ErrNotFound}, "ufw", "status", "verbose")

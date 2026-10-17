@@ -3,6 +3,7 @@ package ufw_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
@@ -116,7 +117,7 @@ func TestExecuteFailures(t *testing.T) {
 			t.Errorf("Execute: %v, want ErrVerify naming the listener", err)
 		}
 	})
-	t.Run("a rollback runs every undo, even after one fails", func(t *testing.T) {
+	t.Run("a rollback stops at the first failed undo: the SSH rules stay", func(t *testing.T) {
 		m := newModel(t)
 		h := m.host()
 		rep, err := ufw.Execute(ctx, h, plan(t, m, stock22(), []uint16{2230}))
@@ -125,11 +126,65 @@ func TestExecuteFailures(t *testing.T) {
 		}
 		m.fail = "ufw disable"
 		var xe *host.ExitError
-		if err := ufw.Rollback(ctx, h, rep); !errors.As(err, &xe) || !strings.Contains(err.Error(), "ufw disable") {
-			t.Errorf("Rollback: %v", err)
+		var re *ufw.RollbackError
+		err = ufw.Rollback(ctx, h, rep)
+		if !errors.As(err, &re) || !errors.As(err, &xe) || strings.Join(re.Argv, " ") != "ufw disable" ||
+			!strings.Contains(err.Error(), "not run") {
+			t.Fatalf("Rollback: %v", err)
 		}
-		if len(m.rules) != 0 {
-			t.Errorf("rules left %v", m.rules)
+		var notRun []string
+		for _, argv := range re.NotRun {
+			notRun = append(notRun, strings.Join(argv, " "))
+		}
+		if !slices.Equal(notRun, []string{"ufw delete allow 2230/tcp", "ufw delete allow 22/tcp"}) {
+			t.Errorf("not run %q", notRun)
+		}
+		// Deleting them with ufw still up and dropping would block SSH.
+		if !m.active || len(m.rules) != 4 {
+			t.Errorf("after rollback: active %t, rules %v; want active with the four rules", m.active, m.rules)
+		}
+	})
+	t.Run("a default that fails after saving the policy is undone", func(t *testing.T) {
+		m := newModel(t)
+		m.active, m.incoming = true, "allow"
+		m.partial = "ufw default deny incoming"
+		h := m.host()
+		rep, err := ufw.Execute(ctx, h, plan(t, m, stock22(), nil))
+		var xe *host.ExitError
+		if !errors.As(err, &xe) {
+			t.Fatalf("Execute: %v, want *host.ExitError", err)
+		}
+		if got := undos(rep); !slices.Equal(got, []string{"ufw default allow incoming", "ufw delete allow 22/tcp"}) {
+			t.Errorf("undo %q", got)
+		}
+		if !strings.Contains(rep.Steps[1].Note, "although it failed") {
+			t.Errorf("note %q", rep.Steps[1].Note)
+		}
+		if err := ufw.Rollback(ctx, h, rep); err != nil {
+			t.Fatal(err)
+		}
+		if m.incoming != "allow" || len(m.rules) != 0 {
+			t.Errorf("after rollback: incoming %s, rules %v", m.incoming, m.rules)
+		}
+	})
+	t.Run("an enable that fails with the chains loaded is undone", func(t *testing.T) {
+		m := newModel(t)
+		m.partial = "ufw --force enable"
+		h := m.host()
+		rep, err := ufw.Execute(ctx, h, plan(t, m, stock22(), []uint16{2230}))
+		var xe *host.ExitError
+		if !errors.As(err, &xe) || !m.active {
+			t.Fatalf("Execute: %v, model active %t", err, m.active)
+		}
+		want := []string{"ufw disable", "ufw delete allow 2230/tcp", "ufw delete allow 22/tcp"}
+		if got := undos(rep); !slices.Equal(got, want) {
+			t.Errorf("undo %q, want %q", got, want)
+		}
+		if err := ufw.Rollback(ctx, h, rep); err != nil {
+			t.Fatal(err)
+		}
+		if m.active || len(m.rules) != 0 {
+			t.Errorf("after rollback: active %t, rules %v", m.active, m.rules)
 		}
 	})
 	t.Run("a step fails: later steps do not run", func(t *testing.T) {
@@ -162,6 +217,48 @@ func TestExecuteFailures(t *testing.T) {
 			t.Errorf("undo %q, note %q", undos(rep), rep.Steps[0].Note)
 		}
 	})
+	for _, tc := range []struct {
+		name    string
+		desired ufw.Desired
+		after   func(m *model)
+		want    string
+	}{
+		{"a default answered but not applied", hardening, func(m *model) { m.noop = "ufw default deny incoming" }, "incoming policy"},
+		{"an outgoing default answered but not applied", ufw.Desired{Outgoing: ufw.PolicyDeny},
+			func(m *model) { m.noop = "ufw default deny outgoing" }, "outgoing policy"},
+		{"the status after the steps not read whole", hardening, func(m *model) { m.garbage = true }, "not read whole"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newModel(t)
+			m.active, m.incoming = true, "allow"
+			h := m.host()
+			p, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: stock22(), State: read(t, m), Desired: tc.desired})
+			if err != nil {
+				t.Fatal(err)
+			}
+			tc.after(m)
+			if _, err := ufw.Execute(ctx, h, p); !errors.Is(err, ufw.ErrVerify) || !strings.Contains(err.Error(), tc.want) {
+				t.Errorf("Execute: %v, want ErrVerify %q", err, tc.want)
+			}
+		})
+	}
+	t.Run("the status after the steps fails", func(t *testing.T) {
+		m := newModel(t)
+		h := m.host()
+		p := plan(t, m, stock22(), nil)
+		m.fail = "ufw status verbose"
+		var xe *host.ExitError
+		if _, err := ufw.Execute(ctx, h, p); !errors.As(err, &xe) || errors.Is(err, ufw.ErrVerify) {
+			t.Errorf("Execute: %v, want *host.ExitError", err)
+		}
+	})
+	t.Run("a step without a command", func(t *testing.T) {
+		h := newModel(t).host()
+		p := ufw.Plan{Steps: []ufw.Step{{Kind: ufw.StepAllow, Why: "nothing"}}}
+		if _, err := ufw.Execute(ctx, h, p); !errors.Is(err, fs.ErrInvalid) || len(h.Runs()) != 0 {
+			t.Errorf("Execute: %v, runs %q", err, runs(h))
+		}
+	})
 	t.Run("a done context runs nothing", func(t *testing.T) {
 		m := newModel(t)
 		h := m.host()
@@ -172,4 +269,25 @@ func TestExecuteFailures(t *testing.T) {
 			t.Errorf("Execute: %v, calls %v", err, h.Calls())
 		}
 	})
+}
+
+// TestPreUndo: what p2-revert journals before Execute runs.
+func TestPreUndo(t *testing.T) {
+	m := newModel(t)
+	if got := plan(t, m, stock22(), []uint16{2230}).PreUndo(); len(got) != 1 || strings.Join(got[0], " ") != "ufw disable" {
+		t.Errorf("inactive: PreUndo %q", got)
+	}
+	m.active, m.incoming = true, "allow"
+	p, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: stock22(), State: read(t, m),
+		Desired: ufw.Desired{Incoming: ufw.PolicyDeny, Outgoing: ufw.PolicyDeny}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, u := range p.PreUndo() {
+		got = append(got, strings.Join(u, " "))
+	}
+	if want := []string{"ufw default allow outgoing", "ufw default allow incoming"}; !slices.Equal(got, want) {
+		t.Errorf("active: PreUndo %q, want %q", got, want)
+	}
 }
