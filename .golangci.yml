@@ -180,9 +180,12 @@ linters:
             - "!$test"
           allow:
             - $gostd
-        # The host seam, its fake and platform detection (pkg/host/detect)
-        # keep to the standard library and pkg/host: no third-party code is
-        # linked under the seam (docs/safety/system.md, docs/safety/detect.md).
+        # The host seam, its fake, platform detection (pkg/host/detect) and
+        # the backups (pkg/host/backup) keep to the standard library and
+        # pkg/host: no third-party code is linked under the seam
+        # (docs/safety/system.md, docs/safety/detect.md). x/sys/unix is the
+        # one exception, for the guarded walk's openat family, which the
+        # standard library's syscall lacks on macOS (docs/safety/atomic.md).
         host-stdlib:
           list-mode: strict
           files:
@@ -191,6 +194,7 @@ linters:
           allow:
             - $gostd
             - github.com/abbott/hardn/pkg/host
+            - golang.org/x/sys/unix
         # Platform detection reaches the host only through host.System: the
         # standard library's file, process and network packages are denied
         # (prefixes: os covers os/exec and os/user, net covers net/http).
@@ -204,6 +208,8 @@ linters:
               desc: detection reads and runs only through host.System (docs/safety/detect.md §2.2)
             - pkg: io/ioutil
               desc: detection reads only through host.System (docs/safety/detect.md §2.2)
+            - pkg: golang.org/x/sys
+              desc: detection makes no system calls of its own (docs/safety/detect.md §2.2)
             - pkg: net
               desc: detection makes no network calls (docs/safety/detect.md §2.2)
             - pkg: plugin

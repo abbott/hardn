@@ -42,9 +42,15 @@ const DefaultTailLines = 20
 // System is the host as hardn's safety primitives and engine see it.
 //
 // Paths should be absolute. Symlinks in the parent directories of a path are
-// followed by every method; the no-follow rules below are about the last
-// component only. File operations honour ctx only on entry; Run kills the
-// process it started when ctx is done, but not processes that one started.
+// followed by every method except the guarded ones (WriteFileAtomic, Chown,
+// Chmod, Remove, ReadFileNoFollow): those take an absolute path, and follow a
+// symlink on the way only when the directory holding it is owned by root (or
+// by hardn's own user) and is writable by neither its group nor others;
+// otherwise they refuse with ErrSymlinkParent, so a user who controls a
+// directory on the path cannot redirect them (V21). The other no-follow rules
+// below are about the last component. File operations honour ctx only on
+// entry; Run kills the process it started when ctx is done, but not
+// processes that one started.
 // Every method refuses a ctx that is already done, so a rollback after
 // cancellation (Ctrl-C) must run under context.WithoutCancel with its own
 // timeout.
@@ -58,6 +64,12 @@ type System interface {
 
 	// ReadFile returns the content of name, following symlinks.
 	ReadFile(ctx context.Context, name string) ([]byte, error)
+	// ReadFileNoFollow returns the content of the regular file name and its
+	// FileInfo, both read from one open file, so they describe the same
+	// file. A symlink at name is refused with ErrSymlink, a directory with
+	// EISDIR, anything else that is not a regular file with fs.ErrInvalid;
+	// it is guarded (see System). Backups read through it.
+	ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error)
 	// Stat describes name, following a symlink at name.
 	Stat(ctx context.Context, name string) (fs.FileInfo, error)
 	// Lstat describes name itself: a symlink at name is not followed.
@@ -66,7 +78,8 @@ type System interface {
 	ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error)
 	// MkdirAll creates name and any missing parents with perm.
 	MkdirAll(ctx context.Context, name string, perm fs.FileMode) error
-	// Remove removes a file, a symlink (not its target) or an empty directory.
+	// Remove removes a file, a symlink (not its target) or an empty
+	// directory. It is guarded (see System).
 	Remove(ctx context.Context, name string) error
 	// RemoveAll removes name and everything under it; a missing name is not
 	// an error.
@@ -79,15 +92,21 @@ type System interface {
 	Readlink(ctx context.Context, name string) (string, error)
 	// Chmod sets the mode of the regular file or directory name. A symlink
 	// at name is refused with ErrSymlink, never followed; anything else that
-	// is not a regular file or directory is refused with fs.ErrInvalid.
+	// is not a regular file or directory is refused with fs.ErrInvalid. It
+	// is guarded (see System).
 	Chmod(ctx context.Context, name string, perm fs.FileMode) error
 	// Chown sets the owner of name. A symlink at name is refused with
-	// ErrSymlink, never followed. A uid or gid of -1 is left unchanged.
+	// ErrSymlink, never followed. A uid or gid of -1 is left unchanged. It
+	// is guarded (see System).
 	Chown(ctx context.Context, name string, uid, gid int) error
 	// WriteFileAtomic replaces name with a new file holding data, with mode
 	// perm and owner uid:gid (-1 keeps the owner the process gives a new
-	// file). Readers see the old content or the new, never a mix. A symlink
-	// at name is refused with ErrSymlink, never written through or replaced.
+	// file; WriteFileAtomicKeep keeps an existing file's). Readers see the
+	// old content or the new, never a mix. A symlink at name is refused
+	// with ErrSymlink, never written through or replaced; so is a directory
+	// (EISDIR) or anything else that is not a regular file (fs.ErrInvalid).
+	// It is guarded (see System). On an error, name is as it was, except
+	// for one wrapping ErrNotDurable: see Real.WriteFileAtomic.
 	WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error
 
 	// LookupUser finds a user account by name; ErrUnknownUser when absent.
@@ -154,6 +173,29 @@ func Owner(fi fs.FileInfo) (uid, gid int, ok bool) {
 	return sysOwner(fi)
 }
 
+// WriteFileAtomicKeep is sys.WriteFileAtomic keeping an existing regular
+// file's permission bits and owner: perm, uid and gid apply only when name
+// does not exist. Setuid, setgid and sticky bits are never carried over. The
+// existing file is read with Lstat just before the write, so use it for files
+// in directories only root can change (a configuration file, sshd_config);
+// pass explicit values for a file in a user's home directory.
+func WriteFileAtomicKeep(ctx context.Context, sys System, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	fi, err := sys.Lstat(ctx, name)
+	switch {
+	case err == nil && fi.Mode().IsRegular():
+		perm = fi.Mode().Perm()
+		var ok bool
+		if uid, gid, ok = Owner(fi); !ok {
+			return pathErr("write", name, fs.ErrInvalid)
+		}
+	case err != nil && !errors.Is(err, fs.ErrNotExist):
+		return err
+	}
+	// Anything else that exists (a symlink, a directory) is refused by
+	// WriteFileAtomic itself.
+	return sys.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
 // Errors a System returns, testable with errors.Is.
 var (
 	// ErrNotFound: the command is not an executable file in SearchPath, or
@@ -161,6 +203,14 @@ var (
 	ErrNotFound = errors.New("command not found")
 	// ErrSymlink: the operation refuses a symlink at the path.
 	ErrSymlink = errors.New("refusing a symlink")
+	// ErrSymlinkParent: a guarded operation met a symlink on the way to the
+	// path, in a directory a user other than root (or hardn's own user) can
+	// change (see System). errors.Is(err, ErrSymlink) holds for it too.
+	ErrSymlinkParent = fmt.Errorf("%w on the way, in a directory another user can change", ErrSymlink)
+	// ErrNotDurable: WriteFileAtomic replaced the file, but could not sync
+	// its directory, so the replacement may not survive a crash. The new
+	// content is in place; roll the change back like any failed step.
+	ErrNotDurable = errors.New("replaced, but the directory could not be synced")
 	// ErrUnknownUser: no such user account.
 	ErrUnknownUser = errors.New("unknown user")
 	// ErrUnknownGroup: no such group.

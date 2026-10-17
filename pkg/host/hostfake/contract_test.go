@@ -264,6 +264,57 @@ func TestContract(t *testing.T) {
 				t.Errorf("ssh = %v, %v; want a 0700 directory", modeOf(fi), err)
 			}
 		}},
+		{"guarded operations refuse a symlink on the way from a world-writable directory", func(t *testing.T, w world) {
+			w.dir("rootssh")
+			w.file("rootssh/authorized_keys", "root-key\n", 0o600)
+			w.dir("home")
+			if err := w.sys.Chmod(ctx, w.path("home"), 0o777); err != nil {
+				t.Fatal(err)
+			}
+			w.symlink("home/.ssh", w.path("rootssh"))
+			via := w.path("home/.ssh/authorized_keys")
+			for op, err := range map[string]error{
+				"write":  w.sys.WriteFileAtomic(ctx, via, []byte("alice-key\n"), 0o600, -1, -1),
+				"chown":  w.sys.Chown(ctx, via, -1, -1),
+				"chmod":  w.sys.Chmod(ctx, via, 0o644),
+				"remove": w.sys.Remove(ctx, via),
+				"read":   second(w.sys.ReadFileNoFollow(ctx, via)),
+			} {
+				if !errors.Is(err, host.ErrSymlinkParent) || !errors.Is(err, host.ErrSymlink) {
+					t.Errorf("%s: err = %v, want ErrSymlinkParent", op, err)
+				}
+			}
+			wantFile(t, w, "rootssh/authorized_keys", "root-key\n", 0o600)
+			if got, err := w.sys.ReadFile(ctx, via); err != nil || string(got) != "root-key\n" {
+				t.Errorf("unguarded read through the link = %q, %v; want it followed", got, err)
+			}
+		}},
+		{"guarded operations follow a symlink from a trusted directory", func(t *testing.T, w world) {
+			w.dir("etc")
+			w.symlink("link", w.path("etc"))
+			if err := w.sys.WriteFileAtomic(ctx, w.path("link/hardn.yml"), []byte("x"), 0o600, -1, -1); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "etc/hardn.yml", "x", 0o600)
+			if err := w.sys.Remove(ctx, w.path("link/hardn.yml")); err != nil {
+				t.Fatal(err)
+			}
+			wantNames(t, w, "etc")
+		}},
+		{"read no-follow: a file with its mode, a symlink, a directory, a missing path", func(t *testing.T, w world) {
+			w.file("f", "data", 0o640)
+			w.symlink("l", "f")
+			w.dir("d")
+			data, fi, err := w.sys.ReadFileNoFollow(ctx, w.path("f"))
+			if err != nil || string(data) != "data" || fi.Mode() != 0o640 || fi.Name() != "f" || fi.Size() != 4 {
+				t.Errorf("file = %q, %v, %v", data, fi, err)
+			}
+			for rel, want := range map[string]error{"l": host.ErrSymlink, "d": syscall.EISDIR, "missing": fs.ErrNotExist} {
+				if _, _, err := w.sys.ReadFileNoFollow(ctx, w.path(rel)); !errors.Is(err, want) {
+					t.Errorf("%s: err = %v, want %v", rel, err, want)
+				}
+			}
+		}},
 		{"readlink: a relative target as stored, a file, a missing path", func(t *testing.T, w world) {
 			w.file("f", "", 0o600)
 			w.symlink("l", "../elsewhere/f")
@@ -326,6 +377,9 @@ func wantNames(t *testing.T, w world, rel string, names ...string) {
 		t.Errorf("%s/ holds %q, want %q", rel, got, names)
 	}
 }
+
+// second returns the error of a ReadFileNoFollow call.
+func second(_ []byte, _ fs.FileInfo, err error) error { return err }
 
 func modeOf(fi fs.FileInfo) any {
 	if fi == nil {

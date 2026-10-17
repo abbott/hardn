@@ -8,7 +8,10 @@
 // package's rules for them (a contract test runs the same cases against
 // host.Real in a temporary directory), so tests of the safety primitives see
 // the hazards a real host has: a write through a symlink, a rename over one,
-// a chown or chmod that would follow one. Nothing here touches the machine.
+// a chown or chmod that would follow one. Its guarded operations (see
+// host.System) follow a symlink on the way only from a directory owned by
+// root, the user the fake acts as, and writable by neither group nor others.
+// Nothing here touches the machine.
 //
 // The fake has no umask, no hard links, no permission checks (it acts as
 // root) and no setuid, setgid or sticky bits; ".." in a symlink target is
@@ -48,7 +51,7 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, read, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
+	Op       string   // run, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
 	Argv     []string // run
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run
