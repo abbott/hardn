@@ -98,10 +98,10 @@ func TestCreateUser(t *testing.T) {
 	if err != nil || u != (newUser{name: "george", sudo: true}) {
 		t.Fatalf("Run: %v, %+v", err, u)
 	}
-	want := "   1. Username [0, b or q]: george\n\n" +
-		"   2. Grant sudo privilege? [y/N, 0, b or q]: y\n\n" +
-		"   3. Require sudo password? [y/N, 0, b or q]: n\n\n" +
-		"   4. Add SSH key? [y/N, 0, b or q]: n\n"
+	want := "   1. Username [0 or q]: george\n\n" +
+		"   2. Grant sudo privilege? [y/N, 0 or q]: y\n\n" +
+		"   3. Require sudo password? [y/N, 0 or q]: n\n\n" +
+		"   4. Add SSH key? [y/N, 0 or q]: n\n"
 	if out != want {
 		t.Errorf("transcript\n%s\nwant\n%s", out, want)
 	}
@@ -129,7 +129,7 @@ func TestValidation(t *testing.T) {
 	if n := strings.Count(out, "Specify username to create"); n != 1 {
 		t.Errorf("the head is written %d times, want once:\n%s", n, out)
 	}
-	if n := strings.Count(out, "  > [0, b or q]: "); n != 4 {
+	if n := strings.Count(out, "  > [0 or q]: "); n != 4 {
 		t.Errorf("the prompt is asked %d times, want 4:\n%s", n, out)
 	}
 	// A y/N answer and a choice are validated as a text is.
@@ -196,9 +196,9 @@ func TestDefaults(t *testing.T) {
 		t.Fatalf("Run: %v, %q, %t, %t", err, path, sudo, password)
 	}
 	for _, want := range []string{
-		"   1. Backup path [0, b or q]: \n   1. Backup path: /var/backups/hardn\n",
-		"   2. Grant sudo privilege? [y/N, 0, b or q]:  \n   2. Grant sudo privilege? [y/N]: n\n",
-		"   3. Require sudo password? [Y/n, 0, b or q]: \n   3. Require sudo password? [Y/n]: y\n",
+		"   1. Backup path [0 or q]: \n   1. Backup path: /var/backups/hardn\n",
+		"   2. Grant sudo privilege? [y/N, 0 or q]:  \n   2. Grant sudo privilege? [y/N]: n\n",
+		"   3. Require sudo password? [Y/n, 0 or q]: \n   3. Require sudo password? [Y/n]: y\n",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("transcript\n%s\nwant it to hold\n%s", out, want)
@@ -207,7 +207,7 @@ func TestDefaults(t *testing.T) {
 	// A text field with no default takes an empty line as an empty value,
 	// and echoes nothing.
 	f = Form{Fields: []Field{&Text{Title: "Username", Value: &path}}}
-	if out, err := play(f, ""); err != nil || path != "" || out != "  Username [0, b or q]: \n" {
+	if out, err := play(f, ""); err != nil || path != "" || out != "  Username [0 or q]: \n" {
 		t.Errorf("Run: %v, %q, transcript %q", err, path, out)
 	}
 }
@@ -233,23 +233,30 @@ func TestLayout(t *testing.T) {
 	}{
 		{"a description that shows nothing", 80, Form{Fields: []Field{
 			&Text{Title: "Username", Description: "\x1b[0m", Value: &name},
-		}}, []string{"george"}, "  Username [0, b or q]: george\n"},
-		{"a question too long for its line", 80, Form{Fields: []Field{
+		}}, []string{"george"}, "  Username [0 or q]: george\n"},
+		// newName and "[0 or q]:" fill theme.ContentWidth, 64 columns,
+		// exactly: one column fewer cuts the question.
+		{"a question too long for its line", 63, Form{Fields: []Field{
 			&Text{Title: newName, Value: &name},
 			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
 		}}, []string{"george", "y"},
-			"   1. " + newName + "\n\n  > [0, b or q]: george\n   1. " + newName + ": george\n\n" +
-				"   2. Grant sudo privilege? [y/N, 0, b or q]: y\n"},
+			"   1. " + newName + "\n\n  > [0 or q]: george\n   1. " + newName + ": george\n\n" +
+				"   2. Grant sudo privilege? [y/N, 0 or q]: y\n"},
+		{"a question that fills its line", 64, Form{Fields: []Field{
+			&Text{Title: newName, Value: &name},
+			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
+		}}, []string{"george", "y"},
+			"   1. " + newName + " [0 or q]: george\n\n   2. Grant sudo privilege? [y/N, 0 or q]: y\n"},
 		{"a choice", 80, Form{Fields: []Field{
 			&Select[string]{Title: "Select a user", Options: users(), Value: &name},
 		}}, []string{"2"},
-			"  Select a user\n\n   1) george\n   2) alice\n\n  > Enter your choice [1-2, 0, b or q]: 2\n  Select a user: alice\n"},
+			"  Select a user\n\n   1) george\n   2) alice\n\n  > Enter your choice [1-2, 0 or q]: 2\n  Select a user: alice\n"},
 		{"a narrow terminal", 40, Form{Fields: []Field{
 			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
 			&YesNo{Title: "Require sudo password?", Value: &password},
 		}}, []string{"y", "n"},
-			"   1. Grant sudo privilege?\n\n  > [y/N, 0, b or q]: y\n   1. Grant sudo privilege? [y/N]: y\n\n" +
-				"   2. Require sudo password?\n\n  > [y/N, 0, b or q]: n\n   2. Require sudo password? [y/N]: n\n"},
+			"   1. Grant sudo privilege?\n\n  > [y/N, 0 or q]: y\n   1. Grant sudo privilege? [y/N]: y\n\n" +
+				"   2. Require sudo password?\n\n  > [y/N, 0 or q]: n\n   2. Require sudo password? [y/N]: n\n"},
 	}
 	for _, tt := range tests {
 		if out, err := playAt(tt.width, tt.form, tt.lines...); err != nil || out != tt.want {
@@ -264,11 +271,11 @@ func TestLayout(t *testing.T) {
 // is cut before its hint or dropped for it.
 func TestNarrow(t *testing.T) {
 	questions := []struct{ title, hint string }{
-		{"Username", "[0, b or q]:"},
-		{"Grant sudo privilege?", "[y/N, 0, b or q]:"},
-		{"Require sudo password?", "[y/N, 0, b or q]:"},
-		{"Add SSH key?", "[y/N, 0, b or q]:"},
-		{"Paste SSH public key", "[0, b or q]:"},
+		{"Username", "[0 or q]:"},
+		{"Grant sudo privilege?", "[y/N, 0 or q]:"},
+		{"Require sudo password?", "[y/N, 0 or q]:"},
+		{"Add SSH key?", "[y/N, 0 or q]:"},
+		{"Paste SSH public key", "[0 or q]:"},
 	}
 	for w := 20; w <= 130; w++ {
 		var u newUser
@@ -297,11 +304,11 @@ func TestSkip(t *testing.T) {
 	u := newUser{password: true, key: "kept"}
 	// sudo granted, the password question answered n; back to sudo, now
 	// refused, so the password question is skipped and put back.
-	out, err := play(createUser(&u), "george", "y", "n", "b", "b", "n", "n")
+	out, err := play(createUser(&u), "george", "y", "n", "0", "0", "n", "n")
 	if err != nil || u != (newUser{name: "george", password: true, key: "kept"}) {
 		t.Fatalf("Run: %v, %+v", err, u)
 	}
-	if !strings.HasSuffix(out, "   2. Grant sudo privilege? [y/N, 0, b or q]: n\n\n   3. Add SSH key? [y/N, 0, b or q]: n\n") {
+	if !strings.HasSuffix(out, "   2. Grant sudo privilege? [y/N, 0 or q]: n\n\n   3. Add SSH key? [y/N, 0 or q]: n\n") {
 		t.Errorf("the field after a skipped one is not numbered 3:\n%s", out)
 	}
 }
@@ -330,11 +337,11 @@ func TestDynamic(t *testing.T) {
 	}}
 	// george first, then back to the name: alice, whom the choice then
 	// leaves out.
-	out, err := play(f, "george", "1", "b", "b", "alice", "1", "y")
+	out, err := play(f, "george", "1", "0", "0", "alice", "1", "y")
 	if err != nil || name != "alice" || who != "george" || !create {
 		t.Fatalf("Run: %v, %q, %q, %t", err, name, who, create)
 	}
-	for _, want := range []string{"   1) alice\n", "   1) george\n", "   3. Create user 'alice'? [y/N, 0, b or q]: y\n"} {
+	for _, want := range []string{"   1) alice\n", "   1) george\n", "   3. Create user 'alice'? [y/N, 0 or q]: y\n"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("transcript\n%s\nwant it to hold %q", out, want)
 		}
@@ -363,25 +370,26 @@ func TestNavigation(t *testing.T) {
 			}
 		}
 		u := before
-		lines := append(append([]string(nil), answers[:k]...), "b")
+		lines := append(append([]string(nil), answers[:k]...), "0")
 		if k > 0 {
 			lines = append(lines, answers[k-1:]...)
 		}
 		_, err := play(createUser(&u), lines...)
 		switch {
 		case k == 0 && (!errors.Is(err, nav.ErrBack) || u != before):
-			t.Errorf("b at field 1: %v, %+v; want ErrBack and the values before", err, u)
+			t.Errorf("0 at field 1: %v, %+v; want ErrBack and the values before", err, u)
 		case k > 0 && (err != nil || u != newUser{name: "george", sudo: true, addKey: true, key: sshKey}):
-			t.Errorf("b at field %d, then the rest: %v, %+v", k+1, err, u)
+			t.Errorf("0 at field %d, then the rest: %v, %+v", k+1, err, u)
 		}
 	}
-	// 0 goes back as b does. Ctrl-C aborts as the end of the input does,
-	// as the reader reports it (its own tests send SIGINT), and ErrAborted
-	// is the reader's sentinel, which both wrap.
+	// b does not go back: back is 0 only (P-25). A text field takes it as
+	// its value, and a y/N field refuses it. Ctrl-C aborts as the end of
+	// the input does, as the reader reports it (its own tests send
+	// SIGINT), and ErrAborted is the reader's sentinel, which both wrap.
 	var u newUser
-	out, err := play(createUser(&u), "george", "0", "george", "y", "n", "n")
-	if err != nil || strings.Count(out, "1. Username") != 2 {
-		t.Errorf("0 at field 2: %v:\n%s", err, out)
+	out, err := play(createUser(&u), "b", "b", "y", "n", "n")
+	if err != nil || u != (newUser{name: "b", sudo: true}) || strings.Count(out, "1. Username") != 1 || strings.Count(out, nav.InvalidAnswer) != 1 {
+		t.Errorf("b at fields 1 and 2: %v, %+v:\n%s", err, u, out)
 	}
 	if ErrAborted != prompt.ErrAborted {
 		t.Error("ErrAborted is not prompt.ErrAborted")
@@ -487,7 +495,7 @@ func TestGolden(t *testing.T) {
 		// back: back from field 3 to 2, whose new answer skips 3; the key
 		// question, now asked, is numbered 4. The key typed is cut short,
 		// so that its echo, which is the terminal's, fits 60 columns.
-		{"back", createUser(u), []string{"george", "y", "b", "n", "y", sshKey[:20]}},
+		{"back", createUser(u), []string{"george", "y", "0", "n", "y", sshKey[:20]}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

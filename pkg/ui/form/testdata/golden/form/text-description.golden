@@ -6,25 +6,25 @@
   ␛[38;2;192;196;216mUsername␛[m$
       ␛[38;2;129;134;156mSpecify username to create␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0, b or q]:␛[m $
+  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername cannot be empty␛[m$
-  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0, b or q]:␛[m george$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mUsername␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156mgeorge␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Username$
       Specify username to create$
 $
-  > [0, b or q]: $
+  > [0 or q]: $
   [!] Error: Username cannot be empty$
-  > [0, b or q]: george$
+  > [0 or q]: george$
   Username: george$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mUsername␛[m$
       ␛[38;2;129;134;156mSpecify username to create␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0, b or q]:␛[m $
+  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername cannot be empty␛[m$
-  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0, b or q]:␛[m george$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mUsername␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156mgeorge␛[m$

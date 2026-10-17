@@ -260,7 +260,7 @@ func TestPaths(t *testing.T) {
 		f.Confirm = func(Plan) Confirm { return Confirm{Question: "Type the hostname", Phrase: hostname} }
 		return f
 	}
-	unknownSteps := "  Apply? [y/N, 0, b or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# [!] Operation Failed\n\n  [<] Rolled back: Unknown\n"
+	unknownSteps := "  Apply? [y/N, 0 or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# [!] Operation Failed\n\n  [<] Rolled back: Unknown\n"
 	tests := []struct {
 		name    string
 		flow    func(Engine) Flow
@@ -274,7 +274,7 @@ func TestPaths(t *testing.T) {
 		{"applied", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"y"}), Applied, true,
 			"  [+] Done: Let george use sudo without a password\n\n# [+] Operation Successful\n"},
 		{"cancelled", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"n"}), Cancelled, false,
-			"'george'? [y/N, 0, b or q]: n\n\n# [-] Operation Cancelled\n"},
+			"'george'? [y/N, 0 or q]: n\n\n# [-] Operation Cancelled\n"},
 		{"cancelled by the default", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{""}), Cancelled, false,
 			"  Create user 'george'? [y/N]: n\n\n# [-] Operation Cancelled\n"},
 		{"back at the confirmation", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"0"}), Cancelled, false,
@@ -292,15 +292,21 @@ func TestPaths(t *testing.T) {
 		{"typed", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"y", hostname}, Applied, true,
 			"  [!] Error: That does not match exactly. Please try again.\n"},
 		{"typed for a change at lockout risk", disableRoot, spy{Fixture: Fixture{Planned: planOf(RiskLow, rootLogin)}}, false, []string{hostname}, Applied, true,
-			"$ systemctl reload ssh\n\n  Disable SSH login for 'root'?\n\n  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+			"$ systemctl reload ssh\n\n  Disable SSH login for 'root'?\n\n  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n"},
 		{"typed with the question for its label", labelless, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
-			"$ systemctl reload ssh\n\n  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+			"$ systemctl reload ssh\n\n  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n"},
 		{"y/N with no lockout risk", disableRoot, spy{Fixture: Fixture{Planned: low}}, false, []string{"y"}, Applied, true,
-			"  Disable SSH login for 'root'? [y/N, 0, b or q]: y\n"},
-		{"back at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"b"}, Cancelled, false,
+			"  Disable SSH login for 'root'? [y/N, 0 or q]: y\n"},
+		{"back at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"0"}, Cancelled, false,
 			"Operation Cancelled"},
+		// b is a line as any other (P-25): no answer at a y/N question,
+		// and compared with the phrase at a typed confirmation.
+		{"b refused at the confirmation", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"b", "y"}), Applied, true,
+			"'george'? [y/N, 0 or q]: b\n  [!] Error: Invalid answer. Please try again.\n"},
+		{"b refused at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"b", hostname}, Applied, true,
+			"[bos-san-l01, 0 or q]: b\n  [!] Error: That does not match exactly. Please try again.\n"},
 		{"typed by the first label of a long hostname", longHost, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
-			"  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01\n"},
+			"  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n"},
 		{"a zero-width title", zeroWidth, zeroWidthEngine, false, []string{"y"}, Failed, true, unknownSteps},
 		{"a bell for a title", bell, bellEngine, false, []string{"y"}, Failed, true, unknownSteps},
 		{"a NUL for a title", null, nullEngine, false, []string{"y"}, Failed, true, unknownSteps},
@@ -373,7 +379,7 @@ func TestAbort(t *testing.T) {
 			check(context.Background(), fmt.Sprintf("%q at prompt %d", e.line, k+1), createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, lines, e.want)
 		}
 	}
-	check(context.Background(), "b at the first field", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, []string{"b"}, nav.ErrBack)
+	check(context.Background(), "0 at the first field", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, []string{"0"}, nav.ErrBack)
 	lockout := spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}}
 	check(context.Background(), "q at a typed confirmation", disableRoot, lockout, []string{"q"}, nav.ErrQuit)
 	check(context.Background(), "the end of the input at a typed confirmation", disableRoot, lockout, nil, prompt.ErrEndOfInput)
@@ -425,7 +431,7 @@ func TestRefused(t *testing.T) {
 		{"no engine", Flow{Confirm: func(Plan) Confirm { return Confirm{} }}, ErrFlow, false},
 		{"no confirm", noConfirm, ErrFlow, false},
 		{"no phrase", confirming(Confirm{Question: "Disable SSH login for 'root'?", Label: "Type the hostname"}), nav.ErrPhrase, true},
-		{"a short phrase that navigates", confirming(Confirm{Label: "Type the hostname", Phrase: hostname, Short: "b"}), nav.ErrPhrase, true},
+		{"a short phrase that navigates", confirming(Confirm{Label: "Type the hostname", Phrase: hostname, Short: "q"}), nav.ErrPhrase, true},
 		{"no label or question", confirming(Confirm{Phrase: hostname}), ErrFlow, true},
 	}
 	for _, tt := range tests {
@@ -441,7 +447,7 @@ func TestRefused(t *testing.T) {
 
 // TestNarrow checks a typed confirmation at the widths around the
 // narrowest that shows "bos-san-l01" whole beside "Type the hostname":
-// 30 columns in Unicode glyphs and 32 in ASCII ones, plain mode's.
+// 27 columns in Unicode glyphs and 29 in ASCII ones, plain mode's.
 // Narrower, the flow says "Operation Cancelled" and that the terminal is
 // too narrow, after one gap, with nothing asked or applied and no error,
 // so that a menu carries on (TestReturn). A dotted phrase is never cut to
@@ -461,21 +467,28 @@ func TestNarrow(t *testing.T) {
 		lines []string
 		want  Outcome
 	}{
-		{"Unicode, 29 columns", term.Fixed(29, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Cancelled},
-		{"Unicode, 30 columns", term.Fixed(30, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Applied},
-		{"plain, 31 columns", term.Fixed(31, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Cancelled},
-		{"plain, 32 columns", term.Fixed(32, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Applied},
-		{"a dotted phrase, 29 columns", term.Fixed(29, colorprofile.ASCII, true, true), dotted, []string{"192"}, Cancelled},
-		{"a long hostname's short phrase, 30 columns", term.Fixed(30, colorprofile.ASCII, true, true), longHost, []string{hostname}, Applied},
+		{"Unicode, 26 columns", term.Fixed(26, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Cancelled},
+		{"Unicode, 27 columns", term.Fixed(27, colorprofile.ASCII, true, true), disableRoot, []string{hostname}, Applied},
+		{"plain, 28 columns", term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Cancelled},
+		{"plain, 29 columns", term.Fixed(29, colorprofile.NoTTY, false, true), disableRoot, []string{hostname}, Applied},
+		{"a dotted phrase, 26 columns", term.Fixed(26, colorprofile.ASCII, true, true), dotted, []string{"192"}, Cancelled},
+		{"a long hostname's short phrase, 27 columns", term.Fixed(27, colorprofile.ASCII, true, true), longHost, []string{hostname}, Applied},
 	}
 	for _, tt := range tests {
 		applied := false
 		o, out, err := play(tt.env, tt.flow(spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}, applied: &applied}), tt.lines...)
 		out = ansi.Strip(out)
-		asked := strings.Contains(out, ", 0, b or q]: ")
-		// What follows the plan and one blank line: the callout's title,
-		// then its body, each line after the bar and a space.
-		_, after, said := strings.Cut(out, "$ systemctl reload ssh\n\n")
+		asked := strings.Contains(out, ", 0 or q]: ")
+		// What follows the plan and one blank line, the transcript's last:
+		// the callout's title, then its body, each line after the bar and
+		// a space. The plan ends with "ssh", the last word of its last
+		// command, which wraps at 26 columns.
+		gap := strings.LastIndex(out, "\n\n")
+		said := gap > 0 && out[gap-1] != '\n' && strings.HasSuffix(out[:gap], "ssh")
+		after := ""
+		if said {
+			after = out[gap+2:]
+		}
 		lines := strings.Split(strings.TrimSuffix(after, "\n"), "\n")
 		var body []string
 		for _, l := range lines[1:] {
@@ -503,11 +516,11 @@ func TestReturn(t *testing.T) {
 		holds []string
 	}{
 		{"applied", plain80, createUser(Fixture{Planned: createUserPlan}), "Create User", slices.Concat(answers, []string{"y"}), []string{
-			"  > Enter your choice [0-1, b or q]: 1\n\n   1. Username [0, b or q]: george\n",
+			"  > Enter your choice [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
 			"# [+] Operation Successful\n\n   1) Create User\n",
 		}},
-		{"too narrow to confirm", term.Fixed(31, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{
-			"# again.\n\n   1) Root SSH Login\n",
+		{"too narrow to confirm", term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{
+			"# try again.\n\n   1) Root SSH Login\n",
 		}},
 	}
 	for _, tt := range tests {

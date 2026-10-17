@@ -23,7 +23,8 @@ const (
 	figmaPrompt = "Enter your choice"
 )
 
-// fixtureHeader is the header every fixture opens with.
+// fixtureHeader is the header the main-menu fixture opens with; the
+// sub-screens open with a title bar instead (P-08).
 func fixtureHeader() component.Header {
 	return component.Header{Version: fixtureVersion, URL: fixtureURL}
 }
@@ -73,16 +74,15 @@ func MainMenuFixture() MainMenu {
 
 // UserFixture returns the User Management sub-menu as Figma's 01-USER
 // fills it: the "Non-root" status row, the "User Configuration" section
-// for george, whose sudo needs no password, and Figma's two items. The
-// breadcrumb's current item is Figma's title bar, "User Management". Its
-// words are the frame's, where origin/main's differ: "Manage a user" and
-// "Create a user", "Configure sudo, SSH Keys", the section
+// for george, whose sudo needs no password, and Figma's two items, under
+// Figma's title bar, "User Management", the top of its section, with no
+// parent. Its words are the frame's, where origin/main's differ: "Manage
+// a user" and "Create a user", "Configure sudo, SSH Keys", the section
 // "Configuration", "Enabled no password" and the prompt "Enter
 // selection" (P-29 (b)).
 func UserFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "User Management"}},
+		Title: trail("User Management"),
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "Non-root", State: component.StatusConfigured, Detail: "UID ≥ 1000"},
 		}},
@@ -164,9 +164,8 @@ func ManageSudoFixture() (WorkflowStep, flow.Flow) {
 // confirmation of the hostname under Figma's question (typedHostname).
 func manageSudo(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
 	step := WorkflowStep{
-		Header:     fixtureHeader(),
-		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "User Management", "Manage User"}},
-		Subject:    component.SubjectLine{Label: "Managing sudo method for", Subject: "george"},
+		Title:   trail("User Management", "Manage User"),
+		Subject: component.SubjectLine{Label: "Managing sudo method for", Subject: "george"},
 	}
 	f := flow.Flow{
 		Review: func() flow.Review {

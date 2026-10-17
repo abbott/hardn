@@ -44,21 +44,24 @@ type Binding struct {
 // Set is the bindings a prompt accepts.
 type Set []Binding
 
-// The navigation grammar (brief 1C) is the same at every prompt: 0 or b
-// goes back and q quits, besides the prompt's own inputs. On a menu 0 is
-// also the number of the Exit or Return item, shown as "0)" (pkg/ui/nav).
+// The navigation grammar (brief 1C) is the same at every prompt: 0 goes
+// back and q quits, besides the prompt's own inputs. On a menu 0 is also
+// the number of the Exit or Return item, shown as "0)" (pkg/ui/nav).
+// Back is 0 only, as origin/main, v0.3.2 and Figma have it, by the
+// maintainer's decision of 2026-10-17 over brief 1C, which had b go back
+// too (P-25).
 
-// Back returns the binding of 0 and b, which go back one level from any
-// prompt, and at the top level exit: its help reads "0 or b to go back".
-func Back() Binding { return Binding{Keys: []string{"0", "b"}, Help: "go back"} }
+// Back returns the binding of 0, which goes back one level from any
+// prompt, and at the top level exits: its help reads "0 to go back".
+func Back() Binding { return Binding{Keys: []string{"0"}, Help: "go back"} }
 
 // Quit returns the binding of q, which quits hardn from any prompt: its
 // help reads "q to quit", the Exit row's words (DEV-030).
 func Quit() Binding { return Binding{Keys: []string{"q"}, Help: "quit"} }
 
 // Navigation returns the inputs every prompt accepts besides its own,
-// Back and Quit, which a hint shows as "0, b or q", or "0-10, b or q"
-// after a menu's items.
+// Back and Quit, which a hint shows as "0 or q", or "0-10 or q" after a
+// menu's items, among which 0 is the exit item's number.
 func Navigation() Set { return Set{Back(), Quit()} }
 
 // YesNo returns the answers of a y/N question, in this order: y or yes,
@@ -76,8 +79,8 @@ func YesNo(defaultYes bool) Set {
 // "0-10 or q" for Figma's main menu. The prompt's own inputs come first:
 // the bindings with no Help, such as a menu's items or a phrase to type.
 // The inputs every prompt shares follow, the bindings with Help such as
-// Navigation's, so that they end every hint alike: "0-10, b or q", or
-// "web-01, 0, b or q" for a phrase. Each input appears once, where it
+// Navigation's, so that they end every hint alike: "0-10 or q", or
+// "web-01, 0 or q" for a phrase. Each input appears once, where it
 // first appears in that order: a menu's exit item, 0, is one of its own
 // inputs.
 // In each part numbers come first, in order, and a run of consecutive
@@ -92,7 +95,7 @@ func YesNo(defaultYes bool) Set {
 // default's in capitals, as in "y/N"; only that default counts
 // (Binding.Default). Their other keys, such as "yes", are accepted (Match)
 // but not shown, as the y/N convention has it. The shared inputs follow as
-// above: "y/N, 0, b or q".
+// above: "y/N, 0 or q".
 //
 // An empty Set, or one with no keys, has no hint: "".
 func (s Set) Hint() string {
@@ -127,7 +130,7 @@ func (s Set) Hint() string {
 
 // Help returns the help line for s: each binding that has Help, as its
 // own keys joined as in Hint, "to" and the help, in order, joined by
-// commas: "0 or b to go back, q to quit". A binding with no keys or no
+// commas: "0 to go back, q to quit". A binding with no keys or no
 // help is left out.
 func (s Set) Help() string {
 	var out []string

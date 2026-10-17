@@ -63,10 +63,10 @@ var darkPalette = palette{
 	StatusUnknown: token{"#6AB0D8", 74, lipgloss.BrightCyan}, // DEV-010
 	BadgeBG:       token{"#0C2AC0", 19, lipgloss.Blue},
 	BadgeFG:       token{"#DFDFDF", 254, lipgloss.BrightWhite}, // DEV-003
-	BarBG:         token{"#101114", 233, lipgloss.BrightBlack}, // DEV-004
+	BarBG:         token{"#16181D", 234, lipgloss.BrightBlack}, // DEV-004
 	AccentOK:      token{"#008A00", 28, lipgloss.Green},
 	AccentWarn:    token{"#D2BC13", 178, lipgloss.Yellow},
-	Divider:       token{"#565B6B", 59, lipgloss.BrightBlack}, // DEV-002
+	Divider:       token{"#303440", 236, lipgloss.BrightBlack}, // DEV-002
 }
 
 // lightPalette is the light theme. Figma has none, so these values are ours

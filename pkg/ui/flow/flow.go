@@ -255,8 +255,8 @@ func (f Flow) Check(ctx context.Context) error {
 // the terminal's width is such a result: "Operation Cancelled", saying
 // that the terminal is too narrow, and Cancelled. When the flow ends
 // before a result it returns NotRun and why: nav.ErrBack when the user
-// goes back from the form's first field (at the Confirm step 0 or b
-// declines instead), nav.ErrQuit, prompt.ErrAborted (form.ErrAborted),
+// goes back from the form's first field (at the Confirm step 0 declines
+// instead), nav.ErrQuit, prompt.ErrAborted (form.ErrAborted),
 // ctx's error when ctx is done before Apply, ErrFlow, form.ErrField,
 // nav.ErrPhrase for a phrase nav.CheckPhrase refuses, or a write error.
 // Nothing is applied unless Run reaches the Apply step.

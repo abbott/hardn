@@ -34,19 +34,46 @@ func (vm ContextBar) Render(c Ctx) string {
 	return c.bar(t.Fill, text)
 }
 
-// TitleBar is a sub-screen's title bar, such as "User Management": a
-// ContextBar with a bold title in place of the distribution. Proposal P-08
-// decides whether sub-screens use it or the Header and a Breadcrumb.
+// TitleBar is a sub-screen's title bar, as Figma's sub-screens open with
+// one, such as "Manage User" on USER-MANAGE_USER-MANAGEMENT: a ContextBar
+// with a bold title in place of the distribution. Here with no colour and
+// ASCII glyphs, with a trail:
+//
+//	# User Management > Manage User ################################
+//
+// Before the title it can show the trail of sections the screen sits
+// under, its Parents, each in TitleBar.Parent, joined by Glyphs.Separator
+// in TitleBar.Separator with a space either side, the title last in
+// TitleBar.Title. A trail too long for the bar collapses as a
+// Breadcrumb's does (crumbs): the parents between the first and the title
+// give way to one ellipsis glyph, then the first does too, then the
+// parents are dropped, and last the title is cut with the ellipsis glyph.
+// With no title the bar is all fill, whatever its parents.
+//
+// Proposal P-08, decided by the maintainer (2026-10-17): sub-screens open
+// with this bar, wrapped by bar.bg as Figma draws it, and the trail lives
+// in it, as "User Management › Manage User", never with the product name.
+// The screens show the trail only when screen.TitleTrail is set, which by
+// default it is not, so their bars show the title alone, as Figma's
+// frames do; with no Parents the bar is that.
 type TitleBar struct {
-	// Title is the screen's title. Empty draws the bar with no text.
+	// Title is the screen's title, such as "Manage User". Empty draws the
+	// bar with no text.
 	Title string
+	// Parents are the sections above the screen, outermost first, such as
+	// "User Management" above "Manage User"; never "hardn". Empty ones
+	// are skipped.
+	Parents []string
 }
 
-// Render renders the bar for c. See ContextBar for the layout.
+// Render renders the bar for c. See ContextBar and TitleBar for the
+// layout.
 func (vm TitleBar) Render(c Ctx) string {
-	var text line
-	if s := c.text(vm.Title); s != "" {
-		text = line{{s, c.Theme.TitleBar.Title}}
+	t := c.Theme.TitleBar
+	title := c.text(vm.Title)
+	if title == "" {
+		return c.bar(t.Fill, nil)
 	}
-	return c.bar(c.Theme.TitleBar.Fill, text)
+	items := append(c.items(vm.Parents), title)
+	return c.bar(t.Fill, c.crumbs(items, c.barWidth()-barFrame, t.Parent, t.Separator, t.Title))
 }

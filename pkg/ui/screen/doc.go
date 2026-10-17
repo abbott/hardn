@@ -13,16 +13,21 @@
 //     shorter than theme.CompactBelow, or too short for its full form, it
 //     renders its compact form, which fits theme.CompactBudget lines (see
 //     MainMenu).
-//   - SubMenu, after 01-USER: the Header and a Breadcrumb, a SubjectLine,
-//     the area's StatusList, its sections (Section: a SectionHeader, a
-//     Badge and a BulletList), a MenuHeading, the Menu and the PromptLine.
-//   - WorkflowStep, after USER-MANAGE_SUDO-CONFIRMATION: the Header, a
-//     Breadcrumb and a SubjectLine above a run of the canonical flow
-//     (pkg/ui/flow), which writes each step and asks its prompts.
+//   - SubMenu, after 01-USER: the TitleBar, a SubjectLine, the area's
+//     StatusList, its sections (Section: a SectionHeader, a Badge and a
+//     BulletList), a MenuHeading, the Menu and the PromptLine.
+//   - WorkflowStep, after USER-MANAGE_SUDO-CONFIRMATION: the TitleBar and
+//     a SubjectLine above a run of the canonical flow (pkg/ui/flow), which
+//     writes each step and asks its prompts.
 //
-// Sub-screens open with the Header and a Breadcrumb, as brief 1B's
-// layouts have them, where Figma's frames draw a TitleBar; proposal P-08
-// puts the choice to the maintainer (DEV-053).
+// Sub-screens open with Figma's single title bar, not brief 1B's Header
+// and Breadcrumb: proposal P-08, decided by the maintainer (2026-10-17).
+// The section trail lives inside the bar, as "User Management › Manage
+// User", never with the product name, and is off by default: TitleTrail
+// gates it, and each layout keeps its parents in the view-model, so the
+// bar shows the screen's title alone, as Figma's frames do, until the
+// constant is flipped (DEV-053, DEV-054). The main menu keeps its Header
+// and ContextBar.
 //
 // # Rendering
 //

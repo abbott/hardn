@@ -13,10 +13,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -88,10 +88,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -163,10 +163,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -238,10 +238,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -313,10 +313,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -388,10 +388,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
-  ␛[38;2;16;17;20mbar.bg␛[m          ␛[48;2;16;17;20m      ␛[m$
+  ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
-  ␛[38;2;86;91;107mdivider␛[m         ␛[48;2;86;91;107m      ␛[m$
+  ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -913,10 +913,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -988,10 +988,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -1063,10 +1063,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -1138,10 +1138,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -1213,10 +1213,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -1288,10 +1288,10 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
-  ␛[38;5;233mbar.bg␛[m          ␛[48;5;233m      ␛[m$
+  ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
-  ␛[38;5;59mdivider␛[m         ␛[48;5;59m      ␛[m$
+  ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
 $
 Glyphs$
   Configured      [+]$

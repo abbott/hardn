@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -14,12 +15,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -30,7 +33,7 @@ import (
 func playGallery(lines []string, args ...string) (int, string, string, int) {
 	var out, errs bytes.Buffer
 	ty := uitest.NewTypist(&out, lines...)
-	code := run(append([]string{"play"}, args...), func() *prompt.Reader { return prompt.New(ty, false) }, &out, &errs)
+	code := run(append([]string{"play"}, args...), func() *prompt.Reader { return prompt.New(ty, false) }, offTerminal, &out, &errs)
 	return code, out.String(), errs.String(), ty.Unread()
 }
 
@@ -54,8 +57,8 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // TestPlayGolden plays the paths the playable mode must show end to end,
 // on the core set, and pins each transcript: the user-management workflow
 // from the main menu, with an item the gallery has no screen for, the
-// sudo change asked y/N, then back with b and 0 to the main menu and out
-// with 0; the same workflow with its typed sequence, then q from four
+// sudo change asked y/N, then back with 0 to the main menu and out with
+// 0; the same workflow with its typed sequence, then q from four
 // levels down; the root-login toggle's typed confirmation, a line refused
 // first, then q from its sub-menu; the sudo change told to fail its
 // second step, which rolls the first back; and the input ending at a
@@ -69,7 +72,7 @@ func TestPlayGolden(t *testing.T) {
 		lines []string
 		code  int
 	}{
-		{"user-management", nil, []string{"4", "1", "1", "1", "1", "y", "b", "0", "b", "0"}, exitOK},
+		{"user-management", nil, []string{"4", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
 		{"user-management-typed", []string{"-sequence", "typed"}, []string{"1", "1", "1", "1", "bos-san-l01", "q"}, exitOK},
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
@@ -87,10 +90,88 @@ func TestPlayGolden(t *testing.T) {
 	}
 }
 
+// TestPlaySize checks how play sizes its environment (look.sizeTo), on a
+// sizer the test injects, so that it does not depend on the terminal it
+// runs in: on a terminal, the terminal's size where -width or -height is
+// not given, each flag given winning on its own, even one that is then
+// refused, and the terminal not asked when both are; off a terminal, 80
+// and 24 whatever size the sizer reports, as on a terminal of unknown
+// size. Then, end to end, that the main menu takes the form the size
+// gives it: its full form on an 80x40 terminal, and its compact form on
+// one of 24 rows, at -height 24 on the 80x40 terminal, and off a
+// terminal.
+func TestPlaySize(t *testing.T) {
+	tests := []struct {
+		name          string
+		args          []string
+		w, h          int  // the terminal's size, as the sizer reports it
+		tty           bool // whether stdout is a terminal
+		width, height int  // the size play takes
+		asked         bool // whether play calls the sizer
+	}{
+		{"off a terminal", nil, 0, 0, false, term.DefaultWidth, term.DefaultHeight, true},
+		{"off a terminal, with a size reported", nil, 120, 50, false, term.DefaultWidth, term.DefaultHeight, true},
+		{"off a terminal, -height given", []string{"-height", "40"}, 0, 0, false, term.DefaultWidth, 40, true},
+		{"on a terminal", nil, 120, 50, true, 120, 50, true},
+		{"on a terminal, -width given", []string{"-width", "60"}, 120, 50, true, 60, 50, true},
+		{"on a terminal, -height given", []string{"-height", "24"}, 120, 50, true, 120, 24, true},
+		{"on a terminal, both given", []string{"-width", "70", "-height", "30"}, 120, 50, true, 70, 30, false},
+		{"on a terminal, -width 0 given", []string{"-width", "0"}, 120, 50, true, 0, 50, true},
+		{"on a terminal of unknown size", nil, 0, 0, true, term.DefaultWidth, term.DefaultHeight, true},
+	}
+	for _, tt := range tests {
+		fs := flag.NewFlagSet("uigallery play", flag.ContinueOnError)
+		l := lookFlags(fs, true)
+		if err := fs.Parse(tt.args); err != nil {
+			t.Fatalf("%s: %v", tt.name, err)
+		}
+		asked := false
+		l.sizeTo(fs, func() (int, int, bool) { asked = true; return tt.w, tt.h, tt.tty })
+		if *l.width != tt.width || *l.height != tt.height || asked != tt.asked {
+			t.Errorf("%s, %v: %dx%d, sizer called %t; want %dx%d, called %t", tt.name, tt.args, *l.width, *l.height, asked, tt.width, tt.height, tt.asked)
+		}
+	}
+	on := func(w, h int) sizer { return func() (int, int, bool) { return w, h, true } }
+	var out, errs bytes.Buffer
+	if code := run([]string{"play", "-width", "0"}, noInput, on(120, 50), &out, &errs); code != exitUsage || out.Len() != 0 || !strings.Contains(errs.String(), "-width 0 is not a positive number of cells") {
+		t.Errorf("play -width 0 on a terminal: exit %d, stdout %q, stderr %q; want exit %d and -width refused", code, out.String(), errs.String(), exitUsage)
+	}
+	vm := screen.MainMenuFixture()
+	drawn := func(height int) string {
+		env := term.Fixed(80, colorprofile.ASCII, false, true)
+		env.Height = height
+		return ansi.Strip(vm.Render(component.NewCtx(env)))
+	}
+	full, compact := drawn(theme.CompactBelow), drawn(term.DefaultHeight)
+	if full == compact || !strings.HasPrefix(full, "hardn") {
+		t.Fatalf("the main menu at 80x40 is not its full form:\n%s", full)
+	}
+	for _, tt := range []struct {
+		name string
+		args []string
+		size sizer
+		want string
+	}{
+		{"an 80x40 terminal", nil, on(80, 40), full},
+		{"an 80x24 terminal", nil, on(80, 24), compact},
+		{"an 80x40 terminal, -height 24", []string{"-height", "24"}, on(80, 40), compact},
+		{"no terminal", nil, offTerminal, compact},
+	} {
+		var out, errs bytes.Buffer
+		ty := uitest.NewTypist(&out, "q")
+		args := append([]string{"play", "-profile", "none", "-ascii"}, tt.args...)
+		code := run(args, func() *prompt.Reader { return prompt.New(ty, false) }, tt.size, &out, &errs)
+		if got := ansi.Strip(out.String()); code != exitOK || errs.Len() != 0 || !strings.Contains(got, tt.want+" q\n") {
+			t.Errorf("%s: exit %d, stderr %q, transcript\n%s\nwant it to hold the main menu\n%s", tt.name, code, errs.String(), got, tt.want)
+		}
+	}
+}
+
 // TestPlayEnds checks how play ends at each kind of prompt: the end of
 // the input aborts with exit status 130 and nothing applied, q quits and
-// 0 or b at the first screen goes back, both with 0, and the record says
-// what was applied.
+// 0 at the first screen goes back, both with 0, and the record says what
+// was applied. b goes nowhere: the main menu refuses it, as any line it
+// does not take, and reads the next.
 func TestPlayEnds(t *testing.T) {
 	sudo := []string{"1", "1", "1", "1"}
 	tests := []struct {
@@ -110,9 +191,10 @@ func TestPlayEnds(t *testing.T) {
 		{"Q at a sub-menu", nil, []string{"3", "Q"}, exitOK, false},
 		{"q at a form's field", []string{"workflow-step/user-create-user"}, []string{"bob", "q"}, exitOK, false},
 		{"q at a typed confirmation", nil, []string{"2", "1", "q"}, exitOK, false},
-		{"b at the main menu", nil, []string{"b"}, exitOK, false},
+		{"0 at the main menu", nil, []string{"0"}, exitOK, false},
+		{"b at the main menu, refused", nil, []string{"b", "0"}, exitOK, false},
 		{"0 at a first sub-menu", []string{"sub-menu/user-ssh-keys"}, []string{"0"}, exitOK, false},
-		{"b at a first workflow's first field", []string{"workflow-step/user-create-user"}, []string{"b"}, exitOK, false},
+		{"0 at a first workflow's first field", []string{"workflow-step/user-create-user"}, []string{"0"}, exitOK, false},
 		{"0 at a first workflow's confirmation", []string{"workflow-step/user-manage-sudo-confirmation"}, []string{"0"}, exitOK, false},
 		{"a dry-run sequence", []string{"workflow-step/ssh-login-toggle-confirmation/dry-run"}, nil, exitOK, false},
 	}
@@ -225,8 +307,9 @@ func TestPlayReaches(t *testing.T) {
 // every profile, both themes and both glyph sets, at 20, 60 and 80
 // columns: play ends with exit status 0, and no line is wider than the
 // terminal but a header, which shows its whole name, and a prompt's line
-// with the answer the terminal echoes. Below 30 columns the toggle's
-// typed confirmation does not show, and the flow cancels it unasked.
+// with the answer the terminal echoes. Below 27 columns in Unicode
+// glyphs, 29 in ASCII and plain mode, the toggle's typed confirmation
+// does not show, and the flow cancels it unasked.
 func TestPlaySmoke(t *testing.T) {
 	for _, p := range profiles {
 		for _, th := range []string{"dark", "light"} {
@@ -234,7 +317,11 @@ func TestPlaySmoke(t *testing.T) {
 				for _, w := range []int{20, 60, 80} {
 					look := []string{"-profile", p.name, "-theme", th, fmt.Sprintf("-ascii=%t", ascii), fmt.Sprintf("-width=%d", w)}
 					lines := []string{"2", "1", "bos-san-l01", "q"}
-					if w < 30 {
+					narrowest := 27
+					if ascii || p.name == "plain" {
+						narrowest = 29
+					}
+					if w < narrowest {
 						lines = []string{"2", "1", "q"}
 					}
 					for _, run := range []struct {
@@ -297,14 +384,16 @@ func TestPlayUsage(t *testing.T) {
 	} {
 		var out, errs bytes.Buffer
 		read := false
-		code := run(append([]string{"play"}, args...), func() *prompt.Reader { read = true; return noInput() }, &out, &errs)
+		code := run(append([]string{"play"}, args...), func() *prompt.Reader { read = true; return noInput() }, offTerminal, &out, &errs)
 		if code != exitUsage || out.Len() != 0 || errs.Len() == 0 || read {
 			t.Errorf("play %v: exit %d, stdout %q, stderr %q, stdin read %t; want exit %d, a message, no output", args, code, out.String(), errs.String(), read, exitUsage)
 		}
 	}
 	code, _, errs, _ := playGallery(nil, "-h")
-	if code != exitOK || !strings.Contains(errs, playUsage) || !strings.Contains(errs, "-fail") {
-		t.Errorf("play -h: exit %d, stderr %q", code, errs)
+	if code != exitOK || !strings.Contains(errs, playUsage) || !strings.Contains(errs, "-fail") ||
+		!strings.Contains(errs, "the terminal width in cells: by default the terminal's own when stdout is a terminal, else 80\n") ||
+		!strings.Contains(errs, "the terminal height in lines: by default the terminal's own when stdout is a terminal, else 24. ") {
+		t.Errorf("play -h: exit %d, stderr %q; want -width's and -height's help to say they default to the terminal's size", code, errs)
 	}
 	if code, _, errs := runGallery("-screens", "play"); code != exitUsage || !strings.Contains(errs, `no screen "play"`) {
 		t.Errorf("play after a flag: exit %d, stderr %q; want it taken as a screen's name", code, errs)
@@ -349,7 +438,7 @@ func TestPlayWriteFails(t *testing.T) {
 		var out, errs bytes.Buffer
 		w := &breaks{w: &out, at: "simulated system"}
 		ty := uitest.NewTypist(&out, tt.lines...)
-		code := run([]string{"play", "-profile", "plain"}, func() *prompt.Reader { return prompt.New(ty, false) }, w, &errs)
+		code := run([]string{"play", "-profile", "plain"}, func() *prompt.Reader { return prompt.New(ty, false) }, offTerminal, w, &errs)
 		if code != tt.code || errs.String() != tt.errs || !w.broke {
 			t.Errorf("%s: exit %d, stderr %q, the record's write failed %t; want exit %d, stderr %q", tt.name, code, errs.String(), w.broke, tt.code, tt.errs)
 		}

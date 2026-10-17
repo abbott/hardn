@@ -3,22 +3,22 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m George$
+  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m George$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;129;134;156mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;129;134;156munderscores␛[m$
-  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-  Username [0, b or q]: George$
+  Username [0 or q]: George$
   [!] Error: Username must start with a lowercase letter and$
       contain only lowercase letters, numbers, hyphens, and$
       underscores$
-  Username [0, b or q]: george$
+  Username [0 or q]: george$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m George$
+  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m George$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername must start with a lowercase letter and␛[m$
       ␛[38;2;129;134;156mcontain only lowercase letters, numbers, hyphens, and␛[m$
       ␛[38;2;129;134;156munderscores␛[m$
-  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+  ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$

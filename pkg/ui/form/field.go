@@ -42,8 +42,9 @@ type view struct {
 }
 
 // Text is a free-text field, such as a user name. Its value is the line
-// typed without the white space around it, as nav.Text reads it: 0, b
-// and q navigate there too, so the value is never one of them (P-25 (a)).
+// typed without the white space around it, as nav.Text reads it: 0 and
+// q navigate there too, so the value is never one of them (P-25 (a)); b
+// is a value as any other line is.
 type Text struct {
 	// Title is the question, such as "Username". TitleFunc, when set,
 	// gives it instead each time the field is asked, from earlier answers.
@@ -98,7 +99,7 @@ func (f *Text) save() error {
 // It takes y or yes for true and n or no for false, in any case, and an
 // empty line for its Default, which the hint shows in capitals: "[y/N]",
 // or "[Y/n]" when Default is true. Any other line is refused with nav's
-// words; 0, b and q navigate, so a 0 is never taken for "no".
+// words, b included; 0 and q navigate, so a 0 is never taken for "no".
 type YesNo struct {
 	// Title is the question, such as "Grant sudo privilege?". TitleFunc,
 	// when set, gives it instead each time the field is asked, from
@@ -171,10 +172,11 @@ type Option[T any] struct {
 // the SSH key to remove (origin/main's "Select a key to remove", pkg/menu
 // user_options.go:502): its options are listed as a menu's items, keyed
 // from 1 in order, under its title, and its prompt line asks "Enter your
-// choice", as a menu's does; it takes the number of one. Any other line is
-// refused with nav's words for a menu; 0, b and q navigate. A Select has
-// no Default: a numbered list's hint has no way to mark one, and an empty
-// line chooses nothing, as on a menu. Its echo names the option chosen.
+// choice", as a menu's does; it takes the number of one. Any other line
+// is refused with nav's words for a menu, b included; 0 and q navigate.
+// A Select has no Default: a numbered list's hint has no way to mark one,
+// and an empty line chooses nothing, as on a menu. Its echo names the
+// option chosen.
 //
 // A choice that opens a screen of its own, such as Figma's "Select a
 // user" (USER-MANAGE_USER-SELECT_USER), whose user's management menu

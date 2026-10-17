@@ -9,9 +9,7 @@ import (
 // with no colour and ASCII glyphs, its fixture (UserFixture), the blank
 // lines being theme.SectionGap:
 //
-//	hardn  v0.4.0              https://github.com/abbott/hardn
-//
-//	  hardn > User Management
+//	# User Management ##############################################
 //
 //	  [+] Non-root             Configured UID >= 1000
 //
@@ -31,25 +29,25 @@ import (
 //
 //	   0) Return
 //
-//	  > Enter your choice [0-2, b or q]:
+//	  > Enter your choice [0-2 or q]:
 //
-// The blocks: Header, Breadcrumb, SubjectLine, StatusList, each Section,
-// the MenuHeading, the Menu, then the PromptLine after theme.PromptGap
-// blank lines. A block that renders nothing is left out with its gap, so
-// one layout serves 01-USER (status, a section, a menu), 02-SSH_LOGIN and
+// The blocks: the TitleBar, SubjectLine, StatusList, each Section, the
+// MenuHeading, the Menu, then the PromptLine after theme.PromptGap blank
+// lines. A block that renders nothing is left out with its gap, so one
+// layout serves 01-USER (status, a section, a menu), 02-SSH_LOGIN and
 // 05-BACKUP (status rows, a section), USER-MANAGE_USER-MANAGEMENT and
 // USER-SSH_KEYS (a subject line and a menu) and
 // USER-MANAGE_USER-SELECT_USER (a menu of users under its own heading).
-// Figma's frames open with a TitleBar where the brief's layout has the
-// Header and a Breadcrumb: two lines more (P-08, DEV-053). A sub-menu has
-// no compact form: 01-USER takes 23 lines.
+// It opens with Figma's title bar, as P-08 decided (2026-10-17): no
+// Header and no Breadcrumb line. The bar shows the screen's title alone;
+// its section trail, "User Management › Manage User", shows only when
+// TitleTrail is set (DEV-053). A sub-menu has no compact form: 01-USER
+// takes 21 lines, as Figma's frame does.
 type SubMenu struct {
-	// Header is the wordmark, the version and the repository link, as on
-	// the main menu.
-	Header component.Header
-	// Breadcrumb says where the sub-menu sits, such as "hardn › User
-	// Management".
-	Breadcrumb component.Breadcrumb
+	// Title is the title bar, such as "Manage User", with the sections
+	// above the screen as its Parents, such as "User Management". The
+	// parents show only when TitleTrail is set.
+	Title component.TitleBar
 	// Subject names what the screen acts on, such as "Managing: george";
 	// with no subject it is left out.
 	Subject component.SubjectLine
@@ -71,9 +69,14 @@ type SubMenu struct {
 // the layout. The menu is laid out in one column whatever vm.Menu.Compact
 // says, as nav.Run draws it from Screen.
 func (vm SubMenu) Render(c component.Ctx) string {
+	return vm.render(c, TitleTrail)
+}
+
+// render is Render with the trail shown when withTrail is set.
+func (vm SubMenu) render(c component.Ctx, withTrail bool) string {
 	menu := vm.Menu
 	menu.Compact = false
-	return withMenu(c, vm.above(c), menu, vm.Prompt)
+	return withMenu(c, vm.above(c, withTrail), menu, vm.Prompt)
 }
 
 // Screen returns what nav.Run draws for the sub-menu, with m as its menu
@@ -81,12 +84,13 @@ func (vm SubMenu) Render(c component.Ctx) string {
 // so that nav.Run draws what Render renders. Call it in each round of
 // Run's draw.
 func (vm SubMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
-	return nav.Screen{Above: vm.above(c), Menu: m, Label: vm.Prompt}
+	return nav.Screen{Above: vm.above(c, TitleTrail), Menu: m, Label: vm.Prompt}
 }
 
-// above renders every block above the menu.
-func (vm SubMenu) above(c component.Ctx) string {
-	blocks := []string{vm.Header.Render(c), vm.Breadcrumb.Render(c), vm.Subject.Render(c), vm.Status.Render(c)}
+// above renders every block above the menu, the title bar with its trail
+// when withTrail is set.
+func (vm SubMenu) above(c component.Ctx, withTrail bool) string {
+	blocks := []string{titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c), vm.Status.Render(c)}
 	for _, s := range vm.Sections {
 		blocks = append(blocks, s.Render(c))
 	}

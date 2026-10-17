@@ -4,7 +4,7 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;231;70;105mEnabled, No password␛[m$
    ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
@@ -21,7 +21,7 @@ $
       ␛[38;2;112;212;127m+george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
       ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
 $
-  ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+  ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
@@ -42,11 +42,11 @@ $
       +george ALL=(ALL:ALL) NOPASSWD: ALL$
       $ visudo -cf /etc/sudoers.d/hardn-george$
 $
-  Create user 'george'? [y/N, 0, b or q]: y$
+  Create user 'george'? [y/N, 0 or q]: y$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
       ␛[38;2;231;70;105mEnabled, No password␛[m$
@@ -65,4 +65,4 @@ $
       ␛[38;2;112;212;127m+george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
       ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
 $
-  ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+  ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$

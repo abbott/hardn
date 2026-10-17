@@ -180,11 +180,16 @@ func TestRendersAsGoldens(t *testing.T) {
 // anything: its input has ended.
 func noInput() *prompt.Reader { return prompt.New(strings.NewReader(""), false) }
 
+// offTerminal is the sizer of a gallery whose stdout is not a terminal,
+// as a test's is not: play keeps -width's and -height's defaults, 80 and
+// 24, whatever terminal the test runs in.
+func offTerminal() (int, int, bool) { return 0, 0, false }
+
 // runGallery runs the gallery with args and returns its exit status, stdout
 // and stderr.
 func runGallery(args ...string) (int, string, string) {
 	var out, errs bytes.Buffer
-	code := run(args, noInput, &out, &errs)
+	code := run(args, noInput, offTerminal, &out, &errs)
 	return code, out.String(), errs.String()
 }
 
@@ -342,7 +347,7 @@ func TestUsage(t *testing.T) {
 // arguments in UIGALLERY_TEST_ARGS.
 func TestEastAsian(t *testing.T) {
 	if args, ok := os.LookupEnv("UIGALLERY_TEST_ARGS"); ok {
-		os.Exit(run(strings.Fields(args), noInput, os.Stdout, os.Stderr))
+		os.Exit(run(strings.Fields(args), noInput, offTerminal, os.Stdout, os.Stderr))
 	}
 	tests := []struct {
 		args string
@@ -610,8 +615,9 @@ func TestScreenSelect(t *testing.T) {
 
 // TestScreenSmoke runs -screens in-process for every profile, both themes
 // and both glyph sets, at 80 and 60 columns and at the narrow widths where
-// a typed confirmation stops fitting (29 to 32 columns, below which the
-// flow cancels it), and at 1 and 20, and checks the output: the exit
+// a typed confirmation stops fitting (26 to 29 columns: it needs 27 in
+// Unicode glyphs and 29 in ASCII, below which the flow cancels it), and
+// at 1 and 20, and checks the output: the exit
 // status 0; every mock under its header; every sequence step by step, or,
 // one that ends otherwise at the width (screen.Diverged), whole under its
 // own name's header; the escape sequences the profile allows and no more;
@@ -631,7 +637,7 @@ func TestScreenSmoke(t *testing.T) {
 	for _, p := range profiles {
 		for _, th := range []string{"dark", "light"} {
 			for _, ascii := range []bool{false, true} {
-				for _, w := range []int{1, 20, 29, 30, 31, 32, 60, 80} {
+				for _, w := range []int{1, 20, 26, 27, 28, 29, 60, 80} {
 					args := []string{"-screens", "-profile", p.name, "-theme", th, fmt.Sprintf("-ascii=%t", ascii), fmt.Sprintf("-width=%d", w)}
 					code, out, errs := runGallery(args...)
 					where := strings.Join(args, " ")

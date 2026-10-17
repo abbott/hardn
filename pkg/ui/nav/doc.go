@@ -11,32 +11,36 @@
 // (keys.Set.Match).
 //
 //   - Numbers select a menu's items.
-//   - 0 or b goes back one level from any prompt (ErrBack). At the top
-//     level, back exits: Run returns, and its caller ends hardn. On a
-//     menu 0 is also the number of the Exit or Return item, shown as
-//     "0)".
+//   - 0 goes back one level from any prompt (ErrBack). At the top level,
+//     back exits: Run returns, and its caller ends hardn. On a menu 0 is
+//     also the number of the Exit or Return item, shown as "0)". Back is
+//     0 only, as origin/main, v0.3.2 and Figma have it: the maintainer
+//     decided so on 2026-10-17, over brief 1C, which had b go back too
+//     (P-25).
 //   - q quits hardn from any prompt (ErrQuit): each level returns it to
 //     the one above.
 //   - A y/N question (Confirm) takes y or yes, n or no, and Enter alone
 //     for its default, the capital in the hint.
 //   - A typed confirmation (Typed) takes its phrase, such as the
 //     hostname, exactly, case included. An Enter alone never confirms.
-//   - A free-text question (Text) takes any other line.
+//   - A free-text question (Text) takes any other line, b among them.
 //
-// So 0, b and q navigate wherever they are typed, as brief 1C and the
+// So 0 and q navigate wherever they are typed, as brief 1C and the
 // refactor plan have it (the same at every level), and are never an
 // answer: not a "no" at a y/N question, not a free-text value (a user
-// named b or q cannot be typed in, P-25 (a)), nor a phrase (CheckPhrase
-// refuses one).
+// named q cannot be typed in, P-25 (a)), nor a phrase (CheckPhrase
+// refuses one). Any other line is the prompt's own: b is refused by a
+// menu and a y/N question as any input they do not take, compared with
+// the phrase by a typed confirmation, and a value of free text.
 //
 // Each prompt's hint is generated from what it accepts (keys.Set.Hint):
 // the prompt's own inputs, then the navigation inputs, so that these end
-// every hint alike: "[0-10, b or q]" on the main menu, where 0 is the
-// Exit item's number too, "[0-2, b or q]" on a sub-menu,
-// "[y/N, 0, b or q]" for a y/N question, "[web-01, 0, b or q]" for a
-// typed confirmation and "[0, b or q]" for free text (DEV-044, DEV-045;
-// P-25 puts the free-text and typed forms, and how the navigation inputs
-// are explained, to the maintainer).
+// every hint alike: "[0-10 or q]" on the main menu, where 0 is the Exit
+// item's number too, as Figma draws it, "[0-2 or q]" on a sub-menu,
+// "[y/N, 0 or q]" for a y/N question, "[web-01, 0 or q]" for a typed
+// confirmation and "[0 or q]" for free text (DEV-044, DEV-045; P-25 puts
+// the free-text and typed forms, and how the navigation inputs are
+// explained, to the maintainer).
 //
 // # Asking again
 //

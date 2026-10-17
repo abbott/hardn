@@ -46,15 +46,16 @@ var links = map[string]string{
 // reader, writing to stdout and reporting errors on stderr, and returns
 // the exit status: exitOK when the user goes back from the first screen
 // or quits, prompt.ExitInterrupted (130) when the input ends or Ctrl-C
-// interrupts a prompt.
-func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) int {
+// interrupts a prompt. Where -width or -height is not given, it takes the
+// size of the terminal stdout is from size (look.sizeTo).
+func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("uigallery play", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, playUsage)
 		fs.PrintDefaults()
 	}
-	look := lookFlags(fs)
+	look := lookFlags(fs, true)
 	sequence := fs.String("sequence", "normal", "the `name` of the sequence each workflow plays, where it has one, such as dry-run, failure or typed; else its first")
 	failAt := fs.Int("fail", 0, "fail step `N` of each plan applied, to show the rollback; 0 fails none")
 	if err := fs.Parse(args); err != nil {
@@ -91,6 +92,7 @@ func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) 
 	case *failAt < 0:
 		return usage("-fail %d is not a step", *failAt)
 	}
+	look.sizeTo(fs, size)
 	c, err := look.cell()
 	if err != nil {
 		return usage("%v", err)

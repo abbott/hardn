@@ -167,8 +167,9 @@ func TestMocks(t *testing.T) {
 // TestDiverged checks that a sequence that ends otherwise than it says,
 // with no error, fails with a *Diverged that holds the whole transcript:
 // the root-login toggle's normal path on a terminal too narrow for its
-// typed confirmation, below 30 columns in Unicode glyphs, which the flow
-// cancels without asking it. Mock.Render's error wraps it.
+// typed confirmation, below 29 columns in plain mode (27 in Unicode
+// glyphs), which the flow cancels without asking it. Mock.Render's error
+// wraps it.
 func TestDiverged(t *testing.T) {
 	var toggle Mock
 	for _, m := range Mocks() {
@@ -179,7 +180,7 @@ func TestDiverged(t *testing.T) {
 	if len(toggle.Sequences) == 0 || toggle.Sequences[0].Name != "normal" {
 		t.Fatalf("no normal sequence for the root-login toggle: %+v", toggle)
 	}
-	c := component.NewCtx(term.Fixed(29, colorprofile.NoTTY, false, true))
+	c := component.NewCtx(term.Fixed(28, colorprofile.NoTTY, false, true))
 	steps, err := toggle.Sequences[0].Play(c)
 	var d *Diverged
 	if !errors.As(err, &d) || steps != nil || d.Ended != flow.Cancelled || d.Want != flow.Applied ||
@@ -280,7 +281,9 @@ func TestScreen(t *testing.T) {
 // sit side by side, the compact form takes at most theme.CompactBudget
 // lines and the full form fits theme.CompactBelow rows. At 60 columns,
 // where they stack, the full form takes 57 lines and the compact form 34
-// (DEV-052). With no terminal, the full form whatever the height.
+// (DEV-052). At every width the compact form's context bar keeps the
+// blank line under it. With no terminal, the full form whatever the
+// height.
 func TestCompact(t *testing.T) {
 	vm := MainMenuFixture()
 	heights := []int{0, 1}
@@ -297,6 +300,9 @@ func TestCompact(t *testing.T) {
 		}
 		if w >= theme.StackBelow && nFull >= theme.CompactBelow {
 			t.Errorf("%d columns: the full form takes %d lines, not under %d", w, nFull, theme.CompactBelow)
+		}
+		if bar := strings.SplitN(ansi.Strip(short), "\n", 3); len(bar) < 3 || bar[0] != ansi.Strip(vm.Context.Render(c)) || bar[1] != "" {
+			t.Errorf("%d columns: want the compact form to open with the context bar and a blank line, got:\n%s", w, ansi.Strip(short))
 		}
 		for _, h := range heights {
 			env.Height = h
@@ -367,12 +373,14 @@ func TestScreenMenu(t *testing.T) {
 }
 
 // TestCompactForm checks what the compact form keeps and leaves out, on
-// plain text at 80x24.
+// plain text at 80x24: the context bar keeps its blank line, and the
+// menu's items start on the line under the heading, in 24 lines.
 func TestCompactForm(t *testing.T) {
 	env := term.Fixed(80, colorprofile.ASCII, false, true)
 	env.Height = term.DefaultHeight
 	out := ansi.Strip(MainMenuFixture().Render(component.NewCtx(env)))
 	want := `# Debian 12 (Bookworm) #########################################
+
   [BOS-SAN-L01]            192.0.2.10
                            182 days, 2 hours, 26 minutes
 
@@ -386,7 +394,6 @@ func TestCompactForm(t *testing.T) {
   [ ] Auto Updates         Not Configured
 
   Select an option         Dry-run Mode Disabled
-
    1) User Management       6) Dry-Run
    2) SSH Login             7) Run All
    3) DNS                   8) Environment
@@ -395,9 +402,9 @@ func TestCompactForm(t *testing.T) {
 
    0) Exit                 q to quit
 
-  > Enter selection [0-10, b or q]:`
-	if out != want {
-		t.Errorf("compact main menu:\n%s\nwant\n%s", out, want)
+  > Enter selection [0-10 or q]:`
+	if out != want || lines(out) != theme.CompactBudget {
+		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}
 }
 
@@ -412,18 +419,19 @@ func TestEmptyBlocks(t *testing.T) {
 		t.Errorf("main menu with no status rows:\n%s\nwant the risk line, one blank line, then the divider", out)
 	}
 	sub := SubMenu{
-		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "Firewall"}},
-		Subject:    component.SubjectLine{Label: "Managing"},
-		Sections:   []Section{{Header: component.SectionHeader{Title: "Rules"}}},
-		Menu:       component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:     "Enter your choice",
+		Title:    trail("Firewall"),
+		Subject:  component.SubjectLine{Label: "Managing"},
+		Sections: []Section{{Header: component.SectionHeader{Title: "Rules"}}},
+		Menu:     component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
+		Prompt:   "Enter your choice",
 	}
-	want := "hardn\n\n  hardn > Firewall\n\n   0) Return\n\n  > Enter your choice [0, b or q]:"
+	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n  > Enter your choice [0 or q]:"
 	if out := ansi.Strip(sub.Render(c)); out != want {
 		t.Errorf("sub-menu with empty blocks:\n%s\nwant\n%s", out, want)
 	}
-	if out := ansi.Strip((SubMenu{}).Render(c)); out != "hardn\n\n  > [0, b or q]:" {
-		t.Errorf("empty sub-menu: %q", out)
+	// With no title the bar is all fill, the title bar's empty state.
+	if out, want := ansi.Strip((SubMenu{}).Render(c)), ansi.Strip(component.TitleBar{}.Render(c))+"\n\n  > [0 or q]:"; out != want {
+		t.Errorf("empty sub-menu: %q, want %q", out, want)
 	}
 	if out := (Section{Header: component.SectionHeader{Title: "Rules"}}).Render(c); out != "" {
 		t.Errorf("a section with nothing under its header renders %q, want nothing", out)
@@ -437,21 +445,87 @@ func TestEmptyBlocks(t *testing.T) {
 // columns.
 func TestSubMenuFrames(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	head := "hardn  v0.4.0              https://github.com/abbott/hardn\n\n  hardn > User Management > Manage User\n\n"
+	head := ansi.Strip(titleBar(trail("User Management", "Manage User"), TitleTrail).Render(c)) + "\n\n"
 	tests := []struct {
 		name string
 		vm   SubMenu
 		want string
 	}{
 		{"USER-MANAGE_USER-SELECT_USER", selectUserFixture(),
-			head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+			head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2 or q]:"},
 		{"USER-MANAGE_USER-MANAGEMENT", manageUserFixture(),
 			head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
-				"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+				"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2 or q]:"},
 	}
 	for _, tt := range tests {
 		if out := ansi.Strip(tt.vm.Render(c)); out != tt.want {
 			t.Errorf("%s:\n%s\nwant\n%s", tt.name, out, tt.want)
+		}
+	}
+}
+
+// TestTitleTrail checks P-08's title bar (DEV-053, DEV-054): every
+// sub-screen opens with it, with no Header and no Breadcrumb line; with
+// the trail off, as TitleTrail has it by default, the bar shows the
+// screen's title alone, as Figma's frames do; with it on, the sections
+// above the screen come first, "User Management > Manage User", so that
+// flipping the constant is all the trail needs. Render draws TitleTrail's
+// form, and no trail names the product. Plain, at 80 columns.
+func TestTitleTrail(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	fill := func(text string) string {
+		return "# " + text + " " + strings.Repeat("#", lipgloss.Width(ansi.Strip(component.TitleBar{}.Render(c)))-3-len(text))
+	}
+	step, _ := ManageSudoFixture()
+	tests := []struct {
+		name     string
+		render   func(withTrail bool) string
+		off, on  string
+		rendered string
+	}{
+		{"01-USER, the top of its section", func(w bool) string { return UserFixture().render(c, w) },
+			fill("User Management"), fill("User Management"), UserFixture().Render(c)},
+		{"USER-MANAGE_USER-MANAGEMENT", func(w bool) string { return manageUserFixture().render(c, w) },
+			fill("Manage User"), fill("User Management > Manage User"), manageUserFixture().Render(c)},
+		{"USER-MANAGE_SUDO-CONFIRMATION", func(w bool) string { return step.render(c, w) },
+			fill("Manage User"), fill("User Management > Manage User"), step.Render(c)},
+	}
+	for _, tt := range tests {
+		for _, withTrail := range []bool{false, true} {
+			want := tt.off
+			if withTrail {
+				want = tt.on
+			}
+			first, _, _ := strings.Cut(ansi.Strip(tt.render(withTrail)), "\n")
+			if first != want {
+				t.Errorf("%s, trail %t: first line\n%s\nwant\n%s", tt.name, withTrail, first, want)
+			}
+		}
+		if tt.rendered != tt.render(TitleTrail) {
+			t.Errorf("%s: Render does not draw TitleTrail's form", tt.name)
+		}
+	}
+	bars := map[string]component.TitleBar{}
+	for _, m := range Mocks() {
+		switch vm := m.Screen.(type) {
+		case SubMenu:
+			bars[m.Name] = vm.Title
+		case MainMenu:
+		default:
+			for _, sq := range m.Sequences {
+				step, _ := sq.Build()
+				bars[m.Name+"/"+sq.Name] = step.Title
+			}
+		}
+	}
+	for name, bar := range bars {
+		if bar.Title == "" {
+			t.Errorf("%s: no title", name)
+		}
+		for _, it := range append(slices.Clone(bar.Parents), bar.Title) {
+			if strings.EqualFold(strings.TrimSpace(it), "hardn") {
+				t.Errorf("%s: the trail %q names the product", name, append(bar.Parents, bar.Title))
+			}
 		}
 	}
 }
@@ -477,8 +551,8 @@ func TestRunGap(t *testing.T) {
 		want  string // the transcript's start
 	}{
 		{"before any prompt, the review first", sudo, false, []string{"y"}, screen + "\n\n# [*] Warning\n"},
-		{"before any prompt, a form first", withForm, false, []string{"george", "y"}, screen + "\n\n  Username [0, b or q]: george\n\n# [*] Warning\n"},
-		{"after a prompt", sudo, true, []string{"1", "y"}, "  > Choose [1, 0, b or q]: 1\n\n" + screen + "\n\n# [*] Warning\n"},
+		{"before any prompt, a form first", withForm, false, []string{"george", "y"}, screen + "\n\n  Username [0 or q]: george\n\n# [*] Warning\n"},
+		{"after a prompt", sudo, true, []string{"1", "y"}, "  > Choose [1, 0 or q]: 1\n\n" + screen + "\n\n# [*] Warning\n"},
 	}
 	for _, tt := range tests {
 		p, out := prompter(env, tt.lines...)

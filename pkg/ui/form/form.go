@@ -41,7 +41,7 @@ type Form struct {
 
 // Run asks the fields of f in order through p, binding each answer to
 // its field's Value, and returns nil once the last field is answered.
-// 0 or b goes back to the field asked before, and from the first field
+// 0 goes back to the field asked before, and from the first field
 // asked returns nav.ErrBack; q returns nav.ErrQuit; the end of the input
 // and Ctrl-C return ErrAborted. On any error, ErrField and a failed write
 // included, every Value is put back as it was before Run, so the caller

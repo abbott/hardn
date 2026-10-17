@@ -3,16 +3,14 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[48;2;22;24;29m                                            ␛[m$
 $
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m$
-$
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
 $
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;86;91;107m───────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m         ␛[38;2;129;134;156m192.0.2.53␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 2␛[m         ␛[38;2;129;134;156m192.0.2.54␛[m$
@@ -28,12 +26,10 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6, b or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-hardn  v0.4.0              https://github.com/abbott/hardn$
-$
-  hardn > DNS Configuration$
+# DNS Configuration ############################################$
 $
 # Current DNS Configuration ------------------------------------$
 $
@@ -56,22 +52,19 @@ $
 $
    0) Return$
 $
-  > Enter selection [0-6, b or q]:$
+  > Enter selection [0-6 or q]:$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
-␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m$
-$
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
       ␛[38;2;129;134;156m192.0.2.1␛[m$
 $
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;86;91;107m───────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m$
       ␛[38;2;129;134;156m192.0.2.53␛[m$
@@ -95,4 +88,4 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6, b or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m$

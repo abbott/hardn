@@ -17,26 +17,23 @@ import (
 // one run of the canonical flow, which writes each of its steps (the form,
 // the review, the plan, the confirmation, the progress, the result or the
 // error report) and asks their prompts. Here with no colour and ASCII
-// glyphs, its fixture's screen (ManageSudoFixture), the blank lines being
+// glyphs, its fixture's screen (ManageSudoFixture), the blank line being
 // theme.SectionGap:
 //
-//	hardn  v0.4.0              https://github.com/abbott/hardn
-//
-//	  hardn > User Management > Manage User
+//	# Manage User ##################################################
 //
 //	  Managing sudo method for: [george]
 //
-// The blocks: Header, Breadcrumb, SubjectLine; one that renders nothing is
-// left out with its gap. Figma's frame opens with a "Manage User" TitleBar
-// where the brief's layout has the Header and a Breadcrumb, whose current
-// item takes the title bar's words (P-08, DEV-054).
+// The blocks: the TitleBar and the SubjectLine; one that renders nothing
+// is left out with its gap. It opens with Figma's title bar, as P-08
+// decided (2026-10-17): no Header and no Breadcrumb line. The bar shows
+// the screen's title alone; its section trail, "User Management › Manage
+// User", shows only when TitleTrail is set (DEV-054).
 type WorkflowStep struct {
-	// Header is the wordmark, the version and the repository link, as on
-	// the main menu.
-	Header component.Header
-	// Breadcrumb says where the action sits, such as "hardn › User
-	// Management › Manage User".
-	Breadcrumb component.Breadcrumb
+	// Title is the title bar, such as "Manage User", with the sections
+	// above the screen as its Parents, such as "User Management". The
+	// parents show only when TitleTrail is set.
+	Title component.TitleBar
 	// Subject names what the action changes, such as "Managing sudo
 	// method for: george"; with no subject it is left out.
 	Subject component.SubjectLine
@@ -45,7 +42,12 @@ type WorkflowStep struct {
 // Render renders the screen above the flow for c. See WorkflowStep for the
 // layout.
 func (vm WorkflowStep) Render(c component.Ctx) string {
-	return join(vm.Header.Render(c), vm.Breadcrumb.Render(c), vm.Subject.Render(c))
+	return vm.render(c, TitleTrail)
+}
+
+// render is Render with the trail shown when withTrail is set.
+func (vm WorkflowStep) render(c component.Ctx, withTrail bool) string {
+	return join(titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c))
 }
 
 // Run writes the screen to p's writer in one write, then runs f through

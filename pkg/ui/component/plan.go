@@ -51,6 +51,7 @@ type PlanChange struct {
 //	0 2   6
 //	  [*] Set Port 2230
 //	      Lockout risk
+//
 //	      /etc/ssh/sshd_config.d/00-hardn.conf
 //	      @@ -1,2 +1,2 @@
 //	       # Managed by hardn
@@ -62,7 +63,8 @@ type PlanChange struct {
 // lockout-risk change Glyphs.Risk, and its title at theme.LabelCol,
 // wrapped under itself. A lockout-risk change stands out by its glyph,
 // the words "Lockout risk", the menu's (DEV-028), and their colour,
-// Plan.LockoutRisk (DEV-038). Under the title come the target, the diff,
+// Plan.LockoutRisk (DEV-038), with a blank line under those words when
+// details follow. Under the title come the target, the diff,
 // the before and after states as removed and added lines, and the
 // commands after Glyphs.Command, all at theme.LabelCol. A diff's lines
 // keep their "+", "-" or space, so they never rest on colour alone, and
@@ -118,8 +120,10 @@ func (ch PlanChange) render(c Ctx) string {
 		out = append(out, c.fit(append(lead, span{l, style}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
+	riskEnd := -1
 	if ch.LockoutRisk {
 		out = append(out, c.fit(line{gap(theme.LabelCol), {lockoutRisk, t.LockoutRisk}}, w))
+		riskEnd = len(out)
 	}
 	add := func(s string, style lipgloss.Style) {
 		out = append(out, c.code(theme.LabelCol, s, style)...)
@@ -161,6 +165,10 @@ func (ch PlanChange) render(c Ctx) string {
 	}
 	for _, cmd := range ch.Commands {
 		out = append(out, c.command(theme.LabelCol, g.Command+" ", cmd, t.Command)...)
+	}
+	// A blank line sets the warning apart from the details under it.
+	if riskEnd >= 0 && riskEnd < len(out) {
+		out = append(out[:riskEnd], append([]string{""}, out[riskEnd:]...)...)
 	}
 	return strings.Join(out, "\n")
 }

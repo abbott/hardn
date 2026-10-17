@@ -28,7 +28,7 @@ type Glyphs struct {
 	Prompt        string // before a prompt's label (Figma ❯)
 	Approx        string // before the risk level's gloss (Figma ≈)
 	Bullet        string // before a key-value or bullet-list item (Figma -)
-	Separator     string // between breadcrumb items
+	Separator     string // between the items of a breadcrumb or a title bar's trail
 	Ellipsis      string // marks truncated text
 	Bar           string // fills a bar when there is no colour to paint it
 	Rule          string // draws a divider or a section header's rule

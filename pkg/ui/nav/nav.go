@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	// ErrBack reports that the user went back with 0 or b, at any prompt;
-	// on a menu 0 is also the Exit or Return item's number. The caller
+	// ErrBack reports that the user went back with 0, at any prompt; on
+	// a menu 0 is also the Exit or Return item's number. The caller
 	// returns to the level above; at the top level, back exits.
 	ErrBack = errors.New("nav: back")
 	// ErrQuit reports that the user quit with q. Each level returns it to
@@ -77,10 +77,11 @@ func (q Question) render(c component.Ctx, accepts keys.Set) string {
 	return component.AnsweredField{Number: q.Number, Label: q.Label, Accepts: accepts}.Render(c)
 }
 
-// Navigate returns ErrBack when line is 0 or b and ErrQuit when it is q,
-// as keys.Set.Match compares lines (the white space around it and case
-// ignored), and nil for any other line. Every prompt applies it before
-// its own answers, so 0, b and q navigate wherever they are typed.
+// Navigate returns ErrBack when line is 0 and ErrQuit when it is q, as
+// keys.Set.Match compares lines (the white space around it and case
+// ignored), and nil for any other line, b included. Every prompt applies
+// it before its own answers, so 0 and q navigate wherever they are
+// typed.
 func Navigate(line string) error {
 	if _, ok := (keys.Set{keys.Back()}).Match(line); ok {
 		return ErrBack
@@ -93,9 +94,10 @@ func Navigate(line string) error {
 
 // Text asks a free-text question, such as a user name, once. It returns
 // the line typed without the white space around it, as origin/main reads
-// text (pkg/menu input.go), possibly empty; or ErrBack or ErrQuit for 0,
-// b or q (Navigate), so a value can never be 0, b or q (P-25 (a)). The
-// hint, "0, b or q" (keys.Navigation), shows where that rule applies.
+// text (pkg/menu input.go), possibly empty, b included; or ErrBack or
+// ErrQuit for 0 or q (Navigate), so a value can never be 0 or q (P-25
+// (a)). The hint, "0 or q" (keys.Navigation), shows where that rule
+// applies.
 // Text checks nothing else: a form (pkg/ui/form) asks its own text
 // fields with Ask, and refuses there a value its validation rejects.
 func (p Prompter) Text(q Question) (string, error) {
@@ -112,10 +114,9 @@ func (p Prompter) Text(q Question) (string, error) {
 
 // Confirm asks a y/N question and returns the answer: true for y or yes,
 // false for n or no, in any case, and defaultYes for an empty line. The
-// hint shows the default in capitals, "[y/N, 0, b or q]" or
-// "[Y/n, 0, b or q]" (brief 1C). Confirm returns ErrBack or ErrQuit for
-// 0, b or q, so 0 is never taken for "no", and asks again for any other
-// line.
+// hint shows the default in capitals, "[y/N, 0 or q]" or "[Y/n, 0 or q]"
+// (brief 1C). Confirm returns ErrBack or ErrQuit for 0 or q, so 0 is
+// never taken for "no", and asks again for any other line, b included.
 func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 	answers := keys.YesNo(defaultYes)
 	var yes bool
@@ -137,21 +138,21 @@ func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 // changes with lockout risk and for Run All: the user must type phrase,
 // such as the hostname, exactly, case included; only the white space
 // around the line is ignored. The phrase is shown as the answer the hint
-// offers, "[web-01, 0, b or q]", and always whole: the prompt cuts the
+// offers, "[web-01, 0 or q]", and always whole: the prompt cuts the
 // question's label first, and Typed asks only when the whole hint fits
 // beside some of the label (shows). The phrase's binding is there for the
 // hint; the line is compared with the phrase itself. Typed returns nil
-// once the phrase is typed, ErrBack or ErrQuit for 0, b or q, and asks
-// again for any other line, an Enter alone included, under an error that
-// does not repeat the phrase: the prompt under it shows it whole, while
-// the error's prose would wrap at a hyphen inside it (x/ansi wrap.go
-// 270-276: a hyphen is always a breakpoint).
+// once the phrase is typed, ErrBack or ErrQuit for 0 or q, and asks
+// again for any other line, b and an Enter alone included, under an
+// error that does not repeat the phrase: the prompt under it shows it
+// whole, while the error's prose would wrap at a hyphen inside it (x/ansi
+// wrap.go 270-276: a hyphen is always a breakpoint).
 //
 // Before anything is written, Typed returns an error wrapping ErrPhrase
 // for a phrase that CheckPhrase refuses, and for one too long to show
 // whole at the width of p.Ctx: with the label "Type the hostname", a
-// phrase of up to 45 cells from 64 columns up, and 41 at 60, in Unicode
-// glyphs (43 and 39 in ASCII, whose ellipsis is wider). The caller then
+// phrase of up to 48 cells from 64 columns up, and 44 at 60, in Unicode
+// glyphs (46 and 42 in ASCII, whose ellipsis is wider). The caller then
 // asks with a shorter phrase or a shorter label, as the flow words them
 // (P-10). CheckTyped tells so without asking.
 func (p Prompter) Typed(q Question, phrase string) error {
@@ -216,13 +217,13 @@ func shows(question string, number int, hint string) bool {
 // hostname or a user name is, so that it shows as it must be typed:
 // components drop control characters and show typographic quotes as ASCII
 // ones (C12). It must have no white space at either end, which Typed
-// trims from the line typed. It must not be 0, b or q in any case: those
-// navigate at every prompt, so the phrase could never be typed. And it
-// must hold none of what a hint lists its inputs with, a comma, a slash,
-// a bracket or " or ", so that "[web-01, 0, b or q]" reads one way; no
-// hostname holds them. A number other than 0, such as a port, is a
-// phrase. CheckPhrase does not know the width: Typed also refuses a
-// phrase too long to show whole.
+// trims from the line typed. It must not be 0 or q, in any case: those
+// navigate at every prompt (Navigate), so the phrase could never be
+// typed; b, which does not, is a phrase. And it must hold none of what a
+// hint lists its inputs with, a comma, a slash, a bracket or " or ", so
+// that "[web-01, 0 or q]" reads one way; no hostname holds them. A
+// number other than 0, such as a port, is a phrase. CheckPhrase does not
+// know the width: Typed also refuses a phrase too long to show whole.
 func CheckPhrase(phrase string) error {
 	for _, r := range phrase {
 		if r < ' ' || r > '~' {

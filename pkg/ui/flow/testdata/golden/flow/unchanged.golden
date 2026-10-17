@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;112;212;127mDisabled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
@@ -21,7 +21,7 @@ $
   [i] Info: Nothing needs changing.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;112;212;127mDisabled␛[m$
