@@ -1,0 +1,233 @@
+# Golden file of TestGolden/rounds, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 3$
+$
+   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mDNS configured successfully␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[38;2;86;91;107m1)␛[m ␛[38;2;86;91;107mRoot SSH Login␛[m       ␛[38;2;86;91;107mToggle root SSH access␛[m ␛[38;2;86;91;107m(Proxmox)␛[m$
+                           ␛[38;2;86;91;107m∅ Unavailable␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m b$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m q$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle root SSH access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter your choice [0-10, b or q]: 3$
+$
+  [+] Success: DNS configured successfully$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle root SSH access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter your choice [0-10, b or q]: 2$
+$
+  Select an option$
+$
+   1) Root SSH Login       Toggle root SSH access (Proxmox)$
+                           [-] Unavailable$
+   2) View SSH Settings    Show SSH configuration$
+$
+   0) Return$
+$
+  > Enter your choice [0, 2, b or q]: b$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle root SSH access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter your choice [0-10, b or q]: q$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+      ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 3$
+$
+   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mDNS configured successfully␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+      ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[38;2;86;91;107m1)␛[m ␛[38;2;86;91;107mRoot SSH Login␛[m$
+      ␛[38;2;86;91;107mToggle root SSH access␛[m ␛[38;2;86;91;107m(Proxmox)␛[m$
+      ␛[38;2;86;91;107m∅ Unavailable␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
+      ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2, b or q]:␛[m b$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+      ␛[38;2;129;134;156mSimulate changes␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m q$

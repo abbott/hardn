@@ -3,145 +3,145 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y or n]:␛[m ␛[38;2;129;134;156my␛[m$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156my␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y or n]:␛[m ␛[38;2;87;92;110my␛[m$
+  ␛[38;2;30;34;48mDisable SSH login for 'root'?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y or n]:␛[m ␛[38;5;103my␛[m$
+  ␛[38;5;251mDisable SSH login for 'root'?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y or n]:␛[m ␛[38;5;59my␛[m$
+  ␛[38;5;235mDisable SSH login for 'root'?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y or n]:␛[m ␛[90my␛[m$
+  ␛[37mDisable SSH login for 'root'?␛[m ␛[37m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y or n]:␛[m ␛[90my␛[m$
+  ␛[30mDisable SSH login for 'root'?␛[m ␛[30m[y/N]:␛[m ␛[90my␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-  Disable SSH login for 'root'? [y or n]: y$
+  Disable SSH login for 'root'? [y/N]: y$

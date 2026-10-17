@@ -14,12 +14,12 @@ import (
 // AnsweredField is a question with the answer typed to it, as Figma's
 // forms leave each one on screen: "1. Username: george", or a
 // confirmation's "Disable SSH login for 'root'? (y/n): y". Here with no
-// colour and a y/n hint as keys.Set.Hint gives it today:
+// colour, the y/N questions' default in capitals (keys.YesNo, brief 1C):
 //
 //	0 2   6
 //	   1. Username: george
-//	   2. Grant sudo privilege? [y or n]: y
-//	  Disable SSH login for 'root'? [y or n]: y
+//	   2. Grant sudo privilege? [y/N]: y
+//	  Disable SSH login for 'root'? [y/N]: y
 //
 // A numbered field's number is right-aligned to end at column 4, as a
 // menu key is, and its question starts at theme.LabelCol; an unnumbered

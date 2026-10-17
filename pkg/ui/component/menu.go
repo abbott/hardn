@@ -61,7 +61,7 @@ func (vm MenuHeading) Render(c Ctx) string {
 
 // MenuItem is one numbered choice of a Menu, as plain data: what the user
 // types to choose it and what it says. What choosing it does is bound to
-// the item elsewhere (next/p1c-nav), never here.
+// the item elsewhere (pkg/ui/nav's Option), never here.
 type MenuItem struct {
 	// Key is what the user types to choose the item, such as "1" or "10";
 	// it shows as "1)". Empty shows none, and the item is not accepted.
@@ -119,9 +119,9 @@ type MenuItem struct {
 // names the choice; text wider than the content is cut with the ellipsis
 // glyph.
 //
-// The view-model holds no actions: next/p1c-nav binds each key to what it
-// does. Bindings gives the keys the menu accepts, from which a PromptLine
-// generates its hint. A menu with no items and no exit renders as the
+// The view-model holds no actions: pkg/ui/nav binds each item to what it
+// does (nav.Menu). Bindings gives the keys the menu accepts, from which a
+// PromptLine generates its hint. A menu with no items and no exit renders as the
 // empty string.
 type Menu struct {
 	// Items are the numbered choices, in order.
@@ -133,6 +133,13 @@ type Menu struct {
 	// label it is not shown.
 	Exit MenuItem
 }
+
+// Shown reports whether the menu shows the item: one whose label is
+// empty once its escape sequences, control characters and surrounding
+// spaces are removed, or measures no cells, renders nothing and is not
+// accepted (Bindings). pkg/ui/nav decides with it which items it checks
+// and dispatches, so that it agrees with the menu drawn.
+func (it MenuItem) Shown() bool { return clean(it.Label) != "" }
 
 // Render renders the menu for c. See Menu for the layout.
 func (vm Menu) Render(c Ctx) string {
@@ -167,7 +174,7 @@ func (vm Menu) Render(c Ctx) string {
 func (vm Menu) Bindings() keys.Set {
 	var out keys.Set
 	add := func(it MenuItem, exit bool) {
-		if k := clean(it.Key); k != "" && clean(it.Label) != "" && (exit || !it.Disabled) {
+		if k := clean(it.Key); k != "" && it.Shown() && (exit || !it.Disabled) {
 			out = append(out, keys.Binding{Keys: []string{k}})
 		}
 	}
@@ -200,10 +207,10 @@ func (r entry) cramped(c Ctx) bool {
 // An item with no label is not shown: ok is false.
 func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
 	m, g := c.Theme.Menu, c.Theme.Glyphs
-	label := clean(it.Label)
-	if label == "" {
+	if !it.Shown() {
 		return entry{}, false
 	}
+	label := clean(it.Label)
 	keyStyle, labelStyle, descStyle, asideStyle := m.Key, m.Label, m.Description, m.Aside
 	var note line
 	switch {

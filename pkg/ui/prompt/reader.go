@@ -76,6 +76,8 @@ type Reader struct {
 	// unended is set when the line take last returned had no line
 	// ending: the end of the input ended it, as Ctrl-D after text does.
 	unended bool
+	// asked is set once Ask has written a prompt.
+	asked bool
 }
 
 // New returns a Reader over in. Set tty when in is the terminal
@@ -158,6 +160,7 @@ func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 	if _, err := io.WriteString(w, prompt+" "); err != nil {
 		return "", fmt.Errorf("prompt: write: %w", err)
 	}
+	r.asked = true
 	line, err := r.ReadLine()
 	if !r.tty || errors.Is(err, ErrAborted) || err == nil && r.unended {
 		if _, werr := io.WriteString(w, "\n"); werr != nil && err == nil {
@@ -166,6 +169,13 @@ func (r *Reader) Ask(w io.Writer, prompt string) (string, error) {
 	}
 	return line, err
 }
+
+// Asked reports whether Ask has written a prompt, whatever the answer:
+// output then stands above the next thing written, the prompt's line at
+// least. A caller that draws a screen, such as pkg/ui/nav's Run, separates
+// the drawing from it by a blank line then, and not before the first
+// prompt, when nothing may stand above it.
+func (r *Reader) Asked() bool { return r.asked }
 
 // fill reads from the input until take can return without reading: the
 // buffer holds a line ending or more than a line may hold, or the input

@@ -14,8 +14,8 @@
 //
 // ReadLine returns one line without its line ending, "\n" or "\r\n", and
 // otherwise as typed: it trims nothing else and checks nothing. Matching a
-// line to a choice is next/p1c-nav's, validating it next/p1c-form's. A
-// line longer than MaxLine is an error, ErrLineTooLong, never cut short.
+// line to a choice is pkg/ui/nav's, validating it next/p1c-form's. A line
+// longer than MaxLine is an error, ErrLineTooLong, never cut short.
 //
 // # Aborting
 //
@@ -26,9 +26,9 @@
 // and the call after it reports the abort. Nothing is applied after an
 // abort (brief 1C): the caller stops, and ExitCode gives the CLI its exit
 // status, 130. The two are told apart for callers that may treat them
-// differently: whether the end of the input at a sub-prompt goes back is
-// next/p1c-nav's decision, and the exit code for a script that ran out of
-// answers next/p3-output's.
+// differently: the exit code for a script that ran out of answers is
+// next/p3-output's to decide. The end of the input never goes back, at
+// any prompt (pkg/ui/nav).
 //
 // In cooked mode the terminal turns Ctrl-C into SIGINT. While ReadLine
 // waits for input from a file, such as os.Stdin or a pipe, it relays
