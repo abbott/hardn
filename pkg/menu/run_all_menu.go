@@ -262,7 +262,7 @@ func (m *RunAllMenu) runAllHardening() {
 		// updateRepositories := true
 		// installPackages := true
 		useUvPackageManager := m.config.UseUvPackageManager
-		dryRunHardening(&hardening, showProgress, m.osInfo.IsProxmox, useUvPackageManager)
+		dryRunHardening(&hardening, showProgress, m.osInfo.IsProxmox, useUvPackageManager, m.menuManager.IsProxmoxHost)
 	} else {
 		// Execute the hardening through the MenuManager
 		err := m.menuManager.HardenSystem(&hardening)
@@ -352,8 +352,12 @@ func calculateTotalSteps(config *model.HardeningConfig) int {
 	return totalSteps
 }
 
-// dryRunHardening simulates the hardening process without making changes
-func dryRunHardening(config *model.HardeningConfig, showProgress func(string), isProxmox bool, useUvPackageManager bool) {
+// dryRunHardening simulates the hardening process without making changes.
+// pveRules is MenuManager.IsProxmoxHost, asked only when the firewall step
+// is enabled: on a Proxmox VE host the live run refuses that step before
+// any ufw command and stops there (pkg/adapter/secondary's
+// proxmoxTreatedAsDebian), so the simulation says so and stops there too.
+func dryRunHardening(config *model.HardeningConfig, showProgress func(string), isProxmox bool, useUvPackageManager bool, pveRules func() bool) {
 	// Simulate user creation
 	if config.CreateUser {
 		showProgress("Simulating user account creation")
@@ -402,6 +406,14 @@ func dryRunHardening(config *model.HardeningConfig, showProgress func(string), i
 		config.SshPort)
 
 	// Simulate firewall configuration
+	if config.EnableFirewall && pveRules() {
+		showProgress("Simulating firewall configuration")
+		fmt.Printf("%s Would refuse this step: UFW is not used on Proxmox VE hosts, where pve-firewall manages the packet filter\n",
+			style.BulletItem)
+		fmt.Printf("%s Hardening would stop here, so the steps after it would not run\n",
+			style.BulletItem)
+		return
+	}
 	if config.EnableFirewall {
 		showProgress("Simulating firewall configuration")
 		fmt.Printf("%s Would configure firewall to allow SSH on port %d\n",

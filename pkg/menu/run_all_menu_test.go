@@ -25,15 +25,29 @@ const confirmPrompt = "Type 'yes' to confirm you want to apply real changes: "
 // host.
 func newRunAllMenu(t *testing.T, dryRun bool) (*RunAllMenu, *interfaces.MockFileSystem, *interfaces.MockCommander) {
 	t.Helper()
+	return newRunAllMenuOn(t, dryRun, false)
+}
+
+// newRunAllMenuOn is newRunAllMenu on a host that is Proxmox VE when pve
+// is set (/etc/pve exists), with one Proxmox check shared by the SSH and
+// firewall repositories and the MenuManager, as the ServiceFactory wires
+// it.
+func newRunAllMenuOn(t *testing.T, dryRun, pve bool) (*RunAllMenu, *interfaces.MockFileSystem, *interfaces.MockCommander) {
+	t.Helper()
 	fs := interfaces.NewMockFileSystem()
 	mc := interfaces.NewMockCommander()
+	if pve {
+		fs.Directories["/etc/pve"] = true
+	}
+	host := secondary.NewProxmoxHost(fs, mc, "debian", false)
 	osInfo := model.OSInfo{Type: "debian", Version: "13", Codename: "trixie"}
 	users := application.NewUserManager(service.NewUserServiceImpl(secondary.NewOSUserRepository(fs, mc, "debian")))
-	ssh := application.NewSSHManager(service.NewSSHServiceImpl(secondary.NewFileSSHRepository(fs, mc, "debian", nil), osInfo))
-	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, nil), osInfo))
+	ssh := application.NewSSHManager(service.NewSSHServiceImpl(secondary.NewFileSSHRepository(fs, mc, "debian", host), osInfo))
+	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, host), osInfo))
 	dns := application.NewDNSManager(service.NewDNSServiceImpl(secondary.NewFileDNSRepository(fs, mc, "debian"), osInfo))
 	security := application.NewSecurityManager(users, ssh, firewall, dns)
 	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, nil, security, nil, nil, nil)
+	mm.SetProxmoxCheck(host.IsProxmox)
 
 	cfg := config.DefaultConfig()
 	cfg.Username = "alice"
@@ -133,4 +147,65 @@ func TestRunAllConfirmationGolden(t *testing.T) {
 	b.WriteString("# ----\n")
 	b.WriteString(visibleScreen(out))
 	assertRenderGolden(t, "run_all/option1-live-cancel.golden", b.String())
+}
+
+// TestRunAllDryRunOnProxmox checks that Run All's dry run says what the
+// live run does on a Proxmox VE host with the firewall step enabled (gate
+// 6, proxmoxTreatedAsDebian): the live run refuses UFW and stops there, so
+// the simulation says the step is refused and that nothing after it runs,
+// and simulates neither the firewall nor DNS. On Debian it simulates both.
+func TestRunAllDryRunOnProxmox(t *testing.T) {
+	const (
+		refused    = "Would refuse this step: UFW is not used on Proxmox VE hosts, where pve-firewall manages the packet filter"
+		stops      = "Hardening would stop here, so the steps after it would not run"
+		firewallOK = "Would configure firewall to allow SSH on port 2230"
+		dnsOK      = "Would configure nameservers: 192.0.2.53"
+		liveFailed = "System hardening failed: UFW is not used on Proxmox VE hosts"
+	)
+	for _, tc := range []struct {
+		name    string
+		pve     bool
+		dryRun  bool
+		script  string
+		want    []string
+		notWant []string
+	}{
+		{name: "proxmox dry run", pve: true, dryRun: true, script: "1\n\n", want: []string{refused, stops}, notWant: []string{firewallOK, dnsOK}},
+		{name: "proxmox live run, as the dry run says", pve: true, script: "1\nyes\n\n", want: []string{liveFailed}, notWant: []string{"DNS settings applied"}},
+		{name: "debian dry run", dryRun: true, script: "1\n\n", want: []string{firewallOK, dnsOK}, notWant: []string{refused, stops}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m, fs, mc := newRunAllMenuOn(t, tc.dryRun, tc.pve)
+			m.config.EnableUfwSshPolicy = true
+			m.config.ConfigureDns = true
+			m.config.Nameservers = []string{"192.0.2.53"}
+			scripted(t, tc.script)
+			out, code, ended := session(t, m.Show)
+			if ended {
+				t.Fatalf("ended hardn with %d:\n%s", code, out)
+			}
+			for _, w := range tc.want {
+				if !strings.Contains(out, w) {
+					t.Errorf("printed no %q:\n%s", w, out)
+				}
+			}
+			for _, w := range tc.notWant {
+				if strings.Contains(out, w) {
+					t.Errorf("printed %q:\n%s", w, out)
+				}
+			}
+			if !tc.dryRun {
+				return
+			}
+			// The dry run only reads: the Proxmox check's probes, nothing else.
+			if len(fs.Files) > 0 {
+				t.Errorf("the dry run wrote %d files", len(fs.Files))
+			}
+			for _, c := range mc.ExecutedCommands {
+				if !strings.HasPrefix(c, "dpkg-query -W ") {
+					t.Errorf("the dry run ran %q", c)
+				}
+			}
+		})
+	}
 }
