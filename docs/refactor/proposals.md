@@ -640,3 +640,20 @@
 - **Effort:** S (one constant, plus any regression the VM run finds).
 - **Risk:** Medium [I]: a legacy command that depended on the inherited environment, the working directory or a tool outside the four directories (only `uv` is likely, on a path unreachable on origin/main) would fail on hosts; the goldens cannot show it, because the change sits below the seam they record.
 - **Screenshots:** none (no screen changes).
+
+<a id="p-xx-ufw"></a>
+### P-XX-ufw: UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist
+
+- **Status:** proposed
+- **Source:** `next/p2-ufw` and its review (2026-10-17): V8's open approach, "adding an allow rule the user didn't ask for", which has no §3 row ([side-effects.md](phase0/side-effects.md), V8 row); [docs/safety/ufw.md](../safety/ufw.md) §2.7, §2.9. Related: [P-16](#p-16), [P-20](#p-20).
+- **Problem:** the UFW primitive makes three choices on the user's behalf:
+  - (1) With ufw inactive and staying so, `PlanFor` saves `ufw allow <port>/tcp` for each SSH listener and the new port (ufw writes them to its rule files without loading them), so that a later `ufw enable` keeps SSH open. That adds rules to a firewall the user may not use.
+  - (2) A port change on a host whose current SSH port is source-restricted (`allow from 192.0.2.0/24 to any port 22`) opens the new port with `ufw allow 2230/tcp`, from anywhere: moving the port widens who can reach SSH. The plan reports it (`ssh-new-port-wider`) and goes ahead.
+  - (3) A saved blocklist on the SSH port (`deny from 198.51.100.0/24 to any port 22` before an allow) is `Excepted`: enabling ufw is refused, since the primitive cannot tell whether the session's own address is among the exceptions; on an active ufw it is reported (`ssh-allowed-except`).
+- **Proposal:** the maintainer decides each:
+  - (1) (a) save the rules while ufw is inactive, as now; (b) save none (`Desired.NoSaveWhileInactive`, already there), and report each need a later start would block (`ssh-not-allowed-at-start`).
+  - (2) (a) open the new port from anywhere and report it, as now; (b) give the new port the current port's source restriction (`ufw allow from <src> to any port <new> proto tcp` for each restricted rule); (c) refuse the port change until the restriction is moved by hand.
+  - (3) (a) refuse the enable, as now; (b) allow it when the session's client address (`SSH_CONNECTION`'s first field) is outside every excepted source, and refuse otherwise.
+- **Effort:** S for (1), (2)(c) and (3)(a); M for (2)(b) and (3)(b) (a new input, new rule forms and their undo).
+- **Risk:** Low for (1) and (2)(a); Medium for (2)(b) (new rule forms to read back and undo) and (3)(b) (the session's address is one client among those the blocklist may concern).
+- **Screenshots:** none (no screen changes).
