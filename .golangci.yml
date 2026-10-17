@@ -214,6 +214,29 @@ linters:
               desc: detection makes no network calls (docs/safety/detect.md §2.2)
             - pkg: plugin
               desc: detection loads no code (docs/safety/detect.md §2.2)
+        # sshd validation reads, writes and runs sshd only through
+        # host.System, as detection does. Lax, so that the allow entry
+        # carves net/netip (address parsing, for Match probes) out of net.
+        sshd-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/host/sshd/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: sshd validation reads, writes and runs only through host.System (docs/safety/sshd-validate.md §2)
+            - pkg: io/ioutil
+              desc: sshd validation reads and writes only through host.System (docs/safety/sshd-validate.md §2)
+            - pkg: golang.org/x/sys
+              desc: sshd validation makes no system calls of its own (docs/safety/sshd-validate.md §2)
+            - pkg: syscall
+              desc: sshd validation makes no system calls of its own (docs/safety/sshd-validate.md §2)
+            - pkg: net
+              desc: sshd validation makes no network calls (docs/safety/sshd-validate.md §2)
+            - pkg: plugin
+              desc: sshd validation loads no code (docs/safety/sshd-validate.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.
