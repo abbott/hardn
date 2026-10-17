@@ -200,6 +200,23 @@ func TestRealRunErrors(t *testing.T) {
 			t.Errorf("run log has no entry for the refused run:\n%s", s.log)
 		}
 	})
+	t.Run("context done during the run", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		// What os/exec reports once CommandContext has killed the process.
+		s := newSeamed(t, Options{}, []string{dir}, func(*exec.Cmd) (int, error) {
+			cancel()
+			return -1, errors.New("signal: killed")
+		})
+		res, err := s.Run(ctx, "tool")
+		var xe *ExitError
+		if !errors.Is(err, context.Canceled) || errors.As(err, &xe) || res.ExitCode != -1 {
+			t.Fatalf("err = %v, exit = %d; want context.Canceled, not an ExitError, and -1", err, res.ExitCode)
+		}
+		if !strings.Contains(s.log.String(), "run 1: not run or not finished: host: run tool: context canceled") {
+			t.Errorf("run log:\n%s", s.log)
+		}
+	})
 	t.Run("exit 0 with pipes held past the wait delay", func(t *testing.T) {
 		s := newSeamed(t, Options{}, []string{dir}, func(*exec.Cmd) (int, error) { return 0, exec.ErrWaitDelay })
 		if res, err := s.Run(context.Background(), "tool"); err != nil || res.ExitCode != 0 {
@@ -278,6 +295,48 @@ func TestRealWriteFileAtomic(t *testing.T) {
 		}
 		assertOnly(t, dir)
 	})
+}
+
+// A step that fails after the temporary file exists leaves no temporary
+// file and the target as it was. Chowning to root fails unprivileged.
+func TestRealWriteFileAtomicFailureCleansUp(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("chown to root succeeds as root; this needs an unprivileged user")
+	}
+	dir := t.TempDir()
+	name := filepath.Join(dir, "00-hardn.conf")
+	if err := os.WriteFile(name, []byte("old\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	err := NewReal(Options{}).WriteFileAtomic(context.Background(), name, []byte("Port 2230\n"), 0o600, 0, 0)
+	if !errors.Is(err, fs.ErrPermission) {
+		t.Fatalf("err = %v, want a permission error from chown", err)
+	}
+	assertOnly(t, dir, "00-hardn.conf")
+	if got, _ := os.ReadFile(name); string(got) != "old\n" {
+		t.Errorf("target now %q, want it untouched", got)
+	}
+}
+
+// Chmod refuses what it would have to open to change, without opening it.
+func TestRealChmodRefusesAFIFO(t *testing.T) {
+	fifo := filepath.Join(t.TempDir(), "fifo")
+	if err := syscall.Mkfifo(fifo, 0o600); err != nil {
+		t.Skipf("mkfifo: %v", err)
+	}
+	if err := NewReal(Options{}).Chmod(context.Background(), fifo, 0o644); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("Chmod(fifo) = %v, want ErrInvalid", err)
+	}
+	if fi, err := os.Lstat(fifo); err != nil || fi.Mode().Perm() != 0o600 {
+		t.Errorf("fifo mode now %v (%v), want 0600", modeOrNil(fi), err)
+	}
+}
+
+func modeOrNil(fi fs.FileInfo) any {
+	if fi == nil {
+		return nil
+	}
+	return fi.Mode()
 }
 
 func TestRealChownRefusesSymlink(t *testing.T) {

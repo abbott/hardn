@@ -82,6 +82,8 @@ func TestRecording(t *testing.T) {
 	_ = f.WriteFileAtomic(ctx, "/etc/ssh/sshd_config.d/00-hardn.conf", []byte("Port 2230\n"), 0o600, 0, 0)
 	_ = f.Rename(ctx, "/etc/ssh/sshd_config.d/00-hardn.conf", "/etc/ssh/sshd_config.d/00-hardn.conf.bak")
 	_ = f.Chown(ctx, "/etc/ssh/missing", 1000, -1)
+	_ = f.Chmod(ctx, "/etc/ssh/sshd_config.d/00-hardn.conf.bak", 0o640)
+	_, _ = f.Readlink(ctx, "/etc/ssh/sshd_config.d/00-hardn.conf.bak")
 	_, _ = f.ReadFile(ctx, "/etc/ssh/sshd_config.d/00-hardn.conf.bak")
 
 	want := []string{
@@ -90,6 +92,8 @@ func TestRecording(t *testing.T) {
 		"write-atomic /etc/ssh/sshd_config.d/00-hardn.conf 0600 0:0 10 bytes",
 		"rename /etc/ssh/sshd_config.d/00-hardn.conf -> /etc/ssh/sshd_config.d/00-hardn.conf.bak",
 		"chown /etc/ssh/missing 1000:-1: error: lchown /etc/ssh/missing: no such file or directory",
+		"chmod /etc/ssh/sshd_config.d/00-hardn.conf.bak 0640",
+		"readlink /etc/ssh/sshd_config.d/00-hardn.conf.bak: error: readlink /etc/ssh/sshd_config.d/00-hardn.conf.bak: invalid argument",
 		"read /etc/ssh/sshd_config.d/00-hardn.conf.bak",
 	}
 	var got []string

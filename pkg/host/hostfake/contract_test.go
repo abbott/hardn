@@ -210,7 +210,7 @@ func TestContract(t *testing.T) {
 			}
 			wantNames(t, w, "x/y", "z")
 		}},
-		{"chown refuses a symlink", func(t *testing.T, w world) {
+		{"chown refuses a symlink and a missing path", func(t *testing.T, w world) {
 			w.file("f", "", 0o600)
 			w.symlink("l", "f")
 			if err := w.sys.Chown(ctx, w.path("f"), -1, -1); err != nil {
@@ -218,6 +218,46 @@ func TestContract(t *testing.T) {
 			}
 			if err := w.sys.Chown(ctx, w.path("l"), -1, -1); !errors.Is(err, host.ErrSymlink) {
 				t.Errorf("symlink: err = %v, want ErrSymlink", err)
+			}
+			if err := w.sys.Chown(ctx, w.path("missing"), -1, -1); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing: err = %v, want ErrNotExist", err)
+			}
+		}},
+		{"chmod changes a file and a directory, refuses a symlink and a missing path", func(t *testing.T, w world) {
+			w.file("authorized_keys", "k\n", 0o644)
+			w.dir("ssh")
+			w.file("cluster_keys", "c\n", 0o644)
+			w.symlink("l", w.path("cluster_keys"))
+			if err := w.sys.Chmod(ctx, w.path("authorized_keys"), 0o600); err != nil {
+				t.Errorf("file: err = %v", err)
+			}
+			if err := w.sys.Chmod(ctx, w.path("ssh"), 0o700); err != nil {
+				t.Errorf("directory: err = %v", err)
+			}
+			if err := w.sys.Chmod(ctx, w.path("l"), 0o600); !errors.Is(err, host.ErrSymlink) {
+				t.Errorf("symlink: err = %v, want ErrSymlink", err)
+			}
+			if err := w.sys.Chmod(ctx, w.path("missing"), 0o600); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing: err = %v, want ErrNotExist", err)
+			}
+			wantFile(t, w, "authorized_keys", "k\n", 0o600)
+			wantFile(t, w, "cluster_keys", "c\n", 0o644)
+			wantLink(t, w, "l", w.path("cluster_keys"))
+			if fi, err := w.sys.Lstat(ctx, w.path("ssh")); err != nil || !fi.IsDir() || fi.Mode().Perm() != 0o700 {
+				t.Errorf("ssh = %v, %v; want a 0700 directory", modeOf(fi), err)
+			}
+		}},
+		{"readlink: a relative target as stored, a file, a missing path", func(t *testing.T, w world) {
+			w.file("f", "", 0o600)
+			w.symlink("l", "../elsewhere/f")
+			if got, err := w.sys.Readlink(ctx, w.path("l")); err != nil || got != "../elsewhere/f" {
+				t.Errorf("symlink = %q, %v", got, err)
+			}
+			if _, err := w.sys.Readlink(ctx, w.path("f")); !errors.Is(err, syscall.EINVAL) {
+				t.Errorf("file: err = %v, want EINVAL", err)
+			}
+			if _, err := w.sys.Readlink(ctx, w.path("missing")); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing: err = %v, want ErrNotExist", err)
 			}
 		}},
 	}
@@ -247,15 +287,8 @@ func wantLink(t *testing.T, w world, rel, target string) {
 	if err != nil || fi.Mode()&fs.ModeSymlink == 0 {
 		t.Errorf("%s is %v (%v), want a symlink", rel, modeOf(fi), err)
 	}
-	if r, ok := w.sys.(*host.Real); ok && r != nil {
-		if got, err := os.Readlink(w.path(rel)); err != nil || got != target {
-			t.Errorf("%s -> %q (%v), want %q", rel, got, err, target)
-		}
-	}
-	if f, ok := w.sys.(*hostfake.System); ok {
-		if e, _ := f.Entry(w.path(rel)); e.Target != target {
-			t.Errorf("%s -> %q, want %q", rel, e.Target, target)
-		}
+	if got, err := w.sys.Readlink(context.Background(), w.path(rel)); err != nil || got != target {
+		t.Errorf("%s -> %q (%v), want %q", rel, got, err, target)
 	}
 }
 

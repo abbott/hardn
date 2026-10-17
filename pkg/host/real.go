@@ -37,6 +37,8 @@ var commandEnv = []string{"PATH=" + SearchPath, "LC_ALL=C"}
 
 // pipeWaitDelay bounds how long Run waits, once the command has exited or
 // been killed, for output pipes a child it started (a daemon) still holds.
+// After it, os/exec closes them: the holder's later writes fail with EPIPE,
+// or kill it with SIGPIPE when it is a Go program writing to fd 1 or 2.
 const pipeWaitDelay = 10 * time.Second
 
 // NewReal returns the System of this machine. It does no I/O.
@@ -70,10 +72,15 @@ func runCmd(cmd *exec.Cmd) (int, error) {
 //     never a shell, so spaces, quotes and ';' carry no meaning.
 //   - The environment is exactly PATH=SearchPath and LC_ALL=C, and the
 //     working directory is "/".
-//   - A non-zero exit returns *ExitError; ctx done kills the command and
-//     returns an error wrapping ctx.Err(). Once the command has exited or been
-//     killed, Run waits at most 10 s for output pipes a child it started still
-//     holds open, so a daemon cannot hang it.
+//   - A non-zero exit returns *ExitError; ctx done kills the process Run
+//     started (os/exec's default Cancel, Process.Kill) and returns an error
+//     wrapping ctx.Err(). Processes that one started are not killed: the
+//     command stays in hardn's process group, and a pipeline's or a
+//     wrapper's children can outlive the cancellation.
+//   - Once the command has exited or been killed, Run waits at most 10 s for
+//     output pipes a child it started still holds open, so a daemon cannot
+//     hang it; then the pipes are closed under the child (pipeWaitDelay). A
+//     process meant to outlive Run must not inherit them.
 //
 // The Result is filled in on every return, and the run log gets an entry for
 // every call.
@@ -132,7 +139,7 @@ func (r *Real) start(ctx context.Context, res *Result, stdin []byte, name string
 	switch {
 	case code == 0 && (runErr == nil || errors.Is(runErr, exec.ErrWaitDelay)):
 		// Exit 0 is success even when a child kept the pipes open past
-		// pipeWaitDelay; its later output is lost.
+		// pipeWaitDelay; its later writes to them fail (pipeWaitDelay).
 		return nil
 	case ctx.Err() != nil:
 		return fmt.Errorf("host: run %s: %w (%v)", FormatArgv(res.Argv), ctx.Err(), runErr)
@@ -189,7 +196,10 @@ func (b *lockedBuffer) Bytes() []byte {
 	return b.buf.Bytes()
 }
 
-// multiWriter writes p to its own buffer, then to the combined one.
+// multiWriter writes p to its own buffer, then to the combined one. Stdout
+// and stderr get different multiWriters, so os/exec gives each its own pipe
+// and copying goroutine: the combined buffer keeps each stream's order, but
+// not the exact order across them.
 type multiWriter struct {
 	own      *bytes.Buffer
 	combined *lockedBuffer
@@ -256,7 +266,8 @@ func (r *Real) RemoveAll(ctx context.Context, name string) error {
 	return os.RemoveAll(name)
 }
 
-// Rename is os.Rename (rename(2)).
+// Rename is os.Rename (rename(2), after os.Rename's refusal of an existing
+// directory at newname).
 func (r *Real) Rename(ctx context.Context, oldname, newname string) error {
 	if err := ctxErr(ctx, "rename", oldname); err != nil {
 		return err
@@ -264,8 +275,66 @@ func (r *Real) Rename(ctx context.Context, oldname, newname string) error {
 	return os.Rename(oldname, newname)
 }
 
+// Readlink is os.Readlink.
+func (r *Real) Readlink(ctx context.Context, name string) (string, error) {
+	if err := ctxErr(ctx, "readlink", name); err != nil {
+		return "", err
+	}
+	return os.Readlink(name)
+}
+
+// Chmod refuses a symlink at name, then changes the mode through a
+// descriptor opened with O_NOFOLLOW, so a symlink planted after the check is
+// refused too (open fails with ELOOP) rather than followed. chmod(2) follows
+// symlinks, and fchmodat's AT_SYMLINK_NOFOLLOW depends on the kernel (it needs
+// fchmodat2; Go's syscall.Fchmodat returns EOPNOTSUPP without it).
+// Opening is why only regular files and directories are changed (a FIFO or a
+// device can block or act on open; O_NONBLOCK guards the swap of one in), and
+// why, unprivileged, a file the process cannot read cannot be changed.
+// Symlinks in the parent directories are followed, as everywhere in System.
+func (r *Real) Chmod(ctx context.Context, name string, perm fs.FileMode) error {
+	if err := ctxErr(ctx, "chmod", name); err != nil {
+		return err
+	}
+	fi, err := os.Lstat(name)
+	if err != nil {
+		return err
+	}
+	if err := chmodable(name, fi); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(name, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
+	if errors.Is(err, syscall.ELOOP) {
+		return pathErr("chmod", name, ErrSymlink)
+	}
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+	if fi, err = f.Stat(); err != nil {
+		return err
+	}
+	if err := chmodable(name, fi); err != nil {
+		return err
+	}
+	return f.Chmod(perm)
+}
+
+// chmodable refuses what Chmod does not change.
+func chmodable(name string, fi fs.FileInfo) error {
+	switch {
+	case fi.Mode()&fs.ModeSymlink != 0:
+		return pathErr("chmod", name, ErrSymlink)
+	case !fi.Mode().IsRegular() && !fi.IsDir():
+		return pathErr("chmod", name, fs.ErrInvalid)
+	}
+	return nil
+}
+
 // Chown refuses a symlink at name and changes name itself with lchown(2), so
-// a symlink planted after the check is not followed either.
+// a symlink planted after the check is not followed either. Symlinks in the
+// parent directories are followed: a user-controlled ~/.ssh that is a link
+// elsewhere (V21) is not refused here; p2-atomic owns that refusal.
 func (r *Real) Chown(ctx context.Context, name string, uid, gid int) error {
 	if err := ctxErr(ctx, "chown", name); err != nil {
 		return err
@@ -281,15 +350,16 @@ func (r *Real) Chown(ctx context.Context, name string, uid, gid int) error {
 }
 
 // WriteFileAtomic writes data to a new file in name's directory, sets its
-// mode and owner and renames it over name. It refuses a symlink or a
+// owner, then its mode (chown(2) clears setuid and setgid bits, so the other
+// order could lose them), and renames it over name. It refuses a symlink or a
 // directory at name; rename(2) never writes through a symlink planted after
 // the check, it replaces it. On any failure the temporary file is removed and
-// name is untouched.
+// name is untouched. Symlinks in the parent directories are followed.
 //
 // TODO(next/p2-atomic): this is the naive version. p2-atomic replaces it with
 // the durable one: fsync of the file before the rename and of the directory
-// after it, backups with a manifest, and the symlink refusal re-checked
-// against the open directory.
+// after it, backups with a manifest, the symlink refusal re-checked against
+// the open directory, and the refusal of a symlinked parent (V21).
 func (r *Real) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) (err error) {
 	if err := ctxErr(ctx, "write", name); err != nil {
 		return err
@@ -318,13 +388,13 @@ func (r *Real) WriteFileAtomic(ctx context.Context, name string, data []byte, pe
 	if _, err = f.Write(data); err != nil {
 		return err
 	}
-	if err = f.Chmod(perm); err != nil {
-		return err
-	}
 	if uid != -1 || gid != -1 {
 		if err = f.Chown(uid, gid); err != nil {
 			return err
 		}
+	}
+	if err = f.Chmod(perm); err != nil {
+		return err
 	}
 	if err = f.Close(); err != nil {
 		return err

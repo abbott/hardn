@@ -4,8 +4,10 @@
 // System: commands, files, ownership and account lookups. Real is the
 // implementation on the running machine; package hostfake is a recording,
 // in-memory one for tests. The legacy interfaces.Commander and
-// interfaces.FileSystem are adapters over a System, so legacy and new code
-// share one execution path (refactor plan P2, next/p2-system).
+// interfaces.FileSystem have adapters over a System, so legacy and new code
+// can share one execution path (refactor plan P2, next/p2-system); whether
+// legacy production calls take it is the interfaces package's
+// legacyThroughHost gate.
 //
 // Commands run as one argv, never through a shell, resolved only from
 // SearchPath, with a pinned environment. A command that exits non-zero
@@ -27,7 +29,10 @@ import (
 
 // SearchPath is the only place Real looks for a command named without a
 // slash, in this order, and the PATH every command runs with. /usr/local is
-// left out on purpose: hardn runs packaged tools only.
+// left out on purpose: hardn runs packaged tools only. hardn itself is the
+// exception (install.sh puts it in /usr/local/bin): re-invoke it by its
+// absolute path (os.Executable), never by name, from Run or from a launcher
+// such as setsid or systemd-run that the PATH above is passed to.
 const SearchPath = "/usr/sbin:/usr/bin:/sbin:/bin"
 
 // DefaultTailLines is how many lines of output Result.Tail keeps when
@@ -36,8 +41,13 @@ const DefaultTailLines = 20
 
 // System is the host as hardn's safety primitives and engine see it.
 //
-// Paths should be absolute. Methods honour ctx only on entry for file
-// operations; Run kills the command when ctx is done.
+// Paths should be absolute. Symlinks in the parent directories of a path are
+// followed by every method; the no-follow rules below are about the last
+// component only. File operations honour ctx only on entry; Run kills the
+// process it started when ctx is done, but not processes that one started.
+// Every method refuses a ctx that is already done, so a rollback after
+// cancellation (Ctrl-C) must run under context.WithoutCancel with its own
+// timeout.
 type System interface {
 	// Run runs name with args as one argv and waits for it, with stdin
 	// empty. See Real.Run for resolution, environment and errors.
@@ -62,10 +72,17 @@ type System interface {
 	// an error.
 	RemoveAll(ctx context.Context, name string) error
 	// Rename renames oldname to newname, replacing newname. A symlink at
-	// either name is renamed or replaced itself, never its target.
+	// either name is renamed or replaced itself, never its target. An
+	// existing directory at newname is refused, as os.Rename refuses it.
 	Rename(ctx context.Context, oldname, newname string) error
-	// Chown sets the owner of name. It never follows a symlink: a symlink at
-	// name is refused with ErrSymlink. A uid or gid of -1 is left unchanged.
+	// Readlink returns the target of the symlink name, as stored.
+	Readlink(ctx context.Context, name string) (string, error)
+	// Chmod sets the mode of the regular file or directory name. A symlink
+	// at name is refused with ErrSymlink, never followed; anything else that
+	// is not a regular file or directory is refused with fs.ErrInvalid.
+	Chmod(ctx context.Context, name string, perm fs.FileMode) error
+	// Chown sets the owner of name. A symlink at name is refused with
+	// ErrSymlink, never followed. A uid or gid of -1 is left unchanged.
 	Chown(ctx context.Context, name string, uid, gid int) error
 	// WriteFileAtomic replaces name with a new file holding data, with mode
 	// perm and owner uid:gid (-1 keeps the owner the process gives a new
@@ -81,7 +98,8 @@ type System interface {
 
 // LegacySystem is System plus the in-place write the legacy
 // interfaces.FileSystem still offers its callers. New code takes a System,
-// which has no in-place write.
+// which has no in-place write; nothing but review keeps new code from
+// asserting a System to LegacySystem.
 type LegacySystem interface {
 	System
 	// WriteFileInPlace is os.WriteFile: it truncates and rewrites name,
@@ -94,10 +112,13 @@ type LegacySystem interface {
 // Result is what a command did. Run fills it in whether or not it returns an
 // error.
 type Result struct {
-	Argv     []string // name and args, as passed to Run
-	Stdout   []byte
-	Stderr   []byte
-	Combined []byte // stdout and stderr interleaved, in the order written
+	Argv   []string // name and args, as passed to Run
+	Stdout []byte
+	Stderr []byte
+	// Combined is stdout and stderr together. Each stream keeps its own
+	// order; across the two, Real's interleaving is approximate, because it
+	// reads them through two pipes (exec.Cmd.CombinedOutput used one).
+	Combined []byte
 	// ExitCode is the command's exit status; -1 when it did not start or
 	// was ended by a signal.
 	ExitCode int
@@ -152,7 +173,8 @@ type ExitError struct {
 	Argv     []string
 	ExitCode int // -1 when ended by a signal
 	Tail     []string
-	// Err is the os/exec error behind it, if any (Real); the fake has none.
+	// Err is the error behind it: the os/exec error (Real), or one whose
+	// text is os/exec's "exit status N" (the fake).
 	Err error
 }
 

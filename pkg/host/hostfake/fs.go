@@ -358,6 +358,42 @@ func (s *System) Rename(ctx context.Context, oldname, newname string) error {
 	})
 }
 
+// Readlink returns the target of the symlink name, as stored; EINVAL when
+// name is not a symlink, as readlink(2).
+func (s *System) Readlink(ctx context.Context, name string) (string, error) {
+	var target string
+	err := s.do(ctx, Call{Op: "readlink", Path: name}, func() error {
+		_, n, err := s.lookup(name, false)
+		switch {
+		case err != nil:
+			return perr("readlink", name, err)
+		case n.mode&fs.ModeSymlink == 0:
+			return perr("readlink", name, syscall.EINVAL)
+		}
+		target = n.target
+		return nil
+	})
+	return target, err
+}
+
+// Chmod sets the permission bits of a regular file or directory; it refuses a
+// symlink at name (ErrSymlink) and anything else (fs.ErrInvalid).
+func (s *System) Chmod(ctx context.Context, name string, perm fs.FileMode) error {
+	return s.do(ctx, Call{Op: "chmod", Path: name, Mode: perm}, func() error {
+		_, n, err := s.lookup(name, false)
+		switch {
+		case err != nil:
+			return perr("lstat", name, err)
+		case n.mode&fs.ModeSymlink != 0:
+			return perr("chmod", name, host.ErrSymlink)
+		case !n.mode.IsRegular() && !n.mode.IsDir():
+			return perr("chmod", name, fs.ErrInvalid)
+		}
+		n.mode = n.mode.Type() | perm.Perm()
+		return nil
+	})
+}
+
 // Chown refuses a symlink at name; -1 leaves the uid or gid unchanged.
 func (s *System) Chown(ctx context.Context, name string, uid, gid int) error {
 	return s.do(ctx, Call{Op: "chown", Path: name, UID: uid, GID: gid}, func() error {

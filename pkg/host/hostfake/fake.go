@@ -37,7 +37,7 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, read, stat, lstat, readdir, mkdir, remove, removeall, rename, chown, write-atomic, write-in-place, lookup-user, lookup-group
+	Op       string   // run, read, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
 	Argv     []string // run
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run
@@ -65,7 +65,7 @@ func (c Call) String() string {
 		fmt.Fprintf(&b, "%s %04o %d:%d %d bytes", c.Path, uint32(c.Mode.Perm()), c.UID, c.GID, len(c.Data))
 	case "write-in-place":
 		fmt.Fprintf(&b, "%s %04o %d bytes", c.Path, uint32(c.Mode.Perm()), len(c.Data))
-	case "mkdir":
+	case "mkdir", "chmod":
 		fmt.Fprintf(&b, "%s %04o", c.Path, uint32(c.Mode.Perm()))
 	case "chown":
 		fmt.Fprintf(&b, "%s %d:%d", c.Path, c.UID, c.GID)
