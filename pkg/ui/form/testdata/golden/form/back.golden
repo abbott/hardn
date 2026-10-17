@@ -3,40 +3,40 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m b$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m 0$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mPaste SSH public key␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m ssh-ed25519 AAAAC3Nz$
+   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mPaste SSH public key␛[m ␛[38;2;192;196;216m[0 or q]:␛[m ssh-ed25519 AAAAC3Nz$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-   1. Username [0, b or q]: george$
+   1. Username [0 or q]: george$
 $
-   2. Grant sudo privilege? [y/N, 0, b or q]: y$
+   2. Grant sudo privilege? [y/N, 0 or q]: y$
 $
-   3. Require sudo password? [y/N, 0, b or q]: b$
+   3. Require sudo password? [y/N, 0 or q]: 0$
 $
-   2. Grant sudo privilege? [y/N, 0, b or q]: n$
+   2. Grant sudo privilege? [y/N, 0 or q]: n$
 $
-   3. Add SSH key? [y/N, 0, b or q]: y$
+   3. Add SSH key? [y/N, 0 or q]: y$
 $
-   4. Paste SSH public key [0, b or q]: ssh-ed25519 AAAAC3Nz$
+   4. Paste SSH public key [0 or q]: ssh-ed25519 AAAAC3Nz$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m b$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m 0$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mPaste SSH public key␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m ssh-ed25519 AAAAC3Nz$
+   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mPaste SSH public key␛[m ␛[38;2;192;196;216m[0 or q]:␛[m ssh-ed25519 AAAAC3Nz$

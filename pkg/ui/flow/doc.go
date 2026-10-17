@@ -26,8 +26,8 @@
 //     (Plan.Typed), the question on a line of its own above a typed
 //     confirmation of a phrase such as the hostname (nav.Prompter.Typed),
 //     or of the short phrase the action gives, such as the hostname's
-//     first label, when the whole does not show. The answer no, and 0 or
-//     b, decline: an "Operation Cancelled" Callout, and nothing applied.
+//     first label, when the whole does not show. The answer no, and 0,
+//     decline: an "Operation Cancelled" Callout, and nothing applied.
 //     A typed confirmation that does not show at the terminal's width
 //     ends the same way, saying that the terminal is too narrow.
 //  5. Apply: the Engine applies the plan, one step per change, and the
@@ -38,7 +38,7 @@
 //     caller's menu draws itself again below, with its status read again
 //     (nav.Run), and nothing is cleared.
 //
-// 0 or b at the form's first field leaves the flow (nav.ErrBack); q quits
+// 0 at the form's first field leaves the flow (nav.ErrBack); q quits
 // (nav.ErrQuit) and the end of the input or Ctrl-C aborts
 // (prompt.ErrAborted) at any prompt; a context cancelled before Apply
 // stops the flow too. Each returns before Apply, so nothing is applied.

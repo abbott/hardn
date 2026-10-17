@@ -29,8 +29,8 @@
 // one run: "workflow-step/user-manage-sudo-confirmation/failure" is one
 // sequence, ".../failure/2-failed" its last step. A sequence that ends
 // otherwise at the width than it says, as one whose typed confirmation
-// the terminal is too narrow to ask (below 30 columns in Unicode glyphs,
-// 32 in ASCII), which the flow cancels, is printed whole under its name,
+// the terminal is too narrow to ask (below 27 columns in Unicode glyphs,
+// 29 in ASCII), which the flow cancels, is printed whole under its name,
 // after a note saying so, and the other mocks still show.
 //
 // "play" is the playable mode, which runs the real screens and prompts on
@@ -41,7 +41,7 @@
 // menu's items lead where origin/main's do, to the other mocks: User
 // Management, Manage User and george's menu to the sudo change, SSH Login
 // to the root-login toggle and its typed confirmation; an item with no
-// mock says so. 0 or b goes back and q quits at every prompt, as the
+// mock says so. 0 goes back and q quits at every prompt, as the
 // navigation grammar has it; going back from the first screen, or
 // quitting, exits with status 0, and the end of the input or Ctrl-C at a
 // prompt with 130. Each workflow runs its flow (pkg/ui/flow) on its

@@ -33,9 +33,8 @@ type Menu struct {
 	Options []Option
 	// Exit is the Exit or Return item shown after the options, such as
 	// Figma's "0) Exit" on the main menu and "0) Return" on a sub-menu.
-	// Its key is 0, which goes back at every prompt, as b does; at the
-	// top level that exits. With no label it is not shown, and 0 and b
-	// still go back.
+	// Its key is 0, which goes back at every prompt; at the top level
+	// that exits. With no label it is not shown, and 0 still goes back.
 	Exit component.MenuItem
 }
 
@@ -50,10 +49,11 @@ func (m Menu) View() component.Menu {
 
 // Accepts returns the inputs the menu's prompt accepts, from which its
 // hint is generated: the key of each item shown that can be chosen and
-// the exit item's (component.Menu.Bindings), then 0, b and q
-// (keys.Navigation), as "0-10, b or q". A disabled item's key is left
-// out, so the hint lists only what is accepted ("0-2, 4-10, b or q");
-// typed anyway, it is answered with the item's being unavailable.
+// the exit item's (component.Menu.Bindings), then 0 and q
+// (keys.Navigation), as "0-10 or q", where 0 is shown once, as the exit
+// item's. A disabled item's key is left out, so the hint lists only what
+// is accepted ("0-2, 4-10 or q"); typed anyway, it is answered with the
+// item's being unavailable.
 func (m Menu) Accepts() keys.Set {
 	return append(m.View().Bindings(), keys.Navigation()...)
 }
@@ -121,10 +121,10 @@ func (m Menu) resolve(line string) (int, error) {
 
 // Choose asks label, such as Figma's "Enter your choice", as a PromptLine
 // whose hint is generated from Accepts, and returns the option chosen;
-// the caller runs its Action, or Run does. It returns ErrBack for 0 or b
-// and ErrQuit for q, and asks again for any other line: "Invalid option",
-// or that a disabled item is unavailable. A menu that fails Check returns
-// its error before anything is written.
+// the caller runs its Action, or Run does. It returns ErrBack for 0 and
+// ErrQuit for q, and asks again for any other line, b included: "Invalid
+// option", or that a disabled item is unavailable. A menu that fails
+// Check returns its error before anything is written.
 func (p Prompter) Choose(m Menu, label string) (Option, error) {
 	if err := m.Check(); err != nil {
 		return Option{}, err
@@ -176,7 +176,7 @@ type Screen struct {
 // result Message or a flow's first step, writes theme.SectionGap blank
 // lines first, as Run does; a sub-menu's Run does so itself.
 //
-// Run returns nil when the user goes back with 0 or b: the caller returns
+// Run returns nil when the user goes back with 0: the caller returns
 // to the screen above, and at the top level exits. It returns ErrQuit
 // when they quit with q, or when an action returns it, so that q quits
 // from any depth. An action that returns ErrBack, such as a flow left at

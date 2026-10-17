@@ -4,12 +4,12 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
-   2. Grant sudo privilege? [y/N, 0, b or q]: y$
+   2. Grant sudo privilege? [y/N, 0 or q]: y$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$

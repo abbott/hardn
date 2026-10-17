@@ -24,7 +24,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
       ␛[38;2;129;134;156m$ visudo -c␛[m$
 $
-  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Manage User ##################################################$
@@ -48,7 +48,7 @@ $
    -  Check the sudo configuration$
       $ visudo -c$
 $
-  Require password for sudo? [y/N, 0, b or q]: y$
+  Require password for sudo? [y/N, 0 or q]: y$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[48;2;22;24;29m                                              ␛[m$
@@ -73,4 +73,4 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
       ␛[38;2;129;134;156m$ visudo -c␛[m$
 $
-  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$

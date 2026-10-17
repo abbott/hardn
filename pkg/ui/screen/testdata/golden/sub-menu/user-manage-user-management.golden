@@ -14,7 +14,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Manage User ##################################################$
@@ -28,7 +28,7 @@ $
 $
    0) Return$
 $
-  > Enter your choice [0-2, b or q]:$
+  > Enter your choice [0-2 or q]:$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[48;2;22;24;29m                                              ␛[m$
@@ -44,4 +44,4 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$

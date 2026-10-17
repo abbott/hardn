@@ -5,14 +5,14 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 $
-   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Create User ##################################################$
 $
-   1. Username [0, b or q]: george$
+   1. Username [0 or q]: george$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                              ␛[m$
 $
-   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$

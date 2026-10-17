@@ -41,7 +41,7 @@
 // and the answer's echo.
 //
 //   - A field with no description and no options is asked on one line, an
-//     AnsweredField with no answer: "1. Username [0, b or q]:", as nav
+//     AnsweredField with no answer: "1. Username [0 or q]:", as nav
 //     asks its questions and as Figma draws a form's fields, numbered;
 //     but only while that line shows the question and its hint whole
 //     (component.AnsweredField.ShowsWhole).
@@ -51,9 +51,9 @@
 //     a menu's rows, set apart by a blank line), then theme.PromptGap
 //     blank lines, then a PromptLine of its own. A Select's asks "Enter
 //     your choice", Figma's words for a numbered choice, as a menu's
-//     prompt does: "> Enter your choice [1-2, 0, b or q]:". A text or y/N
+//     prompt does: "> Enter your choice [1-2, 0 or q]:". A text or y/N
 //     field's has no label, since the title right above is the question:
-//     "> [0, b or q]:". The head's title has its line to itself, so it
+//     "> [0 or q]:". The head's title has its line to itself, so it
 //     shows whole at widths where the one line would not; it is still one
 //     line, cut with the ellipsis when it must be, so words a user has to
 //     read whole, such as what a default is, belong in the description,
@@ -86,9 +86,11 @@
 //
 // # Navigation
 //
-// Every prompt of a form keeps the navigation grammar (pkg/ui/nav): 0 or
-// b goes back to the field asked before this one, asked again from the
+// Every prompt of a form keeps the navigation grammar (pkg/ui/nav): 0
+// goes back to the field asked before this one, asked again from the
 // start, and from the first field leaves the form with nav.ErrBack; q
-// quits with nav.ErrQuit (P-26 (a)). The end of the input and Ctrl-C
-// abort with ErrAborted, from any field, and never go back.
+// quits with nav.ErrQuit (P-26 (a)). Back is 0 only (P-25): b is a line
+// as any other, a text field's value, which the other fields refuse. The
+// end of the input and Ctrl-C abort with ErrAborted, from any field, and
+// never go back.
 package form

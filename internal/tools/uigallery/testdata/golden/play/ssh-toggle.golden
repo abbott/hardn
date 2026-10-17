@@ -34,7 +34,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 2$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
@@ -54,7 +54,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
@@ -87,9 +87,9 @@ $
 $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m BOS-SAN-L01$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m bos-san-l01$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
@@ -114,7 +114,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m q$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m q$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -173,7 +173,7 @@ $
 $
    0) Exit                 q to quit$
 $
-  > Enter selection [0-10, b or q]: 2$
+  > Enter selection [0-10 or q]: 2$
 $
 # Manage Root SSH Login ########################################$
 $
@@ -193,7 +193,7 @@ $
 $
    0) Return$
 $
-  > Enter your choice [0-2, b or q]: 1$
+  > Enter your choice [0-2 or q]: 1$
 $
 # Manage Root SSH Login ########################################$
 $
@@ -226,9 +226,9 @@ $
 $
   Disable SSH login for 'root'?$
 $
-  Type the hostname [bos-san-l01, 0, b or q]: BOS-SAN-L01$
+  Type the hostname [bos-san-l01, 0 or q]: BOS-SAN-L01$
   [!] Error: That does not match exactly. Please try again.$
-  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01$
+  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01$
 $
   [+] Done: Set PermitRootLogin no$
   [+] Done: Reload the SSH service$
@@ -253,7 +253,7 @@ $
 $
    0) Return$
 $
-  > Enter your choice [0-2, b or q]: q$
+  > Enter your choice [0-2 or q]: q$
 $
 # simulated system ---------------------------------------------$
 $
@@ -311,7 +311,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 2$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
 $
@@ -338,7 +338,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
 $
@@ -374,9 +374,9 @@ $
 $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m BOS-SAN-L01$
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m bos-san-l01$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
@@ -408,7 +408,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m q$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m q$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

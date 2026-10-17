@@ -643,12 +643,15 @@ func TestShowsWhole(t *testing.T) {
 		whole string // the question asked, rendered with room to spare
 	}{
 		{AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: append(slices.Clone(yesNo), navigation...)},
-			"   2. Grant sudo privilege? [y/N, 0, b or q]:"},
+			"   2. Grant sudo privilege? [y/N, 0 or q]:"},
 		{AnsweredField{Label: "Username"}, "  Username:"},
-		{AnsweredField{Number: 1, Label: "Username", Accepts: navigation}, "   1. Username [0, b or q]:"},
+		{AnsweredField{Number: 1, Label: "Username", Accepts: navigation}, "   1. Username [0 or q]:"},
 		// origin/main's label (pkg/menu user_options.go:580) beside the
-		// navigation is wider than the content: never whole.
-		{AnsweredField{Number: 1, Label: "Enter new username (leave empty to keep current)", Accepts: navigation}, ""},
+		// navigation fills the content, 64 columns, exactly: whole from 64
+		// up. Two cells more are wider than the content: never whole.
+		{AnsweredField{Number: 1, Label: "Enter new username (leave empty to keep current)", Accepts: navigation},
+			"   1. Enter new username (leave empty to keep current) [0 or q]:"},
+		{AnsweredField{Number: 1, Label: "Enter a new username (leave empty to keep current)", Accepts: navigation}, ""},
 		{AnsweredField{Accepts: navigation}, ""},
 	}
 	for _, tt := range tests {

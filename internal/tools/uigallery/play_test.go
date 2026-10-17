@@ -57,8 +57,8 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // TestPlayGolden plays the paths the playable mode must show end to end,
 // on the core set, and pins each transcript: the user-management workflow
 // from the main menu, with an item the gallery has no screen for, the
-// sudo change asked y/N, then back with b and 0 to the main menu and out
-// with 0; the same workflow with its typed sequence, then q from four
+// sudo change asked y/N, then back with 0 to the main menu and out with
+// 0; the same workflow with its typed sequence, then q from four
 // levels down; the root-login toggle's typed confirmation, a line refused
 // first, then q from its sub-menu; the sudo change told to fail its
 // second step, which rolls the first back; and the input ending at a
@@ -72,7 +72,7 @@ func TestPlayGolden(t *testing.T) {
 		lines []string
 		code  int
 	}{
-		{"user-management", nil, []string{"4", "1", "1", "1", "1", "y", "b", "0", "b", "0"}, exitOK},
+		{"user-management", nil, []string{"4", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
 		{"user-management-typed", []string{"-sequence", "typed"}, []string{"1", "1", "1", "1", "bos-san-l01", "q"}, exitOK},
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
@@ -169,8 +169,9 @@ func TestPlaySize(t *testing.T) {
 
 // TestPlayEnds checks how play ends at each kind of prompt: the end of
 // the input aborts with exit status 130 and nothing applied, q quits and
-// 0 or b at the first screen goes back, both with 0, and the record says
-// what was applied.
+// 0 at the first screen goes back, both with 0, and the record says what
+// was applied. b goes nowhere: the main menu refuses it, as any line it
+// does not take, and reads the next.
 func TestPlayEnds(t *testing.T) {
 	sudo := []string{"1", "1", "1", "1"}
 	tests := []struct {
@@ -190,9 +191,10 @@ func TestPlayEnds(t *testing.T) {
 		{"Q at a sub-menu", nil, []string{"3", "Q"}, exitOK, false},
 		{"q at a form's field", []string{"workflow-step/user-create-user"}, []string{"bob", "q"}, exitOK, false},
 		{"q at a typed confirmation", nil, []string{"2", "1", "q"}, exitOK, false},
-		{"b at the main menu", nil, []string{"b"}, exitOK, false},
+		{"0 at the main menu", nil, []string{"0"}, exitOK, false},
+		{"b at the main menu, refused", nil, []string{"b", "0"}, exitOK, false},
 		{"0 at a first sub-menu", []string{"sub-menu/user-ssh-keys"}, []string{"0"}, exitOK, false},
-		{"b at a first workflow's first field", []string{"workflow-step/user-create-user"}, []string{"b"}, exitOK, false},
+		{"0 at a first workflow's first field", []string{"workflow-step/user-create-user"}, []string{"0"}, exitOK, false},
 		{"0 at a first workflow's confirmation", []string{"workflow-step/user-manage-sudo-confirmation"}, []string{"0"}, exitOK, false},
 		{"a dry-run sequence", []string{"workflow-step/ssh-login-toggle-confirmation/dry-run"}, nil, exitOK, false},
 	}
@@ -305,8 +307,9 @@ func TestPlayReaches(t *testing.T) {
 // every profile, both themes and both glyph sets, at 20, 60 and 80
 // columns: play ends with exit status 0, and no line is wider than the
 // terminal but a header, which shows its whole name, and a prompt's line
-// with the answer the terminal echoes. Below 30 columns the toggle's
-// typed confirmation does not show, and the flow cancels it unasked.
+// with the answer the terminal echoes. Below 27 columns in Unicode
+// glyphs, 29 in ASCII and plain mode, the toggle's typed confirmation
+// does not show, and the flow cancels it unasked.
 func TestPlaySmoke(t *testing.T) {
 	for _, p := range profiles {
 		for _, th := range []string{"dark", "light"} {
@@ -314,7 +317,11 @@ func TestPlaySmoke(t *testing.T) {
 				for _, w := range []int{20, 60, 80} {
 					look := []string{"-profile", p.name, "-theme", th, fmt.Sprintf("-ascii=%t", ascii), fmt.Sprintf("-width=%d", w)}
 					lines := []string{"2", "1", "bos-san-l01", "q"}
-					if w < 30 {
+					narrowest := 27
+					if ascii || p.name == "plain" {
+						narrowest = 29
+					}
+					if w < narrowest {
 						lines = []string{"2", "1", "q"}
 					}
 					for _, run := range []struct {
