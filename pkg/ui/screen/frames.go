@@ -12,15 +12,20 @@ import (
 )
 
 // The fixtures of Figma's other frames, and of origin/main's DNS screen,
-// for the gallery's mocks (Mocks). Each sub-screen's breadcrumb is
-// "hardn" and the frame's title bar, under its parent's (DEV-053,
-// DEV-054). Where a frame's mock data is a real-looking name, the
-// fixture has george or alice; its other words, Figma's drift included,
-// are the frame's, as UserFixture's are.
+// for the gallery's mocks (Mocks). Each sub-screen's title bar is the
+// frame's, and its trail the sections above it, such as "User
+// Management" above "Manage User", shown only when TitleTrail is set
+// (P-08; DEV-053, DEV-054). Where a frame's mock data is a real-looking
+// name, the fixture has george or alice; its other words, Figma's drift
+// included, are the frame's, as UserFixture's are.
 
-// trail returns the breadcrumb "hardn", then items.
-func trail(items ...string) component.Breadcrumb {
-	return component.Breadcrumb{Items: append([]string{"hardn"}, items...)}
+// trail returns the title bar of the screen at the end of items: the last
+// item its title, the ones before it its parents, outermost first, such
+// as trail("User Management", "Manage User"). A trail names the sections
+// alone, never the product (P-08).
+func trail(items ...string) component.TitleBar {
+	n := len(items) - 1
+	return component.TitleBar{Title: items[n], Parents: items[:n:n]}
 }
 
 // returnItem is the Return row of Figma's sub-menus.
@@ -47,8 +52,7 @@ func sshPortRow() component.StatusRow {
 // that it is enabled: Figma's drift, drawn as the frame has it.
 func sshLoginFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("Manage Root SSH Login"),
+		Title: trail("Manage Root SSH Login"),
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed"},
 			sshPortRow(),
@@ -72,8 +76,7 @@ func sshLoginFixture() SubMenu {
 // frame has them.
 func backupFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("Manage Hardn Backups"),
+		Title: trail("Manage Hardn Backups"),
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "Backups", State: component.StatusConfigured, Word: "Enabled", Detail: "UFW installed, deny policy"},
 			sshPortRow(),
@@ -99,9 +102,8 @@ func backupFixture() SubMenu {
 // of users, george and alice, under its own heading.
 func selectUserFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("User Management", "Manage User"),
-		Heading:    "Select a user",
+		Title:   trail("User Management", "Manage User"),
+		Heading: "Select a user",
 		Menu: component.Menu{Items: []component.MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}},
 			Exit: returnItem()},
 		Prompt: figmaPrompt,
@@ -112,10 +114,9 @@ func selectUserFixture() SubMenu {
 // subject line over the user's menu.
 func manageUserFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("User Management", "Manage User"),
-		Subject:    component.SubjectLine{Label: "Managing", Subject: "george"},
-		Heading:    fixtureHeading,
+		Title:   trail("User Management", "Manage User"),
+		Subject: component.SubjectLine{Label: "Managing", Subject: "george"},
+		Heading: fixtureHeading,
 		Menu: component.Menu{Items: []component.MenuItem{
 			{Key: "1", Label: "Sudo Method", Description: "Toggle password requirement"},
 			{Key: "2", Label: "Manage SSH keys", Description: "Add or remove SSH keys"},
@@ -128,25 +129,23 @@ func manageUserFixture() SubMenu {
 // item, for a user with no key to remove.
 func sshKeysFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("User Management", "Manage User"),
-		Subject:    component.SubjectLine{Label: "Managing SSH keys for", Subject: "george"},
-		Heading:    fixtureHeading,
-		Menu:       component.Menu{Items: []component.MenuItem{{Key: "1", Label: "Add SSH key"}}, Exit: returnItem()},
-		Prompt:     figmaPrompt,
+		Title:   trail("User Management", "Manage User"),
+		Subject: component.SubjectLine{Label: "Managing SSH keys for", Subject: "george"},
+		Heading: fixtureHeading,
+		Menu:    component.Menu{Items: []component.MenuItem{{Key: "1", Label: "Add SSH key"}}, Exit: returnItem()},
+		Prompt:  figmaPrompt,
 	}
 }
 
 // dnsFixture returns origin/main's DNS screen (pkg/menu dns_menu.go) on
 // the sub-menu layout, which no Figma frame draws: its title, "DNS
-// Configuration", is the breadcrumb's current item, and its two headings
-// are sections, without their colons, of key-value rows. The nameserver
-// in use is 192.0.2.1, and the two configured are not applied yet. The
-// words are origin/main's, the prompt "Enter selection" included.
+// Configuration", is its title bar's, and its two headings are sections,
+// without their colons, of key-value rows. The nameserver in use is
+// 192.0.2.1, and the two configured are not applied yet. The words are
+// origin/main's, the prompt "Enter selection" included.
 func dnsFixture() SubMenu {
 	return SubMenu{
-		Header:     fixtureHeader(),
-		Breadcrumb: trail("DNS Configuration"),
+		Title: trail("DNS Configuration"),
 		Sections: []Section{{
 			Header: component.SectionHeader{Title: "Current DNS Configuration"},
 			Rows: component.BulletList{Items: []component.KeyValue{
@@ -236,7 +235,7 @@ func rootLogin(e flow.Engine, dryRun bool) (WorkflowStep, flow.Flow) {
 		Confirm: typedHostname("Disable SSH login for 'root'?"),
 		DryRun:  dryRun,
 	}
-	return WorkflowStep{Header: fixtureHeader(), Breadcrumb: trail("Manage Root SSH Login")}, f
+	return WorkflowStep{Title: trail("Manage Root SSH Login")}, f
 }
 
 // typedHostname returns a flow's Confirm that asks question, and above a
@@ -349,5 +348,5 @@ func createUser(failing, dryRun bool) (WorkflowStep, flow.Flow) {
 		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: fmt.Sprintf("Create user '%s'?", u.name)} },
 		DryRun:  dryRun,
 	}
-	return WorkflowStep{Header: fixtureHeader(), Breadcrumb: trail("User Management", "Create User")}, f
+	return WorkflowStep{Title: trail("User Management", "Create User")}, f
 }

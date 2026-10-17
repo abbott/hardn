@@ -412,18 +412,19 @@ func TestEmptyBlocks(t *testing.T) {
 		t.Errorf("main menu with no status rows:\n%s\nwant the risk line, one blank line, then the divider", out)
 	}
 	sub := SubMenu{
-		Breadcrumb: component.Breadcrumb{Items: []string{"hardn", "Firewall"}},
-		Subject:    component.SubjectLine{Label: "Managing"},
-		Sections:   []Section{{Header: component.SectionHeader{Title: "Rules"}}},
-		Menu:       component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:     "Enter your choice",
+		Title:    trail("Firewall"),
+		Subject:  component.SubjectLine{Label: "Managing"},
+		Sections: []Section{{Header: component.SectionHeader{Title: "Rules"}}},
+		Menu:     component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
+		Prompt:   "Enter your choice",
 	}
-	want := "hardn\n\n  hardn > Firewall\n\n   0) Return\n\n  > Enter your choice [0, b or q]:"
+	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n  > Enter your choice [0, b or q]:"
 	if out := ansi.Strip(sub.Render(c)); out != want {
 		t.Errorf("sub-menu with empty blocks:\n%s\nwant\n%s", out, want)
 	}
-	if out := ansi.Strip((SubMenu{}).Render(c)); out != "hardn\n\n  > [0, b or q]:" {
-		t.Errorf("empty sub-menu: %q", out)
+	// With no title the bar is all fill, the title bar's empty state.
+	if out, want := ansi.Strip((SubMenu{}).Render(c)), ansi.Strip(component.TitleBar{}.Render(c))+"\n\n  > [0, b or q]:"; out != want {
+		t.Errorf("empty sub-menu: %q, want %q", out, want)
 	}
 	if out := (Section{Header: component.SectionHeader{Title: "Rules"}}).Render(c); out != "" {
 		t.Errorf("a section with nothing under its header renders %q, want nothing", out)
@@ -437,7 +438,7 @@ func TestEmptyBlocks(t *testing.T) {
 // columns.
 func TestSubMenuFrames(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	head := "hardn  v0.4.0              https://github.com/abbott/hardn\n\n  hardn > User Management > Manage User\n\n"
+	head := ansi.Strip(titleBar(trail("User Management", "Manage User"), TitleTrail).Render(c)) + "\n\n"
 	tests := []struct {
 		name string
 		vm   SubMenu
@@ -452,6 +453,72 @@ func TestSubMenuFrames(t *testing.T) {
 	for _, tt := range tests {
 		if out := ansi.Strip(tt.vm.Render(c)); out != tt.want {
 			t.Errorf("%s:\n%s\nwant\n%s", tt.name, out, tt.want)
+		}
+	}
+}
+
+// TestTitleTrail checks P-08's title bar (DEV-053, DEV-054): every
+// sub-screen opens with it, with no Header and no Breadcrumb line; with
+// the trail off, as TitleTrail has it by default, the bar shows the
+// screen's title alone, as Figma's frames do; with it on, the sections
+// above the screen come first, "User Management > Manage User", so that
+// flipping the constant is all the trail needs. Render draws TitleTrail's
+// form, and no trail names the product. Plain, at 80 columns.
+func TestTitleTrail(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	fill := func(text string) string {
+		return "# " + text + " " + strings.Repeat("#", lipgloss.Width(ansi.Strip(component.TitleBar{}.Render(c)))-3-len(text))
+	}
+	step, _ := ManageSudoFixture()
+	tests := []struct {
+		name     string
+		render   func(withTrail bool) string
+		off, on  string
+		rendered string
+	}{
+		{"01-USER, the top of its section", func(w bool) string { return UserFixture().render(c, w) },
+			fill("User Management"), fill("User Management"), UserFixture().Render(c)},
+		{"USER-MANAGE_USER-MANAGEMENT", func(w bool) string { return manageUserFixture().render(c, w) },
+			fill("Manage User"), fill("User Management > Manage User"), manageUserFixture().Render(c)},
+		{"USER-MANAGE_SUDO-CONFIRMATION", func(w bool) string { return step.render(c, w) },
+			fill("Manage User"), fill("User Management > Manage User"), step.Render(c)},
+	}
+	for _, tt := range tests {
+		for _, withTrail := range []bool{false, true} {
+			want := tt.off
+			if withTrail {
+				want = tt.on
+			}
+			first, _, _ := strings.Cut(ansi.Strip(tt.render(withTrail)), "\n")
+			if first != want {
+				t.Errorf("%s, trail %t: first line\n%s\nwant\n%s", tt.name, withTrail, first, want)
+			}
+		}
+		if tt.rendered != tt.render(TitleTrail) {
+			t.Errorf("%s: Render does not draw TitleTrail's form", tt.name)
+		}
+	}
+	bars := map[string]component.TitleBar{}
+	for _, m := range Mocks() {
+		switch vm := m.Screen.(type) {
+		case SubMenu:
+			bars[m.Name] = vm.Title
+		case MainMenu:
+		default:
+			for _, sq := range m.Sequences {
+				step, _ := sq.Build()
+				bars[m.Name+"/"+sq.Name] = step.Title
+			}
+		}
+	}
+	for name, bar := range bars {
+		if bar.Title == "" {
+			t.Errorf("%s: no title", name)
+		}
+		for _, it := range append(slices.Clone(bar.Parents), bar.Title) {
+			if strings.EqualFold(strings.TrimSpace(it), "hardn") {
+				t.Errorf("%s: the trail %q names the product", name, append(bar.Parents, bar.Title))
+			}
 		}
 	}
 }

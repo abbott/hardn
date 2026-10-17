@@ -3,23 +3,16 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mCreate User␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-hardn  v0.4.0              https://github.com/abbott/hardn$
-$
-  hardn > User Management > Create User$
+# Create User ##################################################$
 $
    1. Username [0, b or q]: george$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
-␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mCreate User␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                              ␛[m$
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$

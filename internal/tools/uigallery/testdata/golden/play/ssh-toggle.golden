@@ -36,9 +36,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
@@ -58,9 +56,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
@@ -99,9 +95,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
@@ -180,9 +174,7 @@ $
 $
   > Enter selection [0-10, b or q]: 2$
 $
-hardn  v0.4.0              https://github.com/abbott/hardn$
-$
-  hardn > Manage Root SSH Login$
+# Manage Root SSH Login ########################################$
 $
   [+] SSH Login            Configured root disallowed$
   [+] SSH Port             2230/tcp non-default$
@@ -202,9 +194,7 @@ $
 $
   > Enter your choice [0-2, b or q]: 1$
 $
-hardn  v0.4.0              https://github.com/abbott/hardn$
-$
-  hardn > Manage Root SSH Login$
+# Manage Root SSH Login ########################################$
 $
 # [*] Warning$
 # Before disabling root SSH login, ensure:$
@@ -243,9 +233,7 @@ $
 $
 # [+] Operation Successful$
 $
-hardn  v0.4.0              https://github.com/abbott/hardn$
-$
-  hardn > Manage Root SSH Login$
+# Manage Root SSH Login ########################################$
 $
   [+] SSH Login            Configured root disallowed$
   [+] SSH Port             2230/tcp non-default$
@@ -323,10 +311,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
-␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
@@ -353,10 +338,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
-␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
@@ -398,10 +380,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
-␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
-$
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
