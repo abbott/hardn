@@ -58,6 +58,7 @@ hardn's status was read from files (V13), and the drop-in it wrote, `hardn.conf`
 | The address text is `[::]:22` / `0.0.0.0:22` and a stream socket's type is `Stream`; `ListenStream=22` binds a dual-stack `[::]` | **[unverified]**: `socket_address_print`, `socket_port_type_to_string` and systemd.socket(5) were not read; an entry in another form makes the listeners Unknown, never Known | §2.5 |
 | cloud-init writes `50-cloud-init.conf` (`PasswordAuthentication yes` on an Ubuntu ISO install without imported keys); Ubuntu cloud images ship `60-cloudimg-settings.conf`; Proxmox VE writes `PermitRootLogin yes` into `sshd_config`, which the drop-in overrides (not drift); the legacy `hardn.conf` sorts after both cloud files | `research-ssh-distro-facts.md` §3b, §6 and "Extra: Proxmox cluster tooling" **[V]**; [phase0-findings.md §10](../refactor/phase0-findings.md#10-verify-list-brief-9), "Proxmox join / detection"; plan `p2-pve` row | §2.9 examples, fixtures |
 | `sshd -T` loads the host keys and, as root on Debian, Ubuntu and Proxmox VE, needs `/run/sshd` | [sshd-validate.md](sshd-validate.md) §3 | §2.12 |
+| The running sshd reads `/etc/ssh/sshd_config`, as `ReadEffective`'s `-f` names it | **[unverified]**: `ssh.service` passes `$SSHD_OPTS` and Alpine's init script its `/etc/conf.d/sshd` settings, neither read here; a `-f` there would make the service read another file | §2.11 |
 | OpenSSH 8.9 (Ubuntu 22.04, best effort) prints the same names and values as 9.2 | **[unverified]**; an alias would still read (§2.1), another value would be Unknown | §2.1, §2.2 |
 
 ## 4. Written, not run (gate 5)
@@ -68,7 +69,8 @@ No `sshd` and no `systemctl` has run. The fixtures' outputs follow the sources a
 - the brief's 2230 change: during the confirm window (`Port 22` and `Port 2230` in `00-hardn.conf`) on Ubuntu 26.04, `sources-disagree` before `daemon-reload` and `restart ssh.socket` and Known after, with `Listeners.All` holding both ports throughout; on Debian 13 and Alpine, Known from sshd alone after the reload;
 - `systemctl show -p Listen ssh.socket`'s text on Ubuntu 24.04 and 26.04 stock, after the generator wrote `addresses.conf`, with the generator masked, and on a Debian host opted into the socket with `ssh.socket.d/listen.conf` (a disagreement with sshd's Port is expected there);
 - the conflict report and the cross-check against real files: the byte-order fixture's names in a real `sshd_config.d` (no `sources-disagree` expected), Proxmox VE after `pvecm create` (`shadowed` `PermitRootLogin yes`), the v0.3.2-hardened image (`manage.conf`, R8) and origin/main's `hardn.conf`, a `Port 22` left in `sshd_config`, a `Match User` block in a drop-in, and an Alpine host with no Include and hardn's block (`Owner` with its lines);
-- the probes' `Override`s against the installed files, and `sshd -T` failing on Ubuntu 26.04 before the first connection (`/run/sshd` missing, `*EnvError`).
+- the probes' `Override`s against the installed files, and `sshd -T` failing on Ubuntu 26.04 before the first connection (`/run/sshd` missing, `*EnvError`);
+- that no stock `SSHD_OPTS` (Debian, Ubuntu) or `/etc/conf.d/sshd` (Alpine) passes another `-f` to the service.
 
 ## 5. API
 
