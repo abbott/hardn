@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
 // TestReadUpdates: on a stock host of each release, ReadUpdates runs only
@@ -40,25 +42,35 @@ func TestReadUpdates(t *testing.T) {
 	}
 }
 
-// TestReadUpdatesRefuses: another distribution, an unestablished one, and
-// an Alpine that OpenRC did not boot (a container image) are refused
-// before anything is read.
+// TestReadUpdatesRefuses: another distribution, an unestablished one, an
+// init system not established (never "OpenRC did not boot" then), and an
+// Alpine that OpenRC did not boot (a container image, or systemd) are
+// refused before anything is read.
 func TestReadUpdatesRefuses(t *testing.T) {
 	f := facts(t, "3.24")
-	debian := f
-	debian.Platform = detect.Platform{Distro: detect.DistroDebian, Version: "13"}
-	unknown := f
-	unknown.Platform = detect.Platform{Err: fs.ErrPermission}
-	container := f
-	container.Init = detect.Init{Kind: detect.OpenRC, Running: detect.No, Source: detect.OpenRCRun}
+	alter := func(p detect.Platform, in detect.Init) detect.Facts {
+		g := f
+		if p != (detect.Platform{}) {
+			g.Platform = p
+		}
+		if in != (detect.Init{}) {
+			g.Init = in
+		}
+		return g
+	}
 	for _, tc := range []struct {
-		name string
-		f    detect.Facts
-		want error
+		name  string
+		f     detect.Facts
+		want  error
+		cause error // also wrapped
+		not   error // never wrapped
 	}{
-		{"debian", debian, alpine.ErrNotAlpine},
-		{"distro unknown", unknown, alpine.ErrUnknown},
-		{"container", container, alpine.ErrNoOpenRC},
+		{"debian", alter(detect.Platform{Distro: detect.DistroDebian, Version: "13"}, detect.Init{}), alpine.ErrNotAlpine, nil, nil},
+		{"distro unknown", alter(detect.Platform{Err: fs.ErrPermission}, detect.Init{}), alpine.ErrUnknown, fs.ErrPermission, alpine.ErrNotAlpine},
+		{"init unknown", alter(detect.Platform{}, detect.Init{Err: fs.ErrPermission}), alpine.ErrUnknown, fs.ErrPermission, alpine.ErrNoOpenRC},
+		{"init signals disagree", alter(detect.Platform{}, detect.Init{Err: detect.ErrConflict}), alpine.ErrUnknown, detect.ErrConflict, alpine.ErrNoOpenRC},
+		{"container", alter(detect.Platform{}, detect.Init{Kind: detect.OpenRC, Running: detect.No, Source: detect.OpenRCRun}), alpine.ErrNoOpenRC, nil, alpine.ErrUnknown},
+		{"systemd", alter(detect.Platform{}, detect.Init{Kind: detect.Systemd, Running: detect.Yes, Source: detect.SystemdRunDir}), alpine.ErrNoOpenRC, nil, alpine.ErrUnknown},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			w := stock(t, false)
@@ -66,8 +78,83 @@ func TestReadUpdatesRefuses(t *testing.T) {
 			if !errors.Is(err, tc.want) || len(w.h.Calls()) != 0 {
 				t.Errorf("err = %v (want %v), calls %v", err, tc.want, w.h.Calls())
 			}
-			if tc.name == "distro unknown" && (!errors.Is(err, fs.ErrPermission) || errors.Is(err, alpine.ErrNotAlpine)) {
-				t.Errorf("err = %v: want the cause, and never 'not Alpine'", err)
+			if tc.cause != nil && !errors.Is(err, tc.cause) || tc.not != nil && errors.Is(err, tc.not) {
+				t.Errorf("err = %v: want %v wrapped, and never %v", err, tc.cause, tc.not)
+			}
+		})
+	}
+}
+
+// errAny stands for any error in TestReadUpdatesUnknown.
+var errAny = errors.New("any error")
+
+// TestReadUpdatesUnknown: each host answer ReadUpdates cannot read for
+// certain gives Unknown with the reason in Updates.Err, never a guess; a
+// file replaced or removed between the Lstat and the read is read as what
+// it became.
+func TestReadUpdatesUnknown(t *testing.T) {
+	denied := func(op, path string) func(*world) host.System {
+		return func(w *world) host.System {
+			return faulty{System: w.h, fail: map[string]error{op + " " + path: fs.ErrPermission}}
+		}
+	}
+	readFails := func(err error) func(*world) host.System {
+		return func(w *world) host.System {
+			return faulty{System: w.h, fail: map[string]error{"read-nofollow " + alpine.LegacyScript: err}}
+		}
+	}
+	respond := func(r hostfake.Response, argv ...string) func(*world) host.System {
+		return func(w *world) host.System { w.h.Respond(r, argv[0], argv[1:]...); return w.h }
+	}
+	status := []string{"rc-service", "crond", "status"}
+	info := []string{"apk", "info", "-e", "apk-cron"}
+	pkg := func(want detect.Tri) func(alpine.Updates) bool {
+		return func(u alpine.Updates) bool { return u.Package == want }
+	}
+	crond := func(u alpine.Updates) bool { return u.Crond == alpine.CrondUnknown }
+	legacyIs := func(want alpine.Legacy) func(alpine.Updates) bool {
+		return func(u alpine.Updates) bool { return u.Legacy == want }
+	}
+	for _, tc := range []struct {
+		name  string
+		setup func(*world) host.System
+		want  func(alpine.Updates) bool
+		cause error // Updates.Err wraps it; nil: Updates.Err is nil
+	}{
+		{"init script unreadable", denied("lstat", alpine.InitScript), crond, fs.ErrPermission},
+		{"init script not a file", func(w *world) host.System {
+			_ = w.h.Remove(context.Background(), alpine.InitScript)
+			w.h.AddDir(alpine.InitScript, 0o755, 0, 0)
+			return w.h
+		}, crond, detect.ErrUnrecognised},
+		{"crond stopping", respond(hostfake.Response{ExitCode: 4}, status...), crond, detect.ErrUnrecognised},
+		{"crond starting", respond(hostfake.Response{ExitCode: 8}, status...), crond, detect.ErrUnrecognised},
+		{"crond inactive", respond(hostfake.Response{ExitCode: 16}, status...), crond, detect.ErrUnrecognised},
+		{"runlevel unreadable", denied("stat", alpine.RunlevelLink), func(u alpine.Updates) bool { return u.Runlevel == detect.Unknown }, fs.ErrPermission},
+		{"script unreadable", denied("lstat", alpine.Script), func(u alpine.Updates) bool { return u.Script == alpine.ScriptUnknown }, fs.ErrPermission},
+		{"legacy unreadable", denied("lstat", alpine.LegacyScript), legacyIs(alpine.LegacyUnknown), fs.ErrPermission},
+		{"legacy read denied", readFails(fs.ErrPermission), legacyIs(alpine.LegacyUnknown), fs.ErrPermission},
+		{"legacy under an untrusted link", readFails(host.ErrSymlinkParent), legacyIs(alpine.LegacyUnknown), host.ErrSymlinkParent},
+		{"legacy replaced by a link", readFails(host.ErrSymlink), legacyIs(alpine.LegacyOther), nil},
+		{"legacy removed meanwhile", readFails(fs.ErrNotExist), legacyIs(alpine.LegacyAbsent), nil},
+		{"apk info, other output", respond(hostfake.Response{Stdout: "apk-tools\n"}, info...), pkg(detect.Unknown), detect.ErrUnrecognised},
+		{"apk info, error", respond(hostfake.Response{Stderr: "ERROR: Unable to read database\n", ExitCode: 1}, info...), pkg(detect.Unknown), errAny},
+		// The verbosity /etc/apk/config sets changes the output, not the
+		// exit status.
+		{"apk info, quiet", respond(hostfake.Response{}, info...), pkg(detect.Yes), nil},
+		{"apk info, verbose", respond(hostfake.Response{Stdout: "apk-cron-1.0-r3\n"}, info...), pkg(detect.Yes), nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			w := stock(t, true)
+			u, err := alpine.ReadUpdates(context.Background(), tc.setup(w), facts(t, "3.24"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !tc.want(u) {
+				t.Errorf("Updates = %+v", u)
+			}
+			if tc.cause == nil && u.Err != nil || tc.cause != nil && u.Err == nil || tc.cause != nil && tc.cause != errAny && !errors.Is(u.Err, tc.cause) {
+				t.Errorf("Err = %v, want %v", u.Err, tc.cause)
 			}
 		})
 	}
@@ -149,21 +236,26 @@ func TestFindings(t *testing.T) {
 	for _, tc := range []struct {
 		content string
 		mode    fs.FileMode
+		uid     int
 		want    string
 	}{
-		{alpine.LegacyContent, 0o755, "alpine-legacy-script"},
-		{alpine.LegacyContent, 0o700, "alpine-legacy-script"},                        // the mode does not decide; the rollback keeps it
-		{alpine.LegacyContent + "apk cache clean\n", 0o755, "alpine-foreign-script"}, // edited by the administrator
-		{"#!/bin/sh\r\napk update && apk upgrade --available\r\n", 0o755, "alpine-foreign-script"},
+		{alpine.LegacyContent, 0o755, 0, "alpine-legacy-script"},
+		{alpine.LegacyContent, 0o700, 0, "alpine-legacy-script"},                        // a mode only root can write; the rollback keeps it
+		{alpine.LegacyContent + "apk cache clean\n", 0o755, 0, "alpine-foreign-script"}, // edited by the administrator
+		{"#!/bin/sh\r\napk update && apk upgrade --available\r\n", 0o755, 0, "alpine-foreign-script"},
+		// hardn's bytes, but a user other than root can change them.
+		{alpine.LegacyContent, 0o775, 0, "alpine-foreign-script"},
+		{alpine.LegacyContent, 0o757, 0, "alpine-foreign-script"},
+		{alpine.LegacyContent, 0o755, 1000, "alpine-foreign-script"},
 	} {
 		w := stock(t, false)
-		w.h.AddFile(alpine.LegacyScript, []byte(tc.content), tc.mode, 0, 0)
+		w.h.AddFile(alpine.LegacyScript, []byte(tc.content), tc.mode, tc.uid, tc.uid)
 		p := w.plan(t, facts(t, "3.24"))
 		if len(p.Findings) != 1 || p.Findings[0].Kind.String() != tc.want || p.Findings[0].Path != alpine.LegacyScript {
-			t.Errorf("%q: findings = %+v, want %s", tc.content, p.Findings, tc.want)
+			t.Errorf("%q %v %d: findings = %+v, want %s", tc.content, tc.mode, tc.uid, p.Findings, tc.want)
 		}
 		if removes := slices.Contains(steps(p), "remove-legacy"); removes != (tc.want == "alpine-legacy-script") {
-			t.Errorf("%q: steps = %q", tc.content, steps(p))
+			t.Errorf("%q %v %d: steps = %q", tc.content, tc.mode, tc.uid, steps(p))
 		}
 	}
 	// A link at the path is never followed nor removed.
@@ -175,8 +267,8 @@ func TestFindings(t *testing.T) {
 	}
 }
 
-// TestCodes pins the words of the in-memory enums, for p3-output's
-// mapping.
+// TestCodes pins the words of the enums, for p3-output's mapping, and
+// their numbers, which a Plan kept as JSON holds.
 func TestCodes(t *testing.T) {
 	var got []string
 	for s := alpine.StateUnknown; s <= alpine.StateNotApplicable; s++ {
@@ -201,5 +293,19 @@ func TestCodes(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("codes = %q\nwant    %q", got, want)
+	}
+	// A Plan kept in p2-revert's journal holds the numbers, not the words:
+	// they are pinned too.
+	nums := []uint8{
+		uint8(alpine.StateUnknown), uint8(alpine.StateConfigured), uint8(alpine.StatePartial), uint8(alpine.StateNotConfigured), uint8(alpine.StateNotApplicable),
+		uint8(alpine.StepInstall), uint8(alpine.StepRunlevel), uint8(alpine.StepStart), uint8(alpine.StepRestart), uint8(alpine.StepRemoveLegacy),
+		uint8(alpine.CrondUnknown), uint8(alpine.CrondMissing), uint8(alpine.CrondStopped), uint8(alpine.CrondStarted), uint8(alpine.CrondCrashed),
+		uint8(alpine.ScriptUnknown), uint8(alpine.ScriptAbsent), uint8(alpine.ScriptInstalled), uint8(alpine.ScriptOther),
+		uint8(alpine.LegacyUnknown), uint8(alpine.LegacyAbsent), uint8(alpine.LegacyHardn), uint8(alpine.LegacyOther),
+		uint8(alpine.FindingLegacyScript), uint8(alpine.FindingForeignScript),
+	}
+	wantNums := []uint8{0, 1, 2, 3, 4, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 0, 1, 2, 3, 0, 1, 2, 3, 1, 2}
+	if !slices.Equal(nums, wantNums) {
+		t.Errorf("values = %v\nwant     %v", nums, wantNums)
 	}
 }

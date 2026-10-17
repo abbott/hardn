@@ -110,11 +110,7 @@ func CheckAppArmor(ctx context.Context, sys host.System, f detect.Facts) (AppArm
 	case err == nil:
 		a.Err = fmt.Errorf("alpine: apparmor: %s: %q: %w", AppArmorEnabled, data, detect.ErrUnrecognised)
 	case errors.Is(err, fs.ErrNotExist):
-		if _, serr := sys.Stat(ctx, SysModule); serr != nil {
-			a.Err = fmt.Errorf("alpine: apparmor: %w", serr)
-			break
-		}
-		a.Enabled, a.Detail = detect.No, "not in the running kernel (no "+SysModule+"/apparmor): a kernel built with it comes first"
+		a.Enabled, a.Detail, a.Err = noModule(ctx, sys)
 	default:
 		a.Err = fmt.Errorf("alpine: apparmor: %w", err)
 	}
@@ -143,4 +139,22 @@ func CheckAppArmor(ctx context.Context, sys host.System, f detect.Facts) (AppArm
 		return a, fmt.Errorf("alpine: apparmor: %w", err)
 	}
 	return a, nil
+}
+
+// noModule decides, with no AppArmorEnabled, between a kernel without
+// AppArmor (no SysModule/apparmor in a /sys that is there: No) and what
+// is not established: no /sys/module at all, or SysModule/apparmor
+// without its parameter (Unknown).
+func noModule(ctx context.Context, sys host.System) (detect.Tri, string, error) {
+	mod := SysModule + "/apparmor"
+	switch _, err := sys.Lstat(ctx, mod); {
+	case err == nil:
+		return detect.Unknown, "", fmt.Errorf("alpine: apparmor: %s without %s: %w", mod, AppArmorEnabled, detect.ErrUnrecognised)
+	case !errors.Is(err, fs.ErrNotExist):
+		return detect.Unknown, "", fmt.Errorf("alpine: apparmor: %w", err)
+	}
+	if _, err := sys.Stat(ctx, SysModule); err != nil {
+		return detect.Unknown, "", fmt.Errorf("alpine: apparmor: %w", err)
+	}
+	return detect.No, "not in the running kernel (no " + mod + "): a kernel built with it comes first", nil
 }

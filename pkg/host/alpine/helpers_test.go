@@ -2,8 +2,12 @@ package alpine_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -49,6 +53,9 @@ type world struct {
 	crond     string // started, stopped, crashed
 	// inert names commands that succeed without their effect.
 	inert map[string]bool
+	// pending is a package change apk's next commit would make too, as
+	// for a world file edited by hand and not yet applied.
+	pending string
 	// hook runs before a command is answered.
 	hook func(argv string)
 }
@@ -84,6 +91,10 @@ func (w *world) answer(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{Stdout: "apk-cron\n"}
 		}
 		return hostfake.Response{ExitCode: 1}
+	case "apk add --simulate apk-cron":
+		return hostfake.Response{Stdout: w.commit("Installing", 26)}
+	case "apk del --simulate apk-cron":
+		return hostfake.Response{Stdout: w.commit("Purging", 25)}
 	case "apk add apk-cron":
 		if effect {
 			w.installed = true
@@ -141,6 +152,15 @@ func (w *world) answer(argv []string, _ []byte) hostfake.Response {
 	return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
 }
 
+// commit is apk's commit output for apk-cron's change, after the pending
+// one (apk-tools v3.0.8 src/commit.c, print_change).
+func (w *world) commit(verb string, pkgs int) string {
+	if w.pending == "" {
+		return fmt.Sprintf("(1/1) %s apk-cron (1.0-r3)\nOK: 9 MiB in %d packages\n", verb, pkgs)
+	}
+	return fmt.Sprintf("(1/2) %s\n(2/2) %s apk-cron (1.0-r3)\nOK: 8 MiB in %d packages\n", w.pending, verb, pkgs-1)
+}
+
 // read reads the host's update state.
 func (w *world) read(t *testing.T, f detect.Facts) alpine.Updates {
 	t.Helper()
@@ -178,16 +198,89 @@ func (w *world) since(mark int) []string {
 	return out
 }
 
-// changes is since without the read-only queries.
+// queries are the commands that change nothing.
+var queries = []string{"apk info -e apk-cron", "rc-service crond status", "apk add --simulate apk-cron", "apk del --simulate apk-cron"}
+
+// changes is since without the queries.
 func (w *world) changes(mark int) []string {
 	var out []string
 	for _, s := range w.since(mark) {
-		if s != "apk info -e apk-cron" && s != "rc-service crond status" {
+		if !slices.Contains(queries, s) {
 			out = append(out, s)
 		}
 	}
 	return out
 }
+
+// faulty is a fake on which the listed operations fail: fail["lstat
+// /etc/init.d/crond"] is the error, wrapped in a *fs.PathError, that Lstat
+// of that path returns. after, when set, runs once an operation succeeds,
+// to model another writer.
+type faulty struct {
+	*hostfake.System
+	fail  map[string]error
+	after func(op, name string)
+}
+
+func (f faulty) err(op, name string) error {
+	if err := f.fail[op+" "+name]; err != nil {
+		return &fs.PathError{Op: op, Path: name, Err: err}
+	}
+	return nil
+}
+
+func (f faulty) done(op, name string, err error) {
+	if err == nil && f.after != nil {
+		f.after(op, name)
+	}
+}
+
+func (f faulty) Lstat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if err := f.err("lstat", name); err != nil {
+		return nil, err
+	}
+	fi, err := f.System.Lstat(ctx, name)
+	f.done("lstat", name, err)
+	return fi, err
+}
+
+func (f faulty) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if err := f.err("stat", name); err != nil {
+		return nil, err
+	}
+	fi, err := f.System.Stat(ctx, name)
+	f.done("stat", name, err)
+	return fi, err
+}
+
+func (f faulty) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := f.err("read-nofollow", name); err != nil {
+		return nil, nil, err
+	}
+	data, fi, err := f.System.ReadFileNoFollow(ctx, name)
+	f.done("read-nofollow", name, err)
+	return data, fi, err
+}
+
+func (f faulty) Remove(ctx context.Context, name string) error {
+	if err := f.err("remove", name); err != nil {
+		return err
+	}
+	err := f.System.Remove(ctx, name)
+	f.done("remove", name, err)
+	return err
+}
+
+func (f faulty) MkdirAll(ctx context.Context, name string, perm fs.FileMode) error {
+	if err := f.err("mkdir", name); err != nil {
+		return err
+	}
+	err := f.System.MkdirAll(ctx, name, perm)
+	f.done("mkdir", name, err)
+	return err
+}
+
+var errDisk = errors.New("no space left on device")
 
 func steps(p alpine.Plan) []string {
 	var out []string

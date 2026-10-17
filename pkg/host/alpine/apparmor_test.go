@@ -24,7 +24,7 @@ func TestCheckAppArmor(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
 		container detect.Tri
-		param     string // "" absent
+		param     string // "" absent; "-" absent, with /sys/module/apparmor there
 		module    bool   // /sys/module exists
 		boot      []string
 		state     alpine.State
@@ -46,6 +46,7 @@ func TestCheckAppArmor(t *testing.T) {
 			[]string{"update-extlinux", "grub-mkconfig", "cmdline.txt"}, nil},
 		{"no apparmor in the kernel", detect.No, "", true, nil, alpine.StateNotApplicable, detect.No, []string{"reboot"}, nil},
 		{"no /sys", detect.No, "", false, nil, alpine.StateUnknown, detect.Unknown, nil, nil},
+		{"module without its parameter", detect.No, "-", true, nil, alpine.StateUnknown, detect.Unknown, nil, nil},
 		{"unrecognised", detect.No, "1\n", true, nil, alpine.StateUnknown, detect.Unknown, nil, nil},
 		{"container", detect.Yes, "Y\n", true, nil, alpine.StateNotApplicable, detect.Unknown, nil, nil},
 		{"container unknown", detect.Unknown, "Y\n", true, nil, alpine.StateUnknown, detect.Unknown, nil, nil},
@@ -55,7 +56,11 @@ func TestCheckAppArmor(t *testing.T) {
 			if tc.module {
 				h.AddDir(alpine.SysModule, 0o755, 0, 0)
 			}
-			if tc.param != "" {
+			switch tc.param {
+			case "":
+			case "-":
+				h.AddDir(alpine.SysModule+"/apparmor", 0o755, 0, 0)
+			default:
 				h.AddFile(alpine.AppArmorEnabled, []byte(tc.param), 0o444, 0, 0)
 			}
 			for _, b := range tc.boot {

@@ -56,15 +56,16 @@ func (s Step) argv() (do, undo []string) {
 type Change struct {
 	Step Step
 	Argv []string // nil for StepRemoveLegacy
-	Undo []string // nil for StepRemoveLegacy, which writes Plan.From.LegacyFile back
+	Undo []string // nil for StepRemoveLegacy, which writes LegacyContent back as Plan.From.LegacyFile was
 	Path string   // StepRemoveLegacy: LegacyScript
 	Why  string
 }
 
 // Plan is what PlanUpdates decided. From is the state it was planned from:
 // Apply refuses a host that no longer matches it, and the legacy file's
-// rollback writes From.LegacyFile back. A Plan kept for p2-revert must keep
-// From and every Change.
+// rollback writes LegacyContent back with From.LegacyFile's mode and
+// owner. A Plan kept for p2-revert must keep From and every Change; Apply
+// and Rollback refuse one that does not follow from its From.
 type Plan struct {
 	From     Updates
 	Changes  []Change

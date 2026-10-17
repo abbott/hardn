@@ -53,7 +53,7 @@ type Legacy uint8
 const (
 	LegacyUnknown Legacy = iota
 	LegacyAbsent
-	LegacyHardn // a regular file holding exactly LegacyContent
+	LegacyHardn // a regular file holding exactly LegacyContent that only root can change
 	LegacyOther // anything else, left alone
 )
 
@@ -80,16 +80,21 @@ type Updates struct {
 // ReadUpdates reads what Status and PlanUpdates need, and only reads: apk
 // info -e apk-cron, rc-service crond status, and Script, InitScript,
 // RunlevelLink and LegacyScript. It refuses a host that is not Alpine
-// (ErrNotAlpine, or ErrUnknown when the distribution is not established)
-// or that OpenRC did not boot (ErrNoOpenRC: an Alpine container image has
-// no OpenRC or crond running). A fact it cannot establish is Unknown,
-// with Updates.Err; its error is otherwise only ctx's.
+// (ErrNotAlpine, or ErrUnknown when the distribution is not established),
+// one whose init system is not established (ErrUnknown, wrapping detect's
+// error), and one that OpenRC did not boot (ErrNoOpenRC: an Alpine
+// container image has OpenRC installed but not running, and no crond). A
+// fact it cannot establish is Unknown, with Updates.Err; its error is
+// otherwise only ctx's.
 func ReadUpdates(ctx context.Context, sys host.System, f detect.Facts) (Updates, error) {
 	if err := alpineOnly(f); err != nil {
 		return Updates{}, err
 	}
-	if f.Init.Kind != detect.OpenRC || f.Init.Running != detect.Yes {
-		return Updates{}, fmt.Errorf("alpine: init %s, running %s: %w: %w", f.Init.Kind, f.Init.Running, ErrNoOpenRC, errOr(f.Init.Err, detect.ErrNoSignal))
+	switch in := f.Init; {
+	case in.Kind == detect.InitUnknown || in.Running == detect.Unknown:
+		return Updates{}, fmt.Errorf("alpine: init system: %w: %w", ErrUnknown, errOr(in.Err, detect.ErrNoSignal))
+	case in.Kind != detect.OpenRC || in.Running != detect.Yes:
+		return Updates{}, fmt.Errorf("alpine: init %s, running %s (%s): %w", in.Kind, in.Running, in.Source, ErrNoOpenRC)
 	}
 	u := read(ctx, sys)
 	if err := ctx.Err(); err != nil {
@@ -148,15 +153,18 @@ func read(ctx context.Context, sys host.System) Updates {
 	return u
 }
 
-// installed reads apk info -e: it prints the name and exits 0 when the
-// package is installed; the exit status is the number of names not
-// installed (apk-info(8)). Anything else, output on stderr included, is
-// Unknown.
+// installed reads apk info -e: the exit status is the number of names not
+// installed (apk-info(8), info_exists), and an installed name is printed
+// as itself, as name-version at a higher verbosity and not at all at a
+// lower one (info_print_pkg_oneline; /etc/apk/config can set the
+// verbosity, apk(8)). Exit 0 with one of those outputs is Yes, exit 1 with
+// no output on either stream is No; anything else is Unknown.
 func installed(ctx context.Context, sys host.System) (detect.Tri, error) {
 	res, err := sys.Run(ctx, "apk", "info", "-e", Package)
 	var exit *host.ExitError
+	out := strings.TrimSuffix(string(res.Stdout), "\n")
 	switch {
-	case err == nil && strings.TrimSuffix(string(res.Stdout), "\n") == Package:
+	case err == nil && (out == "" || out == Package || versioned(out)):
 		return detect.Yes, nil
 	case errors.As(err, &exit) && exit.ExitCode == 1 && len(res.Stdout) == 0 && len(res.Stderr) == 0:
 		return detect.No, nil
@@ -164,6 +172,13 @@ func installed(ctx context.Context, sys host.System) (detect.Tri, error) {
 		err = fmt.Errorf("output %q: %w", res.Stdout, detect.ErrUnrecognised)
 	}
 	return detect.Unknown, fmt.Errorf("apk info -e %s: %w", Package, err)
+}
+
+// versioned: s is Package-<version>, the version starting with a digit,
+// on one line.
+func versioned(s string) bool {
+	v, ok := strings.CutPrefix(s, Package+"-")
+	return ok && v != "" && v[0] >= '0' && v[0] <= '9' && !strings.ContainsAny(v, " \n")
 }
 
 // script reads Script: run-parts runs a regular file only when it is
@@ -180,9 +195,18 @@ func script(ctx context.Context, sys host.System) (ScriptState, error) {
 	return ScriptOther, nil
 }
 
-// legacy reads LegacyScript: hardn's when it is a regular file holding
-// exactly LegacyContent, read with ReadFileNoFollow, so that a link
-// planted at it is never followed.
+// isLegacy: f is origin/main's file as hardn removes it and a rollback
+// writes it back: exactly LegacyContent, permission bits only, owned by
+// root and writable by neither group nor others, so that only root can
+// have changed it, or change what a rollback restores. A Plan whose From
+// says LegacyHardn with any other File is refused (fs.ErrInvalid).
+func isLegacy(f File) bool {
+	return bytes.Equal(f.Data, []byte(LegacyContent)) && f.Mode == f.Mode.Perm() && f.Mode&0o022 == 0 && f.UID == 0
+}
+
+// legacy reads LegacyScript: hardn's when it is a regular file for which
+// isLegacy holds, read with ReadFileNoFollow, so that a link planted
+// at it is never followed.
 func legacy(ctx context.Context, sys host.System) (Legacy, File, error) {
 	switch fi, err := sys.Lstat(ctx, LegacyScript); {
 	case errors.Is(err, fs.ErrNotExist):
@@ -205,8 +229,15 @@ func legacy(ctx context.Context, sys host.System) (Legacy, File, error) {
 	case !bytes.Equal(data, []byte(LegacyContent)):
 		return LegacyOther, File{}, nil
 	}
-	uid, gid, _ := host.Owner(fi)
-	return LegacyHardn, File{Data: data, Mode: fi.Mode().Perm(), UID: uid, GID: gid}, nil
+	uid, gid, ok := host.Owner(fi)
+	if !ok {
+		return LegacyUnknown, File{}, fmt.Errorf("%s: no owner: %w", LegacyScript, detect.ErrUnrecognised)
+	}
+	f := File{Data: data, Mode: fi.Mode().Perm(), UID: uid, GID: gid}
+	if !isLegacy(f) {
+		return LegacyOther, File{}, nil // hardn's bytes, but a user other than root can change them
+	}
+	return LegacyHardn, f, nil
 }
 
 // status maps rc-service crond status's exit code as OpenRC's _status
@@ -273,7 +304,8 @@ func (u Updates) findings() []Finding {
 			Detail: "written by an earlier hardn; removed, after a backup, once " + Package + " is installed"}}
 	case LegacyOther:
 		return []Finding{{Kind: FindingForeignScript, Path: LegacyScript,
-			Detail: "not the file hardn wrote; left alone (if it upgrades packages, two daily jobs do)"}}
+			Detail: "not the file hardn wrote (other content, not a regular file, or an owner or mode that lets a user other than root change it); " +
+				"left alone (if it upgrades packages, two daily jobs do)"}}
 	}
 	return nil
 }

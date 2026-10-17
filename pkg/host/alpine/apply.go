@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -34,15 +35,18 @@ type Options struct {
 
 // Result is what Apply did.
 type Result struct {
-	// Done are the steps that ran, in order, including the one that failed
-	// and those an undo then reversed.
+	// Done are the steps whose action ran (a command, or the removal), in
+	// order, including one that failed after acting and those an undo then
+	// reversed. A step refused before it acted (apk's simulation listing
+	// other packages, the legacy file changed on its re-read) is not in
+	// it and is not undone.
 	Done []Step
 	// Legacy is the backup of LegacyScript, when the plan removes it: its
 	// Entry names the copy in the run directory, for the note.
 	Legacy *backup.Result
-	// Restored: a step failed, and every step that ran was undone and
-	// checked. When that undo did not complete, the error wraps
-	// ErrNotRestored.
+	// Restored: a step failed, and every step in Done was undone and
+	// checked; false when Done is empty, since nothing changed. When the
+	// undo did not complete, the error wraps ErrNotRestored.
 	Restored bool
 }
 
@@ -52,13 +56,14 @@ type Result struct {
 // and refuses one that no longer matches p.From (ErrChanged), and takes
 // the backup of LegacyScript when p removes it, refusing a copy that is
 // not exactly hardn's file. Then each step runs and is checked:
-// apk-cron installed with its daily script, RunlevelLink present, crond
-// started, LegacyScript (re-read and still exactly hardn's) gone; a step
-// whose command succeeds without its effect fails with ErrNotEffective.
-// When a step fails, the steps that ran, the failed one included, are
-// undone last first under context.WithoutCancel with
-// Options.RestoreTimeout: Result.Restored, or an error wrapping
-// ErrNotRestored. An empty plan runs nothing.
+// apk-cron installed with its daily script (after apk add --simulate
+// lists that one change and no other, else ErrOtherPackages),
+// RunlevelLink present, crond started, LegacyScript (re-read and still
+// exactly hardn's, else ErrChanged) gone; a step whose command succeeds
+// without its effect fails with ErrNotEffective. When a step fails, the
+// steps that acted, the failed one included, are undone last first under
+// context.WithoutCancel with Options.RestoreTimeout: Result.Restored, or
+// an error wrapping ErrNotRestored. An empty plan runs nothing.
 func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Result, err error) {
 	if len(p.Changes) == 0 {
 		return res, nil
@@ -93,15 +98,19 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Resu
 		}
 		res.Legacy = &b
 	}
-	var i int
-	for i = range p.Changes {
-		res.Done = append(res.Done, p.Changes[i].Step)
-		if err = do(ctx, sys, p, p.Changes[i].Step); err != nil {
+	acted := 0 // p.Changes[:acted] acted
+	for i, c := range p.Changes {
+		var ran bool
+		ran, err = do(ctx, sys, p, c.Step)
+		if ran {
+			res.Done, acted = append(res.Done, c.Step), i+1
+		}
+		if err != nil {
 			break
 		}
 	}
-	if err == nil {
-		return res, nil
+	if err == nil || acted == 0 {
+		return res, err
 	}
 	d := opts.RestoreTimeout
 	if d <= 0 {
@@ -109,26 +118,31 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Resu
 	}
 	rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), d)
 	defer cancel()
-	rerr := undo(rctx, sys, p, p.Changes[:i+1])
+	rerr := undo(rctx, sys, p, p.Changes[:acted])
 	res.Restored = rerr == nil
 	return res, errors.Join(err, rerr)
 }
 
 // Rollback undoes p's steps, last first, each only when its effect is
-// there: LegacyScript, when absent, is written back as p.From.LegacyFile
-// (anything else there is left alone: ErrChanged); crond is stopped when
-// running; removed from the default runlevel when in it; apk-cron is
-// removed when installed. Each undo is checked. A rollback cannot tell
-// whether someone else made the same change since (started crond, say),
-// and undoes it too. Every failure wraps ErrNotRestored; it is idempotent.
-// After Ctrl-C, run it under context.WithoutCancel with a timeout: every
-// host.System method refuses a done context.
+// there: LegacyScript, when absent, is written back as LegacyContent with
+// p.From.LegacyFile's mode and owner (anything else there is left alone:
+// ErrChanged); crond is stopped when not stopped (a crashed crond, which
+// restart replaced, reads stopped after); removed from the default
+// runlevel when in it; apk-cron is removed when installed, after apk del
+// --simulate lists that one change and no other (else ErrOtherPackages).
+// Each undo is checked. A rollback cannot tell whether someone else made
+// the same change since (started crond, say), and undoes it too: call it
+// only for a plan whose Apply returned nil. A plan that does not follow
+// from its From is refused, nothing undone. Every failure, that refusal
+// included, wraps ErrNotRestored; it is idempotent. After Ctrl-C, run it
+// under context.WithoutCancel with a timeout: every host.System method
+// refuses a done context.
 func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	if len(p.Changes) == 0 {
 		return nil
 	}
 	if err := valid(p); err != nil {
-		return err
+		return fmt.Errorf("alpine: rollback refused, nothing undone: %w: %w", ErrNotRestored, err)
 	}
 	return undo(ctx, sys, p, p.Changes)
 }
@@ -136,8 +150,13 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 // valid refuses a plan that is not what PlanUpdates makes from its From:
 // steps added, dropped, reordered or naming other commands (a journal
 // edited by hand would otherwise run what it names, or remove the legacy
-// script before apk-cron is in). Why is not compared.
+// script before apk-cron is in), and a From whose LegacyFile, which a
+// rollback writes back into DailyDir, is not one legacy could have read
+// (isLegacy). Why is not compared.
 func valid(p Plan) error {
+	if p.From.Legacy == LegacyHardn && !isLegacy(p.From.LegacyFile) {
+		return fmt.Errorf("alpine: plan's %s is not hardn's file: %w", LegacyScript, fs.ErrInvalid)
+	}
 	want, err := PlanUpdates(p.From)
 	if err != nil {
 		return fmt.Errorf("alpine: plan does not follow from its state: %w: %w", fs.ErrInvalid, err)
@@ -165,25 +184,74 @@ func sameFile(a, b File) bool {
 	return bytes.Equal(a.Data, b.Data) && a.Mode == b.Mode && a.UID == b.UID && a.GID == b.GID
 }
 
-// do runs one step and checks its effect.
-func do(ctx context.Context, sys host.System, p Plan, s Step) error {
-	if s == StepRemoveLegacy {
+// do runs one step and checks its effect. acted is false when it refused
+// before its action: then the host is as it was, and the step is not
+// undone.
+func do(ctx context.Context, sys host.System, p Plan, s Step) (acted bool, err error) {
+	argv, _ := s.argv()
+	switch s {
+	case StepRemoveLegacy:
 		switch l, f, err := legacy(ctx, sys); {
 		case err != nil:
-			return fmt.Errorf("alpine: %s: %w", s, err)
+			return false, fmt.Errorf("alpine: %s: %w", s, err)
 		case l != LegacyHardn || !sameFile(f, p.From.LegacyFile):
-			return fmt.Errorf("alpine: %s: %s: %w", s, LegacyScript, ErrChanged)
+			return false, fmt.Errorf("alpine: %s: %s: %w", s, LegacyScript, ErrChanged)
 		}
 		if err := sys.Remove(ctx, LegacyScript); err != nil {
-			return fmt.Errorf("alpine: %s: %w", s, err)
+			return true, fmt.Errorf("alpine: %s: %w", s, err)
 		}
-		return check(ctx, sys, p, s, true)
+		return true, check(ctx, sys, p, s, true)
+	case StepInstall:
+		if err := simulate(ctx, sys, argv, "Installing"); err != nil {
+			return false, fmt.Errorf("alpine: %s: %w", s, err)
+		}
 	}
-	argv, _ := s.argv()
 	if _, err := sys.Run(ctx, argv[0], argv[1:]...); err != nil {
-		return fmt.Errorf("alpine: %s: %w", s, err)
+		return true, fmt.Errorf("alpine: %s: %w", s, err)
 	}
-	return check(ctx, sys, p, s, true)
+	return true, check(ctx, sys, p, s, true)
+}
+
+// simulate runs argv (apk add or apk del apk-cron) with --simulate, which
+// changes nothing (apk(8)), and refuses unless the one package change it
+// lists is "<verb> apk-cron": apk commits the whole world, so a world file
+// edited by hand and not yet applied would change other packages in the
+// same commit (apk-add(8), apk-world(5)), openssh-server among them.
+func simulate(ctx context.Context, sys host.System, argv []string, verb string) error {
+	sim := append([]string{argv[1], "--simulate"}, argv[2:]...)
+	res, err := sys.Run(ctx, argv[0], sim...)
+	if err != nil {
+		return err
+	}
+	cs := apkChanges(res.Combined)
+	switch {
+	case len(cs) == 1 && strings.HasPrefix(cs[0], verb+" "+Package+" ("):
+		return nil
+	case len(cs) == 0:
+		return fmt.Errorf("%s: no package change listed: %w", host.FormatArgv(res.Argv), detect.ErrUnrecognised)
+	}
+	return fmt.Errorf("%s: %s: %w", host.FormatArgv(res.Argv), strings.Join(cs, "; "), ErrOtherPackages)
+}
+
+// apkChanges returns the package changes apk's commit lists, one per
+// line as "(<i>/<n>) <verb> <name> (<version>)", the counter padded with
+// spaces (apk-tools v3.0.8 src/commit.c, print_change), without the
+// counter. Other lines (fetches, warnings, the OK: summary) are skipped.
+func apkChanges(out []byte) []string {
+	var cs []string
+	for _, l := range strings.Split(string(out), "\n") {
+		l = strings.TrimSpace(l)
+		counter, rest, ok := strings.Cut(strings.TrimPrefix(l, "("), ") ")
+		i, n, slash := strings.Cut(strings.TrimSpace(counter), "/")
+		if ok && strings.HasPrefix(l, "(") && slash && digits(i) && digits(n) {
+			cs = append(cs, strings.TrimSpace(rest))
+		}
+	}
+	return cs
+}
+
+func digits(s string) bool {
+	return s != "" && strings.Trim(s, "0123456789") == ""
 }
 
 // undo reverses cs, last first; see Rollback.
@@ -215,8 +283,10 @@ func undoStep(ctx context.Context, sys host.System, p Plan, s Step) error {
 		case l != LegacyAbsent:
 			err = fmt.Errorf("%s: %w", LegacyScript, ErrChanged)
 		default:
+			// The bytes are the constant; valid has checked the mode and
+			// owner the plan carries.
 			f = p.From.LegacyFile
-			err = sys.WriteFileAtomic(ctx, LegacyScript, f.Data, f.Mode, f.UID, f.GID)
+			err = sys.WriteFileAtomic(ctx, LegacyScript, []byte(LegacyContent), f.Mode, f.UID, f.GID)
 		}
 		if err != nil {
 			return fmt.Errorf("undo %s: %w", s, err)
@@ -226,6 +296,10 @@ func undoStep(ctx context.Context, sys host.System, p Plan, s Step) error {
 		var t detect.Tri
 		if t, err = installed(ctx, sys); err == nil && t == detect.No {
 			return nil
+		}
+		if err == nil {
+			_, argv := s.argv()
+			err = simulate(ctx, sys, argv, "Purging")
 		}
 	case StepRunlevel:
 		if _, err = sys.Stat(ctx, RunlevelLink); errors.Is(err, fs.ErrNotExist) {

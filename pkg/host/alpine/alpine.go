@@ -34,8 +34,9 @@ const (
 	Script = DailyDir + "/apk"
 	// LegacyScript is the daily job origin/main (and v0.3.2) wrote.
 	LegacyScript = DailyDir + "/apk-upgrade"
-	// LegacyContent is exactly what they wrote there, mode 0755: a file
-	// holding anything else is not hardn's and is left alone.
+	// LegacyContent is exactly what they wrote there, mode 0755, as root: a
+	// file holding anything else, or one a user other than root can change,
+	// is not hardn's and is left alone.
 	LegacyContent = "#!/bin/sh\napk update && apk upgrade --available\n"
 	// Service is busybox's crond under OpenRC (busybox-openrc).
 	Service    = "crond"
@@ -60,6 +61,11 @@ var (
 	ErrScript   = errors.New("apk-cron's daily script does not match the package's state")
 	ErrNoBackup = errors.New("removing the legacy script needs a backup run")
 	ErrChanged  = errors.New("the host changed since it was read")
+	// ErrOtherPackages: apk add or apk del --simulate lists a change to a
+	// package other than apk-cron, which the same commit would make (a
+	// world file edited by hand and not yet applied, say); hardn runs
+	// neither then.
+	ErrOtherPackages = errors.New("apk would change packages other than " + Package)
 	// ErrNotEffective: a command succeeded but the host does not show its
 	// effect.
 	ErrNotEffective = errors.New("the step ran, but the host does not show its effect")
