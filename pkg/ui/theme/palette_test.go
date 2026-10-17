@@ -150,15 +150,20 @@ var ansi256Overrides = map[string]struct {
 	"dark/text.faint": {59, "240 (#585858) is nearest (ΔE 10.04) but 2.95:1 on black, under faint's 3:1; 59 (#5F5F5F, ΔE 10.07) is 3.29:1"},
 }
 
-// TestDividerBelowFaint holds a rule no louder than the faintest text, so
-// that it never competes with the words around it (DEV-002). At 16 colours
-// both are BrightBlack, the only gray between black and white.
+// TestDividerBelowFaint holds a rule quieter than the faintest text, so
+// that it never competes with the words around it (DEV-002): strictly
+// quieter in the dark theme, and no louder in the light one, which still
+// draws both in one gray. At 16 colours both are BrightBlack, the only gray
+// between black and white.
 func TestDividerBelowFaint(t *testing.T) {
 	for _, pt := range palettes {
 		div, faint := profileColors(pt.p.Divider), profileColors(pt.p.TextFaint)
 		for _, profile := range []string{"truecolor", "256"} {
 			d, f := contrast(div[profile], pt.page), contrast(faint[profile], pt.page)
-			if d > f {
+			switch {
+			case pt.name == "dark" && d >= f:
+				t.Errorf("%s/%s: divider is %.2f:1, not below text.faint's %.2f:1", pt.name, profile, d, f)
+			case d > f:
 				t.Errorf("%s/%s: divider is %.2f:1, above text.faint's %.2f:1", pt.name, profile, d, f)
 			}
 		}
