@@ -12,11 +12,15 @@
 // enableBackups false an Optional backup is skipped, but a RollbackRequired
 // one is taken anyway, and the Result and the manifest say so.
 //
-// Everything goes through host.System. Files are read with ReadFileNoFollow
-// and written with WriteFileAtomic, so a copy's content, mode and owner come
-// from one file, and neither backup nor restore writes through a symlink a
-// user planted. The backup directory must be one only root (or hardn's own
-// user) can change, since a rollback writes its copies back as root.
+// Everything goes through host.System, and a path is seen only through its
+// guarded operations (see host.System): files are read with
+// ReadFileNoFollow, so a copy's content, mode and owner come from one file,
+// written with WriteFileAtomic and removed with Remove, and a symlink is
+// resolved with ResolveSymlink. So neither backup nor restore follows a
+// symlink a user planted, at the path or on the way to it, in a directory
+// that user can change: the backup is refused instead. The backup directory
+// must be one only root (or hardn's own user) can change, since a rollback
+// writes its copies back as root.
 //
 // docs/safety/atomic.md describes the guarantees and what is written but not
 // yet run on a Linux host.
@@ -66,6 +70,11 @@ var (
 var (
 	now     = time.Now
 	geteuid = os.Geteuid
+	// trustedTop is where checkTrusted starts checking: the directories
+	// above it are walked but not checked. The tests set it to their
+	// t.TempDir(), which is under /tmp on Linux, a directory checkTrusted
+	// rightly refuses.
+	trustedTop = "/"
 )
 
 // Settings are the backupPath and enableBackups configuration keys.
@@ -168,10 +177,16 @@ type Content struct {
 
 // Entry is one backed-up path.
 type Entry struct {
+	// Seq numbers the entries of a run from 1, in the order taken: it
+	// names an entry for a rollback journal, and its copy.
+	Seq  int    `json:"seq"`
 	Path string `json:"path"` // absolute, as given to Backup
 	Kind Kind   `json:"kind"`
 	// SymlinkTarget is a symlink's target, as stored.
 	SymlinkTarget string `json:"symlinkTarget,omitempty"`
+	// SymlinkResolved is the absolute path the symlink pointed to
+	// (host.System.ResolveSymlink); restore puts that file back.
+	SymlinkResolved string `json:"symlinkResolved,omitempty"`
 	// File is the content: the file at Path, or the regular file a symlink
 	// points to. Nil for KindAbsent and for a symlink to nothing.
 	File             *Content `json:"file,omitempty"`
@@ -286,9 +301,10 @@ func (r *Run) Backup(ctx context.Context, path string, need Need) (Result, error
 	if err != nil {
 		return Result{}, fmt.Errorf("backup: %w", err)
 	}
+	e.Seq = len(r.m.Entries) + 1
 	e.RollbackRequired, e.TakenAnyway = need == RollbackRequired, outcome == TakenAnyway
 	if e.File != nil {
-		e.File.Backup = fmt.Sprintf("%04d-%s", len(r.m.Entries)+1, filepath.Base(path))
+		e.File.Backup = fmt.Sprintf("%04d-%s", e.Seq, filepath.Base(path))
 		if err := r.sys.WriteFileAtomic(ctx, filepath.Join(r.m.Dir, e.File.Backup), data, 0o600, -1, -1); err != nil {
 			return Result{}, fmt.Errorf("backup: %w", err)
 		}
@@ -301,23 +317,50 @@ func (r *Run) Backup(ctx context.Context, path string, need Need) (Result, error
 	return Result{Outcome: outcome, Entry: e}, nil
 }
 
-// prepare creates the run directory, which must not exist yet, and checks it
-// and every directory above it (checkTrusted).
-func (r *Run) prepare(ctx context.Context) error {
+// prepare creates the run directory, which must not exist yet. Nothing is
+// created before the deepest directory of its path that exists has passed
+// checkTrusted: then only root or hardn's user can create an entry there, so
+// no other user can win a race to the name. The missing directories are then
+// created one at a time, 0700, each checked in turn; if a creation or a
+// check fails, the ones this call created are removed, so a later Backup of
+// the run tries again rather than finding ErrRunExists.
+func (r *Run) prepare(ctx context.Context) (err error) {
 	if r.ready {
 		return nil
 	}
-	switch _, err := r.sys.Lstat(ctx, r.m.Dir); {
-	case err == nil:
+	var missing []string // r.m.Dir first, then its missing parents
+	top := r.m.Dir
+	for {
+		_, err := r.sys.Lstat(ctx, top)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, fs.ErrNotExist) || top == "/" {
+			return fmt.Errorf("backup: %w", err)
+		}
+		missing = append(missing, top)
+		top = filepath.Dir(top)
+	}
+	if len(missing) == 0 {
 		return fmt.Errorf("backup: %s: %w", r.m.Dir, ErrRunExists)
-	case !errors.Is(err, fs.ErrNotExist):
-		return fmt.Errorf("backup: %w", err)
 	}
-	if err := r.sys.MkdirAll(ctx, r.m.Dir, 0o700); err != nil {
-		return fmt.Errorf("backup: %w", err)
-	}
-	if err := checkTrusted(ctx, r.sys, r.m.Dir); err != nil {
+	if err := checkTrusted(ctx, r.sys, top); err != nil {
 		return err
+	}
+	var created []string
+	defer func() {
+		for i := len(created) - 1; err != nil && i >= 0; i-- {
+			_ = r.sys.Remove(ctx, created[i])
+		}
+	}()
+	for i := len(missing) - 1; i >= 0; i-- {
+		if err := r.sys.MkdirAll(ctx, missing[i], 0o700); err != nil {
+			return fmt.Errorf("backup: %w", err)
+		}
+		created = append(created, missing[i])
+		if err := checkTrusted(ctx, r.sys, missing[i]); err != nil {
+			return err
+		}
 	}
 	r.ready = true
 	return nil
@@ -331,74 +374,79 @@ func (r *Run) save(ctx context.Context) error {
 	return r.sys.WriteFileAtomic(ctx, filepath.Join(r.m.Dir, ManifestName), append(b, '\n'), 0o600, -1, -1)
 }
 
-// inspect describes path as Backup records it, with the content to copy.
+// inspect describes path as Backup records it, with the content to copy. It
+// sees path only through guarded operations (ReadFileNoFollow,
+// ResolveSymlink), so a symlink in a directory another user can change, at
+// path or on the way, is refused with host.ErrSymlinkParent.
 func inspect(ctx context.Context, sys host.System, path string) (Entry, []byte, error) {
 	e := Entry{Path: path}
-	fi, err := sys.Lstat(ctx, path)
+	c, data, err := content(ctx, sys, path)
 	switch {
+	case err == nil:
+		e.Kind, e.File = KindFile, c
+		return e, data, nil
 	case errors.Is(err, fs.ErrNotExist):
 		e.Kind = KindAbsent
 		return e, nil, nil
-	case err != nil:
+	case errors.Is(err, host.ErrSymlinkParent) || !errors.Is(err, host.ErrSymlink):
 		return e, nil, err
-	case fi.Mode()&fs.ModeSymlink != 0:
-		e.Kind = KindSymlink
-		if e.SymlinkTarget, err = sys.Readlink(ctx, path); err != nil {
-			return e, nil, err
-		}
-		c, data, err := content(ctx, sys, linkTarget(path, e.SymlinkTarget))
-		if errors.Is(err, fs.ErrNotExist) {
-			return e, nil, nil // a symlink to nothing
-		}
-		e.File = c
-		return e, data, err
-	case fi.Mode().IsRegular():
-		e.Kind = KindFile
-		c, data, err := content(ctx, sys, path)
-		e.File = c
-		return e, data, err
 	}
-	return e, nil, fmt.Errorf("%s: %w", path, ErrNotRegular)
+	e.Kind = KindSymlink
+	if e.SymlinkTarget, e.SymlinkResolved, err = sys.ResolveSymlink(ctx, path); err != nil {
+		return e, nil, err
+	}
+	c, data, err = content(ctx, sys, e.SymlinkResolved)
+	switch {
+	case err == nil:
+		e.File = c
+		return e, data, nil
+	case errors.Is(err, fs.ErrNotExist):
+		return e, nil, nil // a symlink to nothing
+	}
+	return e, nil, fmt.Errorf("%s points to %s: %w", path, e.SymlinkResolved, err)
 }
 
 // content reads the regular file name and describes it, from one open file.
+// A directory or a special file is ErrNotRegular.
 func content(ctx context.Context, sys host.System, name string) (*Content, []byte, error) {
 	data, fi, err := sys.ReadFileNoFollow(ctx, name)
-	if err != nil {
+	switch {
+	case errors.Is(err, syscall.EISDIR) || errors.Is(err, fs.ErrInvalid):
+		return nil, nil, fmt.Errorf("%s: %w (%w)", name, ErrNotRegular, err)
+	case err != nil:
 		return nil, nil, err
 	}
 	uid, gid, ok := host.Owner(fi)
 	if !ok {
-		return nil, nil, fmt.Errorf("%s: no owner: %w", name, fs.ErrInvalid)
+		return nil, nil, fmt.Errorf("%s: its FileInfo carries no owner", name)
 	}
 	sum := sha256.Sum256(data)
 	return &Content{Mode: PermOf(fi.Mode()), UID: uid, GID: gid, Size: int64(len(data)), SHA256: hex.EncodeToString(sum[:])}, data, nil
-}
-
-// linkTarget is where the symlink path, holding target, points.
-func linkTarget(path, target string) string {
-	if filepath.IsAbs(target) {
-		return filepath.Clean(target)
-	}
-	return filepath.Join(filepath.Dir(path), target)
 }
 
 // checkTrusted walks dir from "/" with Lstat, following symlinks, and
 // requires every directory on the way, dir included, to be owned by root or
 // by the user hardn runs as and to be writable by neither its group nor
 // others. Then no other user can replace what is stored under dir, which a
-// rollback writes back as root.
+// rollback writes back as root. A directory with the sticky bit is no
+// exception (/tmp): root writes nothing there (plan §3.12).
 func checkTrusted(ctx context.Context, sys host.System, dir string) error {
 	if !filepath.IsAbs(dir) {
 		return fmt.Errorf("backup: run directory %q: %w", dir, fs.ErrInvalid)
 	}
 	euid := geteuid()
+	trusted := func(name string, fi fs.FileInfo) error {
+		if name != trustedTop && (name == "/" || strings.HasPrefix(trustedTop, name+"/")) {
+			return nil // above trustedTop: the tests' seam
+		}
+		return trustedDir(name, fi, euid)
+	}
 	cur, rest := "/", strings.Split(strings.TrimPrefix(filepath.Clean(dir), "/"), "/")
 	fi, err := sys.Lstat(ctx, cur)
 	if err != nil {
 		return fmt.Errorf("backup: %w", err)
 	}
-	if err := trusted(cur, fi, euid); err != nil {
+	if err := trusted(cur, fi); err != nil {
 		return err
 	}
 	for links := 0; len(rest) > 0; {
@@ -415,15 +463,19 @@ func checkTrusted(ctx context.Context, sys host.System, dir string) error {
 			if links++; links > 40 { // Linux's limit, path_resolution(7)
 				return fmt.Errorf("backup: %s: %w", dir, syscall.ELOOP)
 			}
+			// cur, which holds the link, has passed trusted and has no
+			// symlink in it.
 			target, err := sys.Readlink(ctx, next)
 			if err != nil {
 				return fmt.Errorf("backup: %w", err)
 			}
-			target = linkTarget(next, target)
+			if target, err = host.JoinLinkTarget(cur, target); err != nil {
+				return fmt.Errorf("backup: %s: %w", next, err)
+			}
 			cur, rest = "/", append(strings.Split(strings.TrimPrefix(target, "/"), "/"), rest...)
 			continue
 		}
-		if err := trusted(next, fi, euid); err != nil {
+		if err := trusted(next, fi); err != nil {
 			return err
 		}
 		cur = next
@@ -431,7 +483,7 @@ func checkTrusted(ctx context.Context, sys host.System, dir string) error {
 	return nil
 }
 
-func trusted(name string, fi fs.FileInfo, euid int) error {
+func trustedDir(name string, fi fs.FileInfo, euid int) error {
 	uid, _, ok := host.Owner(fi)
 	switch {
 	case !fi.IsDir():
@@ -466,10 +518,15 @@ func Load(ctx context.Context, sys host.System, dir string) (Manifest, error) {
 	if m.SchemaVersion != SchemaVersion {
 		return Manifest{}, fmt.Errorf("backup: %s: schemaVersion %d, want %d: %w", name, m.SchemaVersion, SchemaVersion, ErrManifest)
 	}
+	prev := 0
 	for _, e := range m.Entries {
 		if err := e.check(); err != nil {
 			return Manifest{}, fmt.Errorf("backup: %s: %w", name, err)
 		}
+		if e.Seq <= prev {
+			return Manifest{}, fmt.Errorf("backup: %s: entry %q: seq %d after %d: %w", name, e.Path, e.Seq, prev, ErrManifest)
+		}
+		prev = e.Seq
 	}
 	m.Dir = dir
 	return m, nil
@@ -478,15 +535,20 @@ func Load(ctx context.Context, sys host.System, dir string) (Manifest, error) {
 // check refuses an entry Restore cannot act on safely.
 func (e Entry) check() error {
 	bad := func(why string) error { return fmt.Errorf("entry %q: %s: %w", e.Path, why, ErrManifest) }
+	clean := func(p string) bool { return filepath.IsAbs(p) && filepath.Clean(p) == p }
 	switch {
-	case !filepath.IsAbs(e.Path) || filepath.Clean(e.Path) != e.Path:
+	case e.Seq < 1:
+		return bad("seq not a positive number")
+	case !clean(e.Path):
 		return bad("path not absolute and clean")
-	case e.Kind == KindAbsent && (e.File != nil || e.SymlinkTarget != ""):
-		return bad("absent, yet with content or a target")
-	case e.Kind == KindFile && (e.File == nil || e.SymlinkTarget != ""):
+	case e.Kind != KindSymlink && (e.SymlinkTarget != "" || e.SymlinkResolved != ""):
+		return bad("a symlink's target on what was not a symlink")
+	case e.Kind == KindAbsent && e.File != nil:
+		return bad("absent, yet with content")
+	case e.Kind == KindFile && e.File == nil:
 		return bad("a file without content")
-	case e.Kind == KindSymlink && e.SymlinkTarget == "":
-		return bad("a symlink without a target")
+	case e.Kind == KindSymlink && (e.SymlinkTarget == "" || !clean(e.SymlinkResolved)):
+		return bad("a symlink without a target, or where it points not absolute and clean")
 	case e.Kind != KindAbsent && e.Kind != KindFile && e.Kind != KindSymlink:
 		return bad("unknown kind")
 	case e.File == nil:
@@ -523,8 +585,12 @@ func (a Action) String() string {
 	return "failed"
 }
 
-// Restored is what Restore did for one entry; Action is zero when Err is set.
+// Restored is what Restore did for one entry. Action is zero when Err is
+// set, but for one case: Rewritten with an Err wrapping host.ErrNotDurable,
+// when the copy is back in place but its directory could not be synced, so
+// it may not survive a crash.
 type Restored struct {
+	Seq    int // the entry's
 	Path   string
 	Action Action
 	Err    error
@@ -533,16 +599,18 @@ type Restored struct {
 // Restore puts every entry of m back, last taken first, so a path backed up
 // twice ends as it was before its first change. It is idempotent: an entry
 // already as backed up is Unchanged. It goes on past a failed entry, and
-// returns every failure joined. It writes only through WriteFileAtomic and
-// removes only a regular file, never through a symlink:
+// returns every failure joined. It sees and changes paths only through
+// guarded operations (see the package doc); it writes only with
+// WriteFileAtomic and removes only a regular file:
 //
 //   - KindFile: the copy, after checking its size and SHA-256 (ErrCorrupt),
 //     is written back with the recorded mode and owner;
 //   - KindAbsent: a regular file now at the path is removed; anything else
 //     there is ErrChanged;
-//   - KindSymlink: the path must still be a symlink to the same target
-//     (ErrChanged otherwise), and the file it points to is restored as a
-//     KindFile or KindAbsent one.
+//   - KindSymlink: the path must still be a symlink to the same target,
+//     pointing to the same file (ErrChanged otherwise), in a directory only
+//     root or hardn's user can change (host.ErrSymlinkParent otherwise), and
+//     the file it points to is restored as a KindFile or KindAbsent one.
 //
 // After Ctrl-C, pass context.WithoutCancel(ctx) with a timeout: every
 // host.System method refuses a done context.
@@ -559,10 +627,10 @@ func Restore(ctx context.Context, sys host.System, m Manifest) ([]Restored, erro
 		e := m.Entries[i]
 		a, err := restore(ctx, sys, m.Dir, e)
 		if err != nil {
-			a, err = 0, fmt.Errorf("restore %s: %w", e.Path, err)
+			err = fmt.Errorf("restore %s: %w", e.Path, err)
 			errs = append(errs, err)
 		}
-		out = append(out, Restored{Path: e.Path, Action: a, Err: err})
+		out = append(out, Restored{Seq: e.Seq, Path: e.Path, Action: a, Err: err})
 	}
 	return out, errors.Join(errs...)
 }
@@ -573,18 +641,16 @@ func restore(ctx context.Context, sys host.System, dir string, e Entry) (Action,
 	}
 	name := e.Path
 	if e.Kind == KindSymlink {
-		fi, err := sys.Lstat(ctx, e.Path)
-		if err != nil {
+		target, resolved, err := sys.ResolveSymlink(ctx, e.Path)
+		switch {
+		case errors.Is(err, syscall.EINVAL) || errors.Is(err, fs.ErrNotExist):
+			return 0, fmt.Errorf("no longer a symlink to %s: %w (%w)", e.SymlinkTarget, ErrChanged, err)
+		case err != nil:
 			return 0, err
+		case target != e.SymlinkTarget || resolved != e.SymlinkResolved:
+			return 0, fmt.Errorf("now a symlink to %s (%s), not %s (%s): %w", target, resolved, e.SymlinkTarget, e.SymlinkResolved, ErrChanged)
 		}
-		var target string
-		if fi.Mode()&fs.ModeSymlink != 0 {
-			target, err = sys.Readlink(ctx, e.Path)
-		}
-		if err != nil || target != e.SymlinkTarget {
-			return 0, errors.Join(err, fmt.Errorf("no longer a symlink to %s: %w", e.SymlinkTarget, ErrChanged))
-		}
-		name = linkTarget(e.Path, target)
+		name = resolved
 	}
 	if e.File == nil {
 		return removeCreated(ctx, sys, name)
@@ -592,15 +658,19 @@ func restore(ctx context.Context, sys host.System, dir string, e Entry) (Action,
 	return rewrite(ctx, sys, filepath.Join(dir, e.File.Backup), name, *e.File)
 }
 
+// removeCreated removes the regular file a change created at name. It looks
+// with ReadFileNoFollow, which is guarded, as Remove is.
 func removeCreated(ctx context.Context, sys host.System, name string) (Action, error) {
-	fi, err := sys.Lstat(ctx, name)
+	_, _, err := sys.ReadFileNoFollow(ctx, name)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
 		return Unchanged, nil
+	case errors.Is(err, host.ErrSymlinkParent):
+		return 0, err
+	case errors.Is(err, host.ErrSymlink) || errors.Is(err, syscall.EISDIR) || errors.Is(err, fs.ErrInvalid):
+		return 0, fmt.Errorf("%s is not a regular file: %w (%w)", name, ErrChanged, err)
 	case err != nil:
 		return 0, err
-	case !fi.Mode().IsRegular():
-		return 0, fmt.Errorf("%s is not a regular file: %w", name, ErrChanged)
 	}
 	if err := sys.Remove(ctx, name); err != nil {
 		return 0, err
@@ -626,7 +696,10 @@ func rewrite(ctx context.Context, sys host.System, copyName, name string, c Cont
 	case !errors.Is(err, fs.ErrNotExist):
 		return 0, err
 	}
-	if err := sys.WriteFileAtomic(ctx, name, data, c.Mode.FileMode(), c.UID, c.GID); err != nil {
+	switch err := sys.WriteFileAtomic(ctx, name, data, c.Mode.FileMode(), c.UID, c.GID); {
+	case errors.Is(err, host.ErrNotDurable):
+		return Rewritten, err // in place, not synced: see Restored
+	case err != nil:
 		return 0, err
 	}
 	return Rewritten, nil

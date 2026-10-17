@@ -5,6 +5,7 @@
   "backupsEnabled": true,
   "entries": [
     {
+      "seq": 1,
       "path": "/etc/ssh/sshd_config",
       "kind": "file",
       "file": {
@@ -18,14 +19,17 @@
       "rollbackRequired": true
     },
     {
+      "seq": 2,
       "path": "/etc/sudoers.d/hardn-alice",
       "kind": "absent",
       "rollbackRequired": true
     },
     {
+      "seq": 3,
       "path": "/root/.ssh/authorized_keys",
       "kind": "symlink",
       "symlinkTarget": "/etc/pve/priv/authorized_keys",
+      "symlinkResolved": "/etc/pve/priv/authorized_keys",
       "file": {
         "backup": "0003-authorized_keys",
         "mode": "0600",
