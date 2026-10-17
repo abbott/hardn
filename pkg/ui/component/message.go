@@ -130,7 +130,13 @@ type Message struct {
 
 // Render renders the message for c. See Message for the layout.
 func (vm Message) Render(c Ctx) string {
-	text := c.text(vm.Text)
+	return vm.render(c, c.text(vm.Text))
+}
+
+// render renders the message for c with text, already made one line of
+// plain text, in place of vm.Text: an ErrorReport's log line keeps its
+// path's characters in it (Ctx.text).
+func (vm Message) render(c Ctx, text string) string {
 	if text == "" {
 		return ""
 	}

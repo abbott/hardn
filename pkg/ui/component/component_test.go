@@ -482,9 +482,10 @@ func TestLayout(t *testing.T) {
 // set each component shows view-model text's ≥ ≤ ≠ … – — × → and • as
 // >= <= != ... - - x -> and *, so that its output holds nothing but
 // ASCII; with the Unicode set the text keeps them. The typographic quotes
-// are shown as ASCII in both sets (C12). What must be typed as shown, the
-// hint generated from a prompt's inputs, and code, a plan's diff, target
-// and commands (DEV-038), keep their characters in both.
+// are shown as ASCII in both sets (C12). What must be typed or opened as
+// shown, the hint generated from a prompt's inputs and an ErrorReport's
+// log path, and code, a plan's diff, target and commands (DEV-038), keep
+// their characters in both.
 func TestASCIIText(t *testing.T) {
 	const (
 		typo   = "≥1 ≤2 ≠3 …4 –5 —6 ×7 →8 •9"
@@ -547,6 +548,7 @@ func TestASCIIText(t *testing.T) {
 		want string
 	}{
 		{"a hint names what is typed", PromptLine{Label: "Next", Accepts: keys.Set{{Keys: []string{"→"}}}}, "[→]:"},
+		{"a log path names a file to open", ErrorReport{LogPath: "/var/log/hardn—a→b…c.log"}, "at /var/log/hardn—a→b…c.log for"},
 		{"code keeps its characters", PlanView{Changes: []PlanChange{{
 			Title: "Set", Target: "/etc/a…b", Before: "x ≤ 1\n", After: "x ≥ 1\n", Commands: []string{"echo a — b"},
 		}}}, "/etc/a…b\n      -x ≤ 1\n      +x ≥ 1\n      $ echo a — b"},
