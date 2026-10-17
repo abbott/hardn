@@ -358,26 +358,43 @@ func TestPlayWriteFails(t *testing.T) {
 }
 
 // TestPlayTouchesNothing checks that the code play runs cannot change the
-// system: no file of the gallery, nor of the pkg/ui packages it plays,
-// imports os/exec or a net package, or names a function of os that
-// writes, removes or renames a file, starts a process or changes the
-// environment or the working directory. The simulated system records; it
-// never applies. Lip Gloss's own init effects, such as colorprofile's
-// "tmux info", are outside this check (docs/refactor/phase0/side-effects.md
-// §13.1).
+// system: no file of the gallery, nor of any package of this module that
+// it links, found by following their imports, imports os/exec or a net
+// package, names a function of os that writes, removes or renames a file,
+// starts a process or changes the environment or the working directory,
+// or names anything of syscall or golang.org/x/sys/unix but what the
+// line reader (pkg/ui/prompt) uses to ask whether stdin is a terminal, to
+// discard typeahead and to wait for a line or Ctrl-C. The simulated
+// system records; it never applies. Lip Gloss's own init effects, such as
+// colorprofile's "tmux info", are outside this check
+// (docs/refactor/phase0/side-effects.md §13.1).
 func TestPlayTouchesNothing(t *testing.T) {
+	const module = "github.com/abbott/hardn/"
+	root := filepath.Join("..", "..", "..")
 	banned := map[string]bool{
 		"WriteFile": true, "Create": true, "CreateTemp": true, "OpenFile": true, "Mkdir": true, "MkdirAll": true,
 		"MkdirTemp": true, "Remove": true, "RemoveAll": true, "Rename": true, "Chmod": true, "Chown": true,
 		"Lchown": true, "Chtimes": true, "Symlink": true, "Link": true, "Truncate": true, "StartProcess": true,
 		"Setenv": true, "Unsetenv": true, "Clearenv": true, "Chdir": true,
 	}
-	dirs := []string{"."}
-	for _, p := range []string{"component", "flow", "form", "keys", "nav", "prompt", "screen", "term", "theme"} {
-		dirs = append(dirs, filepath.Join("..", "..", "..", "pkg", "ui", p))
+	sys := map[string]bool{
+		// syscall.Conn, to take a file's descriptor as the file is.
+		"Conn": true,
+		// Whether stdin is a terminal (tty_linux.go, tty_darwin.go).
+		"IoctlGetTermios": true, "TCGETS": true, "TIOCGETA": true,
+		// Discarding typeahead (flush_linux.go, flush_darwin.go).
+		"IoctlSetInt": true, "TCFLSH": true, "TCIFLUSH": true, "IoctlSetPointerInt": true, "TIOCFLUSH": true,
+		// Waiting for a line or Ctrl-C (wait_unix.go).
+		"Select": true, "FdSet": true, "FD_SETSIZE": true, "EINTR": true,
 	}
-	files := 0
-	for _, dir := range dirs {
+	dirs, seen, files := []string{"."}, map[string]bool{}, 0
+	for len(dirs) > 0 {
+		dir := dirs[0]
+		dirs = dirs[1:]
+		if seen[dir] {
+			continue
+		}
+		seen[dir] = true
 		paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
 		if err != nil {
 			t.Fatal(err)
@@ -391,17 +408,20 @@ func TestPlayTouchesNothing(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			osName := ""
+			pkgs := map[string]string{} // the name os, syscall and x/sys/unix go by in the file: their paths
 			for _, im := range f.Imports {
 				p, _ := strconv.Unquote(im.Path.Value)
+				name := p[strings.LastIndex(p, "/")+1:]
+				if im.Name != nil {
+					name = im.Name.Name
+				}
 				switch {
 				case p == "os/exec", p == "net", strings.HasPrefix(p, "net/"):
 					t.Errorf("%s imports %s", path, p)
-				case p == "os":
-					osName = "os"
-					if im.Name != nil {
-						osName = im.Name.Name
-					}
+				case p == "os", p == "syscall", p == "golang.org/x/sys/unix":
+					pkgs[name] = p
+				case strings.HasPrefix(p, module):
+					dirs = append(dirs, filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(p, module))))
 				}
 			}
 			ast.Inspect(f, func(n ast.Node) bool {
@@ -409,11 +429,21 @@ func TestPlayTouchesNothing(t *testing.T) {
 				if !ok {
 					return true
 				}
-				if x, ok := sel.X.(*ast.Ident); ok && osName != "" && x.Name == osName && banned[sel.Sel.Name] {
-					t.Errorf("%s calls os.%s", path, sel.Sel.Name)
+				if x, ok := sel.X.(*ast.Ident); ok {
+					switch p := pkgs[x.Name]; {
+					case p == "os" && banned[sel.Sel.Name]:
+						t.Errorf("%s calls os.%s", path, sel.Sel.Name)
+					case (p == "syscall" || p == "golang.org/x/sys/unix") && !sys[sel.Sel.Name]:
+						t.Errorf("%s names %s.%s, which the line reader does not use", path, p, sel.Sel.Name)
+					}
 				}
 				return true
 			})
+		}
+	}
+	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff"} {
+		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
+			t.Errorf("%s, which play links, was not checked", p)
 		}
 	}
 	if files < 20 {
