@@ -225,7 +225,7 @@ func (s *session) play(start screen.Mock, stderr io.Writer) int {
 		note = append(note, fmt.Sprintf("Each workflow plays its %s sequence, where it has one, else its first.", s.sequence))
 	}
 	if n := s.sim.failAt; n > 0 {
-		note = append(note, fmt.Sprintf("Step %d of each plan fails (-fail %d), and the steps before it are rolled back.", n, n))
+		note = append(note, fmt.Sprintf("Step %d of each plan applied fails, where the plan has a step %d (-fail %d), and the steps before it are rolled back.", n, n, n))
 	}
 	opening := header(c, "play "+start.Name) + gap + component.Callout{Kind: component.MessageInfo, Body: note}.Render(c) + gap
 	if _, err := io.WriteString(s.p.Out, opening); err != nil {
@@ -383,7 +383,7 @@ func (e *simulated) Apply(ctx context.Context, report flow.Report) error {
 	if n := e.sim.failAt; n > 0 && n <= len(changes) {
 		ch := changes[n-1]
 		failure := flow.Failure{
-			Err:  fmt.Errorf("Step %d, %s, failed: exit status 1", n, ch.Title),
+			Err:  fmt.Errorf("Step %d failed: exit status 1", n),
 			Next: "The gallery failed this step, as -fail asked; nothing on this machine changed.",
 		}
 		if len(ch.Commands) > 0 {
