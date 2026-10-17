@@ -141,9 +141,19 @@ func (c Ctx) fit(l line, limit int) string {
 }
 
 // truncate shortens plain text s to at most limit cells, ending it with
-// the ellipsis glyph when it is cut.
+// the ellipsis glyph when it is cut. As in fit, the spaces before the cut
+// are dropped, and with no text left, or no room for the whole glyph, the
+// result is as much of the ellipsis as fits.
 func (c Ctx) truncate(s string, limit int) string {
-	return ansi.Truncate(s, max(0, limit), c.Theme.Glyphs.Ellipsis)
+	if lipgloss.Width(s) <= limit {
+		return s
+	}
+	ellipsis := c.Theme.Glyphs.Ellipsis
+	kept := strings.TrimRight(ansi.Truncate(s, max(0, limit-lipgloss.Width(ellipsis)), ""), " ")
+	if kept == "" {
+		return ansi.Truncate(ellipsis, max(0, limit), "")
+	}
+	return kept + ellipsis
 }
 
 // columns lays out a label and its values on the grid. The label carries
@@ -175,11 +185,13 @@ func (c Ctx) columns(label line, values ...line) string {
 	return strings.Join(out, "\n")
 }
 
-// marker places a state glyph in the marker column, centred (DEV-020),
-// followed by the spaces up to theme.LabelCol.
+// marker places a state glyph in the marker column, centred (DEV-020).
+// A label after it starts at theme.LabelCol: line.to pads up to it, which
+// marker leaves to the caller so that a row with no label ends with the
+// glyph rather than with spaces.
 func marker(glyph string, style lipgloss.Style) line {
 	lead := theme.MarkerCol + max(0, theme.MarkerWidth-lipgloss.Width(glyph))/2
-	return line{gap(lead), {glyph, style}}.to(theme.LabelCol)
+	return line{gap(lead), {glyph, style}}
 }
 
 // badge renders s as a badge at most limit cells wide: a cell of padding

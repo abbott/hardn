@@ -81,7 +81,7 @@ type RiskSummary struct {
 func (vm RiskSummary) Render(c Ctx) string {
 	t, g := c.Theme.Risk, c.Theme.Glyphs
 	band := vm.Band.style(t)
-	label := append(marker(g.Risk, band), span{riskLabel, t.Label})
+	label := append(marker(g.Risk, band).to(theme.LabelCol), span{riskLabel, t.Label})
 	level := clean(vm.Level)
 	if level == "" {
 		level = vm.Band.String()

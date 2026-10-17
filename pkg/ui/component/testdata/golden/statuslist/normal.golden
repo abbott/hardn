@@ -1,0 +1,547 @@
+# Golden file of TestGolden/statuslist/normal, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUser␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mFirewall␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Login␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Auth␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Port␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAppArmor␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUser␛[m                 ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Port␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;194;37;74mNot Configured␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUser␛[m                 ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mSSH Port␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;194;37;74mNot Configured␛[m$
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUser␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mFirewall␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Login␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Auth␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Port␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAppArmor␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUser␛[m                 ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Port␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;194;37;74mNot Configured␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUser␛[m                 ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-root, sudo␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mFirewall␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mdeny policy␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Login␛[m            ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot disallowed␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Auth␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mkey-only auth␛[m$
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mSSH Port␛[m             ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mnon-default (2230)␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;194;37;74mNot Configured␛[m$
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mFirewall␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Login␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Auth␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Port␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAppArmor␛[m$
+      ␛[38;5;204mNot Configured␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m$
+      ␛[38;5;204mNot Configured␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mFirewall␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Login␛[m            ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Auth␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Port␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;204mNot Configured␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mFirewall␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Login␛[m            ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Auth␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mSSH Port␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;204mNot Configured␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mFirewall␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Login␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Auth␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Port␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAppArmor␛[m$
+      ␛[38;5;204mNot Configured␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m$
+      ␛[38;5;204mNot Configured␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Auth␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Port␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAppArmor␛[m             ␛[38;5;204mNot Configured␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mdeny policy␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot disallowed␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Auth␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mkey-only auth␛[m$
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mSSH Port␛[m             ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-default (2230)␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAppArmor␛[m             ␛[38;5;204mNot Configured␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAppArmor␛[m$
+      ␛[38;5;161mNot Configured␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m$
+      ␛[38;5;161mNot Configured␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;161mNot Configured␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;161mNot Configured␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAppArmor␛[m$
+      ␛[38;5;161mNot Configured␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m$
+      ␛[38;5;161mNot Configured␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;161mNot Configured␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;161mNot Configured␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUser␛[m$
+      ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[92m⛛␛[m  ␛[37mFirewall␛[m$
+      ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Login␛[m$
+      ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Auth␛[m$
+      ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Port␛[m$
+      ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[91m⭘␛[m  ␛[37mAppArmor␛[m$
+      ␛[91mNot Configured␛[m$
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m$
+      ␛[91mNot Configured␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUser␛[m                 ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[92m⛛␛[m  ␛[37mFirewall␛[m             ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Login␛[m            ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Auth␛[m             ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Port␛[m             ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[91m⭘␛[m  ␛[37mAppArmor␛[m             ␛[91mNot Configured␛[m$
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUser␛[m                 ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[92m⛛␛[m  ␛[37mFirewall␛[m             ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Login␛[m            ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Auth␛[m             ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[92m⛛␛[m  ␛[37mSSH Port␛[m             ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[91m⭘␛[m  ␛[37mAppArmor␛[m             ␛[91mNot Configured␛[m$
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUser␛[m$
+      ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[92m[+]␛[m ␛[37mFirewall␛[m$
+      ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Login␛[m$
+      ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Auth␛[m$
+      ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Port␛[m$
+      ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[91m[ ]␛[m ␛[37mAppArmor␛[m$
+      ␛[91mNot Configured␛[m$
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m$
+      ␛[91mNot Configured␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUser␛[m                 ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[92m[+]␛[m ␛[37mFirewall␛[m             ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Login␛[m            ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Auth␛[m             ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Port␛[m             ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[91m[ ]␛[m ␛[37mAppArmor␛[m             ␛[91mNot Configured␛[m$
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUser␛[m                 ␛[92mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[92m[+]␛[m ␛[37mFirewall␛[m             ␛[92mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Login␛[m            ␛[92mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Auth␛[m             ␛[92mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[92m[+]␛[m ␛[37mSSH Port␛[m             ␛[92mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[91m[ ]␛[m ␛[37mAppArmor␛[m             ␛[91mNot Configured␛[m$
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUser␛[m$
+      ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[32m⛛␛[m  ␛[30mFirewall␛[m$
+      ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Login␛[m$
+      ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Auth␛[m$
+      ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Port␛[m$
+      ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[31m⭘␛[m  ␛[30mAppArmor␛[m$
+      ␛[31mNot Configured␛[m$
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m$
+      ␛[31mNot Configured␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUser␛[m                 ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[32m⛛␛[m  ␛[30mFirewall␛[m             ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Login␛[m            ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Auth␛[m             ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Port␛[m             ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[31m⭘␛[m  ␛[30mAppArmor␛[m             ␛[31mNot Configured␛[m$
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUser␛[m                 ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+   ␛[32m⛛␛[m  ␛[30mFirewall␛[m             ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Login␛[m            ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Auth␛[m             ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+   ␛[32m⛛␛[m  ␛[30mSSH Port␛[m             ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+   ␛[31m⭘␛[m  ␛[30mAppArmor␛[m             ␛[31mNot Configured␛[m$
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUser␛[m$
+      ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[32m[+]␛[m ␛[30mFirewall␛[m$
+      ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Login␛[m$
+      ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Auth␛[m$
+      ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Port␛[m$
+      ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[31m[ ]␛[m ␛[30mAppArmor␛[m$
+      ␛[31mNot Configured␛[m$
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m$
+      ␛[31mNot Configured␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUser␛[m                 ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[32m[+]␛[m ␛[30mFirewall␛[m             ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Login␛[m            ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Auth␛[m             ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Port␛[m             ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[31m[ ]␛[m ␛[30mAppArmor␛[m             ␛[31mNot Configured␛[m$
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUser␛[m                 ␛[32mConfigured␛[m ␛[90mnon-root, sudo␛[m$
+  ␛[32m[+]␛[m ␛[30mFirewall␛[m             ␛[32mConfigured␛[m ␛[90mdeny policy␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Login␛[m            ␛[32mConfigured␛[m ␛[90mroot disallowed␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Auth␛[m             ␛[32mConfigured␛[m ␛[90mkey-only auth␛[m$
+  ␛[32m[+]␛[m ␛[30mSSH Port␛[m             ␛[32mConfigured␛[m ␛[90mnon-default (2230)␛[m$
+  ␛[31m[ ]␛[m ␛[30mAppArmor␛[m             ␛[31mNot Configured␛[m$
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ⛛  User$
+      Configured non-root, sudo$
+   ⛛  Firewall$
+      Configured deny policy$
+   ⛛  SSH Login$
+      Configured root disallowed$
+   ⛛  SSH Auth$
+      Configured key-only auth$
+   ⛛  SSH Port$
+      Configured non-default (2230)$
+   ⭘  AppArmor$
+      Not Configured$
+   ⭘  Auto Updates$
+      Not Configured$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ⛛  User                 Configured non-root, sudo$
+   ⛛  Firewall             Configured deny policy$
+   ⛛  SSH Login            Configured root disallowed$
+   ⛛  SSH Auth             Configured key-only auth$
+   ⛛  SSH Port             Configured non-default (2230)$
+   ⭘  AppArmor             Not Configured$
+   ⭘  Auto Updates         Not Configured$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ⛛  User                 Configured non-root, sudo$
+   ⛛  Firewall             Configured deny policy$
+   ⛛  SSH Login            Configured root disallowed$
+   ⛛  SSH Auth             Configured key-only auth$
+   ⛛  SSH Port             Configured non-default (2230)$
+   ⭘  AppArmor             Not Configured$
+   ⭘  Auto Updates         Not Configured$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  [+] User$
+      Configured non-root, sudo$
+  [+] Firewall$
+      Configured deny policy$
+  [+] SSH Login$
+      Configured root disallowed$
+  [+] SSH Auth$
+      Configured key-only auth$
+  [+] SSH Port$
+      Configured non-default (2230)$
+  [ ] AppArmor$
+      Not Configured$
+  [ ] Auto Updates$
+      Not Configured$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ⛛  User$
+      Configured non-root, sudo$
+   ⛛  Firewall$
+      Configured deny policy$
+   ⛛  SSH Login$
+      Configured root disallowed$
+   ⛛  SSH Auth$
+      Configured key-only auth$
+   ⛛  SSH Port$
+      Configured non-default (2230)$
+   ⭘  AppArmor$
+      Not Configured$
+   ⭘  Auto Updates$
+      Not Configured$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ⛛  User                 Configured non-root, sudo$
+   ⛛  Firewall             Configured deny policy$
+   ⛛  SSH Login            Configured root disallowed$
+   ⛛  SSH Auth             Configured key-only auth$
+   ⛛  SSH Port             Configured non-default (2230)$
+   ⭘  AppArmor             Not Configured$
+   ⭘  Auto Updates         Not Configured$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ⛛  User                 Configured non-root, sudo$
+   ⛛  Firewall             Configured deny policy$
+   ⛛  SSH Login            Configured root disallowed$
+   ⛛  SSH Auth             Configured key-only auth$
+   ⛛  SSH Port             Configured non-default (2230)$
+   ⭘  AppArmor             Not Configured$
+   ⭘  Auto Updates         Not Configured$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  [+] User$
+      Configured non-root, sudo$
+  [+] Firewall$
+      Configured deny policy$
+  [+] SSH Login$
+      Configured root disallowed$
+  [+] SSH Auth$
+      Configured key-only auth$
+  [+] SSH Port$
+      Configured non-default (2230)$
+  [ ] AppArmor$
+      Not Configured$
+  [ ] Auto Updates$
+      Not Configured$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$

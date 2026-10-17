@@ -1,0 +1,163 @@
+# Golden file of TestGolden/statusrow/long-label, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnattended Upgrades…␛[m ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnattended Upgrades…␛[m ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnattended Upgrad...␛[m ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnattended Upgrad...␛[m ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUnattended Upgrades…␛[m ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;26;127;55m⛛␛[m  ␛[38;2;30;34;48mUnattended Upgrades…␛[m ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUnattended Upgrad...␛[m ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;26;127;55m[+]␛[m ␛[38;2;30;34;48mUnattended Upgrad...␛[m ␛[38;2;26;127;55mConfigured␛[m ␛[38;2;129;134;156mroot␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUnattended Upgrades…␛[m ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;78m⛛␛[m  ␛[38;5;251mUnattended Upgrades…␛[m ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUnattended Upgrad...␛[m ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;78m[+]␛[m ␛[38;5;251mUnattended Upgrad...␛[m ␛[38;5;78mConfigured␛[m ␛[38;5;59mroot␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUnattended Upgrades…␛[m ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUnattended Upgrades…␛[m ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUnattended Upgrad...␛[m ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUnattended Upgrad...␛[m ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUnattended Upgrades Mail Reports␛[m$
+      ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUnattended Upgrades…␛[m ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[92m⛛␛[m  ␛[37mUnattended Upgrades…␛[m ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUnattended Upgrades Mail Reports␛[m$
+      ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUnattended Upgrad...␛[m ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[92m[+]␛[m ␛[37mUnattended Upgrad...␛[m ␛[92mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUnattended Upgrades Mail Reports␛[m$
+      ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUnattended Upgrades…␛[m ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[32m⛛␛[m  ␛[30mUnattended Upgrades…␛[m ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUnattended Upgrades Mail Reports␛[m$
+      ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUnattended Upgrad...␛[m ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[32m[+]␛[m ␛[30mUnattended Upgrad...␛[m ␛[32mConfigured␛[m ␛[90mroot␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ⛛  Unattended Upgrades Mail Reports$
+      Configured root$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ⛛  Unattended Upgrades… Configured root$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ⛛  Unattended Upgrades… Configured root$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  [+] Unattended Upgrades Mail Reports$
+      Configured root$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  [+] Unattended Upgrad... Configured root$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  [+] Unattended Upgrad... Configured root$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ⛛  Unattended Upgrades Mail Reports$
+      Configured root$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ⛛  Unattended Upgrades… Configured root$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ⛛  Unattended Upgrades… Configured root$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  [+] Unattended Upgrades Mail Reports$
+      Configured root$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  [+] Unattended Upgrad... Configured root$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  [+] Unattended Upgrad... Configured root$
