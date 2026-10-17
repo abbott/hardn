@@ -350,9 +350,10 @@ verify-release-full:
 #   make check-<step>   run one step: check-tools, check-mod-verify, check-tidy,
 #                       check-build, check-vet, check-test, check-lint,
 #                       check-vuln, check-cross
-#   make golden-update  rewrite the pkg/ui golden files after an intended
-#                       change (pkg/ui/uitest's -update). Not part of check:
-#                       check-test compares against the committed files.
+#   make golden-update  rewrite the golden files after an intended change
+#                       (pkg/ui/uitest's -update), in every package whose
+#                       tests link uitest. Not part of check: check-test
+#                       compares against the committed files.
 #
 # Nothing here executes the hardn binary: main() writes under /var/log and /etc
 # before it parses flags. check-build discards its output and check-cross builds
@@ -381,6 +382,18 @@ CHECK_GOLANGCI_LINT_VERSION ?= 2.14.0
 CHECK_GOVULNCHECK_VERSION ?= v1.9.0
 # Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
+# Targets check-cross also vets the whole module for, test files included
+# (go vet type-checks them), with the same env and tags (next/p1d-lint). The
+# other steps compile only the host's files and the builds above only what
+# cmd/hardn links, so on a darwin host a Linux-only test file, such as
+# pkg/ui/prompt's pty_linux_test.go, and the Linux side of every package
+# cmd/hardn does not link are compiled here or nowhere. The list assumes a
+# darwin development host, whose files the other steps compile: on a Linux
+# host, a darwin-only test file, such as pkg/ui/prompt's pty_darwin_test.go,
+# is compiled by no step. No file in the module is constrained by
+# architecture, and the fallbacks for neither linux nor darwin
+# (pkg/ui/prompt's *_other.go) are compiled by no target here.
+CHECK_CROSS_VET_TARGETS ?= linux/amd64 linux/arm64
 CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
 	check-lint check-vuln check-cross
 
@@ -461,16 +474,27 @@ check-cross:
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
 			go build -trimpath -tags=netgo -o "$$out/hardn-$$os-$$arch" ./cmd/hardn || exit 1; \
 	done
+	@for t in $(CHECK_CROSS_VET_TARGETS); do \
+		os=$${t%/*}; arch=$${t#*/}; \
+		echo "CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go vet -tags=netgo ./..."; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
+			go vet -tags=netgo ./... || exit 1; \
+	done
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
-# under pkg/ui from the current render; review the diff and give its reason in
-# the review description. pkg/ui/uitest defines -update, and a test binary
-# that does not link uitest fails on the unknown flag, so -update goes only to
-# the packages whose test binaries link uitest, directly or through another
-# package. go list -test lists each test binary as <pkg>.test with all its
-# dependencies; one recompiled for the test reads "<path> [<pkg>.test]", whose
-# first word is still the path.
-UITEST_PKG = github.com/abbott/hardn/pkg/ui/uitest
+# from the current render in every package of the module whose tests use the
+# golden harness: pkg/ui's and the dev-only gallery's (next/p1d-lint); review
+# the diff and give its reason in the review description. pkg/ui/uitest
+# defines -update, and a test binary that does not link uitest fails on the
+# unknown flag, so -update goes only to the packages whose test binaries link
+# uitest, directly or through another package. go list -test lists each test
+# binary as <pkg>.test with all its dependencies; one recompiled for the test
+# reads "<path> [<pkg>.test]", whose first word is still the path. pkg/ui's
+# packages run first, the others after them: the gallery's tests compare its
+# output with pkg/ui's golden files, which one go test of all of them could
+# be rewriting while those tests read them.
+UI_PKG = github.com/abbott/hardn/pkg/ui
+UITEST_PKG = $(UI_PKG)/uitest
 
 .PHONY: golden-update
 golden-update: export GOTOOLCHAIN = local
@@ -478,11 +502,18 @@ golden-update: export GOWORK = off
 golden-update: export GOFLAGS = $(CHECK_GOFLAGS)
 golden-update:
 	@echo "==> $@"
-	@list=$$(go list -test -f '{{.ImportPath}} {{join .Deps " "}}' ./pkg/ui/...) || exit 1; \
+	@list=$$(go list -test -f '{{.ImportPath}} {{join .Deps " "}}' ./...) || exit 1; \
 	pkgs=$$(printf '%s\n' "$$list" | awk '$$1 ~ /\.test$$/ { for (i = 2; i <= NF; i++) if ($$i == "$(UITEST_PKG)") { sub(/\.test$$/, "", $$1); print $$1; next } }'); \
-	[ -n "$$pkgs" ] || { echo "$@: no package under pkg/ui uses $(UITEST_PKG)" >&2; exit 1; }; \
-	echo go test $$pkgs -update; \
-	go test $$pkgs -update
+	[ -n "$$pkgs" ] || { echo "$@: no package's tests use $(UITEST_PKG)" >&2; exit 1; }; \
+	ui=$$(printf '%s\n' $$pkgs | awk 'index($$0, "$(UI_PKG)/") == 1'); \
+	rest=$$(printf '%s\n' $$pkgs | awk 'index($$0, "$(UI_PKG)/") != 1'); \
+	status=0; \
+	for p in "$$ui" "$$rest"; do \
+		[ -n "$$p" ] || continue; \
+		echo go test $$p -update; \
+		go test $$p -update || status=1; \
+	done; \
+	exit $$status
 
 # Container and VM integration tests need a disposable host and never run on a
 # development machine. Placeholders until those suites exist.

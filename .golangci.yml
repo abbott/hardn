@@ -1,7 +1,8 @@
 # Minimal golangci-lint configuration (v2 schema; checked with golangci-lint v2.14.0)
 #
-# Migrated from the v1 file. The linter set is unchanged: v1's gosimple is now
-# part of staticcheck, and gofmt/goimports are formatters in v2.
+# Migrated from the v1 file with v1's linter set: v1's gosimple is now part of
+# staticcheck, and gofmt/goimports are formatters in v2. The refactor's
+# next/p1d-lint added depguard, for the design system's import rules.
 
 version: "2"
 
@@ -20,9 +21,163 @@ linters:
     - ineffassign
     - staticcheck
     - unused
+    # Not in the "standard" set: v2 runs it only when enabled here.
+    - depguard
 
   # Linter-specific settings
   settings:
+    # The design system's import rules (docs/design-system/README.md §9.15).
+    # A rule applies to the files its globs match, as absolute paths:
+    # "${base-path}" is this file's directory (run.relative-path-mode's
+    # default, cfg), so a glob holds wherever the tree is checked out; "$all"
+    # is any Go file, "$test" a _test.go file, "!" excludes. A deny entry is
+    # a prefix of the import path. Only the files of the host's build are
+    # linted, so a linux-only file is checked on Linux alone; pkg/ui/prompt's
+    # and pkg/ui/keys's TestImports read every non-test file whatever its
+    # build tags.
+    depguard:
+      rules:
+        # Charm's libraries are pkg/ui's alone: other code gets its output
+        # from the components and the theme. Both module hosts, whole, so
+        # that Lip Gloss and the colour, ANSI and terminal libraries under
+        # it are covered, and any Charm module added later.
+        charm:
+          files:
+            - "$all"
+            - "!${base-path}/pkg/ui/**"
+            - "!${base-path}/internal/tools/uigallery/**"
+          deny:
+            - pkg: charm.land/
+              desc: Charm's libraries, Lip Gloss among them, are for pkg/ui only; build the screen from pkg/ui components (design-system README §9.15)
+            - pkg: github.com/charmbracelet/
+              desc: Charm's colour, ANSI and terminal libraries are for pkg/ui only; render through the components and term.Env (design-system README §9.15)
+        # The dev-only gallery names colour profiles for term.Fixed and
+        # measures its headers with x/ansi, and takes no other Charm library.
+        # Lax: an import no entry denies passes, and the allow entries carve
+        # those two out of the denied host.
+        gallery:
+          list-mode: lax
+          files:
+            - "${base-path}/internal/tools/uigallery/**"
+          allow:
+            - github.com/charmbracelet/colorprofile
+            - github.com/charmbracelet/x/ansi
+          deny:
+            - pkg: charm.land/
+              desc: the gallery takes colorprofile and x/ansi only; it renders through pkg/ui (design-system README §9.14)
+            - pkg: github.com/charmbracelet/
+              desc: the gallery takes colorprofile and x/ansi only; it renders through pkg/ui (design-system README §9.14)
+        # Only pkg/ui/term looks at the terminal, in pkg/ui too: the terminal
+        # queries in the module graph (x/term's prefix takes x/termios), and
+        # golang.org/x/term.
+        terminal:
+          files:
+            - "$all"
+            - "!${base-path}/pkg/ui/term/**"
+          deny:
+            - pkg: github.com/charmbracelet/x/term
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: github.com/mattn/go-isatty
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: github.com/xo/terminfo
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: golang.org/x/term
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+        # The legacy styling, pkg/ui included, one rule per library, so that
+        # each exception lifts only the denial of what its package imports
+        # today. Each exception goes when its slice moves onto pkg/ui.
+        legacy-color:
+          files:
+            - "$all"
+            - "!${base-path}/cmd/hardn/**"
+            - "!${base-path}/pkg/logging/**"
+          deny:
+            - pkg: github.com/fatih/color
+              desc: legacy colour library; use pkg/ui (design-system README §9.15)
+        legacy-style:
+          files:
+            - "$all"
+            - "!${base-path}/pkg/menu/**"
+            - "!${base-path}/cmd/hardn/**"
+            - "!${base-path}/pkg/security/**"
+            - "!${base-path}/pkg/system/**"
+            - "!${base-path}/pkg/utils/**"
+          deny:
+            - pkg: github.com/abbott/hardn/pkg/style
+              desc: legacy styling; use pkg/ui (design-system README §9.15)
+        legacy-width:
+          files:
+            - "$all"
+            - "!${base-path}/pkg/style/**" # the legacy library itself
+            - "!${base-path}/pkg/menu/**"
+          deny:
+            - pkg: github.com/mattn/go-runewidth
+              desc: legacy width helper; pkg/ui measures with Lip Gloss (design-system README §9.15)
+        # Never, anywhere: the Lip Gloss that queries the terminal, Lip Gloss
+        # v1, the libraries whose patterns are borrowed, and the input reader
+        # and colour writer Lip Gloss and fatih/color bring in.
+        never:
+          files:
+            - "$all"
+          deny:
+            - pkg: charm.land/lipgloss/v2/compat
+              desc: queries the terminal and detects a profile at import (design-system README §2.3)
+            - pkg: github.com/charmbracelet/lipgloss
+              desc: Lip Gloss v1; hardn uses charm.land/lipgloss/v2 (design-system README §2.1)
+            - pkg: charm.land/bubbletea
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: github.com/charmbracelet/bubbletea
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: charm.land/bubbles
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: github.com/charmbracelet/bubbles
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: charm.land/huh
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: github.com/charmbracelet/huh
+              desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: github.com/muesli/cancelreader
+              desc: input is read by pkg/ui/prompt alone (design-system README §9.15)
+            - pkg: github.com/mattn/go-colorable
+              desc: output goes through term.Env's writer alone (design-system README §9.15)
+        # The golden harness and the component states are for tests and the
+        # dev tools only.
+        test-only:
+          files:
+            - "$all"
+            - "!$test"
+            - "!${base-path}/internal/tools/**"
+          deny:
+            - pkg: github.com/abbott/hardn/pkg/ui/uitest
+              desc: the golden harness is for tests only (design-system README §8)
+            - pkg: github.com/abbott/hardn/pkg/ui/component/fixture
+              desc: the component states are for tests and the gallery only (design-system README §9.14)
+        # The dev tools import anything; nothing imports them.
+        dev-tools:
+          files:
+            - "$all"
+            - "!${base-path}/internal/tools/**"
+          deny:
+            - pkg: github.com/abbott/hardn/internal/tools
+              desc: dev-only tools are never linked into hardn (design-system README §9.14)
+        # The legacy menus read through pkg/ui/prompt, and can use
+        # pkg/ui/keys, without linking Lip Gloss, so both keep to the
+        # standard library, and prompt to x/sys/unix besides.
+        prompt-stdlib:
+          list-mode: strict
+          files:
+            - "${base-path}/pkg/ui/prompt/**"
+            - "!$test"
+          allow:
+            - $gostd
+            - golang.org/x/sys/unix
+        keys-stdlib:
+          list-mode: strict
+          files:
+            - "${base-path}/pkg/ui/keys/**"
+            - "!$test"
+          allow:
+            - $gostd
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

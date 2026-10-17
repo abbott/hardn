@@ -60,9 +60,8 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // first, then q from its sub-menu; the sudo change told to fail its
 // second step, which rolls the first back; and the input ending at a
 // form's question, which exits 130. The golden files are this package's,
-// testdata/golden/play/<path>.golden; make golden-update rewrites only
-// pkg/ui's, so after an intended change run
-// go test ./internal/tools/uigallery -update.
+// testdata/golden/play/<path>.golden, which make golden-update rewrites
+// after pkg/ui's.
 func TestPlayGolden(t *testing.T) {
 	tests := []struct {
 		name  string

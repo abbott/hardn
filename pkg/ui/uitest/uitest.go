@@ -43,7 +43,7 @@
 // After an intended change, regenerate the files and give the reason in the
 // review description:
 //
-//	make golden-update               # every package under pkg/ui that uses uitest
+//	make golden-update               # every package whose tests use uitest
 //	go test ./pkg/ui/theme -update   # one package
 //
 // The -update flag is defined here, once. A package that uses uitest must

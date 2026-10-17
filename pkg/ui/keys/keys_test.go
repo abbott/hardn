@@ -3,6 +3,7 @@ package keys
 import (
 	"go/parser"
 	"go/token"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -186,15 +187,26 @@ func expand(term string) []string {
 }
 
 // TestImports keeps the package on the standard library, so that code
-// which must not link Lip Gloss, such as the legacy menus, can use it.
+// which must not link Lip Gloss, such as the legacy menus, can use it. It
+// reads every non-test file whatever its build constraints, which a lint
+// of the host's build would not.
 func TestImports(t *testing.T) {
-	f, err := parser.ParseFile(token.NewFileSet(), "keys.go", nil, parser.ImportsOnly)
+	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, imp := range f.Imports {
-		if path, _ := strconv.Unquote(imp.Path.Value); strings.Contains(strings.Split(path, "/")[0], ".") {
-			t.Errorf("keys.go imports %s: only the standard library", path)
+	for _, name := range files {
+		if strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		f, err := parser.ParseFile(token.NewFileSet(), name, nil, parser.ImportsOnly)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, imp := range f.Imports {
+			if path, _ := strconv.Unquote(imp.Path.Value); strings.Contains(strings.Split(path, "/")[0], ".") {
+				t.Errorf("%s imports %s: only the standard library", name, path)
+			}
 		}
 	}
 }
