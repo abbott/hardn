@@ -387,8 +387,12 @@ CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # other steps compile only the host's files and the builds above only what
 # cmd/hardn links, so on a darwin host a Linux-only test file, such as
 # pkg/ui/prompt's pty_linux_test.go, and the Linux side of every package
-# cmd/hardn does not link are compiled here or nowhere. darwin's files are the
-# host's; no file in the module is constrained by architecture.
+# cmd/hardn does not link are compiled here or nowhere. The list assumes a
+# darwin development host, whose files the other steps compile: on a Linux
+# host, a darwin-only test file, such as pkg/ui/prompt's pty_darwin_test.go,
+# is compiled by no step. No file in the module is constrained by
+# architecture, and the fallbacks for neither linux nor darwin
+# (pkg/ui/prompt's *_other.go) are compiled by no target here.
 CHECK_CROSS_VET_TARGETS ?= linux/amd64 linux/arm64
 CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
 	check-lint check-vuln check-cross
