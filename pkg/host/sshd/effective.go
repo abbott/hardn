@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/netip"
+	"path"
 	"slices"
 	"strconv"
 	"strings"
@@ -67,19 +68,30 @@ func (l Listener) key() string {
 	return s + "|" + strconv.Itoa(int(l.Port)) + "|" + l.RDomain
 }
 
-// Listeners is where SSH connections are accepted.
+// Listeners is the configured listener set: where sshd's files and, on a
+// socket-activated host, ssh.socket's unit say connections are accepted.
+// Both sources are configuration, not bound sockets: sshd -T reads the
+// files on disk, and systemctl show -p Listen prints the unit's configured
+// ports whether or not a descriptor is open. So between a Port change and
+// the reload or restart that applies it, they name ports nothing listens
+// on yet, and a port the running daemon still holds may be missing.
 type Listeners struct {
 	SSHD []Listener // sshd -T's listenaddress lines
-	// Socket is ssh.socket's Listen entries when sshd is socket-activated:
-	// systemd then holds the listening sockets, not sshd. nil otherwise.
+	// Socket is ssh.socket's Listen entries when SocketRead: on a
+	// socket-activated host systemd holds the listening sockets, not sshd.
 	Socket []Listener
-	// All is every listener either source names, without repeats, sshd's
-	// first: what a firewall must allow (p2-ufw). It is kept when Known is
-	// false, since allowing more is the safe direction there.
+	// SocketRead: ssh.socket's listeners were read (SocketMayListen).
+	SocketRead bool
+	// All is every listener the sources read name, without repeats, sshd's
+	// first. It is complete only when Known: with Known false a source may
+	// be missing or unreadable (a Finding says which), so All is then not a
+	// set a firewall may be enabled or narrowed to.
 	All []Listener
-	// Known: the listeners are established. On a socket-activated host
-	// that needs sshd's and the socket's to agree; with the SSH mode
-	// Unknown, they are not established.
+	// Known: the configured listener set is established. Every source was
+	// read; on a socket-activated host sshd's and the socket's agree; the
+	// files agree with sshd -T on Port; and detect shows the unit that
+	// listens up (ssh.socket or ssh.service active, OpenRC's sshd started).
+	// It does not show that the sockets are bound (see Listeners).
 	Known bool
 }
 
@@ -112,6 +124,10 @@ type Conflict struct {
 	Hardn   Origin // hardn's first line for the keyword
 	Other   Origin
 	Match   Block // FindingMatchOverride: the Match line Other is under
+	// SameValue: Other's arguments, normalised as Setting values are (case,
+	// without-password, port numbers), equal Hardn's; for an accumulating
+	// keyword, as sets. Always false for FindingShadowed.
+	SameValue bool
 }
 
 // Override is a value a Match probe printed differently from sshd -T: a
@@ -130,12 +146,36 @@ type Owner struct {
 	First, Last int    // 1-based, inclusive; both 0: the whole file
 }
 
-func (o Owner) owns(file string, line int) bool {
-	f := o.File
-	if f == "" {
-		f = HardnDropIn
+func (o Owner) file() string {
+	if o.File == "" {
+		return HardnDropIn
 	}
-	return file == f && (o.First == 0 && o.Last == 0 || line >= o.First && line <= o.Last)
+	return o.File
+}
+
+func (o Owner) owns(file string, line int) bool {
+	return file == o.file() && (o.First == 0 && o.Last == 0 || line >= o.First && line <= o.Last)
+}
+
+func (o Owner) String() string {
+	if o.First == 0 && o.Last == 0 {
+		return o.file()
+	}
+	return fmt.Sprintf("%s lines %d-%d", o.file(), o.First, o.Last)
+}
+
+// check refuses an Owner that cannot name a line: a relative File, or a
+// range that is not 1 <= First <= Last.
+func (o Owner) check() error {
+	switch {
+	case !path.IsAbs(o.file()):
+		return fmt.Errorf("sshd: hardn's lines in %q: not an absolute path: %w", o.File, fs.ErrInvalid)
+	case o.First == 0 && o.Last == 0:
+		return nil
+	case o.First < 1 || o.Last < o.First:
+		return fmt.Errorf("sshd: hardn's lines %s: not a range of lines: %w", o, fs.ErrInvalid)
+	}
+	return nil
 }
 
 // File is a configuration file.
@@ -144,7 +184,9 @@ type File struct {
 	Data []byte
 }
 
-// Effective is the configuration sshd runs with.
+// Effective is the configuration sshd reads from the installed files: what
+// sshd runs with once it rereads them (a reload or a restart). A running
+// daemon that has not reread them still runs with what it read before.
 type Effective struct {
 	// Keywords is every line of sshd -T's output: the keyword in lower case
 	// (OpenSSH 10.4 and 10.5 print mixed case; an alias reads as its
@@ -163,8 +205,14 @@ type Effective struct {
 	Listeners                                                 Listeners
 
 	// Conflicts lists the other files' lines for keywords hardn's lines
-	// set, in the order sshd reads them (none without the files).
+	// set, in the order sshd reads them.
 	Conflicts []Conflict
+	// ConflictsKnown: the conflict report is established, so an empty one
+	// means nothing else sets hardn's keywords. False without the files,
+	// and, with a FindingUnknown, when Owner is not a range of lines or
+	// hardn's lines set no keyword in the files read (00-hardn.conf absent,
+	// say).
+	ConflictsKnown bool
 	// Overrides lists the values Match probes printed differently.
 	Overrides []Override
 }
@@ -195,13 +243,17 @@ func (e *Effective) set(k string) *Set {
 type EffectiveInputs struct {
 	Effective []byte  // sshd -T's output: ReadEffective's, or Report.Effective
 	Probes    []Probe // one sshd -T -C per Match block: ReadEffective's, or Report.Probes
-	// Mode is how sshd is started (detect.SSH.Mode); with SSHSocket, Socket
-	// is the output of systemctl show -p Listen ssh.socket.
-	Mode   detect.SSHMode
+	// SSH is how sshd is started (detect.Detect's SSH): its Mode and unit
+	// states decide whether the listeners are Known. When
+	// SocketMayListen(SSH), Socket is the output of systemctl show -p
+	// Listen ssh.socket.
+	SSH    detect.SSH
 	Socket []byte
 	// Main and DropIns are the configuration sshd read: sshd_config, and the
-	// drop-ins its Include reads, in sshd's order. With Main nil there is
-	// no conflict report and no check of sshd -T against the files.
+	// drop-ins its Include reads. Evaluate puts the drop-ins in sshd's
+	// order (C byte order) and leaves out any the Include does not read
+	// (outside DropInDir, not *.conf, a leading "."). With Main nil there
+	// is no conflict report and no check of sshd -T against the files.
 	// Includes other than IncludeLine in sshd_config are not followed
 	// (Validate and ReadEffective refuse them).
 	Main    []byte
@@ -216,7 +268,12 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 	var e Effective
 	var found []Finding
 	kw, err := parseT(in.Effective)
-	if err != nil {
+	if err != nil { // nothing of sshd's is read; the socket's listeners are kept
+		if l := &e.Listeners; SocketMayListen(in.SSH) {
+			l.SocketRead = true
+			l.Socket, _ = socketListeners(in.Socket)
+			l.All = union(l.Socket)
+		}
 		return e, []Finding{{Kind: FindingUnknown, Detail: err.Error()}}
 	}
 	e.Keywords = kw
@@ -234,21 +291,57 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 		found = append(found, Finding{Kind: FindingUnknown, Detail: fmt.Sprintf("sshd -T printed ports %q, not one or more numbers from 1 to 65535", kw["port"])})
 	}
 	var f []Finding
-	e.Listeners, f = listeners(kw["listenaddress"], in.Mode, in.Socket)
+	e.Listeners, f = listeners(kw["listenaddress"], in.SSH, in.Socket)
 	found = append(found, f...)
 	if in.Main != nil {
-		ls := flatten(in.Main, in.DropIns, in.Owner)
-		e.Conflicts, f = conflicts(ls)
-		found = append(found, f...)
+		ls := flatten(in.Main, sshdOrder(in.DropIns), in.Owner)
+		switch err := in.Owner.check(); {
+		case err != nil:
+			found = append(found, Finding{Kind: FindingUnknown, Detail: "the conflict report is not established: " + err.Error()})
+		case !slices.ContainsFunc(ls, func(l setLine) bool { return l.hardn }):
+			found = append(found, Finding{Kind: FindingUnknown, Detail: fmt.Sprintf(
+				"the conflict report is not established: hardn's lines (%s) set no keyword in the files read", in.Owner)})
+		default:
+			e.Conflicts, f = conflicts(ls)
+			e.ConflictsKnown = true
+			found = append(found, f...)
+		}
 		found = append(found, crossCheck(ls, &e)...)
 	}
 	e.Overrides, f = overrides(&e, in.Probes)
 	return e, append(found, f...)
 }
 
+// sshdOrder is drops as sshd's IncludeLine reads them: the files of
+// DropInDir that "*.conf" matches (included), in C byte order.
+func sshdOrder(drops []File) []File {
+	var out []File
+	for _, d := range drops {
+		if path.Dir(d.Path) == DropInDir && included(path.Base(d.Path)) {
+			out = append(out, d)
+		}
+	}
+	slices.SortStableFunc(out, func(a, b File) int { return strings.Compare(a.Path, b.Path) })
+	return out
+}
+
+// SocketMayListen reports whether ssh.socket may hold sshd's listening
+// sockets by detect's facts: the SSH mode is SSHSocket, or it is Unknown
+// and detect asked systemd about ssh.socket without establishing that the
+// socket is neither enabled nor active (it and ssh.service both enabled,
+// say). ReadEffective then reads the socket's listeners, and Evaluate
+// expects them in EffectiveInputs.Socket.
+func SocketMayListen(s detect.SSH) bool {
+	if s.Mode != detect.SSHUnknown {
+		return s.Mode == detect.SSHSocket
+	}
+	off := s.Socket.IsEnabled() == detect.No && s.Socket.IsActive() == detect.No
+	return s.Socket != (detect.UnitState{}) && !off
+}
+
 // EffectiveRequest says how ReadEffective reads the host.
 type EffectiveRequest struct {
-	SSH    detect.SSH // detect.Detect's SSH: SSHSocket adds ssh.socket's listeners
+	SSH    detect.SSH // detect.Detect's SSH (EffectiveInputs.SSH)
 	Binary string     // the sshd to run; "" is DefaultBinary
 	Conn   Conn       // where Match probes start; the zero value is DefaultConn
 	Owner  Owner      // hardn's lines; the zero value is all of HardnDropIn
@@ -256,14 +349,14 @@ type EffectiveRequest struct {
 
 // ReadEffective reads the installed configuration, runs sshd -T -f
 // MainConfig and one sshd -T -C per Match block against it, reads
-// ssh.socket's listeners on a socket-activated host (systemctl show -p
+// ssh.socket's listeners when SocketMayListen(req.SSH) (systemctl show -p
 // Listen ssh.socket), and Evaluates them. It writes nothing. It needs root
 // as sshd -T does (host keys; /run/sshd on Debian, Ubuntu and Proxmox VE).
 // The findings are Validate's about the installed files (clobberable,
 // include-not-first, match-untargeted), then Evaluate's. Errors: those of
 // Validate's runs (*ConfigError, *EnvError, *UnexpectedError, the host's),
 // ErrUnsupportedInclude, ErrNotRegular, fs.ErrInvalid (a NUL byte, a bad
-// Conn), and systemctl's (*host.ExitError).
+// Conn or Owner), and systemctl's (*host.ExitError).
 func ReadEffective(ctx context.Context, sys host.System, req EffectiveRequest) (Effective, []Finding, error) {
 	if err := ctx.Err(); err != nil {
 		return Effective{}, nil, fmt.Errorf("sshd: effective: %w", err)
@@ -276,6 +369,9 @@ func ReadEffective(ctx context.Context, sys host.System, req EffectiveRequest) (
 	}
 	if err := req.Conn.check(); err != nil {
 		return Effective{}, nil, fmt.Errorf("%w: %w", err, fs.ErrInvalid)
+	}
+	if err := req.Owner.check(); err != nil {
+		return Effective{}, nil, err
 	}
 	var rep Report
 	c, err := assemble(ctx, sys, nil, &rep)
@@ -291,7 +387,7 @@ func ReadEffective(ctx context.Context, sys host.System, req EffectiveRequest) (
 	if err != nil {
 		return Effective{}, nil, err
 	}
-	in := EffectiveInputs{Effective: res.Stdout, Mode: req.SSH.Mode, Main: c.main, Owner: req.Owner}
+	in := EffectiveInputs{Effective: res.Stdout, SSH: req.SSH, Main: c.main, Owner: req.Owner}
 	for _, d := range c.drops {
 		in.DropIns = append(in.DropIns, File{d.path, d.data})
 	}
@@ -300,7 +396,7 @@ func ReadEffective(ctx context.Context, sys host.System, req EffectiveRequest) (
 		return Effective{}, nil, err
 	}
 	in.Probes = probes
-	if req.SSH.Mode == detect.SSHSocket {
+	if SocketMayListen(req.SSH) {
 		res, err := sys.Run(ctx, "systemctl", "show", "-p", "Listen", SocketUnit)
 		if err != nil {
 			return Effective{}, nil, fmt.Errorf("sshd: %s listeners: %w", SocketUnit, err)
@@ -415,56 +511,95 @@ func sameSet(a, b []string) bool {
 
 // listeners reads sshd -T's listenaddress lines ("addr:port", "[addr]:port",
 // either followed by " rdomain <name>", servconf.c format_listen_addrs) and,
-// on a socket-activated host, ssh.socket's Listen entries.
-func listeners(addrs []string, mode detect.SSHMode, socket []byte) (l Listeners, found []Finding) {
-	unknown := func(kind FindingKind, format string, a ...any) (Listeners, []Finding) {
-		l.All, l.Known = union(l.SSHD, l.Socket), false
-		return l, append(found, Finding{Kind: kind, Detail: fmt.Sprintf(format, a...)})
+// when SocketMayListen(ssh), ssh.socket's Listen entries. Every entry it
+// can read is in All, whatever else fails.
+func listeners(addrs []string, ssh detect.SSH, socket []byte) (l Listeners, found []Finding) {
+	unknown := func(kind FindingKind, format string, a ...any) {
+		found = append(found, Finding{Kind: kind, Detail: fmt.Sprintf(format, a...)})
 	}
+	var bad []string
 	for _, a := range addrs {
 		ap, rest, _ := strings.Cut(a, " ")
 		rd, ok := strings.CutPrefix(rest, "rdomain ")
 		p, err := netip.ParseAddrPort(ap)
 		if err != nil || p.Port() == 0 || rest != "" && (!ok || rd == "") {
-			return unknown(FindingUnknown, "sshd -T printed listenaddress %q, not an address and a port", a)
+			bad = append(bad, a)
+			continue
 		}
 		l.SSHD = append(l.SSHD, Listener{p.Addr(), p.Port(), rd})
 	}
-	l.All = union(l.SSHD)
 	switch {
+	case len(bad) > 0:
+		unknown(FindingUnknown, "sshd -T printed listenaddress %q, not an address and a port", bad)
 	case len(l.SSHD) == 0:
-		return unknown(FindingUnknown, "sshd -T printed no listenaddress")
-	case mode == detect.SSHService || mode == detect.SSHOpenRC:
-		l.Known = true
-		return l, nil
-	case mode != detect.SSHSocket:
-		return unknown(FindingUnknown, "how sshd is started is not established, so it is not known whether sshd or %s listens", SocketUnit)
+		unknown(FindingUnknown, "sshd -T printed no listenaddress")
 	}
-	var bad []string
-	for _, line := range lines(string(socket)) {
+	if l.SocketRead = SocketMayListen(ssh); l.SocketRead {
+		var sbad []string
+		l.Socket, sbad = socketListeners(socket)
+		switch {
+		case len(sbad) > 0:
+			unknown(FindingUnknown, "systemctl show -p Listen %s printed %q, not an address, a port and (Stream)", SocketUnit, sbad)
+		case len(l.Socket) == 0:
+			unknown(FindingUnknown, "%s lists no listener", SocketUnit)
+		case ssh.Mode == detect.SSHSocket && len(found) == 0 && !sameSet(keys(l.SSHD), keys(l.Socket)):
+			unknown(FindingDisagree, "sshd -T listens on %v, %s on %v: on a socket-activated host a Port or ListenAddress change reaches the socket's configuration at systemctl daemon-reload, and its sockets at a restart of %s", l.SSHD, SocketUnit, l.Socket, SocketUnit)
+		}
+	}
+	l.All = union(l.SSHD, l.Socket)
+	if why := notListening(ssh); why != "" {
+		unknown(FindingUnknown, "%s", why)
+	}
+	l.Known = len(found) == 0
+	return l, found
+}
+
+// socketListeners reads systemctl show -p Listen's "Listen=<address>
+// (<type>)" lines; bad lists those that are not an IP address, a port and
+// (Stream). An empty property ("Listen=") is no entry.
+func socketListeners(out []byte) (ls []Listener, bad []string) {
+	for _, line := range lines(string(out)) {
 		v, ok := strings.CutPrefix(line, "Listen=")
 		addr, typ, _ := strings.Cut(v, " ")
 		p, err := netip.ParseAddrPort(addr)
 		switch {
 		case line == "" || v == "" && ok:
-			continue
 		case !ok || typ != "(Stream)" || err != nil || p.Port() == 0:
 			bad = append(bad, line)
-			continue
+		default:
+			ls = append(ls, Listener{Addr: p.Addr(), Port: p.Port()})
 		}
-		l.Socket = append(l.Socket, Listener{Addr: p.Addr(), Port: p.Port()})
 	}
-	l.All = union(l.SSHD, l.Socket)
-	switch {
-	case len(bad) > 0:
-		return unknown(FindingUnknown, "systemctl show -p Listen %s printed %q, not an address, a port and (Stream)", SocketUnit, bad)
-	case len(l.Socket) == 0:
-		return unknown(FindingUnknown, "%s lists no listener", SocketUnit)
-	case !sameSet(keys(l.SSHD), keys(l.Socket)):
-		return unknown(FindingDisagree, "sshd -T listens on %v, %s on %v: a Port or ListenAddress change takes effect on a socket-activated host after systemctl daemon-reload and a restart of %s", l.SSHD, SocketUnit, l.Socket, SocketUnit)
+	return ls, bad
+}
+
+// notListening says why detect's facts do not show the unit that listens
+// up, or "" when they do: a failed ssh.socket or ssh.service, or an sshd
+// OpenRC has not started, accepts nothing on the configured listeners.
+func notListening(s detect.SSH) string {
+	state := func(v string) string {
+		if v == "" {
+			return "not established"
+		}
+		return v
 	}
-	l.Known = true
-	return l, nil
+	switch s.Mode {
+	case detect.SSHSocket:
+		if s.Socket.IsActive() != detect.Yes {
+			return fmt.Sprintf("%s is not active (%s), so nothing may accept connections on its listeners", SocketUnit, state(s.Socket.Active))
+		}
+	case detect.SSHService:
+		if s.Service.IsActive() != detect.Yes {
+			return fmt.Sprintf("ssh.service is not active (%s), so sshd may not be listening", state(s.Service.Active))
+		}
+	case detect.SSHOpenRC:
+		if s.OpenRC.Started != detect.Yes {
+			return fmt.Sprintf("OpenRC has not started sshd (started: %s), so sshd may not be listening", s.OpenRC.Started)
+		}
+	default:
+		return "how sshd is started is not established, so it is not known whether sshd or " + SocketUnit + " listens"
+	}
+	return ""
 }
 
 func keys(ls []Listener) []string {

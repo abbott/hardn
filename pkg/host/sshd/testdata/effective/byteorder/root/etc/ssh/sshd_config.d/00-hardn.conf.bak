@@ -1,1 +1,1 @@
-PermitRootLogin yes
+MaxStartups 99

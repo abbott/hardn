@@ -52,6 +52,22 @@ type setLine struct {
 
 func (l setLine) value() string { return normalize(l.keyword, strings.Join(l.args, " ")) }
 
+// sameValue reports whether l and o give the keyword the same value: their
+// normalised arguments, compared as sets for an accumulating keyword.
+func (l setLine) sameValue(o setLine) bool {
+	if !accumulating[l.keyword] {
+		return l.value() == o.value()
+	}
+	norm := func(args []string) []string {
+		vs := make([]string, len(args))
+		for i, a := range args {
+			vs[i] = normalize(l.keyword, a)
+		}
+		return vs
+	}
+	return sameSet(norm(l.args), norm(o.args))
+}
+
 // flatten lists the directives of main and the drop-ins in the order sshd
 // reads them: main's lines, with every drop-in's at each IncludeLine (no
 // other Include is followed). A
@@ -117,7 +133,7 @@ func conflicts(ls []setLine) (cs []Conflict, found []Finding) {
 		if !ok || l.hardn {
 			continue
 		}
-		c := Conflict{Keyword: l.keyword, Hardn: ls[h].Origin, Other: l.Origin}
+		c := Conflict{Keyword: l.keyword, Hardn: ls[h].Origin, Other: l.Origin, SameValue: l.sameValue(ls[h])}
 		switch {
 		case l.match != nil:
 			c.Kind, c.Match = FindingMatchOverride, *l.match
@@ -125,7 +141,7 @@ func conflicts(ls []setLine) (cs []Conflict, found []Finding) {
 			c.Kind = FindingAccumulates
 		case first[l.keyword] == i:
 			c.Kind = FindingOverridden
-		case first[l.keyword] == h && l.value() != ls[h].value():
+		case first[l.keyword] == h && !c.SameValue:
 			c.Kind = FindingShadowed
 		default: // hardn's line loses to an earlier one, reported already, or the value is hardn's
 			continue
@@ -178,15 +194,16 @@ func predicted(ls []setLine, k string) (vs []string, ok bool) {
 // crossCheck compares sshd -T's values with the files' for the keywords e
 // has a field for. Where they disagree, the conflict report does not
 // explain what sshd does (a file changed between the reads, or a rule this
-// package does not model), so the value is Unknown.
+// package does not model), so the value is Unknown; for Port, the
+// listeners sshd -T printed from the same reading are Unknown too.
 func crossCheck(ls []setLine, e *Effective) (found []Finding) {
-	disagree := func(k string, files, sshd []string) {
-		found = append(found, Finding{Kind: FindingDisagree, Detail: fmt.Sprintf("the files give %s %q, sshd -T %q", k, files, sshd)})
+	disagree := func(k string, files, sshd []string, more string) {
+		found = append(found, Finding{Kind: FindingDisagree, Detail: fmt.Sprintf("the files give %s %q, sshd -T %q%s", k, files, sshd, more)})
 	}
 	for _, k := range settingKeys {
 		if s := e.setting(k); s.Known {
 			if want, ok := predicted(ls, k); ok && want[0] != s.Value {
-				disagree(k, want, []string{s.Value})
+				disagree(k, want, []string{s.Value}, "")
 				*s = Setting{}
 			}
 		}
@@ -194,7 +211,11 @@ func crossCheck(ls []setLine, e *Effective) (found []Finding) {
 	for _, k := range setKeys {
 		if s := e.set(k); s.Known {
 			if want, ok := predicted(ls, k); ok && !sameSet(want, s.Values) {
-				disagree(k, uniq(want), s.Values)
+				more := ""
+				if k == "port" {
+					e.Listeners.Known, more = false, ", so the listeners are Unknown too"
+				}
+				disagree(k, uniq(want), s.Values, more)
 				*s = Set{}
 			}
 		}
