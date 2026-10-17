@@ -40,9 +40,12 @@ type Result struct {
 	// the plan) is not in it and is not undone.
 	Done    []Step
 	Backups []backup.Result // one per file step, in plan order
-	// Restored: a step failed and every step in Done was undone and
-	// checked. When the undo did not complete, the error wraps
-	// ErrNotRestored.
+	// Restored: a step failed, every file step in Done was undone and
+	// checked, and, when a reload acted, systemd-resolved runs again with
+	// p.From's global servers and search domains. A reload with no file
+	// step to undo (a plan that only reloads) cannot be taken back: it is
+	// Restored only when resolved shows p.From's lists anyway. When the
+	// undo did not complete, the error wraps ErrNotRestored.
 	Restored bool
 }
 
@@ -51,12 +54,13 @@ type Result struct {
 // without Options.Backups (ErrNoBackup), and a host that no longer matches
 // p.From (ErrChanged); it then backs up each file the plan writes,
 // refusing a copy that is not what p.From read. Each step is checked: a
-// file must read back as written; after the reload, resolvectl must list
-// exactly p.Want's nameservers as global ones. A step whose command
-// succeeds without its effect fails with ErrNotEffective. When a step
-// fails, the steps that acted are undone, last first, under
-// context.WithoutCancel with Options.RestoreTimeout. An empty plan runs
-// nothing.
+// file must read back as written, and a drop-in directory it created as
+// 0755; after the reload, resolvectl must list exactly p.Want's
+// nameservers as global ones, and with ReplaceSearch its search domains.
+// A step whose command succeeds without its effect fails with
+// ErrNotEffective. When a step fails, the steps that acted are undone,
+// last first, under context.WithoutCancel with Options.RestoreTimeout. An
+// empty plan runs nothing.
 func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Result, err error) {
 	if len(p.Changes) == 0 {
 		return res, nil
@@ -123,14 +127,16 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Resu
 // there: a file that still holds what the plan wrote gets p.From's content,
 // mode and owner back (or is removed, when there was none; the drop-in
 // directory too, when the plan created it and it is empty); a file holding
-// anything else is left alone (ErrChanged). With the drop-in and a reload
-// in the plan, systemd-resolved is reloaded again and must list p.From's
-// global nameservers. Every failure, a plan that does not follow from its From
-// included, wraps ErrNotRestored; it is idempotent. It cannot tell its own
-// change from the same change made by someone else since: call it only for
-// a plan whose Apply returned nil. After Ctrl-C, run it under
-// context.WithoutCancel with a timeout: every host.System method refuses a
-// done context.
+// anything else is left alone (ErrChanged). With a reload in the plan,
+// systemd-resolved is reloaded again after the drop-in is back (started,
+// if it no longer runs) and must list p.From's global nameservers and
+// search domains; a plan that only reloads cannot be taken back, so its
+// rollback fails unless resolved shows them anyway. Every failure, a plan
+// that does not follow from its From included, wraps ErrNotRestored; it is
+// idempotent. It cannot tell its own change from the same change made by
+// someone else since: call it only for a plan whose Apply returned nil.
+// After Ctrl-C, run it under context.WithoutCancel with a timeout: every
+// host.System method refuses a done context.
 func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	if len(p.Changes) == 0 {
 		return nil
@@ -168,7 +174,8 @@ func same(now, from State) bool {
 	return now.Manager == from.Manager && now.ResolvConf.equal(from.ResolvConf) &&
 		now.Resolved.Active == from.Resolved.Active && now.Resolved.Dir == from.Resolved.Dir &&
 		now.Resolved.DropIn.equal(from.Resolved.DropIn) && slices.Equal(now.Resolved.Later, from.Resolved.Later) &&
-		slices.Equal(now.Resolved.Global, from.Resolved.Global) && now.UDHCPC.Conf.equal(from.UDHCPC.Conf)
+		slices.Equal(now.Resolved.Global, from.Resolved.Global) && slices.Equal(now.Resolved.Domains, from.Resolved.Domains) &&
+		now.UDHCPC.Conf.equal(from.UDHCPC.Conf)
 }
 
 // from is what a file step's path held when p was planned.
@@ -209,7 +216,7 @@ func do(ctx context.Context, sys host.System, p Plan, c Change) (acted bool, err
 		if _, err := sys.Run(ctx, c.Argv[0], c.Argv[1:]...); err != nil {
 			return true, fmt.Errorf("dns: %s: %w", c.Step, err)
 		}
-		return true, global(ctx, sys, c.Step, p.Want.Nameservers)
+		return true, loaded(ctx, sys, c.Step, p.Want.Nameservers, p.Want.Search, p.Want.ReplaceSearch)
 	}
 	was := from(p, c.Step)
 	switch cur, err := readEntry(ctx, sys, c.Path); {
@@ -219,7 +226,7 @@ func do(ctx context.Context, sys host.System, p Plan, c Change) (acted bool, err
 		return false, fmt.Errorf("dns: %s: %s: %w", c.Step, c.Path, ErrChanged)
 	}
 	if c.Step == StepDropIn && p.From.Resolved.Dir == detect.No {
-		if err := sys.MkdirAll(ctx, DropInDir, 0o755); err != nil {
+		if err := mkdir(ctx, sys); err != nil {
 			return true, fmt.Errorf("dns: %s: %w", c.Step, err)
 		}
 	}
@@ -228,6 +235,24 @@ func do(ctx context.Context, sys host.System, p Plan, c Change) (acted bool, err
 		return true, fmt.Errorf("dns: %s: %w", c.Step, err)
 	}
 	return true, check(ctx, sys, c.Step, c.Path, Entry{Kind: EntryFile, Data: c.After, Mode: mode, UID: uid, GID: gid})
+}
+
+// mkdir creates DropInDir 0755 whatever the umask: systemd-resolved runs as
+// its own user (User=systemd-resolve) and must read it.
+func mkdir(ctx context.Context, sys host.System) error {
+	if err := sys.MkdirAll(ctx, DropInDir, 0o755); err != nil {
+		return err
+	}
+	if err := sys.Chmod(ctx, DropInDir, 0o755); err != nil {
+		return err
+	}
+	switch fi, err := sys.Lstat(ctx, DropInDir); {
+	case err != nil:
+		return err
+	case !fi.IsDir() || fi.Mode().Perm() != 0o755:
+		return fmt.Errorf("%s is %v: %w", DropInDir, fi.Mode(), ErrNotEffective)
+	}
+	return nil
 }
 
 // check reads path back and wants it to be e.
@@ -242,26 +267,39 @@ func check(ctx context.Context, sys host.System, s Step, path string, e Entry) e
 	return nil
 }
 
-// global wants systemd-resolved's global nameservers to be want.
-func global(ctx context.Context, sys host.System, s Step, want []string) error {
-	res, err := sys.Run(ctx, "resolvectl", "--no-pager", "dns")
-	if err != nil {
-		return fmt.Errorf("dns: %s: check: %w", s, err)
-	}
-	g, _, err := parseResolvectl(res.Stdout)
+// loaded wants systemd-resolved's global nameservers to be servers and,
+// with withDomains, its global search domains to be domains.
+func loaded(ctx context.Context, sys host.System, s Step, servers, domains []string, withDomains bool) error {
+	g, _, err := resolvectl(ctx, sys, "dns")
 	switch {
 	case err != nil:
 		return fmt.Errorf("dns: %s: check: %w", s, err)
-	case !slices.Equal(g, want):
-		return fmt.Errorf("dns: %s: global nameservers %q, want %q: %w", s, g, want, ErrNotEffective)
+	case !slices.Equal(g, servers):
+		return fmt.Errorf("dns: %s: global nameservers %q, want %q: %w", s, g, servers, ErrNotEffective)
+	case !withDomains:
+		return nil
+	}
+	d, _, err := resolvectl(ctx, sys, "domain")
+	switch {
+	case err != nil:
+		return fmt.Errorf("dns: %s: check: %w", s, err)
+	case !sameDomains(d, domains):
+		return fmt.Errorf("dns: %s: global search domains %q, want %q: %w", s, d, domains, ErrNotEffective)
 	}
 	return nil
 }
 
-// undo reverses cs, last first. A reload is undone by reloading once the
-// files are back, so systemd-resolved reads what they held; with no file
-// in cs there is nothing to read back (a plan that only reloads), and it
-// is not run again.
+// restartArgv reloads a running systemd-resolved, or starts a stopped one
+// (systemctl(1) reload-or-restart): the undo wants it running, as p.From
+// found it.
+var restartArgv = []string{"systemctl", "reload-or-restart", ResolvedUnit}
+
+// undo reverses cs, last first. A reload is undone once the files are
+// back: systemd-resolved is reloaded, or started if the forward restart
+// left it stopped, and must show p.From's lists again. With no file in cs
+// (a plan that only reloads) there is nothing to read back: resolved is
+// only started again if it stopped, and the check says whether it shows
+// p.From's lists anyway.
 func undo(ctx context.Context, sys host.System, p Plan, cs []Change) error {
 	var errs []error
 	reload, files := false, false
@@ -275,10 +313,8 @@ func undo(ctx context.Context, sys host.System, p Plan, cs []Change) error {
 			errs = append(errs, err)
 		}
 	}
-	if reload && files {
-		if _, err := sys.Run(ctx, reloadArgv[0], reloadArgv[1:]...); err != nil {
-			errs = append(errs, fmt.Errorf("dns: undo %s: %w", StepReload, err))
-		} else if err := global(ctx, sys, StepReload, p.From.Resolved.Global); err != nil {
+	if reload {
+		if err := undoReload(ctx, sys, p, files); err != nil {
 			errs = append(errs, fmt.Errorf("undo: %w", err))
 		}
 	}
@@ -286,6 +322,30 @@ func undo(ctx context.Context, sys host.System, p Plan, cs []Change) error {
 		return fmt.Errorf("dns: %w: %w", ErrNotRestored, err)
 	}
 	return nil
+}
+
+// undoReload brings systemd-resolved back to p.From's lists after files
+// (whether cs held a file step) were put back, as undo describes.
+func undoReload(ctx context.Context, sys host.System, p Plan, files bool) error {
+	run := files
+	if !files {
+		a, err := resolvedActive(ctx, sys, p.From.Host)
+		if err != nil {
+			return err
+		}
+		run = a != detect.Yes
+	}
+	if run {
+		if _, err := sys.Run(ctx, restartArgv[0], restartArgv[1:]...); err != nil {
+			return fmt.Errorf("dns: %s: %w", StepReload, err)
+		}
+	}
+	r := p.From.Resolved
+	err := loaded(ctx, sys, StepReload, r.Global, r.Domains, true)
+	if err != nil && !files {
+		return fmt.Errorf("the reload loaded files that were on disk before the plan; what systemd-resolved used before cannot be loaded back: %w", err)
+	}
+	return err
 }
 
 // undoFile puts back what a file step's path held, when it still holds

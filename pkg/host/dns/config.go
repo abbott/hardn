@@ -11,7 +11,8 @@ import (
 type Config struct {
 	// Nameservers are IPv4 or IPv6 addresses, in order; at least one.
 	Nameservers []string
-	// Search is the search domain list, used only with ReplaceSearch.
+	// Search is the search domain list, given only with ReplaceSearch:
+	// Validate refuses one without it.
 	Search []string
 	// ReplaceSearch: replace the host's search domains with Search (an
 	// empty Search removes them). Otherwise they are kept as they are.
@@ -26,17 +27,27 @@ type Config struct {
 // there would send queries back to it.
 var resolvedStubs = []netip.Addr{netip.MustParseAddr("127.0.0.53"), netip.MustParseAddr("127.0.0.54")}
 
+// thisNetwork is never a destination (RFC 6890); a datagram to the limited
+// broadcast address needs SO_BROADCAST (ip(7)).
+var (
+	thisNetwork  = netip.MustParsePrefix("0.0.0.0/8")
+	limitedBcast = netip.MustParseAddr("255.255.255.255")
+)
+
 // Validate returns c in canonical form for a host whose /etc/resolv.conf
 // manager is m, or an error wrapping ErrInvalid. It refuses no nameserver
 // (ErrNoNameservers; origin/main wrote "DNS=" for an empty list, V19), an
 // entry that is not a plain IPv4 or IPv6 address (a zone, an IPv4-mapped
-// IPv6 address, the unspecified address and multicast are refused too), a
-// repeated one, and a search domain that is not a host name of letters,
-// digits and hyphens. For a file (ManagerFile, ManagerProxmox) it refuses
-// more than MaxNameservers and a search line longer than MaxLine; on
-// Proxmox VE more than one search domain, since its node DNS settings keep
-// only the first; on systemd-resolved its own stub addresses. Addresses
-// come back as netip prints them; search domains as given.
+// IPv6 address, the unspecified address, 0.0.0.0/8, the limited broadcast
+// address, multicast and IPv6 link-local, which needs the zone a plain
+// address lacks, are refused too), a repeated one, a search domain that is
+// not a host name of letters, digits and hyphens or repeats another in any
+// case, and Search without ReplaceSearch. For a file (ManagerFile,
+// ManagerProxmox) it refuses more than MaxNameservers and a search line
+// longer than MaxLine; on Proxmox VE more than one search domain, since its
+// node DNS settings keep only the first; on systemd-resolved its own stub
+// addresses. Addresses come back as netip prints them; search domains as
+// given.
 func Validate(c Config, m Manager) (Config, error) {
 	if len(c.Nameservers) == 0 {
 		return Config{}, fmt.Errorf("dns: %w", ErrNoNameservers)
@@ -53,6 +64,8 @@ func Validate(c Config, m Manager) (Config, error) {
 			return Config{}, fmt.Errorf("dns: nameserver %q: not an IPv4 or IPv6 address: %w", s, ErrInvalid)
 		case a.Zone() != "", a.Is4In6(), a.IsUnspecified(), a.IsMulticast():
 			return Config{}, fmt.Errorf("dns: nameserver %q: a zone, an IPv4-mapped, unspecified or multicast address: %w", s, ErrInvalid)
+		case thisNetwork.Contains(a), a == limitedBcast, a.Is6() && a.IsLinkLocalUnicast():
+			return Config{}, fmt.Errorf("dns: nameserver %q: an address in 0.0.0.0/8, the broadcast address or IPv6 link-local, which a resolver cannot query as given: %w", s, ErrInvalid)
 		case m == ManagerResolved && slices.Contains(resolvedStubs, a):
 			return Config{}, fmt.Errorf("dns: nameserver %s is systemd-resolved's own stub: %w", a, ErrInvalid)
 		case slices.Contains(out.Nameservers, a.String()):
@@ -61,6 +74,9 @@ func Validate(c Config, m Manager) (Config, error) {
 		out.Nameservers = append(out.Nameservers, a.String())
 	}
 	if !c.ReplaceSearch {
+		if len(c.Search) > 0 {
+			return Config{}, fmt.Errorf("dns: search domains given without ReplaceSearch, which would leave them unchanged: %w", ErrInvalid)
+		}
 		out.Search = nil
 		return out, nil
 	}
@@ -68,7 +84,7 @@ func Validate(c Config, m Manager) (Config, error) {
 		if err := domainName(d); err != nil {
 			return Config{}, fmt.Errorf("dns: search domain %q: %w: %w", d, err, ErrInvalid)
 		}
-		if slices.Contains(c.Search[:i], d) {
+		if slices.ContainsFunc(c.Search[:i], func(e string) bool { return strings.EqualFold(e, d) }) {
 			return Config{}, fmt.Errorf("dns: search domain %q given twice: %w", d, ErrInvalid)
 		}
 	}

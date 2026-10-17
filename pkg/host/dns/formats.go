@@ -91,8 +91,8 @@ func renderResolvConf(old []byte, c Config) []byte {
 // renderDropIn is hardn's resolved.conf.d drop-in for c. List settings
 // collect across files, and an empty assignment resets the list, so each
 // list starts with one: the result is exactly c's, whatever earlier files
-// set. Without c.ReplaceSearch, the Domains= lines of the drop-in hardn
-// wrote before (old) are kept.
+// set. Without c.ReplaceSearch, the Domains= assignments of the drop-in
+// hardn wrote before (old) are kept.
 func renderDropIn(old Entry, c Config) []byte {
 	out := []string{
 		"# Written by hardn: the system DNS servers for systemd-resolved.",
@@ -108,25 +108,75 @@ func renderDropIn(old Entry, c Config) []byte {
 			out = append(out, "Domains="+strings.Join(c.Search, " "))
 		}
 	case old.Kind == EntryFile:
-		for _, l := range lines(old.Data) {
-			if strings.HasPrefix(l, "Domains=") {
-				out = append(out, l)
+		for _, a := range confAssignments(old.Data) {
+			if a.key == "Domains" {
+				out = append(out, "Domains="+a.value)
 			}
 		}
 	}
 	return join(out)
 }
 
-// setsDNS reports whether a resolved.conf drop-in assigns DNS= or
-// Domains=, which would add to or reset hardn's lists after it.
-func setsDNS(data []byte) bool {
-	for _, l := range lines(data) {
-		l = strings.TrimSpace(l)
-		if strings.HasPrefix(l, "DNS=") || strings.HasPrefix(l, "Domains=") {
-			return true
+// confSpace is systemd's WHITESPACE.
+const confSpace = " \t\n\r"
+
+// confAssignment is one key=value of a systemd configuration file.
+type confAssignment struct{ key, value string }
+
+// confAssignments reads data as systemd's conf-parser does (v257
+// src/shared/conf-parser.c, config_parse and parse_line): a line whose first
+// non-blank character is # or ; is a comment, even within a continuation; a
+// line ending in an odd number of backslashes continues on the next, that
+// backslash read as a space; a section header is skipped; an assignment is
+// split at its first "=", and the key and the value are stripped of white
+// space. A line with no "=" or no key is skipped, as systemd skips it with
+// a warning. Keys are case-sensitive (resolved-gperf.gperf has no
+// %ignore-case). Assignments in any section are returned, so a caller that
+// refuses on one fails closed.
+func confAssignments(data []byte) []confAssignment {
+	var out []confAssignment
+	parse := func(l string) {
+		l = strings.Trim(l, confSpace)
+		if l == "" || l[0] == '[' {
+			return
+		}
+		k, v, ok := strings.Cut(l, "=")
+		if k = strings.Trim(k, confSpace); ok && k != "" {
+			out = append(out, confAssignment{k, strings.Trim(v, confSpace)})
 		}
 	}
-	return false
+	cont := ""
+	for _, l := range lines(data) {
+		if t := strings.TrimLeft(l, confSpace); t != "" && (t[0] == '#' || t[0] == ';') {
+			continue
+		}
+		p := cont + l
+		if n := len(p) - len(strings.TrimRight(p, "\\")); n%2 == 1 {
+			cont = p[:len(p)-1] + " "
+			continue
+		}
+		cont = ""
+		parse(p)
+	}
+	if cont != "" {
+		parse(cont)
+	}
+	return out
+}
+
+// resolvedSets reports whether a resolved.conf drop-in assigns DNS= and
+// whether it assigns Domains=, which would add to or reset hardn's lists
+// after it.
+func resolvedSets(data []byte) (dnsSet, domains bool) {
+	for _, a := range confAssignments(data) {
+		switch a.key {
+		case "DNS":
+			dnsSet = true
+		case "Domains":
+			domains = true
+		}
+	}
+	return dnsSet, domains
 }
 
 // assignment is a line busybox sh reads as one plain assignment: a name,

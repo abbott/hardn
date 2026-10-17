@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"slices"
 
 	"github.com/abbott/hardn/pkg/host/detect"
 )
@@ -47,15 +48,22 @@ const (
 	MaxLine = 255
 )
 
-// DropInDirs are the directories systemd-resolved reads drop-ins from.
-var DropInDirs = []string{DropInDir, "/run/systemd/resolved.conf.d", "/usr/local/lib/systemd/resolved.conf.d", "/usr/lib/systemd/resolved.conf.d"}
+// dropInDirs are the directories systemd-resolved reads drop-ins from, in
+// the order in which a name in one hides the same name in those after it.
+var dropInDirs = []string{DropInDir, "/run/systemd/resolved.conf.d", "/usr/local/lib/systemd/resolved.conf.d", "/usr/lib/systemd/resolved.conf.d"}
+
+// DropInDirs returns a copy of the directories systemd-resolved reads
+// drop-ins from, highest priority first.
+func DropInDirs() []string { return slices.Clone(dropInDirs) }
 
 // Errors, testable with errors.Is.
 var (
 	// ErrUnknown: a fact the answer depends on is not established; the
 	// error wraps why.
-	ErrUnknown     = errors.New("a fact the answer depends on is not established")
-	ErrUnsupported = errors.New("not a distribution hardn supports")
+	ErrUnknown = errors.New("a fact the answer depends on is not established")
+	// ErrUnsupported: not a distribution family hardn knows. Whether the
+	// release is supported is the engine's gate (detect.Support), not this.
+	ErrUnsupported = errors.New("not a distribution family hardn knows")
 	// ErrContainer: the container manager provides /etc/resolv.conf.
 	ErrContainer = errors.New("in a container, the container manager provides /etc/resolv.conf")
 	// ErrManaged: /etc/resolv.conf belongs to a manager hardn reports and
@@ -64,9 +72,13 @@ var (
 	// ErrNotRunning: /etc/resolv.conf is systemd-resolved's link, but
 	// systemd-resolved is not running.
 	ErrNotRunning = errors.New("systemd-resolved is not running")
-	// ErrOverridden: a drop-in sorting after DropInName sets DNS= or
-	// Domains=, so hardn's would not take effect.
+	// ErrOverridden: a drop-in sorting after DropInName sets DNS=, or
+	// Domains= when the plan sets the search domains, so hardn's would not
+	// take effect.
 	ErrOverridden = errors.New("a later resolved.conf.d drop-in sets DNS= or Domains=")
+	// ErrDropInBlocked: something other than a regular file (a /dev/null
+	// mask, a directory) is at DropIn.
+	ErrDropInBlocked = errors.New("something other than a regular file is at hardn's drop-in path")
 	// ErrInvalid: the requested configuration is refused; the error says
 	// why.
 	ErrInvalid       = errors.New("invalid DNS configuration")

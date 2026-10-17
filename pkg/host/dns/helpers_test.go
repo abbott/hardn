@@ -55,20 +55,31 @@ func facts(t *testing.T, fixture string) detect.Facts {
 
 // world is a modelled host. systemctl and resolvectl act on the fake as
 // systemd-resolved would for these tests: a reload re-reads the main
-// resolved.conf and the drop-ins (lists collect, an empty assignment
-// resets them, names sort in C byte order across the four directories),
-// and resolvectl prints what was last loaded in its own form (resolvectl.c
-// status_print_strv_ifindex). Nothing here was captured from a host.
+// resolved.conf and the drop-ins (DNS= and Domains= lists collect, an
+// empty assignment resets them, names sort in C byte order across the four
+// directories, /etc's hiding the same name elsewhere, key and value
+// stripped of blanks), and resolvectl prints what was last loaded in its
+// own form (resolvectl.c status_print_strv_ifindex). This is the tests'
+// model of resolved, not resolved: nothing here was captured from a host.
 type world struct {
-	h      *hostfake.System
-	f      detect.Facts
-	active string // systemctl is-active's word for systemd-resolved
-	loaded []string
-	links  []dns.Link
+	h       *hostfake.System
+	f       detect.Facts
+	active  string // systemctl is-active's word for systemd-resolved
+	loaded  []string
+	domains []string
+	links   []dns.Link
 	// reload is how try-reload-or-restart answers: "" reloads, "fail"
-	// exits 1, "inert" exits 0 without re-reading.
+	// exits 1, "down" exits 1 and leaves the unit failed, "inert" exits 0
+	// without re-reading.
 	reload string
-	hook   func(cmd string)
+	// restart is how reload-or-restart answers: "" (re)starts the unit,
+	// which then reads its files, "fail" exits 1, "inert" exits 0 without
+	// re-reading.
+	restart string
+	// rejectDomains: the parser ignores every Domains= line, as resolved
+	// ignores one it cannot parse, with a warning.
+	rejectDomains bool
+	hook          func(cmd string)
 }
 
 // newWorld is a stock host for fixture: "ubuntu-26.04" with
@@ -84,7 +95,7 @@ func newWorld(t *testing.T, fixture string) *world {
 	switch fixture {
 	case "ubuntu-26.04", "debian-12-cloud":
 		w.active = "active"
-		w.h.AddFile("/etc/systemd/resolved.conf", []byte("[Resolve]\n#DNS=\nDNS=192.0.2.99\n"), 0o644, 0, 0)
+		w.h.AddFile("/etc/systemd/resolved.conf", []byte("[Resolve]\n#DNS=\nDNS=192.0.2.99\nDomains=example.net\n"), 0o644, 0, 0)
 		w.h.AddFile("/run/systemd/resolve/stub-resolv.conf", []byte("nameserver 127.0.0.53\noptions edns0 trust-ad\nsearch .\n"), 0o644, 0, 0)
 		w.h.AddFile("/run/systemd/resolve/resolv.conf", []byte("nameserver 192.0.2.99\nnameserver "+dhcpNS+"\n"), 0o644, 0, 0)
 		w.h.AddSymlink(dns.ResolvConf, "../run/systemd/resolve/stub-resolv.conf")
@@ -121,31 +132,47 @@ func (w *world) answer(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{Stdout: w.active + "\n", ExitCode: 3}
 	case "systemctl try-reload-or-restart " + dns.ResolvedUnit:
 		switch w.reload {
+		case "down":
+			w.active = "failed"
+			fallthrough
 		case "fail":
 			return hostfake.Response{Stderr: "Job for systemd-resolved.service failed.\n", ExitCode: 1}
 		case "":
 			w.load()
 		}
 		return hostfake.Response{}
-	case "resolvectl --no-pager dns":
+	case "systemctl reload-or-restart " + dns.ResolvedUnit:
+		switch w.restart {
+		case "fail":
+			return hostfake.Response{Stderr: "Job for systemd-resolved.service failed.\n", ExitCode: 1}
+		case "":
+			w.active = "active"
+			w.load()
+		}
+		return hostfake.Response{}
+	case "resolvectl --no-pager dns", "resolvectl --no-pager domain":
 		if w.active != "active" {
 			return hostfake.Response{Stderr: "Failed to get global data: Unit dbus-org.freedesktop.resolve1.service not found.\n", ExitCode: 1}
 		}
-		out := "Global:"
-		for _, s := range w.loaded {
-			out += " " + s
+		global, perLink := w.loaded, func(l dns.Link) []string { return l.Servers }
+		if strings.HasSuffix(cmd, "domain") {
+			global, perLink = w.domains, func(dns.Link) []string { return nil }
 		}
-		out += "\n"
+		out := "Global:" + list(global) + "\n"
 		for _, l := range w.links {
-			out += "Link " + strconv.Itoa(l.Index) + " (" + l.Name + "):"
-			for _, s := range l.Servers {
-				out += " " + s
-			}
-			out += "\n"
+			out += "Link " + strconv.Itoa(l.Index) + " (" + l.Name + "):" + list(perLink(l)) + "\n"
 		}
 		return hostfake.Response{Stdout: out}
 	}
 	return hostfake.Response{Err: hostfake.ErrUnscripted}
+}
+
+func list(ss []string) string {
+	out := ""
+	for _, s := range ss {
+		out += " " + s
+	}
+	return out
 }
 
 // load is systemd-resolved reading its configuration.
@@ -156,7 +183,7 @@ func (w *world) load() {
 		files = append(files, string(data))
 	}
 	byName := map[string]string{}
-	for _, dir := range slices.Backward(dns.DropInDirs) {
+	for _, dir := range slices.Backward(dns.DropInDirs()) {
 		des, _ := w.h.ReadDir(ctx, dir)
 		for _, de := range des {
 			if strings.HasSuffix(de.Name(), ".conf") {
@@ -173,15 +200,18 @@ func (w *world) load() {
 		data, _ := w.h.ReadFile(ctx, byName[n])
 		files = append(files, string(data))
 	}
-	w.loaded = nil
+	w.loaded, w.domains = nil, nil
 	for _, f := range files {
 		for _, l := range strings.Split(f, "\n") {
-			if v, ok := strings.CutPrefix(strings.TrimSpace(l), "DNS="); ok {
-				if v == "" {
-					w.loaded = nil
-				}
-				w.loaded = append(w.loaded, strings.Fields(v)...)
+			k, v, ok := strings.Cut(strings.TrimSpace(l), "=")
+			list := map[string]*[]string{"DNS": &w.loaded, "Domains": &w.domains}[strings.TrimSpace(k)]
+			if !ok || list == nil || list == &w.domains && w.rejectDomains {
+				continue
 			}
+			if v = strings.TrimSpace(v); v == "" {
+				*list = nil
+			}
+			*list = append(*list, strings.Fields(v)...)
 		}
 	}
 }
@@ -271,6 +301,27 @@ func (f faulty) WriteFileAtomic(ctx context.Context, name string, data []byte, p
 		return err
 	}
 	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+func (f faulty) MkdirAll(ctx context.Context, name string, perm fs.FileMode) error {
+	if err := f.err("mkdir", name); err != nil {
+		return err
+	}
+	return f.System.MkdirAll(ctx, name, perm)
+}
+
+func (f faulty) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if err := f.err("stat", name); err != nil {
+		return nil, err
+	}
+	return f.System.Stat(ctx, name)
+}
+
+func (f faulty) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := f.err("read-nofollow", name); err != nil {
+		return nil, nil, err
+	}
+	return f.System.ReadFileNoFollow(ctx, name)
 }
 
 func (f faulty) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {

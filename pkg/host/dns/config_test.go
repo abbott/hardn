@@ -29,6 +29,10 @@ func TestValidate(t *testing.T) {
 		{"IPv4-mapped", dns.Config{Nameservers: []string{"::ffff:192.0.2.53"}}, dns.ManagerFile, nil, dns.ErrInvalid},
 		{"unspecified", dns.Config{Nameservers: []string{"0.0.0.0"}}, dns.ManagerFile, nil, dns.ErrInvalid},
 		{"multicast", dns.Config{Nameservers: []string{"224.0.0.251"}}, dns.ManagerFile, nil, dns.ErrInvalid},
+		{"IPv6 link-local, no zone", dns.Config{Nameservers: []string{"fe80::1"}}, dns.ManagerResolved, nil, dns.ErrInvalid},
+		{"limited broadcast", dns.Config{Nameservers: []string{"255.255.255.255"}}, dns.ManagerFile, nil, dns.ErrInvalid},
+		{"this network", dns.Config{Nameservers: []string{"0.1.2.3"}}, dns.ManagerFile, nil, dns.ErrInvalid},
+		{"IPv4 link-local", dns.Config{Nameservers: []string{"169.254.169.253"}}, dns.ManagerFile, []string{"169.254.169.253"}, nil},
 		{"repeated", dns.Config{Nameservers: []string{ns6, "2001:db8:0:0::53"}}, dns.ManagerFile, nil, dns.ErrInvalid},
 		{"four in a file", dns.Config{Nameservers: []string{ns1, ns2, ns6, "192.0.2.55"}}, dns.ManagerProxmox, nil, dns.ErrInvalid},
 		{"four for resolved", dns.Config{Nameservers: []string{ns1, ns2, ns6, "192.0.2.55"}}, dns.ManagerResolved, []string{ns1, ns2, ns6, "192.0.2.55"}, nil},
@@ -41,10 +45,12 @@ func TestValidate(t *testing.T) {
 		{"search, route-only", dns.Config{Nameservers: []string{ns1}, Search: []string{"~example.net"}, ReplaceSearch: true}, dns.ManagerResolved, nil, dns.ErrInvalid},
 		{"search, trailing dot", dns.Config{Nameservers: []string{ns1}, Search: []string{"example.net."}, ReplaceSearch: true}, dns.ManagerFile, nil, dns.ErrInvalid},
 		{"search, repeated", dns.Config{Nameservers: []string{ns1}, Search: []string{"lan", "lan"}, ReplaceSearch: true}, dns.ManagerFile, nil, dns.ErrInvalid},
+		{"search, repeated in another case", dns.Config{Nameservers: []string{ns1}, Search: []string{"example.net", "Example.NET"}, ReplaceSearch: true}, dns.ManagerResolved, nil, dns.ErrInvalid},
 		{"search, two on Proxmox", dns.Config{Nameservers: []string{ns1}, Search: []string{"example.net", "lan"}, ReplaceSearch: true}, dns.ManagerProxmox, nil, dns.ErrInvalid},
 		{"search line too long for musl", dns.Config{Nameservers: []string{ns1}, Search: []string{long, "b" + long, "c" + long, "d" + long}, ReplaceSearch: true}, dns.ManagerFile, nil, dns.ErrInvalid},
 		{"long search for resolved", dns.Config{Nameservers: []string{ns1}, Search: []string{long, "b" + long, "c" + long, "d" + long}, ReplaceSearch: true}, dns.ManagerResolved, []string{ns1}, nil},
-		{"search kept: not checked", dns.Config{Nameservers: []string{ns1}, Search: []string{"~bad"}}, dns.ManagerFile, []string{ns1}, nil},
+		{"search given without ReplaceSearch", dns.Config{Nameservers: []string{ns1}, Search: []string{"lan"}}, dns.ManagerFile, nil, dns.ErrInvalid},
+		{"search kept", dns.Config{Nameservers: []string{ns1}}, dns.ManagerResolved, []string{ns1}, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -71,7 +77,8 @@ func TestParseResolvConf(t *testing.T) {
 	}
 }
 
-// TestCodes pins the words of the enums.
+// TestCodes pins the words and the numbers of the enums: a kept plan
+// stores the numbers.
 func TestCodes(t *testing.T) {
 	for _, tt := range []struct{ got, want string }{
 		{dns.ManagerUnknown.String(), "unknown"}, {dns.ManagerFile.String(), "file"}, {dns.ManagerProxmox.String(), "proxmox"},
@@ -86,7 +93,15 @@ func TestCodes(t *testing.T) {
 			t.Errorf("%q, want %q", tt.got, tt.want)
 		}
 	}
-	if dns.StepUDHCPC != 1 || dns.StepReload != 4 || dns.ManagerForeign != 6 || dns.FindingProxmox != 4 {
-		t.Error("an enum's number changed: a kept plan would read differently")
+	for _, tt := range []struct{ got, want int }{
+		{int(dns.ManagerUnknown), 0}, {int(dns.ManagerFile), 1}, {int(dns.ManagerProxmox), 2}, {int(dns.ManagerResolved), 3},
+		{int(dns.ManagerResolvconf), 4}, {int(dns.ManagerNetworkManager), 5}, {int(dns.ManagerForeign), 6},
+		{int(dns.StepUDHCPC), 1}, {int(dns.StepResolvConf), 2}, {int(dns.StepDropIn), 3}, {int(dns.StepReload), 4},
+		{int(dns.FindingPerLink), 1}, {int(dns.FindingDHCPClient), 2}, {int(dns.FindingUDHCPC), 3}, {int(dns.FindingProxmox), 4},
+		{int(dns.EntryUnknown), 0}, {int(dns.EntryAbsent), 1}, {int(dns.EntryFile), 2}, {int(dns.EntrySymlink), 3}, {int(dns.EntryOther), 4},
+	} {
+		if tt.got != tt.want {
+			t.Errorf("an enum's number is %d, want %d: a kept plan would read differently", tt.got, tt.want)
+		}
 	}
 }

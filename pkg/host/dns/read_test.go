@@ -3,6 +3,7 @@ package dns_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
@@ -20,7 +21,7 @@ func readOnly(t *testing.T, h *hostfake.System) {
 		switch c.Op {
 		case "read", "read-nofollow", "stat", "lstat", "readdir", "readlink":
 		case "run":
-			if a := strings.Join(c.Argv, " "); a != "systemctl is-active "+dns.ResolvedUnit && a != "resolvectl --no-pager dns" {
+			if a := strings.Join(c.Argv, " "); a != "systemctl is-active "+dns.ResolvedUnit && a != "resolvectl --no-pager dns" && a != "resolvectl --no-pager domain" {
 				t.Errorf("Read ran %q", a)
 			}
 		default:
@@ -30,32 +31,40 @@ func readOnly(t *testing.T, h *hostfake.System) {
 }
 
 // TestRead: each supported platform's stock layout gives its manager and
-// what it holds, from reads and two queries only.
+// what it holds, from reads and three queries only. A DHCP client is
+// looked for on every host with a file, Alpine and Proxmox VE included.
 func TestRead(t *testing.T) {
 	tests := []struct {
 		fixture  string
+		client   string // a DHCP client added to the stock layout
 		manager  dns.Manager
 		ns       []string
 		search   []string
 		global   []string
+		domains  []string
 		rewrites detect.Tri
 		dhcp     []string
 	}{
-		{"ubuntu-26.04", dns.ManagerResolved, nil, nil, []string{"192.0.2.99"}, detect.Unknown, nil},
-		{"debian-12-cloud", dns.ManagerResolved, nil, nil, []string{"192.0.2.99"}, detect.Unknown, nil},
-		{"debian-13", dns.ManagerFile, []string{dhcpNS}, []string{"example.net"}, nil, detect.Unknown, []string{"/usr/sbin/dhcpcd"}},
-		{"alpine-3.24", dns.ManagerFile, []string{dhcpNS}, []string{"example.net"}, nil, detect.Yes, nil},
-		{"proxmox", dns.ManagerProxmox, []string{dhcpNS}, []string{"example.net"}, nil, detect.Unknown, nil},
+		{"ubuntu-26.04", "", dns.ManagerResolved, nil, nil, []string{"192.0.2.99"}, []string{"example.net"}, detect.Unknown, nil},
+		{"debian-12-cloud", "", dns.ManagerResolved, nil, nil, []string{"192.0.2.99"}, []string{"example.net"}, detect.Unknown, nil},
+		{"debian-13", "", dns.ManagerFile, []string{dhcpNS}, []string{"example.net"}, nil, nil, detect.Unknown, []string{"/usr/sbin/dhcpcd"}},
+		{"alpine-3.24", "", dns.ManagerFile, []string{dhcpNS}, []string{"example.net"}, nil, nil, detect.Yes, nil},
+		{"alpine-3.24", "/sbin/dhcpcd", dns.ManagerFile, []string{dhcpNS}, []string{"example.net"}, nil, nil, detect.Yes, []string{"/sbin/dhcpcd"}},
+		{"proxmox", "", dns.ManagerProxmox, []string{dhcpNS}, []string{"example.net"}, nil, nil, detect.Unknown, nil},
+		{"proxmox", "/usr/sbin/dhclient", dns.ManagerProxmox, []string{dhcpNS}, []string{"example.net"}, nil, nil, detect.Unknown, []string{"/usr/sbin/dhclient"}},
 	}
 	for _, tt := range tests {
-		t.Run(tt.fixture, func(t *testing.T) {
+		t.Run(tt.fixture+tt.client, func(t *testing.T) {
 			w := newWorld(t, tt.fixture)
+			if tt.client != "" {
+				w.h.AddFile(tt.client, nil, 0o755, 0, 0)
+			}
 			s := w.read(t)
 			if s.Err != nil || s.Manager != tt.manager {
 				t.Fatalf("manager %s, err %v", s.Manager, s.Err)
 			}
-			if !slices.Equal(s.Nameservers, tt.ns) || !slices.Equal(s.Search, tt.search) || !slices.Equal(s.Resolved.Global, tt.global) {
-				t.Errorf("got %q %q %q", s.Nameservers, s.Search, s.Resolved.Global)
+			if !slices.Equal(s.Nameservers, tt.ns) || !slices.Equal(s.Search, tt.search) || !slices.Equal(s.Resolved.Global, tt.global) || !slices.Equal(s.Resolved.Domains, tt.domains) {
+				t.Errorf("got %q %q %q %q", s.Nameservers, s.Search, s.Resolved.Global, s.Resolved.Domains)
 			}
 			if s.UDHCPC.Rewrites != tt.rewrites || !slices.Equal(s.DHCPClients, tt.dhcp) {
 				t.Errorf("udhcpc %s, dhcp %q", s.UDHCPC.Rewrites, s.DHCPClients)
@@ -93,8 +102,9 @@ func TestReadManagers(t *testing.T) {
 		{"resolved link, resolved stopped", func(w *world) {
 			w.h.AddSymlink(dns.ResolvConf, "../run/systemd/resolve/stub-resolv.conf")
 		}, dns.ManagerResolved, false},
-		{"resolved's state unrecognised", func(w *world) { w.active = "activating" }, dns.ManagerUnknown, true},
+		{"resolved's state transitional", func(w *world) { w.active = "activating" }, dns.ManagerUnknown, true},
 		{"init not established", func(w *world) { w.f.Init = detect.Init{} }, dns.ManagerUnknown, true},
+		{"systemd not running", func(w *world) { w.f.Init = detect.Init{Kind: detect.Systemd, Running: detect.No} }, dns.ManagerUnknown, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -109,24 +119,47 @@ func TestReadManagers(t *testing.T) {
 }
 
 // TestReadLaterDropIns: a drop-in sorting after hardn's (C byte order,
-// across the four directories) that sets DNS= or Domains= is named; one
-// sorting before it, one of the same name, a hidden one and one that sets
-// something else are not.
+// across the four directories) that assigns DNS= or Domains=, however
+// spaced or continued, is named; one sorting before it, one of the same
+// name, a hidden one, one that sets something else or only comments, and
+// one /etc hides or masks are not. One that assigns DNS= refuses a plan;
+// one that assigns only Domains= refuses a plan that sets them.
 func TestReadLaterDropIns(t *testing.T) {
+	const etc, run, lib = dns.DropInDir + "/", "/run/systemd/resolved.conf.d/", "/usr/lib/systemd/resolved.conf.d/"
 	w := newWorld(t, "ubuntu-26.04")
-	w.h.AddFile("/usr/lib/systemd/resolved.conf.d/zzz-vendor.conf", []byte("[Resolve]\nDNS=192.0.2.7\n"), 0o644, 0, 0)
-	w.h.AddFile("/run/systemd/resolved.conf.d/zz-i.conf", []byte("[Resolve]\n Domains=example.net\n"), 0o644, 0, 0)
-	w.h.AddFile("/etc/systemd/resolved.conf.d/~late.conf", []byte("[Resolve]\nDNSSEC=no\n"), 0o644, 0, 0)
-	w.h.AddFile("/etc/systemd/resolved.conf.d/99-site.conf", []byte("[Resolve]\nDNS=192.0.2.8\n"), 0o644, 0, 0)
-	w.h.AddFile("/run/systemd/resolved.conf.d/"+dns.DropInName, []byte("[Resolve]\nDNS=192.0.2.9\n"), 0o644, 0, 0)
-	w.h.AddFile("/etc/systemd/resolved.conf.d/.zzz.conf", []byte("[Resolve]\nDNS=192.0.2.10\n"), 0o644, 0, 0)
+	for name, data := range map[string]string{
+		lib + "zzz-vendor.conf": "[Resolve]\nDNS=192.0.2.7\n",
+		run + "zz-i.conf":       "[Resolve]\n Domains = example.net\n",
+		etc + "~late.conf":      "[Resolve]\nDNSSEC=no\n# DNS=192.0.2.11\n ; Domains=lan\nLLMNR=no \\\nDNS=192.0.2.12\n",
+		etc + "~later.conf":     "[Resolve]\nLLMNR=a\\\\\nDNS \\\n= 192.0.2.13\n",
+		etc + "99-site.conf":    "[Resolve]\nDNS=192.0.2.8\n",
+		run + dns.DropInName:    "[Resolve]\nDNS=192.0.2.9\n",
+		etc + ".zzz.conf":       "[Resolve]\nDNS=192.0.2.10\n",
+		lib + "zzz-hidden.conf": "[Resolve]\nDNS=192.0.2.14\n",
+		etc + "zzz-hidden.conf": "[Resolve]\nLLMNR=no\n",
+		lib + "zzz-masked.conf": "[Resolve]\nDNS=192.0.2.15\n",
+	} {
+		w.h.AddFile(name, []byte(data), 0o644, 0, 0)
+	}
+	w.h.AddSymlink(etc+"zzz-masked.conf", "/dev/null")
 	s := w.read(t)
-	want := []string{"/run/systemd/resolved.conf.d/zz-i.conf", "/usr/lib/systemd/resolved.conf.d/zzz-vendor.conf"}
+	want := []dns.Override{
+		{Path: etc + "~later.conf", DNS: true},
+		{Path: run + "zz-i.conf", Domains: true},
+		{Path: lib + "zzz-vendor.conf", DNS: true},
+	}
 	if s.Err != nil || !slices.Equal(s.Resolved.Later, want) {
-		t.Fatalf("later %q, err %v", s.Resolved.Later, s.Err)
+		t.Fatalf("later %+v, err %v", s.Resolved.Later, s.Err)
 	}
 	if _, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{ns1}}); !errors.Is(err, dns.ErrOverridden) {
 		t.Errorf("plan: %v, want ErrOverridden", err)
+	}
+	s.Resolved.Later = want[1:2]
+	if _, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{ns1}}); err != nil {
+		t.Errorf("Domains= only, search kept: %v", err)
+	}
+	if _, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{ns1}, ReplaceSearch: true}); !errors.Is(err, dns.ErrOverridden) {
+		t.Errorf("Domains= only, search set: %v, want ErrOverridden", err)
 	}
 }
 
@@ -230,5 +263,34 @@ func TestHostOfRefuses(t *testing.T) {
 				t.Errorf("calls %v", w.h.Calls())
 			}
 		})
+	}
+}
+
+// TestReadUDHCPCHooks: an executable regular file in a pre- or post-
+// directory of deconfig, bound or renew, a link to one included, is a hook
+// udhcpc's script runs; a file without an execute bit, a hidden one and
+// one in another directory are not. A hook is a finding even where
+// RESOLV_CONF="no" keeps the script itself from the file.
+func TestReadUDHCPCHooks(t *testing.T) {
+	w := newWorld(t, "alpine-3.24")
+	w.h.AddFile(dns.UDHCPCConf, []byte(`RESOLV_CONF="no"`+"\n"), 0o644, 0, 0)
+	for name, mode := range map[string]fs.FileMode{
+		"/etc/udhcpc/post-renew/50-resolv": 0o755,
+		"/etc/udhcpc/pre-deconfig/10-x":    0o700,
+		"/etc/udhcpc/post-bound/README":    0o644,
+		"/etc/udhcpc/post-bound/.hidden":   0o755,
+		"/etc/udhcpc/post-leasefail/10-y":  0o755,
+		"/usr/local/bin/hook":              0o755,
+	} {
+		w.h.AddFile(name, nil, mode, 0, 0)
+	}
+	w.h.AddSymlink("/etc/udhcpc/pre-bound/20-link", "/usr/local/bin/hook")
+	s := w.read(t)
+	want := []string{"/etc/udhcpc/pre-deconfig/10-x", "/etc/udhcpc/pre-bound/20-link", "/etc/udhcpc/post-renew/50-resolv"}
+	if s.Err != nil || s.UDHCPC.Rewrites != detect.No || !slices.Equal(s.UDHCPC.Hooks, want) {
+		t.Fatalf("rewrites %s, hooks %q, err %v", s.UDHCPC.Rewrites, s.UDHCPC.Hooks, s.Err)
+	}
+	if f := s.Findings(); len(f) != 3 || f[0].Kind != dns.FindingUDHCPC || f[0].Path != want[0] {
+		t.Errorf("findings %+v", f)
 	}
 }

@@ -73,8 +73,9 @@ type Plan struct {
 // refuses a manager or fact not established (ErrUnknown), a manager hardn
 // does not configure (ErrManaged), a stopped systemd-resolved
 // (ErrNotRunning), a later drop-in that would override hardn's
-// (ErrOverridden), anything at DropIn that is not a regular file, and
-// what Validate refuses.
+// (ErrOverridden), anything at DropIn that is not a regular file
+// (ErrDropInBlocked), and what Validate refuses. Its findings are
+// s.Findings(), less dns-udhcpc when the plan sets RESOLV_CONF itself.
 func PlanDNS(s State, c Config) (Plan, error) {
 	switch s.Manager {
 	case ManagerUnknown:
@@ -112,7 +113,11 @@ func PlanDNS(s State, c Config) (Plan, error) {
 		}
 		p.Changes = append(p.Changes, write(StepResolvConf, ResolvConf, s.ResolvConf, after, why))
 	}
-	p.Findings = fileFindings(s, want)
+	for _, f := range s.Findings() {
+		if f.Kind != FindingUDHCPC || f.Path != UDHCPCConf || !want.UDHCPCNoResolv {
+			p.Findings = append(p.Findings, f)
+		}
+	}
 	return p, nil
 }
 
@@ -127,50 +132,77 @@ func write(st Step, path string, before Entry, after []byte, why string) Change 
 
 func planResolved(p Plan) (Plan, error) {
 	r := p.From.Resolved
+	var over []string
+	for _, l := range r.Later {
+		if l.DNS || l.Domains && p.Want.ReplaceSearch {
+			over = append(over, l.Path)
+		}
+	}
 	switch {
 	case r.Active != detect.Yes:
 		return Plan{}, fmt.Errorf("dns: plan: %s links to its file: %w", ResolvConf, ErrNotRunning)
-	case len(r.Later) > 0:
-		return Plan{}, fmt.Errorf("dns: plan: %s: %w", strings.Join(r.Later, ", "), ErrOverridden)
+	case len(over) > 0:
+		return Plan{}, fmt.Errorf("dns: plan: %s: %w", strings.Join(over, ", "), ErrOverridden)
 	case r.DropIn.Kind != EntryAbsent && r.DropIn.Kind != EntryFile:
-		return Plan{}, fmt.Errorf("dns: plan: %s is %s, which hardn does not replace: %w", DropIn, describe(r.DropIn), ErrManaged)
+		return Plan{}, fmt.Errorf("dns: plan: %s is %s, which hardn does not replace: %w", DropIn, describe(r.DropIn), ErrDropInBlocked)
 	}
 	after := renderDropIn(r.DropIn, p.Want)
 	wrote := r.DropIn.Kind != EntryFile || !bytes.Equal(r.DropIn.Data, after)
 	if wrote {
 		p.Changes = append(p.Changes, write(StepDropIn, DropIn, r.DropIn, after, "set systemd-resolved's global nameservers"))
 	}
-	if wrote || !slices.Equal(r.Global, p.Want.Nameservers) {
+	if wrote || !slices.Equal(r.Global, p.Want.Nameservers) || p.Want.ReplaceSearch && !sameDomains(r.Domains, p.Want.Search) {
 		p.Changes = append(p.Changes, Change{Step: StepReload, Argv: slices.Clone(reloadArgv), Why: "systemd-resolved reads its configuration when reloaded"})
 	}
-	uplink := ""
-	if t, _ := host.JoinLinkTarget(path.Dir(ResolvConf), p.From.ResolvConf.Target); t == uplinkFile {
-		uplink = "; " + ResolvConf + " links to " + uplinkFile + ", which programs read directly, using its first three nameservers"
-	}
-	for _, l := range r.Links {
-		if len(l.Servers) > 0 {
-			p.Findings = append(p.Findings, Finding{Kind: FindingPerLink, Path: DropIn, Detail: fmt.Sprintf(
-				"%s has its own nameservers (%s), from DHCP, netplan, networkd or a delegate; systemd-resolved queries them in parallel to the global ones%s",
-				l, strings.Join(l.Servers, " "), uplink)})
-		}
-	}
+	p.Findings = p.From.Findings()
 	return p, nil
 }
 
-// fileFindings are what may undo a file manager's write later.
-func fileFindings(s State, want Config) []Finding {
+// sameDomains: the search domain lists match, ignoring case, as DNS names
+// compare.
+func sameDomains(a, b []string) bool {
+	return slices.EqualFunc(a, b, strings.EqualFold)
+}
+
+// Findings are what may bypass or later undo a DNS change on the host s
+// describes, as a check reports them; pure. On systemd-resolved: each link
+// or delegate with its own servers. For a file: Proxmox VE's node
+// settings, udhcpc rewriting the file or its hooks, and DHCP clients.
+// A host whose manager hardn does not configure has none: its refusal
+// says why.
+func (s State) Findings() []Finding {
 	var fs []Finding
+	if s.Manager == ManagerResolved {
+		uplink := ""
+		if t, _ := host.JoinLinkTarget(path.Dir(ResolvConf), s.ResolvConf.Target); t == uplinkFile {
+			uplink = "; " + ResolvConf + " links to " + uplinkFile + ", which programs read directly, using its first three nameservers"
+		}
+		for _, l := range s.Resolved.Links {
+			if len(l.Servers) > 0 {
+				fs = append(fs, Finding{Kind: FindingPerLink, Path: DropIn, Detail: fmt.Sprintf(
+					"%s has its own nameservers (%s), from DHCP, netplan, networkd or a delegate; systemd-resolved queries them in parallel to the global ones%s",
+					l, strings.Join(l.Servers, " "), uplink)})
+			}
+		}
+		return fs
+	}
+	if s.Manager != ManagerFile && s.Manager != ManagerProxmox {
+		return nil
+	}
 	if s.Manager == ManagerProxmox {
 		fs = append(fs, Finding{Kind: FindingProxmox, Path: ResolvConf, Detail: "Proxmox VE's node DNS settings (System > DNS, /nodes/<node>/dns) read this file " +
 			"and rewrite it on save, keeping the first search domain and three nameservers"})
 	}
 	switch u := s.UDHCPC; {
-	case s.Host.Distro != detect.DistroAlpine || want.UDHCPCNoResolv:
+	case s.Host.Distro != detect.DistroAlpine:
 	case u.Rewrites == detect.Yes:
 		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: "udhcpc rewrites " + ResolvConf + " on each DHCP lease (except for interfaces in NO_DNS=" +
 			fmt.Sprintf("%q", u.NoDNS) + `); RESOLV_CONF="no" there stops it, as an explicit plan step`})
 	case u.Rewrites == detect.Unknown:
-		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: fmt.Sprintf("whether udhcpc rewrites %s is not established: %v", ResolvConf, u.Err)})
+		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: fmt.Sprintf("whether udhcpc rewrites %s is not established: %v", ResolvConf, errOr(u.Err, detect.ErrNoSignal))})
+	}
+	for _, h := range s.UDHCPC.Hooks {
+		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: h, Detail: "udhcpc runs this hook around each DHCP event; it may rewrite " + ResolvConf + `, whatever RESOLV_CONF says`})
 	}
 	for _, c := range s.DHCPClients {
 		fs = append(fs, Finding{Kind: FindingDHCPClient, Path: c, Detail: "a DHCP client is installed; for an interface it configures, it may rewrite " + ResolvConf + " on each lease"})
