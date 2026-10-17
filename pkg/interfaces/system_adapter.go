@@ -11,14 +11,19 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 )
 
-// legacyThroughHost routes OSCommander and OSFileSystem through host.Real
-// (refactor plan P2, next/p2-system), so legacy and new code share one
-// execution path: commands resolved only from host.SearchPath, with the
+// legacyThroughHost, when true, routes OSCommander and OSFileSystem through
+// host.Real (refactor plan P2, next/p2-system), so legacy and new code share
+// one execution path: commands resolved only from host.SearchPath, with the
 // environment pinned to PATH and LC_ALL=C, from the working directory "/".
-// Flip to false to restore the os/exec and os calls they made before, kept in
-// their method bodies, if a host run shows a regression from the pinned
-// environment.
-const legacyThroughHost = true
+//
+// OFF (2026-10-17): with it on, every legacy production command changes in
+// the ways docs/safety/system.md §5 lists, and none of them is approved yet
+// (brief §3 principle 2). Proposal P-32 (docs/refactor/proposals.md) asks
+// the maintainer; flip to true once he approves it, after next/p2-vmtest has
+// run the legacy operations on the VMs. Off, OSCommander and OSFileSystem
+// make the os/exec and os calls they made before, and the adapters below are
+// still what the through-System characterization goldens test.
+const legacyThroughHost = false
 
 // realSystem is the one host.Real the legacy seams share. Its run log is
 // discarded until p3-output gives it a path.
