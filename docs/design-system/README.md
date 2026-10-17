@@ -858,24 +858,26 @@ The rules for code that shows anything to the user or reads from them. The impor
 |---|---|---|---|
 | `lipgloss` | all but `pkg/ui/**` | `charm.land/lipgloss` | Lip Gloss is `pkg/ui`'s alone |
 | `terminal` | all but `pkg/ui/**` and `internal/tools/uigallery/**` | `github.com/charmbracelet/colorprofile`, `github.com/charmbracelet/x/ansi`, `github.com/charmbracelet/x/term` | Colour profiles, raw ANSI and terminal queries are `pkg/ui/term`'s and the components'. The gallery names profiles for `term.Fixed` and measures its headers with x/ansi (§9.14) |
-| `legacy-style` | all but the seven exceptions below | `github.com/fatih/color`, `github.com/abbott/hardn/pkg/style`, `github.com/mattn/go-runewidth` | The legacy styling: its colour library, its raw-ANSI helpers and their width measure. `pkg/ui` is not excepted |
+| `legacy-color` | all but `cmd/hardn/**` and `pkg/logging/**` | `github.com/fatih/color` | The legacy styling's colour library. `pkg/ui` is not excepted |
+| `legacy-style` | all but `pkg/menu/**`, `cmd/hardn/**`, `pkg/security/**`, `pkg/system/**` and `pkg/utils/**` | `github.com/abbott/hardn/pkg/style` | The legacy styling's raw-ANSI helpers. `pkg/ui` is not excepted |
+| `legacy-width` | all but `pkg/style/**` and `pkg/menu/**` | `github.com/mattn/go-runewidth` | The legacy helpers' width measure. `pkg/ui` is not excepted |
 | `never` | all | `charm.land/lipgloss/v2/compat`; `github.com/charmbracelet/lipgloss` (v1); `charm.land/` and `github.com/charmbracelet/` `bubbletea`, `bubbles` and `huh` | `compat` queries the terminal and detects a profile at import (§2.3); hardn uses Lip Gloss v2 (§2.1); patterns are borrowed, not imported |
 | `test-only` | all but `$test` and `internal/tools/**` | `github.com/abbott/hardn/pkg/ui/uitest`, `github.com/abbott/hardn/pkg/ui/component/fixture` | The golden harness and the component states stay out of production code |
 | `dev-tools` | all but `internal/tools/**` | `github.com/abbott/hardn/internal/tools` | Dev-only tools may import `pkg/ui` freely; nothing imports them, so nothing links them into hardn (§9.14) |
 | `prompt-stdlib` | `pkg/ui/prompt/**` but `$test`; strict | anything but the standard library (`$gostd`) and `golang.org/x/sys/unix` | The legacy menus read through it without linking Lip Gloss (§9.7) |
 | `keys-stdlib` | `pkg/ui/keys/**` but `$test`; strict | anything but the standard library | The same for the legacy menus' key data (§9.8) |
 
-**Exceptions** (`legacy-style` only, the refactor plan's initial list). Each exempts what its package imports today and goes when the package stops importing it, as its slice moves onto `pkg/ui` (refactor plan, Phases 3 to 5: each area's screen, unit (c), on the design system; then the one unit after slice 9 that removes the legacy paths). Nothing else is excepted: a legacy package cannot start on Lip Gloss, colorprofile or the test helpers.
+**Exceptions** (the `legacy-*` rules only, the refactor plan's initial list). There is one rule per legacy library, so each exception lifts only the denial of what its package imports today, and goes when the package stops importing it, as its slice moves onto `pkg/ui` (refactor plan, Phases 3 to 5: each area's screen, unit (c), on the design system; then the one unit after slice 9 that removes the legacy paths). Nothing else is excepted: a legacy package cannot start on another legacy library, Lip Gloss, colorprofile or the test helpers.
 
-| Exception | Imports today | Goes when |
+| Exception | Excepted from, for what it imports today | Goes when |
 |---|---|---|
-| `pkg/style` | `go-runewidth` (`boxes.go`) | The library is deleted with the last legacy path; its own deny entries can then move to `never` |
-| `pkg/menu` | `pkg/style` (20 files, and `main_menu_render_test.go`), `go-runewidth` (that test) | Its last screen moves onto a layout |
-| `cmd/hardn` | `pkg/style`, `fatih/color` (`main.go`: `initializeColor` sets `style.UseColors` and `color.NoColor` from `--no-color`) | Its colour set-up gives way to `term.Detect` and the flags of refactor plan §3.14 and §3.11 |
-| `pkg/logging` | `fatih/color` (`logging.go`: its console messages) | Its console messages go through `pkg/ui` |
-| `pkg/security` | `pkg/style` (`status.go`: the security status display) | That display gives way to `StatusList`, filled from the status model (Phase 4) |
-| `pkg/system` | `pkg/style` (`display.go`: System Details' box) | System Details moves onto a layout (slice 1) |
-| `pkg/utils` | `pkg/style` (`utils.go`: `PrintPounds`, `PrintTilda` and `PrintLogo`, and `PrintHeader` through `PrintTilda`) | Those helpers have no caller left |
+| `pkg/style` | `legacy-width`: `go-runewidth` (`boxes.go`) | The library is deleted with the last legacy path; its own deny entries can then move to `never` |
+| `pkg/menu` | `legacy-style`: `pkg/style` (20 files, and `main_menu_render_test.go`); `legacy-width`: `go-runewidth` (that test) | Its last screen moves onto a layout |
+| `cmd/hardn` | `legacy-style` and `legacy-color`: `pkg/style` and `fatih/color` (`main.go`: `initializeColor` sets `style.UseColors` and `color.NoColor` from `--no-color`) | Its colour set-up gives way to `term.Detect` and the flags of refactor plan §3.14 and §3.11 |
+| `pkg/logging` | `legacy-color`: `fatih/color` (`logging.go`: its console messages) | Its console messages go through `pkg/ui` |
+| `pkg/security` | `legacy-style`: `pkg/style` (`status.go`: the security status display) | That display gives way to `StatusList`, filled from the status model (Phase 4) |
+| `pkg/system` | `legacy-style`: `pkg/style` (`display.go`: System Details' box) | System Details moves onto a layout (slice 1) |
+| `pkg/utils` | `legacy-style`: `pkg/style` (`utils.go`: `PrintPounds`, `PrintTilda` and `PrintLogo`, and `PrintHeader` through `PrintTilda`) | Those helpers have no caller left |
 
 **Limits.**
 - golangci-lint lints the files of the host's build only, so on a darwin host a Linux-only file goes unlinted; `pkg/ui/prompt`'s and `pkg/ui/keys`'s `TestImports` read every non-test file whatever its build tags, so they stay. `make check`'s `check-cross` type-checks and vets the whole module, tests included, for linux/amd64 and linux/arm64, so a Linux-only file at least compiles (§9.7).
