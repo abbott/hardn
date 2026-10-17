@@ -382,6 +382,14 @@ CHECK_GOLANGCI_LINT_VERSION ?= 2.14.0
 CHECK_GOVULNCHECK_VERSION ?= v1.9.0
 # Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
+# Targets check-cross also vets the whole module for, test files included
+# (go vet type-checks them), with the same env and tags (next/p1d-lint). The
+# other steps compile only the host's files and the builds above only what
+# cmd/hardn links, so on a darwin host a Linux-only test file, such as
+# pkg/ui/prompt's pty_linux_test.go, and the Linux side of every package
+# cmd/hardn does not link are compiled here or nowhere. darwin's files are the
+# host's; no file in the module is constrained by architecture.
+CHECK_CROSS_VET_TARGETS ?= linux/amd64 linux/arm64
 CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
 	check-lint check-vuln check-cross
 
@@ -461,6 +469,12 @@ check-cross:
 		echo "CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -tags=netgo -o <tmp>/hardn-$$os-$$arch ./cmd/hardn"; \
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
 			go build -trimpath -tags=netgo -o "$$out/hardn-$$os-$$arch" ./cmd/hardn || exit 1; \
+	done
+	@for t in $(CHECK_CROSS_VET_TARGETS); do \
+		os=$${t%/*}; arch=$${t#*/}; \
+		echo "CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go vet -tags=netgo ./..."; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
+			go vet -tags=netgo ./... || exit 1; \
 	done
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
