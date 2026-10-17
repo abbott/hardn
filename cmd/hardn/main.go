@@ -376,7 +376,7 @@ var rootCmd = &cobra.Command{
 				[]string{cfg.SshListenAddress},
 				cfg.PermitRootLogin,
 				cfg.SshAllowedUsers,
-				[]string{cfg.SshKeyPath},
+				hardncmd.CreateUserAuthorizedKeysFiles(cfg.SshKeyPath),
 			); err != nil {
 				logging.LogError("Failed to configure SSH: %v", err)
 			}

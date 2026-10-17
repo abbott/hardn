@@ -85,11 +85,10 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	content.WriteString("PasswordAuthentication no\n")
 	content.WriteString("PermitEmptyPasswords no\n\n")
 
-	// Authorized keys
+	// Authorized keys: one line, since sshd uses the first AuthorizedKeysFile
+	// it reads and a line lists every file (sshd_config(5)).
 	if len(config.KeyPaths) > 0 {
-		for _, path := range config.KeyPaths {
-			content.WriteString(fmt.Sprintf("AuthorizedKeysFile %s\n", path))
-		}
+		content.WriteString(fmt.Sprintf("AuthorizedKeysFile %s\n", strings.Join(config.KeyPaths, " ")))
 	} else {
 		content.WriteString("AuthorizedKeysFile .ssh/authorized_keys\n")
 	}

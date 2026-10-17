@@ -89,7 +89,8 @@ type result struct {
 	code    int  // exit status, when ended
 	ended   bool // the run ended by exit
 	calls   []string
-	reached []string // the host steps past the dry-run refusal that ran
+	reached []string          // the host steps past the dry-run refusal that ran
+	files   map[string]string // the mock file system's files afterwards
 }
 
 // hostMode sets what the stubbed host steps do. Each records that it was
@@ -193,6 +194,10 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 	}()
 	r.stderr = errOut.String()
 	r.calls = log.calls
+	r.files = map[string]string{}
+	for p, b := range mockFS.Files {
+		r.files[p] = string(b)
+	}
 	return r
 }
 
@@ -290,5 +295,25 @@ func TestOperationsApplyWithoutDryRun(t *testing.T) {
 				t.Errorf("no write or command recorded; calls: %v", r.calls)
 			}
 		})
+	}
+}
+
+// TestCreateUserAuthorizedKeysFile checks V5's gate through the real -c
+// path: hardn.conf names both v0.3.2's files on one AuthorizedKeysFile
+// line, the first of which is where -c writes alice's key.
+func TestCreateUserAuthorizedKeysFile(t *testing.T) {
+	r := runHardn(t, asRoot, "-c", "-u", "alice")
+	if r.ended {
+		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+	}
+	conf := r.files["/etc/ssh/sshd_config.d/hardn.conf"]
+	var lines []string
+	for _, l := range strings.Split(conf, "\n") {
+		if strings.HasPrefix(l, "AuthorizedKeysFile") {
+			lines = append(lines, l)
+		}
+	}
+	if want := "AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys"; len(lines) != 1 || lines[0] != want {
+		t.Errorf("AuthorizedKeysFile lines %q, want just %q; hardn.conf:\n%s", lines, want, conf)
 	}
 }

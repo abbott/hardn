@@ -292,6 +292,8 @@ var fixedText = map[string]string{
 	"V12:disable-root": "disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)",
 	"V15:disable-root": "Alpine: /etc/ssh/sshd_config is edited in place, so Subsystem sftp, Include and comments survive",
 	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
+	"V5":               "-c writes v0.3.2's 'AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys', so sshd reads the ~/.ssh/authorized_keys that -c writes keys to",
+	"V24:c-path":       "keys a v0.3.2 install kept in ~/.ssh_<user>/authorized_keys keep working: the same AuthorizedKeysFile line lists that file too",
 	"A4":               "Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied (pkg/menu TestRunAllConfirmation); hardn -r does not ask",
 }
 
@@ -359,21 +361,24 @@ func opScenarios() []opScenario {
 		},
 		{
 			name:  "create_user_c_path",
-			op:    "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath",
+			op:    "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath (pkg/cmd CreateUserAuthorizedKeysFiles)",
 			entry: "hardn -c -u alice (cmd/hardn/main.go:365-383); ConfigureSSH runs even when CreateUser fails",
 			cli:   []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
 			setup: func(e *opEnv) { e.newUser() },
 			run: func(e *opEnv) []callResult {
 				cfg := e.cfg
 				errUser := e.factory.CreateUserManager().CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys)
-				errSSH := e.factory.CreateSSHManager().ConfigureSSH(cfg.SshPort, []string{cfg.SshListenAddress}, cfg.PermitRootLogin, cfg.SshAllowedUsers, []string{cfg.SshKeyPath})
+				errSSH := e.factory.CreateSSHManager().ConfigureSSH(cfg.SshPort, []string{cfg.SshListenAddress}, cfg.PermitRootLogin, cfg.SshAllowedUsers, hardncmd.CreateUserAuthorizedKeysFiles(cfg.SshKeyPath))
 				return []callResult{{"UserManager.CreateUser", errUser}, {"SSHManager.ConfigureSSH", errSSH}}
 			},
 			defects: func(c osCell) []string {
-				d := []string{"V5", "V6", "V7", "V8", "V18", "V24", "V27"}
+				d := []string{"V6", "V7", "V8", "V18", "V27"}
 				d = append(d, sshWriteDefects(c)...)
 				d = append(d, newUserDefects(c)...)
 				return d
+			},
+			fixed: func(c osCell) []fixedItem {
+				return []fixedItem{{"V5", "authorizedKeysSSHUOnly"}, {"V24:c-path", "authorizedKeysSSHUOnly"}}
 			},
 		},
 		{
