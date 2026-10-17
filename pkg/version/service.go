@@ -48,6 +48,10 @@ func (s *Service) CheckForUpdates(options *UpdateOptions) CheckResult {
 	if options == nil {
 		options = &UpdateOptions{}
 	}
+	if !updateCheckEnabled {
+		// No check, not even a forced one (updateCheckEnabled).
+		return CheckResult{CurrentVersion: s.CurrentVersion}
+	}
 
 	// For testing purposes, we can force an update to be available
 	if options.ForceUpdate {
@@ -96,6 +100,9 @@ func (s *Service) PrintVersionInfo() {
 
 // GetCacheStatus returns information about the update cache
 func (s *Service) GetCacheStatus() (bool, time.Time, error) {
+	if !updateCheckEnabled {
+		return false, time.Time{}, fmt.Errorf("update checks are disabled")
+	}
 	cache, valid := loadCache()
 	if !valid {
 		return false, time.Time{}, fmt.Errorf("no valid cache found")

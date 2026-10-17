@@ -65,9 +65,9 @@ const (
 	testSecurityMessage = "Critical security vulnerability fixed - CVE-2023-1234"
 )
 
-// Check for new version
+// Check for new version (no-op, no goroutine, while checks are disabled)
 func (m *MainMenu) CheckForUpdates() {
-	if m.versionService == nil || m.versionService.CurrentVersion == "" {
+	if m.versionService == nil || m.versionService.CurrentVersion == "" || !version.UpdateCheckEnabled() {
 		return
 	}
 

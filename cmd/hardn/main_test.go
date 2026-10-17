@@ -317,3 +317,15 @@ func TestCreateUserAuthorizedKeysFile(t *testing.T) {
 		t.Errorf("AuthorizedKeysFile lines %q, want just %q; hardn.conf:\n%s", lines, want, conf)
 	}
 }
+
+// TestUpdateFlagsSayDisabled checks that the update-check flags, which do
+// nothing while pkg/version's updateCheckEnabled is false (V26), say so in
+// hardn --help.
+func TestUpdateFlagsSayDisabled(t *testing.T) {
+	for _, name := range []string{"debug-updates", "test-update", "test-security-update"} {
+		f := rootCmd.PersistentFlags().Lookup(name)
+		if f == nil || !strings.HasSuffix(f.Usage, "(no effect: update checks are disabled)") {
+			t.Errorf("--%s: %+v", name, f)
+		}
+	}
+}

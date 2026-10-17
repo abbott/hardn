@@ -99,9 +99,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Configure sudoers to preserve HARDN_CONFIG environment variable")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
-	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, "Enable debugging for update checks")
-	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, "Force update notification for testing")
-	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, "Test security update notification")
+	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, version.UpdateFlagUsage("Enable debugging for update checks"))
+	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, version.UpdateFlagUsage("Force update notification for testing"))
+	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, version.UpdateFlagUsage("Test security update notification"))
 }
 
 func initializeColor() {

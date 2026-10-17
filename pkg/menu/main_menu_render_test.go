@@ -38,11 +38,12 @@ type mainScreenFixture struct {
 	sshPort         int
 	dryRun          bool
 	noColor         bool
-	updateAvailable string // latest version, or "" for none
+	updateAvailable string // version offered through SetTestUpdateAvailable (--test-update), or ""
 	host            model.HostInfo
 	status          security.SecurityStatus
 	sudoMethod      string
 	notes           []string
+	fixed           []string // FIXED lines (without the prefix) for P0.8 gates
 }
 
 var exampleHost = model.HostInfo{
@@ -83,9 +84,10 @@ func mainScreenFixtures() []mainScreenFixture {
 		},
 		{
 			name:    "alpine-update-available",
-			about:   "Alpine, root login allowed, UFW on without policies, passwordless sudo, update v0.4.1 available",
+			about:   "Alpine, root login allowed, UFW on without policies, passwordless sudo, update v0.4.1 offered through SetTestUpdateAvailable (--test-update)",
 			osInfo:  &osdetect.OSInfo{OsType: "alpine", OsVersion: "3.23.0", OsCodename: "3.23.0"},
 			sshPort: 2230, updateAvailable: "0.4.1", host: exampleHost, sudoMethod: sudoNoPassword,
+			fixed: []string{"(P0.8, gated by updateCheckEnabled): V26 — no update check runs, and --test-update offers nothing, so the screen shows no update notice; origin/main showed \"v0.4.1 available\" and the repository URL on a second line"},
 			status: security.SecurityStatus{
 				RootLoginEnabled: true, FirewallEnabled: true, FirewallConfigured: false, SecureUsers: true,
 				SudoConfigured: true, SshPortNonDefault: true, PasswordAuthDisabled: true,
@@ -167,8 +169,7 @@ func renderMainScreen(t *testing.T, f mainScreenFixture) string {
 	menuManager := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
 	m := NewMainMenu(menuManager, cfg, f.osInfo, version.NewService("0.4.0", "", ""))
 	if f.updateAvailable != "" {
-		m.updateAvailable = true
-		m.latestVersion = f.updateAvailable
+		m.SetTestUpdateAvailable(f.updateAvailable)
 	}
 
 	return captureStdout(t, func() {
@@ -259,6 +260,9 @@ func TestMainMenuRenderGolden(t *testing.T) {
 			b.WriteString("# Screen: main menu, one pass of ShowMainMenu before input (pkg/menu/main_menu.go:387-427)\n")
 			fmt.Fprintf(&b, "# Fixture: %s\n", f.about)
 			fmt.Fprintf(&b, "# Fixture status: %+v; Sudo Method row: %q\n", f.status, f.sudoMethod)
+			for _, l := range f.fixed {
+				fmt.Fprintf(&b, "# FIXED %s\n", l)
+			}
 			for _, n := range f.notes {
 				fmt.Fprintf(&b, "# NOTE: %s\n", n)
 			}
