@@ -180,9 +180,10 @@ linters:
             - "!$test"
           allow:
             - $gostd
-        # The host seam (and its fake) keep to the standard library, so
-        # nothing they link runs a command or touches a file behind
-        # host.System's back (docs/safety/system.md).
+        # The host seam, its fake and platform detection (pkg/host/detect)
+        # keep to the standard library, so nothing they link runs a command
+        # or touches a file behind host.System's back (docs/safety/system.md,
+        # docs/safety/detect.md).
         host-stdlib:
           list-mode: strict
           files:
