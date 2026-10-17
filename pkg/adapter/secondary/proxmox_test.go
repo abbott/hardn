@@ -133,6 +133,16 @@ func TestUFWOnProxmox(t *testing.T) {
 			if err := repo.EnableFirewall(); !errors.Is(err, errUFWOnProxmox) {
 				t.Errorf("EnableFirewall: %v", err)
 			}
+			// No caller in cmd or pkg/menu yet; refused all the same.
+			if err := repo.AddRule(cfg.Rules[0]); !errors.Is(err, errUFWOnProxmox) {
+				t.Errorf("AddRule: %v", err)
+			}
+			if err := repo.RemoveRule(cfg.Rules[0]); !errors.Is(err, errUFWOnProxmox) {
+				t.Errorf("RemoveRule: %v", err)
+			}
+			if err := repo.AddProfile(model.FirewallProfile{Name: "ExampleHTTPS", Ports: []string{"8443/tcp"}}); !errors.Is(err, errUFWOnProxmox) {
+				t.Errorf("AddProfile: %v", err)
+			}
 			for _, c := range mc.ExecutedCommands {
 				if strings.Contains(c, "ufw") {
 					t.Errorf("ran %q", c)
@@ -149,6 +159,31 @@ func TestUFWOnProxmox(t *testing.T) {
 			t.Fatal(err)
 		}
 		if got := strings.Join(mc.ExecutedCommands, "; "); !strings.HasSuffix(got, "sh -c yes | ufw enable") {
+			t.Errorf("commands: %s", got)
+		}
+	})
+	t.Run("plain Debian, the rule methods", func(t *testing.T) {
+		fs, mc := pveHost(false, false)
+		repo := NewUFWFirewallRepository(fs, mc, nil)
+		if err := repo.AddRule(cfg.Rules[0]); err != nil {
+			t.Fatal(err)
+		}
+		if err := repo.RemoveRule(cfg.Rules[0]); err != nil {
+			t.Fatal(err)
+		}
+		if err := repo.AddProfile(model.FirewallProfile{Name: "ExampleHTTPS", Ports: []string{"8443/tcp"}}); err != nil {
+			t.Fatal(err)
+		}
+		if got := strings.Join(mc.ExecutedCommands, "; "); !strings.HasSuffix(got, "ufw allow 2230/tcp; ufw delete allow 2230/tcp; ufw allow from any to any app ExampleHTTPS") {
+			t.Errorf("commands: %s", got)
+		}
+	})
+	t.Run("disable stays possible on Proxmox", func(t *testing.T) {
+		fs, mc := pveHost(true, false)
+		if err := NewUFWFirewallRepository(fs, mc, nil).DisableFirewall(); err != nil {
+			t.Fatal(err)
+		}
+		if got := strings.Join(mc.ExecutedCommands, "; "); got != "ufw disable" {
 			t.Errorf("commands: %s", got)
 		}
 	})

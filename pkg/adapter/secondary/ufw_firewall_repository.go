@@ -161,8 +161,12 @@ func (r *UFWFirewallRepository) GetFirewallConfig() (*model.FirewallConfig, erro
 	}, nil
 }
 
-// AddRule adds a firewall rule
+// AddRule adds a firewall rule. On Proxmox VE it is refused
+// (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) AddRule(rule model.FirewallRule) error {
+	if r.pve.IsProxmox() {
+		return errUFWOnProxmox
+	}
 	var args []string
 
 	// Build command arguments
@@ -190,8 +194,12 @@ func (r *UFWFirewallRepository) AddRule(rule model.FirewallRule) error {
 	return nil
 }
 
-// RemoveRule removes a firewall rule
+// RemoveRule removes a firewall rule. On Proxmox VE it is refused
+// (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) RemoveRule(rule model.FirewallRule) error {
+	if r.pve.IsProxmox() {
+		return errUFWOnProxmox
+	}
 	var args []string
 
 	// Build command arguments
@@ -214,8 +222,12 @@ func (r *UFWFirewallRepository) RemoveRule(rule model.FirewallRule) error {
 	return nil
 }
 
-// AddProfile adds a firewall application profile
+// AddProfile adds a firewall application profile. On Proxmox VE it is
+// refused (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) AddProfile(profile model.FirewallProfile) error {
+	if r.pve.IsProxmox() {
+		return errUFWOnProxmox
+	}
 	// Apply a single profile
 	return r.applyAppProfiles([]model.FirewallProfile{profile})
 }
@@ -274,7 +286,9 @@ func (r *UFWFirewallRepository) EnableFirewall() error {
 	return nil
 }
 
-// DisableFirewall disables the firewall
+// DisableFirewall disables the firewall. It is not refused on Proxmox VE:
+// turning UFW off hands the packet filter back to pve-firewall, which is
+// the way out for a host where origin/main enabled UFW (V10).
 func (r *UFWFirewallRepository) DisableFirewall() error {
 	if _, err := r.commander.Execute("ufw", "disable"); err != nil {
 		return fmt.Errorf("failed to disable UFW: %w", err)
