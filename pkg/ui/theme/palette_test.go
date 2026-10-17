@@ -81,12 +81,14 @@ func TestTokensComplete(t *testing.T) {
 // contrastFloors are the WCAG contrast minimums of each token against the
 // page background, by palette. Tokens with no floor are listed with 0: the
 // bar and badge backgrounds are surfaces, and badge text is checked against
-// the badge instead.
+// the badge instead. The dark divider's floor is lower: a rule is
+// decorative, the blank lines around it already part the blocks, and it is
+// kept quieter than the faintest text (TestDividerBelowFaint; DEV-002).
 var contrastFloors = map[string]map[string]float64{
 	"dark": {
 		"text.primary": 7, "text.muted": 4.5, "text.faint": 3,
 		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5, "status.unknown": 4.5,
-		"divider": 3, "accent.ok": 3, "accent.warn": 3,
+		"divider": 1.5, "accent.ok": 3, "accent.warn": 3,
 		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0,
 	},
 	"light": {
@@ -146,7 +148,21 @@ var ansi256Overrides = map[string]struct {
 	reason string
 }{
 	"dark/text.faint": {59, "240 (#585858) is nearest (ΔE 10.04) but 2.95:1 on black, under faint's 3:1; 59 (#5F5F5F, ΔE 10.07) is 3.29:1"},
-	"dark/divider":    {59, "as text.faint, whose value it shares (DEV-002)"},
+}
+
+// TestDividerBelowFaint holds a rule no louder than the faintest text, so
+// that it never competes with the words around it (DEV-002). At 16 colours
+// both are BrightBlack, the only gray between black and white.
+func TestDividerBelowFaint(t *testing.T) {
+	for _, pt := range palettes {
+		div, faint := profileColors(pt.p.Divider), profileColors(pt.p.TextFaint)
+		for _, profile := range []string{"truecolor", "256"} {
+			d, f := contrast(div[profile], pt.page), contrast(faint[profile], pt.page)
+			if d > f {
+				t.Errorf("%s/%s: divider is %.2f:1, above text.faint's %.2f:1", pt.name, profile, d, f)
+			}
+		}
+	}
 }
 
 func TestANSI256Nearest(t *testing.T) {
