@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness). Components, screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components, the header group in `pkg/ui/component` (`next/p1b-header`). The other components, screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -16,7 +16,7 @@
 6. [Glyph sets](#6-glyph-sets)
 7. [Grid and spacing](#7-grid-and-spacing)
 8. [Golden tests](#8-golden-tests)
-9. [Components, screens and usage rules (placeholders)](#9-components-screens-and-usage-rules-placeholders)
+9. [Components, screens and usage rules](#9-components-screens-and-usage-rules)
 10. [Token report](#10-token-report)
 
 ## 1. Purpose and Figma fidelity
@@ -81,7 +81,8 @@ Checked against the module source at the versions above; citations are `file:lin
 | Background detection | `lipgloss.HasDarkBackground` puts the terminal in raw mode with ISIG, ICANON and ECHO off (lipgloss `query.go:13`; x/term `term_unix.go:31`), sends an OSC 11 and a DA1 request (`terminal.go:45`) and waits up to 2 s for the reply on stdin and, if that fails, another 2 s on stdout (`terminal.go:49`, `query.go:60-64`): about 4 s in all. Meanwhile Ctrl-C does not interrupt, type-ahead is read and discarded, and a late reply is left in stdin. It reports dark on any error (`query.go:86-91`). The `compat` package runs this query, and a second `Detect`, at import (`compat/color.go:13`, `16`). | Opt-in (an adjustment to the brief's "detect the background where possible"): dark by default; `term.Detect` queries once, only for theme `auto` with stdin and stdout both terminals and plain mode off. `compat` must never be imported (depguard rule in `next/p1d-lint`). |
 | Width | `lipgloss.Width` is the widest line's `ansi.StringWidth` (lipgloss `size.go:15-24`). x/ansi measures grapheme clusters with East Asian width off (`method.go:16-18`, `parser_decode.go:442`), so ambiguous-width characters count as one cell. The only switch is `RUNEWIDTH_EASTASIAN`, read once at init (`method.go:20-25`); the locale is not consulted. Control characters count as no cells (`width.go:79-119`), and `Style.Render` turns a tab into 4 spaces by default (`style.go:14`, `528-540`). | A terminal that draws ambiguous characters two cells wide draws ⛛ ⭘ ⛬ ≈ … █ ─ wider than Lip Gloss measures (§6). `term.Resolve` picks ASCII glyphs in zh, ja and ko locales; `HARDN_ASCII=1` covers other cases. `uitest.Golden` stops if x/ansi measures ─ as two cells, and fails a line that holds a tab. |
 | Underline | An underlined style renders one SGR per rune (lipgloss `style.go:310`, `318`, `428-436`) and repeats the `4` attribute (`style.go:340` and `384`, with x/ansi `style.go:103-104`). | The second `4` sets the same attribute again. The cost is verbose goldens for underlined text (`Menu.Heading` in `swatch.golden`). |
-| table, list, tree | `table.New` draws a box-drawing border on every side and wraps cells (lipgloss `table/table.go:80-93`); each border can be switched off (`table.go:166-212`). It always truncates headers to one line, whatever `Wrap` says (`table.go:436-437`, `561-564`), and with `Wrap(false)` it truncates cells too (`table.go:509-510`); both use a fixed `…` (`table.go:567`), and only when the text is wider than its column (x/ansi `truncate.go:67-69`). A height-limited table marks hidden rows with `…` (`table.go:503`). `list.New` uses the `•` bullet (`list/list.go:50-53`, `list/enumerator.go:105`). The default tree branches are `├──` and `└──` with a `│` indent (`tree/enumerator.go:23-28`, `69-74`). All of `• … ├ └ │ ─` are East Asian ambiguous width. | For the planned KeyValue, StatusRow and Menu rows: a table with every border off, or a list with an enumerator from `theme.Glyphs`. In ASCII mode the bullet, box drawing and `…` must come from `Glyphs`, so there a table must never truncate: no `Height`, no header wider than its column, and no cell wider than its column under `Wrap(false)`. A component that needs to shorten text does it itself with `Glyphs.Ellipsis` before handing the text to the table. Decided per component in `next/p1b-*`. |
+| table, list, tree | `table.New` draws a box-drawing border on every side and wraps cells (lipgloss `table/table.go:80-93`); each border can be switched off (`table.go:166-212`). It always truncates headers to one line, whatever `Wrap` says (`table.go:436-437`, `561-564`), and with `Wrap(false)` it truncates cells too (`table.go:509-510`); both use a fixed `…` (`table.go:567`), and only when the text is wider than its column (x/ansi `truncate.go:67-69`). A height-limited table marks hidden rows with `…` (`table.go:503`). Even with every border off, each cell is padded to its column's width (`table.go:512-518`) and the cells are joined with `JoinHorizontal` (`table.go:534`), so a value shorter than the last column ends in spaces. `list.New` uses the `•` bullet (`list/list.go:50-53`, `list/enumerator.go:105`). The default tree branches are `├──` and `└──` with a `│` indent (`tree/enumerator.go:23-28`, `69-74`). All of `• … ├ └ │ ─` are East Asian ambiguous width. | For the planned KeyValue, StatusRow and Menu rows: a table with every border off, or a list with an enumerator from `theme.Glyphs`. In ASCII mode the bullet, box drawing and `…` must come from `Glyphs`, so there a table must never truncate: no `Height`, no header wider than its column, and no cell wider than its column under `Wrap(false)`. A component that needs to shorten text does it itself with `Glyphs.Ellipsis` before handing the text to the table. Decided per component in `next/p1b-*`. The header group uses none of them: its label and value rows would end in the table's padding, which the output rules forbid, so `columns` places the values with spaces (§9.2). |
+| Join and place | `JoinHorizontal` pads every line of each block to the block's width with plain spaces (lipgloss `join.go:88`); `PlaceHorizontal` pads to the whole width it is given (`position.go:43-64`). | Both leave trailing spaces after the last cell, so components place their columns with spaces up to the grid column instead (§9.2). |
 
 ## 3. Render environment
 
@@ -177,24 +178,24 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 79 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 82 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
 | `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Message.Info`, `KeyValue.Key`, `Breadcrumb.Current`, `Step.Running` |
-| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Prompt.Input`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
+| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Prompt.Input`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `Section.Title`, `Breadcrumb.Item`, `Plan.Context`, `Step.Pending` |
 | `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Message.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
 | `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed` |
 | `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Mode.Live`, `Message.Warn`, `Message.Cancelled`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack` |
-| `status.unknown` | `Risk.Unknown`, `Status.Unknown` |
+| `status.unknown` | `ContextBar.Unknown`, `Host.Unknown`, `Risk.Unknown`, `Status.Unknown` |
 | `badge.fg`, `badge.bg` | `Badge` |
 | `bar.bg` (background) | `ContextBar.Fill`, `TitleBar.Fill`, `Section.Fill`; the `Header.Version` box above 16 colours only (DEV-005) |
 | `accent.ok` (background) | `Callout.OK.Bar` |
 | `accent.warn` (background) | `Callout.Warn.Bar`, `Callout.Cancelled.Bar` |
 | `divider` | `Divider`, `Section.Rule` |
 
-Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
+Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022. The slots still missing, and the unit that adds each, are listed on `theme.Theme`.
 
 ## 5. Typography
 
@@ -231,6 +232,7 @@ That is 21 typography roles: 20 bold slots and one underlined. `TestTypography` 
 | `Ellipsis` | … | U+2026, A | 1 (2) | `...` | 3 | DEV-015 |
 | `Bar` | █ | U+2588, A | 1 (2) | `#` | 1 | DEV-015 |
 | `Rule` | ─ | U+2500, A | 1 (2) | `-` | 1 | DEV-015 |
+| `BadgeOpen`, `BadgeClose` | `[` `]` | U+005B, U+005D, Na | 1 each | `[` `]` | 1 each | DEV-019: a badge with no colour to paint it |
 
 - The status markers and the risk icon fit the three-cell marker column even when drawn two cells wide (`TestStatusMarkers`), and no two states share a marker.
 - `Bar` and `Rule` are drawn in runs, so in an ambiguous-wide terminal a 64-cell rule takes 128 cells and wraps at 80 columns (accepted in DEV-015). `term.Resolve` picks ASCII in zh, ja and ko locales; elsewhere `HARDN_ASCII=1` avoids it.
@@ -244,10 +246,11 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 |---|---|---|
 | `ContentWidth` | 64 | Figma's content box; a narrower terminal uses its own width |
 | `Indent` | 2 | Left indent of rows, headings and the prompt; bars and the header start at column 0 |
-| `MarkerCol`, `MarkerWidth` | 2, 3 | The marker column: a status glyph, or a menu key such as `10)`, right-aligned |
+| `MarkerCol`, `MarkerWidth` | 2, 3 | The marker column: a state glyph, centred (a one-cell glyph at column 3, DEV-020), or a menu key such as `10)`, right-aligned |
 | `LabelCol` | 6 | Where a row's label starts |
 | `LabelWidth` | 21 | The label column, including the gap before the value |
 | `ValueCol` | 27 | Where a row's value, state or description starts, on every screen |
+| `StackCol` | 6 | Where a stacked row's value starts, under the label (DEV-021) |
 | `SectionGap` | 1 | Blank lines between sections |
 | `PromptGap` | 1 | Blank lines before the prompt (drift D11) |
 
@@ -266,7 +269,7 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 - The alignment offsets (227, 247, 302, 342 and 440 px) position columns, which drift by frame (drift D9). `LabelCol` and `ValueCol` replace them (DEV-008).
 - The header and the bars start at column 0, where the export has the header badge at x 80 and the bar at x 87 (drift D13).
 
-**Width and height rules, pending maintainer approval (refactor plan §3.15).** The brief proposes the first three; the height budget is the plan's addition, for the main menu of about 36 lines on an 80×24 console. Each is one constant, so a refusal changes only the constants and the goldens.
+**Width and height rules, pending maintainer approval (refactor plan §3.15).** The brief proposes the first three; the height budget is the plan's addition, for the main menu of about 36 lines on an 80×24 console. Each is one constant, so a refusal changes only the constants and the goldens: the component tests take their limits from the constants, and with `CapContent` or `BarsFillContent` false, or `StackBelow` 0, only `TestGolden` fails (checked with an overlay of grid.go).
 
 | Constant | Value | Rule |
 |---|---|---|
@@ -276,7 +279,9 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 | `CompactBelow` | 40 | Below this height the main menu renders in its compact form |
 | `CompactBudget` | `term.DefaultHeight` (24) | The most lines the compact main menu may use, prompt included |
 
-Not yet consumed: the components that apply them land in `next/p1b-*`.
+`CapContent`, `StackBelow` and `BarsFillContent` are applied by the components from `next/p1b-header` on; `CompactBelow` and `CompactBudget` wait for the main-menu layout (`next/p1d-slice`).
+
+`CapContent` and `StackBelow` overlap. `StackBelow` is keyed on the terminal's width, but from 64 columns up the content box is already 64 cells, as at 80. So from 64 to 69 columns the header, HostBlock and RiskSummary stack although their side-by-side lines fit, using 7 lines where 4 do. `StackBelow` = 64 would avoid that and change no golden (DEV-021).
 
 ## 8. Golden tests
 
@@ -291,6 +296,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 **Files today:**
 - `pkg/ui/theme/testdata/golden/swatch.golden`: `TestSwatch` on `Full()`. Every token's name in its colour and as a background, every glyph by role, and the 21 typography roles.
 - `pkg/ui/uitest/testdata/golden/harness.golden`: the harness's own check, one render at each profile and in plain mode, at width 20.
+- `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2).
 
 **Running and regenerating:**
 - `make check` runs every golden in its `check-test` step, and fails on a mismatch.
@@ -306,9 +312,34 @@ Golden rejects output it could not show unambiguously: invalid UTF-8, C1 control
 
 **Guards:** each cell renders twice and the two results must match; Golden stops if `RUNEWIDTH_EASTASIAN` makes x/ansi measure ─ as two cells; a line wider than the cell or holding a tab fails. On a mismatch the report names the changed, added and removed cells and shows a line diff of each, numbered by line of the golden file.
 
-## 9. Components, screens and usage rules (placeholders)
+## 9. Components, screens and usage rules
 
-- **Components:** each component with its view-model, states and narrow, ASCII and no-colour behaviour lands with `next/p1b-header`, `next/p1b-status`, `next/p1b-menu`, `next/p1b-blocks` and `next/p1b-plan`.
+### 9.1 Component conventions
+
+`pkg/ui/component` holds the components; its package doc is the full statement of these rules, which every `next/p1b-*` unit follows.
+- **Render context:** `component.NewCtx(env)` builds a `Ctx` holding the `term.Env` and the `theme.Theme` built once from it. The brief's `Render(vm, env)` is `vm.Render(ctx)`.
+- **View-models** are exported structs of plain data (no funcs, actions or I/O handles) with a pure value method `Render(c Ctx) string`.
+- **Output:** no line wider than the content width, `min(Env.Width, ContentWidth)`, which a bar fills; if `BarsFillContent` is refused, a bar fills the terminal's width instead. No trailing newline; no trailing space outside a painted background. The caller joins blocks with `SectionGap` blank lines.
+- **Grid:** rows at `Indent`, the header and bars at column 0; a state glyph centred in the marker column (DEV-020); labels at `LabelCol`, values at `ValueCol`. Below `StackBelow` two-column layouts stack, values at `StackCol` (DEV-021).
+- **Text:** view-model strings are shown as one line of plain text (escape sequences removed, control characters dropped or turned into spaces, trimmed), measured with `lipgloss.Width`, and cut with `Glyphs.Ellipsis`, never wrapped.
+- **Degrading:** without colour (`Env.HasColor` false) a bar is a run of `Glyphs.Bar` and a badge is bracketed (DEV-018, DEV-019). A value hardn could not read shows "Unknown" in `status.unknown` (DEV-022).
+- **Goldens:** each state on `uitest.Full()`, in `pkg/ui/component/testdata/golden/<component>/<state>.golden`.
+
+### 9.2 Header group (`next/p1b-header`)
+
+| Component | View-model | States (goldens) | Narrow, ASCII, no colour | Lip Gloss helpers |
+|---|---|---|---|---|
+| `Header` | `Version`, `URL` | `normal`, `no-version`, `no-url` | URL at `ValueCol` (C14, DEV-017); under the wordmark below 70 columns or when it does not fit. The version box only above 16 colours (DEV-005) | none: columns placed with spaces, as `JoinHorizontal` and `PlaceHorizontal` pad with trailing spaces (§2.3) |
+| `ContextBar` | `Name`, `Version`, `Codename` | `normal`, `unknown`, `no-codename`, `long` | Fills the content width; text cut with the ellipsis; `Glyphs.Bar` without colour (C13, DEV-018). Empty name: "Unknown" | none |
+| `TitleBar` | `Title` | `normal`, `long`, `empty` | As `ContextBar`; an empty title is all fill. P-08 decides whether sub-screens use it | none |
+| `HostBlock` | `Hostname`, `Address`, `Uptime`, `RebootPending` | `normal`, `unknown-address`, `unknown-uptime`, `no-hostname`, `long-hostname`, `reboot-pending`, `all-unknown` | Stacks below 70 columns or for a badge reaching `ValueCol`; brackets without colour (DEV-019); the badge cut inside them. Pending-reboot line under the uptime, only when set: P-04 puts the flag next to the uptime, which does not fit 64 cells, so P-21 asks the maintainer to choose | `table` evaluated: a borderless table pads each cell to its column's width (§2.3), so the shorter values would end in spaces; `columns` places them |
+| `RiskSummary` | `Band` (zero: `RiskUnknown`), `Level`, `Gloss`, `Factors` | `moderate`, `low`, `high`, `unknown`, `factors`, `factors-no-gloss`, `long-factor` | Stacks below 70 columns; ASCII `[*]` and `~`; factors one line each, 35 cells beside the label, cut with the ellipsis (P-06, P-14, DEV-022) | `list` evaluated: its default bullet is `•` and each line would still need the indent and the cut, so one line per factor is placed by hand. `table` as for `HostBlock` |
+
+Not applicable and error are not separate states here: a value hardn could not read, including a failed read, is the unknown state. The panel outline around the host block, risk line and status rows is not drawn (C9, DEV-023).
+
+### 9.3 Still to come (placeholders)
+
+- **Components:** the rest land with `next/p1b-status`, `next/p1b-menu`, `next/p1b-blocks` and `next/p1b-plan`.
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
 

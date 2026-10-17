@@ -31,10 +31,12 @@ type Glyphs struct {
 	Ellipsis      string // marks truncated text
 	Bar           string // fills a bar when there is no colour to paint it
 	Rule          string // draws a divider or a section header's rule
+	BadgeOpen     string // opens a badge when there is no colour to paint it
+	BadgeClose    string // closes a badge when there is no colour to paint it
 }
 
 // unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015 for the glyphs
-// Figma does not draw).
+// Figma does not draw, DEV-019 for the badge brackets).
 var unicodeGlyphs = Glyphs{
 	Configured:    "⛛",
 	NotConfigured: "⭘",
@@ -49,9 +51,11 @@ var unicodeGlyphs = Glyphs{
 	Ellipsis:      "…",
 	Bar:           "█",
 	Rule:          "─",
+	BadgeOpen:     "[",
+	BadgeClose:    "]",
 }
 
-// asciiGlyphs is the ASCII set (DEV-012).
+// asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets).
 var asciiGlyphs = Glyphs{
 	Configured:    "[+]",
 	NotConfigured: "[ ]",
@@ -66,4 +70,6 @@ var asciiGlyphs = Glyphs{
 	Ellipsis:      "...",
 	Bar:           "#",
 	Rule:          "-",
+	BadgeOpen:     "[",
+	BadgeClose:    "]",
 }

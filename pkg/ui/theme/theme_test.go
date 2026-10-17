@@ -153,8 +153,11 @@ func TestColourRoles(t *testing.T) {
 		{"Header.Wordmark", false, "text.primary"},
 		{"Header.URL", false, "text.faint"},
 		{"ContextBar.Fill", true, "bar.bg"},
+		{"ContextBar.Unknown", false, "status.unknown"},
+		{"Host.Unknown", false, "status.unknown"},
 		{"Risk.Moderate", false, "status.warn"},
 		{"Risk.Gloss", false, "text.faint"},
+		{"Risk.Factor", false, "text.muted"},
 		{"Status.Label", false, "text.primary"},
 		{"Status.Detail", false, "text.faint"},
 		{"Status.Configured", false, "status.ok"},
@@ -263,7 +266,8 @@ func TestGlyphsFollowEnv(t *testing.T) {
 }
 
 // TestGrid pins the grid to the Figma export (DEV-008): label column 6,
-// value column 27, content width 64.
+// value column 27, content width 64; a stacked value under the label
+// (DEV-021).
 func TestGrid(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -272,6 +276,7 @@ func TestGrid(t *testing.T) {
 		{"MarkerCol", MarkerCol, 2},
 		{"LabelCol", LabelCol, 6},
 		{"ValueCol", ValueCol, 27},
+		{"StackCol", StackCol, 6},
 		{"ContentWidth", ContentWidth, 64},
 	}
 	for _, tt := range tests {

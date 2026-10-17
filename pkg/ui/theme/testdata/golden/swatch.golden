@@ -32,6 +32,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -86,6 +88,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -140,6 +144,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -194,6 +200,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -248,6 +256,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -302,6 +312,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;223;223;223;48;2;12;42;192mBadge␛[m$
@@ -356,6 +368,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -410,6 +424,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -464,6 +480,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -518,6 +536,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -572,6 +592,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -626,6 +648,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;2;255;255;255;48;2;12;42;192mBadge␛[m$
@@ -680,6 +704,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -734,6 +760,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -788,6 +816,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -842,6 +872,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -896,6 +928,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -950,6 +984,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;254;48;5;19mBadge␛[m$
@@ -1004,6 +1040,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1058,6 +1096,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1112,6 +1152,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1166,6 +1208,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1220,6 +1264,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1274,6 +1320,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;38;5;231;48;5;19mBadge␛[m$
@@ -1328,6 +1376,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1382,6 +1432,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1436,6 +1488,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1490,6 +1544,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1544,6 +1600,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1598,6 +1656,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1652,6 +1712,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1706,6 +1768,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1760,6 +1824,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1814,6 +1880,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1868,6 +1936,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1922,6 +1992,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1;97;44mBadge␛[m$
@@ -1976,6 +2048,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2030,6 +2104,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2084,6 +2160,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2138,6 +2216,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2192,6 +2272,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2246,6 +2328,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2300,6 +2384,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2354,6 +2440,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2408,6 +2496,8 @@ Glyphs$
   Ellipsis        …$
   Bar             █$
   Rule            ─$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2462,6 +2552,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2516,6 +2608,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$
@@ -2570,6 +2664,8 @@ Glyphs$
   Ellipsis        ...$
   Bar             #$
   Rule            -$
+  BadgeOpen       [$
+  BadgeClose      ]$
 $
 Typography: the slots that set bold or underline$
   ␛[1mBadge␛[m$

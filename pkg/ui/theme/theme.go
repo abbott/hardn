@@ -36,7 +36,6 @@ import (
 // state, grouped by component. Build it with New.
 //
 // Not here yet, because their components come later, by unit:
-//   - next/p1b-header: the RiskSummary factors.
 //   - next/p1b-menu: the marker of a risky menu item (the Menu VM's risk
 //     field; proposal P-02 is related).
 //   - next/p1b-blocks: Callout.Bad and Callout.Info, which need accent.bad
@@ -91,6 +90,7 @@ type ContextBarStyles struct {
 	Name     lipgloss.Style // "Debian", bold
 	Version  lipgloss.Style // "12"
 	Codename lipgloss.Style // "(Bookworm)"
+	Unknown  lipgloss.Style // "Unknown", for a distribution hardn could not read
 }
 
 // TitleBarStyles style a sub-screen's title bar, such as "User Management".
@@ -104,6 +104,7 @@ type HostStyles struct {
 	Address lipgloss.Style // the IP address
 	Uptime  lipgloss.Style
 	Reboot  lipgloss.Style // the pending-reboot finding (proposal P-04)
+	Unknown lipgloss.Style // "Unknown", for a value hardn could not read
 }
 
 // RiskStyles style the risk summary. The bands are named by tone, so the
@@ -116,6 +117,7 @@ type RiskStyles struct {
 	High     lipgloss.Style
 	Unknown  lipgloss.Style
 	Gloss    lipgloss.Style // "≈ medium security"
+	Factor   lipgloss.Style // a contributing factor, bullet and text (P-06)
 }
 
 // StatusStyles style a StatusRow: marker, label, state word and detail. A
@@ -275,14 +277,14 @@ func New(env term.Env) *Theme {
 		Text:   TextStyles{Primary: primary, Muted: muted, Faint: faint},
 		Header: HeaderStyles{Wordmark: primary.Bold(true), Version: version, URL: faint},
 		ContextBar: ContextBarStyles{
-			Fill: fill, Name: muted.Bold(true), Version: muted, Codename: faint,
+			Fill: fill, Name: muted.Bold(true), Version: muted, Codename: faint, Unknown: unknown,
 		},
 		TitleBar: TitleBarStyles{Fill: fill, Title: primary.Bold(true)},
-		Host:     HostStyles{Address: muted, Uptime: faint, Reboot: warn},
+		Host:     HostStyles{Address: muted, Uptime: faint, Reboot: warn, Unknown: unknown},
 		Risk: RiskStyles{
 			Label: primary.Bold(true),
 			Low:   ok, Moderate: warn, High: bad, Unknown: unknown,
-			Gloss: faint,
+			Gloss: faint, Factor: muted,
 		},
 		Status: StatusStyles{
 			Label: primary, Detail: faint,
