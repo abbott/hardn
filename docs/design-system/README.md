@@ -785,7 +785,7 @@ go run ./internal/tools/uigallery play workflow-step/ssh-login-toggle-confirmati
 | `-profile` | `truecolor`, `256`, `16`, `none` (ASCII profile: no colour, bold and underline kept) or `plain` (NoTTY: no escape sequences, ASCII glyphs); default truecolor |
 | `-ascii` | the ASCII glyph set |
 | `-width N` | the terminal width; default 80 |
-| `-height N` | the terminal height; default 24. It decides the main menu's form: compact on a terminal under 40 rows (§9.12) |
+| `-height N` | the terminal height; default 24. It decides the main menu's form: compact on a terminal under 40 rows, or too short for the full form (§9.12), so comparing the main menu with 00-TUI-MAIN.png needs `-height 40`, at 64 columns or more (at 60 the full form takes 57 lines). The flag's help says so |
 | `-screens` | the screen mocks (`screen.Mocks()`, §9.12) in place of the component states: no argument or `all` is every mock, `sub-menu` every sub-menu, a workflow's name all its sequences, `<workflow>/<sequence>` one sequence's steps and `<workflow>/<sequence>/<step>` one step |
 | `-matrix` | each state in every cell of `uitest.Full()`, then plain mode at 60, 80 and 120: 51 environments, each named as golden files name their cells. It replaces the five flags above, and refuses them; not with `-screens`, whose goldens are on the core set |
 | `-override FILE` | a colour override file, below |

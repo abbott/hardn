@@ -68,7 +68,11 @@
 //	-ascii            the ASCII glyph set
 //	-width N          the terminal width in cells (default 80)
 //	-height N         the terminal height in lines (default 24), which
-//	                  decides the main menu's form
+//	                  decides the main menu's form: it takes its compact
+//	                  form under 40 rows, or when its full form does not
+//	                  fit, so comparing it with 00-TUI-MAIN.png needs
+//	                  -height 40 (from 64 columns; at 60 the full form
+//	                  takes 57 lines)
 //	-screens          the screen mocks, in place of the component states
 //	-matrix           render each state in every cell of the golden matrix,
 //	                  uitest.Full's 48, then plain mode at 60, 80 and 120,
@@ -302,7 +306,7 @@ func lookFlags(fs *flag.FlagSet) look {
 		profile:  fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain"),
 		ascii:    fs.Bool("ascii", false, "use the ASCII glyph set"),
 		width:    fs.Int("width", term.DefaultWidth, "the terminal width in cells"),
-		height:   fs.Int("height", term.DefaultHeight, "the terminal height in lines"),
+		height:   fs.Int("height", term.DefaultHeight, fmt.Sprintf("the terminal height in lines; the main menu takes its compact form under %d rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height %d", theme.CompactBelow, theme.CompactBelow)),
 		override: fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)"),
 	}
 }
