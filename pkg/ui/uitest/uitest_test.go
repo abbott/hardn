@@ -1,0 +1,330 @@
+package uitest
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+	"testing"
+
+	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
+
+	"github.com/abbott/hardn/pkg/ui/term"
+)
+
+func TestFull(t *testing.T) {
+	cells := Full()
+	if len(cells) != 48 {
+		t.Fatalf("Full has %d cells, want 48", len(cells))
+	}
+	if err := checkCells(cells); err != nil {
+		t.Fatal(err)
+	}
+	profiles := map[string]colorprofile.Profile{}
+	for _, c := range colours {
+		profiles[c.name] = c.profile
+	}
+	for _, c := range cells {
+		var col, bg, glyphs string
+		var width int
+		if _, err := fmt.Sscanf(strings.ReplaceAll(c.Name, "-", " "), "%s %s %s %d", &col, &bg, &glyphs, &width); err != nil {
+			t.Fatalf("%s: %v", c.Name, err)
+		}
+		want := term.Fixed(width, profiles[col], glyphs == "unicode", bg == "dark")
+		if c.Env != want {
+			t.Errorf("%s: Env is %+v, want %+v", c.Name, c.Env, want)
+		}
+		if c.Env.Plain || c.Env.Profile < colorprofile.ASCII {
+			t.Errorf("%s: a Full cell is plain; plain mode belongs to Core", c.Name)
+		}
+	}
+}
+
+func TestCore(t *testing.T) {
+	want := map[string]term.Env{
+		"truecolor-dark-unicode-80": term.Fixed(80, colorprofile.TrueColor, true, true),
+		"plain-80":                  term.Fixed(80, colorprofile.NoTTY, false, true),
+		"truecolor-dark-unicode-60": term.Fixed(60, colorprofile.TrueColor, true, true),
+	}
+	cells := Core()
+	if len(cells) != len(want) {
+		t.Fatalf("Core has %d cells, want %d", len(cells), len(want))
+	}
+	for _, c := range cells {
+		if c.Env != want[c.Name] {
+			t.Errorf("%s: Env is %+v, want %+v", c.Name, c.Env, want[c.Name])
+		}
+	}
+	plain := cells[1].Env
+	if !plain.Plain || plain.Unicode || plain.HasColor() {
+		t.Errorf("plain-80 is %+v, want plain, ASCII glyphs and no colour", plain)
+	}
+}
+
+func TestCheckCells(t *testing.T) {
+	env := term.Fixed(80, colorprofile.TrueColor, true, true)
+	tests := []struct {
+		name  string
+		cells []Cell
+		ok    bool
+	}{
+		{"valid", []Cell{{"a-1.b", env}, {"c", env}}, true},
+		{"none", nil, false},
+		{"empty name", []Cell{{"", env}}, false},
+		{"upper case", []Cell{{"Dark", env}}, false},
+		{"colon", []Cell{{"a:b", env}}, false},
+		{"duplicate", []Cell{{"a", env}, {"a", env}}, false},
+	}
+	for _, tt := range tests {
+		if err := checkCells(tt.cells); (err == nil) != tt.ok {
+			t.Errorf("%s: checkCells error %v, want ok=%t", tt.name, err, tt.ok)
+		}
+	}
+}
+
+// TestWritten checks that output reaches the golden file through
+// Env.Writer at the cell's profile: one full-colour render, five results.
+func TestWritten(t *testing.T) {
+	in := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF8700")).Bold(true).Render("x")
+	tests := []struct {
+		profile colorprofile.Profile
+		want    string
+	}{
+		{colorprofile.TrueColor, "\x1b[1;38;2;255;135;0mx\x1b[m"},
+		{colorprofile.ANSI256, "\x1b[1;38;5;208mx\x1b[m"},
+		{colorprofile.ANSI, "\x1b[1;91mx\x1b[m"}, // 208 → 9 (x/ansi v0.11.8 color.go:736)
+		{colorprofile.ASCII, "\x1b[1mx\x1b[m"},
+		{colorprofile.NoTTY, "x"},
+	}
+	for _, tt := range tests {
+		got, err := written(term.Fixed(80, tt.profile, true, true), in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != tt.want {
+			t.Errorf("%v: got %q, want %q", tt.profile, got, tt.want)
+		}
+	}
+}
+
+func TestNotate(t *testing.T) {
+	tests := []struct {
+		in   string
+		want []string
+	}{
+		{"", []string{"$"}},
+		{"a ", []string{"a $"}},
+		{"a\n", []string{"a$", "$"}},
+		{"\x1b[1mb\x1b[m\tc\r\x7f", []string{"␛[1mb␛[m␉c␍␡$"}},
+		{"$\n=== x", []string{"$$", "=== x$"}},
+	}
+	for _, tt := range tests {
+		if got := notate(tt.in); !slices.Equal(got, tt.want) {
+			t.Errorf("notate(%q) = %q, want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+func TestRepresentable(t *testing.T) {
+	tests := []struct {
+		in string
+		ok bool
+	}{
+		{"\x1b[1m⛛ [+] …\x1b[m\n", true},
+		{"a ␛ b", false},      // a Control Picture the notation uses
+		{"a \u009b b", false}, // a C1 control
+		{"a \xff b", false},   // invalid UTF-8
+	}
+	for _, tt := range tests {
+		if err := representable(tt.in); (err == nil) != tt.ok {
+			t.Errorf("representable(%q) error %v, want ok=%t", tt.in, err, tt.ok)
+		}
+	}
+}
+
+func TestOverflows(t *testing.T) {
+	tests := []struct {
+		name  string
+		out   string
+		width int
+		want  []string
+	}{
+		{"fits exactly", "abcd\nab", 4, nil},
+		{"escapes take no cells", "\x1b[1;38;2;255;135;0mabcd\x1b[m", 4, nil},
+		{"one line over", "ab\nabcde\nabc", 4, []string{"line 2 is 5 cells wide, over the width of 4: abcde"}},
+		{"wide characters take two cells", "日本語", 5, []string{"line 1 is 6 cells wide, over the width of 5: 日本語"}},
+		{"shown in golden notation", "\x1b[1mabcde\x1b[m", 4, []string{"line 1 is 5 cells wide, over the width of 4: ␛[1mabcde␛[m"}},
+		{"a tab cannot be measured", "ab\n\x1b[1mabc\tdef\x1b[m", 80, []string{"line 2 holds a tab, which lipgloss.Width counts as no cells; render spaces instead: ␛[1mabc␉def␛[m"}},
+		{"a carriage return measures wider than it shows", "abcdef\rxy", 7, []string{"line 1 is 8 cells wide, over the width of 7: abcdef␍xy"}},
+	}
+	for _, tt := range tests {
+		if got := overflows(tt.out, tt.width); !slices.Equal(got, tt.want) {
+			t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+// TestHeader shows that a section header describes the whole Env: each
+// case changes one field of a Full or plain cell, and no two headers match.
+func TestHeader(t *testing.T) {
+	full := term.Fixed(80, colorprofile.TrueColor, true, true)
+	plain := term.Fixed(80, colorprofile.NoTTY, false, true)
+	with := func(e term.Env, set func(*term.Env)) term.Env {
+		set(&e)
+		return e
+	}
+	tests := []struct {
+		env  term.Env
+		want string // after "=== x: width 80, "
+	}{
+		{full, "height 24, profile truecolor, dark, glyphs unicode"},
+		{plain, "height 24, profile notty, dark, glyphs ascii, plain"},
+		{term.Fixed(80, colorprofile.ANSI256, true, true), "height 24, profile 256, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.ANSI, true, true), "height 24, profile 16, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.ASCII, true, true), "height 24, profile none, dark, glyphs unicode"},
+		{term.Fixed(80, colorprofile.TrueColor, false, false), "height 24, profile truecolor, light, glyphs ascii"},
+		{with(full, func(e *term.Env) { e.Height = 40 }), "height 40, profile truecolor, dark, glyphs unicode"},
+		{with(full, func(e *term.Env) { e.TTY = false }), "height 24, profile truecolor, dark, glyphs unicode, output is not a tty"},
+		{with(full, func(e *term.Env) { e.InputTTY = false }), "height 24, profile truecolor, dark, glyphs unicode, input is not a tty"},
+		{with(full, func(e *term.Env) { e.Animate = true }), "height 24, profile truecolor, dark, glyphs unicode, animated"},
+		{with(full, func(e *term.Env) { e.Theme = term.ThemeAuto }), "height 24, profile truecolor, dark, glyphs unicode, theme auto"},
+		{with(full, func(e *term.Env) { e.Plain = true }), "height 24, profile truecolor, dark, glyphs unicode, plain"},
+		{with(plain, func(e *term.Env) { e.Plain = false }), "height 24, profile notty, dark, glyphs ascii, not plain"},
+		{with(plain, func(e *term.Env) { e.TTY = true }), "height 24, profile notty, dark, glyphs ascii, plain, output is a tty"},
+		{with(plain, func(e *term.Env) { e.Unicode = true }), "height 24, profile notty, dark, glyphs unicode, plain"},
+		{with(full, func(e *term.Env) { e.Profile = colorprofile.Unknown }), "height 24, profile unknown (0), dark, glyphs unicode, not plain, output is a tty, input is a tty"},
+	}
+	seen := map[string]bool{}
+	for _, tt := range tests {
+		got := header(Cell{"x", tt.env})
+		if want := "=== x: width 80, " + tt.want; got != want {
+			t.Errorf("%+v:\n got %q\nwant %q", tt.env, got, want)
+		}
+		if seen[got] {
+			t.Errorf("%+v: header %q is shared with another Env", tt.env, got)
+		}
+		seen[got] = true
+	}
+}
+
+// goldenFile builds a golden file of cells a, b and c, with outputs from
+// out.
+func goldenFile(out map[string]string, names ...string) string {
+	var sections []section
+	for _, n := range names {
+		c := newCell(colours[0], true, true, 80)
+		c.Name = n
+		sections = append(sections, section{name: n, header: header(c), lines: notate(out[n])})
+	}
+	return format("TestX", sections)
+}
+
+// TestCompare shows that a mismatch is reported by cell, with a diff of
+// the changed lines numbered as in the files.
+func TestCompare(t *testing.T) {
+	base := map[string]string{
+		"a": "one\ntwo\nthree",
+		"b": "\x1b[1mbold\x1b[m\nsame\nsame\nsame\nsame\nsame\nend",
+		"c": "x",
+	}
+	changed := map[string]string{"a": base["a"], "b": "\x1b[4mbold\x1b[m\nsame\nsame\nsame\nsame\nsame\nfinish", "c": base["c"]}
+	golden := goldenFile(base, "a", "b", "c")
+
+	if got := compare(golden, goldenFile(base, "a", "b", "c")); got != "" {
+		t.Errorf("equal files: got report %q", got)
+	}
+
+	want := `1 of 3 cells differ: b
+
+cell b (- golden, + render):
+@@ golden line 11, render line 11 @@
+- ␛[1mbold␛[m$
++ ␛[4mbold␛[m$
+  same$
+  same$
+@@ golden line 15, render line 15 @@
+  same$
+  same$
+- end$
++ finish$
+`
+	if got := compare(golden, goldenFile(changed, "a", "b", "c")); got != want {
+		t.Errorf("one cell changed: got\n%s\nwant\n%s", got, want)
+	}
+	if lines := strings.Split(golden, "\n"); lines[11-1] != "␛[1mbold␛[m$" || lines[15-1] != "same$" {
+		t.Errorf("golden lines 11 and 15 are %q and %q, not the first lines of the hunks", lines[11-1], lines[15-1])
+	}
+
+	// a grows by one line, which moves b down one line in the render's file.
+	grown := map[string]string{"a": base["a"] + "\nfour", "b": strings.Replace(base["b"], "end", "finish", 1), "c": base["c"]}
+	want = `2 of 3 cells differ: a, b
+
+cell a (- golden, + render):
+@@ golden line 7, render line 7 @@
+  two$
+  three$
++ four$
+
+cell b (- golden, + render):
+@@ golden line 15, render line 16 @@
+  same$
+  same$
+- end$
++ finish$
+`
+	if got := compare(golden, goldenFile(grown, "a", "b", "c")); got != want {
+		t.Errorf("two cells changed: got\n%s\nwant\n%s", got, want)
+	}
+
+	got := compare(golden, goldenFile(base, "a", "c", "d"))
+	for _, line := range []string{
+		"0 of 3 cells differ\n",
+		"cells not in the golden file: d\n",
+		"cells in the golden file but not rendered: b\n",
+	} {
+		if !strings.Contains(got, line) {
+			t.Errorf("cell added and removed: report lacks %q:\n%s", line, got)
+		}
+	}
+
+	if got := compare(golden, goldenFile(base, "c", "b", "a")); !strings.Contains(got, "order") {
+		t.Errorf("cells reordered: got %q", got)
+	}
+}
+
+func TestLineDiff(t *testing.T) {
+	tests := []struct {
+		name           string
+		a, b           []string
+		aFirst, bFirst int
+		want           string
+	}{
+		{"equal", []string{"x", "y"}, []string{"x", "y"}, 1, 1, ""},
+		{"added at end", []string{"x"}, []string{"x", "y"}, 1, 1, "@@ golden line 1, render line 1 @@\n  x\n+ y\n"},
+		{"removed at start", []string{"x", "y"}, []string{"y"}, 1, 1, "@@ golden line 1, render line 1 @@\n- x\n  y\n"},
+		{"from nothing", nil, []string{"x"}, 1, 1, "@@ golden line 1, render line 1 @@\n+ x\n"},
+		{"numbered from aFirst and bFirst", []string{"x", "y"}, []string{"x", "z"}, 10, 20, "@@ golden line 10, render line 20 @@\n  x\n- y\n+ z\n"},
+	}
+	for _, tt := range tests {
+		if got := lineDiff(tt.a, tt.b, tt.aFirst, tt.bFirst); got != tt.want {
+			t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+// TestGolden runs the harness end to end on its own golden file: one
+// full-colour render, written at one cell per colour profile and in plain
+// mode, so the file shows each profile's escape sequences and the
+// notation.
+func TestGolden(t *testing.T) {
+	var cells []Cell
+	for _, c := range colours {
+		cells = append(cells, newCell(c, true, true, 20))
+	}
+	cells = append(cells, plainCell(20))
+	Golden(t, "harness", cells, func(env term.Env) string {
+		accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF8700")).Bold(true)
+		heading := lipgloss.NewStyle().Underline(true)
+		return accent.Render("hardn") + " v0.4.0\n" + heading.Render("Select") + "  \n"
+	})
+}

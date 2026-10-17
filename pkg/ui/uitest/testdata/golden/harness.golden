@@ -1,0 +1,28 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-20: width 20, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;255;135;0mhardn␛[m v0.4.0$
+␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m  $
+$
+
+=== 256-dark-unicode-20: width 20, height 24, profile 256, dark, glyphs unicode
+␛[1;38;5;208mhardn␛[m v0.4.0$
+␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m  $
+$
+
+=== 16-dark-unicode-20: width 20, height 24, profile 16, dark, glyphs unicode
+␛[1;91mhardn␛[m v0.4.0$
+␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m  $
+$
+
+=== none-dark-unicode-20: width 20, height 24, profile none, dark, glyphs unicode
+␛[1mhardn␛[m v0.4.0$
+␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m  $
+$
+
+=== plain-20: width 20, height 24, profile notty, dark, glyphs ascii, plain
+hardn v0.4.0$
+Select  $
+$
