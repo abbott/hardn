@@ -33,24 +33,24 @@
 // 32 in ASCII), which the flow cancels, is printed whole under its name,
 // after a note saying so, and the other mocks still show.
 //
-// "play" is the playable mode, which runs the real screens and prompts
-// on a simulated system: the user types the answers, and sees what hardn
-// does with them. It starts at the screen it names (a mock's name, or a
-// prefix only one mock's name has; the main menu when none is named), or
-// at a workflow's sequence, "<workflow>/<sequence>". A menu's items lead
-// where origin/main's do, to the other mocks: User Management, Manage
-// User and george's menu to the sudo change, SSH Login to the root-login
-// toggle and its typed confirmation; an item with no mock says so. 0 or b
-// goes back and q quits at every prompt, as the navigation grammar has
-// it; going back from the first screen, or quitting, exits with status
-// 0, and the end of the input or Ctrl-C at a prompt with 130. Each
-// workflow runs its flow (pkg/ui/flow) on its sequence's fixture plan,
-// and applies it to the simulated system, which only records what each
-// step would do: the record is shown when play ends. A sequence plays for
-// its screen and fixture, the answers being the user's, so one that ends
-// cancelled, as create-user's does, cannot be named: declining the
-// confirmation plays it. Its own flags, with
-// -theme, -profile, -ascii, -width, -height and -override:
+// "play" is the playable mode, which runs the real screens and prompts on
+// a simulated system: the user types the answers, and sees what hardn does
+// with them. It starts at the screen it names (a mock's name, or a layout
+// that has no other mock, which only main-menu is; the main menu when none
+// is named), or at a workflow's sequence, "<workflow>/<sequence>". A
+// menu's items lead where origin/main's do, to the other mocks: User
+// Management, Manage User and george's menu to the sudo change, SSH Login
+// to the root-login toggle and its typed confirmation; an item with no
+// mock says so. 0 or b goes back and q quits at every prompt, as the
+// navigation grammar has it; going back from the first screen, or
+// quitting, exits with status 0, and the end of the input or Ctrl-C at a
+// prompt with 130. Each workflow runs its flow (pkg/ui/flow) on its
+// sequence's fixture plan, and applies it to the simulated system, which
+// only records what each step would do: the record is shown when play
+// ends. A sequence plays for its screen and fixture, the answers being the
+// user's, so one that ends cancelled, as create-user's does, cannot be
+// named: declining the confirmation plays it. Its own flags, with -theme,
+// -profile, -ascii, -width, -height and -override:
 //
 //	-sequence name    the sequence each workflow plays where it has one,
 //	                  such as dry-run, failure or typed (default normal)
@@ -89,10 +89,12 @@
 // query for its output (it builds each environment with term.Fixed, never
 // term.Detect), no root, nothing under /etc. The playable mode reads
 // stdin through prompt.Stdin, the line reader every hardn prompt uses,
-// which asks whether stdin is a terminal and, on one, discards typeahead
-// before each prompt and takes Ctrl-C while it waits; nothing the
-// playable mode runs writes a file or starts a process
-// (TestPlayTouchesNothing). The package initialisation of Lip Gloss and
+// which asks whether stdin is a terminal by reading its attributes
+// (TCGETS or TIOCGETA), on one discards typeahead before each prompt
+// (TCFLSH or TIOCFLUSH), and while it waits for a line takes Ctrl-C,
+// giving SIGINT back its own handling before it returns; it never changes
+// the terminal's mode. Nothing the playable mode runs writes a file or
+// starts a process (TestPlayTouchesNothing). The package initialisation of Lip Gloss and
 // x/ansi still runs, as in every binary that links Lip Gloss (today the
 // pkg/ui test binaries and this gallery; cmd/hardn links none): an ioctl
 // on stdout and, on a terminal, a read-only terminfo lookup and "tmux

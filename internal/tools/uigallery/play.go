@@ -118,9 +118,10 @@ func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) 
 
 // startAt returns the mock where play starts, which args name, and the
 // sequence they name, if any: no argument is the main menu; one is a
-// mock's name, a prefix that only one mock's name has (such as
-// "main-menu"), or a workflow's sequence, "<workflow>/<sequence>", as
-// -screens -list names them, unless the sequence declines.
+// mock's name, a layout that has no other mock, taken whole as -screens
+// takes it (only "main-menu" is one), or a workflow's sequence,
+// "<workflow>/<sequence>", as -screens -list names them, unless the
+// sequence declines.
 func startAt(mocks []screen.Mock, args []string) (screen.Mock, string, error) {
 	if len(args) == 0 {
 		args = []string{"main-menu"}
@@ -307,14 +308,24 @@ func (s *session) missing(label string) func() error {
 	}
 }
 
-// simulator is the playable mode's simulated system, and the seam that
-// next/p3-gallery-engine replaces with the real plan/apply engine against
-// the recording fake System (refactor plan, Phase 3). Until then a
-// workflow plans on its sequence's fixture (flow.Fixture), and applying a
-// plan only reports each step to the flow and records what the step would
-// do: nothing is run, written or read, and no root is needed. With failAt
-// set, step failAt of each plan applied fails, and the fixture rolls back
-// the steps before it.
+// simulator is the playable mode's simulated system: the apply-and-record
+// half of the seam that next/p3-gallery-engine fills with the real
+// plan/apply engine against the recording fake System (refactor plan,
+// Phase 3). Until then a workflow plans on its sequence's fixture
+// (flow.Fixture), and applying a plan only reports each step to the flow
+// and records what the step would do: nothing is run, written or read,
+// and no root is needed. With failAt set, step failAt of each plan applied
+// fails, and the fixture rolls back the steps before it.
+//
+// The other half is what the plan is made from. The simulator gets only
+// the Engine that screen.Sequence.Build has bound into the flow, while the
+// real engine needs the action's answers (flow.Engine: "an adapter holding
+// the action's answers"), and for the create-user form those are
+// variables that pkg/ui/screen binds to the form's fields inside Build.
+// So next/p3-gallery-engine must also change how a sequence is built, an
+// exported API of pkg/ui/screen, such as Build taking a constructor of the
+// engine over the action's answers in place of the fixture it closes
+// over; replacing the simulator alone cannot reach the answers.
 type simulator struct {
 	failAt int
 	mu     sync.Mutex
