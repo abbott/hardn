@@ -48,6 +48,8 @@ type AnsweredField struct {
 	// brackets before the colon. Empty shows none, as for a text field.
 	Accepts keys.Set
 	// Answer is what was typed, or the value applied; empty shows none.
+	// With the ASCII glyph set its typography is mapped, as the
+	// question's is (Ctx.text, DEV-036).
 	Answer string
 }
 

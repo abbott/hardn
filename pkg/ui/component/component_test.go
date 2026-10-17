@@ -485,7 +485,8 @@ func TestLayout(t *testing.T) {
 // are shown as ASCII in both sets (C12). What must be typed or opened as
 // shown, the hint generated from a prompt's inputs and an ErrorReport's
 // log path, and code, a plan's diff, target and commands (DEV-038), keep
-// their characters in both.
+// their characters in both. An answer says what was typed or taken, not
+// what must be typed, so it is mapped.
 func TestASCIIText(t *testing.T) {
 	const (
 		typo   = "≥1 ≤2 ≠3 …4 –5 —6 ×7 →8 •9"
@@ -512,6 +513,7 @@ func TestASCIIText(t *testing.T) {
 		{"message", Message{Kind: MessageInfo, Text: typo}},
 		{"callout", Callout{Kind: MessageWarn, Title: typo, Body: []string{typo}}},
 		{"answered field", AnsweredField{Number: 1, Label: typo, Answer: typo}},
+		{"an answer says what was typed", AnsweredField{Number: 1, Label: "Comment", Answer: typo}},
 		{"field head", FieldHead{Number: 1, Title: typo, Description: typo}},
 		{"plan title", PlanView{Changes: []PlanChange{{Title: typo}}}},
 		{"steps", StepProgress{Steps: []Step{{Title: typo, State: StepFailed, Detail: "–"}}}},

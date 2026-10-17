@@ -316,7 +316,8 @@ var asciiText = strings.NewReplacer(
 // exists to avoid. What must be typed or opened as shown keeps its
 // characters, through clean alone: a menu's keys, a prompt's hint, which
 // lists the inputs it accepts, and a report's log path; code keeps them
-// too (raw).
+// too (raw). An answer AnsweredField echoes is mapped: it says what was
+// typed or taken, not what must be typed.
 func (c Ctx) text(s string) string {
 	if s = clean(s); !c.Env.Unicode {
 		s = asciiText.Replace(s)
