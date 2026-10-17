@@ -11,17 +11,23 @@ import (
 )
 
 // exited is what the stubbed exit panics with, in place of ending the
-// test binary: the exit status hardn would have ended with.
+// test binary: the exit status hardn would have ended with, or sigint.
 type exited int
 
-// useReader makes the config prompts read from r and stubs exit, until
-// the test ends.
+// sigint is what the stubbed reraise panics with: hardn ended by SIGINT
+// after Ctrl-C (prompt.Reraise), which a parent sees as a signal, not an
+// exit status.
+const sigint exited = -2
+
+// useReader makes the config prompts read from r and stubs exit and
+// reraise, until the test ends.
 func useReader(t *testing.T, r *prompt.Reader) {
 	t.Helper()
-	prevInput, prevExit := input, exit
+	prevInput, prevExit, prevReraise := input, exit, reraise
 	input = func() *prompt.Reader { return r }
 	exit = func(code int) { panic(exited(code)) }
-	t.Cleanup(func() { input, exit = prevInput, prevExit })
+	reraise = func() { panic(sigint) }
+	t.Cleanup(func() { input, exit, reraise = prevInput, prevExit, prevReraise })
 }
 
 // ask runs fn with stdout captured and returns what it printed, and the

@@ -25,7 +25,10 @@
 // line with no line ending before the end of the input is still returned,
 // and the call after it reports the abort. Nothing is applied after an
 // abort (brief 1C): the caller stops, and ExitCode gives the CLI its exit
-// status, 130. The two are told apart for callers that may treat them
+// status, 130. A caller that ends the process itself on ErrInterrupted,
+// as the legacy menus and the first-run config prompts do, calls Reraise,
+// which ends it by SIGINT, so that a shell running hardn in a loop or a
+// script stops as it does for any program Ctrl-C ends. The two are told apart for callers that may treat them
 // differently: the exit code for a script that ran out of answers is
 // next/p3-output's to decide. The end of the input never goes back, at
 // any prompt (pkg/ui/nav).
