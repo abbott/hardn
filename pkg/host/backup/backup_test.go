@@ -163,6 +163,11 @@ func TestBackupModes(t *testing.T) {
 	if res.Entry.File.Backup != "0001-hardn.yml" {
 		t.Errorf("copy named %q, want 0001-hardn.yml", res.Entry.File.Backup)
 	}
+	m := run.Manifest()
+	m.Entries[0].File.SHA256 = "changed by the caller"
+	if got := run.Manifest().Entries[0].File.SHA256; got == m.Entries[0].File.SHA256 {
+		t.Errorf("Manifest() shares its entries' content with the run")
+	}
 }
 
 // enableBackups=false skips optional backups and creates nothing, but takes

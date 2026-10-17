@@ -248,10 +248,16 @@ func validRunID(id string) bool {
 // Dir returns the run directory, <backupPath>/<run-id>.
 func (r *Run) Dir() string { return r.m.Dir }
 
-// Manifest returns a copy of the manifest so far.
+// Manifest returns a copy of the manifest so far, sharing nothing with r.
 func (r *Run) Manifest() Manifest {
 	m := r.m
 	m.Entries = append([]Entry(nil), r.m.Entries...)
+	for i, e := range m.Entries {
+		if e.File != nil {
+			c := *e.File
+			m.Entries[i].File = &c
+		}
+	}
 	return m
 }
 
