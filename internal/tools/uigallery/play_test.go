@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -305,6 +307,51 @@ func TestPlayUsage(t *testing.T) {
 	}
 	if code, _, errs := runGallery("-screens", "play"); code != exitUsage || !strings.Contains(errs, `no screen "play"`) {
 		t.Errorf("play after a flag: exit %d, stderr %q; want it taken as a screen's name", code, errs)
+	}
+}
+
+// errBroken is the error of a writer that breaks.
+var errBroken = errors.New("broken pipe")
+
+// breaks is a writer that fails the first write holding at, and every
+// write after it, as a pipe whose reader has gone does.
+type breaks struct {
+	w     io.Writer
+	at    string
+	broke bool
+}
+
+func (b *breaks) Write(p []byte) (int, error) {
+	if b.broke || bytes.Contains(p, []byte(b.at)) {
+		b.broke = true
+		return 0, errBroken
+	}
+	return b.w.Write(p)
+}
+
+// TestPlayWriteFails checks that a failed write of the simulated system's
+// record exits with status 1 and a message however the user left play,
+// by q or by going back from the first screen, and that an abort keeps
+// its 130.
+func TestPlayWriteFails(t *testing.T) {
+	tests := []struct {
+		name  string
+		lines []string
+		code  int
+		errs  string
+	}{
+		{"q", []string{"q"}, exitError, "uigallery: play: broken pipe\n"},
+		{"0 at the first screen", []string{"0"}, exitError, "uigallery: play: broken pipe\n"},
+		{"the end of the input", nil, prompt.ExitInterrupted, ""},
+	}
+	for _, tt := range tests {
+		var out, errs bytes.Buffer
+		w := &breaks{w: &out, at: "simulated system"}
+		ty := uitest.NewTypist(&out, tt.lines...)
+		code := run([]string{"play", "-profile", "plain"}, func() *prompt.Reader { return prompt.New(ty, false) }, w, &errs)
+		if code != tt.code || errs.String() != tt.errs || !w.broke {
+			t.Errorf("%s: exit %d, stderr %q, the record's write failed %t; want exit %d, stderr %q", tt.name, code, errs.String(), w.broke, tt.code, tt.errs)
+		}
 	}
 }
 

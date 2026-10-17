@@ -195,7 +195,7 @@ type session struct {
 // play plays from start: the gallery's header and a note on the
 // simulated system, the screens as the user answers, then what the
 // simulated system recorded. It returns the exit status, writing any
-// error but an abort's to stderr.
+// error but an abort's to stderr, a failed write of the record included.
 func (s *session) play(start screen.Mock, stderr io.Writer) int {
 	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap+1)
 	note := []string{"Play mode: hardn's own screens and prompts, on the gallery's fixture plans. " +
@@ -216,6 +216,9 @@ func (s *session) play(start screen.Mock, stderr io.Writer) int {
 		return exitError
 	}
 	err := s.open(start)()
+	// left is whether the user left play, by going back from the first
+	// screen or quitting, rather than by an abort or an error.
+	left := err == nil || errors.Is(err, nav.ErrQuit) || errors.Is(err, nav.ErrBack)
 	var record []string
 	for _, r := range s.sim.applied() {
 		record = append(record, component.Callout{Kind: component.MessageInfo, Title: r.title, Body: []string{
@@ -226,14 +229,16 @@ func (s *session) play(start screen.Mock, stderr io.Writer) int {
 		record = []string{component.Callout{Kind: component.MessageInfo, Body: []string{"Nothing was applied."}}.Render(c)}
 	}
 	closing := "\n" + header(c, "simulated system") + gap + strings.Join(record, gap) + "\n"
-	if _, werr := io.WriteString(s.p.Out, closing); werr != nil && err == nil {
-		err = werr
+	// A failed write of the record is the error play reports, however the
+	// user left it; an abort keeps its exit status, and an earlier error
+	// is the one reported.
+	if _, werr := io.WriteString(s.p.Out, closing); werr != nil && left {
+		err, left = werr, false
 	}
-	code, aborted := prompt.ExitCode(err)
-	switch {
-	case err == nil, errors.Is(err, nav.ErrQuit), errors.Is(err, nav.ErrBack):
+	if left {
 		return exitOK
-	case aborted:
+	}
+	if code, aborted := prompt.ExitCode(err); aborted {
 		return code
 	}
 	fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
