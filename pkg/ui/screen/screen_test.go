@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -106,24 +109,154 @@ func menuOf(m component.Menu) nav.Menu {
 	return out
 }
 
-// TestGolden pins each layout's fixture on the core set: the main menu
-// also at 80x40, where it shows its full form; the workflow step as the
-// transcript of its sequence, its question answered y.
+// TestGolden pins every mock (Mocks) on the core set, a file per drawing:
+// a menu screen, the main menu also at 80x40, where it shows its full
+// form; and each step of each workflow sequence.
 func TestGolden(t *testing.T) {
-	uitest.Golden(t, "main-menu/00-tui-main", mainCells(), func(env term.Env) string {
-		return MainMenuFixture().Render(component.NewCtx(env))
-	})
-	uitest.Golden(t, "sub-menu/01-user", uitest.Core(), func(env term.Env) string {
-		return UserFixture().Render(component.NewCtx(env))
-	})
-	uitest.Golden(t, "workflow-step/user-manage-sudo-confirmation", uitest.Core(), func(env term.Env) string {
-		step, f := ManageSudoFixture()
-		p, out := prompter(env, "y")
-		if o, err := step.Run(context.Background(), p, f); o != flow.Applied || err != nil {
-			t.Errorf("%s: Run() = %v, %v; want Applied, nil", env.Profile, o, err)
+	for _, m := range Mocks() {
+		cells := uitest.Core()
+		if _, ok := m.Screen.(MainMenu); ok {
+			cells = mainCells()
 		}
-		return strings.TrimSuffix(out.String(), "\n")
+		for i, name := range m.Names() {
+			uitest.Golden(t, name, cells, func(env term.Env) string {
+				out, err := m.Render(component.NewCtx(env))
+				if err != nil {
+					t.Fatalf("%s, %v: %v", name, env.Profile, err)
+				}
+				return out[i]
+			})
+		}
+	}
+}
+
+// TestMocks checks the catalogue: names unique, each under its layout's
+// name, with a source; each sequence's steps played in order make the
+// whole transcript, the one a single run writes; and a golden file for
+// every drawing and none besides.
+func TestMocks(t *testing.T) {
+	seen := map[string]bool{}
+	for _, m := range Mocks() {
+		layout, _, _ := strings.Cut(m.Name, "/")
+		want := "workflow-step"
+		switch m.Screen.(type) {
+		case MainMenu:
+			want = "main-menu"
+		case SubMenu:
+			want = "sub-menu"
+		}
+		label := m.Source.Label
+		if layout != want || m.Source.Delta == "" ||
+			!strings.HasPrefix(label, "Figma ") && !strings.HasPrefix(label, "inferred from ") {
+			t.Errorf("%s: under %s, label %q, delta %q; want it under %s, a label and a delta", m.Name, layout, label, m.Source.Delta, want)
+		}
+		if (m.Screen == nil) == (len(m.Sequences) == 0) {
+			t.Errorf("%s: want a screen or sequences, not both or neither", m.Name)
+		}
+		for _, n := range m.Names() {
+			if seen[n] {
+				t.Errorf("%s is named twice", n)
+			}
+			seen[n] = true
+		}
+		for _, s := range m.Sequences {
+			env := term.Fixed(80, colorprofile.TrueColor, true, true)
+			steps, err := s.Play(component.NewCtx(env))
+			step, f := s.Build()
+			p, out := prompter(env, answers(s)...)
+			o, rerr := step.Run(context.Background(), p, f)
+			if err != nil || rerr != nil || o != s.Ends || strings.Join(steps, "\n") != strings.TrimSuffix(out.String(), "\n") {
+				t.Errorf("%s/%s: Play() = %v, Run() = %v, %v; want its steps to make the transcript, ending %v", m.Name, s.Name, err, o, rerr, s.Ends)
+			}
+		}
+	}
+	err := filepath.WalkDir(filepath.Join("testdata", "golden"), func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		name := strings.TrimSuffix(filepath.ToSlash(strings.TrimPrefix(path, filepath.Join("testdata", "golden")+string(filepath.Separator))), ".golden")
+		if !seen[name] {
+			t.Errorf("golden %s has no mock", path)
+		}
+		delete(seen, name)
+		return nil
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for n := range seen {
+		t.Errorf("mock %s has no golden", n)
+	}
+}
+
+// TestDiverged checks that a sequence that ends otherwise than it says,
+// with no error, fails with a *Diverged that holds the whole transcript:
+// the root-login toggle's normal path on a terminal too narrow for its
+// typed confirmation, below 30 columns in Unicode glyphs, which the flow
+// cancels without asking it. Mock.Render's error wraps it.
+func TestDiverged(t *testing.T) {
+	var toggle Mock
+	for _, m := range Mocks() {
+		if m.Name == "workflow-step/ssh-login-toggle-confirmation" {
+			toggle = m
+		}
+	}
+	if len(toggle.Sequences) == 0 || toggle.Sequences[0].Name != "normal" {
+		t.Fatalf("no normal sequence for the root-login toggle: %+v", toggle)
+	}
+	c := component.NewCtx(term.Fixed(29, colorprofile.NoTTY, false, true))
+	steps, err := toggle.Sequences[0].Play(c)
+	var d *Diverged
+	if !errors.As(err, &d) || steps != nil || d.Ended != flow.Cancelled || d.Want != flow.Applied ||
+		!strings.Contains(d.Transcript, "Operation Cancelled") || strings.HasSuffix(d.Transcript, "\n") ||
+		err.Error() != "sequence normal ended cancelled, want applied" {
+		t.Fatalf("Play() = %q, %v; want a *Diverged, cancelled for applied, with the transcript", steps, err)
+	}
+	if _, err := toggle.Render(c); !errors.As(err, &d) {
+		t.Errorf("Render() = %v, want it to wrap a *Diverged", err)
+	}
+}
+
+// TestCreateUserPlan checks that the create-user fixture plans what its
+// form was answered, so that its review, plan and confirmation agree for
+// any answers: a step per answer that needs one, named for the user; and,
+// played on the flow, bob's answers give bob's plan and question.
+func TestCreateUserPlan(t *testing.T) {
+	tests := []struct {
+		u    newUser
+		want []string
+	}{
+		{newUser{name: "george", sudo: true}, []string{"Create user george", "Add george to the sudo group", "Let george use sudo without a password"}},
+		{newUser{name: "bob"}, []string{"Create user bob"}},
+		{newUser{name: "bob", sudo: true, password: true}, []string{"Create user bob", "Add bob to the sudo group"}},
+		{newUser{name: "bob", addKey: true, key: "ssh-ed25519 AAAA bob"}, []string{"Create user bob", "Add an SSH key for bob"}},
+	}
+	for _, tt := range tests {
+		var got []string
+		for _, ch := range tt.u.plan().View.Changes {
+			got = append(got, ch.Title)
+		}
+		if !slices.Equal(got, tt.want) {
+			t.Errorf("%+v: plans %q, want %q", tt.u, got, tt.want)
+		}
+	}
+	env := term.Fixed(80, colorprofile.NoTTY, false, true)
+	step, f := createUser(false, false)
+	p, out := prompter(env, "bob", "n", "n", "y")
+	o, err := step.Run(context.Background(), p, f)
+	if got := out.String(); o != flow.Applied || err != nil || !strings.Contains(got, "Create user 'bob'?") ||
+		!strings.Contains(got, "Done: Create user bob") || strings.Contains(got, "george") || strings.Contains(got, "sudo group") {
+		t.Errorf("bob, no sudo, no key: Run() = %v, %v, transcript\n%s", o, err, got)
+	}
+}
+
+// answers returns the lines s types.
+func answers(s Sequence) []string {
+	var out []string
+	for _, a := range s.Answers {
+		out = append(out, a.Line)
+	}
+	return out
 }
 
 // TestScreen checks that nav.Run, given a layout's Screen, draws what the
@@ -261,33 +394,21 @@ func TestEmptyBlocks(t *testing.T) {
 // TestSubMenuFrames checks that the sub-menu layout draws Figma's other
 // sub-menu frames by leaving out the blocks they have no data for:
 // USER-MANAGE_USER-SELECT_USER, a menu of users under its own heading, and
-// USER-MANAGE_USER-MANAGEMENT, a subject line over a menu (origin/main's
-// items there, pkg/menu user_options.go). Plain, at 80 columns.
+// USER-MANAGE_USER-MANAGEMENT, a subject line over a menu. Plain, at 80
+// columns.
 func TestSubMenuFrames(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	trail := component.Breadcrumb{Items: []string{"hardn", "User Management", "Manage User"}}
 	head := "hardn  v0.4.0              https://github.com/abbott/hardn\n\n  hardn > User Management > Manage User\n\n"
 	tests := []struct {
 		name string
 		vm   SubMenu
 		want string
 	}{
-		{"USER-MANAGE_USER-SELECT_USER", SubMenu{
-			Header: fixtureHeader(), Breadcrumb: trail, Heading: "Select a user",
-			Menu: component.Menu{Items: []component.MenuItem{{Key: "1", Label: "george"}, {Key: "2", Label: "alice"}},
-				Exit: component.MenuItem{Key: "0", Label: "Return"}},
-			Prompt: figmaPrompt,
-		}, head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
-		{"USER-MANAGE_USER-MANAGEMENT", SubMenu{
-			Header: fixtureHeader(), Breadcrumb: trail, Subject: component.SubjectLine{Label: "Managing", Subject: "george"},
-			Heading: fixtureHeading,
-			Menu: component.Menu{Items: []component.MenuItem{
-				{Key: "1", Label: "Sudo Method", Description: "Toggle password requirement"},
-				{Key: "2", Label: "Manage SSH keys", Description: "Add or remove SSH keys"},
-			}, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-			Prompt: figmaPrompt,
-		}, head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
-			"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+		{"USER-MANAGE_USER-SELECT_USER", selectUserFixture(),
+			head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
+		{"USER-MANAGE_USER-MANAGEMENT", manageUserFixture(),
+			head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
+				"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2, b or q]:"},
 	}
 	for _, tt := range tests {
 		if out := ansi.Strip(tt.vm.Render(c)); out != tt.want {
@@ -375,17 +496,23 @@ func maxWidth(w int) int {
 	return w
 }
 
-// TestOutputRules renders each layout at every width from 1 to 130, with
-// colour, without it and in plain mode, on a 24-row terminal and a 40-row
+// TestOutputRules renders each mock's screen (Mocks), and the screen above
+// each workflow sequence, at every width from 1 to 130, with colour,
+// without it and in plain mode, on a 24-row terminal and a 40-row
 // one, and checks the components' output rules hold for the screen: no
 // line wider than the content (maxWidth), no line holding a tab, no
 // trailing space outside a painted background, and no trailing newline.
 func TestOutputRules(t *testing.T) {
-	step, _ := ManageSudoFixture()
-	layouts := map[string]func(component.Ctx) string{
-		"main menu":     MainMenuFixture().Render,
-		"sub-menu":      UserFixture().Render,
-		"workflow step": step.Render,
+	layouts := map[string]func(component.Ctx) string{}
+	for _, m := range Mocks() {
+		if m.Screen != nil {
+			layouts[m.Name] = m.Screen.Render
+			continue
+		}
+		for _, s := range m.Sequences {
+			step, _ := s.Build()
+			layouts[m.Name+"/"+s.Name] = step.Render
+		}
 	}
 	for name, render := range layouts {
 		for w := 1; w <= 130; w++ {

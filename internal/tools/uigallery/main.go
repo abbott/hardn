@@ -1,31 +1,53 @@
 // Command uigallery is hardn's dev-only design-system gallery. It renders
 // the states of pkg/ui/component, the ones the component goldens pin
-// (pkg/ui/component/fixture.States), in a render environment chosen by
-// flags, so that the maintainer can review the components and try new
-// colours without editing code (brief 1D).
+// (pkg/ui/component/fixture.States), and with -screens the screen mocks,
+// the ones the screen goldens pin (pkg/ui/screen.Mocks), in a render
+// environment chosen by flags, so that the maintainer can review the
+// components and screens and try new colours without editing code (brief
+// 1D).
 //
 // It is never part of a release: every build target of the makefile, the
 // goreleaser configs and the workflows builds ./cmd/hardn alone, and a
 // main package cannot be imported. Run it from the repository root:
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
+//	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
 // order, each under a header with its whole name, which on a terminal too
-// narrow for the name runs past its width. Flags:
+// narrow for the name runs past its width.
 //
-//	-list             print the names of the states it would render, and exit
+// With -screens it renders the screen mocks instead, by layout, then by
+// screen: "sub-menu" is every sub-menu and "sub-menu/01-user" one. Each
+// mock comes under a header with its name and a note of its source: its
+// Figma frame, or what it is inferred from, how origin/main's screen
+// differs from v0.3.2's, and where it waits on a proposal. A workflow's
+// mock is its sequences, each step printed in order under a header naming
+// the sequence and the step, so that the steps read as the transcript of
+// one run: "workflow-step/user-manage-sudo-confirmation/failure" is one
+// sequence, ".../failure/2-failed" its last step. A sequence that ends
+// otherwise at the width than it says, as one whose typed confirmation
+// the terminal is too narrow to ask (below 30 columns in Unicode glyphs,
+// 32 in ASCII), which the flow cancels, is printed whole under its name,
+// after a note saying so, and the other mocks still show. Flags:
+//
+//	-list             print the names of the states, or with -screens the
+//	                  screen drawings, it would render, and exit
 //	-theme dark|light the palette (default dark)
 //	-profile name     truecolor, 256, 16, none (no colour; bold and
 //	                  underline kept) or plain (no escape sequences, ASCII
 //	                  glyphs) (default truecolor)
 //	-ascii            the ASCII glyph set
 //	-width N          the terminal width in cells (default 80)
+//	-height N         the terminal height in lines (default 24), which
+//	                  decides the main menu's form
+//	-screens          the screen mocks, in place of the component states
 //	-matrix           render each state in every cell of the golden matrix,
 //	                  uitest.Full's 48, then plain mode at 60, 80 and 120,
 //	                  each under its cell's name, in place of -theme,
-//	                  -profile, -ascii and -width
+//	                  -profile, -ascii, -width and -height; not with
+//	                  -screens, whose goldens are on the core set
 //	-override FILE    a colour override file (JSON; see
 //	                  uigallery.local.json.example)
 //
@@ -49,8 +71,10 @@
 // every layout off its golden, so the gallery then refuses to render
 // (exit status 1), as the golden harness refuses to run. It writes to
 // stdout only, through each environment's term.Env.Writer, one write per
-// state and environment: what the state's golden file holds for the same
-// cell.
+// state and environment, or per screen mock: what the golden file holds
+// for the same cell. A workflow's sequences play on scripted answers and
+// fixture plans (screen.Sequence.Play, flow.Fixture), which read no
+// terminal and change nothing.
 package main
 
 import (
@@ -67,6 +91,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
@@ -235,12 +260,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fs.PrintDefaults()
 	}
-	list := fs.Bool("list", false, "print the names of the states it would render, and exit")
+	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
 	themeName := fs.String("theme", "dark", "the palette: dark or light")
 	profileName := fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain")
 	ascii := fs.Bool("ascii", false, "use the ASCII glyph set")
 	width := fs.Int("width", term.DefaultWidth, "the terminal width in cells")
-	inMatrix := fs.Bool("matrix", false, "render each state in every cell of the golden matrix and plain mode, in place of -theme, -profile, -ascii and -width")
+	height := fs.Int("height", term.DefaultHeight, "the terminal height in lines")
+	screens := fs.Bool("screens", false, "render the screen mocks, in place of the component states")
+	inMatrix := fs.Bool("matrix", false, "render each state in every cell of the golden matrix and plain mode, in place of -theme, -profile, -ascii, -width and -height")
 	overridePath := fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -253,13 +280,25 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return exitUsage
 	}
 
-	states, err := selectStates(catalogue(), fs.Args())
+	var (
+		states []fixture.State
+		names  []string
+		err    error
+	)
+	if *screens {
+		names, err = selectDrawings(screen.Mocks(), fs.Args())
+	} else {
+		states, err = selectStates(catalogue(), fs.Args())
+		for _, s := range states {
+			names = append(names, s.Name)
+		}
+	}
 	if err != nil {
 		return usage("%v", err)
 	}
 	if *list {
-		for _, s := range states {
-			fmt.Fprintln(stdout, s.Name)
+		for _, n := range names {
+			fmt.Fprintln(stdout, n)
 		}
 		return exitOK
 	}
@@ -268,11 +307,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if *inMatrix {
 		var set []string
 		fs.Visit(func(f *flag.Flag) {
-			if f.Name == "theme" || f.Name == "profile" || f.Name == "ascii" || f.Name == "width" {
+			if f.Name == "theme" || f.Name == "profile" || f.Name == "ascii" || f.Name == "width" || f.Name == "height" {
 				set = append(set, "-"+f.Name)
 			}
 		})
-		if len(set) > 0 {
+		switch {
+		case *screens:
+			return usage("-matrix renders the component states; for -screens pick one cell with -profile, -theme, -ascii, -width and -height")
+		case len(set) > 0:
 			return usage("-matrix renders every environment; leave out %s", strings.Join(set, ", "))
 		}
 		cells = matrix()
@@ -285,8 +327,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return usage("-theme %q is not dark or light", *themeName)
 		case *width < 1:
 			return usage("-width %d is not a positive number of cells", *width)
+		case *height < 1:
+			return usage("-height %d is not a positive number of lines", *height)
 		}
 		cells = []cell{newCell(profiles[i], *themeName == "dark", !*ascii, *width)}
+		cells[0].env.Height = *height
 	}
 
 	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
@@ -303,6 +348,19 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "uigallery: %v\n", err)
 			return exitError
 		}
+	}
+	if *screens {
+		for _, m := range screen.Mocks() {
+			out, err := g.renderMock(m, names, cells[0])
+			if err == nil {
+				_, err = io.WriteString(cells[0].env.Writer(stdout), out)
+			}
+			if err != nil {
+				fmt.Fprintf(stderr, "uigallery: %s in %s: %v\n", m.Name, cells[0].name, err)
+				return exitError
+			}
+		}
+		return exitOK
 	}
 	for _, s := range states {
 		for _, c := range cells {

@@ -14,11 +14,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -306,6 +309,11 @@ func TestUsage(t *testing.T) {
 		{"menu", "-profile", "plain"},
 		{"-matrix", "-width", "80"},
 		{"-matrix", "-theme", "light", "-ascii"},
+		{"-matrix", "-height", "40"},
+		{"-height", "0"},
+		{"-screens", "-matrix"},
+		{"-screens", "nope"},
+		{"-screens", "sub-menu", "-width", "60"},
 	} {
 		code, out, errs := runGallery(args...)
 		if code != exitUsage || out != "" || errs == "" {
@@ -491,5 +499,206 @@ func TestOverride(t *testing.T) {
 	}
 	if code, _, _ := runGallery("-override", filepath.Join(t.TempDir(), "missing.json")); code != exitError {
 		t.Errorf("a missing file: exit %d, want %d", code, exitError)
+	}
+}
+
+// screenGoldenDir holds the screen goldens, one file per drawing:
+// <layout>/<screen>.golden, and <layout>/<screen>/<sequence>/<step>.golden
+// for a workflow's steps.
+var screenGoldenDir = filepath.Join("..", "..", "..", "pkg", "ui", "screen", "testdata", "golden")
+
+// TestScreensRenderAsGoldens checks that -screens writes each mock's
+// drawings exactly as their golden files hold them, in each golden cell
+// the flags can name: the core set, and the main menu at 80x40 on both
+// themes. Each drawing comes between the gallery's headers and source
+// note and the blank line after it, a step without the blank lines that
+// open it.
+func TestScreensRenderAsGoldens(t *testing.T) {
+	cells := map[string][]string{
+		"truecolor-dark-unicode-80":     nil,
+		"plain-80":                      {"-profile", "plain"},
+		"truecolor-dark-unicode-60":     {"-width", "60"},
+		"truecolor-dark-unicode-80x40":  {"-height", "40"},
+		"truecolor-light-unicode-80x40": {"-height", "40", "-theme", "light"},
+	}
+	for _, m := range screen.Mocks() {
+		for name, args := range cells {
+			if strings.HasSuffix(name, "x40") && !strings.HasPrefix(m.Name, "main-menu/") {
+				continue
+			}
+			code, got, errs := runGallery(append(append([]string{"-screens"}, args...), m.Name)...)
+			env := term.Fixed(80, colorprofile.TrueColor, true, !strings.Contains(name, "light"))
+			switch name {
+			case "plain-80":
+				env = term.Fixed(80, colorprofile.NoTTY, false, true)
+			case "truecolor-dark-unicode-60":
+				env.Width = 60
+			}
+			if strings.HasSuffix(name, "x40") {
+				env.Height = 40
+			}
+			c := component.NewCtx(env)
+			gap := "\n\n"
+			want := written(t, env, header(c, m.Name)+gap+source(c, m.Source)+gap)
+			for _, n := range m.Names() {
+				sections, err := goldenSections(filepath.Join(screenGoldenDir, filepath.FromSlash(n)+".golden"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				section, ok := sections[name]
+				if !ok {
+					t.Fatalf("%s: no cell %s", n, name)
+				}
+				if step, ok := strings.CutPrefix(n, m.Name+"/"); ok {
+					want += written(t, env, header(c, step)+gap)
+					section = strings.TrimLeft(section, "\n")
+				}
+				want += section + gap
+			}
+			if code != exitOK || errs != "" || got != want {
+				t.Errorf("%s in %s: exit %d, stderr %q, the gallery writes\n%q\nwant, from the golden files,\n%q", m.Name, name, code, errs, got, want)
+			}
+		}
+	}
+}
+
+// TestScreenSelect checks -screens with -list and the screen arguments,
+// and that every header the screens take shows its whole name.
+func TestScreenSelect(t *testing.T) {
+	var every []string
+	for _, m := range screen.Mocks() {
+		every = append(every, m.Names()...)
+		for _, n := range m.Names() {
+			title := strings.TrimPrefix(n, m.Name+"/")
+			if w := ansi.StringWidth(title) + headerFrame; w > theme.ContentWidth || ansi.StringWidth(m.Name)+headerFrame > theme.ContentWidth {
+				t.Errorf("%s: its header would be cut", n)
+			}
+		}
+	}
+	sudo := "workflow-step/user-manage-sudo-confirmation"
+	tests := []struct {
+		args []string
+		want []string
+	}{
+		{nil, every},
+		{[]string{"all"}, every},
+		{[]string{"main-menu"}, []string{"main-menu/00-tui-main"}},
+		{[]string{sudo + "/failure", "sub-menu/01-user"}, []string{"sub-menu/01-user", sudo + "/failure/1-confirm", sudo + "/failure/2-failed"}},
+		{[]string{sudo + "/dry-run/1-planned"}, []string{sudo + "/dry-run/1-planned"}},
+	}
+	for _, tt := range tests {
+		code, out, errs := runGallery(append([]string{"-screens", "-list"}, tt.args...)...)
+		if got := strings.Fields(out); code != exitOK || errs != "" || !slices.Equal(got, tt.want) {
+			t.Errorf("-screens -list %v: exit %d, stderr %q, listed %v, want %v", tt.args, code, errs, got, tt.want)
+		}
+	}
+	// One step: the mock's header and note, then the step under its own.
+	code, out, _ := runGallery("-screens", "-profile", "plain", sudo+"/normal/2-applied")
+	plain := strings.Split(out, "\n")
+	if code != exitOK || !strings.HasPrefix(plain[0], "# "+sudo+" ") || !strings.Contains(out, "\n# normal/2-applied ") ||
+		strings.Contains(out, "normal/1-confirm") || !strings.HasSuffix(out, "# [+] Operation Successful\n\n") {
+		t.Errorf("one step: exit %d, output\n%s", code, out)
+	}
+}
+
+// TestScreenSmoke runs -screens in-process for every profile, both themes
+// and both glyph sets, at 80 and 60 columns and at the narrow widths where
+// a typed confirmation stops fitting (29 to 32 columns, below which the
+// flow cancels it), and at 1 and 20, and checks the output: the exit
+// status 0; every mock under its header; every sequence step by step, or,
+// one that ends otherwise at the width (screen.Diverged), whole under its
+// own name's header; the escape sequences the profile allows and no more;
+// only ASCII where asked, but for data such as 01-USER's "≥"; and no line
+// wider than the terminal but a header, which shows its whole name.
+func TestScreenSmoke(t *testing.T) {
+	narrowed := 0
+	var typed []string
+	for _, m := range screen.Mocks() {
+		for _, s := range m.Sequences {
+			for _, a := range s.Answers {
+				typed = append(typed, a.Line)
+			}
+		}
+	}
+	for _, p := range profiles {
+		for _, th := range []string{"dark", "light"} {
+			for _, ascii := range []bool{false, true} {
+				for _, w := range []int{1, 20, 29, 30, 31, 32, 60, 80} {
+					args := []string{"-screens", "-profile", p.name, "-theme", th, fmt.Sprintf("-ascii=%t", ascii), fmt.Sprintf("-width=%d", w)}
+					code, out, errs := runGallery(args...)
+					where := strings.Join(args, " ")
+					if code != exitOK || errs != "" {
+						t.Fatalf("%s: exit %d, stderr %q", where, code, errs)
+					}
+					c := newCell(profiles[slices.Index(profiles, p)], th == "dark", !ascii, w)
+					ctx := component.NewCtx(c.env)
+					lines := strings.Split(ansi.Strip(out), "\n")
+					headers := map[string]bool{}
+					has := func(title string) bool {
+						h := ansi.Strip(header(ctx, title))
+						headers[h] = true
+						return slices.Contains(lines, h)
+					}
+					for _, m := range screen.Mocks() {
+						if !has(m.Name) {
+							t.Errorf("%s: no header for %s", where, m.Name)
+						}
+						for _, s := range m.Sequences {
+							_, err := s.Play(ctx)
+							var d *screen.Diverged
+							if errors.As(err, &d) {
+								narrowed++
+								if !has(s.Name) {
+									t.Errorf("%s: %s/%s ends %s, and has no header of its own", where, m.Name, s.Name, screen.Ending(d.Ended))
+								}
+								continue
+							}
+							for _, step := range s.Steps() {
+								if !has(s.Name + "/" + step) {
+									t.Errorf("%s: no header for %s/%s/%s", where, m.Name, s.Name, step)
+								}
+							}
+						}
+					}
+					switch p.name {
+					case "plain":
+						if strings.Contains(out, "\x1b") {
+							t.Errorf("%s: an escape sequence in plain mode", where)
+						}
+					case "none":
+						if strings.Contains(out, "38;") || strings.Contains(out, "48;") || !strings.Contains(out, "\x1b[1m") {
+							t.Errorf("%s: want bold and no colour", where)
+						}
+					default:
+						if !strings.Contains(out, "\x1b[") {
+							t.Errorf("%s: no colour", where)
+						}
+					}
+					if data := strings.ReplaceAll(ansi.Strip(out), "≥", ""); (p.name == "plain" || ascii) && strings.ContainsFunc(data, func(r rune) bool { return r > 0x7e }) {
+						t.Errorf("%s: a glyph outside ASCII", where)
+					}
+					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
+						if headers[ansi.Strip(l)] {
+							continue
+						}
+						// A prompt's line ends with the space the line
+						// reader writes and the answer the terminal
+						// echoes, which the terminal wraps.
+						for _, a := range typed {
+							if cut, ok := strings.CutSuffix(l, " "+a); ok {
+								l = cut
+								break
+							}
+						}
+						if ansi.StringWidth(l) > w {
+							t.Errorf("%s: line %q is wider than %d", where, ansi.Strip(l), w)
+						}
+					}
+				}
+			}
+		}
+	}
+	if narrowed == 0 {
+		t.Error("no sequence ended otherwise at any width: the narrow path went untested")
 	}
 }
