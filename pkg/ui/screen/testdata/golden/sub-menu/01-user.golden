@@ -1,0 +1,86 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mUser Management␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────────␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m7 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUID:GID␛[m              ␛[38;2;129;134;156m1000:1000␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDirectory␛[m            ␛[38;2;129;134;156m/home/george␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > User Management$
+$
+  [+] Non-root             Configured UID ≥ 1000$
+$
+# User Configuration -------------------------------------------$
+$
+  [george]$
+$
+  [ ] Sudo                 Enabled, No password$
+   -  SSH Keys             7 keys$
+   -  UID:GID              1000:1000$
+   -  Directory            /home/george$
+$
+  Select an option$
+$
+   1) Manage User          Configure sudo, SSH keys$
+   2) Create User          Configure a new user$
+$
+   0) Return$
+$
+  > Enter your choice [0-2, b or q]:$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mUser Management␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m7 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUID:GID␛[m$
+      ␛[38;2;129;134;156m1000:1000␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDirectory␛[m$
+      ␛[38;2;129;134;156m/home/george␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m$
+      ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m$
+      ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m$

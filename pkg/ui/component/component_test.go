@@ -65,6 +65,9 @@ var (
 		{Key: "9", Label: "System Details", Description: "View system information"},
 		{Key: "10", Label: "Logs", Description: "View log file"},
 	}, Exit: MenuItem{Key: "0", Label: "Exit", Description: keys.Set{quit}.Help()}}
+	// compactMenu is Figma's main menu in two columns, as the main menu's
+	// compact form lays it out on a short terminal.
+	compactMenu = Menu{Items: figmaMenu.Items, Exit: figmaMenu.Exit, Compact: true}
 	// sshMenu is Figma's SSH Login sub-menu (02-SSH_LOGIN).
 	sshMenu = Menu{Items: []MenuItem{
 		{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access"},
@@ -244,6 +247,7 @@ var states = []struct {
 		{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Send the daily report to alice"},
 		{Key: "2", Label: "Firewall", Description: "Allow port 2230/tcp from 192.0.2.0/24 and deny the rest"},
 	}, Exit: MenuItem{Key: "0", Label: "Return"}}},
+	{"menu/compact", compactMenu},
 	{"menu/empty", Menu{}},
 	{"promptline/normal", figmaPrompt},
 	{"promptline/no-hint", PromptLine{Label: "Username"}},
@@ -636,6 +640,35 @@ func TestLayout(t *testing.T) {
 			"   0) Return"},
 		{"menu: an item with no label is not shown", Menu{Items: []MenuItem{{Key: "1", Description: "x"}, {Key: "2", Label: "DNS"}}}, 80, false,
 			"   2) DNS"},
+		{"menu: compact, two columns down then across, the exit item apart", compactMenu, from, false,
+			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Environment\n" +
+				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
+				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
+		// 60 columns stacks a one-column menu while StackBelow is 64; two
+		// columns, and the exit item beside its label, do not stack.
+		{"menu: compact, the exit item stays beside its label wherever the columns fit", compactMenu, 60, false,
+			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Environment\n" +
+				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
+				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
+		{"menu: compact, an odd item ends the first column", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}, {Key: "2", Label: "Logs"}, {Key: "3", Label: "Backup"}}, Compact: true}, 80, false,
+			"   1) DNS                   3) Backup\n   2) Logs"},
+		{"menu: compact, a note line keeps one column", Menu{Items: []MenuItem{
+			{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Disabled: true},
+			{Key: "2", Label: "View SSH Settings", Description: "Show SSH configuration"},
+		}, Compact: true}, 80, false,
+			"   1) Root SSH Login       Toggle root SSH access\n                           [-] Unavailable\n   2) View SSH Settings    Show SSH configuration"},
+		{"menu: compact, a first-column label reaching the value column keeps one column", Menu{Items: []MenuItem{
+			{Key: "1", Label: "Manage application profiles"}, {Key: "2", Label: "DNS"},
+		}, Compact: true}, 80, false,
+			"   1) Manage application profiles\n   2) DNS"},
+		{"menu: compact, a second column too wide keeps one column", Menu{Items: []MenuItem{
+			{Key: "1", Label: "DNS"}, {Key: "2", Label: "System Details"},
+		}, Compact: true}, 44, false,
+			"   1) DNS\n   2) System Details"},
+		{"menu: compact, a key wider than the marker column keeps one column", Menu{Items: []MenuItem{
+			{Key: "1", Label: "DNS"}, {Key: "100", Label: "Logs"},
+		}, Compact: true}, 80, false,
+			"   1) DNS\n 100) Logs"},
 		{"prompt: glyph, label, generated hint and colon", figmaPrompt, 80, true,
 			"  ❯ Enter your choice [0-10 or q]:"},
 		{"prompt: with no hint the colon follows the label", PromptLine{Label: "Username"}, 80, false, "  > Username:"},

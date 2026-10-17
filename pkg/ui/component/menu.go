@@ -119,6 +119,32 @@ type MenuItem struct {
 // names the choice; text wider than the content is cut with the ellipsis
 // glyph.
 //
+// A compact menu (Compact) lays its items out in two columns, down then
+// across, each its key and label alone, so that ten items take five
+// lines; here Figma's main menu, as the main menu's compact form shows it
+// on a short terminal (DEV-052):
+//
+//	0 2   6                    27  31
+//	   1) User Management       6) Dry-Run
+//	   2) SSH Login             7) Run All
+//	   3) DNS                   8) Environment
+//	   4) Firewall              9) System Details
+//	   5) Backup               10) Logs
+//
+//	   0) Exit                 q to quit
+//
+// The first column is laid out as above; the second mirrors it from the
+// value column, its keys right-aligned to end at column 29 and its labels
+// at column 31. Descriptions and asides are left out; the exit item keeps
+// its own beside its label, at the value column where the second column
+// stands, wherever the two columns fit, below theme.StackBelow too, and
+// stacks only when it has no room there. A menu that two columns cannot
+// show whole is laid out in one, as above: when an item has a note line,
+// whose glyph and word would not fit beside it; when a label of the first
+// column reaches the value column; or when a key of the second column is
+// wider than the marker column, or a label of it runs past the content
+// width.
+//
 // The view-model holds no actions: pkg/ui/nav binds each item to what it
 // does (nav.Menu). Bindings gives the keys the menu accepts, from which a
 // PromptLine generates its hint. A menu with no items and no exit renders as the
@@ -132,6 +158,10 @@ type Menu struct {
 	// the rest in Menu.Exit. Its Disabled and Risk do not apply. With no
 	// label it is not shown.
 	Exit MenuItem
+	// Compact lays the items out in two columns, keys and labels alone,
+	// where they fit (see above): the main menu's compact form on a
+	// terminal shorter than theme.CompactBelow (pkg/ui/screen).
+	Compact bool
 }
 
 // Shown reports whether the menu shows the item: one whose label is
@@ -144,19 +174,27 @@ func (it MenuItem) Shown() bool { return clean(it.Label) != "" }
 // Render renders the menu for c. See Menu for the layout.
 func (vm Menu) Render(c Ctx) string {
 	var rows []entry
+	var shown []MenuItem
 	for _, it := range vm.Items {
 		if r, ok := it.row(c, false); ok {
 			rows = append(rows, r)
+			shown = append(shown, it)
 		}
 	}
 	exit, hasExit := vm.Exit.row(c, true)
-	stack := c.stacked() || exit.cramped(c)
-	for _, r := range rows {
-		stack = stack || r.cramped(c)
+	out, paired := []string(nil), false
+	if vm.Compact {
+		out, paired = pairs(c, shown)
 	}
-	var out []string
-	for _, r := range rows {
-		out = append(out, c.layout(stack, r.head, r.value, r.note))
+	stack := exit.cramped(c)
+	if !paired {
+		stack = stack || c.stacked()
+		for _, r := range rows {
+			stack = stack || r.cramped(c)
+		}
+		for _, r := range rows {
+			out = append(out, c.layout(stack, r.head, r.value, r.note))
+		}
 	}
 	if hasExit {
 		if len(out) > 0 {
@@ -165,6 +203,51 @@ func (vm Menu) Render(c Ctx) string {
 		out = append(out, c.layout(stack, exit.head, exit.value, exit.note))
 	}
 	return strings.Join(out, "\n")
+}
+
+// pairs lays items out in two columns, down then across, each its key and
+// label (keyed): the first half, rounded up, from theme.MarkerCol, and the
+// rest beside them from theme.ValueCol. ok is false when two columns
+// cannot show every item whole and on its own (see Menu).
+func pairs(c Ctx, items []MenuItem) (out []string, ok bool) {
+	type cell struct{ key, label span }
+	cells := make([]cell, len(items))
+	for i, it := range items {
+		key, label, _, note := it.parts(c, false)
+		if len(note) > 0 {
+			return nil, false
+		}
+		cells[i] = cell{key, label}
+	}
+	half := (len(cells) + 1) / 2
+	for i := range half {
+		l := keyed(nil, theme.MarkerCol, cells[i].key, cells[i].label)
+		if l.width() >= theme.ValueCol {
+			return nil, false
+		}
+		if j := i + half; j < len(cells) {
+			if lipgloss.Width(cells[j].key.text) > theme.MarkerWidth {
+				return nil, false
+			}
+			l = keyed(l, theme.ValueCol, cells[j].key, cells[j].label)
+		}
+		if l.width() > c.width() {
+			return nil, false
+		}
+		out = append(out, l.String())
+	}
+	return out, true
+}
+
+// keyed appends to l a menu item's key, right-aligned to end where a
+// marker column starting at col ends, and its label one cell after that
+// column, or one cell after a key too wide for it. An empty key is left
+// out, and the label keeps its column.
+func keyed(l line, col int, key, label span) line {
+	if key.text != "" {
+		l = append(l.to(col+theme.MarkerWidth-lipgloss.Width(key.text)), key)
+	}
+	return append(l.to(max(col+theme.MarkerWidth+1, l.width()+1)), label)
 }
 
 // Bindings returns the inputs the menu accepts: the key of each item that
@@ -203,16 +286,24 @@ func (r entry) cramped(c Ctx) bool {
 		(r.value.width() > 0 && room <= lipgloss.Width(c.Theme.Glyphs.Ellipsis))
 }
 
-// row returns the parts of one item, or of the exit item when exit is set.
-// An item with no label is not shown: ok is false.
+// row returns the parts of one item, or of the exit item when exit is set:
+// its key and label laid out in the marker and label columns (keyed), its
+// description with the aside, and its note. An item with no label is not
+// shown: ok is false.
 func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
-	m, g := c.Theme.Menu, c.Theme.Glyphs
 	if !it.Shown() {
 		return entry{}, false
 	}
-	label := clean(it.Label)
+	key, label, value, note := it.parts(c, exit)
+	return entry{keyed(nil, theme.MarkerCol, key, label), value, note}, true
+}
+
+// parts returns an item's key ("1)", or empty with no key) and label, its
+// description with the aside, and its note line, each in its style; for
+// the exit item when exit is set. The item is shown (Shown).
+func (it MenuItem) parts(c Ctx, exit bool) (key, label span, value, note line) {
+	m, g := c.Theme.Menu, c.Theme.Glyphs
 	keyStyle, labelStyle, descStyle, asideStyle := m.Key, m.Label, m.Description, m.Aside
-	var note line
 	switch {
 	case exit:
 		keyStyle, labelStyle, descStyle = m.ExitKey, m.Exit, m.Exit
@@ -222,13 +313,10 @@ func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
 	case it.Risk:
 		note = line{{g.Risk + " " + lockoutRisk, m.Risk}}
 	}
-	var head line
 	if k := clean(it.Key); k != "" {
-		k += ")"
-		head = line{gap(theme.MarkerCol + theme.MarkerWidth - lipgloss.Width(k)), {k, keyStyle}}
+		key = span{k + ")", keyStyle}
 	}
-	head = append(head.to(max(theme.LabelCol, head.width()+1)), span{label, labelStyle})
-	var value line
+	label = span{clean(it.Label), labelStyle}
 	if d := clean(it.Description); d != "" {
 		value = line{{d, descStyle}}
 	}
@@ -238,5 +326,5 @@ func (it MenuItem) row(c Ctx, exit bool) (r entry, ok bool) {
 		}
 		value = append(value, span{"(" + a + ")", asideStyle})
 	}
-	return entry{head, value, note}, true
+	return key, label, value, note
 }

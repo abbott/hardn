@@ -14,8 +14,9 @@
 //     checklist under it; then the answers, summed up as Figma sums up a
 //     new user: a SectionHeader, such as "User Configuration", over a
 //     BulletList of key-value rows. What a workflow screen draws above
-//     the flow, its title bar and a subject line such as "Managing sudo
-//     method for: george", is the screen's (next/p1d-slice).
+//     the flow, its header and breadcrumb and a subject line such as
+//     "Managing sudo method for: george", is the screen's
+//     (screen.WorkflowStep in pkg/ui/screen).
 //  3. Plan: the Engine plans, and the plan is shown as a PlanView. In
 //     dry-run mode the flow stops here, the PlanView's footer saying that
 //     nothing was changed. A plan with no changes says that nothing needs
@@ -54,7 +55,9 @@
 // asked (prompt.Reader.Asked) or the flow wrote a block. A caller that
 // draws something above a flow that asks nothing first, such as a
 // workflow screen's title bar, ends it with those blank lines itself when
-// Asked reports false, as for a form (pkg/ui/form).
+// Asked reports false, as for a form (pkg/ui/form), and calls Flow.Check
+// before it draws, so that nothing is drawn for a flow Run refuses before
+// writing.
 //
 // The Apply step animates only when term.Env.Animate is set: the steps
 // are drawn once and drawn again in place, a spinner on the running step,

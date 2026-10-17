@@ -108,6 +108,10 @@
 //     placed as columns places a row, once the menu has decided whether
 //     all of its items stack, and a key is right-aligned with one gap.
 //     table is ruled out as for HostBlock, and its cut is a fixed "…".
+//     A compact menu's two columns are placed the same way, the second
+//     after spaces up to its key: JoinHorizontal would pad the shorter
+//     first column into trailing spaces (join.go:88), and a borderless
+//     table would pad every last cell (table/table.go:512-518).
 //   - MenuHeading: an underlined style renders each rune with its own SGR
 //     sequence, spaces included (style.go:310, 318 and 428-436), so
 //     "Select an option" costs 16 sequences. Accepted: the terminal draws

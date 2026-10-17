@@ -1,0 +1,86 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;112;212;127mPassword required␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
+      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > User Management > Manage User$
+$
+  Managing sudo method for: [george]$
+$
+# [*] Warning$
+# A user password is required for sudo usage.$
+$
+# User Configuration -------------------------------------------$
+$
+  [+] Sudo Method          Password required$
+$
+   -  Require george's password for sudo$
+      /etc/sudoers.d/hardn-george$
+      @@ -1 +1 @@$
+      -george ALL=(ALL:ALL) NOPASSWD: ALL$
+      +george ALL=(ALL:ALL) ALL$
+      $ visudo -cf /etc/sudoers.d/hardn-george$
+$
+  Require password for sudo? [y/N, 0, b or q]: y$
+$
+  [+] Done: Require george's password for sudo$
+$
+# [+] Operation Successful$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m$
+      ␛[38;2;112;212;127mPassword required␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
+      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$

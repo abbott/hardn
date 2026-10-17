@@ -408,6 +408,12 @@ func TestAbort(t *testing.T) {
 	done, cancel := context.WithCancel(context.Background())
 	cancel()
 	check(done, "a context done before the run", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, nil, context.Canceled)
+	if err := createUser(spy{Fixture: Fixture{Planned: createUserPlan}}).Check(done); !errors.Is(err, context.Canceled) {
+		t.Errorf("a context done before the run: Check() = %v, want context.Canceled", err)
+	}
+	if err := createUser(spy{Fixture: Fixture{Planned: createUserPlan}}).Check(context.Background()); err != nil {
+		t.Errorf("a flow that runs: Check() = %v, want nil", err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	check(ctx, "a context done while planning", createUser, spy{Fixture: Fixture{Planned: createUserPlan}, hook: cancel}, answers, context.Canceled)
 	ctx, cancel = context.WithCancel(context.Background())
@@ -425,6 +431,8 @@ func TestAbort(t *testing.T) {
 // with a short phrase nav refuses, or with neither label nor question to
 // ask it by. None applies anything, and none writes anything for the
 // Confirm step, not even the gap: the transcript ends with the plan.
+// Check reports the refusals Run makes before it writes anything, and
+// none of those it makes later.
 func TestRefused(t *testing.T) {
 	applied := false
 	s := spy{Fixture: Fixture{Planned: planOf(RiskLockout, rootLogin)}, applied: &applied}
@@ -451,6 +459,9 @@ func TestRefused(t *testing.T) {
 		o, out, err := play(plain80, tt.flow)
 		if o != NotRun || !errors.Is(err, tt.want) || applied || (out != "") != tt.wrote || tt.wrote && !strings.HasSuffix(out, "$ systemctl reload ssh\n") {
 			t.Errorf("%s: %d, %v, applied %t, transcript %q", tt.name, o, err, applied, out)
+		}
+		if err := tt.flow.Check(context.Background()); tt.wrote && err != nil || !tt.wrote && !errors.Is(err, tt.want) {
+			t.Errorf("%s: Check() = %v", tt.name, err)
 		}
 	}
 }

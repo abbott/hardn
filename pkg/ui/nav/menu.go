@@ -151,12 +151,16 @@ type Screen struct {
 	Menu Menu
 	// Label is the prompt's question, such as "Enter your choice".
 	Label string
+	// Compact lays the menu out in two columns (component.Menu.Compact),
+	// as the main menu does on a short terminal (pkg/ui/screen).
+	Compact bool
 }
 
 // Run shows a menu screen and runs what the user chooses until they go
 // back or quit. Each round it calls draw, so that the screen shows the
 // state the last action left, and writes Above, theme.SectionGap blank
-// lines, the menu and theme.PromptGap blank lines; then it asks (Choose)
+// lines, the menu (in two columns when Compact is set) and
+// theme.PromptGap blank lines; then it asks (Choose)
 // and runs the option's Action. The next round draws the screen again
 // under what the action wrote, clearing nothing (brief 1C: never wipe a
 // result). A line the prompt refuses does not draw the screen again.
@@ -183,8 +187,10 @@ func (p Prompter) Run(draw func() Screen) error {
 		if err := s.Menu.Check(); err != nil {
 			return err
 		}
+		view := s.Menu.View()
+		view.Compact = s.Compact
 		var parts []string
-		for _, part := range []string{s.Above, s.Menu.View().Render(p.Ctx)} {
+		for _, part := range []string{s.Above, view.Render(p.Ctx)} {
 			if part != "" {
 				parts = append(parts, part)
 			}
