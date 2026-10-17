@@ -97,10 +97,14 @@ type ContextBarStyles struct {
 	Unknown  lipgloss.Style // "Unknown", for a distribution hardn could not read
 }
 
-// TitleBarStyles style a sub-screen's title bar, such as "User Management".
+// TitleBarStyles style a sub-screen's title bar, such as "Manage User",
+// and the section trail it can show before the title, such as "User
+// Management › Manage User" (proposal P-08).
 type TitleBarStyles struct {
-	Fill  lipgloss.Style
-	Title lipgloss.Style // bold
+	Fill      lipgloss.Style
+	Parent    lipgloss.Style // a section before the title: "User Management"
+	Separator lipgloss.Style // the separator glyph between the sections
+	Title     lipgloss.Style // bold
 }
 
 // HostStyles style the host block beside the badge.
@@ -228,7 +232,7 @@ type SectionStyles struct {
 	Rule  lipgloss.Style
 }
 
-// BreadcrumbStyles style a breadcrumb: "hardn › Firewall".
+// BreadcrumbStyles style a breadcrumb: "User Management › Manage User".
 type BreadcrumbStyles struct {
 	Item      lipgloss.Style
 	Current   lipgloss.Style // bold
@@ -326,7 +330,7 @@ func build(env term.Env, p *palette) *Theme {
 		ContextBar: ContextBarStyles{
 			Fill: fill, Name: muted.Bold(true), Version: muted, Codename: faint, Unknown: unknown,
 		},
-		TitleBar: TitleBarStyles{Fill: fill, Title: primary.Bold(true)},
+		TitleBar: TitleBarStyles{Fill: fill, Parent: muted, Separator: faint, Title: primary.Bold(true)},
 		Host:     HostStyles{Address: muted, Uptime: faint, Reboot: warn, Unknown: unknown},
 		Risk: RiskStyles{
 			Label: primary.Bold(true),
