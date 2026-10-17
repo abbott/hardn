@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/infrastructure"
@@ -67,7 +68,7 @@ type opEnv struct {
 }
 
 // fixtureConfig is config.DefaultConfig() with synthetic overrides, then the
-// dry-run flag applied the way main.go:152 applies -n.
+// dry-run flag applied the way main.go:158 applies -n.
 func fixtureConfig(dryRun bool) *config.Config {
 	cfg := config.DefaultConfig()
 	cfg.Username = fixtureUser
@@ -152,7 +153,7 @@ func (e *opEnv) setDNSStrategy(strategy string) {
 	e.fixtureNotes = append(e.fixtureNotes, "DNS probe results forced to select the "+strategy+" strategy, whatever this distro ships")
 }
 
-// hardeningConfigFromCLI mirrors cmd/hardn/main.go:228-244 (hardn -r).
+// hardeningConfigFromCLI mirrors cmd/hardn/main.go:234-250 (hardn -r).
 func hardeningConfigFromCLI(cfg *config.Config) *model.HardeningConfig {
 	return &model.HardeningConfig{
 		CreateUser:         cfg.Username != "",
@@ -188,14 +189,39 @@ type callResult struct {
 }
 
 type opScenario struct {
-	name    string // golden directory
-	op      string // what is called
-	entry   string // how a user reaches it on origin/main
-	cliFlag bool   // reachable from a CLI operation flag (so V1 applies)
+	name  string // golden directory
+	op    string // what is called
+	entry string // how a user reaches it on origin/main
+	// cli lists the command lines that reach it (so V1 applies), each with
+	// the operation names cmd/hardn gives pkg/cmd's dry-run refusal.
+	cli     []cliRun
 	notes   []string
 	setup   func(e *opEnv)
 	run     func(e *opEnv) []callResult
 	defects func(c osCell) []string
+	// fixed lists the V-list (and A-) items a P0.8 hazard gate fixed for
+	// this operation, each with the gate's constant.
+	fixed func(c osCell) []fixedItem
+}
+
+// cliRun is one command line that reaches a scenario's operation.
+type cliRun struct {
+	args string   // after "hardn -n"
+	ops  []string // pkg/cmd's names for its operation flags
+	at   string   // where cmd/hardn refuses it under -n
+}
+
+// Where cmd/hardn/main.go calls pkg/cmd's RefuseDryRunOperations.
+const (
+	refusedInRoot         = "cmd/hardn/main.go:123, before the root check"
+	refusedInSetupSudoEnv = "cmd/hardn/main.go:440, before OS detection"
+)
+
+// fixedItem is a V-list (or A-) item a P0.8 hazard gate fixed: its id (a
+// key of fixedText) and the unexported constant that gates the fix.
+type fixedItem struct {
+	id   string
+	gate string
 }
 
 // Short texts for the V-list (Phase 0 side-effect inventory, V1-V27).
@@ -259,17 +285,22 @@ func newUserDefects(c osCell) []string {
 	return d
 }
 
-var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:152 does for -n. No layer below pkg/menu reads it."
+// fixedText says what a P0.8 hazard gate does instead, for each fixed item.
+var fixedText = map[string]string{
+	"V1": "hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now",
+}
+
+var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it."
 
 func opScenarios() []opScenario {
 	return []opScenario{
 		{
-			name:    "harden_system",
-			op:      "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
-			entry:   "hardn -r (cmd/hardn/main.go:224-254); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:204-246)",
-			cliFlag: true,
-			notes:   []string{"HardeningConfig is built as cmd/hardn/main.go:228-244 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile."},
-			setup:   func(e *opEnv) { e.newUser() },
+			name:  "harden_system",
+			op:    "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
+			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:204-246)",
+			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
+			notes: []string{"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile."},
+			setup: func(e *opEnv) { e.newUser() },
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateMenuManager().HardenSystem(hardeningConfigFromCLI(e.cfg))
 				return []callResult{{"MenuManager.HardenSystem", err}}
@@ -285,11 +316,11 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:    "disable_root_ssh",
-			op:      "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
-			entry:   "hardn -d (cmd/hardn/main.go:277-283); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
-			cliFlag: true,
-			notes:   []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (file_ssh_repository.go:127-131), so the seed is never read."},
+			name:  "disable_root_ssh",
+			op:    "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
+			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
+			cli:   []cliRun{{"-d", []string{hardncmd.FlagDisableRoot}, refusedInRoot}},
+			notes: []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (file_ssh_repository.go:127-131), so the seed is never read."},
 			setup: func(e *opEnv) {
 				e.fs.Files["/etc/ssh/sshd_config"] = []byte("Port 2230\nListenAddress 192.0.2.10\nAllowUsers root alice\nPermitRootLogin yes\nSubsystem sftp /usr/lib/ssh/sftp-server\n")
 				if !e.cell.alpine() {
@@ -309,11 +340,11 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:    "create_user_c_path",
-			op:      "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath",
-			entry:   "hardn -c -u alice (cmd/hardn/main.go:359-377); ConfigureSSH runs even when CreateUser fails",
-			cliFlag: true,
-			setup:   func(e *opEnv) { e.newUser() },
+			name:  "create_user_c_path",
+			op:    "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath",
+			entry: "hardn -c -u alice (cmd/hardn/main.go:365-383); ConfigureSSH runs even when CreateUser fails",
+			cli:   []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
+			setup: func(e *opEnv) { e.newUser() },
 			run: func(e *opEnv) []callResult {
 				cfg := e.cfg
 				errUser := e.factory.CreateUserManager().CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys)
@@ -328,10 +359,10 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:    "configure_secure_firewall",
-			op:      "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
-			entry:   "hardn -w (cmd/hardn/main.go:380-386)",
-			cliFlag: true,
+			name:  "configure_secure_firewall",
+			op:    "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
+			entry: "hardn -w (cmd/hardn/main.go:386-392)",
+			cli:   []cliRun{{"-w", []string{hardncmd.FlagConfigureUFW}, refusedInRoot}},
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
 				return []callResult{{"FirewallManager.ConfigureSecureFirewall", err}}
@@ -362,11 +393,11 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:    "configure_sudo",
-			op:      "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
-			entry:   "hardn -c -u alice when alice exists (cmd/hardn/main.go:360); also every user-menu sudo toggle and key change (pkg/menu/user_options.go)",
-			cliFlag: true,
-			notes:   []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
+			name:  "configure_sudo",
+			op:    "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
+			entry: "hardn -c -u alice when alice exists (cmd/hardn/main.go:366); also every user-menu sudo toggle and key change (pkg/menu/user_options.go)",
+			cli:   []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
+			notes: []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
 			setup: func(e *opEnv) {
 				e.fs.Directories["/etc/sudoers.d"] = true
 				e.fs.Files["/etc/sudoers.d/alice"] = []byte("Defaults:alice env_keep += \"HARDN_CONFIG\"\n")
@@ -388,11 +419,14 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:    "setup_sudo_preservation",
-			op:      "EnvironmentManager.SetupSudoPreservation -> FileEnvironmentRepository.SetupSudoPreservation",
-			entry:   "hardn -e (cmd/hardn/main.go:403-410), hardn setup-sudo-env (cmd/hardn/main.go:420-450), Environment menu",
-			cliFlag: true,
-			notes:   []string{"Environment: SUDO_USER=alice, USER=root, HARDN_CONFIG and TMPDIR unset (so os.TempDir() is /tmp on Linux and macOS). Seed: the sudoers file ConfigureSudo writes."},
+			name:  "setup_sudo_preservation",
+			op:    "EnvironmentManager.SetupSudoPreservation -> FileEnvironmentRepository.SetupSudoPreservation",
+			entry: "hardn -e (cmd/hardn/main.go:409-416), hardn setup-sudo-env (cmd/hardn/main.go:426-461), Environment menu",
+			cli: []cliRun{
+				{"-e", []string{hardncmd.FlagSetupSudoEnv}, refusedInRoot},
+				{"setup-sudo-env", []string{hardncmd.CommandSetupSudoEnv}, refusedInSetupSudoEnv},
+			},
+			notes: []string{"Environment: SUDO_USER=alice, USER=root, HARDN_CONFIG and TMPDIR unset (so os.TempDir() is /tmp on Linux and macOS). Seed: the sudoers file ConfigureSudo writes."},
 			setup: func(e *opEnv) {
 				e.fs.Directories["/etc/sudoers.d"] = true
 				e.fs.Files["/etc/sudoers.d/alice"] = []byte("alice ALL=(ALL) NOPASSWD: ALL\n")
@@ -406,12 +440,12 @@ func opScenarios() []opScenario {
 		dnsScenario("resolvconf"),
 		dnsScenario("direct"),
 		{
-			name:    "dns_empty_nameservers",
-			op:      "DNSManager.ConfigureDNS(no nameservers, \"lan\")",
-			entry:   "hardn -g with no nameservers in the config (cmd/hardn/main.go:389-395)",
-			cliFlag: true,
-			notes:   []string{"Resolver set-up as defaultHostProbes: systemd-resolved on Ubuntu, a regular /etc/resolv.conf elsewhere."},
-			setup:   func(e *opEnv) { e.cfg.Nameservers = nil },
+			name:  "dns_empty_nameservers",
+			op:    "DNSManager.ConfigureDNS(no nameservers, \"lan\")",
+			entry: "hardn -g with no nameservers in the config (cmd/hardn/main.go:395-401)",
+			cli:   []cliRun{{"-g", []string{hardncmd.FlagConfigureDNS}, refusedInRoot}},
+			notes: []string{"Resolver set-up as defaultHostProbes: systemd-resolved on Ubuntu, a regular /etc/resolv.conf elsewhere."},
+			setup: func(e *opEnv) { e.cfg.Nameservers = nil },
 			run: func(e *opEnv) []callResult {
 				return []callResult{{"DNSManager.ConfigureDNS", e.factory.CreateDNSManager().ConfigureDNS(e.cfg.Nameservers, "lan")}}
 			},
@@ -422,11 +456,11 @@ func opScenarios() []opScenario {
 
 func dnsScenario(strategy string) opScenario {
 	return opScenario{
-		name:    "dns_" + strings.ReplaceAll(strategy, "-", "_"),
-		op:      "DNSManager.ConfigureDNS(cfg.Nameservers, \"lan\") -> FileDNSRepository.SaveDNSConfig, " + strategy + " strategy",
-		entry:   "hardn -g (cmd/hardn/main.go:389-395); also Run All and the DNS menu",
-		cliFlag: true,
-		setup:   func(e *opEnv) { e.setDNSStrategy(strategy) },
+		name:  "dns_" + strings.ReplaceAll(strategy, "-", "_"),
+		op:    "DNSManager.ConfigureDNS(cfg.Nameservers, \"lan\") -> FileDNSRepository.SaveDNSConfig, " + strategy + " strategy",
+		entry: "hardn -g (cmd/hardn/main.go:395-401); also Run All and the DNS menu",
+		cli:   []cliRun{{"-g", []string{hardncmd.FlagConfigureDNS}, refusedInRoot}},
+		setup: func(e *opEnv) { e.setDNSStrategy(strategy) },
 		run: func(e *opEnv) []callResult {
 			return []callResult{{"DNSManager.ConfigureDNS", e.factory.CreateDNSManager().ConfigureDNS(e.cfg.Nameservers, "lan")}}
 		},
@@ -434,35 +468,53 @@ func dnsScenario(strategy string) opScenario {
 	}
 }
 
-// defectLines renders KNOWN-DEFECT lines in V-number order.
-func defectLines(ids []string) []string {
+// markerLines renders a KNOWN-DEFECT line for each id in known (texts in
+// vText) and a FIXED line for each fixed item (texts in fixedText), in
+// V-number order, then the A- items of the verification pass.
+func markerLines(known []string, fixed []fixedItem) []string {
 	type item struct {
-		n    int
-		id   string
-		text string
+		rank, n int
+		line    string
 	}
 	var items []item
-	seen := map[string]bool{}
-	for _, id := range ids {
-		if seen[id] {
-			continue
+	seen := map[string]string{} // id -> prefix
+	add := func(id, text, prefix string) {
+		if p, ok := seen[id]; ok {
+			if p != prefix {
+				panic(id + " is both fixed and a known defect")
+			}
+			return
 		}
-		seen[id] = true
-		base, _, _ := strings.Cut(id, ":")
-		text := vText[id]
+		seen[id] = prefix
 		if text == "" {
-			panic("no V-list text for " + id)
+			panic("no text for " + id)
 		}
-		n, err := strconv.Atoi(strings.TrimPrefix(base, "V"))
-		if err != nil {
-			panic("bad V-number " + id)
+		base, _, _ := strings.Cut(id, ":")
+		rank := 0
+		if strings.HasPrefix(base, "A") {
+			rank = 1
 		}
-		items = append(items, item{n, base, text})
+		n, err := strconv.Atoi(base[1:])
+		if err != nil || (base[0] != 'V' && base[0] != 'A') {
+			panic("bad V- or A-number " + id)
+		}
+		items = append(items, item{rank, n, fmt.Sprintf("# %s: %s — %s", prefix, base, text)})
 	}
-	sort.SliceStable(items, func(i, j int) bool { return items[i].n < items[j].n })
+	for _, f := range fixed {
+		add(f.id, fixedText[f.id], "FIXED (P0.8, gated by "+f.gate+")")
+	}
+	for _, id := range known {
+		add(id, vText[id], "KNOWN-DEFECT")
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		if items[i].rank != items[j].rank {
+			return items[i].rank < items[j].rank
+		}
+		return items[i].n < items[j].n
+	})
 	lines := make([]string, len(items))
 	for i, it := range items {
-		lines[i] = fmt.Sprintf("# KNOWN-DEFECT: %s — %s", it.id, it.text)
+		lines[i] = it.line
 	}
 	return lines
 }
@@ -556,16 +608,33 @@ func TestOperationGoldens(t *testing.T) {
 					t.Fatalf("fixture differs between DryRun runs:\n%s\n---\n%s", fixture, fixtureDry)
 				}
 
+				// hardn -n with the scenario's flags, as cmd/hardn/main.go runs
+				// it: pkg/cmd's refusal first, before anything else. cmd/hardn's
+				// TestDryRunRefusesOperations drives the real command and shows
+				// that nothing reaches the provider; this mirrors it.
+				var cliSections strings.Builder
+				var fixed []fixedItem
+				known := sc.defects(cell)
+				for _, run := range sc.cli {
+					fmt.Fprintf(&cliSections, "\n== hardn -n %s (pkg/cmd RefuseDryRunOperations at %s)\n", run.args, run.at)
+					if err := hardncmd.RefuseDryRunOperations(true, run.ops); err != nil {
+						fmt.Fprintf(&cliSections, "refused: exit status %d\nstderr: %s\ntrace:\n%s", hardncmd.ExitUsage, err, (&trace{}).String())
+						fixed = append(fixed, fixedItem{"V1", "dryRunFlagApplies"})
+					} else {
+						cliSections.WriteString("not refused: the operation runs as the cfg.DryRun=true section shows\n")
+						known = append([]string{"V1"}, known...)
+					}
+				}
+				if sc.fixed != nil {
+					fixed = append(fixed, sc.fixed(cell)...)
+				}
+
 				var b strings.Builder
 				b.WriteString(baselineHeader + "\n")
 				b.WriteString("# Generated by TestOperationGoldens (pkg/characterization); regenerate with -update. Do not edit.\n")
 				fmt.Fprintf(&b, "# Operation: %s\n", sc.op)
 				fmt.Fprintf(&b, "# Reached by: %s\n", sc.entry)
-				ids := sc.defects(cell)
-				if sc.cliFlag {
-					ids = append([]string{"V1"}, ids...)
-				}
-				for _, l := range defectLines(ids) {
+				for _, l := range markerLines(known, fixed) {
 					b.WriteString(l + "\n")
 				}
 				fmt.Fprintf(&b, "# NOTE: %s\n", dryRunNote)
@@ -579,6 +648,7 @@ func TestOperationGoldens(t *testing.T) {
 				b.WriteString("\n== cfg.DryRun=true\n")
 				b.WriteString(dry)
 				fmt.Fprintf(&b, "\ncfg.DryRun=true section identical to cfg.DryRun=false: %t\n", apply == dry)
+				b.WriteString(cliSections.String())
 
 				assertGolden(t, "ops/"+sc.name+"/"+cell.name+".golden", b.String())
 			})

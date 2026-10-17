@@ -10,7 +10,10 @@
 // baseline (maintainer decision 6), and lines tagged KNOWN-DEFECT name entries
 // of the Phase 0 V-list (side-effect inventory, V1-V27) that the refactor is
 // expected to fix. A fix flips its golden deliberately, in the same commit,
-// with the reason in the review description.
+// with the reason in the review description. A P0.8 hazard gate's fix turns
+// the item's KNOWN-DEFECT line into a FIXED line that names the unexported
+// constant gating it (flip the constant to restore the old behaviour), and
+// the body shows what runs now.
 //
 // Regenerate after an intended change:
 //

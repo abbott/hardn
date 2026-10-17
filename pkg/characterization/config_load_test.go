@@ -24,7 +24,7 @@ func configCases() []configCase {
 		{
 			name: "full-flag", fixture: "full.yml",
 			notes: []string{
-				"LoadConfig keeps dryRun from the file; cmd/hardn/main.go:152 then overwrites it with the -n flag value (V3).",
+				"LoadConfig keeps dryRun from the file; cmd/hardn/main.go:158 then overwrites it with the -n flag value (V3).",
 				"The unknown key notAConfigKey is ignored without a warning.",
 				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:37-43).",
 			},
@@ -69,11 +69,11 @@ func TestConfigLoadGoldens(t *testing.T) {
 			}
 
 			explicit := path
-			how := "explicit path (hardn -f <file>, cmd/hardn/main.go:145)"
+			how := "explicit path (hardn -f <file>, cmd/hardn/main.go:151)"
 			if tc.viaEnv {
 				explicit = ""
 				t.Setenv("HARDN_CONFIG", path)
-				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go:145)"
+				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go:151)"
 			}
 
 			cfg, loadErr := config.LoadConfig(explicit)

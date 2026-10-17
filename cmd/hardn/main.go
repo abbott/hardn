@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	osuser "os/user"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	"github.com/abbott/hardn/pkg/cmd"
+	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/infrastructure"
@@ -80,7 +81,7 @@ func init() {
 	cobra.OnInitialize(initializeColor)
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	rootCmd.AddCommand(cmd.SystemDetailsCmd())
+	rootCmd.AddCommand(hardncmd.SystemDetailsCmd())
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
@@ -118,6 +119,11 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// -n only previews: refuse operation flags before anything runs (V1).
+		if refuseDryRunOperations(operationFlags()) {
+			return
+		}
+
 		// Create version service
 		versionService := version.NewService(Version, BuildDate, GitCommit)
 
@@ -128,24 +134,24 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Check if running as root
-		currentUser, err := osuser.Current()
+		currentUser, err := lookupCurrentUser()
 		if err != nil {
 			logging.LogError("Failed to get current user: %v", err)
-			os.Exit(1)
+			exit(1)
 		}
 
 		if currentUser.Uid != "0" {
 			logging.LogError("This script needs to be run as root.")
 			fmt.Println("For Ubuntu/Debian run: `sudo hardn` or switch to root `sudo -i`")
 			fmt.Println("For Alpine run: `sudo hardn` or switch to root `su`")
-			os.Exit(1)
+			exit(1)
 		}
 
 		// Load configuration (will check both command-line flag and environment variable)
-		cfg, err = config.LoadConfig(configFile)
+		cfg, err = loadConfig(configFile)
 		if err != nil {
 			logging.LogError("Failed to load configuration: %v", err)
-			os.Exit(1)
+			exit(1)
 		}
 
 		// Set dry run mode from flag
@@ -159,14 +165,14 @@ var rootCmd = &cobra.Command{
 		// Check if we need to create a user and no username is provided
 		if (createUser || runAll) && cfg.Username == "" {
 			logging.LogError("Please specify a username with -u flag or in the configuration file.")
-			os.Exit(1)
+			exit(1)
 		}
 
 		// Detect OS
-		osInfo, err := osdetect.DetectOS()
+		osInfo, err := detectOS()
 		if err != nil {
 			logging.LogError("Failed to detect OS: %v", err)
-			os.Exit(1)
+			exit(1)
 		}
 
 		// Create service factory
@@ -403,7 +409,7 @@ var rootCmd = &cobra.Command{
 		if setupSudoEnv {
 			if err := environmentManager.SetupSudoPreservation(); err != nil {
 				logging.LogError("Failed to configure sudoers: %v", err)
-				os.Exit(1)
+				exit(1)
 			}
 			logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 			return
@@ -430,11 +436,16 @@ This command must be run with sudo privileges.
 Example:
   sudo hardn setup-sudo-env`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// -n only previews: refuse before anything runs (V1).
+		if refuseDryRunOperations([]string{hardncmd.CommandSetupSudoEnv}) {
+			return
+		}
+
 		// Detect OS
-		osInfo, err := osdetect.DetectOS()
+		osInfo, err := detectOS()
 		if err != nil {
 			logging.LogError("Failed to detect OS: %v", err)
-			os.Exit(1)
+			exit(1)
 		}
 
 		// Create service factory
@@ -443,8 +454,58 @@ Example:
 
 		if err := environmentManager.SetupSudoPreservation(); err != nil {
 			logging.LogError("Failed to configure sudoers: %v", err)
-			os.Exit(1)
+			exit(1)
 		}
 		logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 	},
+}
+
+// The steps of the commands' Run functions that reach the host outside the
+// provider, and the process exit. cmd/hardn's tests replace them, so that a
+// test never reads this machine's user, config or OS, and never exits.
+var (
+	lookupCurrentUser           = osuser.Current
+	loadConfig                  = config.LoadConfig
+	detectOS                    = osdetect.DetectOS
+	exit                        = os.Exit
+	stderr            io.Writer = os.Stderr
+)
+
+// operationFlags names the operation flags set on the command line, the
+// flags that change the host (pkg/cmd lists them).
+func operationFlags() []string {
+	var names []string
+	for _, f := range []struct {
+		set  bool
+		name string
+	}{
+		{runAll, hardncmd.FlagRunAll},
+		{createUser, hardncmd.FlagCreateUser},
+		{disableRootSSH, hardncmd.FlagDisableRoot},
+		{configureUfw, hardncmd.FlagConfigureUFW},
+		{configureDns, hardncmd.FlagConfigureDNS},
+		{setupSudoEnv, hardncmd.FlagSetupSudoEnv},
+		{installLinux, hardncmd.FlagInstallLinux},
+		{installPython, hardncmd.FlagInstallPython},
+		{installAll, hardncmd.FlagInstallAll},
+		{updateSources, hardncmd.FlagConfigureSources},
+	} {
+		if f.set {
+			names = append(names, f.name)
+		}
+	}
+	return names
+}
+
+// refuseDryRunOperations reports whether -n was combined with the named
+// operations; if so it has printed why to stderr and ended hardn with exit
+// status 2 (pkg/cmd's dryRunFlagApplies gates this; V1).
+func refuseDryRunOperations(operations []string) bool {
+	err := hardncmd.RefuseDryRunOperations(dryRun, operations)
+	if err == nil {
+		return false
+	}
+	fmt.Fprintln(stderr, err)
+	exit(hardncmd.ExitUsage)
+	return true
 }
