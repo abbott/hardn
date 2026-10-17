@@ -614,8 +614,9 @@ func TestScreenSelect(t *testing.T) {
 // status 0; every mock under its header; every sequence step by step, or,
 // one that ends otherwise at the width (screen.Diverged), whole under its
 // own name's header; the escape sequences the profile allows and no more;
-// only ASCII where asked, but for data such as 01-USER's "≥"; and no line
-// wider than the terminal but a header, which shows its whole name.
+// only ASCII where asked, data such as 01-USER's "UID ≥ 1000" included
+// (DEV-036); and no line wider than the terminal but a header, which
+// shows its whole name.
 func TestScreenSmoke(t *testing.T) {
 	narrowed := 0
 	var typed []string
@@ -680,7 +681,7 @@ func TestScreenSmoke(t *testing.T) {
 							t.Errorf("%s: no colour", where)
 						}
 					}
-					if data := strings.ReplaceAll(ansi.Strip(out), "≥", ""); (p.name == "plain" || ascii) && strings.ContainsFunc(data, func(r rune) bool { return r > 0x7e }) {
+					if (p.name == "plain" || ascii) && strings.ContainsFunc(ansi.Strip(out), func(r rune) bool { return r > 0x7e }) {
 						t.Errorf("%s: a glyph outside ASCII", where)
 					}
 					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {

@@ -291,6 +291,39 @@ func clean(s string) string {
 	return s
 }
 
+// asciiText maps the typography view-model text may hold, beyond the
+// typographic quotes clean maps everywhere, to ASCII: ≥ to >=, ≤ to <=,
+// ≠ to !=, … to ..., the en and em dashes – and — to -, × to x, → to ->
+// and • to * (no glyph of either set is •). Ctx.text applies it with the
+// ASCII glyph set (term.Env.Unicode false), which the terminals that
+// cannot draw these characters get: TERM linux or dumb, a locale with no
+// UTF-8, a CJK locale, plain mode, --ascii (DEV-036).
+var asciiText = strings.NewReplacer(
+	"\u2265", ">=",
+	"\u2264", "<=",
+	"\u2260", "!=",
+	"\u2026", "...",
+	"\u2013", "-",
+	"\u2014", "-",
+	"\u00D7", "x",
+	"\u2192", "->",
+	"\u2022", "*",
+)
+
+// text makes a view-model string one line of plain text for c, as clean
+// does, and with the ASCII glyph set maps its typography to ASCII
+// (asciiText), so that ASCII output shows no character the glyph set
+// exists to avoid. What must be typed or opened as shown keeps its
+// characters, through clean alone: a menu's keys, a prompt's hint, which
+// lists the inputs it accepts, and a report's log path; code keeps them
+// too (raw).
+func (c Ctx) text(s string) string {
+	if s = clean(s); !c.Env.Unicode {
+		s = asciiText.Replace(s)
+	}
+	return s
+}
+
 // tabWidth is the cells a tab takes in code, as Lip Gloss's own default
 // (style.go:14 in lipgloss v2.0.6).
 const tabWidth = 4
@@ -409,9 +442,10 @@ func (c Ctx) code(col int, s string, style lipgloss.Style) []string {
 	}
 }
 
-// known returns s in style, or the word Unknown in alt when s is empty.
-func known(s string, style, alt lipgloss.Style) line {
-	if s = clean(s); s != "" {
+// known returns s in style, shown as text shows it, or the word Unknown
+// in alt when s is empty.
+func (c Ctx) known(s string, style, alt lipgloss.Style) line {
+	if s = c.text(s); s != "" {
 		return line{{s, style}}
 	}
 	return line{{unknown, alt}}

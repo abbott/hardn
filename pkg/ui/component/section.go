@@ -29,7 +29,7 @@ type SectionHeader struct {
 func (vm SectionHeader) Render(c Ctx) string {
 	t, w := c.Theme.Section, c.barWidth()
 	stub := c.paint(t.Fill, 1).String()
-	title := clean(vm.Title)
+	title := c.text(vm.Title)
 	if title == "" || w <= barFrame {
 		if w < 3 {
 			return c.paint(t.Fill, w).String()
@@ -68,7 +68,7 @@ type Breadcrumb struct {
 func (vm Breadcrumb) Render(c Ctx) string {
 	var items []string
 	for _, it := range vm.Items {
-		if it = clean(it); it != "" {
+		if it = c.text(it); it != "" {
 			items = append(items, it)
 		}
 	}

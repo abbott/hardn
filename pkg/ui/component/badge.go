@@ -26,7 +26,7 @@ type Badge struct {
 
 // Render renders the badge for c. See Badge for the layout.
 func (vm Badge) Render(c Ctx) string {
-	s := clean(vm.Text)
+	s := c.text(vm.Text)
 	if s == "" {
 		return ""
 	}
@@ -58,7 +58,7 @@ type SubjectLine struct {
 
 // Render renders the line for c. See SubjectLine for the layout.
 func (vm SubjectLine) Render(c Ctx) string {
-	subject, label := clean(vm.Subject), clean(vm.Label)
+	subject, label := c.text(vm.Subject), c.text(vm.Label)
 	switch {
 	case subject == "":
 		return ""

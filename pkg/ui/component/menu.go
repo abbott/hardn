@@ -40,7 +40,7 @@ type MenuHeading struct {
 
 // Render renders the heading for c. See MenuHeading for the layout.
 func (vm MenuHeading) Render(c Ctx) string {
-	title := clean(vm.Title)
+	title := c.text(vm.Title)
 	switch {
 	case title == "" && vm.Mode == nil:
 		return ""
@@ -317,11 +317,11 @@ func (it MenuItem) parts(c Ctx, exit bool) (key, label span, value, note line) {
 	if k := clean(it.Key); k != "" {
 		key = span{k + ")", keyStyle}
 	}
-	label = span{clean(it.Label), labelStyle}
-	if d := clean(it.Description); d != "" {
+	label = span{c.text(it.Label), labelStyle}
+	if d := c.text(it.Description); d != "" {
 		value = line{{d, descStyle}}
 	}
-	if a := clean(it.Aside); a != "" {
+	if a := c.text(it.Aside); a != "" {
 		if len(value) > 0 {
 			value = append(value, gap(1))
 		}

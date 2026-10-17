@@ -33,7 +33,12 @@
 //     under its own first line: a Message's text, a Callout's body and a
 //     bullet item, which have nothing beside them. Typographic quotes in
 //     view-model text, ‘ ’ and “ ”, are shown as ASCII ' and " (C12,
-//     DEV-036); components add none.
+//     DEV-036); components add none. With the ASCII glyph set
+//     (term.Env.Unicode false) view-model text's ≥ ≤ ≠ … – — × → and • are
+//     shown as >= <= != ... - - x -> and * too, before it is measured
+//     (DEV-036). A menu's keys, a prompt's hint, which lists the inputs it
+//     accepts, and a report's log path keep their characters, as what is
+//     typed or opened must show as it is.
 //   - Code. A diff's lines, a plan's target and commands, and captured
 //     output are code: shown as they are, quotes (typographic ones too)
 //     and indent kept, escape and control characters dropped, a tab four

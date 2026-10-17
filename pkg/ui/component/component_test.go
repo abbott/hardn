@@ -478,6 +478,88 @@ func TestLayout(t *testing.T) {
 	}
 }
 
+// TestASCIIText checks the typography map (DEV-036): with the ASCII glyph
+// set each component shows view-model text's ≥ ≤ ≠ … – — × → and • as
+// >= <= != ... - - x -> and *, so that its output holds nothing but
+// ASCII; with the Unicode set the text keeps them. The typographic quotes
+// are shown as ASCII in both sets (C12). What must be typed as shown, the
+// hint generated from a prompt's inputs, and code, a plan's diff, target
+// and commands (DEV-038), keep their characters in both.
+func TestASCIIText(t *testing.T) {
+	const (
+		typo   = "≥1 ≤2 ≠3 …4 –5 —6 ×7 →8 •9"
+		mapped = ">=1 <=2 !=3 ...4 -5 -6 x7 ->8 *9"
+	)
+	tests := []struct {
+		name string
+		vm   renderer
+	}{
+		{"header", Header{Version: typo}},
+		{"context bar", ContextBar{Name: typo}},
+		{"title bar", TitleBar{Title: typo}},
+		{"host block", HostBlock{Hostname: "web-01", Address: typo, Uptime: typo}},
+		{"risk summary", RiskSummary{Band: RiskModerate, Level: "Moderate", Factors: []string{typo}}},
+		{"status row", StatusRow{Label: "Non-root", State: StatusConfigured, Detail: "UID ≥ 1000"}},
+		{"menu heading", MenuHeading{Title: typo}},
+		{"menu", Menu{Items: []MenuItem{{Key: "1", Label: "Users", Description: typo}}}},
+		{"prompt", PromptLine{Label: typo, Accepts: yesNo}},
+		{"badge", Badge{Text: typo}},
+		{"subject line", SubjectLine{Label: typo, Subject: "george"}},
+		{"section header", SectionHeader{Title: typo}},
+		{"breadcrumb", Breadcrumb{Items: []string{"hardn", typo}}},
+		{"key-value", BulletList{Items: []KeyValue{{Key: typo}, {Key: "SSH", Value: typo}}}},
+		{"message", Message{Kind: MessageInfo, Text: typo}},
+		{"callout", Callout{Kind: MessageWarn, Title: typo, Body: []string{typo}}},
+		{"answered field", AnsweredField{Number: 1, Label: typo, Answer: typo}},
+		{"field head", FieldHead{Number: 1, Title: typo, Description: typo}},
+		{"plan title", PlanView{Changes: []PlanChange{{Title: typo}}}},
+		{"steps", StepProgress{Steps: []Step{{Title: typo, State: StepFailed, Detail: "–"}}}},
+		{"report", ErrorReport{RolledBack: []string{typo}}},
+	}
+	for _, tt := range tests {
+		ascii := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, false, true))))
+		if strings.ContainsFunc(ascii, func(r rune) bool { return r > '~' }) {
+			t.Errorf("%s, ASCII: a character outside ASCII in\n%s", tt.name, ascii)
+		}
+		unicode := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))))
+		if tt.name == "status row" {
+			if !strings.Contains(ascii, "UID >= 1000") || !strings.Contains(unicode, "UID ≥ 1000") {
+				t.Errorf("status row: ASCII\n%s\nUnicode\n%s\nwant UID >= 1000 and UID ≥ 1000", ascii, unicode)
+			}
+			continue
+		}
+		if !strings.Contains(ascii, mapped) || strings.Contains(ascii, typo) {
+			t.Errorf("%s, ASCII: want %q in\n%s", tt.name, mapped, ascii)
+		}
+		if !strings.Contains(unicode, typo) {
+			t.Errorf("%s, Unicode: want %q in\n%s", tt.name, typo, unicode)
+		}
+	}
+	quoted := Message{Kind: MessageInfo, Text: "‘root’ “Port”"}
+	for _, unicode := range []bool{false, true} {
+		if got := ansi.Strip(quoted.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, unicode, true)))); !strings.Contains(got, `'root' "Port"`) {
+			t.Errorf("unicode %v: quotes in %q, want ASCII ones", unicode, got)
+		}
+	}
+	kept := []struct {
+		name string
+		vm   renderer
+		want string
+	}{
+		{"a hint names what is typed", PromptLine{Label: "Next", Accepts: keys.Set{{Keys: []string{"→"}}}}, "[→]:"},
+		{"code keeps its characters", PlanView{Changes: []PlanChange{{
+			Title: "Set", Target: "/etc/a…b", Before: "x ≤ 1\n", After: "x ≥ 1\n", Commands: []string{"echo a — b"},
+		}}}, "/etc/a…b\n      -x ≤ 1\n      +x ≥ 1\n      $ echo a — b"},
+	}
+	for _, tt := range kept {
+		for _, unicode := range []bool{false, true} {
+			if got := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, unicode, true)))); !strings.Contains(got, tt.want) {
+				t.Errorf("%s, unicode %v: want %q in\n%s", tt.name, unicode, tt.want, got)
+			}
+		}
+	}
+}
+
 // TestModeWord checks that the ModeIndicator ends with its whole word, the
 // one thing that tells the modes apart, at every width the word fits, in
 // both glyph sets.

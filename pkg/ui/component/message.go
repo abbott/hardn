@@ -130,7 +130,7 @@ type Message struct {
 
 // Render renders the message for c. See Message for the layout.
 func (vm Message) Render(c Ctx) string {
-	text := clean(vm.Text)
+	text := c.text(vm.Text)
 	if text == "" {
 		return ""
 	}
@@ -204,7 +204,7 @@ type Callout struct {
 func (vm Callout) Render(c Ctx) string {
 	k, w := vm.Kind.callout(c.Theme.Callout), c.width()
 	bar := line{c.paint(k.Bar, 1), gap(1)}
-	title := clean(vm.Title)
+	title := c.text(vm.Title)
 	switch {
 	case title == "":
 		title = vm.Kind.title()
@@ -213,7 +213,7 @@ func (vm Callout) Render(c Ctx) string {
 	}
 	out := []string{c.fit(append(bar, span{vm.Kind.glyph(c.Theme.Glyphs) + " " + title, k.Title}), w)}
 	for _, p := range vm.Body {
-		if p = clean(p); p == "" {
+		if p = c.text(p); p == "" {
 			continue
 		}
 		for _, l := range wrap(p, w-bar.width()) {

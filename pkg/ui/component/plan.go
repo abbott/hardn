@@ -109,7 +109,7 @@ func (ch PlanChange) render(c Ctx) string {
 		lead = marker(g.Risk, t.LockoutRisk)
 	}
 	lead = lead.to(theme.LabelCol)
-	title, style := clean(ch.Title), t.Title
+	title, style := c.text(ch.Title), t.Title
 	if title == "" {
 		title, style = unknown, c.Theme.Status.Unknown
 	}

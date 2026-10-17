@@ -24,11 +24,11 @@ type ContextBar struct {
 // Render renders the bar for c. See ContextBar for the layout.
 func (vm ContextBar) Render(c Ctx) string {
 	t := c.Theme.ContextBar
-	text := known(vm.Name, t.Name, t.Unknown)
-	if v := clean(vm.Version); v != "" {
+	text := c.known(vm.Name, t.Name, t.Unknown)
+	if v := c.text(vm.Version); v != "" {
 		text = append(text, gap(1), span{v, t.Version})
 	}
-	if cn := clean(vm.Codename); cn != "" {
+	if cn := c.text(vm.Codename); cn != "" {
 		text = append(text, gap(1), span{"(" + cn + ")", t.Codename})
 	}
 	return c.bar(t.Fill, text)
@@ -45,7 +45,7 @@ type TitleBar struct {
 // Render renders the bar for c. See ContextBar for the layout.
 func (vm TitleBar) Render(c Ctx) string {
 	var text line
-	if s := clean(vm.Title); s != "" {
+	if s := c.text(vm.Title); s != "" {
 		text = line{{s, c.Theme.TitleBar.Title}}
 	}
 	return c.bar(c.Theme.TitleBar.Fill, text)

@@ -54,13 +54,13 @@ type AnsweredField struct {
 // Render renders the field for c. See AnsweredField for the layout.
 func (vm AnsweredField) Render(c Ctx) string {
 	t, w := c.Theme.Field, c.width()
-	label := clean(vm.Label)
+	label := c.text(vm.Label)
 	if label == "" {
 		return ""
 	}
 	numbered := vm.Number > 0
 	head := vm.head(c)
-	hint, answer := clean(vm.Accepts.Hint()), clean(vm.Answer)
+	hint, answer := clean(vm.Accepts.Hint()), c.text(vm.Answer)
 	asked, shown := c.ask(head, label, hint, t.Label, t.Hint, w)
 	if !shown && hint == "" && !numbered {
 		// ask left nothing but the indent: cut the question itself, so
@@ -91,7 +91,7 @@ func (vm AnsweredField) Render(c Ctx) string {
 // instead, where the title has the line to itself and the hint goes on the
 // prompt line. A field with no question shows nothing, so not whole.
 func (vm AnsweredField) ShowsWhole(c Ctx) bool {
-	t, label := c.Theme.Field, clean(vm.Label)
+	t, label := c.Theme.Field, c.text(vm.Label)
 	if label == "" {
 		return false
 	}

@@ -95,7 +95,7 @@ func (vm ErrorReport) rolledBack(c Ctx) string {
 	style := StepRolledBack.style(c.Theme.Step)
 	var out []string
 	for _, name := range vm.RolledBack {
-		title, titleStyle := clean(name), c.Theme.Step.Title
+		title, titleStyle := c.text(name), c.Theme.Step.Title
 		if title == "" {
 			title, titleStyle = unknown, c.Theme.Status.Unknown
 		}

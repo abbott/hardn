@@ -31,14 +31,14 @@ func (vm Header) Render(c Ctx) string {
 	t := c.Theme.Header
 	w := c.width()
 	head := line{{wordmark, t.Wordmark}}
-	if v := clean(vm.Version); v != "" {
+	if v := c.text(vm.Version); v != "" {
 		if t.Version.GetBackground() != (lipgloss.NoColor{}) {
 			head = append(head, gap(1), span{" " + v + " ", t.Version})
 		} else {
 			head = append(head, gap(2), span{v, t.Version})
 		}
 	}
-	url := clean(vm.URL)
+	url := c.text(vm.URL)
 	switch {
 	case url == "":
 		return c.fit(head, w)

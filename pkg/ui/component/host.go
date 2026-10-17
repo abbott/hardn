@@ -39,12 +39,12 @@ type HostBlock struct {
 func (vm HostBlock) Render(c Ctx) string {
 	t := c.Theme.Host
 	label := line{gap(theme.Indent), {unknown, t.Unknown}}
-	if name := clean(vm.Hostname); name != "" {
+	if name := c.text(vm.Hostname); name != "" {
 		label[1] = c.badge(name, c.width()-theme.Indent)
 	}
 	values := []line{
-		known(vm.Address, t.Address, t.Unknown),
-		known(vm.Uptime, t.Uptime, t.Unknown),
+		c.known(vm.Address, t.Address, t.Unknown),
+		c.known(vm.Uptime, t.Uptime, t.Unknown),
 	}
 	if vm.RebootPending {
 		values = append(values, line{{c.Theme.Glyphs.Partial + " " + rebootPending, t.Reboot}})
