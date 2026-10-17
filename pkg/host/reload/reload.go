@@ -117,7 +117,11 @@ type Step struct {
 	// show active, or, with OpenRC, the service OpenRC must have started.
 	Unit   string
 	OpenRC bool
-	Why    string // one line for the plan view
+	// Restart: Argv stops and starts Unit, so its failure stands even when
+	// Unit is down afterwards. A reload that fails while Unit stops
+	// meanwhile is not an error (StepReport.NotUp).
+	Restart bool
+	Why     string // one line for the plan view
 }
 
 // Plan is how to make sshd use an installed change. On an error from
@@ -179,7 +183,9 @@ func PlanFor(in Input) (Plan, error) {
 	switch s.Mode {
 	case detect.SSHSocket:
 		if !p.Listen {
-			p.Steps = []Step{reloadService()}
+			st := reloadService()
+			st.Why += "; when it is inactive, the next connection starts sshd from the files on disk"
+			p.Steps = []Step{st}
 			break
 		}
 		if err := socketReady(s, in.DropIns); err != nil {
@@ -190,7 +196,7 @@ func PlanFor(in Input) (Plan, error) {
 				Why: "rerun sshd-socket-generator, which sets " + SocketUnit + "'s listeners from the files' Port and ListenAddress"},
 			{Kind: StepCheckSocket, Argv: []string{"systemctl", "show", "-p", "Listen", SocketUnit},
 				Why: SocketUnit + " is configured for every listener the files name, before any socket is rebound"},
-			{Kind: StepIfUp, Unit: SocketUnit, Argv: []string{"systemctl", "restart", SocketUnit},
+			{Kind: StepIfUp, Unit: SocketUnit, Restart: true, Argv: []string{"systemctl", "restart", SocketUnit},
 				Why: "bind the listeners; " + ServiceUnit + ", which requires the socket, restarts with it"},
 		}
 	case detect.SSHService:

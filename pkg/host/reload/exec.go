@@ -34,8 +34,9 @@ type StepReport struct {
 	Ran    bool        // the command ran
 	Result host.Result // its result, when it ran
 	// NotUp is the unit's state when a StepIfUp found it not up: the
-	// command did not run, or failed because the unit stopped meanwhile.
-	// sshd then reads the files when it next starts.
+	// command did not run, or (not for a Restart) failed because the unit
+	// stopped meanwhile. sshd then reads the installed files when it next
+	// starts: on a socket host, at the next connection.
 	NotUp string
 }
 
@@ -124,7 +125,7 @@ func runStep(ctx context.Context, sys host.System, st Step, want []sshd.Listener
 	sr.Ran = true
 	sr.Result, err = sys.Run(ctx, st.Argv[0], st.Argv[1:]...)
 	if err != nil {
-		if st.Kind == StepIfUp {
+		if st.Kind == StepIfUp && !st.Restart {
 			if up, state, uerr := isUp(ctx, sys, st); uerr == nil && !up {
 				sr.NotUp = state + " (it stopped while " + host.FormatArgv(st.Argv) + " ran)"
 				return sr, nil

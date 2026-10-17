@@ -217,6 +217,18 @@ func TestExecuteFails(t *testing.T) {
 				t.Errorf("err = %v, want ErrNotBound missing %v", err, at2230)
 			}
 		}},
+		{"socket restart fails and leaves it down", reload.Input{SSH: ubuntu2604, Change: port(at22, both), DropIns: none}, func(h *hostfake.System) {
+			respond(h, ok, "systemctl", "daemon-reload")
+			respond(h, hostfake.Response{Stdout: listenBoth}, "systemctl", "show", "-p", "Listen", "ssh.socket")
+			respond(h, active, isActive("ssh.socket")...)
+			respond(h, hostfake.Response{Stdout: "failed\n", ExitCode: 3}, isActive("ssh.socket")...)
+			respond(h, hostfake.Response{Stderr: "Job for ssh.socket failed.\n", ExitCode: 1}, "systemctl", "restart", "ssh.socket")
+		}, func(t *testing.T, err error) {
+			var xe *host.ExitError
+			if !errors.As(err, &xe) || !strings.Contains(err.Error(), "systemctl restart ssh.socket") {
+				t.Errorf("err = %v, want the restart's *host.ExitError", err)
+			}
+		}},
 		{"unit state not established", debianPort, func(h *hostfake.System) {
 			respond(h, hostfake.Response{Stdout: "activating\n", ExitCode: 3}, isActive("ssh.service")...)
 		}, func(t *testing.T, err error) {
