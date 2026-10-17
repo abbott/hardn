@@ -37,28 +37,51 @@ linters:
     # build tags.
     depguard:
       rules:
-        # Lip Gloss is pkg/ui's alone: other code gets its output from the
-        # components and the theme.
-        lipgloss:
-          files:
-            - "$all"
-            - "!${base-path}/pkg/ui/**"
-          deny:
-            - pkg: charm.land/lipgloss
-              desc: Lip Gloss is for pkg/ui only; build the screen from pkg/ui components (design-system README §9.15)
-        # So are the colour, ANSI and terminal libraries under it. The dev-only
-        # gallery names colour profiles for term.Fixed and measures its headers.
-        terminal:
+        # Charm's libraries are pkg/ui's alone: other code gets its output
+        # from the components and the theme. Both module hosts, whole, so
+        # that Lip Gloss and the colour, ANSI and terminal libraries under
+        # it are covered, and any Charm module added later.
+        charm:
           files:
             - "$all"
             - "!${base-path}/pkg/ui/**"
             - "!${base-path}/internal/tools/uigallery/**"
           deny:
-            - pkg: github.com/charmbracelet/colorprofile
-              desc: colour profiles are pkg/ui/term's; render through term.Env (design-system README §9.15)
-            - pkg: github.com/charmbracelet/x/ansi
-              desc: no raw ANSI outside pkg/ui; use the components and the theme (design-system README §9.15)
+            - pkg: charm.land/
+              desc: Charm's libraries, Lip Gloss among them, are for pkg/ui only; build the screen from pkg/ui components (design-system README §9.15)
+            - pkg: github.com/charmbracelet/
+              desc: Charm's colour, ANSI and terminal libraries are for pkg/ui only; render through the components and term.Env (design-system README §9.15)
+        # The dev-only gallery names colour profiles for term.Fixed and
+        # measures its headers with x/ansi, and takes no other Charm library.
+        # Lax: an import no entry denies passes, and the allow entries carve
+        # those two out of the denied host.
+        gallery:
+          list-mode: lax
+          files:
+            - "${base-path}/internal/tools/uigallery/**"
+          allow:
+            - github.com/charmbracelet/colorprofile
+            - github.com/charmbracelet/x/ansi
+          deny:
+            - pkg: charm.land/
+              desc: the gallery takes colorprofile and x/ansi only; it renders through pkg/ui (design-system README §9.14)
+            - pkg: github.com/charmbracelet/
+              desc: the gallery takes colorprofile and x/ansi only; it renders through pkg/ui (design-system README §9.14)
+        # Only pkg/ui/term looks at the terminal, in pkg/ui too: the terminal
+        # queries in the module graph (x/term's prefix takes x/termios), and
+        # golang.org/x/term.
+        terminal:
+          files:
+            - "$all"
+            - "!${base-path}/pkg/ui/term/**"
+          deny:
             - pkg: github.com/charmbracelet/x/term
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: github.com/mattn/go-isatty
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: github.com/xo/terminfo
+              desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
+            - pkg: golang.org/x/term
               desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
         # The legacy styling, pkg/ui included, one rule per library, so that
         # each exception lifts only the denial of what its package imports
@@ -90,7 +113,9 @@ linters:
           deny:
             - pkg: github.com/mattn/go-runewidth
               desc: legacy width helper; pkg/ui measures with Lip Gloss (design-system README §9.15)
-        # Never, anywhere.
+        # Never, anywhere: the Lip Gloss that queries the terminal, Lip Gloss
+        # v1, the libraries whose patterns are borrowed, and the input reader
+        # and colour writer Lip Gloss and fatih/color bring in.
         never:
           files:
             - "$all"
@@ -111,6 +136,10 @@ linters:
               desc: patterns are borrowed, not imported (design-system README §9.15)
             - pkg: github.com/charmbracelet/huh
               desc: patterns are borrowed, not imported (design-system README §9.15)
+            - pkg: github.com/muesli/cancelreader
+              desc: input is read by pkg/ui/prompt alone (design-system README §9.15)
+            - pkg: github.com/mattn/go-colorable
+              desc: output goes through term.Env's writer alone (design-system README §9.15)
         # The golden harness and the component states are for tests and the
         # dev tools only.
         test-only:
