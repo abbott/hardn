@@ -13,7 +13,7 @@ import (
 //
 //	  hardn > User Management
 //
-//	  [+] Non-root             Configured UID ≥ 1000
+//	  [+] Non-root             Configured UID >= 1000
 //
 //	# User Configuration -------------------------------------------
 //
