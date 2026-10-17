@@ -17,7 +17,8 @@
 - **Screenshots:**
   - **Before** is a `freeze` capture of the current origin/main screen, or the name of a Figma frame. Figma PNGs are a reference that is never committed.
   - **After** is a capture of the gallery mock.
-  - Images go under `docs/refactor/img/`, which the allow-list covers via `docs/**/*.png`. Until captured, entries show a placeholder path.
+  - **Deferred until the maintainer approves freeze.** `charmbracelet/freeze` is not in hardn's module graph: v0.2.2 would be downloaded and run (pinned, with `go run`), and refactor plan Phase 1 asks the maintainer once before its first use. Until then every path marked "placeholder" is only a name, and the review uses the goldens and the gallery's output: an entry names its goldens where they show the built form "meanwhile"; the [design-system README](../design-system/README.md#phase-1-review-guide)'s review guide covers the rest.
+  - **Once approved,** the captures take the paths their entries name, under `docs/refactor/img/`, which the allow-list `.gitignore` re-includes with `!docs/**/*.png`; the gallery's own PNGs are named after its mocks (design-system README §9.16).
 - **V-numbers** refer to the defect list in [phase0/side-effects.md](phase0/side-effects.md) (V1–V27). Under decision 6, a V-number is a defect to fix, and fixing it doesn't need an enhancement entry. Entries cite V-numbers where the proposal goes beyond the fix.
 
 ## Index
@@ -74,7 +75,7 @@
   - The AppArmor and Auto Updates screens themselves are [P-16](#p-16).
 - **Effort:** L (new screens, plus status sources for each control).
 - **Risk:** Medium. It adds apply paths that are unreachable today, and the menu numbering changes (hints and help are generated, so no hard-coded ranges break).
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `00-TUI-MAIN.png` (reference only); `docs/refactor/img/p-01-before.png` (placeholder).
   - After: `docs/refactor/img/p-01-after.png` (placeholder).
 
@@ -92,7 +93,7 @@
   - The brief already decides the plan preview and typed confirmation (Phase 5 item 8), so the open question here is placement and numbering.
 - **Effort:** M.
 - **Risk:** Low. Safer by construction; renumbering affects muscle memory only.
-- **Screenshots:** Before: `docs/refactor/img/p-02-before.png` (placeholder). After: `docs/refactor/img/p-02-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-02-before.png` (placeholder). After: `docs/refactor/img/p-02-after.png` (placeholder).
 
 <a id="p-03"></a>
 ### P-03: Resolve the dry-run model
@@ -112,7 +113,7 @@
   - Either way: an explicitly set flag wins; otherwise the config value applies.
 - **Effort:** M.
 - **Risk:** Medium. Removing a menu item and changing a config key's meaning are surface changes that need a deprecation note.
-- **Screenshots:** Before: `docs/refactor/img/p-03-before.png` (placeholder). After: `docs/refactor/img/p-03-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-03-before.png` (placeholder). After: `docs/refactor/img/p-03-after.png` (placeholder).
 
 <a id="p-04"></a>
 ### P-04: Treat uptime as a finding (pending reboot)
@@ -128,7 +129,7 @@
   - Long uptime without automatic updates adds a risk factor ([P-06](#p-06)).
 - **Effort:** M.
 - **Risk:** Low (read-only).
-- **Screenshots:** Before: `docs/refactor/img/p-04-before.png` (placeholder). After: `docs/refactor/img/p-04-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-04-before.png` (placeholder). After: `docs/refactor/img/p-04-after.png` (placeholder).
 
 <a id="p-05"></a>
 ### P-05: SSH statuses from `sshd -T`, with a firewall cross-check
@@ -144,7 +145,7 @@
   - A default-deny firewall combined with an SSH listener the firewall doesn't allow is a **critical** finding.
 - **Effort:** M.
 - **Risk:** Low (read-only). Without sshd, or when `sshd -T` fails for an environment reason, the status is `Unknown`.
-- **Screenshots:** Before: `docs/refactor/img/p-05-before.png` (placeholder). After: `docs/refactor/img/p-05-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-05-before.png` (placeholder). After: `docs/refactor/img/p-05-after.png` (placeholder).
 
 <a id="p-06"></a>
 ### P-06: Make the risk score transparent
@@ -164,7 +165,7 @@
   - `RiskSummary` lists the contributing factors instead of a second adjective.
 - **Effort:** M.
 - **Risk:** Low. Displayed levels change for the same host, so the release notes should say so.
-- **Screenshots:** Before: `docs/refactor/img/p-06-before.png` (placeholder). After: `docs/refactor/img/p-06-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-06-before.png` (placeholder). After: `docs/refactor/img/p-06-after.png` (placeholder).
 
 <a id="p-07"></a>
 ### P-07: Main-menu wording
@@ -177,7 +178,7 @@
   - **(c) Item 8:** "Configure environment variable" should name the variable. The screen manages only sudo preservation of `HARDN_CONFIG` [V]. Proposed wording: "Keep HARDN_CONFIG under sudo".
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
-- **Screenshots:** Before: `docs/refactor/img/p-07-before.png` (placeholder). After: `docs/refactor/img/p-07-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-07-before.png` (placeholder). After: `docs/refactor/img/p-07-after.png` (placeholder).
 
 ---
 
@@ -194,7 +195,7 @@
   - (b) Follow Figma's TitleBar and put the breadcrumb text inside it, e.g. "hardn › User Management".
 - **Effort:** S.
 - **Risk:** Low. The main cost is the height budget on small consoles.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `01-USER.png` (reference only).
   - After: `docs/refactor/img/p-08-after-a.png`, `p-08-after-b.png` (placeholders).
 
@@ -211,7 +212,7 @@
   - Otherwise, return to the menu with the result left on screen (canonical flow, step 6).
 - **Effort:** M (legacy input is routed through the single line reader first).
 - **Risk:** Low.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only).
   - After: `docs/refactor/img/p-09-after.png` (placeholder).
 
@@ -229,7 +230,7 @@
   - Add confirm-or-revert for SSH and firewall changes: 180 s by default, confirmed by `sudo hardn confirm` from a new session.
 - **Effort:** M.
 - **Risk:** Low. It adds steps, but each one is a safety check.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-MANAGE_SUDO-CONFIRMATION.png` (reference only).
   - After: `docs/refactor/img/p-10-after-*.png` (placeholders, one per step).
 
@@ -242,7 +243,7 @@
 - **Proposal:** use one wording everywhere. Recommended [I]: the Figma direction, "Require a password for sudo? [Y/n]", with the safer answer as the default.
 - **Effort:** S.
 - **Risk:** Medium. Inverting a question can catch users who answer from habit; the goldens and the review summary must show the result plainly.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `USER-CREATE_USER.png` (reference only); `docs/refactor/img/p-11-before.png` (placeholder).
   - After: `docs/refactor/img/p-11-after.png` (placeholder).
 
@@ -257,7 +258,7 @@
   - On Proxmox, root stays key-only (brief §2), so the item reads "Root login: key-only (required by Proxmox clustering)" and is read-only.
 - **Effort:** S.
 - **Risk:** Low.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `02-SSH_LOGIN.png` (reference only).
   - After: `docs/refactor/img/p-12-after.png` (placeholder).
 
@@ -272,7 +273,7 @@
   - (b) Keep the extra row, at the cost of one line.
 - **Effort:** S.
 - **Risk:** Low.
-- **Screenshots:** Before: `docs/refactor/img/p-13-before.png` (placeholder). After: `docs/refactor/img/p-13-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-13-before.png` (placeholder). After: `docs/refactor/img/p-13-after.png` (placeholder).
 
 <a id="p-14"></a>
 ### P-14: Reachable risk bands, with factors shown
@@ -283,7 +284,7 @@
 - **Proposal:** set band thresholds that a fully hardened host actually reaches, and show the factors that kept a host out of the top band.
 - **Effort:** S (once P-06 exists).
 - **Risk:** Low.
-- **Screenshots:** Before: `docs/refactor/img/p-14-before.png` (placeholder). After: `docs/refactor/img/p-14-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-14-before.png` (placeholder). After: `docs/refactor/img/p-14-after.png` (placeholder).
 
 <a id="p-15"></a>
 ### P-15: Update checker: opt-in and non-blocking
@@ -302,7 +303,7 @@
   - Until then, the post-review hazard gate turns the checker off behind a named constant.
 - **Effort:** M.
 - **Risk:** Low. It removes a network call and a `/tmp` write; the default changes, so it needs approval.
-- **Screenshots:** Before: `docs/refactor/img/p-15-before.png` (placeholder). After: `docs/refactor/img/p-15-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-15-before.png` (placeholder). After: `docs/refactor/img/p-15-after.png` (placeholder).
 
 <a id="p-16"></a>
 ### P-16: Restore UFW install; add AppArmor and Auto Updates screens
@@ -320,7 +321,7 @@
   - **Lynis:** Debian and Ubuntu only.
 - **Effort:** L.
 - **Risk:** Medium. Package installs and AppArmor enforcement can affect running services [I]. Every step goes through plan/apply with rollback.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: n/a (no screen exists).
   - After: `docs/refactor/img/p-16-after-*.png` (placeholders; inferred screens, labelled as such in the gallery).
 
@@ -343,7 +344,7 @@
   - Exports go through `--output json`.
 - **Effort:** M.
 - **Risk:** Low (read-only).
-- **Screenshots:** Before: `docs/refactor/img/p-17-before.png` (placeholder). After: `docs/refactor/img/p-17-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-17-before.png` (placeholder). After: `docs/refactor/img/p-17-after.png` (placeholder).
 
 <a id="p-18"></a>
 ### P-18: Logs via `$PAGER` or a tail, from the file hardn writes
@@ -358,7 +359,7 @@
   - Read the file hardn actually writes.
 - **Effort:** S.
 - **Risk:** Low.
-- **Screenshots:** Before: `docs/refactor/img/p-18-before.png` (placeholder). After: `docs/refactor/img/p-18-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-18-before.png` (placeholder). After: `docs/refactor/img/p-18-after.png` (placeholder).
 
 <a id="p-19"></a>
 ### P-19: Backups: a restore UI
@@ -374,7 +375,7 @@
   - The Backup screen gains "Restore a previous run": list the runs, show the plan, confirm, apply.
 - **Effort:** L.
 - **Risk:** Medium. A restore writes `/etc` files, so it goes through plan/apply, and through confirm-or-revert for SSH and firewall files.
-- **Screenshots:**
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `05-BACKUP.png` (reference only).
   - After: `docs/refactor/img/p-19-after.png` (placeholder).
 
@@ -387,7 +388,7 @@
 - **Proposal:** a later phase plans and applies `host.fw` / `cluster.fw` changes that allow SSH (22) and 8006 from the management network, under confirm-or-revert.
 - **Effort:** L.
 - **Risk:** High. Cluster-wide configuration lives on pmxcfs, and a wrong rule can cut off the web UI and cluster traffic on every node.
-- **Screenshots:** Before: n/a. After: `docs/refactor/img/p-20-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: n/a. After: `docs/refactor/img/p-20-after.png` (placeholder).
 
 ---
 
@@ -411,7 +412,7 @@
   - "Reboot pending" follows the brief's own term, "pending reboot"; the component holds the wording, so changing it is one string and the goldens.
 - **Effort:** S. (a) is built, so this approves its wording and place; (b) or (c) is a change to `HostBlock` and its goldens.
 - **Risk:** Low: display only, and nothing sets it before P-04 is approved.
-- **Screenshots:** Before: none (Figma `00-TUI-MAIN.png` has no such line). After: `docs/refactor/img/p-21-after.png` (placeholder); the `hostblock/reboot-pending` golden shows (a) meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: none (Figma `00-TUI-MAIN.png` has no such line). After: `docs/refactor/img/p-21-after.png` (placeholder); the `hostblock/reboot-pending` golden shows (a) meanwhile.
 
 <a id="p-22"></a>
 ### P-22: Menu item markers: lockout risk and unavailable
@@ -432,7 +433,7 @@
   - Each word is one constant in `pkg/ui/component/menu.go`, so changing the wording is one string and the goldens.
 - **Effort:** S. (a) is built, so this approves its words and place; (b) or (c) is a change to `Menu` and its goldens. Marking items is data in the screens (`next/p1d-slice`, Phase 4).
 - **Risk:** Low: display only. Under (a), three marked items make the main menu three lines longer, against the compact menu's 24 lines (refactor plan §3.15).
-- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `02-SSH_LOGIN.png` (reference only). After: `docs/refactor/img/p-22-after.png` (placeholder); the `menu/risk` and `menu/disabled` goldens show (a) meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `00-TUI-MAIN.png`, `02-SSH_LOGIN.png` (reference only). After: `docs/refactor/img/p-22-after.png` (placeholder); the `menu/risk` and `menu/disabled` goldens show (a) meanwhile.
 
 <a id="p-23"></a>
 ### P-23: Words for the message kinds
@@ -451,7 +452,7 @@
   - Each word is one string in `MessageKind.String` (message words) or `MessageKind.title` (callout titles), in `pkg/ui/component/message.go`, so changing one is a string and the goldens.
 - **Effort:** S. The words are built, so this approves them; dropping the word from messages, or from before a callout's own title, is a small change to `Message` or `Callout` and their goldens.
 - **Risk:** Low: display only.
-- **Screenshots:** Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-23-after.png` (placeholder); the `callout/bad`, `callout/info`, `callout/long` and `message/*` goldens show the built form meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-23-after.png` (placeholder); the `callout/bad`, `callout/info`, `callout/long` and `message/*` goldens show the built form meanwhile.
 
 <a id="p-24"></a>
 ### P-24: Words for the apply steps and the confirm countdown
@@ -474,7 +475,7 @@
   - Each word is one string: `StepState.String` in `pkg/ui/component/steps.go`, and the `confirm*` constants and `UrgentBelow` in `pkg/ui/component/confirm.go`, so changing one is a string and the goldens.
 - **Effort:** S. The words are built, so this approves them; another wording is strings and goldens.
 - **Risk:** Low: display only. Nothing shows them before the canonical flow (`next/p1c-flow`) and confirm-or-revert (`next/p2-revert`) use the components.
-- **Screenshots:** Before: none (no Figma frame or origin/main screen). After: `docs/refactor/img/p-24-after.png` (placeholder); the `stepprogress/*` and `confirmcountdown/*` goldens show the built form meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: none (no Figma frame or origin/main screen). After: `docs/refactor/img/p-24-after.png` (placeholder); the `stepprogress/*` and `confirmcountdown/*` goldens show the built form meanwhile.
 
 <a id="p-25"></a>
 ### P-25: Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs
@@ -510,7 +511,7 @@
   - Each word is one constant in `pkg/ui/nav/nav.go`, so changing one is a string and the goldens.
 - **Effort:** S. (a) to (e) are built, so this approves them; (a2), (b)'s alternative, (d2), (d3), (e2) or (e3) are each a small change to `pkg/ui/nav` (and `keys` for (b)) and its goldens, and (a3) one more to `nav.Text`.
 - **Risk:** Low. (a) changes what a free-text field accepts compared with origin/main, for three one-character values; (b)'s alternative departs from the brief; nothing else is applied differently.
-- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-25-after.png` (placeholder); the `nav/*` goldens show the built form meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `00-TUI-MAIN.png`, `01-USER.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-25-after.png` (placeholder); the `nav/*` goldens show the built form meanwhile.
 
 <a id="p-26"></a>
 ### P-26: Forms: back through the fields, the earlier answer and a free-text default
@@ -528,7 +529,7 @@
   - The form adds no words of its own: its refusals are `pkg/ui/nav`'s ([P-25](#p-25) (c)), and its validation errors are the screens', such as origin/main's username rule.
 - **Effort:** S. (a), (b) and (c) are built, so this approves them; (a2), (b2), (c2) or (c3) is a small change to `pkg/ui/form` and its goldens.
 - **Risk:** Low. Under (a) a user who types `b` to leave a long form steps back through it, field by field; `q` still quits. Nothing is applied before a form ends, whatever is chosen.
-- **Screenshots:** Before: Figma `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-26-after.png` (placeholder); the `form/back` and `form/yes-no` goldens show the built form meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-26-after.png` (placeholder); the `form/back` and `form/yes-no` goldens show the built form meanwhile.
 
 <a id="p-27"></a>
 ### P-27: The canonical flow: back at the confirmation, an empty plan, the plan's heading, the steps' lines, a long hostname and a narrow terminal
@@ -552,7 +553,7 @@
   - Each choice is a few lines in `pkg/ui/flow/flow.go` and `progress.go` (the sentences are the `nothingToChange` and `tooNarrow` constants), so changing one is code of that size and the `flow/*` goldens.
 - **Effort:** S. (a) to (e) are built, so this approves them; each alternative is a small change to `pkg/ui/flow` and its goldens, (e3) one to `pkg/ui/nav`, and (d2) to (d4) one to `pkg/ui/prompt` too.
 - **Risk:** Low. Under every alternative nothing is applied without the confirmation, and nothing after a decline or an abort; (a2) makes the flow a loop. Under (e) the user types less than the whole name: the short phrase is the action's, which must still name the host, and the hint shows what to type; a terminal too narrow applies nothing. Under (d) the misdrawn block is cosmetic: the steps under it and the result are whole.
-- **Screenshots:** Before: Figma `USER-CREATE_USER.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-27-after.png` (placeholder); the `flow/*` goldens show the built form meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `USER-CREATE_USER.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-27-after.png` (placeholder); the `flow/*` goldens show the built form meanwhile.
 
 <a id="p-28"></a>
 ### P-28: A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY
@@ -567,7 +568,7 @@
   - (b) if P-09 keeps "Enter to continue" where output must be read, as here: a fourth layout, a display: the `Header`, the `Breadcrumb` (or the title bar, [P-08](#p-08)), its sections, then a pause `PromptLine` in P-09's words, which `pkg/ui/nav` would ask as a pause of its own.
 - **Effort:** S for (a); M for (b) (a layout, a pause in `pkg/ui/nav`, goldens).
 - **Risk:** Low: display only.
-- **Screenshots:** Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only). After: `docs/refactor/img/p-28-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only). After: `docs/refactor/img/p-28-after.png` (placeholder).
 
 <a id="p-29"></a>
 ### P-29: Figma's words or origin/main's: the menu prompt and the User Management sub-menu
@@ -583,7 +584,7 @@
   - Each is a string: the fixtures' prompt constants in `pkg/ui/screen/fixture.go`, `form`'s `choice`, and the screen's own item and section words, so changing one is a string and the goldens.
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
-- **Screenshots:** Before: Figma `00-TUI-MAIN.png`, `01-USER.png` (reference only). After: `docs/refactor/img/p-29-after.png` (placeholder); the `main-menu/00-tui-main` and `sub-menu/01-user` goldens show origin/main's and Figma's prompt meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `00-TUI-MAIN.png`, `01-USER.png` (reference only). After: `docs/refactor/img/p-29-after.png` (placeholder); the `main-menu/00-tui-main` and `sub-menu/01-user` goldens show origin/main's and Figma's prompt meanwhile.
 
 <a id="p-30"></a>
 ### P-30: A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list
@@ -601,7 +602,7 @@
   - With rules, under any of them: a section of rows, a rule's state shown by a value state's marker (`ValueOK` for allow, `ValueBad` for deny) beside the rule, so that the mark is never colour alone (DEV-034).
 - **Effort:** S (a block of `SubMenu` and its goldens for (a); fixture data for (b) and (c)).
 - **Risk:** Low: display only.
-- **Screenshots:** Before: the export's `images/04-firewall-legacy-tui.png` (reference only). After: `docs/refactor/img/p-30-after.png` (placeholder).
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: the export's `images/04-firewall-legacy-tui.png` (reference only). After: `docs/refactor/img/p-30-after.png` (placeholder).
 
 <a id="p-31"></a>
 ### P-31: Figma's words or origin/main's on the other Figma frames
@@ -618,4 +619,4 @@
 - **Proposal:** the maintainer decides each frame, for the screens Phase 5 moves onto the layouts: Figma's words, as the gallery's mocks and their goldens show them (`sub-menu/02-ssh-login`, `sub-menu/05-backup`, `sub-menu/user-ssh-keys`, `workflow-step/*`); or origin/main's, the baseline, which the real screens keep until this is decided. Each is a string of the screen's fixture or definition and the goldens.
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
-- **Screenshots:** Before: Figma `02-SSH_LOGIN.png`, `05-BACKUP.png`, `USER-SSH_KEYS.png`, `USER-CREATE_USER.png`, `USER-MANAGE_SUDO-CONFIRMATION.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-31-after.png` (placeholder); the mocks' goldens show Figma's words meanwhile.
+- **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `02-SSH_LOGIN.png`, `05-BACKUP.png`, `USER-SSH_KEYS.png`, `USER-CREATE_USER.png`, `USER-MANAGE_SUDO-CONFIRMATION.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-31-after.png` (placeholder); the mocks' goldens show Figma's words meanwhile.
