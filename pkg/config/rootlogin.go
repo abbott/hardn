@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -41,15 +42,57 @@ type Deprecation struct {
 	Use   string // what to write instead, which means the same, such as "no"
 }
 
+// String is the warning to show for d.
 func (d Deprecation) String() string {
 	return fmt.Sprintf("%s: %s (line %d) is deprecated; write %q, which means the same", d.Key, d.Found, d.Line, d.Use)
 }
 
-// loaded is what the YAML said beyond Config's fields.
+// loaded is what the YAML said beyond Config's fields, and where it was.
 type loaded struct {
 	rootLogin    RootLogin // permitRootLogin's string value; "" for the bool or no value
 	deprecations []Deprecation
+	path         string // the absolute path LoadConfig read or created; "" for none
 }
+
+// prohibitPasswordApplied: DISABLED 2026-10-17. Flip to true once the SSH
+// code hardn runs applies Config.RootLogin() (p3-engine, with p2-pve). The
+// legacy SSH writers this binary still runs (cmd/hardn's ConfigureSSH,
+// through FileSSHRepository) read the PermitRootLogin bool and write
+// "PermitRootLogin no" for prohibit-password: on a Proxmox VE host where
+// root's key is the only login, that ends it (R15). Until then LoadConfig
+// refuses the value, as it did when the key was a bool; the YAML decoding
+// (UnmarshalYAML) reads it.
+const prohibitPasswordApplied = false
+
+// ErrRootLoginNotApplied: the configuration says prohibit-password, which
+// the SSH code of this build would apply as "no" (prohibitPasswordApplied).
+var ErrRootLoginNotApplied = errors.New(`permitRootLogin "prohibit-password" is not applied by this build's SSH code, which would write PermitRootLogin no; write "no" or "yes"`)
+
+// ErrNotLoaded: the Config was not loaded from a file whose absolute path
+// is known, so Save has nowhere to write (§3.19: the loaded path).
+var ErrNotLoaded = errors.New("the configuration was not loaded from a file")
+
+// checkLoaded refuses a value the legacy code would apply as another.
+func checkLoaded(c *Config) error {
+	if !prohibitPasswordApplied && c.RootLogin() == RootLoginProhibitPassword {
+		return ErrRootLoginNotApplied
+	}
+	return nil
+}
+
+// setPath records name, made absolute, as where c was loaded from; a name
+// that cannot be made absolute records none, so Save refuses.
+func (c *Config) setPath(name string) {
+	c.loaded.path = ""
+	if p, err := filepath.Abs(name); err == nil {
+		c.loaded.path = p
+	}
+}
+
+// Path is the absolute path the configuration was loaded from (LoadConfig:
+// the file it read, or the default file it created), "" for none. Save
+// writes there.
+func (c *Config) Path() string { return c.loaded.path }
 
 // plain has Config's fields and none of its methods: the default decoding
 // and encoding.
@@ -61,7 +104,9 @@ type plain Config
 // that a bool field accepted, such as on, off, Yes), which reads as "yes"
 // or "no" and records a Deprecation. Any other value is the error the bool
 // field gave. PermitRootLogin, the bool legacy code reads, is true exactly
-// for "yes": legacy code writes PermitRootLogin no for prohibit-password.
+// for "yes", so legacy code would write PermitRootLogin no for
+// prohibit-password: LoadConfig refuses that value until the SSH code
+// applies it (prohibitPasswordApplied).
 func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 	c.loaded = loaded{}
 	var errs []string
@@ -186,13 +231,19 @@ func (c *Config) canonical() (*yaml.Node, error) {
 	return &n, nil
 }
 
-// Save writes c to path, which is to be the file the configuration was
-// loaded from (refactor plan §3.19: one save function, to the loaded path,
-// atomically): host.WriteFileAtomicKeep keeps an existing file's mode and
-// owner (a new file is 0644). permitRootLogin is written as its string, so
-// a deprecated bool becomes the value it meant. Comments in the file are
-// lost; the caller says so before saving (§3.19).
-func Save(ctx context.Context, sys host.System, c *Config, path string) error {
+// Save writes c to the file it was loaded from, c.Path() (refactor plan
+// §3.19: one save function, to the loaded path, atomically), and refuses a
+// Config that was not loaded from one (ErrNotLoaded): the path is the
+// loader's, so no caller can save elsewhere. host.WriteFileAtomicKeep keeps
+// an existing file's mode and owner (a new file is 0644). permitRootLogin
+// is written as its string, so a deprecated bool becomes the value it
+// meant. Comments in the file are lost; the caller says so before saving
+// (§3.19).
+func Save(ctx context.Context, sys host.System, c *Config) error {
+	path := c.loaded.path
+	if path == "" {
+		return fmt.Errorf("config: %w", ErrNotLoaded)
+	}
 	n, err := c.canonical()
 	if err != nil {
 		return fmt.Errorf("config: %w", err)

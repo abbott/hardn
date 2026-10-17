@@ -3,6 +3,9 @@ package config
 import (
 	"bytes"
 	"context"
+	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -137,7 +140,11 @@ func TestSave(t *testing.T) {
 	if err := yaml.Unmarshal(data.Data, c); err != nil || len(c.Deprecations()) != 1 {
 		t.Fatalf("load: %v, %v", err, c.Deprecations())
 	}
-	if err := Save(context.Background(), sys, c, path); err != nil {
+	if err := Save(context.Background(), sys, c); !errors.Is(err, ErrNotLoaded) || len(sys.Calls()) != 0 {
+		t.Fatalf("Save of a Config not loaded from a file = %v with %d calls, want ErrNotLoaded", err, len(sys.Calls()))
+	}
+	c.setPath(path) // as LoadConfig records it
+	if err := Save(context.Background(), sys, c); err != nil {
 		t.Fatal(err)
 	}
 	e, _ := sys.Entry(path)
@@ -157,6 +164,40 @@ func TestSave(t *testing.T) {
 	back := DefaultConfig()
 	if err := yaml.Unmarshal(e.Data, back); err != nil || back.RootLogin() != RootLoginNo || len(back.Deprecations()) != 0 {
 		t.Errorf("read back: %v, %q, %v", err, back.RootLogin(), back.Deprecations())
+	}
+}
+
+// TestLoadConfigRootLogin: the legacy loader records the absolute path it
+// read and refuses prohibit-password, which the legacy SSH writers would
+// apply as "no" (R15), as it refused it when the key was a bool; the bool
+// and the other two strings load.
+func TestLoadConfigRootLogin(t *testing.T) {
+	dir := t.TempDir()
+	for _, tt := range []struct {
+		yaml string
+		want RootLogin
+		err  error
+	}{
+		{"permitRootLogin: prohibit-password\n", "", ErrRootLoginNotApplied},
+		{"permitRootLogin: \"no\"\n", RootLoginNo, nil},
+		{"permitRootLogin: yes\n", RootLoginYes, nil},
+		{"permitRootLogin: false\n", RootLoginNo, nil},
+	} {
+		name := filepath.Join(dir, "hardn.yml")
+		if err := os.WriteFile(name, []byte(tt.yaml), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		c, err := LoadConfigWithEnvPriority(name)
+		if !errors.Is(err, tt.err) {
+			t.Errorf("%q: LoadConfigWithEnvPriority = %v, want %v", tt.yaml, err, tt.err)
+			continue
+		}
+		if err != nil {
+			continue
+		}
+		if c.RootLogin() != tt.want || c.Path() != name {
+			t.Errorf("%q: RootLogin() %q, Path() %q; want %q, %q", tt.yaml, c.RootLogin(), c.Path(), tt.want, name)
+		}
 	}
 }
 
