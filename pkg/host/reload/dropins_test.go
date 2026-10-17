@@ -3,6 +3,7 @@ package reload_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"reflect"
 	"strings"
 	"syscall"
@@ -46,11 +47,26 @@ func TestReadSocketDropIns(t *testing.T) {
 // TestReadSocketDropInsFailsClosed: a directory it cannot list may hold a
 // drop-in that moves the listeners.
 func TestReadSocketDropInsFailsClosed(t *testing.T) {
-	h := hostfake.New(host.Options{})
-	h.AddFile("/etc/systemd/system/ssh.socket.d", nil, 0o644, 0, 0)
-	d, err := reload.ReadSocketDropIns(context.Background(), h)
-	if !errors.Is(err, syscall.ENOTDIR) || d.Read {
-		t.Fatalf("ReadSocketDropIns = %+v, %v; want ENOTDIR, not Read", d, err)
+	for _, tc := range []struct {
+		name  string
+		setup func(*hostfake.System)
+		want  error
+	}{
+		{"a file for the directory", func(h *hostfake.System) {
+			h.AddFile("/etc/systemd/system/ssh.socket.d", nil, 0o644, 0, 0)
+		}, syscall.ENOTDIR},
+		{"a drop-in it cannot read", func(h *hostfake.System) {
+			h.AddSymlink("/etc/systemd/system/ssh.socket.d/listen.conf", "/etc/ssh/missing.conf")
+		}, fs.ErrNotExist},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := hostfake.New(host.Options{})
+			tc.setup(h)
+			d, err := reload.ReadSocketDropIns(context.Background(), h)
+			if !errors.Is(err, tc.want) || d.Read {
+				t.Fatalf("ReadSocketDropIns = %+v, %v; want %v, not Read", d, err, tc.want)
+			}
+		})
 	}
 }
 
@@ -86,6 +102,14 @@ func TestOpenRCFlavour(t *testing.T) {
 		{"conf.d sets the config file", func(h *hostfake.System) {
 			h.AddFile(reload.OpenRCConfd, []byte("cfgfile=/etc/ssh/other_config\n"), 0o644, 0, 0)
 		}, "", reload.ErrConfd},
+		{"conf.d passes -f (deprecated SSHD_OPTS)", func(h *hostfake.System) {
+			h.AddFile(reload.OpenRCConfd, []byte("SSHD_OPTS=\"-f /etc/ssh/sshd_config.alt\"\n"), 0o644, 0, 0)
+		}, "", reload.ErrConfd},
+		{"conf.d overrides a keyword", func(h *hostfake.System) {
+			h.AddFile(reload.OpenRCConfd, []byte("command_args=\"-o Port=2230\"\n"), 0o644, 0, 0)
+		}, "", reload.ErrConfd},
+		{"conf.d unreadable", func(h *hostfake.System) { h.AddDir(reload.OpenRCConfd, 0o755, 0, 0) }, "", syscall.EISDIR},
+		{"binary directory unreadable", func(h *hostfake.System) { h.AddFile("/usr/sbin", nil, 0o644, 0, 0) }, "", syscall.ENOTDIR},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

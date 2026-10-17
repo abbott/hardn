@@ -111,17 +111,19 @@ func parseLocal(s string) (Bound, bool) {
 
 // covers reports whether a socket on addr:port accepts the connections want
 // names: the same port, and the same address or an unspecified one of
-// want's family (of either family when dual). Routing domains and devices
-// are not compared: neither ss nor systemctl show sshd's rdomain.
+// want's family; when dual, an unspecified IPv6 address (ss's "*", a
+// systemd [::]) covers IPv4 too, and 0.0.0.0 stays IPv4 only. Routing
+// domains and devices are not compared: neither ss nor systemctl show
+// sshd's rdomain.
 func covers(addr netip.Addr, port uint16, dual bool, want sshd.Listener) bool {
 	a, w := addr.Unmap(), want.Addr.Unmap()
-	return port == want.Port && (a == w || a.IsUnspecified() && (dual || a.Is4() == w.Is4()))
+	return port == want.Port && (a == w || a.IsUnspecified() && (a.Is4() == w.Is4() || dual && a.Is6()))
 }
 
 // uncovered lists the listeners of want no listener of have covers. dual
-// treats every unspecified address of have as both families, as
-// sshd-effective compares systemd's dual-stack [::] with sshd's 0.0.0.0
-// and [::].
+// treats an unspecified IPv6 address of have as dual-stack, as systemd binds
+// [::] by default (BindIPv6Only=, which systemctl show -p Listen does not
+// print).
 func uncovered(want, have []sshd.Listener, dual bool) []sshd.Listener {
 	var missing []sshd.Listener
 	for _, w := range want {

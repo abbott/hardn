@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"path"
 	"slices"
 	"strings"
 
@@ -46,11 +47,14 @@ var flavourKeywords = []string{"usepam", "kerberosauthentication", "gssapiauthen
 var (
 	ErrModeUnknown      = errors.New("how sshd is started is not established")
 	ErrNoGenerator      = errors.New("ssh.socket's listeners are not derived from sshd_config")
-	ErrSocketDropIn     = errors.New("a drop-in sets ssh.socket's ListenStream")
+	ErrSocketDropIn     = errors.New("a drop-in overrides the ssh.socket listeners sshd_config sets")
 	ErrListenersUnknown = errors.New("the listeners before or after the change are not established")
 	ErrDropsListener    = errors.New("the change drops a listener before it is confirmed")
+	ErrAddsListener     = errors.New("a confirmed change adds a listener")
 	ErrFlavour          = errors.New("the change may switch the sshd binary OpenRC runs")
 	ErrUnitState        = errors.New("the unit's state is not established")
+	ErrUnitDown         = errors.New("the unit is not up after the step")
+	ErrInUse            = errors.New("a listener the change adds is already bound")
 	ErrSocketConfig     = errors.New("ssh.socket is not configured for every listener")
 	ErrNotBound         = errors.New("not every listener is bound")
 )
@@ -61,15 +65,23 @@ type Change struct {
 	// removes, in any case. None: nothing to reload.
 	Keywords []string
 	// Before and After are needed when a keyword moves listeners (Port,
-	// ListenAddress, AddressFamily). Before is the configured listener set
-	// before the change, established: sshd.ReadEffective's Listeners.All
-	// with Known. After is the set the installed files configure:
-	// Listeners.SSHD of sshd.Evaluate over the validated candidate.
-	Before, After []sshd.Listener
+	// ListenAddress, AddressFamily). Before is sshd.ReadEffective's
+	// Listeners before the change; it must be Known. After is the set the
+	// installed files configure: Listeners.SSHD of sshd.Evaluate over the
+	// validated candidate.
+	Before sshd.Listeners
+	After  []sshd.Listener
 	// Confirmed: the change follows the confirmation of an earlier one and
-	// drops the listeners that change kept (brief 2.3 step 5). Otherwise
-	// After must keep every listener of Before.
+	// drops listeners that change kept (brief 2.3 step 5); it may not add
+	// one (ErrAddsListener). Otherwise After must keep every listener of
+	// Before.
 	Confirmed bool
+	// Rollback: the change restores the files of one that failed or was not
+	// confirmed (p2-revert). It may drop listeners, Before is not used, and
+	// a unit that is not up is started (ssh.socket is restarted), so set it
+	// only when the unit was up before the change it undoes: that change's
+	// gated step ran. Not with Confirmed.
+	Rollback bool
 }
 
 // Input is what PlanFor plans from.
@@ -89,7 +101,7 @@ const (
 	StepRun StepKind = iota + 1
 	// StepIfUp runs Argv only when Unit is up at that moment, asked then,
 	// not taken from detect: a unit that is not up reads the files when it
-	// next starts.
+	// next starts. With Step.Start, a unit that is not up is started.
 	StepIfUp
 	// StepCheckSocket runs Argv (systemctl show -p Listen ssh.socket) and
 	// fails unless the socket is configured for every listener of
@@ -115,13 +127,18 @@ type Step struct {
 	Argv []string
 	// Unit gates a StepIfUp: the systemd unit that systemctl is-active must
 	// show active, or, with OpenRC, the service OpenRC must have started.
+	// It is asked again once the step ran: a unit that is down then is
+	// ErrUnitDown, unless Activated.
 	Unit   string
 	OpenRC bool
-	// Restart: Argv stops and starts Unit, so its failure stands even when
-	// Unit is down afterwards. A reload that fails while Unit stops
-	// meanwhile is not an error (StepReport.NotUp).
-	Restart bool
-	Why     string // one line for the plan view
+	// Start runs instead of Argv when Unit is not up (a Rollback's step);
+	// without it, a unit that is not up skips the step (StepReport.NotUp).
+	Start []string
+	// Activated: Unit is ssh.service on a socket host, which ssh.socket
+	// starts at the next connection, so a Unit that is down after Argv, even
+	// after a failed Argv, is StepReport.NotUp, not an error.
+	Activated bool
+	Why       string // one line for the plan view
 }
 
 // Plan is how to make sshd use an installed change. On an error from
@@ -134,21 +151,27 @@ type Plan struct {
 	// (Change.After, for a listener change).
 	Verify []sshd.Listener
 	// Hold is the caller's requirement for an unconfirmed listener change:
-	// these listeners (Change.Before) stay configured, and so bound, until
-	// the change is confirmed. Write the old Port lines beside the new ones
-	// (HoldPorts): Port and ListenAddress accumulate, so sshd, and on a
-	// socket host the generator, configure both. Then plan the clean-up
-	// with Confirmed.
+	// these listeners (Change.Before.All) stay configured, and so bound,
+	// until the change is confirmed. Write the old Port lines beside the
+	// new ones (HoldPorts): Port and ListenAddress accumulate, so sshd, and
+	// on a socket host the generator, configure both. Then plan the
+	// clean-up with Confirmed.
 	Hold []sshd.Listener
+	// Adds is the listeners of Verify that Before does not cover. Execute
+	// refuses (ErrInUse) before any step when a socket other than Hold's is
+	// bound on one of their ports.
+	Adds []sshd.Listener
 	// DropIns are ssh.socket's pre-existing drop-ins, to report; hardn
 	// never edits them here.
 	DropIns []SocketDropIn
 }
 
-// PlanFor plans the reload of the change in in. It runs nothing. Errors:
-// ErrModeUnknown; for a listener change ErrListenersUnknown, a *HoldError
-// (ErrDropsListener), and on a socket host ErrNoGenerator, ErrSocketDropIn,
-// or fs.ErrInvalid when the drop-ins were not read; on OpenRC ErrFlavour.
+// PlanFor plans the reload of the change in in. It runs nothing, so it
+// belongs to the plan, before anything changes. Errors: ErrModeUnknown;
+// fs.ErrInvalid for Confirmed with Rollback; for a listener change
+// ErrListenersUnknown, a *HoldError (ErrDropsListener), ErrAddsListener, and
+// on a socket host ErrNoGenerator, ErrSocketDropIn, or fs.ErrInvalid when
+// the drop-ins were not read; on OpenRC ErrFlavour.
 func PlanFor(in Input) (Plan, error) {
 	s, c := in.SSH, in.Change
 	base := Plan{Mode: s.Mode, DropIns: slices.Clone(in.DropIns.Files)}
@@ -156,10 +179,12 @@ func PlanFor(in Input) (Plan, error) {
 	for i, k := range c.Keywords {
 		kws[i] = strings.ToLower(k)
 	}
-	if len(kws) == 0 {
+	switch {
+	case len(kws) == 0:
 		return base, nil
-	}
-	if s.Mode != detect.SSHSocket && s.Mode != detect.SSHService && s.Mode != detect.SSHOpenRC {
+	case c.Confirmed && c.Rollback:
+		return base, fmt.Errorf("reload: a change is Confirmed or a Rollback, not both: %w", fs.ErrInvalid)
+	case s.Mode != detect.SSHSocket && s.Mode != detect.SSHService && s.Mode != detect.SSHOpenRC:
 		err := s.Err
 		if err == nil {
 			err = detect.ErrNoSignal
@@ -169,52 +194,85 @@ func PlanFor(in Input) (Plan, error) {
 	p := base
 	p.Listen = slices.ContainsFunc(kws, func(k string) bool { return slices.Contains(listenKeywords, k) })
 	if p.Listen {
-		if len(c.Before) == 0 || len(c.After) == 0 {
-			return base, fmt.Errorf("reload: listeners before %v, after %v: %w", c.Before, c.After, ErrListenersUnknown)
+		if err := planListeners(&p, c); err != nil {
+			return base, err
 		}
-		if !c.Confirmed {
-			if missing := uncovered(c.Before, c.After, false); len(missing) > 0 {
-				return base, &HoldError{Missing: missing}
-			}
-			p.Hold = slices.Clone(c.Before)
-		}
-		p.Verify = slices.Clone(c.After)
 	}
 	switch s.Mode {
 	case detect.SSHSocket:
 		if !p.Listen {
 			st := reloadService()
-			st.Why += "; when it is inactive, the next connection starts sshd from the files on disk"
+			st.Activated = true
+			st.Why += "; when it is not up, the next connection starts sshd from the files on disk"
 			p.Steps = []Step{st}
 			break
 		}
 		if err := socketReady(s, in.DropIns); err != nil {
 			return base, err
 		}
+		restart := Step{Kind: StepIfUp, Unit: SocketUnit, Argv: []string{"systemctl", "restart", SocketUnit},
+			Why: "bind the listeners; " + ServiceUnit + ", which requires the socket, restarts with it"}
+		if c.Rollback {
+			restart.Start = slices.Clone(restart.Argv)
+		}
 		p.Steps = []Step{
 			{Kind: StepRun, Argv: []string{"systemctl", "daemon-reload"},
 				Why: "rerun sshd-socket-generator, which sets " + SocketUnit + "'s listeners from the files' Port and ListenAddress"},
 			{Kind: StepCheckSocket, Argv: []string{"systemctl", "show", "-p", "Listen", SocketUnit},
 				Why: SocketUnit + " is configured for every listener the files name, before any socket is rebound"},
-			{Kind: StepIfUp, Unit: SocketUnit, Restart: true, Argv: []string{"systemctl", "restart", SocketUnit},
-				Why: "bind the listeners; " + ServiceUnit + ", which requires the socket, restarts with it"},
+			restart,
 		}
 	case detect.SSHService:
-		p.Steps = []Step{reloadService()}
+		st := reloadService()
+		if c.Rollback {
+			st.Start = []string{"systemctl", "start", ServiceUnit}
+		}
+		p.Steps = []Step{st}
 	default: // detect.SSHOpenRC
 		if i := slices.IndexFunc(kws, func(k string) bool { return slices.Contains(flavourKeywords, k) }); i >= 0 {
 			return base, fmt.Errorf("reload: %s: rc-service sshd reload signals the binary the new files call for (sshd, sshd.pam, sshd.krb5), which may not be the one running: %w", c.Keywords[i], ErrFlavour)
 		}
-		p.Steps = []Step{{Kind: StepIfUp, Unit: OpenRCService, OpenRC: true, Argv: []string{"rc-service", OpenRCService, "reload"},
-			Why: "the init script checks the files (checkconfig: sshd -t) and signals sshd to reread them"}}
+		st := Step{Kind: StepIfUp, Unit: OpenRCService, OpenRC: true, Argv: []string{"rc-service", OpenRCService, "reload"},
+			Why: "the init script checks the files (checkconfig: sshd -t) and signals sshd to reread them"}
+		if c.Rollback {
+			st.Start = []string{"rc-service", OpenRCService, "start"}
+		}
+		p.Steps = []Step{st}
 	}
 	return p, nil
+}
+
+// planListeners sets p's Verify, Hold and Adds for a listener change: a
+// forward change keeps Before, a confirmed one only drops, and a rollback
+// restores After whatever Before was.
+func planListeners(p *Plan, c Change) error {
+	before := c.Before.All
+	switch {
+	case len(c.After) == 0 || !c.Rollback && (!c.Before.Known || len(before) == 0):
+		return fmt.Errorf("reload: listeners before %v (known %v), after %v: %w", before, c.Before.Known, c.After, ErrListenersUnknown)
+	case c.Rollback:
+	case c.Confirmed:
+		if extra := uncovered(c.After, before, false); len(extra) > 0 {
+			return fmt.Errorf("reload: %v: plan a change that adds listeners unconfirmed, holding the old ones: %w", extra, ErrAddsListener)
+		}
+	default:
+		if missing := uncovered(before, c.After, false); len(missing) > 0 {
+			return &HoldError{Missing: missing}
+		}
+		p.Hold = slices.Clone(before)
+		p.Adds = uncovered(c.After, before, false)
+	}
+	p.Verify = slices.Clone(c.After)
+	return nil
 }
 
 func reloadService() Step {
 	return Step{Kind: StepIfUp, Unit: ServiceUnit, Argv: []string{"systemctl", "reload", ServiceUnit},
 		Why: ServiceUnit + " checks the files (sshd -t) and signals sshd to reread them"}
 }
+
+// generatorDropIn is the drop-in sshd-socket-generator writes.
+const generatorDropIn = "addresses.conf"
 
 // socketReady refuses a listener change the socket would not follow: one
 // whose listeners do not come from the generator, or that a drop-in
@@ -228,7 +286,9 @@ func socketReady(s detect.SSH, d SocketDropIns) error {
 	}
 	var over []string
 	for _, f := range d.Files {
-		if len(f.Listen) > 0 {
+		// A drop-in named as the generator's, in a directory read here,
+		// replaces it or masks it (systemd.unit(5)).
+		if len(f.Listen) > 0 || path.Base(f.Path) == generatorDropIn {
 			over = append(over, f.Path)
 		}
 	}

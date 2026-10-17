@@ -21,13 +21,16 @@ const (
 	OpenRCConfd = "/etc/conf.d/sshd"
 )
 
-// ErrConfd: /etc/conf.d/sshd names a binary or a configuration file other
-// than the init script's defaults, which hardn does not model.
-var ErrConfd = errors.New("conf.d sets the sshd binary or configuration file")
+// ErrConfd: /etc/conf.d/sshd names a binary, a configuration file or sshd
+// arguments other than the init script's defaults, which hardn does not
+// model.
+var ErrConfd = errors.New("conf.d sets the sshd binary, configuration file or arguments")
 
-// confdVars change the binary or the configuration file the init script
-// uses (sshd.initd: command, cfgfile).
-var confdVars = []string{"SSHD_BINARY", "SSHD_CONFIG", "SSHD_CONFDIR", "cfgfile"}
+// confdVars change the binary, the configuration file or the arguments the
+// init script uses (sshd.initd: command, cfgfile, and command_args, which
+// defaults to SSHD_OPTS and reaches both "$command" -t and the daemon, so a
+// -f or -o there changes what sshd reads).
+var confdVars = []string{"SSHD_BINARY", "SSHD_CONFIG", "SSHD_CONFDIR", "cfgfile", "SSHD_OPTS", "command_args"}
 
 // OpenRCFlavour returns the sshd binary Alpine's init script runs for the
 // installed files, for sshd.Validate's and sshd.ReadEffective's Binary: as
@@ -35,7 +38,8 @@ var confdVars = []string{"SSHD_BINARY", "SSHD_CONFIG", "SSHD_CONFDIR", "cfgfile"
 // prints KerberosAuthentication or GSSAPIAuthentication yes, else sshd.pam
 // when executable with UsePAM yes, else sshd. Where the script ignores a
 // failing -G, OpenRCFlavour returns the error. It refuses, with ErrConfd, an
-// /etc/conf.d/sshd that sets the binary or the configuration file.
+// /etc/conf.d/sshd that sets the binary, the configuration file or the
+// arguments.
 func OpenRCFlavour(ctx context.Context, sys host.System) (string, error) {
 	switch data, err := sys.ReadFile(ctx, OpenRCConfd); {
 	case errors.Is(err, fs.ErrNotExist):
