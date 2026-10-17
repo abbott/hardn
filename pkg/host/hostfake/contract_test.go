@@ -1,0 +1,285 @@
+package hostfake_test
+
+import (
+	"context"
+	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"reflect"
+	"syscall"
+	"testing"
+
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/hostfake"
+)
+
+// world is one System under test with a fresh root directory, and seeding
+// done outside the System.
+type world struct {
+	sys     host.LegacySystem
+	root    string
+	file    func(rel string, data string, perm fs.FileMode)
+	dir     func(rel string)
+	symlink func(rel, target string)
+}
+
+func (w world) path(rel string) string { return filepath.Join(w.root, rel) }
+
+func realWorld(t *testing.T) world {
+	root := t.TempDir()
+	must := func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return world{
+		sys:  host.NewReal(host.Options{}),
+		root: root,
+		file: func(rel, data string, perm fs.FileMode) {
+			must(os.WriteFile(filepath.Join(root, rel), []byte(data), perm))
+		},
+		dir:     func(rel string) { must(os.Mkdir(filepath.Join(root, rel), 0o755)) },
+		symlink: func(rel, target string) { must(os.Symlink(target, filepath.Join(root, rel))) },
+	}
+}
+
+func fakeWorld(*testing.T) world {
+	f := hostfake.New(host.Options{})
+	root := "/srv/contract"
+	f.AddDir(root, 0o755, 0, 0)
+	return world{
+		sys:  f,
+		root: root,
+		file: func(rel, data string, perm fs.FileMode) {
+			f.AddFile(filepath.Join(root, rel), []byte(data), perm, 0, 0)
+		},
+		dir:     func(rel string) { f.AddDir(filepath.Join(root, rel), 0o755, 0, 0) },
+		symlink: func(rel, target string) { f.AddSymlink(filepath.Join(root, rel), target) },
+	}
+}
+
+// TestContract runs each case against host.Real in a temporary directory and
+// against the fake, so the fake keeps the os package's rules for the hazards
+// the safety primitives guard against. Owners are not compared (the fake acts
+// as root); -1 keeps them.
+func TestContract(t *testing.T) {
+	ctx := context.Background()
+	cases := []struct {
+		name string
+		run  func(t *testing.T, w world)
+	}{
+		{"write in place follows a symlink and keeps the mode", func(t *testing.T, w world) {
+			w.file("keys", "old\n", 0o600)
+			w.symlink("authorized_keys", w.path("keys"))
+			if err := w.sys.WriteFileInPlace(ctx, w.path("authorized_keys"), []byte("new\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "keys", "new\n", 0o600)
+			wantLink(t, w, "authorized_keys", w.path("keys"))
+		}},
+		{"write in place creates a missing file", func(t *testing.T, w world) {
+			if err := w.sys.WriteFileInPlace(ctx, w.path("new"), []byte("x"), 0o640); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "new", "x", 0o640)
+		}},
+		{"atomic write refuses a symlink, even a dangling one", func(t *testing.T, w world) {
+			w.file("keys", "cluster\n", 0o600)
+			w.symlink("authorized_keys", w.path("keys"))
+			w.symlink("dangling", w.path("nowhere"))
+			for _, name := range []string{"authorized_keys", "dangling"} {
+				if err := w.sys.WriteFileAtomic(ctx, w.path(name), []byte("x"), 0o600, -1, -1); !errors.Is(err, host.ErrSymlink) {
+					t.Errorf("%s: err = %v, want ErrSymlink", name, err)
+				}
+			}
+			wantFile(t, w, "keys", "cluster\n", 0o600)
+			wantLink(t, w, "authorized_keys", w.path("keys"))
+			wantNames(t, w, "", "authorized_keys", "dangling", "keys")
+		}},
+		{"atomic write replaces content and mode", func(t *testing.T, w world) {
+			w.file("00-hardn.conf", "Port 22\n", 0o644)
+			if err := w.sys.WriteFileAtomic(ctx, w.path("00-hardn.conf"), []byte("Port 2230\n"), 0o600, -1, -1); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "00-hardn.conf", "Port 2230\n", 0o600)
+			wantNames(t, w, "", "00-hardn.conf")
+		}},
+		{"atomic write refuses a directory and a missing parent", func(t *testing.T, w world) {
+			w.dir("d")
+			if err := w.sys.WriteFileAtomic(ctx, w.path("d"), nil, 0o600, -1, -1); !errors.Is(err, syscall.EISDIR) {
+				t.Errorf("directory: err = %v, want EISDIR", err)
+			}
+			if err := w.sys.WriteFileAtomic(ctx, w.path("no/f"), nil, 0o600, -1, -1); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing parent: err = %v, want ErrNotExist", err)
+			}
+		}},
+		{"rename over a symlink replaces the link, not its target", func(t *testing.T, w world) {
+			w.file("keys", "cluster\n", 0o600)
+			w.symlink("authorized_keys", w.path("keys"))
+			w.file("tmp", "replaced\n", 0o600)
+			if err := w.sys.Rename(ctx, w.path("tmp"), w.path("authorized_keys")); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "authorized_keys", "replaced\n", 0o600)
+			wantFile(t, w, "keys", "cluster\n", 0o600)
+		}},
+		{"rename moves a directory tree", func(t *testing.T, w world) {
+			w.dir("a")
+			w.file("a/f", "x", 0o600)
+			if err := w.sys.Rename(ctx, w.path("a"), w.path("b")); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "b/f", "x", 0o600)
+			wantNames(t, w, "", "b")
+		}},
+		{"remove: missing, non-empty directory, symlink", func(t *testing.T, w world) {
+			w.dir("d")
+			w.file("d/f", "x", 0o600)
+			w.symlink("l", w.path("d"))
+			if err := w.sys.Remove(ctx, w.path("missing")); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing: err = %v, want ErrNotExist", err)
+			}
+			if err := w.sys.Remove(ctx, w.path("d")); !errors.Is(err, syscall.ENOTEMPTY) {
+				t.Errorf("non-empty dir: err = %v, want ENOTEMPTY", err)
+			}
+			if err := w.sys.Remove(ctx, w.path("l")); err != nil {
+				t.Errorf("symlink: err = %v", err)
+			}
+			wantNames(t, w, "d", "f")
+		}},
+		{"remove all: missing is fine, a symlink goes but not its target", func(t *testing.T, w world) {
+			w.dir("d")
+			w.file("d/f", "x", 0o600)
+			w.symlink("l", w.path("d"))
+			if err := w.sys.RemoveAll(ctx, w.path("missing")); err != nil {
+				t.Errorf("missing: err = %v", err)
+			}
+			if err := w.sys.RemoveAll(ctx, w.path("l")); err != nil {
+				t.Fatal(err)
+			}
+			wantNames(t, w, "d", "f")
+			if err := w.sys.RemoveAll(ctx, w.path("d")); err != nil {
+				t.Fatal(err)
+			}
+			wantNames(t, w, "")
+		}},
+		{"stat follows, lstat does not, readdir sorts", func(t *testing.T, w world) {
+			w.file("b", "", 0o600)
+			w.dir("a")
+			w.symlink("c", "a")
+			fi, err := w.sys.Stat(ctx, w.path("c"))
+			if err != nil || !fi.IsDir() {
+				t.Errorf("Stat(symlink to dir) = %v, %v; want a directory", fi, err)
+			}
+			li, err := w.sys.Lstat(ctx, w.path("c"))
+			if err != nil || li.Mode()&fs.ModeSymlink == 0 || li.Name() != "c" {
+				t.Errorf("Lstat(symlink) = %v, %v; want a symlink named c", li, err)
+			}
+			wantNames(t, w, "", "a", "b", "c")
+		}},
+		{"read: through a symlink, a dangling one, a directory", func(t *testing.T, w world) {
+			w.file("f", "data", 0o600)
+			w.symlink("l", "f")
+			w.symlink("dangling", "nowhere")
+			w.dir("d")
+			if got, err := w.sys.ReadFile(ctx, w.path("l")); err != nil || string(got) != "data" {
+				t.Errorf("through symlink = %q, %v", got, err)
+			}
+			if _, err := w.sys.ReadFile(ctx, w.path("dangling")); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("dangling: err = %v, want ErrNotExist", err)
+			}
+			if _, err := w.sys.ReadFile(ctx, w.path("d")); !errors.Is(err, syscall.EISDIR) {
+				t.Errorf("directory: err = %v, want EISDIR", err)
+			}
+		}},
+		{"mkdir all: nested, existing, over a file", func(t *testing.T, w world) {
+			w.file("f", "", 0o600)
+			if err := w.sys.MkdirAll(ctx, w.path("x/y/z"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := w.sys.MkdirAll(ctx, w.path("x/y"), 0o700); err != nil {
+				t.Errorf("existing: err = %v", err)
+			}
+			if err := w.sys.MkdirAll(ctx, w.path("f"), 0o700); !errors.Is(err, syscall.ENOTDIR) {
+				t.Errorf("over a file: err = %v, want ENOTDIR", err)
+			}
+			if err := w.sys.MkdirAll(ctx, w.path("f/sub"), 0o700); !errors.Is(err, syscall.ENOTDIR) {
+				t.Errorf("under a file: err = %v, want ENOTDIR", err)
+			}
+			wantNames(t, w, "x/y", "z")
+		}},
+		{"chown refuses a symlink", func(t *testing.T, w world) {
+			w.file("f", "", 0o600)
+			w.symlink("l", "f")
+			if err := w.sys.Chown(ctx, w.path("f"), -1, -1); err != nil {
+				t.Errorf("file: err = %v", err)
+			}
+			if err := w.sys.Chown(ctx, w.path("l"), -1, -1); !errors.Is(err, host.ErrSymlink) {
+				t.Errorf("symlink: err = %v, want ErrSymlink", err)
+			}
+		}},
+	}
+	for _, c := range cases {
+		for _, mk := range []struct {
+			name string
+			new  func(*testing.T) world
+		}{{"real", realWorld}, {"fake", fakeWorld}} {
+			t.Run(c.name+"/"+mk.name, func(t *testing.T) { c.run(t, mk.new(t)) })
+		}
+	}
+}
+
+func wantFile(t *testing.T, w world, rel, data string, perm fs.FileMode) {
+	t.Helper()
+	ctx := context.Background()
+	got, err := w.sys.ReadFile(ctx, w.path(rel))
+	fi, serr := w.sys.Lstat(ctx, w.path(rel))
+	if err != nil || serr != nil || string(got) != data || !fi.Mode().IsRegular() || fi.Mode().Perm() != perm {
+		t.Errorf("%s = %q (%v), mode %v (%v); want a regular file %q, mode %v", rel, got, err, modeOf(fi), serr, data, perm)
+	}
+}
+
+func wantLink(t *testing.T, w world, rel, target string) {
+	t.Helper()
+	fi, err := w.sys.Lstat(context.Background(), w.path(rel))
+	if err != nil || fi.Mode()&fs.ModeSymlink == 0 {
+		t.Errorf("%s is %v (%v), want a symlink", rel, modeOf(fi), err)
+	}
+	if r, ok := w.sys.(*host.Real); ok && r != nil {
+		if got, err := os.Readlink(w.path(rel)); err != nil || got != target {
+			t.Errorf("%s -> %q (%v), want %q", rel, got, err, target)
+		}
+	}
+	if f, ok := w.sys.(*hostfake.System); ok {
+		if e, _ := f.Entry(w.path(rel)); e.Target != target {
+			t.Errorf("%s -> %q, want %q", rel, e.Target, target)
+		}
+	}
+}
+
+func wantNames(t *testing.T, w world, rel string, names ...string) {
+	t.Helper()
+	entries, err := w.sys.ReadDir(context.Background(), w.path(rel))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, e := range entries {
+		got = append(got, e.Name())
+	}
+	if len(names) == 0 {
+		names = nil
+	}
+	if !reflect.DeepEqual(got, names) {
+		t.Errorf("%s/ holds %q, want %q", rel, got, names)
+	}
+}
+
+func modeOf(fi fs.FileInfo) any {
+	if fi == nil {
+		return nil
+	}
+	return fi.Mode()
+}

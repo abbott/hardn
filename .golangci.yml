@@ -152,6 +152,8 @@ linters:
               desc: the golden harness is for tests only (design-system README §8)
             - pkg: github.com/abbott/hardn/pkg/ui/component/fixture
               desc: the component states are for tests and the gallery only (design-system README §9.14)
+            - pkg: github.com/abbott/hardn/pkg/host/hostfake
+              desc: the recording fake System is for tests and the dev tools only (docs/safety/system.md)
         # The dev tools import anything; nothing imports them.
         dev-tools:
           files:
@@ -178,6 +180,17 @@ linters:
             - "!$test"
           allow:
             - $gostd
+        # The host seam (and its fake) keep to the standard library, so
+        # nothing they link runs a command or touches a file behind
+        # host.System's back (docs/safety/system.md).
+        host-stdlib:
+          list-mode: strict
+          files:
+            - "${base-path}/pkg/host/**"
+            - "!$test"
+          allow:
+            - $gostd
+            - github.com/abbott/hardn/pkg/host
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.
