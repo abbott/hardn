@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -71,6 +72,13 @@ func (d denied) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 	return d.System.Stat(ctx, name)
 }
 
+func (d denied) Lstat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if err := d.err("lstat", name); err != nil {
+		return nil, err
+	}
+	return d.System.Lstat(ctx, name)
+}
+
 func (d denied) Readlink(ctx context.Context, name string) (string, error) {
 	if err := d.err("readlink", name); err != nil {
 		return "", err
@@ -78,13 +86,36 @@ func (d denied) Readlink(ctx context.Context, name string) (string, error) {
 	return d.System.Readlink(ctx, name)
 }
 
-// readOnly fails t when f recorded anything but a read: detection writes
+func (d denied) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
+	if err := d.err("open", name); err != nil {
+		return nil, err
+	}
+	return d.System.ReadDir(ctx, name)
+}
+
+// readOnlyRuns are the only commands detection runs (docs/safety/detect.md
+// §2.2), as argv joined with NUL.
+var readOnlyRuns = map[string]bool{
+	strings.Join(dpkgQuery, "\x00"):          true,
+	"systemctl\x00is-enabled\x00ssh.socket":  true,
+	"systemctl\x00is-active\x00ssh.socket":   true,
+	"systemctl\x00is-enabled\x00ssh.service": true,
+	"systemctl\x00is-active\x00ssh.service":  true,
+	"sudo\x00--version":                      true,
+}
+
+// readOnly fails t when f recorded anything but a read, or a command that is
+// not one of readOnlyRuns: detection writes nothing and starts or stops
 // nothing.
 func readOnly(t *testing.T, f *hostfake.System) {
 	t.Helper()
 	for _, c := range f.Calls() {
 		switch c.Op {
-		case "read", "stat", "lstat", "readlink", "readdir", "run":
+		case "read", "stat", "lstat", "readlink", "readdir":
+		case "run":
+			if !readOnlyRuns[strings.Join(c.Argv, "\x00")] {
+				t.Errorf("detection ran a command outside the read-only list: %v", c)
+			}
 		default:
 			t.Errorf("detection made a %s call: %v", c.Op, c)
 		}

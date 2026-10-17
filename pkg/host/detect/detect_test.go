@@ -3,6 +3,7 @@ package detect_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -139,5 +140,26 @@ func TestDetectNothing(t *testing.T) {
 	}
 	if !errors.Is(got.Proxmox.Err, hostfake.ErrUnscripted) {
 		t.Errorf("Proxmox.Err = %v, want the unscripted dpkg-query", got.Proxmox.Err)
+	}
+	readOnly(t, f)
+}
+
+// Each fact enum's words, which Source strings and errors carry; a value
+// out of range is "unknown", never another fact.
+func TestStrings(t *testing.T) {
+	tests := []struct {
+		got  fmt.Stringer
+		want string
+	}{
+		{detect.Unknown, "unknown"}, {detect.No, "no"}, {detect.Yes, "yes"}, {detect.Tri(9), "unknown"},
+		{detect.InitUnknown, "unknown"}, {detect.Systemd, "systemd"}, {detect.OpenRC, "openrc"}, {detect.InitKind(9), "unknown"},
+		{detect.SSHUnknown, "unknown"}, {detect.SSHSocket, "ssh.socket"}, {detect.SSHService, "ssh.service"}, {detect.SSHOpenRC, "openrc sshd"}, {detect.SSHMode(9), "unknown"},
+		{detect.SupportUnknown, "unknown"}, {detect.Supported, "supported"}, {detect.BestEffort, "best effort"}, {detect.OutOfScope, "out of scope"}, {detect.Unlisted, "unlisted"}, {detect.Support(9), "unknown"},
+		{detect.SudoFlavorUnknown, "unknown"}, {detect.SudoOriginal, "sudo"}, {detect.SudoRS, "sudo-rs"}, {detect.SudoFlavor(9), "unknown"},
+	}
+	for _, tt := range tests {
+		if s := tt.got.String(); s != tt.want {
+			t.Errorf("%T(%v).String() = %q, want %q", tt.got, tt.got, s, tt.want)
+		}
 	}
 }
