@@ -40,7 +40,8 @@ func join(blocks ...string) string {
 }
 
 // stack joins the blocks that render something line under line, with no
-// blank line between them: one group of the main menu's compact form.
+// blank line between them: in the main menu's compact form, the risk line
+// and the status rows, and the menu heading and the menu.
 func stack(blocks ...string) string {
 	return glue("\n", blocks)
 }
@@ -60,13 +61,18 @@ func glue(sep string, blocks []string) string {
 }
 
 // withMenu renders a menu screen as nav.Run draws it: above and the menu,
-// joined as blocks, then theme.PromptGap blank lines and the PromptLine
-// labelled label, its hint generated from the menu's keys and the
-// navigation inputs, as nav.Menu.Accepts generates it. With nothing above
-// the prompt, the prompt is alone.
+// joined as blocks, or a compact menu (menu.Compact) on the line under
+// above, as nav.Screen.Compact draws it; then theme.PromptGap blank lines
+// and the PromptLine labelled label, its hint generated from the menu's
+// keys and the navigation inputs, as nav.Menu.Accepts generates it. With
+// nothing above the prompt, the prompt is alone.
 func withMenu(c component.Ctx, above string, menu component.Menu, label string) string {
 	prompt := component.PromptLine{Label: label, Accepts: append(menu.Bindings(), keys.Navigation()...)}.Render(c)
-	body := join(above, menu.Render(c))
+	gather := join
+	if menu.Compact {
+		gather = stack
+	}
+	body := gather(above, menu.Render(c))
 	if body == "" {
 		return prompt
 	}

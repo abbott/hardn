@@ -538,16 +538,19 @@ func TestRunGap(t *testing.T) {
 }
 
 // TestRunCompact checks that a compact screen draws its menu in two
-// columns (component.Menu.Compact) and still accepts every item.
+// columns (component.Menu.Compact), on the line under Above with no blank
+// line between, and still accepts every item.
 func TestRunCompact(t *testing.T) {
 	var ran []string
 	out, err := play([]string{"10", "0"}, func(p Prompter) error {
-		return p.Run(func() Screen { return Screen{Menu: mainMenu(&ran), Label: choice, Compact: true} })
+		return p.Run(func() Screen {
+			return Screen{Above: "  Select an option", Menu: mainMenu(&ran), Label: choice, Compact: true}
+		})
 	})
 	view := mainMenu(nil).View()
 	view.Compact = true
 	drawing := ansi.Strip(view.Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
-	want := drawing + "\n\n  > Enter your choice [0-10, b or q]: "
+	want := "  Select an option\n" + drawing + "\n\n  > Enter your choice [0-10, b or q]: "
 	if err != nil || !strings.HasPrefix(out, want+"10\n") || strings.Join(ran, " ") != "10" ||
 		!strings.Contains(drawing, "   5) Backup               10) Logs") {
 		t.Errorf("Run() = %v, ran %q, transcript\n%s\nwant it to start\n%s", err, ran, out, want)

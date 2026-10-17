@@ -152,15 +152,16 @@ type Screen struct {
 	// Label is the prompt's question, such as "Enter your choice".
 	Label string
 	// Compact lays the menu out in two columns (component.Menu.Compact),
-	// as the main menu does on a short terminal (pkg/ui/screen).
+	// on the line under Above, with no blank line between them, as the
+	// main menu's compact form does on a short terminal (pkg/ui/screen).
 	Compact bool
 }
 
 // Run shows a menu screen and runs what the user chooses until they go
 // back or quit. Each round it calls draw, so that the screen shows the
 // state the last action left, and writes Above, theme.SectionGap blank
-// lines, the menu (in two columns when Compact is set) and
-// theme.PromptGap blank lines; then it asks (Choose)
+// lines and the menu, or with Compact set the menu in two columns on the
+// line under Above, then theme.PromptGap blank lines; then it asks (Choose)
 // and runs the option's Action. The next round draws the screen again
 // under what the action wrote, clearing nothing (brief 1C: never wipe a
 // result). A line the prompt refuses does not draw the screen again.
@@ -200,7 +201,11 @@ func (p Prompter) Run(draw func() Screen) error {
 			out = strings.Repeat("\n", theme.SectionGap)
 		}
 		if len(parts) > 0 {
-			out += strings.Join(parts, strings.Repeat("\n", theme.SectionGap+1)) + strings.Repeat("\n", theme.PromptGap+1)
+			sep := strings.Repeat("\n", theme.SectionGap+1)
+			if s.Compact {
+				sep = "\n"
+			}
+			out += strings.Join(parts, sep) + strings.Repeat("\n", theme.PromptGap+1)
 		}
 		if out != "" {
 			if _, err := io.WriteString(p.Out, out); err != nil {

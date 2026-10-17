@@ -46,11 +46,34 @@ import (
 // short for the full form, prompt included, the main menu renders its
 // compact form, which fits theme.CompactBudget lines, an 80x24 console,
 // with Figma's content from theme.StackBelow columns up (DEV-052): the
-// Header and the Divider are left out; the ContextBar and the HostBlock
-// are one group and the RiskSummary and the StatusList another, each with
-// no blank line inside it; and the menu is laid out in two columns, its
-// items' keys and labels alone (component.Menu.Compact). The host, the
-// risk, every status row, the mode and every item stay on screen. Below
+// Header and the Divider are left out; the ContextBar keeps the blank line
+// under it, as a bar always has, Figma's and the sub-screens' title bar
+// alike; the RiskSummary and the StatusList are one group, with no blank
+// line inside it; the menu's items start on the line under the heading,
+// with no blank line between; and the menu is laid out in two columns,
+// its items' keys and labels alone (component.Menu.Compact). Here plain,
+// at 80x24, cut short:
+//
+//	# Debian 12 (Bookworm) #########################################
+//
+//	  [BOS-SAN-L01]            192.0.2.10
+//	                           182 days, 2 hours, 26 minutes
+//
+//	  [*] Risk Level           Moderate ~ medium security
+//	  [+] User                 Configured non-root, sudo
+//	  [ ] Auto Updates         Not Configured
+//
+//	  Select an option         Dry-run Mode Disabled
+//	   1) User Management       6) Dry-Run
+//	   5) Backup               10) Logs
+//
+//	   0) Exit                 q to quit
+//
+//	  > Enter selection [0-10, b or q]:
+//
+// The host, the risk, every status row, the mode and every item stay on
+// screen, Figma's content in theme.CompactBudget lines: the blank line
+// the heading leaves out is the one the bar keeps. Below
 // theme.StackBelow columns the compact form stacks its rows too, 34 lines
 // at 60 columns, so a 60-column terminal shows the full form from 57 rows
 // and the compact form below. Output that is not a terminal has no height
@@ -89,7 +112,8 @@ func (vm MainMenu) Render(c component.Ctx) string {
 
 // Screen returns what nav.Run draws for the main menu, with m as its menu
 // in place of vm.Menu: Above holds every block down to the menu heading,
-// and Compact is set on a terminal too short for the full form drawn with
+// and Compact, which lays the menu out in two columns on the line under
+// the heading, is set on a terminal too short for the full form drawn with
 // m, the menu nav.Run draws, so that nav.Run draws what Render renders
 // for a view-model whose Menu holds m's items. Call it in each round of
 // Run's draw, so that the screen shows the state the last action left.
@@ -108,13 +132,15 @@ func (vm MainMenu) form(c component.Ctx, short bool) string {
 }
 
 // above renders every block above the menu: the full form's, or the
-// compact form's when short is set.
+// compact form's when short is set, whose menu is drawn on the line under
+// the heading (withMenu, nav.Screen.Compact).
 func (vm MainMenu) above(c component.Ctx, short bool) string {
 	mode := vm.Mode
 	heading := component.MenuHeading{Title: vm.Heading, Mode: &mode}.Render(c)
 	if short {
 		return join(
-			stack(vm.Context.Render(c), vm.Host.Render(c)),
+			vm.Context.Render(c),
+			vm.Host.Render(c),
 			stack(vm.Risk.Render(c), vm.Status.Render(c)),
 			heading,
 		)

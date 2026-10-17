@@ -280,7 +280,9 @@ func TestScreen(t *testing.T) {
 // sit side by side, the compact form takes at most theme.CompactBudget
 // lines and the full form fits theme.CompactBelow rows. At 60 columns,
 // where they stack, the full form takes 57 lines and the compact form 34
-// (DEV-052). With no terminal, the full form whatever the height.
+// (DEV-052). At every width the compact form's context bar keeps the
+// blank line under it. With no terminal, the full form whatever the
+// height.
 func TestCompact(t *testing.T) {
 	vm := MainMenuFixture()
 	heights := []int{0, 1}
@@ -297,6 +299,9 @@ func TestCompact(t *testing.T) {
 		}
 		if w >= theme.StackBelow && nFull >= theme.CompactBelow {
 			t.Errorf("%d columns: the full form takes %d lines, not under %d", w, nFull, theme.CompactBelow)
+		}
+		if bar := strings.SplitN(ansi.Strip(short), "\n", 3); len(bar) < 3 || bar[0] != ansi.Strip(vm.Context.Render(c)) || bar[1] != "" {
+			t.Errorf("%d columns: want the compact form to open with the context bar and a blank line, got:\n%s", w, ansi.Strip(short))
 		}
 		for _, h := range heights {
 			env.Height = h
@@ -367,12 +372,14 @@ func TestScreenMenu(t *testing.T) {
 }
 
 // TestCompactForm checks what the compact form keeps and leaves out, on
-// plain text at 80x24.
+// plain text at 80x24: the context bar keeps its blank line, and the
+// menu's items start on the line under the heading, in 24 lines.
 func TestCompactForm(t *testing.T) {
 	env := term.Fixed(80, colorprofile.ASCII, false, true)
 	env.Height = term.DefaultHeight
 	out := ansi.Strip(MainMenuFixture().Render(component.NewCtx(env)))
 	want := `# Debian 12 (Bookworm) #########################################
+
   [BOS-SAN-L01]            192.0.2.10
                            182 days, 2 hours, 26 minutes
 
@@ -386,7 +393,6 @@ func TestCompactForm(t *testing.T) {
   [ ] Auto Updates         Not Configured
 
   Select an option         Dry-run Mode Disabled
-
    1) User Management       6) Dry-Run
    2) SSH Login             7) Run All
    3) DNS                   8) Environment
@@ -396,8 +402,8 @@ func TestCompactForm(t *testing.T) {
    0) Exit                 q to quit
 
   > Enter selection [0-10, b or q]:`
-	if out != want {
-		t.Errorf("compact main menu:\n%s\nwant\n%s", out, want)
+	if out != want || lines(out) != theme.CompactBudget {
+		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}
 }
 
