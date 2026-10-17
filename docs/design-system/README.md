@@ -194,7 +194,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 | `color.badge.host` | `surface:#0C2AC0` | #0C2AC0 | `badge.bg` | #0C2AC0 | 19 | 4 Blue | #0C2AC0 / 19 / 4 Blue | light DEV-011 |
 | `color.bar.warn` | `surface:#D2BC13` | #D2BC13 | `accent.warn` | #D2BC13 | 178 | 3 Yellow | #B88A00 / 136 / 3 Yellow | D14: a pair with `status.warn`, kept separate; light DEV-011 |
 | `color.bar.ok` | `surface:#008A00` | #008A00 | `accent.ok` | #008A00 | 28 | 2 Green | #008A00 / 28 / 2 Green | D14: a pair with `status.ok`, kept separate; light DEV-011 |
-| `color.border.divider` | `border:#16181D` | #16181D | `divider` | **#565B6B** | **59** | 8 BrightBlack | #81869C / 103 / 8 BrightBlack | DEV-002; D6 |
+| `color.border.divider` | `border:#16181D` | #16181D | `divider` | **#303440** | **236** | 8 BrightBlack | #81869C / 103 / 8 BrightBlack | DEV-002; D6 |
 
 **A use mapped to a different Go token, and a value outside the token export:**
 - The host badge text uses the export's `color.text.primary` (#C0C4D8). That use maps to `badge.fg`, not `text.primary` (drift D3, DEV-003).
@@ -206,7 +206,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 
 ### 4.2 Rules the tests hold
 
-- **256 colours:** the xterm index from 16 to 255 nearest the hex by CIE76 ΔE; indexes 0-15 are never used, because they are the user's own 16 colours. The only overrides are dark `text.faint` and `divider`: 59 instead of the nearest, 240, which is under 3:1 (DEV-001). `TestANSI256Nearest`.
+- **256 colours:** the xterm index from 16 to 255 nearest the hex by CIE76 ΔE; indexes 0-15 are never used, because they are the user's own 16 colours. The only override is dark `text.faint`: 59 instead of the nearest, 240, which is under 3:1 (DEV-001). `TestANSI256Nearest`.
 - **16 colours:** picked by hand, never by distance, because terminals redefine them. Muted and faint share BrightBlack in both themes. `TestDeliberateANSIPicks` pins the dark picks DEV-001 to DEV-004 record; every other 16-colour pick, including DEV-010's and DEV-011's, is held by the swatch golden (§8), and its contrast floor by `TestContrast`.
 - **Contrast** (WCAG, against #000000 for dark and #FFFFFF for light, at truecolor, 256 and 16 colours; 16 colours in x/ansi's RGB table, `color.go:269-284`, standing in for the user's palette). `TestContrast`:
 
@@ -214,7 +214,8 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 |---|---|---|
 | `text.primary` | 7:1 | 4.5:1 |
 | `text.muted` | 4.5:1 | 3:1 |
-| `text.faint`, `divider`, `accent.ok`, `accent.warn` | 3:1 | 3:1 |
+| `text.faint`, `accent.ok`, `accent.warn` | 3:1 | 3:1 |
+| `divider` | 1.5:1, and no louder than `text.faint` (`TestDividerBelowFaint`; DEV-002) | 3:1 |
 | `status.ok`, `status.bad`, `status.warn`, `status.unknown` | 4.5:1 | 4.5:1 |
 | `badge.fg` on `badge.bg` | 4.5:1 | 4.5:1 |
 | `badge.bg`, `bar.bg` | none (surfaces) | none |
