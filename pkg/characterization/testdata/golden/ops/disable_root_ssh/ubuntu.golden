@@ -3,14 +3,14 @@
 # Operation: SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH
 # Reached by: hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)
 # FIXED (P0.8, gated by dryRunFlagApplies): V1 — hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now
-# KNOWN-DEFECT: V4 — disable-root rebuilds the SSH config from a stub (Port 22, no ListenAddress/AllowUsers, key-only) instead of editing PermitRootLogin
+# FIXED (P0.8, gated by stubDisableRoot): V4 — disable-root reads the file and edits it in place: PermitRootLogin set to no (added before the first Match block if absent) and root removed from AllowUsers; every other line kept
 # KNOWN-DEFECT: V7 — no sshd -t before the restart and no sshd -T after; restart instead of reload
-# KNOWN-DEFECT: V12 — no ssh.socket handling (socket-activated sshd on Ubuntu), so the port change may not take effect
+# FIXED (P0.8, gated by stubDisableRoot): V12 — disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)
 # KNOWN-DEFECT: V13 — the drop-in is named hardn.conf, which sorts after 50-cloud-init.conf (sshd uses the first value)
 # KNOWN-DEFECT: V18 — writes are non-atomic and nothing is backed up first
-# KNOWN-DEFECT: V24 — a single AuthorizedKeysFile drops v0.3.2's ~/.ssh_<user>/authorized_keys, so keys on upgraded hosts stop working
+# FIXED (P0.8, gated by stubDisableRoot): V24 — disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept
 # NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
-# NOTE: Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (file_ssh_repository.go:127-131), so the seed is never read.
+# NOTE: Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros.
 
 == fixture
 host: os=ubuntu version=24.04 codename=noble proxmox=false
@@ -33,48 +33,26 @@ seed file: /etc/ssh/sshd_config.d/hardn.conf
 == cfg.DryRun=false
 result SSHManager.DisableRootSSH: ok
 trace:
-  1 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
-  2 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
-        | # SSH configuration managed by Hardn
-        |
-        | Protocol 2
-        | StrictModes yes
-        |
-        | Port 22
-        |
-        | AuthenticationMethods publickey
-        | PubkeyAuthentication yes
-        |
+  1 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
+  2 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
+  3 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+        | Port 2230
+        | ListenAddress 0.0.0.0
         | PermitRootLogin no
-        |
-        | PasswordAuthentication no
-        | PermitEmptyPasswords no
-        |
-        | AuthorizedKeysFile .ssh/authorized_keys
-  3 exec   systemctl restart ssh -> ok
+        | AllowUsers alice
+  4 exec   systemctl restart ssh -> ok
 
 == cfg.DryRun=true
 result SSHManager.DisableRootSSH: ok
 trace:
-  1 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
-  2 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
-        | # SSH configuration managed by Hardn
-        |
-        | Protocol 2
-        | StrictModes yes
-        |
-        | Port 22
-        |
-        | AuthenticationMethods publickey
-        | PubkeyAuthentication yes
-        |
+  1 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
+  2 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
+  3 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+        | Port 2230
+        | ListenAddress 0.0.0.0
         | PermitRootLogin no
-        |
-        | PasswordAuthentication no
-        | PermitEmptyPasswords no
-        |
-        | AuthorizedKeysFile .ssh/authorized_keys
-  3 exec   systemctl restart ssh -> ok
+        | AllowUsers alice
+  4 exec   systemctl restart ssh -> ok
 
 cfg.DryRun=true section identical to cfg.DryRun=false: true
 

@@ -287,7 +287,11 @@ func newUserDefects(c osCell) []string {
 
 // fixedText says what a P0.8 hazard gate does instead, for each fixed item.
 var fixedText = map[string]string{
-	"V1": "hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now",
+	"V1":               "hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now",
+	"V4":               "disable-root reads the file and edits it in place: PermitRootLogin set to no (added before the first Match block if absent) and root removed from AllowUsers; every other line kept",
+	"V12:disable-root": "disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)",
+	"V15:disable-root": "Alpine: /etc/ssh/sshd_config is edited in place, so Subsystem sftp, Include and comments survive",
+	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
 }
 
 var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it."
@@ -320,7 +324,7 @@ func opScenarios() []opScenario {
 			op:    "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
 			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
 			cli:   []cliRun{{"-d", []string{hardncmd.FlagDisableRoot}, refusedInRoot}},
-			notes: []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (file_ssh_repository.go:127-131), so the seed is never read."},
+			notes: []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros."},
 			setup: func(e *opEnv) {
 				e.fs.Files["/etc/ssh/sshd_config"] = []byte("Port 2230\nListenAddress 192.0.2.10\nAllowUsers root alice\nPermitRootLogin yes\nSubsystem sftp /usr/lib/ssh/sftp-server\n")
 				if !e.cell.alpine() {
@@ -331,12 +335,24 @@ func opScenarios() []opScenario {
 				return []callResult{{"SSHManager.DisableRootSSH", e.factory.CreateSSHManager().DisableRootSSH()}}
 			},
 			defects: func(c osCell) []string {
-				d := []string{"V4", "V7", "V18", "V24"}
-				d = append(d, sshWriteDefects(c)...)
+				d := []string{"V7", "V18"}
+				if !c.alpine() {
+					d = append(d, "V13")
+				}
 				if c.proxmox {
 					d = append(d, "V11:disable-root")
 				}
 				return d
+			},
+			fixed: func(c osCell) []fixedItem {
+				f := []fixedItem{{"V4", "stubDisableRoot"}, {"V24:disable-root", "stubDisableRoot"}}
+				if c.alpine() {
+					f = append(f, fixedItem{"V15:disable-root", "stubDisableRoot"})
+				}
+				if c.osType == "ubuntu" {
+					f = append(f, fixedItem{"V12:disable-root", "stubDisableRoot"})
+				}
+				return f
 			},
 		},
 		{
