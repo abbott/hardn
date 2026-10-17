@@ -1,0 +1,291 @@
+# Golden file of TestGolden/stepprogress/failed, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after t…␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after the f…␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after the f…␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+  ␛[38;2;231;70;105m[!]␛[m ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after...␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+  ␛[38;2;231;70;105m[!]␛[m ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after the...␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230␛[m$
+  ␛[38;2;231;70;105m[!]␛[m ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mRemove the rule for port 22␛[m ␛[38;2;86;91;107m(not run after the...␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+   ␛[38;2;194;37;74m✗␛[m  ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+   ␛[38;2;87;92;110m↷␛[m  ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after t…␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+   ␛[38;2;194;37;74m✗␛[m  ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+   ␛[38;2;87;92;110m↷␛[m  ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after the f…␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+   ␛[38;2;194;37;74m✗␛[m  ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+   ␛[38;2;87;92;110m↷␛[m  ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after the f…␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+  ␛[38;2;194;37;74m[!]␛[m ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+  ␛[38;2;87;92;110m[-]␛[m ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after...␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+  ␛[38;2;194;37;74m[!]␛[m ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+  ␛[38;2;87;92;110m[-]␛[m ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after the...␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow 2230/tcp in UFW␛[m$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mSet Port 2230␛[m$
+  ␛[38;2;194;37;74m[!]␛[m ␛[38;2;194;37;74mFailed:␛[m ␛[38;2;30;34;48mReload ssh.service␛[m ␛[38;2;129;134;156m(exit status 1)␛[m$
+  ␛[38;2;87;92;110m[-]␛[m ␛[38;2;87;92;110mSkipped:␛[m ␛[38;2;30;34;48mRemove the rule for port 22␛[m ␛[38;2;129;134;156m(not run after the...␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+   ␛[38;5;204m✗␛[m  ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+   ␛[38;5;103m↷␛[m  ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after t…␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+   ␛[38;5;204m✗␛[m  ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+   ␛[38;5;103m↷␛[m  ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after the f…␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+   ␛[38;5;204m✗␛[m  ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+   ␛[38;5;103m↷␛[m  ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after the f…␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+  ␛[38;5;204m[!]␛[m ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+  ␛[38;5;103m[-]␛[m ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after...␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+  ␛[38;5;204m[!]␛[m ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+  ␛[38;5;103m[-]␛[m ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after the...␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mSet Port 2230␛[m$
+  ␛[38;5;204m[!]␛[m ␛[38;5;204mFailed:␛[m ␛[38;5;251mReload ssh.service␛[m ␛[38;5;59m(exit status 1)␛[m$
+  ␛[38;5;103m[-]␛[m ␛[38;5;103mSkipped:␛[m ␛[38;5;251mRemove the rule for port 22␛[m ␛[38;5;59m(not run after the...␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+   ␛[38;5;161m✗␛[m  ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+   ␛[38;5;59m↷␛[m  ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after t…␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+   ␛[38;5;161m✗␛[m  ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+   ␛[38;5;59m↷␛[m  ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after the f…␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+   ␛[38;5;161m✗␛[m  ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+   ␛[38;5;59m↷␛[m  ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after the f…␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+  ␛[38;5;161m[!]␛[m ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+  ␛[38;5;59m[-]␛[m ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after...␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+  ␛[38;5;161m[!]␛[m ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+  ␛[38;5;59m[-]␛[m ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after the...␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mSet Port 2230␛[m$
+  ␛[38;5;161m[!]␛[m ␛[38;5;161mFailed:␛[m ␛[38;5;235mReload ssh.service␛[m ␛[38;5;103m(exit status 1)␛[m$
+  ␛[38;5;59m[-]␛[m ␛[38;5;59mSkipped:␛[m ␛[38;5;235mRemove the rule for port 22␛[m ␛[38;5;103m(not run after the...␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+   ␛[91m✗␛[m  ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after t…␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+   ␛[91m✗␛[m  ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after the f…␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+   ␛[91m✗␛[m  ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after the f…␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+  ␛[91m[!]␛[m ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after...␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+  ␛[91m[!]␛[m ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after the...␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mSet Port 2230␛[m$
+  ␛[91m[!]␛[m ␛[91mFailed:␛[m ␛[37mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[37mRemove the rule for port 22␛[m ␛[90m(not run after the...␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+   ␛[31m✗␛[m  ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after t…␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+   ␛[31m✗␛[m  ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after the f…␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+   ␛[31m✗␛[m  ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+   ␛[90m↷␛[m  ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after the f…␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+  ␛[31m[!]␛[m ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after...␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+  ␛[31m[!]␛[m ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after the...␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow 2230/tcp in UFW␛[m$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mSet Port 2230␛[m$
+  ␛[31m[!]␛[m ␛[31mFailed:␛[m ␛[30mReload ssh.service␛[m ␛[90m(exit status 1)␛[m$
+  ␛[90m[-]␛[m ␛[90mSkipped:␛[m ␛[30mRemove the rule for port 22␛[m ␛[90m(not run after the...␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after t…$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after the f…$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after the f…$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after...$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after the...$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after the...$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after t…$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after the f…$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ↺  Rolled back: Allow 2230/tcp in UFW$
+   ↺  Rolled back: Set Port 2230$
+   ✗  Failed: Reload ssh.service (exit status 1)$
+   ↷  Skipped: Remove the rule for port 22 (not run after the f…$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after...$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after the...$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  [<] Rolled back: Allow 2230/tcp in UFW$
+  [<] Rolled back: Set Port 2230$
+  [!] Failed: Reload ssh.service (exit status 1)$
+  [-] Skipped: Remove the rule for port 22 (not run after the...$

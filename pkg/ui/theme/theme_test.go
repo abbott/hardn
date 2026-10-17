@@ -128,6 +128,7 @@ func TestTypography(t *testing.T) {
 		"Callout.OK.Title", "Callout.Warn.Title", "Callout.Bad.Title", "Callout.Info.Title",
 		"Callout.Cancelled.Title",
 		"Badge", "Section.Title", "Breadcrumb.Current", "Plan.LockoutRisk", "Menu.Risk",
+		"Confirm.Waiting", "Confirm.Urgent", "Confirm.Command",
 	}
 	underline := []string{"Menu.Heading"}
 	for _, env := range envs() {
@@ -185,6 +186,23 @@ func TestColourRoles(t *testing.T) {
 		{"KeyValue.ValueNotApplicable", false, "text.muted"},
 		{"Badge", false, "badge.fg"},
 		{"Badge", true, "badge.bg"},
+		{"Plan.Title", false, "text.primary"},
+		{"Plan.Target", false, "text.muted"},
+		{"Plan.Added", false, "status.ok"},
+		{"Plan.Removed", false, "status.bad"},
+		{"Plan.Meta", false, "text.faint"},
+		{"Plan.Command", false, "text.muted"},
+		{"Plan.LockoutRisk", false, "status.warn"},
+		{"Step.Pending", false, "text.muted"},
+		{"Step.Done", false, "status.ok"},
+		{"Step.Failed", false, "status.bad"},
+		{"Step.RolledBack", false, "status.warn"},
+		{"Step.Skipped", false, "text.muted"},
+		{"Step.Detail", false, "text.faint"},
+		{"Output", false, "text.muted"},
+		{"Confirm.Waiting", false, "status.warn"},
+		{"Confirm.Urgent", false, "status.bad"},
+		{"Confirm.Command", false, "text.primary"},
 	}
 	for _, env := range envs() {
 		p := lightPalette

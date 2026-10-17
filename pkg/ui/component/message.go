@@ -134,24 +134,32 @@ func (vm Message) Render(c Ctx) string {
 	if text == "" {
 		return ""
 	}
-	w, style := c.width(), vm.Kind.style(c.Theme.Message)
+	style := vm.Kind.style(c.Theme.Message)
 	lead := marker(vm.Kind.glyph(c.Theme.Glyphs), style).to(theme.LabelCol)
-	// word is what is left to show of the kind's word and its colon. It
-	// opens the first line, or the first lines when the content width is
-	// too narrow for it whole: no space in it lets the wrap break it.
-	word := vm.Kind.String() + ":"
+	return strings.Join(c.worded(lead, vm.Kind.String()+":", style, text, c.Theme.Message.Text), "\n")
+}
+
+// worded lays out the line that opens with lead, then word in wordStyle
+// and text in textStyle, as a Message is: wrapped at spaces under the
+// word, at theme.LabelCol, never cut but by fit at a width too narrow for
+// a whole word. The word opens the first line, or the first lines when the
+// content width is too narrow for it whole: no space in it lets the wrap
+// break it.
+func (c Ctx) worded(lead line, word string, wordStyle lipgloss.Style, text string, textStyle lipgloss.Style) []string {
+	w := c.width()
 	var out []string
 	for _, l := range wrap(word+" "+text, w-theme.LabelCol) {
+		// word is what is left to show of the word.
 		n := 0
 		for n < len(word) && n < len(l) && l[n] == word[n] {
 			n++
 		}
 		rest := strings.TrimLeft(l[n:], " ")
-		row := append(lead, span{l[:n], style}, gap(len(l)-n-len(rest)), span{rest, c.Theme.Message.Text})
+		row := append(lead, span{l[:n], wordStyle}, gap(len(l)-n-len(rest)), span{rest, textStyle})
 		out = append(out, c.fit(row, w))
 		word, lead = word[n:], line{gap(theme.LabelCol)}
 	}
-	return strings.Join(out, "\n")
+	return out
 }
 
 // Callout is a block that stands out from the screen, as Figma's "Warning"

@@ -1,0 +1,979 @@
+# Golden file of TestGolden/errorreport/long, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service still runs the new configuration␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;2;129;134;156m↪261016␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;2;129;134;156m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;2;129;134;156mdetails␛[m$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;129;134;156mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;129;134;156m↪16␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;129;134;156m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;129;134;156m↪16␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;129;134;156m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service still runs the new configuration␛[m$
+$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;2;129;134;156m|261016␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;2;129;134;156m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;2;129;134;156mdetails␛[m$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;129;134;156mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
+$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;129;134;156m|16␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;129;134;156m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m[!] Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstill runs the new configuration␛[m$
+$
+  ␛[38;2;219;184;83m[<]␛[m ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;192;196;216mbackup replication service␛[m$
+$
+      ␛[38;2;129;134;156m$ sshd -t -f␛[m$
+      ␛[38;2;129;134;156m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;129;134;156m|16␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;129;134;156m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;129;134;156m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;2;192;196;216m[i]␛[m ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mssh.service still runs the new configuration␛[m$
+$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;2;87;92;110m↪261016␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;2;87;92;110m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;2;87;92;110mdetails␛[m$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;87;92;110mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
+$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;87;92;110m↪16␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;87;92;110m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;87;92;110m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m✗ Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
+$
+   ␛[38;2;138;97;0m↺␛[m  ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;87;92;110m↪16␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;87;92;110m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;2;30;34;48mℹ␛[m  ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;87;92;110m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mssh.service still runs the new configuration␛[m$
+$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;2;87;92;110m|261016␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;2;87;92;110m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;2;87;92;110mdetails␛[m$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;87;92;110mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
+$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;87;92;110m|16␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;87;92;110m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;87;92;110m/var/backups/hardn before you close this session.␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74m[!] Operation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mstill runs the new configuration␛[m$
+$
+  ␛[38;2;138;97;0m[<]␛[m ␛[38;2;138;97;0mRolled back:␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;2;30;34;48mbackup replication service␛[m$
+$
+      ␛[38;2;87;92;110m$ sshd -t -f␛[m$
+      ␛[38;2;87;92;110m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;2;87;92;110m|16␛[m$
+      ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;2;87;92;110m|: line 3: Bad configuration option:␛[m$
+      ␛[38;2;87;92;110m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;2;30;34;48m[i]␛[m ␛[1;38;2;30;34;48mInfo:␛[m ␛[38;2;87;92;110mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;2;87;92;110m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mssh.service still runs the new configuration␛[m$
+$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;5;103m↪261016␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;5;103m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;5;103mdetails␛[m$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;103mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
+$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;103m↪16␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;103m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;103m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204m✗ Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
+$
+   ␛[38;5;179m↺␛[m  ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;103m↪16␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;103m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;5;251mℹ␛[m  ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;103m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mssh.service still runs the new configuration␛[m$
+$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;5;103m|261016␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;5;103m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;5;103mdetails␛[m$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;103mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
+$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;103m|16␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;103m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;103m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204m[!] Operation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mstill runs the new configuration␛[m$
+$
+  ␛[38;5;179m[<]␛[m ␛[38;5;179mRolled back:␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;251mbackup replication service␛[m$
+$
+      ␛[38;5;103m$ sshd -t -f␛[m$
+      ␛[38;5;103m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;103m|16␛[m$
+      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;103m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;103m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;5;251m[i]␛[m ␛[1;38;5;251mInfo:␛[m ␛[38;5;103mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;103m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mssh.service still runs the new configuration␛[m$
+$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;5;59m↪261016␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;5;59m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;5;59mdetails␛[m$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;59mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
+$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;59m↪16␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;59m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;59m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161m✗ Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
+$
+   ␛[38;5;94m↺␛[m  ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;59m↪16␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;59m↪: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;5;235mℹ␛[m  ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;59m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mssh.service still runs the new configuration␛[m$
+$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[38;5;59m|261016␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[38;5;59m|1016: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;5;59mdetails␛[m$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;59mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
+$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;59m|16␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;59m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;59m/var/backups/hardn before you close this session.␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161m[!] Operation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mstill runs the new configuration␛[m$
+$
+  ␛[38;5;94m[<]␛[m ␛[38;5;94mRolled back:␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the␛[m$
+      ␛[38;5;235mbackup replication service␛[m$
+$
+      ␛[38;5;59m$ sshd -t -f␛[m$
+      ␛[38;5;59m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[38;5;59m|16␛[m$
+      ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[38;5;59m|: line 3: Bad configuration option:␛[m$
+      ␛[38;5;59m| AllowUsersForReplication␛[m$
+$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;38;5;235m[i]␛[m ␛[1;38;5;235mInfo:␛[m ␛[38;5;59mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[38;5;59m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[101m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[90m↪261016␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[90m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[90mdetails␛[m$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[90mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m↪16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m↪: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91m✗ Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m↪16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m↪: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;37mℹ␛[m  ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[101m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[90m|261016␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[90m|1016: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[90mdetails␛[m$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[90mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m|16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91m[!] Operation Failed␛[m$
+␛[101m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[101m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[101m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[37mAllow SSH logins for alice, bob and the␛[m$
+      ␛[37mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m|16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;37m[i]␛[m ␛[1;37mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[41m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[90m↪261016␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[90m↪1016: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[90mdetails␛[m$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[90mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m↪16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m↪: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31m✗ Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+   ␛[33m↺␛[m  ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m↪16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m↪: line 3: Bad configuration option:␛[m$
+      ␛[90m↪ AllowUsersForReplication␛[m$
+$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;30mℹ␛[m  ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so␛[m$
+␛[41m ␛[m ␛[90mssh.service still runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20␛[m$
+      ␛[90m|261016␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026␛[m$
+      ␛[90m|1016: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[90mdetails␛[m$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[90mfrom /var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m|16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31m[!] Operation Failed␛[m$
+␛[41m ␛[m ␛[90mRolling back Set Port 2230 failed: sshd -t rejected the␛[m$
+␛[41m ␛[m ␛[90mrestored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service␛[m$
+␛[41m ␛[m ␛[90mstill runs the new configuration␛[m$
+$
+  ␛[33m[<]␛[m ␛[33mRolled back:␛[m ␛[30mAllow SSH logins for alice, bob and the␛[m$
+      ␛[30mbackup replication service␛[m$
+$
+      ␛[90m$ sshd -t -f␛[m$
+      ␛[90m| /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610␛[m$
+      ␛[90m|16␛[m$
+      ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016␛[m$
+      ␛[90m|: line 3: Bad configuration option:␛[m$
+      ␛[90m| AllowUsersForReplication␛[m$
+$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[1;30m[i]␛[m ␛[1;30mInfo:␛[m ␛[90mRestore /etc/ssh/sshd_config.d/00-hardn.conf from␛[m$
+      ␛[90m/var/backups/hardn before you close this session.␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
+█ ssh.service still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
+      ↪261016$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
+      ↪1016: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
+      details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf$
+      from /var/backups/hardn before you close this session.$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+█ still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      ↪16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      ↪: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+█ still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      ↪16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      ↪: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
+# ssh.service still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
+      |261016$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
+      |1016: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
+      details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf$
+      from /var/backups/hardn before you close this session.$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+# still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      |16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      |: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+# still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      |16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      |: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
+█ ssh.service still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
+      ↪261016$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
+      ↪1016: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
+      details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf$
+      from /var/backups/hardn before you close this session.$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+█ still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      ↪16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      ↪: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+█ ␛[1m✗ Operation Failed␛[m$
+█ Rolling back Set Port 2230 failed: sshd -t rejected the$
+█ restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+█ still runs the new configuration$
+$
+   ↺  Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      ↪ /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      ↪16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      ↪: line 3: Bad configuration option:$
+      ↪ AllowUsersForReplication$
+$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+   ␛[1mℹ␛[m  ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so$
+# ssh.service still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20$
+      |261016$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-2026$
+      |1016: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for$
+      details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf$
+      from /var/backups/hardn before you close this session.$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+# still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      |16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      |: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+# ␛[1m[!] Operation Failed␛[m$
+# Rolling back Set Port 2230 failed: sshd -t rejected the$
+# restored /etc/ssh/sshd_config.d/00-hardn.conf, so ssh.service$
+# still runs the new configuration$
+$
+  [<] Rolled back: Allow SSH logins for alice, bob and the$
+      backup replication service$
+$
+      $ sshd -t -f$
+      | /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-202610$
+      |16$
+      /etc/ssh/sshd_config.d/00-hardn.conf.hardn-backup-20261016$
+      |: line 3: Bad configuration option:$
+      | AllowUsersForReplication$
+$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Check the log file at /var/log/hardn.log for details$
+  ␛[1m[i]␛[m ␛[1mInfo:␛[m Restore /etc/ssh/sshd_config.d/00-hardn.conf from$
+      /var/backups/hardn before you close this session.$

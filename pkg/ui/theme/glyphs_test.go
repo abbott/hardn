@@ -82,6 +82,31 @@ func TestMessageMarkers(t *testing.T) {
 	}
 }
 
+// TestStepMarkers checks the glyphs of a step's state, each spinner frame
+// and the countdown's urgent mark: they fit the marker column, even where
+// ambiguous-width glyphs are drawn two cells wide, and no two states share
+// one, so a state never rests on colour alone. The spinner has frames to
+// cycle through, and none is another state's glyph.
+func TestStepMarkers(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		states := []string{g.Pending, g.Running, g.OK, g.Bad, g.RolledBack, g.Skipped}
+		frames := strings.Split(g.Spinner, "")
+		if len(frames) < 2 {
+			t.Errorf("%s: the spinner has %d frames", name, len(frames))
+		}
+		for _, m := range slices.Concat(states, frames, []string{g.Urgent}) {
+			if w := max(wideWidth(m), lipgloss.Width(m)); w > MarkerWidth {
+				t.Errorf("%s: glyph %q is %d cells wide, over MarkerWidth %d", name, m, w, MarkerWidth)
+			}
+		}
+		for i, m := range states {
+			if slices.Contains(states[i+1:], m) || slices.Contains(frames, m) {
+				t.Errorf("%s: glyph %q marks two step states", name, m)
+			}
+		}
+	}
+}
+
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {

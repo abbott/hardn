@@ -47,6 +47,7 @@
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
 | [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
+| [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
 
 ---
 
@@ -444,3 +445,26 @@
 - **Effort:** S. The words are built, so this approves them; dropping the word from messages, or from before a callout's own title, is a small change to `Message` or `Callout` and their goldens.
 - **Risk:** Low: display only.
 - **Screenshots:** Before: Figma `SSH_LOGIN-TOGGLE_CONFIRMATION.png`, `USER-CREATE_USER.png` (reference only). After: `docs/refactor/img/p-23-after.png` (placeholder); the `callout/bad`, `callout/info`, `callout/long` and `message/*` goldens show the built form meanwhile.
+
+<a id="p-24"></a>
+### P-24: Words for the apply steps and the confirm countdown
+
+- **Status:** proposed
+- **Source:** `next/p1b-plan`, which builds brief 1B's `StepProgress` and the confirm-or-revert countdown (brief §2 and Phase 2.4). Related: [P-03](#p-03), [P-10](#p-10), [P-22](#p-22), [P-23](#p-23).
+- **Problem:**
+  - Brief 1B names the step states (pending, running, done, failed, rolled back) but gives them no words, and the unit adds a sixth, skipped, for a step left out because it is already done or because an earlier one failed. Without colour a step's state shows only by its glyph and its word.
+  - Brief §2 and Phase 2.4 decide the countdown: 180 seconds by default, confirmed by running `sudo hardn confirm` from a new SSH session, on the new port if it changed; otherwise the change reverts automatically. Neither the brief, Figma nor origin/main words the notice.
+  - A countdown in its last seconds has to read as urgent without colour too.
+- **Proposal:** built as below (DEV-039, DEV-041); the maintainer decides the words.
+  - Step words, before the step's title in the state's colour: "Pending", "Running", "Done", "Failed", "Rolled back" and "Skipped", as in `[<] Rolled back: Set Port 2230`. Alternatives: "Waiting" for pending, "OK" for done, "Undone" or "Reverted" for rolled back, "Not run" for skipped.
+  - The countdown, under brief §2's words:
+    - `[*] Warning: This change reverts automatically in 2:45`, the word being a warning `Message`'s (P-23);
+    - `To keep it, open a new SSH session and run:`, or `... a new SSH session on port 2230 and run:` when the change moved the port;
+    - `sudo hardn confirm`, in bold.
+
+    Under 30 seconds the first line turns to `[!] Urgent: ...` in red. Alternatives: "Unless confirmed, this change is undone in 2:45"; "Confirm within 2:45"; "Reverting soon" for "Urgent"; another threshold.
+  - Not new, listed so the plan group's words are in one place: `PlanView`'s "Lockout risk" is the menu's (P-22); `ErrorReport`'s "Operation Failed" and "Info" are P-23's; the dry-run footer "No actual changes were made to your system." and "Check the log file at <path> for details" are origin/main's (pkg/menu run_all_menu.go:288, 295). P-03 may reword the footer if dry-run becomes a "Plan only" mode.
+  - Each word is one string: `StepState.String` in `pkg/ui/component/steps.go`, and the `confirm*` constants and `UrgentBelow` in `pkg/ui/component/confirm.go`, so changing one is a string and the goldens.
+- **Effort:** S. The words are built, so this approves them; another wording is strings and goldens.
+- **Risk:** Low: display only. Nothing shows them before the canonical flow (`next/p1c-flow`) and confirm-or-revert (`next/p2-revert`) use the components.
+- **Screenshots:** Before: none (no Figma frame or origin/main screen). After: `docs/refactor/img/p-24-after.png` (placeholder); the `stepprogress/*` and `confirmcountdown/*` goldens show the built form meanwhile.
