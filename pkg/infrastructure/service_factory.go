@@ -44,6 +44,14 @@ func (f *ServiceFactory) getProxmoxHost() *secondary.ProxmoxHost {
 	return f.proxmoxHost
 }
 
+// IsProxmoxHost reports whether the host is Proxmox VE by the check the
+// SSH and UFW repositories share, so a caller can say what they did there:
+// root login set to key-only rather than off, and UFW refused. It is false
+// while pkg/adapter/secondary's proxmoxTreatedAsDebian is set.
+func (f *ServiceFactory) IsProxmoxHost() bool {
+	return f.getProxmoxHost().IsProxmox()
+}
+
 // getUserRepository returns or creates a UserRepository
 func (f *ServiceFactory) getUserRepository() portsecondary.UserRepository {
 	if f.userRepository == nil {
@@ -194,7 +202,7 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
 
-	return application.NewMenuManager(
+	menuManager := application.NewMenuManager(
 		userManager,
 		sshManager,
 		firewallManager,
@@ -205,6 +213,8 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 		environmentManager,
 		logsManager,
 		hostInfoManager)
+	menuManager.SetProxmoxCheck(f.IsProxmoxHost)
+	return menuManager
 }
 
 // CreateBackupManager creates a BackupManager

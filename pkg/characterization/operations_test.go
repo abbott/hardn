@@ -353,7 +353,7 @@ func opScenarios() []opScenario {
 		{
 			name:  "disable_root_ssh",
 			op:    "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
-			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
+			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:146-161); on a Proxmox VE host both report key-only instead of disabled, and the menu does not restart sshd again (disable_root_menu.go:139, setRootKeyOnly)",
 			cli:   []cliRun{{"-d", []string{hardncmd.FlagDisableRoot}, refusedInRoot}},
 			notes: []string{
 				"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros.",

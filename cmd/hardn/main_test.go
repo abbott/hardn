@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fatih/color"
+
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/interfaces"
@@ -86,8 +88,9 @@ type exited int
 // result is one hardn run.
 type result struct {
 	stderr  string
-	code    int  // exit status, when ended
-	ended   bool // the run ended by exit
+	stdout  string // what the logging package printed (fatih/color's Output)
+	code    int    // exit status, when ended
+	ended   bool   // the run ended by exit
 	calls   []string
 	reached []string          // the host steps past the dry-run refusal that ran
 	files   map[string]string // the mock file system's files afterwards
@@ -97,12 +100,14 @@ type result struct {
 // reached. hostUnreachable makes each fail, so a run that gets past the
 // refusal ends at the first (exit status 1). asRoot makes them succeed:
 // root, a fixture config for alice on port 2230, Debian 13 with
-// /etc/sudoers.d.
+// /etc/sudoers.d. asRootOnProxmox is asRoot on a Debian 13 host that
+// osdetect found to be Proxmox VE.
 type hostMode int
 
 const (
 	hostUnreachable hostMode = iota
 	asRoot
+	asRootOnProxmox
 )
 
 func resetFlags() {
@@ -128,16 +133,16 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
 	}{provider, lookupCurrentUser, loadConfig, detectOS, exit}
-	prevStderr := stderr
+	prevStderr, prevOutput, prevNoColor := stderr, color.Output, color.NoColor
 	t.Cleanup(func() {
 		provider, lookupCurrentUser, loadConfig, detectOS, exit = prev.provider, prev.user, prev.load, prev.detect, prev.exit
-		stderr = prevStderr
+		stderr, color.Output, color.NoColor = prevStderr, prevOutput, prevNoColor
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
 
 	mockFS := interfaces.NewMockFileSystem()
-	if mode == asRoot {
+	if mode != hostUnreachable {
 		mockFS.Directories["/etc/sudoers.d"] = true // -e writes a drop-in there
 	}
 	provider = &interfaces.Provider{
@@ -145,20 +150,21 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		Commander: loggingCommander{inner: interfaces.NewMockCommander(), log: log},
 		Network:   interfaces.NewMockNetworkOperations(),
 	}
-	var errOut bytes.Buffer
+	var errOut, out bytes.Buffer
 	stderr = &errOut
+	color.Output = &out
 	exit = func(code int) { panic(exited(code)) }
 	unreachable := errors.New("test: a host step was reached")
 	lookupCurrentUser = func() (*osuser.User, error) {
 		r.reached = append(r.reached, "root check")
-		if mode == asRoot {
+		if mode != hostUnreachable {
 			return &osuser.User{Uid: "0", Username: "root"}, nil
 		}
 		return nil, unreachable
 	}
 	loadConfig = func(string) (*config.Config, error) {
 		r.reached = append(r.reached, "config load")
-		if mode == asRoot {
+		if mode != hostUnreachable {
 			c := config.DefaultConfig()
 			c.Username = "alice"
 			c.SshPort = 2230
@@ -170,8 +176,8 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 	}
 	detectOS = func() (*osdetect.OSInfo, error) {
 		r.reached = append(r.reached, "OS detection")
-		if mode == asRoot {
-			return &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}, nil
+		if mode != hostUnreachable {
+			return &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie", IsProxmox: mode == asRootOnProxmox}, nil
 		}
 		return nil, unreachable
 	}
@@ -193,6 +199,7 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		}
 	}()
 	r.stderr = errOut.String()
+	r.stdout = out.String()
 	r.calls = log.calls
 	r.files = map[string]string{}
 	for p, b := range mockFS.Files {
@@ -327,5 +334,36 @@ func TestUpdateFlagsSayDisabled(t *testing.T) {
 		if f == nil || !strings.HasSuffix(f.Usage, "(no effect: update checks are disabled)") {
 			t.Errorf("--%s: %+v", name, f)
 		}
+	}
+}
+
+// TestDisableRootReport checks what hardn -d reports (gate 6,
+// proxmoxTreatedAsDebian): on Proxmox VE, where DisableRootSSH sets root
+// login to key-only rather than off, it says key-only, not "disabled".
+func TestDisableRootReport(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		mode  hostMode
+		value string // PermitRootLogin in hardn.conf afterwards
+		want  string
+	}{
+		{"debian", asRoot, "no", "[SUCCESS] Root SSH access disabled"},
+		{"proxmox", asRootOnProxmox, "prohibit-password", "[SUCCESS] Root SSH login set to key-only (PermitRootLogin prohibit-password), not disabled: Proxmox VE clustering needs root key login"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := runHardn(t, tc.mode, "-d")
+			if r.ended {
+				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+			}
+			if conf := r.files["/etc/ssh/sshd_config.d/hardn.conf"]; !strings.Contains(conf, "PermitRootLogin "+tc.value+"\n") {
+				t.Errorf("hardn.conf lacks PermitRootLogin %s:\n%s", tc.value, conf)
+			}
+			if !strings.Contains(r.stdout, tc.want) {
+				t.Errorf("printed\n%s\nwant %q", r.stdout, tc.want)
+			}
+			if tc.mode == asRootOnProxmox && strings.Contains(r.stdout, "Root SSH access disabled") {
+				t.Errorf("says disabled on Proxmox:\n%s", r.stdout)
+			}
+		})
 	}
 }

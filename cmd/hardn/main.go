@@ -284,7 +284,7 @@ var rootCmd = &cobra.Command{
 			if err := sshManager.DisableRootSSH(); err != nil {
 				logging.LogError("Failed to disable root SSH access: %v", err)
 			} else {
-				logging.LogSuccess("Root SSH access disabled")
+				logging.LogSuccess("%s", hardncmd.DisableRootDone(serviceFactory.IsProxmoxHost()))
 			}
 		}
 
