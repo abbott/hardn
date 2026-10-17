@@ -31,11 +31,14 @@ func (r release) host(t *testing.T) *hostfake.System {
 	case r.openrc:
 		f.AddDir(detect.OpenRCRunDir, 0o755, 0, 0)
 		f.AddFile(detect.OpenRCRun, nil, 0o755, 0, 0)
-		f.AddFile(detect.OpenRCSSHD, nil, 0o755, 0, 0)
+		f.AddFile(detect.OpenRCSSHD, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
+		f.AddDir(detect.OpenRCRunlevels+"/default", 0o755, 0, 0)
+		f.AddSymlink(detect.OpenRCRunlevels+"/default/sshd", detect.OpenRCSSHD)
+		f.AddSymlink(detect.OpenRCStarted+"/sshd", detect.OpenRCSSHD)
 		f.Respond(hostfake.Response{Err: errNotFound}, dpkgQuery[0], dpkgQuery[1:]...)
 	case r.socket:
 		f.AddDir(detect.SystemdRunDir, 0o755, 0, 0)
-		f.AddFile(detect.SocketGenerator, nil, 0o755, 0, 0)
+		vendorGenerator(f)
 		systemctlStates(f, "enabled", "active", "disabled:1", "inactive:3")
 	default:
 		f.AddDir(detect.SystemdRunDir, 0o755, 0, 0)
@@ -74,17 +77,18 @@ func TestDetectSupportedReleases(t *testing.T) {
 		version string
 		init    detect.InitKind
 		ssh     detect.SSHMode
+		gen     detect.Tri // sshd-socket-generator
 		pve     detect.Tri
 		flavor  detect.SudoFlavor
 		doas    detect.Tri
 	}{
-		{"Debian 13", release{osRelease: "debian-13", sudo: "Sudo version 1.9.16p2"}, detect.DistroDebian, "13", detect.Systemd, detect.SSHService, detect.No, detect.SudoOriginal, detect.No},
-		{"Debian 12", release{osRelease: "debian-12", sudo: "Sudo version 1.9.13p3"}, detect.DistroDebian, "12", detect.Systemd, detect.SSHService, detect.No, detect.SudoOriginal, detect.No},
-		{"Ubuntu 26.04", release{osRelease: "ubuntu-26.04", socket: true, sudo: "sudo-rs 0.2.13"}, detect.DistroUbuntu, "26.04", detect.Systemd, detect.SSHSocket, detect.No, detect.SudoRS, detect.No},
-		{"Ubuntu 24.04", release{osRelease: "ubuntu-24.04", socket: true, sudo: "Sudo version 1.9.15p5"}, detect.DistroUbuntu, "24.04", detect.Systemd, detect.SSHSocket, detect.No, detect.SudoOriginal, detect.No},
-		{"Alpine 3.24", release{osRelease: "alpine-3.24", openrc: true, doas: true}, detect.DistroAlpine, "3.24", detect.OpenRC, detect.SSHOpenRC, detect.No, detect.SudoFlavorUnknown, detect.Yes},
-		{"Alpine 3.23", release{osRelease: "alpine-3.23", openrc: true, doas: true}, detect.DistroAlpine, "3.23", detect.OpenRC, detect.SSHOpenRC, detect.No, detect.SudoFlavorUnknown, detect.Yes},
-		{"Proxmox VE 9", release{osRelease: "debian-13", pve: "9.2.22"}, detect.DistroProxmox, "9", detect.Systemd, detect.SSHService, detect.Yes, detect.SudoFlavorUnknown, detect.No},
+		{"Debian 13", release{osRelease: "debian-13", sudo: "Sudo version 1.9.16p2"}, detect.DistroDebian, "13", detect.Systemd, detect.SSHService, detect.No, detect.No, detect.SudoOriginal, detect.No},
+		{"Debian 12", release{osRelease: "debian-12", sudo: "Sudo version 1.9.13p3"}, detect.DistroDebian, "12", detect.Systemd, detect.SSHService, detect.No, detect.No, detect.SudoOriginal, detect.No},
+		{"Ubuntu 26.04", release{osRelease: "ubuntu-26.04", socket: true, sudo: "sudo-rs 0.2.13"}, detect.DistroUbuntu, "26.04", detect.Systemd, detect.SSHSocket, detect.Yes, detect.No, detect.SudoRS, detect.No},
+		{"Ubuntu 24.04", release{osRelease: "ubuntu-24.04", socket: true, sudo: "Sudo version 1.9.15p5"}, detect.DistroUbuntu, "24.04", detect.Systemd, detect.SSHSocket, detect.Yes, detect.No, detect.SudoOriginal, detect.No},
+		{"Alpine 3.24", release{osRelease: "alpine-3.24", openrc: true, doas: true}, detect.DistroAlpine, "3.24", detect.OpenRC, detect.SSHOpenRC, detect.Unknown, detect.No, detect.SudoFlavorUnknown, detect.Yes},
+		{"Alpine 3.23", release{osRelease: "alpine-3.23", openrc: true, doas: true}, detect.DistroAlpine, "3.23", detect.OpenRC, detect.SSHOpenRC, detect.Unknown, detect.No, detect.SudoFlavorUnknown, detect.Yes},
+		{"Proxmox VE 9", release{osRelease: "debian-13", pve: "9.2.22"}, detect.DistroProxmox, "9", detect.Systemd, detect.SSHService, detect.No, detect.Yes, detect.SudoFlavorUnknown, detect.No},
 	}
 	for _, tt := range tests {
 		f := tt.release.host(t)
@@ -96,8 +100,8 @@ func TestDetectSupportedReleases(t *testing.T) {
 		if p.Distro != tt.distro || p.Version != tt.version || p.Support != detect.Supported || p.Err != nil {
 			t.Errorf("%s: Platform = %+v, want %s %s supported", tt.name, p, tt.distro, tt.version)
 		}
-		if got.Init.Kind != tt.init || got.Init.Running != detect.Yes || got.SSH.Mode != tt.ssh || got.SSH.Err != nil {
-			t.Errorf("%s: Init %+v, SSH %+v; want %s running, %s", tt.name, got.Init, got.SSH, tt.init, tt.ssh)
+		if got.Init.Kind != tt.init || got.Init.Running != detect.Yes || got.SSH.Mode != tt.ssh || got.SSH.Generator != tt.gen || got.SSH.Err != nil {
+			t.Errorf("%s: Init %+v, SSH %+v; want %s running, %s, generator %s", tt.name, got.Init, got.SSH, tt.init, tt.ssh, tt.gen)
 		}
 		if got.Proxmox.Installed != tt.pve || got.Proxmox.ClusterFS != tt.pve || got.Proxmox.Err != nil {
 			t.Errorf("%s: Proxmox = %+v, want installed and pmxcfs %s", tt.name, got.Proxmox, tt.pve)

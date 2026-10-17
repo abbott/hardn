@@ -11,6 +11,11 @@
 // legacy osdetect assumed "debian 11"): a caller treats Unknown as "do not
 // make a change that depends on this".
 //
+// A caller decides on a fact's enum and Tri fields, never on its Err alone:
+// Err explains whichever of the fact's fields is Unknown, which may be a
+// sub-fact (SSH.Generator, Proxmox.ClusterFS) beside an established headline
+// fact.
+//
 // docs/safety/detect.md lists each fact's signals, the primary sources they
 // rest on and what is written but not yet run on a Linux host.
 package detect
@@ -43,17 +48,6 @@ func (t Tri) String() string {
 		return "yes"
 	}
 	return "unknown"
-}
-
-// either is Yes when a or b is, No when both are, Unknown otherwise.
-func either(a, b Tri) Tri {
-	switch {
-	case a == Yes || b == Yes:
-		return Yes
-	case a == No && b == No:
-		return No
-	}
-	return Unknown
 }
 
 // Errors in the Err fields, testable with errors.Is. A file or command error
@@ -102,7 +96,15 @@ func Detect(ctx context.Context, sys host.System) (Facts, error) {
 // parent is missing, Unknown with the error otherwise (a permission error, a
 // done ctx).
 func stat(ctx context.Context, sys host.System, name string) (fs.FileInfo, Tri, error) {
-	fi, err := sys.Stat(ctx, name)
+	return exists(sys.Stat(ctx, name))
+}
+
+// lstat is stat without following a symlink at name.
+func lstat(ctx context.Context, sys host.System, name string) (fs.FileInfo, Tri, error) {
+	return exists(sys.Lstat(ctx, name))
+}
+
+func exists(fi fs.FileInfo, err error) (fs.FileInfo, Tri, error) {
 	switch {
 	case err == nil:
 		return fi, Yes, nil
