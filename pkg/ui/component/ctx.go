@@ -156,18 +156,24 @@ func (c Ctx) truncate(s string, limit int) string {
 	return kept + ellipsis
 }
 
-// columns lays out a label and its values on the grid. The label carries
-// its own indent; the first value sits beside it at theme.ValueCol and each
-// further value under that. Below theme.StackBelow, or when the label
-// reaches the value column, the layout stacks: the label on its own line,
-// then each value at theme.StackCol (DEV-021). Empty values are skipped.
+// columns lays out a label and its values on the grid, as layout does. It
+// stacks below theme.StackBelow, or when the label reaches the value
+// column.
 func (c Ctx) columns(label line, values ...line) string {
+	return c.layout(c.stacked() || label.width() >= theme.ValueCol, label, values...)
+}
+
+// layout lays out a label and its values. The label carries its own
+// indent; the first value sits beside it at theme.ValueCol and each
+// further value under that. When stack is set the label is on its own
+// line, then each value at theme.StackCol (DEV-021). Empty values are
+// skipped, and with none the label is alone.
+func (c Ctx) layout(stack bool, label line, values ...line) string {
 	w := c.width()
 	values = slices.DeleteFunc(slices.Clone(values), func(v line) bool { return v.width() == 0 })
 	if len(values) == 0 {
 		return c.fit(label, w)
 	}
-	stack := c.stacked() || label.width() >= theme.ValueCol
 	var out []string
 	if stack {
 		out = append(out, c.fit(label, w))

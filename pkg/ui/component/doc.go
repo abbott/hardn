@@ -10,9 +10,11 @@
 //   - Render context. A Ctx bundles the term.Env and the theme.Theme built
 //     once from it (NewCtx). The brief's Render(vm, env) is Render(vm, ctx).
 //   - View-model. A component is an exported struct of plain data: strings,
-//     numbers, bools, slices and small enums; no funcs, actions or I/O
-//     handles. Its value method Render(c Ctx) string is a pure function of
-//     the struct and c: no I/O, no clock, no environment reads.
+//     numbers, bools, slices and small enums, or a pointer to another
+//     component's view-model, nil for none (MenuHeading.Mode); no funcs,
+//     actions or I/O handles. Its value method Render(c Ctx) string is a
+//     pure function of the struct and c: no I/O, no clock, no environment
+//     reads.
 //   - Output. No line wider than the content width, min(Env.Width,
 //     theme.ContentWidth) under theme.CapContent; a bar fills it, or the
 //     terminal's width when theme.BarsFillContent is off. No trailing
@@ -48,9 +50,9 @@
 //   - JoinHorizontal pads every line of a block to the block's width with
 //     plain spaces (join.go:88 in lipgloss v2.0.6), and PlaceHorizontal pads
 //     to the full width it is given (position.go:43-64), so both leave
-//     trailing spaces. Header, HostBlock, RiskSummary, StatusRow and
-//     ModeIndicator place their columns with spaces up to the grid column
-//     instead, which never pads after the last cell.
+//     trailing spaces. Header, HostBlock, RiskSummary, StatusRow,
+//     ModeIndicator, MenuHeading and Menu place their columns with spaces
+//     up to the grid column instead, which never pads after the last cell.
 //   - list (the RiskSummary factors) renders through the tree renderer and
 //     defaults to the • bullet (list/list.go:50-54); the bullet can come
 //     from Glyphs, but each line still needs the value-column indent and
@@ -62,7 +64,8 @@
 //     and joins the cells with JoinHorizontal (table.go:534), so each value
 //     shorter than the last column leaves trailing spaces. columns places
 //     values with spaces up to the grid column instead.
-//   - tree is not used: nothing in the header or status groups nests.
+//   - tree is not used: nothing in the header, status or menu groups
+//     nests.
 //   - StatusList: list could draw each row's glyph as its enumerator,
 //     styled per row with EnumeratorStyleFunc (list/list.go:143). The tree
 //     renderer pads an enumerator on the left only up to a wider sibling's
@@ -76,4 +79,24 @@
 //     (table/table.go:567), not Glyphs.Ellipsis. Each row is placed with
 //     columns instead.
 //   - Divider is one run of text; no helper applies.
+//   - Menu: list would right-align the keys as the menu wants them, since
+//     the tree renderer pads each enumerator on the left to the widest
+//     sibling's (tree/renderer.go:79-81, 100-103), so an Enumerator
+//     returning "1)" or "10)" lines them up. But an item with a note line,
+//     or stacked, is several lines, and the renderer joins enumerator and
+//     item with JoinHorizontal (tree/renderer.go:126-131), which pads each
+//     line of the item to its widest (join.go:88): trailing spaces. The
+//     exit item also sits apart, after a blank line. So each item is
+//     placed as columns places a row, once the menu has decided whether
+//     all of its items stack, and a key is right-aligned with one gap.
+//     table is ruled out as for HostBlock, and its cut is a fixed "…".
+//   - MenuHeading: an underlined style renders each rune with its own SGR
+//     sequence, spaces included (style.go:310, 318 and 428-436), so
+//     "Select an option" costs 16 sequences. Accepted: the terminal draws
+//     one unbroken underline, as Figma's PNG does, and only the bytes and
+//     the goldens grow; one sequence for the run would have to be built by
+//     hand, which is raw SGR in a component. UnderlineSpaces(false) would
+//     not help: the spaces would lose their underline and every rune still
+//     be styled alone (style.go:318).
+//   - PromptLine is one line of spans; no helper applies.
 package component

@@ -36,8 +36,6 @@ import (
 // state, grouped by component. Build it with New.
 //
 // Not here yet, because their components come later, by unit:
-//   - next/p1b-menu: the marker of a risky menu item (the Menu VM's risk
-//     field; proposal P-02 is related).
 //   - next/p1b-blocks: Callout.Bad and Callout.Info, which need accent.bad
 //     and accent.info tokens; a glyph for each Message kind; AnsweredField.
 //   - next/p1b-plan: ErrorReport, the confirm countdown, and the glyphs of
@@ -150,6 +148,7 @@ type MenuStyles struct {
 	ExitKey     lipgloss.Style // the "0)" of Exit or Return, bold
 	Exit        lipgloss.Style // the Exit or Return label and description
 	Disabled    lipgloss.Style // every part of an item that cannot be chosen now
+	Risk        lipgloss.Style // the lockout-risk marker under an item, bold
 }
 
 // PromptStyles style the prompt line: "❯ Enter your choice [0-10 or q]:".
@@ -302,6 +301,7 @@ func New(env term.Env) *Theme {
 			ExitKey:     muted.Bold(true),
 			Exit:        muted,
 			Disabled:    faint,
+			Risk:        warn.Bold(true),
 		},
 		Prompt: PromptStyles{Glyph: muted.Bold(true), Label: muted.Bold(true), Hint: muted, Input: muted},
 		Message: MessageStyles{

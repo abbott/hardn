@@ -2,6 +2,7 @@ package component
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -46,7 +48,37 @@ var (
 		{Label: "Auto Updates", State: StatusNotConfigured},
 	}}
 	sshPort = StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)"}
+	// quit is the navigation grammar's q, whose help gives the Exit row its
+	// words (brief 1C); next/p1c-nav will own the real binding.
+	quit = keys.Binding{Keys: []string{"q"}, Help: "quit"}
+	// figmaMenu is Figma's main menu, its Exit row in the brief's words.
+	figmaMenu = Menu{Items: []MenuItem{
+		{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
+		{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access"},
+		{Key: "3", Label: "DNS", Description: "Configure Nameservers"},
+		{Key: "4", Label: "Firewall", Description: "Configure UFW rules"},
+		{Key: "5", Label: "Backup", Description: "Configure Hardn backup settings"},
+		{Key: "6", Label: "Dry-Run", Description: "Simulate changes"},
+		{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
+		{Key: "8", Label: "Environment", Description: "Configure environment variable"},
+		{Key: "9", Label: "System Details", Description: "View system information"},
+		{Key: "10", Label: "Logs", Description: "View log file"},
+	}, Exit: MenuItem{Key: "0", Label: "Exit", Description: keys.Set{quit}.Help()}}
+	// sshMenu is Figma's SSH Login sub-menu (02-SSH_LOGIN).
+	sshMenu = Menu{Items: []MenuItem{
+		{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access"},
+		{Key: "2", Label: "View SSH Settings", Description: "Show SSH configuration"},
+	}, Exit: MenuItem{Key: "0", Label: "Return"}}
+	figmaHeading = MenuHeading{Title: "Select an option", Mode: &ModeIndicator{}}
+	figmaPrompt  = PromptLine{Label: "Enter your choice", Accepts: append(figmaMenu.Bindings(), quit)}
 )
+
+// withItem returns m with item i replaced by it.
+func withItem(m Menu, i int, it MenuItem) Menu {
+	m.Items = slices.Clone(m.Items)
+	m.Items[i] = it
+	return m
+}
 
 // states is every component state, by golden name: <component>/<state>.
 var states = []struct {
@@ -90,6 +122,25 @@ var states = []struct {
 	{"divider/normal", Divider{}},
 	{"modeindicator/live", ModeIndicator{}},
 	{"modeindicator/dry-run", ModeIndicator{DryRun: true}},
+	{"menuheading/normal", figmaHeading},
+	{"menuheading/no-mode", MenuHeading{Title: "Select an option"}},
+	{"menuheading/long", MenuHeading{Title: "Select an option for web-01.example.net", Mode: &ModeIndicator{DryRun: true}}},
+	{"menuheading/empty", MenuHeading{}},
+	{"menu/main", figmaMenu},
+	{"menu/sub", Menu{Items: []MenuItem{
+		{Key: "1", Label: "Manage User", Description: "Configure sudo, SSH keys"},
+		{Key: "2", Label: "Create User", Description: "Configure a new user"},
+	}, Exit: MenuItem{Key: "0", Label: "Return"}}},
+	{"menu/risk", withItem(sshMenu, 0, MenuItem{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Risk: true})},
+	{"menu/disabled", withItem(sshMenu, 0, MenuItem{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Aside: "Proxmox", Disabled: true})},
+	{"menu/long", Menu{Items: []MenuItem{
+		{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Send the daily report to alice"},
+		{Key: "2", Label: "Firewall", Description: "Allow port 2230/tcp from 192.0.2.0/24 and deny the rest"},
+	}, Exit: MenuItem{Key: "0", Label: "Return"}}},
+	{"menu/empty", Menu{}},
+	{"promptline/normal", figmaPrompt},
+	{"promptline/no-hint", PromptLine{Label: "Username"}},
+	{"promptline/empty", PromptLine{}},
 }
 
 // maxWidth is the widest a line of vm may be at terminal width w, worked
@@ -120,11 +171,18 @@ func TestGolden(t *testing.T) {
 	}
 }
 
-// empty reports whether vm renders nothing by design: a list with no
-// items.
+// empty reports whether vm renders nothing by design: a list or menu with
+// no items, or a menu heading with neither title nor mode.
 func empty(vm renderer) bool {
-	l, ok := vm.(StatusList)
-	return ok && len(l.Rows) == 0
+	switch v := vm.(type) {
+	case StatusList:
+		return len(v.Rows) == 0
+	case Menu:
+		return len(v.Items) == 0 && v.Exit == MenuItem{}
+	case MenuHeading:
+		return v == MenuHeading{}
+	}
+	return false
 }
 
 // TestOutputRules renders every state at every width from 1 to 130, with
@@ -251,6 +309,72 @@ func TestLayout(t *testing.T) {
 		{"mode: with no letter of the label left, the word alone", ModeIndicator{DryRun: true}, min(below, 17), false,
 			strings.Repeat(" ", theme.StackCol) + "Enabled"},
 		{"mode: the word moves left to stay whole", ModeIndicator{}, 10, false, "  Disabled"},
+		{"heading: the mode at the value column", figmaHeading, from, false,
+			"  Select an option         Dry-run Mode Disabled"},
+		{"heading: the mode under it below StackBelow", figmaHeading, below, false,
+			"  Select an option\n      Dry-run Mode Disabled"},
+		{"heading: a title reaching the value column puts the mode under it", MenuHeading{Title: strings.Repeat("x", 25), Mode: &ModeIndicator{}}, from, false,
+			"  " + strings.Repeat("x", 25) + "\n      Dry-run Mode Disabled"},
+		{"heading: no mode", MenuHeading{Title: " Select an option\t"}, from, false, "  Select an option"},
+		{"heading: no title is the mode alone", MenuHeading{Mode: &ModeIndicator{DryRun: true}}, from, false,
+			strings.Repeat(" ", theme.ValueCol) + "Dry-run Mode Enabled"},
+		// At a fixed width, so that it also runs with theme.StackBelow
+		// refused: the mode then goes under the title only because its
+		// word would not fit beside it.
+		{"heading: under a cut title the mode's word stays whole", figmaHeading, 10, false,
+			"  Selec...\n  Disabled"},
+		{"menu: keys right-aligned, descriptions at the value column", Menu{Items: []MenuItem{
+			{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
+			{Key: "10", Label: "Logs", Description: "View log file"},
+		}}, from, false,
+			"   1) User Management      Create, Configure (sudo, SSH keys)\n  10) Logs                 View log file"},
+		{"menu: the exit item after the section gap", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}}, Exit: figmaMenu.Exit}, from, false,
+			"   1) DNS" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
+		{"menu: a risky item's note line", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, from, false,
+			"   2) SSH Login            Toggle root SSH access\n                           [*] Lockout risk"},
+		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true, Risk: true}}}, from, true,
+			"   3) DNS                  Configure Nameservers\n                           ∅ Unavailable"},
+		{"menu: stacked below StackBelow", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, below, false,
+			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk"},
+		{"menu: a note with no description sits beside the label", Menu{Items: []MenuItem{{Key: "7", Label: "Run All", Risk: true}}}, from, false,
+			"   7) Run All              [*] Lockout risk"},
+		{"menu: a long label stacks the item rather than being cut", Menu{Items: []MenuItem{{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Daily"}}}, 80, false,
+			"   1) Unattended Upgrades Mail Reports\n      Daily"},
+		{"menu: a long label stacks the whole menu", Menu{Items: []MenuItem{
+			{Key: "1", Label: "Firewall", Description: "Configure UFW rules"},
+			{Key: "2", Label: "Manage application profiles", Description: "Allow 2230/tcp"},
+		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
+			"   1) Firewall\n      Configure UFW rules\n   2) Manage application profiles\n      Allow 2230/tcp" +
+				strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
+		{"menu: a long label with nothing beside it stacks nothing", Menu{Items: []MenuItem{
+			{Key: "1", Label: "DNS", Description: "Configure Nameservers"},
+		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
+			"   1) DNS                  Configure Nameservers" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
+		// The next two hold whatever theme.StackBelow is: the menu stacks
+		// because its value column is too narrow, not only below StackBelow.
+		{"menu: no room beside for a whole note stacks the menu", Menu{Items: []MenuItem{
+			{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true},
+			{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true},
+		}}, 40, false,
+			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
+		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers"}}}, 29, false,
+			"   3) DNS\n      Configure Nameservers"},
+		{"menu: a key of up to five cells grows into the indent", Menu{Items: []MenuItem{{Key: "100", Label: "Logs"}, {Key: "1234", Label: "DNS"}}}, 80, false,
+			" 100) Logs\n1234) DNS"},
+		{"menu: a wider key pushes its label", Menu{Items: []MenuItem{{Key: "12345", Label: "DNS"}}}, 80, false,
+			"12345) DNS"},
+		{"menu: the exit item has no states", Menu{Exit: MenuItem{Key: "0", Label: "Return", Disabled: true, Risk: true}}, 80, false,
+			"   0) Return"},
+		{"menu: an item with no label is not shown", Menu{Items: []MenuItem{{Key: "1", Description: "x"}, {Key: "2", Label: "DNS"}}}, 80, false,
+			"   2) DNS"},
+		{"prompt: glyph, label, generated hint and colon", figmaPrompt, 80, true,
+			"  ❯ Enter your choice [0-10 or q]:"},
+		{"prompt: with no hint the colon follows the label", PromptLine{Label: "Username"}, 80, false, "  > Username:"},
+		{"prompt: too narrow, the label is cut, not the hint", figmaPrompt, 30, false,
+			"  > Enter your... [0-10 or q]:"},
+		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 20, false,
+			"  > [0-10 or q]:"},
+		{"prompt: empty is the glyph", PromptLine{}, 80, false, "  >"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -355,5 +479,72 @@ func TestStatusStates(t *testing.T) {
 	}
 	if len(shown) != 5 {
 		t.Errorf("the five states show %d different glyph and word pairs, want 5: %v", len(shown), shown)
+	}
+}
+
+// TestMenuStyles checks that each part of the menu group takes its slot:
+// a disabled item is faint in every part and its note line, and a risky
+// item's note line is in Menu.Risk, so each state has a glyph and a word
+// as well as its colour.
+func TestMenuStyles(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	m, g, p := c.Theme.Menu, c.Theme.Glyphs, c.Theme.Prompt
+	type part struct {
+		text  string
+		style lipgloss.Style
+	}
+	tests := []struct {
+		name  string
+		vm    renderer
+		parts []part
+	}{
+		{"heading", figmaHeading, []part{{"Select an option", m.Heading}}},
+		{"item", figmaMenu, []part{
+			{"1)", m.Key}, {"User Management", m.Label},
+			{"Create, Configure", m.Description}, {"(sudo, SSH keys)", m.Aside},
+		}},
+		{"exit", figmaMenu, []part{{"0)", m.ExitKey}, {"Exit", m.Exit}, {"q to quit", m.Exit}}},
+		{"disabled", Menu{Items: []MenuItem{{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Aside: "key-only", Disabled: true}}}, []part{
+			{"1)", m.Disabled}, {"Root SSH Login", m.Disabled}, {"Toggle root SSH access", m.Disabled},
+			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + unavailable, m.Disabled},
+		}},
+		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Risk + " " + lockoutRisk, m.Risk}}},
+		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-10 or q]:", p.Hint}}},
+		{"prompt with no hint", PromptLine{Label: "Username"}, []part{{"Username", p.Label}, {":", p.Label}}},
+	}
+	for _, tt := range tests {
+		got := tt.vm.Render(c)
+		for _, want := range tt.parts {
+			if !strings.Contains(got, want.style.Render(want.text)) {
+				t.Errorf("%s: got %q, want it to hold %q in its style", tt.name, got, want.text)
+			}
+		}
+	}
+}
+
+// TestMenuBindings checks the inputs a menu accepts, through the hint a
+// PromptLine generates from them with q added: every shown item that can
+// be chosen, and the exit item.
+func TestMenuBindings(t *testing.T) {
+	tests := []struct {
+		name string
+		m    Menu
+		want string
+	}{
+		{"Figma's main menu", figmaMenu, "0-10 or q"},
+		{"Figma's sub-menu", sshMenu, "0-2 or q"},
+		{"a disabled item is not accepted", withItem(figmaMenu, 2, MenuItem{Key: "3", Label: "DNS", Disabled: true}), "0-2, 4-10 or q"},
+		{"nor one with no key or no label", Menu{Items: []MenuItem{{Label: "DNS"}, {Key: "2"}, {Key: " 3 ", Label: "Logs"}}}, "3 or q"},
+		{"the exit item is, whatever its Disabled", Menu{Exit: MenuItem{Key: "0", Label: "Return", Disabled: true}}, "0 or q"},
+		{"an empty menu accepts nothing", Menu{}, "q"},
+	}
+	for _, tt := range tests {
+		b := tt.m.Bindings()
+		if got := append(b, quit).Hint(); got != tt.want {
+			t.Errorf("%s: hint %q, want %q", tt.name, got, tt.want)
+		}
+		if h := b.Help(); h != "" {
+			t.Errorf("%s: the item bindings have help %q, want none", tt.name, h)
+		}
 	}
 }

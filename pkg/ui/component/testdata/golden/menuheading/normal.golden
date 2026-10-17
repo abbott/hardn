@@ -1,0 +1,163 @@
+# Golden file of TestGolden/menuheading/normal, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m$
+      ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m         ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m         ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m$
+      ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m         ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[4;38;2;87;92;110;4mS␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4ml␛[m␛[4;38;2;87;92;110;4me␛[m␛[4;38;2;87;92;110;4mc␛[m␛[4;38;2;87;92;110;4mt␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4ma␛[m␛[4;38;2;87;92;110;4mn␛[m␛[38;2;87;92;110;4m ␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mp␛[m␛[4;38;2;87;92;110;4mt␛[m␛[4;38;2;87;92;110;4mi␛[m␛[4;38;2;87;92;110;4mo␛[m␛[4;38;2;87;92;110;4mn␛[m         ␛[38;2;87;92;110mDry-run Mode␛[m ␛[38;2;138;97;0mDisabled␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m$
+      ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m         ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m         ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m$
+      ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m         ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[4;38;5;103;4mS␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ml␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mc␛[m␛[4;38;5;103;4mt␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4mn␛[m␛[38;5;103;4m ␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mp␛[m␛[4;38;5;103;4mt␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mo␛[m␛[4;38;5;103;4mn␛[m         ␛[38;5;103mDry-run Mode␛[m ␛[38;5;179mDisabled␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m$
+      ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m         ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m         ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m$
+      ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m         ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[4;38;5;59;4mS␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4ml␛[m␛[4;38;5;59;4me␛[m␛[4;38;5;59;4mc␛[m␛[4;38;5;59;4mt␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4ma␛[m␛[4;38;5;59;4mn␛[m␛[38;5;59;4m ␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mp␛[m␛[4;38;5;59;4mt␛[m␛[4;38;5;59;4mi␛[m␛[4;38;5;59;4mo␛[m␛[4;38;5;59;4mn␛[m         ␛[38;5;59mDry-run Mode␛[m ␛[38;5;94mDisabled␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m$
+      ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m$
+      ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m$
+      ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m$
+      ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[4;90;4mS␛[m␛[4;90;4me␛[m␛[4;90;4ml␛[m␛[4;90;4me␛[m␛[4;90;4mc␛[m␛[4;90;4mt␛[m␛[90;4m ␛[m␛[4;90;4ma␛[m␛[4;90;4mn␛[m␛[90;4m ␛[m␛[4;90;4mo␛[m␛[4;90;4mp␛[m␛[4;90;4mt␛[m␛[4;90;4mi␛[m␛[4;90;4mo␛[m␛[4;90;4mn␛[m         ␛[90mDry-run Mode␛[m ␛[33mDisabled␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m$
+      Dry-run Mode Disabled$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m$
+      Dry-run Mode Disabled$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m$
+      Dry-run Mode Disabled$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m$
+      Dry-run Mode Disabled$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  ␛[4;4mS␛[m␛[4;4me␛[m␛[4;4ml␛[m␛[4;4me␛[m␛[4;4mc␛[m␛[4;4mt␛[m␛[4m ␛[m␛[4;4ma␛[m␛[4;4mn␛[m␛[4m ␛[m␛[4;4mo␛[m␛[4;4mp␛[m␛[4;4mt␛[m␛[4;4mi␛[m␛[4;4mo␛[m␛[4;4mn␛[m         Dry-run Mode Disabled$
