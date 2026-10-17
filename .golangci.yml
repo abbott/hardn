@@ -27,11 +27,14 @@ linters:
   # Linter-specific settings
   settings:
     # The design system's import rules (docs/design-system/README.md §9.15).
-    # A rule applies to the files its globs match: absolute paths, "$all" any
-    # Go file, "$test" a _test.go file, "!" excluding. A deny entry is a
-    # prefix of the import path. Only the files of the host's build are
+    # A rule applies to the files its globs match, as absolute paths:
+    # "${base-path}" is this file's directory (run.relative-path-mode's
+    # default, cfg), so a glob holds wherever the tree is checked out; "$all"
+    # is any Go file, "$test" a _test.go file, "!" excludes. A deny entry is
+    # a prefix of the import path. Only the files of the host's build are
     # linted, so a linux-only file is checked on Linux alone; pkg/ui/prompt's
-    # and pkg/ui/keys's TestImports read every file whatever its build tags.
+    # and pkg/ui/keys's TestImports read every non-test file whatever its
+    # build tags.
     depguard:
       rules:
         # Lip Gloss is pkg/ui's alone: other code gets its output from the
@@ -39,7 +42,7 @@ linters:
         lipgloss:
           files:
             - "$all"
-            - "!**/pkg/ui/**"
+            - "!${base-path}/pkg/ui/**"
           deny:
             - pkg: charm.land/lipgloss
               desc: Lip Gloss is for pkg/ui only; build the screen from pkg/ui components (design-system README §9.15)
@@ -48,8 +51,8 @@ linters:
         terminal:
           files:
             - "$all"
-            - "!**/pkg/ui/**"
-            - "!**/internal/tools/uigallery/**"
+            - "!${base-path}/pkg/ui/**"
+            - "!${base-path}/internal/tools/uigallery/**"
           deny:
             - pkg: github.com/charmbracelet/colorprofile
               desc: colour profiles are pkg/ui/term's; render through term.Env (design-system README §9.15)
@@ -62,13 +65,13 @@ linters:
         legacy-style:
           files:
             - "$all"
-            - "!**/pkg/style/**" # the legacy library itself
-            - "!**/pkg/menu/**"
-            - "!**/cmd/hardn/**"
-            - "!**/pkg/logging/**"
-            - "!**/pkg/security/**"
-            - "!**/pkg/system/**"
-            - "!**/pkg/utils/**"
+            - "!${base-path}/pkg/style/**" # the legacy library itself
+            - "!${base-path}/pkg/menu/**"
+            - "!${base-path}/cmd/hardn/**"
+            - "!${base-path}/pkg/logging/**"
+            - "!${base-path}/pkg/security/**"
+            - "!${base-path}/pkg/system/**"
+            - "!${base-path}/pkg/utils/**"
           deny:
             - pkg: github.com/fatih/color
               desc: legacy colour library; use pkg/ui (design-system README §9.15)
@@ -103,7 +106,7 @@ linters:
           files:
             - "$all"
             - "!$test"
-            - "!**/internal/tools/**"
+            - "!${base-path}/internal/tools/**"
           deny:
             - pkg: github.com/abbott/hardn/pkg/ui/uitest
               desc: the golden harness is for tests only (design-system README §8)
@@ -113,17 +116,17 @@ linters:
         dev-tools:
           files:
             - "$all"
-            - "!**/internal/tools/**"
+            - "!${base-path}/internal/tools/**"
           deny:
             - pkg: github.com/abbott/hardn/internal/tools
               desc: dev-only tools are never linked into hardn (design-system README §9.14)
-        # The legacy menus read through pkg/ui/prompt and use pkg/ui/keys
-        # without linking Lip Gloss, so both keep to the standard library,
-        # and prompt to x/sys/unix besides.
+        # The legacy menus read through pkg/ui/prompt, and can use
+        # pkg/ui/keys, without linking Lip Gloss, so both keep to the
+        # standard library, and prompt to x/sys/unix besides.
         prompt-stdlib:
           list-mode: strict
           files:
-            - "**/pkg/ui/prompt/**"
+            - "${base-path}/pkg/ui/prompt/**"
             - "!$test"
           allow:
             - $gostd
@@ -131,7 +134,7 @@ linters:
         keys-stdlib:
           list-mode: strict
           files:
-            - "**/pkg/ui/keys/**"
+            - "${base-path}/pkg/ui/keys/**"
             - "!$test"
           allow:
             - $gostd
