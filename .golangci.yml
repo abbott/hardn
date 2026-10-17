@@ -280,6 +280,26 @@ linters:
               desc: the sudoers unit makes no network calls (docs/safety/sudoers.md §2)
             - pkg: plugin
               desc: the sudoers unit loads no code (docs/safety/sudoers.md §2)
+        # next/p2-alpine: apk-cron, crond, the legacy apk-upgrade file and
+        # the AppArmor and Lynis reports are read, run and changed only
+        # through host.System, as the sudoers unit does.
+        alpine-through-host:
+          files:
+            - "${base-path}/pkg/host/alpine/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: the Alpine unit reads, writes and runs only through host.System (docs/safety/alpine.md §2)
+            - pkg: io/ioutil
+              desc: the Alpine unit reads and writes only through host.System (docs/safety/alpine.md §2)
+            - pkg: golang.org/x/sys
+              desc: the Alpine unit makes no system calls of its own (docs/safety/alpine.md §2)
+            - pkg: syscall
+              desc: the Alpine unit makes no system calls of its own (docs/safety/alpine.md §2)
+            - pkg: net
+              desc: the Alpine unit makes no network calls (docs/safety/alpine.md §2)
+            - pkg: plugin
+              desc: the Alpine unit loads no code (docs/safety/alpine.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.
