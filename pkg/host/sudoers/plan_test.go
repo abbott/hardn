@@ -83,35 +83,134 @@ func TestPlanContent(t *testing.T) {
 
 // TestPlanFindings: files sudo reads after hardn's (the last match wins)
 // are reported, hardn's own files and the names sudo skips are not, and
-// origin/main's /etc/sudoers.d/<user> is reported as legacy (V16).
+// origin/main's /etc/sudoers.d/<user> is reported as legacy (V16). Lines
+// of /etc/sudoers after the includedir are reported unless they are
+// comments; "#1000" there is a rule for uid 1000, not a comment.
 func TestPlanFindings(t *testing.T) {
 	h := sudoHost(t)
 	for _, n := range []string{"alice", "zz-local", "local.conf", "old~", "hardn-grant-bob", "hardn-zzz", "hardn-grant-z_61"} {
 		h.AddFile(sudoers.DropInDir+"/"+n, []byte("# x\n"), 0o440, 0, 0)
 	}
-	h.AddFile(sudoers.MainConfig, []byte(debianMain+"# a comment\n\nbob ALL=(ALL) ALL\n#include /etc/sudoers.local\n"), 0o440, 0, 0)
-	st, p := plan(t, h, sudoChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, sudoers.Policy{User: "zed", Env: keep})
+	h.AddFile(sudoers.MainConfig, []byte(debianMain+"# a comment\n\nbob ALL=(ALL) ALL\n#include /etc/sudoers.local\n#1000 ALL=(ALL) !ALL\n# 1000 is alice\n#\n"), 0o440, 0, 0)
+	st, p := plan(t, h, sudoChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, sudoers.Policy{User: "bob", Env: keep})
 	wantEntries := "90-cloud-init-users README alice hardn-grant-bob hardn-grant-z_61 hardn-zzz zz-local"
-	if got := strings.Join(st.Entries, " "); got != wantEntries {
-		t.Errorf("Entries = %q, want %q", got, wantEntries)
+	if got := strings.Join(st.Entries, " "); got != wantEntries || st.Main != sudoers.MainConfig {
+		t.Errorf("Entries = %q, Main %s, want %q", got, st.Main, wantEntries)
 	}
-	var got []string
-	for _, f := range p.Findings {
-		got = append(got, f.Kind.String()+" "+f.File+" "+f.Detail)
-	}
+	after := "sudoers-after-include /etc/sudoers read after the drop-ins: a rule here that matches the user wins over hardn's"
+	later := " read after hardn's rule for alice, bob: a rule there that matches wins (the last match wins)"
 	want := []string{
-		"sudoers-after-include /etc/sudoers read after the drop-ins: a rule here that matches the user wins over hardn's",
-		"sudoers-after-include /etc/sudoers read after the drop-ins: a rule here that matches the user wins over hardn's",
+		after, after, after,
 		"sudoers-legacy-file /etc/sudoers.d/alice origin/main's file for alice (V16); hardn's rule is in hardn-grant-alice; sudo reads it before hardn's: hardn's rule wins",
-		"sudoers-later-file /etc/sudoers.d/hardn-grant-z_61 read after hardn's rule for alice: a rule there that matches wins (the last match wins)",
-		"sudoers-later-file /etc/sudoers.d/hardn-zzz read after hardn's rule for alice: a rule there that matches wins (the last match wins)",
-		"sudoers-later-file /etc/sudoers.d/zz-local read after hardn's rule for alice: a rule there that matches wins (the last match wins)",
+		"sudoers-later-file /etc/sudoers.d/hardn-grant-z_61" + later,
+		"sudoers-later-file /etc/sudoers.d/hardn-zzz" + later,
+		"sudoers-later-file /etc/sudoers.d/zz-local" + later,
 	}
-	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+	if got := findings(p); strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
-	if p.Findings[0].Line != 8 || p.Findings[1].Line != 9 {
-		t.Errorf("after-include lines = %d, %d, want 8, 9", p.Findings[0].Line, p.Findings[1].Line)
+	if p.Findings[0].Line != 8 || p.Findings[1].Line != 9 || p.Findings[2].Line != 10 {
+		t.Errorf("after-include lines = %d, %d, %d, want 8, 9, 10", p.Findings[0].Line, p.Findings[1].Line, p.Findings[2].Line)
+	}
+}
+
+func findings(p sudoers.Plan) []string {
+	var out []string
+	for _, f := range p.Findings {
+		out = append(out, f.Kind.String()+" "+f.File+" "+f.Detail)
+	}
+	return out
+}
+
+// TestPlanFindingsPolicies: every policy is scanned. A later file is
+// reported against the first of hardn's files that will hold a rule for
+// the user (the environment file sorts before the grant); a policy that
+// removes hardn's files has no rule for a later file to override, but a
+// legacy file's grant outlives it. doas's later files are its *.conf
+// names, hardn's own decoded as on sudo.
+func TestPlanFindingsPolicies(t *testing.T) {
+	const laterAlice = " read after hardn's rule for alice: a rule there that matches wins (the last match wins)"
+	for _, tc := range []struct {
+		name    string
+		c       sudoers.Choice
+		entries []string
+		pol     sudoers.Policy
+		want    []string
+	}{
+		{"removal: the legacy grant still applies", sudoChoice, []string{"alice", "zz-local"}, sudoers.Policy{User: "alice"}, []string{
+			"sudoers-legacy-file /etc/sudoers.d/alice origin/main's file for alice (V16); hardn grants alice nothing, yet a grant in this file still applies",
+		}},
+		{"environment only", sudoChoice, []string{"alice", "zz-local"}, sudoers.Policy{User: "alice", Env: keep}, []string{
+			"sudoers-legacy-file /etc/sudoers.d/alice origin/main's file for alice (V16); hardn's rule is in hardn-env-alice; sudo reads it before hardn's: hardn's rule wins; hardn grants alice nothing, yet a grant in this file still applies",
+			"sudoers-later-file /etc/sudoers.d/zz-local" + laterAlice,
+		}},
+		{"grant and environment: from the environment file", sudoChoice, []string{"hardn-f"}, alicePolicy, []string{
+			"sudoers-later-file /etc/sudoers.d/hardn-f" + laterAlice,
+		}},
+		{"grant only: not before the grant", sudoChoice, []string{"hardn-f"}, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, nil},
+		{"legacy file read after hardn's", sudoChoice, []string{"svc-alice"}, sudoers.Policy{User: "svc-alice", Grant: sudoers.GrantPassword}, []string{
+			"sudoers-legacy-file /etc/sudoers.d/svc-alice origin/main's file for svc-alice (V16); hardn's rule is in hardn-grant-svc-alice; sudo reads it after hardn's: a rule for the user there wins",
+		}},
+		{"doas", doasChoice, []string{"10-local.conf", "hardn-bob.conf", "hardn-x_zz.conf", "zz-local.conf", "zz-local"}, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, []string{
+			"sudoers-later-file /etc/doas.d/hardn-x_zz.conf" + laterAlice,
+			"sudoers-later-file /etc/doas.d/zz-local.conf" + laterAlice,
+		}},
+		{"doas removal", doasChoice, []string{"zz-local.conf"}, sudoers.Policy{User: "alice"}, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, dir := sudoHost(t), sudoers.DropInDir
+			if tc.c.Tool == sudoers.ToolDoas {
+				h, dir = doasHost(t), sudoers.DoasDir
+			}
+			for _, n := range tc.entries {
+				h.AddFile(dir+"/"+n, []byte("# x\n"), 0o440, 0, 0)
+			}
+			_, p := plan(t, h, tc.c, tc.pol)
+			if got := findings(p); strings.Join(got, "\n") != strings.Join(tc.want, "\n") {
+				t.Errorf("findings:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(tc.want, "\n"))
+			}
+		})
+	}
+}
+
+// TestReadMain: sudo-rs reads /etc/sudoers-rs instead of /etc/sudoers when
+// it exists (by stat), so that is the file that must include the drop-in
+// directory and whose later lines are reported; the sudo project's sudo
+// never reads it.
+func TestReadMain(t *testing.T) {
+	const rsMain = "@includedir /etc/sudoers.d\nalice ALL=(ALL) !ALL\n"
+	for _, tc := range []struct {
+		name  string
+		c     sudoers.Choice
+		setup func(*hostfake.System)
+		main  string
+	}{
+		{"sudo-rs, no sudoers-rs", rsChoice, func(*hostfake.System) {}, sudoers.MainConfig},
+		{"sudo-rs, sudoers-rs", rsChoice, func(h *hostfake.System) {
+			h.AddFile(sudoers.SudoersRS, []byte(rsMain), 0o440, 0, 0)
+		}, sudoers.SudoersRS},
+		{"sudo-rs, sudoers-rs a symlink to a file", rsChoice, func(h *hostfake.System) {
+			h.AddFile("/etc/sudoers-rs.real", []byte(rsMain), 0o440, 0, 0)
+			h.AddSymlink(sudoers.SudoersRS, "/etc/sudoers-rs.real")
+		}, sudoers.SudoersRS},
+		{"sudo-rs, sudoers-rs a dangling symlink", rsChoice, func(h *hostfake.System) {
+			h.AddSymlink(sudoers.SudoersRS, "/etc/missing")
+		}, sudoers.MainConfig},
+		{"sudo, sudoers-rs ignored", sudoChoice, func(h *hostfake.System) {
+			h.AddFile(sudoers.SudoersRS, []byte("root ALL=(ALL:ALL) ALL\n"), 0o440, 0, 0)
+		}, sudoers.MainConfig},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := sudoHost(t)
+			tc.setup(h)
+			st, p := plan(t, h, tc.c, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword})
+			if st.Main != tc.main || p.Main != tc.main {
+				t.Errorf("Main = %s, %s, want %s", st.Main, p.Main, tc.main)
+			}
+			if tc.main == sudoers.SudoersRS && (len(p.Findings) != 1 || p.Findings[0].File != sudoers.SudoersRS || p.Findings[0].Line != 2) {
+				t.Errorf("findings = %+v, want line 2 of %s", p.Findings, sudoers.SudoersRS)
+			}
+		})
 	}
 }
 
@@ -238,6 +337,13 @@ func TestReadRefuses(t *testing.T) {
 		}, sudoers.ErrNotIncluded},
 		{"not applicable", sudoers.Choose(proxmox, sudoers.ToolUnknown), func(*hostfake.System) {}, sudoers.ErrNoTool},
 		{"bad user", sudoChoice, func(*hostfake.System) {}, sudoers.ErrUserName},
+		// /etc/sudoers includes the directory; sudo-rs reads sudoers-rs.
+		{"sudo-rs: sudoers-rs without the includedir", rsChoice, func(h *hostfake.System) {
+			h.AddFile(sudoers.SudoersRS, []byte("root ALL=(ALL:ALL) ALL\n"), 0o440, 0, 0)
+		}, sudoers.ErrNotIncluded},
+		{"sudoers-rs, flavour not established", sudoers.Choice{Tool: sudoers.ToolSudo}, func(h *hostfake.System) {
+			h.AddFile(sudoers.SudoersRS, []byte(debianMain), 0o440, 0, 0)
+		}, sudoers.ErrNotIncluded},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := sudoHost(t)

@@ -36,7 +36,7 @@ func sudoHost(t *testing.T) *hostfake.System {
 	h.AddFile(sudoers.DropInDir+"/README", []byte("# files here are read by sudo\n"), 0o440, 0, 0)
 	h.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte(cloudInit), 0o440, 0, 0)
 	h.AddDir(runDir, 0o700, 0, 0)
-	h.Handler = model(h)
+	h.Handler = model(h, false)
 	return h
 }
 
@@ -48,7 +48,7 @@ func doasHost(t *testing.T) *hostfake.System {
 	h.AddDir(sudoers.DoasDir, 0o750, 0, 0)
 	h.AddFile(sudoers.DoasDir+"/20-wheel.conf", []byte(wheel), 0o644, 0, 0)
 	h.AddDir(runDir, 0o700, 0, 0)
-	h.Handler = model(h)
+	h.Handler = model(h, false)
 	return h
 }
 
@@ -57,10 +57,12 @@ const bad = "BAD"
 
 // model answers visudo and doas as the real tools would for the rules of
 // these tests: a file is rejected when it is missing or holds bad.
-// visudo -c reads /etc/sudoers and every name sudo reads in /etc/sudoers.d.
-// The answers' wording follows sudo's and doas's messages; it was not
-// captured from a host.
-func model(h *hostfake.System) func([]string, []byte) hostfake.Response {
+// visudo -c reads the main file and, when that has the includedir, every
+// name sudo reads in /etc/sudoers.d. The main file is /etc/sudoers, or, for
+// sudo-rs (rs), /etc/sudoers-rs when that exists (sudo-rs v0.2.13
+// candidate_sudoers_file). The answers' wording follows sudo's and doas's
+// messages; it was not captured from a host.
+func model(h *hostfake.System, rs bool) func([]string, []byte) hostfake.Response {
 	rejects := func(p string) bool {
 		e, ok := h.Entry(p)
 		return !ok || bytes.Contains(e.Data, []byte(bad))
@@ -71,10 +73,16 @@ func model(h *hostfake.System) func([]string, []byte) hostfake.Response {
 	return func(argv []string, _ []byte) hostfake.Response {
 		switch {
 		case slices.Equal(argv, []string{"visudo", "-c"}):
-			files := []string{sudoers.MainConfig}
-			for _, n := range names(h, sudoers.DropInDir) {
-				if !strings.Contains(n, ".") && !strings.HasSuffix(n, "~") {
-					files = append(files, sudoers.DropInDir+"/"+n)
+			main := sudoers.MainConfig
+			if _, ok := h.Entry(sudoers.SudoersRS); ok && rs {
+				main = sudoers.SudoersRS
+			}
+			files := []string{main}
+			if e, ok := h.Entry(main); ok && bytes.Contains(e.Data, []byte("@includedir "+sudoers.DropInDir+"\n")) {
+				for _, n := range names(h, sudoers.DropInDir) {
+					if !strings.Contains(n, ".") && !strings.HasSuffix(n, "~") {
+						files = append(files, sudoers.DropInDir+"/"+n)
+					}
 				}
 			}
 			for _, f := range files {
@@ -82,7 +90,7 @@ func model(h *hostfake.System) func([]string, []byte) hostfake.Response {
 					return fail(f)
 				}
 			}
-			return hostfake.Response{Stdout: "/etc/sudoers: parsed OK\n"}
+			return hostfake.Response{Stdout: main + ": parsed OK\n"}
 		case len(argv) == 3 && argv[0] == "visudo" && argv[1] == "-cf", len(argv) == 3 && argv[0] == "doas" && argv[1] == "-C":
 			if rejects(argv[2]) {
 				return fail(argv[2])

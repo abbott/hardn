@@ -11,12 +11,25 @@ import (
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
+// Why a fact is Unknown, as detect.Detect would report it.
+var (
+	errSudo = errors.New("stat /usr/bin/sudo: permission denied")
+	errDoas = errors.New("stat /usr/bin/doas: permission denied")
+	errOS   = errors.New("os-release sets no ID")
+)
+
 // facts is a host's elevation facts as detect.Detect reports them.
 func facts(d detect.Distro, sudo, doas detect.Tri, flavor detect.SudoFlavor) detect.Facts {
 	f := detect.Facts{Platform: detect.Platform{Distro: d}}
+	if d == detect.DistroUnknown {
+		f.Platform.Err = errOS
+	}
 	f.Elevation.Sudo.Present, f.Elevation.Doas.Present, f.Elevation.SudoFlavor = sudo, doas, flavor
 	if sudo == detect.Unknown {
-		f.Elevation.Sudo.Err = fs.ErrPermission
+		f.Elevation.Sudo.Err = errSudo
+	}
+	if doas == detect.Unknown {
+		f.Elevation.Doas.Err = errDoas
 	}
 	return f
 }
@@ -28,59 +41,92 @@ var (
 	proxmox = facts(detect.DistroProxmox, detect.No, detect.No, detect.SudoFlavorUnknown)
 )
 
+// TestChoose: Err is set exactly when the tool is not usable, and a fact
+// that is not established (a tool's presence, or, where it decides, the
+// distribution) gives ToolUnknown, never ToolNone or a guess.
 func TestChoose(t *testing.T) {
-	both := facts(detect.DistroAlpine, detect.Yes, detect.Yes, detect.SudoOriginal)
-	noFlavor := facts(detect.DistroDebian, detect.Yes, detect.No, detect.SudoFlavorUnknown)
+	const (
+		yes, no, unk = detect.Yes, detect.No, detect.Unknown
+		orig         = detect.SudoOriginal
+		none         = detect.SudoFlavorUnknown
+	)
+	var (
+		nodistro = detect.DistroUnknown
+		deb      = detect.DistroDebian
+		alp      = detect.DistroAlpine
+	)
+	noFlavor := facts(deb, yes, no, none)
 	noFlavor.Elevation.Err = detect.ErrUnrecognised
+	noCause := facts(alp, no, unk, none)
+	noCause.Elevation.Doas.Err = nil
 	for _, tc := range []struct {
-		name    string
-		f       detect.Facts
-		want    sudoers.Tool
-		tool    sudoers.Tool
-		flavor  detect.SudoFlavor
-		wantErr error
+		name      string
+		f         detect.Facts
+		want      sudoers.Tool
+		tool      sudoers.Tool
+		flavor    detect.SudoFlavor
+		wantErr   error // in Err, for a tool that is not usable
+		flavorErr error
 	}{
-		{"debian sudo", debian, sudoers.ToolUnknown, sudoers.ToolSudo, detect.SudoOriginal, nil},
-		{"ubuntu 26.04 sudo-rs", ubuntu, sudoers.ToolUnknown, sudoers.ToolSudo, detect.SudoRS, nil},
-		{"alpine doas", alpine, sudoers.ToolUnknown, sudoers.ToolDoas, 0, nil},
-		{"alpine both", both, sudoers.ToolUnknown, sudoers.ToolUnknown, 0, sudoers.ErrAmbiguous},
-		{"alpine both, sudo named", both, sudoers.ToolSudo, sudoers.ToolSudo, detect.SudoOriginal, nil},
-		{"alpine both, doas named", both, sudoers.ToolDoas, sudoers.ToolDoas, 0, nil},
-		{"alpine, sudo named but absent", alpine, sudoers.ToolSudo, sudoers.ToolNone, 0, sudoers.ErrNoTool},
-		{"proxmox without sudo", proxmox, sudoers.ToolUnknown, sudoers.ToolNone, 0, sudoers.ErrNoTool},
-		{"doas outside alpine", facts(detect.DistroDebian, detect.No, detect.Yes, 0), sudoers.ToolUnknown, sudoers.ToolUnknown, 0, sudoers.ErrUnsupported},
-		{"doas named outside alpine", debian, sudoers.ToolDoas, sudoers.ToolUnknown, 0, sudoers.ErrUnsupported},
-		{"debian sudo and doas", facts(detect.DistroDebian, detect.Yes, detect.Yes, detect.SudoOriginal), sudoers.ToolUnknown, sudoers.ToolSudo, detect.SudoOriginal, nil},
-		{"sudo not established", facts(detect.DistroDebian, detect.Unknown, detect.No, 0), sudoers.ToolUnknown, sudoers.ToolUnknown, 0, fs.ErrPermission},
-		{"alpine doas not established", facts(detect.DistroAlpine, detect.No, detect.Unknown, 0), sudoers.ToolUnknown, sudoers.ToolUnknown, 0, nil},
-		{"flavour not established", noFlavor, sudoers.ToolUnknown, sudoers.ToolSudo, detect.SudoFlavorUnknown, detect.ErrUnrecognised},
-		{"none named", debian, sudoers.ToolNone, sudoers.ToolUnknown, 0, fs.ErrInvalid},
+		{"debian sudo", debian, sudoers.ToolUnknown, sudoers.ToolSudo, orig, nil, nil},
+		{"ubuntu 26.04 sudo-rs", ubuntu, sudoers.ToolUnknown, sudoers.ToolSudo, detect.SudoRS, nil, nil},
+		{"alpine doas", alpine, sudoers.ToolUnknown, sudoers.ToolDoas, none, nil, nil},
+		{"alpine both", facts(alp, yes, yes, orig), sudoers.ToolUnknown, sudoers.ToolUnknown, none, sudoers.ErrAmbiguous, nil},
+		{"alpine both, sudo named", facts(alp, yes, yes, orig), sudoers.ToolSudo, sudoers.ToolSudo, orig, nil, nil},
+		{"alpine both, doas named", facts(alp, yes, yes, orig), sudoers.ToolDoas, sudoers.ToolDoas, none, nil, nil},
+		{"alpine, sudo named but absent", alpine, sudoers.ToolSudo, sudoers.ToolNone, none, sudoers.ErrNoTool, nil},
+		{"alpine sudo only", facts(alp, yes, no, orig), sudoers.ToolUnknown, sudoers.ToolSudo, orig, nil, nil},
+		{"alpine neither", facts(alp, no, no, none), sudoers.ToolUnknown, sudoers.ToolNone, none, sudoers.ErrNoTool, nil},
+		{"alpine doas not established", facts(alp, no, unk, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errDoas, nil},
+		{"proxmox without sudo", proxmox, sudoers.ToolUnknown, sudoers.ToolNone, none, sudoers.ErrNoTool, nil},
+		{"doas outside alpine", facts(deb, no, yes, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, sudoers.ErrUnsupported, nil},
+		{"doas named outside alpine", debian, sudoers.ToolDoas, sudoers.ToolUnknown, none, sudoers.ErrUnsupported, nil},
+		{"debian sudo and doas", facts(deb, yes, yes, orig), sudoers.ToolUnknown, sudoers.ToolSudo, orig, nil, nil},
+		{"debian sudo, doas not established", facts(deb, yes, unk, orig), sudoers.ToolUnknown, sudoers.ToolSudo, orig, nil, nil},
+		{"sudo not established", facts(deb, unk, no, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errSudo, nil},
+		{"sudo named, not established", facts(deb, unk, no, none), sudoers.ToolSudo, sudoers.ToolUnknown, none, errSudo, nil},
+		{"doas not established, no cause given", noCause, sudoers.ToolUnknown, sudoers.ToolUnknown, none, detect.ErrNoSignal, nil},
+		// Not ToolNone: doas, if installed, would be ErrUnsupported.
+		{"debian no sudo, doas not established", facts(deb, no, unk, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errDoas, nil},
+		// Where the distribution decides (doas present or not established),
+		// an Unknown distribution is Unknown, not "not Alpine".
+		{"distribution not established, both", facts(nodistro, yes, yes, orig), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errOS, nil},
+		{"distribution not established, doas only", facts(nodistro, no, yes, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errOS, nil},
+		{"distribution not established, doas not established", facts(nodistro, no, unk, none), sudoers.ToolUnknown, sudoers.ToolUnknown, none, errOS, nil},
+		{"distribution not established, doas named", facts(nodistro, no, yes, none), sudoers.ToolDoas, sudoers.ToolUnknown, none, errOS, nil},
+		{"distribution not established, sudo only", facts(nodistro, yes, no, orig), sudoers.ToolUnknown, sudoers.ToolSudo, orig, nil, nil},
+		{"distribution not established, sudo named", facts(nodistro, yes, yes, orig), sudoers.ToolSudo, sudoers.ToolSudo, orig, nil, nil},
+		{"distribution not established, neither", facts(nodistro, no, no, none), sudoers.ToolUnknown, sudoers.ToolNone, none, sudoers.ErrNoTool, nil},
+		{"flavour not established", noFlavor, sudoers.ToolUnknown, sudoers.ToolSudo, none, nil, detect.ErrUnrecognised},
+		{"none named", debian, sudoers.ToolNone, sudoers.ToolUnknown, none, fs.ErrInvalid, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c := sudoers.Choose(tc.f, tc.want)
 			if c.Tool != tc.tool || c.Flavor != tc.flavor {
 				t.Errorf("Choose = %s/%s, want %s/%s (%v)", c.Tool, c.Flavor, tc.tool, tc.flavor, c.Err)
 			}
+			usable := tc.tool == sudoers.ToolSudo || tc.tool == sudoers.ToolDoas
 			switch {
-			case tc.wantErr != nil && !errors.Is(c.Err, tc.wantErr):
+			case usable && c.Err != nil:
+				t.Errorf("Err = %v for a usable tool", c.Err)
+			case !usable && (c.Err == nil || !errors.Is(c.Err, tc.wantErr)):
 				t.Errorf("Err = %v, want %v", c.Err, tc.wantErr)
-			case tc.tool != sudoers.ToolSudo && tc.tool != sudoers.ToolDoas && c.Err == nil:
-				t.Error("Err = nil for a tool that is not usable")
-			case tc.tool == sudoers.ToolDoas && c.Err != nil, tc.tool == sudoers.ToolSudo && tc.wantErr == nil && c.Err != nil:
-				t.Errorf("Err = %v, want nil", c.Err)
+			}
+			if !errors.Is(c.FlavorErr, tc.flavorErr) { // errors.Is(nil, nil) holds
+				t.Errorf("FlavorErr = %v, want %v", c.FlavorErr, tc.flavorErr)
 			}
 		})
 	}
 }
 
 func TestCheckUser(t *testing.T) {
-	for _, name := range []string{"alice", "bob", "_svc", "svc_backup", "alice.smith", "a-b", "web01$", "a", strings.Repeat("a", 32)} {
+	for _, name := range []string{"alice", "bob", "_alice", "bob_smith", "alice.smith", "a-b", "bob$", "a", strings.Repeat("a", 32)} {
 		if err := sudoers.CheckUser(sudoers.ToolSudo, name); err != nil {
 			t.Errorf("CheckUser(%q) = %v", name, err)
 		}
 	}
 	for _, name := range []string{"", "ALL", "Alice", "-alice", ".alice", "1alice", "alice~", "al ice", "#1000", "%sudo", "+net",
-		"alice,bob", "alice=x", "a$b", "alice$$", "élise", strings.Repeat("a", 33), "alice\n"} {
+		"alice,bob", "alice=x", "a$b", "alice$$", "alicé", strings.Repeat("a", 33), "alice\n"} {
 		if err := sudoers.CheckUser(sudoers.ToolSudo, name); !errors.Is(err, sudoers.ErrUserName) {
 			t.Errorf("CheckUser(%q) = %v, want ErrUserName", name, err)
 		}
@@ -105,8 +151,8 @@ func TestFileNames(t *testing.T) {
 	}{
 		{"alice", "hardn-grant-alice", "hardn-env-alice", "hardn-alice.conf"},
 		{"alice.smith", "hardn-grant-alice_2esmith", "hardn-env-alice_2esmith", "hardn-alice_2esmith.conf"},
-		{"svc_backup", "hardn-grant-svc__backup", "hardn-env-svc__backup", "hardn-svc__backup.conf"},
-		{"web01$", "hardn-grant-web01_24", "hardn-env-web01_24", "hardn-web01_24.conf"},
+		{"bob_smith", "hardn-grant-bob__smith", "hardn-env-bob__smith", "hardn-bob__smith.conf"},
+		{"bob$", "hardn-grant-bob_24", "hardn-env-bob_24", "hardn-bob_24.conf"},
 		{"env-alice", "hardn-grant-env-alice", "hardn-env-env-alice", "hardn-env-alice.conf"},
 	} {
 		s, err := sudoers.FileNames(sudoers.ToolSudo, tc.user)

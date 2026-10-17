@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 )
 
 // File is a file as Read found it.
@@ -34,8 +35,8 @@ const (
 	// FindingLater: a file the tool reads after hardn's, so a rule there
 	// that matches the user wins (the last matching rule wins).
 	FindingLater FindingKind = iota + 1
-	// FindingAfterInclude: /etc/sudoers has lines after its includedir;
-	// sudo reads them after the drop-ins.
+	// FindingAfterInclude: the main sudoers file has lines after its
+	// includedir; sudo reads them after the drop-ins.
 	FindingAfterInclude
 	// FindingLegacy: origin/main's /etc/sudoers.d/<user>, which held the
 	// grant and the env_keep line in one file (V16). Reported, not changed.
@@ -65,6 +66,10 @@ type Finding struct {
 // State is what PlanFor plans from.
 type State struct {
 	Choice Choice
+	// Main is, for sudo, the file it reads first, which includes the
+	// drop-in directory: MainConfig, or SudoersRS for sudo-rs when that
+	// exists. visudo -c checks the same file.
+	Main string
 	// Entries are the base names in the drop-in directory the tool reads,
 	// in the order it reads them (C byte order): for sudo, the names with
 	// no '.' and no trailing '~'; for doas, the names ending in ".conf".
@@ -76,8 +81,8 @@ type State struct {
 // Read reads, for the users named, what PlanFor needs: whether the tool
 // reads its drop-in directory, the directory's entries, and hardn's files.
 // It changes nothing. Errors: Choice.Err for a choice that is not sudo or
-// doas, ErrUserName, ErrNotIncluded, ErrNotRegular, host.ErrSymlink for a
-// symlink at one of hardn's files, and the host's own.
+// doas, ErrUserName, ErrNotIncluded, host.ErrSymlink for a symlink at one
+// of hardn's files, and the host's own (EISDIR for a directory there).
 func Read(ctx context.Context, sys host.System, c Choice, users []string) (State, error) {
 	st := State{Choice: c, Files: map[string]File{}}
 	var err error
@@ -114,14 +119,14 @@ func Read(ctx context.Context, sys host.System, c Choice, users []string) (State
 
 func readFile(ctx context.Context, sys host.System, name string) (File, error) {
 	f := File{Path: name}
+	// ReadFileNoFollow refuses a symlink, a directory and any other file
+	// that is not regular.
 	data, fi, err := sys.ReadFileNoFollow(ctx, name)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
 		return f, nil
 	case err != nil:
 		return f, fmt.Errorf("sudoers: %w", err)
-	case !fi.Mode().IsRegular():
-		return f, fmt.Errorf("sudoers: %s: %w", name, ErrNotRegular)
 	}
 	f.Exists, f.Data, f.Mode = true, data, fi.Mode().Perm()
 	f.UID, f.GID = -1, -1
@@ -131,10 +136,14 @@ func readFile(ctx context.Context, sys host.System, name string) (File, error) {
 	return f, nil
 }
 
-// readSudo: /etc/sudoers must include /etc/sudoers.d, or a drop-in has no
+// readSudo: the main file must include /etc/sudoers.d, or a drop-in has no
 // effect, and a grant hardn reports would not exist.
 func (st *State) readSudo(ctx context.Context, sys host.System) error {
-	main, err := sys.ReadFile(ctx, MainConfig)
+	var err error
+	if st.Main, err = sudoMain(ctx, sys, st.Choice.Flavor); err != nil {
+		return err
+	}
+	main, err := sys.ReadFile(ctx, st.Main)
 	if err != nil {
 		return fmt.Errorf("sudoers: %w", err)
 	}
@@ -147,11 +156,11 @@ func (st *State) readSudo(ctx context.Context, sys host.System) error {
 		}
 	}
 	if line == 0 {
-		return fmt.Errorf("sudoers: %s has no @includedir %s: %w", MainConfig, DropInDir, ErrNotIncluded)
+		return fmt.Errorf("sudoers: %s has no @includedir %s: %w", st.Main, DropInDir, ErrNotIncluded)
 	}
 	for i, l := range lines[line:] {
-		if t := strings.TrimSpace(l); t != "" && (!strings.HasPrefix(t, "#") || strings.HasPrefix(t, "#include")) {
-			st.Findings = append(st.Findings, Finding{FindingAfterInclude, MainConfig, line + 1 + i,
+		if t := strings.TrimSpace(l); t != "" && !comment(t) {
+			st.Findings = append(st.Findings, Finding{FindingAfterInclude, st.Main, line + 1 + i,
 				"read after the drop-ins: a rule here that matches the user wins over hardn's"})
 		}
 	}
@@ -162,6 +171,34 @@ func (st *State) readSudo(ctx context.Context, sys host.System) error {
 		}
 	}
 	return err
+}
+
+// sudoMain is the file sudo reads first. sudo-rs reads SudoersRS when it
+// exists (a stat: a symlink to a file counts) and MainConfig otherwise; the
+// sudo project's sudo reads MainConfig. With the flavour Unknown and
+// SudoersRS present, which one is read is not established: ErrNotIncluded.
+func sudoMain(ctx context.Context, sys host.System, flavor detect.SudoFlavor) (string, error) {
+	if flavor == detect.SudoOriginal {
+		return MainConfig, nil
+	}
+	_, err := sys.Stat(ctx, SudoersRS)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return MainConfig, nil
+	case err != nil:
+		return "", fmt.Errorf("sudoers: %w", err)
+	case flavor == detect.SudoRS:
+		return SudoersRS, nil
+	}
+	return "", fmt.Errorf("sudoers: %s exists and the sudo flavour is not established, so whether sudo reads it or %s is not known: %w",
+		SudoersRS, MainConfig, ErrNotIncluded)
+}
+
+// comment: a trimmed sudoers line that is a comment. '#' starts one, except
+// in "#include"/"#includedir" and in "#<digits>", which at the start of a
+// line is a user ID: a rule.
+func comment(t string) bool {
+	return strings.HasPrefix(t, "#") && !strings.HasPrefix(t, "#include") && (len(t) == 1 || t[1] < '0' || t[1] > '9')
 }
 
 // readDoas: Alpine's doas reads /etc/doas.conf, then, when /etc/doas.d is
@@ -237,7 +274,10 @@ type Change struct {
 
 // Plan is the changes for a set of policies. No Changes: nothing to do.
 type Plan struct {
-	Tool     Tool
+	Tool Tool
+	// Main is State.Main: for sudo, the file visudo -c checks, named in a
+	// whole-configuration CheckError ("" is MainConfig).
+	Main     string
 	Changes  []Change
 	Findings []Finding
 }
@@ -248,7 +288,7 @@ type Plan struct {
 // unknown Grant.
 func PlanFor(st State, policies []Policy) (Plan, error) {
 	t := st.Choice.Tool
-	p := Plan{Tool: t, Findings: slices.Clone(st.Findings)}
+	p := Plan{Tool: t, Main: st.Main, Findings: slices.Clone(st.Findings)}
 	var users []string
 	later := map[string][]string{}
 	for _, pol := range policies {
@@ -296,16 +336,24 @@ func PlanFor(st State, policies []Policy) (Plan, error) {
 			}
 		}
 		p.Changes = append(p.Changes, cs...)
-		if pol.Grant == GrantNone {
-			continue
+		// first is the first file, in the tool's order, that will hold a
+		// rule of hardn's for the user; "" when hardn removes them all.
+		var rules []string
+		if pol.Grant != GrantNone {
+			rules = append(rules, path.Base(n.Grant))
 		}
-		base := path.Base(n.Grant)
+		if t == ToolSudo && len(pol.Env) > 0 {
+			rules = append(rules, path.Base(n.Env))
+		}
+		first := ""
+		if len(rules) > 0 {
+			first = slices.Min(rules)
+		}
 		for _, e := range st.Entries {
 			switch {
 			case t == ToolSudo && e == pol.User:
-				p.Findings = append(p.Findings, Finding{FindingLegacy, DropInDir + "/" + e, 0,
-					"origin/main's file for " + pol.User + " (V16); hardn's rule is in " + base + "; sudo reads it " + order(e > base)})
-			case e > base && !owned(t, e):
+				p.Findings = append(p.Findings, Finding{FindingLegacy, DropInDir + "/" + e, 0, legacy(pol, e, first)})
+			case first != "" && e > first && !owned(t, e):
 				later[e] = append(later[e], pol.User)
 			}
 		}
@@ -323,11 +371,22 @@ func PlanFor(st State, policies []Policy) (Plan, error) {
 	return p, nil
 }
 
-func order(after bool) string {
-	if after {
-		return "after hardn's: a rule for the user there wins"
+// legacy is the detail of a sudoers-legacy-file finding for origin/main's
+// file e: where sudo reads it against first, hardn's first rule for the
+// user, and that a grant there outlives a policy that grants nothing.
+func legacy(pol Policy, e, first string) string {
+	d := "origin/main's file for " + pol.User + " (V16)"
+	switch {
+	case first == "":
+	case e > first:
+		d += "; hardn's rule is in " + first + "; sudo reads it after hardn's: a rule for the user there wins"
+	default:
+		d += "; hardn's rule is in " + first + "; sudo reads it before hardn's: hardn's rule wins"
 	}
-	return "before hardn's: hardn's rule wins"
+	if pol.Grant == GrantNone {
+		d += "; hardn grants " + pol.User + " nothing, yet a grant in this file still applies"
+	}
+	return d
 }
 
 // risk is the risk of a change to the file that carries a user's grant.

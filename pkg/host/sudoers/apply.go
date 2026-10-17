@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 )
@@ -66,18 +67,35 @@ func (e *CheckError) Is(target error) bool {
 
 func (e *CheckError) Unwrap() error { return e.Err }
 
+// DefaultRestoreTimeout bounds Apply's restore and the removal of its
+// copies when Options.RestoreTimeout is not positive.
+const DefaultRestoreTimeout = time.Minute
+
 // Options configure Apply.
 type Options struct {
 	// RunDir is an existing absolute directory, reached with no symlink,
 	// whose every directory from / is owned by root and writable by neither
-	// group nor others, as sshd.Request.RunDir. The copies are written to
+	// group nor others, with no space, quote, backslash, '#' or glob
+	// character: as sshd.Request.RunDir. The copies are written to
 	// RunDir/WorkDir, which must not exist yet.
 	RunDir string
+	// RestoreTimeout bounds the restore after a failed write or StageAfter,
+	// and the removal of the copies. Both run under
+	// context.WithoutCancel(ctx), so a Ctrl-C does not stop them, and so
+	// without ctx's deadline; this is theirs. Not positive:
+	// DefaultRestoreTimeout.
+	RestoreTimeout time.Duration
 }
 
 // Result is what Apply did.
 type Result struct {
-	Installed []string // the paths written or removed, in order
+	// Installed are the paths written or removed, in order, including
+	// those a restore then put back.
+	Installed []string
+	// Restored: a write or StageAfter failed, and every file is back as
+	// Read found it and the configuration checked (StageRestored). When
+	// that restore did not complete, the error wraps ErrNotRestored.
+	Restored bool
 	// Cleanup is the error removing the copies gave; it does not change
 	// the outcome.
 	Cleanup error
@@ -91,8 +109,9 @@ type Result struct {
 // remove it; check the whole configuration again (StageAfter). Up to the
 // writes nothing under /etc changes. When a write or StageAfter fails, the
 // files written are put back as Read found them, under
-// context.WithoutCancel, and checked again (StageRestored). An empty plan
-// runs nothing.
+// context.WithoutCancel with Options.RestoreTimeout, and checked again
+// (StageRestored): Result.Restored, or an error wrapping ErrNotRestored. An
+// empty plan runs nothing.
 func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Result, err error) {
 	if len(p.Changes) == 0 {
 		return res, nil
@@ -113,12 +132,16 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Resu
 		}
 		return res, fmt.Errorf("sudoers: %s: %w", work, err)
 	}
-	defer func() { res.Cleanup = sys.RemoveAll(context.WithoutCancel(ctx), work) }()
+	defer func() {
+		cctx, cancel := opts.restoreContext(ctx)
+		defer cancel()
+		res.Cleanup = sys.RemoveAll(cctx, work)
+	}()
 	if err := sys.MkdirAll(ctx, work, 0o700); err != nil {
 		return res, fmt.Errorf("sudoers: %w", err)
 	}
 
-	if err := checkAll(ctx, sys, p.Tool, StageBefore); err != nil {
+	if err := checkAll(ctx, sys, p, StageBefore); err != nil {
 		return res, err
 	}
 	for _, c := range p.Changes {
@@ -151,50 +174,87 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (res Resu
 		res.Installed = append(res.Installed, c.Path)
 	}
 	if err == nil {
-		if err = checkAll(ctx, sys, p.Tool, StageAfter); err == nil {
+		if err = checkAll(ctx, sys, p, StageAfter); err == nil {
 			return res, nil
 		}
 	}
-	// A failed write may have left its file either way: put it back too.
+	// A failed write leaves its file as it was or as planned (an atomic
+	// write): put it back too.
 	if len(done) < len(p.Changes) {
 		done = append(done, p.Changes[len(done)])
 	}
-	return res, errors.Join(err, restore(context.WithoutCancel(ctx), sys, p.Tool, done))
+	rctx, cancel := opts.restoreContext(ctx)
+	defer cancel()
+	rerr := restore(rctx, sys, p, done)
+	res.Restored = rerr == nil
+	return res, errors.Join(err, rerr)
 }
 
-// Rollback puts every file of p back as Read found it, last first, skipping
-// those already so, then checks the whole configuration (StageRestored). It
-// is idempotent. Run it under context.WithoutCancel after Ctrl-C: every
-// host.System method refuses a done context.
+// restoreContext is ctx without its cancellation and deadline, bounded by
+// RestoreTimeout instead.
+func (o Options) restoreContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	d := o.RestoreTimeout
+	if d <= 0 {
+		d = DefaultRestoreTimeout
+	}
+	return context.WithTimeout(context.WithoutCancel(ctx), d)
+}
+
+// Rollback undoes p: last first, a file as Read found it is left as it is,
+// one holding what p wrote (or absent, for a Remove) is put back as Read
+// found it, and any other is left alone and reported (ErrChanged), so a
+// change another writer made, even one Apply refused with ErrChanged, is
+// never undone. Then it checks the whole configuration (StageRestored).
+// Every failure wraps ErrNotRestored. It is idempotent. Run it under
+// context.WithoutCancel, with a timeout, after Ctrl-C: every host.System
+// method refuses a done context.
 func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	if len(p.Changes) == 0 {
 		return nil
 	}
-	return restore(ctx, sys, p.Tool, p.Changes)
+	if p.Tool != ToolSudo && p.Tool != ToolDoas {
+		return fmt.Errorf("sudoers: rollback: tool %s: %w", p.Tool, fs.ErrInvalid)
+	}
+	return restore(ctx, sys, p, p.Changes)
 }
 
-func restore(ctx context.Context, sys host.System, t Tool, cs []Change) error {
+// restore is Rollback over cs, a prefix of p.Changes.
+func restore(ctx context.Context, sys host.System, p Plan, cs []Change) error {
 	var errs []error
 	for i := len(cs) - 1; i >= 0; i-- {
-		o := cs[i].Old
-		now, err := readFile(ctx, sys, o.Path)
+		c := cs[i]
+		now, err := readFile(ctx, sys, c.Path)
 		switch {
 		case err != nil:
-		case sameFile(now, o):
+		case sameFile(now, c.Old):
 			continue
-		case o.Exists:
-			err = sys.WriteFileAtomic(ctx, o.Path, o.Data, o.Mode, o.UID, o.GID)
+		case !planned(now, c):
+			err = ErrChanged
+		case c.Old.Exists:
+			err = sys.WriteFileAtomic(ctx, c.Path, c.Old.Data, c.Old.Mode, c.Old.UID, c.Old.GID)
 		default:
-			err = sys.Remove(ctx, o.Path)
+			err = sys.Remove(ctx, c.Path)
 		}
 		if err != nil {
-			errs = append(errs, fmt.Errorf("sudoers: restore %s: %w", o.Path, err))
+			errs = append(errs, fmt.Errorf("restore %s: %w", c.Path, err))
 		}
 	}
-	if len(errs) > 0 {
-		return errors.Join(errs...)
+	err := errors.Join(errs...)
+	if err == nil {
+		err = checkAll(ctx, sys, p, StageRestored)
 	}
-	return checkAll(ctx, sys, t, StageRestored)
+	if err != nil {
+		return fmt.Errorf("sudoers: %w: %w", ErrNotRestored, err)
+	}
+	return nil
+}
+
+// planned: f is what c installs (absent, for a Remove).
+func planned(f File, c Change) bool {
+	if c.Remove {
+		return !f.Exists
+	}
+	return f.same(c.Data, c.Mode)
 }
 
 func install(ctx context.Context, sys host.System, c Change) error {
@@ -229,14 +289,18 @@ func check(ctx context.Context, sys host.System, s Stage, real string, argv []st
 	return nil
 }
 
-// checkAll checks what the tool reads: for sudo, visudo -c (/etc/sudoers
-// and the files it includes); for doas, which has no such check, each file
-// it reads, as it reads them: /etc/doas.conf, then each regular *.conf in
-// /etc/doas.d, owned by root and writable by neither group nor others, and
-// accepted by doas -C.
-func checkAll(ctx context.Context, sys host.System, t Tool, s Stage) error {
-	if t == ToolSudo {
-		return check(ctx, sys, s, MainConfig, []string{"visudo", "-c"})
+// checkAll checks what the tool reads: for sudo, visudo -c (the main file,
+// Plan.Main, and the files it includes); for doas, which has no such
+// check, each file it reads, as it reads them: /etc/doas.conf, then each
+// regular *.conf in /etc/doas.d, owned by root and writable by neither
+// group nor others, and accepted by doas -C.
+func checkAll(ctx context.Context, sys host.System, p Plan, s Stage) error {
+	if p.Tool == ToolSudo {
+		main := p.Main
+		if main == "" {
+			main = MainConfig
+		}
+		return check(ctx, sys, s, main, []string{"visudo", "-c"})
 	}
 	files := []string{DoasConfig}
 	fi, err := sys.Lstat(ctx, DoasDir)
@@ -272,10 +336,13 @@ func checkAll(ctx context.Context, sys host.System, t Tool, s Stage) error {
 	return nil
 }
 
-// checkRunDir: as sshd's, every directory from / to dir is a real
-// directory owned by root and writable by neither group nor others.
+// checkRunDir: as sshd's, dir is absolute and clean, with none of the
+// characters sshd's check refuses (harmless here, where no argv is parsed,
+// but one run directory passes both checks or neither), and every
+// directory from / to dir is a real directory owned by root and writable
+// by neither group nor others.
 func checkRunDir(ctx context.Context, sys host.System, dir string) error {
-	if !filepath.IsAbs(dir) || filepath.Clean(dir) != dir || dir == "/" {
+	if !filepath.IsAbs(dir) || filepath.Clean(dir) != dir || dir == "/" || strings.ContainsAny(dir, " \t\r\n\"'\\#*?[]{}") {
 		return fmt.Errorf("sudoers: run directory %q: %w", dir, fs.ErrInvalid)
 	}
 	for p := dir; ; p = filepath.Dir(p) {

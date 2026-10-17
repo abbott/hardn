@@ -35,6 +35,9 @@ import (
 // Paths and modes.
 const (
 	MainConfig = "/etc/sudoers"
+	// SudoersRS is the file sudo-rs reads instead of MainConfig when it
+	// exists; the sudo project's sudo never reads it.
+	SudoersRS  = "/etc/sudoers-rs"
 	DropInDir  = "/etc/sudoers.d"
 	DoasConfig = "/etc/doas.conf"
 	DoasDir    = "/etc/doas.d"
@@ -71,11 +74,15 @@ var (
 	ErrVarName       = errors.New("not an environment variable name")
 	ErrNotIncluded   = errors.New("the elevation tool does not read the drop-in directory")
 	ErrEnvNeedsGrant = errors.New("doas keeps variables only on the rule that permits the user")
-	ErrNotRegular    = errors.New("not a regular file")
 	ErrRejected      = errors.New("the elevation tool rejects the configuration")
 	ErrPerms         = errors.New("not owned by root, or writable by group or others")
 	ErrChanged       = errors.New("the file changed since it was read")
 	ErrUnsafeRunDir  = errors.New("run directory another user can change, or reached through a symlink")
+	// ErrNotRestored: a restore did not complete. A file could not be put
+	// back, or holds neither what Read found nor what the plan wrote
+	// (ErrChanged, left alone), or the configuration put back did not
+	// check (a StageRestored *CheckError).
+	ErrNotRestored = errors.New("the files were not all put back, or do not check")
 )
 
 // Tool is the elevation tool a plan configures. The zero value is Unknown.
@@ -100,43 +107,47 @@ func (t Tool) String() string {
 	return "unknown"
 }
 
-// Choice is the tool Choose picked.
+// Choice is the tool Choose picked. Branch on Tool: Err is set exactly
+// when Tool is neither ToolSudo nor ToolDoas.
 type Choice struct {
 	Tool Tool
 	// Flavor tells sudo from sudo-rs (ToolSudo). Both read the rules hardn
 	// writes and are checked with the same visudo flags, so an Unknown
-	// flavour does not stop a plan; Err then says why it is Unknown.
-	Flavor detect.SudoFlavor
-	Err    error // why Tool is ToolUnknown or ToolNone, or Flavor Unknown
+	// flavour does not stop a plan; FlavorErr then says why it is Unknown.
+	Flavor    detect.SudoFlavor
+	FlavorErr error
+	Err       error // why Tool is ToolUnknown or ToolNone
 }
 
 // Choose picks the tool from detect.Detect's facts: want is ToolSudo or
 // ToolDoas to name one, ToolUnknown to take the one installed. It installs
-// nothing: a host with neither tool (Proxmox VE ships without sudo) is
-// ToolNone with ErrNoTool, NotApplicable. doas is configured only on
-// Alpine, whose package reads /etc/doas.d.
+// nothing: a host with neither tool (Proxmox VE, which ships without sudo
+// [I]) is ToolNone with ErrNoTool, NotApplicable. doas is configured only on
+// Alpine, whose package reads /etc/doas.d; where the answer depends on
+// whether the host is Alpine and that is not established, the tool is
+// ToolUnknown.
 func Choose(f detect.Facts, want Tool) Choice {
 	e := f.Elevation
 	sudo, doas := e.Sudo.Present, e.Doas.Present
-	if f.Platform.Distro != detect.DistroAlpine {
-		// doas is not configured here, so only sudo counts.
-		if want == ToolDoas || want == ToolUnknown && doas == detect.Yes && sudo == detect.No {
-			return Choice{Err: fmt.Errorf("sudoers: doas on %q: %w", f.Platform.Distro, ErrUnsupported)}
-		}
-		if want == ToolUnknown {
-			want = ToolSudo
-		}
-		doas = detect.No
+	switch d := f.Platform.Distro; {
+	case want != ToolUnknown && want != ToolSudo && want != ToolDoas:
+		return Choice{Err: fmt.Errorf("sudoers: tool %s: %w", want, fs.ErrInvalid)}
+	case d == detect.DistroAlpine, want == ToolSudo, want == ToolUnknown && doas == detect.No:
+		// The distribution does not change the answer.
+	case d == detect.DistroUnknown:
+		return unknown("distribution not established, and doas is configured on Alpine only", f.Platform.Err, e.Sudo.Err, e.Doas.Err)
+	case want == ToolDoas, sudo == detect.No && doas == detect.Yes:
+		return Choice{Err: fmt.Errorf("sudoers: doas on %q: %w", d, ErrUnsupported)}
+	case sudo == detect.No:
+		// doas Unknown: installed, it would be ErrUnsupported; absent, ToolNone.
+		return unknown("doas not established", e.Doas.Err)
+	default:
+		doas = detect.No // not configured here, so only sudo counts
 	}
-	cause := errors.Join(e.Sudo.Err, e.Doas.Err)
-	if cause == nil {
-		cause = detect.ErrNoSignal
-	}
-	unknown := Choice{Err: fmt.Errorf("sudoers: elevation tools not established: %w", cause)}
 	if want == ToolUnknown {
 		switch {
 		case sudo == detect.Unknown || doas == detect.Unknown:
-			return unknown
+			return unknown("elevation tools not established", e.Sudo.Err, e.Doas.Err)
 		case sudo == detect.Yes && doas == detect.Yes:
 			return Choice{Err: fmt.Errorf("sudoers: %w", ErrAmbiguous)}
 		case sudo == detect.Yes:
@@ -147,21 +158,28 @@ func Choose(f detect.Facts, want Tool) Choice {
 			return Choice{Tool: ToolNone, Err: fmt.Errorf("sudoers: %w", ErrNoTool)}
 		}
 	}
-	present := sudo
+	present, cause := sudo, e.Sudo.Err
 	if want == ToolDoas {
-		present = doas
+		present, cause = doas, e.Doas.Err
 	}
 	switch {
-	case want != ToolSudo && want != ToolDoas:
-		return Choice{Err: fmt.Errorf("sudoers: tool %s: %w", want, fs.ErrInvalid)}
 	case present == detect.Unknown:
-		return unknown
+		return unknown(want.String()+" not established", cause)
 	case present != detect.Yes:
 		return Choice{Tool: ToolNone, Err: fmt.Errorf("sudoers: %s: %w", want, ErrNoTool)}
 	case want == ToolSudo:
-		return Choice{Tool: ToolSudo, Flavor: e.SudoFlavor, Err: e.Err}
+		return Choice{Tool: ToolSudo, Flavor: e.SudoFlavor, FlavorErr: e.Err}
 	}
 	return Choice{Tool: ToolDoas}
+}
+
+// unknown is a ToolUnknown choice: what is not established, and why.
+func unknown(what string, causes ...error) Choice {
+	cause := errors.Join(causes...)
+	if cause == nil {
+		cause = detect.ErrNoSignal
+	}
+	return Choice{Err: fmt.Errorf("sudoers: %s: %w", what, cause)}
 }
 
 // userName is a lower-case first character, then lower-case letters, digits,

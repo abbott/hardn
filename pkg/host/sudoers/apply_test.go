@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -104,10 +105,13 @@ func TestApplyRejected(t *testing.T) {
 			h.AddFile(grantFile, []byte(oldGrant), 0o440, 0, 0)
 			_, p := plan(t, h, sudoChoice, alicePolicy)
 			tc.setup(h, &p)
-			_, err := sudoers.Apply(context.Background(), h, p, opts)
+			res, err := sudoers.Apply(context.Background(), h, p, opts)
 			var ce *sudoers.CheckError
 			if !errors.As(err, &ce) || !errors.Is(err, sudoers.ErrRejected) || ce.Stage != tc.stage || ce.Path != tc.path || len(ce.Tail) == 0 {
 				t.Fatalf("Apply = %v (%+v), want a %s rejection of %s", err, ce, tc.stage, tc.path)
+			}
+			if res.Restored != (tc.stage == sudoers.StageAfter) || errors.Is(err, sudoers.ErrNotRestored) {
+				t.Errorf("Restored = %t, err %v", res.Restored, err)
 			}
 			if got := runs(h); !slices.Equal(got, tc.runs) {
 				t.Errorf("runs = %q\nwant   %q", got, tc.runs)
@@ -126,17 +130,81 @@ func TestApplyRejected(t *testing.T) {
 }
 
 // TestApplyRestoreFails: when the configuration put back does not check
-// either, both failures are returned.
+// either, both failures are returned, and the restore is not complete.
 func TestApplyRestoreFails(t *testing.T) {
 	h := sudoHost(t)
 	_, p := plan(t, h, sudoChoice, alicePolicy)
 	h.Respond(hostfake.Response{}, "visudo", "-c")
 	h.Respond(hostfake.Response{Stderr: "syntax error\n", ExitCode: 1}, "visudo", "-c")
-	_, err := sudoers.Apply(context.Background(), h, p, opts)
-	if err == nil || !strings.Contains(err.Error(), "after check") || !strings.Contains(err.Error(), "restored check") {
-		t.Fatalf("Apply = %v", err)
+	res, err := sudoers.Apply(context.Background(), h, p, opts)
+	got := stages(err)
+	if !errors.Is(err, sudoers.ErrNotRestored) || res.Restored || !slices.Equal(got, []sudoers.Stage{sudoers.StageAfter, sudoers.StageRestored}) {
+		t.Fatalf("Apply = %v, Restored %t, stages %v", err, res.Restored, got)
 	}
 	checkAbsent(t, h, grantFile, envFile)
+}
+
+// TestApplyRestoreWriteFails: a file that cannot be put back is an error
+// wrapping ErrNotRestored, and the restored configuration is not checked
+// as though it were back.
+func TestApplyRestoreWriteFails(t *testing.T) {
+	h := sudoHost(t)
+	h.AddFile(grantFile, []byte(oldGrant), 0o440, 0, 0)
+	_, p := plan(t, h, sudoChoice, alicePolicy)
+	h.Respond(hostfake.Response{}, "visudo", "-c")
+	h.Respond(hostfake.Response{Stderr: "syntax error\n", ExitCode: 1}, "visudo", "-c")
+	res, err := sudoers.Apply(context.Background(), &failNth{System: h, path: grantFile, n: 2}, p, opts)
+	if !errors.Is(err, sudoers.ErrNotRestored) || !errors.Is(err, errDisk) || res.Restored || !slices.Equal(stages(err), []sudoers.Stage{sudoers.StageAfter}) {
+		t.Fatalf("Apply = %v, Restored %t", err, res.Restored)
+	}
+	checkFile(t, h, grantFile, newGrant, 0o440) // its restore write failed
+	checkAbsent(t, h, envFile)                  // restored: every file is tried
+	if got := runs(h); len(got) != 4 {
+		t.Errorf("runs = %q, want no restored check", got)
+	}
+}
+
+// stages lists the stages of the CheckErrors in err's tree, depth first.
+func stages(err error) []sudoers.Stage {
+	var out []sudoers.Stage
+	var walk func(error)
+	walk = func(e error) {
+		if ce, ok := e.(*sudoers.CheckError); ok {
+			out = append(out, ce.Stage)
+			return
+		}
+		switch u := e.(type) {
+		case interface{ Unwrap() []error }:
+			for _, x := range u.Unwrap() {
+				walk(x)
+			}
+		case interface{ Unwrap() error }:
+			if x := u.Unwrap(); x != nil {
+				walk(x)
+			}
+		}
+	}
+	if err != nil {
+		walk(err)
+	}
+	return out
+}
+
+// failNth fails the nth WriteFileAtomic of path (from 1).
+type failNth struct {
+	*hostfake.System
+	path string
+	n    int
+	seen int
+}
+
+func (f *failNth) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if name == f.path {
+		if f.seen++; f.seen == f.n {
+			return errDisk
+		}
+	}
+	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
 // failWrite fails WriteFileAtomic of one path.
@@ -160,8 +228,8 @@ func TestApplyWriteFails(t *testing.T) {
 	h.AddFile(grantFile, []byte(oldGrant), 0o440, 0, 0)
 	_, p := plan(t, h, sudoChoice, alicePolicy)
 	res, err := sudoers.Apply(context.Background(), failWrite{h, envFile}, p, opts)
-	if !errors.Is(err, errDisk) {
-		t.Fatalf("Apply = %v", err)
+	if !errors.Is(err, errDisk) || !res.Restored || errors.Is(err, sudoers.ErrNotRestored) {
+		t.Fatalf("Apply = %v, Restored %t", err, res.Restored)
 	}
 	if !slices.Equal(res.Installed, []string{grantFile}) {
 		t.Errorf("Installed = %q", res.Installed)
@@ -202,6 +270,7 @@ func TestApplyRefuses(t *testing.T) {
 		}, "/var/run/hardn", sudoers.ErrUnsafeRunDir},
 		{"work directory left over", func(h *hostfake.System) { h.AddDir(work, 0o700, 0, 0) }, runDir, fs.ErrExist},
 		{"no run directory", func(*hostfake.System) {}, "/run/other", fs.ErrNotExist},
+		{"run directory sshd refuses", func(h *hostfake.System) { h.AddDir("/run/hardn x", 0o700, 0, 0) }, "/run/hardn x", fs.ErrInvalid},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := sudoHost(t)
@@ -360,4 +429,212 @@ func TestCheckErrorNotRejected(t *testing.T) {
 		t.Fatalf("Apply = %v", err)
 	}
 	checkAbsent(t, h, grantFile, envFile)
+}
+
+// TestApplyRemove: a plan that removes a grant has no candidate to check,
+// and a failed StageAfter puts the grant back with its mode and owner.
+func TestApplyRemove(t *testing.T) {
+	for _, fail := range []bool{false, true} {
+		h := sudoHost(t)
+		h.AddFile(grantFile, []byte(oldGrant), 0o400, 0, 42)
+		_, p := plan(t, h, sudoChoice, sudoers.Policy{User: "alice"})
+		if len(p.Changes) != 1 || !p.Changes[0].Remove || p.Changes[0].Risk != sudoers.RiskLockout {
+			t.Fatalf("changes = %+v", p.Changes)
+		}
+		wantRuns := []string{"visudo -c", "visudo -c"}
+		wantWrites := []string{"mkdir " + work, "remove " + grantFile, "removeall " + work}
+		if fail {
+			h.Respond(hostfake.Response{}, "visudo", "-c")
+			h.Respond(hostfake.Response{Stderr: "syntax error\n", ExitCode: 1}, "visudo", "-c")
+			h.Respond(hostfake.Response{}, "visudo", "-c") // the restored check
+			wantRuns = append(wantRuns, "visudo -c")
+			wantWrites = slices.Insert(wantWrites, 2, "write-atomic "+grantFile)
+		}
+		res, err := sudoers.Apply(context.Background(), h, p, opts)
+		switch {
+		case !fail && err != nil, fail && (!errors.Is(err, sudoers.ErrRejected) || !res.Restored):
+			t.Fatalf("Apply (StageAfter fails: %t) = %v, Restored %t", fail, err, res.Restored)
+		case !slices.Equal(res.Installed, []string{grantFile}):
+			t.Errorf("Installed = %q", res.Installed)
+		}
+		if got := runs(h); !slices.Equal(got, wantRuns) {
+			t.Errorf("runs = %q\nwant   %q", got, wantRuns)
+		}
+		if got := writes(h); !slices.Equal(got, wantWrites) {
+			t.Errorf("writes = %q\nwant     %q", got, wantWrites)
+		}
+		e, ok := h.Entry(grantFile)
+		switch {
+		case !fail && ok:
+			t.Error("grant not removed")
+		case fail && (!ok || string(e.Data) != oldGrant || e.Mode.Perm() != 0o400 || e.UID != 0 || e.GID != 42):
+			t.Errorf("grant put back as %+v", e)
+		}
+	}
+}
+
+// TestApplyDoasRejected: a doas -C rejection at any stage leaves nothing
+// under /etc changed: of the distribution's file before; of the candidate;
+// of the installed file after, which is then removed again.
+func TestApplyDoasRejected(t *testing.T) {
+	conf := sudoers.DoasDir + "/hardn-alice.conf"
+	wheelConf := sudoers.DoasDir + "/20-wheel.conf"
+	for _, tc := range []struct {
+		name  string
+		setup func(*hostfake.System, *sudoers.Plan)
+		stage sudoers.Stage
+		path  string
+	}{
+		{"before", func(h *hostfake.System, _ *sudoers.Plan) {
+			h.AddFile(wheelConf, []byte(bad), 0o644, 0, 0)
+		}, sudoers.StageBefore, wheelConf},
+		{"candidate", func(_ *hostfake.System, p *sudoers.Plan) { p.Changes[0].Data = []byte(bad) }, sudoers.StageCandidate, conf},
+		{"after", func(h *hostfake.System, _ *sudoers.Plan) {
+			h.Respond(hostfake.Response{Stderr: "doas: " + conf + ":2: syntax error\n", ExitCode: 1}, "doas", "-C", conf)
+		}, sudoers.StageAfter, conf},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := doasHost(t)
+			_, p := plan(t, h, doasChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword})
+			tc.setup(h, &p)
+			res, err := sudoers.Apply(context.Background(), h, p, opts)
+			var ce *sudoers.CheckError
+			if !errors.As(err, &ce) || !errors.Is(err, sudoers.ErrRejected) || ce.Stage != tc.stage || ce.Path != tc.path {
+				t.Fatalf("Apply = %v, want a %s rejection of %s", err, tc.stage, tc.path)
+			}
+			if res.Restored != (tc.stage == sudoers.StageAfter) || errors.Is(err, sudoers.ErrNotRestored) {
+				t.Errorf("Restored = %t, err %v", res.Restored, err)
+			}
+			checkAbsent(t, h, conf, work)
+			if tc.stage == sudoers.StageAfter {
+				if got := runs(h); got[len(got)-1] != "doas -C "+wheelConf {
+					t.Errorf("runs = %q: no check of the restored files", got)
+				}
+			}
+		})
+	}
+}
+
+// TestApplyCopyFails: a copy that cannot be written stops Apply before
+// anything under /etc changes.
+func TestApplyCopyFails(t *testing.T) {
+	h := sudoHost(t)
+	_, p := plan(t, h, sudoChoice, alicePolicy)
+	res, err := sudoers.Apply(context.Background(), failWrite{h, work + "/hardn-grant-alice"}, p, opts)
+	if !errors.Is(err, errDisk) || res.Restored || len(res.Installed) != 0 {
+		t.Fatalf("Apply = %v, %+v", err, res)
+	}
+	checkAbsent(t, h, grantFile, envFile, work)
+	if got := runs(h); !slices.Equal(got, []string{"visudo -c"}) {
+		t.Errorf("runs = %q", got)
+	}
+}
+
+// TestApplySudoersRS: on sudo-rs with /etc/sudoers-rs, visudo -c checks
+// that file, and a rejection of it names it.
+func TestApplySudoersRS(t *testing.T) {
+	for _, main := range []string{"@includedir /etc/sudoers.d\n", "@includedir /etc/sudoers.d\n" + bad + "\n"} {
+		h := sudoHost(t)
+		h.Handler = model(h, true)
+		h.AddFile(sudoers.SudoersRS, []byte(main), 0o440, 0, 0)
+		_, p := plan(t, h, rsChoice, alicePolicy)
+		_, err := sudoers.Apply(context.Background(), h, p, opts)
+		if !strings.Contains(main, bad) {
+			if err != nil {
+				t.Fatalf("Apply = %v", err)
+			}
+			checkFile(t, h, grantFile, newGrant, 0o440)
+			continue
+		}
+		var ce *sudoers.CheckError
+		if !errors.As(err, &ce) || ce.Stage != sudoers.StageBefore || ce.Path != sudoers.SudoersRS {
+			t.Fatalf("Apply = %v, want a before rejection of %s", err, sudoers.SudoersRS)
+		}
+		checkAbsent(t, h, grantFile, envFile)
+	}
+}
+
+// TestRollbackChanged: Rollback undoes only what the plan wrote. Once
+// Apply refused a file another writer changed (ErrChanged), Rollback of
+// the same plan leaves that file alone and says so.
+func TestRollbackChanged(t *testing.T) {
+	h := sudoHost(t)
+	_, p := plan(t, h, sudoChoice, alicePolicy)
+	other := "# written by another tool\nalice ALL=(ALL) ALL\n"
+	h.AddFile(grantFile, []byte(other), 0o440, 0, 0)
+	if _, err := sudoers.Apply(context.Background(), h, p, opts); !errors.Is(err, sudoers.ErrChanged) {
+		t.Fatalf("Apply = %v, want ErrChanged", err)
+	}
+	before := len(writes(h))
+	if err := sudoers.Rollback(context.Background(), h, p); !errors.Is(err, sudoers.ErrChanged) || !errors.Is(err, sudoers.ErrNotRestored) {
+		t.Fatalf("Rollback = %v, want ErrChanged and ErrNotRestored", err)
+	}
+	checkFile(t, h, grantFile, other, 0o440)
+	if w := writes(h)[before:]; len(w) != 0 {
+		t.Errorf("Rollback wrote %q", w)
+	}
+}
+
+// TestRollbackTool: a plan whose tool is lost is refused before anything
+// is written, not checked as doas's.
+func TestRollbackTool(t *testing.T) {
+	h := sudoHost(t)
+	_, p := plan(t, h, sudoChoice, alicePolicy)
+	if _, err := sudoers.Apply(context.Background(), h, p, opts); err != nil {
+		t.Fatal(err)
+	}
+	before := len(h.Calls())
+	p.Tool = sudoers.ToolUnknown
+	if err := sudoers.Rollback(context.Background(), h, p); !errors.Is(err, fs.ErrInvalid) || len(h.Calls()) != before {
+		t.Errorf("Rollback = %v, calls %q", err, h.Calls()[before:])
+	}
+	checkFile(t, h, grantFile, newGrant, 0o440)
+}
+
+// TestApplyRestoreTimeout: the restore and the cleanup run under their own
+// deadline, Options.RestoreTimeout or DefaultRestoreTimeout, not ctx's.
+func TestApplyRestoreTimeout(t *testing.T) {
+	for _, d := range []time.Duration{0, 5 * time.Second} {
+		h := sudoHost(t)
+		_, p := plan(t, h, sudoChoice, alicePolicy)
+		h.Respond(hostfake.Response{}, "visudo", "-c")
+		h.Respond(hostfake.Response{Stderr: "syntax error\n", ExitCode: 1}, "visudo", "-c")
+		h.Respond(hostfake.Response{}, "visudo", "-c")
+		ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+		rec := &deadlines{System: h}
+		start := time.Now()
+		_, err := sudoers.Apply(ctx, rec, p, sudoers.Options{RunDir: runDir, RestoreTimeout: d})
+		end := time.Now()
+		cancel()
+		want := d
+		if want == 0 {
+			want = sudoers.DefaultRestoreTimeout
+		}
+		if !errors.Is(err, sudoers.ErrRejected) || len(rec.seen) != 3 { // two removes, the cleanup
+			t.Fatalf("Apply = %v, removals %d", err, len(rec.seen))
+		}
+		for _, dl := range rec.seen {
+			if dl.Before(start.Add(want)) || dl.After(end.Add(want)) {
+				t.Errorf("RestoreTimeout %s: deadline %s after the start, want %s", d, dl.Sub(start), want)
+			}
+		}
+	}
+}
+
+// deadlines records the deadline of each removal's context.
+type deadlines struct {
+	*hostfake.System
+	seen []time.Time
+}
+
+func (d *deadlines) Remove(ctx context.Context, name string) error {
+	dl, _ := ctx.Deadline()
+	d.seen = append(d.seen, dl)
+	return d.System.Remove(ctx, name)
+}
+
+func (d *deadlines) RemoveAll(ctx context.Context, name string) error {
+	dl, _ := ctx.Deadline()
+	d.seen = append(d.seen, dl)
+	return d.System.RemoveAll(ctx, name)
 }
