@@ -1,0 +1,443 @@
+# Golden file of TestPlayGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;86;91;107m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[48;2;16;17;20m                                         ␛[m$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user has sudo privileges␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user SSH access has been tested␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIf SSH fails, a fallback access method is available␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m # Managed by hardn␛[m$
+      ␛[38;2;129;134;156m Port 2230␛[m$
+      ␛[38;2;231;70;105m-PermitRootLogin yes␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+      ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
+$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m bos-san-l01$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m q$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;86;91;107m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: ssh-login-toggle-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or restore,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set PermitRootLogin no␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload the SSH service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play main-menu/00-tui-main -----------------------------------$
+$
+# [i] Note$
+# Play mode: hardn's own screens and prompts, on the gallery's$
+# fixture plans. Nothing on this machine changes: the simulated$
+# system only records each step it would apply, and the record$
+# is shown when play ends.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-10, b or q]: 2$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > Manage Root SSH Login$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Port             2230/tcp non-default$
+$
+# SSH Configuration --------------------------------------------$
+$
+  [ ] Root SSH Login       Enabled$
+   -  SSH Port             2230$
+   -  Allowed Users        alice$
+$
+  Select an option$
+$
+   1) Root SSH Login       Toggle root SSH access$
+   2) View SSH Settings    Show SSH configuration$
+$
+   0) Return$
+$
+  > Enter your choice [0-2, b or q]: 1$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > Manage Root SSH Login$
+$
+# [*] Warning$
+# Before disabling root SSH login, ensure:$
+$
+   -  Non-root user has sudo privileges$
+   -  Non-root user SSH access has been tested$
+   -  If SSH fails, a fallback access method is available$
+$
+# SSH Configuration --------------------------------------------$
+$
+  [ ] Root SSH Login       Enabled$
+   -  SSH Port             2230$
+   -  Allowed Users        alice$
+$
+  [*] Set PermitRootLogin no$
+      Lockout risk$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -1,3 +1,3 @@$
+       # Managed by hardn$
+       Port 2230$
+      -PermitRootLogin yes$
+      +PermitRootLogin no$
+      $ sshd -t$
+$
+   -  Reload the SSH service$
+      $ systemctl reload ssh$
+$
+  Disable SSH login for 'root'?$
+$
+  Type the hostname [bos-san-l01, 0, b or q]: BOS-SAN-L01$
+  [!] Error: That does not match exactly. Please try again.$
+  Type the hostname [bos-san-l01, 0, b or q]: bos-san-l01$
+$
+  [+] Done: Set PermitRootLogin no$
+  [+] Done: Reload the SSH service$
+$
+# [+] Operation Successful$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > Manage Root SSH Login$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Port             2230/tcp non-default$
+$
+# SSH Configuration --------------------------------------------$
+$
+  [ ] Root SSH Login       Enabled$
+   -  SSH Port             2230$
+   -  Allowed Users        alice$
+$
+  Select an option$
+$
+   1) Root SSH Login       Toggle root SSH access$
+   2) View SSH Settings    Show SSH configuration$
+$
+   0) Return$
+$
+  > Enter your choice [0-2, b or q]: q$
+$
+# simulated system ---------------------------------------------$
+$
+# [i] Info: ssh-login-toggle-confirmation, normal$
+# Recorded, not done: the file each step would write or restore,$
+# and the commands it would run.$
+$
+   -  Applied: Set PermitRootLogin no$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      $ sshd -t$
+$
+   -  Applied: Reload the SSH service$
+      $ systemctl reload ssh$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;86;91;107m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[48;2;16;17;20m                                     ␛[m$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10, b or q]:␛[m 2$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
+      ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m 1$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user has sudo privileges␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user SSH access has been tested␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIf SSH fails, a fallback access method is available␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m # Managed by hardn␛[m$
+      ␛[38;2;129;134;156m Port 2230␛[m$
+      ␛[38;2;231;70;105m-PermitRootLogin yes␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+      ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
+$
+  ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m BOS-SAN-L01$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0, b or q]:␛[m bos-san-l01$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127m2230/tcp␛[m ␛[38;2;86;91;107mnon-default␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;86;91;107m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;231;70;105mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mToggle root SSH access␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
+      ␛[38;2;129;134;156mShow SSH configuration␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2, b or q]:␛[m q$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;86;91;107m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: ssh-login-toggle-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestore, and the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set PermitRootLogin no␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;129;134;156m$ sshd -t␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload the SSH service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
+$

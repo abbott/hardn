@@ -1,0 +1,406 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"io"
+	"slices"
+	"strings"
+	"sync"
+
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/flow"
+	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/theme"
+)
+
+// playUsage is the playable mode's usage line.
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]"
+
+// links say where each menu item leads in the playable mode, by the menu
+// mock's name and the item's key: the mock it opens, as origin/main's
+// menus lead (docs/refactor/phase0/interaction.md §9): the main menu to
+// its sub-menus, User Management's Manage User to the user list and on to
+// george's menu, its Sudo Method to the sudo change, SSH Login's first
+// item to the root-login toggle. An item with no link says that the
+// gallery has no screen for it.
+var links = map[string]string{
+	"main-menu/00-tui-main/1":                 "sub-menu/01-user",
+	"main-menu/00-tui-main/2":                 "sub-menu/02-ssh-login",
+	"main-menu/00-tui-main/3":                 "sub-menu/03-dns",
+	"main-menu/00-tui-main/5":                 "sub-menu/05-backup",
+	"sub-menu/01-user/1":                      "sub-menu/user-manage-user-select-user",
+	"sub-menu/01-user/2":                      "workflow-step/user-create-user",
+	"sub-menu/02-ssh-login/1":                 "workflow-step/ssh-login-toggle-confirmation",
+	"sub-menu/user-manage-user-select-user/1": "sub-menu/user-manage-user-management",
+	"sub-menu/user-manage-user-management/1":  "workflow-step/user-manage-sudo-confirmation",
+	"sub-menu/user-manage-user-management/2":  "sub-menu/user-ssh-keys",
+}
+
+// play is the playable mode (brief 1D): it parses args, plays the screens
+// from the one they name, reading the user's answers through stdin's line
+// reader, writing to stdout and reporting errors on stderr, and returns
+// the exit status: exitOK when the user goes back from the first screen
+// or quits, prompt.ExitInterrupted (130) when the input ends or Ctrl-C
+// interrupts a prompt.
+func play(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("uigallery play", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	fs.Usage = func() {
+		fmt.Fprintln(stderr, playUsage)
+		fs.PrintDefaults()
+	}
+	look := lookFlags(fs)
+	sequence := fs.String("sequence", "normal", "the `name` of the sequence each workflow plays, where it has one, such as dry-run, failure or typed; else its first")
+	failAt := fs.Int("fail", 0, "fail step `N` of each plan applied, to show the rollback; 0 fails none")
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return exitOK
+		}
+		return exitUsage
+	}
+	usage := func(format string, a ...any) int {
+		fmt.Fprintf(stderr, "uigallery: play: "+format+"\n", a...)
+		return exitUsage
+	}
+	mocks := screen.Mocks()
+	start, named, err := startAt(mocks, fs.Args())
+	if err != nil {
+		return usage("%v", err)
+	}
+	if named != "" {
+		set := false
+		fs.Visit(func(f *flag.Flag) { set = set || f.Name == "sequence" })
+		if set && *sequence != named {
+			return usage("%s names the %s sequence, and -sequence %s", fs.Arg(0), named, *sequence)
+		}
+		*sequence = named
+	}
+	switch {
+	case !slices.ContainsFunc(mocks, func(m screen.Mock) bool {
+		return slices.ContainsFunc(m.Sequences, func(q screen.Sequence) bool { return q.Name == *sequence })
+	}):
+		return usage("-sequence %q: no workflow has that sequence; -screens -list shows them", *sequence)
+	case *failAt < 0:
+		return usage("-fail %d is not a step", *failAt)
+	}
+	c, err := look.cell()
+	if err != nil {
+		return usage("%v", err)
+	}
+	g, ok := look.gallery(stderr)
+	if !ok {
+		return exitError
+	}
+	ctx, err := g.ctx(c.env)
+	if err != nil {
+		fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
+		return exitError
+	}
+	s := &session{
+		p:        nav.Prompter{Ctx: ctx, In: stdin(), Out: c.env.Writer(stdout)},
+		mocks:    map[string]screen.Mock{},
+		sequence: *sequence,
+		sim:      &simulator{failAt: *failAt},
+	}
+	for _, m := range mocks {
+		s.mocks[m.Name] = m
+	}
+	return s.play(start, stderr)
+}
+
+// startAt returns the mock where play starts, which args name, and the
+// sequence they name, if any: no argument is the main menu; one is a
+// mock's name, a prefix that only one mock's name has (such as
+// "main-menu"), or a workflow's sequence, "<workflow>/<sequence>", as
+// -screens -list names them.
+func startAt(mocks []screen.Mock, args []string) (screen.Mock, string, error) {
+	if len(args) == 0 {
+		args = []string{"main-menu"}
+	}
+	for _, a := range args[1:] {
+		if strings.HasPrefix(a, "-") {
+			return screen.Mock{}, "", fmt.Errorf("flag %s comes after the screen's name; flags go before it", a)
+		}
+	}
+	if len(args) > 1 {
+		return screen.Mock{}, "", fmt.Errorf("play starts at one screen; %d are named", len(args))
+	}
+	a := args[0]
+	var found []screen.Mock
+	for _, m := range mocks {
+		for _, s := range m.Sequences {
+			if a == m.Name+"/"+s.Name {
+				return m, s.Name, nil
+			}
+		}
+		if m.Name == a {
+			return m, "", nil
+		}
+		if strings.HasPrefix(m.Name, a+"/") {
+			found = append(found, m)
+		}
+	}
+	switch len(found) {
+	case 0:
+		return screen.Mock{}, "", fmt.Errorf("no screen or workflow sequence %q; -screens -list shows them", a)
+	case 1:
+		return found[0], "", nil
+	}
+	var names []string
+	for _, m := range found {
+		names = append(names, m.Name)
+	}
+	return screen.Mock{}, "", fmt.Errorf("%q names %d screens; name one of %s", a, len(found), strings.Join(names, ", "))
+}
+
+// sequenceOf returns the sequence of workflow mock m named name, else its
+// first; the zero Sequence for a menu mock.
+func sequenceOf(m screen.Mock, name string) screen.Sequence {
+	if len(m.Sequences) == 0 {
+		return screen.Sequence{}
+	}
+	if i := slices.IndexFunc(m.Sequences, func(s screen.Sequence) bool { return s.Name == name }); i >= 0 {
+		return m.Sequences[i]
+	}
+	return m.Sequences[0]
+}
+
+// menuOf returns the menu a menu mock's screen shows, and false for a
+// screen of no layout the playable mode knows.
+func menuOf(s screen.MenuScreen) (component.Menu, bool) {
+	switch v := s.(type) {
+	case screen.MainMenu:
+		return v.Menu, true
+	case screen.SubMenu:
+		return v.Menu, true
+	}
+	return component.Menu{}, false
+}
+
+// session is one run of the playable mode: the prompter the user answers
+// through, the mocks they can reach, the sequence each workflow plays and
+// the simulated system the workflows apply to.
+type session struct {
+	p        nav.Prompter
+	mocks    map[string]screen.Mock
+	sequence string
+	sim      *simulator
+}
+
+// play plays from start: the gallery's header and a note on the
+// simulated system, the screens as the user answers, then what the
+// simulated system recorded. It returns the exit status, writing any
+// error but an abort's to stderr.
+func (s *session) play(start screen.Mock, stderr io.Writer) int {
+	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap+1)
+	note := []string{"Play mode: hardn's own screens and prompts, on the gallery's fixture plans. " +
+		"Nothing on this machine changes: the simulated system only records each step it would apply, " +
+		"and the record is shown when play ends."}
+	switch {
+	case start.Screen == nil:
+		note = append(note, fmt.Sprintf("The workflow plays its %s sequence.", sequenceOf(start, s.sequence).Name))
+	case s.sequence != "normal":
+		note = append(note, fmt.Sprintf("Each workflow plays its %s sequence, where it has one, else its first.", s.sequence))
+	}
+	if n := s.sim.failAt; n > 0 {
+		note = append(note, fmt.Sprintf("Step %d of each plan fails (-fail %d), and the steps before it are rolled back.", n, n))
+	}
+	opening := header(c, "play "+start.Name) + gap + component.Callout{Kind: component.MessageInfo, Body: note}.Render(c) + gap
+	if _, err := io.WriteString(s.p.Out, opening); err != nil {
+		fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
+		return exitError
+	}
+	err := s.open(start)()
+	var record []string
+	for _, r := range s.sim.applied() {
+		record = append(record, component.Callout{Kind: component.MessageInfo, Title: r.title, Body: []string{
+			"Recorded, not done: the file each step would write or restore, and the commands it would run.",
+		}}.Render(c), component.PlanView{Changes: r.steps}.Render(c))
+	}
+	if len(record) == 0 {
+		record = []string{component.Callout{Kind: component.MessageInfo, Body: []string{"Nothing was applied."}}.Render(c)}
+	}
+	closing := "\n" + header(c, "simulated system") + gap + strings.Join(record, gap) + "\n"
+	if _, werr := io.WriteString(s.p.Out, closing); werr != nil && err == nil {
+		err = werr
+	}
+	code, aborted := prompt.ExitCode(err)
+	switch {
+	case err == nil, errors.Is(err, nav.ErrQuit), errors.Is(err, nav.ErrBack):
+		return exitOK
+	case aborted:
+		return code
+	}
+	fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
+	return exitError
+}
+
+// open returns the action that opens mock m: a menu screen run until the
+// user goes back from it (nav.Prompter.Run), its items leading where links
+// say; or a workflow, its sequence (sequenceOf) run once on the simulated
+// system.
+func (s *session) open(m screen.Mock) func() error {
+	if m.Screen == nil {
+		return func() error {
+			seq := sequenceOf(m, s.sequence)
+			step, f := seq.Build()
+			f.Engine = s.sim.engine(strings.TrimPrefix(m.Name, "workflow-step/")+", "+seq.Name, f.Engine)
+			_, err := step.Run(context.Background(), s.p, f)
+			return err
+		}
+	}
+	return func() error {
+		return s.p.Run(func() nav.Screen { return m.Screen.Screen(s.p.Ctx, s.menu(m)) })
+	}
+}
+
+// menu returns the menu of menu mock m bound to its actions: each item
+// opens the mock links name for it, and an item with none says so.
+func (s *session) menu(m screen.Mock) nav.Menu {
+	view, _ := menuOf(m.Screen)
+	out := nav.Menu{Exit: view.Exit}
+	for _, it := range view.Items {
+		action := s.missing(it.Label)
+		if to, ok := links[m.Name+"/"+it.Key]; ok {
+			action = s.open(s.mocks[to])
+		}
+		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
+	}
+	return out
+}
+
+// missing returns the action of an item the gallery has no screen for: it
+// says so in an info Message, after theme.SectionGap blank lines, as an
+// action that writes a result does (nav.Prompter.Run).
+func (s *session) missing(label string) func() error {
+	return func() error {
+		msg := component.Message{Text: fmt.Sprintf("The gallery has no screen for %s yet.", strings.TrimSpace(label))}.Render(s.p.Ctx)
+		_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+msg+"\n")
+		return err
+	}
+}
+
+// simulator is the playable mode's simulated system, and the seam that
+// next/p3-gallery-engine replaces with the real plan/apply engine against
+// the recording fake System (refactor plan, Phase 3). Until then a
+// workflow plans on its sequence's fixture (flow.Fixture), and applying a
+// plan only reports each step to the flow and records what the step would
+// do: nothing is run, written or read, and no root is needed. With failAt
+// set, step failAt of each plan applied fails, and the fixture rolls back
+// the steps before it.
+type simulator struct {
+	failAt int
+	mu     sync.Mutex
+	runs   []simRun
+}
+
+// simRun is what the simulator recorded of one plan applied: the
+// workflow and sequence it was applied by, and each step reported, as a
+// PlanChange whose title says how it ended (recorded).
+type simRun struct {
+	title string
+	steps []component.PlanChange
+}
+
+// engine returns the Engine one run of a workflow plays on: e's plans,
+// applied by the simulator, which records each under title.
+func (s *simulator) engine(title string, e flow.Engine) flow.Engine {
+	return &simulated{sim: s, title: title, inner: e}
+}
+
+// applied returns what the simulator recorded, a run per plan applied, in
+// order.
+func (s *simulator) applied() []simRun {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return slices.Clone(s.runs)
+}
+
+// begin starts the record of a plan applied under title.
+func (s *simulator) begin(title string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.runs = append(s.runs, simRun{title: title})
+}
+
+// add records step under the plan last begun.
+func (s *simulator) add(step component.PlanChange) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	last := &s.runs[len(s.runs)-1]
+	last.steps = append(last.steps, step)
+}
+
+// simulated is a workflow's Engine on the simulator: it plans as the
+// fixture does and applies by recording.
+type simulated struct {
+	sim   *simulator
+	title string
+	inner flow.Engine
+	plan  flow.Plan
+}
+
+// Plan returns the fixture's plan.
+func (e *simulated) Plan(ctx context.Context) (flow.Plan, error) {
+	p, err := e.inner.Plan(ctx)
+	e.plan = p
+	return p, err
+}
+
+// Apply applies the plan Plan returned on the simulator: the fixture
+// reports each step, failing where its sequence fails, or at the
+// simulator's failAt when the plan has that step, and each report is
+// recorded before the flow gets it.
+func (e *simulated) Apply(ctx context.Context, report flow.Report) error {
+	changes, applier := e.plan.View.Changes, e.inner
+	if n := e.sim.failAt; n > 0 && n <= len(changes) {
+		ch := changes[n-1]
+		failure := flow.Failure{
+			Err:  fmt.Errorf("Step %d, %s, failed: exit status 1", n, ch.Title),
+			Next: "The gallery failed this step, as -fail asked; nothing on this machine changed.",
+		}
+		if len(ch.Commands) > 0 {
+			failure.Command = ch.Commands[len(ch.Commands)-1]
+		}
+		applier = flow.Fixture{Planned: e.plan, FailAt: n, Detail: "exit status 1", Failure: failure}
+	}
+	e.sim.begin(e.title)
+	return applier.Apply(ctx, func(step int, state component.StepState, detail string) {
+		if step >= 0 && step < len(changes) {
+			if r, ok := recorded(changes[step], state, detail); ok {
+				e.sim.add(r)
+			}
+		}
+		report(step, state, detail)
+	})
+}
+
+// recorded returns what the simulator records of step ch, reported in
+// state, and whether it records anything: for a step done, the file it
+// would write and the commands it would run; for one failed, why; for one
+// rolled back, the file it would restore. Its title says how the step
+// ended. Other states, such as running, record nothing.
+func recorded(ch component.PlanChange, state component.StepState, detail string) (component.PlanChange, bool) {
+	file := ""
+	if ch.Diff != "" {
+		file = ch.Target
+	}
+	switch state {
+	case component.StepDone:
+		return component.PlanChange{Title: "Applied: " + ch.Title, Target: file, Commands: ch.Commands}, true
+	case component.StepFailed:
+		title := "Failed: " + ch.Title
+		if detail != "" {
+			title += " (" + detail + ")"
+		}
+		return component.PlanChange{Title: title}, true
+	case component.StepRolledBack:
+		return component.PlanChange{Title: "Rolled back: " + ch.Title, Target: file}, true
+	}
+	return component.PlanChange{}, false
+}

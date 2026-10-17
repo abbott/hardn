@@ -1,0 +1,204 @@
+# Golden file of TestPlayGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mplay workflow-step/user-manage-sudo-confirmation␛[m ␛[38;2;86;91;107m─────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe workflow plays its normal sequence.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mStep 2 of each plan fails (-fail 2), and the steps before it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mare rolled back.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;112;212;127mPassword required␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
+      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+      ␛[38;2;129;134;156m$ visudo -c␛[m$
+$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mStep 2, Check the sudo configuration, failed: exit status 1␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+$
+      ␛[38;2;129;134;156m$ visudo -c␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mThe gallery failed this step, as -fail asked;␛[m$
+      ␛[38;2;129;134;156mnothing on this machine changed.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;86;91;107m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: user-manage-sudo-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or restore,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Require george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFailed: Check the sudo configuration (exit status 1)␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRolled back: Require george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play workflow-step/user-manage-sudo-confirmation -------------$
+$
+# [i] Note$
+# Play mode: hardn's own screens and prompts, on the gallery's$
+# fixture plans. Nothing on this machine changes: the simulated$
+# system only records each step it would apply, and the record$
+# is shown when play ends.$
+# The workflow plays its normal sequence.$
+# Step 2 of each plan fails (-fail 2), and the steps before it$
+# are rolled back.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+  hardn > User Management > Manage User$
+$
+  Managing sudo method for: [george]$
+$
+# [*] Warning$
+# A user password is required for sudo usage.$
+$
+# User Configuration -------------------------------------------$
+$
+  [+] Sudo Method          Password required$
+$
+   -  Require george's password for sudo$
+      /etc/sudoers.d/hardn-george$
+      @@ -1 +1 @@$
+      -george ALL=(ALL:ALL) NOPASSWD: ALL$
+      +george ALL=(ALL:ALL) ALL$
+      $ visudo -cf /etc/sudoers.d/hardn-george$
+$
+   -  Check the sudo configuration$
+      $ visudo -c$
+$
+  Require password for sudo? [y/N, 0, b or q]: y$
+$
+  [+] Done: Require george's password for sudo$
+  [!] Failed: Check the sudo configuration (exit status 1)$
+$
+# [!] Operation Failed$
+# Step 2, Check the sudo configuration, failed: exit status 1$
+$
+  [<] Rolled back: Require george's password for sudo$
+$
+      $ visudo -c$
+$
+  [i] Info: The gallery failed this step, as -fail asked;$
+      nothing on this machine changed.$
+$
+# simulated system ---------------------------------------------$
+$
+# [i] Info: user-manage-sudo-confirmation, normal$
+# Recorded, not done: the file each step would write or restore,$
+# and the commands it would run.$
+$
+   -  Applied: Require george's password for sudo$
+      /etc/sudoers.d/hardn-george$
+      $ visudo -cf /etc/sudoers.d/hardn-george$
+$
+   -  Failed: Check the sudo configuration (exit status 1)$
+$
+   -  Rolled back: Require george's password for sudo$
+      /etc/sudoers.d/hardn-george$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mplay workflow-step/user-manage-sudo-confirmation␛[m ␛[38;2;86;91;107m─────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe workflow plays its normal sequence.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mStep 2 of each plan fails (-fail 2), and the steps before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit are rolled back.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;16;17;20m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156mUser Management␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mManage User␛[m$
+$
+  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;86;91;107m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m$
+      ␛[38;2;112;212;127mPassword required␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
+      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+      ␛[38;2;129;134;156m$ visudo -c␛[m$
+$
+  ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mStep 2, Check the sudo configuration, failed: exit status␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m1␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+$
+      ␛[38;2;129;134;156m$ visudo -c␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mThe gallery failed this step, as -fail asked;␛[m$
+      ␛[38;2;129;134;156mnothing on this machine changed.␛[m$
+$
+␛[48;2;16;17;20m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;86;91;107m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: user-manage-sudo-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestore, and the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Require george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFailed: Check the sudo configuration (exit status 1)␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRolled back: Require george's password for sudo␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
+$
