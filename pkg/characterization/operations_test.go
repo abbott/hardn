@@ -292,6 +292,7 @@ var fixedText = map[string]string{
 	"V12:disable-root": "disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)",
 	"V15:disable-root": "Alpine: /etc/ssh/sshd_config is edited in place, so Subsystem sftp, Include and comments survive",
 	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
+	"A4":               "Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied (pkg/menu TestRunAllConfirmation); hardn -r does not ask",
 }
 
 var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it."
@@ -301,7 +302,7 @@ func opScenarios() []opScenario {
 		{
 			name:  "harden_system",
 			op:    "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
-			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:204-246)",
+			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile."},
 			setup: func(e *opEnv) { e.newUser() },
@@ -318,6 +319,7 @@ func opScenarios() []opScenario {
 				}
 				return d
 			},
+			fixed: func(c osCell) []fixedItem { return []fixedItem{{"A4", "runAllWithoutConfirmation"}} },
 		},
 		{
 			name:  "disable_root_ssh",

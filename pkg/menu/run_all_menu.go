@@ -13,6 +13,17 @@ import (
 	"github.com/abbott/hardn/pkg/utils"
 )
 
+// runAllWithoutConfirmation: DISABLED 2026-10-17. Flip to true to restore.
+//
+// With it true, option 1 ("Run all hardening steps") runs every step live
+// as soon as it is chosen ("7", Enter, "1", Enter from the main menu), with
+// no confirmation; only option 2 asked for a typed 'yes' (A4; Phase 0
+// side-effects §9 D1). With it false, option 1 outside dry-run mode first
+// asks for the same typed 'yes' as option 2 (confirmRealChanges), and any
+// other answer cancels with nothing applied. In dry-run mode option 1 only
+// simulates, so it does not ask.
+const runAllWithoutConfirmation = false
+
 // RunAllMenu handles the "Run All Hardening" functionality through the new architecture
 type RunAllMenu struct {
 	menuManager *application.MenuManager
@@ -140,7 +151,10 @@ func (m *RunAllMenu) Show() {
 
 	switch choice {
 	case "1":
-		// Run with current settings
+		// Run with current settings; a live run asks for a typed 'yes' first (A4)
+		if !m.config.DryRun && !runAllWithoutConfirmation && !confirmRealChanges() {
+			return
+		}
 		m.runAllHardening()
 	case "2":
 		// Toggle dry-run mode and run
@@ -158,16 +172,8 @@ func (m *RunAllMenu) Show() {
 		}
 
 		// Confirm before proceeding with actual changes
-		if !m.config.DryRun {
-			fmt.Print("\nType 'yes' to confirm you want to apply real changes: ")
-			confirm := ReadInput()
-			if strings.ToLower(confirm) != "yes" {
-				fmt.Printf("\n%s Operation cancelled. No changes were made.\n",
-					style.Colored(style.Yellow, style.SymInfo))
-				fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
-				ReadKey()
-				return
-			}
+		if !m.config.DryRun && !confirmRealChanges() {
+			return
 		}
 
 		// Save config changes
@@ -193,6 +199,22 @@ func (m *RunAllMenu) Show() {
 
 	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
+}
+
+// confirmRealChanges asks for a typed 'yes' before Run All applies real
+// changes. Any other answer cancels: it says nothing was changed, waits for
+// Enter and returns false.
+func confirmRealChanges() bool {
+	fmt.Print("\nType 'yes' to confirm you want to apply real changes: ")
+	confirm := ReadInput()
+	if strings.ToLower(confirm) != "yes" {
+		fmt.Printf("\n%s Operation cancelled. No changes were made.\n",
+			style.Colored(style.Yellow, style.SymInfo))
+		fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
+		ReadKey()
+		return false
+	}
+	return true
 }
 
 // runAllHardening uses the MenuManager to execute all hardening steps
