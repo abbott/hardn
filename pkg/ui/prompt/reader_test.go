@@ -302,9 +302,10 @@ func TestAsk(t *testing.T) {
 	})
 }
 
-// TestAnswer checks Answer against Ask's rules: the caller has written
-// the prompt, so Answer writes only the line end that no echoed Enter
-// wrote, and it flushes a terminal Reader first.
+// TestAnswer checks Answer and AnswerNext against Ask's rules: the caller
+// has written the prompt, so each writes only the line end that no echoed
+// Enter wrote; Answer flushes a terminal Reader first, and AnswerNext
+// keeps its typeahead.
 func TestAnswer(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -323,17 +324,23 @@ func TestAnswer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var w writes
-			r := New(strings.NewReader(tt.in), tt.tty)
-			got, err := r.Answer(&w)
-			if got != tt.answer || !errors.Is(err, tt.err) || tt.err == nil && err != nil {
-				t.Errorf("Answer() = %q, %v; want %q, %v", got, err, tt.answer, tt.err)
-			}
-			if fmt.Sprintf("%q", w) != fmt.Sprintf("%q", tt.want) {
-				t.Errorf("writes = %q, want %q", w, tt.want)
-			}
-			if !r.Asked() {
-				t.Error("Asked() = false after Answer")
+			for _, next := range []bool{false, true} {
+				var w writes
+				r := New(strings.NewReader(tt.in), tt.tty)
+				answer, name := r.Answer, "Answer"
+				if next {
+					answer, name = r.AnswerNext, "AnswerNext"
+				}
+				got, err := answer(&w)
+				if got != tt.answer || !errors.Is(err, tt.err) || tt.err == nil && err != nil {
+					t.Errorf("%s() = %q, %v; want %q, %v", name, got, err, tt.answer, tt.err)
+				}
+				if fmt.Sprintf("%q", w) != fmt.Sprintf("%q", tt.want) {
+					t.Errorf("%s: writes = %q, want %q", name, w, tt.want)
+				}
+				if !r.Asked() {
+					t.Errorf("Asked() = false after %s", name)
+				}
 			}
 		})
 	}
@@ -341,6 +348,20 @@ func TestAnswer(t *testing.T) {
 		r := New(strings.NewReader("1\n2\n"), true)
 		if line, err := r.ReadLine(); line != "1" || err != nil {
 			t.Fatalf("ReadLine() = %q, %v", line, err)
+		}
+		if line, err := r.Answer(io.Discard); !errors.Is(err, ErrAborted) {
+			t.Errorf("Answer() = %q, %v; want the typeahead dropped and the end of input", line, err)
+		}
+	})
+	t.Run("AnswerNext keeps a terminal Reader's typeahead", func(t *testing.T) {
+		// One read takes all three lines into the buffer, as answers
+		// pasted at once: each AnswerNext reads the next, and Answer
+		// then drops what is left.
+		r := New(strings.NewReader("1\n2\n3\nstray\n"), true)
+		for _, want := range []string{"1", "2", "3"} {
+			if line, err := r.AnswerNext(io.Discard); line != want || err != nil {
+				t.Fatalf("AnswerNext() = %q, %v; want %q", line, err, want)
+			}
 		}
 		if line, err := r.Answer(io.Discard); !errors.Is(err, ErrAborted) {
 			t.Errorf("Answer() = %q, %v; want the typeahead dropped and the end of input", line, err)
