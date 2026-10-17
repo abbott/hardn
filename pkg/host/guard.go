@@ -24,14 +24,23 @@ const maxSymlinks = 40
 // else is refused with ErrSymlinkParent. ".." and relative link targets are
 // resolved by the kernel against the directory reached so far.
 func (r *Real) openParent(op, name string) (*os.File, string, error) {
+	dir, base, _, err := r.walkParent(op, name)
+	return dir, base, err
+}
+
+// walkParent is openParent, and also returns the path of the directory it
+// opened as the walk reached it: absolute, with no symlink in it, so ".."
+// there means what it means to the kernel.
+func (r *Real) walkParent(op, name string) (*os.File, string, string, error) {
 	clean := filepath.Clean(name)
 	if !filepath.IsAbs(name) || clean == "/" {
-		return nil, "", pathErr(op, name, fs.ErrInvalid)
+		return nil, "", "", pathErr(op, name, fs.ErrInvalid)
 	}
 	fd, err := unix.Open("/", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0)
 	if err != nil {
-		return nil, "", pathErr(op, name, err)
+		return nil, "", "", pathErr(op, name, err)
 	}
+	var at []string // the components of the directory fd is, from "/"
 	rest := components(filepath.Dir(clean))
 	for links := 0; len(rest) > 0; {
 		c := rest[0]
@@ -40,28 +49,35 @@ func (r *Real) openParent(op, name string) (*os.File, string, error) {
 		if err == nil {
 			_ = unix.Close(fd)
 			fd = next
+			switch {
+			case c == "..":
+				at = at[:max(len(at)-1, 0)] // ".." of "/" is "/"
+			case c != ".":
+				at = append(at, c)
+			}
 			continue
 		}
 		// Linux reports a symlink opened with O_DIRECTORY|O_NOFOLLOW as
 		// ENOTDIR, other kernels as ELOOP: ask what it is.
 		if t, terr := typeAt(fd, c); terr != nil || t != fs.ModeSymlink {
 			_ = unix.Close(fd)
-			return nil, "", pathErr(op, name, err)
+			return nil, "", "", pathErr(op, name, err)
 		}
 		target, err := r.followable(fd, c, &links)
 		if err != nil {
 			_ = unix.Close(fd)
-			return nil, "", pathErr(op, name, err)
+			return nil, "", "", pathErr(op, name, err)
 		}
 		if filepath.IsAbs(target) {
 			_ = unix.Close(fd)
 			if fd, err = unix.Open("/", unix.O_RDONLY|unix.O_DIRECTORY|unix.O_CLOEXEC, 0); err != nil {
-				return nil, "", pathErr(op, name, err)
+				return nil, "", "", pathErr(op, name, err)
 			}
+			at = at[:0]
 		}
 		rest = append(components(target), rest...)
 	}
-	return os.NewFile(uintptr(fd), filepath.Dir(clean)), filepath.Base(clean), nil
+	return os.NewFile(uintptr(fd), filepath.Dir(clean)), filepath.Base(clean), "/" + strings.Join(at, "/"), nil
 }
 
 // followable returns the target of the symlink c in the directory dirfd if
@@ -89,6 +105,31 @@ func (r *Real) trusted(dirfd int) (bool, error) {
 		return false, err
 	}
 	return (st.Uid == 0 || int(st.Uid) == r.euid) && st.Mode&0o022 == 0, nil
+}
+
+// notHardLinked refuses (ErrHardLink) a regular file, fi from its open
+// descriptor, that has more than one hard link while the directory dirfd
+// holding it is not trusted: another user could have linked a root file
+// there, and a chmod or chown of it would change that file. Linux's
+// fs.protected_hardlinks stops such links when enabled; this does not rely
+// on it.
+func (r *Real) notHardLinked(dirfd int, fi fs.FileInfo, op, name string) error {
+	st, ok := fi.Sys().(*syscall.Stat_t)
+	switch {
+	case !fi.Mode().IsRegular():
+		return nil
+	case !ok:
+		return pathErr(op, name, fs.ErrInvalid)
+	case st.Nlink <= 1:
+		return nil
+	}
+	switch ok, err := r.trusted(dirfd); {
+	case err != nil:
+		return pathErr(op, name, err)
+	case !ok:
+		return pathErr(op, name, ErrHardLink)
+	}
+	return nil
 }
 
 // components splits a path into its non-empty components; "." and ".." are

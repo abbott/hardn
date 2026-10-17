@@ -426,6 +426,32 @@ func (s *System) Readlink(ctx context.Context, name string) (string, error) {
 	return target, err
 }
 
+// ResolveSymlink is host.Real's: guarded, and only for a link in a trusted
+// directory (owned by root, writable by neither group nor others).
+func (s *System) ResolveSymlink(ctx context.Context, name string) (target, resolved string, err error) {
+	err = s.do(ctx, Call{Op: "resolve-symlink", Path: name}, func() error {
+		p, n, err := s.guardedLookup(name)
+		switch {
+		case err != nil:
+			return perr("readlink", name, err)
+		case n.mode&fs.ModeSymlink == 0:
+			return perr("readlink", name, syscall.EINVAL)
+		}
+		// p is the link's path with no symlink in it: the walk resolves
+		// every directory on the way.
+		if d := s.nodes[path.Dir(p)]; d.uid != 0 || d.mode&0o022 != 0 {
+			return perr("readlink", name, host.ErrSymlinkParent)
+		}
+		r, err := host.JoinLinkTarget(path.Dir(p), n.target)
+		if err != nil {
+			return perr("readlink", name, err)
+		}
+		target, resolved = n.target, r
+		return nil
+	})
+	return target, resolved, err
+}
+
 // Chmod sets the permission bits of a regular file or directory; it refuses a
 // symlink at name (ErrSymlink) and anything else (fs.ErrInvalid), and is
 // guarded.
@@ -445,16 +471,18 @@ func (s *System) Chmod(ctx context.Context, name string, perm fs.FileMode) error
 	})
 }
 
-// Chown refuses a symlink at name and is guarded; -1 leaves the uid or gid
-// unchanged.
+// Chown sets the owner of a regular file or directory, with Chmod's
+// refusals; -1 leaves the uid or gid unchanged.
 func (s *System) Chown(ctx context.Context, name string, uid, gid int) error {
 	return s.do(ctx, Call{Op: "chown", Path: name, UID: uid, GID: gid}, func() error {
 		_, n, err := s.guardedLookup(name)
 		switch {
 		case err != nil:
-			return perr("lchown", name, err)
+			return perr("lstat", name, err)
 		case n.mode&fs.ModeSymlink != 0:
 			return perr("chown", name, host.ErrSymlink)
+		case !n.mode.IsRegular() && !n.mode.IsDir():
+			return perr("chown", name, fs.ErrInvalid)
 		}
 		if uid != -1 {
 			n.uid = uid

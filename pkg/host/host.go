@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
+	"strings"
 )
 
 // SearchPath is the only place Real looks for a command named without a
@@ -43,13 +45,13 @@ const DefaultTailLines = 20
 //
 // Paths should be absolute. Symlinks in the parent directories of a path are
 // followed by every method except the guarded ones (WriteFileAtomic, Chown,
-// Chmod, Remove, ReadFileNoFollow): those take an absolute path, and follow a
-// symlink on the way only when the directory holding it is owned by root (or
-// by hardn's own user) and is writable by neither its group nor others;
-// otherwise they refuse with ErrSymlinkParent, so a user who controls a
-// directory on the path cannot redirect them (V21). The other no-follow rules
-// below are about the last component. File operations honour ctx only on
-// entry; Run kills the process it started when ctx is done, but not
+// Chmod, Remove, ReadFileNoFollow, ResolveSymlink): those take an absolute
+// path, and follow a symlink on the way only when the directory holding it is
+// trusted: owned by root (or by hardn's own user) and writable by neither its
+// group nor others. Otherwise they refuse with ErrSymlinkParent, so a user who
+// controls a directory on the path cannot redirect them (V21). The other
+// no-follow rules below are about the last component. File operations honour
+// ctx only on entry; Run kills the process it started when ctx is done, but not
 // processes that one started.
 // Every method refuses a ctx that is already done, so a rollback after
 // cancellation (Ctrl-C) must run under context.WithoutCancel with its own
@@ -88,16 +90,31 @@ type System interface {
 	// either name is renamed or replaced itself, never its target. An
 	// existing directory at newname is refused, as os.Rename refuses it.
 	Rename(ctx context.Context, oldname, newname string) error
-	// Readlink returns the target of the symlink name, as stored.
+	// Readlink returns the target of the symlink name, as stored. It is not
+	// guarded: to act on what a link points to, use ResolveSymlink.
 	Readlink(ctx context.Context, name string) (string, error)
+	// ResolveSymlink returns the target of the symlink name, as stored, and
+	// resolved, the absolute path it points to, for writing through a link
+	// on purpose (WriteFileThroughSymlink). It is guarded (see System), and
+	// the directory holding the link must be trusted too, else
+	// ErrSymlinkParent: a link a user planted in a directory they control
+	// is never resolved. A relative target is joined to the path of the
+	// link's directory as the walk reached it, with no symlink in it, so a
+	// ".." in the target means what it means to the kernel; links in the
+	// target itself are followed, under the same rule, by the guarded
+	// operation resolved is then given. A target with ".." after another
+	// component is refused with fs.ErrInvalid (JoinLinkTarget). Not a
+	// symlink: EINVAL, as readlink(2).
+	ResolveSymlink(ctx context.Context, name string) (target, resolved string, err error)
 	// Chmod sets the mode of the regular file or directory name. A symlink
 	// at name is refused with ErrSymlink, never followed; anything else that
-	// is not a regular file or directory is refused with fs.ErrInvalid. It
-	// is guarded (see System).
+	// is not a regular file or directory is refused with fs.ErrInvalid; a
+	// regular file with more than one hard link, in a directory that is not
+	// trusted (see System), with ErrHardLink. It is guarded.
 	Chmod(ctx context.Context, name string, perm fs.FileMode) error
-	// Chown sets the owner of name. A symlink at name is refused with
-	// ErrSymlink, never followed. A uid or gid of -1 is left unchanged. It
-	// is guarded (see System).
+	// Chown sets the owner of the regular file or directory name, with the
+	// same refusals as Chmod. A uid or gid of -1 is left unchanged. It is
+	// guarded.
 	Chown(ctx context.Context, name string, uid, gid int) error
 	// WriteFileAtomic replaces name with a new file holding data, with mode
 	// perm and owner uid:gid (-1 keeps the owner the process gives a new
@@ -196,6 +213,44 @@ func WriteFileAtomicKeep(ctx context.Context, sys System, name string, data []by
 	return sys.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
+// WriteFileThroughSymlink writes data to the file the symlink name points
+// to, with WriteFileAtomic, and leaves the link as it is: the explicit way to
+// edit a file through a link (p2-pve: /root/.ssh/authorized_keys into
+// /etc/pve/priv). The link is resolved with ResolveSymlink, so one in a
+// directory another user can change is refused (ErrSymlinkParent); the file
+// it points to must be absent or a regular file, as for WriteFileAtomic.
+func WriteFileThroughSymlink(ctx context.Context, sys System, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	_, resolved, err := sys.ResolveSymlink(ctx, name)
+	if err != nil {
+		return err
+	}
+	return sys.WriteFileAtomic(ctx, resolved, data, perm, uid, gid)
+}
+
+// JoinLinkTarget returns the absolute path a symlink holding target points
+// to, when the link is in dir, an absolute path with no symlink in it. ".."
+// at the start of target is resolved against dir, which is what the kernel
+// does when dir has no link in it. A ".." after any other component is
+// refused with fs.ErrInvalid: the component before it may be a symlink,
+// which only a lookup could tell. ResolveSymlink uses it.
+func JoinLinkTarget(dir, target string) (string, error) {
+	other := false
+	for _, c := range strings.Split(target, "/") {
+		switch {
+		case c == "..":
+			if other {
+				return "", fmt.Errorf("host: symlink target %q: \"..\" after another component: %w", target, fs.ErrInvalid)
+			}
+		case c != "" && c != ".":
+			other = true
+		}
+	}
+	if filepath.IsAbs(target) {
+		return filepath.Clean(target), nil
+	}
+	return filepath.Join(dir, target), nil
+}
+
 // Errors a System returns, testable with errors.Is.
 var (
 	// ErrNotFound: the command is not an executable file in SearchPath, or
@@ -204,9 +259,15 @@ var (
 	// ErrSymlink: the operation refuses a symlink at the path.
 	ErrSymlink = errors.New("refusing a symlink")
 	// ErrSymlinkParent: a guarded operation met a symlink on the way to the
-	// path, in a directory a user other than root (or hardn's own user) can
-	// change (see System). errors.Is(err, ErrSymlink) holds for it too.
-	ErrSymlinkParent = fmt.Errorf("%w on the way, in a directory another user can change", ErrSymlink)
+	// path, or ResolveSymlink one at the path, in a directory a user other
+	// than root (or hardn's own user) can change (see System).
+	// errors.Is(err, ErrSymlink) holds for it too, so test for it first: a
+	// caller that writes through a link on ErrSymlink must not on this one.
+	ErrSymlinkParent = fmt.Errorf("%w in a directory another user can change", ErrSymlink)
+	// ErrHardLink: Chmod or Chown met a regular file with more than one hard
+	// link in a directory another user can change: the file may be a root
+	// file that user linked there.
+	ErrHardLink = errors.New("refusing a file with other hard links, in a directory another user can change")
 	// ErrNotDurable: WriteFileAtomic replaced the file, but could not sync
 	// its directory, so the replacement may not survive a crash. The new
 	// content is in place; roll the change back like any failed step.

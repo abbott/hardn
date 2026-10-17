@@ -142,7 +142,7 @@ func TestRecording(t *testing.T) {
 		"run visudo -c -f - <stdin 42 bytes>: exit 0",
 		"write-atomic /etc/ssh/sshd_config.d/00-hardn.conf 0600 0:0 10 bytes",
 		"rename /etc/ssh/sshd_config.d/00-hardn.conf -> /etc/ssh/sshd_config.d/00-hardn.conf.bak",
-		"chown /etc/ssh/missing 1000:-1: error: lchown /etc/ssh/missing: no such file or directory",
+		"chown /etc/ssh/missing 1000:-1: error: lstat /etc/ssh/missing: no such file or directory",
 		"chmod /etc/ssh/sshd_config.d/00-hardn.conf.bak 0640",
 		"readlink /etc/ssh/sshd_config.d/00-hardn.conf.bak: error: readlink /etc/ssh/sshd_config.d/00-hardn.conf.bak: invalid argument",
 		"read /etc/ssh/sshd_config.d/00-hardn.conf.bak",

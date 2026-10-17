@@ -133,6 +133,7 @@ func TestRealWriteFileAtomicRecheck(t *testing.T) {
 func TestRealGuardedWalk(t *testing.T) {
 	ctx := context.Background()
 	base := t.TempDir()
+	chmod(t, base, 0o755) // trusted whatever the umask: it holds trusted-link
 	rootSSH := filepath.Join(base, "root", ".ssh")
 	mkdir(t, rootSSH, 0o700)
 	keys := filepath.Join(rootSSH, "authorized_keys")
@@ -154,14 +155,16 @@ func TestRealGuardedWalk(t *testing.T) {
 		"relative": func(r *Real) error { return r.WriteFileAtomic(ctx, "authorized_keys", nil, 0o600, -1, -1) },
 	}
 
+	// setup takes the subtest's t: a Skip or Fatal on the parent's from
+	// inside a subtest fails the parent and stops the subtests after it.
 	owners := []struct {
 		name  string
-		setup func(r *Real)
+		setup func(t *testing.T, r *Real)
 	}{
 		// home/alice is writable by others.
-		{"world-writable", func(*Real) { chmod(t, filepath.Join(base, "home", "alice"), 0o777) }},
+		{"world-writable", func(t *testing.T, _ *Real) { chmod(t, filepath.Join(base, "home", "alice"), 0o777) }},
 		// home/alice belongs to a user who is neither root nor hardn's.
-		{"another user's", func(r *Real) {
+		{"another user's", func(t *testing.T, r *Real) {
 			chmod(t, filepath.Join(base, "home", "alice"), 0o755)
 			if os.Geteuid() == 0 {
 				t.Skip("as root, the test's directories are root's and so trusted")
@@ -173,7 +176,7 @@ func TestRealGuardedWalk(t *testing.T) {
 		t.Run(o.name, func(t *testing.T) {
 			for op, do := range ops {
 				r := NewReal(Options{})
-				o.setup(r)
+				o.setup(t, r)
 				err := do(r)
 				want := ErrSymlinkParent
 				if op == "relative" {
@@ -209,6 +212,60 @@ func TestRealGuardedWalk(t *testing.T) {
 			t.Errorf("loop: err = %v, want ELOOP", err)
 		}
 	})
+}
+
+// Chmod and Chown refuse a file with other hard links in a directory another
+// user can change, where that user may have linked a root file; the same
+// file is changed from a trusted directory, and a file with one link from
+// anywhere.
+func TestRealChangeRefusesHardLinks(t *testing.T) {
+	ctx := context.Background()
+	base := t.TempDir()
+	victim := filepath.Join(base, "etc", "shadow")
+	mkdir(t, filepath.Dir(victim), 0o755)
+	writeFile(t, victim, "root:hash\n", 0o600)
+	ssh := filepath.Join(base, "home", "alice", ".ssh")
+	mkdir(t, ssh, 0o755)
+	chmod(t, ssh, 0o777)
+	link := filepath.Join(ssh, "authorized_keys")
+	if err := os.Link(victim, link); err != nil {
+		t.Skipf("hard link: %v", err)
+	}
+	own := filepath.Join(ssh, "known_hosts")
+	writeFile(t, own, "", 0o644)
+	r := NewReal(Options{})
+	for op, err := range map[string]error{
+		"chmod": r.Chmod(ctx, link, 0o644),
+		"chown": r.Chown(ctx, link, os.Getuid(), os.Getgid()),
+	} {
+		if !errors.Is(err, ErrHardLink) {
+			t.Errorf("%s from a world-writable directory: err = %v, want ErrHardLink", op, err)
+		}
+	}
+	wantContent(t, victim, "root:hash\n", 0o600)
+	if err := r.Chmod(ctx, own, 0o600); err != nil {
+		t.Errorf("chmod of a file with one link: %v", err)
+	}
+
+	chmod(t, ssh, 0o700)
+	if err := r.Chmod(ctx, link, 0o640); err != nil {
+		t.Errorf("chmod from a trusted directory: %v", err)
+	}
+	if err := r.Chown(ctx, link, -1, -1); err != nil {
+		t.Errorf("chown from a trusted directory: %v", err)
+	}
+	wantContent(t, victim, "root:hash\n", 0o640)
+}
+
+// Chown changes only what Chmod does: a FIFO is refused without being opened.
+func TestRealChownRefusesAFIFO(t *testing.T) {
+	fifo := filepath.Join(t.TempDir(), "fifo")
+	if err := syscall.Mkfifo(fifo, 0o600); err != nil {
+		t.Skipf("mkfifo: %v", err)
+	}
+	if err := NewReal(Options{}).Chown(context.Background(), fifo, -1, -1); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("Chown(fifo) = %v, want ErrInvalid", err)
+	}
 }
 
 func TestRealReadFileNoFollow(t *testing.T) {

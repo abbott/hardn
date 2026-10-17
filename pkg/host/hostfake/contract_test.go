@@ -17,8 +17,11 @@ import (
 // world is one System under test with a fresh root directory, and seeding
 // done outside the System.
 type world struct {
-	sys     host.LegacySystem
-	root    string
+	sys  host.LegacySystem
+	root string
+	// canon is root with no symlink in it (t.TempDir() is under the
+	// /var -> /private/var link on macOS).
+	canon   string
 	file    func(rel string, data string, perm fs.FileMode)
 	dir     func(rel string)
 	symlink func(rel, target string)
@@ -34,9 +37,12 @@ func realWorld(t *testing.T) world {
 			t.Fatal(err)
 		}
 	}
+	canon, err := filepath.EvalSymlinks(root)
+	must(err)
 	return world{
-		sys:  host.NewReal(host.Options{}),
-		root: root,
+		sys:   host.NewReal(host.Options{}),
+		root:  root,
+		canon: canon,
 		file: func(rel, data string, perm fs.FileMode) {
 			must(os.WriteFile(filepath.Join(root, rel), []byte(data), perm))
 		},
@@ -50,8 +56,9 @@ func fakeWorld(*testing.T) world {
 	root := "/srv/contract"
 	f.AddDir(root, 0o755, 0, 0)
 	return world{
-		sys:  f,
-		root: root,
+		sys:   f,
+		root:  root,
+		canon: root,
 		file: func(rel, data string, perm fs.FileMode) {
 			f.AddFile(filepath.Join(root, rel), []byte(data), perm, 0, 0)
 		},
@@ -314,6 +321,48 @@ func TestContract(t *testing.T) {
 					t.Errorf("%s: err = %v, want %v", rel, err, want)
 				}
 			}
+		}},
+		{"resolve symlink: targets joined to the directory the walk reaches, and refusals", func(t *testing.T, w world) {
+			w.dir("real")
+			w.dir("real/sub")
+			w.file("real/target", "t\n", 0o600)
+			w.symlink("alias", w.path("real/sub"))
+			w.symlink("real/sub/rel", "../target")
+			w.symlink("real/sub/abs", w.path("real/target"))
+			w.symlink("real/sub/interior", "x/../target")
+			w.dir("open")
+			if err := w.sys.Chmod(ctx, w.path("open"), 0o777); err != nil {
+				t.Fatal(err)
+			}
+			w.symlink("open/l", w.path("real/target"))
+			for rel, want := range map[string][2]string{
+				// "../" is the parent of real/sub, not of alias.
+				"alias/rel": {"../target", filepath.Join(w.canon, "real/target")},
+				"alias/abs": {w.path("real/target"), w.path("real/target")},
+			} {
+				target, resolved, err := w.sys.ResolveSymlink(ctx, w.path(rel))
+				if err != nil || target != want[0] || resolved != want[1] {
+					t.Errorf("%s = %q, %q, %v; want %q", rel, target, resolved, err, want)
+				}
+			}
+			for rel, want := range map[string]error{
+				"alias/interior": fs.ErrInvalid,
+				"open/l":         host.ErrSymlinkParent,
+				"real/target":    syscall.EINVAL,
+				"missing":        fs.ErrNotExist,
+			} {
+				if _, _, err := w.sys.ResolveSymlink(ctx, w.path(rel)); !errors.Is(err, want) {
+					t.Errorf("%s: err = %v, want %v", rel, err, want)
+				}
+			}
+			if err := host.WriteFileThroughSymlink(ctx, w.sys, w.path("open/l"), []byte("x\n"), 0o600, -1, -1); !errors.Is(err, host.ErrSymlinkParent) {
+				t.Errorf("write through an untrusted link: err = %v, want ErrSymlinkParent", err)
+			}
+			if err := host.WriteFileThroughSymlink(ctx, w.sys, w.path("alias/rel"), []byte("new\n"), 0o600, -1, -1); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "real/target", "new\n", 0o600)
+			wantLink(t, w, "real/sub/rel", "../target")
 		}},
 		{"readlink: a relative target as stored, a file, a missing path", func(t *testing.T, w world) {
 			w.file("f", "", 0o600)

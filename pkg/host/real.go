@@ -376,6 +376,41 @@ func (r *Real) Readlink(ctx context.Context, name string) (string, error) {
 	return os.Readlink(name)
 }
 
+// ResolveSymlink walks to name's directory with the guarded walk, requires
+// that directory to be trusted, and reads the link with readlinkat there. The
+// walk gives the directory's path with no symlink in it, which a relative
+// target is joined to (JoinLinkTarget).
+func (r *Real) ResolveSymlink(ctx context.Context, name string) (target, resolved string, err error) {
+	if err := ctxErr(ctx, "readlink", name); err != nil {
+		return "", "", err
+	}
+	dir, base, at, err := r.walkParent("readlink", name)
+	if err != nil {
+		return "", "", err
+	}
+	defer func() { _ = dir.Close() }()
+	dfd := int(dir.Fd())
+	switch t, err := typeAt(dfd, base); {
+	case err != nil:
+		return "", "", pathErr("lstat", name, err)
+	case t != fs.ModeSymlink:
+		return "", "", pathErr("readlink", name, syscall.EINVAL)
+	}
+	switch ok, err := r.trusted(dfd); {
+	case err != nil:
+		return "", "", pathErr("readlink", name, err)
+	case !ok:
+		return "", "", pathErr("readlink", name, ErrSymlinkParent)
+	}
+	if target, err = readlinkat(dfd, base); err != nil {
+		return "", "", pathErr("readlink", name, err)
+	}
+	if resolved, err = JoinLinkTarget(at, target); err != nil {
+		return "", "", pathErr("readlink", name, err)
+	}
+	return target, resolved, nil
+}
+
 // Chmod refuses a symlink at name, then changes the mode through a
 // descriptor opened with O_NOFOLLOW in name's guarded parent, so a symlink
 // planted after the check is refused too (open fails with ELOOP) rather than
@@ -384,17 +419,38 @@ func (r *Real) Readlink(ctx context.Context, name string) (string, error) {
 // EOPNOTSUPP without it). Opening is why only regular files and directories
 // are changed (a FIFO or a device can block or act on open; O_NONBLOCK guards
 // the swap of one in), and why, unprivileged, a file the process cannot read
-// cannot be changed.
+// cannot be changed. A regular file with other hard links is refused in a
+// directory that is not trusted (ErrHardLink); the check is on the open
+// descriptor, so the file checked is the file changed.
 func (r *Real) Chmod(ctx context.Context, name string, perm fs.FileMode) error {
 	if err := ctxErr(ctx, "chmod", name); err != nil {
 		return err
 	}
-	dir, base, err := r.openParent("chmod", name)
+	return r.change("chmod", name, func(f *os.File) error { return f.Chmod(perm) })
+}
+
+// Chown changes the owner through a descriptor, as Chmod changes the mode,
+// with the same refusals: a symlink at name (planted after the check too), a
+// user-controlled ~/.ssh that is a link elsewhere (V21), anything that is not
+// a regular file or directory, and a hard-linked file in a directory that is
+// not trusted. Unprivileged, a file the process cannot read cannot be
+// changed.
+func (r *Real) Chown(ctx context.Context, name string, uid, gid int) error {
+	if err := ctxErr(ctx, "chown", name); err != nil {
+		return err
+	}
+	return r.change("chown", name, func(f *os.File) error { return f.Chown(uid, gid) })
+}
+
+// change opens name for Chmod and Chown, checks it, and calls do with it.
+func (r *Real) change(op, name string, do func(*os.File) error) error {
+	dir, base, err := r.openParent(op, name)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = dir.Close() }()
-	f, err := openNoFollow(dir, base, name, chmodable)
+	accept := func(name string, m fs.FileMode) error { return changeable(op, name, m) }
+	f, err := openNoFollow(dir, base, name, accept)
 	if err != nil {
 		return err
 	}
@@ -403,44 +459,22 @@ func (r *Real) Chmod(ctx context.Context, name string, perm fs.FileMode) error {
 	if err != nil {
 		return err
 	}
-	if err := chmodable(name, fi.Mode()); err != nil {
+	if err := accept(name, fi.Mode()); err != nil {
 		return err
 	}
-	return f.Chmod(perm)
+	if err := r.notHardLinked(int(dir.Fd()), fi, op, name); err != nil {
+		return err
+	}
+	return do(f)
 }
 
-// chmodable refuses what Chmod does not change.
-func chmodable(name string, m fs.FileMode) error {
+// changeable refuses what Chmod and Chown do not change.
+func changeable(op, name string, m fs.FileMode) error {
 	switch {
 	case m&fs.ModeSymlink != 0:
-		return pathErr("chmod", name, ErrSymlink)
+		return pathErr(op, name, ErrSymlink)
 	case !m.IsRegular() && !m.IsDir():
-		return pathErr("chmod", name, fs.ErrInvalid)
-	}
-	return nil
-}
-
-// Chown refuses a symlink at name and changes name itself with
-// fchownat(AT_SYMLINK_NOFOLLOW) in name's guarded parent, so a symlink
-// planted after the check is not followed either, and a user-controlled
-// ~/.ssh that is a link elsewhere is refused (V21).
-func (r *Real) Chown(ctx context.Context, name string, uid, gid int) error {
-	if err := ctxErr(ctx, "chown", name); err != nil {
-		return err
-	}
-	dir, base, err := r.openParent("chown", name)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = dir.Close() }()
-	switch t, err := typeAt(int(dir.Fd()), base); {
-	case err != nil:
-		return pathErr("lstat", name, err)
-	case t == fs.ModeSymlink:
-		return pathErr("chown", name, ErrSymlink)
-	}
-	if err := unix.Fchownat(int(dir.Fd()), base, uid, gid, unix.AT_SYMLINK_NOFOLLOW); err != nil {
-		return pathErr("lchown", name, err)
+		return pathErr(op, name, fs.ErrInvalid)
 	}
 	return nil
 }
