@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "runId": "20261017T120000Z-0a1b2c3d",
+  "created": "2026-10-17T12:00:00Z",
+  "backupsEnabled": true,
+  "entries": [
+    {
+      "path": "/etc/ssh/sshd_config",
+      "kind": "file",
+      "file": {
+        "backup": "0001-sshd_config",
+        "mode": "0644",
+        "uid": 0,
+        "gid": 0,
+        "size": 8,
+        "sha256": "e807422bad84e7926a98fb262153b3d9c84244080e69b0e5d20446c183ffafc4"
+      },
+      "rollbackRequired": true
+    },
+    {
+      "path": "/etc/sudoers.d/hardn-alice",
+      "kind": "absent",
+      "rollbackRequired": true
+    },
+    {
+      "path": "/root/.ssh/authorized_keys",
+      "kind": "symlink",
+      "symlinkTarget": "/etc/pve/priv/authorized_keys",
+      "file": {
+        "backup": "0003-authorized_keys",
+        "mode": "0600",
+        "uid": 0,
+        "gid": 0,
+        "size": 40,
+        "sha256": "55b732882c586865cfb41bf822b9bfe288bc06e5882106cb3d128e4fa2e394e4"
+      },
+      "rollbackRequired": true
+    }
+  ]
+}
