@@ -12,6 +12,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -30,7 +31,33 @@
 // otherwise at the width than it says, as one whose typed confirmation
 // the terminal is too narrow to ask (below 30 columns in Unicode glyphs,
 // 32 in ASCII), which the flow cancels, is printed whole under its name,
-// after a note saying so, and the other mocks still show. Flags:
+// after a note saying so, and the other mocks still show.
+//
+// "play" is the playable mode, which runs the real screens and prompts on
+// a simulated system: the user types the answers, and sees what hardn does
+// with them. It starts at the screen it names (a mock's name, or a layout
+// that has no other mock, which only main-menu is; the main menu when none
+// is named), or at a workflow's sequence, "<workflow>/<sequence>". A
+// menu's items lead where origin/main's do, to the other mocks: User
+// Management, Manage User and george's menu to the sudo change, SSH Login
+// to the root-login toggle and its typed confirmation; an item with no
+// mock says so. 0 or b goes back and q quits at every prompt, as the
+// navigation grammar has it; going back from the first screen, or
+// quitting, exits with status 0, and the end of the input or Ctrl-C at a
+// prompt with 130. Each workflow runs its flow (pkg/ui/flow) on its
+// sequence's fixture plan, and applies it to the simulated system, which
+// only records what each step would do: the record is shown when play
+// ends. A sequence plays for its screen and fixture, the answers being the
+// user's, so one that ends cancelled, as create-user's does, cannot be
+// named: declining the confirmation plays it. Its own flags, with -theme,
+// -profile, -ascii, -width, -height and -override:
+//
+//	-sequence name    the sequence each workflow plays where it has one,
+//	                  such as dry-run, failure or typed (default normal)
+//	-fail N           fail step N of each plan applied, to show the
+//	                  rollback (default 0: none)
+//
+// The flags of the other modes:
 //
 //	-list             print the names of the states, or with -screens the
 //	                  screen drawings, it would render, and exit
@@ -57,14 +84,21 @@
 // uigallery.local.json, which the repository's allow-list .gitignore
 // keeps out of git, and pass its path.
 //
-// The gallery's code reads nothing but its flags and the override file:
-// no environment variable and no terminal query (it builds each
-// environment with term.Fixed, never term.Detect), no root, nothing under
-// /etc. The package initialisation of Lip Gloss and x/ansi still runs, as
-// in every binary that links Lip Gloss (today the pkg/ui test binaries
-// and this gallery; cmd/hardn links none): an ioctl on stdout and, on a
-// terminal, a read-only terminfo lookup and "tmux info" under tmux, and
-// x/ansi's read of RUNEWIDTH_EASTASIAN
+// The gallery's code reads nothing but its flags, the override file and,
+// in the playable mode, stdin: no environment variable and no terminal
+// query for its output (it builds each environment with term.Fixed, never
+// term.Detect), no root, nothing under /etc. The playable mode reads
+// stdin through prompt.Stdin, the line reader every hardn prompt uses,
+// which asks whether stdin is a terminal by reading its attributes
+// (TCGETS or TIOCGETA), on one discards typeahead before each prompt
+// (TCFLSH or TIOCFLUSH), and while it waits for a line takes Ctrl-C,
+// giving SIGINT back its own handling before it returns; it never changes
+// the terminal's mode. Nothing the playable mode runs writes a file or
+// starts a process (TestPlayTouchesNothing). The package initialisation of Lip Gloss and
+// x/ansi still runs, as in every binary that links Lip Gloss (today the
+// pkg/ui test binaries and this gallery; cmd/hardn links none): an ioctl
+// on stdout and, on a terminal, a read-only terminfo lookup and "tmux
+// info" under tmux, and x/ansi's read of RUNEWIDTH_EASTASIAN
 // (docs/refactor/phase0/side-effects.md §13.1). The gallery ignores the
 // profile Lip Gloss detects. A true RUNEWIDTH_EASTASIAN makes x/ansi
 // measure ambiguous-width glyphs such as "─" as two cells, which moves
@@ -72,7 +106,8 @@
 // (exit status 1), as the golden harness refuses to run. It writes to
 // stdout only, through each environment's term.Env.Writer, one write per
 // state and environment, or per screen mock: what the golden file holds
-// for the same cell. A workflow's sequences play on scripted answers and
+// for the same cell; the playable mode writes as hardn does, a block or
+// a prompt at a time. A workflow's sequences play on scripted answers and
 // fixture plans (screen.Sequence.Play, flow.Fixture), which read no
 // terminal and change nothing.
 package main
@@ -91,13 +126,14 @@ import (
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(run(os.Args[1:], prompt.Stdin, os.Stdout, os.Stderr))
 }
 
 // Exit statuses.
@@ -251,24 +287,88 @@ func (g gallery) render(s fixture.State, c cell, title string) (string, error) {
 	return header(ctx, title) + gap + s.VM.Render(ctx) + gap, nil
 }
 
+// look holds the flags that pick the render environment and its colours,
+// which every mode of the gallery takes.
+type look struct {
+	theme, profile, override *string
+	ascii                    *bool
+	width, height            *int
+}
+
+// lookFlags defines the look flags on fs.
+func lookFlags(fs *flag.FlagSet) look {
+	return look{
+		theme:    fs.String("theme", "dark", "the palette: dark or light"),
+		profile:  fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain"),
+		ascii:    fs.Bool("ascii", false, "use the ASCII glyph set"),
+		width:    fs.Int("width", term.DefaultWidth, "the terminal width in cells"),
+		height:   fs.Int("height", term.DefaultHeight, "the terminal height in lines"),
+		override: fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)"),
+	}
+}
+
+// cell returns the environment the look flags describe, or the usage
+// error that says why they describe none.
+func (l look) cell() (cell, error) {
+	i := slices.IndexFunc(profiles, func(p profile) bool { return p.name == *l.profile })
+	switch {
+	case i < 0:
+		return cell{}, fmt.Errorf("-profile %q is not truecolor, 256, 16, none or plain", *l.profile)
+	case *l.theme != "dark" && *l.theme != "light":
+		return cell{}, fmt.Errorf("-theme %q is not dark or light", *l.theme)
+	case *l.width < 1:
+		return cell{}, fmt.Errorf("-width %d is not a positive number of cells", *l.width)
+	case *l.height < 1:
+		return cell{}, fmt.Errorf("-height %d is not a positive number of lines", *l.height)
+	}
+	c := newCell(profiles[i], *l.theme == "dark", !*l.ascii, *l.width)
+	c.env.Height = *l.height
+	return c, nil
+}
+
+// gallery returns the gallery with the override file's colours, if the
+// flags name one, once it has checked that the glyphs measure as the
+// components assume. On a failure it writes why to stderr and returns
+// false: the exit status is then exitError.
+func (l look) gallery(stderr io.Writer) (gallery, bool) {
+	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
+	// is true, ambiguous-width glyphs measure two cells and no layout
+	// matches its golden. uitest.Golden makes the same check.
+	if w := ansi.StringWidth("─"); w != 1 {
+		fmt.Fprintf(stderr, "uigallery: x/ansi measures the ambiguous-width ─ as %d cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN\n", w)
+		return gallery{}, false
+	}
+	g := gallery{}
+	if *l.override != "" {
+		var err error
+		if g.colours, err = readOverride(*l.override); err != nil {
+			fmt.Fprintf(stderr, "uigallery: %v\n", err)
+			return gallery{}, false
+		}
+	}
+	return g, true
+}
+
 // run is the gallery: it parses args, renders to stdout and reports
-// errors on stderr, and returns the exit status.
-func run(args []string, stdout, stderr io.Writer) int {
+// errors on stderr, and returns the exit status. With "play" first it is
+// the playable mode (play), which reads the user's answers through the
+// line reader stdin returns; no other mode calls it.
+func run(args []string, stdin func() *prompt.Reader, stdout, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == "play" {
+		return play(args[1:], stdin, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
-	themeName := fs.String("theme", "dark", "the palette: dark or light")
-	profileName := fs.String("profile", "truecolor", "the colour profile: truecolor, 256, 16, none or plain")
-	ascii := fs.Bool("ascii", false, "use the ASCII glyph set")
-	width := fs.Int("width", term.DefaultWidth, "the terminal width in cells")
-	height := fs.Int("height", term.DefaultHeight, "the terminal height in lines")
+	look := lookFlags(fs)
 	screens := fs.Bool("screens", false, "render the screen mocks, in place of the component states")
 	inMatrix := fs.Bool("matrix", false, "render each state in every cell of the golden matrix and plain mode, in place of -theme, -profile, -ascii, -width and -height")
-	overridePath := fs.String("override", "", "a colour override `file` (JSON; see uigallery.local.json.example)")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return exitOK
@@ -319,35 +419,16 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		cells = matrix()
 	} else {
-		i := slices.IndexFunc(profiles, func(p profile) bool { return p.name == *profileName })
-		switch {
-		case i < 0:
-			return usage("-profile %q is not truecolor, 256, 16, none or plain", *profileName)
-		case *themeName != "dark" && *themeName != "light":
-			return usage("-theme %q is not dark or light", *themeName)
-		case *width < 1:
-			return usage("-width %d is not a positive number of cells", *width)
-		case *height < 1:
-			return usage("-height %d is not a positive number of lines", *height)
+		c, err := look.cell()
+		if err != nil {
+			return usage("%v", err)
 		}
-		cells = []cell{newCell(profiles[i], *themeName == "dark", !*ascii, *width)}
-		cells[0].env.Height = *height
+		cells = []cell{c}
 	}
 
-	// x/ansi reads RUNEWIDTH_EASTASIAN at init (method.go:20-25); when it
-	// is true, ambiguous-width glyphs measure two cells and no layout
-	// matches its golden. uitest.Golden makes the same check.
-	if w := ansi.StringWidth("─"); w != 1 {
-		fmt.Fprintf(stderr, "uigallery: x/ansi measures the ambiguous-width ─ as %d cells, and the components assume 1; unset RUNEWIDTH_EASTASIAN\n", w)
+	g, ok := look.gallery(stderr)
+	if !ok {
 		return exitError
-	}
-
-	g := gallery{}
-	if *overridePath != "" {
-		if g.colours, err = readOverride(*overridePath); err != nil {
-			fmt.Fprintf(stderr, "uigallery: %v\n", err)
-			return exitError
-		}
 	}
 	if *screens {
 		for _, m := range screen.Mocks() {

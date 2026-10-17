@@ -26,33 +26,6 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// typist plays the user at a terminal, as nav's and form's tests do: each
-// Read returns the next line, typed and ended with Enter, and echoes it to
-// echo as a terminal shows it. With no lines left it reports the end of
-// the input.
-type typist struct {
-	lines   []string
-	pending []byte
-	echo    io.Writer
-}
-
-func (t *typist) Read(p []byte) (int, error) {
-	if len(t.pending) == 0 {
-		if len(t.lines) == 0 {
-			return 0, io.EOF
-		}
-		line := t.lines[0]
-		t.lines = t.lines[1:]
-		if _, err := io.WriteString(t.echo, line); err != nil {
-			return 0, err
-		}
-		t.pending = []byte(line + "\n")
-	}
-	n := copy(p, t.pending)
-	t.pending = t.pending[n:]
-	return n, nil
-}
-
 // buffer is a strings.Builder that a spinner's goroutine can write to
 // while a test reads it.
 type buffer struct {
@@ -82,7 +55,7 @@ func play(env term.Env, f Flow, lines ...string) (Outcome, string, error) {
 // playCtx is play with ctx.
 func playCtx(ctx context.Context, env term.Env, f Flow, lines ...string) (Outcome, string, error) {
 	out := new(buffer)
-	p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: env.Writer(out)}
+	p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(out, lines...), false), Out: env.Writer(out)}
 	o, err := f.Run(ctx, p)
 	return o, out.String(), err
 }
@@ -540,7 +513,7 @@ func TestReturn(t *testing.T) {
 	for _, tt := range tests {
 		out := new(buffer)
 		lines := slices.Concat([]string{"1"}, tt.lines, []string{"q"})
-		p := nav.Prompter{Ctx: component.NewCtx(tt.env), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: tt.env.Writer(out)}
+		p := nav.Prompter{Ctx: component.NewCtx(tt.env), In: prompt.New(uitest.NewTypist(out, lines...), false), Out: tt.env.Writer(out)}
 		menu := nav.Menu{Options: []nav.Option{{
 			Item: component.MenuItem{Key: "1", Label: tt.label},
 			Action: func() error {
@@ -589,7 +562,7 @@ func TestWriteFails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		applied := false
-		p := nav.Prompter{Ctx: component.NewCtx(plain80), In: prompt.New(&typist{lines: []string{"y"}, echo: io.Discard}, false), Out: failWriter{&tt.left}}
+		p := nav.Prompter{Ctx: component.NewCtx(plain80), In: prompt.New(uitest.NewTypist(io.Discard, "y"), false), Out: failWriter{&tt.left}}
 		o, err := disableRoot(spy{Fixture: Fixture{Planned: low}, applied: &applied}).Run(context.Background(), p)
 		if o != tt.want || !errors.Is(err, errDiskFull) || !strings.HasPrefix(err.Error(), "flow: write: ") || applied != tt.applied {
 			t.Errorf("%s: %d, %v, applied %t; want %d, flow: write, %t", tt.name, o, err, applied, tt.want, tt.applied)
@@ -651,7 +624,7 @@ func TestProgress(t *testing.T) {
 			}
 		}
 	}}
-	p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&typist{lines: lines, echo: out}, false), Out: out}
+	p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(out, lines...), false), Out: out}
 	if o, err := createUser(slow).Run(context.Background(), p); o != Applied || err != nil {
 		t.Fatalf("animated: %d, %v", o, err)
 	}
@@ -667,7 +640,7 @@ func TestProgress(t *testing.T) {
 	// whole under it (DEV-049, a terminal limit).
 	echoed := new(buffer)
 	typing := waiting{Fixture: Fixture{Planned: createUserPlan}, wait: func() { _, _ = io.WriteString(echoed, "\n") }}
-	p = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&typist{lines: lines, echo: echoed}, false), Out: echoed}
+	p = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(echoed, lines...), false), Out: echoed}
 	if o, err := createUser(typing).Run(context.Background(), p); o != Applied || err != nil {
 		t.Fatalf("an Enter typed while a step ran: %d, %v", o, err)
 	}

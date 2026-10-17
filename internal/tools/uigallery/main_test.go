@@ -19,6 +19,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
@@ -175,11 +176,15 @@ func TestRendersAsGoldens(t *testing.T) {
 	}
 }
 
+// noInput is the line reader of a gallery run that is never asked
+// anything: its input has ended.
+func noInput() *prompt.Reader { return prompt.New(strings.NewReader(""), false) }
+
 // runGallery runs the gallery with args and returns its exit status, stdout
 // and stderr.
 func runGallery(args ...string) (int, string, string) {
 	var out, errs bytes.Buffer
-	code := run(args, &out, &errs)
+	code := run(args, noInput, &out, &errs)
 	return code, out.String(), errs.String()
 }
 
@@ -336,7 +341,7 @@ func TestUsage(t *testing.T) {
 // arguments in UIGALLERY_TEST_ARGS.
 func TestEastAsian(t *testing.T) {
 	if args, ok := os.LookupEnv("UIGALLERY_TEST_ARGS"); ok {
-		os.Exit(run(strings.Fields(args), os.Stdout, os.Stderr))
+		os.Exit(run(strings.Fields(args), noInput, os.Stdout, os.Stderr))
 	}
 	tests := []struct {
 		args string
