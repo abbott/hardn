@@ -13,7 +13,10 @@
 // with the reason in the review description. A P0.8 hazard gate's fix turns
 // the item's KNOWN-DEFECT line into a FIXED line that names the unexported
 // constant gating it (flip the constant to restore the old behaviour), and
-// the body shows what runs now.
+// the body shows what runs now. Each FIXED line is printed only when the
+// body shows the fix (operations_test.go, gateCheck), so flipping a
+// constant and running -update turns its lines back with the body; the one
+// exception is A4, a menu fix this harness cannot see.
 //
 // Regenerate after an intended change:
 //
@@ -35,7 +38,8 @@ import (
 
 var update = flag.Bool("update", false, "rewrite golden files under testdata/ instead of comparing")
 
-// baselineHeader is the first line of every golden in this package.
+// baselineHeader is the first line of every golden in this package, and,
+// in an ops golden that holds FIXED lines, the start of it (gatedHeader).
 const baselineHeader = "# origin/main behaviour (baseline per maintainer decision 6)"
 
 // trace is an ordered log of calls made through the file-system and command seams.
