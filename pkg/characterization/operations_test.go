@@ -65,6 +65,9 @@ type opEnv struct {
 	// fixtureNotes describe host state that the maps alone do not show.
 	fixtureNotes []string
 	// seed copies the fixture into the seams; runCell calls it after setup.
+	// Under viaSystem, fs and mc are inputs only: the hostfake.System behind
+	// the recorders answers from them and never writes back, so a test that
+	// runs viaSystem asserts on log, not on fs.Files or mc.ExecutedCommands.
 	seed func()
 }
 
@@ -89,10 +92,20 @@ func fixtureConfig(dryRun bool) *config.Config {
 	return cfg
 }
 
-func newOpEnv(cell osCell, dryRun bool, via seam) *opEnv {
+// newOpEnv builds an opEnv whose recorders wrap the seams via selects: at
+// most one; none means viaMocks, the seams the goldens are recorded on, which
+// tests that assert on fs and mc need (under viaSystem they are inputs only).
+func newOpEnv(cell osCell, dryRun bool, via ...seam) *opEnv {
+	if len(via) > 1 {
+		panic("newOpEnv: at most one seam")
+	}
+	sel := viaMocks
+	if len(via) == 1 {
+		sel = via[0]
+	}
 	fs := interfaces.NewMockFileSystem()
 	mc := interfaces.NewMockCommander()
-	innerFS, innerCmd, seed := legacySeams(via, fs, mc)
+	innerFS, innerCmd, seed := legacySeams(sel, fs, mc)
 	log := &trace{}
 	rc := &recordingCommander{inner: innerCmd, log: log}
 	provider := &interfaces.Provider{

@@ -107,7 +107,8 @@ const (
 // legacySeams returns the FileSystem and Commander the recorders wrap, and a
 // seed func to call once the fixture is in fsys (a no-op for viaMocks). For
 // viaSystem, commands answer from mc's maps, read at call time as
-// MockCommander reads them, so a fixture's afterExec still changes the answers.
+// MockCommander reads them, so a fixture's afterExec still changes the answers;
+// nothing is written back to fsys or mc, which stay inputs only.
 func legacySeams(via seam, fsys *interfaces.MockFileSystem, mc *interfaces.MockCommander) (interfaces.FileSystem, interfaces.Commander, func()) {
 	if via == viaMocks {
 		return fsys, mc, func() {}
