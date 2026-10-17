@@ -8,7 +8,7 @@
 
 ## How to read an entry
 
-- **Status:** `proposed` → `approved` / `rejected` / `deferred` → `implemented` (with the branch that implements it).
+- **Status:** `proposed` → `approved` / `rejected` / `deferred` / `decided` (the maintainer chose among the alternatives, or set terms of his own) → `implemented` (with the branch that implements it).
 - **Effort** [I], an estimate:
   - **S** fits in one small change unit (≲200 lines);
   - **M** is one full unit (≲500 lines, excluding goldens);
@@ -32,7 +32,7 @@
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | proposed |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed |
 | [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed |
-| [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | proposed |
+| [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
 | [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed |
 | [P-11](#p-11) | Polarity of the sudo-password question | plan §5.4 | User Management; slice 5 | S | Medium | proposed |
@@ -187,17 +187,18 @@
 <a id="p-08"></a>
 ### P-08: Sub-screen header: Header + Breadcrumb, or Figma's TitleBar
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-17); implemented in `next/p1d-divider`.
 - **Source:** plan §5.1.
 - **Problem:** the brief's sub-menu layout uses `Header` + `Breadcrumb`. Every Figma sub-screen (`01-USER`, `02-SSH_LOGIN`, `05-BACKUP`, the `USER-*` and `SSH_LOGIN-*` frames) uses a single TitleBar, with no header and no breadcrumb.
 - **Proposal:**
   - (a) Keep the brief's Header + Breadcrumb. This costs about 2 lines on an 80×24 console.
   - (b) Follow Figma's TitleBar and put the breadcrumb text inside it, e.g. "hardn › User Management".
+- **Decision** (the maintainer, 2026-10-17): merge the two patterns, (b) without its product segment. Every sub-screen, sub-menu and workflow step alike, opens with Figma's single title bar wrapped by `bar.bg`, with no `Header` and no `Breadcrumb` line, as the screen exports draw it. The trail lives inside the bar and names only the section and any sub-section, as "User Management › Manage User": no "hardn" segment, which is redundant. The trail is off by default (`screen.TitleTrail = false`), so a sub-screen's bar shows its own title, as "Manage User" on USER-MANAGE_USER-MANAGEMENT; the layouts keep each screen's parents, so flipping the constant is the only change that shows them. The main menu is unchanged: `Header` and the `ContextBar` "Debian 12 (Bookworm)", as 00-TUI-MAIN draws it. This supersedes the brief's sub-screen breadcrumb (§1B's sub-menu and workflow-step layouts, §1C's breadcrumb above sub-screens). The `Breadcrumb` component stays, its states without "hardn", and no screen draws it on a line of its own; its collapse is the title bar's (DEV-018, DEV-037, DEV-053, DEV-054).
 - **Effort:** S.
-- **Risk:** Low. The main cost is the height budget on small consoles.
+- **Risk:** Low. The main cost is the height budget on small consoles; the decision saves the two lines: 01-USER takes 21 lines from 64 columns, as Figma's frame does.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `01-USER.png` (reference only).
-  - After: `docs/refactor/img/p-08-after-a.png`, `p-08-after-b.png` (placeholders).
+  - After: `docs/refactor/img/p-08-after.png` (placeholder); the `sub-menu/*` and `workflow-step/*` goldens show the built form meanwhile, and the `titlebar/trail*` component goldens the trail.
 
 <a id="p-09"></a>
 ### P-09: Replace "Press any key to continue"
@@ -565,7 +566,7 @@
   - It fits none of the three layouts as built. The sub-menu layout always ends with a menu's `PromptLine`, its hint generated from the menu's keys and the navigation inputs, so with no menu it ends "> [0, b or q]:", a prompt the frame does not have; the workflow step runs an action's flow; and nothing in `pkg/ui` asks a pause.
 - **Proposal:** for the maintainer to choose with P-09:
   - (a) if P-09 drops the pause here, no new layout: the screen is a sub-menu, its section above a menu of "0) Return" alone, drawn by the sub-menu layout as built; or "View SSH Settings" writes the section as an action's result, and the SSH Login menu draws itself again below it (brief 1C: return without wiping the result). 02-SSH_LOGIN's own section already shows the same three rows.
-  - (b) if P-09 keeps "Enter to continue" where output must be read, as here: a fourth layout, a display: the `Header`, the `Breadcrumb` (or the title bar, [P-08](#p-08)), its sections, then a pause `PromptLine` in P-09's words, which `pkg/ui/nav` would ask as a pause of its own.
+  - (b) if P-09 keeps "Enter to continue" where output must be read, as here: a fourth layout, a display: the title bar ([P-08](#p-08), decided), its sections, then a pause `PromptLine` in P-09's words, which `pkg/ui/nav` would ask as a pause of its own.
 - **Effort:** S for (a); M for (b) (a layout, a pause in `pkg/ui/nav`, goldens).
 - **Risk:** Low: display only.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only). After: `docs/refactor/img/p-28-after.png` (placeholder).
@@ -614,7 +615,7 @@
   - **05-BACKUP:** the title "Manage Hardn Backups" against "Backup Settings"; the section "Backup Configuration" against the heading "Current Backup Configuration:"; its rows "Backup State" and "Backup Path", the path's note "Writable", against "Backups" and "Backup Path", and a line of its own, "Backup directory exists and is writable"; the items "Backup State" (Toggle backups of modified files), "Backup Path" (Change backup path) and "Verify Directory" (Test if path is writable) against "Toggle backups (currently: <state>)" (Enable or disable automatic backups of modified files), "Change backup path" (Current: <path>) and "Verify backup directory" (Test if backup directory exists and is writable); "Return" against "Return to main menu" (backup_menu.go).
   - **USER-SSH_KEYS:** "Managing SSH keys for: [user]" over "Select an option" and "1) Add SSH key", against "ℹ Managing SSH keys for user: <user>", the user's keys, "Select SSH key operation" and "1) Add SSH key" (Add a new SSH public key), with "2) Remove SSH key" when there are keys (user_options.go).
   - **USER-CREATE_USER:** "Username", "Grant sudo privilege?", "Require sudo password?", "Add SSH key?" and the section "User Configuration", against "Enter username to create", "Allow sudo access?", "Allow sudo without password?" (the opposite polarity, [P-11](#p-11)), "Add SSH public key?" and "Summary".
-  - **USER-MANAGE_SUDO-CONFIRMATION:** its title bar, "Manage User", against "Manage Sudo", which the breadcrumb's current item would take.
+  - **USER-MANAGE_SUDO-CONFIRMATION:** its title bar, "Manage User", against "Manage Sudo", which the title bar would take.
   - USER-MANAGE_USER-SELECT_USER and USER-MANAGE_USER-MANAGEMENT differ from origin/main only in the prompt ([P-29](#p-29) (a)).
 - **Proposal:** the maintainer decides each frame, for the screens Phase 5 moves onto the layouts: Figma's words, as the gallery's mocks and their goldens show them (`sub-menu/02-ssh-login`, `sub-menu/05-backup`, `sub-menu/user-ssh-keys`, `workflow-step/*`); or origin/main's, the baseline, which the real screens keep until this is decided. Each is a string of the screen's fixture or definition and the goldens.
 - **Effort:** S.
