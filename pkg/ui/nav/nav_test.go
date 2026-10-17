@@ -240,15 +240,15 @@ func TestResolve(t *testing.T) {
 		{"the exit item", main, "0", 0, ErrBack},
 		{"b", main, "b", 0, ErrBack},
 		{"q", main, "Q", 0, ErrQuit},
-		{"a number not offered", main, "11", 0, refused(invalidOption)},
-		{"a number not in canonical form", main, "01", 0, refused(invalidOption)},
-		{"an empty line", main, "", 0, refused(invalidOption)},
-		{"a word", main, "dns", 0, refused(invalidOption)},
+		{"a number not offered", main, "11", 0, refused(InvalidOption)},
+		{"a number not in canonical form", main, "01", 0, refused(InvalidOption)},
+		{"an empty line", main, "", 0, refused(InvalidOption)},
+		{"a word", main, "dns", 0, refused(InvalidOption)},
 		{"a disabled item", ssh, "1", 0, refused("Root SSH Login is unavailable.")},
 		{"the item after it", ssh, "2", 1, nil},
 		{"Return", ssh, "0", 0, ErrBack},
-		{"an item not shown", hidden, "4", 0, refused(invalidOption)},
-		{"a disabled item not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "\x1b[0m", Disabled: true}}}}, "1", 0, refused(invalidOption)},
+		{"an item not shown", hidden, "4", 0, refused(InvalidOption)},
+		{"a disabled item not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "\x1b[0m", Disabled: true}}}}, "1", 0, refused(InvalidOption)},
 		{"0 with no exit item", hidden, "0", 0, ErrBack},
 	}
 	for _, tt := range tests {
@@ -284,8 +284,8 @@ func TestChoose(t *testing.T) {
 	})
 	t.Run("a line too long", func(t *testing.T) {
 		out, err := play([]string{strings.Repeat("1", prompt.MaxLine+1), "b"}, chooseMain)
-		if !errors.Is(err, ErrBack) || strings.Count(out, invalidOption) != 1 {
-			t.Errorf("Choose() = %v, %d refusals; want ErrBack, 1", err, strings.Count(out, invalidOption))
+		if !errors.Is(err, ErrBack) || strings.Count(out, InvalidOption) != 1 {
+			t.Errorf("Choose() = %v, %d refusals; want ErrBack, 1", err, strings.Count(out, InvalidOption))
 		}
 	})
 	t.Run("a menu that breaks the grammar writes nothing", func(t *testing.T) {
@@ -327,9 +327,9 @@ func TestConfirm(t *testing.T) {
 			yes, err = p.Confirm(createUser, tt.defaultYes)
 			return err
 		})
-		if yes != tt.want || !errors.Is(err, tt.err) || strings.Count(out, invalidAnswer) != tt.refusals {
+		if yes != tt.want || !errors.Is(err, tt.err) || strings.Count(out, InvalidAnswer) != tt.refusals {
 			t.Errorf("Confirm(%q, default yes %v) = %v, %v, %d refusals; want %v, %v, %d",
-				tt.lines, tt.defaultYes, yes, err, strings.Count(out, invalidAnswer), tt.want, tt.err, tt.refusals)
+				tt.lines, tt.defaultYes, yes, err, strings.Count(out, InvalidAnswer), tt.want, tt.err, tt.refusals)
 		}
 	}
 	out, _ := play([]string{"y"}, func(p Prompter) error { _, err := p.Confirm(createUser, true); return err })
@@ -436,6 +436,38 @@ func TestText(t *testing.T) {
 	out, _ := play([]string{"george"}, text)
 	if want := "   1. Username [0, b or q]: george\n"; out != want {
 		t.Errorf("transcript %q, want %q", out, want)
+	}
+}
+
+// TestAsk checks the loop other packages ask with: a reason from Refuse
+// is written under the prompt, and the prompt again; a reason that shows
+// nothing, and a line longer than prompt.MaxLine, are refused for the
+// reason invalid.
+func TestAsk(t *testing.T) {
+	question := component.PromptLine{Accepts: keys.Navigation()}
+	resolve := func(line string) error {
+		switch line {
+		case "a b":
+			return Refuse("Username cannot contain spaces") // origin/main's
+		case "blank":
+			return Refuse("\x1b[0m ")
+		}
+		return Navigate(line)
+	}
+	long := strings.Repeat("x", prompt.MaxLine+1)
+	out, err := play([]string{"a b", "blank", long, "george"}, func(p Prompter) error {
+		return p.Ask(question.Render(p.Ctx), InvalidAnswer, resolve)
+	})
+	out = strings.ReplaceAll(out, long, "<long line>")
+	want := "  > [0, b or q]: a b\n" +
+		"  [!] Error: Username cannot contain spaces\n" +
+		"  > [0, b or q]: blank\n" +
+		"  [!] Error: " + InvalidAnswer + "\n" +
+		"  > [0, b or q]: <long line>\n" +
+		"  [!] Error: " + InvalidAnswer + "\n" +
+		"  > [0, b or q]: george\n"
+	if err != nil || out != want {
+		t.Errorf("Ask: %v, transcript\n%s\nwant nil and\n%s", err, out, want)
 	}
 }
 

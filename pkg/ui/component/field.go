@@ -59,11 +59,7 @@ func (vm AnsweredField) Render(c Ctx) string {
 		return ""
 	}
 	numbered := vm.Number > 0
-	head := line{gap(theme.Indent - 1)} // ask puts a cell before the label
-	if numbered {
-		n := strconv.Itoa(vm.Number) + "."
-		head = line{gap(theme.MarkerCol + theme.MarkerWidth - lipgloss.Width(n)), {n, t.Number}}
-	}
+	head := vm.head(c)
 	hint, answer := clean(vm.Accepts.Hint()), clean(vm.Answer)
 	asked, shown := c.ask(head, label, hint, t.Label, t.Hint, w)
 	if !shown && hint == "" && !numbered {
@@ -86,4 +82,30 @@ func (vm AnsweredField) Render(c Ctx) string {
 		return c.fit(append(beside, gap(1), a), w)
 	}
 	return c.fit(asked, w) + "\n" + c.fit(line{gap(theme.StackCol), a}, w)
+}
+
+// ShowsWhole reports whether the field, asked with no answer, shows its
+// number, its question and its hint whole on one line at c's width: the
+// line Render then returns has nothing cut. The answer is not measured. A
+// form (pkg/ui/form) asks a question that would be cut under a FieldHead
+// instead, where the title has the line to itself and the hint goes on the
+// prompt line. A field with no question shows nothing, so not whole.
+func (vm AnsweredField) ShowsWhole(c Ctx) bool {
+	t, label := c.Theme.Field, clean(vm.Label)
+	if label == "" {
+		return false
+	}
+	question, _ := c.ask(vm.head(c), label, clean(vm.Accepts.Hint()), t.Label, t.Hint, math.MaxInt)
+	return question.width() <= c.width()
+}
+
+// head is the field's line before the space ask puts ahead of the
+// question: the number right-aligned to end at column 4, or the indent
+// less that space.
+func (vm AnsweredField) head(c Ctx) line {
+	if vm.Number > 0 {
+		n := strconv.Itoa(vm.Number) + "."
+		return line{gap(theme.MarkerCol + theme.MarkerWidth - lipgloss.Width(n)), {n, c.Theme.Field.Number}}
+	}
+	return line{gap(theme.Indent - 1)}
 }

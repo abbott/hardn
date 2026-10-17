@@ -177,6 +177,7 @@ func TestColourRoles(t *testing.T) {
 		{"Menu.Risk", false, "status.warn"},
 		{"Field.Label", false, "text.primary"},
 		{"Field.Answer", false, "text.muted"}, // drift D4
+		{"Field.Description", false, "text.muted"},
 		{"Callout.OK.Bar", true, "accent.ok"},
 		{"Callout.Warn.Bar", true, "accent.warn"},
 		{"Callout.Bad.Bar", true, "status.bad"},

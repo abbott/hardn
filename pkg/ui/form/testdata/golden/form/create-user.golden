@@ -1,0 +1,30 @@
+# Golden file of TestGolden/create-user, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$
+$
+   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+   1. Username [0, b or q]: george$
+$
+   2. Grant sudo privilege? [y/N, 0, b or q]: y$
+$
+   3. Require sudo password? [y/N, 0, b or q]: n$
+$
+   4. Add SSH key? [y/N, 0, b or q]: n$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0, b or q]:␛[m george$
+$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m y$
+$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$
+$
+   ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0, b or q]:␛[m n$

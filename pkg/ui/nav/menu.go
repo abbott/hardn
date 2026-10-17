@@ -116,7 +116,7 @@ func (m Menu) resolve(line string) (int, error) {
 			return -1, refused(fmt.Sprintf(unavailable, strings.TrimSpace(o.Item.Label)))
 		}
 	}
-	return -1, refused(invalidOption)
+	return -1, refused(InvalidOption)
 }
 
 // Choose asks label, such as Figma's "Enter your choice", as a PromptLine
@@ -131,7 +131,7 @@ func (p Prompter) Choose(m Menu, label string) (Option, error) {
 	}
 	question := component.PromptLine{Label: label, Accepts: m.Accepts()}.Render(p.Ctx)
 	var chosen Option
-	err := p.ask(question, invalidOption, func(line string) error {
+	err := p.Ask(question, InvalidOption, func(line string) error {
 		i, err := m.resolve(line)
 		if err == nil {
 			chosen = m.Options[i]

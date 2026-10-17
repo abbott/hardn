@@ -2,7 +2,7 @@
 
 > **For:** maintainers reviewing the design system. It records what is built, why, and where it departs from the Figma design.
 >
-> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`) and the navigation grammar in `pkg/ui/nav` (`next/p1c-nav`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
+> **Status:** Phase 1A (foundations) of the refactor plan: `pkg/ui/term` (the render environment), `pkg/ui/theme` (tokens, style slots, glyphs, grid) and `pkg/ui/uitest` (the golden harness); and from Phase 1B the first components in `pkg/ui/component`: the header group (`next/p1b-header`), the status group (`next/p1b-status`), the menu group, with the accepted-input data in `pkg/ui/keys` (`next/p1b-menu`), the block group (`next/p1b-blocks`), and the plan group, with the line diff in `pkg/diff` (`next/p1b-plan`); and from Phase 1C the line reader in `pkg/ui/prompt` (`next/p1c-reader`), the navigation grammar in `pkg/ui/nav` (`next/p1c-nav`) and the forms in `pkg/ui/form`, with the `FieldHead` component (`next/p1c-form`). Screens, the gallery and the import rules come in later units; their sections below are placeholders. Nothing in `cmd/hardn` uses `pkg/ui` yet: `go list -deps ./cmd/hardn` lists no `pkg/ui`, `charm.land` or `charmbracelet` package.
 >
 > **Companion logs:** [deviations.md](deviations.md) (where the code departs from Figma, and why) and [../refactor/proposals.md](../refactor/proposals.md) (enhancements waiting for the maintainer).
 
@@ -181,12 +181,12 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 104 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 105 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
 | `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Field.Number`, `Field.Label`, `Field.Hint`, `Message.Info`, `Callout.Info.Title`, `KeyValue.Key`, `Breadcrumb.Current`, `Plan.Title`, `Step.Running`, `Step.Title`, `Confirm.Text`, `Confirm.Command` |
-| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Field.Answer`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `KeyValue.ValueNotApplicable`, `Section.Title`, `Breadcrumb.Item`, `Plan.Target`, `Plan.Context`, `Plan.Command`, `Step.Pending`, `Step.Skipped`, `Output` |
+| `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `Host.Address`, `Risk.Factor`, `Status.NotApplicable`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Field.Answer`, `Field.Description`, `Message.Text`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `KeyValue.ValueNotApplicable`, `Section.Title`, `Breadcrumb.Item`, `Plan.Target`, `Plan.Context`, `Plan.Command`, `Step.Pending`, `Step.Skipped`, `Output` |
 | `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator`, `Plan.Meta`, `Step.Detail` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Message.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
 | `status.bad` | `Risk.High`, `Status.NotConfigured`, `Message.Bad`, `Callout.Bad.Title`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed`, `Confirm.Urgent` |
@@ -199,7 +199,7 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011).
 | `status.bad`, `text.muted` (background) | `Callout.Bad.Bar`, `Callout.Info.Bar`: kinds Figma does not draw, from existing tokens (DEV-032) |
 | `divider` | `Divider`, `Section.Rule` |
 
-Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022; the block group's `Callout.Bad`, `Callout.Info`, `KeyValue.ValueUnknown` and `KeyValue.ValueNotApplicable` are DEV-032 and DEV-034; the plan group's `Plan.Title`, `Plan.Target`, `Plan.Meta`, `Plan.Command`, `Step.Skipped`, `Step.Title`, `Step.Detail`, `Output` and `Confirm` are DEV-038 to DEV-041, all from existing tokens. `Field` styles the answered form field (`next/p1b-blocks`); its answer slot was `Prompt.Input` until then. The slots still missing, a form field's description and inline error for `next/p1c-form`, are listed on `theme.Theme`.
+Slots for states Figma does not draw (risk bands other than Moderate, Partial, messages, plan and step states, and others) are DEV-016; the header group's `ContextBar.Unknown`, `Host.Unknown` and `Risk.Factor` are DEV-022; the block group's `Callout.Bad`, `Callout.Info`, `KeyValue.ValueUnknown` and `KeyValue.ValueNotApplicable` are DEV-032 and DEV-034; the plan group's `Plan.Title`, `Plan.Target`, `Plan.Meta`, `Plan.Command`, `Step.Skipped`, `Step.Title`, `Step.Detail`, `Output` and `Confirm` are DEV-038 to DEV-041, all from existing tokens. `Field` styles the answered form field (`next/p1b-blocks`); its answer slot was `Prompt.Input` until then. `next/p1c-form` added `Field.Description`, muted as the other prose under a label; a field's options are `Menu` rows and its inline error a `Message` of kind bad, as every refused line is, so neither has a slot of its own (DEV-046).
 
 ## 5. Typography
 
@@ -315,6 +315,7 @@ Goldens lock in hardn's own rendering to catch regressions. They do not measure 
 - `pkg/ui/uitest/testdata/golden/harness.golden`: the harness's own check, one render at each profile and in plain mode, at width 20.
 - `pkg/ui/component/testdata/golden/<component>/<state>.golden`: `TestGolden` on `Full()`, one file per component state (§9.2 to §9.6).
 - `pkg/ui/nav/testdata/golden/nav/<prompt>.golden`: `TestGolden` on `Core()`, a transcript per prompt of the grammar, the answers echoed as a terminal shows them (§9.8).
+- `pkg/ui/form/testdata/golden/form/<case>.golden`: `TestGolden` on `Core()`, a transcript per kind of field, asked, refused and answered, and of Figma's form (§9.9).
 
 **Running and regenerating:**
 - `make check` runs every golden in its `check-test` step, and fails on a mismatch.
@@ -411,7 +412,7 @@ Not applicable is a menu item's `Disabled` state: an item that does not apply to
 
 Not applicable, unknown and error by component: a `KeyValue` has both as value states; a `Badge` or `SubjectLine` names what the screen already holds (a user read from the password file, or chosen from a list), so it has no unknown state and renders nothing without its subject; a failure is a `Message` or `Callout` of kind bad, and a full failure report is `ErrorReport` (`next/p1b-plan`). The other components have no state of their own.
 
-**Open for later units.** `AnsweredField` with no answer is the question as asked, so `next/p1c-form` can use it for both the asking line and its echo; `pkg/ui/nav` asks its questions so (§9.8). Its y/N hint reads `[y/N]:`, the default in capitals, since `next/p1c-nav` (DEV-045). No screen uses `Breadcrumb` before P-08 is decided.
+**Open for later units.** `AnsweredField` with no answer is the question as asked; `pkg/ui/nav` asks its questions so (§9.8), and `pkg/ui/form` asks a one-line field so and echoes an answer with it (§9.9). Its y/N hint reads `[y/N]:`, the default in capitals, since `next/p1c-nav` (DEV-045). No screen uses `Breadcrumb` before P-08 is decided.
 
 ### 9.6 Plan group (`next/p1b-plan`)
 
@@ -502,9 +503,66 @@ Lines match as `keys.Set.Match` compares them: the white space around a line ign
 
 **Tested.** Matching and `Check` table-tested; the loops on scripted input, a typist that echoes each line as a terminal would: `TestGrammar` puts `0`, `b`, `B`, `q`, `Q` and the end of the input to a main menu, a sub-menu, a y/N question, a typed confirmation and free text; `TestRun` nests a sub-menu, goes back and quits from it; `TestRunGap` checks the gaps of a nested run; `TestTypedWhole` every phrase length from 1 to 64 at 40, 60, 64, 80 and 120 columns in both glyph sets. Goldens on `Core()`, each asked a line it refuses: `nav/main-menu` (left with `0`, which exits), `nav/sub-menu` (a disabled item; left with `q`), `nav/workflow-step` (free text, then y/N, left with `0`), `nav/typed-confirmation` (left with `q`) and `nav/rounds` (a result, the menu again, a sub-menu left with `b`, then `q`): so `0` or `b` and `q` are on record on the main menu, a sub-menu and a workflow step alike. No real terminal was used: the reader's own tests cover the terminal (§9.7).
 
-**Open for later units.** `next/p1c-form` builds fields on `Text` and `Confirm`, with validation and the inline error's own slot (`theme.Theme` lists it), and may then move the refusal to that style; `next/p1c-flow` words the confirmations, chooses y/N or typed per step, picks a phrase `Typed` can show whole, and writes the gap before its first step; `next/p1d-slice` composes what `Run` draws above the menu, including the breadcrumb sub-screens show (brief 1C; `Breadcrumb` exists, P-08 decides its use), which goes into `Screen.Above`; `next/p3-output` decides the exit codes of a quit and of a script that ran out of answers.
+**Open for later units.** `next/p1c-form` asks its fields with the same loop, exported as `Prompter.Ask`, and refuses a value its validation rejects with `Refuse`, so a validation error looks like any refused line; it added no style for it (§9.9); `next/p1c-flow` words the confirmations, chooses y/N or typed per step, picks a phrase `Typed` can show whole, and writes the gap before its first step; `next/p1d-slice` composes what `Run` draws above the menu, including the breadcrumb sub-screens show (brief 1C; `Breadcrumb` exists, P-08 decides its use), which goes into `Screen.Above`; `next/p3-output` decides the exit codes of a quit and of a script that ran out of answers.
 
-### 9.9 Still to come (placeholders)
+### 9.9 Forms (`next/p1c-form`)
+
+`pkg/ui/form` collects a flow's answers, the Collect step of brief 1C's canonical flow, after huh's patterns, none of huh imported; its package doc is the full statement. A form only collects: it has no actions, so no prompt is interleaved with a change, and the caller acts on the answers only once `Run` returns nil.
+
+| Part | What it is |
+|---|---|
+| `Form{Fields}`, `Run(p nav.Prompter)` | The fields asked in order. nil once the last is answered; `nav.ErrBack` when the user goes back from the first field asked; `nav.ErrQuit`; `ErrAborted` (`prompt.ErrAborted`) at the end of the input or Ctrl-C; `ErrField` for a field that cannot be asked (a nil field, no `Value`, no title, a `Select` with no options or an option with no label). On any error every `Value` is put back as it was before `Run` |
+| every field | `Title`, or `TitleFunc`, called each time the field is asked; `Description`; `Validate func(T) error`; `Skip func() bool`; `Value *T`, the typed binding |
+| `Text` | Free text: the line without the white space around it, an empty line giving `Default`. `0`, `b` and `q` navigate there too (P-25 (a)) |
+| `YesNo` | A y/N question (`keys.YesNo`): y, yes, n or no in any case, an empty line giving `Default`, the capital in the hint |
+| `Select[T]`, `Option[T]` | A numbered choice the form collects: `Options`, or `OptionsFunc` called each time, listed as a menu's items keyed from 1; the number of one is taken, at a prompt that asks "Enter your choice", as a menu's does. No `Default`: a numbered hint cannot mark one, and Enter chooses nothing, as on a menu. A choice that opens a screen of its own is a `nav.Menu`, not a `Select` (**Choices** below) |
+| `AnsweredField.ShowsWhole` (`pkg/ui/component`) | Whether the field, asked with no answer, shows its number, question and hint uncut on one line at the context's width; the form asks a question that would be cut under a `FieldHead` instead. `TestShowsWhole` holds it to `Render` at every width from 1 to 130 |
+| `FieldHead` (`pkg/ui/component`) | View-model `Number`, `Title`, `Description`, `Options` (`MenuItem`). The title numbered as an `AnsweredField`'s question but with no hint and no colon, on a line of its own, cut with the ellipsis only when that line is too narrow; the description in `Field.Description`, wrapped from col 6; then `SectionGap` blank lines and the options as `Menu` rows, stacked as a menu stacks. States (goldens on `Full()`): `description`, `options`, `both`, `unnumbered`, `title`, `long`, `empty` (no title: nothing). Lip Gloss helpers: none, as for `Menu` and `Message`: spans, `lipgloss.Wrap`, then `Menu` |
+
+**One field structure** (DEV-046; brief 1C: one structure, defined by Figma, for every kind of field). A text field refused by its validation, then answered; a choice with a head; a y/N question whose default Enter took. Plain, with the trailing spaces after an empty answer left out:
+
+```text
+0 2   6
+   1. Username [0, b or q]: George
+  [!] Error: Username must start with a lowercase letter and
+      contain only lowercase letters, numbers, hyphens, and
+      underscores
+   1. Username [0, b or q]: george
+
+   2. Select a user
+
+   1) george
+   2) alice
+
+  > Enter your choice [1-2, 0, b or q]: 2
+   2. Select a user: alice
+
+   3. Grant sudo privilege? [y/N, 0, b or q]:
+   3. Grant sudo privilege? [y/N]: n
+```
+
+- **Asked on one line** when the field has neither description nor options, and the line shows its question and hint whole (`AnsweredField.ShowsWhole`): an `AnsweredField` with no answer, as `nav` asks a question and as Figma draws its form.
+- **Asked on a prompt line of its own** when it has either, or when the one line would cut its question: the `FieldHead`, `PromptGap` blank lines, then a `PromptLine`. A `Select`'s says Figma's "Enter your choice", as a menu's does; a text or y/N field's has no label, since the question is the line right above and no Figma or origin/main screen words such a prompt. Its hint is the field's inputs, then the navigation's. The prompt must be the last line written, so whatever a field shows besides its question goes above the prompt.
+- **Narrow terminals and long titles:** on one line the hint is kept whole and the question is cut first, then dropped, so the form moves such a question under its head, where the title has the content width to itself: at 40 columns "Grant sudo privilege?" is asked as `   2. Grant sudo privilege?`, a blank line, then `  > [y/N, 0, b or q]:`; and so, at 80 columns, is origin/main's "Enter new username (leave empty to keep current)" in a numbered form. The title is still one line, cut when even that is too narrow (below 27 columns for "Grant sudo privilege?"), so words a user must read whole, such as what a default is, belong in the `Description`, which wraps. `TestNarrow` checks the create-user form at every width from 20 to 130. A form can so mix one-line fields and fields under a head; at the core widths, 60 and 80, every field of Figma's form is one line.
+- **Refused:** a line the field does not take, in `nav`'s words ("Invalid answer. Please try again." at text and y/N, origin/main's "Invalid option. Please try again." at a choice), or a value its `Validate` rejects, in the validation's words (such as origin/main's username rule), is answered under the prompt by an error `Message`, and the prompt alone is asked again: the head is not written again (brief 1C: re-ask only that field, keeping context). This is `nav`'s loop, exported as `Prompter.Ask`, with `Refuse` for the validation's reason; the inline error has no style of its own.
+- **Answered:** the terminal's echo shows the answer (DEV-043). The form writes the field again as an `AnsweredField` with the answer, muted, under it only when the line typed does not read as the answer: after a prompt line of its own, where a `Select`'s echo names the option rather than its number, and after an empty line that took a default (DEV-047). The echo keeps a y/N's `[y/N]` and drops the navigation, as Figma's answered line shows `(y/n)`.
+- **Numbers:** in a form of more than one field, by place among the fields asked, so a skipped field takes none and the numbers run on (DEV-047). Every field asked is numbered, even when `Skip` leaves only one: its number is shown as it is asked, before the later fields' `Skip`, which may read its answer, can tell. A form of one field is unnumbered, as Figma's single questions are (USER-MANAGE_SUDO-CONFIRMATION, SSH_LOGIN-TOGGLE_CONFIRMATION).
+- **Gaps:** `SectionGap` blank lines before each field once any prompt has been asked (`prompt.Reader.Asked`), as Figma spaces its form and as `nav.Run` sets a drawing apart, so a form run by a menu's action starts apart from the answer that chose it. Before any prompt, `Run` cannot tell whether anything stands above its first field and writes no gap there. So the rule for `next/p1c-flow` and `next/p1d-slice`: a caller that draws something above a form, such as the "Create User" title bar Figma sets a blank line under, ends it with `SectionGap` blank lines itself when `Asked` reports false, and leaves them to `Run` when it reports true.
+- **Choices: menu or form.** A choice that opens a screen of its own is a `nav.Menu` screen, drawn as Figma draws one (an underlined `MenuHeading`, the items, "0) Return", "Enter your choice"): Figma's "Select a user" (USER-MANAGE_USER-SELECT_USER), whose choice opens that user's management menu, is one, built in `next/p1d-slice`. `form.Select` is for a choice a flow collects and acts on after its review, such as origin/main's "Select a key to remove" (pkg/menu user_options.go:502), which no Figma screen draws. It keeps the form's field structure: its title is a field's question, numbered with the others, not a menu heading; Figma's blank line between heading and items is kept; it has no Return row, since `0` in a form goes back to the field before; and its prompt keeps Figma's "Enter your choice" (DEV-046).
+- **Plain mode** (huh's accessible mode): the same definitions through `term.Env`, with no colour, ASCII glyphs and nothing animated (the `plain-80` cell of every form golden).
+
+**Values and navigation:**
+- A `Value` is bound as soon as its field takes a line, so a later field's `TitleFunc`, `OptionsFunc` and `Skip` read the earlier answers from the caller's own variables. On any error every `Value` is put back as it was before `Run`, and a skipped field is put back each time it is skipped, so an answer given on a path the user then left does not stay.
+- `0` or `b` goes back to the field asked before, asked again from the start: its earlier answer stays on screen above, but Enter takes the field's `Default`, not that answer. From the first field asked, it leaves the form (`nav.ErrBack`). Built pending P-26 (a) and (b). `q` quits and the end of the input aborts from any field.
+- `Skip` is called again when back returns to its field, so it should read only the fields before it and the host.
+- A text field's `Default` shows before the answer only where the screen's words say so, as origin/main's labels do; the echo shows it after. Built pending P-26 (c). A title is one line: "Enter new username (leave empty to keep current)" shows whole as a numbered field's title from 54 columns, asked under its head, since beside the hint it needs 67 cells; but "Enter filename to export system status (default: system_status.txt)", 67 cells, never does under the 64-cell content cap, so a screen that must show such words whole puts them in the `Description`.
+- `Validate` may read the system, such as whether a user exists, and must change nothing.
+
+**Tested.** Scripted readers, a typist echoing each line as a terminal would (as `nav`'s tests): Figma's create-user form answered as Figma shows it; a value refused by its validation, then fixed, at a text field with a head (the head written once), a y/N question and a choice; refusals in `nav`'s words; defaults taken by Enter and their echo; skip rules, a skipped field put back and the numbers running on; `TitleFunc` and `OptionsFunc` called again after back; `b`, `q` and the end of the input at every field of the form, with every value put back on failure, and `0` as `b`; fields that cannot be asked (`ErrField`, nothing written for them, a nil field included); a failed write at the prompt (the reader's), and at the gap and the echo (the form's own, `form: write`); when a field is asked on one line and when under its head (`TestLayout`, a description that shows nothing staying on one line), and the create-user form at every width from 20 to 130 (`TestNarrow`). Goldens on `Core()`: `form/text`, `form/text-description`, `form/yes-no` and `form/select` (its options set apart and its prompt labelled since the review fixes), each asked, refused and answered; `form/create-user`; `form/back` (back from field 3 to 2, whose new answer skips 3, so the key question is 4). No real terminal was used: the reader's own tests cover the terminal (§9.7).
+
+**Open for later units.** `next/p1c-flow` runs a form as its Collect step, then reviews the answers (Figma's "User Configuration" list), plans and confirms; the confirmation Figma numbers as a form's last field ("5. Create user 'george'?") is the flow's Confirm step there (P-10). Whether hardn prompts at all without a terminal, and whether a form then echoes each answer for a log, is `next/p3-output`'s. No screen uses a form before `next/p1d-slice`.
+
+### 9.10 Still to come (placeholders)
 
 - **Screen layouts:** the main-menu, sub-menu and workflow-step layouts, which screens use each, and the table from screenshot elements and export tokens to Go components land with `next/p1d-slice`.
 - **Usage rules and depguard:** the rules for using the system (including the brief's 1C list of patterns not to borrow) and the depguard configuration that keeps Lip Gloss, colorprofile and fatih/color out of feature code, and `compat` out everywhere, land with `next/p1d-lint`.
