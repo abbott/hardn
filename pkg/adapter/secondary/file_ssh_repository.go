@@ -92,8 +92,13 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	content.WriteString("PermitEmptyPasswords no\n\n")
 
 	// Authorized keys: one line, since sshd uses the first AuthorizedKeysFile
-	// it reads and a line lists every file (sshd_config(5)).
-	if len(config.KeyPaths) > 0 {
+	// it reads and a line lists every file (sshd_config(5)); origin/main's
+	// line per path is kept behind authorizedKeysFileLinePerPath.
+	if len(config.KeyPaths) > 0 && authorizedKeysFileLinePerPath {
+		for _, path := range config.KeyPaths {
+			content.WriteString(fmt.Sprintf("AuthorizedKeysFile %s\n", path))
+		}
+	} else if len(config.KeyPaths) > 0 {
 		content.WriteString(fmt.Sprintf("AuthorizedKeysFile %s\n", strings.Join(config.KeyPaths, " ")))
 	} else {
 		content.WriteString("AuthorizedKeysFile .ssh/authorized_keys\n")
@@ -128,6 +133,22 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 
 	return nil
 }
+
+// authorizedKeysFileLinePerPath: DISABLED 2026-10-17. Flip to true to
+// restore.
+//
+// With it true, SaveSSHConfig writes one "AuthorizedKeysFile <path>" line
+// per key path, as origin/main did. sshd uses the first AuthorizedKeysFile
+// it reads (sshd_config(5)), so of two paths only the first counts: v0.3.2's
+// pair that hardn -c now passes (pkg/cmd authorizedKeysSSHUOnly) would lose
+// ~/.ssh_<user>/authorized_keys again (V24). No origin/main caller passed
+// more than one path (-c and SecureSSH pass one; HardenSystem's SshKeyPaths
+// is never set), so origin/main's files are the same either way: flip it
+// with authorizedKeysSSHUOnly to restore origin/main's code as well as its
+// output (gate 4, V5 and V24).
+//
+// With it false, every path goes on one AuthorizedKeysFile line.
+const authorizedKeysFileLinePerPath = false
 
 // GetSSHConfig reads the current SSH configuration
 func (r *FileSSHRepository) GetSSHConfig() (*model.SSHConfig, error) {

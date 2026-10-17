@@ -162,6 +162,9 @@ func keys(m map[string][]byte) []string {
 // every key path on one AuthorizedKeysFile line: sshd uses the first such
 // line it reads, so a second line would be ignored.
 func TestSaveSSHConfigAuthorizedKeysFile(t *testing.T) {
+	if authorizedKeysFileLinePerPath {
+		t.Fatal("authorizedKeysFileLinePerPath is set: a second key path goes on a line sshd ignores (V24)")
+	}
 	for _, tc := range []struct {
 		paths []string
 		want  string
