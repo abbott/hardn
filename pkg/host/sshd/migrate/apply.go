@@ -12,7 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
-	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
@@ -33,6 +33,8 @@ type Narrowing struct {
 	Before, After string
 }
 
+// String is the narrowing as the error shows it: the keyword, then its
+// value before and after.
 func (n Narrowing) String() string {
 	return fmt.Sprintf("%s: %q before, %q after", n.Keyword, n.Before, n.After)
 }
@@ -43,6 +45,7 @@ type NarrowError struct {
 	Narrowings []Narrowing
 }
 
+// Error names the state and every narrowing.
 func (e *NarrowError) Error() string {
 	ns := make([]string, len(e.Narrowings))
 	for i, n := range e.Narrowings {
@@ -54,14 +57,14 @@ func (e *NarrowError) Error() string {
 // Is makes errors.Is(err, ErrFewerLoginPaths) hold.
 func (e *NarrowError) Is(target error) bool { return target == ErrFewerLoginPaths }
 
-// Options says how Apply checks and records the migration.
+// Options says how Check and Apply check and record the migration.
 type Options struct {
-	// RunDir, Platform and Binary are sshd.Validate's (Request).
-	RunDir   string
-	Platform detect.Platform
-	Binary   string
+	// RunDir and Binary are sshd.Validate's (Request); its Platform is
+	// the plan's (Plan.Platform).
+	RunDir string
+	Binary string
 	// Backup is the run's backup store; every file a step writes or removes
-	// is backed up first, RollbackRequired.
+	// is backed up first, RollbackRequired. Check does not use it.
 	Backup *backup.Run
 }
 
@@ -71,17 +74,73 @@ type Report struct {
 	Backups  []backup.Result // one per file, before any step ran
 	After    sshd.Effective  // the migrated configuration, by sshd -T over the copy
 	Findings []sshd.Finding  // sshd.Validate's, about the migrated configuration
-	// Kept is Before's listeners and the plan's Hold, all of which After
-	// keeps: reload.Change's Before for the reload that follows (docs/safety/sshd-migrate.md §6).
-	Kept []sshd.Listener
 }
 
-// Apply carries out p. Before writing anything it validates the state the
-// whole plan leads to and compares its login paths with p.Before and
-// p.Hold; then it backs up every file the steps change, and checks that
-// each is still as the plan read it; then, for each step, it validates the
-// state that step leaves and compares again, and only then writes or
-// removes. It stops at the first error; the steps in Report.Done have been
+// Check validates the state the whole plan leads to as Apply does before
+// it backs up or writes anything: sshd.Validate over a copy in
+// opts.RunDir (it writes nothing else), the comparison of its login paths
+// with p.Before, p.Hold and the listeners that accept connections now, and
+// the overlap check. It returns the migrated configuration, for
+// Plan.Reload, and Validate's findings. The engine runs it at plan time, so
+// that Apply's refusals, and the reload's (reload.PlanFor over Plan.Reload
+// and Plan.SocketDropIns), show in a dry run before anything changes.
+// Errors are Apply's, without backup's and ErrChanged; an empty plan
+// returns the zero Effective.
+func Check(ctx context.Context, sys host.System, p Plan, opts Options) (sshd.Effective, []sshd.Finding, error) {
+	if err := ctx.Err(); err != nil {
+		return sshd.Effective{}, nil, fmt.Errorf("migrate: %w", err)
+	}
+	if p.Empty() {
+		return sshd.Effective{}, nil, nil
+	}
+	if err := established(p.Before); err != nil {
+		return sshd.Effective{}, nil, fmt.Errorf("migrate: the installed configuration: %w", err)
+	}
+	var all []sshd.Change
+	for _, op := range p.Ops {
+		all = append(all, op.changes()...)
+	}
+	after, found, err := check(ctx, sys, all, p, opts, "the migrated configuration")
+	if err != nil {
+		return sshd.Effective{}, nil, err
+	}
+	was := overlaps(p.Before.Listeners.SSHD)
+	if ov := slices.DeleteFunc(overlaps(after.Listeners.SSHD), func(o string) bool { return slices.Contains(was, o) }); len(ov) > 0 {
+		return sshd.Effective{}, nil, fmt.Errorf("migrate: the migrated configuration listens on %s: %w", strings.Join(ov, "; "), ErrListenerOverlap)
+	}
+	return after, found, nil
+}
+
+// Reload is the change the reload after the migration makes:
+// reload.Change{Keywords: p.Keywords, Before: p.Listening, After: after's
+// sshd listeners}, where after is Check's or Report.After. No Keywords:
+// nothing to reload (listen.conf removed where it had no effect). Plan it
+// with reload.PlanFor, with p.SocketDropIns' drop-ins, at plan time.
+func (p Plan) Reload(after sshd.Effective) reload.Change {
+	return reload.Change{Keywords: slices.Clone(p.Keywords), Before: p.Listening, After: slices.Clone(after.Listeners.SSHD)}
+}
+
+// SocketDropIns is d, reload.ReadSocketDropIns's answer read before Apply,
+// as it is once the plan has run: without the drop-ins it removes
+// (listen.conf), so that reload.PlanFor plans the reload that follows
+// rather than refusing for a file the migration removes
+// (reload.ErrSocketDropIn).
+func (p Plan) SocketDropIns(d reload.SocketDropIns) reload.SocketDropIns {
+	out := reload.SocketDropIns{Read: d.Read}
+	for _, f := range d.Files {
+		if !slices.ContainsFunc(p.Ops, func(op Op) bool { return op.Kind == OpRemoveSocketDropIn && op.Path == f.Path }) {
+			out.Files = append(out.Files, f)
+		}
+	}
+	return out
+}
+
+// Apply carries out p. Before writing anything it runs Check: it validates
+// the state the whole plan leads to and compares its login paths with
+// p.Before, p.Hold and the listeners that accept connections now; then it
+// backs up every file the steps change, and checks that each is still as
+// the plan read it; then, for each step, it validates the state that step
+// leaves and compares again, and only then writes or removes. It stops at the first error; the steps in Report.Done have been
 // carried out, and backup.Restore of Report.Backups' entries undoes them
 // (under context.WithoutCancel after Ctrl-C). It reloads nothing: the
 // running sshd keeps its configuration until the caller's reload. Errors:
@@ -99,27 +158,11 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Report, 
 	if opts.Backup == nil {
 		return rep, fmt.Errorf("migrate: no backup run: %w", fs.ErrInvalid)
 	}
-	if err := established(p.Before); err != nil {
-		return rep, fmt.Errorf("migrate: the installed configuration: %w", err)
-	}
-	var all []sshd.Change
-	for _, op := range p.Ops {
-		all = append(all, op.changes()...)
-	}
-	after, found, err := check(ctx, sys, all, p, opts, "the migrated configuration")
+	after, found, err := Check(ctx, sys, p, opts)
 	if err != nil {
 		return rep, err
 	}
-	was := overlaps(p.Before.Listeners.SSHD)
-	if ov := slices.DeleteFunc(overlaps(after.Listeners.SSHD), func(o string) bool { return slices.Contains(was, o) }); len(ov) > 0 {
-		return rep, fmt.Errorf("migrate: the migrated configuration listens on %s: %w", strings.Join(ov, "; "), ErrListenerOverlap)
-	}
 	rep.After, rep.Findings = after, found
-	for _, l := range slices.Concat(p.Before.Listeners.SSHD, p.Hold) {
-		if !slices.Contains(rep.Kept, l) {
-			rep.Kept = append(rep.Kept, l)
-		}
-	}
 	for _, op := range p.Ops {
 		for _, name := range op.paths() {
 			r, err := opts.Backup.Backup(ctx, name, backup.RollbackRequired)
@@ -211,9 +254,9 @@ func (p Plan) unchanged(e backup.Entry) error {
 
 // check validates the host's configuration with changes applied and
 // compares its login paths with p.Before; p.Hold are listeners it must
-// keep besides Before's.
+// keep besides sshd's (p.keepSSHD).
 func check(ctx context.Context, sys host.System, changes []sshd.Change, p Plan, opts Options, state string) (sshd.Effective, []sshd.Finding, error) {
-	rep, err := sshd.Validate(ctx, sys, sshd.Request{Changes: changes, RunDir: opts.RunDir, Platform: opts.Platform, Binary: opts.Binary})
+	rep, err := sshd.Validate(ctx, sys, sshd.Request{Changes: changes, RunDir: opts.RunDir, Platform: p.Platform, Binary: opts.Binary})
 	if err != nil {
 		return sshd.Effective{}, nil, fmt.Errorf("migrate: validating %s: %w", state, err)
 	}
@@ -221,7 +264,7 @@ func check(ctx context.Context, sys host.System, changes []sshd.Change, p Plan, 
 	if err := established(after); err != nil {
 		return sshd.Effective{}, nil, fmt.Errorf("migrate: %s: %w", state, err)
 	}
-	if ns := narrowings(p.Before, after, p.Hold); len(ns) > 0 {
+	if ns := narrowings(p.Before, after, p.keepSSHD(), p.Hold); len(ns) > 0 {
 		return after, rep.Findings, &NarrowError{State: state, Narrowings: ns}
 	}
 	return after, rep.Findings, nil
@@ -276,13 +319,24 @@ var methods = []string{"permitemptypasswords", "usepam", "hostbasedauthenticatio
 // rootRank orders PermitRootLogin's values by what they let root do.
 var rootRank = map[string]int{"no": 0, "forced-commands-only": 1, "prohibit-password": 2, "yes": 3}
 
+// keepSSHD is the sshd listeners every state must configure: sshd's set
+// (Before.Listeners.SSHD), except on a socket host whose generator follows
+// the files when the plan writes them, where ssh.socket's listeners accept
+// the connections and are in Hold (Plan.Listening).
+func (p Plan) keepSSHD() []sshd.Listener {
+	if p.DropIn != nil && socketFollowsFiles(p.SSH) {
+		return nil
+	}
+	return p.Before.Listeners.SSHD
+}
+
 // narrowings lists how after accepts fewer logins than before: an
 // authentication method or PAM turned off, a lower PermitRootLogin, a user
 // or group no longer allowed or newly denied, a key file no longer read, a
 // stricter AuthenticationMethods, a fixed keyword changed, or a listener
-// of before (or of hold, a socket's: [::] is both families) no longer
-// configured.
-func narrowings(b, a sshd.Effective, hold []sshd.Listener) []Narrowing {
+// of keep (sshd's: [::] is IPv6) or of hold (a socket's: [::] is both
+// families) no longer configured.
+func narrowings(b, a sshd.Effective, keep, hold []sshd.Listener) []Narrowing {
 	var ns []Narrowing
 	add := func(k, bv, av string) { ns = append(ns, Narrowing{k, bv, av}) }
 	one := func(e sshd.Effective, k string) string {
@@ -339,7 +393,7 @@ func narrowings(b, a sshd.Effective, hold []sshd.Listener) []Narrowing {
 			add(k, bv, av)
 		}
 	}
-	for _, l := range b.Listeners.SSHD {
+	for _, l := range keep {
 		if !covered(a.Listeners.SSHD, l) {
 			add("listenaddress", l.String(), "not covered")
 		}

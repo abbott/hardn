@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
@@ -29,7 +30,7 @@ func applyHost(t *testing.T, sc scenario) (*testHost, Plan, Options) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return h, p, Options{RunDir: runDir, Platform: sc.platform, Backup: run}
+	return h, p, Options{RunDir: runDir, Backup: run}
 }
 
 // snapshot is every file a migration may touch, by path ("" when absent).
@@ -79,16 +80,41 @@ func checkValidatedFirst(t *testing.T, h *testHost, from int) []hostfake.Call {
 	return muts
 }
 
-// TestApplyScenarios migrates every host shape: each state on disk is
-// validated before it exists, every file is backed up first, the files end
-// as the plan says, the effective login paths are kept, and restoring the
-// backups gives the host back as it was.
+// planReload plans the reload after p with reload.PlanFor, as the engine
+// does: at plan time from Check's configuration and the socket drop-ins as
+// the plan leaves them, or after Apply from the drop-ins read again.
+func planReload(t *testing.T, h *testHost, sc scenario, p Plan, after sshd.Effective, dropIns func(reload.SocketDropIns) reload.SocketDropIns) {
+	t.Helper()
+	d, err := reload.ReadSocketDropIns(context.Background(), h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := reload.PlanFor(reload.Input{SSH: sc.ssh, Change: p.Reload(after), DropIns: dropIns(d)}); err != nil {
+		t.Errorf("reload.PlanFor(%+v) = %v", p.Reload(after), err)
+	}
+}
+
+// TestApplyScenarios migrates every host shape: Check writes nothing and
+// the reload that follows plans before anything changes; each state on
+// disk is validated before it exists, every file is backed up first, the
+// files end as the plan says, the effective login paths are kept, the
+// reload plans after Apply too, and restoring the backups gives the host
+// back as it was.
 func TestApplyScenarios(t *testing.T) {
 	for _, sc := range scenarios(t) {
 		t.Run(sc.name, func(t *testing.T) {
 			h, p, opts := applyHost(t, sc)
 			was := snapshot(h)
 			from := len(h.Calls())
+			checked, _, err := Check(context.Background(), h, p, opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if muts := checkValidatedFirst(t, h, from); len(muts) != 0 {
+				t.Errorf("Check changed the host: %v", muts)
+			}
+			planReload(t, h, sc, p, checked, p.SocketDropIns)
+			from = len(h.Calls())
 			rep, err := Apply(context.Background(), h, p, opts)
 			if err != nil {
 				t.Fatal(err)
@@ -144,14 +170,13 @@ func TestApplyScenarios(t *testing.T) {
 					}
 				}
 			}
-			if ns := narrowings(p.Before, h.before(t, sc.ssh, sc.socket), p.Hold); len(ns) > 0 {
+			if ns := narrowings(p.Before, h.before(t, sc.ssh, sc.socket), p.keepSSHD(), p.Hold); len(ns) > 0 {
 				t.Errorf("the installed files narrow the login paths: %v", ns)
 			}
-			for _, l := range slices.Concat(p.Before.Listeners.SSHD, p.Hold) {
-				if !slices.Contains(rep.Kept, l) {
-					t.Errorf("Kept %v lacks %v", rep.Kept, l)
-				}
+			if !p.Listening.Known {
+				t.Errorf("Listening %+v is not Known", p.Listening)
 			}
+			planReload(t, h, sc, p, rep.After, func(d reload.SocketDropIns) reload.SocketDropIns { return d })
 			if ov := overlaps(rep.After.Listeners.SSHD); len(ov) > 0 {
 				t.Errorf("the migrated configuration listens twice on %q", ov)
 			}
@@ -264,8 +289,8 @@ func TestApplyRefuses(t *testing.T) {
 		{"the migrated configuration loses a listener", func(_ *testHost, p *Plan, _ *Options) {
 			p.Hold = append(p.Hold, sshd.Listener{Addr: p.Hold[0].Addr, Port: 2231})
 		}, ErrFewerLoginPaths},
-		{"Debian without /run/sshd", func(h *testHost, _ *Plan, o *Options) {
-			o.Platform = debian13
+		{"Debian without /run/sshd", func(h *testHost, p *Plan, _ *Options) {
+			p.Platform = debian13
 			_ = h.Remove(context.Background(), sshd.PrivsepDir)
 		}, sshd.ErrEnvironment},
 	}
@@ -357,8 +382,126 @@ func TestApplyAlpineOrder(t *testing.T) {
 	if want := []string{sshd.HardnDropIn, sshd.MainConfig}; !slices.Equal(writes, want) {
 		t.Errorf("writes %q, want %q", writes, want)
 	}
-	if opts.Platform.Distro != detect.DistroAlpine {
+	if p.Platform.Distro != detect.DistroAlpine {
 		t.Fatal("scenario is not Alpine")
+	}
+}
+
+// TestApplyFailures: a backup, write or removal that fails stops Apply
+// there; the steps in Done ran, and restoring the run's backups gives the
+// host back as it was, including after the Alpine step's first write.
+func TestApplyFailures(t *testing.T) {
+	errDisk := errors.New("injected: no space left on device")
+	for _, tt := range []struct {
+		name, scen string
+		fail       func(op, name string) error
+		done       int  // steps carried out
+		backups    bool // the run has backups to restore
+	}{
+		{name: "backup", scen: "v032-ubuntu", fail: func(op, name string) error {
+			if op == "write-atomic" && strings.HasPrefix(name, backupRoot+"/") {
+				return errDisk
+			}
+			return nil
+		}},
+		{name: "write", scen: "v032-ubuntu", fail: failOn("write-atomic", sshd.HardnDropIn, errDisk), backups: true},
+		{name: "removal", scen: "upgraded-ubuntu", fail: failOn("remove", HardnConf, errDisk), done: 2, backups: true},
+		{name: "listen.conf removal", scen: "v032-ubuntu", fail: failOn("remove", ListenConf, errDisk), done: 2, backups: true},
+		{name: "between the Alpine writes", scen: "v032-alpine", fail: failOn("write-atomic", sshd.MainConfig, errDisk), backups: true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			h, p, opts := applyHost(t, named(t, tt.scen))
+			was := snapshot(h)
+			h.fail = tt.fail
+			rep, err := Apply(context.Background(), h, p, opts)
+			if !errors.Is(err, errDisk) {
+				t.Fatalf("Apply = %v, want the injected error", err)
+			}
+			if len(rep.Done) != tt.done {
+				t.Errorf("Done %d steps, want %d", len(rep.Done), tt.done)
+			}
+			h.fail = nil
+			if !tt.backups {
+				if !mapsEqual(snapshot(h), was) {
+					t.Error("a failed backup changed the host")
+				}
+				return
+			}
+			m, err := backup.Load(context.Background(), h, opts.Backup.Dir())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := backup.Restore(context.Background(), h, m); err != nil {
+				t.Fatal(err)
+			}
+			if got := snapshot(h); !mapsEqual(got, was) {
+				t.Errorf("after restoring:\n got %q\nwant %q", got, was)
+			}
+		})
+	}
+}
+
+// TestApplyRefusesSiteNarrowing: on Alpine the restored Include starts
+// reading the other drop-ins; one that narrows a login path (MaxAuthTries 4
+// below sshd's 6) is refused before anything is written, with every
+// narrowing named.
+func TestApplyRefusesSiteNarrowing(t *testing.T) {
+	sc := named(t, "main-alpine")
+	sc.files = maps.Clone(sc.files)
+	sc.files[sshd.DropInDir+"/20-site.conf"] = "MaxAuthTries 4\n"
+	h, p, opts := applyHost(t, sc)
+	was := snapshot(h)
+	_, err := Apply(context.Background(), h, p, opts)
+	var ne *NarrowError
+	if !errors.As(err, &ne) || !errors.Is(err, ErrFewerLoginPaths) {
+		t.Fatalf("Apply = %v, want a *NarrowError", err)
+	}
+	if want := `migrate: the migrated configuration: fewer working login paths than the installed configuration: maxauthtries: "6" before, "4" after`; err.Error() != want {
+		t.Errorf("error %q, want %q", err, want)
+	}
+	if !mapsEqual(snapshot(h), was) {
+		t.Error("a refused plan changed the host")
+	}
+}
+
+// TestApplyAlpineFlavour: a drop-in the restored Include starts reading
+// that sets UsePAM is in Plan.Keywords, so the reload refuses
+// (reload.ErrFlavour) rather than signal a binary that may not be the one
+// running.
+func TestApplyAlpineFlavour(t *testing.T) {
+	sc := named(t, "main-alpine")
+	sc.files = maps.Clone(sc.files)
+	sc.files[sshd.DropInDir+"/20-site.conf"] = "UsePAM yes\n"
+	h, p, opts := applyHost(t, sc)
+	if !slices.Contains(p.Keywords, "usepam") {
+		t.Errorf("Keywords %q lack usepam", p.Keywords)
+	}
+	after, _, err := Check(context.Background(), h, p, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := reload.PlanFor(reload.Input{SSH: sc.ssh, Change: p.Reload(after)}); !errors.Is(err, reload.ErrFlavour) {
+		t.Errorf("reload.PlanFor = %v, want reload.ErrFlavour", err)
+	}
+}
+
+// TestApplyNotEstablished: a migrated configuration whose sshd -T lacks a
+// value Apply compares, or a plan whose files are not its Sources, is
+// refused before anything is written.
+func TestApplyNotEstablished(t *testing.T) {
+	h, p, opts := applyHost(t, named(t, "v032-debian"))
+	was := snapshot(h)
+	h.filterT = func(out string) string { return strings.Replace(out, "pubkeyauthentication yes\n", "", 1) }
+	if _, err := Apply(context.Background(), h, p, opts); !errors.Is(err, ErrNotEstablished) || !strings.Contains(err.Error(), "pubkeyauthentication") {
+		t.Errorf("Apply = %v, want ErrNotEstablished naming pubkeyauthentication", err)
+	}
+	h.filterT = nil
+	p.Sources = p.Sources[1:]
+	if _, err := Apply(context.Background(), h, p, opts); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("Apply with a file outside Sources = %v, want fs.ErrInvalid", err)
+	}
+	if !mapsEqual(snapshot(h), was) {
+		t.Error("a refused plan changed the host")
 	}
 }
 
@@ -402,16 +545,52 @@ func TestNarrowings(t *testing.T) {
 			[]sshd.Listener{{Addr: eff(base).Listeners.SSHD[0].Addr, Port: 2230}}, []string{"listenaddress"}},
 		{"held dual-stack port on both", base + "listenaddress 0.0.0.0:2230\nlistenaddress [::]:2230\n",
 			[]sshd.Listener{{Addr: eff(base).Listeners.SSHD[0].Addr, Port: 2230}}, nil},
+		{"empty passwords on", edit("permitemptypasswords no", "permitemptypasswords yes"), nil, nil},
+		{"a group no longer allowed", base + "allowgroups ssh\n", nil, []string{"allowgroups"}},
+		{"a group denied", base + "denygroups wheel\n", nil, []string{"denygroups"}},
+		{"MaxAuthTries changed", base + "maxauthtries 4\n", nil, []string{"maxauthtries"}},
+		{"revoked keys added", base + "revokedkeys /etc/ssh/revoked\n", nil, []string{"revokedkeys"}},
+		{"a CA added", base + "trustedusercakeys /etc/ssh/ca.pub\n", nil, []string{"trustedusercakeys"}},
+		{"a ForceCommand", base + "forcecommand /usr/bin/false\n", nil, []string{"forcecommand"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var got []string
-			for _, n := range narrowings(eff(base), eff(tt.after), tt.hold) {
+			for _, n := range narrowings(eff(base), eff(tt.after), eff(base).Listeners.SSHD, tt.hold) {
 				got = append(got, n.Keyword)
 			}
 			if !slices.Equal(got, tt.want) {
 				t.Errorf("narrowings = %q, want %q", got, tt.want)
 			}
 		})
+	}
+	// Methods that are on before and off after; allowed groups that shrink.
+	on := base + "kbdinteractiveauthentication yes\nhostbasedauthentication yes\nkerberosauthentication yes\npermitemptypasswords yes\nallowgroups ssh\nallowgroups adm\n"
+	on = strings.Replace(on, "kbdinteractiveauthentication no\n", "", 1)
+	on = strings.Replace(on, "permitemptypasswords no\n", "", 1)
+	for _, tt := range []struct{ name, old, new, want string }{
+		{"keyboard-interactive off", "kbdinteractiveauthentication yes", "kbdinteractiveauthentication no", "kbdinteractiveauthentication"},
+		{"host-based off", "hostbasedauthentication yes", "hostbasedauthentication no", "hostbasedauthentication"},
+		{"Kerberos off", "kerberosauthentication yes", "kerberosauthentication no", "kerberosauthentication"},
+		{"empty passwords off", "permitemptypasswords yes", "permitemptypasswords no", "permitemptypasswords"},
+		{"a group dropped", "allowgroups adm\n", "", "allowgroups"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var got []string
+			for _, n := range narrowings(eff(on), eff(strings.Replace(on, tt.old, tt.new, 1)), nil, nil) {
+				got = append(got, n.Keyword)
+			}
+			if !slices.Equal(got, []string{tt.want}) {
+				t.Errorf("narrowings = %q, want [%s]", got, tt.want)
+			}
+		})
+	}
+	// keep is sshd's: [::] there is IPv6 only, so 0.0.0.0:22 is not covered by it.
+	if ns := narrowings(eff(base), eff(edit("listenaddress 0.0.0.0:22\n", "")), eff(base).Listeners.SSHD, nil); len(ns) != 1 {
+		t.Errorf("sshd's IPv4 listener dropped: narrowings %v", ns)
+	}
+	// Without keep (a socket host whose socket set is held), sshd's set is not compared.
+	if ns := narrowings(eff(base), eff(edit("listenaddress 0.0.0.0:22\n", "")), nil, nil); len(ns) != 0 {
+		t.Errorf("narrowings without keep = %v", ns)
 	}
 }

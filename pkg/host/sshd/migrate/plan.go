@@ -49,9 +49,10 @@ type Input struct {
 	// Before is sshd.ReadEffective of the installed configuration, with
 	// SSH: the login paths no state of the migration may narrow (Apply
 	// compares with it), sshd's default key files when no line names any,
-	// and, on a socket host whose generator derives ssh.socket's listeners
-	// from the files, the socket's listeners now (Listeners.Socket), which
-	// the migrated files keep configured.
+	// the values the Alpine restore keeps, and, on a socket host whose
+	// generator derives ssh.socket's listeners from the files, the
+	// socket's listeners now (Listeners.Socket, read whole and not empty),
+	// which the migrated files keep configured.
 	Before sshd.Effective
 }
 
@@ -65,6 +66,8 @@ const (
 	OpRemoveSocketDropIn                   // remove listen.conf
 )
 
+// String is the step's name in the plan view: write, remove, restore or
+// remove-socket-drop-in.
 func (k OpKind) String() string {
 	switch k {
 	case OpWriteDropIn:
@@ -112,17 +115,35 @@ type Plan struct {
 	Carried, Dropped []Carried
 	Left             []Left
 	// Keywords are the keywords whose lines the steps change, in lower
-	// case, for reload.Change.Keywords; "port" when listen.conf's port moves.
+	// case, for reload.Change.Keywords: the lines written, moved or
+	// removed, "port" when listen.conf's port moves, and on the Alpine
+	// restore the lines of every drop-in the new Include starts reading.
 	Keywords []string
 	// Hold is socket listeners the migrated files must configure, an
 	// unspecified IPv6 address as both families (a dual-stack socket,
-	// systemd's default): listen.conf's ([::]:port) when its port moves
-	// into 00-hardn.conf, and, on a socket host whose generator derives
+	// systemd's default): listen.conf's port when it moves into
+	// 00-hardn.conf ([::]:port, or 0.0.0.0:port where ssh.socket lists no
+	// IPv6 address), and, on a socket host whose generator derives
 	// ssh.socket's listeners from the files, the socket's listeners now.
 	// Apply requires every state to keep them.
 	Hold []sshd.Listener
+	// Listening is the listener set configured to accept connections now,
+	// and the Before of the reload that follows (Reload). On a socket host whose
+	// generator derives ssh.socket's listeners from the files, when the
+	// plan writes them: ssh.socket's (All is Before.Listeners.Socket, also
+	// in Hold), Known when the socket's listeners were read whole, sshd
+	// -T's listenaddress lines were all read and detect shows ssh.socket
+	// active. sshd's own set is configuration only there, so Apply keeps
+	// Hold, not it, and a port sshd's files name but the socket does not
+	// listen on is not kept. Otherwise: Before.Listeners, sshd's set,
+	// which Apply keeps.
+	Listening sshd.Listeners
 	// Before is Input.Before: the configuration the plan was made from.
 	Before sshd.Effective
+	// SSH and Platform are Input's: Apply validates for Platform
+	// (sshd.Request) and keeps the listeners SSH says accept connections.
+	SSH      detect.SSH
+	Platform detect.Platform
 	// Sources are the files the steps write or remove, as PlanFor read
 	// them, in the order Apply backs them up: Apply goes no further when a
 	// backup shows one changed since.
@@ -143,11 +164,13 @@ func (p Plan) Empty() bool { return len(p.Ops) == 0 }
 // nothing. Errors: fs.ErrInvalid for a bad Desired or an unknown Include
 // mode, ErrIncludeOther for legacy drop-ins on a host whose first directive
 // is not the stock Include, and ErrNotEstablished when the listeners to
-// keep cannot be (ssh.socket's not read on a socket host, or Port and
-// ListenAddress lines hardn does not read).
+// keep cannot be (ssh.socket's not read whole, or none, on a socket host
+// whose generator follows the files; Port and ListenAddress lines hardn
+// does not read) or a value the Alpine restore keeps is not in sshd -T's
+// output.
 func PlanFor(in Input) (Plan, error) {
 	f := in.Found
-	p := Plan{Left: slices.Clone(f.Left), Before: in.Before}
+	p := Plan{Left: slices.Clone(f.Left), Before: in.Before, Listening: in.Before.Listeners, SSH: in.SSH, Platform: in.Platform}
 	if err := checkDesired(in.Desired); err != nil {
 		return Plan{}, err
 	}
@@ -216,16 +239,25 @@ func PlanFor(in Input) (Plan, error) {
 	}
 	var c composed
 	writes := restore || mode == sshd.IncludeFirst && (len(removes) > 0 || len(ports) > 0)
+	// At the next daemon-reload the generator gives ssh.socket the files'
+	// listeners: the ones it has now stay among them, and they are what
+	// accepts connections (sshd's own set is configuration only).
+	socketHeld := writes && socketFollowsFiles(in.SSH)
 	var need []needed
-	for _, port := range ports {
-		need = append(need, needed{sshd.Listener{Addr: netip.IPv6Unspecified(), Port: port}, ListenConf})
-	}
-	if writes && in.SSH.Mode == detect.SSHSocket && in.SSH.Generator == detect.Yes {
-		// At the next daemon-reload the generator gives ssh.socket the
-		// files' listeners: the ones it has now stay among them.
-		if b := in.Before.Listeners; !b.SocketRead {
-			return Plan{}, fmt.Errorf("migrate: %s's listeners were not read (Input.Before): %w", sshd.SocketUnit, ErrNotEstablished)
+	if socketHeld {
+		b := in.Before.Listeners
+		switch {
+		case !b.SocketRead || !b.SocketComplete:
+			return Plan{}, fmt.Errorf("migrate: %s's listeners were not read whole (Input.Before): %w", sshd.SocketUnit, ErrNotEstablished)
+		case len(b.Socket) == 0:
+			return Plan{}, fmt.Errorf("migrate: %s lists no listener (Input.Before), so what it listens on now is not established: %w", sshd.SocketUnit, ErrNotEstablished)
 		}
+		p.Listening = socketListening(in)
+	}
+	for _, port := range ports {
+		need = append(need, needed{sshd.Listener{Addr: portOnlyAddr(in.Before.Listeners.Socket), Port: port}, ListenConf})
+	}
+	if socketHeld {
 		for _, l := range in.Before.Listeners.Socket {
 			need = append(need, needed{l, sshd.SocketUnit})
 		}
@@ -240,6 +272,11 @@ func PlanFor(in Input) (Plan, error) {
 			return Plan{}, fmt.Errorf("migrate: %s has a Match block, which is not hardn's form: %w", sshd.HardnDropIn, fs.ErrInvalid)
 		}
 		c = compose(in.Desired, lines, sources, in.Before)
+		if restore {
+			if err := c.keepStock(in.Before); err != nil {
+				return Plan{}, err
+			}
+		}
 		rest := restLines(lines, sources)
 		if err := c.addListeners(need, rest); err != nil {
 			return Plan{}, err
@@ -274,11 +311,20 @@ func PlanFor(in Input) (Plan, error) {
 		p.Ops = append(p.Ops, Op{Kind: OpRemove, Path: a.Path, Artifact: a.Kind, Gen: a.Gen, Note: note})
 		p.Sources = append(p.Sources, Source{Path: a.Path, Data: a.Data})
 	}
+	var others []sshd.File
 	if restore {
+		others = otherDropIns(f.DropIns, removes)
 		note := sshd.MainConfig + " (written whole by " + gen.Gen.String() + ") restored to the structure of Alpine's stock file: the Include of " +
 			sshd.DropInDir + " first, then " + stockSummary + "; hardn's lines are in " + sshd.HardnDropIn + "; a backup is kept"
-		if others := otherDropIns(f.DropIns, removes); len(others) > 0 {
-			note += "; with the Include, sshd also reads " + strings.Join(others, ", ")
+		if kept := c.added(keptFrom); len(kept) > 0 {
+			note += "; " + strings.Join(kept, ", ") + " kept in " + sshd.HardnDropIn + ", which is read first, because the configuration installed now has it where the stock line differs (changing it is a later, confirmed change)"
+		}
+		if len(others) > 0 {
+			var names []string
+			for _, d := range others {
+				names = append(names, d.Path)
+			}
+			note += "; with the Include, sshd also reads " + strings.Join(names, ", ")
 		}
 		p.Ops = append(p.Ops, Op{Kind: OpRestoreMain, Path: sshd.MainConfig, Data: restoredMain(c), DropIn: p.DropIn,
 			Artifact: KindGeneratedMain, Gen: gen.Gen, Note: note})
@@ -287,21 +333,65 @@ func PlanFor(in Input) (Plan, error) {
 	if removeListen {
 		note := ListenConf + " (written by hardn v0.3.x) removed: it had no effect, as ssh.socket does not listen on this host; a backup is kept"
 		if len(ports) > 0 {
+			held := sshd.Listener{Addr: portOnlyAddr(in.Before.Listeners.Socket), Port: ports[0]}
+			family := "for both families, as " + held.String() + " (dual-stack, as systemd binds ListenStream=" + strconv.Itoa(int(ports[0])) + ")"
+			if held.Addr.Is4() {
+				family = "as " + held.String() + " (" + sshd.SocketUnit + " lists no IPv6 address now, as where systemd finds IPv6 unsupported)"
+			}
 			how := "as they already did"
 			if added := c.added(ListenConf); len(added) > 0 {
 				how = "with " + strings.Join(added, ", ") + " added to " + sshd.HardnDropIn
-				if slices.Contains(added, "Port 22") {
-					how += " (22 is sshd's default, which the files configured until now)"
-				}
 			}
-			note = fmt.Sprintf("%s (written by hardn v0.3.x) removed: the sshd files keep its port %d for both families, %s, and sshd-socket-generator gives ssh.socket their listeners at the next systemctl daemon-reload; a backup is kept",
-				ListenConf, ports[0], how)
+			note = fmt.Sprintf("%s (written by hardn v0.3.x) removed: the sshd files keep its port %s, %s, and sshd-socket-generator gives ssh.socket their listeners at the next systemctl daemon-reload; a backup is kept",
+				ListenConf, family, how)
 		}
 		p.Ops = append(p.Ops, Op{Kind: OpRemoveSocketDropIn, Path: ListenConf, Artifact: KindListenConf, Gen: GenV03, Note: note})
 		p.Sources = append(p.Sources, Source{Path: ListenConf, Data: listen.Data})
 	}
-	p.Keywords = keywords(lines, sources, c, restore, len(ports) > 0)
+	var read []sshd.Line
+	for _, d := range others {
+		read = append(read, fileLines(d.Path, d.Data)...)
+	}
+	p.Keywords = keywords(lines, sources, c, restore, len(ports) > 0, read)
 	return p, nil
+}
+
+// socketFollowsFiles reports whether ssh.socket listens and its generator
+// derives its listeners from sshd's files (detect: SSHSocket, Generator
+// Yes).
+func socketFollowsFiles(s detect.SSH) bool {
+	return s.Mode == detect.SSHSocket && s.Generator == detect.Yes
+}
+
+// socketListening is the listener set that accepts connections on a socket
+// host whose generator follows the files: ssh.socket's, read whole and not
+// empty (PlanFor checked), Known when sshd -T's listeners were read too
+// and detect shows ssh.socket active. sshd's and the socket's sets may
+// disagree (listen.conf in effect, or written without a daemon-reload,
+// D9): the plan holds the socket's, so their agreement is not needed.
+func socketListening(in Input) sshd.Listeners {
+	l := in.Before.Listeners
+	l.All = nil
+	for _, s := range l.Socket {
+		if !slices.Contains(l.All, s) {
+			l.All = append(l.All, s)
+		}
+	}
+	n := len(in.Before.Keywords["listenaddress"])
+	l.Known = in.SSH.Socket.IsActive() == detect.Yes && n > 0 && n == len(l.SSHD)
+	return l
+}
+
+// portOnlyAddr is the address systemd gives a ListenStream= of a port
+// alone: [::], a dual-stack socket, where IPv6 is supported, and 0.0.0.0
+// where it is not (systemd v257 socket_address_parse). Whether it is, is
+// read off the socket's listeners now: none of them IPv6 is taken as not,
+// so that no IPv6 listener the host may not bind is added.
+func portOnlyAddr(socket []sshd.Listener) netip.Addr {
+	if slices.ContainsFunc(socket, func(l sshd.Listener) bool { return l.Addr.Is6() && !l.Addr.Is4In6() }) {
+		return netip.IPv6Unspecified()
+	}
+	return netip.IPv4Unspecified()
 }
 
 // restLines are the global lines of the files the migration leaves, as
@@ -331,7 +421,8 @@ func (c composed) added(from string) []string {
 // listenRule says what becomes of listen.conf, and why: on a socket host
 // whose generator derives ssh.socket's listeners from the sshd files, its
 // port moves into 00-hardn.conf (why ""); where ssh.socket does not listen
-// it had no effect and goes; otherwise it stays.
+// it had no effect and goes; otherwise (no generator, whether it runs not
+// established, or the SSH mode Unknown) it stays.
 func listenRule(s detect.SSH, mode sshd.IncludeMode) (why string, remove bool) {
 	switch {
 	case s.Mode == detect.SSHSocket && s.Generator == detect.Yes && mode == sshd.IncludeFirst:
@@ -340,8 +431,10 @@ func listenRule(s detect.SSH, mode sshd.IncludeMode) (why string, remove bool) {
 		return "sshd_config has no stock first-line Include, so its port cannot move into " + sshd.HardnDropIn, false
 	case s.Mode == detect.SSHService || s.Mode == detect.SSHOpenRC:
 		return "it had no effect", true
-	case s.Mode == detect.SSHSocket:
+	case s.Mode == detect.SSHSocket && s.Generator == detect.No:
 		return "ssh.socket takes its port from ssh.socket.d on this host (sshd-socket-generator is not in use)", false
+	case s.Mode == detect.SSHSocket:
+		return "whether sshd-socket-generator derives ssh.socket's listeners from the files is not established", false
 	}
 	return "how sshd is started is not established", false
 }
@@ -379,20 +472,61 @@ func restoredMain(c composed) []byte {
 	return []byte(b.String())
 }
 
+// keepStock adds to 00-hardn.conf, for each first-value directive of
+// alpineStock whose keyword it does not set, the installed configuration's
+// value (sshd -T's, in before) when it differs from the stock one: the
+// Include reads 00-hardn.conf first, so the stock line then has no effect
+// and the effective value stays (docs/safety/sshd-migrate.md §2.12; the
+// generated files set no forwarding keyword, so sshd's default "yes" for
+// AllowTcpForwarding stays rather than becoming Alpine's "no"). A value
+// sshd -T does not give is ErrNotEstablished.
+func (c *composed) keepStock(before sshd.Effective) error {
+	for _, s := range alpineStock {
+		f := strings.Fields(s)
+		k := sshd.CanonicalKeyword(f[0], f[1:])
+		if strings.HasPrefix(k, "subsystem ") || c.sets(k) {
+			continue
+		}
+		vs := before.Keywords[k]
+		if len(vs) != 1 {
+			return fmt.Errorf("migrate: sshd -T gives %d values for %s, so the restore cannot keep the installed one: %w", len(vs), k, ErrNotEstablished)
+		}
+		v := strings.Fields(vs[0])
+		if sameValue(k, v, f[1:]) {
+			continue
+		}
+		c.out = append(c.out, outLine{text: render(f[0], v), keyword: k, args: v, from: keptFrom})
+	}
+	return nil
+}
+
+// sameValue reports whether a and b are one value of k: key file paths
+// exactly, the other keywords' words in any case (sshd -T prints them in
+// lower case).
+func sameValue(k string, a, b []string) bool {
+	if k == "authorizedkeysfile" {
+		return slices.Equal(a, b)
+	}
+	return slices.EqualFunc(a, b, strings.EqualFold)
+}
+
 // otherDropIns are the drop-ins of drops not removed and not hardn's own.
-func otherDropIns(drops []sshd.File, removes []Artifact) []string {
-	var out []string
+func otherDropIns(drops []sshd.File, removes []Artifact) []sshd.File {
+	var out []sshd.File
 	for _, d := range drops {
 		if d.Path != sshd.HardnDropIn && !slices.ContainsFunc(removes, func(a Artifact) bool { return a.Path == d.Path }) {
-			out = append(out, d.Path)
+			out = append(out, d)
 		}
 	}
 	return out
 }
 
 // keywords lists, once each, the first word of the keyword of every line
-// the plan removes, moves or writes.
-func keywords(lines []sshd.Line, sources map[string]Generation, c composed, restore, ports bool) []string {
+// the plan removes, moves or writes, and of every line of read: the
+// drop-ins the restored Include starts reading, whose lines take effect
+// as the plan's do (a UsePAM there changes the binary OpenRC runs, which
+// the reload refuses, reload.ErrFlavour).
+func keywords(lines []sshd.Line, sources map[string]Generation, c composed, restore, ports bool, read []sshd.Line) []string {
 	var ks []string
 	add := func(k string) {
 		if k, _, _ = strings.Cut(k, " "); !slices.Contains(ks, k) {
@@ -414,6 +548,9 @@ func keywords(lines []sshd.Line, sources map[string]Generation, c composed, rest
 	}
 	if ports {
 		add("port")
+	}
+	for _, l := range read {
+		add(l.Keyword)
 	}
 	slices.Sort(ks)
 	return ks
@@ -456,11 +593,15 @@ type outLine struct {
 	text    string
 	keyword string // canonical
 	args    []string
-	from    string      // the file it moved from; "" for Desired; keysFrom for the AuthorizedKeysFile union; ListenConf or sshd.SocketUnit for an added listener
+	from    string      // the file it moved from; "" for Desired; keysFrom, keptFrom; ListenConf or sshd.SocketUnit for an added listener
 	origin  sshd.Origin // a moved line's
 }
 
-const keysFrom = "AuthorizedKeysFile"
+// The from of a line compose or keepStock wrote rather than moved.
+const (
+	keysFrom = "AuthorizedKeysFile"   // the AuthorizedKeysFile union
+	keptFrom = "the installed values" // keepStock
+)
 
 // composed is the new 00-hardn.conf, and what became of the legacy lines.
 type composed struct {
@@ -475,11 +616,16 @@ type composed struct {
 //   - a first-value keyword's line moves when it is the first line sshd
 //     reads for the keyword, and desired does not set it (otherwise sshd
 //     uses another line, or will use hardn's);
-//   - AuthorizedKeysFile becomes one line naming every key file desired,
-//     the source lines and the line sshd reads first name (sshd's default,
-//     from before's sshd -T, when no line names one), and, for an
+//   - AuthorizedKeysFile, when the line sshd reads first is in a source
+//     file or no line names one, becomes one line naming every key file
+//     desired, the source lines and the line sshd reads first name (sshd's
+//     default, from before's sshd -T, when no line names one), and, for an
 //     unreleased build's bare path (V5's ".ssh_%u"), that path's
 //     authorized_keys and .ssh/authorized_keys (R8; side-effects.md D7).
+//     When the line sshd reads first is in a file the migration leaves,
+//     the source lines had no effect and are dropped: 00-hardn.conf has
+//     no AuthorizedKeysFile then, so that line stays first, unless desired
+//     sets one, which then also names that line's files.
 //
 // The listeners to keep are added after (addListeners, dedupe).
 func compose(desired []Directive, lines []sshd.Line, sources map[string]Generation, before sshd.Effective) composed {
@@ -505,6 +651,13 @@ func compose(desired []Directive, lines []sshd.Line, sources map[string]Generati
 		keys = slices.Clone(c.out[akf].args)
 	}
 	keysTouched := akf >= 0
+	// keysFromSources: the source files' AuthorizedKeysFile lines decide
+	// which key files sshd reads today, so their union keeps every one.
+	fk, hasKeys := first["authorizedkeysfile"]
+	keysFromSources := true
+	if hasKeys {
+		_, keysFromSources = sources[lines[fk].File]
+	}
 	for i, l := range lines {
 		g, ok := sources[l.File]
 		if !ok || l.Match != nil {
@@ -515,6 +668,9 @@ func compose(desired []Directive, lines []sshd.Line, sources map[string]Generati
 			c.carried = append(c.carried, Carried{Origin: l.Origin})
 		}
 		switch k := l.Keyword; {
+		case k == "authorizedkeysfile" && !keysFromSources:
+			o := lines[fk]
+			c.dropped = append(c.dropped, Carried{l.Origin, fmt.Sprintf("no effect: sshd reads %s line %d first", o.File, o.Line)})
 		case k == "authorizedkeysfile":
 			keysTouched = true
 			keys = append(keys, l.Args...)
@@ -538,8 +694,8 @@ func compose(desired []Directive, lines []sshd.Line, sources map[string]Generati
 		}
 	}
 	if keysTouched {
-		if i, ok := first["authorizedkeysfile"]; ok {
-			keys = append(keys, lines[i].Args...)
+		if hasKeys {
+			keys = append(keys, lines[fk].Args...)
 		} else if v := before.Keywords["authorizedkeysfile"]; len(v) == 1 {
 			keys = append(keys, strings.Fields(v[0])...) // sshd's default, which no line overrides today
 		}
@@ -598,6 +754,8 @@ func (c composed) render() []byte {
 				b.WriteString("# Set by hardn:\n")
 			case keysFrom:
 				b.WriteString("# Every key file the files hardn replaced named, so that no key stops working:\n")
+			case keptFrom:
+				b.WriteString("# The installed configuration's values, where " + sshd.MainConfig + "'s stock lines differ:\n")
 			case sshd.SocketUnit:
 				b.WriteString("# What " + sshd.SocketUnit + " listens on now, so that sshd-socket-generator keeps it:\n")
 			default:

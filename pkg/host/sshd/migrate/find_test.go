@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
@@ -52,6 +53,8 @@ func TestFind(t *testing.T) {
 			left: []string{ListenConf + ": not the form"}},
 		{name: "masked listen.conf", files: map[string]string{sshd.MainConfig: stockMain}, links: map[string]string{ListenConf: "/dev/null"},
 			left: []string{ListenConf + ": symlink"}},
+		{name: "listen.conf a directory", files: map[string]string{sshd.MainConfig: stockMain, ListenConf + "/x": ""},
+			left: []string{ListenConf + ": not a regular file"}},
 		{name: "Alpine, written by v0.3.x", files: map[string]string{sshd.MainConfig: fixture(t, "v032-alpine-sshd_config")},
 			want: []string{"generated sshd_config:" + sshd.MainConfig + ":hardn v0.3.x"}},
 		{name: "Alpine, written by an unreleased build", files: map[string]string{sshd.MainConfig: fixture(t, "main-alpine-sshd_config")},
@@ -101,8 +104,21 @@ func TestFind(t *testing.T) {
 
 func TestFindErrors(t *testing.T) {
 	h := newHost(t, nil)
-	if _, err := Find(context.Background(), h, FindRequest{}); err == nil {
-		t.Error("Find with no sshd_config: no error")
+	if _, err := Find(context.Background(), h, FindRequest{}); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("Find with no sshd_config = %v, want fs.ErrNotExist", err)
+	}
+	errIO := errors.New("injected: input/output error")
+	for _, f := range []func(string, string) error{
+		failOn("lstat", ManageConf, errIO),
+		failOn("lstat", ListenConf, errIO),
+		failOn("read-nofollow", ManageConf, errIO),
+		failOn("readdir", sshd.DropInDir, errIO),
+	} {
+		h := newHost(t, map[string]string{sshd.MainConfig: stockMain, ManageConf: fixture(t, "v032-manage.conf"), ListenConf: fixture(t, "v032-listen.conf")})
+		h.fail = f
+		if _, err := Find(context.Background(), h, FindRequest{}); !errors.Is(err, errIO) {
+			t.Errorf("Find with a failing host call = %v, want the injected error", err)
+		}
 	}
 	h = newHost(t, map[string]string{sshd.MainConfig: stockMain})
 	h.AddDir(sshd.DropInDir+"/50-dir.conf", 0o755, 0, 0)

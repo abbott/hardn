@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"io/fs"
 	"net/netip"
 	"os"
 	"path"
@@ -31,10 +32,13 @@ var (
 	ubuntu2604 = detect.Platform{Distro: detect.DistroUbuntu, Version: "26.04", Support: detect.Supported}
 	alpine324  = detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported}
 
-	socketGen   = detect.SSH{Mode: detect.SSHSocket, Generator: detect.Yes}
-	socketNoGen = detect.SSH{Mode: detect.SSHSocket, Generator: detect.No}
-	service     = detect.SSH{Mode: detect.SSHService}
-	openrc      = detect.SSH{Mode: detect.SSHOpenRC}
+	// The SSH facts detect gives each host shape, with the unit that
+	// listens up.
+	up          = detect.UnitState{Enabled: "enabled", Active: "active"}
+	socketGen   = detect.SSH{Mode: detect.SSHSocket, Socket: up, Generator: detect.Yes}
+	socketNoGen = detect.SSH{Mode: detect.SSHSocket, Socket: up, Generator: detect.No}
+	service     = detect.SSH{Mode: detect.SSHService, Service: up}
+	openrc      = detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.Yes}}
 )
 
 // stockMain is shaped like Debian's and Ubuntu's sshd_config: the Include
@@ -84,6 +88,64 @@ type testHost struct {
 	*hostfake.System
 	failT int // fail the failT-th sshd -t (1-based); 0: never
 	tRuns int
+	// fail, when set, gives the error a host call op ("write-atomic",
+	// "remove", "lstat", "readdir", "read-nofollow") on name fails with;
+	// nil lets it run.
+	fail func(op, name string) error
+	// filterT, when set, rewrites sshd -T's output over Validate's copy.
+	filterT func(string) string
+}
+
+func (h *testHost) failed(op, name string) error {
+	if h.fail == nil {
+		return nil
+	}
+	return h.fail(op, name)
+}
+
+func (h *testHost) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if err := h.failed("write-atomic", name); err != nil {
+		return err
+	}
+	return h.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+func (h *testHost) Remove(ctx context.Context, name string) error {
+	if err := h.failed("remove", name); err != nil {
+		return err
+	}
+	return h.System.Remove(ctx, name)
+}
+
+func (h *testHost) Lstat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if err := h.failed("lstat", name); err != nil {
+		return nil, err
+	}
+	return h.System.Lstat(ctx, name)
+}
+
+func (h *testHost) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
+	if err := h.failed("readdir", name); err != nil {
+		return nil, err
+	}
+	return h.System.ReadDir(ctx, name)
+}
+
+func (h *testHost) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := h.failed("read-nofollow", name); err != nil {
+		return nil, nil, err
+	}
+	return h.System.ReadFileNoFollow(ctx, name)
+}
+
+// failOn fails op on exactly name with err.
+func failOn(op, name string, err error) func(string, string) error {
+	return func(o, n string) error {
+		if o == op && n == name {
+			return err
+		}
+		return nil
+	}
 }
 
 func newHost(t *testing.T, files map[string]string) *testHost {
@@ -115,7 +177,11 @@ func (h *testHost) sshd(argv []string, _ []byte) hostfake.Response {
 		}
 		return hostfake.Response{}
 	case "-T":
-		return hostfake.Response{Stdout: modelT(main, drops)}
+		out := modelT(main, drops)
+		if h.filterT != nil {
+			out = h.filterT(out)
+		}
+		return hostfake.Response{Stdout: out}
 	}
 	return hostfake.Response{Err: hostfake.ErrUnscripted}
 }
@@ -172,9 +238,13 @@ func modelValid(main []byte, drops []sshd.File) bool {
 
 // modelT is sshd -T's output by a model of sshd's reading: the first value
 // of each keyword outside Match blocks, every value of an accumulating
-// keyword, sshd's defaults for the rest, and the listeners from Port and
+// keyword, defaults for the rest, and the listeners from Port and
 // ListenAddress (each ListenAddress without a port on every Port, a host
-// name as 192.0.2.80; with none, every Port on 0.0.0.0 and ::).
+// name as 192.0.2.80; with none, every Port on 0.0.0.0 and ::). It prints
+// every keyword Apply compares (fixed, methods and the typed ones) and the
+// forwarding keywords the Alpine restore keeps, as real sshd -T does; the
+// defaults are the model's, shaped like OpenSSH's (sshd_config(5)), not
+// read from a binary.
 func modelT(main []byte, drops []sshd.File) string {
 	first, acc := map[string]string{}, map[string][]string{}
 	for _, l := range sshd.ReadOrder(main, drops) {
@@ -223,8 +293,15 @@ func modelT(main []byte, drops []sshd.File) string {
 	defaults := []struct{ k, v string }{
 		{"permitrootlogin", "prohibit-password"}, {"pubkeyauthentication", "yes"}, {"passwordauthentication", "yes"},
 		{"kbdinteractiveauthentication", "yes"}, {"permitemptypasswords", "no"}, {"usepam", "no"},
+		{"hostbasedauthentication", "no"}, {"gssapiauthentication", "no"}, {"kerberosauthentication", "no"},
 		{"authorizedkeysfile", ".ssh/authorized_keys .ssh/authorized_keys2"}, {"authenticationmethods", "any"},
-		{"ciphers", "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com"}, {"allowtcpforwarding", "yes"},
+		{"ciphers", "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com"}, {"macs", "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com"},
+		{"kexalgorithms", "mlkem768x25519-sha256,curve25519-sha256"}, {"hostkeyalgorithms", "ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512"},
+		{"pubkeyacceptedalgorithms", "ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512"}, {"casignaturealgorithms", "ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512"},
+		{"authorizedkeyscommand", "none"}, {"authorizedkeyscommanduser", "none"}, {"authorizedprincipalsfile", "none"},
+		{"authorizedprincipalscommand", "none"}, {"authorizedprincipalscommanduser", "none"}, {"trustedusercakeys", "none"},
+		{"revokedkeys", "none"}, {"pubkeyauthoptions", "none"}, {"maxauthtries", "6"}, {"forcecommand", "none"}, {"chrootdirectory", "none"},
+		{"allowtcpforwarding", "yes"}, {"gatewayports", "no"}, {"x11forwarding", "no"},
 	}
 	for _, d := range defaults {
 		v, ok := first[d.k]
@@ -240,6 +317,13 @@ func modelT(main []byte, drops []sshd.File) string {
 		for _, v := range acc[k] {
 			b.WriteString(k + " " + v + "\n")
 		}
+	}
+	keys := acc["hostkey"]
+	if len(keys) == 0 {
+		keys = []string{"/etc/ssh/ssh_host_ecdsa_key", "/etc/ssh/ssh_host_ed25519_key", "/etc/ssh/ssh_host_rsa_key"}
+	}
+	for _, k := range keys {
+		b.WriteString("hostkey " + k + "\n")
 	}
 	return b.String()
 }

@@ -10,10 +10,12 @@
 // wrote whole on Alpine. PlanFor turns them, and the settings hardn wants,
 // into steps without any I/O: legacy lines that take effect today move into
 // 00-hardn.conf, every key file they name stays read (R8), and the legacy
-// files are removed. Apply validates every state the steps lead to with
-// sshd.Validate, refuses one with fewer working login paths than the
-// configuration installed now, takes a backup of every file it changes,
-// checks that each is as the plan read it, and writes; it reloads nothing.
+// files are removed. Check validates the state the whole plan leads to
+// with sshd.Validate and refuses one with fewer working login paths than
+// the configuration installed now, writing nothing; Apply runs Check, takes
+// a backup of every file it changes, checks that each is as the plan read
+// it, and validates each step's state before writing; it reloads nothing.
+// Plan.Reload is the reload.Change for the reload that follows.
 // Everything goes through host.System.
 //
 // docs/safety/sshd-migrate.md describes the guarantees, the platform facts
@@ -70,6 +72,7 @@ const (
 	KindGeneratedMain                 // sshd_config written whole by hardn (Alpine)
 )
 
+// String is the artifact's name in notes and errors, such as manage.conf.
 func (k Kind) String() string {
 	switch k {
 	case KindManageConf:
@@ -94,6 +97,7 @@ const (
 	GenMain                       // a build of the unreleased main branch after v0.3.2
 )
 
+// String names the hardn that wrote an artifact, as the notes say it.
 func (g Generation) String() string {
 	switch g {
 	case GenV03:

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -93,7 +94,7 @@ func scenarios(t *testing.T) []scenario {
 			files: map[string]string{sshd.MainConfig: fixture(t, "v032-alpine-sshd_config")},
 			ops:   []string{"restore " + sshd.MainConfig}},
 		{name: "main-alpine", ssh: openrc, platform: alpine324,
-			files: map[string]string{sshd.MainConfig: fixture(t, "main-alpine-sshd_config"), sshd.DropInDir + "/20-site.conf": "MaxAuthTries 4\n"},
+			files: map[string]string{sshd.MainConfig: fixture(t, "main-alpine-sshd_config"), sshd.DropInDir + "/20-site.conf": "ClientAliveInterval 300\n"},
 			ops:   []string{"restore " + sshd.MainConfig}},
 	}
 }
@@ -185,6 +186,18 @@ func TestPlanForListeners(t *testing.T) {
 	if !strings.Contains(p.Ops[0].Note, "ListenAddress [::]:22, ListenAddress 0.0.0.0:22 added") {
 		t.Errorf("note %q does not name the socket's listeners it adds", p.Ops[0].Note)
 	}
+	if l := p.Listening; !l.Known || strings.Join(fmtListeners(l.All), " ") != "[[::]:22]" {
+		t.Errorf("Listening = %+v, want the socket's [::]:22, Known", l)
+	}
+	// The socket listens on 2230 only: sshd's default 22, which its files
+	// configure but nothing listens on, is not opened.
+	_, p, err = plan(t, named(t, "listen-only-ubuntu"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(p.DropIn), "Port 22\n") {
+		t.Errorf("port 22 added where the socket does not listen on it:\n%s", p.DropIn)
+	}
 	_, p, err = plan(t, named(t, "upgraded-ubuntu"))
 	if err != nil {
 		t.Fatal(err)
@@ -200,24 +213,167 @@ func TestPlanForListeners(t *testing.T) {
 }
 
 // TestPlanForNeedsSocket: on a socket host whose generator follows the
-// files, a plan that writes them needs ssh.socket's listeners.
+// files, a plan that writes them needs every listener ssh.socket has now:
+// not read, read empty, or with a line hardn does not read, it refuses
+// rather than holding nothing (D9: the socket's only listener may be 22).
 func TestPlanForNeedsSocket(t *testing.T) {
+	for _, tt := range []struct {
+		name, socket string
+		readAs       detect.SSH // the facts Before is read with
+		site         string     // a drop-in the host also has
+	}{
+		{name: "not read", readAs: service},
+		{name: "empty output", socket: ""},
+		{name: "an empty property", socket: "Listen=\n"},
+		{name: "a line not read", socket: socket22[:len(socket22)-1] + " \n"},
+		{name: "one of two lines not read", socket: socket22 + "Listen=/run/ssh.sock (Stream)\n"},
+		{name: "a host name in ListenAddress", socket: socket22, site: "ListenAddress web-01.example.net\n"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := named(t, "v032-ubuntu-unreloaded")
+			h := newHost(t, sc.files)
+			if tt.site != "" {
+				h.AddFile(sshd.DropInDir+"/20-site.conf", []byte(tt.site), 0o644, 0, 0)
+			}
+			f, err := Find(context.Background(), h, FindRequest{ConfigFile: sc.configFile})
+			if err != nil {
+				t.Fatal(err)
+			}
+			readAs := sc.ssh
+			if tt.readAs.Mode != 0 {
+				readAs = tt.readAs
+			}
+			if _, err := PlanFor(Input{Found: f, SSH: sc.ssh, Platform: sc.platform, Before: h.before(t, readAs, tt.socket)}); !errors.Is(err, ErrNotEstablished) {
+				t.Errorf("PlanFor = %v, want ErrNotEstablished", err)
+			}
+		})
+	}
+}
+
+// TestPlanForIPv4Socket: where ssh.socket lists no IPv6 address (systemd
+// binds a port-only ListenStream= to 0.0.0.0 when IPv6 is not supported),
+// listen.conf's port is held on IPv4, and no IPv6 listener is added.
+func TestPlanForIPv4Socket(t *testing.T) {
 	sc := named(t, "v032-ubuntu")
-	h := newHost(t, sc.files)
-	f, err := Find(context.Background(), h, FindRequest{ConfigFile: sc.configFile})
+	sc.socket = "Listen=0.0.0.0:2230 (Stream)\n"
+	h, p, opts := applyHost(t, sc)
+	if got, want := strings.Join(fmtListeners(p.Hold), " "), "[0.0.0.0:2230]"; got != want {
+		t.Errorf("Hold = %s, want %s", got, want)
+	}
+	if strings.Contains(string(p.DropIn), "[::]") {
+		t.Errorf("00-hardn.conf adds an IPv6 listener:\n%s", p.DropIn)
+	}
+	if note := p.Ops[len(p.Ops)-1].Note; !strings.Contains(note, "0.0.0.0:2230") || strings.Contains(note, "both families") {
+		t.Errorf("listen.conf's note %q does not say its port is kept on IPv4", note)
+	}
+	if _, err := Apply(context.Background(), h, p, opts); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestPlanForKeys: the AuthorizedKeysFile union is made only where the
+// replaced files' lines decide the key files; a line of a file the
+// migration leaves that sshd reads first stays first, untouched.
+func TestPlanForKeys(t *testing.T) {
+	const site = sshd.DropInDir + "/10-site.conf"
+	for _, tt := range []struct {
+		name    string
+		scen    string
+		site    string
+		desired []Directive
+		want    string // 00-hardn.conf's AuthorizedKeysFile line, "" for none
+		dropped bool   // manage.conf's line is dropped as having no effect
+		after   string // sshd -T's authorizedkeysfile after Apply
+	}{
+		{name: "replaced files decide", scen: "v032-debian",
+			want: "AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys", after: ".ssh/authorized_keys .ssh_%u/authorized_keys"},
+		{name: "a site file's none wins", scen: "v032-debian",
+			site: "AuthorizedKeysFile none\nAuthorizedKeysCommand /usr/local/bin/keys %u\nAuthorizedKeysCommandUser nobody\n",
+			want: "", dropped: true, after: "none"},
+		{name: "a site file wins, desired adds", scen: "v032-debian", site: "AuthorizedKeysFile /etc/ssh/keys/%u\n",
+			desired: []Directive{{"AuthorizedKeysFile", []string{".ssh/authorized_keys"}}},
+			want:    "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/keys/%u", dropped: true, after: ".ssh/authorized_keys /etc/ssh/keys/%u"},
+		{name: "no line names one, desired adds", scen: "listen-only-ubuntu",
+			desired: []Directive{{"AuthorizedKeysFile", []string{".ssh/authorized_keys"}}},
+			want:    "AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2", after: ".ssh/authorized_keys .ssh/authorized_keys2"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			sc := named(t, tt.scen)
+			sc.desired = tt.desired
+			if tt.site != "" {
+				sc.files = maps.Clone(sc.files)
+				sc.files[site] = tt.site
+			}
+			h, p, opts := applyHost(t, sc)
+			var got string
+			for _, l := range strings.Split(string(p.DropIn), "\n") {
+				if strings.HasPrefix(l, "AuthorizedKeysFile") {
+					got = l
+				}
+			}
+			if got != tt.want {
+				t.Errorf("00-hardn.conf's AuthorizedKeysFile = %q, want %q", got, tt.want)
+			}
+			dropped := slices.ContainsFunc(p.Dropped, func(c Carried) bool {
+				return c.File == ManageConf && strings.HasPrefix(c.Text, "AuthorizedKeysFile") && strings.Contains(c.Why, site+" line 1")
+			})
+			if dropped != tt.dropped {
+				t.Errorf("manage.conf's line dropped for %s: %v, want %v (%+v)", site, dropped, tt.dropped, p.Dropped)
+			}
+			rep, err := Apply(context.Background(), h, p, opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := rep.After.Keywords["authorizedkeysfile"]; len(got) != 1 || got[0] != tt.after {
+				t.Errorf("after: authorizedkeysfile %q, want %q", got, tt.after)
+			}
+		})
+	}
+}
+
+// TestPlanForAlpineRestore: the restore keeps the installed values where
+// the stock lines differ, leaves out a stock Subsystem 00-hardn.conf
+// defines, and refuses when a value to keep is not established.
+func TestPlanForAlpineRestore(t *testing.T) {
+	sc := named(t, "v032-alpine")
+	_, p, err := plan(t, sc)
 	if err != nil {
 		t.Fatal(err)
 	}
-	before := h.before(t, service, "") // read as if sshd.service listened: the socket not read
-	if _, err := PlanFor(Input{Found: f, SSH: sc.ssh, Platform: sc.platform, Before: before}); !errors.Is(err, ErrNotEstablished) {
-		t.Errorf("PlanFor without the socket's listeners = %v, want ErrNotEstablished", err)
+	if note := p.Ops[0].Note; !strings.Contains(note, "AllowTcpForwarding yes kept") {
+		t.Errorf("the restore's note %q does not name the forwarding value it keeps", note)
 	}
-	h.AddFile(sshd.DropInDir+"/20-site.conf", []byte("ListenAddress web-01.example.net\n"), 0o644, 0, 0)
-	if f, err = Find(context.Background(), h, FindRequest{ConfigFile: sc.configFile}); err != nil {
+
+	sc.files = maps.Clone(sc.files)
+	sc.files[sshd.MainConfig] += "Subsystem sftp /usr/lib/ssh/sftp-server\n"
+	_, p, err = plan(t, sc)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := PlanFor(Input{Found: f, SSH: sc.ssh, Platform: sc.platform, Before: h.before(t, sc.ssh, sc.socket)}); !errors.Is(err, ErrNotEstablished) {
-		t.Errorf("PlanFor with a host name in ListenAddress = %v, want ErrNotEstablished", err)
+	if main := string(p.Ops[0].Data); strings.Contains(main, "Subsystem") || !strings.Contains(string(p.DropIn), "Subsystem sftp /usr/lib/ssh/sftp-server") {
+		t.Errorf("a second sftp Subsystem: sshd_config\n%s00-hardn.conf\n%s", main, p.DropIn)
+	}
+
+	sc = named(t, "main-alpine")
+	sc.files = maps.Clone(sc.files)
+	sc.files[sshd.MainConfig] = strings.Replace(sc.files[sshd.MainConfig], "AuthorizedKeysFile .ssh/authorized_keys\n", "", 1)
+	h, p, opts := applyHost(t, sc)
+	if !strings.Contains(string(p.DropIn), "AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2\n") {
+		t.Errorf("sshd's default key files are not kept over the stock line:\n%s", p.DropIn)
+	}
+	if _, err := Apply(context.Background(), h, p, opts); err != nil {
+		t.Fatal(err)
+	}
+
+	h = newHost(t, named(t, "v032-alpine").files)
+	f, err := Find(context.Background(), h, FindRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := h.before(t, openrc, "")
+	delete(before.Keywords, "allowtcpforwarding")
+	if _, err := PlanFor(Input{Found: f, SSH: openrc, Platform: alpine324, Before: before}); !errors.Is(err, ErrNotEstablished) {
+		t.Errorf("PlanFor without sshd -T's allowtcpforwarding = %v, want ErrNotEstablished", err)
 	}
 }
 
@@ -291,6 +447,9 @@ func TestPlanForRules(t *testing.T) {
 			ssh: socketNoGen, platform: debian13, left: []string{ListenConf + ": ssh.socket.d"}},
 		{name: "SSH mode unknown", files: map[string]string{sshd.MainConfig: stockMain, ListenConf: listen},
 			ssh: unknown, platform: ubuntu2604, left: []string{ListenConf + ": not established"}},
+		{name: "generator not established", files: map[string]string{sshd.MainConfig: stockMain, ListenConf: listen},
+			ssh: detect.SSH{Mode: detect.SSHSocket, Socket: up, Generator: detect.Unknown}, platform: ubuntu2604,
+			left: []string{ListenConf + ": whether sshd-socket-generator derives ssh.socket's listeners from the files is not established"}},
 		{name: "generated main off Alpine", files: map[string]string{sshd.MainConfig: alpineGen, ListenConf: listen},
 			ssh: socketGen, platform: ubuntu2604, left: []string{sshd.MainConfig + ": Alpine only", ListenConf + ": first-line Include"}},
 		{name: "generated main given an Include", files: map[string]string{sshd.MainConfig: alpineGen + sshd.IncludeLine + "\n"},
@@ -341,6 +500,15 @@ func TestPlanForRules(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestPlanForIncludeUnknown: an Include mode Find did not establish is
+// refused, not guessed.
+func TestPlanForIncludeUnknown(t *testing.T) {
+	f := Found{Main: []byte(stockMain), Artifacts: []Artifact{{Kind: KindManageConf, Path: ManageConf, Gen: GenV03, Data: []byte(markerV03)}}}
+	if _, err := PlanFor(Input{Found: f, SSH: service, Platform: debian13}); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("PlanFor with IncludeUnknown = %v, want fs.ErrInvalid", err)
 	}
 }
 

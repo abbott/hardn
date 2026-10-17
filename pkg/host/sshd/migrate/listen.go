@@ -55,6 +55,7 @@ func overlaps(ls []sshd.Listener) []string {
 	return out
 }
 
+// isKeyword reports whether a line sets the canonical keyword k.
 func isKeyword(k string) func(outLine) bool {
 	return func(l outLine) bool { return l.keyword == k }
 }
@@ -169,8 +170,11 @@ func listenersOf(ls []outLine) (out []sshd.Listener, ok bool) {
 
 // addListeners adds the lines that make sshd configure every listener of
 // need it does not configure yet: with ListenAddress lines in the files,
-// ListenAddress <address>:<port>; without, a Port line, and Port 22 beside
-// it when there was no Port line, so that sshd's default stays.
+// ListenAddress <address>:<port>; without, a Port line. need is only ever
+// a socket's (PlanFor: a socket host whose generator follows the files),
+// where sshd's own set is configuration only, so sshd's default 22 is not
+// kept for its own sake when the first Port line replaces it: it is in
+// need, and gets its line, when ssh.socket listens on it now.
 func (c *composed) addListeners(need []needed, rest []outLine) error {
 	for _, n := range need {
 		all := slices.Concat(c.out, rest)
@@ -196,9 +200,6 @@ func (c *composed) addListeners(need []needed, rest []outLine) error {
 				c.out = append(c.out, outLine{text: render("ListenAddress", args), keyword: "listenaddress", args: args, from: n.from})
 			}
 		default:
-			if !slices.ContainsFunc(all, isKeyword("port")) {
-				c.out = append(c.out, outLine{text: "Port 22", keyword: "port", args: []string{"22"}, from: n.from})
-			}
 			p := strconv.Itoa(int(n.Port))
 			c.out = append(c.out, outLine{text: "Port " + p, keyword: "port", args: []string{p}, from: n.from})
 		}
