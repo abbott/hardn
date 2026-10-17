@@ -67,8 +67,9 @@ type Block struct {
 type Probe struct {
 	Block Block
 	Conn  Conn
-	// Reasons lists the criteria Conn could not be made to satisfy; empty
-	// means it satisfies every one, so Output shows the block applied.
+	// Reasons lists the criteria Conn could not be made to satisfy. Empty
+	// means the block applies to Conn; an earlier block that matches Conn
+	// too still wins for the keywords it sets (first value wins).
 	Reasons []string
 	Output  []byte // sshd -T -C's stdout
 }
