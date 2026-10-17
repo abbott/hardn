@@ -89,10 +89,12 @@ func (vm MainMenu) Render(c component.Ctx) string {
 
 // Screen returns what nav.Run draws for the main menu, with m as its menu
 // in place of vm.Menu: Above holds every block down to the menu heading,
-// and Compact is set on a terminal too short for the full form, so that
-// nav.Run draws what Render renders. Call it in each round of Run's draw,
-// so that the screen shows the state the last action left.
+// and Compact is set on a terminal too short for the full form drawn with
+// m, the menu nav.Run draws, so that nav.Run draws what Render renders
+// for a view-model whose Menu holds m's items. Call it in each round of
+// Run's draw, so that the screen shows the state the last action left.
 func (vm MainMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
+	vm.Menu = m.View()
 	short := vm.compact(c)
 	return nav.Screen{Above: vm.above(c, short), Menu: m, Label: vm.Prompt, Compact: short}
 }

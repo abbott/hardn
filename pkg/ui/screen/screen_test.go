@@ -339,6 +339,33 @@ func TestCompact(t *testing.T) {
 	}
 }
 
+// TestScreenMenu checks that the main menu's Screen chooses its form by
+// the menu it is given, the one nav.Run draws, rather than by vm.Menu: a
+// view-model with no menu, given the fixture's, gets the form the
+// fixture takes, at every width from 1 to 130 and at 0, 1 and 24 to 60
+// rows. At 60 columns from 40 to 56 rows the full form fits without the
+// menu's lines and not with them.
+func TestScreenMenu(t *testing.T) {
+	vm := MainMenuFixture()
+	bare := vm
+	bare.Menu = component.Menu{}
+	m := menuOf(vm.Menu)
+	heights := []int{0, 1}
+	for h := term.DefaultHeight; h <= 60; h++ {
+		heights = append(heights, h)
+	}
+	for w := 1; w <= 130; w++ {
+		for _, h := range heights {
+			env := term.Fixed(w, colorprofile.TrueColor, true, true)
+			env.Height = h
+			c := component.NewCtx(env)
+			if got, want := bare.Screen(c, m).Compact, vm.compact(c); got != want {
+				t.Errorf("%dx%d: Screen with no vm.Menu sets Compact %v, want %v as for the menu drawn", w, h, got, want)
+			}
+		}
+	}
+}
+
 // TestCompactForm checks what the compact form keeps and leaves out, on
 // plain text at 80x24.
 func TestCompactForm(t *testing.T) {
