@@ -3,145 +3,145 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m›␛[m ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m…␛[m ␛[38;2;86;91;107m›␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m>␛[m ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m>␛[m ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-  ␛[38;2;129;134;156mhardn␛[m ␛[38;2;86;91;107m>␛[m ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;129;134;156m...␛[m ␛[38;2;86;91;107m>␛[m ␛[1;38;2;192;196;216mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m›␛[m ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m›␛[m ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m›␛[m ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m…␛[m ␛[38;2;129;134;156m›␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m>␛[m ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m>␛[m ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-  ␛[38;2;87;92;110mhardn␛[m ␛[38;2;129;134;156m>␛[m ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;2;87;92;110m...␛[m ␛[38;2;129;134;156m>␛[m ␛[1;38;2;30;34;48mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m›␛[m ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m›␛[m ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m›␛[m ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m…␛[m ␛[38;5;59m›␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m>␛[m ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m>␛[m ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103mhardn␛[m ␛[38;5;59m>␛[m ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;103m...␛[m ␛[38;5;59m>␛[m ␛[1;38;5;251mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m›␛[m ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m›␛[m ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m›␛[m ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m…␛[m ␛[38;5;103m›␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m>␛[m ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m>␛[m ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;59mhardn␛[m ␛[38;5;103m>␛[m ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[38;5;59m...␛[m ␛[38;5;103m>␛[m ␛[1;38;5;235mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;37mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-  ␛[90mhardn␛[m ␛[90m›␛[m ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m…␛[m ␛[90m›␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-  ␛[90mhardn␛[m ␛[90m>␛[m ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ␛[90m...␛[m ␛[90m>␛[m ␛[1;30mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-  hardn › … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  … › ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-  hardn > ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
+  ... > ␛[1mAllow 2230/tcp from 192.0.2.0/24␛[m$
