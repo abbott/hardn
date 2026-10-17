@@ -1,0 +1,9 @@
+# Synthetic sshd_config with no Include.
+PasswordAuthentication yes
+# BEGIN hardn
+Port 2230
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+# END hardn
+PermitRootLogin yes
+Subsystem sftp internal-sftp

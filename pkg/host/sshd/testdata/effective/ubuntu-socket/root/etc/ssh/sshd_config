@@ -1,0 +1,10 @@
+# Synthetic sshd_config, shaped like Ubuntu 26.04's stock file.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding yes
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server

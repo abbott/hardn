@@ -94,8 +94,31 @@ const (
 	FindingMatchUntargeted
 	// FindingWarning: sshd -t passed, and complained about a line.
 	FindingWarning
+	// FindingOverridden: a line of another file is read before hardn's and
+	// sets the same keyword, so sshd uses it, not hardn's (first value
+	// wins). ReadEffective and Evaluate report it.
+	FindingOverridden
+	// FindingShadowed: a line of another file sets a keyword hardn sets, to
+	// another value, and is read after hardn's, so it has no effect while
+	// hardn's line is there (brief 2.2: reported, never edited).
+	FindingShadowed
+	// FindingAccumulates: another file adds values to a keyword whose
+	// values accumulate (Port, AllowUsers, ...), as hardn's file does.
+	FindingAccumulates
+	// FindingMatchOverride: a Match block sets a keyword hardn sets; for
+	// the connections it matches its value applies. Also: hardn's own line
+	// is inside a Match block.
+	FindingMatchOverride
+	// FindingDisagree: two sources of an effective value disagree (sshd -T
+	// and ssh.socket, or sshd -T and the files), so the value is Unknown.
+	FindingDisagree
+	// FindingUnknown: an effective value is Unknown for another reason:
+	// output not in a form hardn knows, or the SSH mode not established.
+	FindingUnknown
 )
 
+// String is the finding's code. Codes are stable: scripts and p3-output's
+// findings[] match on them (TestFindingCodes pins them).
 func (k FindingKind) String() string {
 	switch k {
 	case FindingClobberable:
@@ -106,6 +129,18 @@ func (k FindingKind) String() string {
 		return "match-untargeted"
 	case FindingWarning:
 		return "sshd-warning"
+	case FindingOverridden:
+		return "overridden"
+	case FindingShadowed:
+		return "shadowed"
+	case FindingAccumulates:
+		return "accumulates"
+	case FindingMatchOverride:
+		return "match-override"
+	case FindingDisagree:
+		return "sources-disagree"
+	case FindingUnknown:
+		return "effective-unknown"
 	}
 	return "unknown"
 }

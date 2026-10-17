@@ -1,0 +1,10 @@
+# Synthetic sshd_config, shaped like Debian 13's stock file.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+Port 22
+KbdInteractiveAuthentication no
+UsePAM yes
+
+Match Address 192.0.2.0/24
+	PermitRootLogin yes

@@ -10,8 +10,15 @@
 // then runs sshd -t, sshd -T and one sshd -T -C per Match block against the
 // copy. Nothing under /etc is written. Everything goes through host.System.
 //
-// docs/safety/sshd-validate.md describes the guarantees, the platform facts
-// they rely on and what is written but not yet run on a Linux host.
+// Once a configuration is installed, ReadEffective reports what sshd runs
+// with (next/p2-sshd-effective): sshd -T's values, the accumulating
+// keywords as sets, ssh.socket's listeners on a socket-activated host, and
+// which other files' lines beat, add to or lose to hardn's. A value whose
+// sources disagree is Unknown, with a Finding.
+//
+// docs/safety/sshd-validate.md and docs/safety/sshd-effective.md describe
+// the guarantees, the platform facts they rely on and what is written but
+// not yet run on a Linux host.
 package sshd
 
 import (
