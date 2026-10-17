@@ -97,11 +97,15 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 	switch {
 	case pve.Installed == Yes:
 		p := Platform{Distro: DistroProxmox, Version: pveMajor(pve.Version)}
-		if p.Version == "" {
+		switch {
+		case pve.Version == "":
+			p.Err = fmt.Errorf("detect: platform: Proxmox VE version not established (%s): %w", pve.Source, ErrNoSignal)
+		case p.Version == "":
 			p.Err = fmt.Errorf("detect: platform: Proxmox VE version %q: %w", pve.Version, ErrUnrecognised)
-			return p
+		default:
+			return lookup(p)
 		}
-		return lookup(p)
+		return p
 	case pve.Installed == Unknown && osr.ID == string(DistroDebian):
 		return Platform{Err: fmt.Errorf("detect: platform: Debian or Proxmox VE: %w", errOr(pve.Err, ErrNoSignal))}
 	}

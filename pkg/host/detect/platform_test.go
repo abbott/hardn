@@ -46,7 +46,8 @@ func TestClassify(t *testing.T) {
 		{"os-release unreadable", detect.OSRelease{Err: errFixture}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
 		{"empty OSRelease", detect.OSRelease{}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, detect.ErrNoSignal},
 		{"Debian with Proxmox not established", read("debian-13"), detect.Proxmox{Err: errFixture}, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
-		{"Proxmox VE version not established", read("debian-13"), pve(""), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrUnrecognised},
+		{"Proxmox VE version not established", read("debian-13"), pve(""), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrNoSignal},
+		{"Proxmox VE version unparsable", read("debian-13"), pve("nine"), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrUnrecognised},
 	}
 	for _, tt := range tests {
 		got := detect.Classify(tt.osr, tt.pve)
