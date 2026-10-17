@@ -1,0 +1,157 @@
+# sudoers and doas rules (`pkg/host/sudoers`)
+
+> **Unit:** refactor plan Phase 2, `next/p2-sudoers` (brief 2.2 "sudoers"; decisions §3.17, sudoers file names, and §3.21, doas alongside sudo, both approved 2026-10-17). V-numbers: V16 (sudoers grant with no `visudo`, a raw user name as file name, non-atomic, `env_keep` overwritten by the grant) and the elevation half of V14 (Alpine has no sudo) ([side-effects.md](../refactor/phase0/side-effects.md)). Brief corrections it implements: [phase0-findings.md §12](../refactor/phase0-findings.md#12-proposed-adjustments-to-the-brief), rows 25 (sudo-rs) and 26 (doas).
+> **Status:** built and tested on macOS against the recording fake (`hostfake`) only. `visudo` and `doas` are modelled by a test handler that accepts or rejects a file; their messages are written in the tools' style, not captured from a host. Nothing has run on Linux; §4 lists what is "written, not run (gate 5)".
+
+`sudoers.Choose(facts, want)` picks the elevation tool from `detect`'s facts. `sudoers.Read` reads what a plan needs, `sudoers.PlanFor` plans the files for a set of per-user policies (pure), and `sudoers.Apply` installs a plan over `host.System`: the whole configuration is checked first, each candidate is checked as a copy before it is renamed into place, and the whole configuration is checked again after, with the old files put back if that fails. `sudoers.Rollback` puts a plan's files back.
+
+## 1. Why
+
+origin/main writes `/etc/sudoers.d/<user>` with `os.WriteFile`, without `visudo`, named after the raw user name, so a name with a `.` is silently skipped by sudo; and the grant overwrites the `env_keep` line `setup-sudo-env` wrote to the same file (V16, [side-effects.md](../refactor/phase0/side-effects.md) rows 17 and 18). A sudoers file sudo cannot parse breaks sudo for everyone, and a grant sudo never reads is a grant hardn reports that does not exist: with root's SSH login disabled in the same run, either is a lockout (brief §3 principle 1). On Alpine sudo is not installed at all; doas is the default (V14; §3.21).
+
+## 2. Guarantees
+
+### Choosing the tool (`Choose`, pure)
+
+1. **From detect's facts, never re-detected, installing nothing** ([detect.md](detect.md) §2.10). `want` is `ToolSudo` or `ToolDoas` to name one, `ToolUnknown` to take the one installed:
+
+   | Host (stock install) | `Choose(facts, ToolUnknown)` |
+   |---|---|
+   | Debian 13, 12; Ubuntu 24.04 | `ToolSudo`, `Flavor` `SudoOriginal` |
+   | Ubuntu 26.04 | `ToolSudo`, `Flavor` `SudoRS` |
+   | Alpine 3.24, 3.23 (`setup-alpine`) | `ToolDoas` |
+   | Alpine with both installed | `ToolUnknown`, `ErrAmbiguous`: the caller names one |
+   | Proxmox VE 9 (no sudo **[I]**), or any host with neither tool | `ToolNone` (NotApplicable), `ErrNoTool` |
+   | doas without sudo, not Alpine | `ToolUnknown`, `ErrUnsupported` |
+   | a tool's presence not established | `ToolUnknown`, wrapping detect's error |
+
+   A named tool that is absent is `ToolNone` with `ErrNoTool`. doas is configured only on Alpine, whose package reads `/etc/doas.d` (§3); elsewhere it is ignored when sudo is present. **sudo and sudo-rs take the same path:** the rules hardn writes and the `visudo` flags it runs are the same for both, and on Ubuntu 26.04 `visudo` is sudo-rs's (§3). An Unknown flavour does not stop a plan; `Choice.Err` says why it is Unknown, and the tool is still `ToolSudo`. Tested: `TestChoose`; the plan and apply tests run on the sudo and the sudo-rs facts and assert the same files and the same commands (`TestPlanContent`, `TestApplySudoFlavours`).
+
+### File names (§3.17)
+
+2. **Fixed prefixes, then the user name encoded one to one.** sudo: `/etc/sudoers.d/hardn-grant-<stem>` (the grant) and `/etc/sudoers.d/hardn-env-<stem>` (the `env_keep` line), **separate files**, so a grant never overwrites the environment line again (V16). doas: `/etc/doas.d/hardn-<stem>.conf`, one per user (item 6). `<stem>` keeps lower-case letters, digits and `-`, writes `_` as `__` and any other byte as `_` and two hex digits: `alice` → `alice`, `alice.smith` → `alice_2esmith`, `svc_backup` → `svc__backup`, `web01$` → `web01_24`. So a sudo name **never contains `.` and never ends in `~`**, the names sudo and sudo-rs skip (§3), two users never share a file, and no user's file is another user's under the other prefix (`env-alice`'s grant is `hardn-grant-env-alice`, alice's environment file `hardn-env-alice`). Tested: `TestFileNames`, over names built to collide.
+3. **Order.** sudo reads `/etc/sudoers.d` in sorted lexical order and **the last matching rule wins**, the opposite of sshd (§3). Every hardn name starts with a lower-case `hardn-`, which sorts after the digit-led and upper-case names the distributions and cloud-init use (`README`, `90-cloud-init-users`, `20-wheel.conf`), so hardn's rule for a user comes after theirs and wins; the main `/etc/sudoers`' rules (`%sudo` on Debian and Ubuntu) come before its `@includedir` (§3). What could still win over hardn's rule is reported, not edited (item 5).
+4. **User names hardn writes into a rule:** `^[a-z_][a-z0-9_.-]*\$?$`, at most 32 bytes (`CheckUser`, `ErrUserName` otherwise). That is a superset of the legacy menu's `^[a-z][a-z0-9_-]*$` ([side-effects.md](../refactor/phase0/side-effects.md) row 12); it has no upper case, so a name is never a sudoers alias or `ALL`, and no `#`, `%`, `+`, `!`, `,`, `=`, `:`, space or `~`, which sudoers reads as a uid, a group, a netgroup, a negation or a separator. For doas, the keywords of doas.conf(5) (`permit`, `persist`, `nopass`, …) are refused as well: as a bare word in a rule each is read as itself (§3). Variables are `^[A-Za-z_][A-Za-z0-9_]*$`, each once (`ErrVarName`). This is a check, not the whole defence: every file is still validated by the tool itself (item 8).
+
+### Content and planning (`Read`, `PlanFor`)
+
+5. **Read reads, PlanFor is pure.** `Read(ctx, sys, choice, users)` makes only reads: sudo's `/etc/sudoers` must have `@includedir /etc/sudoers.d` (or the older `#includedir` form), and `/etc/sudoers.d` must be a directory; doas's `/etc/doas.d` must be a directory, not a symlink to one, as Alpine's doas checks it (§3). Otherwise `ErrNotIncluded`: **a grant in a directory the tool does not read is refused, never reported as done**. hardn creates neither directory. It lists the directory's entries the tool reads, in its order (sudo: no `.`, no trailing `~`; doas: names ending in `.conf`), and reads hardn's files for the users named with `ReadFileNoFollow`, so a symlink at one is refused (`host.ErrSymlink`) and a directory there is an error. `PlanFor(state, policies)` then decides the changes with no I/O. Findings (`Plan.Findings`), which never stop a plan:
+   - `sudoers-later-file`: an entry the tool reads after a user's grant, other than hardn's own files (decoded with item 2's inverse, so `hardn-zzz` or a non-canonical `hardn-grant-z_61` is reported): a rule there that matches the user wins;
+   - `sudoers-after-include`: lines of `/etc/sudoers` after the `@includedir` (sudo reads them after the drop-ins), with their line numbers;
+   - `sudoers-legacy-file`: origin/main's `/etc/sudoers.d/<user>` (V16), saying whether sudo reads it before hardn's file (hardn's rule wins) or after (the old one wins). It is reported, never removed: migrating it is the user-management slice's.
+
+   Tested: `TestPlanFindings`, `TestReadRefuses`, and every call `Read` makes is a read (`TestPlanContent`).
+6. **The rules.** sudo keeps origin/main's lines exactly (brief §3 principle 2; `ConfigureSudo` and `setup-sudo-env` in `pkg/adapter/secondary`), each in its own file under the header `# Managed by hardn`:
+
+   | Policy | sudo | doas (Alpine) |
+   |---|---|---|
+   | `GrantPassword` | `alice ALL=(ALL) ALL` | `permit persist alice` |
+   | `GrantNoPassword` | `alice ALL=(ALL) NOPASSWD: ALL` | `permit nopass alice` |
+   | `Env: [HARDN_CONFIG]` | `Defaults:alice env_keep += "HARDN_CONFIG"` (second file) | `setenv { HARDN_CONFIG }` on the same rule: `permit persist setenv { HARDN_CONFIG } alice` |
+   | `GrantNone`, no `Env` | hardn's files removed | hardn's file removed |
+
+   doas's rule takes the shape of Alpine's own `20-wheel.conf` (`permit persist :wheel`). **On doas the environment cannot be a separate file:** doas takes the action *and the options* of the last matching rule alone, and `setenv` is an option of a rule (§3), so a later `setenv` rule for alice would also decide whether her password is asked. `Env` without a grant is therefore refused on doas (`ErrEnvNeedsGrant`) rather than silently granting her doas. sudo's files are mode `0440`, doas's `0640` (the mode Alpine's package gives `/etc/doas.conf`), both `root:root`. Tested: `TestPlanContent` pins every byte.
+7. **Idempotent, with a risk per change.** A file already holding exactly the content, mode and owner is not planned; a wrong mode or owner alone is rewritten (`TestPlanIdempotent`: after `Apply`, the same policies plan nothing). Each `Change` carries `Old` (the file as `Read` found it), `Check` (the validation, naming the real path, for the plan view) and `Risk`: `RiskLockout` when it removes a user's grant or writes one that asks for a password, which a user created without one cannot give (V17; a cloud image's default user, granted `NOPASSWD` by cloud-init, is one), `RiskNone` otherwise. The engine decides what a lockout-risk change needs (brief Phase 3 `Risk()`).
+
+### Installing (`Apply`)
+
+8. **Validated before it takes effect, in this order, stopping at the first failure:**
+   1. the run directory: `Options.RunDir` absolute, every directory from `/` a real directory owned by root and writable by neither group nor others (`ErrUnsafeRunDir`, as `sshd.Request.RunDir`, [sshd-validate.md](sshd-validate.md) §2.9); `RunDir/sudoers-validate` must not exist (`fs.ErrExist`) and is created `0700`;
+   2. **the whole configuration as it is** (`StageBefore`): sudo `visudo -c`; doas, which has no such check, each file it reads in its order (`/etc/doas.conf`, then each regular `*.conf` in `/etc/doas.d`): owned by root and writable by neither group nor others (`ErrPerms`; doas itself refuses to run otherwise, §3), and `doas -C <file>`. A configuration that is already broken is refused before anything is written, so a later failure is the plan's own;
+   3. **each candidate, as a copy** (`StageCandidate`): the exact bytes, with the mode and owner it will have, written to `RunDir/sudoers-validate/<name>` and checked with `visudo -cf <copy>` or `doas -C <copy>`. Only root can change the copy between its writing and the check;
+   4. each file is read again and must be as `Read` found it (`ErrChanged`), so neither a concurrent edit is overwritten nor a rollback restores the wrong content;
+   5. **the writes**: `WriteFileAtomic` (same-directory temporary file, fsync, rename, directory fsync; [atomic.md](atomic.md) §2.1), `root:root`, or `Remove`;
+   6. **the whole configuration again** (`StageAfter`), as in step 2.
+
+   **Up to step 5 nothing under `/etc` changes** (tested for a broken configuration before, a rejected candidate, a changed file, an unsafe run directory and a cancelled context). Once created, the copies are removed under `context.WithoutCancel` on every path (`Result.Cleanup` holds a removal error and does not change the outcome). The atomic write's leftover temporary file after a crash, `.<name>.hardn-<random>`, contains a `.` (sudo skips it) and does not end in `.conf` (doas skips it), §3. An empty plan runs nothing.
+9. **Recoverable.** When a write or `StageAfter` fails, every file written (and the one whose write failed) is put back as `Read` found it, last first, under `context.WithoutCancel` (a Ctrl-C mid-way still restores: `TestApplyCancelledMidway`), and the whole configuration is checked once more (`StageRestored`); the error joins the failure, any restore error and that check. Tested: `TestApplyRejected` (an old grant restored, a new environment file removed), `TestApplyWriteFails`, `TestApplyRestoreFails`.
+10. **Errors are typed.** A failed check is a `*CheckError{Stage, Path, Argv, Tail, Err}`: `Path` is the real file (a candidate's target; `/etc/sudoers` for `visudo -c`), `Argv` what ran (naming the copy for a candidate), `Tail` the tool's last output lines. `errors.Is(err, ErrRejected)` holds only when the tool rejected the file (a `*host.ExitError`) or doas's ownership rule did (`ErrPerms`); a check that could not run (no `visudo`: `host.ErrNotFound`; a cancelled context) is a `CheckError` that is not a rejection (`TestCheckErrorNotRejected`). Every error wraps its cause for `errors.Is`/`errors.As`.
+11. **`Rollback(ctx, sys, plan)`** puts every file of the plan back as `Read` found it (written with its old mode and owner, or removed if it was absent), last first, skipping files already so, then checks the whole configuration (`StageRestored`). It is idempotent (`TestRollback`). After Ctrl-C, run it under `context.WithoutCancel`: every `host.System` method refuses a done context ([system.md](system.md) §2.5).
+12. **Through `host.System` only.** depguard rule `sudoers-through-host` denies the package's non-test files `os` (with `os/exec`), `io/ioutil`, `golang.org/x/sys`, `syscall`, `net` and `plugin`; `host-stdlib` already holds `pkg/host/**` to the standard library and `pkg/host`. Tests run only against `hostfake`; nothing executes `visudo`, `doas` or `sudo`.
+
+## 3. Platform facts relied on
+
+| Fact | Source | Used for |
+|---|---|---|
+| sudoers skips files in an includedir that "end in ~ or contain a . character", reads them in sorted lexical order, and the **last** matching rule wins | sudoers(5): [sudo `docs/sudoers.mdoc.in`, SUDO_1_9_15p5](https://raw.githubusercontent.com/sudo-project/sudo/SUDO_1_9_15p5/docs/sudoers.mdoc.in) (lines 2375-2395, 616); brief §2.2; [phase0-findings.md §12](../refactor/phase0-findings.md#12-proposed-adjustments-to-the-brief), row 25 | §2.2, §2.3, §2.8 leftover files |
+| sudo-rs applies the same skip rule (`ends_with('~') \|\| contains('.')`) and sorts the files | sudo-rs v0.2.13 [`src/sudoers/mod.rs`](https://raw.githubusercontent.com/trifectatechfoundation/sudo-rs/v0.2.13/src/sudoers/mod.rs) (lines 794-827); findings §12 row 25 | §2.1, §2.2 |
+| Ubuntu 26.04's sudo is sudo-rs, whose alternative also switches `/usr/sbin/visudo` to sudo-rs's | Ubuntu `rust-sudo-rs` [`debian/sudo-rs.alternatives`](https://git.launchpad.net/ubuntu/+source/rust-sudo-rs/plain/debian/sudo-rs.alternatives?h=applied/ubuntu/resolute-devel); [detect.md](detect.md) §3 | §2.1: one `visudo` path |
+| sudo-rs's visudo takes `-c`, `-f` and bundled `-cf`; in check mode with no file it checks the main file and its mode `0440` and owner `0:0`, with `-f` only with `-P`/`-O`; it prints `<path>: parsed OK` and exits 1 on failure | sudo-rs v0.2.13 [`src/visudo/cli.rs`](https://raw.githubusercontent.com/trifectatechfoundation/sudo-rs/v0.2.13/src/visudo/cli.rs), [`src/visudo/mod.rs`](https://raw.githubusercontent.com/trifectatechfoundation/sudo-rs/v0.2.13/src/visudo/mod.rs) (`check`) | §2.8 steps 2, 3, 6; copies get the installed mode and owner anyway |
+| sudo's `visudo -c -f` checks a given file and exits non-zero on an error | visudo(8), listed in brief §10; origin/main's `setup-sudo-env` already runs `visudo -c -f` ([side-effects.md](../refactor/phase0/side-effects.md) row 18). **[unverified]** for this unit: that `visudo -c`, sudo's and sudo-rs's (whose `Sudoers::read` is outside the files read), also parses the includedir's files. Each of hardn's files is checked on its own in step 3 either way | §2.8 |
+| Debian 12/13 and Ubuntu's `/etc/sudoers` end with `@includedir /etc/sudoers.d`, after `%sudo ALL=(ALL:ALL) ALL`; Alpine's sudo is in community, with `@includedir` active | [Debian sudo 1.9.16p2-3+deb13u2 `debian/etc/sudoers`](https://sources.debian.org/data/main/s/sudo/1.9.16p2-3+deb13u2/debian/etc/sudoers); Ubuntu [`sudo-common` `debian/etc/sudoers`](https://git.launchpad.net/ubuntu/+source/sudo-common/plain/debian/etc/sudoers?h=applied/ubuntu/resolute-devel); [sudo 1.9.17p2 `plugins/sudoers/sudoers.in`](https://raw.githubusercontent.com/sudo-project/sudo/v1.9.17p2/plugins/sudoers/sudoers.in) (lines 122-139); findings §12 row 29 | §2.3, §2.5 |
+| The older `#includedir` spelling is still read | **[unverified]** (accepted so a host using it is not refused; the whole-configuration check still runs) | §2.5 |
+| cloud-init writes `/etc/sudoers.d/90-cloud-init-users` with `NOPASSWD:ALL` for its default user | **[unverified]** here (cloud-init's sudoers rendering was not among the sources read); the test fixture uses that name | §2.3 example; §2.7 risk |
+| Alpine's default elevation is doas: `setup-user -a` (which `setup-alpine` runs) installs doas and writes `/etc/doas.d/20-wheel.conf` = `permit persist :wheel`; the stock `/etc/doas.conf` has that rule commented out | [alpine-conf `setup-user.in`](https://gitlab.alpinelinux.org/alpine/alpine-conf/-/raw/master/setup-user.in) (lines 14, 170-174); [aports `3.24-stable/main/doas/doas.conf`](https://gitlab.alpinelinux.org/alpine/aports/-/raw/3.24-stable/main/doas/doas.conf); findings §12 row 26 | §2.1, §2.6 |
+| Alpine's doas is OpenDoas 6.8.2 built `--with-doas-confdir` with `configuration-directory.patch`; the package installs `/etc/doas.conf` mode `0640` and an empty `/etc/doas.d` mode `0750` | [aports `3.24-stable/main/doas/APKBUILD`](https://raw.githubusercontent.com/alpinelinux/aports/3.24-stable/main/doas/APKBUILD) (GitHub mirror of aports) | §2.1: doas on Alpine only; §2.6 mode |
+| With that patch doas reads `/etc/doas.conf`, then, if `/etc/doas.d` is a directory by `lstat`, its entries in `scandir(…, alphasort)` order whose names end in `.conf` (dot-files included), regular files by `stat` (a symlink to one is read); a `stat` failure is fatal; `doas -C <file>` parses that file only | [aports `3.24-stable/main/doas/configuration-directory.patch`](https://raw.githubusercontent.com/alpinelinux/aports/3.24-stable/main/doas/configuration-directory.patch) (`main`, `isconfdir`, `parseconfdir`, `checkconfig`) | §2.5, §2.8 step 2, leftover files |
+| alphasort's order is byte order for these names | **[unverified]**: alphasort compares with `strcoll`; that doas runs in the C locale (no `setlocale`) was not checked | §2.3, `sudoers-later-file` |
+| doas refuses to run when a configuration file is writable by group or others or not owned by root; a parse error exits 1; `-C` skips the ownership check and, with no command, exits 0 after a clean parse; **the last matching rule decides** (`permit` overwrites its match on every rule) | OpenDoas v6.8.2 [`doas.c`](https://raw.githubusercontent.com/Duncaen/OpenDoas/v6.8.2/doas.c) (`parseconfig`, `checkconfig`, `permit`) | §2.6, §2.8 step 2 |
+| Rule syntax `permit\|deny [options] identity [as target] [cmd …]`; options `nopass`, `nolog`, `persist`, `keepenv`, `setenv { … }` (a bare name keeps the variable); a group is `:name`; "The last matching rule determines the action taken"; a quoted word is not a keyword | OpenDoas v6.8.2 [`doas.conf.5`](https://raw.githubusercontent.com/Duncaen/OpenDoas/v6.8.2/doas.conf.5) | §2.4 keywords, §2.6 |
+| Proxmox VE's core packages do not depend on sudo (Debian marks it `Priority: optional`), so sudo is absent on a stock PVE host **[I]** | findings research (pve packaging; [detect.md](detect.md) §3, "sudo … not installed **[I]**"); plan `p2-sudoers` row | §2.1 |
+| origin/main's grant and env lines | `pkg/adapter/secondary/os_user_repository.go:250-256`, `file_environment_repository.go:69` (this repo) | §2.6 |
+
+## 4. Written, not run (gate 5)
+
+Nothing here has run on Linux or as root; `visudo` and `doas` are modelled in the tests. On the Debian 13, Ubuntu 26.04 and Alpine 3.24 VMs (`next/p2-vmtest`) and by hand on Proxmox VE 9:
+
+- **sudo (Debian 13):** `visudo -c`, then `visudo -cf /run/hardn/<run-id>/sudoers-validate/hardn-grant-alice` and `…/hardn-env-alice`, then the writes and `visudo -c` again; `sudo -l -U alice` lists the grant, and `sudo -n true` run as alice succeeds for `GrantNoPassword`; a broken candidate (an injected syntax error) is refused with nothing under `/etc/sudoers.d` changed;
+- **sudo-rs (Ubuntu 26.04):** the same steps with sudo-rs's `visudo` (through the alternatives link, from `SearchPath`), including whether its `visudo -c` parses the includedir's files (§3, unverified row); **`Defaults:alice env_keep += "HARDN_CONFIG"` keeping the variable under sudo-rs** (the plan's open item, `sudo -E` not used); its handling of a leftover `.hardn-grant-alice.hardn-<random>`;
+- the `0440` `root:root` files, and sudo and sudo-rs ignoring a leftover temporary file and `local.conf`/`old~` names;
+- **doas (Alpine 3.24):** `doas -C /etc/doas.conf`, `doas -C /etc/doas.d/20-wheel.conf`, the copy, the write of `hardn-alice.conf` `0640`, and the checks again; `doas -n true` as alice for `GrantNoPassword`, and `HARDN_CONFIG` kept through `setenv`; `20-wheel.conf` untouched; a group-writable file refused before anything is written; the read order of `/etc/doas.d` (§3, alphasort row);
+- **Proxmox VE 9:** `Choose` reports `ToolNone` on a stock host (no sudo, no doas), and the sudo path works once sudo is installed;
+- a restore after an injected `StageAfter` failure, and `Rollback` from the revert process (`p2-revert`) under `context.WithoutCancel`.
+
+## 5. API
+
+```go
+package sudoers
+
+const MainConfig = "/etc/sudoers"
+const DropInDir = "/etc/sudoers.d"
+const DoasConfig = "/etc/doas.conf"
+const DoasDir = "/etc/doas.d"
+const SudoMode, DoasMode fs.FileMode = 0o440, 0o640
+const WorkDir = "sudoers-validate"
+const Header = "# Managed by hardn\n"
+
+var ErrNoTool, ErrAmbiguous, ErrUnsupported, ErrUserName, ErrVarName, ErrNotIncluded, ErrEnvNeedsGrant,
+	ErrNotRegular, ErrRejected, ErrPerms, ErrChanged, ErrUnsafeRunDir error
+
+type Tool uint8 // ToolUnknown (zero), ToolNone (NotApplicable), ToolSudo, ToolDoas; String()
+type Choice struct { Tool Tool; Flavor detect.SudoFlavor; Err error }
+func Choose(f detect.Facts, want Tool) Choice // pure; want ToolUnknown: the one installed
+
+func CheckUser(t Tool, name string) error
+type Names struct { Grant, Env string } // Env "" for doas
+func FileNames(t Tool, user string) (Names, error)
+
+type Grant uint8 // GrantNone, GrantPassword, GrantNoPassword; String()
+type Policy struct { User string; Grant Grant; Env []string }
+
+type File struct { Path string; Exists bool; Data []byte; Mode fs.FileMode; UID, GID int }
+type FindingKind uint8 // FindingLater "sudoers-later-file", FindingAfterInclude "sudoers-after-include", FindingLegacy "sudoers-legacy-file"
+type Finding struct { Kind FindingKind; File string; Line int; Detail string }
+type State struct { Choice Choice; Entries []string; Files map[string]File; Findings []Finding }
+func Read(ctx context.Context, sys host.System, c Choice, users []string) (State, error) // reads only
+
+type Risk uint8 // RiskNone, RiskLockout; String()
+type Change struct { Path string; Old File; Data []byte; Mode fs.FileMode; Remove bool; Risk Risk; Check []string; Why string }
+type Plan struct { Tool Tool; Changes []Change; Findings []Finding }
+func PlanFor(st State, policies []Policy) (Plan, error) // pure
+
+type Stage uint8 // StageBefore, StageCandidate, StageAfter, StageRestored; String()
+type CheckError struct { Stage Stage; Path string; Argv, Tail []string; Err error } // Is(ErrRejected) for a rejection only; Unwrap
+type Options struct { RunDir string }
+type Result struct { Installed []string; Cleanup error }
+func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Result, error)
+func Rollback(ctx context.Context, sys host.System, p Plan) error
+```
+
+The `FindingKind`, `Stage`, `Risk`, `Grant` and `Tool` words are stable (`TestCodes`); they are in-memory values with no `MarshalText`, so `p3-output` maps them to its own schema, as for detect's enums ([detect.md](detect.md) §6).
+
+## 6. Not in this unit; inputs to later units
+
+- **`p3-engine`:** pick the tool with `Choose` from the facts it already has; `Read` and `PlanFor` in the plan step (an empty plan is "Configured"); before `Apply`, take a `RollbackRequired` backup of each `Change.Path` (`backup.Run`, [atomic.md](atomic.md) §7), since `Apply`'s own restore covers only its own failure; give it a run directory that is root's from `/` down (`/run/hardn/<run-id>`, `0700`), the one `sshd.Validate` uses (the work directories differ). Order: create the user before granting, and grant (and confirm, from a new session, that elevation works) before any change that disables root's SSH login (brief 2.3 step 6). Treat `RiskLockout` as a lockout-risk change; a password grant for a user with no password (V17) needs the password set first, which this unit cannot see (it does not read `/etc/shadow`). `Change.Rollback` is `Rollback`.
+- **`p3-output`:** codes for `CheckError` by stage (for example `SUDOERS_INVALID` for a rejection) and for `ErrNotIncluded`, `ErrNoTool`, `ErrAmbiguous`, `ErrUserName`; `Plan.Findings` into `findings[]`.
+- **User management (slice 5) and Environment (slice 9):** the screens take these names and rules. The design-system fixtures name the file `/etc/sudoers.d/hardn-alice` and write `ALL=(ALL:ALL)`, which are illustrative (`pkg/ui/component/fixture`, `pkg/ui/screen/fixture.go`); the real names are `hardn-grant-<stem>`/`hardn-env-<stem>` and the grant keeps origin/main's `ALL=(ALL)`. On doas, "keep `HARDN_CONFIG`" for a user who has doas only through `:wheel` needs a per-user rule (§2.6), which also grants doas to that user even if later removed from `wheel`: the screen must say so. The legacy readers of `/etc/sudoers.d/<user>` (`os_user_repository.go:351-359, 527-530`, `pkg/security/status.go:318-330`) do not see the new names. Migrating origin/main's `/etc/sudoers.d/<user>` (reported as `sudoers-legacy-file`) and installing sudo on Alpine or Proxmox are those slices' decisions (§3.21 chose doas alongside sudo).
+- **Not here:** adding a user to `wheel` or `sudo` (doas's `:wheel` and Debian's `%sudo` grant through group membership, which is user management's); `sudo -l` as an effective check (gate 5 uses it by hand); parsing other files' rules to tell whether a later file actually matches the user (the finding says it may); NSS-only accounts.
