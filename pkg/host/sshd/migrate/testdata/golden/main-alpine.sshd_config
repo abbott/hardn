@@ -1,0 +1,10 @@
+# Restored by hardn to the structure of Alpine's stock sshd_config.
+# hardn's settings are in /etc/ssh/sshd_config.d/00-hardn.conf, which the Include reads first.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+AuthorizedKeysFile	.ssh/authorized_keys
+AllowTcpForwarding no
+GatewayPorts no
+X11Forwarding no
+Subsystem	sftp	internal-sftp
