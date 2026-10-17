@@ -26,7 +26,7 @@ func configCases() []configCase {
 			notes: []string{
 				"LoadConfig keeps dryRun from the file; cmd/hardn/main.go:158 then overwrites it with the -n flag value (V3).",
 				"The unknown key notAConfigKey is ignored without a warning.",
-				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:37-43).",
+				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48, and sshdConfigFile for disable-root).",
 			},
 		},
 		{name: "full-hardn-config-env", fixture: "full.yml", viaEnv: true},
