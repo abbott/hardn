@@ -29,8 +29,8 @@ func newRunAllMenu(t *testing.T, dryRun bool) (*RunAllMenu, *interfaces.MockFile
 	mc := interfaces.NewMockCommander()
 	osInfo := model.OSInfo{Type: "debian", Version: "13", Codename: "trixie"}
 	users := application.NewUserManager(service.NewUserServiceImpl(secondary.NewOSUserRepository(fs, mc, "debian")))
-	ssh := application.NewSSHManager(service.NewSSHServiceImpl(secondary.NewFileSSHRepository(fs, mc, "debian"), osInfo))
-	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc), osInfo))
+	ssh := application.NewSSHManager(service.NewSSHServiceImpl(secondary.NewFileSSHRepository(fs, mc, "debian", nil), osInfo))
+	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, nil), osInfo))
 	dns := application.NewDNSManager(service.NewDNSServiceImpl(secondary.NewFileDNSRepository(fs, mc, "debian"), osInfo))
 	security := application.NewSecurityManager(users, ssh, firewall, dns)
 	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, nil, security, nil, nil, nil)

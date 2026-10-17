@@ -20,6 +20,8 @@
 # FIXED (P0.8, gated by runAllWithoutConfirmation): A4 — Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied (pkg/menu TestRunAllConfirmation); hardn -r does not ask
 # NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
 # NOTE: HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.
+# NOTE: Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked).
+# NOTE: On Proxmox the refused UFW step ends HardenSystem with its error, so the DNS step after it does not run (Phase 2's p2-pve is to report pve-firewall instead).
 
 == fixture
 host: os=alpine version=3.23.0 codename=3.23.0 proxmox=false
@@ -46,8 +48,9 @@ trace:
   9 mkdir  /etc/sudoers.d mode=0755 -> ok
  10 write  /etc/sudoers.d/alice mode=0440 -> ok
         | alice ALL=(ALL) NOPASSWD: ALL
- 11 mkdir  /etc/ssh mode=0755 -> ok
- 12 write  /etc/ssh/sshd_config mode=0644 -> ok
+ 11 stat   /etc/pve -> not-exist
+ 12 mkdir  /etc/ssh mode=0755 -> ok
+ 13 write  /etc/ssh/sshd_config mode=0644 -> ok
         | # SSH configuration managed by Hardn
         |
         | Protocol 2
@@ -66,17 +69,17 @@ trace:
         | PermitEmptyPasswords no
         |
         | AuthorizedKeysFile .ssh/authorized_keys
- 13 exec   rc-service sshd restart -> ok
- 14 exec   which ufw -> ok
- 15 exec   ufw default deny incoming -> ok
- 16 exec   ufw default allow outgoing -> ok
- 17 exec   ufw disable -> ok
- 18 exec   ufw reset -> ok
- 19 exec   ufw allow 2230/tcp comment "SSH access" -> ok
- 20 exec   sh -c "yes | ufw enable" -> ok
- 21 exec   systemctl is-active systemd-resolved -> error: fixture: systemctl not installed
- 22 exec   which resolvconf -> error: fixture: resolvconf not installed
- 23 write  /etc/resolv.conf mode=0644 -> ok
+ 14 exec   rc-service sshd restart -> ok
+ 15 exec   which ufw -> ok
+ 16 exec   ufw default deny incoming -> ok
+ 17 exec   ufw default allow outgoing -> ok
+ 18 exec   ufw disable -> ok
+ 19 exec   ufw reset -> ok
+ 20 exec   ufw allow 2230/tcp comment "SSH access" -> ok
+ 21 exec   sh -c "yes | ufw enable" -> ok
+ 22 exec   systemctl is-active systemd-resolved -> error: fixture: systemctl not installed
+ 23 exec   which resolvconf -> error: fixture: resolvconf not installed
+ 24 write  /etc/resolv.conf mode=0644 -> ok
         | domain lan
         | search lan
         | nameserver 192.0.2.53
@@ -97,8 +100,9 @@ trace:
   9 mkdir  /etc/sudoers.d mode=0755 -> ok
  10 write  /etc/sudoers.d/alice mode=0440 -> ok
         | alice ALL=(ALL) NOPASSWD: ALL
- 11 mkdir  /etc/ssh mode=0755 -> ok
- 12 write  /etc/ssh/sshd_config mode=0644 -> ok
+ 11 stat   /etc/pve -> not-exist
+ 12 mkdir  /etc/ssh mode=0755 -> ok
+ 13 write  /etc/ssh/sshd_config mode=0644 -> ok
         | # SSH configuration managed by Hardn
         |
         | Protocol 2
@@ -117,17 +121,17 @@ trace:
         | PermitEmptyPasswords no
         |
         | AuthorizedKeysFile .ssh/authorized_keys
- 13 exec   rc-service sshd restart -> ok
- 14 exec   which ufw -> ok
- 15 exec   ufw default deny incoming -> ok
- 16 exec   ufw default allow outgoing -> ok
- 17 exec   ufw disable -> ok
- 18 exec   ufw reset -> ok
- 19 exec   ufw allow 2230/tcp comment "SSH access" -> ok
- 20 exec   sh -c "yes | ufw enable" -> ok
- 21 exec   systemctl is-active systemd-resolved -> error: fixture: systemctl not installed
- 22 exec   which resolvconf -> error: fixture: resolvconf not installed
- 23 write  /etc/resolv.conf mode=0644 -> ok
+ 14 exec   rc-service sshd restart -> ok
+ 15 exec   which ufw -> ok
+ 16 exec   ufw default deny incoming -> ok
+ 17 exec   ufw default allow outgoing -> ok
+ 18 exec   ufw disable -> ok
+ 19 exec   ufw reset -> ok
+ 20 exec   ufw allow 2230/tcp comment "SSH access" -> ok
+ 21 exec   sh -c "yes | ufw enable" -> ok
+ 22 exec   systemctl is-active systemd-resolved -> error: fixture: systemctl not installed
+ 23 exec   which resolvconf -> error: fixture: resolvconf not installed
+ 24 write  /etc/resolv.conf mode=0644 -> ok
         | domain lan
         | search lan
         | nameserver 192.0.2.53

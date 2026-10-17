@@ -250,6 +250,7 @@ var vText = map[string]string{
 
 	// Variants: one V-number, wording specific to the recorded behaviour.
 	"V11:disable-root":     "PermitRootLogin no is written on a Proxmox host, where root SSH is to stay key-only (prohibit-password)",
+	"V11:config":           "the root-login value is forced regardless of permitRootLogin/disableRootSSH in the config (§3.17)",
 	"V19:systemd-resolved": "DNS: /etc/systemd/resolved.conf overwritten wholesale and systemd-resolved restarted; Domains=lan forced",
 	"V19:resolvconf":       "DNS: /etc/resolvconf/resolv.conf.d/head overwritten; domain and search lan forced",
 	"V19:direct":           "DNS: /etc/resolv.conf overwritten in place (a write through a symlink lands in its target); domain and search lan forced",
@@ -294,8 +295,22 @@ var fixedText = map[string]string{
 	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
 	"V5":               "-c writes v0.3.2's 'AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys', so sshd reads the ~/.ssh/authorized_keys that -c writes keys to",
 	"V24:c-path":       "keys a v0.3.2 install kept in ~/.ssh_<user>/authorized_keys keep working: the same AuthorizedKeysFile line lists that file too",
+	"V9:proxmox":       "on Proxmox no ufw command runs at all, so there is no default deny, disable or reset",
+	"V10":              "on Proxmox, configuring or enabling UFW is refused with an error before any ufw command runs (pve-firewall manages the packet filter; brief §2)",
+	"V11:proxmox":      "on Proxmox, PermitRootLogin prohibit-password is written where origin/main wrote no, so root key login, which clustering uses, keeps working (brief §2)",
+	"V11:disable-root": "Proxmox: disable-root writes PermitRootLogin prohibit-password in place, never no, and leaves root in AllowUsers",
 	"A4":               "Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied (pkg/menu TestRunAllConfirmation); hardn -r does not ask",
 }
+
+// proxmoxUFWFixed is what the Proxmox gate fixes for a UFW operation.
+func proxmoxUFWFixed(c osCell) []fixedItem {
+	if !c.proxmox {
+		return nil
+	}
+	return []fixedItem{{"V9:proxmox", "proxmoxTreatedAsDebian"}, {"V10", "proxmoxTreatedAsDebian"}}
+}
+
+var proxmoxNote = "Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked)."
 
 var dryRunNote = "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it."
 
@@ -306,29 +321,44 @@ func opScenarios() []opScenario {
 			op:    "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
 			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
-			notes: []string{"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile."},
+			notes: []string{
+				"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.",
+				proxmoxNote,
+				"On Proxmox the refused UFW step ends HardenSystem with its error, so the DNS step after it does not run (Phase 2's p2-pve is to report pve-firewall instead).",
+			},
 			setup: func(e *opEnv) { e.newUser() },
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateMenuManager().HardenSystem(hardeningConfigFromCLI(e.cfg))
 				return []callResult{{"MenuManager.HardenSystem", err}}
 			},
 			defects: func(c osCell) []string {
-				d := []string{"V6", "V7", "V8", "V9", "V11", "V18", "V19:" + dnsStrategyFor(c), "V24", "V27"}
+				d := []string{"V6", "V7", "V8", "V18", "V24", "V27"}
+				if c.proxmox {
+					d = append(d, "V11:config")
+				} else {
+					d = append(d, "V9", "V11", "V19:"+dnsStrategyFor(c))
+				}
 				d = append(d, sshWriteDefects(c)...)
 				d = append(d, newUserDefects(c)...)
-				if c.proxmox {
-					d = append(d, "V10")
-				}
 				return d
 			},
-			fixed: func(c osCell) []fixedItem { return []fixedItem{{"A4", "runAllWithoutConfirmation"}} },
+			fixed: func(c osCell) []fixedItem {
+				f := []fixedItem{{"A4", "runAllWithoutConfirmation"}}
+				if c.proxmox {
+					f = append(f, fixedItem{"V9:proxmox", "proxmoxTreatedAsDebian"}, fixedItem{"V10", "proxmoxTreatedAsDebian"}, fixedItem{"V11:proxmox", "proxmoxTreatedAsDebian"})
+				}
+				return f
+			},
 		},
 		{
 			name:  "disable_root_ssh",
 			op:    "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
 			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:143-158)",
 			cli:   []cliRun{{"-d", []string{hardncmd.FlagDisableRoot}, refusedInRoot}},
-			notes: []string{"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros."},
+			notes: []string{
+				"Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros.",
+				proxmoxNote,
+			},
 			setup: func(e *opEnv) {
 				e.fs.Files["/etc/ssh/sshd_config"] = []byte("Port 2230\nListenAddress 192.0.2.10\nAllowUsers root alice\nPermitRootLogin yes\nSubsystem sftp /usr/lib/ssh/sftp-server\n")
 				if !e.cell.alpine() {
@@ -343,13 +373,13 @@ func opScenarios() []opScenario {
 				if !c.alpine() {
 					d = append(d, "V13")
 				}
-				if c.proxmox {
-					d = append(d, "V11:disable-root")
-				}
 				return d
 			},
 			fixed: func(c osCell) []fixedItem {
 				f := []fixedItem{{"V4", "stubDisableRoot"}, {"V24:disable-root", "stubDisableRoot"}}
+				if c.proxmox {
+					f = append(f, fixedItem{"V11:disable-root", "proxmoxTreatedAsDebian"})
+				}
 				if c.alpine() {
 					f = append(f, fixedItem{"V15:disable-root", "stubDisableRoot"})
 				}
@@ -364,6 +394,7 @@ func opScenarios() []opScenario {
 			op:    "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath (pkg/cmd CreateUserAuthorizedKeysFiles)",
 			entry: "hardn -c -u alice (cmd/hardn/main.go:365-383); ConfigureSSH runs even when CreateUser fails",
 			cli:   []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
+			notes: []string{proxmoxNote},
 			setup: func(e *opEnv) { e.newUser() },
 			run: func(e *opEnv) []callResult {
 				cfg := e.cfg
@@ -378,7 +409,11 @@ func opScenarios() []opScenario {
 				return d
 			},
 			fixed: func(c osCell) []fixedItem {
-				return []fixedItem{{"V5", "authorizedKeysSSHUOnly"}, {"V24:c-path", "authorizedKeysSSHUOnly"}}
+				f := []fixedItem{{"V5", "authorizedKeysSSHUOnly"}, {"V24:c-path", "authorizedKeysSSHUOnly"}}
+				if c.proxmox {
+					f = append(f, fixedItem{"V11:proxmox", "proxmoxTreatedAsDebian"})
+				}
+				return f
 			},
 		},
 		{
@@ -390,30 +425,31 @@ func opScenarios() []opScenario {
 				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
 				return []callResult{{"FirewallManager.ConfigureSecureFirewall", err}}
 			},
+			notes: []string{proxmoxNote},
 			defects: func(c osCell) []string {
-				d := []string{"V9"}
 				if c.proxmox {
-					d = append(d, "V10")
+					return nil
 				}
-				return d
+				return []string{"V9"}
 			},
+			fixed: proxmoxUFWFixed,
 		},
 		{
 			name:  "configure_secure_firewall_profiles",
 			op:    "MenuManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, cfg.UfwAppProfiles)",
 			entry: "Firewall menu option 2 (pkg/menu/firewall_menu.go:243-263); menu-only, the CLI passes no profiles",
-			notes: []string{"Menu path: when cfg.DryRun is true the menu prints a preview and skips this call (pkg/menu/firewall_menu.go:247-249). The cfg.DryRun=true section shows that the managers and adapters themselves ignore it."},
+			notes: []string{"Menu path: when cfg.DryRun is true the menu prints a preview and skips this call (pkg/menu/firewall_menu.go:247-249). The cfg.DryRun=true section shows that the managers and adapters themselves ignore it.", proxmoxNote},
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateMenuManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, profilesFromMenu(e.cfg))
 				return []callResult{{"MenuManager.ConfigureSecureFirewall", err}}
 			},
 			defects: func(c osCell) []string {
-				d := []string{"V9", "V18"}
 				if c.proxmox {
-					d = append(d, "V10")
+					return nil
 				}
-				return d
+				return []string{"V9", "V18"}
 			},
+			fixed: proxmoxUFWFixed,
 		},
 		{
 			name:  "configure_sudo",

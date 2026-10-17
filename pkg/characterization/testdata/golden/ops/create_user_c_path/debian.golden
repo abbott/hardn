@@ -14,6 +14,7 @@
 # FIXED (P0.8, gated by authorizedKeysSSHUOnly): V24 — keys a v0.3.2 install kept in ~/.ssh_<user>/authorized_keys keep working: the same AuthorizedKeysFile line lists that file too
 # KNOWN-DEFECT: V27 — ListenAddress 0.0.0.0 makes sshd IPv4-only
 # NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
+# NOTE: Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked).
 
 == fixture
 host: os=debian version=13 codename=trixie proxmox=false
@@ -39,8 +40,10 @@ trace:
   8 mkdir  /etc/sudoers.d mode=0755 -> ok
   9 write  /etc/sudoers.d/alice mode=0440 -> ok
         | alice ALL=(ALL) NOPASSWD: ALL
- 10 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
- 11 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+ 10 stat   /etc/pve -> not-exist
+ 11 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+ 12 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
+ 13 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
         | # SSH configuration managed by Hardn
         |
         | Protocol 2
@@ -59,7 +62,7 @@ trace:
         | PermitEmptyPasswords no
         |
         | AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys
- 12 exec   systemctl restart ssh -> ok
+ 14 exec   systemctl restart ssh -> ok
 
 == cfg.DryRun=true
 result UserManager.CreateUser: ok
@@ -75,8 +78,10 @@ trace:
   8 mkdir  /etc/sudoers.d mode=0755 -> ok
   9 write  /etc/sudoers.d/alice mode=0440 -> ok
         | alice ALL=(ALL) NOPASSWD: ALL
- 10 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
- 11 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+ 10 stat   /etc/pve -> not-exist
+ 11 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+ 12 mkdir  /etc/ssh/sshd_config.d mode=0755 -> ok
+ 13 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
         | # SSH configuration managed by Hardn
         |
         | Protocol 2
@@ -95,7 +100,7 @@ trace:
         | PermitEmptyPasswords no
         |
         | AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys
- 12 exec   systemctl restart ssh -> ok
+ 14 exec   systemctl restart ssh -> ok
 
 cfg.DryRun=true section identical to cfg.DryRun=false: true
 

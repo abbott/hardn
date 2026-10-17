@@ -17,18 +17,22 @@ type FileSSHRepository struct {
 	fs        interfaces.FileSystem
 	commander interfaces.Commander
 	osType    string
+	pve       *ProxmoxHost
 }
 
-// NewFileSSHRepository creates a new FileSSHRepository
+// NewFileSSHRepository creates a new FileSSHRepository. pve says whether
+// the host is Proxmox VE; nil makes the repository check for itself.
 func NewFileSSHRepository(
 	fs interfaces.FileSystem,
 	commander interfaces.Commander,
 	osType string,
+	pve *ProxmoxHost,
 ) secondary.SSHRepository {
 	return &FileSSHRepository{
 		fs:        fs,
 		commander: commander,
 		osType:    osType,
+		pve:       proxmoxOrProbe(pve, fs, commander, osType),
 	}
 }
 
@@ -68,10 +72,12 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	}
 	content.WriteString("PubkeyAuthentication yes\n\n")
 
-	// Root login setting
+	// Root login setting: key-only rather than no on Proxmox (proxmoxTreatedAsDebian)
 	rootSSHValue := "no"
 	if config.PermitRootLogin {
 		rootSSHValue = "yes"
+	} else if r.pve.IsProxmox() {
+		rootSSHValue = pveRootLogin
 	}
 	content.WriteString(fmt.Sprintf("PermitRootLogin %s\n", rootSSHValue))
 
@@ -170,12 +176,19 @@ func (r *FileSSHRepository) sshdConfigFile() string {
 
 // disableRootSSHInPlace sets PermitRootLogin no and removes root from
 // AllowUsers in sshdConfigFile, keeping every other line (setRootLogin).
+// On Proxmox VE it sets PermitRootLogin prohibit-password and keeps root in
+// AllowUsers, so root stays able to log in with a key, as clustering needs
+// (proxmoxTreatedAsDebian).
 // A missing drop-in is created holding only the directive; a missing
 // Alpine sshd_config is an error, as in v0.3.2, since writing one would
 // drop the distribution's defaults. When the file already says what it
 // should, nothing is written and sshd is not restarted.
 func (r *FileSSHRepository) disableRootSSHInPlace() error {
 	configFile := r.sshdConfigFile()
+	permitRootLogin, removeRoot := "no", true
+	if r.pve.IsProxmox() {
+		permitRootLogin, removeRoot = pveRootLogin, false
+	}
 
 	var current []byte
 	_, err := r.fs.Stat(configFile)
@@ -192,7 +205,7 @@ func (r *FileSSHRepository) disableRootSSHInPlace() error {
 		return fmt.Errorf("failed to check SSH config %s: %w", configFile, err)
 	}
 
-	edited, err := setRootLogin(string(current), "no", true)
+	edited, err := setRootLogin(string(current), permitRootLogin, removeRoot)
 	if err != nil {
 		return fmt.Errorf("refusing to disable root SSH login in %s: %w", configFile, err)
 	}

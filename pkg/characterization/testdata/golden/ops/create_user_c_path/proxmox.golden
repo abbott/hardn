@@ -7,6 +7,7 @@
 # KNOWN-DEFECT: V6 — password auth disabled and AuthenticationMethods publickey set in the same step that adds keys; nothing proves a key works
 # KNOWN-DEFECT: V7 — no sshd -t before the restart and no sshd -T after; restart instead of reload
 # KNOWN-DEFECT: V8 — the SSH port changes (sshd restart) before any firewall rule allows the new port
+# FIXED (P0.8, gated by proxmoxTreatedAsDebian): V11 — on Proxmox, PermitRootLogin prohibit-password is written where origin/main wrote no, so root key login, which clustering uses, keeps working (brief §2)
 # KNOWN-DEFECT: V13 — the drop-in is named hardn.conf, which sorts after 50-cloud-init.conf (sshd uses the first value)
 # KNOWN-DEFECT: V16 — sudoers file written without visudo -c and non-atomically; the overwrite drops any env_keep line
 # KNOWN-DEFECT: V17 — the user is created without a password
@@ -14,6 +15,7 @@
 # FIXED (P0.8, gated by authorizedKeysSSHUOnly): V24 — keys a v0.3.2 install kept in ~/.ssh_<user>/authorized_keys keep working: the same AuthorizedKeysFile line lists that file too
 # KNOWN-DEFECT: V27 — ListenAddress 0.0.0.0 makes sshd IPv4-only
 # NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
+# NOTE: Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked).
 
 == fixture
 host: os=debian version=13 codename=trixie proxmox=true
@@ -52,7 +54,7 @@ trace:
         | AuthenticationMethods publickey
         | PubkeyAuthentication yes
         |
-        | PermitRootLogin no
+        | PermitRootLogin prohibit-password
         | AllowUsers alice
         |
         | PasswordAuthentication no
@@ -88,7 +90,7 @@ trace:
         | AuthenticationMethods publickey
         | PubkeyAuthentication yes
         |
-        | PermitRootLogin no
+        | PermitRootLogin prohibit-password
         | AllowUsers alice
         |
         | PasswordAuthentication no

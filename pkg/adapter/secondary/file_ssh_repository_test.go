@@ -70,7 +70,7 @@ func TestDisableRootSSHInPlace(t *testing.T) {
 				fs.Files[p] = []byte(c)
 			}
 			mc := interfaces.NewMockCommander()
-			repo := NewFileSSHRepository(fs, mc, tc.osType)
+			repo := NewFileSSHRepository(fs, mc, tc.osType, nil)
 
 			err := repo.DisableRootSSH()
 			if tc.wantErr != "" {
@@ -104,17 +104,18 @@ func TestDisableRootSSHInPlace(t *testing.T) {
 			if len(fs.Files) != len(wantFiles) {
 				t.Errorf("files %v, want %v", keys(fs.Files), wantFiles)
 			}
-			restarted := len(mc.ExecutedCommands) > 0
+			commands := withoutProxmoxProbe(mc.ExecutedCommands)
+			restarted := len(commands) > 0
 			if restarted != tc.restart {
-				t.Errorf("commands %v, want a restart: %v", mc.ExecutedCommands, tc.restart)
+				t.Errorf("commands %v, want a restart: %v", commands, tc.restart)
 			}
 			if tc.restart {
 				want := "systemctl restart ssh"
 				if tc.osType == "alpine" {
 					want = "rc-service sshd restart"
 				}
-				if strings.Join(mc.ExecutedCommands, "; ") != want {
-					t.Errorf("commands %v, want %q", mc.ExecutedCommands, want)
+				if strings.Join(commands, "; ") != want {
+					t.Errorf("commands %v, want %q", commands, want)
 				}
 			}
 		})
@@ -129,13 +130,24 @@ func TestDisableRootSSHReadError(t *testing.T) {
 	fs.Files[dropIn] = []byte("PermitRootLogin yes\n")
 	fs.ReadFileError[dropIn] = errors.New("fixture: permission denied")
 	mc := interfaces.NewMockCommander()
-	err := NewFileSSHRepository(fs, mc, "debian").DisableRootSSH()
+	err := NewFileSSHRepository(fs, mc, "debian", nil).DisableRootSSH()
 	if err == nil || !strings.Contains(err.Error(), "permission denied") {
 		t.Fatalf("err %v", err)
 	}
-	if string(fs.Files[dropIn]) != "PermitRootLogin yes\n" || len(mc.ExecutedCommands) != 0 {
+	if string(fs.Files[dropIn]) != "PermitRootLogin yes\n" || len(withoutProxmoxProbe(mc.ExecutedCommands)) != 0 {
 		t.Errorf("file %q, commands %v", fs.Files[dropIn], mc.ExecutedCommands)
 	}
+}
+
+// withoutProxmoxProbe drops the read-only pve-manager query (ProxmoxHost).
+func withoutProxmoxProbe(commands []string) []string {
+	var out []string
+	for _, c := range commands {
+		if !strings.HasPrefix(c, "dpkg-query ") {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 func keys(m map[string][]byte) []string {
@@ -159,7 +171,7 @@ func TestSaveSSHConfigAuthorizedKeysFile(t *testing.T) {
 		{[]string{".ssh/authorized_keys", ".ssh_%u/authorized_keys"}, "AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys\n"},
 	} {
 		fs := interfaces.NewMockFileSystem()
-		repo := NewFileSSHRepository(fs, interfaces.NewMockCommander(), "debian")
+		repo := NewFileSSHRepository(fs, interfaces.NewMockCommander(), "debian", nil)
 		if err := repo.SaveSSHConfig(model.SSHConfig{Port: 2230, PermitRootLogin: false, KeyPaths: tc.paths}); err != nil {
 			t.Fatal(err)
 		}

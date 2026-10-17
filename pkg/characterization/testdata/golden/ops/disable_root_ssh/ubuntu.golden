@@ -11,6 +11,7 @@
 # FIXED (P0.8, gated by stubDisableRoot): V24 — disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept
 # NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
 # NOTE: Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros.
+# NOTE: Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked).
 
 == fixture
 host: os=ubuntu version=24.04 codename=noble proxmox=false
@@ -33,26 +34,30 @@ seed file: /etc/ssh/sshd_config.d/hardn.conf
 == cfg.DryRun=false
 result SSHManager.DisableRootSSH: ok
 trace:
-  1 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
-  2 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
-  3 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+  1 stat   /etc/pve -> not-exist
+  2 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+  3 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
+  4 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
+  5 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
         | Port 2230
         | ListenAddress 0.0.0.0
         | PermitRootLogin no
         | AllowUsers alice
-  4 exec   systemctl restart ssh -> ok
+  6 exec   systemctl restart ssh -> ok
 
 == cfg.DryRun=true
 result SSHManager.DisableRootSSH: ok
 trace:
-  1 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
-  2 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
-  3 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
+  1 stat   /etc/pve -> not-exist
+  2 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+  3 stat   /etc/ssh/sshd_config.d/hardn.conf -> file
+  4 read   /etc/ssh/sshd_config.d/hardn.conf -> 74 bytes
+  5 write  /etc/ssh/sshd_config.d/hardn.conf mode=0644 -> ok
         | Port 2230
         | ListenAddress 0.0.0.0
         | PermitRootLogin no
         | AllowUsers alice
-  4 exec   systemctl restart ssh -> ok
+  6 exec   systemctl restart ssh -> ok
 
 cfg.DryRun=true section identical to cfg.DryRun=false: true
 

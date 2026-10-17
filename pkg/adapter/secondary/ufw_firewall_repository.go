@@ -15,16 +15,21 @@ import (
 type UFWFirewallRepository struct {
 	fs        interfaces.FileSystem
 	commander interfaces.Commander
+	pve       *ProxmoxHost
 }
 
-// NewUFWFirewallRepository creates a new UFWFirewallRepository
+// NewUFWFirewallRepository creates a new UFWFirewallRepository. pve says
+// whether the host is Proxmox VE; nil makes the repository check for
+// itself.
 func NewUFWFirewallRepository(
 	fs interfaces.FileSystem,
 	commander interfaces.Commander,
+	pve *ProxmoxHost,
 ) secondary.FirewallRepository {
 	return &UFWFirewallRepository{
 		fs:        fs,
 		commander: commander,
+		pve:       proxmoxOrProbe(pve, fs, commander, ""),
 	}
 }
 
@@ -93,8 +98,13 @@ func (r *UFWFirewallRepository) GetFirewallStatus() (bool, bool, bool, []string,
 	return isInstalled, isEnabled, isConfigured, rules, nil
 }
 
-// SaveFirewallConfig applies the specified firewall configuration
+// SaveFirewallConfig applies the specified firewall configuration. On
+// Proxmox VE it is refused before any ufw command (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) SaveFirewallConfig(config model.FirewallConfig) error {
+	if r.pve.IsProxmox() {
+		return errUFWOnProxmox
+	}
+
 	// Ensure UFW is installed
 	if !r.IsUFWInstalled() {
 		return fmt.Errorf("UFW firewall is not installed")
@@ -249,8 +259,12 @@ func (r *UFWFirewallRepository) applyAppProfiles(profiles []model.FirewallProfil
 	return nil
 }
 
-// EnableFirewall enables the firewall
+// EnableFirewall enables the firewall. On Proxmox VE it is refused
+// (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) EnableFirewall() error {
+	if r.pve.IsProxmox() {
+		return errUFWOnProxmox
+	}
 	// Use non-interactive mode
 	// The 'yes | ufw enable' approach is replaced with a direct command
 	if _, err := r.commander.Execute("sh", "-c", "yes | ufw enable"); err != nil {
