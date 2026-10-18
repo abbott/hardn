@@ -142,4 +142,4 @@ func ParseSocketListen(out []byte) (ls []Listener, bad []string) // added here; 
 - **`p2-pve`:** no port change on Proxmox VE (plan §3.18) is that unit's refusal; this one plans the `ssh.service` reload.
 - **`p2-alpine`:** a `UsePAM`/Kerberos change (`ErrFlavour`) needs `rc-service sshd restart`, whose `stop_pre` runs `checkconfig`; whether sessions survive it is unverified.
 - **Not modelled:** systemd's `socket.d/` drop-ins, which apply to every socket unit, and a `BindIPv6Only=` or `FreeBind=` setting: `systemctl show -p Listen` does not print them, so only the `ss` check after the restart sees their effect on the listeners (an IPv6-only `[::]` then fails it with `ErrNotBound`, after the socket was rebound); sshd's `rdomain` (neither `ss` nor `systemctl show` prints it, so listeners are compared by address and port only).
-- **`sshd.ParseSocketListen`** is new API in `pkg/host/sshd`; [sshd-effective.md](sshd-effective.md)'s API list predates it.
+- **`sshd.ParseSocketListen`** is new API in `pkg/host/sshd`; [sshd-effective.md](sshd-effective.md)'s API list includes it since `next/p2-vmtest` brought that page up to date.

@@ -150,7 +150,7 @@ func ReadOrder(main []byte, drops []File) []Line // the directives in sshd's rea
 func Accumulates(keyword string) bool
 func CanonicalKeyword(keyword string, args []string) string
 // Listeners.SocketComplete bool: SocketRead, and every line systemctl show -p Listen printed was read
-// (sshd-effective.md's API list predates it)
+// (sshd-effective.md's API list includes these since next/p2-vmtest)
 
 package config
 

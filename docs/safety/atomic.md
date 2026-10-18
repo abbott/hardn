@@ -3,7 +3,7 @@
 > **Unit:** refactor plan Phase 2, `next/p2-atomic` (brief 2.1; decision §3.16, approved 2026-10-17). V-numbers: V18 (non-atomic writes, no backups, no rollback) and V21 (root writes through a user-controlled `~/.ssh`), both assigned to this unit ([side-effects.md §8](../refactor/phase0/side-effects.md)).
 > **Status:** built and tested on macOS as an unprivileged user, on real files inside `t.TempDir()` and against the recording fake. Nothing has run on Linux; §4 lists what is "written, not run (gate 5)". Tests that set another user's ownership skip unless run as root.
 
-This unit makes `host.Real.WriteFileAtomic` durable, closes V21 for the operations that change files, and adds the backup store a rollback restores from: `<backupPath>/<run-id>/` with a manifest. It supersedes [system.md](system.md) §2 items 7 and 8 and its V21 paragraph, which describe the naive write this unit replaces (that document is `next/p2-system`'s and is not edited here).
+This unit makes `host.Real.WriteFileAtomic` durable, closes V21 for the operations that change files, and adds the backup store a rollback restores from: `<backupPath>/<run-id>/` with a manifest. It supersedes [system.md](system.md) §2 items 7 and 8 and its V21 paragraph, which describe the naive write this unit replaces (that document is `next/p2-system`'s and was not edited here; `next/p2-vmtest` has since brought it up to date).
 
 ## 1. Why
 
