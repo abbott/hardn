@@ -65,12 +65,12 @@ func PlanSSH(p detect.Proxmox, desired []migrate.Directive, rootGroups []string)
 			out[i].Args = []string{RootLogin}
 		case "port":
 			for _, a := range d.Args {
-				if n, err := strconv.Atoi(a); err != nil || n != SSHPort {
+				if !is22(a) {
 					return nil, nil, fmt.Errorf("pve: Port %s: %w", a, ErrPortChange)
 				}
 			}
 		case "listenaddress":
-			if port, ok := listenPort(d.Args); ok && port != strconv.Itoa(SSHPort) {
+			if port, ok := listenPort(d.Args); ok && !is22(port) {
 				return nil, nil, fmt.Errorf("pve: ListenAddress %s: %w", strings.Join(d.Args, " "), ErrPortChange)
 			}
 		case "allowusers":
@@ -131,6 +131,12 @@ func CheckPort(p detect.Proxmox, ports []uint16) error {
 		return fmt.Errorf("pve: port %v: %w", ports, ErrPortChange)
 	}
 	return nil
+}
+
+// is22: s is port 22 as a number (a service name is not read).
+func is22(s string) bool {
+	n, err := strconv.Atoi(s)
+	return err == nil && n == SSHPort
 }
 
 // listenPort returns the port a ListenAddress argument names, as sshd

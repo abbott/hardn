@@ -75,6 +75,8 @@ func TestPlanSSH(t *testing.T) {
 		{name: "Port 22 kept", p: pveUp, in: []migrate.Directive{dir("Port", "22"), dir("PermitRootLogin", "prohibit-password")},
 			want: []string{"Port 22", "PermitRootLogin prohibit-password"}},
 		{name: "Port 2230 refused", p: pveUp, in: []migrate.Directive{dir("Port", "2230")}, err: pve.ErrPortChange},
+		{name: "Port 022 is 22", p: pveUp, in: []migrate.Directive{dir("Port", "022"), dir("ListenAddress", "0.0.0.0:022"), dir("PermitRootLogin", "prohibit-password")},
+			want: []string{"Port 022", "ListenAddress 0.0.0.0:022", "PermitRootLogin prohibit-password"}},
 		{name: "a second Port refused", p: pveUp, in: []migrate.Directive{dir("Port", "22"), dir("Port", "2230")}, err: pve.ErrPortChange},
 		{name: "a port name refused", p: pveUp, in: []migrate.Directive{dir("Port", "ssh")}, err: pve.ErrPortChange},
 		{name: "ListenAddress with port 2230", p: pveUp, in: []migrate.Directive{dir("ListenAddress", "0.0.0.0:2230")}, err: pve.ErrPortChange},
