@@ -31,9 +31,10 @@ type Real struct {
 	euid int
 
 	// Seams for the tests in this package; NewReal sets the real ones.
-	dirs []string                          // SearchPath, split
-	stat func(string) (fs.FileInfo, error) // resolves a command candidate
-	exec func(*exec.Cmd) (int, error)      // runs cmd: exit code, error
+	dirs  []string                          // SearchPath, split
+	stat  func(string) (fs.FileInfo, error) // resolves a command candidate
+	exec  func(*exec.Cmd) (int, error)      // runs cmd: exit code, error
+	spawn func(*exec.Cmd) (int, error)      // starts cmd, detached: process id
 	// fail, when set, is asked before each step of WriteFileAtomic; an
 	// error makes that step fail with it (crash-safety tests).
 	fail func(step string) error
@@ -55,12 +56,13 @@ const pipeWaitDelay = 10 * time.Second
 // NewReal returns the System of this machine. It does no I/O.
 func NewReal(opts Options) *Real {
 	return &Real{
-		log:  NewRunLog(opts.RunLog),
-		tail: opts.Tail(),
-		euid: os.Geteuid(),
-		dirs: strings.Split(SearchPath, ":"),
-		stat: os.Stat,
-		exec: runCmd,
+		log:   NewRunLog(opts.RunLog),
+		tail:  opts.Tail(),
+		euid:  os.Geteuid(),
+		dirs:  strings.Split(SearchPath, ":"),
+		stat:  os.Stat,
+		exec:  runCmd,
+		spawn: spawnCmd,
 	}
 }
 
