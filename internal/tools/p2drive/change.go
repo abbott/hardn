@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -24,6 +26,10 @@ import (
 // (docs/safety/sshd-validate.md §6): /run/hardn/<id>, where sshd.Validate
 // and sudoers.Apply build their copies.
 const runRoot = revert.DefaultRunDir
+
+// journalTimeout bounds a journal write made after Ctrl-C (recordRan), as
+// revert.Arm bounds its own clean-up.
+const journalTimeout = 30 * time.Second
 
 // lockoutOpts are the flags of a lockout-risk change.
 type lockoutOpts struct {
@@ -234,18 +240,32 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		return fmt.Errorf("%w: %w", err, errUsage)
 	}
 	opts := revert.Options{Log: d.out, Hardn: o.hardn, Now: d.now}
+	d.sayHardn(ctx, o.hardn)
 	j := revert.Journal{ID: lc.id, TimeoutSeconds: int(timeout / time.Second), Risk: revert.RiskLockout,
 		Summary: lc.summary, Session: lc.session, ConfirmVia: revert.ListenersOf(lc.adds)}
 	if j, err = revert.Arm(ctx, d.sys, j, lc.facts.Init, opts); err != nil {
 		return fmt.Errorf("not applied: %w", err)
 	}
+	// record journals what the next step will do, before it runs: with
+	// ctx done, the step does not run either. recordRan journals what a
+	// step that ran did (ufw's Report.Undo, the reload's IfUp cleared),
+	// also after Ctrl-C, so it runs without the cancellation, as the
+	// rollback does (revert.md §7 item 3: "also when Execute failed after
+	// it").
 	record := func() error { return revert.Record(ctx, d.sys, j, opts) }
+	recordRan := func() error {
+		rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), journalTimeout)
+		defer cancel()
+		return revert.Record(rctx, d.sys, j, opts)
+	}
 	fail := func(step string, err error) error {
 		d.say("%s failed: %v", step, err)
 		d.say("rolling change %s back while this session is open", lc.id)
 		ro := opts
 		ro.Reason = revert.ReasonFailed
+		release := d.hold(d.out)
 		_, rerr := revert.Rollback(context.WithoutCancel(ctx), d.sys, lc.id, ro)
+		release()
 		if rerr == nil {
 			return fmt.Errorf("%s: %w (rolled back)", step, err)
 		}
@@ -258,7 +278,7 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		}
 		rep, err := ufw.Execute(ctx, d.sys, *p)
 		j.Undo = undoSteps(rep.Undo)
-		if rerr := record(); rerr != nil {
+		if rerr := recordRan(); rerr != nil {
 			return fail("journal the firewall's undo", errors.Join(err, rerr))
 		}
 		if err != nil {
@@ -294,7 +314,7 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		rep, err := reload.Execute(ctx, d.sys, plan, reload.Options{})
 		if len(j.Reload) > 0 && slices.ContainsFunc(rep.Steps, func(s reload.StepReport) bool { return s.Step.Kind == reload.StepIfUp && s.Ran }) {
 			j.Reload[0].IfUp = false // the unit was up: a rollback starts it if the change left it down
-			if rerr := record(); rerr != nil {
+			if rerr := recordRan(); rerr != nil {
 				return fail("journal the reload", errors.Join(err, rerr))
 			}
 		}
@@ -324,6 +344,34 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 	d.say("to keep it: from another machine, open %s and run `sudo %s confirm` (doas on Alpine).", where, o.hardn)
 	d.say("to undo it now: sudo %s rollback %s", o.hardn, lc.id)
 	return nil
+}
+
+// sayHardn prints the SHA-256 of the hardn binary the timer will run, to
+// compare with the build's (docs/safety/vmtest.md §4.1): a v0.3.2 hardn
+// installed over it has no confirm or rollback subcommand.
+// revert.CheckExecutable, in Arm, checks its owner and mode, not what it
+// is.
+func (d *driver) sayHardn(ctx context.Context, name string) {
+	data, err := d.sys.ReadFile(ctx, name)
+	if err != nil {
+		d.say("the revert timer runs %s: %v", name, err)
+		return
+	}
+	sum := sha256.Sum256(data)
+	d.say("the revert timer runs %s, sha256 %s: it must be the hardn built with this p2drive", name, hex.EncodeToString(sum[:]))
+}
+
+// checkFree refuses at plan time, before the timer is armed, a change
+// whose added listeners another socket already holds (reload.ErrInUse). It
+// is reload.Execute's own check, which Execute runs before any step: here
+// over a plan with no steps, so that only that check runs. Execute runs it
+// again before the reload.
+func (d *driver) checkFree(ctx context.Context, rp reload.Plan) error {
+	if len(rp.Adds) == 0 {
+		return nil
+	}
+	_, err := reload.Execute(ctx, d.sys, reload.Plan{Mode: rp.Mode, Hold: rp.Hold, Adds: rp.Adds}, reload.Options{})
+	return err
 }
 
 // undoSteps journals ufw's undo commands, in the order to run them.

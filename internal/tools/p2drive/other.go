@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
@@ -31,7 +32,8 @@ func setupMigrate(fs *flag.FlagSet) func(context.Context, *driver) error {
 // planMigrate plans the migration of the legacy SSH files into
 // 00-hardn.conf (docs/safety/sshd-migrate.md §6, the engine's order): Find,
 // PlanFor, Check (sshd.Validate and the login-path comparison over a copy)
-// and the reload's plan, all before anything changes.
+// and the reload's plan, all before anything changes. Once reloaded, sshd
+// -T must show what Check showed of the copy (sameEffective).
 func (d *driver) planMigrate(ctx context.Context, b base, configFile string, apply bool) (lockout, error) {
 	lc := lockout{base: b, summary: "legacy hardn SSH files migrated into 00-hardn.conf"}
 	found, err := migrate.Find(ctx, d.sys, migrate.FindRequest{ConfigFile: configFile})
@@ -75,6 +77,9 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 		// (reload.ErrSocketDropIn): the rollback could not finish.
 		return lc, fmt.Errorf("--apply on a socket-activated host whose plan removes %s: its rollback's reload would be refused (%w), so p2drive does not apply it (docs/safety/vmtest.md)", migrate.ListenConf, reload.ErrSocketDropIn)
 	}
+	if err := d.checkFree(ctx, rp); err != nil {
+		return lc, err
+	}
 	lc.adds = rp.Adds
 	if lc.ufw, err = d.planUFW(ctx, b, ufwKeep, portsOf(rp.Adds)); err != nil {
 		return lc, err
@@ -97,8 +102,55 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 			}
 			return reload.PlanFor(reload.Input{SSH: b.facts.SSH, Change: plan.Reload(rep.After), DropIns: drops})
 		},
+		want: func(_ context.Context, got sshd.Effective) error { return sameEffective(after, got) },
 	}
 	return lc, nil
+}
+
+// sameEffective checks that sshd -T after the reload shows what
+// migrate.Check showed of the migrated copy: the lockout-relevant settings,
+// the Port set and sshd's listeners. An Unknown on either side is not a
+// pass.
+func sameEffective(want, got sshd.Effective) error {
+	var bad []string
+	for _, s := range []struct {
+		kw        string
+		want, got sshd.Setting
+	}{
+		{"permitrootlogin", want.PermitRootLogin, got.PermitRootLogin},
+		{"passwordauthentication", want.PasswordAuthentication, got.PasswordAuthentication},
+		{"kbdinteractiveauthentication", want.KbdInteractiveAuthentication, got.KbdInteractiveAuthentication},
+		{"pubkeyauthentication", want.PubkeyAuthentication, got.PubkeyAuthentication},
+	} {
+		if !s.want.Known || !s.got.Known || s.want.Value != s.got.Value {
+			bad = append(bad, fmt.Sprintf("%s %q (known %v), migrated copy %q (known %v)", s.kw, s.got.Value, s.got.Known, s.want.Value, s.want.Known))
+		}
+	}
+	if !want.Port.Known || !got.Port.Known || !sameStrings(want.Port.Values, got.Port.Values) {
+		bad = append(bad, fmt.Sprintf("port %v (known %v), migrated copy %v (known %v)", got.Port.Values, got.Port.Known, want.Port.Values, want.Port.Known))
+	}
+	str := func(ls []sshd.Listener) []string {
+		var out []string
+		for _, l := range ls {
+			out = append(out, l.String())
+		}
+		return out
+	}
+	if !got.Listeners.Known || !sameStrings(str(want.Listeners.SSHD), str(got.Listeners.SSHD)) {
+		bad = append(bad, fmt.Sprintf("listeners %v (known %v), migrated copy %v", got.Listeners.SSHD, got.Listeners.Known, want.Listeners.SSHD))
+	}
+	if len(bad) > 0 {
+		return fmt.Errorf("sshd -T does not show the migrated configuration: %s", strings.Join(bad, "; "))
+	}
+	return nil
+}
+
+// sameStrings reports whether a and b hold the same values, in any order.
+func sameStrings(a, b []string) bool {
+	a, b = slices.Clone(a), slices.Clone(b)
+	slices.Sort(a)
+	slices.Sort(b)
+	return slices.Equal(slices.Compact(a), slices.Compact(b))
 }
 
 func setupSudoers(fs *flag.FlagSet) func(context.Context, *driver) error {

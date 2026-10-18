@@ -25,7 +25,11 @@ import (
 
 // errNoWriteStrategy: sshd_config's first directive is not exactly the stock
 // Include, a case brief 2.2 gives no write strategy for (proposal P-38).
-var errNoWriteStrategy = errors.New("no write strategy for this sshd_config")
+// errNoNewListener: a port change whose Port line reaches no listener.
+var (
+	errNoWriteStrategy = errors.New("no write strategy for this sshd_config")
+	errNoNewListener   = errors.New("the port change adds no listener")
+)
 
 func setupPort(fs *flag.FlagSet) func(context.Context, *driver) error {
 	o := lockoutFlags(fs)
@@ -82,9 +86,11 @@ func setupPVERoot(fs *flag.FlagSet) func(context.Context, *driver) error {
 
 // planSSH plans a change of 00-hardn.conf: set in force and, with port, a
 // Port line for it beside the ports sshd listens on now (reload.HoldPorts),
-// validated in context (sshd.Validate over a copy) before anything changes,
-// and its reload planned (reload.PlanFor), so that every refusal comes
-// before the timer is armed.
+// on Proxmox VE through pve.PlanSSH over the whole file (pveSet), validated
+// in context (sshd.Validate over a copy) before anything changes, and its
+// reload planned (reload.PlanFor): the new port must be among the
+// listeners the reload adds, and those must not be bound already
+// (checkFree), so that every refusal comes before the timer is armed.
 func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migrate.Directive, port uint16, mode ufwMode) (lockout, error) {
 	lc := lockout{base: b, summary: summary}
 	inc, err := sshd.DetectInclude(ctx, d.sys)
@@ -123,22 +129,22 @@ func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migr
 		}
 		set = append(ports, set...)
 	}
+	old, absent, err := readOptional(ctx, d.sys, sshd.HardnDropIn)
+	if err != nil {
+		return lc, err
+	}
 	var groups pve.Groups
 	if pveHost {
 		if groups, err = pve.RootGroups(ctx, d.sys); err != nil {
 			return lc, err
 		}
 		var findings []pve.Finding
-		if set, findings, err = pve.PlanSSH(b.facts.Proxmox, set, groups); err != nil {
+		if set, findings, err = pveSet(b.facts.Proxmox, old, set, groups); err != nil {
 			return lc, err
 		}
 		for _, f := range findings {
 			d.say("Proxmox VE: %v %s", f.Kind, f.Detail)
 		}
-	}
-	old, absent, err := readOptional(ctx, d.sys, sshd.HardnDropIn)
-	if err != nil {
-		return lc, err
 	}
 	data, err := setDirectives(old, set)
 	if err != nil {
@@ -164,6 +170,13 @@ func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migr
 	if err != nil {
 		return lc, err
 	}
+	if port != 0 && !slices.ContainsFunc(rp.Adds, func(l sshd.Listener) bool { return l.Port == port }) {
+		return lc, fmt.Errorf("port %d: sshd would listen on %v, no new listener on %d: a ListenAddress with its own port ignores the Port lines (sshd_config(5))%s: %w",
+			port, cand.Listeners.SSHD, port, pinnedAt(found), errNoNewListener)
+	}
+	if err := d.checkFree(ctx, rp); err != nil {
+		return lc, err
+	}
 	lc.adds = rp.Adds
 	if lc.ufw, err = d.planUFW(ctx, b, mode, portsOf(rp.Adds)); err != nil {
 		return lc, err
@@ -187,9 +200,94 @@ func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migr
 	return lc, nil
 }
 
+// pveSet is pve.PlanSSH over the whole of the 00-hardn.conf the change
+// leaves, not only over set: the lines setDirectives keeps (a migrated
+// AllowUsers, say) are global lines PlanSSH's rules read too (pve.md §6:
+// every write goes through it). It returns set as PlanSSH has it, plus the
+// lines of every kept keyword PlanSSH changed (root added to AllowUsers,
+// a PermitRootLogin made prohibit-password) and the lines it added, so
+// that setDirectives writes those in place of the old ones; every other
+// kept line stays as it is. A refusal of PlanSSH's refuses the change.
+func pveSet(px detect.Proxmox, old []byte, set []migrate.Directive, groups pve.Groups) ([]migrate.Directive, []pve.Finding, error) {
+	setting := map[string]bool{}
+	for _, d := range set {
+		setting[strings.ToLower(d.Keyword)] = true
+	}
+	var kept []migrate.Directive
+	for _, l := range sshd.ReadOrder([]byte(sshd.IncludeLine+"\n"), []sshd.File{{Path: sshd.HardnDropIn, Data: old}}) {
+		if kw := firstWord(l.Text); !setting[strings.ToLower(kw)] {
+			kept = append(kept, migrate.Directive{Keyword: kw, Args: l.Args})
+		}
+	}
+	full := append(slices.Clone(set), kept...)
+	planned, findings, err := pve.PlanSSH(px, full, groups)
+	if err != nil {
+		return nil, nil, err
+	}
+	// PlanSSH edits its input in place and appends (its doc); anything else
+	// cannot be mapped back to the file's lines, so it is refused.
+	for i, d := range full {
+		if i >= len(planned) || !strings.EqualFold(planned[i].Keyword, d.Keyword) {
+			return nil, nil, fmt.Errorf("pve.PlanSSH did not return the directives in their order: %w", fs.ErrInvalid)
+		}
+	}
+	out := slices.Clone(planned[:len(set)])
+	changed := map[string]bool{}
+	for i, k := range kept {
+		if !slices.Equal(planned[len(set)+i].Args, k.Args) {
+			changed[strings.ToLower(k.Keyword)] = true
+		}
+	}
+	for i, k := range kept {
+		if changed[strings.ToLower(k.Keyword)] {
+			out = append(out, planned[len(set)+i])
+		}
+	}
+	return append(out, planned[len(full):]...), findings, nil
+}
+
+// firstWord is a directive line's keyword as written, before whitespace
+// or "=".
+func firstWord(text string) string {
+	t := strings.TrimSpace(text)
+	if i := strings.IndexAny(t, " \t="); i >= 0 {
+		return t[:i]
+	}
+	return t
+}
+
+// pinnedAt names the installed ListenAddress lines with a port of their
+// own, which sshd listens on whatever the Port lines say (a change sets no
+// ListenAddress, so they are the candidate's too): ", pinned by
+// <file>:<line> "<text>"", or "" when there is none.
+func pinnedAt(found migrate.Found) string {
+	var at []string
+	for _, l := range sshd.ReadOrder(found.Main, found.DropIns) {
+		if l.Keyword == "listenaddress" && len(l.Args) > 0 && hasPort(l.Args[0]) {
+			at = append(at, fmt.Sprintf("%s:%d %q", l.File, l.Line, l.Text))
+		}
+	}
+	if len(at) == 0 {
+		return ""
+	}
+	return ", pinned by " + strings.Join(at, ", ")
+}
+
+// hasPort reports whether a ListenAddress argument names its own port
+// (sshd_config(5): host:port, IPv4:port, [host]:port); a bare IPv6
+// address has colons but no port.
+func hasPort(a string) bool {
+	if strings.HasPrefix(a, "[") {
+		return strings.Contains(a, "]:")
+	}
+	return strings.Count(a, ":") == 1
+}
+
 // checkPVE reads, after the reload, what Proxmox VE needs of sshd
-// (pve.CheckSSH over sshd -T and the files): root key-only is required;
-// root by key from the other nodes and port 22 are shown.
+// (pve.CheckSSH over sshd -T and the files). Root key-only, root by key
+// from the other nodes and port 22 must each be Yes: a No in RootByKey or
+// Port22 is a lockout for the cluster (pve.md §6), and an Unknown is not a
+// pass.
 func (d *driver) checkPVE(ctx context.Context, b base, after sshd.Effective, groups pve.Groups) error {
 	found, err := migrate.Find(ctx, d.sys, migrate.FindRequest{})
 	if err != nil {
@@ -203,8 +301,8 @@ func (d *driver) checkPVE(ctx context.Context, b base, after sshd.Effective, gro
 	for _, f := range chk.Findings {
 		d.say("  %v: %s:%d %s", f.Kind, f.File, f.Line, f.Detail)
 	}
-	if chk.RootKeyOnly != detect.Yes {
-		return fmt.Errorf("Proxmox VE: root's login is not key-only (%v)", chk.RootKeyOnly)
+	if chk.RootKeyOnly != detect.Yes || chk.RootByKey != detect.Yes || chk.Port22 != detect.Yes {
+		return fmt.Errorf("Proxmox VE: root key-only %v, root by key %v, port 22 %v; each must be yes", chk.RootKeyOnly, chk.RootByKey, chk.Port22)
 	}
 	return nil
 }
@@ -264,17 +362,23 @@ func setupBroken(fs *flag.FlagSet) func(context.Context, *driver) error {
 	}
 }
 
-// wanted checks that sshd -T shows what set asked for: the Port set and the
-// lockout-relevant settings (brief 2.2: confirm the effective values). An
-// Unknown value is not a pass.
+// wanted checks that sshd -T shows what set asked for: each Port in the
+// Port set and on one of sshd's listeners, and the lockout-relevant
+// settings (brief 2.2: confirm the effective values). An Unknown value is
+// not a pass.
 func wanted(after sshd.Effective, set []migrate.Directive) error {
 	var bad []string
 	for _, dir := range set {
 		v := strings.ToLower(dir.Args[0])
 		switch strings.ToLower(dir.Keyword) {
 		case "port":
-			if !after.Port.Known || !after.Port.Has(v) {
+			n, _ := strconv.Atoi(v)
+			switch {
+			case !after.Port.Known || !after.Port.Has(v):
 				bad = append(bad, fmt.Sprintf("port %s not in %v (known %v)", v, after.Port.Values, after.Port.Known))
+			case !after.Listeners.Known || !slices.ContainsFunc(after.Listeners.SSHD, func(l sshd.Listener) bool { return int(l.Port) == n }):
+				// A ListenAddress with its own port ignores the Port lines.
+				bad = append(bad, fmt.Sprintf("no listener on port %s in %v (known %v)", v, after.Listeners.SSHD, after.Listeners.Known))
 			}
 		case "permitrootlogin":
 			bad = appendSetting(bad, "permitrootlogin", v, after.PermitRootLogin)

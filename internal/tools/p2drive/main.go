@@ -102,6 +102,9 @@ type env struct {
 	// (detect.Detect, revert.ReadSession of this process).
 	detect  func(ctx context.Context, sys host.System) (detect.Facts, error)
 	session func(ctx context.Context, sys host.System) (revert.Session, error)
+	// hold keeps signals from stopping an in-process rollback part-way
+	// until release is called (holdSignals); log receives what it says.
+	hold func(log io.Writer) (release func())
 }
 
 func production() env {
@@ -117,14 +120,16 @@ func production() env {
 		session: func(ctx context.Context, sys host.System) (revert.Session, error) {
 			return revert.ReadSession(ctx, sys, os.Getenv, os.Getpid())
 		},
+		hold: holdSignals,
 	}
 }
 
 func main() {
 	// Ctrl-C and SIGTERM cancel the context: a lockout-risk change then
 	// rolls back while the session is open (revert.Rollback runs without
-	// the cancellation). A hangup ends the process; the timer, armed before
-	// the first step, rolls the change back at the deadline.
+	// the cancellation, and under holdSignals). A hangup ends the process;
+	// the timer, armed before the first step, rolls the change back at the
+	// deadline.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	code := run(ctx, os.Args[1:], production())
 	stop()
