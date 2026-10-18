@@ -3,6 +3,7 @@ package pve_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
@@ -100,6 +101,8 @@ func TestPlanSSH(t *testing.T) {
 		{name: "DenyGroups matching root's", p: pveUp, groups: []string{"root", "nossh"}, in: []migrate.Directive{dir("DenyGroups", "nossh")}, err: pve.ErrRootExcluded},
 		{name: "DenyGroups not root's", p: pveUp, groups: []string{"root"}, in: []migrate.Directive{dir("DenyGroups", "nossh"), dir("PermitRootLogin", "prohibit-password")},
 			want: []string{"DenyGroups nossh", "PermitRootLogin prohibit-password"}},
+		{name: "a Match line", p: pveUp, in: []migrate.Directive{dir("Match", "User", "bob"), dir("PermitRootLogin", "yes")}, err: fs.ErrInvalid},
+		{name: "an Include line", p: pveUp, in: []migrate.Directive{dir("Include", "/etc/ssh/extra.conf")}, err: fs.ErrInvalid},
 		{name: "PubkeyAuthentication no", p: pveUp, in: []migrate.Directive{dir("PubkeyAuthentication", "no")}, err: pve.ErrRootExcluded},
 		{name: "AuthenticationMethods key and password", p: pveUp, in: []migrate.Directive{dir("AuthenticationMethods", "publickey,password")}, err: pve.ErrRootExcluded},
 		{name: "AuthenticationMethods with a key-only list", p: pveUp, in: []migrate.Directive{dir("AuthenticationMethods", "publickey,password", "publickey"), dir("PermitRootLogin", "prohibit-password")},

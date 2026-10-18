@@ -3,6 +3,7 @@ package pve
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strconv"
 	"strings"
@@ -40,6 +41,8 @@ const keyOnlyDetail = "root: key-only (required by Proxmox clustering)"
 //
 // rootGroups are root's groups (RootGroups); nil when not established, and
 // then only the group root counts as one of them. Each change is a Finding.
+// A Match or Include line is refused with fs.ErrInvalid, as
+// migrate.PlanFor refuses it: the rules read every line as global.
 func PlanSSH(p detect.Proxmox, desired []migrate.Directive, rootGroups []string) ([]migrate.Directive, []Finding, error) {
 	out := make([]migrate.Directive, len(desired))
 	for i, d := range desired {
@@ -57,6 +60,8 @@ func PlanSSH(p detect.Proxmox, desired []migrate.Directive, rootGroups []string)
 			return fmt.Errorf("pve: %s %s: %s: %w", d.Keyword, strings.Join(d.Args, " "), why, ErrRootExcluded)
 		}
 		switch k {
+		case "match", "include":
+			return nil, nil, fmt.Errorf("pve: desired %s: settings for 00-hardn.conf are global lines: %w", d.Keyword, fs.ErrInvalid)
 		case "permitrootlogin":
 			login = true
 			if v := strings.ToLower(strings.Join(d.Args, " ")); v != RootLogin && v != "without-password" {
