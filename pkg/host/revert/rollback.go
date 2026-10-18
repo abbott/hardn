@@ -343,7 +343,7 @@ func AbandonedName(id string) string { return "abandoned-" + id + ".json" }
 // can be applied again. The host stays as the rollback left it; what it
 // did not do is in the log and in the file. A rollback still running is
 // not abandoned (ErrRollingBack), nor anything but an unfinished rollback
-// of id (ErrNothingPending). No command line reaches it yet (P-XX-revert-abandon).
+// of id (ErrNothingPending). No command line reaches it yet (P-35).
 func Abandon(ctx context.Context, sys host.System, id string, opts Options) (Journal, error) {
 	if !ValidID(id) {
 		return Journal{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
