@@ -136,6 +136,13 @@ func TestPlanKeys(t *testing.T) {
 		{name: "remove this node's key", k: pve.Keys{Data: []byte(strings.Replace(keyWeb01, "root@web-01", "renamed", 1) + "\n" + keyAlice + "\n"), Own: base.Own},
 			e: pve.KeyEdit{Remove: []string{keyWeb01}}, err: pve.ErrClusterKey},
 		{name: "remove the last key", k: pve.Keys{Data: []byte(keyAlice + "\n")}, e: pve.KeyEdit{Remove: []string{keyAlice}}, err: pve.ErrClusterKey},
+		// A node's root key is Proxmox VE's: not added, as UndoKeys could
+		// not remove it again; one already there is not added either.
+		{name: "add this node's key where it is missing", k: pve.Keys{Data: []byte(keyAlice + "\n"), Own: base.Own}, e: pve.KeyEdit{Add: []string{keyWeb01}},
+			err: pve.ErrClusterKey},
+		{name: "add a key named as a node's", k: pve.Keys{Data: []byte(keyAlice + "\n"), Nodes: base.Nodes}, e: pve.KeyEdit{Add: []string{keyWeb02}},
+			err: pve.ErrClusterKey},
+		{name: "add this node's key, already there", k: base, e: pve.KeyEdit{Add: []string{keyWeb01}}},
 		{name: "add a line that is not a key", k: base, e: pve.KeyEdit{Add: []string{"ssh-ed25519 not-base64 bob"}}, err: pve.ErrBadKey},
 		{name: "add a blob of another type", k: base, e: pve.KeyEdit{Add: []string{strings.Replace(keyBob, "ssh-ed25519", "ssh-rsa", 1)}}, err: pve.ErrBadKey},
 		{name: "add two lines in one", k: base, e: pve.KeyEdit{Add: []string{keyBob + "\n" + keyAlice}}, err: pve.ErrBadKey},

@@ -621,6 +621,12 @@ func TestPlanCheck(t *testing.T) {
 		{"one path twice", sudo, func(p *sudoers.Plan) { p.Changes[1] = p.Changes[0] }},
 		{"its old state from another path", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.Path = envFile }},
 		{"old content for a file that did not exist", sudo, func(p *sudoers.Plan) { p.Changes[1].Old.Data = []byte(oldGrant) }},
+		// Old is what root's rollback writes back, with its mode and owner.
+		{"an old state others can write", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.Mode = 0o666 }},
+		{"an old state group-writable", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.Mode = 0o460 }},
+		{"an old state setuid", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.Mode = 0o440 | fs.ModeSetuid }},
+		{"an old state owned by alice", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.UID = 1000 }},
+		{"an old state of another group", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.GID = 1000 }},
 		{"a mode that is not sudo's", sudo, func(p *sudoers.Plan) { p.Changes[0].Mode = 0o644 }},
 		{"a removal with content", remove, func(p *sudoers.Plan) { p.Changes[0].Data = []byte(newGrant) }},
 		{"a removal of a file that did not exist", remove, func(p *sudoers.Plan) { p.Changes[0].Old = sudoers.File{Path: grantFile} }},

@@ -125,9 +125,10 @@ func (p KeysPlan) Narrows() bool { return len(p.Removed) > 0 }
 // add must be one key line (ErrBadKey otherwise); a key already there is not
 // added again. Removing a cluster node's root key (NodeKey, or a key whose
 // comment is root@<node> for a node in NodesDir), or the last key, is
-// refused with ErrClusterKey: other nodes log in as root with them. A plan
-// that changes the file carries a FindingClusterWide: the edit applies to
-// every node.
+// refused with ErrClusterKey: other nodes log in as root with them. So is
+// adding one: those keys are Proxmox VE's to manage, and UndoKeys, which
+// never removes one, could not undo the addition. A plan that changes the
+// file carries a FindingClusterWide: the edit applies to every node.
 func PlanKeys(k Keys, e KeyEdit) (KeysPlan, error) {
 	return plan(k, e, forward)
 }
@@ -139,9 +140,9 @@ const (
 	// forward (PlanKeys, ApplyKeys' check): guarded, and a key already
 	// there is not added again.
 	forward planMode = iota
-	// undo (UndoKeys): unguarded, and a removed line comes back unless that
-	// very line is there, so a key that was on several lines gets them all
-	// back.
+	// undo (UndoKeys): a removed line comes back unless that very line is
+	// there, so a key that was on several lines gets them all back; the
+	// guard on removing a node's key holds, the others do not.
 	undo
 )
 
@@ -159,13 +160,19 @@ func plan(k Keys, e KeyEdit, m planMode) (KeysPlan, error) {
 		}
 		drop[id] = true
 	}
+	nodeKey := func(id, comment string) bool {
+		return id == k.Own || slices.ContainsFunc(k.Nodes, func(n string) bool { return comment == "root@"+n })
+	}
 	var kept []string
 	have, present := map[string]bool{}, map[string]bool{}
 	for _, l := range lines {
 		t := strings.TrimRight(l, "\r\n")
 		id, comment, ok := parseKey(t)
 		switch {
-		case ok && drop[id] && m == forward && (id == k.Own || slices.ContainsFunc(k.Nodes, func(n string) bool { return comment == "root@"+n })):
+		// In both modes: an undo is the inverse of a plan that never
+		// adds one, so a journal naming a node's key in Added is refused
+		// rather than undone.
+		case ok && drop[id] && nodeKey(id, comment):
 			return KeysPlan{}, fmt.Errorf("pve: remove %s (%s): %w", id, comment, ErrClusterKey)
 		case ok && drop[id]:
 			p.Removed = append(p.Removed, t)
@@ -177,12 +184,15 @@ func plan(k Keys, e KeyEdit, m planMode) (KeysPlan, error) {
 		kept = append(kept, l)
 	}
 	for _, a := range e.Add {
-		id, _, ok := parseKey(a)
+		id, comment, ok := parseKey(a)
 		if !ok || strings.ContainsAny(a, "\r\n\x00") {
 			return KeysPlan{}, fmt.Errorf("pve: add %q: %w", a, ErrBadKey)
 		}
 		if m == forward && have[id] || m == undo && present[a] {
 			continue
+		}
+		if m == forward && nodeKey(id, comment) {
+			return KeysPlan{}, fmt.Errorf("pve: add %s (%s): %w", id, comment, ErrClusterKey)
 		}
 		have[id] = true
 		if n := len(kept); n > 0 && !strings.HasSuffix(kept[n-1], "\n") {
@@ -251,8 +261,11 @@ func ApplyKeys(ctx context.Context, sys host.System, pf detect.Proxmox, run *bac
 // inverse of p's edit, not of p's write: when another node added a key p
 // added, or removed one p removed, the undo reverses that too, and it does
 // not compare-and-swap. When the keys are still what p was planned from it
-// writes nothing, so it is harmless before ApplyKeys has run. It writes
-// through the link as ApplyKeys does. After Ctrl-C, run it under
+// writes nothing, so it is harmless before ApplyKeys has run. It never
+// removes a cluster node's root key, which PlanKeys never adds: a p whose
+// Added names one (a journal edited consistently, so that Check passes) is
+// refused with ErrClusterKey and nothing is written. It writes through the
+// link as ApplyKeys does. After Ctrl-C, run it under
 // context.WithoutCancel.
 func UndoKeys(ctx context.Context, sys host.System, pf detect.Proxmox, p KeysPlan) error {
 	if !p.Changed() {
@@ -298,8 +311,8 @@ func RollbackKeys(ctx context.Context, sys host.System, p KeysPlan) error {
 // lost on its way (one field edited by hand, a round trip that dropped
 // one) is refused before UndoKeys removes the keys Added names. The node's
 // own key and the cluster's nodes are not in the plan, so the guard on
-// removing them is not checked again here (ApplyKeys does, on the keys as
-// they are). It is pure.
+// them is not checked here: UndoKeys and ApplyKeys check it on the keys
+// as they are. It is pure.
 func (p KeysPlan) Check() error {
 	if sha256.Sum256(p.Old) != p.Before {
 		return fmt.Errorf("pve: keys plan: Before is not the SHA-256 of Old: %w", ErrPlanMismatch)

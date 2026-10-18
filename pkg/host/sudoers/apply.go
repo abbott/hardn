@@ -219,6 +219,12 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	return restore(ctx, sys, p, p.Changes)
 }
 
+// Unit names a sudoers or doas plan in p2-revert's change journal
+// (revert.Step.Unit of its one OpPlan step, which pkg/host/revert/plans
+// makes and whose Rollback it registers). Stable: a journal written by one
+// hardn is rolled back by the next.
+const Unit = "sudoers"
+
 // Check refuses, with fs.ErrInvalid, a plan PlanFor would not make, so
 // that a rollback from p2-revert's journal touches only hardn's own files
 // (pkg/host/revert/plans): a tool that is not sudo or doas; a Main other
@@ -226,9 +232,15 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 // sudo, "" for doas); a change to a path that is not one of hardn's
 // per-user files in the tool's drop-in directory (FileNames' names), or to
 // one path twice; an Old read from another path, or holding data for a
-// file that did not exist; a mode other than the tool's (SudoMode,
-// DoasMode); a removal with content, or of a file that did not exist; a
-// write whose content does not start with Header. It is pure.
+// file that did not exist; an Old that existed and that root's rollback
+// would write back other than as a file only root owns and can write (an
+// owner or group other than 0, a group or other write bit, a bit beyond
+// the permissions); a mode other than the tool's (SudoMode, DoasMode); a
+// removal with content, or of a file that did not exist; a write whose
+// content does not start with Header. It is pure. Old's content is not
+// checked: PlanFor takes any content at hardn's names (an administrator's
+// rule among them), so a rollback writes it back as journalled, and a
+// syntax error in it is caught only after the write (StageRestored).
 func (p Plan) Check() error {
 	bad := func(format string, a ...any) error {
 		return fmt.Errorf("sudoers: plan: %s: %w", fmt.Sprintf(format, a...), fs.ErrInvalid)
@@ -258,6 +270,8 @@ func (p Plan) Check() error {
 			return bad("%s is changed twice", c.Path)
 		case c.Old.Path != c.Path || !c.Old.Exists && len(c.Old.Data) > 0:
 			return bad("%s: its old state is of %q, exists %v", c.Path, c.Old.Path, c.Old.Exists)
+		case c.Old.Exists && (c.Old.UID != 0 || c.Old.GID != 0 || c.Old.Mode&^fs.ModePerm != 0 || c.Old.Mode&0o022 != 0):
+			return bad("%s: its old state, mode %v owned by %d:%d, is not a file only root can write", c.Path, c.Old.Mode, c.Old.UID, c.Old.GID)
 		case c.Mode != mode:
 			return bad("%s: mode %v, want %v", c.Path, c.Mode, mode)
 		case c.Remove && (c.Data != nil || !c.Old.Exists):
