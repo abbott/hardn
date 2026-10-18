@@ -278,12 +278,40 @@ func UndoKeys(ctx context.Context, sys host.System, pf detect.Proxmox, p KeysPla
 const KeysUnit = "pve-keys"
 
 // RollbackKeys is UndoKeys as p2-revert's rollback runs it, from the
-// journal alone and in another process: it detects Proxmox VE again
-// (detect.DetectProxmox) and undoes p. cmd/hardn registers it for KeysUnit
-// in revert.Options.Plans, after decoding the step's Plan into a KeysPlan;
-// encoding/json keeps every field of it.
+// journal alone and in another process: it refuses a plan Check refuses,
+// before anything is read, then detects Proxmox VE again
+// (detect.DetectProxmox) and undoes p. pkg/host/revert/plans registers it
+// for KeysUnit in revert.Options.Plans, after decoding the step's Plan
+// into a KeysPlan; encoding/json keeps every field of it.
 func RollbackKeys(ctx context.Context, sys host.System, p KeysPlan) error {
+	if err := p.Check(); err != nil {
+		return err
+	}
 	return UndoKeys(ctx, sys, detect.DetectProxmox(ctx, sys), p)
+}
+
+// Check refuses a plan that is not what PlanKeys makes from its own Target
+// and Old, as ApplyKeys refuses one (ErrPlanMismatch): Before must be
+// Old's SHA-256, and editing Old with Added and Removed, under PlanKeys'
+// guards on the lines (ErrBadKey, and ErrClusterKey for an edit that
+// leaves no key), must give New, Added and Removed. So a plan changed or
+// lost on its way (one field edited by hand, a round trip that dropped
+// one) is refused before UndoKeys removes the keys Added names. The node's
+// own key and the cluster's nodes are not in the plan, so the guard on
+// removing them is not checked again here (ApplyKeys does, on the keys as
+// they are). It is pure.
+func (p KeysPlan) Check() error {
+	if sha256.Sum256(p.Old) != p.Before {
+		return fmt.Errorf("pve: keys plan: Before is not the SHA-256 of Old: %w", ErrPlanMismatch)
+	}
+	want, err := plan(Keys{Target: p.Target, Data: p.Old}, KeyEdit{Add: p.Added, Remove: p.Removed}, forward)
+	if err != nil {
+		return fmt.Errorf("pve: keys plan: %w", err)
+	}
+	if !bytes.Equal(want.New, p.New) || !slices.Equal(want.Added, p.Added) || !slices.Equal(want.Removed, p.Removed) {
+		return fmt.Errorf("pve: keys plan: not the edit of Old that Added and Removed name: %w", ErrPlanMismatch)
+	}
+	return nil
 }
 
 // keyType is a key type's form: ssh-ed25519, ecdsa-sha2-nistp256,

@@ -147,6 +147,13 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	return undo(ctx, sys, p, p.Changes)
 }
 
+// Check is the guard Apply and Rollback run first (fs.ErrInvalid): p must
+// be what PlanUpdates makes from its From, and From.LegacyFile, which a
+// rollback writes back, must be hardn's file. It is pure, for p2-revert's
+// journal: a plan is checked before it is journalled and again once it is
+// read back (pkg/host/revert/plans).
+func (p Plan) Check() error { return valid(p) }
+
 // valid refuses a plan that is not what PlanUpdates makes from its From:
 // steps added, dropped, reordered or naming other commands (a journal
 // edited by hand would otherwise run what it names, or remove the legacy

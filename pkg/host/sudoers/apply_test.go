@@ -591,6 +591,59 @@ func TestRollbackTool(t *testing.T) {
 	checkFile(t, h, grantFile, newGrant, 0o440)
 }
 
+// TestPlanCheck: a plan PlanFor made passes Check, for sudo and doas, a
+// grant and a removal; each edit of one field a journal could carry is
+// refused with fs.ErrInvalid, and Rollback then reads and writes nothing.
+func TestPlanCheck(t *testing.T) {
+	h := sudoHost(t)
+	h.AddFile(grantFile, []byte(oldGrant), 0o440, 0, 0)
+	_, sudo := plan(t, h, sudoChoice, alicePolicy)
+	_, remove := plan(t, h, sudoChoice, sudoers.Policy{User: "alice"})
+	_, doas := plan(t, doasHost(t), doasChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword})
+	for _, p := range []sudoers.Plan{sudo, remove, doas} {
+		if err := p.Check(); err != nil {
+			t.Fatalf("Check of %+v = %v", p.Changes, err)
+		}
+	}
+	for _, tc := range []struct {
+		name string
+		base sudoers.Plan
+		edit func(*sudoers.Plan)
+	}{
+		{"the main sudoers file as a change", sudo, func(p *sudoers.Plan) {
+			p.Changes[0].Path, p.Changes[0].Old.Path = sudoers.MainConfig, sudoers.MainConfig
+		}},
+		{"another file in the drop-in directory", sudo, func(p *sudoers.Plan) {
+			p.Changes[0].Path, p.Changes[0].Old.Path = sudoers.DropInDir+"/90-cloud-init-users", sudoers.DropInDir+"/90-cloud-init-users"
+		}},
+		{"an unclean path", sudo, func(p *sudoers.Plan) { p.Changes[0].Path = sudoers.DropInDir + "//hardn-grant-alice" }},
+		{"a sudo file in doas's directory", doas, func(p *sudoers.Plan) { p.Changes[0].Path, p.Changes[0].Old.Path = grantFile, grantFile }},
+		{"one path twice", sudo, func(p *sudoers.Plan) { p.Changes[1] = p.Changes[0] }},
+		{"its old state from another path", sudo, func(p *sudoers.Plan) { p.Changes[0].Old.Path = envFile }},
+		{"old content for a file that did not exist", sudo, func(p *sudoers.Plan) { p.Changes[1].Old.Data = []byte(oldGrant) }},
+		{"a mode that is not sudo's", sudo, func(p *sudoers.Plan) { p.Changes[0].Mode = 0o644 }},
+		{"a removal with content", remove, func(p *sudoers.Plan) { p.Changes[0].Data = []byte(newGrant) }},
+		{"a removal of a file that did not exist", remove, func(p *sudoers.Plan) { p.Changes[0].Old = sudoers.File{Path: grantFile} }},
+		{"a write that is not hardn's", sudo, func(p *sudoers.Plan) { p.Changes[0].Data = []byte("alice ALL=(ALL) NOPASSWD: ALL\n") }},
+		{"another main file", sudo, func(p *sudoers.Plan) { p.Main = "/etc/sudoers.d/hardn-grant-alice" }},
+		{"a main file for doas", doas, func(p *sudoers.Plan) { p.Main = sudoers.MainConfig }},
+		{"no tool", sudo, func(p *sudoers.Plan) { p.Tool = sudoers.ToolUnknown }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := tc.base
+			p.Changes = slices.Clone(p.Changes)
+			tc.edit(&p)
+			if err := p.Check(); !errors.Is(err, fs.ErrInvalid) {
+				t.Errorf("Check = %v, want fs.ErrInvalid", err)
+			}
+			before := len(h.Calls())
+			if err := sudoers.Rollback(context.Background(), h, p); !errors.Is(err, fs.ErrInvalid) || !errors.Is(err, sudoers.ErrNotRestored) || len(h.Calls()) != before {
+				t.Errorf("Rollback = %v, calls %q; want refused with nothing read", err, h.Calls()[before:])
+			}
+		})
+	}
+}
+
 // TestApplyRestoreTimeout: the restore and the cleanup run under their own
 // deadline, Options.RestoreTimeout or DefaultRestoreTimeout, not ctx's.
 func TestApplyRestoreTimeout(t *testing.T) {
