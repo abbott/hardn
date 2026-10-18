@@ -671,3 +671,13 @@
 - **Effort:** S for (a); M for (b) and (c) (a unit or script, its install and removal, and a VM test that reboots inside the window).
 - **Risk:** Low for (a), which leaves a lockout through a reboot unrepaired; Medium for (b) and (c): a boot-time rollback acts while nobody watches, and must not run against a journal from a hardn that was since replaced or a change the user meant to keep (confirmed late, after the reboot).
 - **Screenshots:** none (no screen changes).
+
+### P-XX-revert-abandon: Giving up a rollback that cannot finish
+
+- **Status:** proposed
+- **Source:** `next/p2-revert` (review fixes; [docs/safety/revert.md](../safety/revert.md) §2.16, §7).
+- **Problem:** a rollback that stops is kept in `/var/lib/hardn/rollback.json` and taken up again by `hardn rollback <id>`; until it finishes, every new change is refused. One that can never finish (its backup run directory was deleted, an undo command such as `ufw` was removed) fails the same way on every attempt, and the only way out today is by hand: moving `rollback.json` aside, which the notice and the error now say. `revert.Abandon` does it properly (renames it to `abandoned-<id>.json`, logs what was and was not done, refuses while the rollback is running), but no command line reaches it: this unit adds no CLI form beyond `hardn confirm` and `hardn rollback <id>`.
+- **Proposal:** the maintainer decides whether to add a deliberate form, for example `hardn rollback --abandon <id>` (root, refuses `-n`, says that the host stays as the rollback left it and lists what it did not undo), wired to `revert.Abandon`; or to keep the manual step, documented.
+- **Effort:** S (a flag, its wording, a test).
+- **Risk:** Low: it only frees the journal; a user could abandon a rollback that a retry would have finished, so the wording must show what is left undone.
+- **Screenshots:** none (no screen changes).
