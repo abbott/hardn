@@ -15,7 +15,13 @@ import (
 type State struct {
 	Pending     *Journal // pending.json: the journalled change
 	RollingBack *Journal // rollback.json: a rollback that started and has not finished
-	Reverted    *Outcome // reverted.json: the timer undid a change, and no run has said so yet
+	// Running: the process running RollingBack's rollback (its Runner)
+	// still runs, so it is under way, not stopped.
+	Running  bool
+	Reverted *Outcome // reverted.json: the timer undid a change, and no run has said so yet
+	// OutcomeErr is why reverted.json could not be read; Reverted is then
+	// nil. It is only a notice, so it fails nothing else.
+	OutcomeErr error
 }
 
 // Busy reports whether a change is journalled: a new one is then refused.
@@ -27,14 +33,21 @@ type PendingError struct{ State State }
 
 func (e *PendingError) Error() string {
 	if j := e.State.RollingBack; j != nil {
+		if e.State.Running {
+			return fmt.Sprintf("revert: %s: change %s (%s) is being rolled back (process %d); try again once it has finished", ErrPending, j.ID, j.Summary, j.Rollback.Runner.PID)
+		}
 		return fmt.Sprintf("revert: %s: the rollback of change %s (%s) has not finished; run `sudo hardn rollback %s` to finish it", ErrPending, j.ID, j.Summary, j.ID)
 	}
 	j := e.State.Pending
-	if j.Risk != RiskLockout {
+	switch {
+	case j.Risk != RiskLockout:
 		return fmt.Sprintf("revert: %s: change %s (%s) did not finish; undo it with `sudo hardn rollback %s`", ErrPending, j.ID, j.Summary, j.ID)
+	case j.Applied == nil:
+		return fmt.Sprintf("revert: %s: change %s (%s) is being applied, or its apply stopped; unless it finishes and is confirmed, it is rolled back at %s; undo it now with `sudo hardn rollback %s`",
+			ErrPending, j.ID, j.Summary, stamp(j.Deadline()), j.ID)
 	}
-	return fmt.Sprintf("revert: %s: change %s (%s) is waiting for confirmation until %s; confirm it with `sudo hardn confirm` from a new SSH session, or undo it with `sudo hardn rollback %s`",
-		ErrPending, j.ID, j.Summary, stamp(j.Deadline()), j.ID)
+	return fmt.Sprintf("revert: %s: change %s (%s) is waiting for confirmation until %s; confirm it with `sudo hardn confirm` from %s, or undo it with `sudo hardn rollback %s`",
+		ErrPending, j.ID, j.Summary, stamp(j.Deadline()), confirmWhere(*j), j.ID)
 }
 
 // Is makes errors.Is(err, ErrPending) true.
@@ -116,9 +129,12 @@ func readJournal(ctx context.Context, sys host.System, name string) (*Journal, e
 	return &j, nil
 }
 
-// ReadState reads the journal directory (Options.Dir), refusing it, and any
-// file in it, when another user can change it (ErrUnsafe), and a journal it
-// cannot act on (ErrJournal). No directory is an empty State.
+// ReadState reads the journal directory (Options.Dir), refusing it, and
+// pending.json or rollback.json, when another user can change it
+// (ErrUnsafe), and a journal it cannot act on (ErrJournal). reverted.json is
+// only a notice: what keeps it from being read is State.OutcomeErr, never
+// an error, so a bad notice never stops a rollback or a confirmation. No
+// directory is an empty State.
 func ReadState(ctx context.Context, sys host.System, opts Options) (State, error) {
 	dir := opts.dir()
 	if err := stateDir(ctx, sys, dir, false); errors.Is(err, fs.ErrNotExist) {
@@ -134,16 +150,18 @@ func ReadState(ctx context.Context, sys host.System, opts Options) (State, error
 	if st.RollingBack, err = readJournal(ctx, sys, filepath.Join(dir, RollbackName)); err != nil {
 		return State{}, err
 	}
-	data, err := readState(ctx, sys, filepath.Join(dir, RevertedName))
-	if err != nil {
-		return State{}, err
+	if j := st.RollingBack; j != nil && j.Rollback != nil {
+		st.Running = alive(ctx, sys, j.Rollback.Runner)
 	}
-	if data != nil {
-		o, err := decodeOutcome(data)
-		if err != nil {
-			return State{}, err
+	data, err := readState(ctx, sys, filepath.Join(dir, RevertedName))
+	if err == nil && data != nil {
+		var o Outcome
+		if o, err = decodeOutcome(data); err == nil {
+			st.Reverted = &o
 		}
-		st.Reverted = &o
+	}
+	if err != nil {
+		st.OutcomeErr = fmt.Errorf("%s: %w", RevertedName, err)
 	}
 	return st, nil
 }
@@ -183,7 +201,7 @@ func claim(ctx context.Context, sys host.System, from, to, id string) (Journal, 
 }
 
 // Acknowledge removes the outcome of the timer's last rollback, once a run
-// has shown it (Notices).
+// has shown it (Notices), or one that could not be read (OutcomeErr).
 func Acknowledge(ctx context.Context, sys host.System, opts Options) error {
 	err := sys.Remove(ctx, filepath.Join(opts.dir(), RevertedName))
 	if errors.Is(err, fs.ErrNotExist) {

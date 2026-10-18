@@ -38,7 +38,9 @@ const (
 )
 
 // Listener is an address and port in the journal (sshd.Listener's fields).
-// An unspecified address (0.0.0.0, ::) is any address of its family.
+// CheckConfirm takes an unspecified address (0.0.0.0, ::) as any address of
+// either family: a dual-stack socket (ssh.socket's [::]:2230) takes IPv4
+// connections as IPv4-mapped addresses, which ParseConn unmaps.
 type Listener struct {
 	Addr    netip.Addr `json:"addr"`
 	Port    uint16     `json:"port"`
@@ -75,6 +77,10 @@ const (
 	OpChmod     StepOp = "chmod" // put Mode back on Path (a directory the change chmodded)
 	OpChown     StepOp = "chown" // put Owner back on Path
 	OpRemoveDir StepOp = "rmdir" // remove the empty directory the change created at Path
+	// OpPlan hands Plan, a unit's kept plan, to the rollback Options.Plans
+	// registers for Unit: a unit whose own rollback checks what it undoes
+	// (sudoers, DNS, Alpine) is journalled this way, not as backups.
+	OpPlan StepOp = "plan"
 )
 
 // Owner is a uid and gid; -1 leaves one unchanged.
@@ -85,14 +91,18 @@ type Owner struct {
 
 // Step is one inverse step. Steps run in the journal's order, which the
 // engine writes as the order to undo in (last change first), after the
-// backups are restored.
+// backups are restored. Each is journalled before the step it undoes takes
+// effect, so it must be harmless when that step never ran: a chmod or chown
+// back to what is there, an rmdir of what is not, ufw's PreUndo.
 type Step struct {
-	Op    StepOp       `json:"op"`
-	Argv  []string     `json:"argv,omitempty"`
-	Path  string       `json:"path,omitempty"`
-	Mode  *backup.Perm `json:"mode,omitempty"`
-	Owner *Owner       `json:"owner,omitempty"`
-	Why   string       `json:"why,omitempty"` // one line for the log
+	Op    StepOp          `json:"op"`
+	Argv  []string        `json:"argv,omitempty"`
+	Path  string          `json:"path,omitempty"`
+	Mode  *backup.Perm    `json:"mode,omitempty"`
+	Owner *Owner          `json:"owner,omitempty"`
+	Unit  string          `json:"unit,omitempty"` // OpPlan's
+	Plan  json.RawMessage `json:"plan,omitempty"` // OpPlan's
+	Why   string          `json:"why,omitempty"`  // one line for the log
 }
 
 // ReloadService is a service a rollback reloads.
@@ -104,29 +114,69 @@ const ReloadSSH ReloadService = "ssh"
 
 // Reload is a service to reload once the backups are restored: for ssh,
 // reload.Change's Keywords and After (what the restored files configure).
-// Journal one only once the forward reload's gated step ran (the unit was
-// up), since a rollback reload starts a unit that is down (reload.Change
-// Rollback); a unit that was down reads the restored files when it starts.
+// It is journalled in two steps around the forward reload. Before it, with
+// IfUp: the forward reload may run or not, so the rollback reloads only a
+// unit that is up then, and never starts one, which may have been down
+// before the change. Once the forward reload's gated step ran
+// (reload.Report.Steps), again without IfUp: the unit was up, so the
+// rollback starts it if the change left it down (reload.Change Rollback).
+// A forward step that found the unit down (NotUp) leaves IfUp: the unit
+// reads the restored files when it next starts.
 type Reload struct {
 	Service  ReloadService `json:"service"`
 	Keywords []string      `json:"keywords"`
 	After    []Listener    `json:"after,omitempty"`
+	IfUp     bool          `json:"ifUp,omitempty"`
+}
+
+// ProcStart names one process for as long as it runs: its pid and its
+// start time in clock ticks after boot (/proc/<pid>/stat fields 1 and 22).
+// Two processes that ran at different times under one pid started at
+// different times. Boot, when set, is the boot's id
+// (/proc/sys/kernel/random/boot_id), for a record that may outlive a
+// reboot.
+type ProcStart struct {
+	PID   int    `json:"pid"`
+	Start uint64 `json:"start"`
+	Boot  string `json:"boot,omitempty"`
+}
+
+func (p ProcStart) known() bool { return p.PID > 0 }
+
+// same reports whether p and q name one process, ignoring Boot.
+func (p ProcStart) same(q ProcStart) bool { return p.PID == q.PID && p.Start == q.Start }
+
+// Applied is the end of an apply (MarkApplied): when, and the sshd
+// processes then running, the server ends of every SSH connection made
+// before the change took effect. A connection whose sshd process is one of
+// them cannot confirm the change (CheckConfirm).
+type Applied struct {
+	At   time.Time   `json:"at"`
+	SSHD []ProcStart `json:"sshd"`
 }
 
 // Progress is a started rollback's record, in rollback.json: a rollback
-// that stops part-way resumes after what it had done.
+// that stops part-way resumes after what it had done. Runner is the process
+// running it: another rollback does not take it up while that process
+// lives.
 type Progress struct {
 	Started    time.Time `json:"started"`
 	Reason     Reason    `json:"reason"`
 	Restored   bool      `json:"restored"`
 	UndoDone   int       `json:"undoDone"`
 	ReloadDone int       `json:"reloadDone"`
+	Runner     ProcStart `json:"runner,omitzero"`
 }
 
 // Journal is one change, as the engine records it for a rollback in another
 // process. The engine fills ID, Risk, TimeoutSeconds, Summary, Session and
-// ConfirmVia, then Backup, Undo and Reload as its steps complete (Record);
-// Arm fills SchemaVersion, Created and Timer.
+// ConfirmVia; Arm fills SchemaVersion, Created and Timer. Then the engine
+// adds Backup, Undo and Reload with Record, write-ahead: each entry before
+// the step it covers takes effect (a backup's Seq once the backup is taken
+// and before the file is written; an inverse step before its step; a
+// Reload with IfUp before the forward reload), so a rollback that runs at
+// any moment, or after hardn died, covers every step that may have run.
+// MarkApplied sets Applied after the last step.
 type Journal struct {
 	SchemaVersion int       `json:"schemaVersion"`
 	ID            string    `json:"id"`
@@ -147,7 +197,10 @@ type Journal struct {
 	Backup     *Backups   `json:"backup,omitempty"`
 	Undo       []Step     `json:"undo,omitempty"`
 	Reload     []Reload   `json:"reload,omitempty"`
-	Rollback   *Progress  `json:"rollback,omitempty"` // rollback.json only
+	// Applied is set by MarkApplied once the apply has finished; until
+	// then the change cannot be confirmed.
+	Applied  *Applied  `json:"applied,omitempty"`
+	Rollback *Progress `json:"rollback,omitempty"` // rollback.json only
 }
 
 // Timeout is the confirm window.
@@ -221,12 +274,24 @@ func (j Journal) Check() error {
 			return bad("reload %d: %v", i+1, err)
 		}
 	}
+	if a := j.Applied; a != nil {
+		switch {
+		case j.Risk != RiskLockout:
+			return bad("applied: a change with no timer ends with Done")
+		case a.At.IsZero():
+			return bad("applied: no time")
+		case slices.ContainsFunc(a.SSHD, func(p ProcStart) bool { return !p.known() }):
+			return bad("applied: sshd %v", a.SSHD)
+		}
+	}
 	if p := j.Rollback; p != nil {
 		switch {
 		case p.Started.IsZero(), p.Reason != ReasonTimeout && p.Reason != ReasonRequested && p.Reason != ReasonFailed:
 			return bad("rollback progress %+v", *p)
 		case p.UndoDone < 0 || p.UndoDone > len(j.Undo), p.ReloadDone < 0 || p.ReloadDone > len(j.Reload):
 			return bad("rollback progress past the steps")
+		case p.Runner.PID < 0:
+			return bad("rollback runner %+v", p.Runner)
 		}
 	}
 	return nil
@@ -235,7 +300,20 @@ func (j Journal) Check() error {
 func clean(p string) bool { return filepath.IsAbs(p) && filepath.Clean(p) == p }
 
 func (s Step) check() error {
+	if s.Op != OpPlan && (s.Unit != "" || len(s.Plan) > 0) {
+		return fmt.Errorf("%s: unit or plan given", s.Op)
+	}
 	switch s.Op {
+	case OpPlan:
+		switch {
+		case !ValidID(s.Unit):
+			return fmt.Errorf("plan: unit %q", s.Unit)
+		case len(s.Plan) == 0 || !json.Valid(s.Plan):
+			return fmt.Errorf("plan: not JSON")
+		case len(s.Argv) > 0 || s.Path != "" || s.Mode != nil || s.Owner != nil:
+			return fmt.Errorf("plan: argv, path, mode or owner given")
+		}
+		return nil
 	case OpRun:
 		switch {
 		case len(s.Argv) == 0 || s.Argv[0] == "":
@@ -314,7 +392,8 @@ func decodeJournal(data []byte) (Journal, error) {
 }
 
 // Outcome is what the last rollback by the timer did, kept in reverted.json
-// until a run has said so (Notices, Acknowledge).
+// until a run has said so (Notices, Acknowledge). Its SchemaVersion is
+// OutcomeVersion.
 type Outcome struct {
 	SchemaVersion  int       `json:"schemaVersion"`
 	ID             string    `json:"id"`
@@ -326,12 +405,14 @@ type Outcome struct {
 	Errors         []string  `json:"errors,omitempty"`
 }
 
+// decodeOutcome reads an outcome. It is lenient (unknown fields are
+// ignored): it is a notice, which no rollback acts on.
 func decodeOutcome(data []byte) (Outcome, error) {
 	var o Outcome
 	if err := json.Unmarshal(data, &o); err != nil {
 		return Outcome{}, fmt.Errorf("revert: outcome: %w: %w", ErrJournal, err)
 	}
-	if o.SchemaVersion != SchemaVersion || !ValidID(o.ID) {
+	if o.SchemaVersion != OutcomeVersion || !ValidID(o.ID) {
 		return Outcome{}, fmt.Errorf("revert: outcome %q, schemaVersion %d: %w", o.ID, o.SchemaVersion, ErrJournal)
 	}
 	return o, nil

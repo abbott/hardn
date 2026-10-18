@@ -49,7 +49,8 @@ type RollbackResult struct {
 // Rollback undoes change id, for `hardn rollback <id>`: the timer's, the
 // user's, or the engine's after a failed step (Options.Reason
 // ReasonFailed). It runs under its own deadline (RollbackTimeout), not
-// ctx's cancellation: Ctrl-C does not stop it half-way.
+// ctx's cancellation: a cancelled context does not stop it half-way. A
+// signal is the caller's to hold off (cmd/hardn does).
 //
 // The change is claimed first, by renaming pending.json to rollback.json,
 // so a confirm and a rollback never both act on it. Then, in order:
@@ -65,15 +66,18 @@ type RollbackResult struct {
 //     act on;
 //  4. a timer that has not fired is stopped.
 //
-// Progress is written to rollback.json after each part, so a rollback that
-// stops (an error, a crash, the deadline) is taken up again by the next
-// `hardn rollback <id>` after what it had done, and until then a new change
-// is refused. A rollback by the timer leaves reverted.json for the next
-// run's notice. Every decision and step goes to Options.Log; commands to
-// the System's run log.
+// Progress is written to rollback.json after each part, with the process
+// running it (Progress.Runner, from /proc/self), so a rollback that stops
+// (an error, a crash, the deadline) is taken up again by the next `hardn
+// rollback <id>` after what it had done, and until then a new change is
+// refused. One that is still running is not taken up by another process:
+// that is Nothing, "being rolled back". A rollback by the timer leaves
+// reverted.json for the next run's notice. Every decision and step goes to
+// Options.Log; commands to the System's run log.
 //
 // Nothing journalled under id is RollbackResult.Nothing, with no error:
-// confirmed, rolled back already, or another change.
+// confirmed, rolled back already, another change, or a rollback under way.
+// One that cannot ever finish is given up with Abandon.
 func Rollback(ctx context.Context, sys host.System, id string, opts Options) (RollbackResult, error) {
 	if !ValidID(id) {
 		return RollbackResult{}, fmt.Errorf("revert: rollback %q: %w", id, ErrID)
@@ -88,8 +92,16 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	}
 	dir := opts.dir()
 	rb := filepath.Join(dir, RollbackName)
+	self, serr := selfProc(ctx, sys)
+	if serr != nil {
+		opts.logf("rollback %s: its own process cannot be named, so another rollback may take it up while it runs: %v", id, serr)
+	}
 	var j Journal
 	switch {
+	case st.RollingBack != nil && st.RollingBack.ID == id && st.Running && !st.RollingBack.Rollback.Runner.same(self):
+		res.Nothing, res.Why = true, fmt.Sprintf("it is being rolled back by process %d, started %s", st.RollingBack.Rollback.Runner.PID, stamp(st.RollingBack.Rollback.Started))
+		opts.logf("rollback %s: nothing to do: %s", id, res.Why)
+		return res, nil
 	case st.RollingBack != nil && st.RollingBack.ID == id:
 		j, res.Resumed = *st.RollingBack, true
 	case st.Pending != nil && st.Pending.ID == id:
@@ -117,8 +129,9 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	}
 	if j.Rollback == nil {
 		j.Rollback = &Progress{Started: opts.now().UTC(), Reason: reasonFor(j, opts)}
-		save()
 	}
+	j.Rollback.Runner = self
+	save()
 	res.Journal, res.Reason = j, j.Rollback.Reason
 	resumed := ""
 	if res.Resumed {
@@ -144,7 +157,7 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	}
 	for j.Rollback.UndoDone < len(j.Undo) {
 		n := j.Rollback.UndoDone
-		r := runStep(ctx, sys, j.Undo[n])
+		r := runStep(ctx, sys, j.Undo[n], opts.Plans)
 		res.Undone = append(res.Undone, r)
 		opts.logf("rollback %s: undo %d of %d: %s%s%s", id, n+1, len(j.Undo), stepWords(r.Step), noteWords(r.Note), errWords(r.Err))
 		if r.Err != nil {
@@ -191,7 +204,8 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 		}
 	}
 	if len(errs) > 0 {
-		err := fmt.Errorf("revert: rollback %s: %w; run `sudo hardn rollback %s` to take it up again: %w", id, ErrIncomplete, id, errors.Join(errs...))
+		err := fmt.Errorf("revert: rollback %s: %w; run `sudo hardn rollback %s` to take it up again (if it cannot finish, fix what this names, or give it up, leaving the host as it is, by moving %s aside): %w",
+			id, ErrIncomplete, id, rb, errors.Join(errs...))
 		opts.logf("rollback %s: did not finish: %v", id, errors.Join(errs...))
 		return res, err
 	}
@@ -249,13 +263,20 @@ func restoreBackups(ctx context.Context, sys host.System, b Backups) ([]backup.R
 	return backup.Restore(ctx, sys, m)
 }
 
-// runStep runs one inverse step. A path that is gone has nothing left to
-// put back: a Note, not an error.
-func runStep(ctx context.Context, sys host.System, s Step) StepResult {
+// runStep runs one inverse step; an OpPlan step through plans. A path that
+// is gone has nothing left to put back: a Note, not an error.
+func runStep(ctx context.Context, sys host.System, s Step, plans map[string]PlanRollback) StepResult {
 	r := StepResult{Step: s}
 	switch s.Op {
 	case OpRun:
 		r.Result, r.Err = sys.Run(ctx, s.Argv[0], s.Argv[1:]...)
+		return r
+	case OpPlan:
+		if fn := plans[s.Unit]; fn == nil {
+			r.Err = fmt.Errorf("revert: unit %q: %w", s.Unit, ErrNoPlanRollback)
+		} else {
+			r.Err = fn(ctx, sys, s.Plan)
+		}
 		return r
 	case OpChmod:
 		r.Err = sys.Chmod(ctx, s.Path, s.Mode.FileMode())
@@ -278,7 +299,9 @@ func runStep(ctx context.Context, sys host.System, s Step) StepResult {
 	return r
 }
 
-// runReload reloads r.Service once its files are restored.
+// runReload reloads r.Service once its files are restored. With IfUp, a
+// unit that is down is left so (no Step.Start): the forward reload may not
+// have run, and the unit may have been down before the change.
 func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (reload.Report, error) {
 	detectSSH := opts.DetectSSH
 	if detectSSH == nil {
@@ -302,7 +325,49 @@ func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (re
 	if err != nil {
 		return reload.Report{}, err
 	}
+	if r.IfUp {
+		for i := range p.Steps {
+			p.Steps[i].Start = nil
+		}
+	}
 	return reload.Execute(ctx, sys, p, opts.Reload)
+}
+
+// AbandonedName is where Abandon moves an unfinished rollback of change
+// <id>: abandoned-<id>.json, kept for the record.
+func AbandonedName(id string) string { return "abandoned-" + id + ".json" }
+
+// Abandon gives up the unfinished rollback of change id, one that cannot
+// ever finish (its backup run directory is gone, an undo command no longer
+// exists): rollback.json is renamed to AbandonedName(id), so new changes
+// can be applied again. The host stays as the rollback left it; what it
+// did not do is in the log and in the file. A rollback still running is
+// not abandoned (ErrRollingBack), nor anything but an unfinished rollback
+// of id (ErrNothingPending). No command line reaches it yet (P-XX-revert-abandon).
+func Abandon(ctx context.Context, sys host.System, id string, opts Options) (Journal, error) {
+	if !ValidID(id) {
+		return Journal{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
+	}
+	st, err := ReadState(ctx, sys, opts)
+	switch {
+	case err != nil:
+		return Journal{}, err
+	case st.RollingBack == nil || st.RollingBack.ID != id:
+		return Journal{}, fmt.Errorf("revert: abandon %s: no unfinished rollback of it: %w", id, ErrNothingPending)
+	case st.Running:
+		return *st.RollingBack, fmt.Errorf("revert: abandon %s: process %d is rolling it back: %w", id, st.RollingBack.Rollback.Runner.PID, ErrRollingBack)
+	}
+	j, err := claim(ctx, sys, filepath.Join(opts.dir(), RollbackName), filepath.Join(opts.dir(), AbandonedName(id)), id)
+	if err != nil {
+		return Journal{}, err
+	}
+	p := Progress{}
+	if j.Rollback != nil {
+		p = *j.Rollback
+	}
+	opts.logf("rollback %s (%s) abandoned: backups restored %v, %d of %d undo steps and %d of %d reloads done; kept in %s",
+		id, j.Summary, p.Restored || j.Backup == nil, p.UndoDone, len(j.Undo), p.ReloadDone, len(j.Reload), AbandonedName(id))
+	return j, nil
 }
 
 func removeIfThere(ctx context.Context, sys host.System, name string) error {

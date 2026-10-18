@@ -1,10 +1,14 @@
 package revert
 
 import (
+	"encoding/json"
 	"errors"
 	"net/netip"
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
 // valid is a whole journal: armed, with every kind of step.
@@ -19,8 +23,10 @@ func valid() Journal {
 		{Op: OpChmod, Path: "/home/alice/.ssh", Mode: permT(0o755)},
 		{Op: OpChown, Path: "/home/alice/.ssh", Owner: &Owner{UID: 1000, GID: -1}},
 		{Op: OpRemoveDir, Path: "/home/bob/.ssh"},
+		{Op: OpPlan, Unit: "sudoers", Plan: json.RawMessage(`{"tool":"sudo"}`)},
 	}
-	j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"Port"}, After: []Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}}}
+	j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"Port"}, After: []Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}, IfUp: true}}
+	j.Applied = &Applied{At: testNow.Add(5 * time.Second), SSHD: []ProcStart{sshdOf(applySSHD)}}
 	return j
 }
 
@@ -68,7 +74,20 @@ func TestJournalCheck(t *testing.T) {
 		{"reload no keywords", func(j *Journal) { j.Reload[0].Keywords = nil }},
 		{"reload of a port with no after", func(j *Journal) { j.Reload[0].After = nil }},
 		{"progress reason", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: "bored"} }},
-		{"progress past the steps", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout, UndoDone: 6} }},
+		{"progress past the steps", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout, UndoDone: 7} }},
+		{"progress runner pid -1", func(j *Journal) {
+			j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout, Runner: ProcStart{PID: -1}}
+		}},
+		{"plan with no unit", func(j *Journal) { j.Undo[5].Unit = "" }},
+		{"plan unit a path", func(j *Journal) { j.Undo[5].Unit = "../sudoers" }},
+		{"plan not JSON", func(j *Journal) { j.Undo[5].Plan = json.RawMessage(`{`) }},
+		{"plan empty", func(j *Journal) { j.Undo[5].Plan = nil }},
+		{"plan with argv", func(j *Journal) { j.Undo[5].Argv = []string{"visudo"} }},
+		{"run with a plan", func(j *Journal) { j.Undo[0].Plan = json.RawMessage(`{}`) }},
+		{"chmod with a unit", func(j *Journal) { j.Undo[2].Unit = "sudoers" }},
+		{"applied with no time", func(j *Journal) { j.Applied.At = time.Time{} }},
+		{"applied sshd pid 0", func(j *Journal) { j.Applied.SSHD = []ProcStart{{}} }},
+		{"applied, a change with no timer", func(j *Journal) { j.Risk, j.TimeoutSeconds, j.Timer = RiskOther, 0, nil }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -87,8 +106,12 @@ func TestDecodeJournal(t *testing.T) {
 		t.Fatal(err)
 	}
 	j, err := decodeJournal(data)
-	if err != nil || j.ID != testID || len(j.Undo) != 5 || *j.Undo[2].Mode != 0o755 {
+	if err != nil || j.ID != testID || len(j.Undo) != 6 || *j.Undo[2].Mode != 0o755 || !j.Reload[0].IfUp || j.Applied == nil || !reflect.DeepEqual(j.Applied, valid().Applied) {
 		t.Fatalf("round trip: %+v, %v", j, err)
+	}
+	var plan struct{ Tool string }
+	if err := json.Unmarshal(j.Undo[5].Plan, &plan); err != nil || plan.Tool != "sudo" {
+		t.Errorf("the plan round trip: %s, %v", j.Undo[5].Plan, err)
 	}
 	for name, bad := range map[string]string{
 		"not JSON":       "{",
@@ -99,5 +122,24 @@ func TestDecodeJournal(t *testing.T) {
 		if _, err := decodeJournal([]byte(bad)); !errors.Is(err, ErrJournal) {
 			t.Errorf("%s: %v, want ErrJournal", name, err)
 		}
+	}
+}
+
+func TestDecodeOutcome(t *testing.T) {
+	o, err := decodeOutcome([]byte(`{"schemaVersion":1,"id":"` + testID + `","summary":"s","later":"a field a later version adds"}`))
+	if err != nil || o.ID != testID {
+		t.Fatalf("decodeOutcome = %+v, %v; want lenient", o, err)
+	}
+	for _, bad := range []string{`{`, `{"schemaVersion":2,"id":"` + testID + `"}`, `{"schemaVersion":1,"id":"../x"}`} {
+		if _, err := decodeOutcome([]byte(bad)); !errors.Is(err, ErrJournal) {
+			t.Errorf("decodeOutcome(%s) = %v", bad, err)
+		}
+	}
+}
+
+func TestListenersOf(t *testing.T) {
+	got := ListenersOf([]sshd.Listener{{Addr: netip.IPv6Unspecified(), Port: 2230, RDomain: "mgmt"}})
+	if len(got) != 1 || got[0] != (Listener{Addr: netip.IPv6Unspecified(), Port: 2230, RDomain: "mgmt"}) || got[0].String() != "[::]:2230" {
+		t.Errorf("ListenersOf = %+v", got)
 	}
 }

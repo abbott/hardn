@@ -18,14 +18,16 @@ import (
 // SchemaVersion, Created (Options.Now) and, for RiskLockout, Timer, from
 // detect's init facts and Options.Hardn (CheckExecutable). It refuses, and
 // writes nothing but the journal directory, while a change is journalled
-// (*PendingError), and for a journal Check refuses. Then it writes pending.json and starts the timer;
-// when the timer does not start, it removes pending.json again and returns
-// the error: the change must not be applied. The engine adds the backups,
-// inverse steps and reloads with Record as its steps complete.
+// (*PendingError), and for a journal Check refuses. Then it writes
+// pending.json and starts the timer; when the timer does not start, it
+// removes pending.json again, even after Ctrl-C (under a context of its
+// own), and returns the error: the change must not be applied. The engine
+// adds the backups, inverse steps and reloads with Record, write-ahead, and
+// ends a lockout-risk apply with MarkApplied.
 func Arm(ctx context.Context, sys host.System, j Journal, in detect.Init, opts Options) (Journal, error) {
 	j.SchemaVersion = SchemaVersion
 	j.Created = opts.now().UTC().Truncate(time.Second)
-	j.Timer, j.Rollback = nil, nil
+	j.Timer, j.Applied, j.Rollback = nil, nil, nil
 	if j.Risk == RiskLockout {
 		t, err := TimerFor(in, j.ID, opts.Hardn, j.Timeout(), opts.runDir())
 		if err != nil {
@@ -35,6 +37,9 @@ func Arm(ctx context.Context, sys host.System, j Journal, in detect.Init, opts O
 		j.Timer = &t
 	}
 	if err := j.Check(); err != nil {
+		return j, err
+	}
+	if err := opts.checkPlans(j); err != nil {
 		return j, err
 	}
 	if j.Timer != nil {
@@ -61,17 +66,22 @@ func Arm(ctx context.Context, sys host.System, j Journal, in detect.Init, opts O
 		return j, nil
 	}
 	if err := startTimer(ctx, sys, *j.Timer, opts); err != nil {
-		return j, errors.Join(fmt.Errorf("revert: arm %s: the timer did not start: %w", j.ID, err), sys.Remove(ctx, pending))
+		cctx, cancel := cleanupContext(ctx)
+		defer cancel()
+		return j, errors.Join(fmt.Errorf("revert: arm %s: the timer did not start: %w", j.ID, err), removeIfThere(cctx, sys, pending))
 	}
 	opts.logf("armed change %s (%s): %s rolls it back at %s unless confirmed", j.ID, j.Summary, j.Timer.Kind, stamp(j.Deadline()))
 	return j, nil
 }
 
-// Record rewrites the journal of change j as its steps complete: the
-// backups taken, the inverse steps, the reloads. What Arm set (Created, the
-// timeout, the risk, the timer) is kept as written, and j must still be the
-// pending change: when a rollback has claimed it, Record returns
-// ErrRollingBack and the engine must stop.
+// Record rewrites the journal of change j before each of its steps takes
+// effect (write-ahead, see Journal): the backups taken, the inverse steps,
+// the reloads. What Arm set (Created, the timeout, the risk, the timer) is
+// kept as written; an OpPlan step needs a rollback in Options.Plans
+// (ErrNoPlanRollback). j must still be the pending change, not yet applied
+// (ErrApplied). When a rollback has claimed it, Record returns
+// ErrRollingBack, and the engine must stop before the step: the rollback
+// has the change.
 func Record(ctx context.Context, sys host.System, j Journal, opts Options) error {
 	st, err := ReadState(ctx, sys, opts)
 	switch {
@@ -81,13 +91,76 @@ func Record(ctx context.Context, sys host.System, j Journal, opts Options) error
 		return fmt.Errorf("revert: record %s: %w", j.ID, ErrRollingBack)
 	case st.Pending == nil || st.Pending.ID != j.ID:
 		return fmt.Errorf("revert: record %s: not the pending change: %w", j.ID, ErrNothingPending)
+	case st.Pending.Applied != nil:
+		return fmt.Errorf("revert: record %s: applied at %s; a later step is a change of its own: %w", j.ID, stamp(st.Pending.Applied.At), ErrApplied)
 	}
 	p := st.Pending
-	j.SchemaVersion, j.Created, j.TimeoutSeconds, j.Risk, j.Timer, j.Rollback = p.SchemaVersion, p.Created, p.TimeoutSeconds, p.Risk, p.Timer, nil
+	j.SchemaVersion, j.Created, j.TimeoutSeconds, j.Risk, j.Timer, j.Applied, j.Rollback = p.SchemaVersion, p.Created, p.TimeoutSeconds, p.Risk, p.Timer, nil, nil
 	if err := j.Check(); err != nil {
 		return err
 	}
-	return write(ctx, sys, filepath.Join(opts.dir(), PendingName), j)
+	if err := opts.checkPlans(j); err != nil {
+		return err
+	}
+	return rewritePending(ctx, sys, j, opts)
+}
+
+// MarkApplied records that the apply of lockout-risk change id has
+// finished, its last step and reload done (Journal.Applied), and returns
+// the journal. It notes the sshd processes running at that moment, the
+// server ends of the connections made before the change took effect, which
+// cannot confirm it (CheckConfirm). Until it is called the change cannot be
+// confirmed (ErrNotConfirmable) and the next run says it is being applied;
+// a rollback is unaffected. When the processes cannot be listed it fails,
+// and the change cannot be confirmed: the engine rolls it back
+// (ReasonFailed). It is the apply's last write: Record refuses after it. A
+// second call changes nothing.
+func MarkApplied(ctx context.Context, sys host.System, id string, opts Options) (Journal, error) {
+	st, err := ReadState(ctx, sys, opts)
+	switch {
+	case err != nil:
+		return Journal{}, err
+	case st.RollingBack != nil && st.RollingBack.ID == id:
+		return *st.RollingBack, fmt.Errorf("revert: mark %s applied: %w", id, ErrRollingBack)
+	case st.Pending == nil || st.Pending.ID != id:
+		return Journal{}, fmt.Errorf("revert: mark %s applied: %w", id, ErrNothingPending)
+	case st.Pending.Risk != RiskLockout:
+		return *st.Pending, fmt.Errorf("revert: mark %s applied: a change with no timer ends with Done: %w", id, ErrNotConfirmable)
+	case st.Pending.Applied != nil:
+		return *st.Pending, nil
+	}
+	j := *st.Pending
+	procs, err := sshdProcesses(ctx, sys)
+	if err != nil {
+		return j, fmt.Errorf("revert: mark %s applied: the SSH connections open now cannot be told from new ones: %w", id, err)
+	}
+	j.Applied = &Applied{At: opts.now().UTC(), SSHD: procs}
+	if err := rewritePending(ctx, sys, j, opts); err != nil {
+		return j, err
+	}
+	opts.logf("change %s (%s) applied; the %d sshd processes running now cannot confirm it", id, j.Summary, len(procs))
+	return j, nil
+}
+
+// rewritePending writes j over pending.json, for Record and MarkApplied,
+// which have read the state. A rollback that claimed the journal in between
+// (renamed pending.json to rollback.json) would find pending.json written
+// again. So rollback.json is read after the write: when it holds j's
+// change, the pending.json just written is removed (no other change can be
+// armed while rollback.json is there) and ErrRollingBack returned.
+func rewritePending(ctx context.Context, sys host.System, j Journal, opts Options) error {
+	pending := filepath.Join(opts.dir(), PendingName)
+	if err := write(ctx, sys, pending, j); err != nil {
+		return err
+	}
+	rb, err := readJournal(ctx, sys, filepath.Join(opts.dir(), RollbackName))
+	switch {
+	case err != nil:
+		return err
+	case rb != nil && rb.ID == j.ID:
+		return errors.Join(fmt.Errorf("revert: record %s: claimed while it was written: %w", j.ID, ErrRollingBack), removeIfThere(ctx, sys, pending))
+	}
+	return nil
 }
 
 // Done ends the journal of a RiskOther change whose apply succeeded. A
@@ -138,11 +211,13 @@ func (e *NotPendingError) Error() string {
 func (e *NotPendingError) Is(target error) bool { return target == ErrNothingPending }
 
 // Confirm keeps the pending lockout-risk change, for `hardn confirm` from
-// session s (ReadSession). CheckConfirm decides whether s may; then the
-// journal is claimed (renamed to confirmed.json, which keeps the last
-// confirmed change), so a rollback that starts now finds nothing, and the
-// timer is stopped. A rollback that has started is ErrRollingBack: too late.
-// Nothing pending is a *NotPendingError.
+// session s (ReadSession). CheckConfirm decides whether s may: the apply
+// has finished (MarkApplied), and s is a console or an SSH connection made
+// after it, from another machine. Then the journal is claimed (renamed to
+// confirmed.json, which keeps the last confirmed change), so a rollback
+// that starts now finds nothing, and the timer is stopped. A rollback that
+// has started is ErrRollingBack: too late. Nothing pending is a
+// *NotPendingError.
 func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (ConfirmResult, error) {
 	st, err := ReadState(ctx, sys, opts)
 	switch {
@@ -157,7 +232,10 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 	}
 	j := *st.Pending
 	local, err := CheckConfirm(j, s)
-	if err != nil {
+	switch {
+	case errors.Is(err, ErrNotConfirmable):
+		return ConfirmResult{Journal: j}, fmt.Errorf("%w; unless its apply finishes and it is confirmed, it is rolled back at %s", err, stamp(j.Deadline()))
+	case err != nil:
 		return ConfirmResult{Journal: j}, fmt.Errorf("%w; %s", err, confirmHint(j))
 	}
 	dir := opts.dir()
@@ -176,7 +254,7 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 
 // confirmHint says how to confirm j.
 func confirmHint(j Journal) string {
-	return fmt.Sprintf("run `sudo hardn confirm` from %s before %s", confirmWhere(j), stamp(j.Deadline()))
+	return fmt.Sprintf("run `sudo hardn confirm` from %s, made from another machine, before %s", confirmWhere(j), stamp(j.Deadline()))
 }
 
 // confirmWhere is the connection a confirmation of j must come from.

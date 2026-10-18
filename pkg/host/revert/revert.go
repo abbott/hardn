@@ -6,9 +6,10 @@
 // The Phase 3 engine writes the journal: Arm before its first step, which
 // writes /var/lib/hardn/pending.json and, for a lockout-risk change, starts
 // the timer (systemd-run on systemd, a setsid-detached sleeper on OpenRC);
-// Record as its steps complete. A later process reads it: the timer's
-// `hardn rollback <id>` (Rollback), or the user's `hardn confirm` from a new
-// SSH session (Confirm). One change is journalled at a time, so confirm
+// Record before each step takes effect (write-ahead), and MarkApplied once
+// the last has. A later process reads it: the timer's `hardn rollback <id>`
+// (Rollback), or the user's `hardn confirm` from an SSH connection made
+// after the apply (Confirm). One change is journalled at a time, so confirm
 // needs no token, and a new change is refused while one is (PendingError).
 //
 // Everything reaches the host through host.System. The decisions are pure
@@ -22,6 +23,7 @@ package revert
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -45,8 +47,13 @@ const (
 	RevertedName  = "reverted.json"  // the last change the timer undid, until the next run has said so
 )
 
-// SchemaVersion is the journal's and the outcome's format version.
-const SchemaVersion = 1
+// SchemaVersion is the journal's format version. OutcomeVersion is the
+// outcome's (reverted.json), on its own: the outcome is only a notice, so a
+// change to the journal's format does not make a leftover one unreadable.
+const (
+	SchemaVersion  = 1
+	OutcomeVersion = 1
+)
 
 // The confirm window (decision §3.14: --confirm-timeout, confirmTimeout).
 const (
@@ -62,8 +69,14 @@ const (
 )
 
 // RollbackTimeout bounds a rollback: it runs under its own deadline, not
-// its caller's context, so Ctrl-C cannot stop it half-way.
+// its caller's context, so a cancelled context does not stop it half-way.
+// A signal is the caller's to hold off (cmd/hardn does for `hardn
+// rollback`).
 const RollbackTimeout = 5 * time.Minute
+
+// cleanupTimeout bounds the clean-up after a failed Arm, which runs under
+// its own deadline for the same reason.
+const cleanupTimeout = 30 * time.Second
 
 // Errors, testable with errors.Is.
 var (
@@ -76,13 +89,23 @@ var (
 	ErrNotConfirmable = errors.New("the journalled change is not waiting for confirmation")
 	ErrRollingBack    = errors.New("a rollback of the change has started")
 	ErrSameSession    = errors.New("this is the SSH connection that applied the change")
+	ErrOldConnection  = errors.New("this SSH connection was open before the change was applied")
+	ErrLocalConn      = errors.New("this SSH connection comes from the host itself")
 	ErrSessionUnknown = errors.New("this session's SSH connection is not established")
 	ErrWrongListener  = errors.New("this connection did not reach a listener the change added")
+	ErrApplied        = errors.New("the change is applied already")
 	ErrNoTimer        = errors.New("no revert timer for this init system")
 	ErrExecutable     = errors.New("not safe to run as root from the timer")
 	ErrClaim          = errors.New("the journal changed while it was being claimed")
 	ErrIncomplete     = errors.New("the rollback did not finish")
+	ErrNoPlanRollback = errors.New("no rollback is registered for the unit of this plan")
 )
+
+// PlanRollback undoes a unit's kept plan, an OpPlan step: it decodes plan
+// and runs the unit's own checked rollback (stack B's sudoers, DNS and
+// Alpine units each keep a Plan for p2-revert). cmd/hardn registers one per
+// unit in Options.Plans, so this package imports none of them.
+type PlanRollback func(ctx context.Context, sys host.System, plan json.RawMessage) error
 
 // Options are the paths and hooks the functions here share. The zero value
 // is production's.
@@ -105,6 +128,19 @@ type Options struct {
 	DetectSSH func(ctx context.Context, sys host.System) detect.SSH
 	// Reload is passed to reload.Execute.
 	Reload reload.Options
+	// Plans are the rollbacks of OpPlan steps, by unit. Record refuses a
+	// step whose unit has none (ErrNoPlanRollback), and so does Rollback.
+	Plans map[string]PlanRollback
+}
+
+// checkPlans refuses an OpPlan step of j whose unit has no rollback in o.
+func (o Options) checkPlans(j Journal) error {
+	for i, s := range j.Undo {
+		if s.Op == OpPlan && o.Plans[s.Unit] == nil {
+			return fmt.Errorf("revert: journal %q: undo step %d: unit %q: %w", j.ID, i+1, s.Unit, ErrNoPlanRollback)
+		}
+	}
+	return nil
 }
 
 func (o Options) dir() string {
@@ -126,6 +162,13 @@ func (o Options) now() time.Time {
 		return time.Now()
 	}
 	return o.Now()
+}
+
+// cleanupContext is ctx without its cancellation, under cleanupTimeout: a
+// clean-up after Ctrl-C must still run, and every host.System method
+// refuses a done context.
+func cleanupContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.WithoutCancel(ctx), cleanupTimeout)
 }
 
 func (o Options) logf(format string, args ...any) {
@@ -157,17 +200,17 @@ func ValidID(id string) bool {
 }
 
 // ResolveTimeout returns the confirm window: the --confirm-timeout flag when
-// it is set (non-zero), else the confirmTimeout key when set, else
-// DefaultTimeout, rounded up to a whole second. A value below MinTimeout is
-// refused with ErrTimeout, naming where it came from, rather than raised
-// without a word.
-func ResolveTimeout(flag, key time.Duration) (time.Duration, error) {
+// it is set (non-nil), else the confirmTimeout key when set, else
+// DefaultTimeout, rounded up to a whole second. A value below MinTimeout,
+// an explicit 0 among them, is refused with ErrTimeout, naming where it came
+// from, rather than raised without a word.
+func ResolveTimeout(flag, key *time.Duration) (time.Duration, error) {
 	d, from := DefaultTimeout, "the default"
 	switch {
-	case flag != 0:
-		d, from = flag, "--confirm-timeout"
-	case key != 0:
-		d, from = key, "confirmTimeout"
+	case flag != nil:
+		d, from = *flag, "--confirm-timeout"
+	case key != nil:
+		d, from = *key, "confirmTimeout"
 	}
 	if r := d % time.Second; r != 0 {
 		d += time.Second - r

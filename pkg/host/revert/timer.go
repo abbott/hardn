@@ -32,8 +32,10 @@ const UnitPrefix = "hardn-revert-"
 
 // SleeperScript is the setsid timer's shell program: $0 is hardn's path, $1
 // the seconds, $2 the id. They are positional parameters, never part of the
-// program text. It does not exec, so the pid in the pidfile stays the
-// shell's: cancelling it never kills a rollback that has started.
+// program text. A shell may exec the last command of -c (dash does), so
+// once the sleep is over the pidfile's pid may be the rollback itself. What
+// keeps a cancel from killing a rollback that has started is cancelTimer's
+// check that the pid's command line is still this one.
 const SleeperScript = `sleep "$1" && "$0" rollback "$2"`
 
 // Timer is the armed revert timer, in the journal.
@@ -148,8 +150,10 @@ func startTimer(ctx context.Context, sys host.System, t Timer, opts Options) err
 	}
 	if err := sys.WriteFileAtomic(ctx, t.PIDFile, []byte(strconv.Itoa(pid)+"\n"), 0o600, -1, -1); err != nil {
 		// The sleeper's rollback would find nothing pending once Arm
-		// removes the journal; stopping it is tidiness.
-		_, killErr := sys.Run(ctx, "kill", "-s", "TERM", strconv.Itoa(pid))
+		// removes the journal; stopping it is tidiness, after Ctrl-C too.
+		cctx, cancel := cleanupContext(ctx)
+		defer cancel()
+		_, killErr := sys.Run(cctx, "kill", "-s", "TERM", strconv.Itoa(pid))
 		return errors.Join(err, killErr)
 	}
 	opts.logf("timer: sleeper pid %d, pidfile %s", pid, t.PIDFile)
@@ -174,7 +178,8 @@ func cancelTimer(ctx context.Context, sys host.System, t Timer) error {
 		return fmt.Errorf("revert: %s: pid %q", t.PIDFile, data)
 	}
 	// Signal it only if that pid is still the sleeper: its command line is
-	// exactly the timer's argv, so a pid reused since is left alone.
+	// exactly the timer's argv, so a pid reused since, and a shell that has
+	// exec'd the rollback (SleeperScript), are left alone.
 	cmdline, err := sys.ReadFile(ctx, ProcDir+"/"+strconv.Itoa(pid)+"/cmdline")
 	switch {
 	case errors.Is(err, fs.ErrNotExist):

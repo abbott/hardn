@@ -12,11 +12,14 @@ import (
 type NoticeKind string
 
 const (
+	NoticeApplying    NoticeKind = "applying"            // a lockout-risk change is being applied (not yet MarkApplied)
 	NoticePending     NoticeKind = "pending"             // a lockout-risk change waits for confirmation
 	NoticeOverdue     NoticeKind = "overdue"             // its deadline passed and it was not rolled back
 	NoticeInterrupted NoticeKind = "interrupted"         // a change without a timer did not finish
+	NoticeRollingBack NoticeKind = "rolling-back"        // a rollback is running now
 	NoticeUnfinished  NoticeKind = "rollback-unfinished" // a rollback started and did not finish
 	NoticeReverted    NoticeKind = "reverted"            // the timer undid the last change
+	NoticeBadOutcome  NoticeKind = "outcome-unreadable"  // reverted.json cannot be read
 )
 
 // Notice is one thing the next run of hardn says about the journal, as plain
@@ -29,17 +32,22 @@ type Notice struct {
 
 // Notices is what a run of hardn says about st at now (brief 2.4: the next
 // time hardn runs, it says plainly that the last change was undone because
-// it was not confirmed). After showing a NoticeReverted, call Acknowledge.
+// it was not confirmed). After showing a NoticeReverted or a
+// NoticeBadOutcome, call Acknowledge.
 func Notices(st State, now time.Time) []Notice {
 	var ns []Notice
-	if j := st.RollingBack; j != nil {
+	if j := st.RollingBack; j != nil && st.Running {
+		ns = append(ns, Notice{NoticeRollingBack, j.ID, fmt.Sprintf(
+			"Change %s (%s) is being rolled back (process %d, started %s, %s).",
+			j.ID, j.Summary, j.Rollback.Runner.PID, stamp(j.Rollback.Started), j.Rollback.Reason)})
+	} else if j != nil {
 		why := "it stopped before it recorded its progress"
 		if j.Rollback != nil {
 			why = "started " + stamp(j.Rollback.Started) + ", " + string(j.Rollback.Reason)
 		}
 		ns = append(ns, Notice{NoticeUnfinished, j.ID, fmt.Sprintf(
-			"The rollback of change %s (%s) did not finish (%s). Run `sudo hardn rollback %s` to finish it; no other change can be applied until then.",
-			j.ID, j.Summary, why, j.ID)})
+			"The rollback of change %s (%s) did not finish (%s). Run `sudo hardn rollback %s` to finish it; no other change can be applied until then. If it cannot finish, fix what it names in /var/log/hardn.log; to give it up, leaving the host as it is, move %s/%s aside.",
+			j.ID, j.Summary, why, j.ID, DefaultDir, RollbackName)})
 	}
 	if j := st.Pending; j != nil {
 		switch {
@@ -47,6 +55,10 @@ func Notices(st State, now time.Time) []Notice {
 			ns = append(ns, Notice{NoticeInterrupted, j.ID, fmt.Sprintf(
 				"Change %s (%s), started %s, did not finish. Undo what it did with `sudo hardn rollback %s`.",
 				j.ID, j.Summary, stamp(j.Created), j.ID)})
+		case j.Applied == nil && now.Before(j.Deadline()):
+			ns = append(ns, Notice{NoticeApplying, j.ID, fmt.Sprintf(
+				"Change %s (%s), started %s, is being applied, or its apply stopped: unless it finishes and is confirmed, it will be rolled back at %s (in %s). To undo it now, run `sudo hardn rollback %s`.",
+				j.ID, j.Summary, stamp(j.Created), stamp(j.Deadline()), j.Deadline().Sub(now).Round(time.Second), j.ID)})
 		case now.Before(j.Deadline()):
 			ns = append(ns, Notice{NoticePending, j.ID, fmt.Sprintf(
 				"Change %s (%s) is waiting for confirmation: it will be rolled back at %s (in %s) unless you run `sudo hardn confirm` from %s. To undo it now, run `sudo hardn rollback %s`.",
@@ -64,6 +76,10 @@ func Notices(st State, now time.Time) []Notice {
 			text += " The rollback did not finish: " + strings.Join(o.Errors, "; ") + "."
 		}
 		ns = append(ns, Notice{NoticeReverted, o.ID, text})
+	}
+	if st.OutcomeErr != nil {
+		ns = append(ns, Notice{NoticeBadOutcome, "", fmt.Sprintf(
+			"hardn cannot read the record of the timer's last rollback, so cannot say what it did: %v.", st.OutcomeErr)})
 	}
 	return ns
 }
@@ -89,6 +105,8 @@ func stepWords(s Step) string {
 		return fmt.Sprintf("chmod %04o %s", uint32(*s.Mode), s.Path)
 	case OpChown:
 		return fmt.Sprintf("chown %d:%d %s", s.Owner.UID, s.Owner.GID, s.Path)
+	case OpPlan:
+		return "roll back the " + s.Unit + " plan"
 	}
 	return string(s.Op) + " " + s.Path
 }

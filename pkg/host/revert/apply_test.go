@@ -3,6 +3,7 @@ package revert
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -168,7 +170,8 @@ func TestArmRefuses(t *testing.T) {
 			}
 		})
 	}
-	// The refusal says how to go on.
+	// The refusal says how to go on: while the change is applied, and
+	// once it waits for confirmation.
 	f := newHost(t)
 	c := &clock{testNow}
 	armed(t, f, c)
@@ -176,8 +179,57 @@ func TestArmRefuses(t *testing.T) {
 	j.ID = otherID
 	_, err := Arm(ctx, f, j, systemd, testOptions(c, nil))
 	var pe *PendingError
-	if !errors.As(err, &pe) || !strings.Contains(err.Error(), "sudo hardn confirm") || !strings.Contains(err.Error(), "sudo hardn rollback "+testID) {
-		t.Errorf("PendingError = %v", err)
+	if !errors.As(err, &pe) || !strings.Contains(err.Error(), "is being applied") || !strings.Contains(err.Error(), "sudo hardn rollback "+testID) {
+		t.Errorf("PendingError while applied = %v", err)
+	}
+	markApplied(t, f, c)
+	_, err = Arm(ctx, f, j, systemd, testOptions(c, nil))
+	if !errors.As(err, &pe) || !strings.Contains(err.Error(), "sudo hardn confirm` from a new SSH connection to port 2230") || !strings.Contains(err.Error(), "sudo hardn rollback "+testID) {
+		t.Errorf("PendingError once applied = %v", err)
+	}
+}
+
+// Ctrl-C while the timer starts: the journal is removed all the same, so
+// no notice claims a timer that never started.
+func TestArmCancelled(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		init  detect.Init
+		setup func(f *hostfake.System, cancel func())
+	}{
+		{"systemd-run interrupted", systemd, func(f *hostfake.System, cancel func()) {
+			f.Handler = func(argv []string, _ []byte) hostfake.Response {
+				cancel()
+				return hostfake.Response{Err: context.Canceled}
+			}
+		}},
+		{"the sleeper's pidfile not written, then the kill", openrc, func(f *hostfake.System, cancel func()) {
+			f.Handler = func(argv []string, _ []byte) hostfake.Response {
+				if argv[0] == "/bin/sh" {
+					cancel()
+					f.AddDir("/run/hardn/revert-"+testID+".pid", 0o700, 0, 0)
+					return hostfake.Response{PID: 4321}
+				}
+				return hostfake.Response{}
+			}
+		}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newHost(t)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			tt.setup(f, cancel)
+			_, err := Arm(ctx, f, lockout(), tt.init, testOptions(&clock{testNow}, nil))
+			if err == nil || exists(f, stateFile(PendingName)) {
+				t.Fatalf("Arm = %v, pending left %v", err, exists(f, stateFile(PendingName)))
+			}
+			if tt.init == openrc && !strings.Contains(runs(f), "run kill -s TERM 4321") {
+				t.Errorf("the sleeper was not stopped:\n%s", runs(f))
+			}
+			if st, err := ReadState(context.Background(), f, Options{}); err != nil || st.Busy() {
+				t.Errorf("state after: %+v, %v", st, err)
+			}
+		})
 	}
 }
 
@@ -271,6 +323,24 @@ func TestRecord(t *testing.T) {
 	if err := Record(ctx, f, j, opts); !errors.Is(err, ErrJournal) {
 		t.Errorf("Record(listener reload without After) = %v", err)
 	}
+	j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"Port"}, After: []Listener{{Addr: any2230.Addr, Port: 22}}, IfUp: true}}
+	j.Undo = append(j.Undo, Step{Op: OpPlan, Unit: "sudoers", Plan: []byte(`{"tool":"sudo"}`)})
+	if err := Record(ctx, f, j, opts); !errors.Is(err, ErrNoPlanRollback) {
+		t.Errorf("Record(a plan with no rollback registered) = %v", err)
+	}
+	opts.Plans = map[string]PlanRollback{"sudoers": func(context.Context, host.System, json.RawMessage) error { return nil }}
+	if err := Record(ctx, f, j, opts); err != nil {
+		t.Errorf("Record(a registered plan) = %v", err)
+	}
+	var plan struct{ Tool string }
+	if got := readJournalT(t, f, stateFile(PendingName)); len(got.Undo) != 2 || !got.Reload[0].IfUp || json.Unmarshal(got.Undo[1].Plan, &plan) != nil || plan.Tool != "sudo" {
+		t.Errorf("recorded %+v", got)
+	}
+	// Once applied, a later step is a change of its own.
+	markApplied(t, f, c)
+	if err := Record(ctx, f, j, opts); !errors.Is(err, ErrApplied) {
+		t.Errorf("Record after MarkApplied = %v", err)
+	}
 	if err := f.Rename(ctx, stateFile(PendingName), stateFile(RollbackName)); err != nil {
 		t.Fatal(err)
 	}
@@ -279,17 +349,117 @@ func TestRecord(t *testing.T) {
 	}
 }
 
+// A rollback that claims the journal while Record writes it: the
+// pending.json written again is removed, and Record says to stop.
+func TestRecordClaimedMeanwhile(t *testing.T) {
+	ctx := context.Background()
+	f := &claimOnWrite{System: newHost(t)}
+	c := &clock{testNow}
+	j := armed(t, f.System, c)
+	f.from, f.to = stateFile(PendingName), stateFile(RollbackName)
+	j.Undo = []Step{{Op: OpRun, Argv: []string{"ufw", "delete", "allow", "2230/tcp"}}}
+	if err := Record(ctx, f, j, testOptions(c, nil)); !errors.Is(err, ErrRollingBack) {
+		t.Fatalf("Record = %v, want ErrRollingBack", err)
+	}
+	if exists(f.System, stateFile(PendingName)) || !exists(f.System, stateFile(RollbackName)) {
+		t.Errorf("pending %v, rollback %v; want the rollback's journal alone", exists(f.System, stateFile(PendingName)), exists(f.System, stateFile(RollbackName)))
+	}
+}
+
+// claimOnWrite renames from to to just before the first atomic write of
+// from: another process claiming the journal at that moment.
+type claimOnWrite struct {
+	*hostfake.System
+	from, to string
+	done     bool
+}
+
+func (c *claimOnWrite) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if !c.done && c.from != "" && name == c.from {
+		c.done = true
+		if err := c.System.Rename(ctx, c.from, c.to); err != nil {
+			return err
+		}
+	}
+	return c.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+// claimOnRename renames from to other just before the first rename of from:
+// another process winning the claim.
+type claimOnRename struct {
+	*hostfake.System
+	from, other string
+	done        bool
+}
+
+func (c *claimOnRename) Rename(ctx context.Context, oldname, newname string) error {
+	if !c.done && oldname == c.from {
+		c.done = true
+		if err := c.System.Rename(ctx, c.from, c.other); err != nil {
+			return err
+		}
+	}
+	return c.System.Rename(ctx, oldname, newname)
+}
+
+func TestMarkApplied(t *testing.T) {
+	ctx := context.Background()
+	f := newHost(t)
+	c := &clock{testNow}
+	var log bytes.Buffer
+	if _, err := MarkApplied(ctx, f, testID, testOptions(c, nil)); !errors.Is(err, ErrNothingPending) {
+		t.Errorf("MarkApplied with nothing pending = %v", err)
+	}
+	armed(t, f, c)
+	c.t = testNow.Add(5 * time.Second)
+	sshds(f)
+	j, err := MarkApplied(ctx, f, testID, testOptions(c, &log))
+	if err != nil || j.Applied == nil || j.Applied.At != c.t || !reflect.DeepEqual(j.Applied.SSHD, []ProcStart{sshdOf(keptSSHD), sshdOf(applySSHD), sshdOf(listenerPID)}) {
+		t.Fatalf("MarkApplied = %+v, %v", j.Applied, err)
+	}
+	if got := readJournalT(t, f, stateFile(PendingName)); !reflect.DeepEqual(got, j) {
+		t.Errorf("on disk %+v", got.Applied)
+	}
+	if !strings.Contains(log.String(), "the 3 sshd processes running now cannot confirm it") {
+		t.Errorf("log = %q", log.String())
+	}
+	// Again: nothing changes, not even with a new connection open.
+	proc(f, newSSHD, listenerPID, "sshd-session", 0)
+	if again, err := MarkApplied(ctx, f, testID, testOptions(c, nil)); err != nil || !reflect.DeepEqual(again, j) {
+		t.Errorf("second MarkApplied = %+v, %v", again.Applied, err)
+	}
+	// No /proc: nothing could tell an old connection from a new one.
+	g := hostfake.New(host.Options{})
+	g.AddFile(testHardn, []byte("ELF"), 0o755, 0, 0)
+	g.AddDir("/var/lib", 0o755, 0, 0)
+	armed(t, g, &clock{testNow})
+	if _, err := MarkApplied(ctx, g, testID, testOptions(c, nil)); err == nil || !strings.Contains(err.Error(), "cannot be told from new ones") {
+		t.Errorf("MarkApplied with no /proc = %v", err)
+	}
+	if _, err := Confirm(ctx, g, newSession, testOptions(c, nil)); !errors.Is(err, ErrNotConfirmable) {
+		t.Errorf("Confirm of a change not marked applied = %v", err)
+	}
+	// A change with no timer ends with Done.
+	h := newHost(t)
+	if _, err := Arm(ctx, h, Journal{ID: testID, Risk: RiskOther, Summary: "DNS"}, systemd, testOptions(c, nil)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := MarkApplied(ctx, h, testID, testOptions(c, nil)); !errors.Is(err, ErrNotConfirmable) {
+		t.Errorf("MarkApplied(other) = %v", err)
+	}
+}
+
 func TestConfirm(t *testing.T) {
 	ctx := context.Background()
 	stop := []string{"systemctl", "stop", "hardn-revert-" + testID + ".timer"}
-	newSession := Session{Remote: true, Conn: newConn, Source: "/proc/3990/environ"}
 
 	t.Run("a new connection to the new port", func(t *testing.T) {
 		f := newHost(t)
 		c := &clock{testNow}
 		var log bytes.Buffer
 		opts := testOptions(c, &log)
-		j := armed(t, f, c)
+		armed(t, f, c)
+		j := markApplied(t, f, c)
 		respond(f, hostfake.Response{}, stop)
 		res, err := Confirm(ctx, f, newSession, opts)
 		if err != nil || res.Local || res.CancelErr != nil || res.Journal.ID != testID {
@@ -318,25 +488,33 @@ func TestConfirm(t *testing.T) {
 		f := newHost(t)
 		c := &clock{testNow}
 		armed(t, f, c)
+		markApplied(t, f, c)
 		respond(f, hostfake.Response{ExitCode: 5, Stderr: "Failed to stop hardn-revert.timer: Unit not loaded."}, stop)
-		res, err := Confirm(ctx, f, Session{Source: "no SSH variable or sshd among the ancestors"}, testOptions(c, nil))
+		res, err := Confirm(ctx, f, Session{Source: "a console login (/proc/3970 is login)"}, testOptions(c, nil))
 		if err != nil || !res.Local || res.CancelErr == nil || exists(f, stateFile(PendingName)) {
 			t.Fatalf("Confirm = %+v, %v", res, err)
 		}
 	})
 	for _, tt := range []struct {
-		name string
-		s    Session
-		want error
-		hint string
+		name    string
+		s       Session
+		applied bool
+		want    error
+		hint    string
 	}{
-		{"the session that applied it", Session{Remote: true, Conn: applyConn}, ErrWrongListener, "a new SSH connection to port 2230"},
-		{"an unknown session", Session{Remote: true}, ErrSessionUnknown, "sudo hardn confirm"},
+		{"the session that applied it", remote(applyConn, applySSHD), true, ErrSameSession, "a new SSH connection to port 2230, made from another machine"},
+		{"a connection kept open since before", remote("192.0.2.10 49001 192.0.2.20 2230", keptSSHD), true, ErrOldConnection, "a new SSH connection to port 2230"},
+		{"ssh -p 2230 localhost", remote("127.0.0.1 40000 127.0.0.1 2230", newSSHD), true, ErrLocalConn, "made from another machine"},
+		{"an unknown session", Session{Remote: true}, true, ErrSessionUnknown, "sudo hardn confirm"},
+		{"before the apply has finished", newSession, false, ErrNotConfirmable, "unless its apply finishes and it is confirmed, it is rolled back at 2026-10-18 12:03:00 UTC"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f := newHost(t)
 			c := &clock{testNow}
 			armed(t, f, c)
+			if tt.applied {
+				markApplied(t, f, c)
+			}
 			_, err := Confirm(ctx, f, tt.s, testOptions(c, nil))
 			if !errors.Is(err, tt.want) || !strings.Contains(err.Error(), tt.hint) || !exists(f, stateFile(PendingName)) {
 				t.Fatalf("Confirm = %v; want %v with %q, and the change still pending", err, tt.want, tt.hint)
@@ -347,6 +525,7 @@ func TestConfirm(t *testing.T) {
 		f := newHost(t)
 		c := &clock{testNow}
 		j := armed(t, f, c)
+		markApplied(t, f, c)
 		c.t = j.Deadline()
 		if _, err := Rollback(ctx, f, testID, testOptions(c, nil)); err != nil {
 			t.Fatal(err)
@@ -361,11 +540,26 @@ func TestConfirm(t *testing.T) {
 		f := newHost(t)
 		c := &clock{testNow}
 		armed(t, f, c)
+		markApplied(t, f, c)
 		if err := f.Rename(ctx, stateFile(PendingName), stateFile(RollbackName)); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := Confirm(ctx, f, newSession, testOptions(c, nil)); !errors.Is(err, ErrRollingBack) {
 			t.Fatalf("Confirm = %v", err)
+		}
+	})
+	t.Run("the timer's rollback claims it first", func(t *testing.T) {
+		g := newHost(t)
+		c := &clock{testNow}
+		armed(t, g, c)
+		markApplied(t, g, c)
+		f := &claimOnRename{System: g, from: stateFile(PendingName), other: stateFile(RollbackName)}
+		_, err := Confirm(ctx, f, newSession, testOptions(c, nil))
+		if !errors.Is(err, ErrRollingBack) || !strings.Contains(err.Error(), "a rollback claimed it first") || exists(g, stateFile(ConfirmedName)) {
+			t.Fatalf("Confirm = %v", err)
+		}
+		if strings.Contains(runs(g), "systemctl stop") {
+			t.Errorf("a lost confirm stopped the timer:\n%s", runs(g))
 		}
 	})
 	t.Run("an interrupted change is not confirmed", func(t *testing.T) {
@@ -385,6 +579,7 @@ func TestConfirm(t *testing.T) {
 			killed  bool
 		}{
 			{"still the sleeper: signalled", "/bin/sh\x00-c\x00" + SleeperScript + "\x00" + testHardn + "\x00180\x00" + testID + "\x00", true},
+			{"the shell exec'd the rollback (dash): left alone", testHardn + "\x00rollback\x00" + testID + "\x00", false},
 			{"the pid was reused: left alone", "/usr/sbin/crond\x00-f\x00", false},
 			{"it has ended", "", false},
 		} {
@@ -395,6 +590,7 @@ func TestConfirm(t *testing.T) {
 				if _, err := Arm(ctx, f, lockout(), openrc, testOptions(c, nil)); err != nil {
 					t.Fatal(err)
 				}
+				markApplied(t, f, c)
 				if tt.cmdline != "" {
 					f.AddFile("/proc/4321/cmdline", []byte(tt.cmdline), 0o444, 0, 0)
 				}
@@ -407,6 +603,39 @@ func TestConfirm(t *testing.T) {
 				}
 				if exists(f, "/run/hardn/revert-"+testID+".pid") {
 					t.Error("pidfile left")
+				}
+			})
+		}
+	})
+	t.Run("the sleeper cannot be stopped: harmless, and said", func(t *testing.T) {
+		for _, tt := range []struct {
+			name  string
+			setup func(f *hostfake.System)
+			want  string
+		}{
+			{"a pidfile that holds no pid", func(f *hostfake.System) {
+				f.AddFile("/run/hardn/revert-"+testID+".pid", []byte("x\n"), 0o600, 0, 0)
+			}, `pid "x\n"`},
+			{"its command line cannot be read", func(f *hostfake.System) {
+				f.AddDir("/proc/4321/cmdline", 0o555, 0, 0)
+			}, "is a directory"},
+			{"kill fails", func(f *hostfake.System) {
+				f.AddFile("/proc/4321/cmdline", []byte("/bin/sh\x00-c\x00"+SleeperScript+"\x00"+testHardn+"\x00180\x00"+testID+"\x00"), 0o444, 0, 0)
+				f.Respond(hostfake.Response{ExitCode: 1, Stderr: "kill: (4321) - Operation not permitted"}, "kill", "-s", "TERM", "4321")
+			}, "exit status 1"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				f := newHost(t)
+				c := &clock{testNow}
+				respond(f, hostfake.Response{PID: 4321}, []string{"/bin/sh", "-c", SleeperScript, testHardn, "180", testID})
+				if _, err := Arm(ctx, f, lockout(), openrc, testOptions(c, nil)); err != nil {
+					t.Fatal(err)
+				}
+				markApplied(t, f, c)
+				tt.setup(f)
+				res, err := Confirm(ctx, f, newSession, testOptions(c, nil))
+				if err != nil || res.CancelErr == nil || !strings.Contains(res.CancelErr.Error(), tt.want) || exists(f, stateFile(PendingName)) {
+					t.Fatalf("Confirm = %+v, %v; want confirmed, CancelErr with %q", res, err, tt.want)
 				}
 			})
 		}

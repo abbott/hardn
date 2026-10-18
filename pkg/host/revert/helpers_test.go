@@ -3,6 +3,7 @@ package revert
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/netip"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,22 @@ const (
 	newConn   = "192.0.2.10 50123 192.0.2.20 2230"
 )
 
+// Processes in the fake's /proc: the sshd listener; the sshd-session of
+// the connection that applied the change, of a second one the user kept
+// open, and of a new one; and hardn's own process.
+const (
+	listenerPID  = 900
+	applySSHD    = 3970
+	keptSSHD     = 3500
+	newSSHD      = 4100
+	selfPID      = 5000
+	testBootID   = "8e2a3c4d-1b2c-4d3e-8f40-0123456789ab"
+	ptsTTY       = 136<<8 | 3 // /dev/pts/3
+	consoleTTY1  = 4<<8 | 1   // /dev/tty1
+	serialTTYS0  = 4<<8 | 64  // /dev/ttyS0
+	legacyPTYTTY = 3 << 8     // /dev/ttyp0
+)
+
 var (
 	testNow = time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	systemd = detect.Init{Kind: detect.Systemd, Running: detect.Yes, Source: detect.SystemdRunDir}
@@ -41,7 +58,66 @@ func newHost(t *testing.T) *hostfake.System {
 	f.AddFile(testHardn, []byte("ELF"), 0o755, 0, 0)
 	f.AddDir("/var/lib", 0o755, 0, 0)
 	f.AddDir("/run", 0o755, 0, 0)
+	setSelf(f, selfPID)
+	f.AddFile(bootIDFile, []byte(testBootID+"\n"), 0o444, 0, 0)
 	return f
+}
+
+// procStart is the start time the fake gives process pid.
+func procStart(pid int) uint64 { return uint64(pid) * 100 }
+
+// sshdOf names process pid as the fake starts it.
+func sshdOf(pid int) ProcStart { return ProcStart{PID: pid, Start: procStart(pid)} }
+
+// statLine is /proc/<pid>/stat as Linux writes it (proc_pid_stat(5)), with
+// fields 5 to 21 filled in plausibly.
+func statLine(pid, ppid int, comm string, tty int, start uint64) string {
+	return fmt.Sprintf("%d (%s) S %d %d %d %d -1 4194560 0 0 0 0 0 0 0 0 20 0 1 0 %d 0 0\n", pid, comm, ppid, pid, pid, tty, start)
+}
+
+// proc adds process pid to the fake's /proc: its stat (parent, controlling
+// terminal, start time procStart(pid)) and initial environment.
+func proc(f *hostfake.System, pid, ppid int, comm string, tty int, env ...string) {
+	block := ""
+	for _, kv := range env {
+		block += kv + "\x00"
+	}
+	dir := fmt.Sprintf("/proc/%d", pid)
+	f.AddFile(dir+"/environ", []byte(block), 0o400, 0, 0)
+	f.AddFile(dir+"/stat", []byte(statLine(pid, ppid, comm, tty, procStart(pid))), 0o444, 0, 0)
+}
+
+// setSelf makes /proc/self the fake's hardn process pid.
+func setSelf(f *hostfake.System, pid int) {
+	f.AddFile("/proc/self/stat", []byte(statLine(pid, 1, "hardn", ptsTTY, procStart(pid))), 0o444, 0, 0)
+}
+
+// sshds adds the sshd processes running when a change is applied: the
+// listener, the applying connection's and a second one kept open.
+func sshds(f *hostfake.System) {
+	proc(f, listenerPID, 1, "sshd", 0)
+	proc(f, applySSHD, listenerPID, "sshd-session", 0)
+	proc(f, keptSSHD, listenerPID, "sshd-session", 0)
+}
+
+// remote is an SSH session over conn whose sshd-session is process sshd.
+func remote(conn string, sshd int) Session {
+	return Session{Remote: true, Conn: conn, SSHD: sshdOf(sshd), Source: "SSH_CONNECTION"}
+}
+
+// newSession is a connection made after the apply, to port 2230.
+var newSession = remote(newConn, newSSHD)
+
+// markApplied ends the apply of the pending change on f, with sshds
+// running, and returns the journal.
+func markApplied(t *testing.T, f *hostfake.System, c *clock) Journal {
+	t.Helper()
+	sshds(f)
+	j, err := MarkApplied(context.Background(), f, testID, testOptions(c, nil))
+	if err != nil {
+		t.Fatalf("MarkApplied: %v", err)
+	}
+	return j
 }
 
 // clock is a settable Options.Now.
@@ -62,7 +138,7 @@ func lockout() Journal {
 	return Journal{
 		ID: testID, Risk: RiskLockout, TimeoutSeconds: 180,
 		Summary:    "SSH port 22 to 2230 on web-01.example.net",
-		Session:    Session{Remote: true, Conn: applyConn, Source: "SSH_CONNECTION"},
+		Session:    remote(applyConn, applySSHD),
 		ConfirmVia: []Listener{any2230},
 	}
 }

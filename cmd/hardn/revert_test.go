@@ -1,10 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"testing"
 	"time"
+
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -25,8 +33,11 @@ var revertTestNow = time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 // on systemd, an SSH session from a new connection on port 2230, and an exit
 // that records its code; nothing on this machine is read or changed.
 type revertSeams struct {
-	f    *hostfake.System
-	exit int // -1: not called
+	f              *hostfake.System
+	exit           int // -1: not called
+	stderr         bytes.Buffer
+	seen           bool // whether a person sees stderr
+	held, released int  // revertHoldSignals's calls, and its release's
 }
 
 func newRevertSeams(t *testing.T, euid int) *revertSeams {
@@ -44,26 +55,49 @@ func newRevertSeams(t *testing.T, euid int) *revertSeams {
 	if _, err := revert.Arm(context.Background(), s.f, j, detect.Init{Kind: detect.Systemd, Running: detect.Yes}, revert.Options{Now: clock, Hardn: revertTestHardn}); err != nil {
 		t.Fatal(err)
 	}
+	// The apply finishes with the applying connection's sshd-session (3970)
+	// running; then alice connects again on 2230 (4100) and runs sudo
+	// hardn, process 4000.
+	revertProc(s.f, 900, 1, "sshd")
+	revertProc(s.f, 3970, 900, "sshd-session")
+	if _, err := revert.MarkApplied(context.Background(), s.f, revertTestID, revert.Options{Now: clock}); err != nil {
+		t.Fatal(err)
+	}
+	revertProc(s.f, 4100, 900, "sshd-session")
+	revertProc(s.f, 3980, 4100, "bash", "SSH_CONNECTION=192.0.2.10 50123 192.0.2.20 2230")
+	revertProc(s.f, 3990, 3980, "sudo")
+	revertProc(s.f, 4000, 3990, "hardn")
 
 	euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas := revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun
+	stderrWas, seenWas, holdWas := revertStderr, revertNoticeSeen, revertHoldSignals
 	revertEUID = func() int { return euid }
 	revertHost = func() host.System { return s.f }
-	revertGetenv = func(k string) string {
-		if k == "SSH_CONNECTION" {
-			return "192.0.2.10 50123 192.0.2.20 2230"
-		}
-		return ""
-	}
+	revertGetenv = func(string) string { return "" } // sudo reset it
 	revertPID = func() int { return 4000 }
 	revertExit = func(code int) { s.exit = code }
 	revertNow = clock
+	revertStderr = &s.stderr
+	revertNoticeSeen = func() bool { return s.seen }
+	revertHoldSignals = func() func() { s.held++; return func() { s.released++ } }
+	s.seen = true
 	logging.SetSilentMode(true)
 	t.Cleanup(func() {
 		revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun = euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas
+		revertStderr, revertNoticeSeen, revertHoldSignals = stderrWas, seenWas, holdWas
 		logging.SetSilentMode(false)
 		rootCmd.SetArgs(nil)
 	})
 	return s
+}
+
+// revertProc adds process pid to the fake's /proc, as revert reads it.
+func revertProc(f *hostfake.System, pid, ppid int, comm string, env ...string) {
+	block := ""
+	for _, kv := range env {
+		block += kv + "\x00"
+	}
+	f.AddFile(fmt.Sprintf("/proc/%d/environ", pid), []byte(block), 0o400, 0, 0)
+	f.AddFile(fmt.Sprintf("/proc/%d/stat", pid), []byte(fmt.Sprintf("%d (%s) S %d %d %d 34819 -1 4194560 0 0 0 0 0 0 0 0 20 0 1 0 %d 0 0\n", pid, comm, ppid, pid, pid, pid*100)), 0o444, 0, 0)
 }
 
 func (s *revertSeams) has(name string) bool {
@@ -97,6 +131,9 @@ func TestRevertRollbackCommand(t *testing.T) {
 	executeHardn(t, "rollback", revertTestID)
 	if s.exit != -1 || s.has(revert.DefaultDir+"/"+revert.PendingName) || s.has(revert.DefaultDir+"/"+revert.RollbackName) {
 		t.Fatalf("exit %d; journal left", s.exit)
+	}
+	if s.held != 1 || s.released != 1 {
+		t.Errorf("signals held %d, released %d; want once each, around the rollback", s.held, s.released)
 	}
 	// Idempotent: nothing to do is success.
 	executeHardn(t, "rollback", revertTestID)
@@ -142,9 +179,9 @@ func TestRevertCommandsRefuse(t *testing.T) {
 	}
 }
 
-// The notice is shown to root only; a subcommand clears the timer's
-// rollback notice once shown, the root command (the legacy menu clears the
-// screen) does not.
+// The notice is shown to root only, on stderr; a subcommand clears the
+// timer's rollback notice once a person has seen it, the root command (the
+// legacy menu clears the screen) does not.
 func TestRevertNotices(t *testing.T) {
 	s := newRevertSeams(t, 0)
 	revertNow = func() time.Time { return revertTestNow.Add(3 * time.Minute) }
@@ -153,13 +190,32 @@ func TestRevertNotices(t *testing.T) {
 	if !s.has(reverted) {
 		t.Fatal("no outcome after the timer's rollback")
 	}
+	var stdout bytes.Buffer
+	outWas := color.Output
+	color.Output = &stdout
+	defer func() { color.Output = outWas }()
 	showRevertNotices(rootCmd, nil)
 	if !s.has(reverted) {
 		t.Error("the root command cleared the notice")
 	}
+	// system-details --json with stderr a pipe: its stdout stays its own,
+	// and the notice stays for a person to see.
+	s.seen = false
+	s.stderr.Reset()
+	showRevertNotices(systemDetailsCmdForTest(), nil)
+	if !strings.Contains(s.stderr.String(), "[WARNING] Change "+revertTestID) || !strings.Contains(s.stderr.String(), "because it was not confirmed within 180s") {
+		t.Errorf("stderr = %q", s.stderr.String())
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("the notice reached stdout: %q", stdout.String())
+	}
+	if !s.has(reverted) {
+		t.Error("a notice nobody saw was cleared")
+	}
+	s.seen = true
 	showRevertNotices(setupSudoEnvCmd, nil)
 	if s.has(reverted) {
-		t.Error("a subcommand did not clear the notice")
+		t.Error("a subcommand did not clear the notice once seen")
 	}
 
 	s = newRevertSeams(t, 1000)
@@ -176,5 +232,36 @@ func TestRevertSeamsAreReal(t *testing.T) {
 	}
 	if _, ok := revertHost().(*host.Real); !ok {
 		t.Error("revertHost is not host.Real")
+	}
+}
+
+// systemDetailsCmdForTest is the registered system-details subcommand.
+func systemDetailsCmdForTest() *cobra.Command {
+	for _, c := range rootCmd.Commands() {
+		if c.Name() == "system-details" {
+			return c
+		}
+	}
+	panic("no system-details subcommand")
+}
+
+// holdSignals keeps SIGINT and SIGHUP ignored, and SIGTERM caught, until it
+// is released: this process survives each, sent to itself.
+func TestHoldSignals(t *testing.T) {
+	logging.SetSilentMode(true)
+	defer logging.SetSilentMode(false)
+	release := holdSignals()
+	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+		t.Fatal("SIGINT and SIGHUP are not ignored")
+	}
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
+		if err := syscall.Kill(os.Getpid(), sig); err != nil {
+			t.Fatal(err)
+		}
+	}
+	time.Sleep(50 * time.Millisecond) // the process is still here
+	release()
+	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
+		t.Error("release left SIGINT or SIGHUP ignored")
 	}
 }

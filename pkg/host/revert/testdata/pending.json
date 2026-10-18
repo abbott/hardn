@@ -8,6 +8,10 @@
   "session": {
     "remote": true,
     "conn": "192.0.2.10 50022 192.0.2.20 22",
+    "sshd": {
+      "pid": 3970,
+      "start": 397000
+    },
     "source": "SSH_CONNECTION"
   },
   "confirmVia": [

@@ -8,21 +8,24 @@ import (
 )
 
 func TestResolveTimeout(t *testing.T) {
+	d := func(v time.Duration) *time.Duration { return &v }
 	tests := []struct {
 		name      string
-		flag, key time.Duration
+		flag, key *time.Duration // nil: not set
 		want      time.Duration
 		wantFrom  string // in the error, when refused
 	}{
-		{"default", 0, 0, 180 * time.Second, ""},
-		{"key", 0, 300 * time.Second, 300 * time.Second, ""},
-		{"flag wins over key", 120 * time.Second, 300 * time.Second, 120 * time.Second, ""},
-		{"floor is accepted", MinTimeout, 0, MinTimeout, ""},
-		{"rounded up to a second", 0, 90*time.Second + time.Millisecond, 91 * time.Second, ""},
-		{"flag below the floor", 18 * time.Second, 0, 0, "--confirm-timeout 18s"},
-		{"key below the floor", 0, 59 * time.Second, 0, "confirmTimeout 59s"},
-		{"negative", -time.Second, 0, 0, "--confirm-timeout"},
-		{"a low key even with a flag set does not matter", 200 * time.Second, time.Second, 200 * time.Second, ""},
+		{"default", nil, nil, 180 * time.Second, ""},
+		{"key", nil, d(300 * time.Second), 300 * time.Second, ""},
+		{"flag wins over key", d(120 * time.Second), d(300 * time.Second), 120 * time.Second, ""},
+		{"floor is accepted", d(MinTimeout), nil, MinTimeout, ""},
+		{"rounded up to a second", nil, d(90*time.Second + time.Millisecond), 91 * time.Second, ""},
+		{"flag below the floor", d(18 * time.Second), nil, 0, "--confirm-timeout 18s"},
+		{"key below the floor", nil, d(59 * time.Second), 0, "confirmTimeout 59s"},
+		{"an explicit 0 flag is refused, not the default", d(0), nil, 0, "--confirm-timeout 0s"},
+		{"an explicit 0 key is refused, not the default", nil, d(0), 0, "confirmTimeout 0s"},
+		{"negative", d(-time.Second), nil, 0, "--confirm-timeout"},
+		{"a low key even with a flag set does not matter", d(200 * time.Second), d(time.Second), 200 * time.Second, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
