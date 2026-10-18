@@ -18,3 +18,7 @@ to `/etc/pve/priv/authorized_keys`, pmxcfs's `/etc/pve/local` to
   bytes, not keys.
 - `etc/pve/firewall/cluster.fw`, `etc/pve/nodes/web-01/host.fw`: the
   firewall enabled, `policy_in` DROP, a `management` IP set.
+- `etc/pve/nodes/web-02/host.fw`: the other node's host firewall, off. It
+  makes `nodes/web-02` a directory git keeps (`pve.ReadKeys` lists the
+  nodes from `/etc/pve/nodes`), and a read of the wrong node's `host.fw`
+  fails the firewall tests.
