@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -34,13 +35,13 @@ import (
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
-// The units, as revert.Step.Unit names them. Stable: a journal written by
-// one hardn is rolled back by the next.
+// The units, as revert.Step.Unit names them; each unit owns its name.
+// Stable: a journal written by one hardn is rolled back by the next.
 const (
 	UnitPVEKeys = pve.KeysUnit // "pve-keys"
-	UnitSudoers = "sudoers"
-	UnitDNS     = "dns"
-	UnitAlpine  = "alpine-updates"
+	UnitSudoers = sudoers.Unit // "sudoers"
+	UnitDNS     = dns.Unit     // "dns"
+	UnitAlpine  = alpine.Unit  // "alpine-updates"
 )
 
 // ErrPlan is a plan its unit's rollback does not accept: its JSON does not
@@ -124,7 +125,8 @@ func (k kind[P]) decode(data []byte) (P, error) {
 	if err := dec.Decode(&p); err != nil {
 		return p, fmt.Errorf("plans: %s: %w: %w", k.unit, ErrPlan, err)
 	}
-	if dec.More() {
+	// Token, not More: More is false before a stray ']' or '}' too.
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
 		return p, fmt.Errorf("plans: %s: %w: data after the plan", k.unit, ErrPlan)
 	}
 	if err := k.check(p); err != nil {

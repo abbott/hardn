@@ -1,0 +1,54 @@
+{
+  "From": {
+    "Package": 2,
+    "Script": 2,
+    "Runlevel": 2,
+    "Crond": 2,
+    "Legacy": 2,
+    "LegacyFile": {
+      "Data": "IyEvYmluL3NoCmFwayB1cGRhdGUgJiYgYXBrIHVwZ3JhZGUgLS1hdmFpbGFibGUK",
+      "Mode": 493,
+      "UID": 0,
+      "GID": 0
+    },
+    "Evidence": [
+      "apk info -e apk-cron: installed yes",
+      "/etc/periodic/daily/apk: executable file",
+      "rc-service crond status: stopped",
+      "/etc/runlevels/default/crond: in runlevel yes",
+      "/etc/periodic/daily/apk-upgrade: hardn's (origin/main)"
+    ],
+    "Err": null
+  },
+  "Changes": [
+    {
+      "Step": 3,
+      "Argv": [
+        "rc-service",
+        "crond",
+        "start"
+      ],
+      "Undo": [
+        "rc-service",
+        "crond",
+        "stop"
+      ],
+      "Path": "",
+      "Why": "crond is not running"
+    },
+    {
+      "Step": 5,
+      "Argv": null,
+      "Undo": null,
+      "Path": "/etc/periodic/daily/apk-upgrade",
+      "Why": "/etc/periodic/daily/apk-upgrade was written by an earlier hardn and would upgrade a second time each day; /etc/periodic/daily/apk replaces it, and a copy is kept in the backup run"
+    }
+  ],
+  "Findings": [
+    {
+      "Kind": 1,
+      "Path": "/etc/periodic/daily/apk-upgrade",
+      "Detail": "written by an earlier hardn; removed, after a backup, once apk-cron is installed"
+    }
+  ]
+}

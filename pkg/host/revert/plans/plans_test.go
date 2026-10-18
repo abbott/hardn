@@ -5,8 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"io/fs"
+	"os"
 	"path"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -27,6 +30,8 @@ import (
 // Nothing here runs a command or touches the machine: every host is
 // hostfake's, its commands answered as each unit's own tests answer them.
 // Synthetic values only: alice and bob, web-01.example.net, 192.0.2.0/24.
+
+var update = flag.Bool("update", false, "rewrite testdata/<unit>.json from the plans the step functions make")
 
 const (
 	testID = "20261018T120000Z-1a2b3c4d"
@@ -210,6 +215,13 @@ func units() []unit {
 			"another user's file in its place": func(t *testing.T, f *hostfake.System) {
 				editPlan(t, f, func(p *sudoers.Plan) { p.Changes[0].Old.Path = sudoers.DropInDir + "/hardn-grant-bob" })
 			},
+			// The old state is written back with its mode and owner.
+			"its old state world-writable": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(p *sudoers.Plan) { p.Changes[0].Old.Mode = 0o666 })
+			},
+			"its old state alice's": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(p *sudoers.Plan) { p.Changes[0].Old.UID = 1000 })
+			},
 			"an unknown field": unknownField,
 		}},
 		{"dns", dnsSetup, map[string]func(*testing.T, *hostfake.System){
@@ -245,6 +257,82 @@ func units() []unit {
 			},
 			"an unknown field": unknownField,
 		}},
+	}
+}
+
+// TestWireFormat pins each unit's journalled plan, as its step function
+// encodes it, in testdata/<unit>.json, and rolls the change back from that
+// file, journalled as it is: a journal written by one hardn is rolled back
+// by the next, so a change of a plan type's shape (a field renamed or
+// dropped, an enum value renumbered, display fields included, since
+// decoding refuses unknown fields) fails here before it strands a journal
+// already written (its rollback refused with ErrPlan until abandoned). For
+// an intended change, rerun with -update and review the diff for what an
+// older journal would no longer decode or would decode as something else.
+func TestWireFormat(t *testing.T) {
+	for _, u := range units() {
+		t.Run(u.name, func(t *testing.T) {
+			f, step, apply, restored := u.setup(t)
+			var got bytes.Buffer
+			if err := json.Indent(&got, step.Plan, "", "  "); err != nil {
+				t.Fatal(err)
+			}
+			got.WriteByte('\n')
+			name := filepath.Join("testdata", u.name+".json")
+			if *update {
+				if err := os.MkdirAll("testdata", 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(name, got.Bytes(), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			want, err := os.ReadFile(name)
+			if err != nil {
+				t.Fatalf("%v (run with -update to create it)", err)
+			}
+			if !bytes.Equal(got.Bytes(), want) {
+				t.Errorf("%s: the journalled plan's shape changed:\n--- got\n%s--- want\n%s", name, got.Bytes(), want)
+			}
+			step.Plan = json.RawMessage(want)
+			journal(t, f, step)
+			apply()
+			if _, err := revert.Rollback(ctx, f, testID, options()); err != nil {
+				t.Fatalf("Rollback from %s: %v", name, err)
+			}
+			restored(t)
+		})
+	}
+}
+
+// TestPVENodeKeyInAdded: a journalled keys plan edited consistently, so
+// that it names root@web-01's own key in Added and passes Check (Old,
+// Before and New made from a file without it), is refused by UndoKeys
+// itself, which never removes a node's key: the rollback stays
+// incomplete, and the key stays.
+func TestPVENodeKeyInAdded(t *testing.T) {
+	f, step, apply, _ := pveSetup(t)
+	journal(t, f, step)
+	apply()
+	editPlan(t, f, func(p *pve.KeysPlan) {
+		q, err := pve.PlanKeys(pve.Keys{Target: p.Target, Data: []byte(keyBob + "\n")}, pve.KeyEdit{Add: []string{keyWeb01}})
+		if err != nil || q.Check() != nil {
+			t.Fatalf("PlanKeys = %+v, %v", q, err)
+		}
+		*p = q
+	})
+	before := len(f.Calls())
+	_, err := revert.Rollback(ctx, f, testID, options())
+	if !errors.Is(err, revert.ErrIncomplete) || !errors.Is(err, pve.ErrClusterKey) {
+		t.Fatalf("Rollback = %v, want ErrIncomplete and ErrClusterKey", err)
+	}
+	if e, _ := f.Entry(pve.ClusterKeys); !bytes.Contains(e.Data, []byte(keyWeb01)) {
+		t.Errorf("keys %q: root@web-01's key removed", e.Data)
+	}
+	// It detected Proxmox VE (dpkg-query) and read the keys; it wrote
+	// nothing.
+	if ch := slices.DeleteFunc(changed(f, before), func(c string) bool { return strings.HasPrefix(c, "run dpkg-query ") }); len(ch) > 0 {
+		t.Errorf("the refused rollback changed the host: %q", ch)
 	}
 }
 
@@ -302,9 +390,11 @@ func TestDecode(t *testing.T) {
 	f, step, _, _ := sudoersSetup(t)
 	before := len(f.Calls())
 	for name, raw := range map[string]string{
-		"two documents":           string(step.Plan) + " {}",
-		"not an object":           `["sudo"]`,
-		"a field of another type": `{"Tool":"sudo"}`,
+		"two documents":            string(step.Plan) + " {}",
+		"a stray brace after it":   string(step.Plan) + "}",
+		"a stray bracket after it": string(step.Plan) + " ]]",
+		"not an object":            `["sudo"]`,
+		"a field of another type":  `{"Tool":"sudo"}`,
 	} {
 		if err := plans.Registry()[plans.UnitSudoers](ctx, f, json.RawMessage(raw)); !errors.Is(err, plans.ErrPlan) {
 			t.Errorf("%s: %v, want ErrPlan", name, err)

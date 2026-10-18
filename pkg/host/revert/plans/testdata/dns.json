@@ -1,0 +1,72 @@
+{
+  "From": {
+    "Host": {
+      "Distro": "debian",
+      "Systemd": 2
+    },
+    "Manager": 1,
+    "ResolvConf": {
+      "Kind": 2,
+      "Target": "",
+      "Data": "c2VhcmNoIGV4YW1wbGUubmV0Cm5hbWVzZXJ2ZXIgMTkyLjAuMi4xCg==",
+      "Mode": 420,
+      "UID": 0,
+      "GID": 0
+    },
+    "Nameservers": [
+      "192.0.2.1"
+    ],
+    "Search": [
+      "example.net"
+    ],
+    "Resolved": {
+      "Active": 1,
+      "Dir": 0,
+      "DropIn": {
+        "Kind": 0,
+        "Target": "",
+        "Data": null,
+        "Mode": 0,
+        "UID": 0,
+        "GID": 0
+      },
+      "Later": null,
+      "Global": null,
+      "Domains": null,
+      "Links": null
+    },
+    "UDHCPC": {
+      "Conf": {
+        "Kind": 0,
+        "Target": "",
+        "Data": null,
+        "Mode": 0,
+        "UID": 0,
+        "GID": 0
+      },
+      "Rewrites": 0,
+      "NoDNS": "",
+      "Hooks": null
+    },
+    "DHCPClients": null
+  },
+  "Want": {
+    "Nameservers": [
+      "192.0.2.53"
+    ],
+    "Search": null,
+    "ReplaceSearch": false,
+    "UDHCPCNoResolv": false
+  },
+  "Changes": [
+    {
+      "Step": 2,
+      "Path": "/etc/resolv.conf",
+      "Before": "c2VhcmNoIGV4YW1wbGUubmV0Cm5hbWVzZXJ2ZXIgMTkyLjAuMi4xCg==",
+      "After": "c2VhcmNoIGV4YW1wbGUubmV0Cm5hbWVzZXJ2ZXIgMTkyLjAuMi41Mwo=",
+      "Argv": null,
+      "Why": "set the nameservers"
+    }
+  ],
+  "Findings": null
+}

@@ -1,0 +1,51 @@
+{
+  "Target": "/etc/pve/priv/authorized_keys",
+  "Before": [
+    128,
+    21,
+    69,
+    115,
+    132,
+    161,
+    53,
+    140,
+    234,
+    59,
+    130,
+    206,
+    73,
+    125,
+    250,
+    195,
+    190,
+    123,
+    106,
+    93,
+    46,
+    198,
+    204,
+    24,
+    73,
+    174,
+    26,
+    122,
+    112,
+    81,
+    62,
+    18
+  ],
+  "Old": "c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFBUVFDUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUiByb290QHdlYi0wMQo=",
+  "New": "c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFBUVFDUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUmtaR1JrWkdSa1pHUiByb290QHdlYi0wMQpzc2gtZWQyNTUxOSBBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJS0dob2FHaG9hR2hvYUdob2FHaG9hR2hvYUdob2FHaG9hR2hvYUdob2FHaCBhbGljZUB3ZWItMDEuZXhhbXBsZS5uZXQK",
+  "Added": [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGh alice@web-01.example.net"
+  ],
+  "Removed": null,
+  "Findings": [
+    {
+      "Kind": 6,
+      "File": "/etc/pve/priv/authorized_keys",
+      "Line": 0,
+      "Detail": "/root/.ssh/authorized_keys is a link to /etc/pve/priv/authorized_keys: the change applies to root on every node of the cluster"
+    }
+  ]
+}
