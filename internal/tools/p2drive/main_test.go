@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -343,14 +344,16 @@ func TestRefusedBeforeArm(t *testing.T) {
 			v.boot()
 		}, []string{"keyonly"}, "P-38"},
 		{"pve-root off Proxmox VE", debian13, nil, []string{"pve-root"}, "for a Proxmox VE host"},
-		{"migrate --apply of listen.conf on a socket host", ubuntu2604(), func(v *vm) {
+		// v0.3.x wrote listen.conf and ran no daemon-reload (D9): the socket
+		// still listens on 22, so the rollback's daemon-reload, with
+		// listen.conf restored, would move it to 2230.
+		{"migrate --apply of listen.conf on a socket host that never read it (D9)", ubuntu2604(), func(v *vm) {
 			v.socket = true
 			v.f.AddFile(migrate.ManageConf, fixture(v.t, "v032-manage.conf"), 0o644, 0, 0)
 			v.f.AddFile(migrate.ListenConf, fixture(v.t, "v032-listen.conf"), 0o644, 0, 0)
-			v.boot()
-			v.configured = []string{"[::]:2230"} // listen.conf's, after the reboot (D9)
+			v.configured = []string{"[::]:22", "0.0.0.0:22"}
 			v.bound = slices.Clone(v.configured)
-		}, []string{"migrate", "--apply"}, "its rollback's reload would be refused"},
+		}, []string{"migrate", "--apply"}, "never ran daemon-reload after writing it (D9)"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -603,6 +606,83 @@ func TestMigrate(t *testing.T) {
 	}
 }
 
+// v032Ubuntu is an Ubuntu 26.04 host v0.3.2 hardened and rebooted since:
+// ssh.socket on listen.conf's [::]:2230, sshd-socket-generator installed
+// (a rollback detects the SSH facts again), ufw allowing 22 and 2230.
+func v032Ubuntu(t *testing.T) *vm {
+	v := socketVM(t)
+	v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+	v.f.AddFile(migrate.ManageConf, fixture(t, "v032-manage.conf"), 0o644, 0, 0)
+	v.f.AddFile(migrate.ListenConf, fixture(t, "v032-listen.conf"), 0o644, 0, 0)
+	v.allowed = []uint16{22, 2230}
+	v.saveRules()
+	v.boot()
+	return v
+}
+
+// TestMigrateSocket: the R8 migration on Ubuntu's ssh.socket, listen.conf
+// included. Applied, the journal's reload names listen.conf as restored and
+// carries the socket's listener before the change. Rolled back when sshd -T
+// does not show the migration: listen.conf and manage.conf back,
+// 00-hardn.conf gone, then daemon-reload, the socket's configuration
+// checked and ssh.socket restarted on listen.conf's [::]:2230.
+func TestMigrateSocket(t *testing.T) {
+	listenConf := fixture(t, "v032-listen.conf")
+	t.Run("--apply", func(t *testing.T) {
+		v := v032Ubuntu(t)
+		code, out, errOut := v.do(context.Background(), ubuntu2604(), "migrate", "--apply")
+		if code != 0 {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if _, ok := v.f.Entry(migrate.ListenConf); ok {
+			t.Error("listen.conf is still there")
+		}
+		j := v.journal(revert.PendingName)
+		if j.Applied == nil || len(j.Reload) != 1 || j.Reload[0].IfUp || !slices.Equal(j.Reload[0].SocketDropIns, []string{migrate.ListenConf}) ||
+			len(j.Reload[0].After) != 1 || j.Reload[0].After[0].String() != "[::]:2230" {
+			t.Errorf("journal applied %v, reload %+v; want listen.conf restored and [::]:2230 after", j.Applied != nil, j.Reload)
+		}
+		if !sameStrings(v.bound, []string{"0.0.0.0:2230", "[::]:2230"}) || v.index(runIs("systemctl restart ssh.socket")) < 0 {
+			t.Errorf("ssh.socket listens on %v, want 0.0.0.0:2230 and [::]:2230, restarted", v.bound)
+		}
+	})
+	t.Run("--apply, sshd -T not showing the migration: rolled back", func(t *testing.T) {
+		v := v032Ubuntu(t)
+		v.hook = func(cmd string) (hostfake.Response, bool) {
+			v.stale = v.stale || cmd == "systemctl restart ssh.socket"
+			return hostfake.Response{}, false
+		}
+		code, out, errOut := v.do(context.Background(), ubuntu2604(), "migrate", "--apply")
+		if code != 1 || !strings.Contains(errOut, "does not show the migrated configuration") || !strings.Contains(errOut, "(rolled back)") {
+			t.Fatalf("exit %d, want 1 rolled back; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if e, ok := v.f.Entry(migrate.ListenConf); !ok || !bytes.Equal(e.Data, listenConf) {
+			t.Errorf("listen.conf restored %v", ok)
+		}
+		if _, ok := v.f.Entry(migrate.ManageConf); !ok || v.dropIn() != "" {
+			t.Errorf("manage.conf restored %v, 00-hardn.conf %q", ok, v.dropIn())
+		}
+		last := func(match func(hostfake.Call) bool) int {
+			calls := v.f.Calls()
+			for i := len(calls) - 1; i >= 0; i-- {
+				if match(calls[i]) {
+					return i
+				}
+			}
+			return -1
+		}
+		order := []int{last(writeOf(migrate.ListenConf)), last(runIs("systemctl daemon-reload")),
+			last(runIs("systemctl show -p Listen ssh.socket")), last(runIs("systemctl restart ssh.socket"))}
+		if !slices.IsSorted(order) || order[0] < 0 {
+			t.Errorf("the rollback's restore of listen.conf, daemon-reload, check and restart at %v; want ascending", order)
+		}
+		if !sameStrings(v.bound, []string{"[::]:2230"}) || !sameStrings(v.configured, []string{"[::]:2230"}) {
+			t.Errorf("ssh.socket configured %v, listens on %v; want listen.conf's [::]:2230", v.configured, v.bound)
+		}
+		v.cleared()
+	})
+}
+
 func TestBroken(t *testing.T) {
 	v := newVM(t)
 	code, out, errOut := v.do(context.Background(), debian13, "broken")
@@ -617,11 +697,15 @@ func TestBroken(t *testing.T) {
 	}
 }
 
-// TestSudoers: the grant, checked with visudo before it is written, and
-// --grant none, its undo.
+// TestSudoers: the grant, journalled as a plan step before anything is
+// written, checked with visudo before it is written, and the journal cleared
+// once applied (a change of no lockout risk); then --grant none, a
+// lockout-risk change under confirm-or-revert, which the timer's rollback
+// undoes from the journal alone, through plans.Registry().
 func TestSudoers(t *testing.T) {
 	v := newVM(t)
 	grant := "/etc/sudoers.d/hardn-grant-alice"
+	pending := path.Join(revert.DefaultDir, revert.PendingName)
 	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "nopasswd"); code != 0 {
 		t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
 	}
@@ -629,18 +713,76 @@ func TestSudoers(t *testing.T) {
 	if !ok || !strings.Contains(string(e.Data), "alice ALL=(ALL) NOPASSWD: ALL") || e.Mode.Perm() != 0o440 {
 		t.Fatalf("%s: %q %v", grant, e.Data, e.Mode)
 	}
+	journalled := v.index(writeOf(pending))
 	backedUp := v.index(func(c hostfake.Call) bool {
 		return c.Op == "write-atomic" && strings.HasSuffix(c.Path, "manifest.json")
 	})
 	checked := v.index(func(c hostfake.Call) bool { return c.Op == "run" && c.Argv[0] == "visudo" && c.Argv[1] == "-cf" })
-	if written := v.index(writeOf(grant)); !(backedUp >= 0 && backedUp < checked && checked < written) {
-		t.Errorf("order: backup %d, visudo -cf %d, write %d; want ascending", backedUp, checked, written)
+	if written := v.index(writeOf(grant)); !(journalled >= 0 && journalled < backedUp && backedUp < checked && checked < written) {
+		t.Errorf("order: journal %d, backup %d, visudo -cf %d, write %d; want ascending", journalled, backedUp, checked, written)
 	}
-	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "none"); code != 0 {
+	if v.index(armed) >= 0 {
+		t.Error("a timer for a grant of no lockout risk")
+	}
+	v.cleared()
+
+	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "none", "--hardn", testHardn); code != 0 {
 		t.Fatalf("--grant none: exit %d; stderr %s\nstdout %s", code, errOut, out)
 	}
 	if _, ok := v.f.Entry(grant); ok {
 		t.Errorf("--grant none left %s", grant)
+	}
+	j := v.journal(revert.PendingName)
+	if j.Risk != revert.RiskLockout || j.Timer == nil || j.Applied == nil || len(j.Undo) != 1 || j.Undo[0].Unit != plans.UnitSudoers {
+		t.Fatalf("journal %+v; want a lockout-risk change, armed and applied, with the sudoers plan", j)
+	}
+	// Not confirmed: the timer's hardn rollback <id>, at the deadline.
+	res, err := revert.Rollback(context.Background(), v.f, j.ID, revert.Options{Now: func() time.Time { return j.Deadline() }, Plans: plans.Registry()})
+	if err != nil || res.Reason != revert.ReasonTimeout || len(res.Undone) != 1 {
+		t.Fatalf("Rollback = %+v, %v", res, err)
+	}
+	if e, ok := v.f.Entry(grant); !ok || !strings.Contains(string(e.Data), "NOPASSWD: ALL") {
+		t.Errorf("%s not restored: %q", grant, e.Data)
+	}
+}
+
+// TestSudoersRollsBack: Apply fails after Arm, and the change is rolled
+// back at once and its journal cleared, never left as an unfinished
+// rollback: after the write (visudo -c refusing the installed grant, Apply
+// puts the old files back, and the plan's rollback finds nothing of its
+// own left), and before any write (the installed configuration already
+// refused, which the plan's rollback would refuse again, so its step
+// leaves the journal first).
+func TestSudoersRollsBack(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		fail int // the visudo -c call that fails; 0: every one
+		want string
+	}{
+		{"after the write", 2, "the old files are back"},
+		{"before any write", 0, "before check of /etc/sudoers"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := newVM(t)
+			n := 0
+			v.hook = func(cmd string) (hostfake.Response, bool) {
+				if cmd != "visudo -c" {
+					return hostfake.Response{}, false
+				}
+				if n++; n == tc.fail || tc.fail == 0 {
+					return hostfake.Response{Stderr: ">>> /etc/sudoers.d/hardn-grant-alice: syntax error near line 2 <<<\n", ExitCode: 1}, true
+				}
+				return hostfake.Response{Stdout: "/etc/sudoers: parsed OK\n"}, true
+			}
+			code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "nopasswd")
+			if code != 1 || !strings.Contains(errOut, "(rolled back)") || !strings.Contains(errOut, tc.want) {
+				t.Fatalf("exit %d, want 1 rolled back (%q); stderr %s\nstdout %s", code, tc.want, errOut, out)
+			}
+			if _, ok := v.f.Entry("/etc/sudoers.d/hardn-grant-alice"); ok {
+				t.Error("the grant is left")
+			}
+			v.cleared()
+		})
 	}
 }
 

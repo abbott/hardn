@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -143,7 +144,27 @@ func socketVM(t *testing.T) *vm {
 // boot makes the files on disk the running configuration, as a reboot
 // does: sshd's (or the socket's) listeners from the model.
 func (v *vm) boot() {
+	if v.socket {
+		v.bound, v.configured = v.socketListens(), v.socketListens()
+		return
+	}
 	v.bound, v.configured = v.listening(), v.listening()
+}
+
+// socketListens is ssh.socket's Listen as a daemon-reload or a boot sets
+// it: the generator's, the listeners the sshd files configure, unless
+// v0.3.x's listen.conf ("ListenStream=", then "ListenStream=<port>") is in
+// ssh.socket.d, whose empty assignment resets them to its port alone, on
+// a dual-stack [::] (docs/safety/reload.md §3).
+func (v *vm) socketListens() []string {
+	if e, ok := v.f.Entry(migrate.ListenConf); ok {
+		for _, l := range strings.Split(string(e.Data), "\n") {
+			if p, ok := strings.CutPrefix(l, "ListenStream="); ok && p != "" {
+				return []string{"[::]:" + p}
+			}
+		}
+	}
+	return v.listening()
 }
 
 // fixture reads one of migrate's verbatim v0.3.2 files.
@@ -428,7 +449,7 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		}
 		return hostfake.Response{}, true
 	case cmd == "systemctl daemon-reload":
-		v.configured = installed()
+		v.configured = v.socketListens()
 		return hostfake.Response{}, true
 	case cmd == "systemctl show -p Listen ssh.socket":
 		var b strings.Builder

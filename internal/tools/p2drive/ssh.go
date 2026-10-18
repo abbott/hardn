@@ -178,7 +178,7 @@ func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migr
 		return lc, err
 	}
 	lc.adds = rp.Adds
-	if lc.ufw, err = d.planUFW(ctx, b, mode, portsOf(rp.Adds)); err != nil {
+	if lc.ufw, err = d.planUFW(ctx, b, b.before.Listeners, mode, portsOf(rp.Adds)); err != nil {
 		return lc, err
 	}
 	sum := sha256.Sum256(old)
@@ -315,7 +315,7 @@ func setupUFWEnable(fs *flag.FlagSet) func(context.Context, *driver) error {
 			if !b.before.Listeners.Known {
 				return lc, fmt.Errorf("the listeners sshd configures now: %w", ufw.ErrListenersUnknown)
 			}
-			p, err := d.planUFW(ctx, b, ufwEnable, nil)
+			p, err := d.planUFW(ctx, b, b.before.Listeners, ufwEnable, nil)
 			if err != nil {
 				return lc, err
 			}

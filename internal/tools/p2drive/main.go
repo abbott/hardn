@@ -43,13 +43,16 @@
 //	migrate     plan the migration of legacy hardn SSH files (a dry run);
 //	            --apply carries it out under confirm-or-revert
 //	sudoers     grant --user sudo or doas (--grant nopasswd, password or
-//	            none), checked with visudo or doas -C first
+//	            none), checked with visudo or doas -C first, journalled;
+//	            under confirm-or-revert when the change can lock the user
+//	            out of elevation (a grant removed, or one asking a password)
 //
 // The lockout-risk commands (port, keyonly, pve-root, ufw-enable, migrate
-// --apply) take --timeout (the confirm window, 180s by default, at least
-// 60s), --hardn (the hardn binary the revert timer runs, /usr/local/bin/hardn
-// by default), --backup-path (/var/backups/hardn) and --plan-only (stop after
-// the plan); port, keyonly and pve-root take --ufw (keep or enable).
+// --apply) and sudoers take --timeout (the confirm window, 180s by default,
+// at least 60s), --hardn (the hardn binary the revert timer runs,
+// /usr/local/bin/hardn by default), --backup-path (/var/backups/hardn) and
+// --plan-only (stop after the plan); port, keyonly and pve-root take --ufw
+// (keep or enable).
 // Every command they and the others run is printed as host.System's run log.
 package main
 
