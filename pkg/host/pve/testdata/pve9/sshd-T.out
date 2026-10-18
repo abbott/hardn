@@ -1,0 +1,19 @@
+port 22
+addressfamily any
+listenaddress [::]:22
+listenaddress 0.0.0.0:22
+usepam yes
+permitrootlogin without-password
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+authenticationmethods any
+authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2
+authorizedkeyscommand none
+x11forwarding yes
+printmotd no
+allowusers alice
+allowusers root
+acceptenv LANG
+acceptenv LC_*
+subsystem sftp /usr/lib/openssh/sftp-server

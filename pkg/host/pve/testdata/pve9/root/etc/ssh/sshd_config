@@ -1,0 +1,12 @@
+# Synthetic sshd_config, shaped like Debian 13's stock file on Proxmox VE 9.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+PermitRootLogin yes
+
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding yes
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server
