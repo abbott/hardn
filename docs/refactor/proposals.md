@@ -63,6 +63,7 @@
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
+| [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | S | Low | proposed |
 
 ---
 
@@ -736,8 +737,8 @@
 - **Risk:** (a) Low: nothing is written on a host hardn does not model, at the cost of no SSH hardening there; (b) Medium: main-file edits that other tools rewrite; (c) Medium: it reorders what sshd reads, validated before it takes effect; (d) Low to Medium: one more reading of sshd's rules to get right.
 - **Screenshots:** none (no screen changes).
 
-<a id="p-xx-revert-plans"></a>
-### P-XX-revert-plans: Migrating `listen.conf` on a socket host where it never took effect (D9)
+<a id="p-39"></a>
+### P-39: Migrating `listen.conf` on a socket host where it never took effect (D9)
 
 - **Status:** proposed
 - **Source:** `next/p2-revert-plans` ([docs/safety/revert-plans.md](../safety/revert-plans.md) §2.10, §6), on decision §3.17 (migrate the legacy artifacts automatically, approved 2026-10-17) and D9 ([side-effects.md](phase0/side-effects.md): v0.3.2 wrote `ssh.socket.d/listen.conf` without `daemon-reload`, [I] for its effect).
