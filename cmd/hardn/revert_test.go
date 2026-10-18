@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/logging"
 )
 
@@ -232,6 +233,20 @@ func TestRevertSeamsAreReal(t *testing.T) {
 	}
 	if _, ok := revertHost().(*host.Real); !ok {
 		t.Error("revertHost is not host.Real")
+	}
+}
+
+// TestRevertPlansRegistered: `hardn rollback` and the timer undo the plan
+// steps of the four units whose rollback is their own
+// (docs/safety/revert-plans.md), and of no other.
+func TestRevertPlansRegistered(t *testing.T) {
+	for _, u := range []string{plans.UnitPVEKeys, plans.UnitSudoers, plans.UnitDNS, plans.UnitAlpine} {
+		if revertPlans[u] == nil {
+			t.Errorf("no rollback registered for %s", u)
+		}
+	}
+	if len(revertPlans) != 4 {
+		t.Errorf("%d units registered, want 4", len(revertPlans))
 	}
 }
 
