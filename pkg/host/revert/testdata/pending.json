@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "20261018T120000Z-1a2b3c4d",
+  "created": "2026-10-18T12:00:00Z",
+  "timeoutSeconds": 180,
+  "risk": "lockout",
+  "summary": "SSH port 22 to 2230 on web-01.example.net",
+  "session": {
+    "remote": true,
+    "conn": "192.0.2.10 50022 192.0.2.20 22",
+    "source": "SSH_CONNECTION"
+  },
+  "confirmVia": [
+    {
+      "addr": "0.0.0.0",
+      "port": 2230
+    }
+  ],
+  "timer": {
+    "kind": "systemd-run",
+    "unit": "hardn-revert-20261018T120000Z-1a2b3c4d",
+    "argv": [
+      "systemd-run",
+      "--unit=hardn-revert-20261018T120000Z-1a2b3c4d",
+      "--description=hardn: roll back change 20261018T120000Z-1a2b3c4d unless confirmed",
+      "--on-active=180s",
+      "--timer-property=AccuracySec=1s",
+      "/usr/local/bin/hardn",
+      "rollback",
+      "20261018T120000Z-1a2b3c4d"
+    ],
+    "deadline": "2026-10-18T12:03:00Z"
+  }
+}
