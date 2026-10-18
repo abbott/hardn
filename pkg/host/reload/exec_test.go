@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"net/netip"
 	"slices"
 	"strings"
 	"syscall"
@@ -603,6 +604,54 @@ func TestCovers(t *testing.T) {
 			_, err := reload.PlanFor(reload.Input{SSH: debian, Change: reload.Change{Keywords: []string{"ListenAddress"}, Before: known(tc.before), After: tc.have}})
 			if (err == nil) != tc.ok {
 				t.Errorf("err = %v, want covered %v", err, tc.ok)
+			}
+		})
+	}
+}
+
+// TestCheckInEffect: a forward listener change is refused where the
+// configured listeners are not what is bound, or do not cover the port
+// the applying session is connected to (next/p2-revert-plans): a
+// daemon-reload since ssh.socket was last restarted (configured 2230,
+// bound 22), and a session on 22 where only 2230 is configured. ss
+// missing fails it on a socket host only.
+func TestCheckInEffect(t *testing.T) {
+	ss2230 := "LISTEN 0      4096               *:2230              *:*\n"
+	on22 := netip.MustParseAddrPort("192.0.2.20:22")
+	on2230 := netip.MustParseAddrPort("192.0.2.20:2230")
+	v6on22 := netip.MustParseAddrPort("[2001:db8::20]:22")
+	socket2230 := []sshd.Listener{l("::", 2230)}
+	tests := []struct {
+		name       string
+		mode       detect.SSHMode
+		configured []sshd.Listener
+		ss         hostfake.Response
+		server     netip.AddrPort
+		want       error
+	}{
+		{"socket, as bound, session on 22", detect.SSHSocket, at22, hostfake.Response{Stdout: ss22}, on22, nil},
+		{"socket on [::]:2230, dual-stack, session on 2230", detect.SSHSocket, socket2230, hostfake.Response{Stdout: ss2230}, on2230, nil},
+		{"service, IPv6 session", detect.SSHService, at22, hostfake.Response{Stdout: ss22}, v6on22, nil},
+		{"console session: no port to keep", detect.SSHSocket, socket2230, hostfake.Response{Stdout: ss2230}, netip.AddrPort{}, nil},
+		{"socket configured 2230, bound 22", detect.SSHSocket, socket2230, hostfake.Response{Stdout: ss22}, netip.AddrPort{}, reload.ErrNotInEffect},
+		{"session on a port not configured", detect.SSHSocket, socket2230, hostfake.Response{Stdout: ss2230}, on22, reload.ErrNotInEffect},
+		{"service: sshd configured 2230 still on 22", detect.SSHService, at2230, hostfake.Response{Stdout: ss22}, netip.AddrPort{}, reload.ErrNotInEffect},
+		{"service: [::] of sshd is not dual-stack", detect.SSHService, at22[1:], hostfake.Response{Stdout: ss22}, on22, reload.ErrNotInEffect},
+		{"socket, ss missing", detect.SSHSocket, at22, hostfake.Response{Err: host.ErrNotFound}, on22, host.ErrNotFound},
+		{"openrc, ss missing", detect.SSHOpenRC, at22, hostfake.Response{Err: host.ErrNotFound}, on22, nil},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			h := hostfake.New(host.Options{})
+			respond(h, tc.ss, ssArgv...)
+			err := reload.CheckInEffect(context.Background(), h, tc.mode, tc.configured, tc.server)
+			if !errors.Is(err, tc.want) || (tc.want == nil) != (err == nil) {
+				t.Errorf("CheckInEffect = %v, want %v", err, tc.want)
+			}
+			for _, c := range h.Calls() {
+				if c.Op != "run" {
+					t.Errorf("unexpected call %s", c)
+				}
 			}
 		})
 	}

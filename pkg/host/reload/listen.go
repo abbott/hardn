@@ -2,12 +2,15 @@ package reload
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/netip"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
@@ -151,4 +154,46 @@ func unbound(want []sshd.Listener, bound []Bound) []sshd.Listener {
 		}
 	}
 	return missing
+}
+
+// CheckInEffect refuses (ErrNotInEffect), at plan time, a forward listener
+// change on a host whose configured listeners are not the ones that accept
+// connections now. configured is what the change holds (Change.Before.All,
+// or a migration's Plan.Listening.All), read from configuration: sshd -T,
+// or on a socket host systemctl show -p Listen, which a daemon-reload not
+// followed by a restart of ssh.socket, or an edit not followed by a
+// reload, leaves ahead of what is bound (docs/safety/sshd-effective.md
+// §2.5). The reload binds what is configured and drops anything else
+// bound, and the rollback, which restores the configuration, does not
+// bring that back. Refused: a listener of configured that ss does not show
+// bound; and, when server is valid (the applying session's own end,
+// revert.ParseConn's Server), no listener of configured covering it, a
+// socket [::] as dual-stack on a socket host (systemd's default). ss
+// missing fails it on a socket host, as Execute's check before its steps
+// does, and skips the bound check elsewhere. It runs ss -Htln and changes
+// nothing (next/p2-revert-plans).
+func CheckInEffect(ctx context.Context, sys host.System, mode detect.SSHMode, configured []sshd.Listener, server netip.AddrPort) error {
+	socket := mode == detect.SSHSocket
+	if server.IsValid() {
+		at := sshd.Listener{Addr: server.Addr().Unmap(), Port: server.Port()}
+		if !slices.ContainsFunc(configured, func(l sshd.Listener) bool { return covers(l.Addr, l.Port, socket, at) }) {
+			return fmt.Errorf("reload: this session is connected to %v, which the configured listeners %v do not cover, so the reload would close it to new connections: %w",
+				server, configured, ErrNotInEffect)
+		}
+	}
+	bound, bad, err := ReadBound(ctx, sys)
+	switch {
+	case errors.Is(err, host.ErrNotFound) && !socket:
+		return nil
+	case err != nil:
+		return fmt.Errorf("%w: the configured listeners must be shown bound before ssh.socket is restarted on them", err)
+	}
+	if missing := unbound(configured, bound); len(missing) > 0 {
+		msg := fmt.Sprintf("reload: %v configured, not bound (%s shows %v)", missing, host.FormatArgv(ssArgv), bound)
+		if len(bad) > 0 {
+			msg += fmt.Sprintf("; unread lines %q", bad)
+		}
+		return fmt.Errorf("%s: the configuration is not what accepts connections now (a daemon-reload without a restart of %s, or an edit not reloaded): %w", msg, SocketUnit, ErrNotInEffect)
+	}
+	return nil
 }

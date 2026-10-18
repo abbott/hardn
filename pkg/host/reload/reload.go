@@ -57,6 +57,13 @@ var (
 	ErrInUse            = errors.New("a listener the change adds is already bound")
 	ErrSocketConfig     = errors.New("ssh.socket is not configured for every listener")
 	ErrNotBound         = errors.New("not every listener is bound")
+	// ErrRestoredListeners: a rollback's restored ssh.socket drop-ins
+	// (Change.RestoredDropIns) would not give the socket exactly the
+	// listeners it had (Change.After) once daemon-reload reads them.
+	ErrRestoredListeners = errors.New("the restored ssh.socket drop-ins do not give the socket the listeners it had")
+	// ErrNotInEffect: the listeners the configuration names are not the
+	// ones that accept connections now (CheckInEffect).
+	ErrNotInEffect = errors.New("the configured listeners are not the ones in effect")
 )
 
 // Change is what the installed configuration changed.
@@ -91,7 +98,12 @@ type Change struct {
 	// the socket had before the change, which the check after daemon-reload
 	// compares with the socket's configuration before the socket is
 	// restarted, and ss after it. Any other drop-in with ListenStream, and
-	// one named as the generator's, is refused as for a forward change.
+	// one named as the generator's, is refused as for a forward change. So
+	// is a rollback whose restored drop-ins, read again, would not give the
+	// socket exactly After (ErrRestoredListeners), before daemon-reload
+	// runs: plan the same rollback at plan time over the drop-ins as they
+	// are before the change (migrate.Plan.CheckRollback), so that a change
+	// whose rollback could not finish is not applied.
 	RestoredDropIns []string
 }
 
@@ -183,8 +195,9 @@ type Plan struct {
 // without Rollback; for a listener change ErrListenersUnknown, a
 // *HoldError (ErrDropsListener), ErrAddsListener, and on a socket host
 // ErrNoGenerator, ErrSocketDropIn (a drop-in with ListenStream that is not
-// one of a Rollback's RestoredDropIns), or fs.ErrInvalid when the drop-ins
-// were not read; on OpenRC ErrFlavour.
+// one of a Rollback's RestoredDropIns), ErrRestoredListeners (those do not
+// give the socket exactly After), or fs.ErrInvalid when the drop-ins were
+// not read; on OpenRC ErrFlavour.
 func PlanFor(in Input) (Plan, error) {
 	s, c := in.SSH, in.Change
 	base := Plan{Mode: s.Mode, DropIns: slices.Clone(in.DropIns.Files)}
@@ -224,6 +237,11 @@ func PlanFor(in Input) (Plan, error) {
 		}
 		if err := socketReady(s, in.DropIns, c.RestoredDropIns); err != nil {
 			return base, err
+		}
+		if len(c.RestoredDropIns) > 0 {
+			if err := restoredReady(in.DropIns, c.RestoredDropIns, c.After); err != nil {
+				return base, err
+			}
 		}
 		restart := Step{Kind: StepIfUp, Unit: SocketUnit, Argv: []string{"systemctl", "restart", SocketUnit},
 			Why: "bind the listeners; " + ServiceUnit + ", which requires the socket, restarts with it"}

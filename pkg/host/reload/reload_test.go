@@ -73,7 +73,12 @@ func restoring(after []sshd.Listener, dropIns ...string) reload.Change {
 // ReadSocketDropIns reads the file v0.3.2 writes for port 2230.
 const listenConfPath = "/etc/systemd/system/ssh.socket.d/listen.conf"
 
-var listenConf2230 = reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: listenConfPath, Listen: []string{"", "2230"}}}}
+var listenConf2230 = dropInOf("", "2230")
+
+// dropInOf is listen.conf with these ListenStream values.
+func dropInOf(listen ...string) reload.SocketDropIns {
+	return reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: listenConfPath, Listen: listen}}}
+}
 
 func steps(p reload.Plan) []string {
 	var out []string
@@ -146,6 +151,14 @@ func TestPlanFor(t *testing.T) {
 		{"ubuntu rollback restoring listen.conf", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("::", 2230)}, listenConfPath),
 			DropIns: listenConf2230}, []string{daemonReload, checkSocket, restartSocket + " else systemctl restart ssh.socket"},
 			[]sshd.Listener{l("::", 2230)}, nil, nil, 1},
+		// A port alone is 0.0.0.0 where IPv6 is not supported; addresses
+		// given are matched as they are, one for one.
+		{"rollback restoring listen.conf, IPv4 only", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("0.0.0.0", 2230)}, listenConfPath),
+			DropIns: listenConf2230}, []string{daemonReload, checkSocket, restartSocket + " else systemctl restart ssh.socket"},
+			[]sshd.Listener{l("0.0.0.0", 2230)}, nil, nil, 1},
+		{"rollback restoring a drop-in of addresses", reload.Input{SSH: ubuntu2404, Change: restoring(at2230, listenConfPath),
+			DropIns: dropInOf("", "[::]:2230", "", "0.0.0.0:2230", "[::]:2230")}, []string{daemonReload, checkSocket, restartSocket + " else systemctl restart ssh.socket"},
+			at2230, nil, nil, 1},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -217,6 +230,31 @@ func TestPlanForRefuses(t *testing.T) {
 			Change: restoring(at2230, "/etc/systemd/system/ssh.socket.d/addresses.conf"), DropIns: generators}, []error{reload.ErrSocketDropIn}},
 		{"rollback restoring listen.conf, generator masked", reload.Input{SSH: masked, Change: restoring(at2230, listenConfPath), DropIns: listenConf2230},
 			[]error{reload.ErrNoGenerator}},
+		// A rollback whose restored drop-ins would not give the socket
+		// exactly After is refused before daemon-reload
+		// (next/p2-revert-plans): listen.conf never in effect (D9), and a
+		// socket configured for more than listen.conf gives.
+		{"rollback restoring listen.conf not in effect (D9)", reload.Input{SSH: ubuntu2404, Change: restoring(at22, listenConfPath), DropIns: listenConf2230},
+			[]error{reload.ErrRestoredListeners}},
+		{"rollback restoring listen.conf, the socket on more", reload.Input{SSH: ubuntu2404, Change: restoring(both, listenConfPath), DropIns: listenConf2230},
+			[]error{reload.ErrRestoredListeners}},
+		{"rollback restoring listen.conf, a listener of it not the socket's", reload.Input{SSH: ubuntu2404, Change: restoring(at2230, listenConfPath),
+			DropIns: dropInOf("", "2230", "2231")}, []error{reload.ErrRestoredListeners}},
+		{"rollback, the restored drop-in not there", reload.Input{SSH: ubuntu2404, Change: restoring(at2230, listenConfPath), DropIns: none},
+			[]error{reload.ErrRestoredListeners}},
+		{"rollback, the restored drop-in masked", reload.Input{SSH: ubuntu2404, Change: restoring(at2230, listenConfPath),
+			DropIns: reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: listenConfPath, Masked: true}}}}, []error{reload.ErrRestoredListeners}},
+		{"rollback, the restored drop-in without a reset", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("::", 2230)}, listenConfPath),
+			DropIns: dropInOf("2230")}, []error{reload.ErrRestoredListeners}},
+		{"rollback, a ListenStream path", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("::", 2230)}, listenConfPath),
+			DropIns: dropInOf("", "/run/sshd.sock")}, []error{reload.ErrRestoredListeners}},
+		{"rollback, the restored drop-in read before the generator's", reload.Input{SSH: ubuntu2404,
+			Change:  restoring([]sshd.Listener{l("::", 2230)}, "/etc/systemd/system/ssh.socket.d/00-listen.conf"),
+			DropIns: reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: "/etc/systemd/system/ssh.socket.d/00-listen.conf", Listen: []string{"", "2230"}}}}},
+			[]error{reload.ErrRestoredListeners}},
+		{"rollback, a drop-in of the restored one's name elsewhere", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("::", 2230)}, listenConfPath),
+			DropIns: reload.SocketDropIns{Read: true, Files: append(slices.Clone(listenConf2230.Files),
+				reload.SocketDropIn{Path: "/etc/systemd/system.control/ssh.socket.d/listen.conf"})}}, []error{reload.ErrRestoredListeners}},
 		{"alpine UsePAM", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"UsePAM"}}}, []error{reload.ErrFlavour}},
 		{"alpine GSSAPIAuthentication", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"gssapiauthentication"}}}, []error{reload.ErrFlavour}},
 	}
