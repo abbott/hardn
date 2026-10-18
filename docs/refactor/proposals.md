@@ -657,3 +657,17 @@
 - **Effort:** S for (1), (2)(c) and (3)(a); M for (2)(b) and (3)(b) (a new input, new rule forms and their undo).
 - **Risk:** Low for (1) and (2)(a); Medium for (2)(b) (new rule forms to read back and undo) and (3)(b) (the session's address is one client among those the blocklist may concern).
 - **Screenshots:** none (no screen changes).
+
+<a id="p-xx-revert"></a>
+### P-XX-revert: A reboot inside the confirm window
+
+- **Status:** proposed
+- **Source:** `next/p2-revert` (brief 2.4; [docs/safety/revert.md](../safety/revert.md) §2.7, §2.20, §7).
+- **Problem:** the revert timer is runtime state: on systemd a transient timer and service (systemd keeps transient units in `/run/systemd/transient`, systemd.unit(5)), on OpenRC a detached sleeper with its pidfile in `/run/hardn`. A reboot between the apply and the deadline loses it, whoever reboots: the user, locked out, through the provider's console or a power cycle, or anything else. The change then stays applied and unconfirmed. The journal survives in `/var/lib/hardn`, so the next run of hardn says the change is overdue and how to undo it ("its timer did not run (a reboot stops it)"), but a user locked out by the change cannot reach that run over SSH, and nothing undoes it at boot.
+- **Proposal:** the maintainer decides:
+  - (a) keep it as it is: the overdue notice, and `hardn rollback <id>` from a console;
+  - (b) roll back at boot: an unconfirmed lockout-risk change found at boot is rolled back, by a unit hardn installs once (systemd: a oneshot service in `/etc/systemd/system`, enabled, running `hardn rollback --pending` or an equivalent before `ssh.service`; OpenRC: a `local.d` script or a service in the default runlevel). This is a new persistent file and a new boot-time behaviour, and on systemd possibly a new CLI form;
+  - (c) re-arm at boot: the same unit re-arms the timer for what remains of the window (or the whole window), instead of rolling back at once.
+- **Effort:** S for (a); M for (b) and (c) (a unit or script, its install and removal, and a VM test that reboots inside the window).
+- **Risk:** Low for (a), which leaves a lockout through a reboot unrepaired; Medium for (b) and (c): a boot-time rollback acts while nobody watches, and must not run against a journal from a hardn that was since replaced or a change the user meant to keep (confirmed late, after the reboot).
+- **Screenshots:** none (no screen changes).
