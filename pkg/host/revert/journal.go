@@ -133,7 +133,8 @@ type Reload struct {
 	// their ListenStream lines decide the socket's listeners again, so the
 	// reload expects them (reload.Change.RestoredDropIns), and After is
 	// then the listeners the socket had before the change. A listener
-	// reload's alone.
+	// reload's alone, and only with Backup: the rollback refuses one that
+	// is not the path of a journalled backup of a file, before the reload.
 	SocketDropIns []string `json:"socketDropIns,omitempty"`
 }
 
@@ -280,6 +281,9 @@ func (j Journal) Check() error {
 	for i, r := range j.Reload {
 		if err := r.check(); err != nil {
 			return bad("reload %d: %v", i+1, err)
+		}
+		if len(r.SocketDropIns) > 0 && j.Backup == nil {
+			return bad("reload %d: socketDropIns with no backups to restore them", i+1)
 		}
 	}
 	if a := j.Applied; a != nil {

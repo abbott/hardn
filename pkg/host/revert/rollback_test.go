@@ -672,6 +672,17 @@ func TestRollbackRestoresListenConf(t *testing.T) {
 	if !exists(ch.f, listenConf) || !exists(ch.f, stateFile(RollbackName)) {
 		t.Error("the restore did not run, or the incomplete rollback was cleared")
 	}
+
+	// A journal naming a drop-in its backups did not restore (an
+	// administrator's, with a ListenStream line of its own) is refused
+	// before the reload: only what the rollback put back is exempt.
+	admin := "/etc/systemd/system/ssh.socket.d/zz-admin.conf"
+	ch = migratedSocketHost(t, []string{listenConf, admin})
+	ch.f.AddFile(admin, []byte("[Socket]\nListenStream=2231\n"), 0o644, 0, 0)
+	_, err = Rollback(ctx, ch.f, testID, ch.opts)
+	if !errors.Is(err, ErrIncomplete) || !errors.Is(err, ErrJournal) || !strings.Contains(err.Error(), admin) || strings.Contains(runs(ch.f), "daemon-reload") {
+		t.Errorf("Rollback naming %s = %v; runs:\n%s", admin, err, runs(ch.f))
+	}
 }
 
 // The OpenRC sleeper that ran the rollback is not signalled; its pidfile is

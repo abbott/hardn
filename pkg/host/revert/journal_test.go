@@ -84,6 +84,7 @@ func TestJournalCheck(t *testing.T) {
 		}},
 		{"socket drop-in not a .conf", func(j *Journal) { j.Reload[0].SocketDropIns = []string{"/etc/systemd/system/ssh.socket.d/listen"} }},
 		{"socket drop-in twice", func(j *Journal) { j.Reload[0].SocketDropIns = []string{listenConf, listenConf} }},
+		{"socket drop-in with no backups to restore it", func(j *Journal) { j.Backup = nil }},
 		{"progress reason", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: "bored"} }},
 		{"progress past the steps", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout, UndoDone: 7} }},
 		{"progress runner pid -1", func(j *Journal) {
