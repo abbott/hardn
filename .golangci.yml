@@ -309,11 +309,15 @@ linters:
               desc: the revert unit loads no code (docs/safety/revert.md §2)
         # next/p2-pve: the Proxmox VE rules read sshd's values, root's keys
         # and pve-firewall's files, and write the keys, only through
-        # host.System; pve-firewall is read, never run.
+        # host.System; pve-firewall is read, never run. net/netip reads
+        # ListenAddress's address.
         pve-through-host:
+          list-mode: lax
           files:
             - "${base-path}/pkg/host/pve/**"
             - "!$test"
+          allow:
+            - net/netip
           deny:
             - pkg: os
               desc: the Proxmox VE unit reads, writes and runs only through host.System (docs/safety/pve.md §2)

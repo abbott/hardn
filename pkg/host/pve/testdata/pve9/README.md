@@ -12,7 +12,8 @@ to `/etc/pve/priv/authorized_keys`, pmxcfs's `/etc/pve/local` to
   `AllowUsers alice` and `PasswordAuthentication no`.
 - `sshd-T.out`: `sshd -T` for those files in OpenSSH 10.0p1's format (Debian
   13 and Proxmox VE 9; it prints `without-password`), after
-  `servconf.c`'s `dump_config`.
+  `servconf.c`'s `dump_config`; `pubkeyacceptedalgorithms` is 10.0p1's
+  default list (`myproposal.h`, `KEX_DEFAULT_PK_ALG`).
 - `etc/pve/priv/authorized_keys`: the cluster-wide keys file, with each
   node's root key (`ssh-rsa`, comment `root@<node>`); the keys are made-up
   bytes, not keys.

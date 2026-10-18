@@ -4,15 +4,17 @@
 // change on Proxmox VE). V-numbers: V8 (the port), V10 (UFW) and V11
 // (PermitRootLogin no) on Proxmox VE.
 //
-// Every entry point takes detect.Detect's Proxmox fact and applies the rules
-// only when it is Yes; a fact that is not established is ErrProxmoxUnknown,
-// never "not Proxmox VE".
+// Every entry point that decides whether a rule applies takes
+// detect.Detect's Proxmox fact and applies the rules only when it is Yes; a
+// fact that is not established is ErrProxmoxUnknown, never "not Proxmox
+// VE". PlanKeys works on what ReadKeys read, and RootGroups is not
+// Proxmox VE's.
 //
 //   - SSH (ssh.go): PlanSSH rewrites the settings hardn wants in
 //     00-hardn.conf: PermitRootLogin prohibit-password, Port 22 only, root
-//     kept reachable by key. CheckSSH reads sshd.ReadEffective's values the
-//     same way, and tells Proxmox VE's own "PermitRootLogin yes" in
-//     sshd_config from drift.
+//     kept reachable by key. CheckSSH reads sshd.ReadEffective's values and
+//     the files' Match blocks the same way, and tells Proxmox VE's own
+//     "PermitRootLogin yes" in sshd_config from drift.
 //   - Root's keys (keys.go): /root/.ssh/authorized_keys is a link to the
 //     cluster-wide /etc/pve/priv/authorized_keys. ReadKeys, PlanKeys,
 //     ApplyKeys and UndoKeys edit through it, never over it.
@@ -116,6 +118,11 @@ const (
 	// FindingNotModelled: proxmox-firewall (nftables, tech preview) filters
 	// the host; its rules are not read.
 	FindingNotModelled
+	// FindingNotKeyOnly: PermitRootLogin is not prohibit-password, globally
+	// or in a Match block (the Finding says where).
+	FindingNotKeyOnly
+
+	findingEnd // one past the last kind; keep it last
 )
 
 var findingCodes = map[FindingKind]string{
@@ -128,6 +135,7 @@ var findingCodes = map[FindingKind]string{
 	FindingRuleMayBlock:     "rule-may-block",
 	FindingBlacklist:        "blacklist",
 	FindingNotModelled:      "firewall-not-modelled",
+	FindingNotKeyOnly:       "root-not-key-only",
 }
 
 // String is the stable code (TestFindingCodes pins them).
