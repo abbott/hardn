@@ -61,6 +61,20 @@ func rollback(after []sshd.Listener) reload.Change {
 	return reload.Change{Keywords: []string{"Port"}, After: after, Rollback: true}
 }
 
+// restoring is rollback(after) for a rollback that put back the drop-ins
+// named, as one of a listen.conf migration does.
+func restoring(after []sshd.Listener, dropIns ...string) reload.Change {
+	c := rollback(after)
+	c.RestoredDropIns = dropIns
+	return c
+}
+
+// listenConfPath is v0.3.x's drop-in; listenConf2230 is it, as
+// ReadSocketDropIns reads the file v0.3.2 writes for port 2230.
+const listenConfPath = "/etc/systemd/system/ssh.socket.d/listen.conf"
+
+var listenConf2230 = reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: listenConfPath, Listen: []string{"", "2230"}}}}
+
 func steps(p reload.Plan) []string {
 	var out []string
 	for _, s := range p.Steps {
@@ -126,6 +140,12 @@ func TestPlanFor(t *testing.T) {
 		{"alpine rollback starts sshd", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"PermitRootLogin"}, Rollback: true}},
 			[]string{reloadOpenRC + " else rc-service sshd start"}, nil, nil, nil, 0},
 		{"nothing changed", reload.Input{SSH: detect.SSH{}}, nil, nil, nil, nil, 0},
+		// The rollback of a listen.conf migration restored listen.conf, whose
+		// ListenStream lines give the socket its listeners again; After is the
+		// socket's listeners before the migration.
+		{"ubuntu rollback restoring listen.conf", reload.Input{SSH: ubuntu2404, Change: restoring([]sshd.Listener{l("::", 2230)}, listenConfPath),
+			DropIns: listenConf2230}, []string{daemonReload, checkSocket, restartSocket + " else systemctl restart ssh.socket"},
+			[]sshd.Listener{l("::", 2230)}, nil, nil, 1},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -147,7 +167,10 @@ func TestPlanFor(t *testing.T) {
 }
 
 func TestPlanForRefuses(t *testing.T) {
-	listenConf := reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: "/etc/systemd/system/ssh.socket.d/listen.conf", Listen: []string{"", "2222"}}}}
+	listenConf := reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: listenConfPath, Listen: []string{"", "2222"}}}}
+	extra := reload.SocketDropIns{Read: true, Files: append(slices.Clone(listenConf2230.Files),
+		reload.SocketDropIn{Path: "/etc/systemd/system/ssh.socket.d/port.conf", Listen: []string{"2231"}})}
+	generators := reload.SocketDropIns{Read: true, Files: []reload.SocketDropIn{{Path: "/etc/systemd/system/ssh.socket.d/addresses.conf", Listen: []string{"", "2230"}}}}
 	masked := ubuntu2604
 	masked.Generator, masked.GeneratorPath = detect.No, "/etc/systemd/system-generators/sshd-socket-generator"
 	unknownGen := ubuntu2604
@@ -180,6 +203,20 @@ func TestPlanForRefuses(t *testing.T) {
 			Confirmed: true, Rollback: true}}, []error{fs.ErrInvalid}},
 		{"the generator's addresses.conf masked", reload.Input{SSH: ubuntu2604, Change: port(at22, both), DropIns: reload.SocketDropIns{Read: true,
 			Files: []reload.SocketDropIn{{Path: "/etc/systemd/system/ssh.socket.d/addresses.conf", Masked: true}}}}, []error{reload.ErrSocketDropIn}},
+		// A rollback that does not say it restored listen.conf is refused
+		// as before (next/p2-vmtest's probe), and so is a forward change
+		// naming restored drop-ins, a drop-in the rollback did not restore,
+		// and one named as the generator's.
+		{"rollback with listen.conf it did not restore", reload.Input{SSH: ubuntu2404, Change: rollback([]sshd.Listener{l("::", 2230)}), DropIns: listenConf2230},
+			[]error{reload.ErrSocketDropIn}},
+		{"forward change naming restored drop-ins", reload.Input{SSH: ubuntu2404, Change: reload.Change{Keywords: []string{"Port"}, Before: known(at22), After: both,
+			RestoredDropIns: []string{listenConfPath}}, DropIns: listenConf2230}, []error{fs.ErrInvalid}},
+		{"rollback, another drop-in with ListenStream", reload.Input{SSH: ubuntu2404, Change: restoring(at2230, listenConfPath), DropIns: extra},
+			[]error{reload.ErrSocketDropIn}},
+		{"rollback restoring one named as the generator's", reload.Input{SSH: ubuntu2404,
+			Change: restoring(at2230, "/etc/systemd/system/ssh.socket.d/addresses.conf"), DropIns: generators}, []error{reload.ErrSocketDropIn}},
+		{"rollback restoring listen.conf, generator masked", reload.Input{SSH: masked, Change: restoring(at2230, listenConfPath), DropIns: listenConf2230},
+			[]error{reload.ErrNoGenerator}},
 		{"alpine UsePAM", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"UsePAM"}}}, []error{reload.ErrFlavour}},
 		{"alpine GSSAPIAuthentication", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"gssapiauthentication"}}}, []error{reload.ErrFlavour}},
 	}

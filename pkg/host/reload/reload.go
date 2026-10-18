@@ -82,6 +82,17 @@ type Change struct {
 	// only when the unit was up before the change it undoes: that change's
 	// gated step ran. Not with Confirmed.
 	Rollback bool
+	// RestoredDropIns, for a Rollback only (fs.ErrInvalid otherwise), are
+	// the ssh.socket drop-ins, as ReadSocketDropIns names them, that the
+	// rollback has put back and the change it undoes had removed: v0.3.x's
+	// listen.conf, which p2-sshd-migrate removes. Their ListenStream lines
+	// decide the socket's listeners again, so on a socket host PlanFor does
+	// not refuse them (ErrSocketDropIn); After must then be the listeners
+	// the socket had before the change, which the check after daemon-reload
+	// compares with the socket's configuration before the socket is
+	// restarted, and ss after it. Any other drop-in with ListenStream, and
+	// one named as the generator's, is refused as for a forward change.
+	RestoredDropIns []string
 }
 
 // Input is what PlanFor plans from.
@@ -168,10 +179,12 @@ type Plan struct {
 
 // PlanFor plans the reload of the change in in. It runs nothing, so it
 // belongs to the plan, before anything changes. Errors: ErrModeUnknown;
-// fs.ErrInvalid for Confirmed with Rollback; for a listener change
-// ErrListenersUnknown, a *HoldError (ErrDropsListener), ErrAddsListener, and
-// on a socket host ErrNoGenerator, ErrSocketDropIn, or fs.ErrInvalid when
-// the drop-ins were not read; on OpenRC ErrFlavour.
+// fs.ErrInvalid for Confirmed with Rollback, and for RestoredDropIns
+// without Rollback; for a listener change ErrListenersUnknown, a
+// *HoldError (ErrDropsListener), ErrAddsListener, and on a socket host
+// ErrNoGenerator, ErrSocketDropIn (a drop-in with ListenStream that is not
+// one of a Rollback's RestoredDropIns), or fs.ErrInvalid when the drop-ins
+// were not read; on OpenRC ErrFlavour.
 func PlanFor(in Input) (Plan, error) {
 	s, c := in.SSH, in.Change
 	base := Plan{Mode: s.Mode, DropIns: slices.Clone(in.DropIns.Files)}
@@ -184,6 +197,8 @@ func PlanFor(in Input) (Plan, error) {
 		return base, nil
 	case c.Confirmed && c.Rollback:
 		return base, fmt.Errorf("reload: a change is Confirmed or a Rollback, not both: %w", fs.ErrInvalid)
+	case len(c.RestoredDropIns) > 0 && !c.Rollback:
+		return base, fmt.Errorf("reload: only a Rollback restores ssh.socket drop-ins (%s): %w", strings.Join(c.RestoredDropIns, ", "), fs.ErrInvalid)
 	case s.Mode != detect.SSHSocket && s.Mode != detect.SSHService && s.Mode != detect.SSHOpenRC:
 		err := s.Err
 		if err == nil {
@@ -207,7 +222,7 @@ func PlanFor(in Input) (Plan, error) {
 			p.Steps = []Step{st}
 			break
 		}
-		if err := socketReady(s, in.DropIns); err != nil {
+		if err := socketReady(s, in.DropIns, c.RestoredDropIns); err != nil {
 			return base, err
 		}
 		restart := Step{Kind: StepIfUp, Unit: SocketUnit, Argv: []string{"systemctl", "restart", SocketUnit},
@@ -215,9 +230,12 @@ func PlanFor(in Input) (Plan, error) {
 		if c.Rollback {
 			restart.Start = slices.Clone(restart.Argv)
 		}
+		reread := "rerun sshd-socket-generator, which sets " + SocketUnit + "'s listeners from the files' Port and ListenAddress"
+		if len(c.RestoredDropIns) > 0 {
+			reread += ", and read the restored " + strings.Join(c.RestoredDropIns, ", ") + ", whose ListenStream lines replace them"
+		}
 		p.Steps = []Step{
-			{Kind: StepRun, Argv: []string{"systemctl", "daemon-reload"},
-				Why: "rerun sshd-socket-generator, which sets " + SocketUnit + "'s listeners from the files' Port and ListenAddress"},
+			{Kind: StepRun, Argv: []string{"systemctl", "daemon-reload"}, Why: reread},
 			{Kind: StepCheckSocket, Argv: []string{"systemctl", "show", "-p", "Listen", SocketUnit},
 				Why: SocketUnit + " is configured for every listener the files name, before any socket is rebound"},
 			restart,
@@ -276,8 +294,8 @@ const generatorDropIn = "addresses.conf"
 
 // socketReady refuses a listener change the socket would not follow: one
 // whose listeners do not come from the generator, or that a drop-in
-// overrides.
-func socketReady(s detect.SSH, d SocketDropIns) error {
+// overrides, other than one a rollback restored (Change.RestoredDropIns).
+func socketReady(s detect.SSH, d SocketDropIns, restored []string) error {
 	switch {
 	case s.Generator != detect.Yes:
 		return fmt.Errorf("reload: sshd-socket-generator %s (%s): %w", s.Generator, s.GeneratorPath, ErrNoGenerator)
@@ -288,7 +306,7 @@ func socketReady(s detect.SSH, d SocketDropIns) error {
 	for _, f := range d.Files {
 		// A drop-in named as the generator's, in a directory read here,
 		// replaces it or masks it (systemd.unit(5)).
-		if len(f.Listen) > 0 || path.Base(f.Path) == generatorDropIn {
+		if path.Base(f.Path) == generatorDropIn || len(f.Listen) > 0 && !slices.Contains(restored, f.Path) {
 			over = append(over, f.Path)
 		}
 	}

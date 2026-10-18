@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/host/backup"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
@@ -127,6 +128,13 @@ type Reload struct {
 	Keywords []string      `json:"keywords"`
 	After    []Listener    `json:"after,omitempty"`
 	IfUp     bool          `json:"ifUp,omitempty"`
+	// SocketDropIns are ssh.socket drop-ins the change removed and its
+	// backups put back (v0.3.x's listen.conf, which a migration removes):
+	// their ListenStream lines decide the socket's listeners again, so the
+	// reload expects them (reload.Change.RestoredDropIns), and After is
+	// then the listeners the socket had before the change. A listener
+	// reload's alone.
+	SocketDropIns []string `json:"socketDropIns,omitempty"`
 }
 
 // ProcStart names one process for as long as it runs: its pid and its
@@ -362,6 +370,16 @@ func (r Reload) check() error {
 	for _, l := range r.After {
 		if !l.Addr.IsValid() || l.Port == 0 {
 			return fmt.Errorf("ssh: after %v", l)
+		}
+	}
+	for i, d := range r.SocketDropIns {
+		switch {
+		case !movesListeners(r.Keywords):
+			return fmt.Errorf("ssh: socketDropIns for %v, which move no listener", r.Keywords)
+		case !clean(d) || filepath.Ext(d) != ".conf" || filepath.Base(filepath.Dir(d)) != reload.SocketUnit+".d":
+			return fmt.Errorf("ssh: socketDropIns %q: not a %s drop-in", d, reload.SocketUnit)
+		case slices.Contains(r.SocketDropIns[:i], d):
+			return fmt.Errorf("ssh: socketDropIns %q twice", d)
 		}
 	}
 	return nil

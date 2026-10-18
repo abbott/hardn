@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 )
 
 const (
@@ -574,6 +575,102 @@ func TestRollbackSocketHost(t *testing.T) {
 	}
 	if !readDropIns {
 		t.Error("the socket's drop-ins were not read")
+	}
+}
+
+// listenConf is v0.3.x's ssh.socket drop-in, as v0.3.2 writes it for port
+// 2230.
+const (
+	listenConf     = "/etc/systemd/system/ssh.socket.d/listen.conf"
+	listenConfData = "[Socket]\nListenStream=\nListenStream=2230\n"
+)
+
+// migratedSocketHost is an Ubuntu host (ssh.socket, the generator) whose
+// listen.conf a migration removed, with 00-hardn.conf written in its place
+// and ssh.socket restarted: the journal names both backups and the reload,
+// whose After is the socket's listener before the migration ([::]:2230,
+// listen.conf's). socketDropIns is the reload's SocketDropIns.
+func migratedSocketHost(t *testing.T, socketDropIns []string) *change {
+	t.Helper()
+	ctx := context.Background()
+	ch := &change{f: newHost(t), c: &clock{testNow}, log: &bytes.Buffer{}}
+	f := ch.f
+	f.AddFile(listenConf, []byte(listenConfData), 0o644, 0, 0)
+	ch.opts = testOptions(ch.c, ch.log)
+	ch.opts.DetectSSH = func(context.Context, host.System) detect.SSH {
+		return detect.SSH{Mode: detect.SSHSocket, Generator: detect.Yes, GeneratorPath: detect.SocketGenerator,
+			Socket: detect.UnitState{Enabled: "enabled", Active: "active"}, Service: detect.UnitState{Enabled: "disabled", Active: "active"}}
+	}
+	ch.j = armed(t, f, ch.c)
+	run, err := backup.Open(f, backup.Settings{Path: backup.DefaultPath, Enabled: true}, testID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var seqs []int
+	for _, p := range []string{listenConf, dropIn} {
+		r, err := run.Backup(ctx, p, backup.RollbackRequired)
+		if err != nil {
+			t.Fatal(err)
+		}
+		seqs = append(seqs, r.Entry.Seq)
+	}
+	ch.j.Backup = &Backups{Dir: run.Dir(), Seqs: seqs}
+	ch.j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"port", "listenaddress", "authorizedkeysfile"},
+		After: []Listener{{Addr: netip.IPv6Unspecified(), Port: 2230}}, SocketDropIns: socketDropIns}}
+	if err := Record(ctx, f, ch.j, ch.opts); err != nil {
+		t.Fatal(err)
+	}
+	f.AddFile(dropIn, []byte("ListenAddress 0.0.0.0:2230\nListenAddress [::]:2230\n"), 0o644, 0, 0)
+	if err := f.Remove(ctx, listenConf); err != nil {
+		t.Fatal(err)
+	}
+	f.Respond(hostfake.Response{}, "systemctl", "stop", "hardn-revert-"+testID+".timer")
+	return ch
+}
+
+// TestRollbackRestoresListenConf: the rollback of a listen.conf migration
+// on a socket-activated host restores listen.conf and 00-hardn.conf's
+// absence, then reloads with listen.conf in place: daemon-reload, the
+// socket's configuration checked against the listener it had before,
+// ssh.socket restarted, the listener bound. Without the journal naming
+// listen.conf as restored, the reload is refused as before
+// (reload.ErrSocketDropIn, next/p2-vmtest's probe) and the rollback stays
+// incomplete, with nothing run.
+func TestRollbackRestoresListenConf(t *testing.T) {
+	ctx := context.Background()
+	ch := migratedSocketHost(t, []string{listenConf})
+	f := ch.f
+	f.Respond(hostfake.Response{}, "systemctl", "daemon-reload")
+	f.Respond(hostfake.Response{Stdout: "Listen=[::]:2230 (Stream)\n"}, "systemctl", "show", "-p", "Listen", "ssh.socket")
+	f.Respond(hostfake.Response{Stdout: "active\n"}, "systemctl", "is-active", "ssh.socket")
+	f.Respond(hostfake.Response{}, "systemctl", "restart", "ssh.socket")
+	f.Respond(hostfake.Response{Stdout: "LISTEN 0      4096                *:2230              *:*\n"}, "ss", "-Htln")
+	res, err := Rollback(ctx, f, testID, ch.opts)
+	if err != nil || len(res.Reloads) != 1 || !res.Reloads[0].Verified {
+		t.Fatalf("Rollback = %+v, %v\n%s", res, err, runs(f))
+	}
+	if e, ok := f.Entry(listenConf); !ok || string(e.Data) != listenConfData || exists(f, dropIn) {
+		t.Errorf("listen.conf restored %v (%q), 00-hardn.conf left %v", ok, e.Data, exists(f, dropIn))
+	}
+	got, at := runs(f), 0
+	for _, want := range []string{"run systemctl daemon-reload", "run systemctl show -p Listen ssh.socket", "run systemctl restart ssh.socket", "run ss -Htln"} {
+		i := strings.Index(got[at:], want)
+		if i < 0 {
+			t.Fatalf("%q not in order in:\n%s", want, got)
+		}
+		at += i
+	}
+	if exists(f, stateFile(RollbackName)) || exists(f, stateFile(PendingName)) {
+		t.Error("the journal is left behind")
+	}
+
+	ch = migratedSocketHost(t, nil)
+	_, err = Rollback(ctx, ch.f, testID, ch.opts)
+	if !errors.Is(err, ErrIncomplete) || !errors.Is(err, reload.ErrSocketDropIn) || strings.Contains(runs(ch.f), "daemon-reload") {
+		t.Errorf("Rollback without socketDropIns = %v; runs:\n%s", err, runs(ch.f))
+	}
+	if !exists(ch.f, listenConf) || !exists(ch.f, stateFile(RollbackName)) {
+		t.Error("the restore did not run, or the incomplete rollback was cleared")
 	}
 }
 

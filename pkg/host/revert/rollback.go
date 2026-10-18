@@ -301,7 +301,9 @@ func runStep(ctx context.Context, sys host.System, s Step, plans map[string]Plan
 
 // runReload reloads r.Service once its files are restored. With IfUp, a
 // unit that is down is left so (no Step.Start): the forward reload may not
-// have run, and the unit may have been down before the change.
+// have run, and the unit may have been down before the change. The socket
+// drop-ins r names as restored are expected on a socket host
+// (reload.Change.RestoredDropIns); any other with ListenStream is refused.
 func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (reload.Report, error) {
 	detectSSH := opts.DetectSSH
 	if detectSSH == nil {
@@ -321,7 +323,8 @@ func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (re
 	for i, l := range r.After {
 		after[i] = l.sshd()
 	}
-	p, err := reload.PlanFor(reload.Input{SSH: ssh, Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true}, DropIns: drops})
+	p, err := reload.PlanFor(reload.Input{SSH: ssh, DropIns: drops,
+		Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true, RestoredDropIns: r.SocketDropIns}})
 	if err != nil {
 		return reload.Report{}, err
 	}
