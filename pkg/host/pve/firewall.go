@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -43,18 +44,20 @@ const (
 	// set (its entries and the cluster's local network); an accept rule
 	// may let more sources in.
 	ReachManagement
+
+	reachEnd // one past the last value; keep it last
 )
 
+// reachCodes are Reach's stable codes; the words a status shows are
+// pkg/ui's.
+var reachCodes = [...]string{"unknown", "not-filtered", "anywhere", "management"}
+
+// String is the stable code (TestReachCodes pins them).
 func (r Reach) String() string {
-	switch r {
-	case ReachNotFiltered:
-		return "not filtered by pve-firewall"
-	case ReachAnywhere:
-		return "allowed from anywhere"
-	case ReachManagement:
-		return "allowed from the management IP set"
+	if int(r) >= len(reachCodes) {
+		return "unknown"
 	}
-	return "unknown"
+	return reachCodes[r]
 }
 
 // Firewall is pve-firewall's state as its files and its service say.
@@ -77,7 +80,8 @@ type Firewall struct {
 	Management []string
 	SSH, Web   Reach // ports SSHPort and WebPort
 	Findings   []Finding
-	// Err says why a field is Unknown; it wraps ErrStateUnknown.
+	// Err is set whenever a field is Unknown, and says why; it wraps
+	// ErrStateUnknown.
 	Err error
 }
 
@@ -87,8 +91,8 @@ type Firewall struct {
 // the firewall's lock), and never touches UFW or the packet filter. Off
 // Proxmox VE it returns ErrNotApplicable or ErrProxmoxUnknown; with pmxcfs
 // not mounted every field is Unknown, as the files are not there. The only
-// other error is a done ctx: what cannot be read or parsed is Unknown, with
-// Err.
+// other error is a done ctx: what cannot be read, or is not in the form
+// pve-firewall reads, is Unknown, with Err.
 func ReadFirewall(ctx context.Context, sys host.System, p detect.Proxmox) (Firewall, error) {
 	if err := ctx.Err(); err != nil {
 		return Firewall{}, fmt.Errorf("pve: %w", err)
@@ -102,29 +106,24 @@ func ReadFirewall(ctx context.Context, sys host.System, p detect.Proxmox) (Firew
 		return Firewall{Err: fmt.Errorf("pve: %w: %w", ErrStateUnknown, ErrClusterFSDown)}, nil
 	}
 	var errs []error
-	read := func(name string) *fwConf {
+	read := func(name string, kind fwKind) *fwConf {
 		data, err := sys.ReadFile(ctx, name)
-		if errors.Is(err, fs.ErrNotExist) {
-			return &fwConf{file: name, options: map[string]string{}, ipsets: map[string][]string{}}
-		} else if err != nil {
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			data = nil // a missing file is its defaults
+		case err != nil:
 			errs = append(errs, err)
 			return nil
 		}
-		return parseFW(name, data)
+		return parseFW(name, kind, data)
 	}
-	cluster, hostfw := read(ClusterFW), read(HostFW)
+	cluster, hostfw := read(ClusterFW, clusterFile), read(HostFW, hostFile)
 	f := Firewall{Unit: FirewallUnit}
 	var clusterOn, hostOn detect.Tri
 	if cluster != nil {
-		clusterOn = option(cluster, "enable", "0", func(v string) (detect.Tri, bool) {
-			n, err := strconv.Atoi(v)
-			return tri(n != 0), err == nil && n >= 0
-		}, &errs)
-		switch v := strings.ToUpper(cluster.get("policy_in", "DROP")); v {
-		case "ACCEPT", "DROP", "REJECT":
-			f.PolicyIn = v
-		default:
-			errs = append(errs, fmt.Errorf("%s: policy_in %q", ClusterFW, v))
+		clusterOn = option(cluster, "enable", "0", clusterEnable, &errs)
+		if !cluster.skip("policy_in", &errs) {
+			f.PolicyIn = strings.ToUpper(cluster.get("policy_in", "DROP"))
 		}
 		f.Management = cluster.ipsets["management"]
 		if bl := cluster.ipsets["blacklist"]; len(bl) > 0 {
@@ -160,9 +159,10 @@ func ReadFirewall(ctx context.Context, sys host.System, p detect.Proxmox) (Firew
 // reach decides port's Reach. Only a running service has applied the files
 // (pve-firewall rereads them every 10 seconds), so a stopped one leaves
 // whatever rules it loaded before, which are not read. pve-firewall puts the
-// host's rules, then the cluster's, before its built-in management rules
-// (Firewall.pm, enable_host_firewall), so any rule that may drop the port
-// makes it Unknown.
+// blacklist's drop, then the host's rules, then the cluster's, before its
+// built-in management rules (Firewall.pm, enable_host_firewall and
+// ruleset_chain_add_input_filters), so a non-empty blacklist, or any rule
+// that may drop the port, makes it Unknown. Every Unknown adds to errs.
 func (f *Firewall) reach(port int, cluster, hostfw *fwConf, errs *[]error) Reach {
 	switch {
 	case f.Enabled == detect.Unknown:
@@ -177,19 +177,25 @@ func (f *Firewall) reach(port int, cluster, hostfw *fwConf, errs *[]error) Reach
 		if port == SSHPort {
 			f.Findings = append(f.Findings, Finding{Kind: FindingNotModelled, File: HostFW, Detail: "nftables: 1: proxmox-firewall (tech preview) applies the rules; hardn does not read them"})
 		}
+		*errs = append(*errs, fmt.Errorf("port %d: proxmox-firewall applies the rules, which are not read", port))
 		return ReachUnknown
 	case f.NFTables == detect.Unknown || f.PolicyIn == "":
-		return ReachUnknown
+		return ReachUnknown // errs has the option's reason
 	}
 	r := ReachManagement
 	if f.PolicyIn == "ACCEPT" {
 		r = ReachAnywhere
+	}
+	if bl := cluster.ipsets["blacklist"]; len(bl) > 0 {
+		*errs = append(*errs, fmt.Errorf("port %d: the blacklist IP set (%d entries) is dropped before the management rule, and its entries are not compared with the sources that reach it", port, len(bl)))
+		r = ReachUnknown
 	}
 	for _, c := range []*fwConf{hostfw, cluster} {
 		for _, rl := range c.rules {
 			if rl.mayBlock(port) {
 				f.Findings = append(f.Findings, Finding{Kind: FindingRuleMayBlock, File: c.file, Line: rl.line,
 					Detail: fmt.Sprintf("%q may drop port %d before pve-firewall's management rule accepts it", rl.text, port)})
+				*errs = append(*errs, fmt.Errorf("port %d: %s line %d may drop it first", port, c.file, rl.line))
 				r = ReachUnknown
 			}
 		}
@@ -197,18 +203,33 @@ func (f *Firewall) reach(port int, cluster, hostfw *fwConf, errs *[]error) Reach
 	return r
 }
 
-// boolean reads a host.fw boolean, which Firewall.pm accepts as 0 or 1.
-func boolean(v string) (detect.Tri, bool) {
-	return tri(v == "1"), v == "0" || v == "1"
+// clusterEnable reads cluster.fw's enable, a number (parse_clusterfw_option):
+// 0 off, 1 on, and anything greater a time stamp, which keeps the firewall
+// on until 60 seconds after it and then off.
+func clusterEnable(v string) (detect.Tri, error) {
+	switch n, err := strconv.Atoi(v); {
+	case err != nil:
+		return detect.Unknown, fmt.Errorf("%q: %w", v, err)
+	case n > 1:
+		return detect.Unknown, fmt.Errorf("%d is a time stamp: pve-firewall keeps the firewall on until 60 seconds after it", n)
+	default:
+		return tri(n == 1), nil
+	}
 }
 
-// option reads key from c (def when unset) with parse, adding an error when
-// the value is not one parse accepts.
-func option(c *fwConf, key, def string, parse func(string) (detect.Tri, bool), errs *[]error) detect.Tri {
-	v := c.get(key, def)
-	t, ok := parse(v)
-	if !ok {
-		*errs = append(*errs, fmt.Errorf("%s: %s %q", c.file, key, v))
+// boolean reads a host.fw option, which pve-firewall reads as 0 or 1.
+func boolean(v string) (detect.Tri, error) { return tri(v == "1"), nil }
+
+// option reads key from c (def when unset) with read, adding to errs and
+// returning Unknown when read refuses the value or a line for key is one
+// pve-firewall skips.
+func option(c *fwConf, key, def string, read func(string) (detect.Tri, error), errs *[]error) detect.Tri {
+	if c.skip(key, errs) {
+		return detect.Unknown
+	}
+	t, err := read(c.get(key, def))
+	if err != nil {
+		*errs = append(*errs, fmt.Errorf("%s: %s %w", c.file, key, err))
 		return detect.Unknown
 	}
 	return t
@@ -229,13 +250,57 @@ func isActive(ctx context.Context, sys host.System, unit string, errs []error) (
 	return state, errs
 }
 
-// fwConf is a pve-firewall configuration file: sections of lines, "#"
-// starting a comment (pve-docs, Firewall, "Configuration Files").
+// fwKind is which file a configuration is: they have different sections
+// and options.
+type fwKind uint8
+
+const (
+	clusterFile fwKind = iota
+	hostFile
+)
+
+// The lines pve-firewall reads (Firewall.pm, generic_fw_config_parser,
+// parse_clusterfw_option, parse_hostfw_option): the section headers, and
+// the forms of the options ReadFirewall reads, value in group 1. A line
+// naming one of those options in another form, or outside a section,
+// pve-firewall skips with a warning.
+var (
+	optionsHeader = regexp.MustCompile(`(?i)^\[options\]$`)
+	rulesHeader   = regexp.MustCompile(`(?i)^\[rules\]$`)
+	aliasesHeader = regexp.MustCompile(`(?i)^\[aliases\]$`)
+	namedHeader   = regexp.MustCompile(`(?i)^\[(group|ipset)\s+(\S+)\]\s*(?:#.*)?$`)
+	setName       = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9\-_]+$`)
+	ipsetEntry    = regexp.MustCompile(`^(!)?\s*(\S+)\s*$`)
+	optionForms   = map[fwKind]map[string]*regexp.Regexp{
+		clusterFile: {
+			"enable":    regexp.MustCompile(`(?i)^enable:\s*(\d+)\s*$`),
+			"policy_in": regexp.MustCompile(`(?i)^policy_in:\s*(ACCEPT|DROP|REJECT)\s*$`),
+		},
+		hostFile: {
+			"enable":   regexp.MustCompile(`(?i)^enable:\s*([01])\s*$`),
+			"nftables": regexp.MustCompile(`(?i)^nftables:\s*([01])\s*$`),
+		},
+	}
+)
+
+// fwConf is a pve-firewall configuration file as pve-firewall reads it
+// (pve-docs, Firewall, "Configuration Files").
 type fwConf struct {
 	file    string
-	options map[string]string   // [OPTIONS] "key: value", keys in lower case
+	options map[string]string   // the options ReadFirewall reads, by lower-case name
+	skipped map[string]int      // the first line, 1-based, of an option pve-firewall skips
 	rules   []fwRule            // [RULES]
-	ipsets  map[string][]string // [IPSET name] entries, by lower-case name
+	ipsets  map[string][]string // [IPSET name] entries, by lower-case name (cluster.fw)
+}
+
+// skip reports whether a line for key is one pve-firewall skips, adding
+// that to errs: what pve-firewall then applies is not established here.
+func (c *fwConf) skip(key string, errs *[]error) bool {
+	line, ok := c.skipped[key]
+	if ok {
+		*errs = append(*errs, fmt.Errorf("%s line %d: %s: not in a form pve-firewall reads, so it skips the line", c.file, line, key))
+	}
+	return ok
 }
 
 func (c *fwConf) get(key, def string) string {
@@ -253,31 +318,67 @@ type fwRule struct {
 	f    []string
 }
 
-func parseFW(file string, data []byte) *fwConf {
-	c := &fwConf{file: file, options: map[string]string{}, ipsets: map[string][]string{}}
+// parseFW reads data as generic_fw_config_parser does: each line trimmed of
+// spaces and tabs, "#" lines and blank ones skipped; a header only in the
+// exact form of a section the file has ([OPTIONS] and [RULES]; cluster.fw
+// also [ALIASES], [GROUP name] and [IPSET name], a valid name); any other
+// line belongs to the section before it. A trailing "#" comment is cut from
+// rules and IP set entries, never from options.
+func parseFW(file string, kind fwKind, data []byte) *fwConf {
+	c := &fwConf{file: file, options: map[string]string{}, skipped: map[string]int{}, ipsets: map[string][]string{}}
 	section, name := "", ""
 	for i, raw := range strings.Split(string(data), "\n") {
-		l, _, _ := strings.Cut(raw, "#")
-		l = strings.TrimSpace(l)
-		switch {
-		case l == "":
-		case strings.HasPrefix(l, "[") && strings.HasSuffix(l, "]"):
-			f := strings.Fields(strings.Trim(l, "[]"))
-			section, name = "", ""
-			if len(f) > 0 {
-				section = strings.ToLower(f[0])
+		l := strings.Trim(raw, " \t")
+		if strings.TrimSpace(l) == "" || l[0] == '#' {
+			continue
+		}
+		switch m := namedHeader.FindStringSubmatch(l); {
+		case optionsHeader.MatchString(l):
+			section, name = "options", ""
+			continue
+		case rulesHeader.MatchString(l):
+			section, name = "rules", ""
+			continue
+		case kind == clusterFile && aliasesHeader.MatchString(l):
+			section, name = "aliases", ""
+			continue
+		case kind == clusterFile && m != nil:
+			section, name = strings.ToLower(m[1]), strings.ToLower(m[2])
+			if !setName.MatchString(m[2]) {
+				section, name = "", ""
 			}
-			if len(f) > 1 {
-				name = strings.ToLower(f[1])
+			continue
+		}
+		switch section {
+		case "", "options":
+			k, _, ok := strings.Cut(l, ":")
+			if !ok {
+				k = strings.Fields(l)[0]
 			}
-		case section == "options":
-			if k, v, ok := strings.Cut(l, ":"); ok {
-				c.options[strings.ToLower(strings.TrimSpace(k))] = strings.TrimSpace(v)
+			k = strings.ToLower(strings.TrimSpace(k))
+			form, ours := optionForms[kind][k]
+			if !ours {
+				break
 			}
-		case section == "rules" && !strings.HasPrefix(l, "|"):
-			c.rules = append(c.rules, fwRule{line: i + 1, text: l, f: strings.Fields(l)})
-		case section == "ipset":
-			c.ipsets[name] = append(c.ipsets[name], strings.Fields(l)[0])
+			if m := form.FindStringSubmatch(l); section != "" && m != nil {
+				c.options[k] = m[1]
+			} else if _, ok := c.skipped[k]; !ok {
+				c.skipped[k] = i + 1
+			}
+		case "rules":
+			r, _, _ := strings.Cut(l, "#")
+			if r = strings.TrimSpace(r); r != "" && !strings.HasPrefix(r, "|") {
+				c.rules = append(c.rules, fwRule{line: i + 1, text: r, f: strings.Fields(r)})
+			}
+		case "ipset":
+			e, _, _ := strings.Cut(l, "#")
+			e = strings.TrimSpace(e)
+			if m := ipsetEntry.FindStringSubmatch(e); m != nil {
+				e = m[1] + m[2]
+			}
+			if e != "" {
+				c.ipsets[name] = append(c.ipsets[name], e)
+			}
 		}
 	}
 	return c

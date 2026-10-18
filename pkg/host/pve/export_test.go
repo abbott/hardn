@@ -1,5 +1,8 @@
 package pve
 
-// FindingEnd is one past the last FindingKind, so the code test covers
-// every kind.
-const FindingEnd = findingEnd
+// FindingEnd and ReachEnd are one past the last FindingKind and Reach, so
+// the code tests cover every value.
+const (
+	FindingEnd = findingEnd
+	ReachEnd   = reachEnd
+)
