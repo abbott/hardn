@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/netip"
 	"path"
 	"slices"
 	"strings"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
-	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
@@ -27,7 +27,7 @@ func setupMigrate(fs *flag.FlagSet) func(context.Context, *driver) error {
 	configFile := fs.String("config-file", "", "the sshConfigFile a v0.3.x hardn.yml named, if any")
 	return func(ctx context.Context, d *driver) error {
 		o.planOnly = o.planOnly || !*apply
-		return d.lockoutCommand(ctx, o, func(b base) (lockout, error) { return d.planMigrate(ctx, b, *configFile, *apply) })
+		return d.lockoutCommand(ctx, o, func(b base) (lockout, error) { return d.planMigrate(ctx, b, *configFile) })
 	}
 }
 
@@ -36,12 +36,15 @@ func setupMigrate(fs *flag.FlagSet) func(context.Context, *driver) error {
 // PlanFor, Check (sshd.Validate and the login-path comparison over a copy)
 // and the reload's plan, all before anything changes. Once reloaded, sshd
 // -T must show what Check showed of the copy (sameEffective). The
-// rollback's reload restores the listeners that accept connections now,
-// Plan.Listening.All (on a socket host, ssh.socket's), with the socket
-// drop-ins the plan removes named as restored. On a socket host where
-// listen.conf never took effect (D9) that rollback cannot give the socket
-// back what it listens on, so --apply is refused there.
-func (d *driver) planMigrate(ctx context.Context, b base, configFile string, apply bool) (lockout, error) {
+// rollback's reload is migrate.Plan.Rollback: the listeners that accept
+// connections now, Plan.Listening.All (on a socket host, ssh.socket's),
+// with the socket drop-ins the plan removes named as restored. It is
+// planned now too (Plan.CheckRollback), so that a migration whose rollback
+// could not give the socket back what it is configured for (listen.conf
+// never in effect, D9) is refused before anything changes; and a listener
+// change is refused where what is configured is not what is bound
+// (inEffect).
+func (d *driver) planMigrate(ctx context.Context, b base, configFile string) (lockout, error) {
 	lc := lockout{base: b, summary: "legacy hardn SSH files migrated into 00-hardn.conf"}
 	found, err := migrate.Find(ctx, d.sys, migrate.FindRequest{ConfigFile: configFile})
 	if err != nil {
@@ -77,21 +80,16 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 	if err != nil {
 		return lc, err
 	}
-	// The socket drop-ins the migration removes (listen.conf) come back
-	// with the rollback's restore; its reload expects them
-	// (revert.Reload.SocketDropIns), and checks the socket against the
-	// listeners it has now, Plan.Listening.All (docs/safety/reload.md).
-	var dropIns []string
-	for _, op := range plan.Ops {
-		if op.Kind == migrate.OpRemoveSocketDropIn {
-			dropIns = append(dropIns, op.Path)
-		}
+	// The rollback's reload, over the drop-ins as they are now: what its
+	// restore gives back (listen.conf among them).
+	rb := plan.Rollback()
+	if err := plan.CheckRollback(drops); err != nil {
+		return lc, err
 	}
-	if stale := notListening(plan.Hold, plan.Listening.All); apply && b.facts.SSH.Mode == detect.SSHSocket && len(dropIns) > 0 && len(stale) > 0 {
-		return lc, fmt.Errorf("--apply on a socket-activated host whose ssh.socket does not listen on %v, which %s sets: "+
-			"v0.3.x never ran daemon-reload after writing it (D9), so the rollback's daemon-reload, with %s restored, would move the socket "+
-			"off %v, where it listens now, so p2drive does not apply it (docs/safety/vmtest.md)",
-			stale, migrate.ListenConf, migrate.ListenConf, plan.Listening.All)
+	if rp.Listen {
+		if err := d.inEffect(ctx, b, plan.Listening.All); err != nil {
+			return lc, err
+		}
 	}
 	if err := d.checkFree(ctx, rp); err != nil {
 		return lc, err
@@ -105,7 +103,7 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 		paths = append(paths, s.Path)
 	}
 	lc.files = &files{
-		paths: paths, keywords: plan.Keywords, restored: plan.Listening.All, socketDropIns: dropIns, reload: rp,
+		paths: paths, keywords: rb.Keywords, restored: rb.After, socketDropIns: rb.RestoredDropIns, reload: rp,
 		write: func(ctx context.Context, run *backup.Run) (reload.Plan, error) {
 			opts.Backup = run
 			rep, err := migrate.Apply(ctx, d.sys, plan, opts)
@@ -123,16 +121,23 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 	return lc, nil
 }
 
-// notListening lists the listeners of want that are not in now, by address
-// and port.
-func notListening(want, now []sshd.Listener) []sshd.Listener {
-	var out []sshd.Listener
-	for _, w := range want {
-		if !slices.ContainsFunc(now, func(n sshd.Listener) bool { return n.Addr == w.Addr && n.Port == w.Port }) {
-			out = append(out, w)
+// inEffect refuses a listener change on a host whose configured
+// listeners, configured, are not the ones that accept connections now
+// (reload.CheckInEffect: one of them not bound, or none of them the one
+// the applying session is connected to): the reload would drop what is
+// bound but not configured, and the rollback would not bring it back. A
+// remote session whose connection is not established fails it, closed; a
+// console session has no port to keep.
+func (d *driver) inEffect(ctx context.Context, b base, configured []sshd.Listener) error {
+	var server netip.AddrPort
+	if b.session.Remote {
+		c, err := revert.ParseConn(b.session.Conn)
+		if err != nil {
+			return fmt.Errorf("the port this session is connected to is not established (%v), so the change cannot be shown to keep it: %w", err, reload.ErrNotInEffect)
 		}
+		server = c.Server
 	}
-	return out
+	return reload.CheckInEffect(ctx, d.sys, b.facts.SSH.Mode, configured, server)
 }
 
 // sameEffective checks that sshd -T after the reload shows what
@@ -334,7 +339,13 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 	case err != nil:
 		return fail("sudoers", fmt.Errorf("%w; the backups are in %s", err, run.Dir()))
 	}
-	d.say("installed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, `sudo -n true`", res.Installed, pol.User, pol.User)
+	// sudo -n cannot ask a password, so it fails under a password grant
+	// [unverified: sudo(8) -n]: there, a command that asks is the check.
+	check := "`sudo -n true` (`doas -n true` on Alpine)"
+	if pol.Grant == sudoers.GrantPassword {
+		check = "`sudo -v`, which asks the password (`doas true` on Alpine)"
+	}
+	d.say("installed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, %s", res.Installed, pol.User, pol.User, check)
 	if !lockout {
 		if err := revert.Done(ctx, d.sys, j.ID, opts); err != nil {
 			return fail("clear the journal", err)
@@ -345,7 +356,7 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		return fail("mark applied", err)
 	}
 	d.say("change %s applied; it is rolled back at %s unless confirmed.", j.ID, j.Deadline().Format(time.RFC3339))
-	d.say("to keep it: from another machine, open a new SSH connection as %s, check `sudo -n true` or `sudo -l` (doas on Alpine), and run `sudo %s confirm`.", pol.User, o.hardn)
+	d.say("to keep it: from another machine, open a new SSH connection as %s, check %s or `sudo -l`, and run `sudo %s confirm`.", pol.User, check, o.hardn)
 	d.say("to undo it now: sudo %s rollback %s", o.hardn, j.ID)
 	return nil
 }

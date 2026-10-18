@@ -89,7 +89,8 @@ func setupPVERoot(fs *flag.FlagSet) func(context.Context, *driver) error {
 // on Proxmox VE through pve.PlanSSH over the whole file (pveSet), validated
 // in context (sshd.Validate over a copy) before anything changes, and its
 // reload planned (reload.PlanFor): the new port must be among the
-// listeners the reload adds, and those must not be bound already
+// listeners the reload adds, what sshd configures must be what is bound
+// (inEffect), and the added listeners must not be bound already
 // (checkFree), so that every refusal comes before the timer is armed.
 func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migrate.Directive, port uint16, mode ufwMode) (lockout, error) {
 	lc := lockout{base: b, summary: summary}
@@ -173,6 +174,11 @@ func (d *driver) planSSH(ctx context.Context, b base, summary string, set []migr
 	if port != 0 && !slices.ContainsFunc(rp.Adds, func(l sshd.Listener) bool { return l.Port == port }) {
 		return lc, fmt.Errorf("port %d: sshd would listen on %v, no new listener on %d: a ListenAddress with its own port ignores the Port lines (sshd_config(5))%s: %w",
 			port, cand.Listeners.SSHD, port, pinnedAt(found), errNoNewListener)
+	}
+	if rp.Listen {
+		if err := d.inEffect(ctx, b, b.before.Listeners.All); err != nil {
+			return lc, err
+		}
 	}
 	if err := d.checkFree(ctx, rp); err != nil {
 		return lc, err

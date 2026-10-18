@@ -346,14 +346,45 @@ func TestRefusedBeforeArm(t *testing.T) {
 		{"pve-root off Proxmox VE", debian13, nil, []string{"pve-root"}, "for a Proxmox VE host"},
 		// v0.3.x wrote listen.conf and ran no daemon-reload (D9): the socket
 		// still listens on 22, so the rollback's daemon-reload, with
-		// listen.conf restored, would move it to 2230.
+		// listen.conf restored, would move it to 2230
+		// (migrate.Plan.CheckRollback, reload.ErrRestoredListeners).
 		{"migrate --apply of listen.conf on a socket host that never read it (D9)", ubuntu2604(), func(v *vm) {
-			v.socket = true
-			v.f.AddFile(migrate.ManageConf, fixture(v.t, "v032-manage.conf"), 0o644, 0, 0)
-			v.f.AddFile(migrate.ListenConf, fixture(v.t, "v032-listen.conf"), 0o644, 0, 0)
+			v032Files(v)
 			v.configured = []string{"[::]:22", "0.0.0.0:22"}
 			v.bound = slices.Clone(v.configured)
-		}, []string{"migrate", "--apply"}, "never ran daemon-reload after writing it (D9)"},
+		}, []string{"migrate", "--apply"}, "ListenStream=2230 is not one of the listeners the socket had"},
+		// The socket configured for 22 beside listen.conf's 2230 (an
+		// administrator who added the port first): the rollback's
+		// daemon-reload would leave 2230 alone, and the rollback unfinished.
+		{"migrate --apply where ssh.socket is configured for more than listen.conf", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}
+			v.bound = slices.Clone(v.configured)
+		}, []string{"migrate", "--apply"}, "do not give [::]:22, which the socket had"},
+		// A daemon-reload since ssh.socket was last restarted: configured
+		// on listen.conf's 2230, still bound on 22, where this session is.
+		// The migration's hold and its rollback both read configuration, so
+		// the restart would close 22 for good (reload.CheckInEffect).
+		{"migrate --apply where ssh.socket is configured for 2230 and bound on 22", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:2230"}
+			v.bound = []string{"[::]:22", "0.0.0.0:22"}
+		}, []string{"migrate", "--apply"}, "this session is connected to 192.0.2.20:22"},
+		{"migrate --apply, configured for 2230, bound on 22, a session on 2230", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:2230"}
+			v.bound = []string{"[::]:22", "0.0.0.0:22"}
+			v.conn = conn2230
+		}, []string{"migrate", "--apply"}, "[[::]:2230] configured, not bound"},
+		// sshd_config edited and not reloaded: sshd -T shows 2231, sshd
+		// still listens on 22, where this session is.
+		{"a port change where sshd -T is not what sshd listens on", debian13, func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 2231\n"), 0o644, 0, 0)
+		}, []string{"port", "--port", "2230"}, "this session is connected to 192.0.2.20:22"},
+		// A remote session whose connection is not known: the port it is
+		// on cannot be shown kept, so a listener change fails closed.
+		{"a port change from a session whose connection is not known", debian13, func(v *vm) { v.conn = "" },
+			[]string{"port", "--port", "2230"}, "the port this session is connected to is not established"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -528,6 +559,7 @@ func v032Debian(t *testing.T) *vm {
 	v.f.AddFile(migrate.ManageConf, fixture(t, "v032-manage.conf"), 0o644, 0, 0)
 	v.f.AddFile(migrate.ListenConf, fixture(t, "v032-listen.conf"), 0o644, 0, 0)
 	v.allowed = []uint16{2230}
+	v.conn = conn2230
 	v.saveRules()
 	v.boot()
 	return v
@@ -606,6 +638,16 @@ func TestMigrate(t *testing.T) {
 	}
 }
 
+// v032Files puts v0.3.2's manage.conf and listen.conf on an Ubuntu host
+// whose ssh.socket holds the listeners, without a reboot: the test sets
+// what the socket is configured for and bound on.
+func v032Files(v *vm) {
+	v.socket = true
+	v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+	v.f.AddFile(migrate.ManageConf, fixture(v.t, "v032-manage.conf"), 0o644, 0, 0)
+	v.f.AddFile(migrate.ListenConf, fixture(v.t, "v032-listen.conf"), 0o644, 0, 0)
+}
+
 // v032Ubuntu is an Ubuntu 26.04 host v0.3.2 hardened and rebooted since:
 // ssh.socket on listen.conf's [::]:2230, sshd-socket-generator installed
 // (a rollback detects the SSH facts again), ufw allowing 22 and 2230.
@@ -615,6 +657,7 @@ func v032Ubuntu(t *testing.T) *vm {
 	v.f.AddFile(migrate.ManageConf, fixture(t, "v032-manage.conf"), 0o644, 0, 0)
 	v.f.AddFile(migrate.ListenConf, fixture(t, "v032-listen.conf"), 0o644, 0, 0)
 	v.allowed = []uint16{22, 2230}
+	v.conn = conn2230
 	v.saveRules()
 	v.boot()
 	return v
@@ -743,6 +786,13 @@ func TestSudoers(t *testing.T) {
 	}
 	if e, ok := v.f.Entry(grant); !ok || !strings.Contains(string(e.Data), "NOPASSWD: ALL") {
 		t.Errorf("%s not restored: %q", grant, e.Data)
+	}
+
+	// A grant that asks the password: the check to confirm by is one
+	// that asks it, not sudo -n.
+	code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "password", "--hardn", testHardn)
+	if code != 0 || !strings.Contains(out, "check `sudo -v`, which asks the password") || strings.Contains(out, "sudo -n true") {
+		t.Errorf("--grant password: exit %d; stderr %s\nstdout %s", code, errOut, out)
 	}
 }
 
