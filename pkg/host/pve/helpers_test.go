@@ -1,6 +1,7 @@
 package pve_test
 
 import (
+	"context"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -101,4 +102,48 @@ func checkReadOnly(t *testing.T, h *hostfake.System, from ...int) {
 			t.Errorf("changed the host: %s", c)
 		}
 	}
+}
+
+// failing is the fake with one operation failing with err: op ("write",
+// "read", "read-nofollow", "readdir") on path or below it. Set op after
+// the setup it must not break.
+type failing struct {
+	*hostfake.System
+	op, path string
+	err      error
+}
+
+func (f *failing) fail(op, name string) error {
+	if op == f.op && (name == f.path || strings.HasPrefix(name, f.path+"/")) {
+		return &fs.PathError{Op: op, Path: name, Err: f.err}
+	}
+	return nil
+}
+
+func (f *failing) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if err := f.fail("write", name); err != nil {
+		return err
+	}
+	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+func (f *failing) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if err := f.fail("read", name); err != nil {
+		return nil, err
+	}
+	return f.System.ReadFile(ctx, name)
+}
+
+func (f *failing) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := f.fail("read-nofollow", name); err != nil {
+		return nil, nil, err
+	}
+	return f.System.ReadFileNoFollow(ctx, name)
+}
+
+func (f *failing) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
+	if err := f.fail("readdir", name); err != nil {
+		return nil, err
+	}
+	return f.System.ReadDir(ctx, name)
 }

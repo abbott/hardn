@@ -102,7 +102,9 @@ type KeyEdit struct {
 	Add, Remove []string
 }
 
-// KeysPlan is an edit of the cluster-wide keys file.
+// KeysPlan is an edit of the cluster-wide keys file. It round-trips through
+// encoding/json with every field UndoKeys needs, for p2-revert's journal
+// (KeysUnit).
 type KeysPlan struct {
 	Target   string   // RootKeys's target when read
 	Before   [32]byte // SHA-256 of Old
@@ -127,10 +129,23 @@ func (p KeysPlan) Narrows() bool { return len(p.Removed) > 0 }
 // that changes the file carries a FindingClusterWide: the edit applies to
 // every node.
 func PlanKeys(k Keys, e KeyEdit) (KeysPlan, error) {
-	return plan(k, e, true)
+	return plan(k, e, forward)
 }
 
-func plan(k Keys, e KeyEdit, guard bool) (KeysPlan, error) {
+// planMode is how plan edits.
+type planMode uint8
+
+const (
+	// forward (PlanKeys, ApplyKeys' check): guarded, and a key already
+	// there is not added again.
+	forward planMode = iota
+	// undo (UndoKeys): unguarded, and a removed line comes back unless that
+	// very line is there, so a key that was on several lines gets them all
+	// back.
+	undo
+)
+
+func plan(k Keys, e KeyEdit, m planMode) (KeysPlan, error) {
 	p := KeysPlan{Target: k.Target, Before: sha256.Sum256(k.Data), Old: k.Data}
 	lines := strings.SplitAfter(string(k.Data), "\n")
 	if lines[len(lines)-1] == "" {
@@ -145,18 +160,20 @@ func plan(k Keys, e KeyEdit, guard bool) (KeysPlan, error) {
 		drop[id] = true
 	}
 	var kept []string
-	have := map[string]bool{}
+	have, present := map[string]bool{}, map[string]bool{}
 	for _, l := range lines {
-		id, comment, ok := parseKey(strings.TrimRight(l, "\r\n"))
+		t := strings.TrimRight(l, "\r\n")
+		id, comment, ok := parseKey(t)
 		switch {
-		case ok && drop[id] && guard && (id == k.Own || slices.ContainsFunc(k.Nodes, func(n string) bool { return comment == "root@"+n })):
+		case ok && drop[id] && m == forward && (id == k.Own || slices.ContainsFunc(k.Nodes, func(n string) bool { return comment == "root@"+n })):
 			return KeysPlan{}, fmt.Errorf("pve: remove %s (%s): %w", id, comment, ErrClusterKey)
 		case ok && drop[id]:
-			p.Removed = append(p.Removed, strings.TrimRight(l, "\r\n"))
+			p.Removed = append(p.Removed, t)
 			continue
 		case ok:
 			have[id] = true
 		}
+		present[t] = true
 		kept = append(kept, l)
 	}
 	for _, a := range e.Add {
@@ -164,7 +181,7 @@ func plan(k Keys, e KeyEdit, guard bool) (KeysPlan, error) {
 		if !ok || strings.ContainsAny(a, "\r\n\x00") {
 			return KeysPlan{}, fmt.Errorf("pve: add %q: %w", a, ErrBadKey)
 		}
-		if have[id] {
+		if m == forward && have[id] || m == undo && present[a] {
 			continue
 		}
 		have[id] = true
@@ -174,7 +191,7 @@ func plan(k Keys, e KeyEdit, guard bool) (KeysPlan, error) {
 		kept = append(kept, a+"\n")
 		p.Added = append(p.Added, a)
 	}
-	if guard && len(have) == 0 && p.Changed() {
+	if m == forward && len(have) == 0 && p.Changed() {
 		return KeysPlan{}, fmt.Errorf("pve: the edit leaves %s without a key: %w", ClusterKeys, ErrClusterKey)
 	}
 	p.New = []byte(strings.Join(kept, ""))
@@ -187,10 +204,15 @@ func plan(k Keys, e KeyEdit, guard bool) (KeysPlan, error) {
 
 // ApplyKeys writes p through the link, never over it: it reads the keys
 // again (ReadKeys) and refuses with ErrKeysChanged when they are not what p
-// was planned from; takes a RollbackRequired backup of RootKeys in run
-// (which records the link and ClusterKeys's content); then writes ClusterKeys
-// with host.WriteFileThroughSymlink, mode KeysPerm, owner unchanged. Without
-// a run it is ErrNoBackup, and a plan with no change writes nothing.
+// was planned from; plans p's Added and Removed on them again, with
+// PlanKeys' guards (ErrClusterKey, ErrBadKey), and refuses with
+// ErrPlanMismatch when that is not p's New, so a plan changed or lost on
+// its way (a hand-built one, a round trip that dropped New) writes
+// nothing; takes a RollbackRequired backup of RootKeys in run (which
+// records the link and ClusterKeys's content); then writes ClusterKeys
+// with host.WriteFileThroughSymlink, mode KeysPerm, owner unchanged.
+// Without a run it is ErrNoBackup, and a plan with no change writes
+// nothing. A failed write returns the backup's Result with the error.
 func ApplyKeys(ctx context.Context, sys host.System, pf detect.Proxmox, run *backup.Run, p KeysPlan) (backup.Result, error) {
 	switch {
 	case run == nil:
@@ -205,6 +227,13 @@ func ApplyKeys(ctx context.Context, sys host.System, pf detect.Proxmox, run *bac
 	if sha256.Sum256(cur.Data) != p.Before || cur.Target != p.Target {
 		return backup.Result{}, fmt.Errorf("pve: %w", ErrKeysChanged)
 	}
+	want, err := plan(cur, KeyEdit{Add: p.Added, Remove: p.Removed}, forward)
+	if err != nil {
+		return backup.Result{}, err
+	}
+	if !bytes.Equal(want.New, p.New) || !slices.Equal(want.Added, p.Added) || !slices.Equal(want.Removed, p.Removed) {
+		return backup.Result{}, fmt.Errorf("pve: %w", ErrPlanMismatch)
+	}
 	res, err := run.Backup(ctx, RootKeys, backup.RollbackRequired)
 	if err != nil {
 		return backup.Result{}, fmt.Errorf("pve: %w", err)
@@ -215,12 +244,16 @@ func ApplyKeys(ctx context.Context, sys host.System, pf detect.Proxmox, run *bac
 	return res, nil
 }
 
-// UndoKeys reverses p on the keys as they are now: it removes the lines p
-// added and puts back the lines it removed, and leaves every other line, so
-// a key another node wrote since is kept, where restoring the whole file
-// from the backup would drop it. It writes through the link as ApplyKeys
-// does, and nothing when there is nothing to reverse. After Ctrl-C, run it
-// under context.WithoutCancel.
+// UndoKeys reverses p on the keys as they are now: it removes every line
+// with a key p added and puts back each line p removed that is not there,
+// and leaves every other line, so a key another node wrote since is kept,
+// where restoring the whole file from the backup would drop it. It is the
+// inverse of p's edit, not of p's write: when another node added a key p
+// added, or removed one p removed, the undo reverses that too, and it does
+// not compare-and-swap. When the keys are still what p was planned from it
+// writes nothing, so it is harmless before ApplyKeys has run. It writes
+// through the link as ApplyKeys does. After Ctrl-C, run it under
+// context.WithoutCancel.
 func UndoKeys(ctx context.Context, sys host.System, pf detect.Proxmox, p KeysPlan) error {
 	if !p.Changed() {
 		return nil
@@ -229,7 +262,7 @@ func UndoKeys(ctx context.Context, sys host.System, pf detect.Proxmox, p KeysPla
 	if err != nil {
 		return err
 	}
-	inv, err := plan(cur, KeyEdit{Add: p.Removed, Remove: p.Added}, false)
+	inv, err := plan(cur, KeyEdit{Add: p.Removed, Remove: p.Added}, undo)
 	if err != nil || !inv.Changed() {
 		return err
 	}
@@ -237,6 +270,20 @@ func UndoKeys(ctx context.Context, sys host.System, pf detect.Proxmox, p KeysPla
 		return fmt.Errorf("pve: %w", err)
 	}
 	return nil
+}
+
+// KeysUnit names a keys change in p2-revert's journal: one OpPlan step with
+// Unit KeysUnit and Plan the KeysPlan as JSON, recorded before ApplyKeys
+// runs (docs/safety/pve.md §6).
+const KeysUnit = "pve-keys"
+
+// RollbackKeys is UndoKeys as p2-revert's rollback runs it, from the
+// journal alone and in another process: it detects Proxmox VE again
+// (detect.DetectProxmox) and undoes p. cmd/hardn registers it for KeysUnit
+// in revert.Options.Plans, after decoding the step's Plan into a KeysPlan;
+// encoding/json keeps every field of it.
+func RollbackKeys(ctx context.Context, sys host.System, p KeysPlan) error {
+	return UndoKeys(ctx, sys, detect.DetectProxmox(ctx, sys), p)
 }
 
 // keyType is a key type's form: ssh-ed25519, ecdsa-sha2-nistp256,

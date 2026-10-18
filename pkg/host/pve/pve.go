@@ -17,7 +17,8 @@
 //     "PermitRootLogin yes" in sshd_config from drift.
 //   - Root's keys (keys.go): /root/.ssh/authorized_keys is a link to the
 //     cluster-wide /etc/pve/priv/authorized_keys. ReadKeys, PlanKeys,
-//     ApplyKeys and UndoKeys edit through it, never over it.
+//     ApplyKeys and UndoKeys edit through it, never over it; RollbackKeys
+//     is UndoKeys for p2-revert's journal.
 //   - Root's password (CheckAccount): never locked, removed or expired.
 //   - The firewall (firewall.go): ReadFirewall reports pve-firewall's state,
 //     read-only. UFW is never used (ufw.Applies).
@@ -68,6 +69,9 @@ var (
 	ErrClusterKey = errors.New("the edit would remove a cluster node's root key, or every key")
 	// ErrNoBackup: ApplyKeys was given no backup run.
 	ErrNoBackup = errors.New("a backup run is required")
+	// ErrPlanMismatch: a KeysPlan's New is not what its Added and Removed
+	// make of the keys it was planned from.
+	ErrPlanMismatch = errors.New("the keys plan's new content does not follow from its edit")
 )
 
 // Applies reports whether the Proxmox VE rules apply: true on Proxmox VE,

@@ -2,11 +2,15 @@ package pve_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"reflect"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -88,6 +92,23 @@ func TestReadKeysRefuses(t *testing.T) {
 	}
 }
 
+// TestReadKeysFails: a read that fails is the host's error, never "not
+// Proxmox VE's link".
+func TestReadKeysFails(t *testing.T) {
+	for _, tt := range []struct{ op, path string }{{"read-nofollow", pve.ClusterKeys}, {"readdir", pve.NodesDir}} {
+		f := &failing{System: pve9(t), op: tt.op, path: tt.path, err: syscall.EIO}
+		if _, err := pve.ReadKeys(ctx, f, pveUp); !errors.Is(err, syscall.EIO) || errors.Is(err, pve.ErrKeysLink) {
+			t.Errorf("%s %s failing: %v", tt.op, tt.path, err)
+		}
+	}
+	// No id_rsa.pub: the node's own key is not known, and nothing fails.
+	h := pve9(t)
+	_ = h.Remove(ctx, pve.NodeKey)
+	if k, err := pve.ReadKeys(ctx, h, pveUp); err != nil || k.Own != "" {
+		t.Errorf("no node key: %+v, %v", k, err)
+	}
+}
+
 func TestPlanKeys(t *testing.T) {
 	base := pve.Keys{Target: pve.ClusterKeys, Data: []byte("# cluster keys\n" + keyWeb01 + "\n\n" + keyWeb02 + "\n" + keyAlice + "\n"),
 		Nodes: []string{"web-01", "web-02"}, Own: strings.Join(strings.Fields(keyWeb01)[:2], " ")}
@@ -153,7 +174,7 @@ func TestPlanKeys(t *testing.T) {
 // runs numbers the backup runs, whose ids must not repeat on one host.
 var runs int
 
-func openRun(t *testing.T, h *hostfake.System) *backup.Run {
+func openRun(t *testing.T, h host.System) *backup.Run {
 	t.Helper()
 	runs++
 	run, err := backup.Open(h, backup.Settings{Path: backup.DefaultPath, Enabled: true}, fmt.Sprintf("20261018T090000Z-%08x", runs))
@@ -239,6 +260,24 @@ func TestApplyKeysRefuses(t *testing.T) {
 	if res, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), pve.KeysPlan{}); err != nil || res.Entry.Path != "" {
 		t.Errorf("no change: %+v, %v", res, err)
 	}
+	// A plan changed or lost on its way: its New is checked against its edit
+	// on the keys as they are, with PlanKeys' guards.
+	lost := p
+	lost.New = nil
+	edited := p
+	edited.Added = []string{keyBob}
+	nodes := pve.KeysPlan{Target: k.Target, Before: sha256.Sum256(k.Data), Old: k.Data, Removed: []string{keyWeb01, keyWeb02}}
+	bad := pve.KeysPlan{Target: k.Target, Before: sha256.Sum256(k.Data), Added: []string{"ssh-ed25519 bob"}}
+	for _, tt := range []struct {
+		name string
+		p    pve.KeysPlan
+		err  error
+	}{{"New lost", lost, pve.ErrPlanMismatch}, {"Added edited", edited, pve.ErrPlanMismatch},
+		{"the node keys removed", nodes, pve.ErrClusterKey}, {"not a key", bad, pve.ErrBadKey}} {
+		if _, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), tt.p); !errors.Is(err, tt.err) {
+			t.Errorf("%s: %v, want %v", tt.name, err, tt.err)
+		}
+	}
 	// Another node adds bob's key after the plan.
 	h.AddFile(pve.ClusterKeys, []byte(string(k.Data)+keyBob+"\n"), 0o600, 0, wwwData)
 	if _, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), p); !errors.Is(err, pve.ErrKeysChanged) {
@@ -249,6 +288,30 @@ func TestApplyKeysRefuses(t *testing.T) {
 	}
 	if ws := writes(h, before); len(ws) != 0 {
 		t.Errorf("wrote %q", ws)
+	}
+}
+
+// TestApplyKeysFails: a backup that fails stops the write; a write that
+// fails (pmxcfs read-only without quorum) leaves the file as it was and
+// returns the backup taken.
+func TestApplyKeysFails(t *testing.T) {
+	for _, tt := range []struct {
+		name, path string
+		err        error
+		backedUp   bool
+	}{{"the backup", backup.DefaultPath, syscall.ENOSPC, false}, {"the write", pve.ClusterKeys, syscall.EROFS, true}} {
+		f := &failing{System: pve9(t)}
+		k, _ := pve.ReadKeys(ctx, f, pveUp)
+		p, _ := pve.PlanKeys(k, pve.KeyEdit{Add: []string{keyAlice}})
+		run := openRun(t, f)
+		f.op, f.path, f.err = "write", tt.path, tt.err
+		res, err := pve.ApplyKeys(ctx, f, pveUp, run, p)
+		if !errors.Is(err, tt.err) || (res.Entry.Path == pve.RootKeys) != tt.backedUp {
+			t.Errorf("%s failing: %+v, %v", tt.name, res, err)
+		}
+		if file, _ := f.Entry(pve.ClusterKeys); !slices.Equal(file.Data, k.Data) {
+			t.Errorf("%s failing: %s = %q", tt.name, pve.ClusterKeys, file.Data)
+		}
 	}
 }
 
@@ -294,5 +357,81 @@ func TestUndoKeys(t *testing.T) {
 	}
 	if err := pve.UndoKeys(ctx, h, pveDown, rm); !errors.Is(err, pve.ErrClusterFSDown) {
 		t.Errorf("undo with pmxcfs down: %v", err)
+	}
+	// A write that fails is the undo's error.
+	f := &failing{System: h, op: "write", path: pve.ClusterKeys, err: syscall.EROFS}
+	if _, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), rm); err != nil {
+		t.Fatal(err)
+	}
+	if err := pve.UndoKeys(ctx, f, pveUp, rm); !errors.Is(err, syscall.EROFS) {
+		t.Errorf("undo, the write failing: %v", err)
+	}
+}
+
+// TestUndoKeysExact: a key removed from several lines gets every line back,
+// and an undo before the apply writes nothing.
+func TestUndoKeysExact(t *testing.T) {
+	h := pve9(t)
+	restricted := `from="192.0.2.0/24" ` + keyBob
+	h.AddFile(pve.ClusterKeys, []byte(keyWeb01+"\n"+keyWeb02+"\n"+keyBob+"\n"+restricted+"\n"), 0o600, 0, wwwData)
+	k, _ := pve.ReadKeys(ctx, h, pveUp)
+	rm, err := pve.PlanKeys(k, pve.KeyEdit{Remove: []string{keyBob}})
+	if err != nil || !slices.Equal(rm.Removed, []string{keyBob, restricted}) {
+		t.Fatalf("PlanKeys = %+v, %v", rm, err)
+	}
+	before := len(h.Calls())
+	if err := pve.UndoKeys(ctx, h, pveUp, rm); err != nil || len(writes(h, before)) != 0 {
+		t.Errorf("undo before the apply: %v, wrote %q", err, writes(h, before))
+	}
+	if _, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), rm); err != nil {
+		t.Fatal(err)
+	}
+	if err := pve.UndoKeys(ctx, h, pveUp, rm); err != nil {
+		t.Fatal(err)
+	}
+	if f, _ := h.Entry(pve.ClusterKeys); string(f.Data) != string(k.Data) {
+		t.Errorf("after undo = %q, want %q", f.Data, k.Data)
+	}
+}
+
+// TestRollbackKeys: a KeysPlan survives p2-revert's journal (JSON), and
+// RollbackKeys undoes the decoded plan, detecting Proxmox VE itself.
+func TestRollbackKeys(t *testing.T) {
+	h := pve9(t)
+	h.Respond(hostfake.Response{Stdout: "install ok installed\t9.2.22\n"}, "dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, "pve-manager")
+	h.AddFile("/usr/bin/pveversion", []byte("#!/usr/bin/perl\n"), 0o755, 0, 0)
+	h.AddFile("/proc/self/mounts", []byte("/dev/fuse /etc/pve fuse rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other 0 0\n"), 0o444, 0, 0)
+	k, _ := pve.ReadKeys(ctx, h, pveUp)
+	p, err := pve.PlanKeys(k, pve.KeyEdit{Add: []string{keyAlice, keyBob}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var back pve.KeysPlan
+	if err := json.Unmarshal(data, &back); err != nil || !reflect.DeepEqual(back, p) {
+		t.Fatalf("round trip = %+v, %v; want %+v", back, err, p)
+	}
+	before := len(h.Calls())
+	if err := pve.RollbackKeys(ctx, h, back); err != nil || len(writes(h, before)) != 0 {
+		t.Errorf("rollback before the apply: %v, wrote %q", err, writes(h, before))
+	}
+	if _, err := pve.ApplyKeys(ctx, h, pveUp, openRun(t, h), p); err != nil {
+		t.Fatal(err)
+	}
+	if err := pve.RollbackKeys(context.WithoutCancel(ctx), h, back); err != nil {
+		t.Fatal(err)
+	}
+	if f, _ := h.Entry(pve.ClusterKeys); string(f.Data) != string(k.Data) {
+		t.Errorf("after the rollback = %q", f.Data)
+	}
+	// Off Proxmox VE, as detected then, it changes nothing.
+	off := hostfake.New(host.Options{})
+	off.Respond(hostfake.Response{ExitCode: 1}, "dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, "pve-manager")
+	off.AddFile("/proc/self/mounts", nil, 0o444, 0, 0)
+	if err := pve.RollbackKeys(ctx, off, back); !errors.Is(err, pve.ErrNotApplicable) {
+		t.Errorf("off Proxmox VE: %v", err)
 	}
 }
