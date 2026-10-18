@@ -12,6 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
@@ -118,6 +119,45 @@ func Check(ctx context.Context, sys host.System, p Plan, opts Options) (sshd.Eff
 // with reload.PlanFor, with p.SocketDropIns' drop-ins, at plan time.
 func (p Plan) Reload(after sshd.Effective) reload.Change {
 	return reload.Change{Keywords: slices.Clone(p.Keywords), Before: p.Listening, After: slices.Clone(after.Listeners.SSHD)}
+}
+
+// Rollback is the reload of p's rollback, once its backups are restored:
+// what the change journal keeps (revert.Reload: Keywords, After,
+// SocketDropIns) and the rollback plans with reload.PlanFor. After is the
+// listeners that accept connections now, p.Listening.All (on a socket
+// host whose generator follows the files, ssh.socket's), which the
+// restored files must give back; on a socket host, RestoredDropIns are
+// the ssh.socket drop-ins p removes (listen.conf), which the restore puts
+// back. No Keywords: nothing to reload. Check it with CheckRollback.
+func (p Plan) Rollback() reload.Change {
+	c := reload.Change{Keywords: slices.Clone(p.Keywords), After: slices.Clone(p.Listening.All), Rollback: true}
+	if p.SSH.Mode == detect.SSHSocket {
+		for _, op := range p.Ops {
+			if op.Kind == OpRemoveSocketDropIn {
+				c.RestoredDropIns = append(c.RestoredDropIns, op.Path)
+			}
+		}
+	}
+	return c
+}
+
+// CheckRollback plans p's rollback reload (Rollback) at plan time, before
+// anything changes, as the rollback will plan it once the files are back:
+// over d, reload.ReadSocketDropIns's answer read before Apply, which is
+// the state the restore gives back, and p.SSH. It returns reload.PlanFor's
+// refusal, so that a migration whose rollback could not finish is not
+// applied. Above all, on a socket host, a listen.conf whose listeners are
+// not exactly the socket's now (reload.ErrRestoredListeners): where v0.3.x
+// wrote it and ran no daemon-reload (D9), the socket still on port 22, or
+// where the socket is configured for more than listen.conf gives. The
+// rollback's daemon-reload would move the socket to listen.conf's alone,
+// and the check after it would then stop the rollback, unfinished
+// (docs/safety/revert-plans.md).
+func (p Plan) CheckRollback(d reload.SocketDropIns) error {
+	if _, err := reload.PlanFor(reload.Input{SSH: p.SSH, Change: p.Rollback(), DropIns: d}); err != nil {
+		return fmt.Errorf("migrate: the rollback's reload would be refused, so the migration is not applied: %w", err)
+	}
+	return nil
 }
 
 // SocketDropIns is d, reload.ReadSocketDropIns's answer read before Apply,
