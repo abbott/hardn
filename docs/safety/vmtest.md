@@ -225,7 +225,7 @@ For each VM: the transcripts, `journalctl -u 'hardn-revert-*'` (systemd) or `/va
 
 #### Debian 13, run 2026-10-19
 
-Built from `next/p2-revert-plans` (a7f873c), linux/amd64. The VM: Debian 13 (trixie), OpenSSH 10.0p2 (Debian-7+deb13u4), sudo 1.9.16p2, systemd with `ssh.service` (no socket), the stock first-line `Include`, `PasswordAuthentication no` and `KbdInteractiveAuthentication no` already in the main file, `/usr/local` `root:root 0755`. The runner was the development machine (`192.0.2.10` below), the VM `192.0.2.20`; the transcripts, with the real addresses, are kept outside the repository. The VM had no working DNS, so `apt install ufw` was not possible: every ufw step is **not run** (ufw not installed, `--ufw keep` had nothing to do).
+Built from `next/p2-revert-plans` (a7f873c), linux/amd64. The VM: Debian 13 (trixie), OpenSSH 10.0p2 (Debian-7+deb13u4), sudo 1.9.16p2, systemd with `ssh.service` (no socket), the stock first-line `Include`, `PasswordAuthentication no` and `KbdInteractiveAuthentication no` already in the main file, `/usr/local` `root:root 0755`. The runner was the development machine (`192.0.2.10` below), the VM `192.0.2.20`; the transcripts, with the real addresses, are kept outside the repository. The VM had no working DNS at first, so the steps below ran without ufw (not installed: `--ufw keep` had nothing to do); the ufw steps ran later the same day, once the VM could install packages (the ufw pass, below).
 
 Snapshots could not be reverted from the runner, so the steps ran in an order where each rollback returns the VM to the state the next step needs: 1, 2, 5, 11 (also 12), 6–9, 10, 13, 14.
 
@@ -233,7 +233,7 @@ Snapshots could not be reverted from the runner, so the steps ran in an order wh
 |---|---|---|
 | 1 | **pass** | `facts`: Debian 13 supported, systemd, `ssh.service`, not Proxmox VE; `sshd -T` port 22 known; listeners `[::]:22` and `0.0.0.0:22` known, socket none; ufw not installed; sudo (flavour sudo). It also reports `effective-unknown: the conflict report is not established` because `00-hardn.conf` does not exist yet: by design ([sshd-effective.md](sshd-effective.md), `ConflictsKnown`) |
 | 2 | **pass** | the real sshd refused the candidate (`unsupported option "maybe"`), mapped to `/etc/ssh/sshd_config.d/00-hardn.conf line 4`; nothing written, nothing reloaded; exit 0 |
-| 3, 4 | not run | ufw not installed (no DNS on the VM) |
+| 3, 4 | see the ufw pass | ufw not installed in this pass (no DNS on the VM) |
 | 5 | **pass** | plan only: `Port 22` and `Port 2230`, backup first, `systemctl reload ssh.service`, 22 held and 2230 added; nothing changed |
 | 6 | **pass** | the timer runs `/usr/local/bin/hardn` with the build's sha256; backup of the absent `00-hardn.conf`; `reload: verified true`; `sshd -T` after: port 22 and 2230; listeners on both families for 22 and 2230 |
 | 7 | **pass** | key login on 2230 and on 22, both exit 0, during the window |
@@ -255,7 +255,28 @@ Found by the run:
 - `p2drive sudoers` said `checked with` (empty) and `installed [...]` for a removal: fixed with this record (it now names the whole-configuration check and says written or removed).
 - The legacy logger (`[INFO]`, `[ERROR]`) writes colour codes when its output is not a terminal: for p3-output, which replaces it.
 
-Still to run on Debian 13: steps 3 and 4 and `port --ufw enable` (ufw), once the VM can install packages.
+##### The ufw pass
+
+Same build and VM, after `apt install ufw` (0.36.2-9; iptables 1.8.11, nf_tables), left inactive with Debian's defaults (`IPV6=yes`, `DEFAULT_INPUT_POLICY="DROP"`). The first pass's state (its `00-hardn.conf`, the two sudoers drop-ins, `/var/lib/hardn`, `/var/backups/hardn`) was moved aside first, which left the VM as `p2-clean`. The runner's connections were IPv4 only: the VM has no global IPv6 address. Order: 1, 3, 5, 11 (with 7 in its window), 6, 9, then `port --ufw enable` twice from an inactive ufw with no rules (reset by hand: `ufw disable`, the two `ufw delete allow`, `00-hardn.conf` moved aside).
+
+| # | Result | Notes |
+|---|---|---|
+| 1 | **pass** | `ufw: installed true, active false, enabled false, ipv6 true, incoming deny`; both listeners on 22 `allowed (ufw is inactive)` |
+| 3 | **pass** | plan: `ufw allow 22/tcp`, then `ufw --force enable` (the stock policy already denies incoming, so no `ufw default` step); armed; `firewall: verified true`; the applying session ran its next command after the enable; `confirm 22` from a new connection: confirmed, the timer stopped; `ufw status verbose`: active, deny (incoming), 22/tcp allowed over IPv4 and IPv6 |
+| 4 | not run | no snapshot from the runner: the state after step 3 stood in for `p2-ufw` |
+| 5 | **pass** | with ufw active the plan has `ufw allow 2230/tcp` before the backup and the reload; nothing changed |
+| 6 | **pass** | `ufw allow 2230/tcp` after the timer and before the backup; `firewall: verified true`; `reload: verified true`; listeners on 22 and 2230 |
+| 7 | **pass** | in step 11's window, key login on 2230 and on 22 through the active ufw, both exit 0 |
+| 9 | **pass** | `confirm 2230` from a new connection: confirmed, the timer stopped; ufw keeps 22 and 2230 |
+| 11 | **pass** | not confirmed: at the deadline, to the second, the timer removed `00-hardn.conf`, ran `ufw delete allow 2230/tcp` (`undo 1 of 1`), reloaded `ssh.service` and read 22 alone in `ss`; ufw active with 22 alone; from the runner `key 2230` timed out (ufw drops it) and `key 22` exit 0; `hardn confirm`: "was rolled back at …, because it was not confirmed within 180s" |
+| `port --ufw enable` | **pass** | plan `ufw allow 22/tcp`, `ufw allow 2230/tcp`, then `ufw --force enable`, run in that order after the timer; the journal's undo: `ufw disable`, `ufw delete allow 2230/tcp`, `ufw delete allow 22/tcp`. Not confirmed: at the deadline the timer ran those three (`undo 1 of 3` to `3 of 3`), removed `00-hardn.conf` and reloaded: ufw inactive, `ufw show added` (None), `ENABLED=no`, 22 alone. Run again and confirmed from a new connection to 2230: ufw active, deny (incoming), 22 and 2230 allowed, `ENABLED=yes`; the VM was left so |
+
+Facts this pass settled ([ufw.md](ufw.md) §4, on Debian 13, over IPv4):
+- An established SSH connection survives `ufw --force enable`; new connections to the allowed ports are accepted, and a port whose rule is deleted then times out (ufw drops, it does not refuse).
+- ufw's answers: `allow` "Rules updated" / "Rules updated (v6)" while inactive, "Rule added" / "Rule added (v6)" while active; `delete allow` "Rules updated" (and v6) while inactive, "Rule deleted" / "Rule deleted (v6)" while active; `--force enable` "Firewall is active and enabled on system startup"; `disable` "Firewall stopped and disabled on system startup". `ufw delete allow N/tcp` ran without a prompt, from the timer's service with no terminal.
+- ufw is `/usr/sbin/ufw` on Debian 13, inside `host.SearchPath` ([system.md](system.md) §3).
+
+Not covered by the ufw pass: IPv6 connections, `ufw default deny incoming` on an active ufw, and the rest of [ufw.md](ufw.md) §4 (the rule forms, the partial failures, Ubuntu and Alpine).
 
 ## 5. The images
 
