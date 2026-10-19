@@ -57,6 +57,11 @@
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | proposed |
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
+| [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
+| [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | proposed |
+| [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | proposed |
+| [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
+| [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 
 ---
 
@@ -641,8 +646,8 @@
 - **Risk:** Medium [I]: a legacy command that depended on the inherited environment, the working directory or a tool outside the four directories (only `uv` is likely, on a path unreachable on origin/main) would fail on hosts; the goldens cannot show it, because the change sits below the seam they record.
 - **Screenshots:** none (no screen changes).
 
-<a id="p-xx-ufw"></a>
-### P-XX-ufw: UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist
+<a id="p-33"></a>
+### P-33: UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist
 
 - **Status:** proposed
 - **Source:** `next/p2-ufw` and its review (2026-10-17): V8's open approach, "adding an allow rule the user didn't ask for", which has no §3 row ([side-effects.md](phase0/side-effects.md), V8 row); [docs/safety/ufw.md](../safety/ufw.md) §2.7, §2.9. Related: [P-16](#p-16), [P-20](#p-20).
@@ -658,8 +663,8 @@
 - **Risk:** Low for (1) and (2)(a); Medium for (2)(b) (new rule forms to read back and undo) and (3)(b) (the session's address is one client among those the blocklist may concern).
 - **Screenshots:** none (no screen changes).
 
-<a id="p-xx-revert"></a>
-### P-XX-revert: A reboot inside the confirm window
+<a id="p-34"></a>
+### P-34: A reboot inside the confirm window
 
 - **Status:** proposed
 - **Source:** `next/p2-revert` (brief 2.4; [docs/safety/revert.md](../safety/revert.md) §2.7, §2.20, §7).
@@ -672,7 +677,8 @@
 - **Risk:** Low for (a), which leaves a lockout through a reboot unrepaired; Medium for (b) and (c): a boot-time rollback acts while nobody watches, and must not run against a journal from a hardn that was since replaced or a change the user meant to keep (confirmed late, after the reboot).
 - **Screenshots:** none (no screen changes).
 
-### P-XX-revert-abandon: Giving up a rollback that cannot finish
+<a id="p-35"></a>
+### P-35: Giving up a rollback that cannot finish
 
 - **Status:** proposed
 - **Source:** `next/p2-revert` (review fixes; [docs/safety/revert.md](../safety/revert.md) §2.16, §7).
@@ -682,11 +688,11 @@
 - **Risk:** Low: it only frees the journal; a user could abandon a rollback that a retry would have finished, so the wording must show what is left undone.
 - **Screenshots:** none (no screen changes).
 
-<a id="p-xx-pve"></a>
-### P-XX-pve: An `AllowUsers` without root on Proxmox VE: add root, or refuse
+<a id="p-36"></a>
+### P-36: An `AllowUsers` without root on Proxmox VE: add root, or refuse
 
 - **Status:** proposed
-- **Source:** `next/p2-pve` ([docs/safety/pve.md](../safety/pve.md) §2.5); the open item `next/p0-hazards` left to that unit: legacy `ConfigureSSH` writes the configured `AllowUsers`, which can leave root out and so block the cluster's root logins whatever `PermitRootLogin` says. Related: V11, plan R15, [P-XX-ufw](#p-xx-ufw) (rules hardn adds on its own).
+- **Source:** `next/p2-pve` ([docs/safety/pve.md](../safety/pve.md) §2.5); the open item `next/p0-hazards` left to that unit: legacy `ConfigureSSH` writes the configured `AllowUsers`, which can leave root out and so block the cluster's root logins whatever `PermitRootLogin` says. Related: V11, plan R15, [P-33](#p-33) (rules hardn adds on its own).
 - **Problem:** Proxmox VE's nodes log in to each other as root, by key, on port 22 (pve-docs, Cluster Manager). An `AllowUsers alice` in hardn's settings would stop that. `pve.PlanSSH` adds `root` to such an `AllowUsers` (`AllowUsers alice root`) and reports it (`root-allowed`): hardn then writes a user the configuration did not name. A `root@<host>` entry does not count, since the other nodes' addresses are not read, so `root` is added beside it. Root stays key-only either way (`PermitRootLogin prohibit-password`).
 - **Proposal:** the maintainer decides:
   - (a) add `root` and say so in the plan, as built;
@@ -695,3 +701,21 @@
 - **Effort:** S for (a) and (b) (one branch and its test); M for (c).
 - **Risk:** Low for (a) (root by key from anywhere, as on a stock node); Low for (b), which blocks a hardening the user asked for until they edit the configuration; Medium for (c) (a node added later is locked out until hardn runs again).
 - **Screenshots:** none (no screen changes).
+
+<a id="p-37"></a>
+### P-37: DNS on hosts whose resolver hardn reports but does not configure
+
+- **Status:** proposed
+- **Source:** `next/p2-dns`, the DNS primitive ([docs/safety/dns.md](../safety/dns.md) §2.3, §2.9; V19). Brief 2.5 asks hardn to "configure that manager instead of overwriting the file"; the unit configures systemd-resolved (a drop-in) and plain files (Debian, Alpine, Proxmox VE), and reports the rest.
+- **Problem:**
+  - **resolvconf and NetworkManager hosts.** origin/main configured a resolvconf host by writing `/etc/resolvconf/resolv.conf.d/head` and running `resolvconf -u` (side-effects.md row 22), and never detected NetworkManager. The new primitive refuses both with `ErrManaged`, so on such a host the DNS screen would stop where origin/main wrote a file. The legacy `head` is documented for comment lines and is prepended to what the interfaces provide **[unverified: resolvconf(8) not read for this unit]**; NetworkManager rewrites a regular `/etc/resolv.conf` and keeps its servers per connection (NetworkManager.conf(5), `rc-manager`).
+  - **Per-link servers on systemd-resolved hosts.** Global `DNS=` does not displace the servers DHCP, netplan or networkd give each link: resolved queries them in parallel (resolved.conf(5)). A user who sets 192.0.2.53 on Ubuntu keeps querying the DHCP server too. The unit reports it (`dns-per-link`) and changes nothing per link.
+  - **Containers.** The unit refuses (`ErrContainer`): the container manager provides the file (Docker, LXC) **[unverified per runtime]**.
+- **Proposal:**
+  - (a) keep the unit's behaviour: report resolvconf, NetworkManager, per-link servers and containers, and let the slice-2 screen say what to change by hand;
+  - (b) add writers: resolvconf through its `base` (or origin/main's `head`) plus `resolvconf -u`, and NetworkManager through `nmcli connection modify <c> ipv4.dns … ipv4.ignore-auto-dns yes` on the active connections **[unverified: syntax not read for this unit]**, each with its own read-back check and undo;
+  - (c) on systemd-resolved, offer an explicit plan step that also stops the per-link servers (netplan `dhcp4-overrides: use-dns: false`, or a networkd drop-in `UseDNS=false` **[unverified: syntax not read for this unit]**), which can break name resolution where the DHCP server is the only resolver for a local zone.
+  - The recommendation is (a) for v0.4, and (b) and (c) only if hosts in use need them; either way the decision belongs to slice 2.
+- **Effort:** (a) none; (b) M per manager; (c) M.
+- **Risk:** (a) Low: no write on a host whose manager hardn does not understand; (b) and (c) Medium **[I]**: each is a new writer that can only be proved on a VM (gate 5).
+- **Screenshots:** none (no screen changes in this unit).
