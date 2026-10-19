@@ -262,7 +262,11 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		if ch.Remove {
 			verb = "remove"
 		}
-		d.say("plan: %s %s (%v, risk %v); checked with %s", verb, ch.Path, ch.Mode, ch.Risk, host.FormatArgv(ch.Check))
+		check := "the whole configuration, checked after the change"
+		if len(ch.Check) > 0 {
+			check = host.FormatArgv(ch.Check)
+		}
+		d.say("plan: %s %s (%v, risk %v); checked with %s", verb, ch.Path, ch.Mode, ch.Risk, check)
 	}
 	for _, fd := range plan.Findings {
 		d.say("finding %v: %s:%d %s", fd.Kind, fd.File, fd.Line, fd.Detail)
@@ -345,7 +349,18 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 	if pol.Grant == sudoers.GrantPassword {
 		check = "`sudo -v`, which asks the password (`doas true` on Alpine)"
 	}
-	d.say("installed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, %s", res.Installed, pol.User, pol.User, check)
+	var written, removed []string
+	for _, ch := range plan.Changes {
+		if !slices.Contains(res.Installed, ch.Path) {
+			continue
+		}
+		if ch.Remove {
+			removed = append(removed, ch.Path)
+		} else {
+			written = append(written, ch.Path)
+		}
+	}
+	d.say("written %v, removed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, %s", written, removed, pol.User, pol.User, check)
 	if !lockout {
 		if err := revert.Done(ctx, d.sys, j.ID, opts); err != nil {
 			return fail("clear the journal", err)
