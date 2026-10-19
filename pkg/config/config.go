@@ -94,6 +94,11 @@ type Config struct {
 	LogsConfig struct {
 		LogFilePath string
 	}
+
+	// loaded is what the YAML said beyond the fields: permitRootLogin's
+	// string value and the deprecated forms read, and the path LoadConfig
+	// read (rootlogin.go).
+	loaded loaded
 }
 
 // Default configuration
@@ -263,6 +268,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 			if err := CreateDefaultConfig(path, config); err != nil {
 				return nil, fmt.Errorf("failed to create default config at %s: %w", path, err)
 			}
+			config.setPath(path)
 			return config, nil
 		}
 
@@ -281,6 +287,10 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", configPath, err)
 	}
+	if err := checkLoaded(config); err != nil {
+		return nil, fmt.Errorf("config file %s: %w", configPath, err)
+	}
+	config.setPath(configPath)
 
 	return config, nil
 }

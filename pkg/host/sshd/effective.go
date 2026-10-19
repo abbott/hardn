@@ -82,6 +82,11 @@ type Listeners struct {
 	Socket []Listener
 	// SocketRead: ssh.socket's listeners were read (SocketMayListen).
 	SocketRead bool
+	// SocketComplete: SocketRead, and every line systemctl show -p Listen
+	// printed was read (none in a form other than "Listen=<address>
+	// (Stream)"), so Socket is the whole of what it printed. It does not
+	// say that Socket is non-empty (p2-sshd-migrate).
+	SocketComplete bool
 	// All is every listener the sources read name, without repeats, sshd's
 	// first. It is complete only when Known: with Known false a source may
 	// be missing or unreadable (a Finding says which), so All is then not a
@@ -270,8 +275,10 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 	kw, err := parseT(in.Effective)
 	if err != nil { // nothing of sshd's is read; the socket's listeners are kept
 		if l := &e.Listeners; SocketMayListen(in.SSH) {
+			var bad []string
 			l.SocketRead = true
-			l.Socket, _ = socketListeners(in.Socket)
+			l.Socket, bad = socketListeners(in.Socket)
+			l.SocketComplete = len(bad) == 0
 			l.All = union(l.Socket)
 		}
 		return e, []Finding{{Kind: FindingUnknown, Detail: err.Error()}}
@@ -537,6 +544,7 @@ func listeners(addrs []string, ssh detect.SSH, socket []byte) (l Listeners, foun
 	if l.SocketRead = SocketMayListen(ssh); l.SocketRead {
 		var sbad []string
 		l.Socket, sbad = socketListeners(socket)
+		l.SocketComplete = len(sbad) == 0
 		switch {
 		case len(sbad) > 0:
 			unknown(FindingUnknown, "systemctl show -p Listen %s printed %q, not an address, a port and (Stream)", SocketUnit, sbad)

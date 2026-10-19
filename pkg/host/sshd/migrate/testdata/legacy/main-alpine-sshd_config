@@ -1,0 +1,16 @@
+# SSH configuration managed by Hardn
+
+Protocol 2
+StrictModes yes
+
+Port 22
+
+AuthenticationMethods publickey
+PubkeyAuthentication yes
+
+PermitRootLogin no
+
+PasswordAuthentication no
+PermitEmptyPasswords no
+
+AuthorizedKeysFile .ssh/authorized_keys

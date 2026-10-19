@@ -35,7 +35,8 @@ nameservers:                      # DNS servers to configure
 sshPort: 22                       # SSH port (this is the authoritative SSH port used throughout the configuration)
                                   # Consider using a non-standard port (e.g., 2208) as a security measure
 
-permitRootLogin: false            # Allow or deny root SSH access
+permitRootLogin: "no"             # Root SSH login: "no" or "yes"
+                                  # (true and false still work but are deprecated: write "no" or "yes")
 sshAllowedUsers:                  # List of users allowed to access via SSH
   - "george"
 sshListenAddress: "0.0.0.0"       # IP address to listen on

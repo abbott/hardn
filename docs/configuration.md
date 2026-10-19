@@ -142,7 +142,8 @@ nameservers:                        # DNS servers to configure
 ```yaml
 sshPort: 22                         # SSH port (this is the authoritative SSH port used throughout the configuration)
                                     # Consider using a non-standard port (e.g., 2208) as a security measure
-permitRootLogin: false              # Allow or deny root SSH access
+permitRootLogin: "no"               # Root SSH login: "no" or "yes";
+                                    # true and false still work but are deprecated: write "no" or "yes"
 sshAllowedUsers:                    # List of users allowed to access via SSH
   - "george"
 sshListenAddress: "0.0.0.0"         # IP address to listen on
@@ -210,7 +211,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 3. **SSH Security**: Always use key-based authentication:
    ```yaml
    sshPort: 2208                    # Non-standard SSH port (security measure; Default: 22)
-   permitRootLogin: false
+   permitRootLogin: "no"
    sshKeys:
      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
    ```
