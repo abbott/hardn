@@ -94,8 +94,31 @@ const (
 	FindingMatchUntargeted
 	// FindingWarning: sshd -t passed, and complained about a line.
 	FindingWarning
+	// FindingOverridden: a line of another file is read before hardn's and
+	// sets the same keyword, so sshd uses it, not hardn's (first value
+	// wins). ReadEffective and Evaluate report it.
+	FindingOverridden
+	// FindingShadowed: a line of another file sets a keyword hardn sets, to
+	// another value, and is read after hardn's, so it has no effect while
+	// hardn's line is there (brief 2.2: reported, never edited).
+	FindingShadowed
+	// FindingAccumulates: another file adds values to a keyword whose
+	// values accumulate (Port, AllowUsers, ...), as hardn's file does.
+	FindingAccumulates
+	// FindingMatchOverride: a Match block sets a keyword hardn sets; for
+	// the connections it matches its value applies. Also: hardn's own line
+	// is inside a Match block.
+	FindingMatchOverride
+	// FindingDisagree: two sources of an effective value disagree (sshd -T
+	// and ssh.socket, or sshd -T and the files), so the value is Unknown.
+	FindingDisagree
+	// FindingUnknown: an effective value is Unknown for another reason:
+	// output not in a form hardn knows, or the SSH mode not established.
+	FindingUnknown
 )
 
+// String is the finding's code. Codes are stable: scripts and p3-output's
+// findings[] match on them (TestFindingCodes pins them).
 func (k FindingKind) String() string {
 	switch k {
 	case FindingClobberable:
@@ -106,6 +129,18 @@ func (k FindingKind) String() string {
 		return "match-untargeted"
 	case FindingWarning:
 		return "sshd-warning"
+	case FindingOverridden:
+		return "overridden"
+	case FindingShadowed:
+		return "shadowed"
+	case FindingAccumulates:
+		return "accumulates"
+	case FindingMatchOverride:
+		return "match-override"
+	case FindingDisagree:
+		return "sources-disagree"
+	case FindingUnknown:
+		return "effective-unknown"
 	}
 	return "unknown"
 }
@@ -316,23 +351,37 @@ func (c config) check(ctx context.Context, sys host.System, req Request, work st
 		return err
 	}
 	rep.Effective = res.Stdout
-	dns := useDNS(rep.Effective)
+	probes, findings, err := c.probe(req.Conn, rep.Effective, func(extra ...string) (host.Result, error) {
+		return run("-T", extra...)
+	})
+	rep.Probes, rep.Findings = probes, append(rep.Findings, findings...)
+	return err
+}
+
+// probe runs runT("-C", spec) for each Match block of c, with a connection
+// made to satisfy the block's criteria (target), starting from base;
+// effective is sshd -T's output, for UseDNS. A block the connection may not
+// satisfy is a FindingMatchUntargeted, and is probed all the same. It stops
+// at the first failed run, returning the probes made before it.
+func (c config) probe(base Conn, effective []byte, runT func(extra ...string) (host.Result, error)) (ps []Probe, found []Finding, err error) {
+	dns := useDNS(effective)
 	for _, m := range c.matches() {
 		p := Probe{Block: m.Block}
-		p.Conn, p.Reasons = target(m.args, req.Conn, dns)
+		p.Conn, p.Reasons = target(m.args, base, dns)
 		if err := p.Conn.check(); err != nil {
-			p.Conn, p.Reasons = req.Conn, append(p.Reasons, err.Error())
+			p.Conn, p.Reasons = base, append(p.Reasons, err.Error())
 		}
 		if len(p.Reasons) > 0 {
-			rep.Findings = append(rep.Findings, Finding{FindingMatchUntargeted, m.File, m.Line, strings.Join(p.Reasons, "; ")})
+			found = append(found, Finding{FindingMatchUntargeted, m.File, m.Line, strings.Join(p.Reasons, "; ")})
 		}
-		if res, err = run("-T", "-C", p.Conn.Spec()); err != nil {
-			return err
+		res, err := runT("-C", p.Conn.Spec())
+		if err != nil {
+			return ps, found, err
 		}
 		p.Output = res.Stdout
-		rep.Probes = append(rep.Probes, p)
+		ps = append(ps, p)
 	}
-	return nil
+	return ps, found, nil
 }
 
 // match is a Match line and its criteria, the text after the keyword.

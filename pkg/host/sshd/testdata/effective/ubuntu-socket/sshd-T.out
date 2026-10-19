@@ -1,0 +1,15 @@
+port 2230
+addressfamily any
+listenaddress [::]:2230
+listenaddress 0.0.0.0:2230
+usepam yes
+permitrootlogin prohibit-password
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+usedns no
+allowusers alice
+acceptenv LANG
+acceptenv LC_*
+subsystem sftp /usr/lib/openssh/sftp-server

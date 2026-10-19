@@ -1,0 +1,17 @@
+port 22
+port 2230
+port 22
+addressfamily any
+listenaddress [::]:22
+listenaddress 0.0.0.0:22
+listenaddress [::]:2230
+listenaddress 0.0.0.0:2230
+listenaddress [::]:22
+listenaddress 0.0.0.0:22
+permitrootlogin prohibit-password
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+usedns no
+allowusers alice
+allowusers bob
