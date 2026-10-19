@@ -1,0 +1,16 @@
+[OPTIONS]
+
+enable: 1
+policy_in: DROP
+
+[IPSET management] # administrators
+
+192.0.2.0/24
+
+[RULES]
+
+IN ACCEPT -source +management -p tcp -dport 22 # SSH from the admins
+|IN DROP -p tcp -dport 8006 # disabled
+IN DROP -p tcp -dport 3306
+IN DROP -p udp
+OUT ACCEPT

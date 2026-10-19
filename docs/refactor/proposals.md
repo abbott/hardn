@@ -681,3 +681,17 @@
 - **Effort:** S (a flag, its wording, a test).
 - **Risk:** Low: it only frees the journal; a user could abandon a rollback that a retry would have finished, so the wording must show what is left undone.
 - **Screenshots:** none (no screen changes).
+
+<a id="p-xx-pve"></a>
+### P-XX-pve: An `AllowUsers` without root on Proxmox VE: add root, or refuse
+
+- **Status:** proposed
+- **Source:** `next/p2-pve` ([docs/safety/pve.md](../safety/pve.md) §2.5); the open item `next/p0-hazards` left to that unit: legacy `ConfigureSSH` writes the configured `AllowUsers`, which can leave root out and so block the cluster's root logins whatever `PermitRootLogin` says. Related: V11, plan R15, [P-XX-ufw](#p-xx-ufw) (rules hardn adds on its own).
+- **Problem:** Proxmox VE's nodes log in to each other as root, by key, on port 22 (pve-docs, Cluster Manager). An `AllowUsers alice` in hardn's settings would stop that. `pve.PlanSSH` adds `root` to such an `AllowUsers` (`AllowUsers alice root`) and reports it (`root-allowed`): hardn then writes a user the configuration did not name. A `root@<host>` entry does not count, since the other nodes' addresses are not read, so `root` is added beside it. Root stays key-only either way (`PermitRootLogin prohibit-password`).
+- **Proposal:** the maintainer decides:
+  - (a) add `root` and say so in the plan, as built;
+  - (b) refuse the change with `ErrRootExcluded` until the configuration lists root (or the user removes `AllowUsers`), as `PlanSSH` already does for a `DenyUsers` matching root;
+  - (c) add `root@<each node's address>` from the cluster's configuration instead of a bare `root` (new reads: corosync's node list).
+- **Effort:** S for (a) and (b) (one branch and its test); M for (c).
+- **Risk:** Low for (a) (root by key from anywhere, as on a stock node); Low for (b), which blocks a hardening the user asked for until they edit the configuration; Medium for (c) (a node added later is locked out until hardn runs again).
+- **Screenshots:** none (no screen changes).
