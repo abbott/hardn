@@ -66,6 +66,11 @@ type opEnv struct {
 	factory *infrastructure.ServiceFactory
 	// fixtureNotes describe host state that the maps alone do not show.
 	fixtureNotes []string
+	// seed copies the fixture into the seams; runCell calls it after setup.
+	// Under viaSystem, fs and mc are inputs only: the hostfake.System behind
+	// the recorders answers from them and never writes back, so a test that
+	// runs viaSystem asserts on log, not on fs.Files or mc.ExecutedCommands.
+	seed func()
 }
 
 // fixtureConfig is config.DefaultConfig() with synthetic overrides, then the
@@ -89,13 +94,24 @@ func fixtureConfig(dryRun bool) *config.Config {
 	return cfg
 }
 
-func newOpEnv(cell osCell, dryRun bool) *opEnv {
+// newOpEnv builds an opEnv whose recorders wrap the seams via selects: at
+// most one; none means viaMocks, the seams the goldens are recorded on, which
+// tests that assert on fs and mc need (under viaSystem they are inputs only).
+func newOpEnv(cell osCell, dryRun bool, via ...seam) *opEnv {
+	if len(via) > 1 {
+		panic("newOpEnv: at most one seam")
+	}
+	sel := viaMocks
+	if len(via) == 1 {
+		sel = via[0]
+	}
 	fs := interfaces.NewMockFileSystem()
 	mc := interfaces.NewMockCommander()
+	innerFS, innerCmd, seed := legacySeams(sel, fs, mc)
 	log := &trace{}
-	rc := &recordingCommander{inner: mc, log: log}
+	rc := &recordingCommander{inner: innerCmd, log: log}
 	provider := &interfaces.Provider{
-		FS:        recordingFS{inner: fs, log: log},
+		FS:        recordingFS{inner: innerFS, log: log},
 		Commander: rc,
 		Network:   interfaces.NewMockNetworkOperations(),
 	}
@@ -103,7 +119,7 @@ func newOpEnv(cell osCell, dryRun bool) *opEnv {
 	cfg := fixtureConfig(dryRun)
 	factory := infrastructure.NewServiceFactory(provider, osInfo)
 	factory.SetConfig(cfg)
-	env := &opEnv{cell: cell, cfg: cfg, fs: fs, mc: mc, cmd: rc, log: log, factory: factory}
+	env := &opEnv{cell: cell, cfg: cfg, fs: fs, mc: mc, cmd: rc, log: log, factory: factory, seed: seed}
 	env.defaultHostProbes()
 	return env
 }
@@ -813,12 +829,13 @@ func markerLines(known []string, fixed []fixedItem) []string {
 
 // runCell runs one scenario on one cell with one DryRun value and returns
 // the section text and what its trace shows.
-func runCell(t *testing.T, sc opScenario, cell osCell, dryRun bool) (fixture, section string, o observed) {
+func runCell(t *testing.T, sc opScenario, cell osCell, dryRun bool, via seam) (fixture, section string, o observed) {
 	t.Helper()
-	e := newOpEnv(cell, dryRun)
+	e := newOpEnv(cell, dryRun, via)
 	if sc.setup != nil {
 		sc.setup(e)
 	}
+	e.seed()
 	fixture = describeFixture(e)
 	results := sc.run(e)
 
@@ -884,6 +901,20 @@ func describeFixture(e *opEnv) string {
 // code now has them: each gate's FIXED or KNOWN-DEFECT line follows what the
 // body shows (gateCheck).
 func TestOperationGoldens(t *testing.T) {
+	testOperationGoldens(t, viaMocks)
+}
+
+// TestOperationGoldensThroughSystem runs every scenario again through the
+// legacy interfaces' adapters over host.System (viaSystem) and compares with
+// the same goldens. It never rewrites them: -update regenerates from the mocks.
+func TestOperationGoldensThroughSystem(t *testing.T) {
+	if *update {
+		t.Skip("compare-only; -update regenerates the goldens through TestOperationGoldens")
+	}
+	testOperationGoldens(t, viaSystem)
+}
+
+func testOperationGoldens(t *testing.T, via seam) {
 	// SetupSudoPreservation reads SUDO_USER/USER (file_environment_repository.go:135-138)
 	// and os.TempDir(); pin them so the goldens match on every machine.
 	t.Setenv("SUDO_USER", fixtureUser)
@@ -900,8 +931,8 @@ func TestOperationGoldens(t *testing.T) {
 	for _, sc := range opScenarios() {
 		for _, cell := range osCells {
 			t.Run(sc.name+"/"+cell.name, func(t *testing.T) {
-				fixture, apply, o := runCell(t, sc, cell, false)
-				fixtureDry, dry, _ := runCell(t, sc, cell, true)
+				fixture, apply, o := runCell(t, sc, cell, false, via)
+				fixtureDry, dry, _ := runCell(t, sc, cell, true, via)
 				if fixture != fixtureDry {
 					t.Fatalf("fixture differs between DryRun runs:\n%s\n---\n%s", fixture, fixtureDry)
 				}

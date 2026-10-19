@@ -56,6 +56,7 @@
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed |
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | proposed |
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
+| [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
 
 ---
 
@@ -622,3 +623,20 @@
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `02-SSH_LOGIN.png`, `05-BACKUP.png`, `USER-SSH_KEYS.png`, `USER-CREATE_USER.png`, `USER-MANAGE_SUDO-CONFIRMATION.png`, `SSH_LOGIN-TOGGLE_CONFIRMATION.png` (reference only). After: `docs/refactor/img/p-31-after.png` (placeholder); the mocks' goldens show Figma's words meanwhile.
+
+## Safety-primitive units: further proposals
+
+<a id="p-32"></a>
+### P-32: Run the legacy commands and file calls through `host.Real`
+
+- **Status:** proposed
+- **Source:** `next/p2-system`, which builds `host.System`, adapters from the legacy `interfaces.Commander`/`FileSystem` to it, and the gate `legacyThroughHost` in `pkg/interfaces/system_adapter.go`, shipped `false`. Review of that unit (2026-10-17): the change is a behaviour change with no §3 row or V-number, so it needs the maintainer (brief §3 principle 2; plan §1, review template item 2).
+- **Problem:** with the gate off, legacy production code (`OSCommander`, `OSFileSystem`) keeps calling os/exec and os directly, and only new code goes through `host.Real`: two execution paths until Phase 3 migrates each area. With it on, every legacy command changes, all **written, not run** (gate 5): resolved from `/usr/sbin:/usr/bin:/sbin:/bin` only; environment exactly `PATH` and `LC_ALL=C` (children lose `HOME`, `TERM`, `LANG`, `USER`, `SUDO_*`); working directory `/`; a different "command not found" text; stdout and stderr interleaved only approximately in the combined output; at most 10 s of waiting for pipes a daemon holds, then the pipes are closed under it; every command in the run log. The full list, with sources, is [docs/safety/system.md](../safety/system.md) §5.
+- **Proposal:**
+  - (a) flip `legacyThroughHost` to `true` once `next/p2-vmtest` has run the legacy operations on the Debian 13, Ubuntu 26.04 and Alpine 3.24 VMs (system.md §4) with no regression;
+  - (b) flip it now, accepting the list above unrun;
+  - (c) keep it off, and let legacy code reach `host.Real` only as each area migrates in Phase 3.
+  - Either way the adapters and the through-System characterization goldens stay, so the flip is one constant.
+- **Effort:** S (one constant, plus any regression the VM run finds).
+- **Risk:** Medium [I]: a legacy command that depended on the inherited environment, the working directory or a tool outside the four directories (only `uv` is likely, on a path unreachable on origin/main) would fail on hosts; the goldens cannot show it, because the change sits below the seam they record.
+- **Screenshots:** none (no screen changes).

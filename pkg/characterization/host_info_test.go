@@ -33,14 +33,23 @@ import (
 // and so are the `hostname`/`domainname` commands it runs only when the real
 // hostname has no dot.
 func TestHostInfoGolden(t *testing.T) {
+	assertGolden(t, "host_info/debian.golden", hostInfoGolden(t, viaMocks))
+}
+
+// TestHostInfoGoldenThroughSystem is TestHostInfoGolden through the legacy
+// interfaces' adapters over host.System; compare-only, as
+// TestOperationGoldensThroughSystem.
+func TestHostInfoGoldenThroughSystem(t *testing.T) {
+	if *update {
+		t.Skip("compare-only; -update regenerates the golden through TestHostInfoGolden")
+	}
+	assertGolden(t, "host_info/debian.golden", hostInfoGolden(t, viaSystem))
+}
+
+func hostInfoGolden(t *testing.T, via seam) string {
+	t.Helper()
 	fs := interfaces.NewMockFileSystem()
 	mc := interfaces.NewMockCommander()
-	log := &trace{}
-	provider := &interfaces.Provider{
-		FS:        recordingFS{inner: fs, log: log},
-		Commander: &recordingCommander{inner: mc, log: log},
-		Network:   interfaces.NewMockNetworkOperations(),
-	}
 
 	fs.Files["/etc/os-release"] = []byte("PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"13\"\nVERSION=\"13 (trixie)\"\nVERSION_CODENAME=trixie\nID=debian\n")
 	fs.Files["/proc/uptime"] = []byte("15724003.25 31000000.00\n")
@@ -51,6 +60,15 @@ func TestHostInfoGolden(t *testing.T) {
 	fs.Files["/etc/resolv.conf"] = []byte("domain lan\nsearch lan\nnameserver 192.0.2.53\nnameserver 192.0.2.54\n")
 	mc.CommandOutputs["uname -r"] = []byte("6.12.0-example-amd64\n")
 	mc.CommandOutputs["df -k"] = []byte("Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/vda1       41251136 6291456  34959680  16% /\ntmpfs            8198468       0   8198468   0% /dev/shm\n/dev/vdb1      103885812 5242880  98642932   6% /srv\n")
+
+	innerFS, innerCmd, seed := legacySeams(via, fs, mc)
+	seed()
+	log := &trace{}
+	provider := &interfaces.Provider{
+		FS:        recordingFS{inner: innerFS, log: log},
+		Commander: &recordingCommander{inner: innerCmd, log: log},
+		Network:   interfaces.NewMockNetworkOperations(),
+	}
 
 	osInfo := &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}
 	factory := infrastructure.NewServiceFactory(provider, osInfo)
@@ -112,5 +130,5 @@ func TestHostInfoGolden(t *testing.T) {
 	for _, n := range []int64{0, 1023, 1536, 1048576, 1610612736, info.MemoryTotal} {
 		fmt.Fprintf(&b, "FormatBytes(%d) = %q\n", n, manager.FormatBytes(n))
 	}
-	assertGolden(t, "host_info/debian.golden", b.String())
+	return b.String()
 }

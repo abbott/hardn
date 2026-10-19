@@ -6,6 +6,11 @@
 // recorders that log every call in order. Nothing here executes a command, and
 // nothing writes outside t.TempDir() except -update rewriting testdata/golden.
 //
+// The *ThroughSystem tests run the same cases again with the recorders around
+// the legacy interfaces' adapters over host.System (next/p2-system), on a
+// hostfake.System scripted from the same mocks, and compare with the same
+// goldens: the adapters must not change what the seams record.
+//
 // The goldens are a baseline, not a specification: origin/main is the behaviour
 // baseline (maintainer decision 6), and lines tagged KNOWN-DEFECT name entries
 // of the Phase 0 V-list (side-effect inventory, V1-V27) that the refactor is
@@ -33,6 +38,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/interfaces"
 )
 
@@ -89,6 +96,50 @@ func (t *trace) String() string {
 		}
 	}
 	return b.String()
+}
+
+// seam is what the recorders wrap.
+type seam int
+
+const (
+	// viaMocks: interfaces.MockFileSystem and MockCommander themselves.
+	viaMocks seam = iota
+	// viaSystem: interfaces.SystemFileSystem and SystemCommander, the legacy
+	// interfaces' adapters over host.System (next/p2-system), over a
+	// hostfake.System scripted from the same mocks. The goldens must come
+	// out byte-identical: the adapters change nothing they record.
+	viaSystem
+)
+
+// legacySeams returns the FileSystem and Commander the recorders wrap, and a
+// seed func to call once the fixture is in fsys (a no-op for viaMocks). For
+// viaSystem, commands answer from mc's maps, read at call time as
+// MockCommander reads them, so a fixture's afterExec still changes the answers;
+// nothing is written back to fsys or mc, which stay inputs only.
+func legacySeams(via seam, fsys *interfaces.MockFileSystem, mc *interfaces.MockCommander) (interfaces.FileSystem, interfaces.Commander, func()) {
+	if via == viaMocks {
+		return fsys, mc, func() {}
+	}
+	fake := hostfake.New(host.Options{})
+	fake.Handler = func(argv []string, stdin []byte) hostfake.Response {
+		key := strings.Join(argv, " ") // MockCommander's key
+		if stdin != nil {
+			key = "INPUT:" + string(stdin) + "|" + key
+		}
+		if err := mc.CommandErrors[key]; err != nil {
+			return hostfake.Response{Err: err}
+		}
+		return hostfake.Response{Stdout: string(mc.CommandOutputs[key])}
+	}
+	seed := func() {
+		for d := range fsys.Directories {
+			fake.AddDir(d, 0o755, 0, 0)
+		}
+		for name, data := range fsys.Files {
+			fake.AddFile(name, data, 0o644, 0, 0)
+		}
+	}
+	return interfaces.SystemFileSystem{Sys: fake}, interfaces.SystemCommander{Sys: fake}, seed
 }
 
 // recordingFS wraps interfaces.MockFileSystem and logs every call.
