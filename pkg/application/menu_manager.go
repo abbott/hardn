@@ -20,6 +20,8 @@ type MenuManager struct {
 	environmentManager *EnvironmentManager
 	logsManager        *LogsManager
 	hostInfoManager    *HostInfoManager
+	// proxmoxCheck is the host's Proxmox VE check (SetProxmoxCheck)
+	proxmoxCheck func() bool
 }
 
 // In the struct definition:
@@ -75,6 +77,22 @@ func (m *MenuManager) AddSSHKey(username, publicKey string) error {
 // disable SSH access for the root user
 func (m *MenuManager) DisableRootSSH() error {
 	return m.sshManager.DisableRootSSH()
+}
+
+// SetProxmoxCheck wires in the host's Proxmox VE check, the one the SSH
+// and firewall repositories decide by (infrastructure.ServiceFactory's
+// IsProxmoxHost).
+func (m *MenuManager) SetProxmoxCheck(check func() bool) {
+	m.proxmoxCheck = check
+}
+
+// IsProxmoxHost reports whether hardn applies its Proxmox VE rules on this
+// host: no UFW, and root login set to key-only (PermitRootLogin
+// prohibit-password) where it would be turned off. The screens use it to
+// say what those operations do there. It is false when no check was wired
+// in, and while pkg/adapter/secondary's proxmoxTreatedAsDebian is set.
+func (m *MenuManager) IsProxmoxHost() bool {
+	return m != nil && m.proxmoxCheck != nil && m.proxmoxCheck()
 }
 
 // apply comprehensive system hardening

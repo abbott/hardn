@@ -19,6 +19,8 @@ type ServiceFactory struct {
 	config   *config.Config
 	// Cache for repositories to avoid creating multiple instances
 	userRepository portsecondary.UserRepository
+	// One Proxmox VE check, shared by the SSH and UFW repositories
+	proxmoxHost *secondary.ProxmoxHost
 }
 
 // NewServiceFactory creates a new ServiceFactory
@@ -32,6 +34,22 @@ func NewServiceFactory(provider *interfaces.Provider, osInfo *osdetect.OSInfo) *
 // SetConfig sets the configuration
 func (f *ServiceFactory) SetConfig(config *config.Config) {
 	f.config = config
+}
+
+// getProxmoxHost returns or creates the host's Proxmox VE check
+func (f *ServiceFactory) getProxmoxHost() *secondary.ProxmoxHost {
+	if f.proxmoxHost == nil {
+		f.proxmoxHost = secondary.NewProxmoxHost(f.provider.FS, f.provider.Commander, f.osInfo.OsType, f.osInfo.IsProxmox)
+	}
+	return f.proxmoxHost
+}
+
+// IsProxmoxHost reports whether the host is Proxmox VE by the check the
+// SSH and UFW repositories share, so a caller can say what they did there:
+// root login set to key-only rather than off, and UFW refused. It is false
+// while pkg/adapter/secondary's proxmoxTreatedAsDebian is set.
+func (f *ServiceFactory) IsProxmoxHost() bool {
+	return f.getProxmoxHost().IsProxmox()
 }
 
 // getUserRepository returns or creates a UserRepository
@@ -72,7 +90,7 @@ func (f *ServiceFactory) CreateUserManager() *application.UserManager {
 // CreateSSHManager creates an SSHManager with all required dependencies
 func (f *ServiceFactory) CreateSSHManager() *application.SSHManager {
 	// Create repository
-	sshRepo := secondary.NewFileSSHRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
+	sshRepo := secondary.NewFileSSHRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType, f.getProxmoxHost())
 
 	// Create domain service
 	sshService := service.NewSSHServiceImpl(sshRepo, convertOSInfo(f.osInfo))
@@ -94,7 +112,7 @@ func convertOSInfo(info *osdetect.OSInfo) model.OSInfo {
 // CreateFirewallManager creates a FirewallManager
 func (f *ServiceFactory) CreateFirewallManager() *application.FirewallManager {
 	// Create repository
-	firewallRepo := secondary.NewUFWFirewallRepository(f.provider.FS, f.provider.Commander)
+	firewallRepo := secondary.NewUFWFirewallRepository(f.provider.FS, f.provider.Commander, f.getProxmoxHost())
 
 	// Create domain service
 	firewallService := service.NewFirewallServiceImpl(firewallRepo, convertOSInfo(f.osInfo))
@@ -184,7 +202,7 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	securityManager := application.NewSecurityManager(
 		userManager, sshManager, firewallManager, dnsManager)
 
-	return application.NewMenuManager(
+	menuManager := application.NewMenuManager(
 		userManager,
 		sshManager,
 		firewallManager,
@@ -195,6 +213,8 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 		environmentManager,
 		logsManager,
 		hostInfoManager)
+	menuManager.SetProxmoxCheck(f.IsProxmoxHost)
+	return menuManager
 }
 
 // CreateBackupManager creates a BackupManager

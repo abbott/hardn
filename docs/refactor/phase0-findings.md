@@ -487,6 +487,8 @@ Full detail is in [phase0/side-effects.md](phase0/side-effects.md): the side-eff
 - The CLI exits 0 after operation failures (V25).
 - `--version` on release builds prints only cobra's `hardn version X`; v0.3.2 also printed the build date and commit.
 
+**After the review (P0.8, 2026-10-17):** V1, V4, V5 and V24 for `-c`, V10, V11, V26 and A4 are gated off, each behind a named constant with the old code kept; see [p0-hazards.md](p0-hazards.md).
+
 ---
 
 ## 8. Interaction audit (summary)

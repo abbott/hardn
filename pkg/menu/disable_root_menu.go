@@ -136,7 +136,10 @@ func (m *DisableRootMenu) Show() {
 
 		fmt.Println("\nDisabling root SSH access...")
 
-		if m.config.DryRun {
+		if m.menuManager.IsProxmoxHost() {
+			// Proxmox VE: key-only, not off (proxmoxTreatedAsDebian)
+			m.setRootKeyOnly()
+		} else if m.config.DryRun {
 			fmt.Printf("%s [DRY-RUN] Would disable root SSH access\n", style.BulletItem)
 		} else {
 			// Call application layer to disable root SSH access
@@ -202,6 +205,27 @@ func (m *DisableRootMenu) Show() {
 
 	fmt.Printf("\n%s Press Enter to return to the main menu...", style.BulletItem)
 	ReadKey()
+}
+
+// setRootKeyOnly is option 1 on a Proxmox VE host (IsProxmoxHost), where
+// DisableRootSSH sets root login to key-only (PermitRootLogin
+// prohibit-password) rather than off, since cluster nodes log in to each
+// other as root with keys (brief §2.5). It says so instead of "disabled",
+// and it does not restart sshd a second time: the edit restarts sshd when
+// it changes the file. In dry-run mode it only says what it would do.
+func (m *DisableRootMenu) setRootKeyOnly() {
+	if m.config.DryRun {
+		fmt.Printf("%s [DRY-RUN] Would set root SSH login to key-only (PermitRootLogin prohibit-password), as Proxmox VE clustering needs\n", style.BulletItem)
+		return
+	}
+	if err := m.menuManager.DisableRootSSH(); err != nil {
+		fmt.Printf("\n%s Failed to set root SSH login to key-only: %v\n",
+			style.Colored(style.Red, style.SymCrossMark), err)
+		return
+	}
+	fmt.Printf("\n%s Root SSH login set to %s (PermitRootLogin prohibit-password), not disabled\n",
+		style.Colored(style.Green, style.SymCheckMark), style.Bolded("key-only"))
+	fmt.Println(style.Dimmed("Proxmox VE cluster nodes log in to each other as root with keys."))
 }
 
 // checkRootLoginEnabled checks if SSH root login is enabled by asking the application layer

@@ -24,6 +24,49 @@ const (
 	CacheTTL = 24 * time.Hour
 )
 
+// updateCheckEnabled: DISABLED 2026-10-17. Flip to true to restore.
+//
+// With it true, every interactive start asks the GitHub API for the latest
+// release (twice, from racing goroutines, pkg/menu) and caches the answer
+// as root in the predictable /tmp/hardn-version-cache.json, which root also
+// reads back without validating it. An unprivileged local user can plant
+// that file (a future last_check, tag v99, a "security" release body, any
+// URL), and root's hardn then replaces the menu with an "Update Binary
+// <URL>" screen and exits after a key (V26; Phase 0 side-effects §9 D2,
+// proposal P-15). The test hooks --test-update, --test-security-update,
+// HARDN_FORCE_UPDATE and HARDN_FORCE_SECURITY force the same screens.
+//
+// With it false, no check runs: CheckForUpdates and Service.CheckForUpdates
+// report no update, forced or not, without a network call and without
+// reading, writing or removing the cache; GetCacheStatus reports that
+// checks are disabled. The flags stay accepted and do nothing (their help
+// says so), so no script that passes them breaks.
+const updateCheckEnabled = false
+
+// UpdateCheckEnabled reports whether hardn checks for new releases at all
+// (updateCheckEnabled).
+func UpdateCheckEnabled() bool { return updateCheckEnabled }
+
+// UpdateFlagUsage is the help text of a flag that drives the update
+// check: usage, plus a note while checks are disabled.
+func UpdateFlagUsage(usage string) string {
+	if updateCheckEnabled {
+		return usage
+	}
+	return usage + " (no effect: update checks are disabled)"
+}
+
+// The checker's network and cache I/O. Tests replace them to show that a
+// disabled check makes none.
+var (
+	doRequest  = func(c *http.Client, req *http.Request) (*http.Response, error) { return c.Do(req) }
+	readFile   = os.ReadFile
+	writeFile  = os.WriteFile
+	removeFile = os.Remove
+	mkdirAll   = os.MkdirAll
+	statFile   = os.Stat
+)
+
 // GitHubRelease represents the JSON structure of a GitHub release
 type GitHubRelease struct {
 	TagName     string    `json:"tag_name"`
@@ -56,6 +99,9 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 	result := CheckResult{
 		CurrentVersion: currentVersion,
 	}
+	if !updateCheckEnabled {
+		return result
+	}
 
 	// Print debug info if enabled
 	if debug {
@@ -76,7 +122,7 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 		if debug {
 			fmt.Println("DEBUG: Clearing cache file")
 		}
-		os.Remove(getCacheFilePath())
+		_ = removeFile(getCacheFilePath())
 	}
 
 	// Try to load from cache first
@@ -114,7 +160,7 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 		fmt.Println("DEBUG: Sending request to GitHub API...")
 	}
 
-	resp, err := client.Do(req)
+	resp, err := doRequest(client, req)
 	if err != nil {
 		if debug {
 			fmt.Printf("DEBUG: Failed to check for updates: %v\n", err)
@@ -161,7 +207,7 @@ func CheckForUpdates(currentVersion string, debug bool) CheckResult {
 	// Verify cache was written
 	if debug {
 		cacheFile := getCacheFilePath()
-		if _, err := os.Stat(cacheFile); err == nil {
+		if _, err := statFile(cacheFile); err == nil {
 			fmt.Println("DEBUG: Successfully wrote cache file to:", cacheFile)
 		} else {
 			fmt.Printf("DEBUG: Failed to verify cache file: %v\n", err)
@@ -296,7 +342,7 @@ func loadCache() (VersionCache, bool) {
 	cacheFile := getCacheFilePath()
 
 	// Try to read cache file
-	data, err := os.ReadFile(cacheFile)
+	data, err := readFile(cacheFile)
 	if err != nil {
 		return cache, false
 	}
@@ -333,13 +379,13 @@ func saveCache(release GitHubRelease) {
 
 	// Ensure directory exists
 	dir := filepath.Dir(cacheFile)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := mkdirAll(dir, 0755); err != nil {
 		fmt.Printf("Warning: Failed to create directory for version cache: %v\n", err)
 		return
 	}
 
 	// Write to cache file
-	if err := os.WriteFile(cacheFile, data, 0644); err != nil {
+	if err := writeFile(cacheFile, data, 0644); err != nil {
 		// Log the error but don't fail the operation since this is just cache
 		fmt.Printf("Warning: Failed to write version cache: %v\n", err)
 		return

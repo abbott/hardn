@@ -4,8 +4,9 @@
 # Reached by: Firewall menu option 2 (pkg/menu/firewall_menu.go:243-263); menu-only, the CLI passes no profiles
 # KNOWN-DEFECT: V9 — ufw default deny, disable and reset run before the allow rule; only cfg.SshPort is allowed, not the effective sshd port
 # KNOWN-DEFECT: V18 — writes are non-atomic and nothing is backed up first
-# NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:152 does for -n. No layer below pkg/menu reads it.
+# NOTE: cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n (which now reaches only the menus). No layer below pkg/menu reads it.
 # NOTE: Menu path: when cfg.DryRun is true the menu prints a preview and skips this call (pkg/menu/firewall_menu.go:247-249). The cfg.DryRun=true section shows that the managers and adapters themselves ignore it.
+# NOTE: Proxmox check (pkg/adapter/secondary/proxmox.go), once per ServiceFactory, before the first SSH root-login or UFW decision: osdetect's IsProxmox (set on the proxmox cell, so it probes nothing), else /etc/pve, else dpkg-query's pve-manager status, which must read 'install ok installed' (the mock's empty output reads as not installed; Alpine is not asked).
 
 == fixture
 host: os=debian version=13 codename=trixie proxmox=false
@@ -18,39 +19,43 @@ commands that fail on this host (every other command succeeds with empty output)
 == cfg.DryRun=false
 result MenuManager.ConfigureSecureFirewall: ok
 trace:
-  1 exec   which ufw -> ok
-  2 exec   ufw default deny incoming -> ok
-  3 exec   ufw default allow outgoing -> ok
-  4 exec   ufw disable -> ok
-  5 exec   ufw reset -> ok
-  6 mkdir  /etc/ufw/applications.d mode=0755 -> ok
-  7 write  /etc/ufw/applications.d/hardn mode=0644 -> ok
+  1 stat   /etc/pve -> not-exist
+  2 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+  3 exec   which ufw -> ok
+  4 exec   ufw default deny incoming -> ok
+  5 exec   ufw default allow outgoing -> ok
+  6 exec   ufw disable -> ok
+  7 exec   ufw reset -> ok
+  8 mkdir  /etc/ufw/applications.d mode=0755 -> ok
+  9 write  /etc/ufw/applications.d/hardn mode=0644 -> ok
         | [ExampleHTTPS]
         | title=Example web server (HTTPS)
         | description=Example HTTPS port
         | ports=8443/tcp
         |
-  8 exec   ufw allow from any to any app ExampleHTTPS -> ok
-  9 exec   ufw allow 2230/tcp comment "SSH access" -> ok
- 10 exec   sh -c "yes | ufw enable" -> ok
+ 10 exec   ufw allow from any to any app ExampleHTTPS -> ok
+ 11 exec   ufw allow 2230/tcp comment "SSH access" -> ok
+ 12 exec   sh -c "yes | ufw enable" -> ok
 
 == cfg.DryRun=true
 result MenuManager.ConfigureSecureFirewall: ok
 trace:
-  1 exec   which ufw -> ok
-  2 exec   ufw default deny incoming -> ok
-  3 exec   ufw default allow outgoing -> ok
-  4 exec   ufw disable -> ok
-  5 exec   ufw reset -> ok
-  6 mkdir  /etc/ufw/applications.d mode=0755 -> ok
-  7 write  /etc/ufw/applications.d/hardn mode=0644 -> ok
+  1 stat   /etc/pve -> not-exist
+  2 exec   dpkg-query -W "--showformat=${Status}" pve-manager -> ok
+  3 exec   which ufw -> ok
+  4 exec   ufw default deny incoming -> ok
+  5 exec   ufw default allow outgoing -> ok
+  6 exec   ufw disable -> ok
+  7 exec   ufw reset -> ok
+  8 mkdir  /etc/ufw/applications.d mode=0755 -> ok
+  9 write  /etc/ufw/applications.d/hardn mode=0644 -> ok
         | [ExampleHTTPS]
         | title=Example web server (HTTPS)
         | description=Example HTTPS port
         | ports=8443/tcp
         |
-  8 exec   ufw allow from any to any app ExampleHTTPS -> ok
-  9 exec   ufw allow 2230/tcp comment "SSH access" -> ok
- 10 exec   sh -c "yes | ufw enable" -> ok
+ 10 exec   ufw allow from any to any app ExampleHTTPS -> ok
+ 11 exec   ufw allow 2230/tcp comment "SSH access" -> ok
+ 12 exec   sh -c "yes | ufw enable" -> ok
 
 cfg.DryRun=true section identical to cfg.DryRun=false: true
