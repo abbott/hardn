@@ -66,7 +66,7 @@ Brief Phase 2's acceptance is a VM test that changes the SSH port to 2230 and ch
 | That OpenSSH 10.x still accepts `manage.conf`'s `Protocol 2` and `HostbasedAcceptedKeyTypes` lines | **[unverified]**; `migrate.Check` runs `sshd -t` over them first, so a refusal shows in the dry run | §4.8 |
 | The release builds use `CGO_ENABLED=0`, `-trimpath` and `-tags=netgo` | `.slsa-goreleaser/linux-amd64.yml`, `linux-arm64.yml` (this repo) | §4.1: the cross-build |
 | `ss` (iproute2) is on a stock Debian, Ubuntu and Proxmox VE and not on a stock Alpine; without it the reload is `Unverified` (`no-ss`), not failed | **[unverified]** ([reload.md](reload.md) §3, §2.10) | §4.2: iproute2 on Alpine |
-| ufw is in Debian and Ubuntu, and in Alpine 3.24's community repository | [ufw.md](ufw.md) §3 (sources.debian.org; aports); whether a stock Ubuntu 26.04 has it installed and inactive is **[unverified]** | §4.2 |
+| ufw is in Debian and Ubuntu, and in Alpine 3.24's community repository | [ufw.md](ufw.md) §3 (sources.debian.org; aports); the Ubuntu 26.04.1 cloud image has it installed and inactive (§4.9) | §4.2 |
 | Which sshd drop-ins Alpine 3.24's cloud images ship, and whether cloud-init or another agent there writes `sshd_config.d` | **[unverified]**: plan §7 lists it as still unverified; nothing in the findings or the units' pages answers it | §4.6: read on such an image with `facts` |
 | sudo's `env_reset` drops the caller's variables, and `sudo env NAME=value cmd` runs `env` as the command, which sets it for `cmd`; doas and sudo-rs the same | sudoers(5) for `env_reset` ([revert.md](revert.md) §3); for `env` as the command, and for doas and sudo-rs, **[unverified]** | §4.3: how the gate variable reaches the driver |
 
@@ -154,7 +154,7 @@ The same steps on each; the socket-specific checks are marked.
 
 | # | Run | Expect | Proves |
 |---|---|---|---|
-| 1 | `$P2 facts` | the Debian 13 (Ubuntu 26.04) row of [detect.md](detect.md) §3's table with no `err`; `include: include first, line 1 "Include /etc/ssh/sshd_config.d/*.conf"`; no `legacy:` line; `sshd -T now: port [22] (known true)`, `listeners now: … (known true; …)`; `ufw: installed true, active false` | detect.md §4, sshd-validate.md §4 (stock), sshd-effective.md §4 (stock), ufw.md §4 (reading) |
+| 1 | `$P2 facts` | the Debian 13 (Ubuntu 26.04) row of [detect.md](detect.md) §3's table with no `err`; `include: include first, line <n> "Include /etc/ssh/sshd_config.d/*.conf"` (the first directive, below the stock comments); no `legacy:` line; `sshd -T now: port [22] (known true)`, `listeners now: … (known true; …)`; `ufw: installed true, active false` | detect.md §4, sshd-validate.md §4 (stock), sshd-effective.md §4 (stock), ufw.md §4 (reading) |
 | 2 | `$P2 broken` | `refused: /etc/ssh/sshd_config.d/00-hardn.conf line 3: …`; exit 0; `ls /etc/ssh/sshd_config.d` unchanged | **a broken configuration is rejected before it takes effect** (brief); sshd-validate.md §4 (the real messages, mapped to the real file) |
 | 3 | `$P2 ufw-enable`; then from the runner within 180 s: `confirm 22` | the plan lists `ufw allow 22/tcp` before `ufw --force enable`; the applying session survives the enable; `confirm 22` says confirmed; `ufw status verbose`: active, deny incoming, 22 allowed | UFW's allow before its enable, under confirm-or-revert (ufw.md §4, the session surviving; revert.md §4, confirming) |
 | 4 | snapshot `p2-ufw` | | |
@@ -278,6 +278,46 @@ Facts this pass settled ([ufw.md](ufw.md) §4, on Debian 13, over IPv4):
 
 Not covered by the ufw pass: IPv6 connections, `ufw default deny incoming` on an active ufw, and the rest of [ufw.md](ufw.md) §4 (the rule forms, the partial failures, Ubuntu and Alpine).
 
+#### Ubuntu 26.04, run 2026-10-19
+
+Built from `next/p2-revert-plans` (0761766, the p2drive fix of the Debian run included), linux/amd64. The VM: the Ubuntu 26.04.1 LTS cloud image, OpenSSH 10.2p1 (Ubuntu-2ubuntu3.6), sudo-rs 0.2.13 (with its own `visudo`), `ssh.socket` enabled and active on `0.0.0.0:22` and `[::]:22` with `ssh.service` disabled and socket-activated, `sshd-socket-generator` present and no `ssh.socket` drop-in, the stock `Include` as the first directive (line 24), `60-cloudimg-settings.conf` (`PasswordAuthentication no`), `KbdInteractiveAuthentication no` in the main file, ufw 0.36.2-9build1 installed and inactive, `/usr/local` `root:root 0755`. Runner and VM as in the Debian run; IPv4 only (no global IPv6 address on the VM). No snapshots from the runner, so as on Debian 13 the order lets each rollback leave the state the next step needs: 1, 2, `port --ufw enable` not confirmed (from the inactive ufw), 3, 5, 11 (with 7 in its window, and 12), 6, 8, 9, 10, 13, 14, then §4.5 after moving `00-hardn.conf` aside.
+
+| # | Result | Notes |
+|---|---|---|
+| 1 | **pass** | Ubuntu 26.04 supported, systemd, `ssh.socket` with the generator, sudo-rs (flavour sudo-rs); `include first, line 24`; `sshd -T` port 22; listeners `[::]:22`, `0.0.0.0:22`, the socket's the same; no drop-ins; `ufw: installed true, active false` |
+| 2 | **pass** | `unsupported option "maybe"` at `00-hardn.conf line 4`; nothing written, nothing reloaded |
+| `port --ufw enable` | **pass** | plan: `ufw allow 22/tcp`, `ufw allow 2230/tcp`, `ufw --force enable`, the backup, then `daemon-reload`, `check-socket`, `restart ssh.socket`; after it `systemctl show -p Listen ssh.socket` and `ss` show 22 and 2230 on both families, and the generator wrote `addresses.conf`; the applying session kept working across the socket restart; key login on 2230 and 22 through ufw. Not confirmed: the timer removed `00-hardn.conf`, ran `ufw disable` and the two deletes, `daemon-reload`, checked the socket was configured for 22 alone, restarted it and read 22 alone in `ss`; ufw inactive with no rules; the applying session survived that restart too |
+| 3 | **pass** | `ufw allow 22/tcp`, then `ufw --force enable`; `confirm 22`: confirmed |
+| 4 | not run | the state after step 3 stood in for `p2-ufw` |
+| 5 | **pass** | `ufw allow 2230/tcp`, the backup, `daemon-reload`, `check-socket`, `restart ssh.socket`; held 22, added 2230; nothing changed |
+| 11, 12 | **pass** | not confirmed, the applying session ended: the timer deleted the 2230 rule, removed `00-hardn.conf`, reloaded the socket onto 22 alone; from the runner `key 2230` timed out, `key 22` exit 0; `hardn confirm`: "was rolled back at …, because it was not confirmed within 180s" |
+| 6 | **pass** | the build's sha256; `firewall: verified true`; `reload: verified true`; `ssh.socket` configured and bound on 22 and 2230; **sessions survive `restart ssh.socket`**: the applying connection and one opened before step 6 both kept working |
+| 7 | **pass** | key login on 2230 and 22 (in the `port --ufw enable` window, through ufw) |
+| 8 | **pass** | all four refused with their reasons: the applying connection; the connection opened before the change; a new connection to the held 22; from the VM to its own 2230 over `[::1]` |
+| 9 | **pass** | `confirm 2230` from a new connection: confirmed, no timer left |
+| 10 | **pass** | `keyonly`: `systemctl reload ssh.service` (no listener changes, so no socket restart); confirmed from a new connection to 2230; `publickey` alone offered on 2230 and 22; key login on 2230 |
+| 13 | **pass** | grant: `visudo -c`, `visudo -cf` on the copy, the write (`0440` root's), `visudo -c`; no timer; `sudo -l -U alice` lists the `NOPASSWD` rule; alice's `sudo -n true` exit 0. `--grant none` not confirmed: armed, the file gone, alice refused ("interactive authentication is required"); the timer's registered sudoers rollback put it back, `visudo -c` passed, alice's `sudo -n true` exit 0. `--grant none` confirmed from a new connection: the file stays gone |
+| 14 | **pass** | `--grant password --env HARDN_CONFIG`: armed, confirmed; `hardn-grant-alice` and `hardn-env-alice` `0440`; alice's `sudo -n true` refused; with alice's password `HARDN_CONFIG` reaches the root shell, and a variable not kept does not |
+
+§4.5 (cloud-init's `PasswordAuthentication yes`), after moving `00-hardn.conf` aside and putting the socket back on 22:
+
+| # | Result | Notes |
+|---|---|---|
+| 1 | **pass** | `50-cloud-init.conf` written: `sshd -T` `passwordauthentication yes`; `offers 22`: `publickey,password` |
+| 2 | **pass** | `keyonly`, `confirm 22`: confirmed; `facts`: `shadowed passwordauthentication: /etc/ssh/sshd_config.d/50-cloud-init.conf:1 "PasswordAuthentication yes" (hardn …/00-hardn.conf:4)`, `passwordauthentication "no"`; `offers 22`: `publickey`; `50-cloud-init.conf` unchanged |
+
+Facts this run settled (were **[unverified]**):
+- The Ubuntu 26.04.1 cloud image has ufw installed and inactive (§3).
+- SSH sessions survive `systemctl restart ssh.socket` (plan §7), which stops and starts `ssh.service` with it (its journal shows both at each restart): the applying connection stayed open across all five (three by p2drive, two by the timer's rollbacks), and a connection opened before step 6 across that one.
+- `daemon-reload` reruns `sshd-socket-generator`, which writes `/run/systemd/generator/ssh.socket.d/addresses.conf` for the added `Port` and removes it when `00-hardn.conf` goes; `restart ssh.socket` then binds what `systemctl show -p Listen` says ([reload.md](reload.md)).
+- sudo-rs 0.2.13: `visudo -c` and `visudo -cf` on the candidate copies, `sudo -l -U`, and `env_keep` from a separate drop-in all work as they do with sudo (plan §7; [sudoers.md](sudoers.md) §4).
+- OpenSSH 10.2p1 on Ubuntu prints `permitrootlogin prohibit-password` (Debian 13's 10.0p2 prints `without-password`).
+- ufw on Ubuntu answers as on Debian 13 (the ufw pass above).
+
+Found by the run:
+- The timer fired 1 to 2 s after the deadline hardn prints (23:40:41 for 23:40:39): systemd counts the 180 s from when it starts the timer, up to a second after hardn's clock (`list-timers` showed hardn's deadline or a second after it), and `AccuracySec=1s` adds up to another. [revert.md](revert.md) §4 expected "within a second of the deadline". A `hardn confirm` in that gap is accepted (`Confirm` claims the journal without reading the clock; the claim decides between it and the rollback), so nothing is unsafe; the printed deadline is a second or two early. For `p3-engine`'s countdown: count down to the timer's own trigger time, or say "about".
+- Step 1's Expect said `line 1` for the stock Include: it is the first directive, below the stock comments (line 12 on Debian 13, 24 on Ubuntu 26.04). Corrected in §4.4.
+
 ## 5. The images
 
 | Image | Path it covers | Prepared as |
@@ -296,7 +336,7 @@ Debian 12 and Ubuntu 24.04 (OpenSSH 9.2p1 and 9.6p1) are where sshd-validate.md 
 
 All of §4. The units' own lists that this sequence covers, in part: [system.md](system.md) §4 (commands from `SearchPath`; `WriteFileAtomic` and `Chown` as root), [detect.md](detect.md) §4 (stock rows), [atomic.md](atomic.md) §4 (writes and backups as root), [sshd-validate.md](sshd-validate.md) §4, [sshd-effective.md](sshd-effective.md) §4, [reload.md](reload.md) §4 (the 2230 scenario, sessions over a socket restart), [ufw.md](ufw.md) §4 (the 2230 scenario, the enable), [revert.md](revert.md) §4 (the brief's scenario, both timers, the refusals), [pve.md](pve.md) §4 items 1-4 and 6, [sudoers.md](sudoers.md) §4 (sudo, sudo-rs, doas), [sshd-migrate.md](sshd-migrate.md) §4 (R8), [revert-plans.md](revert-plans.md) §4 (the sudoers rollback by the timer, §4.4 step 13; the `listen.conf` rollback and the D9 refusal, §4.8 steps 5 and 6). Not covered by this driver, and so open after it: [alpine.md](alpine.md) §4, [dns.md](dns.md) §4, [pve.md](pve.md) §4 items 5 and 7, the legacy operations of system.md §4 (P-32), the container checks of detect.md §4, and the items of each list beyond these steps.
 
-Plan §7's four items still unverified, which the plan puts in this unit: sessions surviving an `ssh.socket` restart (§4.4 step 6), sudo-rs with `env_keep` on Ubuntu 26.04 (§4.4 step 14) and Alpine cloud images' sshd drop-ins (§4.6, the cloud image; open until such an image is made) are steps here. The fourth, ufw `reset` with stdin `/dev/null`, is **closed by decision §3.17**, not by a run: `pkg/host/ufw` runs no `ufw reset` (and `ufw disable` only as the undo of its own enable; [ufw.md](ufw.md) §2.7, tested over every plan there), so how `reset` reads its stdin no longer matters to the new code. The legacy firewall step still runs `disable` then `reset` until the firewall slice replaces it, gated meanwhile by `next/p0-hazards` (ufw.md §6).
+Plan §7's four items, which the plan puts in this unit: sessions surviving an `ssh.socket` restart (§4.4 step 6) and sudo-rs with `env_keep` on Ubuntu 26.04 (§4.4 step 14) are settled by the Ubuntu 26.04 run (§4.9); Alpine cloud images' sshd drop-ins (§4.6, the cloud image) stay open until such an image is made. The fourth, ufw `reset` with stdin `/dev/null`, is **closed by decision §3.17**, not by a run: `pkg/host/ufw` runs no `ufw reset` (and `ufw disable` only as the undo of its own enable; [ufw.md](ufw.md) §2.7, tested over every plan there), so how `reset` reads its stdin no longer matters to the new code. The legacy firewall step still runs `disable` then `reset` until the firewall slice replaces it, gated meanwhile by `next/p0-hazards` (ufw.md §6).
 
 ## 7. API (the command line)
 
