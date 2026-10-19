@@ -573,6 +573,12 @@ func socketListeners(out []byte) (ls []Listener, bad []string) {
 	return ls, bad
 }
 
+// ParseSocketListen reads systemctl show -p Listen's output as ReadEffective
+// does; bad lists the lines that are not an IP address, a port and
+// (Stream). p2-reload checks the socket's configuration with it after
+// daemon-reload (docs/safety/reload.md).
+func ParseSocketListen(out []byte) (ls []Listener, bad []string) { return socketListeners(out) }
+
 // notListening says why detect's facts do not show the unit that listens
 // up, or "" when they do: a failed ssh.socket or ssh.service, or an sshd
 // OpenRC has not started, accepts nothing on the configured listeners.

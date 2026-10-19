@@ -237,6 +237,29 @@ linters:
               desc: sshd validation makes no network calls (docs/safety/sshd-validate.md §2)
             - pkg: plugin
               desc: sshd validation loads no code (docs/safety/sshd-validate.md §2)
+        # The reload runs systemctl, rc-service and ss and reads the
+        # socket's drop-ins only through host.System, as sshd validation
+        # does; net/netip parses the listeners.
+        reload-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/host/reload/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the reload reads and runs only through host.System (docs/safety/reload.md §2)
+            - pkg: io/ioutil
+              desc: the reload reads only through host.System (docs/safety/reload.md §2)
+            - pkg: golang.org/x/sys
+              desc: the reload makes no system calls of its own (docs/safety/reload.md §2)
+            - pkg: syscall
+              desc: the reload makes no system calls of its own (docs/safety/reload.md §2)
+            - pkg: net
+              desc: the reload makes no network calls; ss reads the bound sockets (docs/safety/reload.md §2)
+            - pkg: plugin
+              desc: the reload loads no code (docs/safety/reload.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.
