@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -32,6 +33,9 @@ import (
 const (
 	testHardn = "/usr/local/bin/hardn"
 	applyConn = "192.0.2.10 50022 192.0.2.20 22"
+	// conn2230 is a session to a v0.3.2-hardened host, whose sshd listens
+	// on 2230.
+	conn2230 = "192.0.2.10 50022 192.0.2.20 2230"
 )
 
 var testNow = time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
@@ -100,6 +104,9 @@ type vm struct {
 	// stale: sshd -T over the installed files leaves 00-hardn.conf out, as
 	// an sshd that did not reread it would; for the values check.
 	stale bool
+	// conn is the applying session's SSH_CONNECTION (applyConn unless a
+	// host's sshd listens elsewhere).
+	conn string
 	// hook answers a command first, when it returns true.
 	hook func(cmd string) (hostfake.Response, bool)
 	// held and released are the fake's call counts when the rollback's
@@ -108,7 +115,7 @@ type vm struct {
 }
 
 func newVM(t *testing.T) *vm {
-	v := &vm{t: t, f: hostfake.New(host.Options{}), allowed: []uint16{22}, held: -1, released: -1}
+	v := &vm{t: t, f: hostfake.New(host.Options{}), allowed: []uint16{22}, conn: applyConn, held: -1, released: -1}
 	f := v.f
 	f.AddFile(sshd.MainConfig, []byte(stockMain), 0o644, 0, 0)
 	f.AddDir(sshd.DropInDir, 0o755, 0, 0)
@@ -143,7 +150,27 @@ func socketVM(t *testing.T) *vm {
 // boot makes the files on disk the running configuration, as a reboot
 // does: sshd's (or the socket's) listeners from the model.
 func (v *vm) boot() {
+	if v.socket {
+		v.bound, v.configured = v.socketListens(), v.socketListens()
+		return
+	}
 	v.bound, v.configured = v.listening(), v.listening()
+}
+
+// socketListens is ssh.socket's Listen as a daemon-reload or a boot sets
+// it: the generator's, the listeners the sshd files configure, unless
+// v0.3.x's listen.conf ("ListenStream=", then "ListenStream=<port>") is in
+// ssh.socket.d, whose empty assignment resets them to its port alone, on
+// a dual-stack [::] (docs/safety/reload.md §3).
+func (v *vm) socketListens() []string {
+	if e, ok := v.f.Entry(migrate.ListenConf); ok {
+		for _, l := range strings.Split(string(e.Data), "\n") {
+			if p, ok := strings.CutPrefix(l, "ListenStream="); ok && p != "" {
+				return []string{"[::]:" + p}
+			}
+		}
+	}
+	return v.listening()
 }
 
 // fixture reads one of migrate's verbatim v0.3.2 files.
@@ -170,7 +197,7 @@ func (v *vm) env(facts detect.Facts, out, errOut io.Writer) env {
 		system: func(io.Writer) host.System { return v.f },
 		detect: func(context.Context, host.System) (detect.Facts, error) { return facts, nil },
 		session: func(context.Context, host.System) (revert.Session, error) {
-			return revert.Session{Remote: true, Conn: applyConn, Source: "SSH_CONNECTION"}, nil
+			return revert.Session{Remote: true, Conn: v.conn, Source: "SSH_CONNECTION"}, nil
 		},
 		hold: func(io.Writer) func() {
 			v.held = len(v.f.Calls())
@@ -428,7 +455,7 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		}
 		return hostfake.Response{}, true
 	case cmd == "systemctl daemon-reload":
-		v.configured = installed()
+		v.configured = v.socketListens()
 		return hostfake.Response{}, true
 	case cmd == "systemctl show -p Listen ssh.socket":
 		var b strings.Builder

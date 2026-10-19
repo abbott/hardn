@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -343,14 +344,47 @@ func TestRefusedBeforeArm(t *testing.T) {
 			v.boot()
 		}, []string{"keyonly"}, "P-38"},
 		{"pve-root off Proxmox VE", debian13, nil, []string{"pve-root"}, "for a Proxmox VE host"},
-		{"migrate --apply of listen.conf on a socket host", ubuntu2604(), func(v *vm) {
-			v.socket = true
-			v.f.AddFile(migrate.ManageConf, fixture(v.t, "v032-manage.conf"), 0o644, 0, 0)
-			v.f.AddFile(migrate.ListenConf, fixture(v.t, "v032-listen.conf"), 0o644, 0, 0)
-			v.boot()
-			v.configured = []string{"[::]:2230"} // listen.conf's, after the reboot (D9)
+		// v0.3.x wrote listen.conf and ran no daemon-reload (D9): the socket
+		// still listens on 22, so the rollback's daemon-reload, with
+		// listen.conf restored, would move it to 2230
+		// (migrate.Plan.CheckRollback, reload.ErrRestoredListeners).
+		{"migrate --apply of listen.conf on a socket host that never read it (D9)", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:22", "0.0.0.0:22"}
 			v.bound = slices.Clone(v.configured)
-		}, []string{"migrate", "--apply"}, "its rollback's reload would be refused"},
+		}, []string{"migrate", "--apply"}, "ListenStream=2230 is not one of the listeners the socket had"},
+		// The socket configured for 22 beside listen.conf's 2230 (an
+		// administrator who added the port first): the rollback's
+		// daemon-reload would leave 2230 alone, and the rollback unfinished.
+		{"migrate --apply where ssh.socket is configured for more than listen.conf", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}
+			v.bound = slices.Clone(v.configured)
+		}, []string{"migrate", "--apply"}, "do not give [::]:22, which the socket had"},
+		// A daemon-reload since ssh.socket was last restarted: configured
+		// on listen.conf's 2230, still bound on 22, where this session is.
+		// The migration's hold and its rollback both read configuration, so
+		// the restart would close 22 for good (reload.CheckInEffect).
+		{"migrate --apply where ssh.socket is configured for 2230 and bound on 22", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:2230"}
+			v.bound = []string{"[::]:22", "0.0.0.0:22"}
+		}, []string{"migrate", "--apply"}, "this session is connected to 192.0.2.20:22"},
+		{"migrate --apply, configured for 2230, bound on 22, a session on 2230", ubuntu2604(), func(v *vm) {
+			v032Files(v)
+			v.configured = []string{"[::]:2230"}
+			v.bound = []string{"[::]:22", "0.0.0.0:22"}
+			v.conn = conn2230
+		}, []string{"migrate", "--apply"}, "[[::]:2230] configured, not bound"},
+		// sshd_config edited and not reloaded: sshd -T shows 2231, sshd
+		// still listens on 22, where this session is.
+		{"a port change where sshd -T is not what sshd listens on", debian13, func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 2231\n"), 0o644, 0, 0)
+		}, []string{"port", "--port", "2230"}, "this session is connected to 192.0.2.20:22"},
+		// A remote session whose connection is not known: the port it is
+		// on cannot be shown kept, so a listener change fails closed.
+		{"a port change from a session whose connection is not known", debian13, func(v *vm) { v.conn = "" },
+			[]string{"port", "--port", "2230"}, "the port this session is connected to is not established"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -525,6 +559,7 @@ func v032Debian(t *testing.T) *vm {
 	v.f.AddFile(migrate.ManageConf, fixture(t, "v032-manage.conf"), 0o644, 0, 0)
 	v.f.AddFile(migrate.ListenConf, fixture(t, "v032-listen.conf"), 0o644, 0, 0)
 	v.allowed = []uint16{2230}
+	v.conn = conn2230
 	v.saveRules()
 	v.boot()
 	return v
@@ -603,6 +638,94 @@ func TestMigrate(t *testing.T) {
 	}
 }
 
+// v032Files puts v0.3.2's manage.conf and listen.conf on an Ubuntu host
+// whose ssh.socket holds the listeners, without a reboot: the test sets
+// what the socket is configured for and bound on.
+func v032Files(v *vm) {
+	v.socket = true
+	v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+	v.f.AddFile(migrate.ManageConf, fixture(v.t, "v032-manage.conf"), 0o644, 0, 0)
+	v.f.AddFile(migrate.ListenConf, fixture(v.t, "v032-listen.conf"), 0o644, 0, 0)
+}
+
+// v032Ubuntu is an Ubuntu 26.04 host v0.3.2 hardened and rebooted since:
+// ssh.socket on listen.conf's [::]:2230, sshd-socket-generator installed
+// (a rollback detects the SSH facts again), ufw allowing 22 and 2230.
+func v032Ubuntu(t *testing.T) *vm {
+	v := socketVM(t)
+	v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+	v.f.AddFile(migrate.ManageConf, fixture(t, "v032-manage.conf"), 0o644, 0, 0)
+	v.f.AddFile(migrate.ListenConf, fixture(t, "v032-listen.conf"), 0o644, 0, 0)
+	v.allowed = []uint16{22, 2230}
+	v.conn = conn2230
+	v.saveRules()
+	v.boot()
+	return v
+}
+
+// TestMigrateSocket: the R8 migration on Ubuntu's ssh.socket, listen.conf
+// included. Applied, the journal's reload names listen.conf as restored and
+// carries the socket's listener before the change. Rolled back when sshd -T
+// does not show the migration: listen.conf and manage.conf back,
+// 00-hardn.conf gone, then daemon-reload, the socket's configuration
+// checked and ssh.socket restarted on listen.conf's [::]:2230.
+func TestMigrateSocket(t *testing.T) {
+	listenConf := fixture(t, "v032-listen.conf")
+	t.Run("--apply", func(t *testing.T) {
+		v := v032Ubuntu(t)
+		code, out, errOut := v.do(context.Background(), ubuntu2604(), "migrate", "--apply")
+		if code != 0 {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if _, ok := v.f.Entry(migrate.ListenConf); ok {
+			t.Error("listen.conf is still there")
+		}
+		j := v.journal(revert.PendingName)
+		if j.Applied == nil || len(j.Reload) != 1 || j.Reload[0].IfUp || !slices.Equal(j.Reload[0].SocketDropIns, []string{migrate.ListenConf}) ||
+			len(j.Reload[0].After) != 1 || j.Reload[0].After[0].String() != "[::]:2230" {
+			t.Errorf("journal applied %v, reload %+v; want listen.conf restored and [::]:2230 after", j.Applied != nil, j.Reload)
+		}
+		if !sameStrings(v.bound, []string{"0.0.0.0:2230", "[::]:2230"}) || v.index(runIs("systemctl restart ssh.socket")) < 0 {
+			t.Errorf("ssh.socket listens on %v, want 0.0.0.0:2230 and [::]:2230, restarted", v.bound)
+		}
+	})
+	t.Run("--apply, sshd -T not showing the migration: rolled back", func(t *testing.T) {
+		v := v032Ubuntu(t)
+		v.hook = func(cmd string) (hostfake.Response, bool) {
+			v.stale = v.stale || cmd == "systemctl restart ssh.socket"
+			return hostfake.Response{}, false
+		}
+		code, out, errOut := v.do(context.Background(), ubuntu2604(), "migrate", "--apply")
+		if code != 1 || !strings.Contains(errOut, "does not show the migrated configuration") || !strings.Contains(errOut, "(rolled back)") {
+			t.Fatalf("exit %d, want 1 rolled back; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if e, ok := v.f.Entry(migrate.ListenConf); !ok || !bytes.Equal(e.Data, listenConf) {
+			t.Errorf("listen.conf restored %v", ok)
+		}
+		if _, ok := v.f.Entry(migrate.ManageConf); !ok || v.dropIn() != "" {
+			t.Errorf("manage.conf restored %v, 00-hardn.conf %q", ok, v.dropIn())
+		}
+		last := func(match func(hostfake.Call) bool) int {
+			calls := v.f.Calls()
+			for i := len(calls) - 1; i >= 0; i-- {
+				if match(calls[i]) {
+					return i
+				}
+			}
+			return -1
+		}
+		order := []int{last(writeOf(migrate.ListenConf)), last(runIs("systemctl daemon-reload")),
+			last(runIs("systemctl show -p Listen ssh.socket")), last(runIs("systemctl restart ssh.socket"))}
+		if !slices.IsSorted(order) || order[0] < 0 {
+			t.Errorf("the rollback's restore of listen.conf, daemon-reload, check and restart at %v; want ascending", order)
+		}
+		if !sameStrings(v.bound, []string{"[::]:2230"}) || !sameStrings(v.configured, []string{"[::]:2230"}) {
+			t.Errorf("ssh.socket configured %v, listens on %v; want listen.conf's [::]:2230", v.configured, v.bound)
+		}
+		v.cleared()
+	})
+}
+
 func TestBroken(t *testing.T) {
 	v := newVM(t)
 	code, out, errOut := v.do(context.Background(), debian13, "broken")
@@ -617,11 +740,15 @@ func TestBroken(t *testing.T) {
 	}
 }
 
-// TestSudoers: the grant, checked with visudo before it is written, and
-// --grant none, its undo.
+// TestSudoers: the grant, journalled as a plan step before anything is
+// written, checked with visudo before it is written, and the journal cleared
+// once applied (a change of no lockout risk); then --grant none, a
+// lockout-risk change under confirm-or-revert, which the timer's rollback
+// undoes from the journal alone, through plans.Registry().
 func TestSudoers(t *testing.T) {
 	v := newVM(t)
 	grant := "/etc/sudoers.d/hardn-grant-alice"
+	pending := path.Join(revert.DefaultDir, revert.PendingName)
 	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "nopasswd"); code != 0 {
 		t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
 	}
@@ -629,18 +756,83 @@ func TestSudoers(t *testing.T) {
 	if !ok || !strings.Contains(string(e.Data), "alice ALL=(ALL) NOPASSWD: ALL") || e.Mode.Perm() != 0o440 {
 		t.Fatalf("%s: %q %v", grant, e.Data, e.Mode)
 	}
+	journalled := v.index(writeOf(pending))
 	backedUp := v.index(func(c hostfake.Call) bool {
 		return c.Op == "write-atomic" && strings.HasSuffix(c.Path, "manifest.json")
 	})
 	checked := v.index(func(c hostfake.Call) bool { return c.Op == "run" && c.Argv[0] == "visudo" && c.Argv[1] == "-cf" })
-	if written := v.index(writeOf(grant)); !(backedUp >= 0 && backedUp < checked && checked < written) {
-		t.Errorf("order: backup %d, visudo -cf %d, write %d; want ascending", backedUp, checked, written)
+	if written := v.index(writeOf(grant)); !(journalled >= 0 && journalled < backedUp && backedUp < checked && checked < written) {
+		t.Errorf("order: journal %d, backup %d, visudo -cf %d, write %d; want ascending", journalled, backedUp, checked, written)
 	}
-	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "none"); code != 0 {
+	if v.index(armed) >= 0 {
+		t.Error("a timer for a grant of no lockout risk")
+	}
+	v.cleared()
+
+	if code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "none", "--hardn", testHardn); code != 0 {
 		t.Fatalf("--grant none: exit %d; stderr %s\nstdout %s", code, errOut, out)
 	}
 	if _, ok := v.f.Entry(grant); ok {
 		t.Errorf("--grant none left %s", grant)
+	}
+	j := v.journal(revert.PendingName)
+	if j.Risk != revert.RiskLockout || j.Timer == nil || j.Applied == nil || len(j.Undo) != 1 || j.Undo[0].Unit != plans.UnitSudoers {
+		t.Fatalf("journal %+v; want a lockout-risk change, armed and applied, with the sudoers plan", j)
+	}
+	// Not confirmed: the timer's hardn rollback <id>, at the deadline.
+	res, err := revert.Rollback(context.Background(), v.f, j.ID, revert.Options{Now: func() time.Time { return j.Deadline() }, Plans: plans.Registry()})
+	if err != nil || res.Reason != revert.ReasonTimeout || len(res.Undone) != 1 {
+		t.Fatalf("Rollback = %+v, %v", res, err)
+	}
+	if e, ok := v.f.Entry(grant); !ok || !strings.Contains(string(e.Data), "NOPASSWD: ALL") {
+		t.Errorf("%s not restored: %q", grant, e.Data)
+	}
+
+	// A grant that asks the password: the check to confirm by is one
+	// that asks it, not sudo -n.
+	code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "password", "--hardn", testHardn)
+	if code != 0 || !strings.Contains(out, "check `sudo -v`, which asks the password") || strings.Contains(out, "sudo -n true") {
+		t.Errorf("--grant password: exit %d; stderr %s\nstdout %s", code, errOut, out)
+	}
+}
+
+// TestSudoersRollsBack: Apply fails after Arm, and the change is rolled
+// back at once and its journal cleared, never left as an unfinished
+// rollback: after the write (visudo -c refusing the installed grant, Apply
+// puts the old files back, and the plan's rollback finds nothing of its
+// own left), and before any write (the installed configuration already
+// refused, which the plan's rollback would refuse again, so its step
+// leaves the journal first).
+func TestSudoersRollsBack(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		fail int // the visudo -c call that fails; 0: every one
+		want string
+	}{
+		{"after the write", 2, "the old files are back"},
+		{"before any write", 0, "before check of /etc/sudoers"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := newVM(t)
+			n := 0
+			v.hook = func(cmd string) (hostfake.Response, bool) {
+				if cmd != "visudo -c" {
+					return hostfake.Response{}, false
+				}
+				if n++; n == tc.fail || tc.fail == 0 {
+					return hostfake.Response{Stderr: ">>> /etc/sudoers.d/hardn-grant-alice: syntax error near line 2 <<<\n", ExitCode: 1}, true
+				}
+				return hostfake.Response{Stdout: "/etc/sudoers: parsed OK\n"}, true
+			}
+			code, out, errOut := v.do(context.Background(), debian13, "sudoers", "--user", "alice", "--grant", "nopasswd")
+			if code != 1 || !strings.Contains(errOut, "(rolled back)") || !strings.Contains(errOut, tc.want) {
+				t.Fatalf("exit %d, want 1 rolled back (%q); stderr %s\nstdout %s", code, tc.want, errOut, out)
+			}
+			if _, ok := v.f.Entry("/etc/sudoers.d/hardn-grant-alice"); ok {
+				t.Error("the grant is left")
+			}
+			v.cleared()
+		})
 	}
 }
 

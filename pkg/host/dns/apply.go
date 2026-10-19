@@ -147,6 +147,19 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	return undo(ctx, sys, p, p.Changes)
 }
 
+// Unit names a DNS plan in p2-revert's change journal
+// (revert.Step.Unit of its one OpPlan step, which pkg/host/revert/plans
+// makes and whose Rollback it registers). Stable: a journal written by one
+// hardn is rolled back by the next.
+const Unit = "dns"
+
+// Check is the guard Apply and Rollback run first (fs.ErrInvalid): p must
+// be what PlanDNS makes from its From and Want, and From's manager must
+// follow from its own entries. It is pure, for p2-revert's journal: a plan
+// is checked before it is journalled and again once it is read back
+// (pkg/host/revert/plans).
+func (p Plan) Check() error { return valid(p) }
+
 // valid refuses a plan that is not what PlanDNS makes from its From and
 // Want, or whose From names a manager its own entries do not give: a
 // journal edited by hand must not write what it names.

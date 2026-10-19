@@ -205,6 +205,7 @@ func (o Options) restoreContext(ctx context.Context) (context.Context, context.C
 // found it, and any other is left alone and reported (ErrChanged), so a
 // change another writer made, even one Apply refused with ErrChanged, is
 // never undone. Then it checks the whole configuration (StageRestored).
+// A plan Check refuses is refused before anything is read or written.
 // Every failure wraps ErrNotRestored. It is idempotent. Run it under
 // context.WithoutCancel, with a timeout, after Ctrl-C: every host.System
 // method refuses a done context.
@@ -212,10 +213,75 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 	if len(p.Changes) == 0 {
 		return nil
 	}
-	if p.Tool != ToolSudo && p.Tool != ToolDoas {
-		return fmt.Errorf("sudoers: rollback: tool %s: %w", p.Tool, fs.ErrInvalid)
+	if err := p.Check(); err != nil {
+		return fmt.Errorf("sudoers: rollback refused, nothing undone: %w: %w", ErrNotRestored, err)
 	}
 	return restore(ctx, sys, p, p.Changes)
+}
+
+// Unit names a sudoers or doas plan in p2-revert's change journal
+// (revert.Step.Unit of its one OpPlan step, which pkg/host/revert/plans
+// makes and whose Rollback it registers). Stable: a journal written by one
+// hardn is rolled back by the next.
+const Unit = "sudoers"
+
+// Check refuses, with fs.ErrInvalid, a plan PlanFor would not make, so
+// that a rollback from p2-revert's journal touches only hardn's own files
+// (pkg/host/revert/plans): a tool that is not sudo or doas; a Main other
+// than the file the tool reads first ("", MainConfig or SudoersRS for
+// sudo, "" for doas); a change to a path that is not one of hardn's
+// per-user files in the tool's drop-in directory (FileNames' names), or to
+// one path twice; an Old read from another path, or holding data for a
+// file that did not exist; an Old that existed and that root's rollback
+// would write back other than as a file only root owns and can write (an
+// owner or group other than 0, a group or other write bit, a bit beyond
+// the permissions); a mode other than the tool's (SudoMode, DoasMode); a
+// removal with content, or of a file that did not exist; a write whose
+// content does not start with Header. It is pure. Old's content is not
+// checked: PlanFor takes any content at hardn's names (an administrator's
+// rule among them), so a rollback writes it back as journalled, and a
+// syntax error in it is caught only after the write (StageRestored).
+func (p Plan) Check() error {
+	bad := func(format string, a ...any) error {
+		return fmt.Errorf("sudoers: plan: %s: %w", fmt.Sprintf(format, a...), fs.ErrInvalid)
+	}
+	var dir string
+	var mode fs.FileMode
+	switch p.Tool {
+	case ToolSudo:
+		dir, mode = DropInDir, SudoMode
+		if p.Main != "" && p.Main != MainConfig && p.Main != SudoersRS {
+			return bad("main file %q", p.Main)
+		}
+	case ToolDoas:
+		dir, mode = DoasDir, DoasMode
+		if p.Main != "" {
+			return bad("main file %q for doas", p.Main)
+		}
+	default:
+		return bad("tool %s", p.Tool)
+	}
+	seen := map[string]bool{}
+	for _, c := range p.Changes {
+		switch {
+		case c.Path != dir+"/"+path.Base(c.Path) || !owned(p.Tool, path.Base(c.Path)):
+			return bad("%q is not one of hardn's files in %s", c.Path, dir)
+		case seen[c.Path]:
+			return bad("%s is changed twice", c.Path)
+		case c.Old.Path != c.Path || !c.Old.Exists && len(c.Old.Data) > 0:
+			return bad("%s: its old state is of %q, exists %v", c.Path, c.Old.Path, c.Old.Exists)
+		case c.Old.Exists && (c.Old.UID != 0 || c.Old.GID != 0 || c.Old.Mode&^fs.ModePerm != 0 || c.Old.Mode&0o022 != 0):
+			return bad("%s: its old state, mode %v owned by %d:%d, is not a file only root can write", c.Path, c.Old.Mode, c.Old.UID, c.Old.GID)
+		case c.Mode != mode:
+			return bad("%s: mode %v, want %v", c.Path, c.Mode, mode)
+		case c.Remove && (c.Data != nil || !c.Old.Exists):
+			return bad("%s: a removal with content, or of a file that did not exist", c.Path)
+		case !c.Remove && !bytes.HasPrefix(c.Data, []byte(Header)):
+			return bad("%s: not hardn's content (%q first)", c.Path, Header)
+		}
+		seen[c.Path] = true
+	}
+	return nil
 }
 
 // restore is Rollback over cs, a prefix of p.Changes.

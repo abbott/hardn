@@ -594,3 +594,39 @@ func TestNarrowings(t *testing.T) {
 		t.Errorf("narrowings without keep = %v", ns)
 	}
 }
+
+// TestCheckRollback: the rollback's reload, as the journal keeps it
+// (Plan.Rollback), planned at plan time over the drop-ins as they are
+// before the change. Every host shape passes but the two whose rollback's
+// daemon-reload would not give ssh.socket back what it is configured for
+// now: listen.conf written without a daemon-reload (D9, the socket still on
+// 22), and a socket configured for 22 beside listen.conf's 2230; both are
+// reload.ErrRestoredListeners, before anything changes.
+func TestCheckRollback(t *testing.T) {
+	more := named(t, "v032-ubuntu")
+	more.name, more.socket = "v032-ubuntu, the socket on 22 too", socket22+"Listen=[::]:2230 (Stream)\n"
+	for _, sc := range append(scenarios(t), more) {
+		t.Run(sc.name, func(t *testing.T) {
+			h, p, err := plan(t, sc)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c := p.Rollback()
+			if !c.Rollback || !slices.Equal(c.Keywords, p.Keywords) || !slices.Equal(c.After, p.Listening.All) {
+				t.Errorf("Rollback = %+v, want Keywords and After = Listening.All %v", c, p.Listening.All)
+			}
+			removes := slices.ContainsFunc(p.Ops, func(op Op) bool { return op.Kind == OpRemoveSocketDropIn })
+			if want := removes && sc.ssh.Mode == detect.SSHSocket; want != slices.Equal(c.RestoredDropIns, []string{ListenConf}) || !want && c.RestoredDropIns != nil {
+				t.Errorf("RestoredDropIns %v, want listen.conf %v", c.RestoredDropIns, want)
+			}
+			d, err := reload.ReadSocketDropIns(context.Background(), h)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = p.CheckRollback(d)
+			if refused := sc.name == "v032-ubuntu-unreloaded" || sc.name == more.name; refused != errors.Is(err, reload.ErrRestoredListeners) || !refused && err != nil {
+				t.Errorf("CheckRollback = %v, want refused %v", err, refused)
+			}
+		})
+	}
+}

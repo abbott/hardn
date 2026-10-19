@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
@@ -44,6 +45,24 @@ func lockoutFlags(fs *flag.FlagSet) *lockoutOpts {
 	fs.StringVar(&o.backupPath, "backup-path", backup.DefaultPath, "where each change's backups go, <path>/<id>/")
 	fs.BoolVar(&o.planOnly, "plan-only", false, "stop after the plan; change nothing")
 	return o
+}
+
+// window is the confirm window --timeout asks for (revert.ResolveTimeout:
+// 180s by default, at least 60s); a bad value is a usage error.
+func (o *lockoutOpts) window() (time.Duration, error) {
+	var flagTimeout *time.Duration
+	if o.timeout != "" {
+		t, err := revert.ParseTimeout(o.timeout)
+		if err != nil {
+			return 0, fmt.Errorf("%w: %w", err, errUsage)
+		}
+		flagTimeout = &t
+	}
+	timeout, err := revert.ResolveTimeout(flagTimeout, nil)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", err, errUsage)
+	}
+	return timeout, nil
 }
 
 // ufwMode is what a change does with ufw (--ufw).
@@ -144,21 +163,28 @@ type lockout struct {
 
 // files is a lockout change's sshd part.
 type files struct {
-	paths    []string        // backed up, RollbackRequired, before any write
-	keywords []string        // the reload's (reload.Change.Keywords)
-	restored []sshd.Listener // what the restored files configure: the rollback's reload.Change.After
-	reload   reload.Plan     // planned before anything changes, to show
+	paths    []string // backed up, RollbackRequired, before any write
+	keywords []string // the reload's (reload.Change.Keywords)
+	// restored is what the restored files configure, the rollback's
+	// reload.Change.After: on a socket host, the socket's listeners.
+	restored []sshd.Listener
+	// socketDropIns are the ssh.socket drop-ins the change removes, which
+	// the rollback's restore puts back (v0.3.x's listen.conf): its reload
+	// expects them (revert.Reload.SocketDropIns).
+	socketDropIns []string
+	reload        reload.Plan // planned before anything changes, to show
 	// write makes the change and returns the reload to run.
 	write func(ctx context.Context, run *backup.Run) (reload.Plan, error)
 	// want checks, once reloaded, that sshd -T shows what the change set.
 	want func(ctx context.Context, after sshd.Effective) error
 }
 
-// planUFW plans ufw's part: the listeners sshd configures now and the ports
-// the change adds let through before sshd moves (brief 2.3 step 2), with the
-// applying session's own port kept. nil when there is nothing for ufw to
-// do: keep with no port added, ufw not installed, or Proxmox VE.
-func (d *driver) planUFW(ctx context.Context, b base, mode ufwMode, add []uint16) (*ufw.Plan, error) {
+// planUFW plans ufw's part: listeners, the ones that accept connections
+// now (sshd.ReadEffective's, or a migration's Plan.Listening), and the
+// ports the change adds let through before sshd moves (brief 2.3 step 2),
+// with the applying session's own port kept. nil when there is nothing for
+// ufw to do: keep with no port added, ufw not installed, or Proxmox VE.
+func (d *driver) planUFW(ctx context.Context, b base, listeners sshd.Listeners, mode ufwMode, add []uint16) (*ufw.Plan, error) {
 	if mode == ufwKeep && len(add) == 0 {
 		return nil, nil
 	}
@@ -175,7 +201,7 @@ func (d *driver) planUFW(ctx context.Context, b base, mode ufwMode, add []uint16
 	case !st.Installed:
 		return nil, fmt.Errorf("ufw: %w", ufw.ErrNotInstalled)
 	}
-	in := ufw.Input{Proxmox: b.facts.Proxmox, Listeners: b.before.Listeners, Add: add, State: st}
+	in := ufw.Input{Proxmox: b.facts.Proxmox, Listeners: listeners, Add: add, State: st}
 	if c, err := revert.ParseConn(b.session.Conn); err == nil {
 		in.Keep = []uint16{c.Server.Port()}
 	}
@@ -227,19 +253,11 @@ func (d *driver) showPlan(lc lockout) {
 // the change back at once, while this session is open
 // (revert.ReasonFailed).
 func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
-	var flagTimeout *time.Duration
-	if o.timeout != "" {
-		t, err := revert.ParseTimeout(o.timeout)
-		if err != nil {
-			return fmt.Errorf("%w: %w", err, errUsage)
-		}
-		flagTimeout = &t
-	}
-	timeout, err := revert.ResolveTimeout(flagTimeout, nil)
+	timeout, err := o.window()
 	if err != nil {
-		return fmt.Errorf("%w: %w", err, errUsage)
+		return err
 	}
-	opts := revert.Options{Log: d.out, Hardn: o.hardn, Now: d.now}
+	opts := d.revertOptions(o.hardn)
 	d.sayHardn(ctx, o.hardn)
 	j := revert.Journal{ID: lc.id, TimeoutSeconds: int(timeout / time.Second), Risk: revert.RiskLockout,
 		Summary: lc.summary, Session: lc.session, ConfirmVia: revert.ListenersOf(lc.adds)}
@@ -258,19 +276,7 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		defer cancel()
 		return revert.Record(rctx, d.sys, j, opts)
 	}
-	fail := func(step string, err error) error {
-		d.say("%s failed: %v", step, err)
-		d.say("rolling change %s back while this session is open", lc.id)
-		ro := opts
-		ro.Reason = revert.ReasonFailed
-		release := d.hold(d.out)
-		_, rerr := revert.Rollback(context.WithoutCancel(ctx), d.sys, lc.id, ro)
-		release()
-		if rerr == nil {
-			return fmt.Errorf("%s: %w (rolled back)", step, err)
-		}
-		return fmt.Errorf("%s: %w; the rollback did not finish: %w", step, err, rerr)
-	}
+	fail := func(step string, err error) error { return d.rollBack(ctx, lc.id, opts, step, err) }
 	if p := lc.ufw; p != nil && !p.Empty() {
 		j.Undo = undoSteps(p.PreUndo())
 		if err := record(); err != nil {
@@ -302,7 +308,8 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		}
 		j.Backup = &revert.Backups{Dir: run.Dir(), Seqs: seqs}
 		if len(fc.keywords) > 0 {
-			j.Reload = []revert.Reload{{Service: revert.ReloadSSH, Keywords: fc.keywords, After: revert.ListenersOf(fc.restored), IfUp: true}}
+			j.Reload = []revert.Reload{{Service: revert.ReloadSSH, Keywords: fc.keywords, After: revert.ListenersOf(fc.restored), IfUp: true,
+				SocketDropIns: fc.socketDropIns}}
 		}
 		if err := record(); err != nil {
 			return fail("journal the backups and the reload", err)
@@ -344,6 +351,31 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 	d.say("to keep it: from another machine, open %s and run `sudo %s confirm` (doas on Alpine).", where, o.hardn)
 	d.say("to undo it now: sudo %s rollback %s", o.hardn, lc.id)
 	return nil
+}
+
+// revertOptions are a change's journal options, with hardn the binary its
+// timer runs: plans.Registry() is the registry cmd/hardn's `hardn
+// rollback` passes, so Record accepts the plan steps the timer can undo,
+// and the in-process rollback undoes them as the timer would.
+func (d *driver) revertOptions(hardn string) revert.Options {
+	return revert.Options{Log: d.out, Hardn: hardn, Now: d.now, Plans: plans.Registry()}
+}
+
+// rollBack rolls change id back at once, after step failed with err, while
+// this session is open (revert.ReasonFailed): without the command's
+// cancellation, with SIGHUP and SIGINT ignored and SIGTERM caught until it
+// returns (d.hold).
+func (d *driver) rollBack(ctx context.Context, id string, opts revert.Options, step string, err error) error {
+	d.say("%s failed: %v", step, err)
+	d.say("rolling change %s back while this session is open", id)
+	opts.Reason = revert.ReasonFailed
+	release := d.hold(d.out)
+	_, rerr := revert.Rollback(context.WithoutCancel(ctx), d.sys, id, opts)
+	release()
+	if rerr == nil {
+		return fmt.Errorf("%s: %w (rolled back)", step, err)
+	}
+	return fmt.Errorf("%s: %w; the rollback did not finish: %w", step, err, rerr)
 }
 
 // sayHardn prints the SHA-256 of the hardn binary the timer will run, to

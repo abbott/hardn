@@ -1,0 +1,28 @@
+{
+  "Tool": 2,
+  "Main": "/etc/sudoers",
+  "Changes": [
+    {
+      "Path": "/etc/sudoers.d/hardn-grant-alice",
+      "Old": {
+        "Path": "/etc/sudoers.d/hardn-grant-alice",
+        "Exists": true,
+        "Data": "IyBNYW5hZ2VkIGJ5IGhhcmRuCmFsaWNlIEFMTD0oQUxMKSBBTEwK",
+        "Mode": 288,
+        "UID": 0,
+        "GID": 0
+      },
+      "Data": "IyBNYW5hZ2VkIGJ5IGhhcmRuCmFsaWNlIEFMTD0oQUxMKSBOT1BBU1NXRDogQUxMCg==",
+      "Mode": 288,
+      "Remove": false,
+      "Risk": 0,
+      "Check": [
+        "visudo",
+        "-cf",
+        "/etc/sudoers.d/hardn-grant-alice"
+      ],
+      "Why": "write hardn's file, checked by visudo first"
+    }
+  ],
+  "Findings": null
+}

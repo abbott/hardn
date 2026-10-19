@@ -25,7 +25,8 @@ func valid() Journal {
 		{Op: OpRemoveDir, Path: "/home/bob/.ssh"},
 		{Op: OpPlan, Unit: "sudoers", Plan: json.RawMessage(`{"tool":"sudo"}`)},
 	}
-	j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"Port"}, After: []Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}, IfUp: true}}
+	j.Reload = []Reload{{Service: ReloadSSH, Keywords: []string{"Port"}, After: []Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}, IfUp: true,
+		SocketDropIns: []string{listenConf}}}
 	j.Applied = &Applied{At: testNow.Add(5 * time.Second), SSHD: []ProcStart{sshdOf(applySSHD)}}
 	return j
 }
@@ -73,6 +74,17 @@ func TestJournalCheck(t *testing.T) {
 		{"reload service", func(j *Journal) { j.Reload[0].Service = "ufw" }},
 		{"reload no keywords", func(j *Journal) { j.Reload[0].Keywords = nil }},
 		{"reload of a port with no after", func(j *Journal) { j.Reload[0].After = nil }},
+		{"socket drop-in for a reload that moves no listener", func(j *Journal) { j.Reload[0].Keywords = []string{"PasswordAuthentication"} }},
+		{"socket drop-in relative", func(j *Journal) { j.Reload[0].SocketDropIns = []string{"ssh.socket.d/listen.conf"} }},
+		{"socket drop-in unclean", func(j *Journal) {
+			j.Reload[0].SocketDropIns = []string{"/etc/systemd/system/ssh.socket.d/../listen.conf"}
+		}},
+		{"socket drop-in of another unit", func(j *Journal) {
+			j.Reload[0].SocketDropIns = []string{"/etc/systemd/system/ssh.service.d/listen.conf"}
+		}},
+		{"socket drop-in not a .conf", func(j *Journal) { j.Reload[0].SocketDropIns = []string{"/etc/systemd/system/ssh.socket.d/listen"} }},
+		{"socket drop-in twice", func(j *Journal) { j.Reload[0].SocketDropIns = []string{listenConf, listenConf} }},
+		{"socket drop-in with no backups to restore it", func(j *Journal) { j.Backup = nil }},
 		{"progress reason", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: "bored"} }},
 		{"progress past the steps", func(j *Journal) { j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout, UndoDone: 7} }},
 		{"progress runner pid -1", func(j *Journal) {
@@ -106,7 +118,8 @@ func TestDecodeJournal(t *testing.T) {
 		t.Fatal(err)
 	}
 	j, err := decodeJournal(data)
-	if err != nil || j.ID != testID || len(j.Undo) != 6 || *j.Undo[2].Mode != 0o755 || !j.Reload[0].IfUp || j.Applied == nil || !reflect.DeepEqual(j.Applied, valid().Applied) {
+	if err != nil || j.ID != testID || len(j.Undo) != 6 || *j.Undo[2].Mode != 0o755 || !j.Reload[0].IfUp || j.Applied == nil || !reflect.DeepEqual(j.Applied, valid().Applied) ||
+		!reflect.DeepEqual(j.Reload, valid().Reload) {
 		t.Fatalf("round trip: %+v, %v", j, err)
 	}
 	var plan struct{ Tool string }

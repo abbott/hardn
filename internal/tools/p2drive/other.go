@@ -5,15 +5,17 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/netip"
 	"path"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
-	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -25,7 +27,7 @@ func setupMigrate(fs *flag.FlagSet) func(context.Context, *driver) error {
 	configFile := fs.String("config-file", "", "the sshConfigFile a v0.3.x hardn.yml named, if any")
 	return func(ctx context.Context, d *driver) error {
 		o.planOnly = o.planOnly || !*apply
-		return d.lockoutCommand(ctx, o, func(b base) (lockout, error) { return d.planMigrate(ctx, b, *configFile, *apply) })
+		return d.lockoutCommand(ctx, o, func(b base) (lockout, error) { return d.planMigrate(ctx, b, *configFile) })
 	}
 }
 
@@ -33,8 +35,16 @@ func setupMigrate(fs *flag.FlagSet) func(context.Context, *driver) error {
 // 00-hardn.conf (docs/safety/sshd-migrate.md §6, the engine's order): Find,
 // PlanFor, Check (sshd.Validate and the login-path comparison over a copy)
 // and the reload's plan, all before anything changes. Once reloaded, sshd
-// -T must show what Check showed of the copy (sameEffective).
-func (d *driver) planMigrate(ctx context.Context, b base, configFile string, apply bool) (lockout, error) {
+// -T must show what Check showed of the copy (sameEffective). The
+// rollback's reload is migrate.Plan.Rollback: the listeners that accept
+// connections now, Plan.Listening.All (on a socket host, ssh.socket's),
+// with the socket drop-ins the plan removes named as restored. It is
+// planned now too (Plan.CheckRollback), so that a migration whose rollback
+// could not give the socket back what it is configured for (listen.conf
+// never in effect, D9) is refused before anything changes; and a listener
+// change is refused where what is configured is not what is bound
+// (inEffect).
+func (d *driver) planMigrate(ctx context.Context, b base, configFile string) (lockout, error) {
 	lc := lockout{base: b, summary: "legacy hardn SSH files migrated into 00-hardn.conf"}
 	found, err := migrate.Find(ctx, d.sys, migrate.FindRequest{ConfigFile: configFile})
 	if err != nil {
@@ -70,18 +80,22 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 	if err != nil {
 		return lc, err
 	}
-	removesListenConf := slices.ContainsFunc(plan.Ops, func(op migrate.Op) bool { return op.Kind == migrate.OpRemoveSocketDropIn })
-	if apply && b.facts.SSH.Mode == detect.SSHSocket && removesListenConf {
-		// The rollback would restore listen.conf and then plan the reload
-		// with it in place, which reload.PlanFor refuses
-		// (reload.ErrSocketDropIn): the rollback could not finish.
-		return lc, fmt.Errorf("--apply on a socket-activated host whose plan removes %s: its rollback's reload would be refused (%w), so p2drive does not apply it (docs/safety/vmtest.md)", migrate.ListenConf, reload.ErrSocketDropIn)
+	// The rollback's reload, over the drop-ins as they are now: what its
+	// restore gives back (listen.conf among them).
+	rb := plan.Rollback()
+	if err := plan.CheckRollback(drops); err != nil {
+		return lc, err
+	}
+	if rp.Listen {
+		if err := d.inEffect(ctx, b, plan.Listening.All); err != nil {
+			return lc, err
+		}
 	}
 	if err := d.checkFree(ctx, rp); err != nil {
 		return lc, err
 	}
 	lc.adds = rp.Adds
-	if lc.ufw, err = d.planUFW(ctx, b, ufwKeep, portsOf(rp.Adds)); err != nil {
+	if lc.ufw, err = d.planUFW(ctx, b, plan.Listening, ufwKeep, portsOf(rp.Adds)); err != nil {
 		return lc, err
 	}
 	var paths []string
@@ -89,7 +103,7 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 		paths = append(paths, s.Path)
 	}
 	lc.files = &files{
-		paths: paths, keywords: plan.Keywords, restored: b.before.Listeners.SSHD, reload: rp,
+		paths: paths, keywords: rb.Keywords, restored: rb.After, socketDropIns: rb.RestoredDropIns, reload: rp,
 		write: func(ctx context.Context, run *backup.Run) (reload.Plan, error) {
 			opts.Backup = run
 			rep, err := migrate.Apply(ctx, d.sys, plan, opts)
@@ -105,6 +119,25 @@ func (d *driver) planMigrate(ctx context.Context, b base, configFile string, app
 		want: func(_ context.Context, got sshd.Effective) error { return sameEffective(after, got) },
 	}
 	return lc, nil
+}
+
+// inEffect refuses a listener change on a host whose configured
+// listeners, configured, are not the ones that accept connections now
+// (reload.CheckInEffect: one of them not bound, or none of them the one
+// the applying session is connected to): the reload would drop what is
+// bound but not configured, and the rollback would not bring it back. A
+// remote session whose connection is not established fails it, closed; a
+// console session has no port to keep.
+func (d *driver) inEffect(ctx context.Context, b base, configured []sshd.Listener) error {
+	var server netip.AddrPort
+	if b.session.Remote {
+		c, err := revert.ParseConn(b.session.Conn)
+		if err != nil {
+			return fmt.Errorf("the port this session is connected to is not established (%v), so the change cannot be shown to keep it: %w", err, reload.ErrNotInEffect)
+		}
+		server = c.Server
+	}
+	return reload.CheckInEffect(ctx, d.sys, b.facts.SSH.Mode, configured, server)
 }
 
 // sameEffective checks that sshd -T after the reload shows what
@@ -158,8 +191,7 @@ func setupSudoers(fs *flag.FlagSet) func(context.Context, *driver) error {
 	grant := fs.String("grant", "nopasswd", "nopasswd, password, or none (remove hardn's files for the user)")
 	vars := fs.String("env", "", "variables to keep, comma-separated, such as HARDN_CONFIG (sudo env_keep, doas setenv)")
 	tool := fs.String("tool", "", "sudo or doas when both are installed (default: the one installed)")
-	backupPath := fs.String("backup-path", backup.DefaultPath, "where the backups go, <path>/<id>/")
-	planOnly := fs.Bool("plan-only", false, "stop after the plan; change nothing")
+	o := lockoutFlags(fs)
 	return func(ctx context.Context, d *driver) error {
 		pol := sudoers.Policy{User: *user}
 		switch *grant {
@@ -188,7 +220,7 @@ func setupSudoers(fs *flag.FlagSet) func(context.Context, *driver) error {
 		if *user == "" {
 			return fmt.Errorf("--user is required: %w", errUsage)
 		}
-		return d.sudoers(ctx, pol, want, *backupPath, *planOnly)
+		return d.sudoers(ctx, pol, want, o)
 	}
 }
 
@@ -196,10 +228,18 @@ func setupSudoers(fs *flag.FlagSet) func(context.Context, *driver) error {
 // the whole configuration and each candidate are checked first (visudo -c,
 // visudo -cf on a copy, doas -C), every file it writes or removes is backed
 // up, and a failed check after the write puts the old files back
-// (sudoers.Apply). It is not journalled: cmd/hardn's revertPlans registers
-// no plan rollback yet, so `hardn rollback` could not undo it; --grant none
-// is its undo (docs/safety/vmtest.md).
-func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.Tool, backupPath string, planOnly bool) error {
+// (sudoers.Apply). It is journalled as one plan step (plans.Sudoers),
+// recorded before Apply, so that `hardn rollback <id>` undoes it with
+// sudoers.Rollback, which puts back only a file that holds what the plan
+// wrote. A plan with a lockout-risk change (a grant removed, or one that
+// asks for a password, sudoers.RiskLockout) is a lockout-risk change under
+// confirm-or-revert: the timer runs `hardn rollback <id>` unless a new SSH
+// connection confirms, which also shows that elevation still works there.
+// Any other is journalled without a timer and cleared once applied
+// (revert.Done). A failure after Arm rolls it back at once; when Apply
+// refused before it wrote anything, the plan step leaves the journal
+// first, so that the rollback only ends the change.
+func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.Tool, o *lockoutOpts) error {
 	f, err := d.detect(ctx, d.sys)
 	if err != nil {
 		return err
@@ -222,33 +262,63 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		if ch.Remove {
 			verb = "remove"
 		}
-		d.say("plan: %s %s (%v, risk %v); checked with %s", verb, ch.Path, ch.Mode, ch.Risk, host.FormatArgv(ch.Check))
+		check := "the whole configuration, checked after the change"
+		if len(ch.Check) > 0 {
+			check = host.FormatArgv(ch.Check)
+		}
+		d.say("plan: %s %s (%v, risk %v); checked with %s", verb, ch.Path, ch.Mode, ch.Risk, check)
 	}
 	for _, fd := range plan.Findings {
 		d.say("finding %v: %s:%d %s", fd.Kind, fd.File, fd.Line, fd.Detail)
 	}
+	lockout := slices.ContainsFunc(plan.Changes, func(ch sudoers.Change) bool { return ch.Risk == sudoers.RiskLockout })
 	switch {
 	case len(plan.Changes) == 0:
 		d.say("nothing to change")
 		return nil
-	case planOnly:
+	case o.planOnly:
 		d.say("--plan-only: nothing changed")
 		return nil
 	}
-	id := revert.NewID(d.now())
-	runDir := path.Join(runRoot, id)
+	summary := fmt.Sprintf("%v rules for %s: grant %v", c.Tool, pol.User, pol.Grant)
+	if len(pol.Env) > 0 {
+		summary += ", keep " + strings.Join(pol.Env, " ")
+	}
+	step, err := plans.Sudoers(plan, summary)
+	if err != nil {
+		return fmt.Errorf("refused before anything changed: %w", err)
+	}
+	opts := d.revertOptions(o.hardn)
+	j := revert.Journal{ID: revert.NewID(d.now()), Risk: revert.RiskOther, Summary: summary}
+	runDir := path.Join(runRoot, j.ID)
 	if err := d.sys.MkdirAll(ctx, runDir, 0o700); err != nil {
 		return err
 	}
 	defer d.end(ctx, base{runDir: runDir})
-	run, err := backup.Open(d.sys, backup.Settings{Path: backupPath, Enabled: true}, id)
+	if lockout {
+		if j, err = d.lockoutJournal(ctx, j, o); err != nil {
+			return err
+		}
+	}
+	if j, err = revert.Arm(ctx, d.sys, j, f.Init, opts); err != nil {
+		return fmt.Errorf("not applied: %w", err)
+	}
+	fail := func(step string, err error) error { return d.rollBack(ctx, j.ID, opts, step, err) }
+	// Write-ahead: the plan step before any file changes. Rollback undoes
+	// only what holds the plan's content, so it is harmless if Apply never
+	// wrote.
+	j.Undo = []revert.Step{step}
+	if err := revert.Record(ctx, d.sys, j, opts); err != nil {
+		return fail("journal the sudoers plan", err)
+	}
+	run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, j.ID)
 	if err != nil {
-		return err
+		return fail("backups", err)
 	}
 	for _, ch := range plan.Changes {
 		r, err := run.Backup(ctx, ch.Path, backup.RollbackRequired)
 		if err != nil {
-			return err
+			return fail("backup of "+ch.Path, err)
 		}
 		d.say("backup %d: %s (%s) in %s", r.Entry.Seq, ch.Path, r.Entry.Kind, run.Dir())
 	}
@@ -257,13 +327,67 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		d.say("the copies were not all removed: %v", res.Cleanup)
 	}
 	switch {
+	case err != nil && len(res.Installed) == 0 && !res.Restored && !errors.Is(err, sudoers.ErrNotRestored):
+		// Apply refused before it wrote anything (a configuration visudo
+		// rejects already, a file changed since Read, Ctrl-C): the plan's
+		// inverse is not needed, and would fail on the same cause, leaving
+		// the rollback unfinished. It leaves the journal first, under a
+		// context of its own; the rollback then only ends the change.
+		j.Undo = nil
+		rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), journalTimeout)
+		rerr := revert.Record(rctx, d.sys, j, opts)
+		cancel()
+		return fail("sudoers", errors.Join(err, rerr))
 	case err != nil && res.Restored:
-		return fmt.Errorf("%w (the old files are back and checked)", err)
-	case errors.Is(err, sudoers.ErrNotRestored):
-		return fmt.Errorf("%w; the backups are in %s", err, run.Dir())
+		return fail("sudoers", fmt.Errorf("%w (the old files are back and checked)", err))
 	case err != nil:
-		return err
+		return fail("sudoers", fmt.Errorf("%w; the backups are in %s", err, run.Dir()))
 	}
-	d.say("installed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, `sudo -n true`", res.Installed, pol.User, pol.User)
+	// sudo -n cannot ask a password, so it fails under a password grant
+	// [unverified: sudo(8) -n]: there, a command that asks is the check.
+	check := "`sudo -n true` (`doas -n true` on Alpine)"
+	if pol.Grant == sudoers.GrantPassword {
+		check = "`sudo -v`, which asks the password (`doas true` on Alpine)"
+	}
+	var written, removed []string
+	for _, ch := range plan.Changes {
+		if !slices.Contains(res.Installed, ch.Path) {
+			continue
+		}
+		if ch.Remove {
+			removed = append(removed, ch.Path)
+		} else {
+			written = append(written, ch.Path)
+		}
+	}
+	d.say("written %v, removed %v; check it with `sudo -l -U %s` (or `doas -C`), and as %s, %s", written, removed, pol.User, pol.User, check)
+	if !lockout {
+		if err := revert.Done(ctx, d.sys, j.ID, opts); err != nil {
+			return fail("clear the journal", err)
+		}
+		return nil
+	}
+	if j, err = revert.MarkApplied(ctx, d.sys, j.ID, opts); err != nil {
+		return fail("mark applied", err)
+	}
+	d.say("change %s applied; it is rolled back at %s unless confirmed.", j.ID, j.Deadline().Format(time.RFC3339))
+	d.say("to keep it: from another machine, open a new SSH connection as %s, check %s or `sudo -l`, and run `sudo %s confirm`.", pol.User, check, o.hardn)
+	d.say("to undo it now: sudo %s rollback %s", o.hardn, j.ID)
 	return nil
+}
+
+// lockoutJournal makes j a lockout-risk change for Arm: the confirm window
+// (--timeout), the session applying it (revert.ReadSession), and the hardn
+// binary the timer runs (--hardn), whose SHA-256 is printed.
+func (d *driver) lockoutJournal(ctx context.Context, j revert.Journal, o *lockoutOpts) (revert.Journal, error) {
+	timeout, err := o.window()
+	if err != nil {
+		return j, err
+	}
+	j.Risk, j.TimeoutSeconds = revert.RiskLockout, int(timeout/time.Second)
+	if j.Session, err = d.session(ctx, d.sys); err != nil {
+		d.say("session: %v (only a new SSH connection can confirm)", err)
+	}
+	d.sayHardn(ctx, o.hardn)
+	return j, nil
 }

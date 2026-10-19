@@ -136,6 +136,13 @@ func TestPlanKeys(t *testing.T) {
 		{name: "remove this node's key", k: pve.Keys{Data: []byte(strings.Replace(keyWeb01, "root@web-01", "renamed", 1) + "\n" + keyAlice + "\n"), Own: base.Own},
 			e: pve.KeyEdit{Remove: []string{keyWeb01}}, err: pve.ErrClusterKey},
 		{name: "remove the last key", k: pve.Keys{Data: []byte(keyAlice + "\n")}, e: pve.KeyEdit{Remove: []string{keyAlice}}, err: pve.ErrClusterKey},
+		// A node's root key is Proxmox VE's: not added, as UndoKeys could
+		// not remove it again; one already there is not added either.
+		{name: "add this node's key where it is missing", k: pve.Keys{Data: []byte(keyAlice + "\n"), Own: base.Own}, e: pve.KeyEdit{Add: []string{keyWeb01}},
+			err: pve.ErrClusterKey},
+		{name: "add a key named as a node's", k: pve.Keys{Data: []byte(keyAlice + "\n"), Nodes: base.Nodes}, e: pve.KeyEdit{Add: []string{keyWeb02}},
+			err: pve.ErrClusterKey},
+		{name: "add this node's key, already there", k: base, e: pve.KeyEdit{Add: []string{keyWeb01}}},
 		{name: "add a line that is not a key", k: base, e: pve.KeyEdit{Add: []string{"ssh-ed25519 not-base64 bob"}}, err: pve.ErrBadKey},
 		{name: "add a blob of another type", k: base, e: pve.KeyEdit{Add: []string{strings.Replace(keyBob, "ssh-ed25519", "ssh-rsa", 1)}}, err: pve.ErrBadKey},
 		{name: "add two lines in one", k: base, e: pve.KeyEdit{Add: []string{keyBob + "\n" + keyAlice}}, err: pve.ErrBadKey},
@@ -433,5 +440,61 @@ func TestRollbackKeys(t *testing.T) {
 	off.AddFile("/proc/self/mounts", nil, 0o444, 0, 0)
 	if err := pve.RollbackKeys(ctx, off, back); !errors.Is(err, pve.ErrNotApplicable) {
 		t.Errorf("off Proxmox VE: %v", err)
+	}
+}
+
+// TestKeysPlanCheck: a plan PlanKeys made passes Check, a removal and an
+// addition; each field a journal could carry edited by hand is refused
+// (ErrPlanMismatch, or ErrBadKey for a line that is not a key), and
+// RollbackKeys then reads and writes nothing.
+func TestKeysPlanCheck(t *testing.T) {
+	h := pve9(t)
+	k, err := pve.ReadKeys(ctx, h, pveUp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	k.Data = []byte(string(k.Data) + keyAlice + "\n")
+	add, err := pve.PlanKeys(k, pve.KeyEdit{Add: []string{keyBob}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	remove, err := pve.PlanKeys(k, pve.KeyEdit{Remove: []string{keyAlice}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []pve.KeysPlan{add, remove} {
+		if err := p.Check(); err != nil {
+			t.Fatalf("Check of %+v = %v", p, err)
+		}
+	}
+	for _, tc := range []struct {
+		name string
+		base pve.KeysPlan
+		edit func(*pve.KeysPlan)
+		want error
+	}{
+		{"Before of other content", add, func(p *pve.KeysPlan) { p.Before = sha256.Sum256([]byte(keyWeb01 + "\n")) }, pve.ErrPlanMismatch},
+		{"a node's key added to Added", add, func(p *pve.KeysPlan) { p.Added = append(p.Added, keyWeb02) }, pve.ErrPlanMismatch},
+		{"New not the edit", add, func(p *pve.KeysPlan) { p.New = []byte(keyBob + "\n") }, pve.ErrPlanMismatch},
+		{"Removed a key Old does not hold", remove, func(p *pve.KeysPlan) { p.Removed = []string{keyBob} }, pve.ErrPlanMismatch},
+		{"Old without the key Removed names", remove, func(p *pve.KeysPlan) {
+			p.Old = []byte(keyWeb01 + "\n" + keyWeb02 + "\n")
+			p.Before = sha256.Sum256(p.Old)
+		}, pve.ErrPlanMismatch},
+		{"a line that is not a key", add, func(p *pve.KeysPlan) { p.Added = []string{"command=\"/bin/sh\""} }, pve.ErrBadKey},
+		{"the zero plan", pve.KeysPlan{}, func(*pve.KeysPlan) {}, pve.ErrPlanMismatch},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := tc.base
+			p.Added, p.Removed = slices.Clone(p.Added), slices.Clone(p.Removed)
+			tc.edit(&p)
+			if err := p.Check(); !errors.Is(err, tc.want) {
+				t.Errorf("Check = %v, want %v", err, tc.want)
+			}
+			before := len(h.Calls())
+			if err := pve.RollbackKeys(ctx, h, p); !errors.Is(err, tc.want) || len(h.Calls()) != before {
+				t.Errorf("RollbackKeys = %v, calls %q; want refused with nothing read", err, h.Calls()[before:])
+			}
+		})
 	}
 }

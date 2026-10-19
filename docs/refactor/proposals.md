@@ -63,6 +63,7 @@
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
+| [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | S | Low | proposed |
 
 ---
 
@@ -734,4 +735,19 @@
   - (d) accept the stock line further down only when nothing above it sets a keyword hardn writes, and refuse the rest as in (a) **[I]**.
 - **Effort:** (a) none; (b) M (the block writer, its reading back and undo); (c) M; (d) S.
 - **Risk:** (a) Low: nothing is written on a host hardn does not model, at the cost of no SSH hardening there; (b) Medium: main-file edits that other tools rewrite; (c) Medium: it reorders what sshd reads, validated before it takes effect; (d) Low to Medium: one more reading of sshd's rules to get right.
+- **Screenshots:** none (no screen changes).
+
+<a id="p-39"></a>
+### P-39: Migrating `listen.conf` on a socket host where it never took effect (D9)
+
+- **Status:** proposed
+- **Source:** `next/p2-revert-plans` ([docs/safety/revert-plans.md](../safety/revert-plans.md) §2.10, §6), on decision §3.17 (migrate the legacy artifacts automatically, approved 2026-10-17) and D9 ([side-effects.md](phase0/side-effects.md): v0.3.2 wrote `ssh.socket.d/listen.conf` without `daemon-reload`, [I] for its effect).
+- **Problem:** on an Ubuntu host hardened by v0.3.2 and not rebooted since, `ssh.socket` still listens where it did before (port 22) while `listen.conf` names another port (2230). The migration itself is safe there: it holds both ports ([sshd-migrate.md](../safety/sshd-migrate.md) §2.8). Its rollback is not: it restores the files, `listen.conf` included, and the reload that follows (`daemon-reload`) gives the socket `listen.conf`'s port alone, so it cannot give back the listeners the socket had before, and would move the socket off the port the user connected on. A rollback now stops before `daemon-reload` when the restored `listen.conf` would not give the socket what it had (`reload.ErrRestoredListeners`), but it then stays unfinished. So the migration is refused before anything changes, by planning its rollback first (`migrate.Plan.CheckRollback`, which `p2drive` runs and the engine must): on such hosts §3.17's "automatically" does not hold.
+- **Proposal:** the maintainer decides:
+  - (a) keep refusing, with a report saying why; the host is migrated once the socket listens where `listen.conf` says (after a reboot, or `systemctl daemon-reload` and `systemctl restart ssh.socket`), which is v0.3.2's own change taking effect late, outside hardn's confirm-or-revert;
+  - (b) on such a host, roll the files back but not the socket: the rollback restores `listen.conf` and the rest and reloads nothing for the socket, which keeps the migration's listeners (both ports) until the next `daemon-reload` or reboot, when `listen.conf` applies as it would have before the migration; the rollback reports the socket as left on a superset of its listeners;
+  - (c) on such a host, the rollback writes a hardn drop-in holding the socket's listeners from before the change beside the restored `listen.conf`, so that its reload gives them back; a new hardn artifact under `ssh.socket.d` to remove later.
+  - The recommendation is (a) for v0.4: nothing is applied whose rollback cannot be faithful. (b) closes no port and needs only a journal flag the rollback honours; it is the candidate if such hosts are common.
+- **Effort:** (a) none; (b) S (a reload entry the rollback skips, its notice); (c) M (a writer, its own removal).
+- **Risk:** (a) Low, at the cost of no migration on those hosts until they are rebooted; (b) Low to Medium: the socket's runtime and files disagree after the rollback, as they did before the migration; (c) Medium: one more file overriding the generator.
 - **Screenshots:** none (no screen changes).

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"slices"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -173,7 +174,7 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	}
 	for restored && j.Rollback.ReloadDone < len(j.Reload) {
 		r := j.Reload[j.Rollback.ReloadDone]
-		rep, err := runReload(ctx, sys, r, opts)
+		rep, err := runReload(ctx, sys, r, j.Backup, opts)
 		res.Reloads = append(res.Reloads, rep)
 		opts.logf("rollback %s: reload %s (%v)%s", id, r.Service, r.Keywords, errWords(err))
 		if err != nil {
@@ -242,9 +243,18 @@ func nothingWhy(st State, id string) string {
 
 // restoreBackups restores the entries of b, from its run directory.
 func restoreBackups(ctx context.Context, sys host.System, b Backups) ([]backup.Restored, error) {
-	m, err := backup.Load(ctx, sys, b.Dir)
+	m, err := journalled(ctx, sys, b)
 	if err != nil {
 		return nil, err
+	}
+	return backup.Restore(ctx, sys, m)
+}
+
+// journalled is b's manifest with only the entries b names, in b's order.
+func journalled(ctx context.Context, sys host.System, b Backups) (backup.Manifest, error) {
+	m, err := backup.Load(ctx, sys, b.Dir)
+	if err != nil {
+		return backup.Manifest{}, err
 	}
 	var keep []backup.Entry
 	for _, seq := range b.Seqs {
@@ -255,12 +265,36 @@ func restoreBackups(ctx context.Context, sys host.System, b Backups) ([]backup.R
 			}
 		}
 		if i < 0 {
-			return nil, fmt.Errorf("revert: backup %d is not in %s: %w", seq, b.Dir, ErrJournal)
+			return backup.Manifest{}, fmt.Errorf("revert: backup %d is not in %s: %w", seq, b.Dir, ErrJournal)
 		}
 		keep = append(keep, m.Entries[i])
 	}
 	m.Entries = keep
-	return backup.Restore(ctx, sys, m)
+	return m, nil
+}
+
+// restoredDropIns refuses (ErrJournal) a reload whose SocketDropIns are not
+// all paths of b's journalled entries of a file (backup.KindFile), which
+// the restore put back: only those are exempt from reload.ErrSocketDropIn,
+// so that a damaged or edited entry cannot exempt another unit's drop-in,
+// or an administrator's.
+func restoredDropIns(ctx context.Context, sys host.System, r Reload, b *Backups) error {
+	if len(r.SocketDropIns) == 0 {
+		return nil
+	}
+	if b == nil {
+		return fmt.Errorf("revert: socketDropIns %v with no backups: %w", r.SocketDropIns, ErrJournal)
+	}
+	m, err := journalled(ctx, sys, *b)
+	if err != nil {
+		return err
+	}
+	for _, d := range r.SocketDropIns {
+		if !slices.ContainsFunc(m.Entries, func(e backup.Entry) bool { return e.Path == d && e.Kind == backup.KindFile }) {
+			return fmt.Errorf("revert: socketDropIns %s is not a file the journalled backups restore: %w", d, ErrJournal)
+		}
+	}
+	return nil
 }
 
 // runStep runs one inverse step; an OpPlan step through plans. A path that
@@ -301,8 +335,14 @@ func runStep(ctx context.Context, sys host.System, s Step, plans map[string]Plan
 
 // runReload reloads r.Service once its files are restored. With IfUp, a
 // unit that is down is left so (no Step.Start): the forward reload may not
-// have run, and the unit may have been down before the change.
-func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (reload.Report, error) {
+// have run, and the unit may have been down before the change. The socket
+// drop-ins r names as restored are expected on a socket host
+// (reload.Change.RestoredDropIns) when b's backups restored them as files
+// (restoredDropIns); any other with ListenStream is refused.
+func runReload(ctx context.Context, sys host.System, r Reload, b *Backups, opts Options) (reload.Report, error) {
+	if err := restoredDropIns(ctx, sys, r, b); err != nil {
+		return reload.Report{}, err
+	}
 	detectSSH := opts.DetectSSH
 	if detectSSH == nil {
 		detectSSH = func(ctx context.Context, sys host.System) detect.SSH {
@@ -321,7 +361,8 @@ func runReload(ctx context.Context, sys host.System, r Reload, opts Options) (re
 	for i, l := range r.After {
 		after[i] = l.sshd()
 	}
-	p, err := reload.PlanFor(reload.Input{SSH: ssh, Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true}, DropIns: drops})
+	p, err := reload.PlanFor(reload.Input{SSH: ssh, DropIns: drops,
+		Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true, RestoredDropIns: r.SocketDropIns}})
 	if err != nil {
 		return reload.Report{}, err
 	}

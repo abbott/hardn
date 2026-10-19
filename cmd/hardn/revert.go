@@ -21,6 +21,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/logging"
 )
 
@@ -45,10 +46,12 @@ var (
 )
 
 // revertPlans are the rollbacks of the units whose kept plans a journal
-// carries (revert.OpPlan), by unit name. None of those units is in this
-// stack yet; each registers its checked Rollback here when it lands
-// (docs/safety/revert.md §7).
-var revertPlans = map[string]revert.PlanRollback{}
+// carries (revert.OpPlan), by unit name: root's keys on Proxmox VE
+// (pve-keys), sudoers, dns and alpine-updates, from pkg/host/revert/plans,
+// which decodes each plan strictly and runs the unit's own check before
+// its rollback acts (docs/safety/revert-plans.md). The engine passes the
+// same registry to revert.Record, which refuses a step of any other unit.
+var revertPlans = plans.Registry()
 
 // revertLog writes each line to hardn's log, /var/log/hardn.log, and the
 // console, through the legacy logging package: the commands a rollback runs
