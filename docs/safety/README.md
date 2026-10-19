@@ -1,0 +1,70 @@
+# Safety primitives (refactor plan Phase 2)
+
+> **What this is:** the index of `docs/safety/`, one page per Phase 2 unit, written by `next/p2-vmtest`, the last of them, with the open items the units hand to Phase 3 and later. Each page says what its unit guarantees, the platform facts it relies on (with their sources), what is "written, not run" until the VMs exist (gate 5), and its API.
+> **Status:** every primitive is built and tested on macOS against the recording fake (`pkg/host/hostfake`) and, for the file primitives, on real files inside temporary directories. **Nothing has run on Linux.** [vmtest.md](vmtest.md) is the sequence that runs them on the maintainer's VMs; until it has, every page's §4 stays "written, not run (gate 5)".
+
+## The pages
+
+In the order the units were built (stack A and stack B met at `next/p2-join`):
+
+| Page | Unit | One line |
+|---|---|---|
+| [system.md](system.md) | `next/p2-system` | `host.System`, the one seam to the machine: commands by argv from a fixed `PATH`, logged, with exit codes; no-follow file calls; the recording fake; the legacy adapters, gated off (P-32) |
+| [detect.md](detect.md) | `next/p2-detect` | the platform facts every other unit branches on (distribution and support, init, how sshd is started, Proxmox VE, containers, elevation), Unknown rather than guessed |
+| [atomic.md](atomic.md) | `next/p2-atomic` | the durable atomic write, the guarded walk that closes V21, and the backup store with its manifest and idempotent restore (§3.16) |
+| [sshd-validate.md](sshd-validate.md) | `next/p2-sshd-validate` | which Include mode `sshd_config` is in, and `sshd -t`/`-T`/`-T -C` over a copy of the whole configuration before anything is installed |
+| [sshd-effective.md](sshd-effective.md) | `next/p2-sshd-effective` | sshd's effective values from `sshd -T`, the configured listener set with `ssh.socket`'s, and the conflict report in sshd's read order |
+| [reload.md](reload.md) | `next/p2-reload` | the reload per init system (`ssh.socket`'s restart for a port, never the `sshd` unit), the old listeners held until confirmed, and the bound-socket check |
+| [sshd-migrate.md](sshd-migrate.md) | `next/p2-sshd-migrate` | the legacy SSH files (`manage.conf`, `hardn.conf`, `listen.conf`, a custom `sshConfigFile`, Alpine's generated file) moved into `00-hardn.conf` without losing a login path (R8); `permitRootLogin`'s three values (§3.17) |
+| [ufw.md](ufw.md) | `next/p2-ufw` | the effective SSH listeners and the new port let through before ufw can block them; no `disable`/`reset`; verified with `ufw status verbose`; never on Proxmox VE |
+| [revert.md](revert.md) | `next/p2-revert` | confirm-or-revert: the write-ahead journal, the systemd and OpenRC timers, who may confirm, the resumable rollback, `hardn confirm` and `hardn rollback <id>` |
+| [pve.md](pve.md) | `next/p2-pve` | Proxmox VE: root key-only, SSH on 22 (§3.18), root reachable by key, the cluster's keys through their link, root's password never locked, pve-firewall read only |
+| [sudoers.md](sudoers.md) | `next/p2-sudoers` | sudo, sudo-rs and doas rules: chosen from detect's facts, named so the tools read them, checked with `visudo`/`doas -C` before and after, put back on failure (§3.17, §3.21) |
+| [alpine.md](alpine.md) | `next/p2-alpine` | apk-cron and crond for Alpine's updates, origin/main's `apk-upgrade` retired (§3.20); AppArmor and Lynis reported, never automated |
+| [dns.md](dns.md) | `next/p2-dns` | resolvers through systemd-resolved's late drop-in or a plain file, never through a link; validated; other managers reported (P-37) |
+| [vmtest.md](vmtest.md) | `next/p2-vmtest` | the dev-only driver `internal/tools/p2drive` and exactly what to run on the VMs, in order, for brief Phase 2's acceptance; all "written, not run" |
+
+`next/p2-vmtest` also brought the earlier pages up to date where later units superseded them: [system.md](system.md) §2 "Files and accounts", items 7 and 8, §6 and §7 (`next/p2-atomic`, `next/p2-revert`); [sshd-effective.md](sshd-effective.md) §5 (`next/p2-reload`, `next/p2-sshd-migrate`); [sshd-migrate.md](sshd-migrate.md) §6's journal shape for `p2-revert` (this unit); the "predates" notes in [atomic.md](atomic.md), [reload.md](reload.md), [revert.md](revert.md) and [sshd-migrate.md](sshd-migrate.md); the merge's unregistered plan rollbacks in [revert.md](revert.md) §7 and [pve.md](pve.md) §6; and [P-38](../refactor/proposals.md#p-38) in [sshd-validate.md](sshd-validate.md).
+
+## Open items for Phase 3 and later
+
+Each item names the page that hands it on; the page has the detail.
+
+### `p3-engine`
+
+- **The order.** Brief 2.3's ordering rule over the primitives is the engine's: detect, `sshd.ReadEffective`, `migrate.Find`/`PlanFor`/`Check`, `pve.PlanSSH`, `sshd.Validate`, `reload.PlanFor`, `ufw.PlanFor` at plan time, so every refusal shows in a dry run; then `revert.Arm`, the firewall, backups, the write, the reload, the effective-value check, `revert.MarkApplied` ([reload.md](reload.md) §6, [ufw.md](ufw.md) §6, [sshd-migrate.md](sshd-migrate.md) §6, [revert.md](revert.md) §7). `internal/tools/p2drive` is a worked sketch of that order for four changes ([vmtest.md](vmtest.md) §2), not the engine.
+- **Journal what already ran under a context of its own; hold signals around the rollback.** The `Record` after a step that ran (ufw's `Report.Undo`, the `ssh` reload without `IfUp`, revert.md §7 items 2 and 3) must be written after Ctrl-C too, so under `context.WithoutCancel` with a bound: with the command's context it fails once Ctrl-C has cancelled it, and the rollback then works from a journal that still says `IfUp`, so a unit the interrupted reload stopped is never started. The in-process rollback runs with `SIGHUP` and `SIGINT` ignored, as `cmd/hardn`'s `holdSignals` does for `hardn rollback`, since `host.Real`'s children share the caller's process group. The driver does both ([vmtest.md](vmtest.md) §2.6, §2.7).
+- **An in-process rollback that did not finish stops the timer all the same** (`Rollback` with `ReasonFailed`, [revert.md](revert.md) §2.14 step 4): nothing then takes it up but `hardn rollback <id>`, which its error names. Whether `Rollback` should leave the timer when it returns `ErrIncomplete` is `p2-revert`'s design to revisit with the engine.
+- **A port change must reach a listener.** A `ListenAddress` with its own port ignores every `Port` line, so the new port must be in `reload.Plan.Adds` before anything changes, and after the reload in `sshd -T`'s listeners, not only in its Port set. A migrated v0.3.2 `00-hardn.conf` keeps `ListenAddress 0.0.0.0:2230`, so this is the R8 path ([vmtest.md](vmtest.md) §2.3).
+- **`reload.Execute`'s `ErrInUse` check belongs to the plan too**: it runs before Execute's first step, after the timer is armed and the firewall changed. The driver runs it at plan time through `Execute` with a plan of no steps; the engine wants it exported as a check of its own ([reload.md](reload.md)).
+- **`migrate.Apply` takes its own backups** and writes with no point between the two where the engine could `Record` them, so its `Report.Backups` can be journalled only after the files changed, against revert.md §7 item 1. The driver backs up `Plan.Sources` itself, journals those, and lets `Apply` back them up again in the same run. Either `Apply` gains a hook before its first write, or it takes backups the engine has already taken ([sshd-migrate.md](sshd-migrate.md) §6).
+- **Register the plan rollbacks.** `cmd/hardn`'s `revertPlans` is empty after the merge, so `revert.Record` refuses an `OpPlan` step for every unit (`ErrNoPlanRollback`): register `pve.KeysUnit` (`pve.RollbackKeys`), and the sudoers, DNS and Alpine units' `Rollback`, each decoding its kept `Plan` ([revert.md](revert.md) §7, [pve.md](pve.md) §6, [sudoers.md](sudoers.md) §6, [dns.md](dns.md) §6, [alpine.md](alpine.md) §6). The comment above `revertPlans` still says those units are not in the stack.
+- **The rollback of a `listen.conf` migration on a socket-activated host is refused.** The rollback restores `listen.conf`, then plans its `ssh` reload with `reload.PlanFor`, which refuses a drop-in with `ListenStream` (`reload.ErrSocketDropIn`, probed for `next/p2-vmtest`), so the rollback stops before the reload and stays incomplete ([vmtest.md](vmtest.md) §2.11; [reload.md](reload.md) §2.4; [revert.md](revert.md) §2.14). The driver refuses such a migration; the engine needs a reload plan for a rollback that restores the socket's own drop-in, or another journal shape for that migration.
+- **After the confirmation**, the clean-up change (drop the held port, `reload.Change.Confirmed`, and its ufw rule from `Report.Undo`) ([revert.md](revert.md) §7, [ufw.md](ufw.md) §6, [reload.md](reload.md) §2.5).
+- **`--confirm-timeout` and `confirmTimeout`** (§3.14) wired through `revert.ParseTimeout` and `ResolveTimeout` with the first lockout-risk apply ([revert.md](revert.md) §7).
+- **A run lock**: `Arm`'s one-at-a-time check reads, then writes ([revert.md](revert.md) §7).
+- **Cancelled steps' children** may run on after Ctrl-C; process groups or waiting before the rollback ([system.md](system.md) §7).
+- **Before Ubuntu's first connection** `sshd -T` fails without `/run/sshd`, so a port change is refused until the engine has another source for the listeners ([reload.md](reload.md) §6, [sshd-effective.md](sshd-effective.md) §4).
+- **`00-hardn.conf` is edited line by line** after a migration, never regenerated ([sshd-migrate.md](sshd-migrate.md) §6); on Proxmox VE every write goes through `pve.PlanSSH` over the whole file it leaves, the kept lines too (a migrated `AllowUsers alice` needs root added), `pve.CheckPort` before a port change, `pve.CheckAccount` before an account change ([pve.md](pve.md) §6), and after the reload `pve.CheckSSH` must say `yes` to all three of root key-only, root by key and port 22 (the driver's `pveSet` and `checkPVE`, [vmtest.md](vmtest.md) §2.4, §2.6).
+- **`config.prohibitPasswordApplied`** flips once the engine applies `Config.RootLogin()` ([sshd-migrate.md](sshd-migrate.md) §2.21, [pve.md](pve.md) §6).
+- **Backups**: `RollbackRequired` before every file change, `ErrNotDurable` as a failed step ([atomic.md](atomic.md) §7); before `sudoers.Apply` ([sudoers.md](sudoers.md) §6). `MkdirAll`, `RemoveAll` and `Rename` are still not guarded ([atomic.md](atomic.md) §7).
+- **Rollback only after an `Apply` that returned nil**, for the Alpine and DNS plans ([alpine.md](alpine.md) §6, [dns.md](dns.md) §6); the support level (`detect.Support`) is the engine's gate ([dns.md](dns.md) §6).
+- **The `Control.Applies(osdetect.OSInfo)` sketch becomes `Applies(detect.Facts)`**; the fact enums are mapped to the engine's own schema, not persisted as they are ([detect.md](detect.md) §6).
+
+### `p3-output` and `p3-startup`
+
+- **The error-code registry** for every unit's sentinels and the finding codes each page lists as stable ([sshd-validate.md](sshd-validate.md) §6 for `SSHD_CONFIG_INVALID` and `SSHD_ENV_NO_RUNDIR`, [ufw.md](ufw.md) §6 for `UFW_VERIFY_FAILED`, and every other page's §6).
+- **The deprecation warning §3.17 approved** for a bool `permitRootLogin` is owed: nothing prints `Config.Deprecations()` yet ([sshd-migrate.md](sshd-migrate.md) §2.20, §6).
+- **The run log's path and the audit record of a rollback** ([system.md](system.md) §2.6, [revert.md](revert.md) §7).
+- **`hardn rollback <id>` from the timer goes through `main()`**, which writes `/var/log/hardn.log` and `/etc/hardn/hardn.yml.example` before parsing flags (V26), and its console colours reach the journal as escape codes ([revert.md](revert.md) §4).
+
+### Phase 4 and the slices
+
+- **Status sources**: `sshd.ReadEffective` for SSH and `pve.CheckSSH` on Proxmox VE (`p4-check-ssh`); `ufw.Check` and `pve.ReadFirewall` (`p4-check-firewall`, `p4-risk`); `alpine.ReadUpdates`/`Status` and `CheckAppArmor` (`p4-check-updates`, `p4-check-apparmor`); the journal's `Notices` in the main menu ([sshd-effective.md](sshd-effective.md) §6, [pve.md](pve.md) §6, [ufw.md](ufw.md) §6, [alpine.md](alpine.md) §6, [revert.md](revert.md) §7).
+- **Legacy paths ignore the journal and the new rules** until their slices: a legacy `-d` or `-w` in a confirm window, the SSH port on Proxmox VE, the Alpine Auto Updates row reading `apk-upgrade` only, the legacy readers of `/etc/sudoers.d/<user>`, the DNS menu ([revert.md](revert.md) §7, [pve.md](pve.md) §6, [alpine.md](alpine.md) §6, [sudoers.md](sudoers.md) §6, [dns.md](dns.md) §6).
+
+### For the maintainer
+
+- Proposals raised by Phase 2: [P-32](../refactor/proposals.md#p-32) (legacy commands through `host.Real`), [P-33](../refactor/proposals.md#p-33) (ufw rules hardn adds on its own), [P-34](../refactor/proposals.md#p-34) (a reboot inside the confirm window), [P-35](../refactor/proposals.md#p-35) (giving up a rollback), [P-36](../refactor/proposals.md#p-36) (root in `AllowUsers` on Proxmox VE), [P-37](../refactor/proposals.md#p-37) (DNS managers hardn only reports), [P-38](../refactor/proposals.md#p-38) (an Include that is not the stock first line).
+- Open in the pages without a proposal yet: [sshd-migrate.md](sshd-migrate.md) §6 (a)-(d) (an `sshConfigFile` of `sshd_config` itself, edited legacy files, the ports a migration keeps, Alpine's forwarding defaults); [sshd-effective.md](sshd-effective.md) §6 (whether an `overridden` line with hardn's own value stops a change); [atomic.md](atomic.md) §7 (retention of old backup runs); [dns.md](dns.md) §6 (a correction to the findings and the plan row on `resolved.conf.d`).
+- **Gate 5**: the VMs of [vmtest.md](vmtest.md) §5, and the Proxmox VE 9 cluster for [pve.md](pve.md) §4.

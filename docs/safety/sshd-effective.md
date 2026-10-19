@@ -96,10 +96,11 @@ type Setting struct { Value string; Known bool }      // Value lower case; "" wh
 type Set struct { Values []string; Known bool }       // Has(v) bool
 type Listener struct { Addr netip.Addr; Port uint16; RDomain string } // String()
 type Listeners struct {                                // Ports() []uint16
-	SSHD, Socket []Listener
-	SocketRead   bool
-	All          []Listener // complete only when Known
-	Known        bool       // configured set established; not "bound"
+	SSHD, Socket   []Listener
+	SocketRead     bool
+	SocketComplete bool       // added by next/p2-sshd-migrate: SocketRead, and every Listen line read
+	All            []Listener // complete only when Known
+	Known          bool       // configured set established; not "bound"
 }
 type Origin struct { File string; Line int; Text string }
 type Conflict struct { Kind FindingKind; Keyword string; Hardn, Other Origin; Match Block; SameValue bool }
@@ -131,7 +132,16 @@ func ReadEffective(ctx context.Context, sys host.System, req EffectiveRequest) (
 
 // FindingKind gains FindingOverridden, FindingShadowed, FindingAccumulates,
 // FindingMatchOverride, FindingDisagree, FindingUnknown (after FindingWarning).
+
+// Added by later units (their pages describe them):
+func ParseSocketListen(out []byte) (ls []Listener, bad []string) // next/p2-reload (reload.md §5)
+type Line struct { Origin; Keyword string; Args []string; Match *Block } // next/p2-sshd-migrate (sshd-migrate.md §5)
+func ReadOrder(main []byte, drops []File) []Line
+func Accumulates(keyword string) bool
+func CanonicalKeyword(keyword string, args []string) string
 ```
+
+> The API list above was brought up to date by `next/p2-vmtest` with what `next/p2-reload` and `next/p2-sshd-migrate` added to this package.
 
 `Validate`'s probe loop is now a helper both use, unchanged in behaviour (its tests pass as they were).
 

@@ -62,6 +62,7 @@
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | proposed |
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
+| [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
 
 ---
 
@@ -719,3 +720,18 @@
 - **Effort:** (a) none; (b) M per manager; (c) M.
 - **Risk:** (a) Low: no write on a host whose manager hardn does not understand; (b) and (c) Medium **[I]**: each is a new writer that can only be proved on a VM (gate 5).
 - **Screenshots:** none (no screen changes in this unit).
+
+<a id="p-38"></a>
+### P-38: An `sshd_config` whose Include is not the stock first line
+
+- **Status:** proposed
+- **Source:** `next/p2-sshd-validate` ([docs/safety/sshd-validate.md](../safety/sshd-validate.md) §2.1 `IncludeOther`, finding `include-not-first`, and §6 "Open for the maintainer"), also refused by `next/p2-sshd-migrate` (`ErrIncludeOther`, [sshd-migrate.md](../safety/sshd-migrate.md) §2.11) and by `next/p2-vmtest`'s driver ([vmtest.md](../safety/vmtest.md)). Brief 2.2's strategy, decided in brief §2 ("hardn's SSH settings live in `00-hardn.conf`").
+- **Problem:** brief 2.2 has two write strategies: `/etc/ssh/sshd_config.d/00-hardn.conf` when `sshd_config`'s first directive is the stock `Include /etc/ssh/sshd_config.d/*.conf`, and a `# BEGIN hardn` … `# END hardn` block at the top of `sshd_config` when there is no Include at all. A third shape has none: an Include that is not exactly that first line, such as another spelling (`include`, a tab, `Include=`, quotes, a trailing comment, indentation), another path or glob, or the stock line below other directives (an administrator's `Port 22` above it, say). sshd may read some of these as the stock line; in others the drop-ins are read after the lines above the Include, which then win for every first-value keyword, or are not read at all. hardn reports the shape (`include-not-first`), validates only exact Includes (any other is `ErrUnsupportedInclude`), and writes nothing: no SSH setting can be applied on such a host today.
+- **Proposal:** the maintainer decides:
+  - (a) keep reporting and refusing: the SSH controls stay Unknown there, and the report tells the user to restore the stock first line by hand;
+  - (b) treat it as the no-Include case: write hardn's block at the top of `sshd_config`, above the administrator's Include, so that it wins by first value. The main file changes (the Debian conffile prompt on an OpenSSH upgrade, which `00-hardn.conf` avoids), and the block is clobberable as in that case (cloud-init, Proxmox VE's `pvecm`);
+  - (c) an explicit plan step, backed up and validated in context with the migration's login-path comparison, that inserts the exact stock Include as the first directive and leaves the administrator's line where it is, then writes `00-hardn.conf`. The drop-ins are then read before lines that used to come first, which can change which value wins, so the step is a lockout-risk change under confirm-or-revert;
+  - (d) accept the stock line further down only when nothing above it sets a keyword hardn writes, and refuse the rest as in (a) **[I]**.
+- **Effort:** (a) none; (b) M (the block writer, its reading back and undo); (c) M; (d) S.
+- **Risk:** (a) Low: nothing is written on a host hardn does not model, at the cost of no SSH hardening there; (b) Medium: main-file edits that other tools rewrite; (c) Medium: it reorders what sshd reads, validated before it takes effect; (d) Low to Medium: one more reading of sshd's rules to get right.
+- **Screenshots:** none (no screen changes).
