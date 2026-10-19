@@ -19,7 +19,7 @@ import (
 // OFF (2026-10-17): with it on, every legacy production command changes in
 // the ways docs/safety/system.md §5 lists, and none of them is approved yet
 // (brief §3 principle 2). Proposal P-32 (docs/refactor/proposals.md) asks
-// the maintainer; flip to true once he approves it, after next/p2-vmtest has
+// the maintainer; flip to true once the maintainer approves it, after next/p2-vmtest has
 // run the legacy operations on the VMs. Off, OSCommander and OSFileSystem
 // make the os/exec and os calls they made before, and the adapters below are
 // still what the through-System characterization goldens test.

@@ -8,7 +8,7 @@
 
 ## How to read an entry
 
-- **Status:** `proposed` → `approved` / `rejected` / `deferred` / `decided` (the maintainer chose among the alternatives, or set terms of his own) → `implemented` (with the branch that implements it).
+- **Status:** `proposed` → `approved` / `rejected` / `deferred` / `decided` (the maintainer chose among the alternatives, or set their own terms) → `implemented` (with the branch that implements it).
 - **Effort** [I], an estimate:
   - **S** fits in one small change unit (≲200 lines);
   - **M** is one full unit (≲500 lines, excluding goldens);
