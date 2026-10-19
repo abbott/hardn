@@ -63,6 +63,16 @@ type System interface {
 	// RunInput is Run with stdin as the command's standard input. The run
 	// log records its length only, never its content.
 	RunInput(ctx context.Context, stdin []byte, name string, args ...string) (Result, error)
+	// StartDetached starts name with args as a process meant to outlive
+	// hardn, and returns its process id without waiting for it. It is
+	// resolved as Run resolves name, with Run's environment and working
+	// directory, but in a new session (setsid(2)), so it has no
+	// controlling terminal and the hangup of hardn's terminal or SSH
+	// session does not reach it, and with stdin, stdout and stderr on the
+	// null device, so it holds none of hardn's pipes. ctx is honoured on
+	// entry only: it never kills the process. The run log records the
+	// start and the process id. The OpenRC revert timer (p2-revert).
+	StartDetached(ctx context.Context, name string, args ...string) (pid int, err error)
 
 	// ReadFile returns the content of name, following symlinks.
 	ReadFile(ctx context.Context, name string) ([]byte, error)

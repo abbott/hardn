@@ -47,14 +47,19 @@ type Response struct {
 	// theirs; it models a command that could not run (ExitCode -1 unless
 	// set).
 	Err error
+	// PID is the process id StartDetached returns; 0 gives the next of a
+	// counter from 1000. Stdout, Stderr and ExitCode mean nothing there: a
+	// detached process is not waited for.
+	PID int
 }
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
-	Argv     []string // run
+	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
+	Argv     []string // run, start-detached
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run
+	PID      int      // start-detached
 	Path     string   // file operations and lookups
 	To       string   // rename
 	Data     []byte   // writes
@@ -68,7 +73,7 @@ func (c Call) String() string {
 	var b strings.Builder
 	b.WriteString(c.Op + " ")
 	switch c.Op {
-	case "run":
+	case "run", "start-detached":
 		b.WriteString(host.FormatArgv(c.Argv))
 		if c.Stdin != nil {
 			fmt.Fprintf(&b, " <stdin %d bytes>", len(c.Stdin))
@@ -91,6 +96,8 @@ func (c Call) String() string {
 		b.WriteString(": error: " + c.Err.Error())
 	case c.Op == "run":
 		fmt.Fprintf(&b, ": exit %d", c.ExitCode)
+	case c.Op == "start-detached":
+		fmt.Fprintf(&b, ": pid %d", c.PID)
 	}
 	return b.String()
 }
@@ -115,6 +122,7 @@ type System struct {
 	calls  []Call
 	log    *host.RunLog
 	tail   int
+	pid    int // the last process id StartDetached made up
 }
 
 var _ host.LegacySystem = (*System)(nil)
@@ -272,6 +280,48 @@ func (s *System) next(argv []string) (Response, bool) {
 		s.script[k] = q[1:]
 	}
 	return q[0], true
+}
+
+// StartDetached answers from the script, then the Handler, as Run does, and
+// starts nothing: a Response's Err is returned; otherwise it returns the
+// Response's PID, or the next of a counter from 1000. The Handler gets stdin
+// nil. Recorded as start-detached, and logged as host.Real logs it.
+func (s *System) StartDetached(ctx context.Context, name string, args ...string) (int, error) {
+	argv := append([]string{name}, args...)
+	id := s.log.Begin(argv, -1)
+	pid, err := s.detach(ctx, argv)
+	s.log.Detached(id, pid, err)
+	s.record(Call{Op: "start-detached", Argv: argv, PID: pid, Err: err})
+	return pid, err
+}
+
+func (s *System) detach(ctx context.Context, argv []string) (int, error) {
+	if err := ctx.Err(); err != nil {
+		return 0, fmt.Errorf("host: start %s: %w", host.FormatArgv(argv), err)
+	}
+	if err := checkName(argv[0]); err != nil {
+		return 0, err
+	}
+	r, ok := s.next(argv)
+	switch {
+	case !ok && s.Handler == nil:
+		return 0, fmt.Errorf("hostfake: %s: %w", host.FormatArgv(argv), ErrUnscripted)
+	case !ok:
+		r = s.Handler(append([]string(nil), argv...), nil)
+	}
+	if r.Err != nil {
+		return 0, r.Err
+	}
+	if r.PID != 0 {
+		return r.PID, nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.pid < 1000 {
+		s.pid = 999
+	}
+	s.pid++
+	return s.pid, nil
 }
 
 // LookupUser finds an account added with AddUser.
