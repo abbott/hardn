@@ -93,6 +93,14 @@ func validPath(name string) bool {
 // component but the last, and in the last too when follow is set. The result
 // may not exist; a missing or non-directory parent is an error.
 func (s *System) resolve(name string, follow bool) (string, error) {
+	return s.walk(name, follow, false)
+}
+
+// walk is resolve; guarded, it follows a symlink only when the directory
+// holding it is trusted (owned by root, as the fake acts as root, and
+// writable by neither group nor others), as host.Real's guarded operations
+// do, and refuses any other with host.ErrSymlinkParent.
+func (s *System) walk(name string, follow, guarded bool) (string, error) {
 	if !validPath(name) {
 		return "", fs.ErrInvalid
 	}
@@ -108,6 +116,9 @@ func (s *System) resolve(name string, follow bool) (string, error) {
 		case n == nil:
 			return "", syscall.ENOENT
 		case n.mode&fs.ModeSymlink != 0 && (!last || follow):
+			if d := s.nodes[cur]; guarded && (d.uid != 0 || d.mode&0o022 != 0) {
+				return "", host.ErrSymlinkParent
+			}
 			if links++; links > maxSymlinks {
 				return "", syscall.ELOOP
 			}
@@ -135,7 +146,17 @@ func split(p string) []string {
 
 // lookup resolves name and returns the node there; ENOENT when there is none.
 func (s *System) lookup(name string, follow bool) (string, *node, error) {
-	p, err := s.resolve(name, follow)
+	return s.lookupWalk(name, follow, false)
+}
+
+// guardedLookup is lookup for the guarded operations: a symlink at name is
+// not followed, and one on the way only from a trusted directory.
+func (s *System) guardedLookup(name string) (string, *node, error) {
+	return s.lookupWalk(name, false, true)
+}
+
+func (s *System) lookupWalk(name string, follow, guarded bool) (string, *node, error) {
+	p, err := s.walk(name, follow, guarded)
 	if err != nil {
 		return "", nil, err
 	}
@@ -191,6 +212,27 @@ func (s *System) ReadFile(ctx context.Context, name string) ([]byte, error) {
 		return nil
 	})
 	return data, err
+}
+
+// ReadFileNoFollow reads a regular file without following a symlink at name;
+// it is guarded, as host.Real's is.
+func (s *System) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	var data []byte
+	var fi fs.FileInfo
+	err := s.do(ctx, Call{Op: "read-nofollow", Path: name}, func() error {
+		_, n, err := s.guardedLookup(name)
+		switch {
+		case err != nil:
+			return perr("open", name, err)
+		case n.mode&fs.ModeSymlink != 0:
+			return perr("open", name, host.ErrSymlink)
+		case n.mode.IsDir():
+			return perr("read", name, syscall.EISDIR)
+		}
+		data, fi = bytes.Clone(n.data), info(path.Base(name), n)
+		return nil
+	})
+	return data, fi, err
 }
 
 // Stat follows a symlink at name.
@@ -276,10 +318,10 @@ func (s *System) mkdirAll(name string, perm fs.FileMode) error {
 	return nil
 }
 
-// Remove removes a file, a symlink or an empty directory.
+// Remove removes a file, a symlink or an empty directory; it is guarded.
 func (s *System) Remove(ctx context.Context, name string) error {
 	return s.do(ctx, Call{Op: "remove", Path: name}, func() error {
-		p, n, err := s.lookup(name, false)
+		p, n, err := s.guardedLookup(name)
 		switch {
 		case err != nil:
 			return perr("remove", name, err)
@@ -384,11 +426,38 @@ func (s *System) Readlink(ctx context.Context, name string) (string, error) {
 	return target, err
 }
 
+// ResolveSymlink is host.Real's: guarded, and only for a link in a trusted
+// directory (owned by root, writable by neither group nor others).
+func (s *System) ResolveSymlink(ctx context.Context, name string) (target, resolved string, err error) {
+	err = s.do(ctx, Call{Op: "resolve-symlink", Path: name}, func() error {
+		p, n, err := s.guardedLookup(name)
+		switch {
+		case err != nil:
+			return perr("readlink", name, err)
+		case n.mode&fs.ModeSymlink == 0:
+			return perr("readlink", name, syscall.EINVAL)
+		}
+		// p is the link's path with no symlink in it: the walk resolves
+		// every directory on the way.
+		if d := s.nodes[path.Dir(p)]; d.uid != 0 || d.mode&0o022 != 0 {
+			return perr("readlink", name, host.ErrSymlinkParent)
+		}
+		r, err := host.JoinLinkTarget(path.Dir(p), n.target)
+		if err != nil {
+			return perr("readlink", name, err)
+		}
+		target, resolved = n.target, r
+		return nil
+	})
+	return target, resolved, err
+}
+
 // Chmod sets the permission bits of a regular file or directory; it refuses a
-// symlink at name (ErrSymlink) and anything else (fs.ErrInvalid).
+// symlink at name (ErrSymlink) and anything else (fs.ErrInvalid), and is
+// guarded.
 func (s *System) Chmod(ctx context.Context, name string, perm fs.FileMode) error {
 	return s.do(ctx, Call{Op: "chmod", Path: name, Mode: perm}, func() error {
-		_, n, err := s.lookup(name, false)
+		_, n, err := s.guardedLookup(name)
 		switch {
 		case err != nil:
 			return perr("lstat", name, err)
@@ -402,15 +471,18 @@ func (s *System) Chmod(ctx context.Context, name string, perm fs.FileMode) error
 	})
 }
 
-// Chown refuses a symlink at name; -1 leaves the uid or gid unchanged.
+// Chown sets the owner of a regular file or directory, with Chmod's
+// refusals; -1 leaves the uid or gid unchanged.
 func (s *System) Chown(ctx context.Context, name string, uid, gid int) error {
 	return s.do(ctx, Call{Op: "chown", Path: name, UID: uid, GID: gid}, func() error {
-		_, n, err := s.lookup(name, false)
+		_, n, err := s.guardedLookup(name)
 		switch {
 		case err != nil:
-			return perr("lchown", name, err)
+			return perr("lstat", name, err)
 		case n.mode&fs.ModeSymlink != 0:
 			return perr("chown", name, host.ErrSymlink)
+		case !n.mode.IsRegular() && !n.mode.IsDir():
+			return perr("chown", name, fs.ErrInvalid)
 		}
 		if uid != -1 {
 			n.uid = uid
@@ -423,11 +495,13 @@ func (s *System) Chown(ctx context.Context, name string, uid, gid int) error {
 }
 
 // WriteFileAtomic replaces name with a new file of mode perm owned by uid:gid
-// (-1: root). It refuses a symlink or a directory at name.
+// (-1: root). It refuses a symlink or a directory at name, and is guarded.
+// It has no failure modes of its own: host.Real's crash-safety is tested on
+// real files.
 func (s *System) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
 	c := Call{Op: "write-atomic", Path: name, Data: bytes.Clone(data), Mode: perm, UID: uid, GID: gid}
 	return s.do(ctx, c, func() error {
-		p, n, err := s.lookup(name, false)
+		p, n, err := s.guardedLookup(name)
 		switch {
 		case err != nil && n == nil && p == "":
 			return perr("open", name, err)
