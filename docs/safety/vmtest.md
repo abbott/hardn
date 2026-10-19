@@ -223,6 +223,40 @@ Installing the v0.3.2 release binary and running its SSH hardening there gives t
 
 For each VM: the transcripts, `journalctl -u 'hardn-revert-*'` (systemd) or `/var/log/hardn.log`, and for each step whether it showed what the table expects. Every "Expect" that does not hold is a finding for the unit whose page the "Proves" column names. Until then every row stays "written, not run".
 
+#### Debian 13, run 2026-10-19
+
+Built from `next/p2-revert-plans` (a7f873c), linux/amd64. The VM: Debian 13 (trixie), OpenSSH 10.0p2 (Debian-7+deb13u4), sudo 1.9.16p2, systemd with `ssh.service` (no socket), the stock first-line `Include`, `PasswordAuthentication no` and `KbdInteractiveAuthentication no` already in the main file, `/usr/local` `root:root 0755`. The runner was the development machine (`192.0.2.10` below), the VM `192.0.2.20`; the transcripts, with the real addresses, are kept outside the repository. The VM had no working DNS, so `apt install ufw` was not possible: every ufw step is **not run** (ufw not installed, `--ufw keep` had nothing to do).
+
+Snapshots could not be reverted from the runner, so the steps ran in an order where each rollback returns the VM to the state the next step needs: 1, 2, 5, 11 (also 12), 6–9, 10, 13, 14.
+
+| # | Result | Notes |
+|---|---|---|
+| 1 | **pass** | `facts`: Debian 13 supported, systemd, `ssh.service`, not Proxmox VE; `sshd -T` port 22 known; listeners `[::]:22` and `0.0.0.0:22` known, socket none; ufw not installed; sudo (flavour sudo). It also reports `effective-unknown: the conflict report is not established` because `00-hardn.conf` does not exist yet: by design ([sshd-effective.md](sshd-effective.md), `ConflictsKnown`) |
+| 2 | **pass** | the real sshd refused the candidate (`unsupported option "maybe"`), mapped to `/etc/ssh/sshd_config.d/00-hardn.conf line 4`; nothing written, nothing reloaded; exit 0 |
+| 3, 4 | not run | ufw not installed (no DNS on the VM) |
+| 5 | **pass** | plan only: `Port 22` and `Port 2230`, backup first, `systemctl reload ssh.service`, 22 held and 2230 added; nothing changed |
+| 6 | **pass** | the timer runs `/usr/local/bin/hardn` with the build's sha256; backup of the absent `00-hardn.conf`; `reload: verified true`; `sshd -T` after: port 22 and 2230; listeners on both families for 22 and 2230 |
+| 7 | **pass** | key login on 2230 and on 22, both exit 0, during the window |
+| 8 | **pass** | all four refused, each with its reason and what to do: the applying connection ("this is the SSH connection that applied the change"); a connection opened before the change ("was open when the change was applied"); a new connection to the held port 22 ("did not reach a listener the change added"); from the VM to its own port 2230 over `[::1]` ("comes from the host itself") |
+| 9 | **pass** | a new connection from the runner to 2230: confirmed; the timer stopped; nothing rolled back after the deadline |
+| 10 | **pass** | `keyonly`: confirmed from a new connection; sshd offers `publickey` alone on 2230 and on 22; key login on both. `reload: verified false (no listener changed)` is expected for a change that adds no listener |
+| 11 | **pass** | not confirmed: the systemd timer fired at the deadline to the second, restored the absent `00-hardn.conf`, reloaded `ssh.service`, and checked with `ss` that 22 alone listens; 2230 then refused connections, key login on 22 exit 0; `hardn confirm` afterwards: "was rolled back at …, because it was not confirmed within 180s" |
+| 12 | **pass** (with 11) | the SSH session that applied the change had ended, and p2drive with it, before the deadline |
+| 13 | **pass** | grant: `visudo -c`, `visudo -cf` on the copy in `/run/hardn/<id>/sudoers-validate`, the write (`hardn-grant-alice`, `0440 root:root`), `visudo -c`; no timer; alice's `sudo -n true` exit 0. `--grant none` not confirmed: armed, the file gone, alice's `sudo -n true` refused; at the deadline the timer ran the registered sudoers rollback ("undo 1 of 1: roll back the sudoers plan"), the file came back, `visudo -c` passed, alice's `sudo -n true` exit 0 again. `--grant none` confirmed from a new connection: the file stays gone |
+| 14 | **pass** | `--grant password --env HARDN_CONFIG`: armed (lockout risk) and confirmed; `hardn-grant-alice` (`alice ALL=(ALL) ALL`) and `hardn-env-alice` (`Defaults:alice env_keep += "HARDN_CONFIG"`) both `0440`, `visudo -c` passes; alice's `sudo -n true` refused (password grant); with alice's password, `HARDN_CONFIG` reaches the root shell |
+
+Facts this run settled (were **[unverified]**):
+- OpenSSH 10.0p2 on Debian 13 prints `permitrootlogin without-password` in `sshd -T`, not `prohibit-password` ([sshd-effective.md](sshd-effective.md) §4 expected `prohibit-password` from 10.x).
+- On Debian 13, `systemctl reload ssh.service` makes sshd listen on an added `Port` before `ss` is read, and stop listening on a removed one ([reload.md](reload.md)).
+- `systemd-run --on-active=180s --timer-property=AccuracySec=1s` fires within the second, after the session that armed it has gone ([revert.md](revert.md) §4).
+- sudo 1.9.16p2's `visudo -cf` accepts the candidate copies, and `env_keep` from a separate drop-in applies ([sudoers.md](sudoers.md) §4).
+
+Found by the run:
+- `p2drive sudoers` said `checked with` (empty) and `installed [...]` for a removal: fixed with this record (it now names the whole-configuration check and says written or removed).
+- The legacy logger (`[INFO]`, `[ERROR]`) writes colour codes when its output is not a terminal: for p3-output, which replaces it.
+
+Still to run on Debian 13: steps 3 and 4 and `port --ufw enable` (ufw), once the VM can install packages.
+
 ## 5. The images
 
 | Image | Path it covers | Prepared as |
