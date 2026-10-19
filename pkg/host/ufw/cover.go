@@ -292,7 +292,7 @@ const (
 	FindingAtStart
 	// FindingWidened: the plan lets a new port through from anywhere while
 	// a listener of the same IP version is Restricted or Excepted now
-	// (proposal P-XX-ufw).
+	// (proposal P-33).
 	FindingWidened
 )
 

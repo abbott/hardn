@@ -21,7 +21,7 @@ type Desired struct {
 	// rule. By default the rules are saved (ufw writes them to its rule
 	// files without loading them), so that a later "ufw enable" keeps SSH
 	// open; whether hardn adds rules the user did not ask for is V8's open
-	// approach, proposal P-XX-ufw.
+	// approach, proposal P-33.
 	NoSaveWhileInactive bool
 }
 
