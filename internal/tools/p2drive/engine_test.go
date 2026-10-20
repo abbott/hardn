@@ -24,6 +24,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
 // The engine through pkg/engine/steps on p2drive's fake VM (refactor plan
@@ -909,5 +910,39 @@ func TestEngineFindings(t *testing.T) {
 				t.Errorf("change %s's findings: want %s; plan %+v", tc.id, tc.code, p.Changes)
 			}
 		})
+	}
+}
+
+// TestEngineCleanupVerified: the clean-up reads ufw back after its `ufw
+// delete allow`, as ufw.Execute does for every other ufw change: a rule
+// still there fails the step, and the clean-up is rolled back.
+func TestEngineCleanupVerified(t *testing.T) {
+	v := newVM(t)
+	v.allowed, v.inactive = nil, true
+	v.saveRules()
+	ctx := context.Background()
+	if _, _, err := v.viaEngine(ctx, debian13, sshControl(steps.SSH{Port: 2230, UFW: steps.UFWEnable})); err != nil {
+		t.Fatal(err)
+	}
+	c := steps.CleanupOf(v.journal(revert.PendingName))
+	if err := v.f.Rename(ctx, path.Join(revert.DefaultDir, revert.PendingName), path.Join(revert.DefaultDir, revert.ConfirmedName)); err != nil {
+		t.Fatal(err)
+	}
+	v.conn = "192.0.2.10 50023 192.0.2.20 2230"
+	v.hook = func(cmd string) (hostfake.Response, bool) {
+		// ufw answers, and keeps the rule.
+		return hostfake.Response{Stdout: "Rule deleted\nRule deleted (v6)\n"}, cmd == "ufw delete allow 22/tcp"
+	}
+	cleanup := stepsControl{"ssh", func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+		return steps.PlanCleanup(ctx, sys, in, "ssh", c)
+	}}
+	_, _, err := v.viaEngine(ctx, debian13, cleanup)
+	if !errors.Is(err, engine.ErrRolledBack) || !errors.Is(err, ufw.ErrVerify) {
+		t.Fatalf("err = %v, want rolled back: ufw still allows 22", err)
+	}
+	// The rollback's `ufw allow 22/tcp` meets the rule ufw kept: ufw skips
+	// an existing rule, which the fake does not model, so it is counted once.
+	if got := v.directives(); got != "Port 22\nPort 2230" || !slices.Equal(slices.Compact(v.allowed), []uint16{22, 2230}) {
+		t.Errorf("00-hardn.conf's directives %q, ufw %v; want both ports held", got, v.allowed)
 	}
 }

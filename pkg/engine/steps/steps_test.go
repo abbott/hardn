@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -183,35 +182,6 @@ func TestCleanupOf(t *testing.T) {
 	j.ConfirmVia = nil
 	if c := CleanupOf(j); c.Drop != nil || c.Firewall != nil {
 		t.Errorf("a change that moved no port: %+v, want none", c)
-	}
-}
-
-func TestConfirmTimeout(t *testing.T) {
-	d := func(v time.Duration) *time.Duration { return &v }
-	for _, tc := range []struct {
-		name string
-		flag *time.Duration
-		key  string
-		want time.Duration
-		err  bool
-	}{
-		{"the default", nil, "", revert.DefaultTimeout, false},
-		{"the key in seconds", nil, "240", 240 * time.Second, false},
-		{"the key as a duration", nil, "5m", 5 * time.Minute, false},
-		{"the flag wins", d(90 * time.Second), "5m", 90 * time.Second, false},
-		{"a key below the floor", nil, "30s", 0, true},
-		{"a key that is not one", nil, "soon", 0, true},
-		{"a flag below the floor", d(10 * time.Second), "", 0, true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := ConfirmTimeout(tc.flag, &config.Config{ConfirmTimeout: tc.key})
-			if tc.err != (err != nil) || err != nil && !errors.Is(err, revert.ErrTimeout) || got != tc.want {
-				t.Errorf("ConfirmTimeout = %v, %v; want %v (error %v)", got, err, tc.want, tc.err)
-			}
-		})
-	}
-	if got, err := ConfirmTimeout(nil, nil); err != nil || got != revert.DefaultTimeout {
-		t.Errorf("no configuration: %v, %v", got, err)
 	}
 }
 
@@ -410,5 +380,34 @@ func TestFindingCode(t *testing.T) {
 	d := droppedFindings([]migrate.Carried{{Origin: sshd.Origin{File: migrate.ManageConf, Line: 3, Text: "Protocol 2"}, Why: "sshd ignores it"}})
 	if len(d) != 1 || d[0].Code != CodeMigrateDropped || d[0].Source != migrate.ManageConf+":3" || !strings.Contains(d[0].Detail, `"Protocol 2": sshd ignores it`) {
 		t.Errorf("droppedFindings = %+v", d)
+	}
+}
+
+// TestAlpineRisk: Alpine's change takes the highest class of its steps:
+// a service restart once crond is started, a package install for
+// apk-cron's install alone.
+func TestAlpineRisk(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		u    alpine.Updates
+		want engine.RiskClass
+	}{
+		{"apk-cron's install alone", alpine.Updates{Package: detect.No, Script: alpine.ScriptAbsent, Runlevel: detect.Yes, Crond: alpine.CrondStarted, Legacy: alpine.LegacyAbsent},
+			engine.RiskPackageInstall},
+		{"install, runlevel and start", alpine.Updates{Package: detect.No, Script: alpine.ScriptAbsent, Runlevel: detect.No, Crond: alpine.CrondStopped, Legacy: alpine.LegacyAbsent},
+			engine.RiskServiceRestart},
+		{"crond started alone", alpine.Updates{Package: detect.Yes, Script: alpine.ScriptInstalled, Runlevel: detect.Yes, Crond: alpine.CrondStopped, Legacy: alpine.LegacyAbsent},
+			engine.RiskServiceRestart},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p, err := alpine.PlanUpdates(tc.u)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c, err := Alpine("alpine", p, "Alpine's updates")
+			if err != nil || c.Risk != tc.want {
+				t.Errorf("Alpine = risk %v, %v; want %v", c.Risk, err, tc.want)
+			}
+		})
 	}
 }

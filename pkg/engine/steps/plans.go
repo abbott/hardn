@@ -128,8 +128,9 @@ func DNS(id string, p dns.Plan, summary string) (engine.Change, error) {
 }
 
 // Alpine is an alpine.Plan (apk-cron and crond for Alpine's updates) as a
-// change (StagePackages; RiskPackageInstall for apk-cron's install,
-// RiskServiceRestart for crond started, plain otherwise),
+// change (StagePackages; the highest class of its steps, whatever their
+// order: RiskServiceRestart when crond is started or restarted, else
+// RiskPackageInstall for apk-cron's install, else plain),
 // journalled as plans.Alpine's step, rolled back by it only after an
 // Apply that returned nil (alpine.md §6), with the same rule as DNS for an
 // Apply that failed. Its backup of the legacy script goes into the plan's
@@ -144,7 +145,7 @@ func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error) {
 	for _, ch := range p.Changes {
 		switch ch.Step {
 		case alpine.StepInstall:
-			c.Risk = engine.RiskPackageInstall
+			c.Risk = max(c.Risk, engine.RiskPackageInstall)
 		case alpine.StepStart, alpine.StepRestart:
 			c.Risk = max(c.Risk, engine.RiskServiceRestart)
 		}

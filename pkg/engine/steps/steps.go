@@ -37,9 +37,7 @@ import (
 	"net/netip"
 	"slices"
 	"strings"
-	"time"
 
-	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -150,27 +148,6 @@ var refusalErrs = map[string]error{CodeListenConfNotInEffect: ErrListenConfNotIn
 func (r *Refusal) Is(target error) bool {
 	e, ok := refusalErrs[r.Code]
 	return ok && target == e
-}
-
-// ConfirmTimeout is the engine's confirm window (engine.Options.Timeout)
-// from the --confirm-timeout flag (nil: not given) and cfg's confirmTimeout
-// key (decision §3.14): each read with revert.ParseTimeout, the flag
-// winning, the default 180 s, at least revert.MinTimeout
-// (revert.ResolveTimeout). A value that is not one is revert.ErrTimeout.
-func ConfirmTimeout(flag *time.Duration, cfg *config.Config) (time.Duration, error) {
-	var key *time.Duration
-	if cfg != nil && strings.TrimSpace(cfg.ConfirmTimeout) != "" {
-		d, err := revert.ParseTimeout(cfg.ConfirmTimeout)
-		if err != nil {
-			return 0, fmt.Errorf("steps: confirmTimeout: %w", err)
-		}
-		key = &d
-	}
-	d, err := revert.ResolveTimeout(flag, key)
-	if err != nil {
-		return 0, fmt.Errorf("steps: %w", err)
-	}
-	return d, nil
 }
 
 // sshState is what every SSH change reads before anything changes.

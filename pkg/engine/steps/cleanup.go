@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
@@ -141,7 +142,9 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 // cleanupFirewall deletes the rules hardn added for the dropped ports
 // (those firewall names), where ufw still has them: `ufw delete allow
 // <port>/tcp`, with `ufw allow <port>/tcp` journalled before it, which
-// keeps an existing rule when the delete never ran. nil for none.
+// keeps an existing rule when the delete never ran; then ufw is read back,
+// as ufw.Execute does for every other ufw change, and a rule still there
+// fails the step (ufw.ErrVerify). nil for none.
 func (st sshState) cleanupFirewall(ctx context.Context, sys host.System, prefix string, drop []uint16, firewall [][]string) (*engine.Change, error) {
 	var dels [][]string
 	for _, p := range drop {
@@ -157,11 +160,7 @@ func (st sshState) cleanupFirewall(ctx context.Context, sys host.System, prefix 
 	if err != nil || !state.Installed {
 		return nil, err
 	}
-	dels = slices.DeleteFunc(dels, func(del []string) bool {
-		return !slices.ContainsFunc(state.Rules, func(r ufw.Rule) bool {
-			return r.Action == "allow" && r.Dir == "in" && r.Proto == "tcp" && r.DPort+"/tcp" == del[3] && r.Dst == "" && r.Src == "" && r.App == "" && r.Iface == ""
-		})
-	})
+	dels = slices.DeleteFunc(dels, func(del []string) bool { return !allows(state, del[3]) })
 	if len(dels) == 0 {
 		return nil, nil
 	}
@@ -172,13 +171,36 @@ func (st sshState) cleanupFirewall(ctx context.Context, sys host.System, prefix 
 	c := engine.Change{ID: prefix + "/firewall", Summary: "Firewall: delete the held ports' rules hardn added", Target: "ufw",
 		Commands: formatArgvs(dels), Risk: engine.RiskLockout, Stage: engine.StageFirewall,
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, undo)}}
+	px := st.in.Facts.Proxmox
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
 		for _, d := range dels {
 			if _, err := sys.Run(ctx, d[0], d[1:]...); err != nil {
 				return engine.Ran{}, fmt.Errorf("%s: %w", host.FormatArgv(d), err)
 			}
 		}
-		return engine.Ran{Detail: "firewall: held ports' rules deleted"}, nil
+		after, err := ufw.Read(ctx, sys, px)
+		if err != nil {
+			return engine.Ran{}, fmt.Errorf("ufw after the deletes: %w", err)
+		}
+		var left []string
+		for _, d := range dels {
+			if allows(after, d[3]) {
+				left = append(left, d[3])
+			}
+		}
+		if len(left) > 0 {
+			return engine.Ran{}, fmt.Errorf("ufw still allows %s after `ufw delete allow`: %w", strings.Join(left, ", "), ufw.ErrVerify)
+		}
+		return engine.Ran{Detail: "firewall: held ports' rules deleted, verified"}, nil
 	}
 	return &c, nil
+}
+
+// allows reports whether ufw's saved rules hold `allow <spec>` as `ufw
+// allow <port>/tcp` writes it: in, from anywhere, to any address, on any
+// interface.
+func allows(st ufw.State, spec string) bool {
+	return slices.ContainsFunc(st.Rules, func(r ufw.Rule) bool {
+		return r.Action == "allow" && r.Dir == "in" && r.Proto == "tcp" && r.DPort+"/tcp" == spec && r.Dst == "" && r.Src == "" && r.App == "" && r.Iface == ""
+	})
 }

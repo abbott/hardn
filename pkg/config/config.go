@@ -34,7 +34,7 @@ type Config struct {
 	// (decision §3.14): whole seconds ("180") or a duration ("3m"), read
 	// with revert.ParseTimeout, at least revert.MinTimeout; "" is the
 	// default, 180 s. The --confirm-timeout flag wins over it
-	// (revert.ResolveTimeout; steps.ConfirmTimeout). Not written when
+	// (revert.ResolveTimeout; engine.ConfirmTimeout). Not written when
 	// unset, so a legacy save writes no new key.
 	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
 
