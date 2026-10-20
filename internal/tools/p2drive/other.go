@@ -233,7 +233,8 @@ func setupSudoers(fs *flag.FlagSet) func(context.Context, *driver) error {
 // sudoers.Rollback, which puts back only a file that holds what the plan
 // wrote. A plan with a lockout-risk change (a grant removed, or one that
 // asks for a password, sudoers.RiskLockout) is a lockout-risk change under
-// confirm-or-revert: the timer runs `hardn rollback <id>` unless a new SSH
+// confirm-or-revert, with its boot unit, under the run lock (revert.LockRun)
+// as apply's: the timer runs `hardn rollback <id>` unless a new SSH
 // connection confirms, which also shows that elevation still works there.
 // Any other is journalled without a timer and cleared once applied
 // (revert.Done). A failure after Arm rolls it back at once; when Apply
@@ -297,6 +298,18 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 	}
 	opts := d.revertOptions(o.hardn)
 	j := revert.Journal{ID: revert.NewID(d.now()), Risk: revert.RiskOther, Summary: summary}
+	if lockout {
+		// The run lock, as apply holds it for the other lockout-risk
+		// changes (engine-boot.md §2.10), from before the boot unit's
+		// install to the last write: `hardn rollback --boot`, run by hand
+		// between the install and Arm, would find nothing journalled and
+		// remove the unit.
+		unlock, err := revert.LockRun(ctx, d.sys, opts, "p2drive, change "+j.ID)
+		if err != nil {
+			return fmt.Errorf("not applied: %w", err)
+		}
+		defer func() { _ = unlock() }()
+	}
 	runDir := path.Join(runRoot, j.ID)
 	if err := d.sys.MkdirAll(ctx, runDir, 0o700); err != nil {
 		return err

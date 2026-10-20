@@ -325,8 +325,9 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 	opts := d.revertOptions(o.hardn)
 	d.sayHardn(ctx, o.hardn)
 	// The run lock, as the engine holds it for an apply (engine-boot.md
-	// §2.2): `hardn rollback --boot`, run by hand between the boot unit's
-	// install and Arm, would find nothing journalled and remove the unit.
+	// §2.4, §2.10): `hardn rollback --boot`, run by hand between the boot
+	// unit's install and Arm, would find nothing journalled and remove the
+	// unit.
 	unlock, err := revert.LockRun(ctx, d.sys, opts, "p2drive, change "+lc.id)
 	if err != nil {
 		return fmt.Errorf("not applied: %w", err)

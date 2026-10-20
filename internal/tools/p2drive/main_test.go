@@ -294,53 +294,84 @@ func TestPortOpenRC(t *testing.T) {
 	}
 }
 
+// TestRunLock: a lockout-risk change, the port's and sudoers' --grant none
+// alike, holds the engine's run lock from before the boot unit's install to
+// its last write, as the engine does (engine-boot.md §2.4, §2.10), so
+// `hardn rollback --boot` run by hand meanwhile keeps the unit; while
+// another hardn holds the lock, the change is not applied and nothing
+// changes.
+func TestRunLock(t *testing.T) {
+	lockFile := path.Join(runRoot, revert.RunLockName)
+	grant := []string{"sudoers", "--user", "alice", "--grant", "nopasswd"}
+	for _, tc := range []struct {
+		name  string
+		setup []string // a command run first, of no lockout risk
+		args  []string
+	}{
+		{"port", nil, []string{"port", "--port", "2230", "--hardn", testHardn}},
+		{"sudoers --grant none", grant, []string{"sudoers", "--user", "alice", "--grant", "none", "--hardn", testHardn}},
+	} {
+		setup := func(t *testing.T, v *vm) {
+			t.Helper()
+			if tc.setup == nil {
+				return
+			}
+			if code, out, errOut := v.do(context.Background(), debian13, tc.setup...); code != 0 {
+				t.Fatalf("%v: exit %d; stderr %s\nstdout %s", tc.setup, code, errOut, out)
+			}
+		}
+		t.Run(tc.name+", held by another hardn", func(t *testing.T) {
+			v := newVM(t)
+			setup(t, v)
+			v.f.AddDir(runRoot, 0o700, 0, 0)
+			if _, err := v.f.Lock(context.Background(), lockFile, []byte("pid 6000, change 20261019T110000Z-5e6f7a8b, since 2026-10-19T11:59:59Z\n")); err != nil {
+				t.Fatal(err)
+			}
+			n := len(v.f.Calls())
+			code, out, errOut := v.do(context.Background(), debian13, tc.args...)
+			if code != 1 || !strings.Contains(errOut, "not applied") || !strings.Contains(errOut, "pid 6000") {
+				t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+			}
+			if ch := changesIn(v.f.Calls()[n:]); len(ch) > 0 || v.index(armed) >= 0 {
+				t.Errorf("changed the host: %q", ch)
+			}
+		})
+		t.Run(tc.name+", held across the boot unit's install and Arm", func(t *testing.T) {
+			v := newVM(t)
+			setup(t, v)
+			u, _ := revert.PlanBootUnit(debian13.Init, testHardn)
+			var removeErr error
+			removed, called := false, false
+			v.hook = func(cmd string) (hostfake.Response, bool) {
+				if cmd == strings.Join(u.Enable, " ") && !called {
+					called = true
+					removed, removeErr = revert.RemoveBootUnit(context.Background(), v.f, u, revert.Options{})
+				}
+				return hostfake.Response{}, false
+			}
+			if code, out, errOut := v.do(context.Background(), debian13, tc.args...); code != 0 {
+				t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+			}
+			if !called || removed || !errors.Is(removeErr, host.ErrLocked) {
+				t.Errorf("RemoveBootUnit during the install: removed %v, %v; want the unit kept, host.ErrLocked", removed, removeErr)
+			}
+			if st, err := revert.ReadBootUnit(context.Background(), v.f, u); err != nil || !st.Installed() {
+				t.Errorf("the boot unit after the change: installed %v, %v", st.Installed(), err)
+			}
+			if j := v.journal(revert.PendingName); j.Timer == nil || j.Applied == nil {
+				t.Errorf("the change: %+v; want it armed and applied", j)
+			}
+			if e, ok := v.f.Entry(lockFile); !ok || len(e.Data) != 0 {
+				t.Errorf("the run lock after the change: %q (exists %v), want it released", e.Data, ok)
+			}
+		})
+	}
+}
+
 // TestBootUnitInstalled: a boot unit installed and enabled as planned is
 // left as it is (no check, write or enable), and the plan says so; a stale
 // one is backed up and replaced; a check that refuses the copy, or a
 // --plan-only, arms nothing and leaves the host as it was.
-// TestRunLock: a lockout-risk change holds the engine's run lock from
-// before the boot unit's install to its last write, as the engine does
-// (engine-boot.md §2.2), so `hardn rollback --boot` run by hand meanwhile
-// keeps the unit; while another hardn holds the lock, the change is not
-// applied and nothing changes.
-func TestRunLock(t *testing.T) {
-	lockFile := path.Join(runRoot, revert.RunLockName)
-	t.Run("held by another hardn", func(t *testing.T) {
-		v := newVM(t)
-		v.f.AddDir(runRoot, 0o700, 0, 0)
-		if _, err := v.f.Lock(context.Background(), lockFile, []byte("pid 6000, change 20261019T110000Z-5e6f7a8b, since 2026-10-19T11:59:59Z\n")); err != nil {
-			t.Fatal(err)
-		}
-		code, out, errOut := v.do(context.Background(), debian13, "port", "--port", "2230")
-		if code != 1 || !strings.Contains(errOut, "not applied") || !strings.Contains(errOut, "pid 6000") {
-			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
-		}
-		if ch := v.changes(); len(ch) > 0 || v.index(armed) >= 0 {
-			t.Errorf("changed the host: %q", ch)
-		}
-	})
-	t.Run("held across the boot unit's install and Arm", func(t *testing.T) {
-		v := newVM(t)
-		u, _ := revert.PlanBootUnit(debian13.Init, testHardn)
-		var removeErr error
-		v.hook = func(cmd string) (hostfake.Response, bool) {
-			if cmd == strings.Join(u.Enable, " ") {
-				_, removeErr = revert.RemoveBootUnit(context.Background(), v.f, u, revert.Options{})
-			}
-			return hostfake.Response{}, false
-		}
-		if code, out, errOut := v.do(context.Background(), debian13, "port", "--port", "2230", "--hardn", testHardn); code != 0 {
-			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
-		}
-		if !errors.Is(removeErr, host.ErrLocked) {
-			t.Errorf("RemoveBootUnit during the install: %v, want host.ErrLocked", removeErr)
-		}
-		if e, ok := v.f.Entry(lockFile); !ok || len(e.Data) != 0 {
-			t.Errorf("the run lock after the change: %q (exists %v), want it released", e.Data, ok)
-		}
-	})
-}
-
 func TestBootUnitInstalled(t *testing.T) {
 	u, err := revert.PlanBootUnit(debian13.Init, testHardn)
 	if err != nil {
