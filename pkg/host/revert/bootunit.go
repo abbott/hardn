@@ -51,6 +51,15 @@ type BootUnit struct {
 	Check   []string
 	Enable  []string
 	Disable []string
+	// Reload, run after the unit is removed, is systemd's daemon-reload:
+	// a unit file added to or removed from /etc/systemd/system leaves every
+	// unit's NeedDaemonReload set, and systemctl then warns on each unit it
+	// is asked about ("changed on disk"), ssh.service included, until a
+	// daemon-reload. nil on OpenRC. The install does not run it (Enable is
+	// --no-reload): before the change, it would rerun sshd-socket-generator
+	// over files the plan has not checked are in effect (revert-boot.md
+	// §2.16).
+	Reload []string
 }
 
 // systemdBootUnit is hardn-boot.service; %s is hardn's path. It runs early,
@@ -152,7 +161,8 @@ func PlanBootUnit(in detect.Init, hardn string) (BootUnit, error) {
 		return BootUnit{Init: detect.Systemd, Path: SystemdUnitDir + "/" + name, Data: fmt.Appendf(nil, systemdBootUnit, hardn), Mode: 0o644,
 			Link: SystemdWants + "/" + name, Check: []string{"systemd-analyze", "verify", "--recursive-errors=no"},
 			Enable:  []string{"systemctl", "--no-reload", "enable", name},
-			Disable: []string{"systemctl", "--no-reload", "disable", name}}, nil
+			Disable: []string{"systemctl", "--no-reload", "disable", name},
+			Reload:  []string{"systemctl", "daemon-reload"}}, nil
 	case detect.OpenRC:
 		return BootUnit{Init: detect.OpenRC, Path: OpenRCInitDir + "/" + BootUnitName, Data: fmt.Appendf(nil, openRCBootUnit, hardn), Mode: 0o755,
 			Link: OpenRCDefault + "/" + BootUnitName, Check: []string{"sh", "-n"},
@@ -380,6 +390,20 @@ func removeUnit(ctx context.Context, sys host.System, u BootUnit, opts Options) 
 	}
 	if removed {
 		opts.logf("boot unit %s: disabled and removed: no change is journalled", u.Path)
+		reloadUnits(ctx, sys, u, opts)
 	}
 	return removed, nil
+}
+
+// reloadUnits runs u.Reload once the unit is gone, so that systemd stops
+// reporting units changed on disk. The unit is removed whatever it
+// answers: a failure is logged, and systemd reads the change at its next
+// daemon-reload or boot.
+func reloadUnits(ctx context.Context, sys host.System, u BootUnit, opts Options) {
+	if len(u.Reload) == 0 {
+		return
+	}
+	if _, err := sys.Run(ctx, u.Reload[0], u.Reload[1:]...); err != nil {
+		opts.logf("boot unit %s: removed, but %s failed (systemd reads the removal at its next daemon-reload or boot): %v", u.Path, host.FormatArgv(u.Reload), err)
+	}
 }

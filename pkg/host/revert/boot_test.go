@@ -52,6 +52,8 @@ func reboot(t *testing.T, ch *change, after time.Duration) *change {
 			return hostfake.Response{}
 		case "systemctl is-active hardn-boot.service":
 			return hostfake.Response{Stdout: "activating\n", ExitCode: 3}
+		case strings.Join(u.Reload, " "): // once the unit is removed
+			return hostfake.Response{}
 		}
 		t.Errorf("unexpected command %q", argv)
 		return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
@@ -265,7 +267,7 @@ func TestBoot(t *testing.T) {
 			ch := rebooted(t, 30*time.Second)
 			ch.f.AddFile(testHardn, []byte("ELF, a later build"), 0o755, 0, 0)
 			return ch
-		}, nil, nil, BootLeft, BootReasonOtherContent, "/usr/local/bin/hardn is not the binary that wrote the journal", nil, nil},
+		}, nil, nil, BootLeft, BootReasonOtherContent, "/usr/local/bin/hardn is not the binary that wrote the journal: its sha256 is ", nil, nil},
 		{"this hardn's binary cannot be read", func(t *testing.T) *change {
 			ch := rebooted(t, 30*time.Second)
 			if err := ch.f.Remove(context.Background(), testHardn); err != nil {
