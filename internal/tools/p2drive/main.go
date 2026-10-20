@@ -69,6 +69,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -126,6 +127,18 @@ func production() env {
 		hold: holdSignals,
 	}
 }
+
+// holdSignals keeps a hangup, Ctrl-C or SIGTERM from stopping the
+// in-process rollback part-way, until release is called: pkg/engine/hold,
+// as the engine and cmd/hardn's `hardn rollback` hold them
+// (docs/safety/revert.md §2.17; next/p3-engine-boot moved p2drive's own
+// copy there), with its line "p2drive: SIGTERM received; the rollback
+// finishes first" to log. SIGHUP and SIGINT are ignored, which the
+// commands the rollback runs inherit: host.Real's children stay in
+// p2drive's process group, so the terminal's Ctrl-C would otherwise reach
+// the ufw or systemctl the rollback is running. Release gives them back
+// their disposition before the hold.
+func holdSignals(log io.Writer) (release func()) { return hold.SignalsAs("p2drive", log) }
 
 func main() {
 	// Ctrl-C and SIGTERM cancel the context: a lockout-risk change then

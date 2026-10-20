@@ -11,6 +11,7 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -1024,24 +1025,53 @@ func TestUFWEnable(t *testing.T) {
 	}
 }
 
-// TestHoldSignals: SIGINT and SIGHUP ignored and SIGTERM caught until the
-// release: this test process survives each, sent to itself.
+// TestHoldSignals: production's hold is pkg/engine/hold's with p2drive's
+// line: SIGINT and SIGHUP ignored and SIGTERM caught and logged until the
+// release; this test process survives each, sent to itself.
 func TestHoldSignals(t *testing.T) {
-	var log bytes.Buffer
-	release := holdSignals(&log)
+	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
+		t.Skip("this test process was started with SIGINT or SIGHUP ignored")
+	}
+	var log lockedBuffer
+	release := production().hold(&log)
 	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+		release()
 		t.Fatal("SIGINT and SIGHUP are not ignored")
 	}
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
 		if err := syscall.Kill(os.Getpid(), sig); err != nil {
+			release()
 			t.Fatal(err)
 		}
 	}
-	time.Sleep(50 * time.Millisecond) // the process is still here
+	for deadline := time.Now().Add(2 * time.Second); !strings.Contains(log.String(), "SIGTERM") && time.Now().Before(deadline); {
+		time.Sleep(10 * time.Millisecond) // the process is still here
+	}
 	release()
+	if got := log.String(); got != "p2drive: SIGTERM received; the rollback finishes first\n" {
+		t.Errorf("log %q", got)
+	}
 	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		t.Error("release left SIGINT or SIGHUP ignored")
 	}
+}
+
+// lockedBuffer is a log the hold's goroutine writes while the test reads it.
+type lockedBuffer struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (l *lockedBuffer) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.b.Write(p)
+}
+
+func (l *lockedBuffer) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.b.String()
 }
 
 // TestFacts: the read-only report changes nothing and prints what

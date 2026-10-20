@@ -1,9 +1,11 @@
 // Package hold keeps a hangup, Ctrl-C or SIGTERM from stopping hardn while
 // it rolls a change back in its own process (refactor plan P3,
-// next/p3-engine; docs/safety/revert.md §2.17). It is the hold cmd/hardn
-// puts around `hardn rollback` and p2drive around its in-process rollback,
-// shared for the engine, with a release those two lack: they exit right
-// after the rollback, the engine's caller (a menu) goes on.
+// next/p3-engine; docs/safety/revert.md §2.17). It is the hold the engine
+// puts around its in-process rollback, cmd/hardn around `hardn rollback`
+// (and its --boot) and p2drive around its in-process rollback (since
+// next/p3-engine-boot, which moved their own copies here, each keeping its
+// log line through SignalsAs), with a release that gives the signals back
+// their disposition: the engine's caller (a menu) goes on after it.
 //
 // It is the one part of the engine that touches the process's signal
 // disposition, kept out of package engine so that the engine reaches
@@ -57,8 +59,14 @@ func signals(ss []syscall.Signal) []os.Signal {
 // for SIGHUP or SIGINT with signal.Notify or signal.NotifyContext before
 // the hold does not receive them after it: signal.Ignore ended that
 // registration, so the caller registers again if it still wants them.
-// Holds do not nest.
-func Signals(log io.Writer) (release func()) {
+// Holds do not nest. Its lines begin "hardn: " (SignalsAs).
+func Signals(log io.Writer) (release func()) { return SignalsAs("hardn", log) }
+
+// SignalsAs is Signals with name ahead of each line it logs ("<name>:
+// SIGTERM received; the rollback finishes first"), so that a command keeps
+// the words its log has always had: "hardn rollback" for cmd/hardn,
+// "p2drive" for the driver.
+func SignalsAs(name string, log io.Writer) (release func()) {
 	var restore []syscall.Signal
 	for _, s := range held {
 		if !signal.Ignored(s) {
@@ -74,7 +82,7 @@ func Signals(log io.Writer) (release func()) {
 		for {
 			select {
 			case <-term:
-				logf(log, "hardn: SIGTERM received; the rollback finishes first")
+				logf(log, "%s: SIGTERM received; the rollback finishes first", name)
 			case <-done:
 				return
 			}
@@ -89,7 +97,7 @@ func Signals(log io.Writer) (release func()) {
 		}
 		for _, s := range restore {
 			if err := restoreDefault(s); err != nil {
-				logf(log, "hardn: %v stays ignored after the rollback: %v", s, err)
+				logf(log, "%s: %v stays ignored after the rollback: %v", name, s, err)
 			}
 		}
 		c := make(chan os.Signal, 1)

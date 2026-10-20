@@ -13,15 +13,14 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -340,41 +339,29 @@ func orNothing(lines []string) []string {
 }
 
 // holdSignals keeps a hangup, Ctrl-C or SIGTERM from stopping `hardn
-// rollback` part-way, until the returned function is called: Go's default
-// is to exit on each (os/signal), and a rollback half done is worse than
-// one finished (RollbackTimeout bounds it). SIGHUP and SIGINT are ignored,
-// which the commands the rollback runs inherit (an ignored signal stays
-// ignored across exec, POSIX exec; Go's runtime resets only the handlers
-// it installed, runtime/signal_unix.go clearSignalHandlers), so the
+// rollback` (and its --boot) part-way, until the returned function is
+// called: Go's default is to exit on each (os/signal), and a rollback half
+// done is worse than one finished (RollbackTimeout bounds it). It is
+// pkg/engine/hold's (next/p3-engine-boot), the engine's own: SIGHUP and
+// SIGINT are ignored, which the commands the rollback runs inherit, so the
 // terminal's Ctrl-C and hangup, sent to the whole foreground process group,
-// stop neither hardn nor the ufw or systemctl it is running. SIGTERM is
-// caught and logged. SIGKILL cannot be held off: the timer, or the next
-// `hardn rollback <id>`, takes the rollback up after it.
-func holdSignals() (release func()) {
-	signal.Ignore(syscall.SIGHUP, syscall.SIGINT)
-	term := make(chan os.Signal, 1)
-	signal.Notify(term, syscall.SIGTERM)
-	done, stopped := make(chan struct{}), make(chan struct{})
-	go func() {
-		defer close(stopped)
-		for {
-			select {
-			case <-term:
-				logging.LogWarning("hardn rollback: SIGTERM received; the rollback finishes first")
-			case <-done:
-				return
-			}
-		}
-	}()
-	return func() {
-		signal.Stop(term)
-		close(done)
-		<-stopped
-		// Notify then Stop puts Go's own handler back, ending the Ignore.
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGHUP, syscall.SIGINT)
-		signal.Stop(c)
+// stop neither hardn nor the ufw or systemctl it is running; SIGTERM is
+// caught and logged as a warning, "hardn rollback: SIGTERM received; the
+// rollback finishes first", as before; and the release gives SIGHUP and
+// SIGINT back their disposition before the hold. SIGKILL cannot be held
+// off: the timer, or the next `hardn rollback <id>`, takes the rollback up
+// after it.
+func holdSignals() (release func()) { return hold.SignalsAs("hardn rollback", revertWarnLog{}) }
+
+// revertWarnLog writes each line as a warning to hardn's log and the
+// console, as revertLog writes its lines as information.
+type revertWarnLog struct{}
+
+func (revertWarnLog) Write(p []byte) (int, error) {
+	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
+		logging.LogWarning("%s", line)
 	}
+	return len(p), nil
 }
 
 // showRevertNotices is the next-run notice: what the journal holds, for any

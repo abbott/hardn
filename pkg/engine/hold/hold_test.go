@@ -32,32 +32,46 @@ func (s *syncBuffer) String() string {
 
 // TestSignals: SIGINT and SIGHUP ignored and SIGTERM caught and logged until
 // release; this test process survives each, sent to itself.
+// SignalsAs names its lines as asked: cmd/hardn's and p2drive's holds keep
+// their words (next/p3-engine-boot).
 func TestSignals(t *testing.T) {
 	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		t.Skip("this test process was started with SIGINT or SIGHUP ignored")
 	}
-	var log syncBuffer
-	release := Signals(&log)
-	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
-		release()
-		t.Fatal("SIGINT and SIGHUP are not ignored")
-	}
-	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
-		if err := syscall.Kill(os.Getpid(), sig); err != nil {
+	for _, tc := range []struct {
+		name string
+		hold func(log *syncBuffer) func()
+		want string
+	}{
+		{"Signals", func(log *syncBuffer) func() { return Signals(log) }, "hardn: SIGTERM received; the rollback finishes first\n"},
+		{"SignalsAs", func(log *syncBuffer) func() { return SignalsAs("hardn rollback", log) },
+			"hardn rollback: SIGTERM received; the rollback finishes first\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var log syncBuffer
+			release := tc.hold(&log)
+			if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+				release()
+				t.Fatal("SIGINT and SIGHUP are not ignored")
+			}
+			for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
+				if err := syscall.Kill(os.Getpid(), sig); err != nil {
+					release()
+					t.Fatal(err)
+				}
+			}
+			deadline := time.Now().Add(2 * time.Second)
+			for !strings.Contains(log.String(), "SIGTERM received") && time.Now().Before(deadline) {
+				time.Sleep(10 * time.Millisecond)
+			}
 			release()
-			t.Fatal(err)
-		}
-	}
-	deadline := time.Now().Add(2 * time.Second)
-	for !strings.Contains(log.String(), "SIGTERM received") && time.Now().Before(deadline) {
-		time.Sleep(10 * time.Millisecond)
-	}
-	release()
-	if got := log.String(); got != "hardn: SIGTERM received; the rollback finishes first\n" {
-		t.Errorf("log %q", got)
-	}
-	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
-		t.Error("release left SIGINT or SIGHUP ignored, as os/signal records it")
+			if got := log.String(); got != tc.want {
+				t.Errorf("log %q", got)
+			}
+			if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
+				t.Error("release left SIGINT or SIGHUP ignored, as os/signal records it")
+			}
+		})
 	}
 }
 
