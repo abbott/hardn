@@ -55,14 +55,14 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, lookup-user, lookup-group
+	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, lock, unlock, lookup-user, lookup-group
 	Argv     []string // run, start-detached
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run
 	PID      int      // start-detached
 	Path     string   // file operations and lookups
 	To       string   // rename
-	Data     []byte   // writes
+	Data     []byte   // writes, lock's holder
 	Mode     fs.FileMode
 	UID, GID int // chown, write-atomic
 	Err      error
@@ -122,7 +122,8 @@ type System struct {
 	calls  []Call
 	log    *host.RunLog
 	tail   int
-	pid    int // the last process id StartDetached made up
+	pid    int            // the last process id StartDetached made up
+	locks  map[*node]bool // the files Lock holds, as the kernel holds an open file's lock
 }
 
 var _ host.LegacySystem = (*System)(nil)
@@ -134,6 +135,7 @@ func New(opts host.Options) *System {
 		users:  map[string]host.User{},
 		groups: map[string]host.Group{},
 		script: map[string][]Response{},
+		locks:  map[*node]bool{},
 		log:    host.NewRunLog(opts.RunLog),
 		tail:   opts.Tail(),
 	}

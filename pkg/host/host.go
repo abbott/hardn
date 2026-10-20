@@ -135,6 +135,18 @@ type System interface {
 	// It is guarded (see System). On an error, name is as it was, except
 	// for one wrapping ErrNotDurable: see Real.WriteFileAtomic.
 	WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error
+	// Lock takes an exclusive lock on the regular file name, creating it
+	// 0600 when absent, writes holder into it, and returns the function
+	// that empties it and releases the lock. It never waits: a lock held
+	// through another open of the file, by this process or another, is
+	// ErrLocked. The lock goes with the open file (flock(2)), so the
+	// kernel releases it when its holder exits, however it exits: a lock
+	// file a dead process left is not held. A symlink at name is refused
+	// with ErrSymlink, anything else that is not a regular file with
+	// fs.ErrInvalid; it is guarded (see System). Never remove a lock file:
+	// one opened before the removal would lock a file no one else sees.
+	// The engine's run lock (p3-engine).
+	Lock(ctx context.Context, name string, holder []byte) (unlock func() error, err error)
 
 	// LookupUser finds a user account by name; ErrUnknownUser when absent.
 	LookupUser(ctx context.Context, name string) (User, error)
@@ -282,6 +294,8 @@ var (
 	// its directory, so the replacement may not survive a crash. The new
 	// content is in place; roll the change back like any failed step.
 	ErrNotDurable = errors.New("replaced, but the directory could not be synced")
+	// ErrLocked: Lock found the file locked by another open of it.
+	ErrLocked = errors.New("locked by another process")
 	// ErrUnknownUser: no such user account.
 	ErrUnknownUser = errors.New("unknown user")
 	// ErrUnknownGroup: no such group.
