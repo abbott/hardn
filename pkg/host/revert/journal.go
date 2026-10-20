@@ -215,8 +215,17 @@ type Journal struct {
 // Timeout is the confirm window.
 func (j Journal) Timeout() time.Duration { return time.Duration(j.TimeoutSeconds) * time.Second }
 
-// Deadline is when the timer rolls the change back.
-func (j Journal) Deadline() time.Time { return j.Created.Add(j.Timeout()) }
+// Deadline is when the timer rolls the change back. With a timer, it is
+// the timer's deadline: Created plus the window, as Arm sets it, which a
+// re-arm at boot keeps, or moves to the window from the re-arm when the
+// clock then read before Created (Boot). Without one, Created plus the
+// window.
+func (j Journal) Deadline() time.Time {
+	if t := j.Timer; t != nil && !t.Deadline.IsZero() {
+		return t.Deadline
+	}
+	return j.Created.Add(j.Timeout())
+}
 
 // Check refuses a journal a rollback could not act on safely, with
 // ErrJournal: every field is checked, since a rollback runs it as root.

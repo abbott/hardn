@@ -16,8 +16,12 @@ import (
 // Arm journals change j before its first step (brief 2.4: schedule the
 // revert before applying), and returns it as written. It sets
 // SchemaVersion, Created (Options.Now) and, for RiskLockout, Timer, from
-// detect's init facts and Options.Hardn (CheckExecutable). It refuses, and
-// writes nothing but the journal directory, while a change is journalled
+// detect's init facts and Options.Hardn (CheckExecutable); the timer
+// records that binary's path and SHA-256, and the boot's id, for `hardn
+// rollback --boot` (Timer.Hardn, HardnSHA256, Boot; a boot id that cannot
+// be read is left out and logged, and the boot command then leaves the
+// change alone). It refuses, and writes nothing but the journal
+// directory, while a change is journalled
 // (*PendingError), and for a journal Check refuses. Then it writes
 // pending.json and starts the timer; when the timer does not start, it
 // removes pending.json again, even after Ctrl-C (under a context of its
@@ -45,6 +49,14 @@ func Arm(ctx context.Context, sys host.System, j Journal, in detect.Init, opts O
 	if j.Timer != nil {
 		if err := CheckExecutable(ctx, sys, opts.Hardn); err != nil {
 			return j, err
+		}
+		sum, err := hashFile(ctx, sys, opts.Hardn)
+		if err != nil {
+			return j, fmt.Errorf("revert: arm %s: hardn's binary: %w", j.ID, err)
+		}
+		j.Timer.Hardn, j.Timer.HardnSHA256 = opts.Hardn, sum
+		if j.Timer.Boot, err = bootID(ctx, sys); err != nil {
+			opts.logf("arm %s: the boot's id cannot be read, so after a reboot `hardn rollback --boot` leaves this change to the next run's notice: %v", j.ID, err)
 		}
 	}
 	if err := stateDir(ctx, sys, opts.dir(), true); err != nil {
@@ -196,19 +208,40 @@ type ConfirmResult struct {
 }
 
 // NotPendingError is ErrNothingPending with what happened to the last
-// change, when the timer undid it.
-type NotPendingError struct{ Reverted *Outcome }
+// change, when the timer undid it. Abandoned, since next/p3-rollback-abandon,
+// is where Abandon kept the record when that rollback did not finish and
+// was given up.
+type NotPendingError struct {
+	Reverted  *Outcome
+	Abandoned string
+}
 
 func (e *NotPendingError) Error() string {
-	if o := e.Reverted; o != nil {
-		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was rolled back at %s, because it was not confirmed within %ds",
-			ErrNothingPending, o.ID, o.Summary, stamp(o.Finished), o.TimeoutSeconds)
+	o := e.Reverted
+	switch {
+	case o == nil:
+		return "revert: confirm: " + ErrNothingPending.Error()
+	case e.Abandoned != "":
+		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was not confirmed within %ds, and %s",
+			ErrNothingPending, o.ID, o.Summary, o.TimeoutSeconds, givenUpWords(e.Abandoned))
+	case len(o.Errors) > 0:
+		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was not confirmed within %ds, and %s",
+			ErrNothingPending, o.ID, o.Summary, o.TimeoutSeconds, revertedWords(*o))
 	}
-	return "revert: confirm: " + ErrNothingPending.Error()
+	return fmt.Sprintf("revert: confirm: %s: change %s (%s) was rolled back at %s, because it was not confirmed within %ds",
+		ErrNothingPending, o.ID, o.Summary, stamp(o.Finished), o.TimeoutSeconds)
 }
 
 // Is makes errors.Is(err, ErrNothingPending) true.
 func (e *NotPendingError) Is(target error) bool { return target == ErrNothingPending }
+
+// RolledBack reports whether the error says that the timer rolled the last
+// change back and finished: once it has been shown, the caller may
+// Acknowledge the outcome. A rollback that did not finish and was given up
+// is left for the next run's notice, which says so.
+func (e *NotPendingError) RolledBack() bool {
+	return e.Reverted != nil && e.Abandoned == "" && len(e.Reverted.Errors) == 0
+}
 
 // Confirm keeps the pending lockout-risk change, for `hardn confirm` from
 // session s (ReadSession). CheckConfirm decides whether s may: the apply
@@ -226,7 +259,13 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 	case st.RollingBack != nil:
 		return ConfirmResult{Journal: *st.RollingBack}, fmt.Errorf("revert: confirm %s: %w", st.RollingBack.ID, ErrRollingBack)
 	case st.Pending == nil:
-		return ConfirmResult{}, &NotPendingError{Reverted: st.Reverted}
+		e := &NotPendingError{Reverted: st.Reverted}
+		if o := st.Reverted; o != nil {
+			if kept, ok := abandonedRecord(ctx, sys, opts, o.ID); ok {
+				e.Abandoned = kept
+			}
+		}
+		return ConfirmResult{}, e
 	case st.Pending.Risk != RiskLockout:
 		return ConfirmResult{Journal: *st.Pending}, fmt.Errorf("revert: confirm %s: it did not finish; undo it with `sudo hardn rollback %s`: %w", st.Pending.ID, st.Pending.ID, ErrNotConfirmable)
 	}

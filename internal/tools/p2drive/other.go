@@ -272,6 +272,13 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		d.say("finding %v: %s:%d %s", fd.Kind, fd.File, fd.Line, fd.Detail)
 	}
 	lockout := slices.ContainsFunc(plan.Changes, func(ch sudoers.Change) bool { return ch.Risk == sudoers.RiskLockout })
+	var boot bootStep
+	if lockout && len(plan.Changes) > 0 {
+		if boot, err = d.planBoot(ctx, f.Init, o.hardn); err != nil {
+			return fmt.Errorf("refused before anything changed: %w", err)
+		}
+		d.sayBoot(boot)
+	}
 	switch {
 	case len(plan.Changes) == 0:
 		d.say("nothing to change")
@@ -295,8 +302,15 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 		return err
 	}
 	defer d.end(ctx, base{runDir: runDir})
+	run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, j.ID)
+	if err != nil {
+		return fmt.Errorf("not applied: %w", err)
+	}
 	if lockout {
 		if j, err = d.lockoutJournal(ctx, j, o); err != nil {
+			return err
+		}
+		if err := d.ensureBoot(ctx, boot, runDir, run, opts); err != nil {
 			return err
 		}
 	}
@@ -310,10 +324,6 @@ func (d *driver) sudoers(ctx context.Context, pol sudoers.Policy, want sudoers.T
 	j.Undo = []revert.Step{step}
 	if err := revert.Record(ctx, d.sys, j, opts); err != nil {
 		return fail("journal the sudoers plan", err)
-	}
-	run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, j.ID)
-	if err != nil {
-		return fail("backups", err)
 	}
 	for _, ch := range plan.Changes {
 		r, err := run.Backup(ctx, ch.Path, backup.RollbackRequired)

@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"path/filepath"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -32,7 +34,9 @@ type RollbackResult struct {
 	Nothing bool
 	Why     string
 	// Reverted is the timer's outcome when Nothing is because the timer
-	// rolled id back: once the caller has said so, it may Acknowledge it.
+	// rolled id back, and finished: once the caller has said so, it may
+	// Acknowledge it. It is nil when that rollback did not finish and was
+	// given up, so the next run's notice still says so.
 	Reverted *Outcome
 	Resumed  bool // a rollback that had not finished was taken up again
 	// Restored is backup.Restore's report; Undone the inverse steps run,
@@ -77,8 +81,8 @@ type RollbackResult struct {
 // Options.Log; commands to the System's run log.
 //
 // Nothing journalled under id is RollbackResult.Nothing, with no error:
-// confirmed, rolled back already, another change, or a rollback under way.
-// One that cannot ever finish is given up with Abandon.
+// confirmed, rolled back already, another change, a rollback under way, or
+// one given up. One that cannot ever finish is given up with Abandon.
 func Rollback(ctx context.Context, sys host.System, id string, opts Options) (RollbackResult, error) {
 	if !ValidID(id) {
 		return RollbackResult{}, fmt.Errorf("revert: rollback %q: %w", id, ErrID)
@@ -115,9 +119,10 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 			return res, err
 		}
 	default:
-		res.Nothing, res.Why = true, nothingWhy(st, id)
-		if st.Reverted != nil && st.Reverted.ID == id {
-			res.Reverted = st.Reverted
+		kept, abandoned := abandonedRecord(ctx, sys, opts, id)
+		res.Nothing, res.Why = true, nothingWhy(st, id, kept, abandoned)
+		if o := st.Reverted; o != nil && o.ID == id && !abandoned && len(o.Errors) == 0 {
+			res.Reverted = o
 		}
 		opts.logf("rollback %s: nothing to do: %s", id, res.Why)
 		return res, nil
@@ -205,8 +210,8 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 		}
 	}
 	if len(errs) > 0 {
-		err := fmt.Errorf("revert: rollback %s: %w; run `sudo hardn rollback %s` to take it up again (if it cannot finish, fix what this names, or give it up, leaving the host as it is, by moving %s aside): %w",
-			id, ErrIncomplete, id, rb, errors.Join(errs...))
+		err := fmt.Errorf("revert: rollback %s: %w; run `sudo hardn rollback %s` to take it up again (if it cannot finish, fix what this names, or give it up, leaving the host as it is, with `sudo hardn rollback --abandon %s`): %w",
+			id, ErrIncomplete, id, id, errors.Join(errs...))
 		opts.logf("rollback %s: did not finish: %v", id, errors.Join(errs...))
 		return res, err
 	}
@@ -229,16 +234,45 @@ func reasonFor(j Journal, opts Options) Reason {
 	return ReasonRequested
 }
 
-func nothingWhy(st State, id string) string {
+// nothingWhy says why st holds nothing to roll back for change id; kept is
+// where an abandoned rollback of id is kept, when abandoned.
+func nothingWhy(st State, id, kept string, abandoned bool) string {
 	switch {
 	case st.Pending != nil:
 		return fmt.Sprintf("the journalled change is %s, not this one", st.Pending.ID)
 	case st.RollingBack != nil:
 		return fmt.Sprintf("the rollback of change %s, not this one, has not finished", st.RollingBack.ID)
+	case abandoned:
+		return givenUpWords(kept)
 	case st.Reverted != nil && st.Reverted.ID == id:
-		return "it was rolled back at " + stamp(st.Reverted.Finished)
+		return revertedWords(*st.Reverted)
 	}
 	return "it is not journalled: confirmed, or rolled back already"
+}
+
+// abandonedRecord is the full path of the record Abandon keeps for change
+// id, and whether it is there: the rollback of id was given up.
+func abandonedRecord(ctx context.Context, sys host.System, opts Options, id string) (string, bool) {
+	kept := filepath.Join(opts.dir(), AbandonedName(id))
+	_, err := sys.Lstat(ctx, kept)
+	return kept, err == nil
+}
+
+// givenUpWords says that a change's rollback was given up by Abandon, which
+// keeps its record in kept.
+func givenUpWords(kept string) string {
+	return "its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in " + kept
+}
+
+// revertedWords says what the timer's rollback of a change did, by its
+// outcome o: rolled it back, or did not finish. A rollback that did not
+// finish leaves rollback.json, so when that is gone and Abandon kept no
+// record, it was given up by hand.
+func revertedWords(o Outcome) string {
+	if len(o.Errors) == 0 {
+		return "it was rolled back at " + stamp(o.Finished)
+	}
+	return fmt.Sprintf("the timer's rollback of it did not finish (%s) and was given up, leaving the host as that rollback left it", strings.Join(o.Errors, "; "))
 }
 
 // restoreBackups restores the entries of b, from its run directory.
@@ -333,9 +367,10 @@ func runStep(ctx context.Context, sys host.System, s Step, plans map[string]Plan
 	return r
 }
 
-// runReload reloads r.Service once its files are restored. With IfUp, a
-// unit that is down is left so (no Step.Start): the forward reload may not
-// have run, and the unit may have been down before the change. The socket
+// runReload reloads r.Service once its files are restored. With IfUp, or
+// Options.NoStart, a unit that is down is left so (no Step.Start): the
+// forward reload may not have run, and the unit may have been down before
+// the change; at boot, it has not started yet. The socket
 // drop-ins r names as restored are expected on a socket host
 // (reload.Change.RestoredDropIns) when b's backups restored them as files
 // (restoredDropIns); any other with ListenStream is refused.
@@ -366,7 +401,7 @@ func runReload(ctx context.Context, sys host.System, r Reload, b *Backups, opts 
 	if err != nil {
 		return reload.Report{}, err
 	}
-	if r.IfUp {
+	if r.IfUp || opts.NoStart {
 		for i := range p.Steps {
 			p.Steps[i].Start = nil
 		}
@@ -378,37 +413,214 @@ func runReload(ctx context.Context, sys host.System, r Reload, b *Backups, opts 
 // <id>: abandoned-<id>.json, kept for the record.
 func AbandonedName(id string) string { return "abandoned-" + id + ".json" }
 
+// AbandonResult is what Abandon gave up.
+type AbandonResult struct {
+	// Journal is the record as it was given up: the change and the
+	// rollback's progress (Journal.Rollback, nil when none was recorded),
+	// which Unfinished lists.
+	Journal Journal
+	// Kept is the record's full path: AbandonedName(id) in Options.Dir.
+	Kept string
+	// RunnerUnknown: the record names no process (no progress recorded, or
+	// the rollback could not name its own), so whether a `hardn rollback
+	// <id>` still runs it could not be told; it counted as gone.
+	RunnerUnknown bool
+	// SSHUnchecked: the backups were not all restored and an ssh reload was
+	// left, so sshd's files on disk may be a mix of the change's and the
+	// ones before it that no check has passed, which is why the rollback
+	// skipped the reloads; sshd reads them the next time it starts.
+	SSHUnchecked bool
+}
+
 // Abandon gives up the unfinished rollback of change id, one that cannot
 // ever finish (its backup run directory is gone, an undo command no longer
 // exists): rollback.json is renamed to AbandonedName(id), so new changes
 // can be applied again. The host stays as the rollback left it; what it
-// did not do is in the log and in the file. A rollback still running is
-// not abandoned (ErrRollingBack), nor anything but an unfinished rollback
-// of id (ErrNothingPending). No command line reaches it yet (P-35).
-func Abandon(ctx context.Context, sys host.System, id string, opts Options) (Journal, error) {
+// did and did not do is in the log, in the record and in Unfinished of the
+// journal returned. A rollback still running is not abandoned
+// (ErrRollingBack), nor one a `hardn rollback <id>` took up between the
+// read and the rename (its record names a process that runs: it is put
+// back), nor anything but an unfinished rollback of id (a
+// *NoRollbackError, Is(ErrNothingPending)); each error says what to do
+// instead. A process that cannot be named (AbandonResult.RunnerUnknown)
+// counts as gone. `hardn rollback --abandon <id>` reaches it (P-35).
+func Abandon(ctx context.Context, sys host.System, id string, opts Options) (AbandonResult, error) {
 	if !ValidID(id) {
-		return Journal{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
+		return AbandonResult{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
 	}
+	rb, kept := filepath.Join(opts.dir(), RollbackName), filepath.Join(opts.dir(), AbandonedName(id))
 	st, err := ReadState(ctx, sys, opts)
-	switch {
-	case err != nil:
-		return Journal{}, err
-	case st.RollingBack == nil || st.RollingBack.ID != id:
-		return Journal{}, fmt.Errorf("revert: abandon %s: no unfinished rollback of it: %w", id, ErrNothingPending)
-	case st.Running:
-		return *st.RollingBack, fmt.Errorf("revert: abandon %s: process %d is rolling it back: %w", id, st.RollingBack.Rollback.Runner.PID, ErrRollingBack)
-	}
-	j, err := claim(ctx, sys, filepath.Join(opts.dir(), RollbackName), filepath.Join(opts.dir(), AbandonedName(id)), id)
 	if err != nil {
-		return Journal{}, err
+		return AbandonResult{}, err
 	}
+	if err := abandonable(ctx, sys, st, id, kept); err != nil {
+		return AbandonResult{}, err
+	}
+	j, err := claim(ctx, sys, rb, kept, id)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		// Another hardn took it first: a second --abandon, or a rollback
+		// that finished. Say what the journal holds now.
+		if st, err = ReadState(ctx, sys, opts); err != nil {
+			return AbandonResult{}, err
+		}
+		if err := abandonable(ctx, sys, st, id, kept); err != nil {
+			return AbandonResult{}, err
+		}
+		return AbandonResult{}, fmt.Errorf("revert: abandon %s: %s changed while it was being given up; run `sudo hardn rollback --abandon %s` again: %w", id, rb, id, ErrClaim)
+	case err != nil:
+		return AbandonResult{}, err
+	}
+	if p := j.Rollback; p != nil && alive(ctx, sys, p.Runner) {
+		// A `hardn rollback <id>` took it up after the read, and saved
+		// before the rename: it runs on, so its record goes back.
+		return AbandonResult{}, errors.Join(rollingBackError(id, *p, "took it up while it was being given up, and is rolling it back now; its record is put back"), sys.Rename(ctx, kept, rb))
+	}
+	res := AbandonResult{Journal: j, Kept: kept, RunnerUnknown: j.Rollback == nil || !j.Rollback.Runner.known(), SSHUnchecked: sshUnchecked(j)}
 	p := Progress{}
 	if j.Rollback != nil {
 		p = *j.Rollback
 	}
 	opts.logf("rollback %s (%s) abandoned: backups restored %v, %d of %d undo steps and %d of %d reloads done; kept in %s",
-		id, j.Summary, p.Restored || j.Backup == nil, p.UndoDone, len(j.Undo), p.ReloadDone, len(j.Reload), AbandonedName(id))
-	return j, nil
+		id, j.Summary, p.Restored || j.Backup == nil, p.UndoDone, len(j.Undo), p.ReloadDone, len(j.Reload), kept)
+	return res, nil
+}
+
+// rollingBackError refuses to give up the rollback of change id while
+// process p.Runner runs it; how says what the process is doing.
+func rollingBackError(id string, p Progress, how string) error {
+	return fmt.Errorf("revert: abandon %s: %w: process %d %s (started %s); wait for it to end, and if it does not finish, run `sudo hardn rollback %s` once more before giving it up",
+		id, ErrRollingBack, p.Runner.PID, how, stamp(p.Started), id)
+}
+
+// sshUnchecked is AbandonResult.SSHUnchecked for the record j.
+func sshUnchecked(j Journal) bool {
+	if j.Backup == nil || j.Rollback == nil || j.Rollback.Restored {
+		return false
+	}
+	for i, r := range j.Reload {
+		if i >= j.Rollback.ReloadDone && r.Service == ReloadSSH {
+			return true
+		}
+	}
+	return false
+}
+
+// NoRollbackKind is why Abandon found no unfinished rollback of a change to
+// give up (NoRollbackError.Kind).
+type NoRollbackKind string
+
+const (
+	NoRollbackOtherRunning    NoRollbackKind = "other-running"    // another change's rollback runs now: wait for it
+	NoRollbackOtherUnfinished NoRollbackKind = "other-unfinished" // another change's rollback has not finished
+	NoRollbackNotStarted      NoRollbackKind = "not-started"      // the change is journalled; its rollback has not started
+	NoRollbackOtherPending    NoRollbackKind = "other-pending"    // another change is journalled
+	NoRollbackGivenUp         NoRollbackKind = "given-up"         // its rollback did not finish and was given up already
+	NoRollbackRolledBack      NoRollbackKind = "rolled-back"      // the timer rolled it back
+	NoRollbackNotJournalled   NoRollbackKind = "not-journalled"   // confirmed, rolled back, or not a change made here
+)
+
+// NoRollbackError is Abandon's refusal when there is no unfinished rollback
+// of change ID to give up: Is(ErrNothingPending). Kind says why; Other is
+// the change the journal holds instead (the other-* kinds); Kept is where
+// Abandon kept the record of a rollback given up (given-up; empty when it
+// was given up by hand). Its text says what to do instead, and leaves out
+// ErrNothingPending's own words, which are about confirming.
+type NoRollbackError struct {
+	ID    string
+	Kind  NoRollbackKind
+	Other string
+	Kept  string
+	why   string
+}
+
+func (e *NoRollbackError) Error() string {
+	return fmt.Sprintf("revert: abandon %s: there is no unfinished rollback of it to give up: %s", e.ID, e.why)
+}
+
+// Is makes errors.Is(err, ErrNothingPending) true.
+func (e *NoRollbackError) Is(target error) bool { return target == ErrNothingPending }
+
+// abandonable is nil when st holds an unfinished rollback of change id
+// whose process has gone; otherwise it is the refusal, which says what to
+// do instead. kept is where an abandoned rollback of id is kept.
+func abandonable(ctx context.Context, sys host.System, st State, id, kept string) error {
+	refuse := func(kind NoRollbackKind, other, why string) error {
+		return &NoRollbackError{ID: id, Kind: kind, Other: other, why: why}
+	}
+	if j := st.RollingBack; j != nil {
+		o := j.ID
+		switch {
+		case o == id && st.Running:
+			return rollingBackError(id, *j.Rollback, "is rolling it back now")
+		case o == id:
+			return nil
+		case st.Running:
+			return refuse(NoRollbackOtherRunning, o, fmt.Sprintf("change %s, not this one, is being rolled back now by process %d (started %s); wait for that rollback to end",
+				o, j.Rollback.Runner.PID, stamp(j.Rollback.Started)))
+		}
+		return refuse(NoRollbackOtherUnfinished, o, fmt.Sprintf("the unfinished rollback is of change %s, not this one; finish it with `sudo hardn rollback %s`, or, if it cannot finish, give it up with `sudo hardn rollback --abandon %s`", o, o, o))
+	}
+	switch p := st.Pending; {
+	case p != nil && p.ID == id:
+		return refuse(NoRollbackNotStarted, "", fmt.Sprintf("change %s is journalled and its rollback has not started; to undo it, run `sudo hardn rollback %s`", id, id))
+	case p != nil:
+		return refuse(NoRollbackOtherPending, p.ID, fmt.Sprintf("the journalled change is %s, not this one, and its rollback has not started", p.ID))
+	}
+	if _, err := sys.Lstat(ctx, kept); err == nil {
+		return &NoRollbackError{ID: id, Kind: NoRollbackGivenUp, Kept: kept, why: "its rollback was abandoned already, and its record is kept in " + kept}
+	}
+	if o := st.Reverted; o != nil && o.ID == id {
+		if len(o.Errors) > 0 {
+			return refuse(NoRollbackGivenUp, "", revertedWords(*o))
+		}
+		return refuse(NoRollbackRolledBack, "", revertedWords(*o))
+	}
+	return refuse(NoRollbackNotJournalled, "", "it is not journalled: confirmed, rolled back already, or not a change made on this host")
+}
+
+// Unfinished is what the unfinished rollback of j had done by its record
+// (j.Rollback), and what it had left, one plain-text line per part, in the
+// order a rollback runs them: the backups restored, each inverse step, each
+// reload. It is for `hardn rollback --abandon <id>`, which gives such a
+// rollback up and leaves the host as it is. The record is written after
+// each part, so a part left may have run in part (the inverse step that
+// failed; a restore goes on past an entry that fails); with no progress
+// recorded (j.Rollback nil), every part is left. Pure.
+func Unfinished(j Journal) (done, left []string) {
+	p := Progress{}
+	if j.Rollback != nil {
+		p = *j.Rollback
+	}
+	add := func(ok bool, line string) {
+		if ok {
+			done = append(done, line)
+		} else {
+			left = append(left, line)
+		}
+	}
+	if b := j.Backup; b != nil {
+		seqs := make([]string, len(b.Seqs))
+		for i, s := range b.Seqs {
+			seqs[i] = strconv.Itoa(s)
+		}
+		entries := "entries"
+		if len(seqs) == 1 {
+			entries = "entry"
+		}
+		add(p.Restored, fmt.Sprintf("restore the backups in %s (%s %s)", b.Dir, entries, strings.Join(seqs, ", ")))
+	}
+	for i, s := range j.Undo {
+		add(i < p.UndoDone, fmt.Sprintf("undo %d of %d: %s", i+1, len(j.Undo), stepWords(s)))
+	}
+	for i, r := range j.Reload {
+		line := "reload " + string(r.Service)
+		if len(r.Keywords) > 0 {
+			line += " (" + strings.Join(r.Keywords, ", ") + ")"
+		}
+		add(i < p.ReloadDone, line)
+	}
+	return done, left
 }
 
 func removeIfThere(ctx context.Context, sys host.System, name string) error {

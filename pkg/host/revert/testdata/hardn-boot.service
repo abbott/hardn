@@ -1,0 +1,23 @@
+# hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
+# it before it arms the revert timer of a change that could lock you out, and
+# removes it at a boot that finds no change journalled.
+#
+# At boot, before sshd reads its files: re-arm the revert timer of a change
+# waiting for "hardn confirm", for what remains of its window, or roll the
+# change back when its deadline has passed. Ordering only: sshd starts
+# whatever this unit does.
+[Unit]
+Description=hardn: re-arm or run the revert timer of an unconfirmed change
+DefaultDependencies=no
+After=local-fs.target sysinit.target ufw.service
+Before=ssh.service ssh.socket shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/hardn rollback --boot
+TimeoutStartSec=7min
+
+[Install]
+WantedBy=multi-user.target

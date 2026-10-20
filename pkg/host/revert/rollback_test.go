@@ -828,8 +828,13 @@ func TestAbandon(t *testing.T) {
 		t.Fatal(err)
 	}
 	for range 2 {
-		if _, err := Rollback(ctx, ch.f, testID, ch.opts); !errors.Is(err, ErrIncomplete) {
+		_, err := Rollback(ctx, ch.f, testID, ch.opts)
+		if !errors.Is(err, ErrIncomplete) {
 			t.Fatalf("Rollback = %v", err)
+		}
+		// The error names the flag, not the manual step (P-35).
+		if !strings.Contains(err.Error(), "give it up, leaving the host as it is, with `sudo hardn rollback --abandon "+testID+"`") || strings.Contains(err.Error(), "aside") {
+			t.Errorf("Rollback's error = %v", err)
 		}
 	}
 	if _, err := Abandon(ctx, ch.f, otherID, ch.opts); !errors.Is(err, ErrNothingPending) {
@@ -838,14 +843,46 @@ func TestAbandon(t *testing.T) {
 	if _, err := Abandon(ctx, ch.f, "../x", ch.opts); !errors.Is(err, ErrID) {
 		t.Errorf("Abandon(a path) = %v", err)
 	}
-	j, err := Abandon(ctx, ch.f, testID, ch.opts)
-	if err != nil || j.ID != testID {
-		t.Fatalf("Abandon = %+v, %v", j, err)
+	calls := len(ch.f.Calls())
+	res, err := Abandon(ctx, ch.f, testID, ch.opts)
+	j := res.Journal
+	if err != nil || j.ID != testID || res.Kept != stateFile(AbandonedName(testID)) || res.RunnerUnknown || !res.SSHUnchecked {
+		t.Fatalf("Abandon = %+v, %v", res, err)
 	}
 	if exists(ch.f, stateFile(RollbackName)) || !exists(ch.f, stateFile(AbandonedName(testID))) {
 		t.Error("rollback.json was not moved aside")
 	}
-	if !strings.Contains(ch.log.String(), "rollback "+testID+" (SSH port 22 to 2230 on web-01.example.net) abandoned: backups restored false, 1 of 1 undo steps") {
+	if did := changes(ch.f.Calls()[calls:]); !reflect.DeepEqual(did, []string{"rename " + stateFile(RollbackName) + " " + stateFile(AbandonedName(testID))}) {
+		t.Errorf("Abandon did %q; want its rename alone", did)
+	}
+	// The record is kept, with the rollback's progress, and is what Abandon
+	// returned: what the rollback did and did not undo.
+	if kept := readJournalT(t, ch.f, stateFile(AbandonedName(testID))); !reflect.DeepEqual(kept, j) || kept.Rollback == nil ||
+		kept.Rollback.Restored || kept.Rollback.UndoDone != 1 || kept.Rollback.ReloadDone != 0 {
+		t.Errorf("kept %+v, returned %+v", kept, j)
+	}
+	done, left := Unfinished(j)
+	if want := []string{"undo 1 of 1: " + ufwUndo}; !reflect.DeepEqual(done, want) {
+		t.Errorf("done %q, want %q", done, want)
+	}
+	if want := []string{"restore the backups in " + ch.j.Backup.Dir + " (entry 1)", "reload ssh (Port, PasswordAuthentication)"}; !reflect.DeepEqual(left, want) {
+		t.Errorf("left %q, want %q", left, want)
+	}
+	if !strings.Contains(ch.log.String(), "rollback "+testID+" (SSH port 22 to 2230 on web-01.example.net) abandoned: backups restored false, 1 of 1 undo steps and 0 of 1 reloads done; kept in "+stateFile(AbandonedName(testID))) {
+		t.Errorf("log:\n%s", ch.log)
+	}
+	// Once abandoned, there is nothing left to give up, and it says where
+	// the record is.
+	if _, err := Abandon(ctx, ch.f, testID, ch.opts); !errors.Is(err, ErrNothingPending) || !strings.Contains(err.Error(), "abandoned already, and its record is kept in "+stateFile(AbandonedName(testID))) {
+		t.Errorf("Abandon again = %v", err)
+	}
+	// Nor anything to roll back: it says that the rollback was given up,
+	// not that it happened.
+	given := "its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in " + stateFile(AbandonedName(testID))
+	if res, err := Rollback(ctx, ch.f, testID, ch.opts); err != nil || !res.Nothing || res.Why != given || res.Reverted != nil {
+		t.Errorf("Rollback after Abandon = %+v, %v", res, err)
+	}
+	if !strings.Contains(ch.log.String(), "rollback "+testID+": nothing to do: "+given) {
 		t.Errorf("log:\n%s", ch.log)
 	}
 	next := lockout()
@@ -856,5 +893,363 @@ func TestAbandon(t *testing.T) {
 	}
 	if st, err := ReadState(ctx, ch.f, ch.opts); err != nil || !reflect.DeepEqual(st.Pending.ID, otherID) {
 		t.Errorf("state after: %+v, %v", st, err)
+	}
+}
+
+// changes lists what calls changed or ran: commands run or started, and
+// paths written, removed, renamed, created, or given a mode or owner.
+func changes(calls []hostfake.Call) []string {
+	var out []string
+	for _, c := range calls {
+		switch c.Op {
+		case "run", "start-detached":
+			out = append(out, c.Op+" "+host.FormatArgv(c.Argv))
+		case "rename":
+			out = append(out, c.Op+" "+c.Path+" "+c.To)
+		case "write-atomic", "write-in-place", "remove", "removeall", "mkdir", "chmod", "chown":
+			out = append(out, c.Op+" "+c.Path)
+		}
+	}
+	return out
+}
+
+// unfinishedRollback is newChange whose rollback did not finish and never
+// can: its backup run directory is gone, so the backup is not restored and
+// ssh not reloaded; ufw's rule was deleted. Its runner, process 5000, has
+// gone.
+func unfinishedRollback(t *testing.T) *change {
+	t.Helper()
+	ch := newChange(t)
+	ch.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+	if err := ch.f.RemoveAll(context.Background(), ch.j.Backup.Dir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Rollback(context.Background(), ch.f, testID, ch.opts); !errors.Is(err, ErrIncomplete) {
+		t.Fatalf("Rollback = %v", err)
+	}
+	return ch
+}
+
+// timerUnfinished is newChange whose rollback by the timer, at the
+// deadline, did not finish and never can: its backup run directory is
+// gone. rollback.json and reverted.json, with the error, are left.
+func timerUnfinished(t *testing.T) *change {
+	t.Helper()
+	ch := newChange(t)
+	ch.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+	if err := ch.f.RemoveAll(context.Background(), ch.j.Backup.Dir); err != nil {
+		t.Fatal(err)
+	}
+	ch.c.t = ch.j.Deadline()
+	if _, err := Rollback(context.Background(), ch.f, testID, ch.opts); !errors.Is(err, ErrIncomplete) {
+		t.Fatalf("the timer's Rollback = %v", err)
+	}
+	return ch
+}
+
+// Abandon gives up nothing but an unfinished rollback of the change it
+// names, one whose process has gone, and each refusal says what to do
+// instead, with its kind; a refusal changes nothing.
+func TestAbandonRefused(t *testing.T) {
+	ctx := context.Background()
+	timerErr := "backup: lstat /var/backups/hardn/" + testID + ": no such file or directory"
+	for _, tt := range []struct {
+		name  string
+		setup func(t *testing.T) (*hostfake.System, Options)
+		id    string
+		is    error
+		kind  NoRollbackKind // for a *NoRollbackError
+		other string
+		says  string
+	}{
+		{"nothing journalled", func(t *testing.T) (*hostfake.System, Options) {
+			return newHost(t), testOptions(&clock{testNow}, nil)
+		}, testID, ErrNothingPending, NoRollbackNotJournalled, "", "there is no unfinished rollback of it to give up: it is not journalled: confirmed, rolled back already"},
+		{"the change waits for confirmation", func(t *testing.T) (*hostfake.System, Options) {
+			f, c := newHost(t), &clock{testNow}
+			armed(t, f, c)
+			return f, testOptions(c, nil)
+		}, testID, ErrNothingPending, NoRollbackNotStarted, "", "change " + testID + " is journalled and its rollback has not started; to undo it, run `sudo hardn rollback " + testID + "`"},
+		{"another change waits", func(t *testing.T) (*hostfake.System, Options) {
+			f, c := newHost(t), &clock{testNow}
+			armed(t, f, c)
+			return f, testOptions(c, nil)
+		}, otherID, ErrNothingPending, NoRollbackOtherPending, testID, "the journalled change is " + testID + ", not this one, and its rollback has not started"},
+		{"the unfinished rollback is another change's", func(t *testing.T) (*hostfake.System, Options) {
+			ch := unfinishedRollback(t)
+			return ch.f, ch.opts
+		}, otherID, ErrNothingPending, NoRollbackOtherUnfinished, testID, "the unfinished rollback is of change " + testID + ", not this one; finish it with `sudo hardn rollback " + testID +
+			"`, or, if it cannot finish, give it up with `sudo hardn rollback --abandon " + testID + "`"},
+		{"another change's rollback is running", func(t *testing.T) (*hostfake.System, Options) {
+			ch := unfinishedRollback(t)
+			proc(ch.f, selfPID, 3980, "hardn", ptsTTY) // process 5000 runs on
+			return ch.f, ch.opts
+		}, otherID, ErrNothingPending, NoRollbackOtherRunning, testID, "change " + testID + ", not this one, is being rolled back now by process 5000 (started 2026-10-18 12:00:00 UTC); wait for that rollback to end"},
+		{"the timer rolled it back", func(t *testing.T) (*hostfake.System, Options) {
+			ch := newChange(t)
+			ch.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+			ch.c.t = ch.j.Deadline()
+			if _, err := Rollback(ctx, ch.f, testID, ch.opts); err != nil {
+				t.Fatal(err)
+			}
+			return ch.f, ch.opts
+		}, testID, ErrNothingPending, NoRollbackRolledBack, "", "it was rolled back at 2026-10-18 12:03:00 UTC"},
+		{"the timer's unfinished rollback, given up by hand", func(t *testing.T) (*hostfake.System, Options) {
+			ch := timerUnfinished(t)
+			if err := ch.f.Rename(ctx, stateFile(RollbackName), stateFile("rollback.json.aside")); err != nil {
+				t.Fatal(err)
+			}
+			return ch.f, ch.opts
+		}, testID, ErrNothingPending, NoRollbackGivenUp, "", "the timer's rollback of it did not finish (" + timerErr + ") and was given up, leaving the host as that rollback left it"},
+		{"its rollback is running", func(t *testing.T) (*hostfake.System, Options) {
+			ch := unfinishedRollback(t)
+			proc(ch.f, selfPID, 3980, "hardn", ptsTTY) // process 5000 runs on
+			return ch.f, ch.opts
+		}, testID, ErrRollingBack, "", "", "process 5000 is rolling it back now (started 2026-10-18 12:00:00 UTC); wait for it to end, and if it does not finish, run `sudo hardn rollback " +
+			testID + "` once more before giving it up"},
+		{"a rollback.json this hardn cannot read", func(t *testing.T) (*hostfake.System, Options) {
+			f := newHost(t)
+			f.AddDir(DefaultDir, 0o700, 0, 0)
+			f.AddFile(stateFile(RollbackName), []byte(`{"schemaVersion":99}`), 0o600, 0, 0)
+			return f, testOptions(&clock{testNow}, nil)
+		}, testID, ErrJournal, "", "", stateFile(RollbackName)},
+		{"a rollback.json others can write", func(t *testing.T) (*hostfake.System, Options) {
+			ch := unfinishedRollback(t)
+			if err := ch.f.Chmod(ctx, stateFile(RollbackName), 0o666); err != nil {
+				t.Fatal(err)
+			}
+			return ch.f, ch.opts
+		}, testID, ErrUnsafe, "", "", stateFile(RollbackName)},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			f, opts := tt.setup(t)
+			calls := len(f.Calls())
+			_, err := Abandon(ctx, f, tt.id, opts)
+			if !errors.Is(err, tt.is) || !strings.Contains(err.Error(), tt.says) {
+				t.Fatalf("Abandon = %v; want %v saying %q", err, tt.is, tt.says)
+			}
+			var nr *NoRollbackError
+			if errors.As(err, &nr) != (tt.kind != "") || nr != nil && (nr.ID != tt.id || nr.Kind != tt.kind || nr.Other != tt.other || nr.Kept != "") {
+				t.Errorf("refusal %+v; want kind %q, other %q", nr, tt.kind, tt.other)
+			}
+			if did := changes(f.Calls()[calls:]); len(did) != 0 {
+				t.Errorf("a refused Abandon did %q", did)
+			}
+			if exists(f, stateFile(AbandonedName(tt.id))) {
+				t.Error("an abandoned record was written")
+			}
+		})
+	}
+}
+
+// onRename runs hook once, just before the first rename of from, and
+// returns the hook's error instead of renaming when it is not nil: another
+// process acting between Abandon's read and its rename.
+type onRename struct {
+	*hostfake.System
+	from string
+	hook func() error
+}
+
+func (o *onRename) Rename(ctx context.Context, oldname, newname string) error {
+	if h := o.hook; h != nil && oldname == o.from {
+		o.hook = nil
+		if err := h(); err != nil {
+			return err
+		}
+	}
+	return o.System.Rename(ctx, oldname, newname)
+}
+
+// Another hardn acting between Abandon's read and its rename: a `hardn
+// rollback <id>` that takes the rollback up (its record goes back), a
+// second --abandon or a rollback that finished (each wins the rename, and
+// the loser says what the journal holds), another change's journal put in
+// its place (ErrClaim, put back).
+func TestAbandonRaces(t *testing.T) {
+	ctx := context.Background()
+	rb, kept := stateFile(RollbackName), stateFile(AbandonedName(testID))
+	for _, tt := range []struct {
+		name string
+		hook func(t *testing.T, ch *change) error
+		is   error
+		kind NoRollbackKind
+		says string
+		left []string // what the journal directory holds after
+	}{
+		{"a rollback takes it up", func(t *testing.T, ch *change) error {
+			j := readJournalT(t, ch.f, rb)
+			proc(ch.f, 7000, 1, "hardn", ptsTTY)
+			j.Rollback.Runner = ProcStart{PID: 7000, Start: procStart(7000), Boot: testBootID}
+			return write(ctx, ch.f, rb, j)
+		}, ErrRollingBack, "", "process 7000 took it up while it was being given up, and is rolling it back now; its record is put back (started 2026-10-18 12:00:00 UTC); wait for it to end", []string{RollbackName}},
+		{"another --abandon wins", func(t *testing.T, ch *change) error {
+			return ch.f.Rename(ctx, rb, kept)
+		}, ErrNothingPending, NoRollbackGivenUp, "its rollback was abandoned already, and its record is kept in " + kept, []string{AbandonedName(testID)}},
+		{"a rollback finishes first", func(t *testing.T, ch *change) error {
+			return ch.f.Remove(ctx, rb)
+		}, ErrNothingPending, NoRollbackNotJournalled, "it is not journalled", nil},
+		{"another change's journal in its place", func(t *testing.T, ch *change) error {
+			j := readJournalT(t, ch.f, rb)
+			j.ID, j.Timer.Unit = otherID, UnitPrefix+otherID
+			return write(ctx, ch.f, rb, j)
+		}, ErrClaim, "", "claimed change " + otherID + ", not " + testID, []string{RollbackName}},
+		{"the rename fails as if it was gone, and it is not", func(t *testing.T, ch *change) error {
+			return &fs.PathError{Op: "rename", Path: rb, Err: fs.ErrNotExist}
+		}, ErrClaim, "", rb + " changed while it was being given up; run `sudo hardn rollback --abandon " + testID + "` again", []string{RollbackName}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ch := unfinishedRollback(t)
+			f := &onRename{System: ch.f, from: rb, hook: func() error { return tt.hook(t, ch) }}
+			_, err := Abandon(ctx, f, testID, ch.opts)
+			if !errors.Is(err, tt.is) || !strings.Contains(err.Error(), tt.says) {
+				t.Fatalf("Abandon = %v; want %v saying %q", err, tt.is, tt.says)
+			}
+			var nr *NoRollbackError
+			if errors.As(err, &nr) != (tt.kind != "") || nr != nil && nr.Kind != tt.kind {
+				t.Errorf("refusal %+v; want kind %q", nr, tt.kind)
+			}
+			var left []string
+			for _, name := range []string{PendingName, RollbackName, AbandonedName(testID), AbandonedName(otherID)} {
+				if exists(ch.f, stateFile(name)) {
+					left = append(left, name)
+				}
+			}
+			if !reflect.DeepEqual(left, tt.left) {
+				t.Errorf("the journal holds %q; want %q", left, tt.left)
+			}
+		})
+	}
+}
+
+// What Abandon says it could not check: a process it cannot name, and
+// sshd's files after a restore that did not finish.
+func TestAbandonResult(t *testing.T) {
+	ctx := context.Background()
+	gone := ProcStart{PID: 6000, Start: procStart(6000), Boot: testBootID}
+	noBackup := func(j Journal) Journal { j.Backup = nil; return j }
+	noReload := func(j Journal) Journal { j.Reload = nil; return j }
+	for _, tt := range []struct {
+		name                     string
+		edit                     func(Journal) Journal
+		progress                 *Progress
+		runnerUnknown, unchecked bool
+	}{
+		{"no progress recorded", nil, nil, true, false},
+		{"a process it could not name", nil, &Progress{Started: testNow, Reason: ReasonRequested}, true, true},
+		{"the restore left, the ssh reload with it", nil, &Progress{Started: testNow, Reason: ReasonRequested, Runner: gone, UndoDone: 1}, false, true},
+		{"restored, the reload left", nil, &Progress{Started: testNow, Reason: ReasonRequested, Runner: gone, Restored: true, UndoDone: 1}, false, false},
+		{"no backups", noBackup, &Progress{Started: testNow, Reason: ReasonRequested, Runner: gone}, false, false},
+		{"no reload", noReload, &Progress{Started: testNow, Reason: ReasonRequested, Runner: gone}, false, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ch := newChange(t)
+			j := readJournalT(t, ch.f, stateFile(PendingName))
+			if tt.edit != nil {
+				j = tt.edit(j)
+			}
+			j.Rollback = tt.progress
+			if err := write(ctx, ch.f, stateFile(RollbackName), j); err != nil {
+				t.Fatal(err)
+			}
+			if err := ch.f.Remove(ctx, stateFile(PendingName)); err != nil {
+				t.Fatal(err)
+			}
+			res, err := Abandon(ctx, ch.f, testID, ch.opts)
+			if err != nil || res.RunnerUnknown != tt.runnerUnknown || res.SSHUnchecked != tt.unchecked || !reflect.DeepEqual(res.Journal, j) {
+				t.Errorf("Abandon = %+v, %v; want RunnerUnknown %v, SSHUnchecked %v", res, err, tt.runnerUnknown, tt.unchecked)
+			}
+		})
+	}
+}
+
+// Once the timer's unfinished rollback is given up, `hardn rollback <id>`
+// and `hardn confirm` say so, not that it was rolled back, and leave
+// reverted.json for the next run's notice, which says that the rollback
+// did not finish; the same when it was given up by hand.
+func TestAbandonTimersRollback(t *testing.T) {
+	ctx := context.Background()
+	timerErr := "backup: lstat /var/backups/hardn/" + testID + ": no such file or directory"
+	kept := stateFile(AbandonedName(testID))
+	for _, tt := range []struct {
+		name               string
+		giveUp             func(t *testing.T, ch *change)
+		abandoned, why, np string
+	}{
+		{"with --abandon", func(t *testing.T, ch *change) {
+			if _, err := Abandon(ctx, ch.f, testID, ch.opts); err != nil {
+				t.Fatal(err)
+			}
+		}, kept, "its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in " + kept,
+			"change " + testID + " (SSH port 22 to 2230 on web-01.example.net) was not confirmed within 180s, and its rollback did not finish and was given up"},
+		{"by hand", func(t *testing.T, ch *change) {
+			if err := ch.f.Rename(ctx, stateFile(RollbackName), stateFile("rollback.json.aside")); err != nil {
+				t.Fatal(err)
+			}
+		}, "", "the timer's rollback of it did not finish (" + timerErr + ") and was given up, leaving the host as that rollback left it",
+			"change " + testID + " (SSH port 22 to 2230 on web-01.example.net) was not confirmed within 180s, and the timer's rollback of it did not finish (" + timerErr + ")"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ch := timerUnfinished(t)
+			tt.giveUp(t, ch)
+			res, err := Rollback(ctx, ch.f, testID, ch.opts)
+			if err != nil || !res.Nothing || res.Why != tt.why || res.Reverted != nil {
+				t.Errorf("Rollback = %+v, %v; want Nothing, %q, and no outcome to acknowledge", res, err, tt.why)
+			}
+			_, err = Confirm(ctx, ch.f, newSession, ch.opts)
+			var np *NotPendingError
+			if !errors.As(err, &np) || np.Abandoned != tt.abandoned || np.RolledBack() || !strings.Contains(err.Error(), tt.np) || strings.Contains(err.Error(), "was rolled back at") {
+				t.Errorf("Confirm = %v; want a NotPendingError saying %q", err, tt.np)
+			}
+			st, err := ReadState(ctx, ch.f, ch.opts)
+			if err != nil || st.Busy() || st.Reverted == nil {
+				t.Fatalf("state %+v, %v; want reverted.json alone", st, err)
+			}
+			if ns := Notices(st, ch.c.t); len(ns) != 1 || ns[0].Kind != NoticeReverted || !strings.Contains(ns[0].Text, "The rollback did not finish: "+timerErr) {
+				t.Errorf("notices %+v", ns)
+			}
+		})
+	}
+}
+
+// Unfinished splits the rollback's parts, in its order, by its record.
+func TestUnfinished(t *testing.T) {
+	j := Journal{ID: testID, Summary: "SSH port 22 to 2230 on web-01.example.net",
+		Backup: &Backups{Dir: "/var/backups/hardn/" + testID, Seqs: []int{1, 2}},
+		Undo: []Step{{Op: OpRun, Argv: strings.Fields(ufwUndo)}, {Op: OpPlan, Unit: "sudoers", Plan: json.RawMessage(`{}`)},
+			{Op: OpRemoveDir, Path: "/home/alice/.ssh"}},
+		Reload: []Reload{{Service: ReloadSSH, Keywords: []string{"Port", "PasswordAuthentication"}}, {Service: ReloadSSH}}}
+	var (
+		restore = "restore the backups in /var/backups/hardn/" + testID + " (entries 1, 2)"
+		undo1   = "undo 1 of 3: " + ufwUndo
+		undo2   = "undo 2 of 3: roll back the sudoers plan"
+		undo3   = "undo 3 of 3: rmdir /home/alice/.ssh"
+		reload1 = "reload ssh (Port, PasswordAuthentication)"
+		reload2 = "reload ssh"
+	)
+	for _, tt := range []struct {
+		name       string
+		progress   *Progress
+		done, left []string
+	}{
+		{"no progress recorded", nil, nil, []string{restore, undo1, undo2, undo3, reload1, reload2}},
+		{"nothing done", &Progress{}, nil, []string{restore, undo1, undo2, undo3, reload1, reload2}},
+		{"the backups not restored, one undo done", &Progress{UndoDone: 1}, []string{undo1}, []string{restore, undo2, undo3, reload1, reload2}},
+		{"stopped at the second undo", &Progress{Restored: true, UndoDone: 1}, []string{restore, undo1}, []string{undo2, undo3, reload1, reload2}},
+		{"stopped at the second reload", &Progress{Restored: true, UndoDone: 3, ReloadDone: 1}, []string{restore, undo1, undo2, undo3, reload1}, []string{reload2}},
+		{"every part done", &Progress{Restored: true, UndoDone: 3, ReloadDone: 2}, []string{restore, undo1, undo2, undo3, reload1, reload2}, nil},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			j := j
+			j.Rollback = tt.progress
+			done, left := Unfinished(j)
+			if !reflect.DeepEqual(done, tt.done) || !reflect.DeepEqual(left, tt.left) {
+				t.Errorf("Unfinished = %q, %q; want %q, %q", done, left, tt.done, tt.left)
+			}
+		})
+	}
+	// A change with no backups has no restore to list.
+	if done, left := Unfinished(Journal{ID: testID, Undo: j.Undo[:1], Rollback: &Progress{UndoDone: 1}}); !reflect.DeepEqual(done, []string{"undo 1 of 1: " + ufwUndo}) || left != nil {
+		t.Errorf("Unfinished with no backups = %q, %q", done, left)
 	}
 }

@@ -33,6 +33,9 @@
       "rollback",
       "20261018T120000Z-1a2b3c4d"
     ],
-    "deadline": "2026-10-18T12:03:00Z"
+    "deadline": "2026-10-18T12:03:00Z",
+    "hardn": "/usr/local/bin/hardn",
+    "hardnSHA256": "706abe3c90152075e656b661079730facf323f3ebccda7547ee1935c90845a09",
+    "boot": "8e2a3c4d-1b2c-4d3e-8f40-0123456789ab"
   }
 }

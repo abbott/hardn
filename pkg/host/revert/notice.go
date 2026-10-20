@@ -46,8 +46,8 @@ func Notices(st State, now time.Time) []Notice {
 			why = "started " + stamp(j.Rollback.Started) + ", " + string(j.Rollback.Reason)
 		}
 		ns = append(ns, Notice{NoticeUnfinished, j.ID, fmt.Sprintf(
-			"The rollback of change %s (%s) did not finish (%s). Run `sudo hardn rollback %s` to finish it; no other change can be applied until then. If it cannot finish, fix what it names in /var/log/hardn.log; to give it up, leaving the host as it is, move %s/%s aside.",
-			j.ID, j.Summary, why, j.ID, DefaultDir, RollbackName)})
+			"The rollback of change %s (%s) did not finish (%s). Run `sudo hardn rollback %s` to finish it; no other change can be applied until then. If it cannot finish, fix what it names in /var/log/hardn.log; to give it up, leaving the host as it is, run `sudo hardn rollback --abandon %s`.",
+			j.ID, j.Summary, why, j.ID, j.ID)})
 	}
 	if j := st.Pending; j != nil {
 		switch {

@@ -112,6 +112,8 @@ type vm struct {
 	// held and released are the fake's call counts when the rollback's
 	// signal hold began and ended; -1 when it did not.
 	held, released int
+	// checked are the boot unit copies systemd-analyze verify read.
+	checked []string
 }
 
 func newVM(t *testing.T) *vm {
@@ -130,6 +132,10 @@ func newVM(t *testing.T) *vm {
 	f.AddFile(ufw.DefaultsFile, []byte("IPV6=yes\nDEFAULT_INPUT_POLICY=\"DROP\"\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n"), 0o644, 0, 0)
 	f.AddFile("/etc/sudoers", []byte("Defaults env_reset\nroot ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"), 0o440, 0, 0)
 	f.AddDir("/etc/sudoers.d", 0o755, 0, 0)
+	// Where the boot unit goes: systemd's and OpenRC's (revert-boot.md).
+	f.AddDir(revert.SystemdUnitDir, 0o755, 0, 0)
+	f.AddDir(revert.OpenRCInitDir, 0o755, 0, 0)
+	f.AddDir(revert.OpenRCDefault, 0o755, 0, 0)
 	f.AddUser(host.User{Name: "root", UID: 0, GID: 0, HomeDir: "/root"})
 	f.AddGroup(host.Group{Name: "root", GID: 0})
 	f.AddFile("/etc/group", []byte("root:x:0:\n"), 0o644, 0, 0)
@@ -378,8 +384,16 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 			v.bound = slices.Clone(v.listening())
 			return hostfake.Response{}
 		}
-	case "sh": // OpenRC's timer, the sleeper revert starts detached
+	case "sh": // OpenRC's timer, the sleeper revert starts detached; sh -n, the boot script's check
 		return hostfake.Response{}
+	case "systemd-analyze": // the boot unit's check, verify on its copy
+		v.checked = append(v.checked, argv[len(argv)-1])
+		return hostfake.Response{}
+	case "rc-update":
+		if cmd == "rc-update add "+revert.BootUnitName+" default" {
+			v.f.AddSymlink(revert.OpenRCDefault+"/"+revert.BootUnitName, revert.OpenRCInitDir+"/"+revert.BootUnitName)
+			return hostfake.Response{}
+		}
 	case "ss":
 		return hostfake.Response{Stdout: ss(append(slices.Clone(v.bound), v.other...))}
 	case "systemd-run":
@@ -468,6 +482,9 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{}, true
 	case len(argv) == 3 && argv[1] == "stop" && strings.HasPrefix(argv[2], revert.UnitPrefix):
 		return hostfake.Response{}, true
+	case cmd == "systemctl --no-reload enable "+revert.BootUnitName+".service":
+		v.f.AddSymlink(revert.SystemdWants+"/"+revert.BootUnitName+".service", revert.SystemdUnitDir+"/"+revert.BootUnitName+".service")
+		return hostfake.Response{}, true
 	}
 	return hostfake.Response{}, false
 }
@@ -533,7 +550,7 @@ func (v *vm) changes() []string {
 			}
 		case "run":
 			cmd := strings.Join(c.Argv, " ")
-			if c.Argv[0] == "sshd" || c.Argv[0] == "ss" || cmd == "ufw status verbose" ||
+			if c.Argv[0] == "sshd" || c.Argv[0] == "ss" || cmd == "ufw status verbose" || c.Argv[0] == "systemd-analyze" ||
 				c.Argv[0] == "systemctl" && (c.Argv[1] == "is-active" || c.Argv[1] == "is-enabled" || c.Argv[1] == "show") {
 				continue
 			}

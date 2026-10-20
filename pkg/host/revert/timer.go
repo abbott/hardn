@@ -3,10 +3,13 @@ package revert
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +48,16 @@ type Timer struct {
 	PIDFile  string    `json:"pidFile,omitempty"` // setsid: <RunDir>/revert-<id>.pid
 	Argv     []string  `json:"argv"`              // what Arm started
 	Deadline time.Time `json:"deadline"`
+	// Hardn is the hardn binary the timer runs, HardnSHA256 the SHA-256 of
+	// its content when the timer was started, and Boot the boot's id then
+	// (/proc/sys/kernel/random/boot_id). Since next/p3-revert-boot (P-34
+	// (c)): `hardn rollback --boot` acts only on a journal whose timer runs
+	// the hardn it is, by path and content, and was started in an earlier
+	// boot (Boot). A journal written before has none of them, and the boot
+	// command leaves it to the next run's notice (Boot).
+	Hardn       string `json:"hardn,omitempty"`
+	HardnSHA256 string `json:"hardnSHA256,omitempty"`
+	Boot        string `json:"boot,omitempty"`
 }
 
 // TimerFor returns, with no I/O, the timer that runs `<hardn> rollback <id>`
@@ -67,23 +80,38 @@ func TimerFor(in detect.Init, id, hardn string, timeout time.Duration, runDir st
 		return Timer{}, fmt.Errorf("revert: timer: hardn's path %q: %w", hardn, ErrExecutable)
 	case timeout < MinTimeout || timeout%time.Second != 0:
 		return Timer{}, fmt.Errorf("revert: timer: %s: %w", timeout, ErrTimeout)
+	}
+	return timerFor(in, id, hardn, int(timeout/time.Second), runDir)
+}
+
+// timerFor is TimerFor for a timer of secs seconds, which may be under
+// MinTimeout: the re-armed timer of a change, at boot (Boot), runs for
+// what remains of its window.
+func timerFor(in detect.Init, id, hardn string, secs int, runDir string) (Timer, error) {
+	switch {
+	case !ValidID(id):
+		return Timer{}, fmt.Errorf("revert: timer: %q: %w", id, ErrID)
+	case !clean(hardn):
+		return Timer{}, fmt.Errorf("revert: timer: hardn's path %q: %w", hardn, ErrExecutable)
+	case secs < 1:
+		return Timer{}, fmt.Errorf("revert: timer: %ds: %w", secs, ErrTimeout)
 	case in.Running != detect.Yes:
 		return Timer{}, fmt.Errorf("revert: timer: init %s, running %s: %w", in.Kind, in.Running, ErrNoTimer)
 	}
-	secs := strconv.Itoa(int(timeout / time.Second))
+	n := strconv.Itoa(secs)
 	switch in.Kind {
 	case detect.Systemd:
 		unit := UnitPrefix + id
 		return Timer{Kind: TimerSystemd, Unit: unit, Argv: []string{
 			"systemd-run", "--unit=" + unit, "--description=hardn: roll back change " + id + " unless confirmed",
-			"--on-active=" + secs + "s", "--timer-property=AccuracySec=1s", hardn, "rollback", id,
+			"--on-active=" + n + "s", "--timer-property=AccuracySec=1s", hardn, "rollback", id,
 		}}, nil
 	case detect.OpenRC:
 		if !clean(runDir) {
 			return Timer{}, fmt.Errorf("revert: timer: run directory %q: %w", runDir, fs.ErrInvalid)
 		}
 		return Timer{Kind: TimerSetsid, PIDFile: runDir + "/revert-" + id + ".pid",
-			Argv: []string{"/bin/sh", "-c", SleeperScript, hardn, secs, id}}, nil
+			Argv: []string{"/bin/sh", "-c", SleeperScript, hardn, n, id}}, nil
 	}
 	return Timer{}, fmt.Errorf("revert: timer: init %s: %w", in.Kind, ErrNoTimer)
 }
@@ -98,8 +126,54 @@ func (t Timer) check(j Journal) error {
 		return fmt.Errorf("pidfile %q", t.PIDFile)
 	case t.Kind != TimerSystemd && t.Kind != TimerSetsid:
 		return fmt.Errorf("kind %q", t.Kind)
+	case (t.Hardn == "") != (t.HardnSHA256 == ""):
+		return errors.New("hardn and hardnSHA256 go together")
+	case t.Hardn != "" && (!clean(t.Hardn) || !slices.Contains(t.Argv, t.Hardn)):
+		return fmt.Errorf("hardn %q is not the binary of argv %q", t.Hardn, t.Argv)
+	case t.HardnSHA256 != "" && !isSHA256(t.HardnSHA256):
+		return fmt.Errorf("hardnSHA256 %q", t.HardnSHA256)
+	case len(t.Boot) > 64 || strings.ContainsAny(t.Boot, " \t\r\n"):
+		return fmt.Errorf("boot %q", t.Boot)
 	}
 	return nil
+}
+
+// isSHA256 reports whether s is a SHA-256 in lower-case hex.
+func isSHA256(s string) bool {
+	if len(s) != 2*sha256.Size {
+		return false
+	}
+	for _, c := range s {
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+// hashFile is the SHA-256, in hex, of the regular file name, read without
+// following a symlink at name: what Timer.HardnSHA256 records of the hardn
+// binary the timer runs.
+func hashFile(ctx context.Context, sys host.System, name string) (string, error) {
+	data, _, err := sys.ReadFileNoFollow(ctx, name)
+	if err != nil {
+		return "", fmt.Errorf("revert: %w", err)
+	}
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+// bootID is this boot's id (random(4): generated once per boot).
+func bootID(ctx context.Context, sys host.System) (string, error) {
+	data, err := sys.ReadFile(ctx, bootIDFile)
+	if err != nil {
+		return "", fmt.Errorf("revert: %w", err)
+	}
+	id := strings.TrimSpace(string(data))
+	if id == "" || len(id) > 64 || strings.ContainsAny(id, " \t\r\n") {
+		return "", fmt.Errorf("revert: %s: %q is not a boot id: %w", bootIDFile, data, fs.ErrInvalid)
+	}
+	return id, nil
 }
 
 // CheckExecutable refuses, with ErrExecutable, a hardn binary the timer
@@ -167,29 +241,69 @@ func cancelTimer(ctx context.Context, sys host.System, t Timer) error {
 		_, err := sys.Run(ctx, "systemctl", "stop", t.Unit+".timer")
 		return err
 	}
-	data, _, err := sys.ReadFileNoFollow(ctx, t.PIDFile)
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-	pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
-	if err != nil || pid <= 1 {
-		return fmt.Errorf("revert: %s: pid %q", t.PIDFile, data)
-	}
-	// Signal it only if that pid is still the sleeper: its command line is
-	// exactly the timer's argv, so a pid reused since, and a shell that has
-	// exec'd the rollback (SleeperScript), are left alone.
-	cmdline, err := sys.ReadFile(ctx, ProcDir+"/"+strconv.Itoa(pid)+"/cmdline")
+	pid, running, err := sleeper(ctx, sys, t)
 	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		// It has ended.
 	case err != nil:
 		return err
-	case bytes.Equal(cmdline, []byte(strings.Join(t.Argv, "\x00")+"\x00")):
+	case pid == 0:
+		return nil
+	case running:
 		if _, err := sys.Run(ctx, "kill", "-s", "TERM", strconv.Itoa(pid)); err != nil {
 			return err
 		}
 	}
 	return sys.Remove(ctx, t.PIDFile)
+}
+
+// sleeper reads the pid in setsid timer t's pidfile (0 when there is no
+// pidfile) and reports whether that pid is still the sleeper: its command
+// line is exactly the timer's argv, so a pid reused since, and a shell that
+// has exec'd the rollback (SleeperScript), are not.
+func sleeper(ctx context.Context, sys host.System, t Timer) (pid int, running bool, err error) {
+	data, _, err := sys.ReadFileNoFollow(ctx, t.PIDFile)
+	if errors.Is(err, fs.ErrNotExist) {
+		return 0, false, nil
+	} else if err != nil {
+		return 0, false, err
+	}
+	pid, err = strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || pid <= 1 {
+		return 0, false, fmt.Errorf("revert: %s: pid %q", t.PIDFile, data)
+	}
+	cmdline, err := sys.ReadFile(ctx, ProcDir+"/"+strconv.Itoa(pid)+"/cmdline")
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return pid, false, nil // it has ended
+	case err != nil:
+		return pid, false, err
+	}
+	return pid, bytes.Equal(cmdline, []byte(strings.Join(t.Argv, "\x00")+"\x00")), nil
+}
+
+// timerRuns reports whether timer t is there to fire. systemd: `systemctl
+// is-active <unit>.timer` prints active (a timer waiting, or elapsed and
+// kept: RemainAfterElapse= defaults to true, systemd.timer(5)), and
+// inactive for one that is not loaded. OpenRC: the pidfile names the
+// sleeper (sleeper). An answer it cannot read is an error: whether the
+// timer runs cannot be told.
+func timerRuns(ctx context.Context, sys host.System, t Timer) (bool, error) {
+	if t.Kind != TimerSystemd {
+		_, running, err := sleeper(ctx, sys, t)
+		return running, err
+	}
+	unit := t.Unit + ".timer"
+	res, err := sys.Run(ctx, "systemctl", "is-active", unit)
+	var xe *host.ExitError
+	if err != nil && !errors.As(err, &xe) {
+		return false, fmt.Errorf("revert: systemctl is-active %s: %w", unit, err)
+	}
+	state, _, _ := strings.Cut(string(res.Stdout), "\n")
+	state = strings.TrimSpace(state)
+	switch (detect.UnitState{Active: state}).IsActive() {
+	case detect.Yes:
+		return true, nil
+	case detect.No:
+		return false, nil
+	}
+	return false, fmt.Errorf("revert: systemctl is-active %s printed %q (exit %d)", unit, state, res.ExitCode)
 }
