@@ -165,6 +165,7 @@ var sentinels = map[string]error{
 	"steps.ErrNoWriteStrategy":       steps.ErrNoWriteStrategy,
 	"steps.ErrNotInEffect":           steps.ErrNotInEffect,
 	"steps.ErrProxmoxRoot":           steps.ErrProxmoxRoot,
+	"steps.ErrSessionNotKept":        steps.ErrSessionNotKept,
 	"sudoers.ErrAmbiguous":           sudoers.ErrAmbiguous,
 	"sudoers.ErrChanged":             sudoers.ErrChanged,
 	"sudoers.ErrEnvNeedsGrant":       sudoers.ErrEnvNeedsGrant,

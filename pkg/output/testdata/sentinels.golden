@@ -132,6 +132,7 @@ steps.ErrNoRunDir SSHD_ENV_NO_RUNDIR
 steps.ErrNoWriteStrategy SSHD_NO_WRITE_STRATEGY
 steps.ErrNotInEffect SSHD_CHANGE_NOT_IN_EFFECT
 steps.ErrProxmoxRoot PVE_ROOT_LOGIN_NOT_KEPT
+steps.ErrSessionNotKept SSH_CLEANUP_SESSION_NOT_KEPT
 sudoers.ErrAmbiguous SUDOERS_TOOL_AMBIGUOUS
 sudoers.ErrChanged SUDOERS_CHANGED
 sudoers.ErrEnvNeedsGrant SUDOERS_ENV_NEEDS_GRANT

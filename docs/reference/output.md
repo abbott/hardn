@@ -134,6 +134,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSHD_CHANGE_NOT_IN_EFFECT` | 1 | sshd does not show the change |
 | `SSHD_FILE_CHANGED` | 1 | a file the SSH change writes is not as the plan read it |
 | `PVE_ROOT_LOGIN_NOT_KEPT` | 1 | the cluster's root SSH login by key would not be kept |
+| `SSH_CLEANUP_SESSION_NOT_KEPT` | 1 | the clean-up's session is not connected to a port it keeps (`hardn confirm`'s clean-up, P-40) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |
 | `PLATFORM_UNSUPPORTED` | 1 | no changes on a platform outside the support matrix |

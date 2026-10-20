@@ -140,6 +140,7 @@ var errorCodes = []Entry{
 	is("SSHD_CHANGE_NOT_IN_EFFECT", steps.ErrNotInEffect),
 	is("SSHD_FILE_CHANGED", steps.ErrChanged).what("a file the SSH change writes is not as the plan read it"),
 	is("PVE_ROOT_LOGIN_NOT_KEPT", steps.ErrProxmoxRoot),
+	is("SSH_CLEANUP_SESSION_NOT_KEPT", steps.ErrSessionNotKept),
 
 	// The engine's own, before the primitives' errors they wrap.
 	is("CONFIRM_WINDOW_CLOSING", engine.ErrWindow),

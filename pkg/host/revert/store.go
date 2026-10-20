@@ -166,6 +166,23 @@ func ReadState(ctx context.Context, sys host.System, opts Options) (State, error
 	return st, nil
 }
 
+// ReadConfirmed reads confirmed.json, the last change confirmed (§2.5 of
+// revert.md): nil when there is none. It is checked as ReadState checks
+// the journal (the directory and the file root's alone, ErrUnsafe; the
+// file read without following a link and decoded strictly, ErrJournal).
+// `hardn confirm` reads it to finish the clean-up of a change whose
+// confirmation was claimed and whose clean-up did not run (a crash between
+// the two; P-40, next/p3-confirm-cleanup).
+func ReadConfirmed(ctx context.Context, sys host.System, opts Options) (*Journal, error) {
+	dir := opts.dir()
+	if err := stateDir(ctx, sys, dir, false); errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return readJournal(ctx, sys, filepath.Join(dir, ConfirmedName))
+}
+
 // write writes v to name in the state directory: atomically, 0600, owned by
 // hardn's user (root).
 func write(ctx context.Context, sys host.System, name string, v any) error {
