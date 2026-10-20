@@ -64,7 +64,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+      ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -80,7 +80,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+      ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
@@ -91,9 +91,9 @@ $
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -127,7 +127,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: ufw: allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Add SSH port 2230␛[m$
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (ssh.service)␛[m$
@@ -196,7 +196,7 @@ $
       $ ufw allow 2230/tcp$
 $
   [*] Lockout risk$
-      Set Port 22, Port 2230$
+      Add SSH port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -0,0 +1,4 @@$
@@ -212,7 +212,7 @@ $
       $ systemctl reload ssh.service$
 $
   [*] Lockout risk$
-      sshd -T shows Port 22, Port 2230$
+      sshd -T shows ports 22, 2230$
 $
       sshd -T$
       $ sshd -T$
@@ -223,9 +223,9 @@ $
 $
   [+] Done: Install hardn's boot unit$
   [+] Done: ufw: allow 2230/tcp$
-  [+] Done: Set Port 22, Port 2230$
+  [+] Done: Add SSH port 2230$
   [+] Done: Reload sshd (ssh.service)$
-  [+] Done: sshd -T shows Port 22, Port 2230$
+  [+] Done: sshd -T shows ports 22, 2230$
 $
 # Operation Successful$
 $
@@ -259,7 +259,7 @@ $
    -  Applied: ufw: allow 2230/tcp$
       $ ufw allow 2230/tcp$
 $
-   -  Applied: Set Port 22, Port 2230$
+   -  Applied: Add SSH port 2230$
       /etc/ssh/sshd_config.d/00-hardn.conf$
 $
    -  Applied: Reload sshd (ssh.service)$
@@ -331,7 +331,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+      ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -347,7 +347,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+      ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
@@ -358,9 +358,9 @@ $
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -397,7 +397,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: ufw: allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Add SSH port 2230␛[m$
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (ssh.service)␛[m$

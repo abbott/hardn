@@ -130,6 +130,9 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 	var out []engine.Change
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
 	files := e.change(r)
+	if port != 0 {
+		files.Title = addPortTitle(port, len(e.keywords)-1)
+	}
 	switch {
 	case fw != nil && !fw.Empty():
 		out = append(out, firewallChange(s.Prefix+"/firewall", *fw))
@@ -483,10 +486,9 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 	return bad
 }
 
-// directiveWords is set as one line.
-// setTitle is a set change's Title: its directives ("Set Port 22, Port
-// 2230"), else its keywords, else the first keyword and how many more
-// (engine.TitleMax); the plan's diff shows every line.
+// setTitle is a set change's Title: its directives ("Set
+// PasswordAuthentication no"), else its keywords, else the first keyword
+// and how many more (engine.TitleMax); the plan's diff shows every line.
 func setTitle(set []migrate.Directive, keywords []string) string {
 	if t := engine.FitTitle("Set "+directiveWords(set), "Set "+strings.Join(keywords, ", ")); t != "" || len(keywords) == 0 {
 		return t
@@ -494,12 +496,46 @@ func setTitle(set []migrate.Directive, keywords []string) string {
 	return engine.FitTitle(fmt.Sprintf("Set %s and %d more", keywords[0], len(keywords)-1), "Set "+strconv.Itoa(len(keywords))+" SSH settings")
 }
 
+// addPortTitle is a port change's Title: the port it adds, as "Add SSH
+// port 2230", and how many other settings it sets. The port it holds until
+// the confirmation is not named: nothing happens to it until the clean-up
+// drops it (P-40). The plan's diff shows both Port lines.
+func addPortTitle(port uint16, more int) string {
+	if more <= 0 {
+		return fmt.Sprintf("Add SSH port %d", port)
+	}
+	return fmt.Sprintf("Add SSH port %d and %d more", port, more)
+}
+
+// directiveWords is set as one line, short: its Port lines as one group,
+// "ports 22, 2230" where the first stands, the other directives as
+// written, "PasswordAuthentication no".
 func directiveWords(set []migrate.Directive) string {
-	var out []string
+	var out, ports []string
+	at := -1
 	for _, d := range set {
+		if strings.EqualFold(d.Keyword, "Port") {
+			if at < 0 {
+				at = len(out)
+				out = append(out, "")
+			}
+			ports = append(ports, strings.Join(d.Args, " "))
+			continue
+		}
 		out = append(out, d.Keyword+" "+strings.Join(d.Args, " "))
 	}
+	if at >= 0 {
+		out[at] = portWords(ports)
+	}
 	return strings.Join(out, ", ")
+}
+
+// portWords is ports as a title says them: "port 22", "ports 22, 2230".
+func portWords(ports []string) string {
+	if len(ports) == 1 {
+		return "port " + ports[0]
+	}
+	return "ports " + strings.Join(ports, ", ")
 }
 
 // checkPVE reads, after the reload, what Proxmox VE needs of sshd

@@ -184,7 +184,7 @@ func TestCompareFigmaColumn(t *testing.T) {
 			}
 		}
 	}
-	short := []component.Step{{Title: "ufw: allow 2230/tcp", State: component.StepDone}, {Title: "Drop Port 22", State: component.StepRolledBack}}
+	short := []component.Step{{Title: "ufw: allow 2230/tcp", State: component.StepDone}, {Title: "Drop SSH port 22", State: component.StepRolledBack}}
 	for _, w := range []int{64, 80} {
 		lines := strings.Split(ansi.Strip(newStatusRows(plainCtx(w), mock{marker: markerBullet, column: columnFigma}, short).render(short)), "\n")
 		if len(lines) != len(short) {

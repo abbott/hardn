@@ -95,9 +95,9 @@ func compareSections() []compareSection {
 var cmpTitles = []string{
 	"Install hardn's boot unit",
 	"ufw: allow 2230/tcp",
-	"Set Port 22, Port 2230",
+	"Add SSH port 2230",
 	"Reload sshd (ssh.service)",
-	"sshd -T shows Port 22, Port 2230",
+	"sshd -T shows ports 22, 2230",
 }
 
 const (
@@ -123,7 +123,7 @@ const (
 
 // cmpRolledBack are the failed apply's changes undone, in the order they
 // were undone.
-var cmpRolledBack = []string{"Set Port 22, Port 2230", "ufw: allow 2230/tcp"}
+var cmpRolledBack = []string{"Add SSH port 2230", "ufw: allow 2230/tcp"}
 
 // cmpMessages are the one-line messages compared: the five kinds, in the
 // texts of their component states (fixture.States's message/*), but for

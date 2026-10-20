@@ -16,7 +16,13 @@ func TestTitles(t *testing.T) {
 	d := func(k string, args ...string) migrate.Directive { return migrate.Directive{Keyword: k, Args: args} }
 	allow := func(p uint16) ufw.Step { return ufw.Step{Kind: ufw.StepAllow, Port: p} }
 	for _, tt := range []struct{ name, got, want string }{
-		{"a port change", setTitle([]migrate.Directive{d("Port", "22"), d("Port", "2230")}, []string{"Port"}), "Set Port 22, Port 2230"},
+		{"a port change adds its port; the held one is the clean-up's", addPortTitle(2230, 0), "Add SSH port 2230"},
+		{"a port change with other settings", addPortTitle(2230, 2), "Add SSH port 2230 and 2 more"},
+		{"Port lines as one group", setTitle([]migrate.Directive{d("Port", "22"), d("Port", "2230")}, []string{"Port"}), "Set ports 22, 2230"},
+		{"one Port line", setTitle([]migrate.Directive{d("Port", "2230")}, []string{"Port"}), "Set port 2230"},
+		{"the check names both ports", "sshd -T shows " + directiveWords([]migrate.Directive{d("Port", "22"), d("Port", "2230")}), "sshd -T shows ports 22, 2230"},
+		{"Port lines grouped where the first stands", setTitle([]migrate.Directive{d("Port", "22"), d("Port", "2230"), d("PermitRootLogin", "no")},
+			[]string{"Port", "PermitRootLogin"}), "Set ports 22, 2230, PermitRootLogin no"},
 		{"keyonly: the directives do not fit, nor the keywords",
 			setTitle([]migrate.Directive{d("PasswordAuthentication", "no"), d("KbdInteractiveAuthentication", "no")},
 				[]string{"PasswordAuthentication", "KbdInteractiveAuthentication"}), "Set PasswordAuthentication and 1 more"},

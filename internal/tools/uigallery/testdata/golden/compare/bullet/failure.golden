@@ -24,16 +24,16 @@ $
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m ␛[38;2;86;91;107m(COMMAND_FAILED)␛[m$
-   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): reload: systemctl reload␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit status 1␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
@@ -44,19 +44,19 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mProposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m         ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m               ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m            ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m         ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mCOMMAND_FAILED␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m  ␛[38;2;86;91;107mSkipped␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m     ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mCOMMAND_FAILED␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m  ␛[38;2;86;91;107mSkipped␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): reload: systemctl reload␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit status 1␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m            ␛[38;2;219;184;83mRolled back␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m               ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
       ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
@@ -88,16 +88,16 @@ $
 $
   [+] Done: Install hardn's boot unit$
   [+] Done: ufw: allow 2230/tcp$
-  [+] Done: Set Port 22, Port 2230$
+  [+] Done: Add SSH port 2230$
   [!] Failed: Reload sshd (ssh.service) (COMMAND_FAILED)$
-  [-] Skipped: sshd -T shows Port 22, Port 2230$
+  [-] Skipped: sshd -T shows ports 22, 2230$
 $
 # Operation Failed$
 # Reload sshd (ssh.service): reload: systemctl reload$
 # ssh.service: host: systemctl reload ssh.service: exit status 1$
 # (COMMAND_FAILED)$
 $
-  [<] Rolled back: Set Port 22, Port 2230$
+  [<] Rolled back: Add SSH port 2230$
   [<] Rolled back: ufw: allow 2230/tcp$
 $
       $ systemctl reload ssh.service$
@@ -108,19 +108,19 @@ $
 $
 # Proposed -----------------------------------------------------$
 $
-   -  Install hardn's boot unit         Done$
-   -  ufw: allow 2230/tcp               Done$
-   -  Set Port 22, Port 2230            Done$
-   -  Reload sshd (ssh.service)         Failed COMMAND_FAILED$
-   -  sshd -T shows Port 22, Port 2230  Skipped$
+   -  Install hardn's boot unit     Done$
+   -  ufw: allow 2230/tcp           Done$
+   -  Add SSH port 2230             Done$
+   -  Reload sshd (ssh.service)     Failed COMMAND_FAILED$
+   -  sshd -T shows ports 22, 2230  Skipped$
 $
 # Operation Failed$
 # Reload sshd (ssh.service): reload: systemctl reload$
 # ssh.service: host: systemctl reload ssh.service: exit status 1$
 # (COMMAND_FAILED)$
 $
-   -  Set Port 22, Port 2230            Rolled back$
-   -  ufw: allow 2230/tcp               Rolled back$
+   -  Add SSH port 2230             Rolled back$
+   -  ufw: allow 2230/tcp           Rolled back$
 $
       $ systemctl reload ssh.service$
       Job for ssh.service failed because the control process$
@@ -153,16 +153,16 @@ $
 $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m ␛[38;2;86;91;107m(COMMAND_FAILED)␛[m$
-   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): reload: systemctl reload␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstatus 1 (COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
    ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
@@ -178,11 +178,11 @@ $
       ␛[38;2;112;212;127mDone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
       ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
       ␛[38;2;112;212;127mDone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
       ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mCOMMAND_FAILED␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
       ␛[38;2;86;91;107mSkipped␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
@@ -190,7 +190,7 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstatus 1 (COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
       ␛[38;2;219;184;83mRolled back␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
       ␛[38;2;219;184;83mRolled back␛[m$

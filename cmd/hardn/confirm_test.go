@@ -51,7 +51,7 @@ func cleanupPlan() *engine.Plan {
 			Target: "/etc/ssh/sshd_config.d/00-hardn.conf", Risk: engine.RiskPlain, Stage: engine.StageFiles},
 		{ID: confirm.ControlID + "/reload", Control: confirm.ControlID, Summary: "Reload sshd (ssh.service)", Target: "ssh.service",
 			Commands: []string{"systemctl reload ssh.service"}, Risk: engine.RiskServiceRestart, Stage: engine.StageReload},
-		{ID: confirm.ControlID + "/verify", Control: confirm.ControlID, Summary: "sshd -T shows ports [2230] alone", Target: "sshd -T",
+		{ID: confirm.ControlID + "/verify", Control: confirm.ControlID, Summary: "sshd -T shows port 2230 alone", Target: "sshd -T",
 			Risk: engine.RiskPlain, Stage: engine.StageVerify},
 	}
 	var ids []string
