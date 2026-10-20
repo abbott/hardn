@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -26,9 +27,16 @@ import (
 )
 
 func init() {
+	rollbackCmd.Flags().BoolVar(&rollbackAbandon, "abandon", false,
+		"give up the unfinished rollback of change <id>, one that cannot finish, leaving the host as the rollback left it")
 	rootCmd.AddCommand(confirmCmd, rollbackCmd)
 	rootCmd.PersistentPreRun = showRevertNotices
 }
+
+// rollbackAbandon is `hardn rollback --abandon <id>` (refactor plan P3,
+// next/p3-rollback-abandon; P-35 (a), decided 2026-10-19): give up the
+// unfinished rollback of change <id> instead of running it.
+var rollbackAbandon bool
 
 // Seams for revert_test.go: the effective uid, the host, the session's
 // environment and process id, the exit, the clock, where notices go and
@@ -87,15 +95,21 @@ Example:
 }
 
 var rollbackCmd = &cobra.Command{
-	Use:   "rollback <id>",
+	Use:   "rollback [--abandon] <id>",
 	Short: "Undo the journalled change",
 	Long: `Undo change <id>: restore the files it backed up, run its inverse steps and
 reload the services it changed. The revert timer runs this when a change is not
 confirmed in time; run it to undo a change before then, or to finish a rollback
 that did not finish. With nothing to undo, it says so and succeeds.
 
-Example:
-  sudo hardn rollback 20261018T120000Z-1a2b3c4d`,
+A rollback that did not finish blocks every new change until it does. With
+--abandon, a rollback that cannot ever finish (its backups are gone, an undo
+command was removed) is given up instead: the host stays as the rollback left
+it, hardn lists what the rollback did and did not undo, and keeps its record.
+
+Examples:
+  sudo hardn rollback 20261018T120000Z-1a2b3c4d
+  sudo hardn rollback --abandon 20261018T120000Z-1a2b3c4d`,
 	Args:             cobra.ExactArgs(1),
 	PersistentPreRun: noRevertNotices,
 	Run:              runRollback,
@@ -132,7 +146,7 @@ func runConfirm(*cobra.Command, []string) {
 	if err != nil {
 		logging.LogError("%v", err)
 		var np *revert.NotPendingError
-		if errors.As(err, &np) && np.Reverted != nil {
+		if errors.As(err, &np) && np.RolledBack() {
 			acknowledge(ctx, sys, opts)
 		}
 		revertExit(1)
@@ -145,6 +159,10 @@ func runConfirm(*cobra.Command, []string) {
 }
 
 func runRollback(_ *cobra.Command, args []string) {
+	if rollbackAbandon {
+		runAbandon(args[0])
+		return
+	}
 	if !revertPreflight("rollback") {
 		return
 	}
@@ -168,6 +186,63 @@ func runRollback(_ *cobra.Command, args []string) {
 	default:
 		logging.LogSuccess("Change %s (%s) rolled back.", res.Journal.ID, res.Journal.Summary)
 	}
+}
+
+// runAbandon is `hardn rollback --abandon <id>` (P-35 (a)): revert.Abandon,
+// then what the rollback did and did not undo, from its record. As `hardn
+// rollback`: root only (exit 1), -n refused (exit 2), an id that is not one
+// exit 2; refused, saying what to do instead, while the rollback runs and
+// for anything but an unfinished rollback of <id> (exit 1). It runs no
+// command and makes one rename, so it holds no signals.
+func runAbandon(id string) {
+	if !revertPreflight("rollback --abandon") {
+		return
+	}
+	res, err := revert.Abandon(context.Background(), revertHost(), id, revert.Options{Log: revertLog{}, Now: revertNow})
+	switch {
+	case errors.Is(err, revert.ErrID):
+		logging.LogError("%v", err)
+		revertExit(2)
+		return
+	case err != nil:
+		logging.LogError("%v", err)
+		if errors.Is(err, revert.ErrJournal) || errors.Is(err, revert.ErrUnsafe) {
+			logging.LogInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
+				filepath.Join(revert.DefaultDir, revert.RollbackName))
+		}
+		revertExit(1)
+		return
+	}
+	j := res.Journal
+	done, left := revert.Unfinished(j)
+	logging.LogSuccess("Gave up the rollback of change %s (%s).", j.ID, j.Summary)
+	logging.LogWarning("The host stays as the rollback left it: hardn will not undo what the rollback did not.")
+	if j.Rollback == nil {
+		logging.LogWarning("The rollback stopped before it recorded its progress, so it may have done more than its record shows.")
+	}
+	if res.RunnerUnknown {
+		logging.LogWarning("Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback %s` is still running it: check with `ps`. One that still runs writes its record again as it goes, and the next run of hardn reports it.", j.ID)
+	}
+	logging.LogInfo("Undone by the rollback, by its record:")
+	for _, line := range orNothing(done) {
+		logging.LogInfo("  - %s", line)
+	}
+	logging.LogWarning("Not undone, or not finished:")
+	for _, line := range orNothing(left) {
+		logging.LogWarning("  - %s", line)
+	}
+	if res.SSHUnchecked {
+		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.")
+	}
+	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
+}
+
+// orNothing is lines, or a line saying there are none.
+func orNothing(lines []string) []string {
+	if len(lines) == 0 {
+		return []string{"nothing"}
+	}
+	return lines
 }
 
 // holdSignals keeps a hangup, Ctrl-C or SIGTERM from stopping `hardn

@@ -196,19 +196,40 @@ type ConfirmResult struct {
 }
 
 // NotPendingError is ErrNothingPending with what happened to the last
-// change, when the timer undid it.
-type NotPendingError struct{ Reverted *Outcome }
+// change, when the timer undid it. Abandoned, since next/p3-rollback-abandon,
+// is where Abandon kept the record when that rollback did not finish and
+// was given up.
+type NotPendingError struct {
+	Reverted  *Outcome
+	Abandoned string
+}
 
 func (e *NotPendingError) Error() string {
-	if o := e.Reverted; o != nil {
-		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was rolled back at %s, because it was not confirmed within %ds",
-			ErrNothingPending, o.ID, o.Summary, stamp(o.Finished), o.TimeoutSeconds)
+	o := e.Reverted
+	switch {
+	case o == nil:
+		return "revert: confirm: " + ErrNothingPending.Error()
+	case e.Abandoned != "":
+		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was not confirmed within %ds, and %s",
+			ErrNothingPending, o.ID, o.Summary, o.TimeoutSeconds, givenUpWords(e.Abandoned))
+	case len(o.Errors) > 0:
+		return fmt.Sprintf("revert: confirm: %s: change %s (%s) was not confirmed within %ds, and %s",
+			ErrNothingPending, o.ID, o.Summary, o.TimeoutSeconds, revertedWords(*o))
 	}
-	return "revert: confirm: " + ErrNothingPending.Error()
+	return fmt.Sprintf("revert: confirm: %s: change %s (%s) was rolled back at %s, because it was not confirmed within %ds",
+		ErrNothingPending, o.ID, o.Summary, stamp(o.Finished), o.TimeoutSeconds)
 }
 
 // Is makes errors.Is(err, ErrNothingPending) true.
 func (e *NotPendingError) Is(target error) bool { return target == ErrNothingPending }
+
+// RolledBack reports whether the error says that the timer rolled the last
+// change back and finished: once it has been shown, the caller may
+// Acknowledge the outcome. A rollback that did not finish and was given up
+// is left for the next run's notice, which says so.
+func (e *NotPendingError) RolledBack() bool {
+	return e.Reverted != nil && e.Abandoned == "" && len(e.Reverted.Errors) == 0
+}
 
 // Confirm keeps the pending lockout-risk change, for `hardn confirm` from
 // session s (ReadSession). CheckConfirm decides whether s may: the apply
@@ -226,7 +247,13 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 	case st.RollingBack != nil:
 		return ConfirmResult{Journal: *st.RollingBack}, fmt.Errorf("revert: confirm %s: %w", st.RollingBack.ID, ErrRollingBack)
 	case st.Pending == nil:
-		return ConfirmResult{}, &NotPendingError{Reverted: st.Reverted}
+		e := &NotPendingError{Reverted: st.Reverted}
+		if o := st.Reverted; o != nil {
+			if kept, ok := abandonedRecord(ctx, sys, opts, o.ID); ok {
+				e.Abandoned = kept
+			}
+		}
+		return ConfirmResult{}, e
 	case st.Pending.Risk != RiskLockout:
 		return ConfirmResult{Journal: *st.Pending}, fmt.Errorf("revert: confirm %s: it did not finish; undo it with `sudo hardn rollback %s`: %w", st.Pending.ID, st.Pending.ID, ErrNotConfirmable)
 	}

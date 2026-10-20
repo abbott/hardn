@@ -532,7 +532,7 @@ func TestConfirm(t *testing.T) {
 		}
 		_, err := Confirm(ctx, f, newSession, testOptions(c, nil))
 		var np *NotPendingError
-		if !errors.As(err, &np) || np.Reverted == nil || !strings.Contains(err.Error(), "was rolled back at 2026-10-18 12:03:00 UTC, because it was not confirmed within 180s") {
+		if !errors.As(err, &np) || np.Reverted == nil || !np.RolledBack() || !strings.Contains(err.Error(), "was rolled back at 2026-10-18 12:03:00 UTC, because it was not confirmed within 180s") {
 			t.Fatalf("Confirm = %v", err)
 		}
 	})
