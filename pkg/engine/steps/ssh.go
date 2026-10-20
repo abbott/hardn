@@ -147,6 +147,7 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 			}
 			return st.checkPVE(ctx, sys, after, e.groups)
 		}))
+	out[len(out)-1].Title = engine.FitTitle(checkTitle(e.set), "Check the values with sshd -T")
 	return claim(out), nil
 }
 
@@ -486,23 +487,52 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 	return bad
 }
 
-// settingTitles are the titles of single settings in the user's words, in
-// place of the directive (design-system README §9.15), keyed by the
-// directive in lower case.
-var settingTitles = map[string]string{
-	"permitrootlogin no":                "Disallow root login",
-	"permitrootlogin prohibit-password": "Disallow root password login",
+// settingWord is a setting in the user's words (design-system README
+// §9.15): the title of the change that sets it, and what its check says
+// sshd -T shows.
+type settingWord struct{ set, shows string }
+
+// settingWords are the settings with words of their own, keyed by the
+// directive in lower case. KbdInteractiveAuthentication asks for the
+// password by another prompt, so it shares PasswordAuthentication's words.
+var settingWords = map[string]settingWord{
+	"permitrootlogin no":                {"Disallow root login", "no root login"},
+	"permitrootlogin prohibit-password": {"Disallow root password login", "no root password login"},
+	"passwordauthentication no":         {"Disallow password login", "no password login"},
+	"kbdinteractiveauthentication no":   {"Disallow password login", "no password login"},
 }
 
-// setTitle is a set change's Title: a single setting's own words
-// (settingTitles), else its directives ("Set PasswordAuthentication no"),
-// else its keywords, else the first keyword and how many more
-// (engine.TitleMax); the plan's diff shows every line.
-func setTitle(set []migrate.Directive, keywords []string) string {
-	if len(set) == 1 {
-		if t, ok := settingTitles[strings.ToLower(set[0].Keyword+" "+strings.Join(set[0].Args, " "))]; ok {
-			return t
+// wordsOf is set's words when every directive has words and they are the
+// same, as PasswordAuthentication no and KbdInteractiveAuthentication no
+// are; ok is false otherwise.
+func wordsOf(set []migrate.Directive) (w settingWord, ok bool) {
+	for i, d := range set {
+		dw, found := settingWords[strings.ToLower(d.Keyword+" "+strings.Join(d.Args, " "))]
+		if !found || (i > 0 && dw != w) {
+			return settingWord{}, false
 		}
+		w = dw
+	}
+	return w, len(set) > 0
+}
+
+// checkTitle is the Title of the check of set after the reload: "sshd -T
+// shows no password login", "sshd -T shows ports 22, 2230"; the Summary
+// keeps the directives.
+func checkTitle(set []migrate.Directive) string {
+	if w, ok := wordsOf(set); ok {
+		return "sshd -T shows " + w.shows
+	}
+	return "sshd -T shows " + directiveWords(set)
+}
+
+// setTitle is a set change's Title: its settings' own words
+// (settingWords), else its directives ("Set AllowUsers alice"), else its
+// keywords, else the first keyword and how many more (engine.TitleMax);
+// the plan's diff shows every line.
+func setTitle(set []migrate.Directive, keywords []string) string {
+	if w, ok := wordsOf(set); ok {
+		return w.set
 	}
 	if t := engine.FitTitle("Set "+directiveWords(set), "Set "+strings.Join(keywords, ", ")); t != "" || len(keywords) == 0 {
 		return t

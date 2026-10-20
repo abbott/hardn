@@ -58,7 +58,7 @@ $
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mSet PasswordAuthentication and 1 more␛[m$
+      ␛[38;2;192;196;216mDisallow password login␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -74,7 +74,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mCheck the values with sshd -T␛[m$
+      ␛[38;2;192;196;216msshd -T shows no password login␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
@@ -147,7 +147,7 @@ $
       $ systemctl --no-reload enable hardn-boot.service$
 $
   [*] Lockout risk$
-      Set PasswordAuthentication and 1 more$
+      Disallow password login$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -0,0 +1,4 @@$
@@ -163,7 +163,7 @@ $
       $ systemctl reload ssh.service$
 $
   [*] Lockout risk$
-      Check the values with sshd -T$
+      sshd -T shows no password login$
 $
       sshd -T$
       $ sshd -T$
@@ -239,7 +239,7 @@ $
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mSet PasswordAuthentication and 1 more␛[m$
+      ␛[38;2;192;196;216mDisallow password login␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -255,7 +255,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mCheck the values with sshd -T␛[m$
+      ␛[38;2;192;196;216msshd -T shows no password login␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$

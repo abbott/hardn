@@ -199,7 +199,7 @@ func TestPlayEngine(t *testing.T) {
 			held(true), []string{"systemd-run", "ufw allow 2230/tcp", sshd.HardnDropIn, "systemctl daemon-reload", "systemctl restart ssh.socket"}},
 		{"ssh-port-alpine324", 0, []string{"Reload sshd (openrc sshd)", "Operation Successful", "doas hardn confirm", "rolled back at about 12:03:00 UTC"},
 			held(false), []string{"/bin/sh -c", sshd.HardnDropIn, "rc-service sshd reload"}},
-		{"keyonly-debian13", 0, []string{"Set PasswordAuthentication and 1 more", "Operation Successful", "open a new SSH session and run"},
+		{"keyonly-debian13", 0, []string{"Disallow password login", "Operation Successful", "open a new SSH session and run"},
 			func(t *testing.T, h *fakeHost) {
 				waiting(t, h)
 				if d := h.dropIn(); !strings.Contains(d, "PasswordAuthentication no\nKbdInteractiveAuthentication no\n") {
