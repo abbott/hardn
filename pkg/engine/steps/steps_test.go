@@ -411,3 +411,198 @@ func TestAlpineRisk(t *testing.T) {
 		})
 	}
 }
+
+// unitHost is a fake host for the unit changes: the backup and run
+// directories, and handle answering its commands.
+func unitHost(t *testing.T, handle func(cmd string) (hostfake.Response, bool)) (*hostfake.System, engine.Run) {
+	t.Helper()
+	h := hostfake.New(host.Options{})
+	h.AddDir("/var/backups", 0o755, 0, 0)
+	run := runOn(t, h)
+	h.AddDir(revert.DefaultRunDir, 0o755, 0, 0)
+	h.AddDir(run.Dir, 0o700, 0, 0)
+	h.Handler = func(argv []string, _ []byte) hostfake.Response {
+		if r, ok := handle(strings.Join(argv, " ")); ok {
+			return r
+		}
+		t.Errorf("unexpected command %q", argv)
+		return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
+	}
+	return h, run
+}
+
+// TestPlanStepKept: an apply that wrote keeps its unit's plan step in the
+// journal (no Ran.Rollback), for sudoers, DNS, Alpine's updates and
+// Proxmox VE's keys; and sudoers drops it when its backup fails before
+// sudoers.Apply wrote anything.
+func TestPlanStepKept(t *testing.T) {
+	ctx := context.Background()
+	const grantFile = sudoers.DropInDir + "/hardn-grant-alice"
+	sudoersChange := func(t *testing.T, h *hostfake.System) engine.Change {
+		h.AddFile(sudoers.MainConfig, []byte("Defaults env_reset\nroot ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"), 0o440, 0, 0)
+		h.AddDir(sudoers.DropInDir, 0o755, 0, 0)
+		st, err := sudoers.Read(ctx, h, sudoers.Choice{Tool: sudoers.ToolSudo, Flavor: detect.SudoOriginal}, []string{"alice"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, err := sudoers.PlanFor(st, []sudoers.Policy{{User: "alice", Grant: sudoers.GrantNoPassword}})
+		if err != nil || len(p.Changes) != 1 {
+			t.Fatalf("PlanFor = %+v, %v", p, err)
+		}
+		c, err := Sudoers("sudoers/alice", p, "alice's grant")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	visudo := func(cmd string) (hostfake.Response, bool) {
+		return hostfake.Response{Stdout: "parsed OK\n"}, strings.HasPrefix(cmd, "visudo -c")
+	}
+	t.Run("sudoers: applied", func(t *testing.T) {
+		h, run := unitHost(t, visudo)
+		ran, err := sudoersChange(t, h).Apply(ctx, h, run)
+		if _, ok := h.Entry(grantFile); err != nil || ran.Rollback != nil || !ok {
+			t.Errorf("Apply = %+v, %v; want the grant written and the step kept", ran, err)
+		}
+	})
+	t.Run("sudoers: its backup fails before it writes", func(t *testing.T) {
+		h, run := unitHost(t, visudo)
+		c := sudoersChange(t, h)
+		h.AddDir("/var/backups", 0o777, 1000, 1000) // another user can change it
+		ran, err := c.Apply(ctx, h, run)
+		if _, ok := h.Entry(grantFile); !errors.Is(err, backup.ErrUnsafeDir) || !dropped(ran) || ok {
+			t.Errorf("Apply = %+v, %v; want the backup refused, nothing written and the step dropped", ran, err)
+		}
+	})
+	t.Run("dns: applied", func(t *testing.T) {
+		h, run := unitHost(t, func(cmd string) (hostfake.Response, bool) {
+			return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, cmd == "systemctl is-active "+dns.ResolvedUnit
+		})
+		h.AddFile(dns.ResolvConf, []byte("search example.net\nnameserver 192.0.2.1\n"), 0o644, 0, 0)
+		st, err := dns.Read(ctx, h, detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported},
+			Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes}, Container: detect.Container{Detected: detect.No}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, err := dns.PlanDNS(st, dns.Config{Nameservers: []string{"192.0.2.53"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, err := DNS("dns", p, "the nameservers")
+		if err != nil {
+			t.Fatal(err)
+		}
+		ran, err := c.Apply(ctx, h, run)
+		if e, _ := h.Entry(dns.ResolvConf); err != nil || ran.Rollback != nil || !strings.Contains(string(e.Data), "192.0.2.53") {
+			t.Errorf("Apply = %+v, %v; %q; want written and the step kept", ran, err, e.Data)
+		}
+	})
+	t.Run("alpine: applied", func(t *testing.T) {
+		crond := "stopped"
+		h, run := unitHost(t, func(cmd string) (hostfake.Response, bool) {
+			switch cmd {
+			case "apk info -e " + alpine.Package:
+				return hostfake.Response{Stdout: alpine.Package + "\n"}, true
+			case "rc-service crond status":
+				if crond == "started" {
+					return hostfake.Response{Stdout: " * status: started\n"}, true
+				}
+				return hostfake.Response{Stdout: " * status: stopped\n", ExitCode: 3}, true
+			case "rc-service crond start":
+				crond = "started"
+				return hostfake.Response{}, true
+			}
+			return hostfake.Response{}, false
+		})
+		h.AddFile(alpine.Script, []byte("#!/bin/sh\nexec apk -U upgrade\n"), 0o755, 0, 0)
+		h.AddFile(alpine.InitScript, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
+		h.AddFile(alpine.RunlevelLink, nil, 0o755, 0, 0)
+		u, err := alpine.ReadUpdates(ctx, h, detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported},
+			Init: detect.Init{Kind: detect.OpenRC, Running: detect.Yes}, Container: detect.Container{Detected: detect.No}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, err := alpine.PlanUpdates(u)
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, err := Alpine("alpine", p, "crond started")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ran, err := c.Apply(ctx, h, run); err != nil || ran.Rollback != nil || crond != "started" {
+			t.Errorf("Apply = %+v, %v; crond %s; want started and the step kept", ran, err, crond)
+		}
+	})
+	t.Run("pve keys: applied", func(t *testing.T) {
+		const (
+			keyWeb01 = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQCRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGR root@web-01"
+			keyAlice = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGh alice@web-01.example.net"
+			wwwData  = 33 // the group pmxcfs reports under /etc/pve
+		)
+		h, run := unitHost(t, func(cmd string) (hostfake.Response, bool) {
+			return hostfake.Response{Stdout: "install ok installed\t9.2.22\n"}, strings.HasPrefix(cmd, "dpkg-query --show ")
+		})
+		h.AddFile("/usr/bin/pveversion", []byte("#!/usr/bin/perl\n"), 0o755, 0, 0)
+		h.AddFile("/proc/self/mounts", []byte("/dev/fuse /etc/pve fuse rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other 0 0\n"), 0o444, 0, 0)
+		h.AddDir("/root", 0o700, 0, 0)
+		h.AddDir("/root/.ssh", 0o700, 0, 0)
+		h.AddDir("/etc/pve", 0o755, 0, wwwData)
+		h.AddDir("/etc/pve/priv", 0o700, 0, wwwData)
+		h.AddDir(pve.NodesDir+"/web-01", 0o755, 0, wwwData)
+		h.AddFile(pve.ClusterKeys, []byte(keyWeb01+"\n"), 0o600, 0, wwwData)
+		h.AddSymlink(pve.RootKeys, pve.ClusterKeys)
+		h.AddFile(pve.NodeKey, []byte(keyWeb01+"\n"), 0o644, 0, 0)
+		up := detect.Proxmox{Installed: detect.Yes, Version: "9.2.22", ClusterFS: detect.Yes, ClusterFSType: "fuse", EtcPVE: detect.Yes}
+		k, err := pve.ReadKeys(ctx, h, up)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, err := pve.PlanKeys(k, pve.KeyEdit{Add: []string{keyAlice}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, err := PVEKeys("pve.keys", up, p, "alice's key for root")
+		if err != nil {
+			t.Fatal(err)
+		}
+		ran, err := c.Apply(ctx, h, run)
+		if e, _ := h.Entry(pve.ClusterKeys); err != nil || ran.Rollback != nil || !strings.Contains(string(e.Data), keyAlice) {
+			t.Errorf("Apply = %+v, %v; keys %q; want alice's key and the step kept", ran, err, e.Data)
+		}
+	})
+}
+
+// TestSameAsRead: the write of 00-hardn.conf runs only while the engine's
+// backup, taken just before it, shows the file as the plan read it.
+func TestSameAsRead(t *testing.T) {
+	const sum = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+	file := func(s string) backup.Entry {
+		return backup.Entry{Kind: backup.KindFile, File: &backup.Content{SHA256: s}}
+	}
+	for _, tc := range []struct {
+		name   string
+		e      backup.Entry
+		ok     bool
+		absent bool
+		want   error // nil: the write may go on
+		none   bool  // an error that is not ErrChanged
+	}{
+		{"as read", file(sum), true, false, nil, false},
+		{"absent, as read", backup.Entry{Kind: backup.KindAbsent}, true, true, nil, false},
+		{"another content", file("00" + sum[2:]), true, false, ErrChanged, false},
+		{"written since it was read absent", file(sum), true, true, ErrChanged, false},
+		{"removed since it was read", backup.Entry{Kind: backup.KindAbsent}, true, false, ErrChanged, false},
+		{"no backup taken", backup.Entry{}, false, false, nil, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := sameAsRead(tc.e, tc.ok, sshd.HardnDropIn, tc.absent, sum)
+			switch {
+			case tc.none && (err == nil || errors.Is(err, ErrChanged)):
+				t.Errorf("sameAsRead = %v, want another refusal", err)
+			case !tc.none && !errors.Is(err, tc.want):
+				t.Errorf("sameAsRead = %v, want %v", err, tc.want)
+			}
+		})
+	}
+}

@@ -98,6 +98,20 @@ func sudoersGrant() stepsControl {
 	}}
 }
 
+// held2230 is a host in 2230's confirm window: 00-hardn.conf holds 22
+// beside 2230, and sshd listens on both.
+func held2230(v *vm) {
+	v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by hardn:\nPort 22\nPort 2230\n"), 0o644, 0, 0)
+	v.boot()
+}
+
+// cleanupOf is a control that plans the clean-up of the ports drop.
+func cleanupOf(drop ...uint16) stepsControl {
+	return stepsControl{"ssh", func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+		return steps.PlanCleanup(ctx, sys, in, "ssh", steps.Cleanup{Drop: drop})
+	}}
+}
+
 // sshServiceDown is Debian 13 with ssh.service stopped, as detect shows
 // it: sshd's listeners are then not established (sshd.Listeners.Known).
 func sshServiceDown() detect.Facts {
@@ -422,6 +436,32 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 			v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
 			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\nPort 22\nPort 2230\n"), 0o644, 0, 0)
 		}, port2230(), "the listeners sshd configures now", "", reload.ErrListenersUnknown},
+		{"sshd_config with no Include", debian13, func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte("UsePAM yes\n"), 0o644, 0, 0)
+			v.boot()
+		}, keyOnly(), "has no Include", "", steps.ErrNoWriteStrategy},
+		{"a port change where the listeners are not established", sshServiceDown(), nil,
+			port2230(), "the listeners sshd configures now", "", reload.ErrListenersUnknown},
+		{"ufw's enable where the listeners are not established", sshServiceDown(), func(v *vm) {
+			v.allowed, v.inactive = nil, true
+			v.saveRules()
+		}, ufwEnableControl(), "the listeners sshd configures now", "", ufw.ErrListenersUnknown},
+		{"ufw's enable without ufw", debian13, func(v *vm) {
+			v.hook = func(cmd string) (hostfake.Response, bool) {
+				return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}, strings.HasPrefix(cmd, "ufw ")
+			}
+		}, ufwEnableControl(), "ufw is not installed", "", ufw.ErrNotInstalled},
+		// The clean-up's own refusals.
+		{"a clean-up that would leave sshd no port", debian13, held2230, cleanupOf(22, 2230),
+			"would leave sshd no port", "", reload.ErrDropsListener},
+		{"a clean-up of a port sshd_config keeps", debian13, func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 22\n"), 0o644, 0, 0)
+			held2230(v)
+		}, cleanupOf(22), "still configured outside", "", steps.ErrNoWriteStrategy},
+		{"a clean-up on Proxmox VE that leaves a port other than 22", proxmox9(), held2230, cleanupOf(22),
+			"port [2230]", "", pve.ErrPortChange},
+		{"a clean-up where the listeners are not established", sshServiceDown(), held2230, cleanupOf(22),
+			"the ports sshd configures now", "", reload.ErrListenersUnknown},
 		{"sshd -T without /run/sshd (Ubuntu before its first connection)", ubuntu2604(), func(v *vm) {
 			v.hook = func(cmd string) (hostfake.Response, bool) {
 				return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255},
@@ -945,4 +985,28 @@ func TestEngineCleanupVerified(t *testing.T) {
 	if got := v.directives(); got != "Port 22\nPort 2230" || !slices.Equal(slices.Compact(v.allowed), []uint16{22, 2230}) {
 		t.Errorf("00-hardn.conf's directives %q, ufw %v; want both ports held", got, v.allowed)
 	}
+}
+
+// TestEngineChangedBeforeWrite: 00-hardn.conf written by someone else
+// after the plan made under the run lock, before the engine's write (here
+// while ufw lets 2230 through): its backup shows another content, so the
+// write is refused (steps.ErrChanged) and the change rolled back, the
+// other writer's file kept.
+func TestEngineChangedBeforeWrite(t *testing.T) {
+	v := newVM(t)
+	const theirs = "PasswordAuthentication no\n"
+	v.hook = func(cmd string) (hostfake.Response, bool) {
+		if cmd == "ufw allow 2230/tcp" {
+			v.f.AddFile(sshd.HardnDropIn, []byte(theirs), 0o644, 0, 0)
+		}
+		return hostfake.Response{}, false
+	}
+	_, _, err := v.viaEngine(context.Background(), debian13, port2230())
+	if !errors.Is(err, engine.ErrRolledBack) || !errors.Is(err, steps.ErrChanged) {
+		t.Fatalf("err = %v, want rolled back: changed since the plan", err)
+	}
+	if v.dropIn() != theirs || !slices.Equal(v.allowed, []uint16{22}) || !sameStrings(v.bound, []string{"[::]:22", "0.0.0.0:22"}) {
+		t.Errorf("00-hardn.conf %q, ufw %v, sshd on %v; want theirs, 22 alone", v.dropIn(), v.allowed, v.bound)
+	}
+	v.cleared()
 }
