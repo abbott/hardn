@@ -241,29 +241,69 @@ func cancelTimer(ctx context.Context, sys host.System, t Timer) error {
 		_, err := sys.Run(ctx, "systemctl", "stop", t.Unit+".timer")
 		return err
 	}
-	data, _, err := sys.ReadFileNoFollow(ctx, t.PIDFile)
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-	pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
-	if err != nil || pid <= 1 {
-		return fmt.Errorf("revert: %s: pid %q", t.PIDFile, data)
-	}
-	// Signal it only if that pid is still the sleeper: its command line is
-	// exactly the timer's argv, so a pid reused since, and a shell that has
-	// exec'd the rollback (SleeperScript), are left alone.
-	cmdline, err := sys.ReadFile(ctx, ProcDir+"/"+strconv.Itoa(pid)+"/cmdline")
+	pid, running, err := sleeper(ctx, sys, t)
 	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		// It has ended.
 	case err != nil:
 		return err
-	case bytes.Equal(cmdline, []byte(strings.Join(t.Argv, "\x00")+"\x00")):
+	case pid == 0:
+		return nil
+	case running:
 		if _, err := sys.Run(ctx, "kill", "-s", "TERM", strconv.Itoa(pid)); err != nil {
 			return err
 		}
 	}
 	return sys.Remove(ctx, t.PIDFile)
+}
+
+// sleeper reads the pid in setsid timer t's pidfile (0 when there is no
+// pidfile) and reports whether that pid is still the sleeper: its command
+// line is exactly the timer's argv, so a pid reused since, and a shell that
+// has exec'd the rollback (SleeperScript), are not.
+func sleeper(ctx context.Context, sys host.System, t Timer) (pid int, running bool, err error) {
+	data, _, err := sys.ReadFileNoFollow(ctx, t.PIDFile)
+	if errors.Is(err, fs.ErrNotExist) {
+		return 0, false, nil
+	} else if err != nil {
+		return 0, false, err
+	}
+	pid, err = strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || pid <= 1 {
+		return 0, false, fmt.Errorf("revert: %s: pid %q", t.PIDFile, data)
+	}
+	cmdline, err := sys.ReadFile(ctx, ProcDir+"/"+strconv.Itoa(pid)+"/cmdline")
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return pid, false, nil // it has ended
+	case err != nil:
+		return pid, false, err
+	}
+	return pid, bytes.Equal(cmdline, []byte(strings.Join(t.Argv, "\x00")+"\x00")), nil
+}
+
+// timerRuns reports whether timer t is there to fire. systemd: `systemctl
+// is-active <unit>.timer` prints active (a timer waiting, or elapsed and
+// kept: RemainAfterElapse= defaults to true, systemd.timer(5)), and
+// inactive for one that is not loaded. OpenRC: the pidfile names the
+// sleeper (sleeper). An answer it cannot read is an error: whether the
+// timer runs cannot be told.
+func timerRuns(ctx context.Context, sys host.System, t Timer) (bool, error) {
+	if t.Kind != TimerSystemd {
+		_, running, err := sleeper(ctx, sys, t)
+		return running, err
+	}
+	unit := t.Unit + ".timer"
+	res, err := sys.Run(ctx, "systemctl", "is-active", unit)
+	var xe *host.ExitError
+	if err != nil && !errors.As(err, &xe) {
+		return false, fmt.Errorf("revert: systemctl is-active %s: %w", unit, err)
+	}
+	state, _, _ := strings.Cut(string(res.Stdout), "\n")
+	state = strings.TrimSpace(state)
+	switch (detect.UnitState{Active: state}).IsActive() {
+	case detect.Yes:
+		return true, nil
+	case detect.No:
+		return false, nil
+	}
+	return false, fmt.Errorf("revert: systemctl is-active %s printed %q (exit %d)", unit, state, res.ExitCode)
 }

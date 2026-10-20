@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -37,7 +39,7 @@ func TestPlanBootUnit(t *testing.T) {
 			Link: "/etc/systemd/system/multi-user.target.wants/hardn-boot.service", Check: []string{"systemd-analyze", "verify", "--recursive-errors=no"},
 			Enable: []string{"systemctl", "--no-reload", "enable", "hardn-boot.service"}, Disable: []string{"systemctl", "--no-reload", "disable", "hardn-boot.service"}},
 			[]string{"DefaultDependencies=no", "After=local-fs.target sysinit.target ufw.service", "Before=ssh.service ssh.socket shutdown.target",
-				"Type=oneshot", "ExecStart=" + testHardn + " rollback --boot", "TimeoutStartSec=6min", "WantedBy=multi-user.target"},
+				"Type=oneshot", "ExecStart=" + testHardn + " rollback --boot", "TimeoutStartSec=7min", "WantedBy=multi-user.target"},
 			[]string{"Requires=", "RequiredBy=", "BindsTo=", "Wants=ssh", "%"}},
 		{"OpenRC", "hardn-boot.openrc", openrc, BootUnit{Init: detect.OpenRC, Path: "/etc/init.d/hardn-boot", Mode: 0o755,
 			Link: "/etc/runlevels/default/hardn-boot", Check: []string{"sh", "-n"},
@@ -99,6 +101,28 @@ func TestPlanBootUnit(t *testing.T) {
 		if _, err := PlanBootUnit(tt.in, tt.hardn); !errors.Is(err, tt.want) {
 			t.Errorf("%s: %v, want %v", tt.name, err, tt.want)
 		}
+	}
+}
+
+// The unit's TimeoutStartSec is above all Boot can take: its own steps,
+// a rollback, and the unit's removal after it, each under its own bound.
+// Otherwise systemd's kill could land inside the rollback, before sshd
+// starts.
+func TestBootUnitTimeout(t *testing.T) {
+	u, err := PlanBootUnit(systemd, testHardn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got time.Duration
+	for _, l := range strings.Split(string(u.Data), "\n") {
+		if v, ok := strings.CutPrefix(l, "TimeoutStartSec="); ok {
+			if got, err = time.ParseDuration(strings.TrimSuffix(v, "in")); err != nil { // systemd's "7min", Go's "7m"
+				t.Fatal(err)
+			}
+		}
+	}
+	if bound := bootStepTimeout + RollbackTimeout + cleanupTimeout; got <= bound {
+		t.Errorf("TimeoutStartSec %s, want above %s", got, bound)
 	}
 }
 
@@ -192,6 +216,9 @@ func TestEnsureBootUnit(t *testing.T) {
 			if e, ok := f.Entry(u.Path); !ok || !bytes.Equal(e.Data, u.Data) || e.Mode.Perm() != u.Mode || e.UID != 0 || e.GID != 0 {
 				t.Errorf("%s: %+v", u.Path, e)
 			}
+			if st, err := ReadBootUnit(ctx, f, u); err != nil || !st.Installed() || !bytes.Equal(st.Data, u.Data) || st.Mode.Perm() != u.Mode || st.UID != 0 {
+				t.Errorf("ReadBootUnit = %+v, %v", st, err)
+			}
 			if !strings.Contains(log.String(), "revert: boot unit "+u.Path+": written") || !strings.Contains(log.String(), ": enabled (") {
 				t.Errorf("log %q", log.String())
 			}
@@ -208,8 +235,12 @@ func TestEnsureBootUnit(t *testing.T) {
 	u, _ := PlanBootUnit(systemd, testHardn)
 	t.Run("a stale unit, backed up", func(t *testing.T) {
 		f := bootHost(t)
-		f.AddFile(u.Path, []byte("[Service]\nExecStart=/usr/bin/true\n"), 0o644, 0, 0)
+		f.AddFile(u.Path, []byte("[Service]\nExecStart=/usr/bin/true\n"), 0o640, 1000, 1000)
 		f.AddSymlink(u.Link, u.Path)
+		// What a plan diffs against.
+		if st, err := ReadBootUnit(ctx, f, u); err != nil || st.Current || !st.Linked || string(st.Data) != "[Service]\nExecStart=/usr/bin/true\n" || st.Mode.Perm() != 0o640 || st.UID != 1000 {
+			t.Fatalf("ReadBootUnit = %+v, %v", st, err)
+		}
 		run, err := backup.Open(f, backup.Settings{Path: backup.DefaultPath, Enabled: true}, testID)
 		if err != nil {
 			t.Fatal(err)
@@ -258,29 +289,129 @@ func TestEnsureBootUnit(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		setup func(f *hostfake.System)
+		hook  func(op, name string) error // nil: none
+		work  string                      // "": workDir
+		want  error
 	}{
 		{"the check refuses the copy", func(f *hostfake.System) {
 			f.Respond(hostfake.Response{Stderr: "hardn-boot.service: Command /usr/local/bin/hardn is not executable\n", ExitCode: 1},
 				"systemd-analyze", "verify", "--recursive-errors=no", workDir+"/hardn-boot.service")
-		}},
+		}, nil, "", ErrBootUnit},
 		{"the enable makes no link", func(f *hostfake.System) {
 			f.Respond(hostfake.Response{}, "systemctl", "--no-reload", "enable", "hardn-boot.service")
-		}},
+		}, nil, "", ErrBootUnit},
+		{"the enable fails", func(f *hostfake.System) {
+			f.Respond(hostfake.Response{Stderr: "Failed to enable unit\n", ExitCode: 1}, "systemctl", "--no-reload", "enable", "hardn-boot.service")
+		}, nil, "", errExit},
+		{"the journal cannot be read", func(f *hostfake.System) {
+			f.AddDir(DefaultDir, 0o700, 0, 0)
+			f.AddFile(stateFile(PendingName), []byte(`{"schemaVersion": 2}`), 0o600, 0, 0)
+		}, nil, "", ErrJournal},
+		{"a file, not a link, where the link goes", func(f *hostfake.System) {
+			f.AddFile(u.Link, []byte("not a link\n"), 0o644, 0, 0)
+			f.Respond(hostfake.Response{Stderr: "Failed to enable unit: File exists\n"}, "systemctl", "--no-reload", "enable", "hardn-boot.service")
+		}, nil, "", ErrBootUnit},
+		{"the unit cannot be read", func(*hostfake.System) {}, failOn("read-nofollow", u.Path), "", fs.ErrPermission},
+		{"the link cannot be read", func(*hostfake.System) {}, failOn("lstat", u.Link), "", fs.ErrPermission},
+		{"the link cannot be read after the enable", func(*hostfake.System) {}, func() func(string, string) error {
+			n := 0
+			return func(op, name string) error {
+				if op == "lstat" && name == u.Link {
+					if n++; n > 1 {
+						return fs.ErrPermission
+					}
+				}
+				return nil
+			}
+		}(), "", fs.ErrPermission},
+		{"the copy cannot be written", func(*hostfake.System) {}, failOn("write-atomic", workDir+"/hardn-boot.service"), "", fs.ErrPermission},
+		{"the work directory is not clean", func(*hostfake.System) {}, nil, "run/hardn", fs.ErrInvalid},
+		{"the unit cannot be written", func(*hostfake.System) {}, failOn("write-atomic", u.Path), "", fs.ErrPermission},
+		{"a stale unit cannot be backed up", func(f *hostfake.System) {
+			f.AddFile(u.Path, []byte("[Service]\nExecStart=/usr/bin/true\n"), 0o644, 0, 0)
+		}, func(op, name string) error {
+			if op == "write-atomic" && strings.HasPrefix(name, backup.DefaultPath+"/") {
+				return fs.ErrPermission
+			}
+			return nil
+		}, "", fs.ErrPermission},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f := bootHost(t)
 			tt.setup(f)
-			_, err := EnsureBootUnit(ctx, f, u, workDir, nil, Options{})
-			if !errors.Is(err, ErrBootUnit) {
-				t.Fatalf("EnsureBootUnit: %v, want ErrBootUnit", err)
+			before, _ := f.Entry(u.Path)
+			var sys host.System = f
+			if tt.hook != nil {
+				sys = &faulty{System: f, hook: tt.hook}
+			}
+			run, err := backup.Open(sys, backup.Settings{Path: backup.DefaultPath, Enabled: true}, testID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			work := workDir
+			if tt.work != "" {
+				work = tt.work
+			}
+			_, err = EnsureBootUnit(ctx, sys, u, work, run, Options{})
+			if !isErr(err, tt.want) {
+				t.Fatalf("EnsureBootUnit: %v, want %v", err, tt.want)
 			}
 			if exists(f, workDir+"/hardn-boot.service") {
 				t.Error("the copy is left behind")
 			}
-			if st, _ := ReadBootUnit(ctx, f, u); st.Installed() {
-				t.Error("installed")
+			// After the enable, the link is there; only its re-read failed.
+			if st, _ := ReadBootUnit(ctx, f, u); st.Installed() != strings.HasSuffix(tt.name, "after the enable") {
+				t.Errorf("installed %v", st.Installed())
+			}
+			if tt.want == fs.ErrPermission && strings.HasPrefix(tt.name, "a stale") {
+				if e, _ := f.Entry(u.Path); !bytes.Equal(e.Data, before.Data) {
+					t.Error("the stale unit was replaced with no backup")
+				}
 			}
 		})
+	}
+}
+
+// errExit stands for a command's non-zero exit (*host.ExitError) in a
+// test's want; isErr matches it with errors.As.
+var errExit = errors.New("a non-zero exit")
+
+func isErr(err, want error) bool {
+	if want == errExit {
+		var xe *host.ExitError
+		return errors.As(err, &xe)
+	}
+	return errors.Is(err, want)
+}
+
+// EnsureBootUnit refuses, before it writes or runs anything, while a change
+// is journalled: rewritten for another hardn binary, the unit would leave
+// that change alone at boot (it is not this binary's journal).
+func TestEnsureBootUnitPending(t *testing.T) {
+	ctx := context.Background()
+	for _, installed := range []bool{false, true} {
+		f := bootHost(t)
+		c := &clock{testNow}
+		mine, _ := PlanBootUnit(systemd, testHardn)
+		if installed {
+			if _, err := EnsureBootUnit(ctx, f, mine, workDir, nil, Options{}); err != nil {
+				t.Fatal(err)
+			}
+		}
+		armed(t, f, c)
+		other, _ := PlanBootUnit(systemd, "/usr/sbin/hardn")
+		n := len(f.Calls())
+		_, err := EnsureBootUnit(ctx, f, other, workDir, nil, testOptions(c, nil))
+		var pe *PendingError
+		if !errors.Is(err, ErrPending) || !errors.As(err, &pe) || pe.State.Pending == nil || pe.State.Pending.ID != testID {
+			t.Fatalf("installed %v: EnsureBootUnit: %v, want the PendingError of %s", installed, err, testID)
+		}
+		if got := calls(f, n); len(got) > 0 {
+			t.Errorf("installed %v: changed the host: %q", installed, got)
+		}
+		if e, ok := f.Entry(mine.Path); ok != installed || ok && !bytes.Equal(e.Data, mine.Data) {
+			t.Errorf("installed %v: the unit is now %q", installed, e.Data)
+		}
 	}
 }
 
@@ -325,4 +456,66 @@ func TestRemoveBootUnit(t *testing.T) {
 			}
 		})
 	}
+}
+
+// RemoveBootUnit's failures: the journal or the unit unreadable, the
+// disable failing or leaving the link, the file not removed; and a file
+// that is not hardn's unit, disabled and kept, with ErrBootUnit.
+func TestRemoveBootUnitFailures(t *testing.T) {
+	ctx := context.Background()
+	u, _ := PlanBootUnit(systemd, testHardn)
+	disable := u.Disable
+	for _, tt := range []struct {
+		name    string
+		setup   func(f *hostfake.System)
+		hook    func(op, name string) error
+		want    error
+		removed bool
+		file    bool // the file is still there
+	}{
+		{"the journal cannot be read", func(f *hostfake.System) {
+			f.AddDir(DefaultDir, 0o700, 0, 0)
+			f.AddFile(stateFile(PendingName), []byte(`{"schemaVersion": 2}`), 0o600, 0, 0)
+		}, nil, ErrJournal, false, true},
+		{"the unit cannot be read", func(*hostfake.System) {}, failOn("read-nofollow", u.Path), fs.ErrPermission, false, true},
+		{"the disable fails", func(f *hostfake.System) {
+			respond(f, hostfake.Response{Stderr: "Failed to disable unit\n", ExitCode: 1}, disable)
+		}, nil, errExit, false, true},
+		{"the disable leaves the link", func(f *hostfake.System) { respond(f, hostfake.Response{}, disable) }, nil, ErrBootUnit, true, false},
+		{"the file is not removed", func(*hostfake.System) {}, failOn("remove", u.Path), fs.ErrPermission, true, true},
+		{"not hardn's unit: disabled and kept", func(f *hostfake.System) {
+			f.AddFile(u.Path, []byte("[Service]\nExecStart=/usr/local/bin/other\n"), 0o644, 0, 0)
+		}, nil, ErrBootUnit, false, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			f := bootHost(t)
+			if _, err := EnsureBootUnit(ctx, f, u, workDir, nil, Options{}); err != nil {
+				t.Fatal(err)
+			}
+			tt.setup(f)
+			var sys host.System = f
+			if tt.hook != nil {
+				sys = &faulty{System: f, hook: tt.hook}
+			}
+			removed, err := RemoveBootUnit(ctx, sys, u, Options{})
+			if !isErr(err, tt.want) || removed != tt.removed {
+				t.Fatalf("RemoveBootUnit = %v, %v; want %v, %v", removed, err, tt.removed, tt.want)
+			}
+			if exists(f, u.Path) != tt.file {
+				t.Errorf("the file there: %v, want %v", exists(f, u.Path), tt.file)
+			}
+		})
+	}
+	t.Run("not hardn's unit: the disable ran", func(t *testing.T) {
+		f := bootHost(t)
+		f.AddFile(u.Path, []byte("edited\n"), 0o644, 0, 0)
+		f.AddSymlink(u.Link, u.Path)
+		var log bytes.Buffer
+		if _, err := RemoveBootUnit(ctx, f, u, Options{Log: &log}); !errors.Is(err, ErrBootUnit) || !strings.Contains(err.Error(), "kept, disabled") {
+			t.Fatalf("RemoveBootUnit: %v", err)
+		}
+		if e, _ := f.Entry(u.Path); string(e.Data) != "edited\n" || exists(f, u.Link) || !strings.Contains(log.String(), "disabled, and kept") {
+			t.Errorf("file %q, link there %v, log %q", e.Data, exists(f, u.Link), log.String())
+		}
+	})
 }

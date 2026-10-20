@@ -175,8 +175,17 @@ type bootStep struct {
 }
 
 // planBoot plans the boot unit that runs hardn on init system in, and reads
-// what the host has of it.
+// what the host has of it. A change journalled already refuses the plan
+// (*revert.PendingError, as Arm and EnsureBootUnit would), before the unit
+// is shown or touched: it is that change's boot-time recovery.
 func (d *driver) planBoot(ctx context.Context, in detect.Init, hardn string) (bootStep, error) {
+	js, err := revert.ReadState(ctx, d.sys, d.revertOptions(hardn))
+	switch {
+	case err != nil:
+		return bootStep{}, err
+	case js.Busy():
+		return bootStep{}, &revert.PendingError{State: js}
+	}
 	u, err := revert.PlanBootUnit(in, hardn)
 	if err != nil {
 		return bootStep{}, err

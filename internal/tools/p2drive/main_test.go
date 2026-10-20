@@ -358,6 +358,35 @@ func TestBootUnitInstalled(t *testing.T) {
 			t.Errorf("changed the host: %q", ch)
 		}
 	})
+	// A second lockout-risk command while the first change is journalled,
+	// with another hardn binary: refused at its plan, before the boot unit
+	// the first change relies on is touched.
+	t.Run("a change journalled already", func(t *testing.T) {
+		v := newVM(t)
+		ctx := context.Background()
+		if code, out, errOut := v.do(ctx, debian13, "port", "--port", "2230"); code != 0 {
+			t.Fatalf("port: exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		first := v.journal(revert.PendingName)
+		unit, _ := v.f.Entry(u.Path)
+		v.f.AddFile("/usr/sbin/hardn", []byte("ELF, another build"), 0o755, 0, 0)
+		n := len(v.f.Calls())
+		code, out, errOut := v.do(ctx, debian13, "keyonly", "--hardn", "/usr/sbin/hardn")
+		if code != 1 || !strings.Contains(errOut, "refused before anything changed") || !strings.Contains(errOut, revert.ErrPending.Error()) || strings.Contains(out, "boot unit") {
+			t.Fatalf("keyonly: exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		for _, c := range v.f.Calls()[n:] {
+			if c.Op == "write-atomic" && !strings.HasPrefix(c.Path, runRoot+"/") || c.Op == "run" && (c.Argv[0] == "systemd-analyze" || slices.Contains(c.Argv, "enable")) {
+				t.Errorf("the second command changed the host: %s", c)
+			}
+		}
+		if e, _ := v.f.Entry(u.Path); !bytes.Equal(e.Data, unit.Data) || !strings.Contains(string(e.Data), "ExecStart="+testHardn+" rollback --boot") {
+			t.Errorf("the boot unit is now %q", e.Data)
+		}
+		if j := v.journal(revert.PendingName); j.ID != first.ID || j.Timer.Hardn != testHardn {
+			t.Errorf("pending %s, timer runs %s", j.ID, j.Timer.Hardn)
+		}
+	})
 }
 
 // TestPortUFWEnable: --ufw enable from an inactive ufw with no rules

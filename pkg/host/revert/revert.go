@@ -132,8 +132,9 @@ type Options struct {
 	// NoStart: Rollback starts no unit. Every reload runs as one journalled
 	// with IfUp: a unit that is up is reloaded, and one that is down is left
 	// so, to read the restored files when it starts. `hardn rollback --boot`
-	// sets it (Boot): it runs before ssh.service and ssh.socket start, and a
-	// start from it would wait on the boot unit itself.
+	// sets it in the boot unit's start (Boot, inBootUnitStart): that runs
+	// before ssh.service and ssh.socket start, and a start from it would
+	// wait on the boot unit itself.
 	NoStart bool
 	// Plans are the rollbacks of OpPlan steps, by unit. Record refuses a
 	// step whose unit has none (ErrNoPlanRollback), and so does Rollback.

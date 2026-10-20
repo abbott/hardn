@@ -17,7 +17,7 @@ Conflicts=shutdown.target
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/local/bin/hardn rollback --boot
-TimeoutStartSec=6min
+TimeoutStartSec=7min
 
 [Install]
 WantedBy=multi-user.target

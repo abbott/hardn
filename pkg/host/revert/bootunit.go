@@ -61,8 +61,9 @@ type BootUnit struct {
 // local file systems, sysinit.target (the transient timer a re-arm makes
 // requires it) and ufw.service (the rollback's ufw commands find its rules
 // loaded). Ordering only: sshd starts whatever it does. TimeoutStartSec is
-// above RollbackTimeout, hardn's own bound, as the backstop for a hardn that
-// hangs outside a command: sshd waits for this unit.
+// above Boot's own bounds together (bootStepTimeout, RollbackTimeout and
+// cleanupTimeout, 6m30s), as the backstop for a hardn that hangs outside a
+// command: sshd waits for this unit (TestBootUnitTimeout).
 const systemdBootUnit = `# hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
 # it before it arms the revert timer of a change that could lock you out, and
 # removes it at a boot that finds no change journalled.
@@ -82,7 +83,7 @@ Conflicts=shutdown.target
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=%s rollback --boot
-TimeoutStartSec=6min
+TimeoutStartSec=7min
 
 [Install]
 WantedBy=multi-user.target
@@ -166,6 +167,12 @@ type BootUnitState struct {
 	File    bool // a file at Path
 	Current bool // it holds Data, with Mode, a regular file root's
 	Linked  bool // Link is a link to Path
+	// Data, Mode and UID are the file's, when File, so that a plan can show
+	// what a write replaces (pkg/diff against BootUnit.Data); UID is -1
+	// when the owner cannot be read.
+	Data []byte
+	Mode fs.FileMode
+	UID  int
 }
 
 // Installed reports whether the unit is installed as planned and enabled.
@@ -173,7 +180,7 @@ func (s BootUnitState) Installed() bool { return s.Current && s.Linked }
 
 // ReadBootUnit reads what the host has of u, changing nothing.
 func ReadBootUnit(ctx context.Context, sys host.System, u BootUnit) (BootUnitState, error) {
-	var s BootUnitState
+	s := BootUnitState{UID: -1}
 	data, fi, err := sys.ReadFileNoFollow(ctx, u.Path)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
@@ -181,7 +188,10 @@ func ReadBootUnit(ctx context.Context, sys host.System, u BootUnit) (BootUnitSta
 		return s, fmt.Errorf("revert: boot unit: %w", err)
 	default:
 		uid, _, ok := host.Owner(fi)
-		s.File = true
+		s.File, s.Data, s.Mode = true, data, fi.Mode()
+		if ok {
+			s.UID = uid
+		}
 		s.Current = bytes.Equal(data, u.Data) && fi.Mode().Perm() == u.Mode.Perm() && ok && uid == 0
 	}
 	lfi, err := sys.Lstat(ctx, u.Link)
@@ -214,7 +224,11 @@ type BootUnitResult struct {
 }
 
 // EnsureBootUnit installs and enables boot unit u (PlanBootUnit), the step
-// before the first Arm of a lockout-risk change on a host. Idempotent: a
+// before the first Arm of a lockout-risk change on a host. It refuses while
+// a change is journalled (a *PendingError, Is(ErrPending), as Arm's), before
+// it writes or runs anything: the unit is that change's boot-time recovery,
+// and one rewritten for another hardn binary would leave it alone at boot.
+// Idempotent: a
 // unit installed and enabled as planned is left as it is (Already). A file
 // that is missing or differs is replaced: a copy in work (a root-only
 // directory of the run, as sshd.Validate's) is checked first (u.Check), a
@@ -226,6 +240,13 @@ type BootUnitResult struct {
 // (ErrBootUnit, or the step's own).
 func EnsureBootUnit(ctx context.Context, sys host.System, u BootUnit, work string, run *backup.Run, opts Options) (BootUnitResult, error) {
 	res := BootUnitResult{Unit: u}
+	js, err := ReadState(ctx, sys, opts)
+	switch {
+	case err != nil:
+		return res, err
+	case js.Busy():
+		return res, fmt.Errorf("revert: boot unit %s not installed: %w", u.Path, &PendingError{State: js})
+	}
 	st, err := ReadBootUnit(ctx, sys, u)
 	if err != nil {
 		return res, err
@@ -297,8 +318,11 @@ func checkBootUnit(ctx context.Context, sys host.System, u BootUnit, work string
 // RemoveBootUnit disables and removes boot unit u. It refuses while a
 // change is journalled (a *PendingError, Is(ErrPending)): the unit is what
 // re-arms its timer after a reboot. `hardn rollback --boot` calls it at a
-// boot that finds nothing journalled; an uninstall would too. It reports
-// whether it removed anything; a unit that is not there is no error.
+// boot that finds nothing journalled; an uninstall would too. A file at
+// u.Path that does not hold u.Data (hand-edited, another hardn's, or not
+// hardn's at all) is disabled but kept, and reported (ErrBootUnit): nothing
+// backs it up here. It reports whether the unit is gone because of it; a
+// unit that is not there is no error.
 func RemoveBootUnit(ctx context.Context, sys host.System, u BootUnit, opts Options) (bool, error) {
 	st, err := ReadState(ctx, sys, opts)
 	switch {
@@ -318,17 +342,22 @@ func RemoveBootUnit(ctx context.Context, sys host.System, u BootUnit, opts Optio
 		}
 		removed = true
 	}
-	if bs.File {
+	keep := bs.File && !bytes.Equal(bs.Data, u.Data)
+	if bs.File && !keep {
 		if err := removeIfThere(ctx, sys, u.Path); err != nil {
 			return removed, fmt.Errorf("revert: boot unit: %w", err)
 		}
 		removed = true
 	}
-	if bs, err = ReadBootUnit(ctx, sys, u); err == nil && (bs.Linked || bs.File) {
+	if bs, err = ReadBootUnit(ctx, sys, u); err == nil && (bs.Linked || bs.File && !keep) {
 		err = fmt.Errorf("revert: boot unit %s: still there after %s: %w", u.Path, host.FormatArgv(u.Disable), ErrBootUnit)
 	}
 	if err != nil {
 		return removed, err
+	}
+	if keep {
+		opts.logf("boot unit %s: disabled, and kept: it does not hold the unit hardn installs", u.Path)
+		return false, fmt.Errorf("revert: boot unit %s does not hold the unit hardn installs (edited, or not hardn's), so it is kept, disabled: check it, then remove it by hand: %w", u.Path, ErrBootUnit)
 	}
 	if removed {
 		opts.logf("boot unit %s: disabled and removed: no change is journalled", u.Path)
