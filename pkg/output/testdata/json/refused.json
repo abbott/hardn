@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "ubuntu",
+      "versionId": "24.04",
+      "codename": "noble",
+      "prettyName": "Ubuntu 24.04.3 LTS"
+    },
+    "platform": {
+      "distro": "ubuntu",
+      "version": "24.04",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "ssh.socket",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "plan",
+  "result": {
+    "outcome": "refused",
+    "exitCode": 1,
+    "id": "20261019T120000Z-1a2b3c4d",
+    "risk": "plain"
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "SSH_LISTEN_CONF_NOT_IN_EFFECT",
+      "message": "/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x) sets ssh.socket to port 2230, but it never took effect: ssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-reload since it was written, D9). Migrating it now could not be rolled back. To go on: first make sure the firewall lets port 2230 through, then run `systemctl daemon-reload` and `systemctl restart ssh.socket`, check that a new SSH connection to port 2230 works, and run hardn again (SSH_LISTEN_CONF_NOT_IN_EFFECT): migrate: listen.conf: the restored ssh.socket drop-ins do not give the socket the listeners it had",
+      "control": "ssh.migrate",
+      "change": "",
+      "step": "",
+      "why": "/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x) sets ssh.socket to port 2230, but it never took effect: ssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-reload since it was written, D9). Migrating it now could not be rolled back",
+      "fix": "first make sure the firewall lets port 2230 through, then run `systemctl daemon-reload` and `systemctl restart ssh.socket`, check that a new SSH connection to port 2230 works, and run hardn again"
+    }
+  ]
+}

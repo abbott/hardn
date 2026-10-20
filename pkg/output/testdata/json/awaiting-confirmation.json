@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "apply",
+  "result": {
+    "outcome": "awaiting-confirmation",
+    "exitCode": 0,
+    "id": "20261019T120000Z-1a2b3c4d",
+    "risk": "lockout",
+    "confirm": {
+      "deadline": "2026-10-19T12:03:00Z",
+      "approximate": true,
+      "via": [
+        "0.0.0.0:2230",
+        "[::]:2230"
+      ],
+      "command": "sudo hardn confirm",
+      "undo": "sudo hardn rollback 20261019T120000Z-1a2b3c4d"
+    },
+    "boot": {
+      "installed": true,
+      "detail": "wrote /etc/systemd/system/hardn-boot.service; enabled it"
+    }
+  },
+  "changes": [
+    {
+      "id": "hardn.boot-unit",
+      "control": "",
+      "summary": "Install hardn's boot unit, which re-arms the revert timer after a reboot",
+      "target": "/etc/systemd/system/hardn-boot.service",
+      "risk": "plain",
+      "stage": "boot",
+      "after": [],
+      "diff": "--- /dev/null\n+++ /etc/systemd/system/hardn-boot.service\n@@ -0,0 +1,23 @@\n+# hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs\n+# it before it arms the revert timer of a change that could lock you out, and\n+# removes it at a boot that finds no change journalled.\n+#\n+# At boot, before sshd reads its files: re-arm the revert timer of a change\n+# waiting for \"hardn confirm\", for what remains of its window, or roll the\n+# change back when its deadline has passed. Ordering only: sshd starts\n+# whatever this unit does.\n+[Unit]\n+Description=hardn: re-arm or run the revert timer of an unconfirmed change\n+DefaultDependencies=no\n+After=local-fs.target sysinit.target ufw.service\n+Before=ssh.service ssh.socket shutdown.target\n+Conflicts=shutdown.target\n+\n+[Service]\n+Type=oneshot\n+RemainAfterExit=yes\n+ExecStart=/usr/local/bin/hardn rollback --boot\n+TimeoutStartSec=7min\n+\n+[Install]\n+WantedBy=multi-user.target\n",
+      "stateBefore": "not installed",
+      "stateAfter": "installed and enabled",
+      "commands": [
+        "systemd-analyze verify --recursive-errors=no /run/hardn/20261019T120000Z-1a2b3c4d/hardn-boot.service",
+        "systemctl --no-reload enable hardn-boot.service"
+      ],
+      "backups": [],
+      "status": "applied",
+      "detail": "wrote /etc/systemd/system/hardn-boot.service; enabled it"
+    },
+    {
+      "id": "ssh.port/firewall",
+      "control": "ssh.port",
+      "summary": "Allow 2230/tcp in ufw before sshd listens on it",
+      "target": "ufw",
+      "risk": "lockout",
+      "stage": "firewall",
+      "after": [],
+      "diff": "",
+      "stateBefore": "22/tcp ALLOW IN Anywhere",
+      "stateAfter": "22/tcp ALLOW IN Anywhere\n2230/tcp ALLOW IN Anywhere",
+      "commands": [
+        "ufw allow 2230/tcp"
+      ],
+      "backups": [],
+      "status": "applied",
+      "detail": "firewall: verified"
+    },
+    {
+      "id": "ssh.port/files",
+      "control": "ssh.port",
+      "summary": "Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf, keeping Port 22 until confirmed",
+      "target": "/etc/ssh/sshd_config.d/00-hardn.conf",
+      "risk": "lockout",
+      "stage": "files",
+      "after": [],
+      "diff": "--- /etc/ssh/sshd_config.d/00-hardn.conf\n+++ /etc/ssh/sshd_config.d/00-hardn.conf\n@@ -1,2 +1,3 @@\n # Managed by hardn\n Port 22\n+Port 2230\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [
+        "/etc/ssh/sshd_config.d/00-hardn.conf"
+      ],
+      "status": "applied",
+      "detail": "written"
+    },
+    {
+      "id": "ssh.port/reload",
+      "control": "ssh.port",
+      "summary": "Reload ssh.service, which keeps established sessions",
+      "target": "ssh.service",
+      "risk": "lockout",
+      "stage": "reload",
+      "after": [],
+      "diff": "",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [
+        "systemctl reload ssh.service"
+      ],
+      "backups": [],
+      "status": "applied",
+      "detail": "reload: verified"
+    },
+    {
+      "id": "ssh.port/verify",
+      "control": "ssh.port",
+      "summary": "Check that sshd listens on 22 and 2230",
+      "target": "sshd",
+      "risk": "lockout",
+      "stage": "verify",
+      "after": [],
+      "diff": "",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [
+        "sshd -T",
+        "ss -Htlnp"
+      ],
+      "backups": [],
+      "status": "applied",
+      "detail": "sshd -T: port 22, 2230"
+    }
+  ],
+  "status": [],
+  "findings": [
+    {
+      "code": "SSHD_OVERRIDDEN",
+      "detail": "PasswordAuthentication yes in 50-cloud-init.conf is read before 00-hardn.conf, so sshd uses it",
+      "source": "/etc/ssh/sshd_config.d/50-cloud-init.conf:1",
+      "control": "ssh.port",
+      "change": "ssh.port/files"
+    }
+  ],
+  "errors": []
+}

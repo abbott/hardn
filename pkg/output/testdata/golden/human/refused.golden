@@ -1,0 +1,46 @@
+# Golden file of TestHuman/refused, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbe rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port␛[m$
+      ␛[38;2;129;134;156m2230 through, then run `systemctl daemon-reload` and␛[m$
+      ␛[38;2;129;134;156m`systemctl restart ssh.socket`, check that a new SSH␛[m$
+      ␛[38;2;129;134;156mconnection to port 2230 works, and run hardn again.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# [!] Operation Failed$
+# /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
+# sets ssh.socket to port 2230, but it never took effect:$
+# ssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-$
+# reload since it was written, D9). Migrating it now could not$
+# be rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)$
+$
+  [i] Info: To go on: first make sure the firewall lets port$
+      2230 through, then run `systemctl daemon-reload` and$
+      `systemctl restart ssh.socket`, check that a new SSH$
+      connection to port 2230 works, and run hardn again.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [0.0.0.0:22 [::]:22]␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(no daemon-reload since it was written, D9). Migrating it␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mnow could not be rolled back␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port␛[m$
+      ␛[38;2;129;134;156m2230 through, then run `systemctl daemon-reload` and␛[m$
+      ␛[38;2;129;134;156m`systemctl restart ssh.socket`, check that a new SSH␛[m$
+      ␛[38;2;129;134;156mconnection to port 2230 works, and run hardn again.␛[m$
+$
