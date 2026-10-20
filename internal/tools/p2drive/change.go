@@ -309,8 +309,9 @@ func (d *driver) showPlan(lc lockout) {
 }
 
 // apply carries lc out under confirm-or-revert, in docs/safety/revert.md
-// §7's order: the boot unit (revert-boot.md), Arm (the timer starts before
-// the first step), then each step
+// §7's order, under the run lock (revert.LockRun): the boot unit
+// (revert-boot.md), Arm (the timer starts before the first step), then
+// each step
 // journalled before it takes effect (Record), the firewall first (brief 2.3
 // step 2), the sshd files after their backups, the reload and the check of
 // the listener and of the values; MarkApplied last. A step that fails rolls
@@ -323,6 +324,14 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 	}
 	opts := d.revertOptions(o.hardn)
 	d.sayHardn(ctx, o.hardn)
+	// The run lock, as the engine holds it for an apply (engine-boot.md
+	// §2.2): `hardn rollback --boot`, run by hand between the boot unit's
+	// install and Arm, would find nothing journalled and remove the unit.
+	unlock, err := revert.LockRun(ctx, d.sys, opts, "p2drive, change "+lc.id)
+	if err != nil {
+		return fmt.Errorf("not applied: %w", err)
+	}
+	defer func() { _ = unlock() }()
 	run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, lc.id)
 	if err != nil {
 		return fmt.Errorf("not applied: %w", err)

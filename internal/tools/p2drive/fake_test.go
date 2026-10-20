@@ -545,7 +545,7 @@ func (v *vm) changes() []string {
 	for _, c := range v.f.Calls() {
 		switch c.Op {
 		case "write-atomic", "write-in-place", "remove", "removeall", "rename", "chmod", "chown", "mkdir":
-			if !strings.HasPrefix(c.Path, runRoot+"/") {
+			if c.Path != runRoot && !strings.HasPrefix(c.Path, runRoot+"/") {
 				out = append(out, c.String())
 			}
 		case "run":
