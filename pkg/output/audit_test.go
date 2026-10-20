@@ -6,9 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io/fs"
+	"path"
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
@@ -94,5 +97,46 @@ func TestAppendRefuses(t *testing.T) {
 				t.Errorf("a log was written: %q", e.Data)
 			}
 		})
+	}
+}
+
+// swapHost puts another user's directory in place of the audit log's
+// directory between Append's check of it and the append, as a member of a
+// group that can write /var/log could.
+type swapHost struct{ *hostfake.System }
+
+func (h swapHost) AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error {
+	h.AddDir(path.Dir(name), 0o777, 1000, 1000)
+	return h.System.AppendFile(ctx, name, data, perm)
+}
+
+// TestAppendSwappedDir: a directory swapped in after the check is refused
+// on the directory the append opens, and nothing is written.
+func TestAppendSwappedDir(t *testing.T) {
+	sys := swapHost{hostfake.New(host.Options{})}
+	sys.AddDir("/var/log", 0o755, 0, 0)
+	err := output.Append(context.Background(), sys, output.AuditPath, output.NewRecord(fixtures()[0].run, fixtureNow))
+	if !errors.Is(err, output.ErrAuditDir) || !errors.Is(err, host.ErrUntrustedDir) || output.CodeOf(err) != "AUDIT_DIR_UNSAFE" {
+		t.Errorf("Append = %v (%s), want ErrAuditDir", err, output.CodeOf(err))
+	}
+	if _, ok := sys.Entry(output.AuditPath); ok {
+		t.Error("a record was written")
+	}
+}
+
+// TestAppendInterrupted: the record of a run ended by Ctrl-C, whose
+// context is done, is written all the same.
+func TestAppendInterrupted(t *testing.T) {
+	sys := hostfake.New(host.Options{})
+	sys.AddDir("/var/log", 0o755, 0, 0)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	ae := &engine.ApplyError{ID: fixtureID, Change: "ssh.port/reload", Step: engine.StepStart, Err: context.Canceled}
+	rec := output.NewRecord(output.Run{Mode: output.ModeApply, Plan: portPlan(), Result: &engine.Result{ID: fixtureID, Failed: ae}, Err: ae}, fixtureNow)
+	if err := output.Append(ctx, sys, output.AuditPath, rec); err != nil {
+		t.Fatal(err)
+	}
+	if e, ok := sys.Entry(output.AuditPath); !ok || !bytes.Contains(e.Data, []byte(`"outcome":"cancelled"`)) {
+		t.Errorf("the record: %q", e.Data)
 	}
 }

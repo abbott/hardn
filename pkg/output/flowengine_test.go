@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -190,38 +191,70 @@ func TestFlowEngineRefused(t *testing.T) {
 }
 
 // TestFlowEngineInAFlow runs pkg/ui/flow's canonical flow on the adapter:
-// planned, confirmed with y, applied, as a person sees it; then the same
-// action again, which has nothing to change; then a run aborted at the
-// confirmation (the end of the input), which is 130.
+// a dry run, then planned, confirmed with y, applied, as a person sees it;
+// then the same action again, which has nothing to change, as an apply
+// and as a dry run; then a run aborted at the confirmation (the end of the
+// input), which is 130; then declined with n, and quit with q, which are 3
+// and no error.
 func TestFlowEngineInAFlow(t *testing.T) {
 	sys := newFlowHost()
 	env := plainEnv()
 	confirm := func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Apply these changes?"} }
-	run := func(lines ...string) (output.Run, string) {
+	run := func(dryRun bool, lines ...string) (output.Run, string) {
 		a := newAdapter(sys, exampleControl{})
+		a.DryRun = dryRun
 		var out bytes.Buffer
 		p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, lines...), false), Out: env.Writer(&out)}
-		o, err := flow.Flow{Engine: a, Confirm: confirm}.Run(context.Background(), p)
+		o, err := flow.Flow{Engine: a, Confirm: confirm, DryRun: dryRun}.Run(context.Background(), p)
 		return a.Run(o, err), out.String()
 	}
-	r, out := run("y")
+	r, _ := run(true)
+	if d := output.Build(r); d.Mode != output.ModePlan || d.Result.Outcome != output.OutcomeChangesNeeded || output.ExitCode(r) != output.ExitChanges {
+		t.Errorf("dry run: %s %+v", d.Mode, d.Result)
+	}
+	r, out := run(false, "y")
 	if output.ExitCode(r) != output.ExitOK || !strings.Contains(out, "Done: Listen on 192.0.2.20:443") || !strings.Contains(out, "Operation Successful") {
 		t.Errorf("exit %d:\n%s", output.ExitCode(r), out)
 	}
-	r, out = run()
-	if d := output.Build(r); d.Mode != output.ModePlan || d.Result.Outcome != output.OutcomeNothingToDo || !strings.Contains(out, "Nothing needs changing.") {
-		t.Errorf("again: %+v\n%s", d.Result, out)
+	r, out = run(false)
+	if d := output.Build(r); d.Mode != output.ModeApply || d.Result.Outcome != output.OutcomeNothingToDo || !strings.Contains(out, "Nothing needs changing.") {
+		t.Errorf("again: %s %+v\n%s", d.Mode, d.Result, out)
+	}
+	r, _ = run(true)
+	if d := output.Build(r); d.Mode != output.ModePlan || d.Result.Outcome != output.OutcomeNothingToDo {
+		t.Errorf("again, a dry run: %s %+v", d.Mode, d.Result)
 	}
 	sys.AddFile(exampleConf, []byte("listen 80\n"), 0o644, 0, 0)
-	r, _ = run()
+	r, _ = run(false)
 	if output.ExitCode(r) != output.ExitInterrupted || output.Build(r).Errors[0].Code != "CANCELLED" {
 		t.Errorf("aborted: exit %d, %+v", output.ExitCode(r), output.Build(r).Errors)
 	}
-	r, _ = run("n")
-	if d := output.Build(r); output.ExitCode(r) != output.ExitChanges || d.Result.Outcome != output.OutcomeChangesNeeded {
-		t.Errorf("declined: exit %d, %+v", output.ExitCode(r), d.Result)
+	for _, answer := range []string{"n", "q"} {
+		r, _ = run(false, answer)
+		if d := output.Build(r); output.ExitCode(r) != output.ExitChanges || d.Result.Outcome != output.OutcomeDeclined || len(d.Errors) != 0 {
+			t.Errorf("%s: exit %d, %+v, errors %+v", answer, output.ExitCode(r), d.Result, d.Errors)
+		}
 	}
 	if e, _ := sys.Entry(exampleConf); string(e.Data) != "listen 80\n" {
 		t.Errorf("declined, yet changed: %q", e.Data)
+	}
+	// Back (0) from the form's first field ends the flow before the plan.
+	r = newAdapter(sys, exampleControl{}).Run(flow.NotRun, nav.ErrBack)
+	if d := output.Build(r); output.ExitCode(r) != output.ExitChanges || d.Result.Outcome != output.OutcomeDeclined || len(d.Errors) != 0 {
+		t.Errorf("back: exit %d, %+v, errors %+v", output.ExitCode(r), d.Result, d.Errors)
+	}
+}
+
+// TestAfterFlow pins what AfterFlow adds below a flow that applied the
+// port plan, waiting for confirmation: the countdown, when it is rolled
+// back ("at about"), how to undo it, and the plan's finding.
+func TestAfterFlow(t *testing.T) {
+	fx := fixtures()[3]
+	uitest.Golden(t, "human/after-flow", uitest.Core(), func(env term.Env) string {
+		return output.AfterFlow(env, fx.run, fixtureNow)
+	})
+	if got := output.AfterFlow(plainEnv(), output.Run{Mode: output.ModeApply, Plan: &engine.Plan{ID: fixtureID},
+		Result: &engine.Result{Nothing: true}}, fixtureNow); got != "" {
+		t.Errorf("nothing to add: %q", got)
 	}
 }

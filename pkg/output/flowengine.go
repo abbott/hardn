@@ -28,6 +28,11 @@ import (
 // shown plan's Change.Apply functions are never wrapped. A plan is applied
 // once (engine.ErrPlanUsed): Apply never retries; a caller that wants to
 // try again runs the flow again, which plans again.
+//
+// After Flow.Run returns, the caller writes AfterFlow(env, a.Run(o, err),
+// now) on the flow's writer: the flow ends an apply with "Operation
+// Successful", and a lockout-risk change waiting for confirmation needs
+// its countdown, its deadline and the confirm command shown after it.
 type FlowEngine struct {
 	Engine   *engine.Engine
 	Controls []engine.Control
@@ -35,6 +40,10 @@ type FlowEngine struct {
 	// LogPath is the log the run log goes to, which an ErrorReport names;
 	// "" names none.
 	LogPath string
+	// DryRun is the flow's (flow.Flow.DryRun), so that Run tells a dry
+	// run that found nothing to change (ModePlan) from an apply that did
+	// (ModeApply): the flow returns Unchanged for both.
+	DryRun bool
 
 	mu     sync.Mutex
 	report flow.Report
@@ -113,17 +122,19 @@ func (a *FlowEngine) Apply(ctx context.Context, report flow.Report) error {
 	return nil
 }
 
-// Run is what the flow did, for Build, ExitCode, Human's report and the
-// audit log: the plan, the result and the error, with the flow's outcome
-// and error (flow.Flow.Run's). A dry run is ModePlan; a declined
-// confirmation is Declined; a flow that ended before a result has its
-// error (prompt.ErrAborted is CANCELLED).
+// Run is what the flow did, for Build, ExitCode, AfterFlow and the audit
+// log: the plan, the result and the error, with the flow's outcome and
+// error (flow.Flow.Run's). A dry run is ModePlan (Planned, or Unchanged
+// with DryRun); a declined confirmation is Declined; a flow that ended
+// before a result has its error: prompt.ErrAborted is CANCELLED (130), and
+// nav.ErrQuit and nav.ErrBack, q or 0 at a prompt, are declining (3, not
+// an error).
 func (a *FlowEngine) Run(o flow.Outcome, flowErr error) Run {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	r := Run{Mode: ModeApply, Plan: a.plan, Result: a.result, Err: a.err}
 	switch {
-	case o == flow.Planned || o == flow.Unchanged:
+	case o == flow.Planned || (o == flow.Unchanged && a.DryRun):
 		r.Mode = ModePlan
 	case o == flow.Cancelled:
 		r.Declined = true
@@ -152,7 +163,7 @@ func (a *FlowEngine) failure(err error) *flow.Failure {
 		}
 	}
 	if rb := d.Result.Rollback; rb != nil {
-		f.Next = strings.TrimSpace(f.Next + " " + rollbackNext(*rb))
+		f.Next = strings.TrimSpace(f.Next + " " + rollbackNext(*rb, a.result.Failed))
 	}
 	var xe *host.ExitError
 	if errors.As(err, &xe) {

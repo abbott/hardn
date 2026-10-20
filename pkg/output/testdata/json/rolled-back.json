@@ -47,7 +47,6 @@
       "undone": [
         "delete the ufw rule for 2230/tcp that hardn added"
       ],
-      "unjournalled": "",
       "command": ""
     },
     "boot": {

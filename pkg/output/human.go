@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -27,6 +26,10 @@ const nothingToChange = "Nothing needs changing."
 // a refusal by its Why, and its Fix as the next step. now is the clock the
 // countdown counts from. It is pure: the caller writes the string through
 // env.Writer, in one write.
+//
+// Human is for a run no flow drew. After pkg/ui/flow's Flow.Run, which has
+// drawn the plan, the steps and the result, write AfterFlow instead: what
+// the flow does not draw.
 func Human(env term.Env, r Run, now time.Time) string {
 	c, d := component.NewCtx(env), Build(r)
 	var blocks []string
@@ -93,9 +96,11 @@ func planBlock(c component.Ctx, r Run, d Document) string {
 // stepStates are the components' states of the schema's change statuses,
 // as pkg/ui/flow's Apply step left them: a change rolled back after the
 // failure was done, and the ErrorReport names it rolled back.
+// A change whose state is unknown was done, and was never reported rolled
+// back.
 var stepStates = map[string]component.StepState{StatusApplied: component.StepDone, StatusRolledBack: component.StepDone,
-	StatusFailed: component.StepFailed, StatusUnjournalled: component.StepFailed, StatusNotRun: component.StepSkipped,
-	StatusPlanned: component.StepPending}
+	StatusUnknown: component.StepDone, StatusFailed: component.StepFailed, StatusUnjournalled: component.StepFailed,
+	StatusNotRun: component.StepSkipped, StatusPlanned: component.StepPending}
 
 // applyBlocks is an apply's: the steps, then how it ended.
 func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
@@ -103,6 +108,12 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	switch {
 	case res.Outcome == OutcomeNothingToDo:
 		return []string{component.Message{Text: nothingToChange}.Render(c)}
+	case res.Outcome == OutcomeDeclined:
+		blocks := []string{component.Callout{Kind: component.MessageCancelled}.Render(c)}
+		if r.Plan != nil && !r.Plan.Empty() {
+			blocks = append([]string{planBlock(c, r, d)}, blocks...)
+		}
+		return blocks
 	case r.Result == nil:
 		return []string{planBlock(c, r, d)}
 	}
@@ -110,8 +121,8 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	var undone []string
 	for _, ch := range d.Changes {
 		step := component.Step{Title: ch.Summary, State: stepStates[ch.Status]}
-		if ch.Status == StatusFailed || ch.Status == StatusUnjournalled {
-			step.Detail = CodeOf(failedErr(r, ch.ID))
+		if err := failedErr(r, ch.ID); err != nil {
+			step.Detail = CodeOf(err)
 		}
 		sp.Steps = append(sp.Steps, step)
 		if ch.Status == StatusRolledBack {
@@ -122,7 +133,7 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	blocks := []string{sp.Render(c)}
 	switch {
 	case res.Rollback != nil:
-		blocks = append(blocks, errorsBlock(c, d, r.Result.Failed.Err, undone, rollbackNext(*res.Rollback)))
+		blocks = append(blocks, errorsBlock(c, d, r.Result.Failed.Err, undone, rollbackNext(*res.Rollback, r.Result.Failed)))
 	case res.Confirm != nil:
 		blocks = append(blocks, countdown(c, *res.Confirm, res.ID, now)...)
 	case len(d.Errors) == 0:
@@ -131,34 +142,70 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	return blocks
 }
 
-// failedErr is the error of the change id that failed.
+// failedErr is the error that stopped the apply at change id, the one
+// rule for a step's code, as the ErrorReport and the flow's progress
+// (FlowEngine.Progress) give it too: the boot unit's, or the ApplyError's
+// step's error for the change it names (failed, not run, or unjournalled);
+// nil for any other change.
 func failedErr(r Run, id string) error {
-	if res := r.Result; res != nil {
-		if res.Boot != nil && res.Boot.Err != nil && id == engine.BootChangeID {
-			return res.Boot.Err
-		}
-		if f := res.Failed; f != nil {
-			if f.Unjournalled != nil && f.Unjournalled.Change == id {
-				return engine.ErrUnjournalled
-			}
-			return f.Err
-		}
+	res := r.Result
+	switch {
+	case res == nil:
+		return nil
+	case res.Boot != nil && res.Boot.Err != nil && id == engine.BootChangeID:
+		return res.Boot.Err
+	case res.Failed != nil && res.Failed.Change == id && id != "":
+		return res.Failed.Err
+	case res.Failed != nil && res.Failed.Unjournalled != nil && res.Failed.Unjournalled.Change == id:
+		return res.Failed.Err
 	}
 	return nil
 }
 
-// rollbackNext is the next step after a failed apply: finishing its
-// rollback when it did not finish here.
-func rollbackNext(rb Rollback) string {
+// rollbackNext is the next step after the failed apply ae: finishing its
+// rollback when it did not finish here, or waiting for the process that
+// has it; and checking a change the journal did not cover, with what
+// undoes it.
+func rollbackNext(rb Rollback, ae *engine.ApplyError) string {
+	var next []string
 	switch {
 	case rb.Command != "":
-		return "The rollback did not finish: run " + rb.Command + " to finish it."
+		next = append(next, "The rollback did not finish: run "+rb.Command+" to finish it.")
+	case rb.ByAnotherProcess && ae != nil && ae.Rollback.Nothing:
+		next = append(next, "Another hardn process had taken the change, so this run undid nothing: "+strings.TrimSuffix(ae.Rollback.Why, ".")+".")
 	case rb.ByAnotherProcess:
-		return "Another hardn process is rolling the change back; wait for it to end."
-	case rb.Unjournalled != "":
-		return "What " + rb.Unjournalled + " did may be left on the host: check it, as the error says."
+		next = append(next, "Another hardn process is rolling the change back; wait for it to end.")
 	}
-	return ""
+	if u := rb.Unjournalled; u != nil {
+		next = append(next, "What "+u.Change+" did may be left on the host: check it, and undo it if it is: "+unjournalledWords(*u)+".")
+	}
+	return strings.Join(next, " ")
+}
+
+// AfterFlow renders, for a person, what pkg/ui/flow does not draw of run
+// r, the Run of FlowEngine.Run: for a lockout-risk change waiting for
+// confirmation, the confirm countdown counted from now, when it is rolled
+// back unless confirmed ("at about" when the deadline is approximate) and
+// how to undo it now; and the plan's findings as warnings. The flow ends a
+// lockout-risk apply with "Operation Successful" alone, so a caller that
+// runs a flow on a FlowEngine must write AfterFlow on the flow's writer
+// right after Flow.Run returns, or the person never learns that the change
+// is rolled back unless confirmed. The string starts with the flow's gap
+// between blocks and ends with a line break, ready to write as it is; ""
+// when there is nothing to add.
+func AfterFlow(env term.Env, r Run, now time.Time) string {
+	c, d := component.NewCtx(env), Build(r)
+	var blocks []string
+	if cf := d.Result.Confirm; cf != nil && r.Mode == ModeApply {
+		blocks = append(blocks, countdown(c, *cf, d.Result.ID, now)...)
+	}
+	blocks = append(blocks, findingsBlock(c, d.Findings))
+	blocks = slices.DeleteFunc(blocks, func(b string) bool { return b == "" })
+	if len(blocks) == 0 {
+		return ""
+	}
+	gap := strings.Repeat("\n", theme.SectionGap)
+	return gap + strings.Join(blocks, gap+"\n") + "\n"
 }
 
 // countdown is a change waiting for confirmation: the confirm countdown,
@@ -192,7 +239,8 @@ func onePort(via []string) int {
 }
 
 // findingsBlock is each finding as a warning, with its code and source;
-// the configuration's deprecated values are Deprecations', on stderr.
+// the configuration's deprecated values are cmd/hardn's warning, on stderr
+// as the configuration loads.
 func findingsBlock(c component.Ctx, fs []Finding) string {
 	var lines []string
 	for _, f := range fs {
@@ -257,24 +305,4 @@ func errorText(d Document, e Error) string {
 		}
 	}
 	return text
-}
-
-// Deprecations renders the configuration's values read in a deprecated
-// form (config.Deprecation: refactor plan §3.17, approved, a bool
-// permitRootLogin) as warnings, each after the file it was read from, for
-// stderr; "" when there are none.
-func Deprecations(env term.Env, path string, deps []config.Deprecation) string {
-	c := component.NewCtx(env)
-	var lines []string
-	for _, d := range deps {
-		text := d.String()
-		if path != "" {
-			text = path + ": " + text
-		}
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: text}.Render(c))
-	}
-	if len(lines) == 0 {
-		return ""
-	}
-	return strings.Join(lines, "\n") + "\n"
 }

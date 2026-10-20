@@ -53,6 +53,12 @@ type Interaction struct {
 // without a terminal. Otherwise Ask. It is a library function: nothing in
 // cmd/hardn calls it yet (§3.11 is not approved; docs/engine/output.md says
 // where it is wired).
+//
+// It decides how changes are confirmed, so it applies to a plan with
+// changes: a plan with nothing to change asks nothing, applies nothing and
+// exits 0, and a run given ErrConfirmationRequired with such a plan is
+// built as nothing to do, not as an error (so that a cron job on a hardened
+// host exits 0).
 func Confirmation(in Interaction) (Decision, error) {
 	switch {
 	case in.Yes:

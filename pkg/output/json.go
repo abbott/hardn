@@ -2,7 +2,6 @@ package output
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -50,37 +49,30 @@ const (
 	FormatJSON                // the JSON document on stdout (brief Phase 3)
 )
 
-// Streams are where a run writes: stdout and stderr, each with the
-// render environment detected for it (term.Detect).
+// Streams are where a run's report goes: stdout, with the render
+// environment detected for it (term.Detect).
 type Streams struct {
 	Stdout io.Writer
 	Out    term.Env
-	Stderr io.Writer
-	Err    term.Env
 }
 
-// Emit writes run r's report. Human output that is not the report (the
-// configuration's deprecated values) goes to stderr, in either format. As
-// FormatJSON, stdout gets exactly one JSON document and nothing else, so a
-// script can parse it whole; everything for a person goes to stderr. As
-// FormatHuman, stdout gets Human's report through s.Out's writer. now is
-// the countdown's clock.
+// Emit writes run r's report on stdout. As FormatJSON, stdout gets exactly
+// one JSON document and nothing else, so a script can parse it whole;
+// Emit writes nothing for a person, and what a caller shows a person
+// besides (progress, notices) goes to stderr. As FormatHuman, stdout gets
+// Human's report through s.Out's writer; after a flow, write AfterFlow
+// instead. The configuration's deprecated values are findings of the
+// document (CONFIG_DEPRECATED_VALUE), and not warned about here: the
+// warning on stderr is cmd/hardn's, once, as the configuration loads
+// (refactor plan §3.17). now is the countdown's clock.
 func Emit(s Streams, f Format, r Run, now time.Time) error {
-	var errs []error
-	if w := Deprecations(s.Err, r.ConfigPath, r.Deprecations); w != "" {
-		if _, err := io.WriteString(s.Err.Writer(s.Stderr), w); err != nil {
-			errs = append(errs, fmt.Errorf("output: stderr: %w", err))
+	if f == FormatJSON {
+		return WriteJSON(s.Stdout, Build(r))
+	}
+	if h := Human(s.Out, r, now); h != "" {
+		if _, err := io.WriteString(s.Out.Writer(s.Stdout), h); err != nil {
+			return fmt.Errorf("output: stdout: %w", err)
 		}
 	}
-	switch f {
-	case FormatJSON:
-		errs = append(errs, WriteJSON(s.Stdout, Build(r)))
-	default:
-		if h := Human(s.Out, r, now); h != "" {
-			if _, err := io.WriteString(s.Out.Writer(s.Stdout), h); err != nil {
-				errs = append(errs, fmt.Errorf("output: stdout: %w", err))
-			}
-		}
-	}
-	return errors.Join(errs...)
+	return nil
 }

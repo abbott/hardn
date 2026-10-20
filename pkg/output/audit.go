@@ -41,18 +41,29 @@ func NewRecord(r Run, at time.Time) Record {
 	return Record{Time: at.UTC(), Document: Build(r)}
 }
 
+// AuditTimeout bounds Append, which runs without the caller's cancellation.
+const AuditTimeout = 10 * time.Second
+
 // Append appends rec to the audit log at path (AuditPath in production)
 // through sys, as one line: its directory made when missing (AuditDirMode)
 // and refused unless it is a directory owned by root that neither its group
 // nor others can write (ErrAuditDir), then sys.AppendFile (AuditFileMode
-// when it creates the file), which refuses a symlink, a file that is not
-// regular and a hard link in an untrusted directory, and appends with
-// O_APPEND, so two runs never overwrite each other's lines.
+// when it creates the file), which checks the directory again on the one
+// it opens (host.ErrUntrustedDir, wrapped in ErrAuditDir), so that a
+// directory swapped in after the check is refused too; it refuses a
+// symlink and a file that is not regular, and appends with O_APPEND, so
+// two runs never overwrite each other's lines.
+//
+// It runs without ctx's cancellation, bounded by AuditTimeout: a run ended
+// by Ctrl-C, SIGTERM or a hangup (signal.NotifyContext's context done) is
+// the run its record matters most for, and it is written all the same.
 func Append(ctx context.Context, sys host.System, path string, rec Record) error {
 	line, err := marshal(rec, "")
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), AuditTimeout)
+	defer cancel()
 	dir := filepath.Dir(path)
 	if err := sys.MkdirAll(ctx, dir, AuditDirMode); err != nil {
 		return fmt.Errorf("output: audit log: %w", err)
@@ -64,7 +75,10 @@ func Append(ctx context.Context, sys host.System, path string, rec Record) error
 	if uid, _, ok := host.Owner(fi); !fi.IsDir() || !ok || uid != 0 || fi.Mode().Perm()&0o022 != 0 {
 		return fmt.Errorf("output: audit log %s: %w", dir, ErrAuditDir)
 	}
-	if err := sys.AppendFile(ctx, path, line, AuditFileMode); err != nil {
+	switch err := sys.AppendFile(ctx, path, line, AuditFileMode); {
+	case errors.Is(err, host.ErrUntrustedDir):
+		return fmt.Errorf("output: audit log %s: %w: %w", dir, ErrAuditDir, err)
+	case err != nil:
 		return fmt.Errorf("output: audit log: %w", err)
 	}
 	return nil

@@ -32,7 +32,7 @@ func (o Outcome) Exit() int {
 	switch o {
 	case OutcomeNothingToDo, OutcomeApplied, OutcomeAwaiting:
 		return ExitOK
-	case OutcomeChangesNeeded:
+	case OutcomeChangesNeeded, OutcomeDeclined:
 		return ExitChanges
 	case OutcomeUsage:
 		return ExitUsage
@@ -46,14 +46,16 @@ func (o Outcome) Exit() int {
 // and errors, the same that Build writes as result.exitCode.
 //
 //   - 130 when anything in the run was interrupted (CANCELLED), whatever
-//     else failed;
+//     else failed, a rollback that did not finish included: the outcome,
+//     cancelled, says nothing of it, Rollback.Finished and Command do;
 //   - 2 for a usage error (a code whose Entry.Exit is ExitUsage);
 //   - 1 for any other error: an apply that failed (rolled back or not), a
 //     refused plan, an error before anything was armed, a check that
 //     failed;
 //   - 3 when a check found a control not as asked (not configured,
 //     partial, or unknown: a state not established is not taken as
-//     hardened), when a plan has changes, and when the user declined them;
+//     hardened), when a plan has changes, and when the user declined them
+//     or quit (q) or went back (0) before they were applied;
 //   - 0 otherwise: nothing to change, or every change applied (waiting
 //     for confirmation included).
 func ExitCode(r Run) int { return outcomeOf(r).Exit() }
@@ -90,7 +92,7 @@ func outcomeOf(r Run) Outcome {
 		return OutcomeRolledBack
 	case res != nil && res.Failed != nil:
 		return OutcomeRollbackIncomplete
-	case res == nil || r.Declined:
+	case res == nil || r.declined():
 		return planOutcome(r, exit)
 	case exit != ExitOK && refused(r):
 		return OutcomeRefused
@@ -105,12 +107,16 @@ func outcomeOf(r Run) Outcome {
 }
 
 // planOutcome is the outcome of a plan that was not applied: refused, an
-// error, no changes, or changes to make.
+// error, declined, no changes, or changes to make.
 func planOutcome(r Run, exit int) Outcome {
 	switch {
 	case refused(r):
 		return OutcomeRefused
-	case exit != ExitOK || r.Plan == nil:
+	case exit != ExitOK:
+		return OutcomeFailed
+	case r.declined():
+		return OutcomeDeclined
+	case r.Plan == nil:
 		return OutcomeFailed
 	case r.Plan.Empty():
 		return OutcomeNothingToDo

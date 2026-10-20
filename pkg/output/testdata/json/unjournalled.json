@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "",
+  "host": {
+    "hostname": "",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "apply",
+  "result": {
+    "outcome": "rollback-incomplete",
+    "exitCode": 1,
+    "id": "20261019T120000Z-1a2b3c4d",
+    "risk": "plain",
+    "rollback": {
+      "finished": false,
+      "byAnotherProcess": false,
+      "step": "journal-after",
+      "change": "ssh.port/files",
+      "restored": [
+        "/etc/ssh/sshd_config.d/00-hardn.conf"
+      ],
+      "undone": [
+        "delete the ufw rule for 2230/tcp that hardn added"
+      ],
+      "unjournalled": {
+        "change": "ssh.port/files",
+        "undo": [
+          "systemctl reload ssh.service"
+        ],
+        "backups": [
+          {
+            "path": "/etc/ssh/sshd_config.d/00-hardn.conf",
+            "seq": 1
+          }
+        ],
+        "dir": "/var/backups/hardn/20261019T120000Z-1a2b3c4d",
+        "why": "revert: write /var/lib/hardn/pending.json: no space left on device"
+      },
+      "command": ""
+    }
+  },
+  "changes": [
+    {
+      "id": "ssh.port/firewall",
+      "control": "ssh.port",
+      "summary": "Allow 2230/tcp in ufw before sshd listens on it",
+      "target": "ufw",
+      "risk": "plain",
+      "stage": "firewall",
+      "after": [],
+      "diff": "",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [
+        "ufw allow 2230/tcp"
+      ],
+      "backups": [],
+      "status": "rolled-back",
+      "detail": "ran"
+    },
+    {
+      "id": "ssh.port/files",
+      "control": "ssh.port",
+      "summary": "Write 00-hardn.conf",
+      "target": "/etc/ssh/sshd_config.d/00-hardn.conf",
+      "risk": "plain",
+      "stage": "files",
+      "after": [],
+      "diff": "--- /etc/ssh/sshd_config.d/00-hardn.conf\n+++ /etc/ssh/sshd_config.d/00-hardn.conf\n@@ -1,2 +1,3 @@\n # Managed by hardn\n Port 22\n+Port 2230\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [
+        "/etc/ssh/sshd_config.d/00-hardn.conf"
+      ],
+      "status": "unjournalled",
+      "detail": "revert: write /var/lib/hardn/pending.json: no space left on device"
+    }
+  ],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "UNCLASSIFIED_ERROR",
+      "message": "revert: write /var/lib/hardn/pending.json: no space left on device",
+      "control": "ssh.port",
+      "change": "ssh.port/files",
+      "step": "journal-after",
+      "why": "",
+      "fix": ""
+    },
+    {
+      "code": "CHANGE_UNJOURNALLED",
+      "message": "ssh.port/files ran, and the journal does not hold what undoes it (revert: write /var/lib/hardn/pending.json: no space left on device), so what it did may be left: systemctl reload ssh.service; restore /etc/ssh/sshd_config.d/00-hardn.conf from backup 1 in /var/backups/hardn/20261019T120000Z-1a2b3c4d",
+      "control": "ssh.port",
+      "change": "ssh.port/files",
+      "step": "journal-after",
+      "why": "",
+      "fix": ""
+    }
+  ]
+}

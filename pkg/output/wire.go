@@ -97,11 +97,13 @@ type Result struct {
 	Risk string `json:"risk"`
 	// Confirm is set while a lockout-risk change waits for confirmation.
 	Confirm *Confirm `json:"confirm,omitempty"`
-	// Rollback is set when an apply stopped after the revert timer was
-	// armed: what rolling it back did.
+	// Rollback is set when an apply stopped once its change was
+	// journalled (an engine.ApplyError, whatever the plan's risk): what
+	// rolling it back did.
 	Rollback *Rollback `json:"rollback,omitempty"`
-	// Boot is set when the apply installed hardn's boot unit, before the
-	// change was armed: it is never rolled back.
+	// Boot is set when the apply ran the install of hardn's boot unit,
+	// before the change was journalled, whether it finished (Installed) or
+	// not: it is never rolled back.
 	Boot *Boot `json:"boot,omitempty"`
 }
 
@@ -113,13 +115,14 @@ const (
 	OutcomeNothingToDo        Outcome = "nothing-to-do"         // 0: everything as asked; a plan with no changes
 	OutcomeApplied            Outcome = "applied"               // 0: every change applied, none waiting
 	OutcomeAwaiting           Outcome = "awaiting-confirmation" // 0: applied, and rolled back at the deadline unless confirmed
-	OutcomeChangesNeeded      Outcome = "changes-needed"        // 3: a check or plan found changes to make, or the user declined them
+	OutcomeChangesNeeded      Outcome = "changes-needed"        // 3: a check or plan found changes to make
+	OutcomeDeclined           Outcome = "declined"              // 3: the user declined the changes, or quit (q) or went back (0) first; nothing applied
 	OutcomeRefused            Outcome = "refused"               // 1: the plan was refused; nothing changed
 	OutcomeFailed             Outcome = "failed"                // 1: an error before anything was armed; nothing journalled
-	OutcomeRolledBack         Outcome = "rolled-back"           // 1: the apply failed and was rolled back
-	OutcomeRollbackIncomplete Outcome = "rollback-incomplete"   // 1: the apply failed, and its rollback did not finish here
+	OutcomeRolledBack         Outcome = "rolled-back"           // 1: the apply failed and was rolled back, every change it started
+	OutcomeRollbackIncomplete Outcome = "rollback-incomplete"   // 1: the apply failed; its rollback did not finish here, another process had the change, or a change was not covered (Rollback says which)
 	OutcomeUsage              Outcome = "usage-error"           // 2: bad flags or configuration
-	OutcomeCancelled          Outcome = "cancelled"             // 130: interrupted; what was applied was rolled back
+	OutcomeCancelled          Outcome = "cancelled"             // 130: interrupted; Rollback.Finished and Rollback.Command say what became of an apply
 )
 
 // Confirm is how a change waiting for confirmation is kept or undone.
@@ -142,27 +145,54 @@ type Confirm struct {
 type Rollback struct {
 	// Finished: the rollback in this run finished and undid every change
 	// started. False when it did not finish (Command finishes it), when
-	// another process has it, or when a change ran that the journal did
-	// not cover (Unjournalled).
+	// another process had the change, or when a change ran that the
+	// journal did not cover (Unjournalled).
 	Finished bool `json:"finished"`
-	// ByAnotherProcess: another process's rollback (the timer's, a
-	// `hardn rollback <id>`) had taken the change; this run undid nothing.
+	// ByAnotherProcess: another process had taken the change (the timer's
+	// rollback, a `hardn rollback <id>`, a rollback given up, a
+	// confirmation), so this run undid nothing: its error, ROLLBACK_RUNNING,
+	// says which.
 	ByAnotherProcess bool `json:"byAnotherProcess"`
 	// Step and Change are where the apply stopped: start, window, backup,
 	// journal, apply, journal-after, mark-applied, done; and the change
-	// that failed, "" for the apply's last write.
+	// that failed or, at start and window, that was next, "" for the
+	// apply's last write.
 	Step   string `json:"step"`
 	Change string `json:"change"`
 	// Restored are the files the rollback put back, Undone its inverse
 	// steps, in the order run.
 	Restored []string `json:"restored"`
 	Undone   []string `json:"undone"`
-	// Unjournalled names a change that ran whose undo the journal did not
-	// hold, with what would undo it; "" when none.
-	Unjournalled string `json:"unjournalled"`
-	// Command finishes an unfinished rollback; "" when there is none to
-	// finish.
+	// Unjournalled is a change that ran whose undo the journal did not
+	// hold, so the rollback did not run it; nil when none.
+	Unjournalled *Unjournalled `json:"unjournalled,omitempty"`
+	// Command finishes an unfinished rollback, in the host's elevation
+	// tool; "" when there is none to finish.
 	Command string `json:"command"`
+}
+
+// Unjournalled is a change that ran whose undo the journal did not hold
+// (engine.Unjournalled): what it did may be left on the host, and this is
+// what would undo it, for a person to check and run.
+type Unjournalled struct {
+	Change string `json:"change"`
+	// Undo is what undoes it, in the order to run: each command as its
+	// argv, a unit's kept plan as "the <unit> plan's rollback", another
+	// step as its operation and path, then each reload ("reload ssh").
+	Undo []string `json:"undo"`
+	// Backups are the files it wrote, each with its backup in Dir, the
+	// change's backup run directory, which restore them.
+	Backups []Backup `json:"backups"`
+	Dir     string   `json:"dir"`
+	// Why is why the journal does not hold it.
+	Why string `json:"why"`
+}
+
+// Backup is one file's backup in a backup run: its path, and its sequence
+// number in the run's manifest.
+type Backup struct {
+	Path string `json:"path"`
+	Seq  int    `json:"seq"`
 }
 
 // Boot is what the install of hardn's boot unit did.
@@ -185,7 +215,7 @@ type Change struct {
 	StateAfter  string   `json:"stateAfter"`
 	Commands    []string `json:"commands"`
 	Backups     []string `json:"backups"` // the files backed up before it runs
-	Status      string   `json:"status"`  // planned, applied, failed, rolled-back, not-run, unjournalled
+	Status      string   `json:"status"`  // planned, applied, failed, rolled-back, unknown, not-run, unjournalled
 	Detail      string   `json:"detail"`  // what it did, or why it failed
 }
 
@@ -195,7 +225,8 @@ const (
 	StatusApplied      = "applied"      // applied, and not rolled back
 	StatusFailed       = "failed"       // the change that failed (Result.Rollback says what was undone)
 	StatusRolledBack   = "rolled-back"  // applied, then undone by the rollback in this run
-	StatusNotRun       = "not-run"      // the apply stopped before it
+	StatusUnknown      = "unknown"      // applied; the rollback did not finish here or another process had it, so whether it stands is not established
+	StatusNotRun       = "not-run"      // the apply stopped before it started
 	StatusUnjournalled = "unjournalled" // ran, and the journal did not hold its undo: what it did may be left
 )
 
@@ -223,7 +254,7 @@ type Error struct {
 	Message string `json:"message"`
 	Control string `json:"control"` // the control it is about; "" for none
 	Change  string `json:"change"`  // the change it is about; "" for none
-	Step    string `json:"step"`    // the apply's step, as Rollback.Step; "rollback" for a rollback's error; "" otherwise
+	Step    string `json:"step"`    // the apply's step, as Rollback.Step, or boot-unit; "rollback" for a rollback's error; "" otherwise
 	// Why and Fix are a refusal's report: why the host is refused, and
 	// what makes it one hardn can change (steps.Refusal); "" otherwise.
 	Why string `json:"why"`

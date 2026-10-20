@@ -6,12 +6,15 @@ import (
 	"reflect"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
 // Run is what one run of hardn did, as the engine returned it: the input of
@@ -29,11 +32,14 @@ type Run struct {
 	// Result is Engine.Apply's, once it ran.
 	Result *engine.Result
 	// Declined: the user declined the plan at its confirmation, so
-	// nothing was applied (an interactive apply).
+	// nothing was applied (an interactive apply). A run whose Err is
+	// nav.ErrQuit or nav.ErrBack (q or 0 at one of the flow's prompts) is
+	// declined too, and that is not an error.
 	Declined bool
 	// Err is the run's error: Engine.Check's, Plan's or Apply's, a usage
 	// error, a cancellation. A plan's refusals need not be in it: Build
-	// reads Plan.Refused.
+	// reads Plan.Refused. An ApplyError may be wrapped: it is reported
+	// once, as Result.Failed.
 	Err error
 	// Deprecations are the configuration's (Config.Deprecations), read
 	// from ConfigPath.
@@ -50,6 +56,22 @@ func (r Run) facts() detect.Facts {
 		return r.Plan.Facts
 	}
 	return detect.Facts{}
+}
+
+// declined reports whether the user declined the run's changes: at the
+// confirmation (Declined), or by quitting (q) or going back (0) at one of
+// the flow's prompts before anything was applied (pkg/ui/flow returns
+// nav.ErrQuit or nav.ErrBack with NotRun).
+func (r Run) declined() bool { return r.Declined || navigated(r.Err) }
+
+// navigated reports whether err is the user quitting or going back.
+func navigated(err error) bool { return errors.Is(err, nav.ErrQuit) || errors.Is(err, nav.ErrBack) }
+
+// policyMoot reports whether r's error is the non-interactive policy's
+// refusal (ErrConfirmationRequired) for a plan with nothing to change:
+// nothing would have been applied, so it is not an error (Confirmation).
+func (r Run) policyMoot() bool {
+	return errors.Is(r.Err, ErrConfirmationRequired) && r.Plan != nil && r.Plan.Empty() && len(r.Plan.Refused) == 0
 }
 
 // Build maps run r to its document. It is pure.
@@ -98,7 +120,7 @@ func Build(r Run) Document {
 			d.Result.Confirm = confirmOf(*c, r.facts())
 		}
 		if res.Failed != nil {
-			d.Result.Rollback = rollbackOf(res.Failed)
+			d.Result.Rollback = rollbackOf(res.Failed, r.facts())
 		}
 		if b := res.Boot; b != nil {
 			d.Result.Boot = &Boot{Installed: b.Err == nil, Detail: b.Detail}
@@ -109,7 +131,14 @@ func Build(r Run) Document {
 
 // changeStatus returns each change's status by its id, from the run's
 // mode and result: planned for a check or plan; for an apply, from
-// Result.Applied, Result.Boot and Result.Failed (engine.md §7).
+// Result.Applied, Result.Boot and Result.Failed, as the engine's progress
+// events report them (engine.md §7, §2.15). A change done is rolled-back
+// when the rollback in this run finished (RollbackErr nil: the engine then
+// reports each done change but the unjournalled one rolled back), and
+// unknown when it did not finish or another process had the change, since
+// whether it still stands is then not established. The change an apply
+// stopped at before it started (StepStart, StepWindow) is not-run, with
+// why.
 func changeStatus(r Run) func(id string) (status, detail string) {
 	res := r.Result
 	if r.Mode != ModeApply || res == nil || res.Nothing {
@@ -130,16 +159,28 @@ func changeStatus(r Run) func(id string) (status, detail string) {
 		detail, ok := applied[id]
 		switch {
 		case f != nil && f.Unjournalled != nil && f.Unjournalled.Change == id:
-			return StatusUnjournalled, f.Unjournalled.Err.Error()
+			return StatusUnjournalled, errText(f.Unjournalled.Err)
+		case f != nil && f.Change == id && (f.Step == engine.StepStart || f.Step == engine.StepWindow):
+			return StatusNotRun, errText(f.Err)
 		case f != nil && f.Change == id:
-			return StatusFailed, f.Err.Error()
-		case ok && f != nil && errors.Is(f, engine.ErrRolledBack):
+			return StatusFailed, errText(f.Err)
+		case ok && f != nil && f.RollbackErr == nil:
 			return StatusRolledBack, detail
+		case ok && f != nil:
+			return StatusUnknown, detail
 		case ok:
 			return StatusApplied, detail
 		}
 		return StatusNotRun, ""
 	}
+}
+
+// errText is err's text; "" for nil.
+func errText(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 func changeOf(c engine.Change, status func(string) (string, string)) Change {
@@ -171,8 +212,10 @@ func elevation(f detect.Facts) string {
 	return "sudo"
 }
 
-// rollbackOf is what rolling back the failed apply ae did.
-func rollbackOf(ae *engine.ApplyError) *Rollback {
+// rollbackOf is what rolling back the failed apply ae did, on a host with
+// facts f: the command that finishes an unfinished rollback is in the
+// host's elevation tool, as the confirm command is.
+func rollbackOf(ae *engine.ApplyError, f detect.Facts) *Rollback {
 	rr := ae.Rollback
 	rb := &Rollback{Finished: errors.Is(ae, engine.ErrRolledBack), ByAnotherProcess: errors.Is(ae.RollbackErr, revert.ErrRollingBack),
 		Step: stepWord(ae.Step), Change: ae.Change, Restored: []string{}, Undone: []string{}}
@@ -187,12 +230,50 @@ func rollbackOf(ae *engine.ApplyError) *Rollback {
 		}
 	}
 	if u := ae.Unjournalled; u != nil {
-		rb.Unjournalled = u.Change
+		rb.Unjournalled = &Unjournalled{Change: u.Change, Undo: undoWords(u.Undo), Backups: []Backup{}, Dir: u.Dir, Why: errText(u.Err)}
+		for _, e := range u.Backups {
+			rb.Unjournalled.Backups = append(rb.Unjournalled.Backups, Backup{Path: e.Path, Seq: e.Seq})
+		}
 	}
 	if errors.Is(ae.RollbackErr, revert.ErrIncomplete) {
-		rb.Command = "sudo hardn rollback " + ae.ID
+		rb.Command = elevation(f) + " hardn rollback " + ae.ID
 	}
 	return rb
+}
+
+// undoWords are u's steps and reloads in words, in the order to run them,
+// as the engine names them (ApplyError's text): a command as its argv, a
+// unit's kept plan as its rollback, any other step as its operation and
+// path, then each reload.
+func undoWords(u engine.Undo) []string {
+	out := []string{}
+	for _, s := range u.Steps {
+		switch s.Op {
+		case revert.OpRun:
+			out = append(out, host.FormatArgv(s.Argv))
+		case revert.OpPlan:
+			out = append(out, "the "+s.Unit+" plan's rollback")
+		default:
+			out = append(out, string(s.Op)+" "+s.Path)
+		}
+	}
+	for _, r := range u.Reloads {
+		out = append(out, "reload "+string(r.Service))
+	}
+	return out
+}
+
+// unjournalledWords is what undoes the unjournalled change u in one line:
+// its undo, then each backup to restore.
+func unjournalledWords(u Unjournalled) string {
+	parts := slices.Clone(u.Undo)
+	for _, b := range u.Backups {
+		parts = append(parts, fmt.Sprintf("restore %s from backup %d in %s", b.Path, b.Seq, u.Dir))
+	}
+	if len(parts) == 0 {
+		return "nothing journalled undoes it"
+	}
+	return strings.Join(parts, "; ")
 }
 
 // errorsOf is every error of run r, each once: the check's, the plan's
@@ -233,6 +314,10 @@ func errorsOf(r Run) []Error {
 		}
 		if ae := res.Failed; ae != nil {
 			seen = append(seen, ae)
+			var wrapped *engine.ApplyError
+			if errors.As(r.Err, &wrapped) && wrapped == ae {
+				seen = append(seen, r.Err) // the run's error is the apply's, wrapped
+			}
 			e := errorOf(ae.Err, "", ae.Change)
 			e.Step = stepWord(ae.Step)
 			add(e, ae.Err)
@@ -241,14 +326,15 @@ func errorsOf(r Run) []Error {
 				e.Step = "rollback"
 				add(e, ae.RollbackErr)
 			}
-			if u := ae.Unjournalled; u != nil {
+			if rb := rollbackOf(ae, r.facts()); rb.Unjournalled != nil {
+				u := rb.Unjournalled
 				add(Error{Code: "CHANGE_UNJOURNALLED", Change: u.Change, Step: stepWord(ae.Step),
-					Message: fmt.Sprintf("%s ran, and the journal does not hold what undoes it (%v), so what it did may be left", u.Change, u.Err)},
+					Message: fmt.Sprintf("%s ran, and the journal does not hold what undoes it (%s), so what it did may be left: %s", u.Change, u.Why, unjournalledWords(*u))},
 					fmt.Errorf("unjournalled: %s", u.Change))
 			}
 		}
 	}
-	if err := r.Err; err != nil && !slices.ContainsFunc(seen, func(s error) bool { return sameErr(s, err) }) {
+	if err := r.Err; err != nil && !navigated(err) && !r.policyMoot() && !slices.ContainsFunc(seen, func(s error) bool { return sameErr(s, err) }) {
 		for _, one := range refusals(err) {
 			add(errorOf(one, owner[one.Error()], ""), one)
 		}
@@ -296,13 +382,18 @@ func refusals(err error) []error {
 	return out
 }
 
-// sameErr reports whether a and b are the same error value; never
-// comparing two values of a type that cannot be compared.
+// sameErr reports whether a and b are the same error value. Values of a
+// struct or array type are never compared: such a type is comparable even
+// when it holds an interface whose dynamic value is not, and comparing two
+// of those panics.
 func sameErr(a, b error) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	t := reflect.TypeOf(a)
+	if k := t.Kind(); k == reflect.Struct || k == reflect.Array {
+		return false
+	}
 	return t == reflect.TypeOf(b) && t.Comparable() && a == b
 }
 

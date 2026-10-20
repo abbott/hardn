@@ -9,9 +9,11 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -28,6 +30,8 @@ func TestExitCode(t *testing.T) {
 		RollbackErr: fmt.Errorf("revert: %w", revert.ErrIncomplete)}
 	elsewhere := &engine.ApplyError{ID: fixtureID, Step: engine.StepJournalAfter, Err: errors.New("x"), RollbackErr: revert.ErrRollingBack}
 	interrupted := &engine.ApplyError{ID: fixtureID, Change: "ssh.port/files", Step: engine.StepStart, Err: context.Canceled}
+	interruptedIncomplete := &engine.ApplyError{ID: fixtureID, Change: "ssh.port/files", Step: engine.StepStart, Err: context.Canceled,
+		RollbackErr: fmt.Errorf("revert: %w", revert.ErrIncomplete)}
 	confirm := &engine.Confirm{ID: fixtureID}
 	for _, tc := range []struct {
 		name    string
@@ -66,6 +70,10 @@ func TestExitCode(t *testing.T) {
 			1, output.OutcomeRollbackIncomplete},
 		{"apply: Ctrl-C, rolled back", output.Run{Mode: output.ModeApply, Plan: portPlan(), Result: &engine.Result{Failed: interrupted}, Err: interrupted},
 			130, output.OutcomeCancelled},
+		// The outcome says nothing of the rollback: result.rollback does
+		// (TestCancelledRollback).
+		{"apply: Ctrl-C, the rollback incomplete", output.Run{Mode: output.ModeApply, Plan: portPlan(), Result: &engine.Result{Failed: interruptedIncomplete},
+			Err: interruptedIncomplete}, 130, output.OutcomeCancelled},
 		{"apply: refused at plan time", output.Run{Mode: output.ModeApply, Plan: refused, Result: &engine.Result{}, Err: refused.Err()}, 1, output.OutcomeRefused},
 		{"apply: the plan changed under the lock", output.Run{Mode: output.ModeApply, Plan: portPlan(), Result: &engine.Result{},
 			Err: fmt.Errorf("engine: change %s: %w", fixtureID, engine.ErrPlanChanged)}, 1, output.OutcomeRefused},
@@ -73,7 +81,11 @@ func TestExitCode(t *testing.T) {
 			Err: fmt.Errorf("engine: %w", &revert.LockedError{Run: true, Err: host.ErrLocked})}, 1, output.OutcomeFailed},
 		{"apply: the boot unit not installed", output.Run{Mode: output.ModeApply, Plan: portPlan(),
 			Result: &engine.Result{Boot: &engine.BootInstall{Err: engine.ErrBootUnit}}, Err: engine.ErrBootUnit}, 1, output.OutcomeFailed},
-		{"apply: declined at the confirmation", output.Run{Mode: output.ModeApply, Plan: portPlan(), Declined: true}, 3, output.OutcomeChangesNeeded},
+		{"apply: declined at the confirmation", output.Run{Mode: output.ModeApply, Plan: portPlan(), Declined: true}, 3, output.OutcomeDeclined},
+		{"apply: quit (q) at the confirmation", output.Run{Mode: output.ModeApply, Plan: portPlan(), Err: nav.ErrQuit}, 3, output.OutcomeDeclined},
+		{"apply: quit (q) before the plan", output.Run{Mode: output.ModeApply, Err: nav.ErrQuit}, 3, output.OutcomeDeclined},
+		{"apply: back (0) from the form's first field", output.Run{Mode: output.ModeApply, Err: fmt.Errorf("form: %w", nav.ErrBack)}, 3, output.OutcomeDeclined},
+		{"no terminal and no yes, nothing to change: 0", output.Run{Mode: output.ModeApply, Plan: empty, Err: confirmationRequired()}, 0, output.OutcomeNothingToDo},
 		{"apply: a prompt aborted", output.Run{Mode: output.ModeApply, Plan: portPlan(), Err: prompt.ErrEndOfInput}, 130, output.OutcomeCancelled},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -83,6 +95,9 @@ func TestExitCode(t *testing.T) {
 			d := output.Build(tc.run)
 			if d.Result.Outcome != tc.outcome || d.Result.ExitCode != tc.exit || tc.outcome.Exit() != tc.exit {
 				t.Errorf("outcome %s (exit %d), want %s; errors %+v", d.Result.Outcome, d.Result.ExitCode, tc.outcome, d.Errors)
+			}
+			if (tc.outcome == output.OutcomeDeclined || tc.outcome == output.OutcomeNothingToDo) && len(d.Errors) > 0 {
+				t.Errorf("errors %+v for a run that is not an error", d.Errors)
 			}
 		})
 	}
@@ -126,8 +141,9 @@ func TestConfirmation(t *testing.T) {
 }
 
 // TestHostAndConfirm: detect's facts in the schema's own words, and the
-// confirmation's command in the host's elevation tool: doas on an Alpine
-// host without sudo, sudo elsewhere (engine.md §7).
+// commands in the host's elevation tool, the confirmation's and the one
+// that finishes a rollback: doas on an Alpine host without sudo, sudo
+// elsewhere (engine.md §7).
 func TestHostAndConfirm(t *testing.T) {
 	facts := alpine324()
 	r := fixtures()[3].run
@@ -143,6 +159,17 @@ func TestHostAndConfirm(t *testing.T) {
 	}
 	if d := output.Build(fixtures()[3].run); d.Result.Confirm.Command != "sudo hardn confirm" {
 		t.Errorf("Debian: %s", d.Result.Confirm.Command)
+	}
+	incomplete := &engine.ApplyError{ID: fixtureID, Change: "ssh.port/reload", Step: engine.StepApply, Err: errors.New("x"),
+		RollbackErr: fmt.Errorf("revert: %w", revert.ErrIncomplete)}
+	for _, tc := range []struct {
+		facts detect.Facts
+		want  string
+	}{{alpine324(), "doas hardn rollback " + fixtureID}, {debian13(), "sudo hardn rollback " + fixtureID}} {
+		r := output.Run{Mode: output.ModeApply, Facts: &tc.facts, Plan: portPlan(), Result: &engine.Result{ID: fixtureID, Failed: incomplete}, Err: incomplete}
+		if rb := output.Build(r).Result.Rollback; rb == nil || rb.Command != tc.want {
+			t.Errorf("%s: rollback %+v, want the command %q", tc.facts.OS.ID, rb, tc.want)
+		}
 	}
 	if d := output.Build(output.Run{Mode: output.ModeCheck}); d.Host.Init != "unknown" || d.Host.Platform.Support != "unknown" ||
 		d.Host.Proxmox.Installed != "unknown" || d.Changes == nil || d.Errors == nil || d.Findings == nil || d.Status == nil {

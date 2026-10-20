@@ -74,18 +74,19 @@ func TestDocuments(t *testing.T) {
 }
 
 // TestStdoutIsOneDocument: with JSON output, stdout parses as exactly one
-// JSON document, whatever the run, and the human output, the
-// configuration's deprecated value here, goes to stderr.
+// JSON document, whatever the run, holding the nine fields; the
+// configuration's deprecated value is a finding of it, and no line of text
+// beside it (the warning on stderr is cmd/hardn's, as the configuration
+// loads).
 func TestStdoutIsOneDocument(t *testing.T) {
 	plain := plainEnv()
 	for _, fx := range fixtures() {
 		t.Run(fx.name, func(t *testing.T) {
-			var stdout, stderr bytes.Buffer
-			s := output.Streams{Stdout: &stdout, Out: plain, Stderr: &stderr, Err: plain}
-			if err := output.Emit(s, output.FormatJSON, fx.run, fixtureNow); err != nil {
+			var stdout bytes.Buffer
+			if err := output.Emit(output.Streams{Stdout: &stdout, Out: plain}, output.FormatJSON, fx.run, fixtureNow); err != nil {
 				t.Fatal(err)
 			}
-			dec := json.NewDecoder(&stdout)
+			dec := json.NewDecoder(bytes.NewReader(stdout.Bytes()))
 			var doc map[string]any
 			if err := dec.Decode(&doc); err != nil {
 				t.Fatalf("stdout is not a JSON document: %v", err)
@@ -101,12 +102,11 @@ func TestStdoutIsOneDocument(t *testing.T) {
 			if len(doc) != 9 {
 				t.Errorf("%d top-level fields, want the nine", len(doc))
 			}
-			wantErr := ""
-			if len(fx.run.Deprecations) > 0 {
-				wantErr = "Warning: " + fixtureConfig + ": permitRootLogin: false (line 12) is deprecated"
+			if len(fx.run.Deprecations) > 0 && !strings.Contains(stdout.String(), `"code": "CONFIG_DEPRECATED_VALUE"`) {
+				t.Errorf("the deprecated value is not a finding:\n%s", stdout.String())
 			}
-			if got := strings.Join(strings.Fields(stderr.String()), " "); (wantErr == "") != (got == "") || !strings.Contains(got, wantErr) {
-				t.Errorf("stderr = %q, want %q", got, wantErr)
+			if strings.Contains(stdout.String(), "Warning:") {
+				t.Errorf("a warning on stdout:\n%s", stdout.String())
 			}
 		})
 	}
@@ -126,12 +126,13 @@ func TestHuman(t *testing.T) {
 
 // TestEmitHuman: the human report goes to stdout, through the Env's
 // writer (no escape sequences for a stdout that is not a terminal), and
-// the deprecation to stderr only.
+// says nothing of the deprecated value, which cmd/hardn warned about as
+// the configuration loaded.
 func TestEmitHuman(t *testing.T) {
 	fx := fixtures()[0]
 	plain := plainEnv()
-	var stdout, stderr bytes.Buffer
-	if err := output.Emit(output.Streams{Stdout: &stdout, Out: plain, Stderr: &stderr, Err: plain}, output.FormatHuman, fx.run, fixtureNow); err != nil {
+	var stdout bytes.Buffer
+	if err := output.Emit(output.Streams{Stdout: &stdout, Out: plain}, output.FormatHuman, fx.run, fixtureNow); err != nil {
 		t.Fatal(err)
 	}
 	var want bytes.Buffer
@@ -141,7 +142,7 @@ func TestEmitHuman(t *testing.T) {
 	if stdout.String() != want.String() {
 		t.Errorf("stdout = %q, want Human's, written through the Env %q", stdout.String(), want.String())
 	}
-	if strings.Contains(stdout.String(), "deprecated") || !strings.Contains(stderr.String(), "deprecated") || strings.Contains(stdout.String(), "\x1b") {
-		t.Errorf("stdout %q, stderr %q", stdout.String(), stderr.String())
+	if strings.Contains(stdout.String(), "deprecated") || strings.Contains(stdout.String(), "\x1b") {
+		t.Errorf("stdout %q", stdout.String())
 	}
 }
