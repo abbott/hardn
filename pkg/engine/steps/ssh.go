@@ -128,11 +128,15 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 		return nil, err
 	}
 	var out []engine.Change
-	if fw != nil && !fw.Empty() {
-		out = append(out, firewallChange(s.Prefix+"/firewall", *fw))
-	}
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
-	out = append(out, e.change(r),
+	files := e.change(r)
+	switch {
+	case fw != nil && !fw.Empty():
+		out = append(out, firewallChange(s.Prefix+"/firewall", *fw))
+	case fw != nil:
+		files.Findings = append(files.Findings, ufwFindings(fw.Findings)...)
+	}
+	out = append(out, files,
 		reloadChange(s.Prefix, r, rp, nil),
 		st.verifyChange(s.Prefix, "sshd -T shows "+directiveWords(e.set), func(ctx context.Context, sys host.System, after sshd.Effective) error {
 			if err := wanted(after, e.set, nil); err != nil || !st.pve {
@@ -214,6 +218,8 @@ type edit struct {
 	cand     sshd.Effective // sshd -T over the candidate, by Evaluate
 	drops    reload.SocketDropIns
 	groups   pve.Groups
+	// findings are pve.PlanSSH's and the validation's, for the write.
+	findings []engine.Finding
 }
 
 // edit plans 00-hardn.conf with set in force, through pve.PlanSSH on
@@ -231,9 +237,11 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 		if e.groups, err = pve.RootGroups(ctx, sys); err != nil {
 			return nil, err
 		}
-		if set, _, err = pveSet(st.in.Facts.Proxmox, old, set, e.groups); err != nil {
+		var pf []pve.Finding
+		if set, pf, err = pveSet(st.in.Facts.Proxmox, old, set, e.groups); err != nil {
 			return nil, err
 		}
+		e.findings = pveFindings(pf)
 		e.keywords = keywordsOf(set)
 	}
 	e.set = set
@@ -249,6 +257,7 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 		return nil, noRunDir(fmt.Errorf("validation in context: %w", err))
 	}
 	e.cand, _ = sshd.Evaluate(sshd.EffectiveInputs{Effective: rep.Effective})
+	e.findings = append(e.findings, sshdFindings(rep.Findings)...)
 	if st.pve {
 		if err := st.checkPVECandidate(ctx, sys, e, rep); err != nil {
 			return nil, err
@@ -317,7 +326,7 @@ func (e *edit) change(r revert.Reload) engine.Change {
 	c := engine.Change{
 		ID: e.id, Summary: "Set " + strings.Join(e.keywords, ", ") + " in " + sshd.HardnDropIn, Target: sshd.HardnDropIn,
 		Diff: engine.FileDiff(sshd.HardnDropIn, before, &after), Risk: engine.RiskLockout, Stage: engine.StageFiles,
-		Backups: []string{sshd.HardnDropIn}, Rollback: engine.Undo{Reloads: []revert.Reload{r}},
+		Backups: []string{sshd.HardnDropIn}, Rollback: engine.Undo{Reloads: []revert.Reload{r}}, Findings: slices.Clone(e.findings),
 	}
 	c.Apply = func(ctx context.Context, sys host.System, run engine.Run) (engine.Ran, error) {
 		b, ok := run.Backups[sshd.HardnDropIn]

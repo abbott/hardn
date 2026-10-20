@@ -872,3 +872,41 @@ func TestEngineAlreadyAsked(t *testing.T) {
 		})
 	}
 }
+
+// TestEngineFindings: the planners' findings ride on their changes
+// (engine.Change.Findings) for p3-output to render: Proxmox VE's rewrite of
+// PermitRootLogin no, and an inactive ufw whose saved rules would not let
+// SSH through once it starts (P-33), which no firewall change carries.
+func TestEngineFindings(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		setup func(*vm)
+		facts detect.Facts
+		c     engine.Control
+		id    string // the change that carries it
+		code  string
+	}{
+		{"PermitRootLogin no on Proxmox VE", func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte(sshd.IncludeLine+"\n\nPermitRootLogin yes\nUsePAM yes\n"), 0o644, 0, 0)
+			v.boot()
+		}, proxmox9(), sshControl(steps.SSH{Set: []migrate.Directive{{Keyword: "PermitRootLogin", Args: []string{"no"}}}}),
+			"ssh/files", "PVE_ROOT_KEY_ONLY"},
+		{"2230 beside an inactive ufw", func(v *vm) {
+			v.allowed, v.inactive = nil, true
+			v.saveRules()
+		}, debian13, port2230(), "ssh/files", "UFW_SSH_NOT_ALLOWED_AT_START"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := newVM(t)
+			tc.setup(v)
+			p, _, err := v.viaEngine(context.Background(), tc.facts, tc.c)
+			if err != nil {
+				t.Fatal(err)
+			}
+			i := slices.IndexFunc(p.Changes, func(c engine.Change) bool { return c.ID == tc.id })
+			if i < 0 || !slices.ContainsFunc(p.Changes[i].Findings, func(f engine.Finding) bool { return f.Code == tc.code && f.Detail != "" }) {
+				t.Errorf("change %s's findings: want %s; plan %+v", tc.id, tc.code, p.Changes)
+			}
+		})
+	}
+}

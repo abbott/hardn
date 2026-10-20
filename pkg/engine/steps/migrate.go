@@ -42,7 +42,7 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 		return nil, err
 	}
 	opts := migrate.Options{RunDir: in.RunDir, Binary: st.binary}
-	after, _, err := migrate.Check(ctx, sys, plan, opts)
+	after, checked, err := migrate.Check(ctx, sys, plan, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -64,17 +64,22 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 	if err != nil {
 		return nil, err
 	}
-	var out []engine.Change
-	if fw != nil && !fw.Empty() {
-		out = append(out, firewallChange(prefix+"/firewall", *fw))
-	}
 	rb := plan.Rollback()
 	var r *revert.Reload
 	if len(rb.Keywords) > 0 {
 		rr := sshReload(rb.Keywords, rb.After, rb.RestoredDropIns)
 		r = &rr
 	}
-	out = append(out, migrationChange(prefix, plan, opts, r))
+	files := migrationChange(prefix, plan, opts, r)
+	files.Findings = append(droppedFindings(plan.Dropped), sshdFindings(checked)...)
+	var out []engine.Change
+	switch {
+	case fw != nil && !fw.Empty():
+		out = append(out, firewallChange(prefix+"/firewall", *fw))
+	case fw != nil:
+		files.Findings = append(files.Findings, ufwFindings(fw.Findings)...)
+	}
+	out = append(out, files)
 	if r != nil {
 		out = append(out, reloadChange(prefix, *r, rp, func(ctx context.Context, sys host.System) (reload.Plan, error) {
 			drops, err := st.socketDropIns(ctx, sys)
@@ -97,16 +102,15 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 // of the files it changes, and no unjournalled second copy is made
 // (sshd-migrate.md §6).
 func migrationChange(prefix string, plan migrate.Plan, opts migrate.Options, r *revert.Reload) engine.Change {
-	var paths, notes []string
+	var paths []string
 	for _, s := range plan.Sources {
 		paths = append(paths, s.Path)
 	}
-	for _, op := range plan.Ops {
-		notes = append(notes, op.Kind.String()+" "+op.Path)
-	}
+	// No Commands: the migration runs none; its Diff shows every file it
+	// writes or removes.
 	c := engine.Change{
 		ID: prefix + "/files", Summary: "Migrate hardn's legacy SSH files into " + sshd.HardnDropIn, Target: sshd.HardnDropIn,
-		Diff: migrationDiff(plan), Commands: notes, Risk: engine.RiskLockout, Stage: engine.StageFiles, Backups: paths,
+		Diff: migrationDiff(plan), Risk: engine.RiskLockout, Stage: engine.StageFiles, Backups: paths,
 	}
 	if r != nil {
 		c.Rollback.Reloads = []revert.Reload{*r}

@@ -25,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
 // Synthetic values only: alice, web-01.example.net, 192.0.2.0/24, 2230.
@@ -361,5 +362,25 @@ func TestRefusal(t *testing.T) {
 	r := &Refusal{Code: "EXAMPLE_CODE", Why: "why", Fix: "fix", Err: reload.ErrNotInEffect}
 	if got := r.Error(); got != "why. To go on: fix (EXAMPLE_CODE): "+reload.ErrNotInEffect.Error() || !errors.Is(r, reload.ErrNotInEffect) {
 		t.Errorf("Refusal %q", got)
+	}
+}
+
+// TestFindingCode: a primitive's stable kind code as an engine.Finding's,
+// its prefix said once.
+func TestFindingCode(t *testing.T) {
+	for _, tc := range []struct{ prefix, kind, want string }{
+		{"PVE", pve.FindingRootKeyOnly.String(), "PVE_ROOT_KEY_ONLY"},
+		{"SSHD", sshd.FindingWarning.String(), "SSHD_WARNING"},
+		{"SSHD", sshd.FindingOverridden.String(), "SSHD_OVERRIDDEN"},
+		{"UFW", ufw.FindingUnknown.String(), "UFW_UNKNOWN"},
+		{"UFW", ufw.FindingAtStart.String(), "UFW_SSH_NOT_ALLOWED_AT_START"},
+	} {
+		if got := findingCode(tc.prefix, tc.kind); got != tc.want {
+			t.Errorf("findingCode(%q, %q) = %q, want %q", tc.prefix, tc.kind, got, tc.want)
+		}
+	}
+	d := droppedFindings([]migrate.Carried{{Origin: sshd.Origin{File: migrate.ManageConf, Line: 3, Text: "Protocol 2"}, Why: "sshd ignores it"}})
+	if len(d) != 1 || d[0].Code != CodeMigrateDropped || d[0].Source != migrate.ManageConf+":3" || !strings.Contains(d[0].Detail, `"Protocol 2": sshd ignores it`) {
+		t.Errorf("droppedFindings = %+v", d)
 	}
 }

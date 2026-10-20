@@ -171,6 +171,13 @@ type Change struct {
 	Resources []string
 	// Rollback is the undo the journal holds before Apply runs.
 	Rollback Undo
+	// Findings are what the planner found that the user should know about
+	// the change, which do not refuse it: a value Proxmox VE's rules
+	// rewrote, a line another file sets first, a listener ufw would not
+	// let through once it starts. p3-output renders them, as it renders a
+	// check's (Status.Findings); their codes are in its registry
+	// (next/p3-steps).
+	Findings []Finding
 	// ConfirmVia, for a lockout-risk change that adds listeners
 	// (reload.Plan.Adds), is them: a confirming connection must reach one
 	// (revert.Journal.ConfirmVia).

@@ -80,7 +80,7 @@ func firewallChange(id string, p ufw.Plan) engine.Change {
 	c := engine.Change{
 		ID: id, Summary: "Firewall: " + strings.Join(formatArgvs(argvs), "; "), Target: "ufw", Commands: formatArgvs(argvs),
 		StateBefore: activeWord(p, false), StateAfter: activeWord(p, true),
-		Risk: engine.RiskLockout, Stage: engine.StageFirewall,
+		Risk: engine.RiskLockout, Stage: engine.StageFirewall, Findings: ufwFindings(p.Findings),
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, p.PreUndo())},
 	}
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
