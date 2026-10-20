@@ -244,7 +244,7 @@ func TestJournalLockHeld(t *testing.T) {
 		hold(t, ch.f)
 		calls := len(ch.f.Calls())
 		_, err := Abandon(ctx, ch.f, testID, ch.opts)
-		if !errors.Is(err, host.ErrLocked) || !strings.Contains(err.Error(), "nothing given up") || !strings.Contains(err.Error(), "pid 6000") {
+		if !journalLocked(err, stuck) || !strings.Contains(err.Error(), "nothing given up") || !strings.Contains(err.Error(), "pid 6000") {
 			t.Fatalf("Abandon = %v", err)
 		}
 		if did := changes(ch.f.Calls()[calls:]); len(did) > 0 {
@@ -258,7 +258,7 @@ func TestJournalLockHeld(t *testing.T) {
 		}
 		hold(t, f)
 		_, err := Arm(ctx, f, lockout(), systemd, testOptions(&clock{testNow}, nil))
-		if !errors.Is(err, host.ErrLocked) || exists(f, stateFile(PendingName)) || runs(f) != "" {
+		if !journalLocked(err, stuck) || exists(f, stateFile(PendingName)) || runs(f) != "" {
 			t.Errorf("Arm = %v; journal %v, ran %q", err, exists(f, stateFile(PendingName)), runs(f))
 		}
 	})
@@ -275,6 +275,180 @@ func TestJournalLockHeld(t *testing.T) {
 			t.Errorf("re-armed:\n%s", runs(ch.f))
 		}
 	})
+}
+
+// journalLocked reports whether err is the journal lock held past its wait
+// by holder, as a *LockedError that is host.ErrLocked.
+func journalLocked(err error, holder string) bool {
+	var le *LockedError
+	return errors.Is(err, host.ErrLocked) && errors.As(err, &le) && !le.Run && le.Name == stateFile(JournalLockName) &&
+		le.Holder == strings.TrimSpace(holder) && le.Waited == lockWait
+}
+
+// The journal lock that cannot be taken for another reason than another
+// hardn holding it (here a journal.lock that is a directory): a rollback
+// goes on without it and logs it; Abandon and Arm refuse (ErrNoLock, with
+// the lock's own error, not host.ErrLocked), and change nothing. A done ctx
+// ends Arm's wait, and Arm writes nothing; a journal directory another user
+// can write is refused before any lock is taken; a journal that cannot be
+// read under the lock is Arm's refusal, and the lock is released.
+func TestJournalLockErrors(t *testing.T) {
+	ctx := context.Background()
+	fastLock(t, 10*time.Second)
+	lockDir := func(f *hostfake.System) { f.AddDir(stateFile(JournalLockName), 0o700, 0, 0) }
+	notLocked := func(err error) bool {
+		return errors.Is(err, ErrNoLock) && !errors.Is(err, host.ErrLocked) && errors.Is(err, fs.ErrInvalid)
+	}
+	t.Run("a rollback goes on", func(t *testing.T) {
+		ch := newChange(t)
+		ufwDeleted(ch.f)
+		lockDir(ch.f)
+		if _, err := Rollback(ctx, ch.f, testID, ch.opts); err != nil {
+			t.Fatal(err)
+		}
+		restored(t, ch)
+		if !strings.Contains(ch.log.String(), "goes on without the journal lock") {
+			t.Errorf("log:\n%s", ch.log)
+		}
+	})
+	t.Run("Abandon refuses", func(t *testing.T) {
+		ch := unfinishedRollback(t)
+		lockDir(ch.f)
+		calls := len(ch.f.Calls())
+		_, err := Abandon(ctx, ch.f, testID, ch.opts)
+		if !notLocked(err) || !strings.Contains(err.Error(), "nothing given up") {
+			t.Fatalf("Abandon = %v", err)
+		}
+		if did := changes(ch.f.Calls()[calls:]); len(did) > 0 {
+			t.Errorf("a refused Abandon did %q", did)
+		}
+	})
+	t.Run("Arm refuses", func(t *testing.T) {
+		f := newHost(t)
+		if err := f.MkdirAll(ctx, DefaultDir, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		lockDir(f)
+		_, err := Arm(ctx, f, lockout(), systemd, testOptions(&clock{testNow}, nil))
+		if !notLocked(err) || exists(f, stateFile(PendingName)) || runs(f) != "" {
+			t.Errorf("Arm = %v; journal %v, ran %q", err, exists(f, stateFile(PendingName)), runs(f))
+		}
+	})
+	t.Run("Arm, its ctx done while it waits", func(t *testing.T) {
+		f := newHost(t)
+		if err := f.MkdirAll(ctx, DefaultDir, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := f.Lock(ctx, stateFile(JournalLockName), []byte("pid 6000, hardn rollback "+otherID+", since 2026-10-18T12:00:00Z\n")); err != nil {
+			t.Fatal(err)
+		}
+		cctx, cancel := context.WithTimeout(ctx, 20*time.Millisecond)
+		defer cancel()
+		start := time.Now()
+		_, err := Arm(cctx, f, lockout(), systemd, testOptions(&clock{testNow}, nil))
+		if !errors.Is(err, context.DeadlineExceeded) || !strings.Contains(err.Error(), "waiting for the journal lock") || time.Since(start) > 5*time.Second {
+			t.Errorf("Arm = %v after %s", err, time.Since(start))
+		}
+		if exists(f, stateFile(PendingName)) || runs(f) != "" {
+			t.Errorf("armed: journal %v, ran %q", exists(f, stateFile(PendingName)), runs(f))
+		}
+	})
+	t.Run("a journal directory another user can write", func(t *testing.T) {
+		f := newHost(t)
+		f.AddDir(DefaultDir, 0o755, 1000, 1000)
+		if _, err := lockJournal(ctx, f, Options{}, "hardn rollback --abandon "+testID); !errors.Is(err, ErrUnsafe) || !errors.Is(err, ErrNoLock) ||
+			!strings.Contains(err.Error(), "the journal lock") {
+			t.Errorf("lockJournal = %v", err)
+		}
+		for _, c := range f.Calls() {
+			if c.Op == "lock" {
+				t.Errorf("locked: %v", c)
+			}
+		}
+	})
+	t.Run("Arm, the journal unreadable under the lock", func(t *testing.T) {
+		f := newHost(t)
+		if err := f.MkdirAll(ctx, DefaultDir, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		f.AddFile(stateFile(PendingName), []byte("{not json"), 0o600, 0, 0)
+		if _, err := Arm(ctx, f, lockout(), systemd, testOptions(&clock{testNow}, nil)); !errors.Is(err, ErrJournal) || runs(f) != "" {
+			t.Errorf("Arm = %v; ran %q", err, runs(f))
+		}
+		if e, _ := f.Entry(stateFile(JournalLockName)); len(e.Data) != 0 || lockDepth(f.Calls(), stateFile(JournalLockName)) != 0 {
+			t.Errorf("the journal lock left held: %q", e.Data)
+		}
+	})
+}
+
+// lockDepth is how many times name is held at the end of calls.
+func lockDepth(calls []hostfake.Call, name string) int {
+	n := 0
+	for _, c := range calls {
+		switch {
+		case c.Path != name:
+		case c.Op == "lock" && c.Err == nil:
+			n++
+		case c.Op == "unlock":
+			n--
+		}
+	}
+	return n
+}
+
+// LockRun: tried once, never waited for; another hardn holding the run lock
+// is a *LockedError naming it (Run); a run directory another user can
+// write, or an engine.lock that is not a regular file, is ErrNoLock, with
+// its own error, not host.ErrLocked; a done ctx is its cause.
+func TestLockRun(t *testing.T) {
+	ctx := context.Background()
+	runLock := DefaultRunDir + "/" + RunLockName
+	holder := "pid 6000, change " + otherID + ", since 2026-10-18T12:00:00Z"
+	done, cancel := context.WithCancel(ctx)
+	cancel()
+	for _, tc := range []struct {
+		name  string
+		setup func(t *testing.T, f *hostfake.System)
+		ctx   context.Context
+		check func(err error) bool
+	}{
+		{"held by another hardn", func(t *testing.T, f *hostfake.System) {
+			f.AddDir(DefaultRunDir, 0o700, 0, 0)
+			if _, err := f.Lock(ctx, runLock, []byte(holder+"\n")); err != nil {
+				t.Fatal(err)
+			}
+		}, ctx, func(err error) bool {
+			var le *LockedError
+			return errors.Is(err, host.ErrLocked) && errors.As(err, &le) && le.Run && le.Name == runLock && le.Holder == holder && le.Waited == 0 &&
+				strings.Contains(err.Error(), "another hardn holds the run lock "+runLock+" ("+holder+")")
+		}},
+		{"a run directory another user can write", func(t *testing.T, f *hostfake.System) { f.AddDir(DefaultRunDir, 0o755, 1000, 1000) }, ctx,
+			func(err error) bool {
+				return errors.Is(err, ErrUnsafe) && errors.Is(err, ErrNoLock) && !errors.Is(err, host.ErrLocked)
+			}},
+		{"engine.lock is a directory", func(t *testing.T, f *hostfake.System) {
+			f.AddDir(DefaultRunDir, 0o700, 0, 0)
+			f.AddDir(runLock, 0o700, 0, 0)
+		}, ctx, func(err error) bool {
+			return errors.Is(err, fs.ErrInvalid) && errors.Is(err, ErrNoLock) && !errors.Is(err, host.ErrLocked)
+		}},
+		{"a done ctx", func(t *testing.T, f *hostfake.System) {}, done, func(err error) bool {
+			return errors.Is(err, context.Canceled) && !errors.Is(err, ErrNoLock) && !errors.Is(err, host.ErrLocked)
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newHost(t)
+			tc.setup(t, f)
+			start := time.Now()
+			unlock, err := LockRun(tc.ctx, f, Options{}, "hardn rollback --boot")
+			if unlock != nil || !tc.check(err) || !strings.HasPrefix(err.Error(), "revert: ") {
+				t.Errorf("LockRun = %v", err)
+			}
+			if took := time.Since(start); took > time.Second {
+				t.Errorf("LockRun took %s: it waited", took)
+			}
+		})
+	}
 }
 
 // Boot writes its re-armed journal only over the journal it read, under
@@ -340,6 +514,27 @@ func TestBootRearmRaces(t *testing.T) {
 			t.Errorf("the confirmed change was re-armed:\n%s", runs(ch.f))
 		}
 	})
+	// A journal that cannot be read again at the write is a timer that
+	// cannot be re-armed: the change is rolled back, and that rollback,
+	// which cannot read it either, does not finish; nothing is re-armed.
+	t.Run("unreadable at the write", func(t *testing.T) {
+		ch := rebooted(t, 100*time.Second)
+		p := newProcess(ch.f, selfPID)
+		p.at = func(op, what string) {
+			if op == "read" && what == testHardn {
+				p.at = nil
+				ch.f.AddFile(stateFile(PendingName), []byte("{not json"), 0o600, 0, 0)
+			}
+		}
+		res, err := Boot(ctx, p, systemd, ch.opts)
+		if !errors.Is(err, ErrJournal) || res.Action != BootRolledBack || res.Reason != BootReasonRearmFailed || !strings.Contains(res.Why, "could not be written") {
+			t.Fatalf("Boot = %+v, %v", res, err)
+		}
+		kept(t, ch, res)
+		if strings.Contains(runs(ch.f), "--on-active=80s") {
+			t.Errorf("re-armed:\n%s", runs(ch.f))
+		}
+	})
 	// At the write itself: the change confirmed just before it, and a new
 	// change's Arm, which waits for the journal lock Boot holds; Boot
 	// finds the confirmation and removes what it wrote before it lets go,
@@ -378,11 +573,13 @@ func TestBootRearmRaces(t *testing.T) {
 	})
 }
 
-// Boot and the run lock: an apply that holds it keeps the boot unit (it may
-// have installed it and not armed its change yet), and owns a journalled
-// change whose timer, of this boot, is not there yet; Boot never waits for
-// the lock. A rollback at boot takes the journal lock after Boot has
-// released it: one process never holds it twice.
+// Boot and the run lock: another hardn that holds it keeps the boot unit
+// (an apply may have installed it and not armed its change yet), and owns
+// a journalled change not applied yet whose timer, of this boot, is not
+// there yet; an applied one is left, not re-armed; Boot never waits for the
+// lock, and one it cannot take for another reason keeps the unit too. A
+// rollback at boot takes the journal lock after Boot has released it: one
+// process never holds it twice.
 func TestBootRunLock(t *testing.T) {
 	ctx := context.Background()
 	fastLock(t, 10*time.Second)
@@ -415,11 +612,58 @@ func TestBootRunLock(t *testing.T) {
 		timerState(ch.f, "inactive")
 		holdRun(t, ch.f)
 		res, err := Boot(ctx, ch.f, systemd, ch.opts)
-		if err != nil || res.Action != BootNothing || res.Reason != BootReasonApplyRuns {
+		if err != nil || res.Action != BootNothing || res.Reason != BootReasonApplyRuns || !strings.Contains(res.Why, "another hardn holds the run lock") ||
+			!strings.Contains(res.Why, "pid 6000") {
 			t.Fatalf("Boot = %+v, %v", res, err)
+		}
+		if !strings.Contains(ch.log.String(), "boot: another hardn holds the run lock") {
+			t.Errorf("log:\n%s", ch.log)
 		}
 		if !exists(ch.f, stateFile(PendingName)) || strings.Contains(runs(ch.f), "ufw delete") {
 			t.Error("the apply's change was rolled back")
+		}
+	})
+	// Applied, its apply is over: the holder is another hardn, here a
+	// second `hardn rollback --boot` about to start the re-armed timer.
+	// Left, and never re-armed beside it.
+	t.Run("an applied change, its timer not there", func(t *testing.T) {
+		ch := newChangeBare(t)
+		markApplied(t, ch.f, ch.c)
+		timerState(ch.f, "inactive")
+		f := ch.f
+		f.AddDir(DefaultRunDir, 0o700, 0, 0)
+		if _, err := f.Lock(ctx, runLock, []byte("pid 6100, hardn rollback --boot, since 2026-10-18T12:01:00Z\n")); err != nil {
+			t.Fatal(err)
+		}
+		res, err := Boot(ctx, f, systemd, ch.opts)
+		if err != nil || res.Action != BootLeft || res.Reason != BootReasonRunLockHeld || !strings.Contains(res.Why, "pid 6100, hardn rollback --boot") ||
+			!strings.Contains(res.Why, "run `sudo hardn rollback --boot` again") {
+			t.Fatalf("Boot = %+v, %v", res, err)
+		}
+		if j := readJournalT(t, f, stateFile(PendingName)); j.Applied == nil || j.Timer == nil || j.Timer.Argv[3] != "--on-active=180s" {
+			t.Errorf("the journal: %+v", j)
+		}
+		if n := strings.Count(runs(f), "systemd-run"); n != 1 || strings.Contains(runs(f), "ufw delete") {
+			t.Errorf("re-armed or rolled back (%d timers):\n%s", n, runs(f))
+		}
+		if res.Removed || res.RemoveErr != nil {
+			t.Errorf("the boot unit's removal tried: %+v", res)
+		}
+	})
+	t.Run("the run lock cannot be taken", func(t *testing.T) {
+		ch := rebooted(t, 100*time.Second)
+		if err := ch.f.Remove(ctx, stateFile(PendingName)); err != nil {
+			t.Fatal(err)
+		}
+		ch.f.AddDir(DefaultRunDir, 0o755, 1000, 1000)
+		res, err := Boot(ctx, ch.f, systemd, ch.opts)
+		if err != nil || res.Action != BootNothing || res.Reason != BootReasonNoChange || res.Removed || !errors.Is(res.RemoveErr, ErrUnsafe) ||
+			!strings.Contains(res.RemoveErr.Error(), "kept") {
+			t.Fatalf("Boot = %+v, %v", res, err)
+		}
+		kept(t, ch, res)
+		if !strings.Contains(ch.log.String(), "the run lock cannot be taken, so the boot unit is not removed") {
+			t.Errorf("log:\n%s", ch.log)
 		}
 	})
 	t.Run("a rollback at boot", func(t *testing.T) {

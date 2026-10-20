@@ -35,7 +35,8 @@ const (
 	BootRolledBack BootAction = "rolled-back"
 	// BootLeft: a lockout-risk change, or an unfinished rollback, Boot does
 	// not act on (another hardn binary's journal, one that does not say
-	// which, a rollback left to `hardn rollback <id>`); BootResult.Why says
+	// which, a rollback left to `hardn rollback <id>`, a change it does not
+	// re-arm while another hardn holds the run lock); BootResult.Why says
 	// what to do.
 	BootLeft BootAction = "left"
 )
@@ -52,7 +53,7 @@ const (
 	BootReasonRollbackRuns       BootReason = "rollback-runs"       // nothing: a rollback of it runs
 	BootReasonConfirmedMeanwhile BootReason = "confirmed-meanwhile" // nothing: confirmed after Boot read the journal
 	BootReasonClaimedMeanwhile   BootReason = "claimed-meanwhile"   // nothing: a confirmation or a rollback claimed it after Boot read the journal
-	BootReasonApplyRuns          BootReason = "apply-runs"          // nothing: its timer, of this boot, is not there, and an apply holds the run lock (next/p3-engine-boot)
+	BootReasonApplyRuns          BootReason = "apply-runs"          // nothing: its timer, of this boot, is not there, it is not applied yet, and another hardn holds the run lock: taken as that hardn's apply (next/p3-engine-boot)
 	BootReasonInWindow           BootReason = "in-window"           // rearmed: for what remains of the window
 	BootReasonClockUntrusted     BootReason = "clock-untrusted"     // rearmed: for the whole window, the clock reading before the change
 	BootReasonDeadlinePassed     BootReason = "deadline-passed"     // rolled back: past its deadline
@@ -66,6 +67,7 @@ const (
 	BootReasonBinaryUnreadable   BootReason = "binary-unreadable"   // left: this hardn's binary cannot be read
 	BootReasonNoBootID           BootReason = "no-boot-id"          // left: no boot id recorded, or this boot's cannot be read
 	BootReasonTimerUnknown       BootReason = "timer-unknown"       // left: started in this boot, and whether it is still there cannot be told
+	BootReasonRunLockHeld        BootReason = "run-lock-held"       // left: its timer, of this boot, is not there, it is applied, and another hardn holds the run lock (next/p3-engine-boot)
 )
 
 // BootResult is what Boot found and did.
@@ -102,11 +104,15 @@ const bootStepTimeout = time.Minute
 // is still there (timerRuns) is left to run (BootNothing); one that is not
 // there (a re-arm stopped before it started the timer, a systemd
 // soft-reboot, which keeps the boot's id) is taken as after a reboot, and
-// one whose state cannot be read is BootLeft. It acts on a lockout-risk
-// change journalled in pending.json only when the journal's timer runs
-// this hardn, by path and SHA-256 (Timer.Hardn, HardnSHA256), and records
-// the boot it was started in; a journal that lacks either, or names
-// another binary, is BootLeft: reported, not acted on. Then:
+// one whose state cannot be read is BootLeft. While another hardn holds the
+// run lock, one that is not there is that hardn's apply's when the change
+// is not applied yet (BootNothing, BootReasonApplyRuns), and BootLeft when
+// it is (BootReasonRunLockHeld): never re-armed beside the holder. It acts
+// on a lockout-risk change journalled in pending.json only when the
+// journal's timer runs this hardn, by path and SHA-256 (Timer.Hardn,
+// HardnSHA256), and records the boot it was started in; a journal that
+// lacks either, or names another binary, is BootLeft: reported, not acted
+// on. Then:
 //
 //   - a change whose apply did not finish (no Applied) is rolled back at
 //     once: it cannot be confirmed, and its files, which no check after
@@ -149,15 +155,16 @@ func Boot(ctx context.Context, sys host.System, in detect.Init, opts Options) (B
 	dctx, cancel := context.WithTimeout(ctx, bootStepTimeout)
 	// The run lock, tried once and never waited for, and held to the end
 	// (lock.go): no apply installs the boot unit or arms a change while
-	// Boot acts on the journal and removes the unit. One that holds it
-	// already (applyErr is host.ErrLocked) owns a change whose timer it
-	// has not started yet; another error is logged, and Boot goes on.
+	// Boot acts on the journal and removes the unit. Another hardn that
+	// holds it already (applyErr is host.ErrLocked) may be an apply that
+	// owns a change whose timer it has not started yet; another error is
+	// logged, and Boot goes on.
 	unlockRun, applyErr := LockRun(dctx, sys, opts, "hardn rollback --boot")
 	switch {
 	case applyErr == nil:
 		defer func() { _ = unlockRun() }()
 	case errors.Is(applyErr, host.ErrLocked):
-		opts.logf("boot: an apply is running: %v", applyErr)
+		opts.logf("boot: another hardn holds the run lock: %v", applyErr)
 	default:
 		opts.logf("boot: the run lock cannot be taken, so the boot unit is not removed: %v", applyErr)
 	}
@@ -231,11 +238,20 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 			return done(BootLeft, BootReasonTimerUnknown, "its timer was started in this boot, and whether it is still there cannot be told (%v); %s", err, leave)
 		case runs:
 			return done(BootNothing, BootReasonTimerRuns, "its timer was started in this boot, and is there")
+		case errors.Is(applyErr, host.ErrLocked) && p.Applied == nil:
+			// Not after a reboot: a change not applied yet is taken as the
+			// apply's of the hardn that holds the run lock, between Arm's
+			// journal write and its timer's start, or removing a journal
+			// whose timer did not start. Boot re-arms only an applied
+			// change, so the holder is no other `hardn rollback --boot`.
+			return done(BootNothing, BootReasonApplyRuns, "its timer was started in this boot and is not there, it is not applied yet, and another hardn holds the run lock (%v): it is taken as that hardn's apply, which starts its timer or rolls it back; if no apply runs, run `sudo hardn rollback --boot` again once that hardn has finished", applyErr)
 		case errors.Is(applyErr, host.ErrLocked):
-			// Not after a reboot: an apply of this boot holds the run lock,
-			// between Arm's journal write and its timer's start, or
-			// removing a journal whose timer did not start.
-			return done(BootNothing, BootReasonApplyRuns, "its timer was started in this boot and is not there, and an apply holds the run lock: the change is that apply's, which starts its timer or rolls it back (%v)", applyErr)
+			// Applied: its apply is over (MarkApplied is an apply's last
+			// write), so the holder is something else: another `hardn
+			// rollback --boot` that re-arms it (a second re-arm would fail
+			// on its timer's unit, and roll it back), an uninstall, an apply
+			// about to be refused. Left, never re-armed beside it.
+			return done(BootLeft, BootReasonRunLockHeld, "its timer was started in this boot and is not there, and another hardn holds the run lock (%v), so hardn does not re-arm it beside that one: run `sudo hardn rollback --boot` again once that hardn has finished, or %s", applyErr, leave)
 		}
 		opts.logf("boot: change %s (%s): its timer was started in this boot and is not there (a re-arm stopped before it started the timer, or a soft-reboot), so it is taken as after a reboot", p.ID, p.Summary)
 	}

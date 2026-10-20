@@ -266,6 +266,11 @@ func EnsureBootUnit(ctx context.Context, sys host.System, u BootUnit, work strin
 				return res, fmt.Errorf("revert: boot unit: %w", err)
 			}
 			res.Backup = &b
+			if b.Outcome == backup.Skipped {
+				opts.logf("boot unit %s: the file there is replaced, not backed up (enableBackups is false)", u.Path)
+			} else {
+				opts.logf("boot unit %s: the file there backed up (entry %d in %s)", u.Path, b.Entry.Seq, run.Dir())
+			}
 		}
 		if err := sys.WriteFileAtomic(ctx, u.Path, u.Data, u.Mode, 0, 0); err != nil {
 			return res, fmt.Errorf("revert: boot unit: %w", err)

@@ -24,8 +24,8 @@ import (
 // directory and the journal lock's file, while a change is journalled
 // (*PendingError), and for a journal Check refuses. The check and the
 // write of pending.json are made under the journal lock (JournalLockName;
-// another hardn holding it past its wait is host.ErrLocked, and nothing is
-// written). Then it starts the timer; when the timer does not start, it
+// another hardn holding it past its wait is a *LockedError, host.ErrLocked,
+// and a lock that cannot be taken is refused too: nothing is written). Then it starts the timer; when the timer does not start, it
 // removes pending.json again, even after Ctrl-C (under a context of its
 // own), and returns the error: the change must not be applied. The engine
 // adds the backups, inverse steps and reloads with Record, write-ahead, and

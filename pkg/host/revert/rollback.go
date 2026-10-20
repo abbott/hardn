@@ -472,9 +472,13 @@ type AbandonResult struct {
 // instead. A process that cannot be named (AbandonResult.RunnerUnknown)
 // counts as gone. It runs under the journal lock (JournalLockName), so no
 // `hardn rollback <id>` takes the rollback up between its read and its
-// rename; another hardn holding the lock past lockWait is host.ErrLocked,
-// and nothing is given up. `hardn rollback --abandon <id>` reaches it
-// (P-35).
+// rename; another hardn holding the lock past lockWait is a *LockedError
+// (host.ErrLocked), and nothing is given up. So is a lock that cannot be
+// taken at all, unlike Rollback, which goes on: a journal.lock that is not
+// a regular file, or a full or read-only file system (the lock's file is
+// created and its holder line written); moving rollback.json aside by
+// hand, as root, gives the rollback up the same way. `hardn rollback
+// --abandon <id>` reaches it (P-35).
 func Abandon(ctx context.Context, sys host.System, id string, opts Options) (AbandonResult, error) {
 	if !ValidID(id) {
 		return AbandonResult{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
