@@ -463,17 +463,25 @@ func TestPlayWriteFails(t *testing.T) {
 // seam (host.Real), the engine's signal hold (pkg/engine/hold), and
 // pkg/config and pkg/logging, which pkg/engine and pkg/output link for
 // their types. Those files (realSide) are exempt, and the test checks
-// instead that nothing play links can reach them: no file makes a
-// host.Real but host.NewReal, and none calls NewReal; none names
-// pkg/config's or pkg/logging's functions (pkg/config, unreached itself,
-// aside); hold.Signals and SignalsAs are named only by pkg/engine's
-// default hold, and every engine.Options and confirm.Options the gallery
-// writes sets its own Hold. So every host.System the engine gets is the
-// one the gallery gives it, hostfake's (TestPlayEngineHold checks that
-// the gallery's hold is the one taken). The simulated system records; it
-// never applies. Lip Gloss's own init effects, such as colorprofile's
-// "tmux info", are outside this check
-// (docs/refactor/phase0/side-effects.md §13.1).
+// instead, by name, that nothing play links can reach them. No file but
+// host.Real's own names the type, in any form (a literal, new, a
+// declaration, a conversion), and those make one only in host.NewReal,
+// which no file names. No file names pkg/config's or pkg/logging's
+// functions (pkg/config, unreached itself, aside). hold.Signals and
+// SignalsAs are named only by pkg/engine's default hold, which an
+// Options.Hold left nil takes: so outside the gallery only
+// pkg/engine/confirm, which passes its caller's Hold on, calls engine.New,
+// and nothing calls confirm.Cleanup; and every engine.New and
+// confirm.Cleanup the gallery calls takes an Options literal whose Hold is
+// the gallery's own (session.hold). So every host.System the engine gets
+// is one the gallery gives it, and the hold it takes is the gallery's
+// (TestPlayEngine checks that the failed reload's rollback took it). This
+// is a check of names, not of types or values: the gallery's own code is
+// held to its literals, the linked packages to never naming what reaches
+// the real side. The simulated system records; it never applies. Lip
+// Gloss's own init effects, such as colorprofile's "tmux info", and
+// fatih/color's (NO_COLOR, TERM, whether stdout is a terminal), are
+// outside this check (docs/refactor/phase0/side-effects.md §13.1).
 func TestPlayTouchesNothing(t *testing.T) {
 	const module = "github.com/abbott/hardn/"
 	root := filepath.Join("..", "..", "..")
@@ -587,23 +595,45 @@ func TestPlayTouchesNothing(t *testing.T) {
 				}
 			}
 			own := module + filepath.ToSlash(filepath.Dir(rel)) // the file's package
+			realFile := realSide[rel] == real                   // one of host.Real's own files
 			var fn string                                       // the function being walked
+			called := map[ast.Expr]bool{}                       // the functions called, as the calls name them
 			ast.Inspect(f, func(n ast.Node) bool {
 				switch n := n.(type) {
 				case *ast.FuncDecl:
 					fn = n.Name.Name
 				case *ast.CompositeLit:
-					if isRealType(n.Type, pkgs, own == module+"pkg/host") && (rel != "pkg/host/real.go" || fn != "NewReal") {
+					if realFile && namesReal(n.Type) && fn != "NewReal" {
 						t.Errorf("%s makes a host.Real in %s, which only host.NewReal may", path, fn)
 					}
-					if sel, ok := n.Type.(*ast.SelectorExpr); ok && dir == "." && sel.Sel.Name == "Options" {
-						if x, ok := sel.X.(*ast.Ident); ok && (pkgs[x.Name] == module+"pkg/engine" || pkgs[x.Name] == module+"pkg/engine/confirm") && !setsHold(n) {
-							t.Errorf("%s: a %s.Options with no Hold, so the engine would take hold.Signals", path, x.Name)
-						}
+					if p := optionsOf(n.Type, pkgs); dir == "." && p != "" && !holdsOwn(n) {
+						t.Errorf("%s: %s.Options with a Hold other than the gallery's (session.hold), so the engine could take hold.Signals", path, p)
+					}
+				case *ast.CallExpr:
+					called[n.Fun] = true
+					if id, ok := n.Fun.(*ast.Ident); ok && id.Name == "new" && len(n.Args) == 1 && realFile && namesReal(n.Args[0]) && fn != "NewReal" {
+						t.Errorf("%s makes a host.Real in %s, which only host.NewReal may", path, fn)
+					}
+					sel, ok := n.Fun.(*ast.SelectorExpr)
+					if !ok {
+						return true
+					}
+					x, _ := sel.X.(*ast.Ident)
+					if x == nil || !(pkgs[x.Name] == module+"pkg/engine" && sel.Sel.Name == "New" || pkgs[x.Name] == module+"pkg/engine/confirm" && sel.Sel.Name == "Cleanup") {
+						return true
+					}
+					switch lit, _ := n.Args[len(n.Args)-1].(*ast.CompositeLit); {
+					case dir != "." && (own != module+"pkg/engine/confirm" || sel.Sel.Name == "Cleanup"):
+						t.Errorf("%s calls %s.%s outside the gallery", path, x.Name, sel.Sel.Name)
+					case dir == "." && (lit == nil || optionsOf(lit.Type, pkgs) == ""):
+						t.Errorf("%s calls %s.%s with Options that are not a literal of them, whose Hold the test cannot see", path, x.Name, sel.Sel.Name)
 					}
 				case *ast.Ident:
-					if n.Name == "NewReal" && own == module+"pkg/host" && rel != "pkg/host/real.go" {
+					switch {
+					case n.Name == "NewReal" && own == module+"pkg/host" && rel != "pkg/host/real.go":
 						t.Errorf("%s names NewReal", path)
+					case n.Name == "Real" && own == module+"pkg/host" && !realFile:
+						t.Errorf("%s names Real, which only host.Real's own files may", path)
 					}
 				case *ast.SelectorExpr:
 					x, ok := n.X.(*ast.Ident)
@@ -621,10 +651,14 @@ func TestPlayTouchesNothing(t *testing.T) {
 						t.Errorf("%s names %s.Reraise, which would end the gallery by SIGINT", path, x.Name)
 					case p == module+"pkg/host" && name == "NewReal":
 						t.Errorf("%s names host.NewReal", path)
+					case p == module+"pkg/host" && name == "Real":
+						t.Errorf("%s names host.Real, which only its own files may", path)
 					case p == module+"pkg/engine/hold" && rel != "pkg/engine/engine.go":
 						t.Errorf("%s names hold.%s, which only the engine's default hold may", path, name)
 					case unreached[p][name] && own != module+"pkg/config":
 						t.Errorf("%s names %s.%s, which play never reaches", path, x.Name, name)
+					case (p == module+"pkg/engine" && name == "New" || p == module+"pkg/engine/confirm" && name == "Cleanup") && !called[n]:
+						t.Errorf("%s names %s.%s other than to call it", path, x.Name, name)
 					}
 				}
 				return true
@@ -647,25 +681,35 @@ func TestPlayTouchesNothing(t *testing.T) {
 	}
 }
 
-// isRealType reports whether t names host.Real: Real in pkg/host itself
-// (inHost), host.Real elsewhere.
-func isRealType(t ast.Expr, pkgs map[string]string, inHost bool) bool {
-	switch t := t.(type) {
-	case *ast.Ident:
-		return inHost && t.Name == "Real"
-	case *ast.SelectorExpr:
-		x, ok := t.X.(*ast.Ident)
-		return ok && t.Sel.Name == "Real" && pkgs[x.Name] == "github.com/abbott/hardn/pkg/host"
-	}
-	return false
+// namesReal reports whether t, in pkg/host, names its type Real.
+func namesReal(t ast.Expr) bool {
+	id, ok := t.(*ast.Ident)
+	return ok && id.Name == "Real"
 }
 
-// setsHold reports whether composite literal lit sets a Hold field.
-func setsHold(lit *ast.CompositeLit) bool {
+// optionsOf returns the name of the package whose Options t names, of
+// pkg/engine's and pkg/engine/confirm's, given the file's imports; "" for
+// any other type.
+func optionsOf(t ast.Expr, pkgs map[string]string) string {
+	sel, ok := t.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Options" {
+		return ""
+	}
+	x, ok := sel.X.(*ast.Ident)
+	if p := pkgs[x.Name]; ok && (p == "github.com/abbott/hardn/pkg/engine" || p == "github.com/abbott/hardn/pkg/engine/confirm") {
+		return x.Name
+	}
+	return ""
+}
+
+// holdsOwn reports whether composite literal lit sets Hold to the
+// gallery's own hold, a session's hold method.
+func holdsOwn(lit *ast.CompositeLit) bool {
 	for _, e := range lit.Elts {
 		if kv, ok := e.(*ast.KeyValueExpr); ok {
 			if k, ok := kv.Key.(*ast.Ident); ok && k.Name == "Hold" {
-				return true
+				v, ok := kv.Value.(*ast.SelectorExpr)
+				return ok && v.Sel.Name == "hold"
 			}
 		}
 	}
