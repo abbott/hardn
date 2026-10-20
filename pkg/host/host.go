@@ -135,6 +135,17 @@ type System interface {
 	// It is guarded (see System). On an error, name is as it was, except
 	// for one wrapping ErrNotDurable: see Real.WriteFileAtomic.
 	WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error
+	// AppendFile appends data to the regular file name, creating it with
+	// perm (and the process's owner) when it is absent: one write on a
+	// descriptor opened with O_APPEND, so each call's data lands whole
+	// after what is there, whoever else appends, then fsync. It never
+	// replaces or truncates the file. A symlink at name is refused with
+	// ErrSymlink, never written through; so is a directory (EISDIR) or
+	// anything else that is not a regular file (fs.ErrInvalid), and a
+	// regular file with more than one hard link in a directory that is not
+	// trusted (ErrHardLink). It is guarded (see System). The audit log
+	// (p3-output).
+	AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error
 	// Lock takes an exclusive lock on the regular file name, creating it
 	// 0600 when absent, writes holder into it, and returns the function
 	// that empties it and releases the lock. It never waits: a lock held

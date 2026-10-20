@@ -122,6 +122,35 @@ func TestContract(t *testing.T) {
 				t.Errorf("missing parent: err = %v, want ErrNotExist", err)
 			}
 		}},
+		{"append creates the file, then appends; the mode stays", func(t *testing.T, w world) {
+			if err := w.sys.AppendFile(ctx, w.path("audit.jsonl"), []byte("{\"a\":1}\n"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := w.sys.AppendFile(ctx, w.path("audit.jsonl"), []byte("{\"b\":2}\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			wantFile(t, w, "audit.jsonl", "{\"a\":1}\n{\"b\":2}\n", 0o600)
+		}},
+		{"append refuses a symlink, a directory and a missing parent", func(t *testing.T, w world) {
+			w.file("keys", "cluster\n", 0o600)
+			w.symlink("audit.jsonl", w.path("keys"))
+			w.symlink("dangling", w.path("nowhere"))
+			w.dir("d")
+			for _, name := range []string{"audit.jsonl", "dangling"} {
+				if err := w.sys.AppendFile(ctx, w.path(name), []byte("x\n"), 0o600); !errors.Is(err, host.ErrSymlink) {
+					t.Errorf("%s: err = %v, want ErrSymlink", name, err)
+				}
+			}
+			if err := w.sys.AppendFile(ctx, w.path("d"), []byte("x\n"), 0o600); !errors.Is(err, syscall.EISDIR) {
+				t.Errorf("directory: err = %v, want EISDIR", err)
+			}
+			if err := w.sys.AppendFile(ctx, w.path("no/f"), []byte("x\n"), 0o600); !errors.Is(err, fs.ErrNotExist) {
+				t.Errorf("missing parent: err = %v, want ErrNotExist", err)
+			}
+			wantFile(t, w, "keys", "cluster\n", 0o600)
+			wantLink(t, w, "audit.jsonl", w.path("keys"))
+			wantNames(t, w, "", "audit.jsonl", "d", "dangling", "keys")
+		}},
 		{"rename over a symlink replaces the link, not its target", func(t *testing.T, w world) {
 			w.file("keys", "cluster\n", 0o600)
 			w.symlink("authorized_keys", w.path("keys"))
