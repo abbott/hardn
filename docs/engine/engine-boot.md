@@ -28,7 +28,7 @@
      - A removal by the rollback would race the next change's install, which is why revert-boot.md §2.17 keeps `hardn confirm` and `hardn rollback <id>` from removing it.
 
      **A stale or foreign file** the install replaces is backed up into the change's backup run (`backup.Optional` through `Run.Store`, as `EnsureBootUnit` does; with `enableBackups` false it is not, and the plan says so), unjournalled. A rollback does not restore it: it would re-enable a unit that runs another hardn binary, which leaves this hardn's journals alone (revert-boot.md §2.2), or a file that is not hardn's at all.
-   - It is not counted in `Plan.Summary` (the journal's summary is the change's). `Result.Applied` lists it, and no `EventRolledBack` is ever sent for it (`TestBootUnitFails`).
+   - It is not counted in `Plan.Summary` (the journal's summary is the change's). **`Result.Boot`** says what it did (a `BootInstall`: its `Detail`, also when it failed part-way, and its `Err`), whatever came after it: its own failure, `Arm`'s, or the change rolled back. `Result.Applied` does not list it, so that "with `Failed` set they were rolled back after" holds for every entry there, and a caller needs no `BootChangeID` to tell it apart. No `EventRolledBack` is ever sent for it (`TestBootUnitFails`); its `Change.Control` is "", which `Change.Control`'s doc says.
 2. **Refused while a change is journalled, before it is read or shown.** The plan reads the journal once (`revert.ReadState`). A lockout-risk plan plans the boot unit only when nothing is journalled; otherwise the plan is refused with the `*revert.PendingError` (`refuseApply`, as before), and the unit's files are not read (`TestBootUnitRefused`: no call on its paths).
 3. **What the plan shows** (`TestBootUnitPlanned`, `TestBootUnitIdempotent`). `revert.PlanBootUnit` is planned over detect's `Init` and the hardn binary the timer runs (`Options.Revert.Hardn`), and `revert.ReadBootUnit` reads the host:
    - the summary: install, replace, or enable;
@@ -39,7 +39,7 @@
    - `Commands`: the check over the copy in `/run/hardn/<id>`, and the enable command.
 
    Refused at plan time: a hardn path the unit cannot name unquoted (`revert.ErrExecutable`, revert-boot.md §2.15), and a unit that cannot be read. An init system with no timer is not refused twice: the revert timer's refusal already says so.
-4. **Idempotent, and installed under the run lock before `Arm`.** Nothing is planned once the unit is installed and enabled as planned. Otherwise only what is not as planned is done: the enable alone, or the file alone. `Apply` holds the run lock, plans again, and compares that plan with the one shown, the boot unit's change included: a unit installed, or disabled, in between is `ErrPlanChanged`, and nothing runs (`TestBootUnitPlanChanged`). Then `backup.Open`, `revert.EnsureBootUnit` with the plan's run directory and backup run, then `Arm`. `EnsureBootUnit` refuses too while a change is journalled, a second check. **A failure is the change not applied, with nothing armed**: the error wraps `EnsureBootUnit`'s (`revert.ErrBootUnit` for a refused check or a missing link), and `Options.Progress` reports `EventFailed` at `StepBoot`. What it did before it failed stays: a unit file written and not enabled does not run at boot, and the next apply only enables it (`TestBootUnitFails`).
+4. **Idempotent, and installed under the run lock before `Arm`.** Nothing is planned once the unit is installed and enabled as planned. Otherwise only what is not as planned is done: the enable alone, or the file alone. `Apply` holds the run lock, plans again, and compares that plan with the one shown, the boot unit's change included: a unit installed, or disabled, in between is `ErrPlanChanged`, and nothing runs (`TestBootUnitPlanChanged`). Then `backup.Open`, `revert.EnsureBootUnit` with the plan's run directory and backup run, then `Arm`. `EnsureBootUnit` refuses too while a change is journalled, a second check. **A failure is the change not applied, with nothing armed**: the error is `ErrBootUnit`, wrapping `EnsureBootUnit`'s (`revert.ErrBootUnit` for a refused check or a missing link, the command's own error for an enable that fails), and `Options.Progress` reports `EventFailed` at `StepBoot`. What it did before it failed stays, and is reported: in that event's `Detail`, in `Result.Boot` and in the log, the backup of a file it replaced included, with its entry and the backup run's directory (`EnsureBootUnit` logs the backup too). A unit file written and not enabled does not run at boot, and the next apply only enables it. **`Arm` failing after the install** is the change not applied too (`Result.ID` "", nothing journalled), with the unit kept and `Result.Boot` saying so: it removes itself at the next boot (`TestBootUnitFails`, one row each: a check that refuses the copy, an enable that fails, a file replaced and then an enable that fails, `Arm` failing).
 5. **Parity with `p2drive`** (`TestEngineParity`, [steps.md](steps.md) §2.20). The commands compared now include the install, in p2drive's order:
    - on systemd, `systemd-analyze verify --recursive-errors=no /run/hardn/<id>/hardn-boot.service`, then `systemctl --no-reload enable hardn-boot.service`;
    - on OpenRC, `sh -n /run/hardn/<id>/hardn-boot`, then `rc-update add hardn-boot default`;
@@ -65,10 +65,12 @@
    - `ReadState` and the notices.
 8. **Its wait is bounded, and never holds up a rollback.** A lock held by another process is tried again every 50 ms for up to 10 s, by the real clock (`lockWait`, `lockPoll`; `Options.Now` is the change's clock, which may be wrong). Every holder holds it for a few file operations, milliseconds, so a holder still there after 10 s is stopped (Ctrl-Z, `SIGSTOP`) or stuck in the kernel. `flock(2)` keeps its lock until it is unlocked or closed, so waiting longer would not help. Then:
    - **a rollback goes on without the lock, and logs it** (`TestJournalLockHeld`). The timer's `hardn rollback <id>` is unattended, and a lockout it would undo must not wait on another process (brief §3 principle 1). It then has the limits it had before this unit;
-   - `Arm` refuses: nothing is armed (`host.ErrLocked`, naming the holder);
-   - `Abandon` refuses: "nothing given up";
+   - `Arm` refuses: nothing is armed (a `*revert.LockedError`, which is `host.ErrLocked`, naming the holder);
+   - `Abandon` refuses: "nothing given up" (the same error);
    - a re-arm at boot is a timer that cannot be re-armed, so the change is rolled back at once (`BootReasonRearmFailed`, revert-boot.md §2.6's rule), by a `Rollback` that itself goes on;
    - `Boot`'s first read is made without the lock, and logged.
+
+   **A lock that cannot be taken for another reason** (`revert.ErrNoLock`: a journal directory that is not root's alone, a `journal.lock` that is not a regular file, a full or read-only file system, since `host.System.Lock` creates the file and writes the holder line) is treated the same way: the rollback goes on and logs it, `Arm` and `Abandon` refuse (`TestJournalLockErrors`). So `hardn rollback --abandon` now needs a small write where before this unit it needed one rename; on a full disk a new change could not be journalled either. `cmd/hardn` then says to free the space or put the file right and run it again, or to move `rollback.json` aside by hand, as root, which gives the rollback up the same way, as it already said for a journal it cannot read. A done `ctx` ends `Arm`'s wait (Ctrl-C), and nothing is written.
 
    **A decision of this unit:** fail open for the rollback, closed for the rest.
 9. **What it closes.** With the lock taken out (`go test -overlay` over a `lock.go` whose `lockJournal` does nothing), the tests of the first two items and the `Arm` at `Boot`'s write fail; the other `Boot` rows are caught by `writeRearmed`'s comparison alone, which the lock makes atomic with the write:
@@ -80,15 +82,16 @@
 
 10. **One run lock** (`revert.RunLockName`, `/run/hardn/engine.lock`; the engine's `LockName` is it). `revert.LockRun` takes it without waiting, naming the holder (`pid <n>, <what>, since <time>`). Its holders:
     - the engine, for a whole apply (its own code, as before);
-    - `p2drive`, for a lockout-risk change, from before the boot unit's install to its last write;
+    - `p2drive`, for a lockout-risk change, from before the boot unit's install to its last write: `port`, `keyonly`, `pve-root`, `ufw-enable`, the migration, and `sudoers` with a lockout-risk plan (`--grant none` or `password`);
     - `hardn rollback --boot` (`Boot`), for its whole run;
     - `RemoveBootUnit`, while it removes the unit.
 
-    The engine's refusal now reads "another hardn is running (… holds the run lock …)", since the holder may be the boot command.
+    Another hardn holding it is a `*revert.LockedError` (`Run` set, the holder's line in `Holder`, `Is(host.ErrLocked)`), from `LockRun` and from the engine alike; it reads "another hardn holds the run lock … (…); try again once it has finished", since the holder may be the boot command. The engine keeps its own code for it rather than calling `LockRun`: both take the one file (`LockName` is `RunLockName`, in the run root both read from `Options.Revert.RunDir`) with `host.System.Lock`, so they exclude each other whatever their words; the engine's holder line names `Options.PID`, which its caller passes, where `LockRun` reads `/proc/self`, and its directory check is `trustedDir`, whose refusals ("engine: run lock: ") its `TestRunLock` pins. Any other failure to take the run lock is `revert.ErrNoLock` from `LockRun` (`TestLockRun`).
 11. **`Boot` tries it once and never waits** (`TestBootRunLock`):
-    - **Held by an apply:** the boot unit is kept, logged, with no warning (`RemoveErr` stays nil). This closes revert-boot.md §6's race: an apply between the install and `Arm` holds the run lock.
-    - **A journalled change whose timer, started in this boot, is not there** is that apply's change: its timer is about to start, or `Arm` is removing a journal whose timer did not. That is `BootNothing`, with the new reason `BootReasonApplyRuns` (`apply-runs`); before this unit, `Boot` took it for one after a reboot and rolled back a change being applied.
-    - **The run lock cannot be taken for another reason:** logged, and the unit is not removed (`RemoveErr`).
+    - **Held by another hardn:** the boot unit is kept, logged, with no warning (`RemoveErr` stays nil). This closes revert-boot.md §6's race: an apply between the install and `Arm` holds the run lock.
+    - **A journalled change not applied yet, whose timer, started in this boot, is not there** is taken as the holder's apply's: its timer is about to start, or `Arm` is removing a journal whose timer did not. That is `BootNothing`, with the new reason `BootReasonApplyRuns` (`apply-runs`); before this unit, `Boot` took it for one after a reboot and rolled back a change being applied. No other `hardn rollback --boot` can be the holder there, since `Boot` re-arms only an applied change; the `Why` says to run it again once the holder has finished, in case no apply runs.
+    - **The same, with the change applied:** its apply is over (`MarkApplied` is an apply's last write), so the holder is something else: another `hardn rollback --boot` about to start the timer it re-armed, an uninstall, an apply about to be refused. That is `BootLeft` (exit 1), with the new reason `BootReasonRunLockHeld` (`run-lock-held`), naming the holder and asking for a run again once it has finished. `Boot` does not go on as after a reboot: a second re-arm beside the first would fail on its timer's unit name, and roll the change back.
+    - **The run lock cannot be taken for another reason:** logged, and the unit is not removed (`RemoveErr`, `TestBootRunLock`).
     - Otherwise `Boot` holds it to its end, so no apply arms a change, or installs the unit, while `Boot` acts.
 12. **`RemoveBootUnit`** takes the run lock itself; while another hardn holds it, the unit is kept, nothing changes, and the error is `host.ErrLocked` (`TestRemoveBootUnitRunLock`; `TestBootUnitUnderRunLock` and p2drive's `TestRunLock` run it from inside the install, and the unit stays).
 
@@ -108,15 +111,18 @@
     | an apply holds the run lock, inside a change | the timer's `hardn rollback <id>` (or the user's) | takes the journal lock at once, never the run lock, waits for nothing; the apply then reports the change rolled back by the other (`revert.ErrRollingBack`) | `TestLocksDuringApply`, `TestTimerRollbackOverlaps` (unchanged) |
     | the same | `hardn rollback --abandon <id>` | refused (`not-started`), with no wait | `TestLocksDuringApply` |
     | the same | `hardn rollback --boot`, the timer there / not there yet | nothing (`timer-runs` / `apply-runs`), the unit kept, with no wait | `TestLocksDuringApply` |
-    | an apply between the boot unit's install and `Arm` | `RemoveBootUnit`, `hardn rollback --boot` | the unit kept (`host.ErrLocked`); the change then armed with it | `TestBootUnitUnderRunLock`, p2drive's `TestRunLock` |
+    | another hardn holds the run lock, a change of this boot applied, its timer not there | `hardn rollback --boot` | left (`run-lock-held`), not re-armed, no wait | `TestBootRunLock` |
+    | an apply between the boot unit's install and `Arm` | `RemoveBootUnit`, `hardn rollback --boot` | the unit kept (`host.ErrLocked`); the change then armed with it | `TestBootUnitUnderRunLock`, p2drive's `TestRunLock` (`port`, `sudoers --grant none`) |
     | a rollback holds the journal lock for its claim | an apply's `Arm` | waits for it, then arms | `TestArmWaitsForJournalLock` |
     | the boot unit at boot | `Boot`, then its rollback | each lock taken once, released before the next | `TestBootRunLock`, `TestBoot` (unchanged) |
     | a holder stopped inside the lock | rollback / `Abandon` / `Arm` / a re-arm | goes on / refused / refused / rolled back | `TestJournalLockHeld` |
+    | a journal lock that cannot be taken (`ErrNoLock`), a `ctx` done while `Arm` waits | rollback / `Abandon` / `Arm` | goes on / refused / refused, nothing written | `TestJournalLockErrors` |
+    | a run lock that cannot be taken (`ErrNoLock`) | `LockRun`, `Boot` | refused, never waited for / the unit kept | `TestLockRun`, `TestBootRunLock` |
     | `Abandon` and a take-up; two rollbacks; `Boot` and a new `Arm`; two `Boot`s | | as §2.9 | `TestJournalLockAbandonAndTakeUp`, `TestJournalLockTwoRollbacks`, `TestBootRearmRaces` |
 
 ### The signal holds
 
-15. **`cmd/hardn`'s `holdSignals` and `p2drive`'s are `pkg/engine/hold`'s** (engine.md §7). `hold.SignalsAs(name, log)` is `Signals` with the name ahead of its lines, so each keeps its words: `cmd/hardn` logs "hardn rollback: SIGTERM received; the rollback finishes first" as a warning, for `rollback <id>` and `--boot` alike, and p2drive logs "p2drive: …" to its output. Both now get the hold's release, which gives `SIGHUP` and `SIGINT` back the disposition they had before the hold. Their own Notify and Stop left both ignored at the system's level (engine.md §2.14), which was harmless only because each exits right after. p2drive's `signals.go` is gone. Tested: hold's `TestSignals` (both names), p2drive's `TestHoldSignals` (production's hold, its line), cmd/hardn's `TestHoldSignals` (unchanged).
+15. **`cmd/hardn`'s `holdSignals` and `p2drive`'s are `pkg/engine/hold`'s** (engine.md §7). `hold.SignalsAs(name, log)` is `Signals` with the name ahead of its lines, so each keeps its words: `cmd/hardn` logs "hardn rollback: SIGTERM received; the rollback finishes first" as a warning, for `rollback <id>` and `--boot` alike, and p2drive logs "p2drive: …" to its output. Both now get the hold's release, which gives `SIGHUP` and `SIGINT` back the disposition they had before the hold. Their own Notify and Stop left both ignored at the system's level (engine.md §2.14), which was harmless only because each exits right after. p2drive's `signals.go` is gone. Tested: hold's `TestSignals` (both names), p2drive's `TestHoldSignals` (production's hold, its line), cmd/hardn's `TestHoldSignals` (the dispositions, and the warning line once, through `revertWarnLog`).
 
 ### Through `host.System`
 
@@ -153,8 +159,13 @@ package engine // added by next/p3-engine-boot
 
 const BootChangeID = "hardn.boot-unit"            // the boot unit's change
 const StageBoot Stage = 1                           // new, first; StagePackages … StageVerify are 2 … 7 (words unchanged)
-const StepBoot = "boot unit"                        // EventFailed's step when the install fails, before Arm
+const StepBoot = "boot unit"                        // EventFailed's step when the install fails, before Arm (no ApplyError names it)
 const LockName = revert.RunLockName                 // was the literal "engine.lock"
+var ErrBootUnit = errors.New("the boot unit was not installed, so nothing is armed") // the install failed
+type BootInstall struct{ Detail string; Err error } // what the install did, also part-way
+// Result.Boot *BootInstall: the boot unit's install, when it ran; not in Result.Applied.
+// Event.Detail: also with EventFailed at StepBoot. Change.Control: "" for the boot unit's.
+// The run lock's refusal is a *revert.LockedError.
 // unexported: (*Engine).bootChange, bootState, bootDetail, (*applier).boot;
 // refuseApply takes the plan's one ReadState; Plan.Summary leaves StageBoot out.
 
@@ -162,10 +173,20 @@ package revert // added or changed by next/p3-engine-boot
 
 const JournalLockName = "journal.lock" // in Options.Dir
 const RunLockName = "engine.lock"      // in Options.RunDir
-func LockRun(ctx context.Context, sys host.System, opts Options, what string) (unlock func() error, err error) // host.ErrLocked, naming the holder
-const BootReasonApplyRuns BootReason = "apply-runs" // nothing: its timer, of this boot, is not there, and an apply holds the run lock
+func LockRun(ctx context.Context, sys host.System, opts Options, what string) (unlock func() error, err error) // a *LockedError naming the holder; ErrNoLock
+const BootReasonApplyRuns BootReason = "apply-runs"       // nothing: its timer, of this boot, is not there, it is not applied yet, and another hardn holds the run lock
+const BootReasonRunLockHeld BootReason = "run-lock-held" // left: the same, the change applied
+type LockedError struct {                                // Is(host.ErrLocked): another hardn holds a lock
+	Run    bool          // the run lock; false: the journal lock, past its wait
+	Name   string        // the lock's file
+	Holder string        // its holder line, "" when there is none
+	Waited time.Duration // lockWait for the journal lock, 0 for the run lock
+	Err    error
+}
+var ErrNoLock = errors.New("the lock cannot be taken")   // any other failure to take either lock
 // Changed: Arm, Rollback, Abandon and Boot take the journal lock (§2.7); Boot and RemoveBootUnit the run lock (§2.11, §2.12).
-// unexported: lockJournal, holderLine, lockWait (10 s), lockPoll (50 ms), writeRearmed, sameJournal, removeUnit.
+// unexported: lockJournal, lockedError, holderLine, lockWait (10 s), lockPoll (50 ms), writeRearmed, sameJournal, removeUnit.
+// EnsureBootUnit logs the backup of a file it replaces.
 
 package hold // added
 func SignalsAs(name string, log io.Writer) (release func()) // Signals is SignalsAs("hardn", log)
@@ -178,17 +199,17 @@ func SignalsAs(name string, log io.Writer) (release func()) // Signals is Signal
 
 - **`pkg/host/revert`** (`next/p2-revert`'s, `next/p3-rollback-abandon`'s, `next/p3-revert-boot`'s): `lock.go`; the journal lock in `Arm`, `Rollback`, `Abandon` and `Boot`; the run lock in `Boot` and `RemoveBootUnit`; `BootReasonApplyRuns`. [revert.md](../safety/revert.md) §2, §6 and §8.1 to §8.4, and [revert-boot.md](../safety/revert-boot.md) §2 and §5, predate it; their §7, §8.5 and §6 point here. Every earlier test passes unchanged.
 - **`pkg/engine`** (`next/p3-engine`'s, `next/p3-steps`'s): `StageBoot`, `BootChangeID`, `StepBoot`, `bootChange`, `LockName`, the run lock's words. Test hosts install the boot unit (`newHost`), so the earlier tests are as they were; the boot unit's tests start from `newBareHost`. [engine.md](engine.md)'s §2.5, §2.14, §6 and §7 note it.
-- **`internal/tools/p2drive`**: the run lock around a lockout-risk change; the hold; `signals.go` removed. The fake's change filter now counts the run root itself (`/run/hardn`, which the lock's directory check makes) as the run directory. `TestEngineCombined` expects the boot unit's change.
-- **`cmd/hardn`**: `holdSignals` is the hold's; no CLI surface changes (§3.11 is not approved).
+- **`internal/tools/p2drive`**: the run lock around a lockout-risk change, `sudoers`' included; the hold; `signals.go` removed. The fake's change filter now counts the run root itself (`/run/hardn`, which the lock's directory check makes) as the run directory. `TestEngineCombined` expects the boot unit's change.
+- **`cmd/hardn`**: `holdSignals` is the hold's; `hardn rollback --abandon` says what to do when the journal lock is held or cannot be taken (§2.8); no CLI surface changes (§3.11 is not approved).
 
 ## 7. Inputs to later units, open items, size
 
-- **`p3-output`:** registry codes for `BootReasonApplyRuns`; `host.ErrLocked` from `Arm` and `Abandon` (the journal lock) and from the run lock; `StepBoot`. The words of the boot unit's change (summary, states) and of the locks' refusals are provisional.
+- **`p3-output`:** registry codes for `BootReasonApplyRuns` and `BootReasonRunLockHeld`; `*revert.LockedError` (`Run` tells the run lock from the journal lock held past its wait, from `Arm` and `Abandon`) and `revert.ErrNoLock`; `engine.ErrBootUnit` and `StepBoot`; `Result.Boot` for the audit record. The words of the boot unit's change (summary, states, `Detail`) and of the locks' refusals are provisional.
 - **`p7-install`:** an uninstall calls `RemoveBootUnit`, which now takes the run lock itself, and refuses while an apply holds it.
 - **Known limits:**
   - A rollback that went on without the journal lock, past its wait, has the limits it had before this unit (revert.md §2.16, §8.1 item 8); so does a hardn from before this unit, which takes no lock. A downgrade inside a confirm window is already unsupported (revert-boot.md §2.11).
   - `Record` and `MarkApplied` take no lock: revert.md §7's limit (a rollback that claims and finishes between their read and their write) stays, on the engine's own change under its run lock.
   - `Boot`'s run lock refuses an apply started while it runs: by hand, for as long as its rollback takes (up to `RollbackTimeout`).
   - The boot unit is not undone with a change rolled back; it removes itself at the next boot (§2.1). A host never rebooted keeps it, enabled and doing nothing until then.
-- **Decisions of this unit**, none the maintainer's: the boot unit's stage, risk and journal treatment (§2.1); a rollback that goes on without the journal lock after 10 s, while `Arm`, `Abandon` and a re-arm do not (§2.8); `apply-runs` (§2.11).
-- **Size:** about 2,060 changed lines of Go against `next/p3-join`, and about 205 of docs (this page and 11 lines in five others), over the plan's guideline of about 500. That is about 775 lines of non-test Go (130 in `pkg/engine/boot.go` and 130 in `pkg/host/revert/lock.go`, much of it doc comments) and about 1,290 of tests. The tests are most of it: every interleaving of §2.14 with two processes on one fake, each boot unit state, and each refusal. The commits split it as a review would: the engine's boot unit (which restores parity), the journal lock with the run lock in `revert`, p2drive's run lock, the holds, the docs.
+- **Decisions of this unit**, none the maintainer's: the boot unit's stage, risk and journal treatment (§2.1), and its place in `Result.Boot` rather than `Result.Applied`; a rollback that goes on without the journal lock after 10 s, or when it cannot be taken, while `Arm`, `Abandon` and a re-arm do not (§2.8); `apply-runs` for a change not applied yet, `run-lock-held` for one applied (§2.11).
+- **Size:** about 2,650 changed lines of Go against `next/p3-join`, and about 240 of docs (this page and 23 lines in five others), over the plan's guideline of about 500. That is about 965 lines of non-test Go (137 in `pkg/engine/boot.go` and 184 in `pkg/host/revert/lock.go`, much of it doc comments) and about 1,690 of tests. The tests are most of it: every interleaving of §2.14 with two processes on one fake, each boot unit state, each refusal, and each way a lock can fail. The review's fixes account for about 590 of these lines (`Result.Boot`, the typed lock errors, `run-lock-held`, `sudoers`' run lock in p2drive, and the lock error paths' tests). The commits split it as a review would: the engine's boot unit (which restores parity), the journal lock with the run lock in `revert`, p2drive's run lock, the holds, the docs, then the review's fixes, one commit per package.
