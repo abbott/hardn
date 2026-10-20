@@ -116,6 +116,17 @@ func LogInstall(format string, v ...interface{}) {
 	}
 }
 
+// LogFileOnly logs an info message to the log file alone, never the
+// console, as LogInfo writes it there: for a record too long for the
+// screen, such as the commands `hardn confirm`'s clean-up runs and their
+// output, which the command sums up on the console itself (refactor plan
+// P3, next/p3-confirm-cleanup).
+func LogFileOnly(format string, v ...interface{}) {
+	if logger != nil {
+		logger.Printf("INFO: %s", fmt.Sprintf(format, v...))
+	}
+}
+
 // PrintLogs prints the content of the log file
 func PrintLogs(logPath string) {
 	data, err := os.ReadFile(logPath)

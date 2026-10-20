@@ -108,6 +108,12 @@ when its confirm window ends. Run it from a new SSH connection, to the new port
 if the change moved it: a confirmation typed into the session that applied the
 change proves nothing. Away from SSH (a local console), that session may confirm.
 
+Once a port change is confirmed from a new SSH connection, it also cleans up:
+the old port, kept open during the confirm window, is dropped from
+/etc/ssh/sshd_config.d/00-hardn.conf, sshd is reloaded, and the ufw rule hardn
+added for that port is deleted. A console confirms and leaves that to a new
+SSH connection.
+
 Example:
   sudo hardn confirm`,
 	Args:             cobra.NoArgs,
@@ -184,20 +190,9 @@ func runConfirm(*cobra.Command, []string) {
 	if err != nil {
 		logging.LogWarning("%v", err)
 	}
-	res, err := revert.Confirm(ctx, sys, s, opts)
-	if err != nil {
-		logging.LogError("%v", err)
-		var np *revert.NotPendingError
-		if errors.As(err, &np) && np.RolledBack() {
-			acknowledge(ctx, sys, opts)
-		}
-		revertExit(1)
-		return
+	if code := confirmAndCleanUp(ctx, sys, s, opts); code != 0 {
+		revertExit(code)
 	}
-	if res.Local {
-		logging.LogWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
-	}
-	logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", res.Journal.ID, res.Journal.Summary)
 }
 
 func runRollback(_ *cobra.Command, args []string) {

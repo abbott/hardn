@@ -97,6 +97,9 @@ func Build(r Run) Document {
 	}
 	if p := r.Plan; p != nil {
 		d.Result.ID, d.Result.Risk = p.ID, riskWord(p.Risk)
+		for _, f := range p.Findings { // the plan's as a whole (P-41: a best-effort release)
+			d.Findings = append(d.Findings, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source})
+		}
 		status := changeStatus(r)
 		for _, c := range p.Changes {
 			d.Changes = append(d.Changes, changeOf(c, status))

@@ -2,6 +2,7 @@ package steps
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -28,7 +29,24 @@ type Cleanup struct {
 	// its journal's run steps): a held port's rule is deleted only when
 	// one of them deletes it, that is, when hardn added it (ufw.md §6).
 	Firewall [][]string
+	// Proven: the caller has established, with revert.CheckConfirm over
+	// the confirmed change's journal, that the session applying the
+	// clean-up is a new SSH connection, made from another machine, to a
+	// listener the change added: `hardn confirm` (P-40, decided
+	// 2026-10-19; next/p3-confirm-cleanup). Dropping what the change held
+	// cannot cut that connection off, so the clean-up runs without a revert
+	// timer of its own: its changes take the class they have without the
+	// lockout risk (the reload a service restart, the rest plain), and
+	// PlanCleanup refuses unless the session is connected to a port the
+	// clean-up keeps (ErrSessionNotKept). Without it the changes are of
+	// lockout risk, confirmed like any other.
+	Proven bool
 }
+
+// ErrSessionNotKept refuses a Proven clean-up whose session is not an SSH
+// connection to a port the clean-up keeps: without a revert timer of its
+// own, it must not be able to drop the port its own session came in on.
+var ErrSessionNotKept = errors.New("the clean-up's session is not connected to a port it keeps")
 
 // CleanupOf is the clean-up of a confirmed change, from its journal
 // (confirmed.json keeps the last one, revert.md §2.5): Drop are the ports
@@ -66,10 +84,10 @@ func CleanupOf(j revert.Journal) Cleanup {
 // before them, the deletion of the ufw rules hardn added for the dropped
 // ports, those still there. A port another file keeps (a Port line in
 // sshd_config) is refused, since hardn edits only 00-hardn.conf. Its
-// changes are of lockout risk, confirmed like any other; none once the
-// ports are gone. Who plans it, and when (the next run, `hardn confirm`, or
-// the session that applied the change), is the maintainer's question
-// (engine.md §7).
+// changes are of lockout risk, confirmed like any other, unless c.Proven;
+// none once the ports are gone. `hardn confirm` plans it, from the new
+// connection, right after the claim (P-40, decided 2026-10-19:
+// pkg/engine/confirm).
 func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix string, c Cleanup) ([]engine.Change, error) {
 	st, err := readSSH(ctx, sys, in, "")
 	if err != nil {
@@ -108,6 +126,11 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 		n, _ := strconv.ParseUint(d.Args[0], 10, 16)
 		left = append(left, uint16(n))
 	}
+	if c.Proven {
+		if err := keptSession(in.Session, left); err != nil {
+			return nil, err
+		}
+	}
 	if err := pve.CheckPort(in.Facts.Proxmox, left); err != nil {
 		return nil, err
 	}
@@ -133,10 +156,47 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 		out = append(out, *fw)
 	}
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
-	return claim(append(out, e.change(r), reloadChange(prefix, r, rp, nil),
+	files := e.change(r)
+	files.Summary = fmt.Sprintf("Drop port %s from %s", joinUint16(drop), sshd.HardnDropIn)
+	out = claim(append(out, files, reloadChange(prefix, r, rp, nil),
 		st.verifyChange(prefix, fmt.Sprintf("sshd -T shows ports %v alone", left), func(_ context.Context, _ host.System, after sshd.Effective) error {
 			return wanted(after, e.set, drop)
-		}))), nil
+		})))
+	if c.Proven {
+		for i := range out {
+			out[i].Risk = engine.RiskPlain
+			if out[i].Stage == engine.StageReload {
+				out[i].Risk = engine.RiskServiceRestart
+			}
+		}
+	}
+	return out, nil
+}
+
+// keptSession refuses, with ErrSessionNotKept, a session that is not an
+// SSH connection to one of the ports left: a console, a connection not
+// established, or one to a port the clean-up drops.
+func keptSession(s revert.Session, left []uint16) error {
+	if !s.Remote {
+		return fmt.Errorf("a session that is not over SSH shows nothing about the ports the clean-up keeps: %w", ErrSessionNotKept)
+	}
+	conn, err := revert.ParseConn(s.Conn)
+	if err != nil {
+		return fmt.Errorf("the port this session is connected to is not established (%v): %w", err, ErrSessionNotKept)
+	}
+	if p := conn.Server.Port(); !slices.Contains(left, p) {
+		return fmt.Errorf("this session is connected to port %d, not to one of %v, which the clean-up keeps: %w", p, left, ErrSessionNotKept)
+	}
+	return nil
+}
+
+// joinUint16 is ports in words: "22", "22 and 2222".
+func joinUint16(ports []uint16) string {
+	s := make([]string, len(ports))
+	for i, p := range ports {
+		s[i] = strconv.Itoa(int(p))
+	}
+	return strings.Join(s, " and ")
 }
 
 // cleanupFirewall deletes the rules hardn added for the dropped ports

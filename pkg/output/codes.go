@@ -140,6 +140,7 @@ var errorCodes = []Entry{
 	is("SSHD_CHANGE_NOT_IN_EFFECT", steps.ErrNotInEffect),
 	is("SSHD_FILE_CHANGED", steps.ErrChanged).what("a file the SSH change writes is not as the plan read it"),
 	is("PVE_ROOT_LOGIN_NOT_KEPT", steps.ErrProxmoxRoot),
+	is("SSH_CLEANUP_SESSION_NOT_KEPT", steps.ErrSessionNotKept),
 
 	// The engine's own, before the primitives' errors they wrap.
 	is("CONFIRM_WINDOW_CLOSING", engine.ErrWindow),
@@ -388,6 +389,7 @@ var findingCodes = []Entry{
 	finding("DNS_UDHCPC", "Alpine's udhcpc rewrites /etc/resolv.conf on each lease"),
 	finding("DNS_PROXMOX_NODE", "Proxmox VE's node DNS settings rewrite /etc/resolv.conf"),
 	finding(CodeDeprecated, "a configuration value in a form that is going away; it still works (§3.17)"),
+	finding(engine.CodeBestEffort, "a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41)"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

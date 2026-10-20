@@ -18,6 +18,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
+	"github.com/abbott/hardn/pkg/engine/confirm"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -92,6 +93,14 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas := revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun
 	stderrWas, seenWas, holdWas := revertStderr, revertNoticeSeen, revertHoldSignals
 	executableWas, initWas := revertExecutable, revertInit
+	confirmHostWas, confirmCleanupWas := confirmHost, confirmCleanup
+	// hardn confirm's clean-up never reaches this machine: its host is the
+	// fake, and a test that means it to run stubs it (newCleanupSeams).
+	confirmHost = func() host.System { return s.f }
+	confirmCleanup = func(context.Context, host.System, confirm.Held, revert.Session, confirm.Options) confirm.Outcome {
+		t.Error("hardn confirm's clean-up ran in a test that did not stub it (newCleanupSeams)")
+		return confirm.Outcome{}
+	}
 	revertEUID = func() int { return euid }
 	revertHost = func() host.System { return s.f }
 	revertGetenv = func(string) string { return "" } // sudo reset it
@@ -111,6 +120,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 		revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun = euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas
 		revertStderr, revertNoticeSeen, revertHoldSignals = stderrWas, seenWas, holdWas
 		revertExecutable, revertInit = executableWas, initWas
+		confirmHost, confirmCleanup = confirmHostWas, confirmCleanupWas
 		rollbackAbandon, rollbackBoot = false, false // a flag's value outlives the run that set it
 		logging.SetSilentMode(false)
 		rootCmd.SetArgs(nil)
