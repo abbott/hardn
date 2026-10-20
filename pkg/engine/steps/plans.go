@@ -54,7 +54,7 @@ func Sudoers(id string, p sudoers.Plan, summary string) (engine.Change, error) {
 		return engine.Change{}, err
 	}
 	c := engine.Change{ID: id, Summary: summary, Target: strings.Join(sudoersPaths(p), ", "), Stage: engine.StageAccounts,
-		Rollback: engine.Undo{Steps: []revert.Step{step}}}
+		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitSudoers}}
 	if slices.ContainsFunc(p.Changes, func(ch sudoers.Change) bool { return ch.Risk == sudoers.RiskLockout }) {
 		c.Risk = engine.RiskLockout
 	}
@@ -106,7 +106,8 @@ func DNS(id string, p dns.Plan, summary string) (engine.Change, error) {
 	if err != nil {
 		return engine.Change{}, err
 	}
-	c := engine.Change{ID: id, Summary: summary, Stage: engine.StageFiles, Rollback: engine.Undo{Steps: []revert.Step{step}}}
+	c := engine.Change{ID: id, Summary: summary, Stage: engine.StageFiles, Rollback: engine.Undo{Steps: []revert.Step{step}},
+		Resources: []string{plans.UnitDNS}}
 	var targets []string
 	for _, ch := range p.Changes {
 		if ch.Path != "" {
@@ -139,7 +140,7 @@ func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error) {
 		return engine.Change{}, err
 	}
 	c := engine.Change{ID: id, Summary: summary, Target: alpine.Service, Stage: engine.StagePackages,
-		Rollback: engine.Undo{Steps: []revert.Step{step}}}
+		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitAlpine}}
 	for _, ch := range p.Changes {
 		switch ch.Step {
 		case alpine.StepInstall:
@@ -184,7 +185,7 @@ func PVEKeys(id string, px detect.Proxmox, p pve.KeysPlan, summary string) (engi
 	}
 	before, after := string(p.Old), string(p.New)
 	c := engine.Change{ID: id, Summary: summary, Target: pve.RootKeys, Diff: engine.FileDiff(pve.RootKeys, &before, &after),
-		Stage: engine.StageAccounts, Rollback: engine.Undo{Steps: []revert.Step{step}}}
+		Stage: engine.StageAccounts, Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitPVEKeys}}
 	if p.Narrows() {
 		c.Risk = engine.RiskLockout
 	}

@@ -32,11 +32,15 @@ type SSH struct {
 	// Port, when not 0, is a port to add: 00-hardn.conf gets a Port line
 	// for it beside the ports sshd listens on now (reload.HoldPorts), held
 	// until the change is confirmed and the clean-up drops them
-	// (PlanCleanup). A port sshd already has, in its Port set and on a
-	// listener, is not added again.
+	// (PlanCleanup). A port sshd already has is not added again: one that
+	// is configured (in sshd -T's Port set and on one of its listeners) and
+	// in effect (bound, and covering the applying session's port:
+	// reload.CheckInEffect). One configured and not in effect is refused.
 	Port uint16
 	// UFW says whether ufw is enabled too (UFWEnable) or only lets the
-	// added port through (UFWKeep).
+	// added port through (UFWKeep). UFWEnable is planned when nothing else
+	// is left to do, too, so that one SSH change serves a plan that asks
+	// for SSH settings and ufw's enable together.
 	UFW UFW
 }
 
@@ -47,16 +51,21 @@ type SSH struct {
 // with pve.CheckPort before a port change; the candidate validated in
 // context (sshd.Validate over a copy in in.RunDir); its reload planned
 // (reload.PlanFor); for a port change, the new port among the listeners
-// the reload adds (ErrNoNewListener otherwise); for every listener change,
-// what is configured must be what is bound and cover the applying
-// session's port (reload.CheckInEffect); the added listeners free
-// (reload.CheckFree); and ufw's part (UFW). All of it before anything
-// changes. Its changes, all of lockout risk: the firewall when ufw has
-// something to do, the write of 00-hardn.conf, the reload, and the check
-// of sshd -T after it. None when 00-hardn.conf already says so
-// (idempotency).
+// the reload adds (ErrNoNewListener otherwise); for every reload that
+// makes sshd bind what its files configure (a listener change, and any
+// reload of ssh.service or OpenRC's sshd), what is configured must be what
+// is bound and cover the applying session's port (reload.CheckInEffect);
+// the added listeners free (reload.CheckFree); and ufw's part (UFW). All
+// of it before anything changes. Its changes, all of lockout risk: the
+// firewall when ufw has something to do, the write of 00-hardn.conf, the
+// reload, and the check of sshd -T after it. None when sshd -T over the
+// installed files already shows what is asked and 00-hardn.conf says so
+// (idempotency); when only the file says so, it is refused (inForce).
 func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]engine.Change, error) {
 	if len(s.Set) == 0 && s.Port == 0 {
+		if s.UFW == UFWEnable {
+			return PlanUFWEnable(ctx, sys, in, s.Prefix)
+		}
 		return nil, nil
 	}
 	st, err := readSSH(ctx, sys, in, "")
@@ -71,10 +80,6 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 	}
 	set := slices.Clone(s.Set)
 	port := s.Port
-	if port != 0 && st.before.Port.Has(strconv.Itoa(int(port))) &&
-		slices.ContainsFunc(st.before.Listeners.SSHD, func(l sshd.Listener) bool { return l.Port == port }) {
-		port = 0 // sshd listens there already: nothing to add (idempotency)
-	}
 	if port != 0 {
 		if err := pve.CheckPort(in.Facts.Proxmox, []uint16{port}); err != nil {
 			return nil, err
@@ -82,6 +87,14 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 		if !st.before.Listeners.Known {
 			return nil, fmt.Errorf("the listeners sshd configures now: %w", reload.ErrListenersUnknown)
 		}
+		if err := st.portInEffect(ctx, sys, port); err != nil {
+			return nil, err
+		}
+		if st.configures(port) {
+			port = 0 // configured and in effect already: nothing to add (idempotency)
+		}
+	}
+	if port != 0 {
 		var ports []migrate.Directive
 		for _, p := range reload.HoldPorts(st.before.Listeners.All, []uint16{port}) {
 			ports = append(ports, migrate.Directive{Keyword: "Port", Args: []string{strconv.Itoa(int(p))}})
@@ -89,11 +102,14 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 		set = append(ports, set...)
 	}
 	if len(set) == 0 {
-		return nil, nil
+		return st.enableUFW(ctx, sys, s.Prefix, s.UFW)
 	}
 	e, err := st.edit(ctx, sys, s.Prefix, set)
-	if err != nil || e == nil {
+	if err != nil {
 		return nil, err
+	}
+	if e == nil {
+		return st.enableUFW(ctx, sys, s.Prefix, s.UFW)
 	}
 	rp, err := reload.PlanFor(reload.Input{SSH: in.Facts.SSH, DropIns: e.drops,
 		Change: reload.Change{Keywords: e.keywords, Before: st.before.Listeners, After: e.cand.Listeners.SSHD}})
@@ -104,7 +120,7 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 		return nil, fmt.Errorf("port %d: sshd would listen on %v, no new listener on %d: a ListenAddress with its own port ignores the Port lines (sshd_config(5))%s: %w",
 			port, e.cand.Listeners.SSHD, port, pinnedAt(st.found), ErrNoNewListener)
 	}
-	if err := st.listenerChecks(ctx, sys, rp, st.before.Listeners.All); err != nil {
+	if err := st.listenerChecks(ctx, sys, rp, st.before.Listeners); err != nil {
 		return nil, err
 	}
 	fw, err := st.planUFW(ctx, sys, st.before.Listeners, s.UFW, portsOf(rp.Adds))
@@ -124,20 +140,64 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 			}
 			return st.checkPVE(ctx, sys, after, e.groups)
 		}))
-	return out, nil
+	return claim(out), nil
 }
 
-// listenerChecks are the refusals of a reload that moves listeners, before
-// anything changes: configured must be what is bound and cover the
-// applying session (CheckInEffect), and the listeners it adds free
-// (CheckFree, the check reload.Execute makes before its first step).
-func (st sshState) listenerChecks(ctx context.Context, sys host.System, rp reload.Plan, configured []sshd.Listener) error {
-	if rp.Listen {
-		if err := st.inEffect(ctx, sys, configured); err != nil {
+// listenerChecks are the refusals of a reload, before anything changes.
+// A reload that makes sshd bind what its files configure (rebinds) needs
+// that set established (reload.ErrListenersUnknown) and what accepts
+// connections now: bound, and covering the applying session
+// (CheckInEffect). Otherwise a change that sets no listener keyword
+// (keyonly) on a host whose files name a port sshd has not bound yet would
+// move sshd there, every later check would pass, and the rollback, which
+// restores hardn's file alone, would leave sshd there. The listeners a
+// listener change adds must be free (CheckFree, the check reload.Execute
+// makes before its first step).
+func (st sshState) listenerChecks(ctx context.Context, sys host.System, rp reload.Plan, configured sshd.Listeners) error {
+	if rebinds(rp) {
+		if !configured.Known {
+			return fmt.Errorf("the listeners sshd configures now, which the reload (%s) makes it bind: %w", unitOf(rp), reload.ErrListenersUnknown)
+		}
+		if err := st.inEffect(ctx, sys, configured.All); err != nil {
 			return err
 		}
 	}
 	return reload.CheckFree(ctx, sys, rp)
+}
+
+// rebinds reports whether rp makes sshd, or ssh.socket, bind what the
+// files configure: a listener change, and any reload of ssh.service or of
+// OpenRC's sshd, which re-executes on SIGHUP and reads every file again
+// (reload.md §3). On ssh.socket a reload with no listener keyword is a
+// reload of ssh.service, whose sshd keeps the sockets systemd passed it
+// (reload.md §3), so it binds nothing.
+func rebinds(rp reload.Plan) bool {
+	return rp.Listen || len(rp.Steps) > 0 && (rp.Mode == detect.SSHService || rp.Mode == detect.SSHOpenRC)
+}
+
+// configures reports whether port is configured: in sshd -T's Port set and on
+// one of its listeners.
+func (st sshState) configures(port uint16) bool {
+	return st.before.Port.Has(strconv.Itoa(int(port))) &&
+		slices.ContainsFunc(st.before.Listeners.SSHD, func(l sshd.Listener) bool { return l.Port == port })
+}
+
+// portInEffect refuses a port that is configured (configures) but not what
+// accepts connections now: sshd -T and ssh.socket read the files, which an
+// edit not reloaded, or a daemon-reload not followed by a restart of the
+// socket, leaves ahead of what is bound (sshd-effective.md §2.5). Such a
+// port is not "already" there: planning nothing would report the host as
+// asked, and planning around it would let the reload move sshd off the
+// port the session uses. CheckInEffect over the established configured set
+// decides it, from ss and the applying session's port.
+func (st sshState) portInEffect(ctx context.Context, sys host.System, port uint16) error {
+	if !st.configures(port) {
+		return nil
+	}
+	if err := st.inEffect(ctx, sys, st.before.Listeners.All); err != nil {
+		return fmt.Errorf("port %d is configured, not in effect: %w", port, err)
+	}
+	return nil
 }
 
 // edit is a planned write of 00-hardn.conf.
@@ -157,8 +217,10 @@ type edit struct {
 }
 
 // edit plans 00-hardn.conf with set in force, through pve.PlanSSH on
-// Proxmox VE, and validates it in context; nil when the file says so
-// already.
+// Proxmox VE, and validates it in context. When the file says so already
+// (setDirectives leaves it as it is, or it has set's lines in another
+// layout: saysAlready), there is nothing to write, and edit returns nil
+// once sshd -T shows them too (inForce).
 func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set []migrate.Directive) (*edit, error) {
 	old, absent, err := readOptional(ctx, sys, sshd.HardnDropIn)
 	if err != nil {
@@ -178,8 +240,8 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 	if e.data, err = setDirectives(old, set); err != nil {
 		return nil, err
 	}
-	if !absent && bytes.Equal(e.data, old) {
-		return nil, nil
+	if !absent && (bytes.Equal(e.data, old) || saysAlready(old, set)) {
+		return nil, st.inForce(set)
 	}
 	rep, err := sshd.Validate(ctx, sys, sshd.Request{Changes: []sshd.Change{{Path: sshd.HardnDropIn, Data: e.data}},
 		RunDir: st.in.RunDir, Platform: st.in.Facts.Platform, Binary: st.binary})
@@ -294,12 +356,37 @@ func (st sshState) verifyChange(prefix, summary string, want func(ctx context.Co
 	return c
 }
 
-// wanted checks that sshd -T shows what set asked for: each Port in the
-// Port set and on one of sshd's listeners (a port change must reach a
-// listener: a ListenAddress with its own port ignores the Port lines), no
-// listener left on a port of gone, and the lockout-relevant settings
-// (brief 2.2). An Unknown value is not a pass.
+// inForce is the check of a change whose lines 00-hardn.conf has already:
+// sshd -T over the installed files must show them (mismatch), as the check
+// after the reload would. Otherwise another file sets the keyword first,
+// or the value is Unknown, and a plan with nothing in it would report the
+// host as asked while sshd says otherwise (brief §3 principle 3: the
+// effective value, not the file). Refused with ErrNotInEffect, naming the
+// lines sshd reads first.
+func (st sshState) inForce(set []migrate.Directive) error {
+	bad := mismatch(st.before, set, nil)
+	if len(bad) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s already says %s, but sshd -T over the installed files shows %s%s: %w",
+		sshd.HardnDropIn, directiveWords(set), strings.Join(bad, "; "), setFirstBy(st.found, set), ErrNotInEffect)
+}
+
+// wanted checks that sshd -T shows what set asked for (mismatch), after
+// the reload: ErrNotInEffect otherwise.
 func wanted(after sshd.Effective, set []migrate.Directive, gone []uint16) error {
+	if bad := mismatch(after, set, gone); len(bad) > 0 {
+		return fmt.Errorf("sshd -T after the reload: %s: %w", strings.Join(bad, "; "), ErrNotInEffect)
+	}
+	return nil
+}
+
+// mismatch is what sshd -T, after, does not show of what set asks for:
+// each Port in the Port set and on one of sshd's listeners (a port change
+// must reach a listener: a ListenAddress with its own port ignores the
+// Port lines), no listener left on a port of gone, and the
+// lockout-relevant settings (brief 2.2). An Unknown value is not a pass.
+func mismatch(after sshd.Effective, set []migrate.Directive, gone []uint16) []string {
 	var bad []string
 	on := func(p int) bool {
 		return slices.ContainsFunc(after.Listeners.SSHD, func(l sshd.Listener) bool { return int(l.Port) == p })
@@ -330,10 +417,7 @@ func wanted(after sshd.Effective, set []migrate.Directive, gone []uint16) error 
 			bad = append(bad, fmt.Sprintf("port %d still in %v, listeners %v (known %v)", p, after.Port.Values, after.Listeners.SSHD, after.Listeners.Known))
 		}
 	}
-	if len(bad) > 0 {
-		return fmt.Errorf("sshd -T after the reload: %s: %w", strings.Join(bad, "; "), ErrNotInEffect)
-	}
-	return nil
+	return bad
 }
 
 func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {

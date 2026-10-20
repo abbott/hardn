@@ -57,7 +57,7 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 	if err := plan.CheckRollback(drops); err != nil {
 		return nil, notInEffect(err, drops, st.before.Listeners.Socket)
 	}
-	if err := st.listenerChecks(ctx, sys, rp, plan.Listening.All); err != nil {
+	if err := st.listenerChecks(ctx, sys, rp, plan.Listening); err != nil {
 		return nil, err
 	}
 	fw, err := st.planUFW(ctx, sys, plan.Listening, UFWKeep, portsOf(rp.Adds))
@@ -84,9 +84,9 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 			return reload.PlanFor(reload.Input{SSH: in.Facts.SSH, Change: plan.Reload(after), DropIns: drops})
 		}))
 	}
-	return append(out, st.verifyChange(prefix, "sshd -T shows the migrated configuration", func(_ context.Context, _ host.System, got sshd.Effective) error {
+	return claim(append(out, st.verifyChange(prefix, "sshd -T shows the migrated configuration", func(_ context.Context, _ host.System, got sshd.Effective) error {
 		return sameEffective(after, got)
-	})), nil
+	}))), nil
 }
 
 // migrationChange is migrate.Apply as a change: every file of

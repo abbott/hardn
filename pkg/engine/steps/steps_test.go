@@ -86,6 +86,35 @@ func TestSetDirectives(t *testing.T) {
 	}
 }
 
+// TestSaysAlready: 00-hardn.conf with set's lines in another layout (a
+// migrated file's label) needs no write; a value, a line or an order that
+// differs does.
+func TestSaysAlready(t *testing.T) {
+	d := func(k string, v ...string) migrate.Directive { return migrate.Directive{Keyword: k, Args: v} }
+	const migrated = "# Managed by hardn.\n# From /etc/ssh/sshd_config.d/manage.conf:\nPasswordAuthentication no\nPort 2230\n"
+	for _, tc := range []struct {
+		name string
+		old  string
+		set  []migrate.Directive
+		want bool
+	}{
+		{"a migrated file, under its own label", migrated, []migrate.Directive{d("PasswordAuthentication", "no")}, true},
+		{"its Port too", migrated, []migrate.Directive{d("Port", "2230"), d("PasswordAuthentication", "no")}, true},
+		{"another value", migrated, []migrate.Directive{d("PasswordAuthentication", "yes")}, false},
+		{"a keyword it lacks", migrated, []migrate.Directive{d("KbdInteractiveAuthentication", "no")}, false},
+		{"a Port line more", "Port 22\nPort 2230\n", []migrate.Directive{d("Port", "2230")}, false},
+		{"the Port lines in another order", "Port 2230\nPort 22\n", []migrate.Directive{d("Port", "22"), d("Port", "2230")}, false},
+		{"an alias of the keyword", "ChallengeResponseAuthentication no\n", []migrate.Directive{d("KbdInteractiveAuthentication", "no")}, true},
+		{"the = form", "PasswordAuthentication=no\n", []migrate.Directive{d("PasswordAuthentication", "no")}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := saysAlready([]byte(tc.old), tc.set); got != tc.want {
+				t.Errorf("saysAlready = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func listeners(ss ...string) []sshd.Listener {
 	var out []sshd.Listener
 	for _, s := range ss {

@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
@@ -93,6 +94,14 @@ func sudoersGrant() stepsControl {
 		ch, err := steps.Sudoers("sudoers/alice", p, fmt.Sprintf("%v rules for %s: grant %v", c.Tool, pol.User, pol.Grant))
 		return []engine.Change{ch}, err
 	}}
+}
+
+// sshServiceDown is Debian 13 with ssh.service stopped, as detect shows
+// it: sshd's listeners are then not established (sshd.Listeners.Known).
+func sshServiceDown() detect.Facts {
+	f := debian13
+	f.SSH.Service = detect.UnitState{Enabled: "enabled", Active: "inactive"}
+	return f
 }
 
 // viaEngine plans and applies the controls on v as a host with facts, as
@@ -378,6 +387,39 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 		}, port2230(), "this session is connected to 192.0.2.20:22", "", nil},
 		{"a port change from a session whose connection is not known", debian13, func(v *vm) { v.conn = "" },
 			port2230(), "the port this session is connected to is not established", "", nil},
+		// A reload of ssh.service or OpenRC's sshd rereads every file, so a
+		// change with no listener keyword still moves sshd to a port its
+		// files name and it has not bound (next/p3-steps review).
+		{"keyonly where sshd_config names a port sshd has not read, Debian 13", debian13, func(v *vm) {
+			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 2230\n"), 0o644, 0, 0)
+		}, keyOnly(), "this session is connected to 192.0.2.20:22", "", reload.ErrNotInEffect},
+		{"keyonly where sshd_config names a port sshd has not read, Alpine 3.24", alpine324(), func(v *vm) {
+			v.f.AddFile(detect.OpenRCStarted+"/sshd", nil, 0o644, 0, 0)
+			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 2230\n"), 0o644, 0, 0)
+		}, keyOnly(), "this session is connected to 192.0.2.20:22", "", reload.ErrNotInEffect},
+		{"keyonly where the listeners are not established (ssh.service not up)", sshServiceDown(), nil,
+			keyOnly(), "which the reload (ssh.service) makes it bind", "", reload.ErrListenersUnknown},
+		// The file saying so is not the host being so (brief §3 principle
+		// 3): sshd reads another drop-in's line first.
+		{"keyonly where 00-hardn.conf says so and another drop-in sets it first", debian13, func(v *vm) {
+			v.f.AddFile(sshd.DropInDir+"/00-aaa.conf", []byte("PasswordAuthentication yes\n"), 0o644, 0, 0)
+			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by hardn:\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"), 0o644, 0, 0)
+			v.boot()
+		}, keyOnly(), `set first by /etc/ssh/sshd_config.d/00-aaa.conf:1 "PasswordAuthentication yes"`, "", steps.ErrNotInEffect},
+		// A port in 00-hardn.conf that sshd has not bound is not "already
+		// there": p2drive refused it, and the engine does too.
+		{"a port 00-hardn.conf names and sshd has not bound, with another directive", debian13, func(v *vm) {
+			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\nPort 2230\n"), 0o644, 0, 0)
+		}, sshControl(steps.SSH{Port: 2230, Set: []migrate.Directive{{Keyword: "PasswordAuthentication", Args: []string{"no"}}}}),
+			"port 2230 is configured, not in effect", "", reload.ErrNotInEffect},
+		{"a port 00-hardn.conf names beside 22 and sshd has not bound", debian13, func(v *vm) {
+			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\nPort 22\nPort 2230\n"), 0o644, 0, 0)
+		}, port2230(), "[[::]:2230 0.0.0.0:2230] configured, not bound", "", reload.ErrNotInEffect},
+		{"a port on disk ssh.socket has not read (no daemon-reload)", ubuntu2604(), func(v *vm) {
+			v.socket = true
+			v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\nPort 22\nPort 2230\n"), 0o644, 0, 0)
+		}, port2230(), "the listeners sshd configures now", "", reload.ErrListenersUnknown},
 		{"sshd -T without /run/sshd (Ubuntu before its first connection)", ubuntu2604(), func(v *vm) {
 			v.hook = func(cmd string) (hostfake.Response, bool) {
 				return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255},
@@ -401,7 +443,9 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 			if got := errors.As(err, &r); got != (tc.code != "") || got && r.Code != tc.code {
 				t.Errorf("refusal %+v, want code %q", r, tc.code)
 			}
-			if ch := v.changes(); len(ch) > 0 {
+			// v.changes counts a read by sshd's full path (Alpine's) as a change.
+			read := func(c string) bool { return strings.HasPrefix(c, "run /usr/sbin/sshd -") }
+			if ch := slices.DeleteFunc(v.changes(), read); len(ch) > 0 {
 				t.Errorf("changes before the refusal: %q", ch)
 			}
 			if v.index(func(c hostfake.Call) bool { return c.Op == "lock" }) >= 0 {
@@ -695,6 +739,113 @@ func TestEngineIdempotent(t *testing.T) {
 				if c.Op == "lock" || c.Op == "write-atomic" && !strings.HasPrefix(c.Path, runRoot+"/") {
 					t.Errorf("the second plan changed the host: %s", c)
 				}
+			}
+		})
+	}
+}
+
+// TestEngineCombined: controls whose planners read and change the same
+// thing cannot share a plan (engine.ErrConflict, at plan time, before the
+// timer): two SSH changes would write 00-hardn.conf from the same old
+// content, and ufw's enable planned beside a port change would leave the
+// new port out of ufw. The SSH settings and ufw's enable of one plan go
+// through one PlanSSH, which plans the enable also when nothing else is
+// left to do; a sudoers grant shares a plan with an SSH change.
+func TestEngineCombined(t *testing.T) {
+	keyonlyEnable := sshControl(steps.SSH{UFW: steps.UFWEnable, Set: []migrate.Directive{{Keyword: "PasswordAuthentication", Args: []string{"no"}},
+		{Keyword: "KbdInteractiveAuthentication", Args: []string{"no"}}}})
+	inactive := func(v *vm) {
+		v.allowed, v.inactive = nil, true
+		v.saveRules()
+	}
+	cleanup := stepsControl{"ssh.cleanup", func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+		return steps.PlanCleanup(ctx, sys, in, "ssh.cleanup", steps.Cleanup{Drop: []uint16{22}})
+	}}
+	held := func(v *vm) {
+		v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by hardn:\nPort 22\nPort 2230\n"), 0o644, 0, 0)
+		v.boot()
+	}
+	for _, tc := range []struct {
+		name    string
+		setup   func(*vm)
+		cs      []engine.Control
+		refused string   // "": applied
+		changes []string // the plan's, when applied
+		active  bool     // ufw active at the end
+	}{
+		{"two SSH controls", nil, []engine.Control{keyOnly(), stepsControl{"ssh.port", func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanSSH(ctx, sys, in, steps.SSH{Prefix: "ssh.port", Port: 2230})
+		}}}, `both back up /etc/ssh/sshd_config.d/00-hardn.conf`, nil, true},
+		{"ufw's enable beside a port change", inactive, []engine.Control{ufwEnableControl(), port2230()},
+			`controls "ufw" and "ssh" both plan changes of sshd and ufw`, nil, false},
+		{"the clean-up beside an SSH change", held, []engine.Control{cleanup, keyOnly()},
+			`controls "ssh.cleanup" and "ssh" both plan changes of sshd and ufw`, nil, true},
+		{"keyonly and ufw's enable through one PlanSSH", inactive, []engine.Control{keyonlyEnable}, "",
+			[]string{"ssh/firewall", "ssh/files", "ssh/reload", "ssh/verify"}, true},
+		{"ufw's enable through PlanSSH, the SSH settings in place already", func(v *vm) {
+			inactive(v)
+			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by hardn:\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"), 0o644, 0, 0)
+			v.boot()
+		}, []engine.Control{keyonlyEnable}, "", []string{"ssh/firewall"}, true},
+		{"a sudoers grant beside keyonly", nil, []engine.Control{sudoersGrant(), keyOnly()}, "",
+			[]string{"sudoers/alice", "ssh/files", "ssh/reload", "ssh/verify"}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := newVM(t)
+			if tc.setup != nil {
+				tc.setup(v)
+			}
+			p, _, err := v.viaEngine(context.Background(), debian13, tc.cs...)
+			if tc.refused != "" {
+				if p == nil || !errors.Is(err, engine.ErrRefused) || !errors.Is(err, engine.ErrConflict) || !strings.Contains(err.Error(), tc.refused) {
+					t.Fatalf("err = %v, want refused at plan time with %q", err, tc.refused)
+				}
+				if ch := v.changes(); len(ch) > 0 {
+					t.Errorf("changes before the refusal: %q", ch)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			var ids []string
+			for _, c := range p.Changes {
+				ids = append(ids, c.ID)
+			}
+			if !slices.Equal(ids, tc.changes) {
+				t.Errorf("changes %q, want %q", ids, tc.changes)
+			}
+			if v.inactive == tc.active || tc.active && !slices.Contains(v.allowed, 22) {
+				t.Errorf("ufw inactive %v, allowed %v; want active %v with 22", v.inactive, v.allowed, tc.active)
+			}
+		})
+	}
+}
+
+// TestEngineAlreadyAsked: a host already as asked plans nothing, decided
+// from sshd -T and what is bound, not from 00-hardn.conf's bytes: a
+// migrated file with the lines under its own label, and a port configured
+// and in effect.
+func TestEngineAlreadyAsked(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		file string
+		c    engine.Control
+	}{
+		{"a migrated 00-hardn.conf with keyonly's lines under its own label",
+			"# Managed by hardn.\n# From /etc/ssh/sshd_config.d/manage.conf:\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n", keyOnly()},
+		{"port 2230 configured and in effect", "# Managed by hardn.\n# Set by hardn:\nPort 22\nPort 2230\n", port2230()},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v := newVM(t)
+			v.f.AddFile(sshd.HardnDropIn, []byte(tc.file), 0o644, 0, 0)
+			v.boot()
+			p, res, err := v.viaEngine(context.Background(), debian13, tc.c)
+			if err != nil || !p.Empty() || !res.Nothing {
+				t.Fatalf("plan: %v, %d changes; want none", err, len(p.Changes))
+			}
+			if v.dropIn() != tc.file {
+				t.Errorf("00-hardn.conf rewritten: %q", v.dropIn())
 			}
 		})
 	}

@@ -117,6 +117,15 @@ func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix
 	if err != nil {
 		return nil, err
 	}
+	return st.enableUFW(ctx, sys, prefix, UFWEnable)
+}
+
+// enableUFW is ufw's enable alone, for mode UFWEnable (PlanUFWEnable, and
+// an SSH change with nothing else left to do); none for UFWKeep.
+func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string, mode UFW) ([]engine.Change, error) {
+	if mode != UFWEnable {
+		return nil, nil
+	}
 	if !st.before.Listeners.Known {
 		return nil, fmt.Errorf("the listeners sshd configures now: %w", ufw.ErrListenersUnknown)
 	}
@@ -124,5 +133,5 @@ func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix
 	if err != nil || p.Empty() {
 		return nil, err
 	}
-	return []engine.Change{firewallChange(prefix+"/firewall", *p)}, nil
+	return claim([]engine.Change{firewallChange(prefix+"/firewall", *p)}), nil
 }

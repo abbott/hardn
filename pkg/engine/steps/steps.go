@@ -10,13 +10,18 @@
 // Every refusal is made by a planner, before anything changes, so that the
 // engine shows it in the dry run and before the revert timer: sshd.Validate
 // over a copy, reload.PlanFor and reload.CheckFree (a port another socket
-// holds), reload.CheckInEffect for every listener change with the applying
-// session's port, migrate.Plan.CheckRollback (the D9 host, P-39 (a), with a
-// report), a port change that reaches no listener, Proxmox VE's rules, and
-// sshd -T failing without /run/sshd (a report). Each change is data
-// (engine.Change): the engine backs up its files, journals its undo
-// before it runs and what ran after, and rolls back in reverse from the
-// journal.
+// holds), reload.CheckInEffect with the applying session's port for every
+// reload that makes sshd bind what its files configure (a listener change,
+// and any reload of ssh.service or OpenRC's sshd) and for a port that is
+// configured already, migrate.Plan.CheckRollback (the D9 host, P-39 (a),
+// with a report), a port change that reaches no listener, a file that says
+// what is asked while sshd -T does not show it, Proxmox VE's rules, and
+// sshd -T failing without /run/sshd (a report). Each change names what it
+// reads and changes (engine.Change.Resources), so that the engine refuses
+// two controls that would plan the same thing from the same host. Each
+// change is data (engine.Change): the engine backs up its files, journals
+// its undo before it runs and what ran after, and rolls back in reverse
+// from the journal.
 //
 // The package reaches the host only through host.System (depguard
 // steps-through-host) and renders nothing. docs/engine/steps.md describes
@@ -58,6 +63,29 @@ const (
 	// listeners are not established (sshd-validate.md §6's code).
 	CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"
 )
+
+// The resources the planners' changes name (engine.Change.Resources): two
+// controls whose changes name the same one cannot share a plan
+// (engine.ErrConflict), so the SSH settings and ufw's enable of one plan go
+// through one PlanSSH. The unit changes name their unit (plans.UnitSudoers
+// and the others).
+const (
+	// ResourceSSHD is sshd's configuration (00-hardn.conf and every file
+	// sshd reads) and its listeners.
+	ResourceSSHD = "sshd"
+	// ResourceUFW is ufw's rules, policies and state.
+	ResourceUFW = "ufw"
+)
+
+// claim names, on each of a planner's changes, the resources every SSH
+// planner reads and changes: sshd's files and listeners, and ufw, whose
+// state decides the firewall part (an inactive ufw gets no rule).
+func claim(cs []engine.Change) []engine.Change {
+	for i := range cs {
+		cs[i].Resources = []string{ResourceSSHD, ResourceUFW}
+	}
+	return cs
+}
 
 // Errors, testable with errors.Is.
 var (

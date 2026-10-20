@@ -122,7 +122,7 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 	if err != nil {
 		return nil, err
 	}
-	if err := st.listenerChecks(ctx, sys, rp, st.before.Listeners.All); err != nil {
+	if err := st.listenerChecks(ctx, sys, rp, st.before.Listeners); err != nil {
 		return nil, err
 	}
 	var out []engine.Change
@@ -132,10 +132,10 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 		out = append(out, *fw)
 	}
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
-	return append(out, e.change(r), reloadChange(prefix, r, rp, nil),
+	return claim(append(out, e.change(r), reloadChange(prefix, r, rp, nil),
 		st.verifyChange(prefix, fmt.Sprintf("sshd -T shows ports %v alone", left), func(_ context.Context, _ host.System, after sshd.Effective) error {
 			return wanted(after, e.set, drop)
-		})), nil
+		}))), nil
 }
 
 // cleanupFirewall deletes the rules hardn added for the dropped ports

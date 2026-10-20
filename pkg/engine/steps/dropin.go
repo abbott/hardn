@@ -86,6 +86,61 @@ func setDirectives(old []byte, set []migrate.Directive) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+// saysAlready reports whether old, 00-hardn.conf, has exactly set's lines
+// for every keyword set names, in another layout than setDirectives
+// writes: the same arguments in the same order, wherever they stand (a
+// migrated file keeps them under its own label). Every line of the file is
+// global (setDirectives refuses a Match), so sshd reads the same values
+// from old as from the file setDirectives would write; writing it would be
+// a lockout-risk change under a revert timer that changes nothing sshd
+// reads.
+func saysAlready(old []byte, set []migrate.Directive) bool {
+	have := map[string][][]string{}
+	for _, l := range sshd.ReadOrder([]byte(sshd.IncludeLine+"\n"), []sshd.File{{Path: sshd.HardnDropIn, Data: old}}) {
+		if l.Match != nil {
+			return false
+		}
+		have[l.Keyword] = append(have[l.Keyword], l.Args)
+	}
+	want := map[string][][]string{}
+	for _, d := range set {
+		k := sshd.CanonicalKeyword(d.Keyword, d.Args)
+		want[k] = append(want[k], d.Args)
+	}
+	for k, w := range want {
+		if !slices.EqualFunc(have[k], w, slices.Equal) {
+			return false
+		}
+	}
+	return true
+}
+
+// setFirstBy names the lines outside 00-hardn.conf that sshd reads first
+// for a keyword of set whose first value wins (sshd_config(5)): ", set
+// first by <file>:<line> "<text>"", or "" when there is none.
+func setFirstBy(found migrate.Found, set []migrate.Directive) string {
+	var at []string
+	for _, d := range set {
+		k := sshd.CanonicalKeyword(d.Keyword, d.Args)
+		if sshd.Accumulates(k) {
+			continue
+		}
+		for _, l := range sshd.ReadOrder(found.Main, found.DropIns) {
+			if l.Keyword != k || l.Match != nil {
+				continue
+			}
+			if l.File != sshd.HardnDropIn {
+				at = append(at, fmt.Sprintf("%s:%d %q", l.File, l.Line, l.Text))
+			}
+			break
+		}
+	}
+	if len(at) == 0 {
+		return ""
+	}
+	return ", set first by " + strings.Join(slices.Compact(at), ", ")
+}
+
 // keyword is a line's keyword, lower case, as sshd takes the first word up
 // to whitespace or "="; "" for a blank line or a comment.
 func keyword(line string) string {
