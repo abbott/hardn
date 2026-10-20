@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	osuser "os/user"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // These tests drive rootCmd as the hardn binary does, with every step that
@@ -108,6 +110,10 @@ const (
 	hostUnreachable hostMode = iota
 	asRoot
 	asRootOnProxmox
+	// asRootBoolRootLogin is asRoot with a configuration file, in the
+	// test's temporary directory, whose permitRootLogin is the deprecated
+	// bool (§3.17).
+	asRootBoolRootLogin
 )
 
 func resetFlags() {
@@ -133,10 +139,11 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
 	}{provider, lookupCurrentUser, loadConfig, detectOS, exit}
-	prevStderr, prevOutput, prevNoColor := stderr, color.Output, color.NoColor
+	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
+	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
 	t.Cleanup(func() {
 		provider, lookupCurrentUser, loadConfig, detectOS, exit = prev.provider, prev.user, prev.load, prev.detect, prev.exit
-		stderr, color.Output, color.NoColor = prevStderr, prevOutput, prevNoColor
+		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
@@ -162,8 +169,15 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		}
 		return nil, unreachable
 	}
+	confPath := filepath.Join(t.TempDir(), "hardn.yml")
 	loadConfig = func(string) (*config.Config, error) {
 		r.reached = append(r.reached, "config load")
+		if mode == asRootBoolRootLogin {
+			if err := os.WriteFile(confPath, []byte("username: alice\nsshPort: 2230\npermitRootLogin: false\nnameservers:\n  - 192.0.2.53\n"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			return config.LoadConfigWithEnvPriority(confPath)
+		}
 		if mode != hostUnreachable {
 			c := config.DefaultConfig()
 			c.Username = "alice"
@@ -365,5 +379,28 @@ func TestDisableRootReport(t *testing.T) {
 				t.Errorf("says disabled on Proxmox:\n%s", r.stdout)
 			}
 		})
+	}
+}
+
+// TestDeprecationWarning: a bool permitRootLogin in the configuration is
+// warned about on stderr, once, when it loads (§3.17, approved), with the
+// file and line and what to write instead; the operation goes on, and
+// stdout (the legacy logger's) does not repeat it. A configuration without
+// it warns nothing.
+func TestDeprecationWarning(t *testing.T) {
+	r := runHardn(t, asRootBoolRootLogin, "-g")
+	if r.ended {
+		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+	}
+	got := strings.Join(strings.Fields(r.stderr), " ")
+	if !strings.Contains(got, "Warning: ") || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
+		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
+		t.Errorf("stderr:\n%s", r.stderr)
+	}
+	if strings.Contains(r.stdout, "deprecated") {
+		t.Errorf("stdout repeats it:\n%s", r.stdout)
+	}
+	if r := runHardn(t, asRoot, "-g"); strings.Contains(r.stderr, "deprecated") {
+		t.Errorf("a configuration without the bool warns:\n%s", r.stderr)
 	}
 }

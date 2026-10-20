@@ -153,6 +153,7 @@ var rootCmd = &cobra.Command{
 			logging.LogError("Failed to load configuration: %v", err)
 			exit(1)
 		}
+		warnDeprecations(cfg)
 
 		// Set dry run mode from flag
 		cfg.DryRun = dryRun
