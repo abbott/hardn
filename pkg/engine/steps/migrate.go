@@ -109,7 +109,7 @@ func migrationChange(prefix string, plan migrate.Plan, opts migrate.Options, r *
 	// No Commands: the migration runs none; its Diff shows every file it
 	// writes or removes.
 	c := engine.Change{
-		ID: prefix + "/files", Summary: "Migrate hardn's legacy SSH files into " + sshd.HardnDropIn, Target: sshd.HardnDropIn,
+		ID: prefix + "/files", Summary: "Migrate hardn's legacy SSH files into " + sshd.HardnDropIn, Title: "Migrate hardn's legacy SSH files", Target: sshd.HardnDropIn,
 		Diff: migrationDiff(plan), Risk: engine.RiskLockout, Stage: engine.StageFiles, Backups: paths,
 	}
 	if r != nil {

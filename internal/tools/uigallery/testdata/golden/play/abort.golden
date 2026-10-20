@@ -5,7 +5,7 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay sub-menu/01-user␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
@@ -41,14 +41,14 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # play sub-menu/01-user ----------------------------------------$
 $
-# [i] Note$
+# Note$
 # Play mode: hardn's own screens and prompts, on the gallery's$
 # fixture plans. Nothing on this machine changes: the simulated$
 # system only records each step it would apply, and the record$
@@ -84,14 +84,14 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# [i] Note$
+# Note$
 # Nothing was applied.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay sub-menu/01-user␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
@@ -134,6 +134,6 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $

@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-␛[m$
@@ -17,7 +17,7 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# [!] Operation Failed$
+# Operation Failed$
 # /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
 # sets ssh.socket to port 2230, but it never took effect:$
 # ssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-$
@@ -31,7 +31,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [0.0.0.0:22 [::]:22]␛[m$

@@ -12,7 +12,8 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]
+//	go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -49,8 +50,23 @@
 // only records what each step would do: the record is shown when play
 // ends. A sequence plays for its screen and fixture, the answers being the
 // user's, so one that ends cancelled, as create-user's does, cannot be
-// named: declining the confirmation plays it. Its flags, besides -theme,
-// -profile, -ascii and -override, as below:
+// named: declining the confirmation plays it.
+//
+// "play engine" opens the engine's scenarios (next/p3-gallery-engine), and
+// "play engine/<scenario>" one: the real plan/apply engine (pkg/engine),
+// its change kinds (pkg/engine/steps) and pkg/output's flow adapter, on a
+// simulated host: hostfake's recording host.System, whose commands a model
+// of the host answers (fakehost.go). The 2230 change on Debian 13's
+// ssh.service, Ubuntu 26.04's ssh.socket and Alpine 3.24's OpenRC;
+// key-only login; ufw enabled; a sudo grant; a refused plan (the D9
+// migration's report, P-39); an apply that fails and is rolled back; the
+// 2230 change confirmed from a new connection and cleaned up by hardn
+// confirm (P-40); and a plan on a best-effort release, with its warning
+// (P-41). Each shows the real plan, the confirmation, the steps, the
+// confirm countdown and the outcome, and play ends with what the fake
+// recorded of each apply. -sequence and -fail are the fixture plans', and
+// are refused with a scenario. Its flags, besides -theme, -profile, -ascii
+// and -override, as below:
 //
 //	-sequence name    the sequence each workflow plays where it has one,
 //	                  such as dry-run, failure or typed (default normal)
@@ -69,6 +85,38 @@
 // compact form. A flag given wins, each on its own; with stdout not a
 // terminal, as in the tests and through a pipe, play keeps 80 and 24, so
 // that its goldens stay deterministic.
+//
+// "compare" sets the pattern hardn draws today for the apply's steps, the
+// error report's rolled-back lines, the one-line messages and the confirm
+// countdown (P-23, P-24), rendered by the real components as pkg/output
+// and the flow compose them, beside a proposed pattern after Figma's rows
+// (P-42), which the gallery draws itself (compare.go): no component has it
+// yet. Its sections are steps (an apply under way), failure (the reload
+// failed, rolled back), success (the change applied, with its countdown),
+// messages (the five kinds and two info sentences) and countdown (2:45,
+// 2:45 on port 2230, 0:05); none, or "all", is every section, in that
+// order. A note says what is compared, then each section comes under a
+// header, "compare <section>", its two renders under "Current" and
+// "Proposed": side by side when the terminal holds two content columns
+// and the gap between them (132 cells), each at the content width; else
+// one above the other, at the terminal's. The data is the engine
+// scenarios' 2230 change on Debian 13. Its flags are -theme, -profile,
+// -ascii and -override, as below; -list, which prints the names of the
+// sections it would render; -width, as play's (the terminal's own when
+// stdout is a terminal, else 80); and P-42's two open choices:
+//
+//	-marker bullet|status  the proposed rows' marker: the key-value
+//	                       bullet on every row, or Figma's status markers
+//	                       for a step done, failed or rolled back
+//	                       (default bullet)
+//	-column aligned|figma  the proposed rows' status column: two cells
+//	                       after the widest title, col 27 at the least,
+//	                       or Figma's col 27, the list stacked when a
+//	                       title reaches it, as the 2230 change's titles
+//	                       do at every width (default aligned)
+//
+// It takes -height, as play does, and refuses one under 1, but draws
+// nothing by it.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //
@@ -102,14 +150,15 @@
 // keeps out of git, and pass its path.
 //
 // The gallery's code reads nothing but its flags, the override file and,
-// in the playable mode, stdin and the terminal's size: no root, nothing
-// under /etc. It builds each environment with term.Fixed. Only to size
-// itself, where -width or -height is not given, the playable mode calls
+// in the playable mode, stdin and the terminal's size, and in compare the
+// terminal's size: no root, nothing under /etc. It builds each
+// environment with term.Fixed. Only to size itself, where -width or
+// -height is not given, the playable mode, or compare, calls
 // term.Detect, given the dark theme so that it never queries the
 // terminal's background: Detect asks whether stdin and stdout are
 // terminals, reads the size of the terminal stdout is and os.Environ
 // (COLUMNS and LINES, for a terminal whose size it cannot read), and of
-// what it resolves play takes the size alone. The other modes read no
+// what it resolves either takes the size alone. The other modes read no
 // environment variable and query no terminal for their output. The
 // playable mode reads
 // stdin through prompt.Stdin, the line reader every hardn prompt uses,
@@ -118,11 +167,17 @@
 // (TCFLSH or TIOCFLUSH), and while it waits for a line takes Ctrl-C,
 // giving SIGINT back its own handling before it returns; it never changes
 // the terminal's mode. Nothing the playable mode runs writes a file or
-// starts a process (TestPlayTouchesNothing). The package initialisation of Lip Gloss and
-// x/ansi still runs, as in every binary that links Lip Gloss (today the
-// pkg/ui test binaries and this gallery; cmd/hardn links none): an ioctl
-// on stdout and, on a terminal, a read-only terminfo lookup and "tmux
-// info" under tmux, and x/ansi's read of RUNEWIDTH_EASTASIAN
+// starts a process (TestPlayTouchesNothing): the engine's scenarios link
+// host.Real, the engine's signal hold and pkg/config, and never reach
+// them, every host.System being hostfake's and every hold the gallery's,
+// which holds nothing. Of this machine the engine's code reads only the
+// process's effective uid, the clock and crypto/rand, and fatih/color,
+// which it links, reads NO_COLOR and TERM and asks whether stdout is a
+// terminal at its initialisation. The package initialisation of Lip
+// Gloss and x/ansi still runs, as in every binary that links Lip Gloss
+// (today the pkg/ui test binaries and this gallery; cmd/hardn links
+// none): an ioctl on stdout and, on a terminal, a read-only terminfo
+// lookup and "tmux info" under tmux, and x/ansi's read of RUNEWIDTH_EASTASIAN
 // (docs/refactor/phase0/side-effects.md §13.1). The gallery ignores the
 // profile Lip Gloss detects. A true RUNEWIDTH_EASTASIAN makes x/ansi
 // measure ambiguous-width glyphs such as "─" as two cells, which moves
@@ -131,7 +186,8 @@
 // stdout only, through each environment's term.Env.Writer, one write per
 // state and environment, or per screen mock: what the golden file holds
 // for the same cell; the playable mode writes as hardn does, a block or
-// a prompt at a time. A workflow's sequences play on scripted answers and
+// a prompt at a time; compare writes its note, then each section, a write
+// each. A workflow's sequences play on scripted answers and
 // fixture plans (screen.Sequence.Play, flow.Fixture), which read no
 // terminal and change nothing.
 package main
@@ -161,16 +217,17 @@ func main() {
 }
 
 // sizer returns the size of the terminal stdout is, in cells and lines,
-// and whether stdout is a terminal at all. The playable mode sizes itself
-// with it where -width or -height is not given (look.sizeTo); the tests
-// pass their own, so that no test depends on its own terminal.
+// and whether stdout is a terminal at all. The playable mode and compare
+// size themselves with it where -width or -height is not given
+// (look.sizeTo); the tests pass their own, so that no test depends on its
+// own terminal.
 type sizer func() (width, height int, tty bool)
 
 // stdoutSize is the gallery's sizer: the size of the terminal stdout is,
 // as term.Detect reads it for the render environment (the terminal's own,
 // else COLUMNS and LINES, else 80x24), and whether stdout is a terminal. Detect is given
 // the dark theme, so that it never queries the terminal's background; play
-// takes the size alone of what Detect resolves.
+// and compare take the size alone of what Detect resolves.
 func stdoutSize() (width, height int, tty bool) {
 	env := term.Detect(term.Options{Theme: term.ThemeDark}, os.Stdin, os.Stdout)
 	return env.Width, env.Height, env.TTY
@@ -336,9 +393,11 @@ type look struct {
 }
 
 // lookFlags defines the look flags on fs. With sized set, as in the
-// playable mode, -width and -height default to the terminal's size
-// (look.sizeTo), 0 standing for it until then, and their help says so;
-// otherwise they default to term.DefaultWidth and term.DefaultHeight.
+// playable mode and compare, -width and -height default to the terminal's
+// size (look.sizeTo), 0 standing for it until then, and their help says
+// so; otherwise they default to term.DefaultWidth and term.DefaultHeight.
+// -height's help speaks of the main menu, which compare, drawing nothing
+// by the height, replaces with its own.
 func lookFlags(fs *flag.FlagSet, sized bool) look {
 	width, height := term.DefaultWidth, term.DefaultHeight
 	widthHelp := "the terminal width in cells"
@@ -359,11 +418,12 @@ func lookFlags(fs *flag.FlagSet, sized bool) look {
 }
 
 // sizeTo sets -width and -height where the command line did not give
-// them, as the playable mode does before it builds its environment: to
-// the size of the terminal stdout is (size), so that play draws what the
-// screens draw on that terminal, the main menu's full form on one tall
+// them, as the playable mode and compare do before they build their
+// environment: to the size of the terminal stdout is (size), so that play
+// draws what the screens draw on that terminal, the main menu's full form
+// on one tall enough, and compare sets its two sides by side on one wide
 // enough; and where stdout is not a terminal, as in the tests and through
-// a pipe, to term.DefaultWidth and term.DefaultHeight, so that play's
+// a pipe, to term.DefaultWidth and term.DefaultHeight, so that their
 // goldens stay deterministic. A flag given wins, each on its own, even
 // one that look.cell refuses; with both given, size is not called.
 func (l look) sizeTo(fs *flag.FlagSet, size sizer) {
@@ -432,18 +492,23 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns and sizes itself with size; no other mode
-// calls either.
+// line reader stdin returns and sizes itself with size; with "compare"
+// first, the comparison mode (compare), which sizes itself with size too
+// and reads no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == "compare" {
+		return compare(args[1:], size, stdout, stderr)
 	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

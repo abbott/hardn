@@ -270,7 +270,7 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 	case err != nil:
 		return done(BootLeft, BootReasonBinaryUnreadable, "this hardn's binary cannot be read (%v), so whether it wrote the journal cannot be told; %s", err, leave)
 	case sum != t.HardnSHA256:
-		return done(BootLeft, BootReasonOtherContent, "%s is not the binary that wrote the journal (sha256 %s, then %s): another hardn's journal is not acted on at boot; %s", opts.Hardn, sum, t.HardnSHA256, leave)
+		return done(BootLeft, BootReasonOtherContent, "%s is not the binary that wrote the journal: its sha256 is %s, the journal's binary's was %s; another hardn's journal is not acted on at boot; %s", opts.Hardn, sum, t.HardnSHA256, leave)
 	}
 	now := opts.now()
 	switch {

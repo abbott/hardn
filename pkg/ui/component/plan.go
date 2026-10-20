@@ -49,8 +49,8 @@ type PlanChange struct {
 // a lockout-risk change to an SSH drop-in:
 //
 //	0 2   6
-//	  [*] Set Port 2230
-//	      Lockout risk
+//	  [*] Lockout risk
+//	      Set Port 2230
 //
 //	      /etc/ssh/sshd_config.d/00-hardn.conf
 //	      @@ -1,2 +1,2 @@
@@ -59,20 +59,21 @@ type PlanChange struct {
 //	      +Port 2230
 //	      $ systemctl reload ssh
 //
-// Each change starts with Glyphs.Bullet in the marker column, or for a
-// lockout-risk change Glyphs.Risk, and its title at theme.LabelCol,
-// wrapped under itself. A lockout-risk change stands out by its glyph,
-// the words "Lockout risk", the menu's (DEV-028), and their colour,
-// Plan.LockoutRisk (DEV-038), with a blank line under those words when
-// details follow. Under the title come the target, the diff,
-// the before and after states as removed and added lines, and the
-// commands after Glyphs.Command, all at theme.LabelCol. A diff's lines
-// keep their "+", "-" or space, so they never rest on colour alone, and
-// take Plan.Added, Plan.Removed, Plan.Context or, for its headers and
-// markers, Plan.Meta. A file's "---" and "+++" headers are left out when
-// one of the two names the target, which the target line already shows;
-// those of any other file in the diff are kept, so that its hunks never
-// read as the target's.
+// Each change starts with Glyphs.Bullet in the marker column and its title
+// at theme.LabelCol, wrapped under itself. A lockout-risk change leads
+// with its warning instead: Glyphs.Risk in the marker column and the words
+// "Lockout risk", the menu's (DEV-028), at theme.LabelCol, in their
+// colour, Plan.LockoutRisk (DEV-038); its title follows on the next line,
+// at theme.LabelCol, and a blank line under the title sets the two apart
+// from the details when details follow (maintainer, 2026-10-20). Under the
+// title come the target, the diff, the before and after states as removed
+// and added lines, and the commands after Glyphs.Command, all at
+// theme.LabelCol. A diff's lines keep their "+", "-" or space, so they
+// never rest on colour alone, and take Plan.Added, Plan.Removed,
+// Plan.Context or, for its headers and markers, Plan.Meta. A file's "---"
+// and "+++" headers are left out when one of the two names the target,
+// which the target line already shows; those of any other file in the diff
+// are kept, so that its hunks never read as the target's.
 // These lines are code: shown as they are, never cut, broken where the
 // line ends, the rest after Glyphs.Wrap (DEV-038). Long plans are
 // rendered in full; the screen decides paging.
@@ -106,23 +107,22 @@ func (vm PlanView) Render(c Ctx) string {
 // render renders one change for c.
 func (ch PlanChange) render(c Ctx) string {
 	t, g, w := c.Theme.Plan, c.Theme.Glyphs, c.width()
-	lead := marker(g.Bullet, t.Context)
-	if ch.LockoutRisk {
-		lead = marker(g.Risk, t.LockoutRisk)
-	}
-	lead = lead.to(theme.LabelCol)
 	title, style := c.text(ch.Title), t.Title
 	if title == "" {
 		title, style = unknown, c.Theme.Status.Unknown
 	}
 	var out []string
+	lead := marker(g.Bullet, t.Context).to(theme.LabelCol)
+	if ch.LockoutRisk {
+		out = append(out, c.fit(append(marker(g.Risk, t.LockoutRisk).to(theme.LabelCol), span{lockoutRisk, t.LockoutRisk}), w))
+		lead = line{gap(theme.LabelCol)}
+	}
 	for _, l := range wrap(title, w-theme.LabelCol) {
 		out = append(out, c.fit(append(lead, span{l, style}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
 	riskEnd := -1
 	if ch.LockoutRisk {
-		out = append(out, c.fit(line{gap(theme.LabelCol), {lockoutRisk, t.LockoutRisk}}, w))
 		riskEnd = len(out)
 	}
 	add := func(s string, style lipgloss.Style) {
@@ -166,7 +166,8 @@ func (ch PlanChange) render(c Ctx) string {
 	for _, cmd := range ch.Commands {
 		out = append(out, c.command(theme.LabelCol, g.Command+" ", cmd, t.Command)...)
 	}
-	// A blank line sets the warning apart from the details under it.
+	// A blank line sets the warning and its title apart from the details
+	// under them.
 	if riskEnd >= 0 && riskEnd < len(out) {
 		out = append(out[:riskEnd], append([]string{""}, out[riskEnd:]...)...)
 	}

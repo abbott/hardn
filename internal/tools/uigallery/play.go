@@ -19,7 +19,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -69,6 +69,19 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return exitUsage
 	}
 	mocks := screen.Mocks()
+	if name, ok, err := engineStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["sequence"] || set["fail"]:
+			return usage("-sequence and -fail are for the fixture plans of the screen mocks; each engine scenario plays one path, failing where it says (engine/failed-reload-debian13)")
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			return s.play("play "+name, []string{engineNote}, s.openEngine(name), stderr)
+		})
+	}
 	start, named, err := startAt(mocks, fs.Args())
 	if err != nil {
 		return usage("%v", err)
@@ -92,12 +105,27 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 	case *failAt < 0:
 		return usage("-fail %d is not a step", *failAt)
 	}
-	look.sizeTo(fs, size)
-	c, err := look.cell()
+	return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+		s.sequence, s.sim.failAt = *sequence, *failAt
+		for _, m := range mocks {
+			s.mocks[m.Name] = m
+		}
+		return s.play("play "+start.Name, s.mockNote(start), s.open(start), stderr)
+	})
+}
+
+// startPlay builds the session play runs in, in the environment the look
+// flags describe, sized to the terminal where they do not say (look.sizeTo),
+// and returns what run returns of it; a usage error or a bad override
+// file is reported before stdin is read.
+func startPlay(l look, fs *flag.FlagSet, size sizer, stdin func() *prompt.Reader, stdout, stderr io.Writer, run func(*session) int) int {
+	l.sizeTo(fs, size)
+	c, err := l.cell()
 	if err != nil {
-		return usage("%v", err)
+		fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
+		return exitUsage
 	}
-	g, ok := look.gallery(stderr)
+	g, ok := l.gallery(stderr)
 	if !ok {
 		return exitError
 	}
@@ -106,16 +134,30 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
 		return exitError
 	}
-	s := &session{
-		p:        nav.Prompter{Ctx: ctx, In: stdin(), Out: c.env.Writer(stdout)},
-		mocks:    map[string]screen.Mock{},
-		sequence: *sequence,
-		sim:      &simulator{failAt: *failAt},
+	return run(&session{
+		p:     nav.Prompter{Ctx: ctx, In: stdin(), Out: c.env.Writer(stdout)},
+		mocks: map[string]screen.Mock{},
+		sim:   &simulator{},
+	})
+}
+
+// engineStart returns the engine scenario, or the menu of them, that args
+// name ("engine", "engine/<scenario>"), and whether they name one; an
+// error for a scenario that is not one.
+func engineStart(args []string) (string, bool, error) {
+	if len(args) != 1 || (args[0] != enginePrefix && !strings.HasPrefix(args[0], enginePrefix+"/")) {
+		return "", false, nil
 	}
-	for _, m := range mocks {
-		s.mocks[m.Name] = m
+	if name := strings.TrimPrefix(args[0], enginePrefix+"/"); args[0] != enginePrefix {
+		if _, ok := findScenario(name); !ok {
+			var names []string
+			for _, sc := range scenarios() {
+				names = append(names, enginePrefix+"/"+sc.name)
+			}
+			return "", false, fmt.Errorf("no engine scenario %q; the scenarios are %s", args[0], strings.Join(names, ", "))
+		}
 	}
-	return s.play(start, stderr)
+	return args[0], true, nil
 }
 
 // startAt returns the mock where play starts, which args name, and the
@@ -204,20 +246,28 @@ func menuOf(s screen.MenuScreen) (component.Menu, bool) {
 
 // session is one run of the playable mode: the prompter the user answers
 // through, the mocks they can reach, the sequence each workflow plays and
-// the simulated system the workflows apply to.
+// the simulated system the workflows apply to; for the engine's scenarios,
+// the record of each apply on its simulated host and how often the engine
+// took its signal hold.
 type session struct {
 	p        nav.Prompter
 	mocks    map[string]screen.Mock
 	sequence string
 	sim      *simulator
+
+	mu         sync.Mutex
+	engineRuns []*recorder
+	holds      int
 }
 
-// play plays from start: the gallery's header and a note on the
-// simulated system, the screens as the user answers, then what the
-// simulated system recorded. It returns the exit status, writing any
-// error but an abort's to stderr, a failed write of the record included.
-func (s *session) play(start screen.Mock, stderr io.Writer) int {
-	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap+1)
+// engineNote is play's note for the engine's scenarios.
+const engineNote = "Play mode: hardn's own screens and prompts, on the real plan/apply engine " +
+	"against a simulated host, hostfake's recording host.System, whose commands a model of the host answers. " +
+	"Nothing on this machine changes: every command and file is the fake's, and its record is shown when play ends."
+
+// mockNote is play's note for a start at mock start: the fixture plans,
+// the sequence each workflow plays and the step -fail fails.
+func (s *session) mockNote(start screen.Mock) []string {
 	note := []string{"Play mode: hardn's own screens and prompts, on the gallery's fixture plans. " +
 		"Nothing on this machine changes: the simulated system only records each step it would apply, " +
 		"and the record is shown when play ends."}
@@ -230,12 +280,22 @@ func (s *session) play(start screen.Mock, stderr io.Writer) int {
 	if n := s.sim.failAt; n > 0 {
 		note = append(note, fmt.Sprintf("Step %d of each plan applied fails, where the plan has a step %d (-fail %d), and the steps before it are rolled back.", n, n, n))
 	}
-	opening := header(c, "play "+start.Name) + gap + component.Callout{Kind: component.MessageInfo, Body: note}.Render(c) + gap
+	return note
+}
+
+// play plays from the screen open opens: the gallery's header, titled
+// title, and note on the simulated system, the screens as the user
+// answers, then what the simulated system recorded. It returns the exit
+// status, writing any error but an abort's to stderr, a failed write of
+// the record included.
+func (s *session) play(title string, note []string, open func() error, stderr io.Writer) int {
+	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap+1)
+	opening := header(c, title) + gap + component.Callout{Kind: component.MessageInfo, Body: note}.Render(c) + gap
 	if _, err := io.WriteString(s.p.Out, opening); err != nil {
 		fmt.Fprintf(stderr, "uigallery: play: %v\n", err)
 		return exitError
 	}
-	err := s.open(start)()
+	err := open()
 	// left is whether the user left play, by going back from the first
 	// screen or quitting, rather than by an abort or an error.
 	left := err == nil || errors.Is(err, nav.ErrQuit) || errors.Is(err, nav.ErrBack)
@@ -244,6 +304,14 @@ func (s *session) play(start screen.Mock, stderr io.Writer) int {
 		record = append(record, component.Callout{Kind: component.MessageInfo, Title: r.title, Body: []string{
 			"Recorded, not done: the file each step would write or restore, and the commands it would run.",
 		}}.Render(c), component.PlanView{Changes: r.steps}.Render(c))
+	}
+	for _, r := range s.engineRuns {
+		if steps := r.steps(); steps != nil {
+			record = append(record, component.Callout{Kind: component.MessageInfo, Title: r.title, Body: []string{
+				"Recorded by the fake, not done: what each step ran on " + hostFQDN + ", and the files it changed, " +
+					"in order; hardn's own journal, run directory and backups left out.",
+			}}.Render(c), component.PlanView{Changes: steps}.Render(c))
+		}
 	}
 	if len(record) == 0 {
 		record = []string{component.Callout{Kind: component.MessageInfo, Body: []string{"Nothing was applied."}}.Render(c)}
@@ -310,24 +378,22 @@ func (s *session) missing(label string) func() error {
 	}
 }
 
-// simulator is the playable mode's simulated system: the apply-and-record
-// half of the seam that next/p3-gallery-engine fills with the real
-// plan/apply engine against the recording fake System (refactor plan,
-// Phase 3). Until then a workflow plans on its sequence's fixture
-// (flow.Fixture), and applying a plan only reports each step to the flow
-// and records what the step would do: nothing is run, written or read,
-// and no root is needed. With failAt set, step failAt of each plan applied
-// fails, and the fixture rolls back the steps before it.
+// simulator is the playable mode's simulated system for the screen mocks'
+// workflows: a workflow plans on its sequence's fixture (flow.Fixture), and
+// applying a plan only reports each step to the flow and records what the
+// step would do: nothing is run, written or read, and no root is needed.
+// With failAt set, step failAt of each plan applied fails, and the fixture
+// rolls back the steps before it.
 //
-// The other half is what the plan is made from. The simulator gets only
-// the Engine that screen.Sequence.Build has bound into the flow, while the
-// real engine needs the action's answers (flow.Engine: "an adapter holding
-// the action's answers"), and for the create-user form those are
-// variables that pkg/ui/screen binds to the form's fields inside Build.
-// So next/p3-gallery-engine must also change how a sequence is built, an
-// exported API of pkg/ui/screen, such as Build taking a constructor of the
-// engine over the action's answers in place of the fixture it closes
-// over; replacing the simulator alone cannot reach the answers.
+// The engine's scenarios (engine.go, next/p3-gallery-engine) do not go
+// through it: they run the real engine on a simulated host of their own
+// (fakehost.go), and are not the mocks. A mock moves onto the engine with
+// its slice, whose control holds the action's answers (flow.Engine: "an
+// adapter holding the action's answers"); for a form, such as
+// create-user's, whose answers pkg/ui/screen binds inside Build, that
+// slice changes how a sequence is built, an exported API of
+// pkg/ui/screen, such as Build taking a constructor of the engine over the
+// answers in place of the fixture it closes over.
 type simulator struct {
 	failAt int
 	mu     sync.Mutex

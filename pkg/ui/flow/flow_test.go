@@ -260,7 +260,7 @@ func TestPaths(t *testing.T) {
 		f.Confirm = func(Plan) Confirm { return Confirm{Question: "Type the hostname", Phrase: hostname} }
 		return f
 	}
-	unknownSteps := "  Apply? [y/N, 0 or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# [!] Operation Failed\n\n  [<] Rolled back: Unknown\n"
+	unknownSteps := "  Apply? [y/N, 0 or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# Operation Failed\n\n  [<] Rolled back: Unknown\n"
 	tests := []struct {
 		name    string
 		flow    func(Engine) Flow
@@ -272,11 +272,11 @@ func TestPaths(t *testing.T) {
 		holds   string
 	}{
 		{"applied", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"y"}), Applied, true,
-			"  [+] Done: Let george use sudo without a password\n\n# [+] Operation Successful\n"},
+			"  [+] Done: Let george use sudo without a password\n\n# Operation Successful\n"},
 		{"cancelled", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"n"}), Cancelled, false,
-			"'george'? [y/N, 0 or q]: n\n\n# [-] Operation Cancelled\n"},
+			"'george'? [y/N, 0 or q]: n\n\n# Operation Cancelled\n"},
 		{"cancelled by the default", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{""}), Cancelled, false,
-			"  Create user 'george'? [y/N]: n\n\n# [-] Operation Cancelled\n"},
+			"  Create user 'george'? [y/N]: n\n\n# Operation Cancelled\n"},
 		{"back at the confirmation", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"0"}), Cancelled, false,
 			"Operation Cancelled"},
 		{"dry-run", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, true, answers, Planned, false,
@@ -330,7 +330,7 @@ func TestPaths(t *testing.T) {
 // and its checklist, then the section, each after one blank line, and
 // whichever is missing left out with its gap.
 func TestReview(t *testing.T) {
-	warning := "# [*] Warning\n# Before disabling root SSH login, ensure:"
+	warning := "# Warning\n# Before disabling root SSH login, ensure:"
 	checklist := "   -  Non-root user has sudo privileges\n   -  Non-root user SSH access has been tested\n   -  If SSH fails, a fallback access method is available"
 	section := "# SSH Configuration --------------------------------------------\n\n   -  SSH Port             2230"
 	port := []component.KeyValue{{Key: "SSH Port", Value: "2230"}}
@@ -517,7 +517,7 @@ func TestReturn(t *testing.T) {
 	}{
 		{"applied", plain80, createUser(Fixture{Planned: createUserPlan}), "Create User", slices.Concat(answers, []string{"y"}), []string{
 			"  > Enter your choice [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
-			"# [+] Operation Successful\n\n   1) Create User\n",
+			"# Operation Successful\n\n   1) Create User\n",
 		}},
 		{"too narrow to confirm", term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{
 			"# try again.\n\n   1) Root SSH Login\n",

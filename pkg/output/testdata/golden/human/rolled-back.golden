@@ -9,7 +9,7 @@
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established sessi…␛[m$
    ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload ssh.service, which keeps established sessions: reload:␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mhost: systemctl reload ssh.service: exit status 1␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
@@ -36,7 +36,7 @@ $
   [!] Failed: Reload ssh.service, which keeps established ses...$
   [-] Skipped: Check that sshd listens on 22 and 2230$
 $
-# [!] Operation Failed$
+# Operation Failed$
 # Reload ssh.service, which keeps established sessions: reload:$
 # host: systemctl reload ssh.service: exit status 1$
 # (COMMAND_FAILED)$
@@ -63,7 +63,7 @@ $
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established s…␛[m$
    ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload ssh.service, which keeps established sessions:␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload: host: systemctl reload ssh.service: exit status 1␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$

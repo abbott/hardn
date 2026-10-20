@@ -3,9 +3,9 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;2;192;196;216mreplication service on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -17,9 +17,9 @@ $
       ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;192;196;216mservice on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -31,9 +31,9 @@ $
       ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;192;196;216mservice on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -45,9 +45,9 @@ $
       ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;2;192;196;216mreplication service on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -59,9 +59,9 @@ $
       ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;192;196;216mservice on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -73,9 +73,9 @@ $
       ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;192;196;216mservice on web-01.example.net␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -1 +1,2 @@␛[m$
@@ -87,9 +87,9 @@ $
       ␛[38;2;129;134;156m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;2;30;34;48mreplication service on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -101,9 +101,9 @@ $
       ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;30;34;48mservice on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -115,9 +115,9 @@ $
       ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;30;34;48mservice on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -129,9 +129,9 @@ $
       ␛[38;2;87;92;110m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;2;30;34;48mreplication service on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -143,9 +143,9 @@ $
       ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;30;34;48mservice on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -157,9 +157,9 @@ $
       ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+      ␛[38;2;30;34;48mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;2;30;34;48mservice on web-01.example.net␛[m$
-      ␛[1;38;2;138;97;0mLockout risk␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;129;134;156m@@ -1 +1,2 @@␛[m$
@@ -171,9 +171,9 @@ $
       ␛[38;2;87;92;110m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;251mreplication service on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -185,9 +185,9 @@ $
       ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -199,9 +199,9 @@ $
       ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -213,9 +213,9 @@ $
       ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;251mreplication service on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -227,9 +227,9 @@ $
       ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -241,9 +241,9 @@ $
       ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+      ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
-      ␛[1;38;5;179mLockout risk␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
@@ -255,9 +255,9 @@ $
       ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;235mreplication service on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -269,9 +269,9 @@ $
       ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;235mservice on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -283,9 +283,9 @@ $
       ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;235mservice on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -297,9 +297,9 @@ $
       ␛[38;5;59m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;235mreplication service on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -311,9 +311,9 @@ $
       ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;235mservice on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -325,9 +325,9 @@ $
       ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+      ␛[38;5;235mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;235mservice on web-01.example.net␛[m$
-      ␛[1;38;5;94mLockout risk␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;103m@@ -1 +1,2 @@␛[m$
@@ -339,9 +339,9 @@ $
       ␛[38;5;59m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[37mreplication service on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -353,9 +353,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[37mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -367,9 +367,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[37mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -381,9 +381,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[37mreplication service on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -395,9 +395,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[37mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -409,9 +409,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[37mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[37mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -423,9 +423,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[30mreplication service on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -437,9 +437,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[30mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -451,9 +451,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
+   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[30mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -465,9 +465,9 @@ $
       ␛[90m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[30mreplication service on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -479,9 +479,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[30mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -493,9 +493,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
+  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+      ␛[30mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[30mservice on web-01.example.net␛[m$
-      ␛[1;33mLockout risk␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[90m@@ -1 +1,2 @@␛[m$
@@ -507,9 +507,9 @@ $
       ␛[90m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup$
       replication service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -521,9 +521,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -535,9 +535,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -549,9 +549,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup$
       replication service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -563,9 +563,9 @@ $
       | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -577,9 +577,9 @@ $
       | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -591,9 +591,9 @@ $
       | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup$
       replication service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -605,9 +605,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -619,9 +619,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  Allow SSH logins for alice, bob and the backup replication$
+   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -633,9 +633,9 @@ $
       ↪ --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup$
       replication service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -647,9 +647,9 @@ $
       | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$
@@ -661,9 +661,9 @@ $
       | --unit=hardn-revert-20261016 hardn rollback 20261016$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m Allow SSH logins for alice, bob and the backup replication$
+  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+      Allow SSH logins for alice, bob and the backup replication$
       service on web-01.example.net$
-      ␛[1mLockout risk␛[m$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -1 +1,2 @@$

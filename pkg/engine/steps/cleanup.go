@@ -158,8 +158,9 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
 	files := e.change(r)
 	files.Summary = fmt.Sprintf("Drop port %s from %s", joinUint16(drop), sshd.HardnDropIn)
+	files.Title = engine.FitTitle("Drop SSH "+portWords(portStrings(drop)), "Drop the held SSH ports")
 	out = claim(append(out, files, reloadChange(prefix, r, rp, nil),
-		st.verifyChange(prefix, fmt.Sprintf("sshd -T shows ports %v alone", left), func(_ context.Context, _ host.System, after sshd.Effective) error {
+		st.verifyChange(prefix, "sshd -T shows "+portWords(portStrings(left)), func(_ context.Context, _ host.System, after sshd.Effective) error {
 			return wanted(after, e.set, drop)
 		})))
 	if c.Proven {
@@ -199,6 +200,15 @@ func joinUint16(ports []uint16) string {
 	return strings.Join(s, " and ")
 }
 
+// portStrings is ports as decimal strings, for portWords.
+func portStrings(ports []uint16) []string {
+	s := make([]string, len(ports))
+	for i, p := range ports {
+		s[i] = strconv.Itoa(int(p))
+	}
+	return s
+}
+
 // cleanupFirewall deletes the rules hardn added for the dropped ports
 // (those firewall names), where ufw still has them: `ufw delete allow
 // <port>/tcp`, with `ufw allow <port>/tcp` journalled before it, which
@@ -228,7 +238,12 @@ func (st sshState) cleanupFirewall(ctx context.Context, sys host.System, prefix 
 	for _, d := range dels {
 		undo = append([][]string{{"ufw", "allow", d[3]}}, undo...)
 	}
-	c := engine.Change{ID: prefix + "/firewall", Summary: "Firewall: delete the held ports' rules hardn added", Target: "ufw",
+	rules := make([]string, len(dels))
+	for i, d := range dels {
+		rules[i] = d[3]
+	}
+	c := engine.Change{ID: prefix + "/firewall", Summary: "Firewall: delete the held ports' rules hardn added",
+		Title: engine.FitTitle("ufw: drop "+strings.Join(rules, ", "), fmt.Sprintf("ufw: drop %d rules", len(dels))), Target: "ufw",
 		Commands: formatArgvs(dels), Risk: engine.RiskLockout, Stage: engine.StageFirewall,
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, undo)}}
 	px := st.in.Facts.Proxmox

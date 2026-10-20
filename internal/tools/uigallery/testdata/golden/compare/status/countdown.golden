@@ -1,0 +1,167 @@
+# Golden file of TestCompareGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCompare mode: each section shows the current pattern, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's components render it today (P-23, P-24; built), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbeside it or under it the proposed one (P-42): a mock after␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mFigma's rows, drawn by the gallery. No component changed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: the subject at column 6 and its state, a coloured␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mword with no colon, in one column after it; notices as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcallouts, neutral lines as muted prose.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMarkers: Figma's status markers for a step done, failed or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrolled back, as here, in place of the key-value bullet, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-marker bullet shows.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mStatus column: two cells after the widest title, as here; with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-column figma it is Figma's column 27, which these titles␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreach, so their rows stack at every width.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mcompare countdown␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mCurrent␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+   ␛[1;38;2;231;70;105m!␛[m  ␛[1;38;2;231;70;105mUrgent:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;231;70;105m0:05␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mProposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mUrgent␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;231;70;105m0:05␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Note$
+# Compare mode: each section shows the current pattern, as$
+# hardn's components render it today (P-23, P-24; built), and$
+# beside it or under it the proposed one (P-42): a mock after$
+# Figma's rows, drawn by the gallery. No component changed.$
+# Proposed: the subject at column 6 and its state, a coloured$
+# word with no colon, in one column after it; notices as$
+# callouts, neutral lines as muted prose.$
+# Markers: Figma's status markers for a step done, failed or$
+# rolled back, as here, in place of the key-value bullet, which$
+# -marker bullet shows.$
+# Status column: two cells after the widest title, as here; with$
+# -column figma it is Figma's column 27, which these titles$
+# reach, so their rows stack at every width.$
+$
+# compare countdown --------------------------------------------$
+$
+# Current ------------------------------------------------------$
+$
+  [*] Warning: This change reverts automatically in 2:45$
+      To keep it, open a new SSH session and run:$
+      sudo hardn confirm$
+$
+  [*] Warning: This change reverts automatically in 2:45$
+      To keep it, open a new SSH session on port 2230 and run:$
+      sudo hardn confirm$
+$
+  [!] Urgent: This change reverts automatically in 0:05$
+      To keep it, open a new SSH session and run:$
+      sudo hardn confirm$
+$
+# Proposed -----------------------------------------------------$
+$
+# Warning$
+# This change reverts automatically in 2:45$
+# To keep it, open a new SSH session and run:$
+$
+      $ sudo hardn confirm$
+$
+# Warning$
+# This change reverts automatically in 2:45$
+# To keep it, open a new SSH session on port 2230 and run:$
+$
+      $ sudo hardn confirm$
+$
+# Urgent$
+# This change reverts automatically in 0:05$
+# To keep it, open a new SSH session and run:$
+$
+      $ sudo hardn confirm$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCompare mode: each section shows the current pattern, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's components render it today (P-23, P-24; built),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand beside it or under it the proposed one (P-42): a mock␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mafter Figma's rows, drawn by the gallery. No component␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanged.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: the subject at column 6 and its state, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcoloured word with no colon, in one column after it;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnotices as callouts, neutral lines as muted prose.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMarkers: Figma's status markers for a step done, failed or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrolled back, as here, in place of the key-value bullet,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhich -marker bullet shows.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mStatus column: two cells after the widest title, as here;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith -column figma it is Figma's column 27, which these␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtitles reach, so their rows stack at every width.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mcompare countdown␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mCurrent␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
+      ␛[38;2;192;196;216mrun:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+   ␛[1;38;2;231;70;105m!␛[m  ␛[1;38;2;231;70;105mUrgent:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;231;70;105m0:05␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
+      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mProposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mUrgent␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;231;70;105m0:05␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$␛[m ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+$

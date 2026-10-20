@@ -37,7 +37,8 @@ func TestPlanBootUnit(t *testing.T) {
 	}{
 		{"systemd", "hardn-boot.service", systemd, BootUnit{Init: detect.Systemd, Path: "/etc/systemd/system/hardn-boot.service", Mode: 0o644,
 			Link: "/etc/systemd/system/multi-user.target.wants/hardn-boot.service", Check: []string{"systemd-analyze", "verify", "--recursive-errors=no"},
-			Enable: []string{"systemctl", "--no-reload", "enable", "hardn-boot.service"}, Disable: []string{"systemctl", "--no-reload", "disable", "hardn-boot.service"}},
+			Enable: []string{"systemctl", "--no-reload", "enable", "hardn-boot.service"}, Disable: []string{"systemctl", "--no-reload", "disable", "hardn-boot.service"},
+			Reload: []string{"systemctl", "daemon-reload"}},
 			[]string{"DefaultDependencies=no", "After=local-fs.target sysinit.target ufw.service", "Before=ssh.service ssh.socket shutdown.target",
 				"Type=oneshot", "ExecStart=" + testHardn + " rollback --boot", "TimeoutStartSec=7min", "WantedBy=multi-user.target"},
 			[]string{"Requires=", "RequiredBy=", "BindsTo=", "Wants=ssh", "%"}},
@@ -154,7 +155,8 @@ func bootHost(t *testing.T) *hostfake.System {
 			for _, l := range []string{SystemdWants + "/hardn-boot.service", OpenRCDefault + "/hardn-boot"} {
 				_ = f.Remove(context.Background(), l)
 			}
-		case "systemd-analyze verify --recursive-errors=no " + workDir + "/hardn-boot.service", "sh -n " + workDir + "/hardn-boot":
+		case "systemd-analyze verify --recursive-errors=no " + workDir + "/hardn-boot.service", "sh -n " + workDir + "/hardn-boot",
+			"systemctl daemon-reload":
 		default:
 			t.Errorf("unexpected command %q", argv)
 			return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
@@ -445,7 +447,13 @@ func TestRemoveBootUnit(t *testing.T) {
 			}
 			// The disable command's own removal of the link is recorded
 			// before the command (bootHost's handler).
-			if got, want := calls(f, n), []string{"remove " + u.Link, "run " + strings.Join(u.Disable, " "), "remove " + u.Path}; !reflect.DeepEqual(got, want) {
+			// Then, on systemd, the daemon-reload that clears every unit's
+			// NeedDaemonReload, which the file's removal set.
+			want := []string{"remove " + u.Link, "run " + strings.Join(u.Disable, " "), "remove " + u.Path}
+			if u.Reload != nil {
+				want = append(want, "run "+strings.Join(u.Reload, " "))
+			}
+			if got := calls(f, n); !reflect.DeepEqual(got, want) {
 				t.Errorf("calls %q, want %q", got, want)
 			}
 			if !strings.Contains(log.String(), "disabled and removed") {
@@ -455,6 +463,29 @@ func TestRemoveBootUnit(t *testing.T) {
 				t.Errorf("again: %v, %v", removed, err)
 			}
 		})
+	}
+}
+
+// A daemon-reload that fails after the removal is logged, and the unit
+// is removed all the same: systemd reads the removal at its next
+// daemon-reload or boot.
+func TestRemoveBootUnitReloadFails(t *testing.T) {
+	ctx := context.Background()
+	f := bootHost(t)
+	u, _ := PlanBootUnit(systemd, testHardn)
+	if _, err := EnsureBootUnit(ctx, f, u, workDir, nil, Options{}); err != nil {
+		t.Fatal(err)
+	}
+	f.Respond(hostfake.Response{Stderr: "Failed to reload daemon\n", ExitCode: 1}, u.Reload[0], u.Reload[1:]...)
+	var log bytes.Buffer
+	if removed, err := RemoveBootUnit(ctx, f, u, Options{Log: &log}); !removed || err != nil {
+		t.Fatalf("RemoveBootUnit = %v, %v; want removed, no error", removed, err)
+	}
+	if st, err := ReadBootUnit(ctx, f, u); err != nil || st.File || st.Linked {
+		t.Errorf("after: %+v, %v; want neither file nor link", st, err)
+	}
+	if want := "removed, but systemctl daemon-reload failed"; !strings.Contains(log.String(), want) {
+		t.Errorf("log %q, want %q", log.String(), want)
 	}
 }
 

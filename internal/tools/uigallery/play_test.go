@@ -10,6 +10,7 @@ import (
 	"go/token"
 	"io"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -446,19 +447,41 @@ func TestPlayWriteFails(t *testing.T) {
 }
 
 // TestPlayTouchesNothing checks that the code play runs cannot change the
-// system: no file of the gallery, nor of any package of this module that
+// system. No file of the gallery, nor of any package of this module that
 // it links, found by following their imports, imports os/exec or a net
-// package, names a function of os that writes, removes or renames a file,
-// starts a process or changes the environment or the working directory,
-// or names anything of syscall or golang.org/x/sys/unix but what the
-// line reader (pkg/ui/prompt) uses to ask whether stdin is a terminal, to
-// discard typeahead and to wait for a line or Ctrl-C, and, in
-// reraise_unix.go alone, to send the process its own SIGINT
-// (prompt.Reraise, which the gallery must not call: play returns
-// ExitCode's 130 instead). The simulated system records; it never
-// applies. Lip Gloss's own init effects, such as
-// colorprofile's "tmux info", are outside this check
-// (docs/refactor/phase0/side-effects.md §13.1).
+// package (net/netip, which computes on addresses, aside), names a
+// function of os that writes, removes or renames a file, starts a process
+// or changes the environment or the working directory, or names anything
+// of syscall or golang.org/x/sys/unix but an errno value, a FileInfo's
+// Stat_t, and what the line reader (pkg/ui/prompt) uses to ask whether
+// stdin is a terminal, to discard typeahead and to wait for a line or
+// Ctrl-C, and, in reraise_unix.go alone, to send the process its own
+// SIGINT (prompt.Reraise, which the gallery must not call: play returns
+// ExitCode's 130 instead).
+//
+// The engine's scenarios link what does all of that: the real side of the
+// seam (host.Real), the engine's signal hold (pkg/engine/hold), and
+// pkg/config and pkg/logging, which pkg/engine and pkg/output link for
+// their types. Those files (realSide) are exempt, and the test checks
+// instead, by name, that nothing play links can reach them. No file but
+// host.Real's own names the type, in any form (a literal, new, a
+// declaration, a conversion), and those make one only in host.NewReal,
+// which no file names. No file names pkg/config's or pkg/logging's
+// functions (pkg/config, unreached itself, aside). hold.Signals and
+// SignalsAs are named only by pkg/engine's default hold, which an
+// Options.Hold left nil takes: so outside the gallery only
+// pkg/engine/confirm, which passes its caller's Hold on, calls engine.New,
+// and nothing calls confirm.Cleanup; and every engine.New and
+// confirm.Cleanup the gallery calls takes an Options literal whose Hold is
+// the gallery's own (session.hold). So every host.System the engine gets
+// is one the gallery gives it, and the hold it takes is the gallery's
+// (TestPlayEngine checks that the failed reload's rollback took it). This
+// is a check of names, not of types or values: the gallery's own code is
+// held to its literals, the linked packages to never naming what reaches
+// the real side. The simulated system records; it never applies. Lip
+// Gloss's own init effects, such as colorprofile's "tmux info", and
+// fatih/color's (NO_COLOR, TERM, whether stdout is a terminal), are
+// outside this check (docs/refactor/phase0/side-effects.md §13.1).
 func TestPlayTouchesNothing(t *testing.T) {
 	const module = "github.com/abbott/hardn/"
 	root := filepath.Join("..", "..", "..")
@@ -476,13 +499,55 @@ func TestPlayTouchesNothing(t *testing.T) {
 		// Discarding typeahead (flush_linux.go, flush_darwin.go).
 		"IoctlSetInt": true, "TCFLSH": true, "TCIFLUSH": true, "IoctlSetPointerInt": true, "TIOCFLUSH": true,
 		// Waiting for a line or Ctrl-C (wait_unix.go).
-		"Select": true, "FdSet": true, "FD_SETSIZE": true, "EINTR": true,
+		"Select": true, "FdSet": true, "FD_SETSIZE": true,
+		// A FileInfo's owner, read from its Sys() (host.Owner).
+		"Stat_t": true,
 	}
+	errno := regexp.MustCompile(`^E[A-Z0-9]+$`) // a value errors.Is compares with
 	// Ending the process by its own SIGINT after Ctrl-C (prompt.Reraise,
 	// for the legacy menus and the config prompts), in reraise_unix.go
 	// alone.
 	reraise := map[string]bool{"Kill": true, "Getpid": true, "SIGINT": true}
-	dirs, seen, files := []string{"."}, map[string]bool{}, 0
+	// realSide are the files play links and never reaches, by why.
+	const (
+		real    = "host.Real's methods, reached through a host.Real, which only host.NewReal makes"
+		holding = "the engine's signal hold, reached through hold.Signals and SignalsAs"
+		start   = "hardn's configuration and legacy log, reached through their package's functions"
+	)
+	realSide := map[string]string{
+		"pkg/host/real.go": real, "pkg/host/guard.go": real, "pkg/host/lock.go": real, "pkg/host/append.go": real, "pkg/host/detach.go": real,
+		"pkg/engine/hold/hold.go": holding, "pkg/engine/hold/restore_darwin.go": holding,
+		"pkg/engine/hold/restore_linux.go": holding, "pkg/engine/hold/restore_other.go": holding,
+		"pkg/config/config.go": start, "pkg/config/embed.go": start, "pkg/logging/logging.go": start,
+	}
+	// unreached are the functions of the packages behind realSide that
+	// nothing play links may name, by package; filled from their files.
+	unreached := map[string]map[string]bool{module + "pkg/config": {}, module + "pkg/logging": {}}
+	for p, funcs := range unreached {
+		paths, err := filepath.Glob(filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(p, module)), "*.go"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, path := range paths {
+			f, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.SkipObjectResolution)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, d := range f.Decls {
+				if fd, ok := d.(*ast.FuncDecl); ok && fd.Recv == nil && fd.Name.IsExported() {
+					funcs[fd.Name.Name] = true
+				}
+			}
+		}
+		if len(funcs) == 0 {
+			t.Fatalf("no functions found in %s", p)
+		}
+	}
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dirs, seen, files, exempt := []string{"."}, map[string]bool{}, 0, map[string]bool{}
 	for len(dirs) > 0 {
 		dir := dirs[0]
 		dirs = dirs[1:]
@@ -499,47 +564,114 @@ func TestPlayTouchesNothing(t *testing.T) {
 				continue
 			}
 			files++
+			abs, err := filepath.Abs(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			rel, err := filepath.Rel(absRoot, abs)
+			if err != nil {
+				t.Fatal(err)
+			}
+			rel = filepath.ToSlash(rel)
+			_, isReal := realSide[rel]
+			exempt[rel] = isReal
 			f, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.SkipObjectResolution)
 			if err != nil {
 				t.Fatal(err)
 			}
-			pkgs := map[string]string{} // the name os, syscall and x/sys/unix go by in the file: their paths
+			pkgs := map[string]string{} // the name each package goes by in the file: its path
 			for _, im := range f.Imports {
 				p, _ := strconv.Unquote(im.Path.Value)
 				name := p[strings.LastIndex(p, "/")+1:]
 				if im.Name != nil {
 					name = im.Name.Name
 				}
+				pkgs[name] = p
 				switch {
-				case p == "os/exec", p == "net", strings.HasPrefix(p, "net/"):
+				case (p == "os/exec" || p == "net" || strings.HasPrefix(p, "net/")) && p != "net/netip" && !isReal:
 					t.Errorf("%s imports %s", path, p)
-				case p == "os", p == "syscall", p == "golang.org/x/sys/unix":
-					pkgs[name] = p
 				case strings.HasPrefix(p, module):
 					dirs = append(dirs, filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(p, module))))
 				}
 			}
+			own := module + filepath.ToSlash(filepath.Dir(rel)) // the file's package
+			realFile := realSide[rel] == real                   // one of host.Real's own files
+			var fn string                                       // the function being walked
+			called := map[ast.Expr]bool{}                       // the functions called, as the calls name them
 			ast.Inspect(f, func(n ast.Node) bool {
-				sel, ok := n.(*ast.SelectorExpr)
-				if !ok {
-					return true
-				}
-				if x, ok := sel.X.(*ast.Ident); ok {
-					switch p := pkgs[x.Name]; {
-					case p == "os" && banned[sel.Sel.Name]:
-						t.Errorf("%s calls os.%s", path, sel.Sel.Name)
-					case (p == "syscall" || p == "golang.org/x/sys/unix") && !sys[sel.Sel.Name] &&
-						(filepath.Base(path) != "reraise_unix.go" || !reraise[sel.Sel.Name]):
-						t.Errorf("%s names %s.%s, which the line reader does not use", path, p, sel.Sel.Name)
-					case dir == "." && sel.Sel.Name == "Reraise":
+				switch n := n.(type) {
+				case *ast.FuncDecl:
+					fn = n.Name.Name
+				case *ast.CompositeLit:
+					if realFile && namesReal(n.Type) && fn != "NewReal" {
+						t.Errorf("%s makes a host.Real in %s, which only host.NewReal may", path, fn)
+					}
+					if p := optionsOf(n.Type, pkgs); dir == "." && p != "" && !holdsOwn(n) {
+						t.Errorf("%s: %s.Options with a Hold other than the gallery's (session.hold), so the engine could take hold.Signals", path, p)
+					}
+				case *ast.CallExpr:
+					called[n.Fun] = true
+					if id, ok := n.Fun.(*ast.Ident); ok && id.Name == "new" && len(n.Args) == 1 && realFile && namesReal(n.Args[0]) && fn != "NewReal" {
+						t.Errorf("%s makes a host.Real in %s, which only host.NewReal may", path, fn)
+					}
+					sel, ok := n.Fun.(*ast.SelectorExpr)
+					if !ok {
+						return true
+					}
+					x, _ := sel.X.(*ast.Ident)
+					if x == nil || !(pkgs[x.Name] == module+"pkg/engine" && sel.Sel.Name == "New" || pkgs[x.Name] == module+"pkg/engine/confirm" && sel.Sel.Name == "Cleanup") {
+						return true
+					}
+					switch lit, _ := n.Args[len(n.Args)-1].(*ast.CompositeLit); {
+					case dir != "." && (own != module+"pkg/engine/confirm" || sel.Sel.Name == "Cleanup"):
+						t.Errorf("%s calls %s.%s outside the gallery", path, x.Name, sel.Sel.Name)
+					case dir == "." && (lit == nil || optionsOf(lit.Type, pkgs) == ""):
+						t.Errorf("%s calls %s.%s with Options that are not a literal of them, whose Hold the test cannot see", path, x.Name, sel.Sel.Name)
+					}
+				case *ast.Ident:
+					switch {
+					case n.Name == "NewReal" && own == module+"pkg/host" && rel != "pkg/host/real.go":
+						t.Errorf("%s names NewReal", path)
+					case n.Name == "Real" && own == module+"pkg/host" && !realFile:
+						t.Errorf("%s names Real, which only host.Real's own files may", path)
+					}
+				case *ast.SelectorExpr:
+					x, ok := n.X.(*ast.Ident)
+					if !ok {
+						return true
+					}
+					p, name := pkgs[x.Name], n.Sel.Name
+					switch {
+					case p == "os" && banned[name] && !isReal:
+						t.Errorf("%s calls os.%s", path, name)
+					case (p == "syscall" || p == "golang.org/x/sys/unix") && !isReal && !sys[name] && !errno.MatchString(name) &&
+						(filepath.Base(path) != "reraise_unix.go" || !reraise[name]):
+						t.Errorf("%s names %s.%s, which the line reader does not use", path, p, name)
+					case dir == "." && name == "Reraise":
 						t.Errorf("%s names %s.Reraise, which would end the gallery by SIGINT", path, x.Name)
+					case p == module+"pkg/host" && name == "NewReal":
+						t.Errorf("%s names host.NewReal", path)
+					case p == module+"pkg/host" && name == "Real":
+						t.Errorf("%s names host.Real, which only its own files may", path)
+					case p == module+"pkg/engine/hold" && rel != "pkg/engine/engine.go":
+						t.Errorf("%s names hold.%s, which only the engine's default hold may", path, name)
+					case unreached[p][name] && own != module+"pkg/config":
+						t.Errorf("%s names %s.%s, which play never reaches", path, x.Name, name)
+					case (p == module+"pkg/engine" && name == "New" || p == module+"pkg/engine/confirm" && name == "Cleanup") && !called[n]:
+						t.Errorf("%s names %s.%s other than to call it", path, x.Name, name)
 					}
 				}
 				return true
 			})
 		}
 	}
-	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff"} {
+	for rel := range realSide {
+		if !exempt[rel] {
+			t.Errorf("%s is exempt, but play does not link it", rel)
+		}
+	}
+	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff", "pkg/engine", "pkg/engine/steps",
+		"pkg/engine/confirm", "pkg/output", "pkg/host/hostfake"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}
@@ -547,4 +679,39 @@ func TestPlayTouchesNothing(t *testing.T) {
 	if files < 20 {
 		t.Errorf("only %d files checked", files)
 	}
+}
+
+// namesReal reports whether t, in pkg/host, names its type Real.
+func namesReal(t ast.Expr) bool {
+	id, ok := t.(*ast.Ident)
+	return ok && id.Name == "Real"
+}
+
+// optionsOf returns the name of the package whose Options t names, of
+// pkg/engine's and pkg/engine/confirm's, given the file's imports; "" for
+// any other type.
+func optionsOf(t ast.Expr, pkgs map[string]string) string {
+	sel, ok := t.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Options" {
+		return ""
+	}
+	x, ok := sel.X.(*ast.Ident)
+	if p := pkgs[x.Name]; ok && (p == "github.com/abbott/hardn/pkg/engine" || p == "github.com/abbott/hardn/pkg/engine/confirm") {
+		return x.Name
+	}
+	return ""
+}
+
+// holdsOwn reports whether composite literal lit sets Hold to the
+// gallery's own hold, a session's hold method.
+func holdsOwn(lit *ast.CompositeLit) bool {
+	for _, e := range lit.Elts {
+		if kv, ok := e.(*ast.KeyValueExpr); ok {
+			if k, ok := kv.Key.(*ast.Ident); ok && k.Name == "Hold" {
+				v, ok := kv.Value.(*ast.SelectorExpr)
+				return ok && v.Sel.Name == "hold"
+			}
+		}
+	}
+	return false
 }

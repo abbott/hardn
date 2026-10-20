@@ -7,7 +7,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mChecking the sudo configuration failed: exit status 1␛[m$
 $
    ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
@@ -22,7 +22,7 @@ $
   [+] Done: Require george's password for sudo$
   [!] Failed: Check the sudo configuration (exit status 1)$
 $
-# [!] Operation Failed$
+# Operation Failed$
 # Checking the sudo configuration failed: exit status 1$
 $
   [<] Rolled back: Require george's password for sudo$
@@ -37,7 +37,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
    ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mChecking the sudo configuration failed: exit status 1␛[m$
 $
    ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$

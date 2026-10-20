@@ -4,12 +4,12 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
-# [-] Operation Cancelled$
+# Operation Cancelled$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$

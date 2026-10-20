@@ -130,6 +130,9 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 	var out []engine.Change
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
 	files := e.change(r)
+	if port != 0 {
+		files.Title = addPortTitle(port, len(e.keywords)-1)
+	}
 	switch {
 	case fw != nil && !fw.Empty():
 		out = append(out, firewallChange(s.Prefix+"/firewall", *fw))
@@ -144,6 +147,7 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 			}
 			return st.checkPVE(ctx, sys, after, e.groups)
 		}))
+	out[len(out)-1].Title = engine.FitTitle(checkTitle(e.set), "Check the values with sshd -T")
 	return claim(out), nil
 }
 
@@ -324,7 +328,7 @@ func (e *edit) change(r revert.Reload) engine.Change {
 	sum := sha256.Sum256(e.old)
 	data, absent := e.data, e.absent
 	c := engine.Change{
-		ID: e.id, Summary: "Set " + strings.Join(e.keywords, ", ") + " in " + sshd.HardnDropIn, Target: sshd.HardnDropIn,
+		ID: e.id, Summary: "Set " + strings.Join(e.keywords, ", ") + " in " + sshd.HardnDropIn, Title: setTitle(e.set, e.keywords), Target: sshd.HardnDropIn,
 		Diff: engine.FileDiff(sshd.HardnDropIn, before, &after), Risk: engine.RiskLockout, Stage: engine.StageFiles,
 		Backups: []string{sshd.HardnDropIn}, Rollback: engine.Undo{Reloads: []revert.Reload{r}}, Findings: slices.Clone(e.findings),
 	}
@@ -353,7 +357,7 @@ func reloadChange(prefix string, r revert.Reload, rp reload.Plan, replan func(ct
 		cmds = append(cmds, host.FormatArgv(s.Argv))
 	}
 	c := engine.Change{
-		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Target: unitOf(rp), Commands: cmds,
+		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Title: engine.FitTitle("Reload sshd ("+rp.Mode.String()+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
 		Risk: engine.RiskLockout, Stage: engine.StageReload, After: []string{prefix + "/files"},
 		Rollback: engine.Undo{Reloads: []revert.Reload{r}}, ConfirmVia: revert.ListenersOf(rp.Adds),
 	}
@@ -393,7 +397,7 @@ func unitOf(rp reload.Plan) string {
 func (st sshState) verifyChange(prefix, summary string, want func(ctx context.Context, sys host.System, after sshd.Effective) error) engine.Change {
 	binary, ssh := st.binary, st.in.Facts.SSH
 	c := engine.Change{
-		ID: prefix + "/verify", Summary: summary, Target: "sshd -T", Commands: []string{"sshd -T"},
+		ID: prefix + "/verify", Summary: summary, Title: engine.FitTitle(summary, "Check the values with sshd -T"), Target: "sshd -T", Commands: []string{"sshd -T"},
 		Risk: engine.RiskLockout, Stage: engine.StageVerify,
 	}
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
@@ -483,13 +487,99 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 	return bad
 }
 
-// directiveWords is set as one line.
+// settingWord is a setting in the user's words (design-system README
+// §9.15): the title of the change that sets it, and what its check says
+// sshd -T shows.
+type settingWord struct{ set, shows string }
+
+// settingWords are the settings with words of their own, keyed by the
+// directive in lower case. KbdInteractiveAuthentication asks for the
+// password by another prompt, so it shares PasswordAuthentication's words.
+var settingWords = map[string]settingWord{
+	"permitrootlogin no":                {"Disallow root login", "no root login"},
+	"permitrootlogin prohibit-password": {"Disallow root password login", "no root password login"},
+	"passwordauthentication no":         {"Disallow password login", "no password login"},
+	"kbdinteractiveauthentication no":   {"Disallow password login", "no password login"},
+}
+
+// wordsOf is set's words when every directive has words and they are the
+// same, as PasswordAuthentication no and KbdInteractiveAuthentication no
+// are; ok is false otherwise.
+func wordsOf(set []migrate.Directive) (w settingWord, ok bool) {
+	for i, d := range set {
+		dw, found := settingWords[strings.ToLower(d.Keyword+" "+strings.Join(d.Args, " "))]
+		if !found || (i > 0 && dw != w) {
+			return settingWord{}, false
+		}
+		w = dw
+	}
+	return w, len(set) > 0
+}
+
+// checkTitle is the Title of the check of set after the reload: "sshd -T
+// shows no password login", "sshd -T shows ports 22, 2230"; the Summary
+// keeps the directives.
+func checkTitle(set []migrate.Directive) string {
+	if w, ok := wordsOf(set); ok {
+		return "sshd -T shows " + w.shows
+	}
+	return "sshd -T shows " + directiveWords(set)
+}
+
+// setTitle is a set change's Title: its settings' own words
+// (settingWords), else its directives ("Set AllowUsers alice"), else its
+// keywords, else the first keyword and how many more (engine.TitleMax);
+// the plan's diff shows every line.
+func setTitle(set []migrate.Directive, keywords []string) string {
+	if w, ok := wordsOf(set); ok {
+		return w.set
+	}
+	if t := engine.FitTitle("Set "+directiveWords(set), "Set "+strings.Join(keywords, ", ")); t != "" || len(keywords) == 0 {
+		return t
+	}
+	return engine.FitTitle(fmt.Sprintf("Set %s and %d more", keywords[0], len(keywords)-1), "Set "+strconv.Itoa(len(keywords))+" SSH settings")
+}
+
+// addPortTitle is a port change's Title: the port it adds, as "Add SSH
+// port 2230", and how many other settings it sets. The port it holds until
+// the confirmation is not named: nothing happens to it until the clean-up
+// drops it (P-40). The plan's diff shows both Port lines.
+func addPortTitle(port uint16, more int) string {
+	if more <= 0 {
+		return fmt.Sprintf("Add SSH port %d", port)
+	}
+	return fmt.Sprintf("Add SSH port %d and %d more", port, more)
+}
+
+// directiveWords is set as one line, short: its Port lines as one group,
+// "ports 22, 2230" where the first stands, the other directives as
+// written, "PasswordAuthentication no".
 func directiveWords(set []migrate.Directive) string {
-	var out []string
+	var out, ports []string
+	at := -1
 	for _, d := range set {
+		if strings.EqualFold(d.Keyword, "Port") {
+			if at < 0 {
+				at = len(out)
+				out = append(out, "")
+			}
+			ports = append(ports, strings.Join(d.Args, " "))
+			continue
+		}
 		out = append(out, d.Keyword+" "+strings.Join(d.Args, " "))
 	}
+	if at >= 0 {
+		out[at] = portWords(ports)
+	}
 	return strings.Join(out, ", ")
+}
+
+// portWords is ports as a title says them: "port 22", "ports 22, 2230".
+func portWords(ports []string) string {
+	if len(ports) == 1 {
+		return "port " + ports[0]
+	}
+	return "ports " + strings.Join(ports, ", ")
 }
 
 // checkPVE reads, after the reload, what Proxmox VE needs of sshd
