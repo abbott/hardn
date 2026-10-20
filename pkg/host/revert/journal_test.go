@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/netip"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +18,8 @@ import (
 func valid() Journal {
 	j := lockout()
 	j.SchemaVersion, j.Created = SchemaVersion, testNow
-	j.Timer = &Timer{Kind: TimerSystemd, Unit: UnitPrefix + testID, Argv: systemdRunArgv(testID), Deadline: j.Deadline()}
+	j.Timer = &Timer{Kind: TimerSystemd, Unit: UnitPrefix + testID, Argv: systemdRunArgv(testID), Deadline: j.Deadline(),
+		Hardn: testHardn, HardnSHA256: strings.Repeat("ab", 32), Boot: testBootID}
 	j.Backup = &Backups{Dir: "/var/backups/hardn/" + testID, Seqs: []int{1, 3}}
 	j.Undo = []Step{
 		{Op: OpRun, Argv: []string{"ufw", "delete", "allow", "2230/tcp"}},
@@ -56,6 +60,13 @@ func TestJournalCheck(t *testing.T) {
 		{"timer kind", func(j *Journal) { j.Timer.Kind = "at" }},
 		{"timer no argv", func(j *Journal) { j.Timer.Argv = nil }},
 		{"setsid pidfile relative", func(j *Journal) { j.Timer.Kind, j.Timer.Unit, j.Timer.PIDFile = TimerSetsid, "", "run/x.pid" }},
+		{"timer hardn not in its argv", func(j *Journal) { j.Timer.Hardn = "/usr/sbin/hardn" }},
+		{"timer hardn relative", func(j *Journal) { j.Timer.Hardn = "hardn" }},
+		{"timer hardn with no sha256", func(j *Journal) { j.Timer.HardnSHA256 = "" }},
+		{"timer sha256 with no hardn", func(j *Journal) { j.Timer.Hardn = "" }},
+		{"timer sha256 upper case", func(j *Journal) { j.Timer.HardnSHA256 = strings.Repeat("AB", 32) }},
+		{"timer sha256 short", func(j *Journal) { j.Timer.HardnSHA256 = "abab" }},
+		{"timer boot with a newline", func(j *Journal) { j.Timer.Boot = testBootID + "\n" }},
 		{"backup dir relative", func(j *Journal) { j.Backup.Dir = "backups" }},
 		{"backup seqs not ascending", func(j *Journal) { j.Backup.Seqs = []int{3, 1} }},
 		{"backup seq 0", func(j *Journal) { j.Backup.Seqs = []int{0} }},
@@ -135,6 +146,24 @@ func TestDecodeJournal(t *testing.T) {
 		if _, err := decodeJournal([]byte(bad)); !errors.Is(err, ErrJournal) {
 			t.Errorf("%s: %v, want ErrJournal", name, err)
 		}
+	}
+}
+
+// A journal as Phase 2 wrote it, without the timer's hardn, hardnSHA256
+// and boot (testdata/pending-p2.json, the golden of next/p2-revert), still
+// decodes: the fields are optional, and only the boot command needs them
+// (it leaves such a journal alone).
+func TestDecodePhase2Journal(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "pending-p2.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	j, err := decodeJournal(data)
+	if err != nil || j.Timer == nil || j.Timer.Hardn != "" || j.Timer.HardnSHA256 != "" || j.Timer.Boot != "" {
+		t.Fatalf("decodeJournal = %+v, %v", j.Timer, err)
+	}
+	if !j.Deadline().Equal(j.Created.Add(j.Timeout())) {
+		t.Errorf("deadline %v", j.Deadline())
 	}
 }
 

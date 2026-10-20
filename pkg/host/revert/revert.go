@@ -118,7 +118,8 @@ type Options struct {
 	Log io.Writer
 	// Hardn is the absolute path of the hardn binary the timer runs (Arm):
 	// os.Executable, resolved. It is outside host.SearchPath, so it is
-	// named by path, and checked (CheckExecutable).
+	// named by path, and checked (CheckExecutable). For Boot, it is the
+	// running hardn, which the journal's timer must run.
 	Hardn string
 	// Reason, when set, is the rollback's reason; otherwise Rollback works
 	// it out from the deadline (Reason).
@@ -128,6 +129,12 @@ type Options struct {
 	DetectSSH func(ctx context.Context, sys host.System) detect.SSH
 	// Reload is passed to reload.Execute.
 	Reload reload.Options
+	// NoStart: Rollback starts no unit. Every reload runs as one journalled
+	// with IfUp: a unit that is up is reloaded, and one that is down is left
+	// so, to read the restored files when it starts. `hardn rollback --boot`
+	// sets it (Boot): it runs before ssh.service and ssh.socket start, and a
+	// start from it would wait on the boot unit itself.
+	NoStart bool
 	// Plans are the rollbacks of OpPlan steps, by unit. Record refuses a
 	// step whose unit has none (ErrNoPlanRollback), and so does Rollback.
 	Plans map[string]PlanRollback

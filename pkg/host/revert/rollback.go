@@ -367,9 +367,10 @@ func runStep(ctx context.Context, sys host.System, s Step, plans map[string]Plan
 	return r
 }
 
-// runReload reloads r.Service once its files are restored. With IfUp, a
-// unit that is down is left so (no Step.Start): the forward reload may not
-// have run, and the unit may have been down before the change. The socket
+// runReload reloads r.Service once its files are restored. With IfUp, or
+// Options.NoStart, a unit that is down is left so (no Step.Start): the
+// forward reload may not have run, and the unit may have been down before
+// the change; at boot, it has not started yet. The socket
 // drop-ins r names as restored are expected on a socket host
 // (reload.Change.RestoredDropIns) when b's backups restored them as files
 // (restoredDropIns); any other with ListenStream is refused.
@@ -400,7 +401,7 @@ func runReload(ctx context.Context, sys host.System, r Reload, b *Backups, opts 
 	if err != nil {
 		return reload.Report{}, err
 	}
-	if r.IfUp {
+	if r.IfUp || opts.NoStart {
 		for i := range p.Steps {
 			p.Steps[i].Start = nil
 		}
