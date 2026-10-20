@@ -173,6 +173,7 @@ func revertPreflight(name string) bool {
 }
 
 func runConfirm(*cobra.Command, []string) {
+	setRevertColour()
 	if !revertPreflight("confirm") {
 		return
 	}
@@ -200,6 +201,7 @@ func runConfirm(*cobra.Command, []string) {
 }
 
 func runRollback(_ *cobra.Command, args []string) {
+	setRevertColour()
 	if rollbackBoot {
 		runBoot()
 		return

@@ -55,14 +55,14 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, lock, unlock, lookup-user, lookup-group
+	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, append, lock, unlock, lookup-user, lookup-group
 	Argv     []string // run, start-detached
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run
 	PID      int      // start-detached
 	Path     string   // file operations and lookups
 	To       string   // rename
-	Data     []byte   // writes, lock's holder
+	Data     []byte   // writes, append's data, lock's holder
 	Mode     fs.FileMode
 	UID, GID int // chown, write-atomic
 	Err      error
@@ -82,7 +82,7 @@ func (c Call) String() string {
 		b.WriteString(c.Path + " -> " + c.To)
 	case "write-atomic":
 		fmt.Fprintf(&b, "%s %04o %d:%d %d bytes", c.Path, uint32(c.Mode.Perm()), c.UID, c.GID, len(c.Data))
-	case "write-in-place":
+	case "write-in-place", "append":
 		fmt.Fprintf(&b, "%s %04o %d bytes", c.Path, uint32(c.Mode.Perm()), len(c.Data))
 	case "mkdir", "chmod":
 		fmt.Fprintf(&b, "%s %04o", c.Path, uint32(c.Mode.Perm()))

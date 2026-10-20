@@ -135,6 +135,18 @@ type System interface {
 	// It is guarded (see System). On an error, name is as it was, except
 	// for one wrapping ErrNotDurable: see Real.WriteFileAtomic.
 	WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error
+	// AppendFile appends data to the regular file name, creating it with
+	// perm (and the process's owner) when it is absent: one write on a
+	// descriptor opened with O_APPEND, so each call's data lands whole
+	// after what is there, whoever else appends, then fsync. It never
+	// replaces or truncates the file. A symlink at name is refused with
+	// ErrSymlink, never written through; so is a directory (EISDIR) or
+	// anything else that is not a regular file (fs.ErrInvalid). The
+	// directory holding name must be trusted (see System), checked on the
+	// directory it opens, else ErrUntrustedDir: what the file receives
+	// goes where no other user can rename, replace or link in front of it.
+	// It is guarded (see System). The audit log (p3-output).
+	AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error
 	// Lock takes an exclusive lock on the regular file name, creating it
 	// 0600 when absent, writes holder into it, and returns the function
 	// that empties it and releases the lock. It never waits: a lock held
@@ -290,6 +302,10 @@ var (
 	// link in a directory another user can change: the file may be a root
 	// file that user linked there.
 	ErrHardLink = errors.New("refusing a file with other hard links, in a directory another user can change")
+	// ErrUntrustedDir: AppendFile met a directory, the one it opened to
+	// hold the file, that a user other than root (or hardn's own user) can
+	// change.
+	ErrUntrustedDir = errors.New("refusing to append in a directory another user can change")
 	// ErrNotDurable: WriteFileAtomic replaced the file, but could not sync
 	// its directory, so the replacement may not survive a crash. The new
 	// content is in place; roll the change back like any failed step.

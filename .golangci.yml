@@ -450,6 +450,31 @@ linters:
               desc: the change kinds load no code (docs/engine/steps.md §2)
             - pkg: github.com/abbott/hardn/pkg/ui
               desc: the change kinds are data; p3-output and the slices render them (docs/engine/steps.md §2)
+        # next/p3-output: the output contract (the wire types, the code
+        # registry, the renderers, the audit log) reaches the host only
+        # through host.System, the audit log through its AppendFile, writes
+        # only to the io.Writers it is given, and renders through pkg/ui
+        # alone (docs/engine/output.md §2).
+        output-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/output/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the output contract reads and writes only through host.System and the writers it is given (docs/engine/output.md §2)
+            - pkg: io/ioutil
+              desc: the output contract reads and writes only through host.System (docs/engine/output.md §2)
+            - pkg: golang.org/x/sys
+              desc: the output contract makes no system calls of its own (docs/engine/output.md §2)
+            - pkg: syscall
+              desc: the output contract makes no system calls of its own (docs/engine/output.md §2)
+            - pkg: net
+              desc: the output contract makes no network calls (docs/engine/output.md §2)
+            - pkg: plugin
+              desc: the output contract loads no code (docs/engine/output.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

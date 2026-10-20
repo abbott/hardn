@@ -1,0 +1,85 @@
+# Golden file of TestHuman/rolled-back, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the revert…␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.co…␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established sessi…␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload ssh.service, which keeps established sessions: reload:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mhost: systemctl reload ssh.service: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-␛[m$
+      ␛[38;2;192;196;216mhardn.conf, keeping Port 22 until confirmed␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on␛[m$
+      ␛[38;2;192;196;216mit␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m↪ exited with error code.␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
+      ␛[38;2;129;134;156mis read before 00-hardn.conf, so sshd uses it␛[m$
+      ␛[38;2;129;134;156m(SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
+      ␛[38;2;129;134;156minit.conf:1)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [+] Done: Install hardn's boot unit, which re-arms the reve...$
+  [+] Done: Allow 2230/tcp in ufw before sshd listens on it$
+  [+] Done: Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn....$
+  [!] Failed: Reload ssh.service, which keeps established ses...$
+  [-] Skipped: Check that sshd listens on 22 and 2230$
+$
+# [!] Operation Failed$
+# Reload ssh.service, which keeps established sessions: reload:$
+# host: systemctl reload ssh.service: exit status 1$
+# (COMMAND_FAILED)$
+$
+  [<] Rolled back: Set Port 2230 in /etc/ssh/sshd_config.d/00-$
+      hardn.conf, keeping Port 22 until confirmed$
+  [<] Rolled back: Allow 2230/tcp in ufw before sshd listens on$
+      it$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  [*] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
+      is read before 00-hardn.conf, so sshd uses it$
+      (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-$
+      init.conf:1)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the re…␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hard…␛[m$
+   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established s…␛[m$
+   ␛[38;2;129;134;156m↷␛[m  ␛[38;2;129;134;156mSkipped:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload ssh.service, which keeps established sessions:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload: host: systemctl reload ssh.service: exit status 1␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet Port 2230 in␛[m$
+      ␛[38;2;192;196;216m/etc/ssh/sshd_config.d/00-hardn.conf, keeping Port 22␛[m$
+      ␛[38;2;192;196;216muntil confirmed␛[m$
+   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens␛[m$
+      ␛[38;2;192;196;216mon it␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m↪ exited with error code.␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
+      ␛[38;2;129;134;156minit.conf is read before 00-hardn.conf, so sshd uses␛[m$
+      ␛[38;2;129;134;156mit (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
+      ␛[38;2;129;134;156minit.conf:1)␛[m$
+$

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [
+    {
+      "control": "ssh.port",
+      "title": "SSH Port",
+      "state": "not-configured",
+      "detail": "port 22; hardn.yml asks for 2230",
+      "evidence": [
+        "sshd -T: port 22"
+      ]
+    },
+    {
+      "control": "ssh.root-login",
+      "title": "Root Login",
+      "state": "configured",
+      "detail": "key-only",
+      "evidence": [
+        "sshd -T: permitrootlogin without-password"
+      ]
+    },
+    {
+      "control": "updates",
+      "title": "Auto Updates",
+      "state": "partial",
+      "detail": "unattended-upgrades installed, not enabled",
+      "evidence": [
+        "systemctl is-enabled unattended-upgrades: disabled"
+      ]
+    },
+    {
+      "control": "firewall.pve",
+      "title": "Proxmox VE Firewall",
+      "state": "not-applicable",
+      "detail": "not a Proxmox VE host",
+      "evidence": []
+    }
+  ],
+  "findings": [
+    {
+      "code": "SSHD_OVERRIDDEN",
+      "detail": "PasswordAuthentication yes in 50-cloud-init.conf is read before 00-hardn.conf, so sshd uses it",
+      "source": "/etc/ssh/sshd_config.d/50-cloud-init.conf:1",
+      "control": "ssh.root-login",
+      "change": ""
+    },
+    {
+      "code": "CONFIG_DEPRECATED_VALUE",
+      "detail": "permitRootLogin: false (line 12) is deprecated; write \"no\", which means the same",
+      "source": "/etc/hardn/hardn.yml:12",
+      "control": "",
+      "change": ""
+    }
+  ],
+  "errors": []
+}

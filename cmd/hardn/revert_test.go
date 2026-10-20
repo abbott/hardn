@@ -614,3 +614,33 @@ func (s *syncBuffer) String() string {
 	defer s.mu.Unlock()
 	return s.b.String()
 }
+
+// TestRevertColour: hardn confirm and hardn rollback (<id>, --abandon,
+// --boot) write no colour codes unless stdout and stderr are colour
+// terminals (setRevertColour, through pkg/ui/term's detection): the VM runs
+// found escape codes in the journal (vmtest.md §4.9). The root command's
+// initializeColor turns colour on before each runs.
+func TestRevertColour(t *testing.T) {
+	for _, args := range [][]string{{"confirm"}, {"rollback", revertTestID}, {"rollback", "--abandon", revertTestID}, {"rollback", "--boot"}} {
+		for _, colour := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/colour %v", strings.Join(args, " "), colour), func(t *testing.T) {
+				newRevertSeams(t, 0)
+				colourWas, noColorWas := revertColour, color.NoColor
+				revertColour = func() bool { return colour }
+				defer func() { revertColour, color.NoColor = colourWas, noColorWas }()
+				var out bytes.Buffer
+				outWas := color.Output
+				color.Output = &out
+				logging.SetSilentMode(false)
+				defer func() { color.Output = outWas; logging.SetSilentMode(true) }()
+				executeHardn(t, args...)
+				if out.Len() == 0 {
+					t.Fatal("nothing printed")
+				}
+				if has := strings.Contains(out.String(), "\x1b["); has != colour {
+					t.Errorf("escape codes %v, want %v:\n%q", has, colour, out.String())
+				}
+			})
+		}
+	}
+}
