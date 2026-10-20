@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"path"
@@ -14,6 +16,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -81,6 +85,12 @@ func TestPlayEngineGolden(t *testing.T) {
 // simulated host, the transcript and the exit status.
 func playEngine(t *testing.T, name string, lines ...string) (*session, string, int) {
 	t.Helper()
+	return playWith(t, name, func(s *session) func() error { return s.openEngine(name) }, lines...)
+}
+
+// playWith is playEngine for the action open returns.
+func playWith(t *testing.T, name string, open func(*session) func() error, lines ...string) (*session, string, int) {
+	t.Helper()
 	var out, errs bytes.Buffer
 	ty := uitest.NewTypist(&out, lines...)
 	fs := flag.NewFlagSet("uigallery play", flag.ContinueOnError)
@@ -91,7 +101,7 @@ func playEngine(t *testing.T, name string, lines ...string) (*session, string, i
 	var s *session
 	code := startPlay(look, fs, offTerminal, func() *prompt.Reader { return prompt.New(ty, false) }, &out, &errs, func(ss *session) int {
 		s = ss
-		return ss.play("play "+name, []string{engineNote}, ss.openEngine(name), &errs)
+		return ss.play("play "+name, []string{engineNote}, open(ss), &errs)
 	})
 	if errs.Len() != 0 || ty.Unread() != 0 {
 		t.Errorf("%s: stderr %q, %d lines unread", name, errs.String(), ty.Unread())
@@ -108,6 +118,17 @@ func playEngine(t *testing.T, name string, lines ...string) (*session, string, i
 func (h *fakeHost) dropIn() string {
 	e, _ := h.f.Entry(sshd.HardnDropIn)
 	return string(e.Data)
+}
+
+// journal is the journal in revert's state file name on h.
+func (h *fakeHost) journal(t *testing.T, name string) revert.Journal {
+	t.Helper()
+	var j revert.Journal
+	e, ok := h.f.Entry(path.Join(revert.DefaultDir, name))
+	if err := json.Unmarshal(e.Data, &j); !ok || err != nil {
+		t.Fatalf("%s: %t, %v", name, ok, err)
+	}
+	return j
 }
 
 // journalled reports whether h has the state file name of revert's.
@@ -228,6 +249,12 @@ func TestPlayEngine(t *testing.T) {
 				if h.journalled(revert.PendingName) || !h.journalled(revert.ConfirmedName) {
 					t.Error("the confirmation is not journalled as confirmed")
 				}
+				// The connections open at the apply, which cannot confirm
+				// it: alice's and sshd's listener, in /proc's order, not
+				// the confirming one.
+				if j := h.journal(t, revert.ConfirmedName); j.Applied == nil || !slices.Equal(j.Applied.SSHD, []revert.ProcStart{{PID: applySSHDPID, Start: applySSHDStart}, {PID: listenerPID, Start: 1200}}) {
+					t.Errorf("the apply's sshd processes: %+v", j.Applied)
+				}
 			}, []string{"ufw allow 22/tcp", "ufw allow 2230/tcp", "ufw --force enable", sshd.HardnDropIn, "systemctl reload ssh.service",
 				"systemctl stop hardn-revert-", "ufw delete allow 22/tcp", sshd.HardnDropIn, "systemctl reload ssh.service"}},
 		{"best-effort-ubuntu2204", 0, []string{"No actual changes were made to your system.", "Ubuntu 22.04 is a best-effort release", "(PLATFORM_BEST_EFFORT)", "Nothing was applied."},
@@ -272,12 +299,13 @@ func TestPlayEngine(t *testing.T) {
 	}
 }
 
-// TestPlayEngineEnds checks how an engine scenario ends at its prompts:
-// declining with n or 0 applies nothing and returns, q quits, the end of
-// the input aborts with 130; a typed confirmation refuses a wrong line and
-// reads the next; from the menu, 0 goes back and q quits.
+// TestPlayEngineEnds checks how an engine scenario ends at its prompts, a
+// typed confirmation and a y/N one: declining (0 at either, n at the y/N)
+// applies nothing and returns, q quits, the end of the input aborts with
+// 130; a typed confirmation refuses a wrong line, n among them, and reads
+// the next; from the menu, 0 goes back and q quits.
 func TestPlayEngineEnds(t *testing.T) {
-	port := enginePrefix + "/ssh-port-debian13"
+	port, grant := enginePrefix+"/ssh-port-debian13", enginePrefix+"/sudoers-grant-debian13"
 	for _, tc := range []struct {
 		name    string
 		start   string
@@ -290,7 +318,10 @@ func TestPlayEngineEnds(t *testing.T) {
 		{"q at the typed confirmation", port, []string{"q"}, exitOK, false},
 		{"the end of the input at the typed confirmation", port, nil, prompt.ExitInterrupted, false},
 		{"a wrong line, then the hostname", port, []string{"WEB-01", hostName}, exitOK, true},
-		{"n at the sudo grant's y/N", enginePrefix + "/sudoers-grant-debian13", []string{"n"}, exitOK, false},
+		{"n at the sudo grant's y/N", grant, []string{"n"}, exitOK, false},
+		{"0 at the sudo grant's y/N", grant, []string{"0"}, exitOK, false},
+		{"q at the sudo grant's y/N", grant, []string{"q"}, exitOK, false},
+		{"the end of the input at the sudo grant's y/N", grant, nil, prompt.ExitInterrupted, false},
 		{"0 at the menu", enginePrefix, []string{"0"}, exitOK, false},
 		{"q at the menu", enginePrefix, []string{"q"}, exitOK, false},
 		{"a scenario from the menu, then q", enginePrefix, []string{"1", hostName, "q"}, exitOK, true},
@@ -365,45 +396,257 @@ func TestPlayEngineSmoke(t *testing.T) {
 // the engine's events: the timer armed before the first change whatever
 // came before it (here no boot unit's change, as on a host that has it),
 // each change's own commands under how it ended, a command that failed
-// among them, and the rollback's after the failure; reads and hardn's own
-// state left out.
+// among them, a failure of the apply as a whole (Index -1, here at its
+// mark applied step) with what ran since the last change, and the
+// rollback's after the failure; reads and hardn's own state left out.
 func TestRecorderSteps(t *testing.T) {
 	ctx := context.Background()
-	h := newHost()
-	h.failReloads = 1
-	r := &recorder{host: h, f: h.f, title: "a plan"}
-	run := func(argv ...string) { _, _ = h.f.Run(ctx, argv[0], argv[1:]...) }
-	r.begin()
-	run("ss", "-Htln")
-	run("systemd-run", "--unit=hardn-revert-x", "--on-active=180s", galleryHardn, "rollback", "x")
-	r.event(engine.Event{Index: 0, State: engine.EventRunning})
-	run("ufw", "allow", "2230/tcp")
-	r.event(engine.Event{Index: 0, State: engine.EventDone})
-	r.event(engine.Event{Index: 1, State: engine.EventRunning})
-	h.f.AddDir("/var/lib/hardn", 0o700, 0, 0)
-	if err := h.f.WriteFileAtomic(ctx, "/var/lib/hardn/pending.json", []byte("{}"), 0o600, 0, 0); err != nil {
+	for _, tc := range []struct {
+		name string
+		// last runs the plan's second change, or what follows the first.
+		last func(h *fakeHost, r *recorder, run func(...string))
+		want string
+	}{
+		{"a change fails", func(h *fakeHost, r *recorder, run func(...string)) {
+			r.event(engine.Event{Index: 1, State: engine.EventRunning})
+			h.f.AddDir("/var/lib/hardn", 0o700, 0, 0)
+			if err := h.f.WriteFileAtomic(ctx, "/var/lib/hardn/pending.json", []byte("{}"), 0o600, 0, 0); err != nil {
+				t.Fatal(err)
+			}
+			run("systemctl", "reload", "ssh.service")
+			r.event(engine.Event{Index: 1, State: engine.EventFailed, Step: engine.StepApply})
+		}, "Failed: Reload sshd: systemctl reload ssh.service []"},
+		{"the apply fails as a whole", func(h *fakeHost, r *recorder, run func(...string)) {
+			run("systemctl", "reload", "ssh.service")
+			r.event(engine.Event{Index: -1, State: engine.EventFailed, Step: engine.StepMarkApplied})
+		}, "Failed: the apply, at its mark applied step: systemctl reload ssh.service []"},
+	} {
+		h := newHost()
+		h.failReloads = 1
+		r := &recorder{host: h, f: h.f, title: "a plan"}
+		run := func(argv ...string) { _, _ = h.f.Run(ctx, argv[0], argv[1:]...) }
+		r.begin()
+		run("ss", "-Htln")
+		run("systemd-run", "--unit=hardn-revert-x", "--on-active=180s", galleryHardn, "rollback", "x")
+		r.event(engine.Event{Index: 0, State: engine.EventRunning})
+		run("ufw", "allow", "2230/tcp")
+		r.event(engine.Event{Index: 0, State: engine.EventDone})
+		tc.last(h, r, run)
+		run("ufw", "delete", "allow", "2230/tcp")
+		r.event(engine.Event{Index: 0, State: engine.EventRolledBack})
+		r.end()
+		r.setPlan(&engine.Plan{Changes: []engine.Change{{Summary: "Allow 2230"}, {Summary: "Reload sshd"}}})
+		var got []string
+		for _, s := range r.steps() {
+			got = append(got, s.Title+": "+strings.Join(s.Commands, "; ")+" ["+s.Target+"]")
+		}
+		want := []string{
+			"Armed the revert timer: systemd-run --unit=hardn-revert-x --on-active=180s /usr/local/bin/hardn rollback x []",
+			"Applied: Allow 2230: ufw allow 2230/tcp []",
+			tc.want,
+			"Rolled back from the journal: ufw delete allow 2230/tcp []",
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("%s: the record:\n%s\nwant\n%s", tc.name, strings.Join(got, "\n"), strings.Join(want, "\n"))
+		}
+	}
+	if !arms([]hostfake.Call{{Op: "start-detached", Argv: []string{"/bin/sh", "-c", "sleep"}}}) || arms([]hostfake.Call{{Op: "run", Argv: []string{"ss", "-Htln"}}}) {
+		t.Error("arms: OpenRC's sleeper is the timer, ss is not")
+	}
+}
+
+// TestScenarioHosts checks that each scenario's simulated host is the
+// platform its note names, as the engine establishes it (detect.Detect,
+// engine.Options.Detect's default): every fact established, with no error,
+// and the ones the steps branch on as listed. Ubuntu 26.04's sudo is
+// sudo-rs, as the VM run found it (docs/safety/vmtest.md §4.9).
+func TestScenarioHosts(t *testing.T) {
+	const (
+		debian13   = "debian 13 supported; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no"
+		ubuntu2604 = "ubuntu 26.04 supported; systemd; ssh.socket, generator yes; sudo yes, sudo-rs; doas no; proxmox no; container no"
+	)
+	want := map[string]string{
+		"ssh-port-debian13":   debian13,
+		"ssh-port-ubuntu2604": ubuntu2604,
+		"ssh-port-alpine324":  "alpine 3.24 supported; openrc; openrc sshd, generator unknown; sudo no, unknown; doas yes; proxmox no; container no",
+		"keyonly-debian13":    debian13, "ufw-enable-debian13": debian13, "sudoers-grant-debian13": debian13,
+		"refused-d9-ubuntu2604": ubuntu2604, "failed-reload-debian13": debian13, "confirm-cleanup-debian13": debian13,
+		"best-effort-ubuntu2204": "ubuntu 22.04 best effort; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no",
+	}
+	for _, sc := range scenarios() {
+		h := sc.host()
+		f, err := detect.Detect(context.Background(), h.f)
+		e := f.Elevation
+		got := fmt.Sprintf("%s %s %s; %s; %s, generator %s; sudo %s, %s; doas %s; proxmox %s; container %s", f.Platform.Distro, f.Platform.Version,
+			f.Platform.Support, f.Init.Kind, f.SSH.Mode, f.SSH.Generator, e.Sudo.Present, e.SudoFlavor, e.Doas.Present, f.Proxmox.Installed, f.Container.Detected)
+		if err = errors.Join(err, f.OS.Err, f.Platform.Err, f.Init.Err, f.SSH.Err, f.Proxmox.Err, f.Container.Err, e.Err, e.Sudo.Err, e.Doas.Err); err != nil || got != want[sc.name] {
+			t.Errorf("%s: detect finds %q, %v; want %q", sc.name, got, err, want[sc.name])
+		}
+		if u := h.unanswered(); len(u) > 0 {
+			t.Errorf("%s: detect asked what the model does not answer: %q", sc.name, u)
+		}
+	}
+}
+
+// TestFakeHost checks the model's answers that no scenario's golden shows:
+// a command the platform does not ship is not found, as on the host, and
+// is not kept; one the model does not answer fails as hostfake's
+// unscripted commands do, and is kept for the scenario's test; ufw's words
+// while inactive; sshd -T's PermitRootLogin, the platform's.
+func TestFakeHost(t *testing.T) {
+	ctx := context.Background()
+	for _, tc := range []struct {
+		name string
+		h    func() *fakeHost
+		argv []string
+		out  string
+		err  error // errors.Is
+		kept bool  // in unanswered
+	}{
+		{"systemctl on OpenRC", openRCHost, []string{"systemctl", "is-active", "ssh.service"}, "", host.ErrNotFound, false},
+		{"sudo with doas", openRCHost, []string{"sudo", "--version"}, "", host.ErrNotFound, false},
+		{"dpkg-query on Alpine", openRCHost, []string{"dpkg-query", "--show", "pve-manager"}, "", host.ErrNotFound, false},
+		{"rc-service on systemd", newHost, []string{"rc-service", "sshd", "reload"}, "", host.ErrNotFound, false},
+		{"not modelled", newHost, []string{"apt-get", "install", "-y", "fail2ban"}, "", hostfake.ErrUnscripted, true},
+		{"sudo, Debian 13", newHost, []string{"sudo", "--version"}, "Sudo version 1.9.16p2\n", nil, false},
+		{"sudo-rs, Ubuntu 26.04", socketHost, []string{"sudo", "--version"}, "sudo-rs 0.2.13\n", nil, false},
+		{"ufw delete, inactive", inactiveUFW, []string{"ufw", "delete", "allow", "22/tcp"}, "Rules updated\nRules updated (v6)\n", nil, false},
+		{"ufw delete, active", newHost, []string{"ufw", "delete", "allow", "22/tcp"}, "Rule deleted\nRule deleted (v6)\n", nil, false},
+	} {
+		h := tc.h()
+		res, err := h.f.Run(ctx, tc.argv[0], tc.argv[1:]...)
+		kept := slices.Contains(h.unanswered(), strings.Join(tc.argv, " "))
+		if string(res.Stdout) != tc.out || !errors.Is(err, tc.err) || (err == nil) != (tc.err == nil) || kept != tc.kept {
+			t.Errorf("%s: %q, %v, kept %t; want %q, %v, kept %t", tc.name, res.Stdout, err, kept, tc.out, tc.err, tc.kept)
+		}
+	}
+	for _, tc := range []struct {
+		h    func() *fakeHost
+		want string
+	}{{newHost, "permitrootlogin without-password\n"}, {socketHost, "permitrootlogin prohibit-password\n"}} {
+		h := tc.h()
+		if res, err := h.f.Run(ctx, "sshd", "-T", "-f", sshd.MainConfig); err != nil || !strings.Contains(string(res.Stdout), tc.want) {
+			t.Errorf("sshd -T: %v\n%s\nwant %q", err, res.Stdout, tc.want)
+		}
+	}
+}
+
+// TestConfirmFromNewConnection plays the 2230 change with ufw's enable,
+// then hardn confirm, on hosts the scenario does not show: a connection
+// that was open when the change was applied, which the claim refuses
+// (revert.ErrOldConnection), so nothing is confirmed or cleaned up; and a
+// clean-up whose reload fails, rolled back under the gallery's hold, the
+// confirmation standing and port 22 left, as the report says.
+func TestConfirmFromNewConnection(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		build   func() *fakeHost
+		between func(*fakeHost)
+		holds   int
+		screen  []string // what hardn confirm's part of the transcript shows, in order
+		check   func(*testing.T, *fakeHost)
+	}{
+		{"an old connection", func() *fakeHost {
+			h := inactiveUFW()
+			h.process(confirmSSHDPID, h.session, listenerPID, confirmSSHDStart) // open before the apply
+			return h
+		}, func(*fakeHost) {}, 0, []string{"runs sudo hardn confirm.", "connection 192.0.2.10:50123 was open when the change was applied"},
+			func(t *testing.T, h *fakeHost) {
+				if !h.journalled(revert.PendingName) || h.journalled(revert.ConfirmedName) || !strings.Contains(h.dropIn(), "Port 22\n") {
+					t.Error("not left waiting for confirmation, with port 22 held")
+				}
+			}},
+		{"the clean-up's reload fails", inactiveUFW, func(h *fakeHost) { h.failReloads = 1 }, 1,
+			[]string{"confirmed (", "Failed: Reload sshd (ssh.service)", "Operation Failed", "Rolled back:", "Port 22, which change", "is still open", "To finish the clean-up"},
+			func(t *testing.T, h *fakeHost) {
+				if h.journalled(revert.PendingName) || !h.journalled(revert.ConfirmedName) || !strings.Contains(h.dropIn(), "Port 22\nPort 2230\n") {
+					t.Errorf("want the change confirmed and port 22 left; 00-hardn.conf:\n%s", h.dropIn())
+				}
+			}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			sc, _ := findScenario("confirm-cleanup-debian13")
+			var h *fakeHost
+			sc.host = func() *fakeHost { h = tc.build(); return h }
+			sc.confirm = false
+			s, out, code := playWith(t, sc.name, func(s *session) func() error {
+				return func() error {
+					if err := s.runScenario(sc); err != nil {
+						return err
+					}
+					tc.between(h)
+					return s.confirmFromNewConnection(h)
+				}
+			}, sc.answers...)
+			_, confirmed, _ := strings.Cut(out, "hardn confirm, from a new connection")
+			flat, at := strings.Join(strings.Fields(confirmed), " "), 0
+			for _, w := range tc.screen {
+				i := strings.Index(flat[at:], w)
+				if i < 0 {
+					t.Errorf("hardn confirm does not show %q after what came before it:\n%s", w, confirmed)
+					break
+				}
+				at += i
+			}
+			if code != exitOK || s.holds != tc.holds {
+				t.Errorf("exit %d, the gallery's hold taken %d times; want %d", code, s.holds, tc.holds)
+			}
+			tc.check(t, h)
+		})
+	}
+}
+
+// TestSudoersGrant checks the sudo grant's control where its scenario does
+// not reach: no elevation tool established, sudoers that cannot be read,
+// and a grant alice already has, which plans nothing.
+func TestSudoersGrant(t *testing.T) {
+	ctx := context.Background()
+	granted, _, _ := playEngine(t, enginePrefix+"/sudoers-grant-debian13", "y")
+	noSudoers := newHost()
+	if err := noSudoers.f.Remove(ctx, "/etc/sudoers"); err != nil {
 		t.Fatal(err)
 	}
-	run("systemctl", "reload", "ssh.service")
-	r.event(engine.Event{Index: 1, State: engine.EventFailed, Step: engine.StepApply})
-	run("ufw", "delete", "allow", "2230/tcp")
-	r.event(engine.Event{Index: 0, State: engine.EventRolledBack})
-	r.end()
-	r.setPlan(&engine.Plan{Changes: []engine.Change{{Summary: "Allow 2230"}, {Summary: "Reload sshd"}}})
-	var got []string
-	for _, s := range r.steps() {
-		got = append(got, s.Title+": "+strings.Join(s.Commands, "; ")+" ["+s.Target+"]")
+	for _, tc := range []struct {
+		name  string
+		h     *fakeHost
+		facts func(*fakeHost) detect.Facts
+		err   bool
+	}{
+		{"no elevation tool established", newHost(), func(*fakeHost) detect.Facts { return detect.Facts{} }, true},
+		{"no /etc/sudoers", noSudoers, nil, true},
+		{"alice has the grant", granted.engineRuns[0].host, nil, false},
+	} {
+		f := detect.Facts{}
+		if tc.facts != nil {
+			f = tc.facts(tc.h)
+		} else if d, err := detect.Detect(ctx, tc.h.f); err == nil {
+			f = d
+		}
+		changes, err := sudoersGrant().Plan(ctx, tc.h.f, engine.Input{Facts: f})
+		if (err != nil) != tc.err || len(changes) != 0 {
+			t.Errorf("%s: %d changes, %v; want none, error %t", tc.name, len(changes), err, tc.err)
+		}
 	}
-	want := []string{
-		"Armed the revert timer: systemd-run --unit=hardn-revert-x --on-active=180s /usr/local/bin/hardn rollback x []",
-		"Applied: Allow 2230: ufw allow 2230/tcp []",
-		"Failed: Reload sshd: systemctl reload ssh.service []",
-		"Rolled back from the journal: ufw delete allow 2230/tcp []",
-	}
-	if !slices.Equal(got, want) {
-		t.Errorf("the record:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
-	}
-	if !arms([]hostfake.Call{{Op: "start-detached", Argv: []string{"/bin/sh", "-c", "sleep"}}}) || arms(h.f.Calls()[:1]) {
-		t.Error("arms: OpenRC's sleeper is the timer, ss is not")
+}
+
+// TestPlayEngineWriteFails checks that a failed write in an engine
+// scenario, of its note, the flow, what follows the flow or hardn
+// confirm's part, ends play with exit status 1 and a message, as a failed
+// write of the record does (TestPlayWriteFails).
+func TestPlayEngineWriteFails(t *testing.T) {
+	port, confirmed := enginePrefix+"/ssh-port-debian13", enginePrefix+"/confirm-cleanup-debian13"
+	for _, tc := range []struct{ start, at, errs string }{
+		{port, "web-01.example.net runs Debian 13", "uigallery: play: broken pipe\n"},
+		{port, "Operation Successful", "uigallery: play: flow: write: broken pipe\n"},
+		{port, "reverts automatically", "uigallery: play: broken pipe\n"},
+		{confirmed, "alice opens a new SSH connection", "uigallery: play: broken pipe\n"},
+	} {
+		var out, errs bytes.Buffer
+		w := &breaks{w: &out, at: tc.at}
+		ty := uitest.NewTypist(&out, hostName)
+		code := run([]string{"play", "-profile", "plain", tc.start}, func() *prompt.Reader { return prompt.New(ty, false) }, offTerminal, w, &errs)
+		if code != exitError || errs.String() != tc.errs || !w.broke {
+			t.Errorf("%s, at %q: exit %d, stderr %q, the write failed %t; want exit %d, stderr %q", tc.start, tc.at, code, errs.String(), w.broke, exitError, tc.errs)
+		}
 	}
 }

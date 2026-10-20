@@ -50,10 +50,9 @@ type scenario struct {
 	label, about string
 	// note says what the host is before the change, and what to type.
 	note []string
-	// host returns the simulated host, fresh; facts are what detect
-	// would find there.
-	host  func() *fakeHost
-	facts detect.Facts
+	// host returns the simulated host, fresh, whose facts the engine
+	// establishes itself (detect.Detect, engine.Options.Detect's default).
+	host func() *fakeHost
 	// controls are what the engine plans.
 	controls []engine.Control
 	// question is the flow's confirmation question.
@@ -148,52 +147,6 @@ func sudoersGrant() engine.Control {
 	}}
 }
 
-// The platforms of the scenarios, as detect would find them on the
-// simulated hosts.
-var (
-	// debian13 is a stock Debian 13: ssh.service, sudo.
-	debian13 = detect.Facts{
-		OS:       detect.OSRelease{ID: "debian", VersionID: "13", VersionCodename: "trixie"},
-		Platform: detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported},
-		Init:     detect.Init{Kind: detect.Systemd, Running: detect.Yes, Source: detect.SystemdRunDir},
-		SSH: detect.SSH{Mode: detect.SSHService, Generator: detect.No,
-			Socket:  detect.UnitState{Enabled: "disabled", Active: "inactive"},
-			Service: detect.UnitState{Enabled: "enabled", Active: "active"}},
-		Proxmox:   detect.Proxmox{Installed: detect.No, ClusterFS: detect.No, EtcPVE: detect.No},
-		Container: detect.Container{Detected: detect.No},
-		Elevation: detect.Elevation{Sudo: detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}, SudoFlavor: detect.SudoOriginal,
-			Doas: detect.Tool{Present: detect.No}},
-	}
-	// ubuntu2604 is a stock Ubuntu 26.04: ssh.socket from the generator.
-	ubuntu2604 = func() detect.Facts {
-		f := debian13
-		f.OS = detect.OSRelease{ID: "ubuntu", VersionID: "26.04"}
-		f.Platform = detect.Platform{Distro: detect.DistroUbuntu, Version: "26.04", Support: detect.Supported}
-		f.SSH = detect.SSH{Mode: detect.SSHSocket, Generator: detect.Yes, GeneratorPath: detect.SocketGenerator,
-			Socket:  detect.UnitState{Enabled: "enabled", Active: "active"},
-			Service: detect.UnitState{Enabled: "disabled", Active: "active"}}
-		return f
-	}()
-	// ubuntu2204 is Ubuntu 22.04, a best-effort release (brief §2): its
-	// sshd started by ssh.service.
-	ubuntu2204 = func() detect.Facts {
-		f := debian13
-		f.OS = detect.OSRelease{ID: "ubuntu", VersionID: "22.04"}
-		f.Platform = detect.Platform{Distro: detect.DistroUbuntu, Version: "22.04", Support: detect.BestEffort}
-		return f
-	}()
-	// alpine324 is a stock Alpine 3.24: OpenRC's sshd, doas, no ufw.
-	alpine324 = func() detect.Facts {
-		f := debian13
-		f.OS = detect.OSRelease{ID: "alpine", VersionID: "3.24.0"}
-		f.Platform = detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported}
-		f.Init = detect.Init{Kind: detect.OpenRC, Running: detect.Yes}
-		f.SSH = detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes}}
-		f.Elevation = detect.Elevation{Sudo: detect.Tool{Present: detect.No}, Doas: detect.Tool{Present: detect.Yes, Path: "/usr/bin/doas"}}
-		return f
-	}()
-)
-
 // inactiveUFW is a host whose ufw is installed and inactive, with no rules.
 func inactiveUFW() *fakeHost {
 	h := newHost()
@@ -244,46 +197,46 @@ func scenarios() []scenario {
 	return []scenario{
 		{name: "ssh-port-debian13", label: "SSH port, Debian 13", about: "Port 2230 through ssh.service",
 			note: []string{hostFQDN + " runs Debian 13; sshd is started by ssh.service. " + stock, "The change: SSH port 2230, port 22 held until confirmed. " + confirm},
-			host: newHost, facts: debian13, controls: []engine.Control{port},
+			host: newHost, controls: []engine.Control{port},
 			question: "Change the SSH port to 2230?", answers: typed, ends: flow.Applied},
 		{name: "ssh-port-ubuntu2604", label: "SSH port, Ubuntu 26.04", about: "Port 2230 through ssh.socket",
 			note: []string{hostFQDN + " runs Ubuntu 26.04; ssh.socket listens, from sshd-socket-generator. " + stock, "The change: SSH port 2230, port 22 held until confirmed. " + confirm},
-			host: socketHost, facts: ubuntu2604, controls: []engine.Control{port},
+			host: socketHost, controls: []engine.Control{port},
 			question: "Change the SSH port to 2230?", answers: typed, ends: flow.Applied},
 		{name: "ssh-port-alpine324", label: "SSH port, Alpine 3.24", about: "Port 2230 through OpenRC",
 			note: []string{hostFQDN + " runs Alpine 3.24; sshd is OpenRC's, and ufw is not installed. Elevation is doas.", "The change: SSH port 2230, port 22 held until confirmed. " + confirm},
-			host: openRCHost, facts: alpine324, controls: []engine.Control{port},
+			host: openRCHost, controls: []engine.Control{port},
 			question: "Change the SSH port to 2230?", answers: typed, ends: flow.Applied},
 		{name: "keyonly-debian13", label: "Key-only login", about: "No password login, Debian 13",
 			note: []string{hostFQDN + " runs Debian 13. " + stock, "The change: SSH login by key only. " + confirm},
-			host: newHost, facts: debian13, controls: []engine.Control{keyOnly()},
+			host: newHost, controls: []engine.Control{keyOnly()},
 			question: "Allow SSH login by key only?", answers: typed, ends: flow.Applied},
 		{name: "ufw-enable-debian13", label: "Enable ufw", about: "From an inactive ufw, Debian 13",
 			note: []string{hostFQDN + " runs Debian 13; sshd listens on port 22, and ufw is installed, inactive, with no rules.", "The change: ufw enabled, sshd's listeners allowed first. " + confirm},
-			host: inactiveUFW, facts: debian13, controls: []engine.Control{ufwEnable()},
+			host: inactiveUFW, controls: []engine.Control{ufwEnable()},
 			question: "Enable ufw?", answers: typed, ends: flow.Applied},
 		{name: "sudoers-grant-debian13", label: "Sudo grant", about: "alice without a password, Debian 13",
 			note: []string{hostFQDN + " runs Debian 13, with sudo and its stock /etc/sudoers.d.", "The change: alice may use sudo without a password, which locks no one out, so it is confirmed y/N."},
-			host: newHost, facts: debian13, controls: []engine.Control{sudoersGrant()},
+			host: newHost, controls: []engine.Control{sudoersGrant()},
 			question: "Let alice use sudo without a password?", answers: []string{"y"}, ends: flow.Applied},
 		{name: "refused-d9-ubuntu2604", label: "Refused: v0.3.2 listen.conf", about: "The migration on a D9 host (P-39)",
 			note: []string{hostFQDN + " runs Ubuntu 26.04, hardened by hardn v0.3.2: its manage.conf, and a listen.conf for port 2230 written with no daemon-reload, so ssh.socket still listens on 22.",
 				"The change: hardn's v0.3.2 SSH files moved into 00-hardn.conf. The plan refuses it, with a report (P-39 (a))."},
-			host: d9Host, facts: ubuntu2604, controls: []engine.Control{migration()},
+			host: d9Host, controls: []engine.Control{migration()},
 			question: "Move hardn's v0.3.2 SSH files into 00-hardn.conf?", ends: flow.Failed},
 		{name: "failed-reload-debian13", label: "Failed, rolled back", about: "Port 2230, the reload refused",
 			note: []string{hostFQDN + " runs Debian 13. " + stock + " Its next reload of ssh.service fails.", "The change: SSH port 2230. " + confirm},
-			host: failingReload, facts: debian13, controls: []engine.Control{port},
+			host: failingReload, controls: []engine.Control{port},
 			question: "Change the SSH port to 2230?", answers: typed, ends: flow.Failed},
 		{name: "confirm-cleanup-debian13", label: "Confirmed, cleaned up", about: "Port 2230, then hardn confirm (P-40)",
 			note: []string{hostFQDN + " runs Debian 13; sshd listens on port 22, and ufw is installed, inactive, with no rules.",
 				"The change: SSH port 2230 with ufw enabled, port 22 and its rule held until confirmed. " + confirm,
 				"Then a new SSH connection to port 2230 confirms it with hardn confirm, which drops port 22 and the rule hardn added for it (P-40)."},
-			host: inactiveUFW, facts: debian13, controls: []engine.Control{sshControl(steps.SSH{Port: 2230, UFW: steps.UFWEnable})},
+			host: inactiveUFW, controls: []engine.Control{sshControl(steps.SSH{Port: 2230, UFW: steps.UFWEnable})},
 			question: "Change the SSH port to 2230 and enable ufw?", confirm: true, answers: typed, ends: flow.Applied},
 		{name: "best-effort-ubuntu2204", label: "Best-effort release", about: "The plan's warning, Ubuntu 22.04 (P-41)",
 			note: []string{hostFQDN + " runs Ubuntu 22.04, a best-effort release: hardn changes it, but is not tested on it. " + stock, "The plan alone, for key-only login: it carries the release's warning (P-41)."},
-			host: newHost, facts: ubuntu2204, controls: []engine.Control{keyOnly()},
+			host: ubuntu2204Host, controls: []engine.Control{keyOnly()},
 			question: "Allow SSH login by key only?", dryRun: true, ends: flow.Planned},
 	}
 }
@@ -342,11 +295,10 @@ func (s *session) runScenario(sc scenario) error {
 	fe := &output.FlowEngine{Controls: sc.controls, DryRun: sc.dryRun, LogPath: output.LegacyLogPath}
 	fe.Engine = engine.New(h.f, engine.Options{
 		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
-		Session:  revert.Session{Remote: true, Conn: applyConn, Source: "SSH_CONNECTION"},
+		Session:  applySession,
 		Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
-		Detect:   detected(sc.facts),
 		Hold:     s.hold,
-		PID:      5000,
+		PID:      applyPID,
 		Progress: func(ev engine.Event) { rec.event(ev); fe.Progress(ev) },
 	})
 	s.engineRuns = append(s.engineRuns, rec)
@@ -381,7 +333,7 @@ func (s *session) runScenario(sc scenario) error {
 		}
 	}
 	if sc.confirm && o == flow.Applied {
-		return s.confirmFromNewConnection(h, sc.facts)
+		return s.confirmFromNewConnection(h)
 	}
 	return nil
 }
@@ -391,16 +343,20 @@ func (s *session) runScenario(sc scenario) error {
 // the gallery cannot import): the claim, then the clean-up of what the
 // change held through the engine, its run rendered by pkg/output and its
 // report (confirm.Held.Report) as messages, as cmd/hardn's showCleanup
-// renders them. The claim's line, which hardn confirm prints through the
-// legacy logger, is a pkg/ui message here, the gallery having no legacy
-// logger.
-func (s *session) confirmFromNewConnection(h *fakeHost, facts detect.Facts) error {
+// renders them. It departs from confirmAndCleanUp where no scenario reaches
+// (docs/engine/gallery-engine.md §2.3): the claim's line, which hardn
+// confirm prints through the legacy logger, is a pkg/ui message here, the
+// gallery having no legacy logger; a claim's error is shown, with no
+// acknowledgement of a rollback the timer made; the console's warning and
+// the line before a carried or finishing clean-up are not drawn; and play
+// exits 0 where hardn confirm would exit 1.
+func (s *session) confirmFromNewConnection(h *fakeHost) error {
 	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap)
 	rec := &recorder{host: h, f: h.f, title: "hardn confirm, from a new connection to port 2230", opening: "Confirmed: the revert timer stopped"}
 	s.engineRuns = append(s.engineRuns, rec)
-	// conn is alice's new connection: its sshd-session started after the
+	// conn is alice's new connection: its sshd process starts after the
 	// apply, so it was not running when MarkApplied listed them.
-	conn := revert.Session{Remote: true, Conn: confirmConn, SSHD: revert.ProcStart{PID: 4100, Start: 410000}, Source: "SSH_CONNECTION"}
+	conn := h.connect()
 	ro := revert.Options{Now: clock}
 	blocks := []string{component.Callout{Kind: component.MessageInfo, Title: rec.title, Body: []string{
 		"alice opens a new SSH connection to " + hostFQDN + " on port 2230, from 192.0.2.10, and runs sudo hardn confirm.",
@@ -416,7 +372,7 @@ func (s *session) confirmFromNewConnection(h *fakeHost, facts detect.Facts) erro
 			held.Confirmed.Journal.ID, held.Confirmed.Journal.Summary)}.Render(c))
 	}
 	if held.Run() {
-		o = confirm.Cleanup(context.Background(), h.f, held, conn, confirm.Options{Revert: ro, Detect: detected(facts), Hold: s.hold, PID: 4000, Progress: rec.event})
+		o = confirm.Cleanup(context.Background(), h.f, held, conn, confirm.Options{Revert: ro, Hold: s.hold, PID: confirmPID, Progress: rec.event})
 		rec.setPlan(o.Plan)
 		if run := (output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}); !o.Done() || !o.Result.Nothing {
 			blocks = append(blocks, strings.TrimSuffix(output.Human(c.Env, run, galleryNow), "\n"))
@@ -443,12 +399,6 @@ func (s *session) confirmFromNewConnection(h *fakeHost, facts detect.Facts) erro
 
 // clock is the simulated host's clock (galleryNow).
 func clock() time.Time { return galleryNow }
-
-// detected returns detect's facts for a scenario's host: facts, as detect
-// would find them there.
-func detected(facts detect.Facts) func(context.Context, host.System) (detect.Facts, error) {
-	return func(context.Context, host.System) (detect.Facts, error) { return facts, nil }
-}
 
 // hold is the signal hold the engine takes around an in-process rollback
 // (engine.Options.Hold): in the gallery it holds nothing, so that play's
@@ -539,11 +489,14 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 
 // reads are the commands that only read the host or check a file: sshd
 // -T and sshd -t, ss, ufw's status, systemctl's queries, visudo's checks,
-// and the boot unit's checks (systemd-analyze verify, sh -n) on its copy.
+// the boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
+// detect's questions (sudo --version, dpkg-query).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
-	case "sshd", "ss", "systemd-analyze", "visudo":
+	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query":
 		return true
+	case "sudo":
+		return len(argv) == 2 && argv[1] == "--version"
 	case "systemctl":
 		return slices.Contains([]string{"is-active", "is-enabled", "show", "list-timers"}, argv[1])
 	case "sh":
