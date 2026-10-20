@@ -40,7 +40,7 @@
 | [P-13](#p-13) | "Sudo Method" row; "Users" vs "User" | plan §5.6 | Main menu | S | Low | proposed |
 | [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed |
 | [P-15](#p-15) | Update checker: opt-in and non-blocking | plan §5.8 | Startup; Phase 3 | M | Low | proposed |
-| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed |
+| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen |
 | [P-17](#p-17) | System Details content | plan §5.10 | System Details; slice 1 | M | Low | proposed |
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
@@ -66,7 +66,7 @@
 | [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; for `next/p3-steps` |
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; for `next/p3-confirm-cleanup` |
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; for `next/p3-confirm-cleanup` |
-| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed |
+| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk |
 
 ---
 
@@ -320,7 +320,7 @@
 <a id="p-16"></a>
 ### P-16: Restore UFW install; add AppArmor and Auto Updates screens
 
-- **Status:** proposed
+- **Status:** proposed; the AppArmor part decided (maintainer, 2026-10-20): **status only in v0.4**. No AppArmor screen or action; its status line is Phase 4's (`next/p4-check-apparmor`; the lines in [P-43](#p-43) (3)) and counts in the risk level. UFW install, Auto Updates and Lynis stay proposed.
 - **Source:** plan §5.9; brief §7.1. Related: [P-01](#p-01).
 - **Problem:**
   - v0.3.2 could install UFW and set up AppArmor, Lynis and unattended-upgrades.
@@ -328,7 +328,7 @@
   - No ref has an AppArmor or Auto Updates screen.
 - **Proposal:**
   - **UFW install:** restore it, but never on Proxmox (brief §2).
-  - **AppArmor screen:** Debian and Ubuntu. `NotApplicable` on Alpine unless it is already enabled, and inside containers.
+  - **AppArmor screen:** Debian and Ubuntu. `NotApplicable` on Alpine unless it is already enabled, and inside containers. *Deferred past v0.4 (2026-10-20): status only.*
   - **Auto Updates screen:** unattended-upgrades on Debian/Ubuntu; `apk-cron` plus an enabled `crond` on Alpine.
   - **Lynis:** Debian and Ubuntu only.
 - **Effort:** L.
@@ -340,7 +340,7 @@
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
 
-- **Status:** proposed (each decision under (6) separately)
+- **Status:** proposed (each decision under (6) separately); AppArmor decided (maintainer, 2026-10-20): **status only in v0.4**, with the status lines in (3) and a place in the risk level. Its on and off below wait for a later release, kept as research.
 - **Source:** the maintainer's question (2026-10-20); plan slice 7, §3.20 (approved); brief Phase 4. Depends on plan §3.12 (open) and [P-16](#p-16) (proposed). Related: [P-01](#p-01), [P-12](#p-12), [P-22](#p-22). Research of 2026-10-20 from primary sources; nothing below has run on a host or VM (gate 5).
 - **Problem:**
   - The plan turns AppArmor and Auto Updates on (slice 7, P-16) and reads their state (`next/p4-check-apparmor`, `next/p4-check-updates`). Nothing turns either off [V, plan rows p2-alpine, p4-check-<area>, slice 7].
@@ -361,6 +361,20 @@
       - **Off:** disable `apparmor.service` when hardn's apply enabled it (its package install included). Its `ExecStop=/bin/true` unloads nothing [V, apparmor `parser/apparmor.service`], so profiles stay loaded until the next boot, and the status reads "Off after restart" until then. The package: decision 3. Never `aa-teardown` (a process already running unconfined cannot be confined), `aa-remove-unknown` or a kernel parameter [V, aa-teardown(8), apparmor(7), aa-remove-unknown(8)].
     - **Proxmox VE: AppArmor.** On by default [V, `pve-kernel` `config-common.opts`]. `lxc-pve` depends on `apparmor`, and each container's generated profile is loaded at its start and unloaded at its stop [V, `lxc.git` `debian/control`; `pve-container` `src/PVE/LXC.pm`; lxc `src/lxc/lsm/apparmor.c`]. Removing the package would take container support with it, and disabling AppArmor unconfines or stops containers [I]. Decision 5.
     - **Alpine and containers: AppArmor.** NotApplicable in a container, and on Alpine unless already enabled; `next/v0.4` only reads it there [V, `pkg/host/alpine/apparmor.go:84-142`], so off is always an empty plan.
+    - **AppArmor in v0.4: status only** (maintainer, 2026-10-20). hardn neither turns AppArmor on nor off; the Debian, Ubuntu and Proxmox VE parts above wait for a later release. `next/p4-check-apparmor` shows one status line, in Figma's grammar (marker, label, the state's word in its colour, a faint detail), describing the host, never hardn:
+
+      ```text
+         ▽  AppArmor             Configured 34 profiles enforced
+         ⛬  AppArmor             Partial logging only
+         ⛬  AppArmor             Partial off after restart
+         ○  AppArmor             Not Configured no profiles loaded
+         ○  AppArmor             Not Configured off in kernel
+         ∅  AppArmor             Not Applicable set by the host
+         ∅  AppArmor             Not Applicable Alpine default
+         ?  AppArmor             Unknown can't read
+      ```
+
+      In order: one profile or more enforcing (the count is of enforcing profiles); profiles loaded, none enforcing, or the global mode `complain`; `apparmor.service` disabled with profiles still loaded; the LSM on with no profile loaded (no package, say); `apparmor=0` or an `lsm=` without it; inside a container; Alpine without it; any fact hardn cannot read, which is never a pass. AppArmor counts in the risk level (`next/p4-risk`), as the host's exposure, though hardn does not change it.
   - **(4) The record.**
     - **Where:** `/var/lib/hardn/controls/<control id>.json`, one per control, through the journal's own helpers: `WriteFileAtomic`, 0600, under hardn's state directory (root's, writable by root alone; created 0700); read with `ReadFileNoFollow` and the journal's trust checks, decoded strictly [V, `next/p3-gallery-engine` `pkg/host/revert/store.go:70-100`, `journal.go:415`]. `schemaVersion` 1; a version hardn cannot read makes off refuse. hardn's install and upgrade leave it alone (`p7-install`) [I]; backup pruning, still undecided ([atomic.md](../safety/atomic.md) §7), must keep every run a record names.
     - **An entry per apply that changed the control,** in order: direction, time, hardn version, plan id (naming the backup run); packages installed or removed, as the simulation listed them; files, with their backup and SHA-256, mode and owner before and after (absent included); the `APT::Periodic` lines hardn wrote; services (enabled or in which runlevel, running) before and after; and the effective setting read back before and after (those lines; apk-cron, its script, the runlevel and crond; AppArmor's test in (3)).
@@ -371,7 +385,7 @@
     - Status detail: "On, by hardn"; "On"; "Off"; "Off after restart"; "Off (kernel setting)".
     - Steps: "Install unattended-upgrades"; "Turn on daily upgrades"; "Turn off daily upgrades"; "Remove apk-cron"; "Stop crond"; "Stop loading AppArmor profiles at boot".
     - Empty plan and refusal: "Nothing to undo: hardn did not turn this on."; "Not undone: /etc/periodic/daily/apk changed since hardn installed it."
-  - **(6) Decisions for the maintainer.** Gate: plan §3.12 and P-16 come first. If AppArmor is not restored, decision 2 and the AppArmor halves of 3 and 5 drop.
+  - **(6) Decisions for the maintainer.** Gate: plan §3.12 and P-16 come first. AppArmor is not restored in v0.4 (2026-10-20), so decision 2 and the AppArmor halves of 3 and 5 are not asked now; they return with AppArmor.
     1. **How off is asked. Gates (1) and (5).** The config's two bools default to false, which Run All reads as "skip", so false cannot mean off [V, `pkg/config/config.go:79, 81, 138-140`; `pkg/menu/run_all_menu.go:238-240, 291`; Run All ignores `enableUnattendedUpgrades` today]. (a) An action only the screen (or a CLI form) sends, through a new engine `Input` field; Run All never turns anything off, and an off saves the key as false through §3.19's one save function, so the next Run All does not turn it back on. (b) A key with string values, as §3.17 does for `permitRootLogin`: a config surface change. **Recommended: (a)** [I].
     2. **What AppArmor "on" changes on Debian and Ubuntu.** (a) The package and the service only. (b) Also enforce the profiles the user picks, never one with `flags=(unconfined)`, recording each file's bytes, its `disable/` and `force-complain/` links and each profile's mode for off to put back. (c) Every profile: from AppArmor 3.0.8 to 5.0 `aa-enforce` strips `flags=(unconfined)` instead of skipping it (only upstream master skips), so a profile such as `runc`'s would enforce a near-empty rule set [V, apparmor `utils/apparmor/aa.py` `set_enforce`; what breaks is I]. **Recommended: (a)**: profiles not up to date "will break functionality in enforce mode" (Debian wiki AppArmor/HowToUse), and an edited profile is a conffile whose upgrade prompt makes unattended-upgrades hold that package back [V, Ubuntu Server docs "AppArmor"; unattended-upgrades `unattended-upgrade` `conffile_prompt`].
     3. **Packages hardn installed, at off** (`apparmor`, `unattended-upgrades`; removing apk-cron is Alpine's off itself). (a) Keep them. (b) Remove them, when the simulation lists those packages alone; never `apparmor` on Proxmox VE. (c) Purge them when the files they brought still hold the recorded bytes, else (b) and report. **Recommended: (b) for apparmor; (c) for unattended-upgrades**: kept, its `20auto-upgrades` can keep updates on; removed, it stops them but keeps that file and so the daily list refresh [V, unattended-upgrades `debian/postrm`; `apt.systemd.daily`]. Purging also drops its debconf answers [I].
