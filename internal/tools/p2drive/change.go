@@ -159,6 +159,57 @@ type lockout struct {
 	// adds are the listeners the change adds (reload.Plan.Adds): a
 	// confirmation must come over one of them (revert.Journal.ConfirmVia).
 	adds []sshd.Listener
+	// boot is the boot unit installed before the timer is armed.
+	boot bootStep
+}
+
+// bootStep is the boot unit a lockout-risk change installs before its timer
+// is armed (P-34 (c), docs/safety/revert-boot.md): after a reboot inside the
+// window it runs `hardn rollback --boot`, which re-arms the timer or rolls
+// the change back. Planned, and what the host has of it read, before
+// anything changes, and shown in the plan.
+type bootStep struct {
+	unit  revert.BootUnit
+	state revert.BootUnitState
+	hardn string
+}
+
+// planBoot plans the boot unit that runs hardn on init system in, and reads
+// what the host has of it.
+func (d *driver) planBoot(ctx context.Context, in detect.Init, hardn string) (bootStep, error) {
+	u, err := revert.PlanBootUnit(in, hardn)
+	if err != nil {
+		return bootStep{}, err
+	}
+	st, err := revert.ReadBootUnit(ctx, d.sys, u)
+	return bootStep{unit: u, state: st, hardn: hardn}, err
+}
+
+// sayBoot prints the boot unit's step of the plan.
+func (d *driver) sayBoot(bs bootStep) {
+	u := bs.unit
+	if bs.state.Installed() {
+		d.say("  boot unit: %s, installed and enabled already: after a reboot inside the window it runs `%s rollback --boot`", u.Path, bs.hardn)
+		return
+	}
+	var do []string
+	if !bs.state.Current {
+		do = append(do, fmt.Sprintf("write %s (%04o, root's; a copy checked first with %s)", u.Path, uint32(u.Mode.Perm()), host.FormatArgv(u.Check)))
+	}
+	if !bs.state.Linked {
+		do = append(do, host.FormatArgv(u.Enable))
+	}
+	d.say("  boot unit, before the timer: %s: after a reboot inside the window it runs `%s rollback --boot`, which re-arms the timer or rolls the change back", strings.Join(do, ", then "), bs.hardn)
+}
+
+// ensureBoot installs the boot unit, before the timer is armed: a change
+// whose timer a reboot would lose, with nothing to re-arm it, is not
+// applied. revert.EnsureBootUnit logs what it does.
+func (d *driver) ensureBoot(ctx context.Context, bs bootStep, runDir string, run *backup.Run, opts revert.Options) error {
+	if _, err := revert.EnsureBootUnit(ctx, d.sys, bs.unit, runDir, run, opts); err != nil {
+		return fmt.Errorf("not applied: %w", err)
+	}
+	return nil
 }
 
 // files is a lockout change's sshd part.
@@ -243,10 +294,14 @@ func (d *driver) showPlan(lc lockout) {
 			d.say("  ssh.socket drop-in, reported: %s %v", f.Path, f.Listen)
 		}
 	}
+	if lc.boot.unit.Path != "" {
+		d.sayBoot(lc.boot)
+	}
 }
 
 // apply carries lc out under confirm-or-revert, in docs/safety/revert.md
-// §7's order: Arm (the timer starts before the first step), then each step
+// §7's order: the boot unit (revert-boot.md), Arm (the timer starts before
+// the first step), then each step
 // journalled before it takes effect (Record), the firewall first (brief 2.3
 // step 2), the sshd files after their backups, the reload and the check of
 // the listener and of the values; MarkApplied last. A step that fails rolls
@@ -259,6 +314,13 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 	}
 	opts := d.revertOptions(o.hardn)
 	d.sayHardn(ctx, o.hardn)
+	run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, lc.id)
+	if err != nil {
+		return fmt.Errorf("not applied: %w", err)
+	}
+	if err := d.ensureBoot(ctx, lc.boot, lc.runDir, run, opts); err != nil {
+		return err
+	}
 	j := revert.Journal{ID: lc.id, TimeoutSeconds: int(timeout / time.Second), Risk: revert.RiskLockout,
 		Summary: lc.summary, Session: lc.session, ConfirmVia: revert.ListenersOf(lc.adds)}
 	if j, err = revert.Arm(ctx, d.sys, j, lc.facts.Init, opts); err != nil {
@@ -293,10 +355,6 @@ func (d *driver) apply(ctx context.Context, lc lockout, o *lockoutOpts) error {
 		d.say("firewall: verified %v%s", rep.Verified, because(rep.Unverified))
 	}
 	if fc := lc.files; fc != nil {
-		run, err := backup.Open(d.sys, backup.Settings{Path: o.backupPath, Enabled: true}, lc.id)
-		if err != nil {
-			return fail("backups", err)
-		}
 		var seqs []int
 		for _, p := range fc.paths {
 			r, err := run.Backup(ctx, p, backup.RollbackRequired)
@@ -455,8 +513,14 @@ func (d *driver) lockoutCommand(ctx context.Context, o *lockoutOpts, plan func(b
 	if err != nil {
 		return fmt.Errorf("refused before anything changed: %w", err)
 	}
+	empty := lc.files == nil && (lc.ufw == nil || lc.ufw.Empty())
+	if !empty {
+		if lc.boot, err = d.planBoot(ctx, b.facts.Init, o.hardn); err != nil {
+			return fmt.Errorf("refused before anything changed: %w", err)
+		}
+	}
 	d.showPlan(lc)
-	if lc.files == nil && (lc.ufw == nil || lc.ufw.Empty()) {
+	if empty {
 		d.say("nothing to change")
 		return nil
 	}

@@ -218,6 +218,20 @@ func TestPort2230(t *testing.T) {
 			case len(j.ConfirmVia) != 2 || j.ConfirmVia[0].Port != 2230 || j.ConfirmVia[1].Port != 2230:
 				t.Errorf("confirmVia %v, want port 2230", j.ConfirmVia)
 			}
+			// The boot unit first (revert-boot.md): checked, written,
+			// enabled, then the timer.
+			bootUnit := revert.SystemdUnitDir + "/" + revert.BootUnitName + ".service"
+			boot := []int{v.index(runIs("systemd-analyze verify --recursive-errors=no " + path.Join(runRoot, j.ID, revert.BootUnitName+".service"))),
+				v.index(writeOf(bootUnit)), v.index(runIs("systemctl --no-reload enable " + revert.BootUnitName + ".service")), v.index(armed)}
+			if !slices.IsSorted(boot) || slices.Contains(boot, -1) {
+				t.Errorf("order: boot unit checked, written, enabled, then armed at %v; want ascending", boot)
+			}
+			if e, ok := v.f.Entry(bootUnit); !ok || e.Mode.Perm() != 0o644 || e.UID != 0 || !strings.Contains(string(e.Data), "ExecStart="+testHardn+" rollback --boot\n") {
+				t.Errorf("%s: %+v", bootUnit, e)
+			}
+			if !strings.Contains(out, "boot unit, before the timer: write "+bootUnit) {
+				t.Errorf("the plan does not show the boot unit:\n%s", out)
+			}
 			arm := v.index(armed)
 			allow := v.index(runIs("ufw allow 2230/tcp"))
 			backedUp := v.index(func(c hostfake.Call) bool {
@@ -265,9 +279,85 @@ func TestPortOpenRC(t *testing.T) {
 	if reloaded := v.index(runIs("rc-service sshd reload")); !(started >= 0 && started < v.index(writeOf(sshd.HardnDropIn)) && v.index(writeOf(sshd.HardnDropIn)) < reloaded) {
 		t.Errorf("order: sleeper %d, write, reload %d; want ascending", started, reloaded)
 	}
+	script := revert.OpenRCInitDir + "/" + revert.BootUnitName
+	boot := []int{v.index(runIs("sh -n " + path.Join(runRoot, j.ID, revert.BootUnitName))), v.index(writeOf(script)),
+		v.index(runIs("rc-update add " + revert.BootUnitName + " default")), started}
+	if !slices.IsSorted(boot) || slices.Contains(boot, -1) {
+		t.Errorf("order: boot script checked, written, added to the default runlevel, then the sleeper at %v; want ascending", boot)
+	}
+	if e, ok := v.f.Entry(script); !ok || e.Mode.Perm() != 0o755 || !strings.Contains(string(e.Data), "\t"+testHardn+" rollback --boot\n") {
+		t.Errorf("%s: %+v", script, e)
+	}
 	if !strings.Contains(out, "ufw: not installed") || !sameStrings(v.bound, []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}) {
 		t.Errorf("sshd listens on %v; stdout:\n%s", v.bound, out)
 	}
+}
+
+// TestBootUnitInstalled: a boot unit installed and enabled as planned is
+// left as it is (no check, write or enable), and the plan says so; a stale
+// one is backed up and replaced; a check that refuses the copy, or a
+// --plan-only, arms nothing and leaves the host as it was.
+func TestBootUnitInstalled(t *testing.T) {
+	u, err := revert.PlanBootUnit(debian13.Init, testHardn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Run("installed already", func(t *testing.T) {
+		v := newVM(t)
+		v.f.AddFile(u.Path, u.Data, 0o644, 0, 0)
+		v.f.AddSymlink(u.Link, u.Path)
+		code, out, errOut := v.do(context.Background(), debian13, "keyonly")
+		if code != 0 || !strings.Contains(out, "boot unit: "+u.Path+", installed and enabled already") {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		for _, c := range v.f.Calls() {
+			if c.Path == u.Path && c.Op == "write-atomic" || c.Op == "run" && (c.Argv[0] == "systemd-analyze" || slices.Contains(c.Argv, "enable")) {
+				t.Errorf("%s", c)
+			}
+		}
+	})
+	t.Run("a stale unit", func(t *testing.T) {
+		v := newVM(t)
+		v.f.AddFile(u.Path, []byte("[Service]\nExecStart=/usr/bin/true\n"), 0o644, 0, 0)
+		v.f.AddSymlink(u.Link, u.Path)
+		if code, out, errOut := v.do(context.Background(), debian13, "keyonly"); code != 0 {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if e, _ := v.f.Entry(u.Path); string(e.Data) != string(u.Data) || len(v.checked) != 1 {
+			t.Errorf("%s = %q after %d checks", u.Path, e.Data, len(v.checked))
+		}
+		if v.index(runIs("systemctl --no-reload enable "+revert.BootUnitName+".service")) >= 0 {
+			t.Error("enabled again")
+		}
+		j := v.journal(revert.PendingName)
+		e, ok := v.f.Entry(path.Join(j.Backup.Dir, "0001-"+revert.BootUnitName+".service"))
+		if !ok || !strings.Contains(string(e.Data), "/usr/bin/true") || !slices.Equal(j.Backup.Seqs, []int{2}) {
+			t.Errorf("the old unit's backup %q (%v), journalled seqs %v: want it kept, not journalled", e.Data, ok, j.Backup.Seqs)
+		}
+	})
+	t.Run("the check refuses the copy", func(t *testing.T) {
+		v := newVM(t)
+		v.hook = func(cmd string) (hostfake.Response, bool) {
+			return hostfake.Response{Stderr: "hardn-boot.service: Command /usr/local/bin/hardn is not executable\n", ExitCode: 1}, strings.HasPrefix(cmd, "systemd-analyze ")
+		}
+		code, out, errOut := v.do(context.Background(), debian13, "port", "--port", "2230")
+		if code != 1 || !strings.Contains(errOut, "not applied") || !strings.Contains(errOut, revert.ErrBootUnit.Error()) {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if ch := v.changes(); len(ch) > 0 || v.index(armed) >= 0 {
+			t.Errorf("changed the host: %q", ch)
+		}
+	})
+	t.Run("--plan-only", func(t *testing.T) {
+		v := newVM(t)
+		code, out, errOut := v.do(context.Background(), debian13, "port", "--port", "2230", "--plan-only")
+		if code != 0 || !strings.Contains(out, "boot unit, before the timer: write "+u.Path) {
+			t.Fatalf("exit %d; stderr %s\nstdout %s", code, errOut, out)
+		}
+		if ch := v.changes(); len(ch) > 0 {
+			t.Errorf("changed the host: %q", ch)
+		}
+	})
 }
 
 // TestPortUFWEnable: --ufw enable from an inactive ufw with no rules
