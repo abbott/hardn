@@ -143,6 +143,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `ENGINE_CONFLICT` | 1 | two changes of the plan act on the same thing |
 | `PLAN_CHANGED` | 1 | the host changed since the plan was made; plan again |
 | `PLAN_USED` | 1 | the plan was applied already; plan again |
+| `CONTROL_NOT_MIGRATED` | 1 | the control only checks the host; its changes are not planned yet (a check-only control's plan, refused: [checks.md](../engine/checks.md)) |
 | `CONFIRMATION_REQUIRED` | 2 | applying changes without a terminal needs an explicit yes |
 | `USAGE` | 2 | a usage error: bad flags or configuration |
 | `AUDIT_DIR_UNSAFE` | 1 | the audit log's directory is not root's alone |

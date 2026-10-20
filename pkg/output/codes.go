@@ -151,6 +151,7 @@ var errorCodes = []Entry{
 	is("ENGINE_CONFLICT", engine.ErrConflict),
 	is("PLAN_CHANGED", engine.ErrPlanChanged),
 	is("PLAN_USED", engine.ErrPlanUsed),
+	is("CONTROL_NOT_MIGRATED", engine.ErrNotMigrated), // a check-only control's Plan (next/p4-check-ssh)
 
 	// This package's: the non-interactive policy, and usage errors.
 	is("CONFIRMATION_REQUIRED", ErrConfirmationRequired).exit(ExitUsage),

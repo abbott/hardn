@@ -186,6 +186,7 @@ var sentinels = map[string]error{
 	"ufw.ErrProxmoxUnknown":          ufw.ErrProxmoxUnknown,
 	"ufw.ErrStateUnknown":            ufw.ErrStateUnknown,
 	"ufw.ErrVerify":                  ufw.ErrVerify,
+	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
 }
 
 // otherSentinels are the sentinels of other packages that have codes of

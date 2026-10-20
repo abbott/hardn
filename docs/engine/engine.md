@@ -147,6 +147,10 @@ var ErrLocked error
 
 package backup // added (§5)
 func Check(ctx context.Context, sys host.System, s Settings, runID string, paths []string) error
+
+// next/p4-check-ssh: a check-only control's Plan ([checks.md](checks.md))
+var ErrNotMigrated error // CONTROL_NOT_MIGRATED; Engine.Plan refuses a plan with such a control
+type CheckOnly struct{}  // embedded in a check-only control: Plan returns ErrNotMigrated
 ```
 
 ## 7. Not in this unit; inputs to later units

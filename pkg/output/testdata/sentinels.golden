@@ -39,6 +39,7 @@ dns.ErrUnsupported DNS_UNSUPPORTED
 engine.ErrBootUnit BOOT_UNIT_NOT_INSTALLED
 engine.ErrChange ENGINE_CHANGE_INVALID
 engine.ErrConflict ENGINE_CONFLICT
+engine.ErrNotMigrated CONTROL_NOT_MIGRATED
 engine.ErrOrder ENGINE_ORDER
 engine.ErrPlanChanged PLAN_CHANGED
 engine.ErrPlanUsed PLAN_USED
