@@ -135,11 +135,23 @@ type Change struct {
 	// Summary is one line: what the change does ("Set Port 2230 in
 	// /etc/ssh/sshd_config.d/00-hardn.conf").
 	Summary string
+	// Target is what the change acts on, for the plan's view: the file
+	// Diff changes, or a service or tool ("ufw", "ssh.service"); "" for
+	// none.
+	Target string
 	// Diff is the unified diff for a file (FileDiff), before and after for
 	// a command (CommandDiff); "" when there is nothing to show.
-	Diff  string
-	Risk  RiskClass
-	Stage Stage
+	Diff string
+	// StateBefore and StateAfter are a setting's or service's state before
+	// and after a change that has no file to diff ("inactive", "active"),
+	// as the plan shows them (component.PlanChange's Before and After); ""
+	// for none.
+	StateBefore, StateAfter string
+	// Commands are the commands the change runs, in order, as the plan
+	// shows them ("systemctl reload ssh").
+	Commands []string
+	Risk     RiskClass
+	Stage    Stage
 	// After are the changes that must run before this one, in its stage
 	// or an earlier one; one in a later stage, or one no control planned,
 	// is ErrOrder at plan time.
@@ -155,8 +167,10 @@ type Change struct {
 	// (revert.Journal.ConfirmVia).
 	ConfirmVia []revert.Listener
 	// Apply makes the change. An error is a failed step: the engine rolls
-	// back every change it started, this one included.
-	Apply func(ctx context.Context, sys host.System, run Run) (Ran, error)
+	// back every change it started, this one included. In a lockout-risk
+	// plan, ctx ends Options.Margin before the revert timer fires
+	// (ErrWindow), so that the rollback here claims the change first.
+	Apply func(ctx context.Context, sys host.System, run Run) (Ran, error) `json:"-"`
 }
 
 // Run is what Apply is given.
@@ -167,6 +181,14 @@ type Run struct {
 	// Backups are this change's backups, by path, as the engine took them
 	// (a write can check that the file is still as the backup shows it).
 	Backups map[string]backup.Entry
+	// Store is the plan's backup run, <backupPath>/<id>/, whose entries the
+	// engine takes for Backups and the journal names. A unit that takes
+	// backups of its own (dns.Apply, alpine.Apply, migrate.Apply and
+	// pve.ApplyKeys take a *backup.Run) takes them here, so that one run
+	// directory holds the change's backups; what a unit backs up itself is
+	// not journalled: its undo is its plan step or the engine's backup of
+	// the same file, as p2drive does it (vmtest.md §2).
+	Store *backup.Run
 }
 
 // Ran is what an Apply that ran says about its undo.
@@ -199,10 +221,10 @@ func validName(s string) bool {
 func isAlnum(c rune) bool { return c >= 'a' && c <= 'z' || c >= '0' && c <= '9' }
 
 // check refuses, with ErrChange, a change the engine could not order,
-// back up or journal, before anything changes: its undo is checked as
-// revert.Record will check it (a probe journal under the plan's id), and
-// every plan step's unit must have a rollback in plans.
-func (c Change) check(id string, plans map[string]revert.PlanRollback) error {
+// back up or journal, before anything changes: every plan step's unit must
+// have a rollback in plans. Its undo is checked with the changes before it,
+// once the plan is in order (checkJournals).
+func (c Change) check(plans map[string]revert.PlanRollback) error {
 	bad := func(format string, args ...any) error {
 		return fmt.Errorf("engine: change %q: %s: %w", c.ID, fmt.Sprintf(format, args...), ErrChange)
 	}
@@ -230,18 +252,40 @@ func (c Change) check(id string, plans map[string]revert.PlanRollback) error {
 			return bad("backup %q: absolute, clean, once", p)
 		}
 	}
-	probe := revert.Journal{SchemaVersion: revert.SchemaVersion, ID: id, Created: time.Unix(1, 0).UTC(),
-		Risk: revert.RiskOther, Summary: c.Summary, Undo: c.Rollback.Steps, Reload: c.Rollback.Reloads, ConfirmVia: c.ConfirmVia}
-	if len(c.Backups) > 0 {
-		probe.Backup = &revert.Backups{Dir: "/", Seqs: []int{1}}
-	}
-	if err := probe.Check(); err != nil {
-		return fmt.Errorf("engine: change %q: its undo: %w: %w", c.ID, err, ErrChange)
-	}
 	for _, s := range c.Rollback.Steps {
 		if s.Op == revert.OpPlan && plans[s.Unit] == nil {
 			return fmt.Errorf("engine: change %q: plan step of unit %q: %w: %w", c.ID, s.Unit, revert.ErrNoPlanRollback, ErrChange)
 		}
 	}
 	return nil
+}
+
+// checkJournals refuses, with ErrChange, a change whose undo revert.Record
+// would refuse when the engine journals it: the journal as record writes it
+// before that change, with every earlier change's undo and backups (a
+// reload's socketDropIns are restored from an earlier change's backup, for
+// one), under the plan's id. It returns the change refused, or -1.
+func checkJournals(id string, cs []Change) (int, error) {
+	var undos []Undo
+	seqs := 0
+	for i, c := range cs {
+		undos = append(undos, c.Rollback)
+		seqs += len(c.Backups)
+		j := revert.Journal{SchemaVersion: revert.SchemaVersion, ID: id, Created: time.Unix(1, 0).UTC(),
+			Risk: revert.RiskOther, Summary: c.Summary}
+		if seqs > 0 {
+			j.Backup = &revert.Backups{Dir: "/", Seqs: make([]int, seqs)}
+			for k := range j.Backup.Seqs {
+				j.Backup.Seqs[k] = k + 1
+			}
+		}
+		for k := len(undos) - 1; k >= 0; k-- {
+			j.Undo = append(j.Undo, undos[k].Steps...)
+			j.Reload = append(j.Reload, undos[k].Reloads...)
+		}
+		if err := j.Check(); err != nil {
+			return i, fmt.Errorf("engine: change %q: its undo, with the changes before it: %w: %w", c.ID, err, ErrChange)
+		}
+	}
+	return -1, nil
 }

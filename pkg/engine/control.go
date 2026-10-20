@@ -108,7 +108,11 @@ type Report struct {
 	Control string
 	Title   string
 	Status  Status
-	Err     error // the check's error; Status is then what it established
+	// Err is the check's error. Status is then what the check returned
+	// with it (its detail, evidence and findings), its State Unknown: a
+	// check that failed did not establish one (brief §3: prefer Unknown to
+	// guessing).
+	Err error
 }
 
 // Check runs every control's Check on the host's facts, in order; a
@@ -126,6 +130,9 @@ func (e *Engine) Check(ctx context.Context, controls []Control) ([]Report, error
 			r.Status = Status{State: NotApplicable, Detail: notApplicable(why)}
 		} else {
 			r.Status, r.Err = c.Check(ctx, e.sys, facts)
+			if r.Err != nil {
+				r.Status.State = Unknown
+			}
 		}
 		out = append(out, r)
 	}

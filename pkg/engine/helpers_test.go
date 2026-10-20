@@ -51,6 +51,62 @@ type testHost struct {
 	mu      sync.Mutex
 	exit    map[string]int // a command line, joined by spaces, and its exit code
 	trigger string         // list-timers' JSON; "" fails it
+	// journalWrites counts the writes of pending.json; the one numbered
+	// failJournalAt fails (0: none). failDone makes its removal fail
+	// (revert.Done).
+	journalWrites, failJournalAt int
+	failDone                     bool
+}
+
+// failNextJournal makes the n-th write of pending.json from now fail.
+func (h *testHost) failNextJournal(n int) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.failJournalAt = h.journalWrites + n
+}
+
+// WriteFileAtomic fails the write of pending.json failJournalAt names.
+func (h *testHost) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	h.mu.Lock()
+	fail := false
+	if name == journal {
+		h.journalWrites++
+		fail = h.journalWrites == h.failJournalAt
+	}
+	h.mu.Unlock()
+	if fail {
+		return fmt.Errorf("fixture: write %s: no space left on device", name)
+	}
+	return h.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+// Remove fails the removal of pending.json when failDone is set.
+func (h *testHost) Remove(ctx context.Context, name string) error {
+	h.mu.Lock()
+	fail := name == journal && h.failDone
+	h.mu.Unlock()
+	if fail {
+		return fmt.Errorf("fixture: remove %s: read-only file system", name)
+	}
+	return h.System.Remove(ctx, name)
+}
+
+// clock is a time the test moves.
+type clock struct {
+	mu sync.Mutex
+	t  time.Time
+}
+
+func (c *clock) now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.t
+}
+
+func (c *clock) set(t time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.t = t
 }
 
 func newHost(t *testing.T) *testHost {

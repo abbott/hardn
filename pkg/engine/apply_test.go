@@ -44,32 +44,52 @@ func probe(c Change, at map[string]revert.Journal) Change {
 // then the check of what the reload made effective.
 type portPlan struct {
 	at      map[string]revert.Journal
+	early   bool               // with a package and an account change before the firewall
 	failVer bool               // the effective-value check fails
 	panics  bool               // the effective-value check panics
 	written bool               // the write fails once it has written (ErrNotDurable)
 	cancel  context.CancelFunc // set: Ctrl-C once the firewall change has run
+	// afterFirewall and afterWrite, when set, run once the firewall change
+	// or the write has run: the host changing during the apply.
+	afterFirewall, afterWrite func()
 }
+
+const (
+	installTool = "example-pkg install example-tool"
+	removeTool  = "example-pkg remove example-tool"
+	addKey      = "example-key add alice"
+	removeKey   = "example-key remove alice"
+)
 
 func (pp *portPlan) controls() []Control {
 	fw := command("example.port/allow", StageFirewall, RiskLockout, argv(allow2230), argv(delete2230), argv(delete2230))
-	if pp.cancel != nil {
+	if pp.cancel != nil || pp.afterFirewall != nil {
 		inner := fw.Apply
 		fw.Apply = func(ctx context.Context, sys host.System, run Run) (Ran, error) {
 			ran, err := inner(ctx, sys, run)
-			pp.cancel()
+			if pp.afterFirewall != nil {
+				pp.afterFirewall()
+			}
+			if pp.cancel != nil {
+				pp.cancel()
+			}
 			return ran, err
 		}
 	}
 	old := oldConf
 	w := writeChange("example.port/write", confPath, &old, newConf, RiskLockout)
 	w.ConfirmVia = []revert.Listener{any2230}
-	if pp.written {
+	if pp.written || pp.afterWrite != nil {
 		inner := w.Apply
 		w.Apply = func(ctx context.Context, sys host.System, run Run) (Ran, error) {
-			if _, err := inner(ctx, sys, run); err != nil {
-				return Ran{}, err
+			ran, err := inner(ctx, sys, run)
+			if pp.afterWrite != nil {
+				pp.afterWrite()
 			}
-			return Ran{}, fmt.Errorf("fixture: %w", host.ErrNotDurable)
+			if err == nil && pp.written {
+				err = fmt.Errorf("fixture: %w", host.ErrNotDurable)
+			}
+			return ran, err
 		}
 	}
 	reload := command("example.port/reload", StageReload, RiskLockout, argv(reloadWeb), argv(reloadBack))
@@ -84,8 +104,14 @@ func (pp *portPlan) controls() []Control {
 			}
 			return Ran{Detail: "2230 effective"}, nil
 		}}
+	planned := []Change{verify, reload, w, fw} // planned out of order on purpose
+	if pp.early {
+		planned = append(planned,
+			command("example.port/key", StageAccounts, RiskLockout, argv(addKey), argv(removeKey)),
+			command("example.port/package", StagePackages, RiskPackageInstall, argv(installTool), argv(removeTool)))
+	}
 	var cs []Change
-	for _, c := range []Change{verify, reload, w, fw} { // planned out of order on purpose
+	for _, c := range planned {
 		cs = append(cs, probe(c, pp.at))
 	}
 	return []Control{&stub{id: "example.port", title: "Example port", changes: cs}}
@@ -219,12 +245,25 @@ func TestFailureRollsBack(t *testing.T) {
 		journalled   string // the journal the rollback started from
 		rollback     string // the commands after the failure
 	}{
+		{"a package", func(h *testHost, pp *portPlan, _ context.CancelFunc) { pp.early = true; h.failOn(installTool) },
+			"example.port/package", StepApply, "undo [example-pkg remove example-tool] backup []", removeTool},
+		{"an account", func(h *testHost, pp *portPlan, _ context.CancelFunc) { pp.early = true; h.failOn(addKey) },
+			"example.port/key", StepApply, "undo [example-key remove alice example-pkg remove example-tool] backup []",
+			removeKey + "\n" + removeTool},
 		{"the firewall", func(h *testHost, _ *portPlan, _ context.CancelFunc) { h.failOn(allow2230) },
 			"example.port/allow", StepApply, "undo [ufw delete allow 2230/tcp] backup []", delete2230},
-		{"a backup", func(h *testHost, _ *portPlan, _ context.CancelFunc) {
-			_ = h.Remove(context.Background(), confPath)
-			h.AddDir(confPath, 0o755, 0, 0) // a backup refuses a directory
+		{"a backup, the file replaced by a directory since the plan", func(h *testHost, pp *portPlan, _ context.CancelFunc) {
+			pp.afterFirewall = func() {
+				_ = h.System.Remove(context.Background(), confPath)
+				h.AddDir(confPath, 0o755, 0, 0) // a backup refuses a directory
+			}
 		}, "example.port/write", StepBackup, "undo [ufw delete allow 2230/tcp] backup []", delete2230},
+		{"the journal before the write", func(h *testHost, pp *portPlan, _ context.CancelFunc) {
+			pp.afterFirewall = func() { h.failNextJournal(2) } // the firewall's journal after it, then the write's before
+		}, "example.port/write", StepJournal, "undo [ufw delete allow 2230/tcp] backup []", delete2230},
+		{"the journal after the write", func(h *testHost, pp *portPlan, _ context.CancelFunc) {
+			pp.afterWrite = func() { h.failNextJournal(1) } // no Ran.Rollback: the journal before it holds its undo
+		}, "example.port/write", StepJournalAfter, "undo [ufw delete allow 2230/tcp] backup [1]", delete2230},
 		{"the write", func(_ *testHost, pp *portPlan, _ context.CancelFunc) { pp.written = true },
 			"example.port/write", StepApply, "undo [ufw delete allow 2230/tcp] backup [1]", delete2230},
 		{"the reload", func(h *testHost, _ *portPlan, _ context.CancelFunc) { h.failOn(reloadWeb) },
@@ -383,5 +422,156 @@ func TestPlanStepDropped(t *testing.T) {
 				t.Errorf("commands: %v; a plan without lockout risk has no timer", h.Runs())
 			}
 		})
+	}
+}
+
+// TestJournalAfterFails: when the journal of what a step ran cannot be
+// written (a write that fails, a Ran.Rollback revert refuses), the rollback
+// works from the undo journalled before the step, which may not cover what
+// the step did (here ufw's second rule). The ApplyError says so: not
+// ErrRolledBack but ErrUnjournalled, carrying the undo it could not
+// journal.
+func TestJournalAfterFails(t *testing.T) {
+	cases := []struct {
+		name  string
+		after []revert.Step // the step's Ran.Rollback
+		fail  bool          // the journal write after the step fails
+		want  error
+	}{
+		{"the write fails", runSteps(argv(delete2230), argv("ufw delete allow 22/tcp")), true, nil},
+		{"revert refuses the undo", []revert.Step{{Op: revert.OpRun}}, false, revert.ErrJournal},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
+			h := newHost(t)
+			hs := &holds{}
+			e := New(h, testOptions(h, hs, nil, debian13))
+			fw := Change{ID: "example.port/allow", Summary: "Allow 22 and 2230", Risk: RiskLockout, Stage: StageFirewall,
+				Rollback: Undo{Steps: runSteps(argv(delete2230))},
+				Apply: func(ctx context.Context, sys host.System, _ Run) (Ran, error) {
+					_, err := sys.Run(ctx, "ufw", "allow", "22/tcp")
+					if err == nil {
+						_, err = sys.Run(ctx, "ufw", "allow", "2230/tcp")
+					}
+					if c.fail {
+						h.failNextJournal(1)
+					}
+					return Ran{Rollback: &Undo{Steps: c.after}}, err
+				}}
+			p, err := e.Plan(ctx, []Control{&stub{id: "example.port", title: "Port", changes: []Change{fw}}}, nil)
+			if err != nil || p.Err() != nil {
+				t.Fatalf("Plan: %v, %v", err, p.Err())
+			}
+			_, err = e.Apply(ctx, p)
+			var fe *ApplyError
+			if !errors.As(err, &fe) || errors.Is(err, ErrRolledBack) || !errors.Is(err, ErrUnjournalled) || fe.RollbackErr != nil {
+				t.Fatalf("Apply: %v; want the rollback finished, not ErrRolledBack, ErrUnjournalled", err)
+			}
+			if c.want != nil && !errors.Is(err, c.want) {
+				t.Errorf("Apply: %v; want %v too", err, c.want)
+			}
+			if fe.Step != StepJournalAfter || fe.Unjournalled == nil || fe.Unjournalled.Change != "example.port/allow" ||
+				!slices.EqualFunc(fe.Unjournalled.Undo.Steps, c.after, func(a, b revert.Step) bool { return slices.Equal(a.Argv, b.Argv) }) {
+				t.Errorf("step %q, unjournalled %+v", fe.Step, fe.Unjournalled)
+			}
+			if got := journalWords(*hs.pending); got != "undo [ufw delete allow 2230/tcp] backup []" {
+				t.Errorf("journal at the rollback %s: the one written before the step", got)
+			}
+			if got := h.runs(p.ID); !strings.HasSuffix(got, "ufw delete allow 2230/tcp\nsystemctl stop hardn-revert-<id>.timer\n") {
+				t.Errorf("commands:\n%s", got)
+			}
+			if c.fail && !strings.Contains(err.Error(), "ufw delete allow 22/tcp") {
+				t.Errorf("error does not name the undo left out: %v", err)
+			}
+			assertReleased(t, h, p.ID)
+		})
+	}
+}
+
+// TestDoneFails: a plan without lockout risk whose last write, revert.Done,
+// fails is rolled back like any failed step.
+func TestDoneFails(t *testing.T) {
+	ctx := context.Background()
+	h := newHost(t)
+	h.AddFile(confPath, []byte(oldConf), 0o644, 0, 0)
+	h.failDone = true
+	hs := &holds{}
+	e := New(h, testOptions(h, hs, nil, debian13))
+	p, err := e.Plan(ctx, []Control{fileControl{id: "example.file", path: confPath, want: newConf}}, nil)
+	if err != nil || p.Err() != nil {
+		t.Fatalf("Plan: %v, %v", err, p.Err())
+	}
+	res, err := e.Apply(ctx, p)
+	var fe *ApplyError
+	if !errors.As(err, &fe) || !errors.Is(err, ErrRolledBack) || fe.Step != StepDone || fe.Change != "" || res.Failed != fe {
+		t.Fatalf("Apply: %v; want a failed Done, rolled back", err)
+	}
+	if got, _ := h.content(t, confPath); got != oldConf {
+		t.Errorf("%s: %q, want it restored", confPath, got)
+	}
+	if hs.pending == nil || journalWords(*hs.pending) != "undo [] backup [1]" {
+		t.Errorf("journal at the rollback %+v", hs.pending)
+	}
+	if len(h.Runs()) != 0 {
+		t.Errorf("commands %v; a plain change has no timer", h.Runs())
+	}
+	assertReleased(t, h, p.ID)
+}
+
+// TestArmFails: when the timer does not start, Arm takes the journal back
+// and the apply stops there: no change runs, nothing is journalled.
+func TestArmFails(t *testing.T) {
+	ctx := context.Background()
+	h := newHost(t)
+	hs := &holds{}
+	e := New(h, testOptions(h, hs, nil, debian13))
+	ran := false
+	fw := command("example.port/allow", StageFirewall, RiskLockout, argv(allow2230), argv(delete2230))
+	inner := fw.Apply
+	fw.Apply = func(ctx context.Context, sys host.System, run Run) (Ran, error) {
+		ran = true
+		return inner(ctx, sys, run)
+	}
+	p, err := e.Plan(ctx, []Control{&stub{id: "example.port", title: "Port", changes: []Change{fw}}}, nil)
+	if err != nil || p.Err() != nil {
+		t.Fatalf("Plan: %v, %v", err, p.Err())
+	}
+	h.failOn(fmt.Sprintf("systemd-run --unit=hardn-revert-%[1]s --description=hardn: roll back change %[1]s unless confirmed --on-active=180s --timer-property=AccuracySec=1s %[2]s rollback %[1]s", p.ID, testHardn))
+	res, err := e.Apply(ctx, p)
+	if err == nil || !strings.HasPrefix(err.Error(), "engine: not applied: ") || res.Failed != nil || res.ID != "" {
+		t.Fatalf("Apply: %+v, %v; want not applied", res, err)
+	}
+	if ran || hs.held != 0 {
+		t.Errorf("a change ran (%v), or a rollback was attempted (%d)", ran, hs.held)
+	}
+	if _, ok := h.Entry(journal); ok {
+		t.Error("the journal is left")
+	}
+	assertReleased(t, h, p.ID)
+}
+
+// TestPlanUsed: a plan is applied once. Applied again, after a rollback, it
+// is refused before anything is locked or changed: its id names the
+// journal, the backup run and the timer of the first apply.
+func TestPlanUsed(t *testing.T) {
+	ctx := context.Background()
+	h := newHost(t)
+	h.AddFile(confPath, []byte(oldConf), 0o644, 0, 0)
+	e := New(h, testOptions(h, &holds{}, nil, debian13))
+	pp := &portPlan{at: map[string]revert.Journal{}, failVer: true}
+	p, err := e.Plan(ctx, pp.controls(), nil)
+	if err != nil || p.Err() != nil {
+		t.Fatalf("Plan: %v, %v", err, p.Err())
+	}
+	if _, err := e.Apply(ctx, p); !errors.Is(err, ErrRolledBack) {
+		t.Fatalf("first Apply: %v", err)
+	}
+	calls := len(h.Calls())
+	if _, err := e.Apply(ctx, p); !errors.Is(err, ErrPlanUsed) {
+		t.Errorf("second Apply: %v, want ErrPlanUsed", err)
+	}
+	if n := len(h.Calls()) - calls; n != 0 {
+		t.Errorf("the second Apply made %d calls", n)
 	}
 }

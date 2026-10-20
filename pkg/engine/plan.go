@@ -8,9 +8,11 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 )
@@ -38,12 +40,15 @@ type Plan struct {
 	Changes []Change // in the order Apply runs them (order)
 	Risk    RiskClass
 	// Refused are the refusals: a control's (also in its Item), the
-	// order's, the platform's support level, a change already journalled,
-	// the revert timer's preconditions. A plan with any is not applied.
+	// order's, a change's undo, the platform's support level, a change
+	// already journalled, the journal's and the backups' directories, the
+	// files to back up, the revert timer's preconditions, the session. A
+	// plan with any is not applied.
 	Refused []error
 
 	controls []Control
 	cfg      *config.Config
+	used     atomic.Bool // Apply has taken it (ErrPlanUsed)
 }
 
 // Empty reports whether the plan changes nothing.
@@ -118,7 +123,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 			}
 			for _, ch := range cs {
 				ch.Control = it.Control
-				if err := ch.check(id, e.opts.Revert.Plans); err != nil {
+				if err := ch.check(e.opts.Revert.Plans); err != nil {
 					it.Err = errors.Join(it.Err, err)
 				}
 				it.Changes = append(it.Changes, ch.ID)
@@ -139,38 +144,87 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 		p.Changes = all
 		refuse(err)
 	}
+	if i, err := checkJournals(id, p.Changes); err != nil {
+		for k := range p.Items {
+			if p.Items[k].Control == p.Changes[i].Control {
+				p.Items[k].Err = errors.Join(p.Items[k].Err, err)
+			}
+		}
+		refuse(err)
+	}
 	if !p.Empty() {
 		e.refuseApply(ctx, p, refuse)
 	}
 	return p, nil
 }
 
-// refuseApply adds the refusals that Arm, or the platform, would make
-// later: everything Apply refuses before it changes anything is refused
-// here, so the dry run shows it.
+// refuseApply adds the refusals that Arm, the backups or the platform would
+// make later: everything Apply refuses before it changes anything is
+// refused here, so the dry run shows it.
 func (e *Engine) refuseApply(ctx context.Context, p *Plan, refuse func(error)) {
+	n := 0
+	refuseN := func(err error) { n++; refuse(err) }
 	switch s := p.Facts.Platform; s.Support {
 	case detect.Supported, detect.BestEffort:
 	default:
-		refuse(fmt.Errorf("engine: %v %s is %v: %w", s.Distro, s.Version, s.Support, ErrUnsupported))
+		refuseN(fmt.Errorf("engine: %v %s is %v: %w", s.Distro, s.Version, s.Support, ErrUnsupported))
 	}
 	switch st, err := revert.ReadState(ctx, e.sys, e.opts.Revert); {
 	case err != nil:
-		refuse(fmt.Errorf("engine: the change journal: %w", err))
+		refuseN(fmt.Errorf("engine: the change journal: %w", err))
 	case st.Busy():
-		refuse(&revert.PendingError{State: st})
+		refuseN(&revert.PendingError{State: st})
+	default:
+		if err := trustedAncestor(ctx, e.sys, e.journalDir()); err != nil {
+			refuseN(fmt.Errorf("engine: the change journal's directory: %w", err))
+		}
 	}
-	if p.Risk != RiskLockout {
-		return
+	var paths []string
+	for _, c := range p.Changes {
+		paths = append(paths, c.Backups...)
 	}
-	if _, err := revert.TimerFor(p.Facts.Init, p.ID, e.opts.Revert.Hardn, e.opts.Timeout, e.runRoot()); err != nil {
-		refuse(fmt.Errorf("engine: the revert timer: %w", err))
-	} else if err := revert.CheckExecutable(ctx, e.sys, e.opts.Revert.Hardn); err != nil {
-		refuse(fmt.Errorf("engine: the revert timer: %w", err))
+	if err := backup.Check(ctx, e.sys, e.opts.Backups, p.ID, paths); err != nil {
+		refuseN(fmt.Errorf("engine: the backups: %w", err))
 	}
-	if s := e.opts.Session; !s.Remote && s.Source == "" {
-		refuse(fmt.Errorf("engine: the session applying the change is not established (revert.ReadSession): %w", revert.ErrSessionUnknown))
+	j := e.journal(p)
+	j.SchemaVersion, j.Created = revert.SchemaVersion, e.now().UTC().Truncate(time.Second)
+	if p.Risk == RiskLockout {
+		if t, err := revert.TimerFor(p.Facts.Init, p.ID, e.opts.Revert.Hardn, e.opts.Timeout, e.runRoot()); err != nil {
+			refuseN(fmt.Errorf("engine: the revert timer: %w", err))
+		} else if err := revert.CheckExecutable(ctx, e.sys, e.opts.Revert.Hardn); err != nil {
+			refuseN(fmt.Errorf("engine: the revert timer: %w", err))
+		} else {
+			t.Deadline = j.Deadline()
+			j.Timer = &t
+		}
+		if s := e.opts.Session; !s.Remote && s.Source == "" {
+			refuseN(fmt.Errorf("engine: the session applying the change is not established (revert.ReadSession): %w", revert.ErrSessionUnknown))
+		}
 	}
+	if n == 0 {
+		// The rest of what Arm's Journal.Check refuses: the session's
+		// SSH_CONNECTION, the listeners to confirm by, the summary.
+		if err := j.Check(); err != nil {
+			refuse(fmt.Errorf("engine: the journal Arm would write: %w", err))
+		}
+	}
+}
+
+// journal is change p's journal as Arm is given it.
+func (e *Engine) journal(p *Plan) revert.Journal {
+	j := revert.Journal{ID: p.ID, Risk: revert.RiskOther, Summary: p.Summary(), Session: e.opts.Session}
+	if p.Risk == RiskLockout {
+		j.Risk, j.TimeoutSeconds, j.ConfirmVia = revert.RiskLockout, e.window(), confirmVia(p.Changes)
+	}
+	return j
+}
+
+// journalDir is revert's journal directory, /var/lib/hardn.
+func (e *Engine) journalDir() string {
+	if e.opts.Revert.Dir != "" {
+		return e.opts.Revert.Dir
+	}
+	return revert.DefaultDir
 }
 
 // removeRunDir removes plan id's run directory, after Ctrl-C too.

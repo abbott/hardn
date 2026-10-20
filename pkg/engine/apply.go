@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -15,7 +16,8 @@ import (
 
 // The steps of an apply an ApplyError names.
 const (
-	StepStart        = "start"         // cancelled (Ctrl-C, SIGTERM) before the change started
+	StepStart        = "start"         // cancelled (Ctrl-C, SIGTERM, a hangup) before the change started
+	StepWindow       = "window"        // the confirm window's last Options.Margin reached (ErrWindow)
 	StepBackup       = "backup"        // a backup of one of the change's files
 	StepJournal      = "journal"       // the write-ahead journal of the change's undo
 	StepApply        = "apply"         // the change's Apply
@@ -26,8 +28,11 @@ const (
 
 // ApplyError is an apply that stopped after the revert timer was armed,
 // and what rolling it back did. Is(ErrRolledBack) holds when the rollback
-// finished; otherwise RollbackErr says why not (revert.ErrIncomplete,
-// naming `hardn rollback <id>`, which takes it up).
+// finished and the journal held every started change's undo; otherwise
+// RollbackErr says why the rollback did not finish (revert.ErrIncomplete,
+// naming `hardn rollback <id>`, which takes it up; revert.ErrRollingBack,
+// another process has it), or Unjournalled names the change it may not
+// have undone (Is(ErrUnjournalled)).
 type ApplyError struct {
 	ID     string // the change's journal id
 	Change string // the change that failed; "" for the apply's last write
@@ -36,6 +41,28 @@ type ApplyError struct {
 	// Rollback is revert.Rollback's result; RollbackErr its error.
 	Rollback    revert.RollbackResult
 	RollbackErr error
+	// Unjournalled, when set, is a change that ran but whose undo the
+	// journal did not hold once it had run, so the rollback did not run
+	// that undo.
+	Unjournalled *Unjournalled
+}
+
+// Unjournalled is what a change that ran needs undone, which the journal
+// did not hold once it had run: its journal after the step failed
+// (Ran.Rollback, ufw's Report.Undo or the reload without IfUp, was not
+// written, so the rollback ran the undo journalled before the step), or
+// another process's rollback (the timer's, the user's `hardn rollback
+// <id>`) took the journal while the step ran, so what the step did may
+// have landed after that rollback had restored the files. What it did may
+// be left on the host; this is what would undo it, for the caller to show.
+type Unjournalled struct {
+	Change string
+	Undo   Undo
+	// Backups are the change's backups, in the run directory Dir, which
+	// restore the files it wrote.
+	Backups []backup.Entry
+	Dir     string
+	Err     error // why the journal does not hold it
 }
 
 func (e *ApplyError) Error() string {
@@ -43,10 +70,42 @@ func (e *ApplyError) Error() string {
 	if e.Change != "" {
 		what += ", " + e.Change
 	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "engine: %s: %s: %v", what, e.Step, e.Err)
 	if e.RollbackErr != nil {
-		return fmt.Sprintf("engine: %s: %s: %v; the rollback did not finish: %v", what, e.Step, e.Err, e.RollbackErr)
+		fmt.Fprintf(&b, "; the rollback did not finish: %v", e.RollbackErr)
+	} else {
+		b.WriteString(" (rolled back from the journal)")
 	}
-	return fmt.Sprintf("engine: %s: %s: %v (rolled back)", what, e.Step, e.Err)
+	if u := e.Unjournalled; u != nil {
+		fmt.Fprintf(&b, "; %s ran, and the journal does not hold what undoes it (%v), so what it did may be left: %s", u.Change, u.Err, u.words())
+	}
+	return b.String()
+}
+
+// words names what would undo the change.
+func (u *Unjournalled) words() string {
+	var parts []string
+	for _, s := range u.Undo.Steps {
+		switch {
+		case s.Op == revert.OpRun:
+			parts = append(parts, host.FormatArgv(s.Argv))
+		case s.Op == revert.OpPlan:
+			parts = append(parts, "the "+s.Unit+" plan's rollback")
+		default:
+			parts = append(parts, string(s.Op)+" "+s.Path)
+		}
+	}
+	for _, r := range u.Undo.Reloads {
+		parts = append(parts, "reload "+string(r.Service))
+	}
+	for _, e := range u.Backups {
+		parts = append(parts, fmt.Sprintf("restore %s from backup %d in %s", e.Path, e.Seq, u.Dir))
+	}
+	if len(parts) == 0 {
+		return "nothing journalled undoes it"
+	}
+	return strings.Join(parts, "; ")
 }
 
 // Unwrap returns the step's error and the rollback's.
@@ -57,8 +116,18 @@ func (e *ApplyError) Unwrap() []error {
 	return []error{e.Err, e.RollbackErr}
 }
 
-// Is makes errors.Is(err, ErrRolledBack) true when the rollback finished.
-func (e *ApplyError) Is(target error) bool { return target == ErrRolledBack && e.RollbackErr == nil }
+// Is makes errors.Is(err, ErrRolledBack) true when the rollback finished
+// and covered every change started, and errors.Is(err, ErrUnjournalled)
+// when a change was not covered.
+func (e *ApplyError) Is(target error) bool {
+	switch target {
+	case ErrRolledBack:
+		return e.RollbackErr == nil && e.Unjournalled == nil
+	case ErrUnjournalled:
+		return e.Unjournalled != nil
+	}
+	return false
+}
 
 // Applied is one change whose Apply returned nil.
 type Applied struct {
@@ -89,7 +158,9 @@ type Result struct {
 	// Nothing: the plan had no changes, so nothing was locked, armed or
 	// journalled.
 	Nothing bool
-	Applied []Applied // the changes whose Apply returned nil, in order
+	// Applied are the changes whose Apply returned nil, in order. With
+	// Failed set they were rolled back after, as Failed says.
+	Applied []Applied
 	// Confirm is set for a lockout-risk plan applied and waiting for
 	// confirmation.
 	Confirm *Confirm
@@ -101,28 +172,33 @@ type Result struct {
 // Apply carries plan p out, p being Engine.Plan's. It refuses a plan with
 // refusals (ErrRefused) and applies nothing for an empty one. Otherwise:
 //
-//  1. the run lock (another apply on the host: host.ErrLocked);
+//  1. the run lock (another apply on the host: host.ErrLocked); from here
+//     the plan is spent, and a second Apply of it is ErrPlanUsed;
 //  2. the plan made again under the lock, with the same id, which must
 //     have no refusals and equal p (ErrPlanChanged): what the user was
 //     shown is what runs;
 //  3. revert.Arm: the journal, and for a lockout-risk plan the revert
 //     timer, before any change (brief 2.4);
-//  4. each change in the plan's order: ctx checked; its files backed up
-//     (RollbackRequired); its undo journalled with the backups
-//     (revert.Record, write-ahead); Apply; what the step that ran needs
+//  4. each change in the plan's order: ctx checked, and for a lockout-risk
+//     plan the time left of the window (ErrWindow, StepWindow); its files
+//     backed up (RollbackRequired); its undo journalled with the backups
+//     (revert.Record, write-ahead); Apply, under a context that ends
+//     Options.Margin before the window does; what the step that ran needs
 //     undone journalled under a context without the cancellation, with a
-//     bound;
-//  5. revert.MarkApplied for a lockout-risk plan, revert.Done for any
-//     other: the apply's last write.
+//     bound (each time: it also proves the journal was still this
+//     process's once the step had run);
+//  5. revert.MarkApplied for a lockout-risk plan (the window checked
+//     first), revert.Done for any other: the apply's last write.
 //
-// From step 3 on, the first failure, or ctx done (Ctrl-C, SIGTERM: the
-// caller cancels ctx, from signal.NotifyContext, and keeps it registered
-// until Apply returns), rolls back every change started, in reverse, from
-// the journal (revert.Rollback, ReasonFailed), with signals held
-// (Options.Hold); Apply then returns Result.Failed, an *ApplyError. A
+// From step 3 on, the first failure, or ctx done (Ctrl-C, SIGTERM, a
+// hangup: the caller cancels ctx, from signal.NotifyContext, and keeps it
+// registered until Apply returns), rolls back every change started, in
+// reverse, from the journal (revert.Rollback, ReasonFailed), with signals
+// held (Options.Hold); Apply then returns Result.Failed, an *ApplyError. A
 // rollback that did not finish stops the timer all the same (revert.md
 // §2.14 step 4): its error names `hardn rollback <id>`, and the next run's
-// notice says so.
+// notice says so. Options.Progress hears of each change as it runs, and of
+// the rollback.
 func (e *Engine) Apply(ctx context.Context, p *Plan) (Result, error) {
 	res := Result{Risk: p.Risk}
 	switch {
@@ -133,12 +209,17 @@ func (e *Engine) Apply(ctx context.Context, p *Plan) (Result, error) {
 	case p.Empty():
 		res.Nothing = true
 		return res, nil
+	case p.used.Load():
+		return res, fmt.Errorf("engine: change %s: %w", p.ID, ErrPlanUsed)
 	}
 	unlock, err := e.lock(ctx, p.ID)
 	if err != nil {
 		return res, err
 	}
 	defer unlock()
+	if p.used.Swap(true) {
+		return res, fmt.Errorf("engine: change %s: %w", p.ID, ErrPlanUsed)
+	}
 	defer e.removeRunDir(ctx, p.ID)
 	fresh, err := e.plan(ctx, p.ID, p.controls, p.cfg)
 	switch {
@@ -154,30 +235,40 @@ func (e *Engine) Apply(ctx context.Context, p *Plan) (Result, error) {
 
 // applier is one apply's state after Arm.
 type applier struct {
-	e     *Engine
-	p     *Plan
-	j     revert.Journal
-	ro    revert.Options
-	run   *backup.Run
-	seqs  []int  // every backup taken, in order
-	undos []Undo // every change started, in order
-	res   Result
+	e      *Engine
+	p      *Plan
+	j      revert.Journal
+	ro     revert.Options
+	run    *backup.Run
+	cutoff time.Time // a lockout-risk plan's: the deadline less the margin
+	seqs   []int     // every backup the engine took, in order
+	undos  []Undo    // every change started, in order
+	// done are the indexes of the changes done (EventDone), in order;
+	// current is the one running, -1 between changes.
+	done    []int
+	current int
+	unj     *Unjournalled
+	res     Result
 }
 
 func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
-	a := &applier{e: e, p: p, ro: e.opts.Revert, res: Result{ID: p.ID, Risk: p.Risk}}
-	j := revert.Journal{ID: p.ID, Risk: revert.RiskOther, Summary: p.Summary(), Session: e.opts.Session}
-	if p.Risk == RiskLockout {
-		j.Risk, j.TimeoutSeconds, j.ConfirmVia = revert.RiskLockout, e.window(), confirmVia(p.Changes)
+	a := &applier{e: e, p: p, ro: e.opts.Revert, current: -1, res: Result{ID: p.ID, Risk: p.Risk}}
+	run, err := backup.Open(e.sys, e.opts.Backups, p.ID)
+	if err != nil {
+		return Result{Risk: p.Risk}, fmt.Errorf("engine: not applied: %w", err)
 	}
-	j, err := revert.Arm(ctx, e.sys, j, p.Facts.Init, a.ro)
+	a.run = run
+	j, err := revert.Arm(ctx, e.sys, e.journal(p), p.Facts.Init, a.ro)
 	if err != nil {
 		return Result{Risk: p.Risk}, fmt.Errorf("engine: not applied: %w", err)
 	}
 	a.j = j
+	if p.Risk == RiskLockout {
+		a.cutoff = j.Deadline().Add(-e.opts.Margin)
+	}
 	e.logf("change %s armed (%s, risk %v): %d changes", p.ID, j.Risk, p.Risk, len(p.Changes))
-	for _, c := range p.Changes {
-		if step, err := a.change(ctx, c); err != nil {
+	for i, c := range p.Changes {
+		if step, err := a.change(ctx, i, c); err != nil {
 			return a.fail(ctx, c.ID, step, err)
 		}
 	}
@@ -188,6 +279,9 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 		e.logf("change %s applied and done", p.ID)
 		return a.res, nil
 	}
+	if err := a.window(); err != nil {
+		return a.fail(ctx, "", StepWindow, err)
+	}
 	if a.j, err = revert.MarkApplied(ctx, e.sys, p.ID, a.ro); err != nil {
 		return a.fail(ctx, "", StepMarkApplied, err)
 	}
@@ -197,48 +291,91 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 	return a.res, nil
 }
 
-// change runs one change: backups, the write-ahead journal, Apply, the
+// window refuses to go on in the last Options.Margin of a lockout-risk
+// plan's window (ErrWindow): the rollback here must claim the change
+// before the timer's does.
+func (a *applier) window() error {
+	if a.cutoff.IsZero() {
+		return nil
+	}
+	if now := a.e.now(); !now.Before(a.cutoff) {
+		return fmt.Errorf("engine: %s left until the revert timer fires at %s, under the %s kept to roll back here: %w",
+			max(a.j.Deadline().Sub(now), 0).Round(time.Second), a.j.Deadline().Format(time.RFC3339), a.e.opts.Margin, ErrWindow)
+	}
+	return nil
+}
+
+// stepContext is ctx for a change's Apply: in a lockout-risk plan it ends
+// at the cutoff, by the engine's clock, with ErrWindow as its cause.
+func (a *applier) stepContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	if a.cutoff.IsZero() {
+		return context.WithCancel(ctx)
+	}
+	return context.WithTimeoutCause(ctx, a.cutoff.Sub(a.e.now()), ErrWindow)
+}
+
+// change runs change i: backups, the write-ahead journal, Apply, the
 // journal of what ran. It returns the step that failed.
-func (a *applier) change(ctx context.Context, c Change) (string, error) {
+func (a *applier) change(ctx context.Context, i int, c Change) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return StepStart, err
 	}
-	run := Run{ID: a.p.ID, Dir: filepath.Join(a.e.runRoot(), a.p.ID), Facts: a.p.Facts, Backups: map[string]backup.Entry{}}
+	if err := a.window(); err != nil {
+		return StepWindow, err
+	}
+	a.current = i
+	a.progress(Event{Index: i, Change: c.ID, State: EventRunning})
+	run := Run{ID: a.p.ID, Dir: filepath.Join(a.e.runRoot(), a.p.ID), Facts: a.p.Facts, Backups: map[string]backup.Entry{}, Store: a.run}
+	var entries []backup.Entry
 	for _, path := range c.Backups {
-		if a.run == nil {
-			r, err := backup.Open(a.e.sys, a.e.opts.Backups, a.p.ID)
-			if err != nil {
-				return StepBackup, err
-			}
-			a.run = r
-		}
 		r, err := a.run.Backup(ctx, path, backup.RollbackRequired)
 		if err != nil {
 			return StepBackup, err
 		}
 		a.seqs = append(a.seqs, r.Entry.Seq)
 		run.Backups[path] = r.Entry
+		entries = append(entries, r.Entry)
 	}
 	a.undos = append(a.undos, c.Rollback)
 	if err := a.record(ctx); err != nil {
 		return StepJournal, err
 	}
-	ran, err := applyOne(ctx, a.e.sys, c, run)
+	sctx, cancel := a.stepContext(ctx)
+	ran, err := applyOne(sctx, a.e.sys, c, run)
+	if err != nil && ctx.Err() == nil && errors.Is(context.Cause(sctx), ErrWindow) {
+		err = fmt.Errorf("%w (the step was stopped %s before the revert timer fires): %w", ErrWindow, a.e.opts.Margin, err)
+	}
+	cancel()
+	undo := c.Rollback
 	if ran.Rollback != nil {
-		a.undos[len(a.undos)-1] = *ran.Rollback
-		rctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), a.e.opts.JournalTimeout)
-		rerr := a.record(rctx)
-		cancel()
-		if rerr != nil {
-			return StepJournalAfter, errors.Join(err, rerr)
+		undo = *ran.Rollback
+		a.undos[len(a.undos)-1] = undo
+	}
+	rctx, rcancel := context.WithTimeout(context.WithoutCancel(ctx), a.e.opts.JournalTimeout)
+	rerr := a.record(rctx)
+	rcancel()
+	if rerr != nil {
+		taken := errors.Is(rerr, revert.ErrRollingBack) || errors.Is(rerr, revert.ErrNothingPending)
+		if ran.Rollback != nil || taken {
+			a.unj = &Unjournalled{Change: c.ID, Undo: undo, Backups: entries, Dir: a.run.Dir(), Err: rerr}
 		}
+		return StepJournalAfter, errors.Join(err, rerr)
 	}
 	if err != nil {
 		return StepApply, err
 	}
 	a.res.Applied = append(a.res.Applied, Applied{Change: c.ID, Detail: ran.Detail})
 	a.e.logf("change %s: %s done%s", a.p.ID, c.ID, detailWords(ran.Detail))
+	a.progress(Event{Index: i, Change: c.ID, State: EventDone, Detail: ran.Detail})
+	a.done, a.current = append(a.done, i), -1
 	return "", nil
+}
+
+// progress sends ev to Options.Progress, when set.
+func (a *applier) progress(ev Event) {
+	if f := a.e.opts.Progress; f != nil {
+		f(ev)
+	}
 }
 
 // applyOne runs c's Apply. A panic in it is a failed step, so the changes
@@ -276,6 +413,11 @@ func (a *applier) record(ctx context.Context) error {
 // reports Nothing, and the ApplyError is not ErrRolledBack but
 // revert.ErrRollingBack.
 func (a *applier) fail(ctx context.Context, change, step string, err error) (Result, error) {
+	ev := Event{Index: a.current, State: EventFailed, Step: step, Err: err}
+	if a.current >= 0 {
+		ev.Change = change
+	}
+	a.progress(ev)
 	a.e.logf("change %s: %s: %s failed: %v; rolling back while this session is open", a.p.ID, change, step, err)
 	ro := a.ro
 	ro.Reason = revert.ReasonFailed
@@ -287,7 +429,14 @@ func (a *applier) fail(ctx context.Context, change, step string, err error) (Res
 		// rollback, or the journal is gone.
 		rerr = fmt.Errorf("engine: nothing rolled back here: %s: %w", rr.Why, revert.ErrRollingBack)
 	}
-	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr}
+	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj}
+	if rerr == nil {
+		for k := len(a.done) - 1; k >= 0; k-- {
+			if c := a.p.Changes[a.done[k]]; a.unj == nil || c.ID != a.unj.Change {
+				a.progress(Event{Index: a.done[k], Change: c.ID, State: EventRolledBack})
+			}
+		}
+	}
 	a.res.Failed = fe
 	return a.res, fe
 }

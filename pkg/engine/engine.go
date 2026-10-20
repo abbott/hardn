@@ -7,14 +7,16 @@
 // which is the plan alone, shows every refusal. Apply carries a plan out
 // under confirm-or-revert (pkg/host/revert): one apply per host at a time
 // (a run lock), the plan made again under the lock and compared, the revert
-// timer armed first for a lockout-risk plan, every change journalled
-// write-ahead, and on the first failure, Ctrl-C or SIGTERM every change
-// started rolled back in reverse from the journal, with SIGHUP and SIGINT
-// held (package hold). A plan with nothing to change applies nothing.
+// timer armed first for a lockout-risk plan and the end of its window kept
+// for the rollback here, every change journalled write-ahead and again once
+// it ran, and on the first failure, Ctrl-C, SIGTERM or a hangup every
+// change started rolled back in reverse from the journal, with SIGHUP and
+// SIGINT held (package hold). A plan with nothing to change applies
+// nothing; a plan is applied once.
 //
-// The engine returns data and renders nothing: plans, statuses and results
-// are structs that p3-output and the slices render and wire into
-// cmd/hardn. It reaches the host only through host.System (depguard
+// The engine returns data and renders nothing: plans, statuses, results and
+// the progress of an apply (Options.Progress) are structs that p3-output and
+// the slices render and wire into cmd/hardn. It reaches the host only through host.System (depguard
 // engine-through-host).
 //
 // docs/engine/engine.md describes the guarantees, the facts they rely on and
@@ -25,6 +27,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"strings"
 	"time"
@@ -46,6 +49,15 @@ const LockName = "engine.lock"
 // written after Ctrl-C too.
 const DefaultJournalTimeout = 30 * time.Second
 
+// DefaultMargin is the end of a lockout-risk plan's confirm window that its
+// changes do not run into: a change's context ends that long before the
+// journal's deadline, and no change, nor MarkApplied, starts after then
+// (ErrWindow). It is what the rollback in this process needs to claim the
+// change before the timer's `hardn rollback <id>` does: host.Real.Run
+// waits up to 10 s for a cancelled command's pipes (system.md §2.5), then
+// the journal of what ran and the claim, a rename, follow.
+const DefaultMargin = 20 * time.Second
+
 // Errors, testable with errors.Is.
 var (
 	// ErrRefused: the plan has refusals (Plan.Refused); nothing is applied.
@@ -64,6 +76,18 @@ var (
 	// ErrRolledBack: an apply failed and every change it had made was
 	// rolled back (ApplyError, when its rollback finished).
 	ErrRolledBack = errors.New("rolled back")
+	// ErrPlanUsed: Apply was given a plan it had taken before. A plan is
+	// applied once (its id names one journal, one backup run and one
+	// timer); plan again.
+	ErrPlanUsed = errors.New("the plan was applied already; plan again")
+	// ErrWindow: a lockout-risk plan reached the last Options.Margin of
+	// its confirm window, so the engine stopped and rolled it back here,
+	// before the timer's rollback could race a change.
+	ErrWindow = errors.New("the confirm window is closing")
+	// ErrUnjournalled: a change ran whose undo the journal did not hold
+	// once it had run (ApplyError.Unjournalled), so the rollback may have
+	// left what it did.
+	ErrUnjournalled = errors.New("a change ran that the journal does not cover")
 )
 
 // Options configure an Engine. The zero value is production's, except for
@@ -95,6 +119,14 @@ type Options struct {
 	// JournalTimeout bounds a journal write after a step that ran; 0 is
 	// DefaultJournalTimeout.
 	JournalTimeout time.Duration
+	// Margin is the end of the confirm window no change runs into; 0 is
+	// DefaultMargin.
+	Margin time.Duration
+	// Progress, when set, receives each moment of an apply as it happens
+	// (Event), on Apply's goroutine and in order, for a caller that shows
+	// progress (pkg/ui/flow's Report). It must not block for long, nor
+	// call the engine.
+	Progress func(Event)
 }
 
 // Engine plans and applies controls' changes on one host.
@@ -116,6 +148,9 @@ func New(sys host.System, opts Options) *Engine {
 	}
 	if opts.JournalTimeout == 0 {
 		opts.JournalTimeout = DefaultJournalTimeout
+	}
+	if opts.Margin == 0 {
+		opts.Margin = DefaultMargin
 	}
 	if opts.Detect == nil {
 		opts.Detect = detect.Detect
@@ -166,6 +201,22 @@ func trustedDir(ctx context.Context, sys host.System, dir string) error {
 		}
 		if p == "/" {
 			return nil
+		}
+	}
+}
+
+// trustedAncestor is trustedDir for the deepest directory of dir's path
+// that exists, so that what Arm creates under it is root's alone: revert's
+// ReadState checks a journal directory that exists, and none that does
+// not.
+func trustedAncestor(ctx context.Context, sys host.System, dir string) error {
+	for p := dir; ; p = filepath.Dir(p) {
+		_, err := sys.Lstat(ctx, p)
+		switch {
+		case err == nil:
+			return trustedDir(ctx, sys, p)
+		case !errors.Is(err, fs.ErrNotExist) || p == "/":
+			return fmt.Errorf("engine: %w", err)
 		}
 	}
 }

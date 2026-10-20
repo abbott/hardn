@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"strings"
 	"testing"
 	"time"
@@ -220,10 +221,11 @@ func TestIncompleteRollback(t *testing.T) {
 	assertReleased(t, h, p.ID)
 }
 
-// TestRolledBackElsewhere: when another process has taken the change (the
-// user's `hardn rollback <id>` finished while the apply ran), the apply
-// stops before its next step and does not report the change as rolled
-// back by itself.
+// TestRolledBackElsewhere: when another process takes the change while a
+// step runs (the user's `hardn rollback <id>` finished meanwhile), the
+// journal written after the step finds it gone: the apply stops there, runs
+// nothing more, does not report the change as rolled back by itself, and
+// names the step that ran as one the journal no longer covered.
 func TestRolledBackElsewhere(t *testing.T) {
 	ctx := context.Background()
 	h := newHost(t)
@@ -243,11 +245,18 @@ func TestRolledBackElsewhere(t *testing.T) {
 	}
 	_, err = e.Apply(ctx, p)
 	var fe *ApplyError
-	if !errors.As(err, &fe) || errors.Is(err, ErrRolledBack) || !errors.Is(err, revert.ErrRollingBack) || !errors.Is(err, revert.ErrNothingPending) {
-		t.Fatalf("Apply: %v; want an ApplyError, not rolled back here, the journal gone", err)
+	if !errors.As(err, &fe) || errors.Is(err, ErrRolledBack) || !errors.Is(err, revert.ErrRollingBack) ||
+		!errors.Is(err, revert.ErrNothingPending) || !errors.Is(err, ErrUnjournalled) {
+		t.Fatalf("Apply: %v; want an ApplyError, not rolled back here, the journal gone, a step not covered", err)
 	}
-	if fe.Change != "example.port/next" || fe.Step != StepJournal || !fe.Rollback.Nothing {
+	if fe.Change != "example.port/allow" || fe.Step != StepJournalAfter || !fe.Rollback.Nothing {
 		t.Errorf("failed at %q %q, rollback %+v", fe.Change, fe.Step, fe.Rollback)
+	}
+	if u := fe.Unjournalled; u == nil || u.Change != "example.port/allow" || journalWords(revert.Journal{Undo: u.Undo.Steps}) != "undo [ufw delete allow 2230/tcp] backup []" {
+		t.Errorf("unjournalled %+v", fe.Unjournalled)
+	}
+	if !strings.Contains(err.Error(), "example.port/allow ran, and the journal does not hold what undoes it") || !strings.Contains(err.Error(), "ufw delete allow 2230/tcp") {
+		t.Errorf("error does not name what may be left: %v", err)
 	}
 	if strings.Contains(h.runs(p.ID), "example-tool") {
 		t.Error("the next change ran without its journal")
@@ -280,5 +289,44 @@ func TestDiff(t *testing.T) {
 	want := "--- ufw status (before)\n+++ ufw status (after)\n@@ -1 +1,2 @@\n-Status: inactive\n+Status: active\n+22/tcp ALLOW Anywhere\n"
 	if got != want {
 		t.Errorf("command:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+// TestLockRefuses: a run root another user can write since the plan, and a
+// lock file that is not one, stop Apply before the lock, with nothing
+// changed outside the run root; the plan is not spent, so once the host is
+// put right it applies.
+func TestLockRefuses(t *testing.T) {
+	ctx := context.Background()
+	for _, c := range []struct {
+		name        string
+		break_, fix func(h *testHost)
+		want        error
+	}{
+		{"a run root another user can write", func(h *testHost) { h.AddDir(runRoot, 0o777, 0, 0) },
+			func(h *testHost) { h.AddDir(runRoot, 0o700, 0, 0) }, revert.ErrUnsafe},
+		{"a lock file that is a directory", func(h *testHost) { h.AddDir(lockFile, 0o700, 0, 0) },
+			func(h *testHost) { _ = h.System.Remove(ctx, lockFile) }, fs.ErrInvalid},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			h := newHost(t)
+			e := New(h, testOptions(h, nil, nil, debian13))
+			p, err := e.Plan(ctx, []Control{&stub{id: "example.x", title: "X", changes: []Change{
+				command("example.x/run", StageFiles, RiskPlain, argv("example-tool"), nil)}}}, nil)
+			if err != nil || p.Err() != nil {
+				t.Fatal(err, p.Err())
+			}
+			c.break_(h)
+			if _, err := e.Apply(ctx, p); !errors.Is(err, c.want) || errors.Is(err, host.ErrLocked) || !strings.HasPrefix(err.Error(), "engine: run lock: ") {
+				t.Fatalf("Apply: %v, want the run lock refused with %v", err, c.want)
+			}
+			if got := h.changedOutside(runRoot); len(got) > 0 {
+				t.Errorf("changed outside %s: %q", runRoot, got)
+			}
+			c.fix(h)
+			if _, err := e.Apply(ctx, p); err != nil {
+				t.Errorf("Apply once put right: %v", err)
+			}
+		})
 	}
 }
