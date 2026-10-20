@@ -49,7 +49,7 @@ func TestNotices(t *testing.T) {
 		}},
 		{"an unfinished rollback", State{RollingBack: &rolling}, testNow, []NoticeKind{NoticeUnfinished}, []string{
 			"did not finish (started 2026-10-18 12:03:00 UTC, timeout)", "no other change can be applied until then",
-			"to give it up, leaving the host as it is, move /var/lib/hardn/rollback.json aside",
+			"to give it up, leaving the host as it is, run `sudo hardn rollback --abandon " + testID + "`.",
 		}},
 		{"rolled back by the timer", State{Reverted: &Outcome{SchemaVersion: SchemaVersion, ID: testID, Summary: j.Summary,
 			TimeoutSeconds: 180, Reason: ReasonTimeout, Finished: testNow.Add(3 * time.Minute)}}, testNow, []NoticeKind{NoticeReverted}, []string{

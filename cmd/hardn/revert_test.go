@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/netip"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"syscall"
 	"testing"
@@ -43,6 +45,13 @@ type revertSeams struct {
 
 func newRevertSeams(t *testing.T, euid int) *revertSeams {
 	t.Helper()
+	return newRevertSeamsWith(t, euid, nil)
+}
+
+// newRevertSeamsWith is newRevertSeams with record, when not nil, making
+// the journal the engine records (revert.Record) before the apply ends.
+func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) revert.Journal) *revertSeams {
+	t.Helper()
 	s := &revertSeams{f: hostfake.New(host.Options{}), exit: -1}
 	s.f.AddFile(revertTestHardn, []byte("ELF"), 0o755, 0, 0)
 	s.f.AddDir("/var/lib", 0o755, 0, 0)
@@ -53,8 +62,14 @@ func newRevertSeams(t *testing.T, euid int) *revertSeams {
 	j := revert.Journal{ID: revertTestID, Risk: revert.RiskLockout, TimeoutSeconds: 180, Summary: "SSH port 22 to 2230 on web-01.example.net",
 		Session: revert.Session{Remote: true, Conn: "192.0.2.10 50022 192.0.2.20 22"}}
 	clock := func() time.Time { return revertTestNow }
-	if _, err := revert.Arm(context.Background(), s.f, j, detect.Init{Kind: detect.Systemd, Running: detect.Yes}, revert.Options{Now: clock, Hardn: revertTestHardn}); err != nil {
+	j, err := revert.Arm(context.Background(), s.f, j, detect.Init{Kind: detect.Systemd, Running: detect.Yes}, revert.Options{Now: clock, Hardn: revertTestHardn})
+	if err != nil {
 		t.Fatal(err)
+	}
+	if record != nil {
+		if err := revert.Record(context.Background(), s.f, record(j), revert.Options{Now: clock, Plans: revertPlans}); err != nil {
+			t.Fatal(err)
+		}
 	}
 	// The apply finishes with the applying connection's sshd-session (3970)
 	// running; then alice connects again on 2230 (4100) and runs sudo
@@ -85,6 +100,7 @@ func newRevertSeams(t *testing.T, euid int) *revertSeams {
 	t.Cleanup(func() {
 		revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun = euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas
 		revertStderr, revertNoticeSeen, revertHoldSignals = stderrWas, seenWas, holdWas
+		rollbackAbandon = false // a flag's value outlives the run that set it
 		logging.SetSilentMode(false)
 		rootCmd.SetArgs(nil)
 	})
@@ -104,6 +120,21 @@ func revertProc(f *hostfake.System, pid, ppid int, comm string, env ...string) {
 func (s *revertSeams) has(name string) bool {
 	_, ok := s.f.Entry(name)
 	return ok
+}
+
+// output runs hardn with args, as executeHardn, and returns what it
+// printed through the legacy logger, without colour (the root command turns
+// it on); s.exit is reset first.
+func (s *revertSeams) output(t *testing.T, args ...string) string {
+	t.Helper()
+	var out bytes.Buffer
+	outWas := color.Output
+	color.Output = &out
+	logging.SetSilentMode(false)
+	defer func() { color.Output = outWas; logging.SetSilentMode(true) }()
+	s.exit = -1
+	executeHardn(t, args...)
+	return regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), "")
 }
 
 func executeHardn(t *testing.T, args ...string) {
@@ -177,6 +208,135 @@ func TestRevertCommandsRefuse(t *testing.T) {
 	rootCmd.SetArgs([]string{"confirm", "now"})
 	if err := rootCmd.Execute(); err == nil {
 		t.Error("confirm with an argument accepted")
+	}
+}
+
+// unfinishable is the journal of a change whose rollback can never finish:
+// its backup run directory is gone, so the rollback deletes ufw's rule,
+// cannot restore the backup and so does not reload ssh.
+func unfinishable(j revert.Journal) revert.Journal {
+	j.Backup = &revert.Backups{Dir: "/var/backups/hardn/" + j.ID, Seqs: []int{1}}
+	j.Undo = []revert.Step{{Op: revert.OpRun, Argv: []string{"ufw", "delete", "allow", "2230/tcp"}}}
+	j.Reload = []revert.Reload{{Service: revert.ReloadSSH, Keywords: []string{"Port"}, After: []revert.Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}}}
+	return j
+}
+
+// `hardn rollback --abandon <id>` (P-35 (a)) gives up an unfinished
+// rollback whose process has gone, says that the host stays as it is and
+// what was and was not undone, and keeps the record; it is refused while
+// the rollback runs, for another id, for an id that is not one, under -n
+// and for a user other than root, each changing nothing.
+func TestRevertAbandonCommand(t *testing.T) {
+	ctx := context.Background()
+	s := newRevertSeamsWith(t, 0, unfinishable)
+	s.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+	// The rollback runs as process 7000, which keeps running for now.
+	revertProc(s.f, 7000, 1, "hardn")
+	stat, _ := s.f.Entry("/proc/7000/stat")
+	s.f.AddFile("/proc/self/stat", stat.Data, 0o444, 0, 0)
+	s.f.AddFile("/proc/sys/kernel/random/boot_id", []byte("8e2a3c4d-1b2c-4d3e-8f40-0123456789ab\n"), 0o444, 0, 0)
+	rollbackJSON := revert.DefaultDir + "/" + revert.RollbackName
+	kept := revert.DefaultDir + "/" + revert.AbandonedName(revertTestID)
+
+	if out := s.output(t, "rollback", revertTestID); s.exit != 1 || !s.has(rollbackJSON) || !strings.Contains(out, "`sudo hardn rollback --abandon "+revertTestID+"`") {
+		t.Fatalf("rollback: exit %d, rollback.json %v; want 1, kept, naming the flag:\n%s", s.exit, s.has(rollbackJSON), out)
+	}
+	for _, tt := range []struct {
+		name string
+		euid int
+		args []string
+		exit int
+		says string
+		host bool // whether the host is reached at all
+	}{
+		{"while it runs", 0, []string{"rollback", "--abandon", revertTestID}, 1,
+			"process 7000 is rolling it back now (started 2026-10-18 12:00:00 UTC); wait for it to end", true},
+		{"as alice", 1000, []string{"rollback", "--abandon", revertTestID}, 1,
+			"hardn rollback --abandon must be run as root", false},
+		{"with -n", 0, []string{"rollback", "--abandon", "-n", revertTestID}, 2,
+			"-n only previews, and hardn rollback --abandon changes the host: run it without -n", false},
+		{"another change", 0, []string{"rollback", "--abandon", "20261018T130000Z-5e6f7a8b"}, 1,
+			"the unfinished rollback is of change " + revertTestID + ", not this one; finish it with `sudo hardn rollback " + revertTestID + "`", true},
+		{"not an id, the flag after it", 0, []string{"rollback", "../etc", "--abandon"}, 2, `revert: abandon "../etc": not a change id`, false},
+	} {
+		if tt.name == "as alice" {
+			// From here on, the rollback's process has gone.
+			if err := s.f.Remove(ctx, "/proc/7000/stat"); err != nil {
+				t.Fatal(err)
+			}
+		}
+		revertEUID = func() int { return tt.euid }
+		calls := len(s.f.Calls())
+		out := s.output(t, tt.args...)
+		if s.exit != tt.exit || !strings.Contains(out, "[ERROR] ") || !strings.Contains(out, tt.says) || !s.has(rollbackJSON) || s.has(kept) {
+			t.Errorf("%s: exit %d, want %d; rollback.json %v, abandoned %v; output:\n%s", tt.name, s.exit, tt.exit, s.has(rollbackJSON), s.has(kept), out)
+		}
+		for _, c := range s.f.Calls()[calls:] {
+			if !tt.host || c.Op == "rename" || c.Op == "run" || c.Op == "write-atomic" || c.Op == "remove" {
+				t.Errorf("%s: %s", tt.name, c)
+			}
+		}
+		dryRun = false
+	}
+	revertEUID = func() int { return 0 }
+	// Arguments are cobra's: an error, and nothing run.
+	rootCmd.SetArgs([]string{"rollback", "--abandon"})
+	if err := rootCmd.Execute(); err == nil || !s.has(rollbackJSON) {
+		t.Errorf("--abandon with no id: %v", err)
+	}
+	// The next run's notice names the flag.
+	s.stderr.Reset()
+	showRevertNotices(setupSudoEnvCmd, nil)
+	if !strings.Contains(s.stderr.String(), "to give it up, leaving the host as it is, run `sudo hardn rollback --abandon "+revertTestID+"`") {
+		t.Errorf("notice: %q", s.stderr.String())
+	}
+
+	out := s.output(t, "rollback", "--abandon", revertTestID)
+	if s.exit != -1 || s.has(rollbackJSON) || !s.has(kept) {
+		t.Fatalf("abandon: exit %d; rollback.json %v, abandoned %v\n%s", s.exit, s.has(rollbackJSON), s.has(kept), out)
+	}
+	for _, want := range []string{
+		"[SUCCESS] Gave up the rollback of change " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net).\n" +
+			"[WARNING] The host stays as the rollback left it: hardn will not undo what the rollback did not.\n" +
+			"[INFO] Undone by the rollback, by its record:\n" +
+			"[INFO]   - undo 1 of 1: ufw delete allow 2230/tcp\n" +
+			"[WARNING] Not undone, or not finished:\n" +
+			"[WARNING]   - restore the backups in /var/backups/hardn/" + revertTestID + " (entry 1)\n" +
+			"[WARNING]   - reload ssh (Port)\n" +
+			"[INFO] The rollback's record is kept in " + kept + ", and /var/log/hardn.log has what each of its steps did. New changes can be applied again.\n",
+		"revert: rollback " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net) abandoned: backups restored false, 1 of 1 undo steps and 0 of 1 reloads done; kept in " + kept,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("output lacks %q:\n%s", want, out)
+		}
+	}
+	if s.held != 1 {
+		t.Errorf("signals held %d times; want once, by the rollback alone", s.held)
+	}
+
+	// Nothing is left to give up, and nothing left to roll back.
+	if out := s.output(t, "rollback", "--abandon", revertTestID); s.exit != 1 || !strings.Contains(out, "abandoned already, and its record is kept in "+kept) {
+		t.Errorf("abandon again: exit %d, want 1:\n%s", s.exit, out)
+	}
+	rollbackAbandon = false
+	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "Nothing to roll back for "+revertTestID) {
+		t.Errorf("rollback after abandon: exit %d, want none:\n%s", s.exit, out)
+	}
+}
+
+// A rollback claimed and stopped before it recorded any progress is given
+// up too, and the report says that it may have done more than it shows.
+func TestRevertAbandonNoProgress(t *testing.T) {
+	s := newRevertSeams(t, 0)
+	if err := s.f.Rename(context.Background(), revert.DefaultDir+"/"+revert.PendingName, revert.DefaultDir+"/"+revert.RollbackName); err != nil {
+		t.Fatal(err)
+	}
+	text := s.output(t, "rollback", "--abandon", revertTestID)
+	want := "[WARNING] The rollback stopped before it recorded its progress, so it may have done more than its record shows.\n" +
+		"[INFO] Undone by the rollback, by its record:\n[INFO]   - nothing\n" +
+		"[WARNING] Not undone, or not finished:\n[WARNING]   - nothing\n"
+	if s.exit != -1 || !s.has(revert.DefaultDir+"/"+revert.AbandonedName(revertTestID)) || !strings.Contains(text, want) {
+		t.Errorf("exit %d; output:\n%s", s.exit, text)
 	}
 }
 
