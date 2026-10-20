@@ -120,7 +120,8 @@ func (v *vm) changingSince(from int) []string {
 // revert timer of its own, on Debian's ssh.service, Ubuntu's ssh.socket
 // and Alpine's OpenRC; port 22 is then gone from sshd -T, from what sshd
 // binds, and from ufw where hardn put it there. A second hardn confirm
-// finds nothing pending and nothing left to clean up.
+// finds nothing pending and nothing left in 00-hardn.conf, and runs
+// nothing; a console's, after it, says nothing of port 22.
 func TestConfirmCleanup(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
@@ -197,10 +198,19 @@ func TestConfirmCleanup(t *testing.T) {
 			if r := h.Report(o); len(r.Done) == 0 || r.Finish != "" || len(r.Left) > 0 || !strings.Contains(r.Done[0], "Port 22, which change "+j.ID) {
 				t.Errorf("Report = %+v", r)
 			}
-			// hardn confirm again: nothing pending, nothing left to clean up.
-			h, err, o = v.confirmNow(v.f, tc.facts, confirmingSession())
-			if !errors.Is(err, revert.ErrNothingPending) || !h.Finishing || !o.Done() || !o.Result.Nothing {
-				t.Errorf("confirm again: %+v, %v, %+v; want nothing pending and nothing to clean up", h, err, o)
+			// hardn confirm again, from SSH and from a console: nothing
+			// pending, nothing left to clean up, nothing run.
+			for _, s := range []revert.Session{confirmingSession(), {Source: "login"}} {
+				from = len(v.f.Calls())
+				h, err, o = v.confirmNow(v.f, tc.facts, s)
+				if !errors.Is(err, revert.ErrNothingPending) || h.Finishing || h.Holds() || o.Plan != nil || len(h.Report(o).Left) > 0 {
+					t.Errorf("confirm again from %s: %+v, %v, %+v; want nothing pending and nothing to clean up", s.Source, h, err, o)
+				}
+				for _, c := range v.f.Calls()[from:] {
+					if c.Op == "run" || c.Op == "start-detached" {
+						t.Errorf("confirm again from %s ran %s", s.Source, c)
+					}
+				}
 			}
 		})
 	}
@@ -242,33 +252,57 @@ func (f failWrite) WriteFileAtomic(ctx context.Context, name string, data []byte
 	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
+// failOnce fails cmd the first time it runs, then answers it as v (and
+// v's hook before this one) does.
+func failOnce(v *vm, cmd string) {
+	prev, failed := v.hook, false
+	v.hook = func(c string) (hostfake.Response, bool) {
+		if c == cmd && !failed {
+			failed = true
+			return hostfake.Response{Stderr: "fixture: " + cmd + " failed\n", ExitCode: 1}, true
+		}
+		if prev != nil {
+			return prev(c)
+		}
+		return hostfake.Response{}, false
+	}
+}
+
 // TestConfirmCleanupFails: a clean-up step that fails (ufw's delete, the
-// write of 00-hardn.conf, the reload, the check after it) is rolled back in
-// this process, signals held: port 22 is held again, as before the
-// clean-up, its ufw rule back, its journal gone; the confirmation stands
-// (confirmed.json). The report says what is still open and how to finish
-// it; the next hardn confirm, once the cause is gone, finishes it.
+// write of 00-hardn.conf, the reload, the check after it on Debian's
+// ssh.service; the restart of Ubuntu's ssh.socket; OpenRC's reload on
+// Alpine) is rolled back in this process, signals held: port 22 is held
+// again, as before the clean-up, its ufw rule back, its journal gone; the
+// confirmation stands (confirmed.json). The report says what is still open
+// and how to finish it, by hand as sshd is started there; the next hardn
+// confirm, once the cause is gone, finishes it.
 func TestConfirmCleanupFails(t *testing.T) {
+	debianHand := "`sudo systemctl reload ssh.service`, and `sudo ufw delete allow 22/tcp`"
 	for _, tc := range []struct {
 		name  string
+		vm    func(*testing.T) *vm
+		setup func(*vm)
+		facts detect.Facts
 		fail  func(v *vm) (sys host.System, fix func())
 		step  string
-		cause error // the step's error matches it, when set
+		cause error    // the step's error matches it, when set
+		hand  []string // in the report's Finish
+		ufw   []uint16 // ufw's rules once finished
 	}{
-		{"ufw's delete", func(v *vm) (host.System, func()) {
+		{"ufw's delete", newVM, inactiveUFW, debian13, func(v *vm) (host.System, func()) {
 			v.hook = func(cmd string) (hostfake.Response, bool) {
 				return hostfake.Response{Stderr: "ERROR: fixture\n", ExitCode: 1}, cmd == "ufw delete allow 22/tcp"
 			}
 			return v.f, func() { v.hook = nil }
-		}, "ssh.cleanup/firewall", nil},
-		{"the write of 00-hardn.conf", func(v *vm) (host.System, func()) {
+		}, "ssh.cleanup/firewall", nil, []string{debianHand}, []uint16{2230}},
+		{"the write of 00-hardn.conf", newVM, inactiveUFW, debian13, func(v *vm) (host.System, func()) {
 			return failWrite{v.f, sshd.HardnDropIn}, func() {}
-		}, "ssh.cleanup/files", nil},
-		{"the reload", func(v *vm) (host.System, func()) {
+		}, "ssh.cleanup/files", nil, []string{debianHand}, []uint16{2230}},
+		{"the reload", newVM, inactiveUFW, debian13, func(v *vm) (host.System, func()) {
 			v.failReloads = 1
 			return v.f, func() {}
-		}, "ssh.cleanup/reload", nil},
-		{"the check after the reload: sshd -T still shows 22", func(v *vm) (host.System, func()) {
+		}, "ssh.cleanup/reload", nil, []string{debianHand}, []uint16{2230}},
+		{"the check after the reload: sshd -T still shows 22", newVM, inactiveUFW, debian13, func(v *vm) (host.System, func()) {
 			v.hook = func(cmd string) (hostfake.Response, bool) {
 				if cmd == "systemctl reload ssh.service" {
 					v.stale = true // sshd did not reread 00-hardn.conf
@@ -276,15 +310,38 @@ func TestConfirmCleanupFails(t *testing.T) {
 				return hostfake.Response{}, false
 			}
 			return v.f, func() { v.hook, v.stale = nil, false }
-		}, "ssh.cleanup/verify", steps.ErrNotInEffect},
+		}, "ssh.cleanup/verify", steps.ErrNotInEffect, []string{debianHand}, []uint16{2230}},
+		{"Ubuntu 26.04: the restart of ssh.socket", socketVM, func(v *vm) {
+			inactiveUFW(v)
+			v.f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0) // the rollback detects the SSH facts again
+		}, ubuntu2604(), func(v *vm) (host.System, func()) {
+			failOnce(v, "systemctl restart ssh.socket")
+			return v.f, func() {}
+		}, "ssh.cleanup/reload", nil, []string{"`sudo systemctl daemon-reload` and `sudo systemctl restart ssh.socket`, and `sudo ufw delete allow 22/tcp`"}, []uint16{2230}},
+		{"Alpine 3.24: OpenRC's reload", newVM, func(v *vm) {
+			// OpenRC's alone, with sshd's script: the rollback detects how
+			// sshd is started again.
+			noUFW(v)
+			if err := v.f.RemoveAll(context.Background(), detect.SystemdRunDir); err != nil {
+				t.Fatal(err)
+			}
+			v.f.AddFile(detect.OpenRCSSHD, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
+		}, alpine324(), func(v *vm) (host.System, func()) {
+			failOnce(v, "rc-service sshd reload")
+			return v.f, func() {}
+		}, "ssh.cleanup/reload", nil, []string{"`doas hardn confirm` again", "`doas sshd -t`, then `doas rc-service sshd reload`."}, []uint16{22}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			v := newVM(t)
-			inactiveUFW(v)
-			j := v.port2230(debian13, "--ufw", "enable")
+			v := tc.vm(t)
+			tc.setup(v)
+			var args []string
+			if tc.facts.SSH.Mode != detect.SSHOpenRC {
+				args = []string{"--ufw", "enable"}
+			}
+			j := v.port2230(tc.facts, args...)
 			before, allowed := v.dropIn(), slices.Clone(v.allowed)
 			sys, fix := tc.fail(v)
-			h, err, o := v.confirmNow(sys, debian13, confirmingSession())
+			h, err, o := v.confirmNow(sys, tc.facts, confirmingSession())
 			if err != nil || h.Confirmed == nil {
 				t.Fatalf("Claim = %+v, %v; want confirmed", h, err)
 			}
@@ -310,18 +367,22 @@ func TestConfirmCleanupFails(t *testing.T) {
 			}
 			r := h.Report(o)
 			if len(r.Left) != 1 || !strings.Contains(r.Left[0], "Port 22, which change "+j.ID+" held during its confirm window, is still open") ||
-				!strings.Contains(r.Finish, "`sudo hardn confirm` again from a new SSH connection to port 2230") ||
-				!strings.Contains(r.Finish, "delete the `Port 22` line from "+sshd.HardnDropIn) ||
-				!strings.Contains(r.Finish, "`sudo systemctl reload ssh.service`, and `sudo ufw delete allow 22/tcp`") {
+				!strings.Contains(r.Finish, "hardn confirm` again from a new SSH connection to port 2230") ||
+				!strings.Contains(r.Finish, "delete the `Port 22` line from "+sshd.HardnDropIn) {
 				t.Errorf("Report = %+v", r)
+			}
+			for _, w := range tc.hand {
+				if !strings.Contains(r.Finish, w) {
+					t.Errorf("no %q in the report's Finish %q", w, r.Finish)
+				}
 			}
 			// The cause gone, hardn confirm again finishes it.
 			fix()
-			h, err, o = v.confirmNow(v.f, debian13, confirmingSession())
+			h, err, o = v.confirmNow(v.f, tc.facts, confirmingSession())
 			if !errors.Is(err, revert.ErrNothingPending) || !h.Finishing || !h.Run() || !o.Done() || o.Result.Nothing {
 				t.Fatalf("confirm again: %+v, %v, %+v; want the clean-up finished", h, err, o)
 			}
-			if v.directives() != "Port 2230" || !slices.Equal(v.allowed, []uint16{2230}) {
+			if v.directives() != "Port 2230" || !slices.Equal(v.allowed, tc.ufw) {
 				t.Errorf("finished: 00-hardn.conf %q, ufw %v", v.directives(), v.allowed)
 			}
 		})
@@ -330,9 +391,10 @@ func TestConfirmCleanupFails(t *testing.T) {
 
 // TestConfirmCleanupRefused: every refusal PlanCleanup has is kept, before
 // anything changes, and the confirmation stands: a Port line in
-// sshd_config, which hardn does not edit; a clean-up that would leave sshd
-// no port; Proxmox VE's port 22; a session not on a port the clean-up
-// keeps.
+// sshd_config, which hardn does not edit (the report says how to finish it
+// by hand); a clean-up that would leave sshd no port, and Proxmox VE's port
+// 22 (the port stays: no way to drop it given); a session not on a port
+// the clean-up keeps (hardn confirm from one that is, not by hand).
 func TestConfirmCleanupRefused(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
@@ -340,18 +402,21 @@ func TestConfirmCleanupRefused(t *testing.T) {
 		after   func(v *vm, h *confirm.Held, s *revert.Session) // after the claim, before the clean-up
 		facts   detect.Facts                                    // the clean-up's
 		refused error
+		left    string // in the report's Left
+		finish  string // in its Finish; "": none
 	}{
 		{"Port 22 in sshd_config", func(v *vm) {
 			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"Port 22\n"), 0o644, 0, 0)
 			v.boot()
-		}, nil, debian13, steps.ErrNoWriteStrategy},
+		}, nil, debian13, steps.ErrNoWriteStrategy, "is still open: the `Port 22` line stays in", "or by hand: delete the `Port 22` line"},
 		{"no port left: 2230 taken out of 00-hardn.conf by hand", nil, func(v *vm, _ *confirm.Held, _ *revert.Session) {
 			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by p2drive:\nPort 22\n"), 0o644, 0, 0)
-		}, debian13, reload.ErrDropsListener},
-		{"Proxmox VE's port 22", nil, nil, proxmox9(), pve.ErrPortChange},
+		}, debian13, reload.ErrDropsListener, "stays open: sshd is configured for no other port now", ""},
+		{"Proxmox VE's port 22", nil, nil, proxmox9(), pve.ErrPortChange, "stays open: on Proxmox VE the SSH port stays 22", ""},
 		{"a session on the port the clean-up drops", nil, func(_ *vm, h *confirm.Held, s *revert.Session) {
 			s.Conn = "192.0.2.10 50123 192.0.2.20 22"
-		}, debian13, steps.ErrSessionNotKept},
+		}, debian13, steps.ErrSessionNotKept, "stays open: this session is not connected to a port the clean-up keeps",
+			"Run `sudo hardn confirm` again from a new SSH connection to port 2230, made from another machine."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -380,7 +445,9 @@ func TestConfirmCleanupRefused(t *testing.T) {
 			if c := v.journal(revert.ConfirmedName); c.ID != j.ID {
 				t.Errorf("confirmed.json %s: the confirmation stands", c.ID)
 			}
-			if r := h.Report(o); len(r.Left) != 1 || !strings.Contains(r.Finish, "or by hand: delete the `Port 22` line") {
+			r := h.Report(o)
+			if len(r.Left) != 1 || !strings.Contains(r.Left[0], tc.left) || (tc.finish == "") != (r.Finish == "") || !strings.Contains(r.Finish, tc.finish) ||
+				tc.refused != steps.ErrNoWriteStrategy && strings.Contains(r.Finish, "delete the `Port 22` line") {
 				t.Errorf("Report = %+v", r)
 			}
 		})
@@ -446,5 +513,169 @@ func TestConfirmCrashAfterClaim(t *testing.T) {
 	}
 	if _, err := ufw.Read(ctx, v.f, debian13.Proxmox); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// consoleConfirmed is v after the 2230 change, made with --ufw enable from
+// no rules (so hardn added 22's rule), confirmed at a console: port 22
+// stays held, by design, recorded in confirmed.json alone.
+func consoleConfirmed(t *testing.T) (*vm, revert.Journal) {
+	t.Helper()
+	v := newVM(t)
+	inactiveUFW(v)
+	a := v.port2230(debian13, "--ufw", "enable")
+	if h, err, o := v.confirmNow(v.f, debian13, revert.Session{Source: "login"}); err != nil || !h.Console || h.Run() || o.Plan != nil {
+		t.Fatalf("console confirm = %+v, %v, %+v", h, err, o)
+	}
+	return v, a
+}
+
+// TestConfirmCarried: the 2230 change's clean-up is left (confirmed at a
+// console), then keyonly, which holds no port, is applied. Its claim
+// replaces the 2230 change's record in confirmed.json, so hardn confirm
+// takes that clean-up over: from a new connection to 2230 it runs (22
+// dropped, hardn's rule for it deleted), and no later hardn confirm has
+// anything left; from a console, or from a connection to 22 (keyonly may
+// be confirmed there, the 2230 change may not), it is not run, and the
+// report says what stays and how to finish it by hand, since no later
+// hardn confirm finds it. A port change after it holds 22 itself, and its
+// clean-up deletes the rules hardn added for 22 and 2230 with the 2230
+// change.
+func TestConfirmCarried(t *testing.T) {
+	ctx := context.Background()
+	keyonly := func(t *testing.T, v *vm) revert.Journal {
+		t.Helper()
+		if code, out, errOut := v.do(ctx, debian13, "keyonly", "--hardn", testHardn); code != 0 {
+			t.Fatalf("p2drive keyonly: exit %d; %s %s", code, errOut, out)
+		}
+		return v.journal(revert.PendingName)
+	}
+	t.Run("keyonly confirmed from a new connection to 2230", func(t *testing.T) {
+		v, a := consoleConfirmed(t)
+		b := keyonly(t, v)
+		h, err, o := v.confirmNow(v.f, debian13, confirmingSession())
+		if err != nil || !h.Carried || !h.Run() || h.Change.ID != a.ID || h.Confirmed.Journal.ID != b.ID || !slices.Equal(h.Cleanup.Drop, []uint16{22}) {
+			t.Fatalf("Claim = %+v, %v; want keyonly confirmed and the 2230 change's clean-up carried", h, err)
+		}
+		if !o.Done() || o.Result.Nothing {
+			t.Fatalf("Cleanup = %+v, %v", o, o.Err)
+		}
+		if d := v.directives(); !strings.HasPrefix(d, "Port 2230\n") || strings.Contains(d, "Port 22\n") || !slices.Equal(v.allowed, []uint16{2230}) ||
+			!sameStrings(v.bound, []string{"[::]:2230", "0.0.0.0:2230"}) {
+			t.Errorf("00-hardn.conf %q, ufw %v, sshd on %v; want 22 gone", d, v.allowed, v.bound)
+		}
+		if c := v.journal(revert.ConfirmedName); c.ID != b.ID {
+			t.Errorf("confirmed.json %s, want keyonly's %s", c.ID, b.ID)
+		}
+		if r := h.Report(o); len(r.Done) != 2 || !strings.Contains(r.Done[0], "Port 22, which change "+a.ID+", confirmed before change "+b.ID) ||
+			!strings.Contains(r.Done[1], "ufw's rule for 22/tcp, which hardn added, is deleted") {
+			t.Errorf("Report = %+v", r)
+		}
+		h, err, o = v.confirmNow(v.f, debian13, confirmingSession())
+		if !errors.Is(err, revert.ErrNothingPending) || h.Holds() || o.Plan != nil {
+			t.Errorf("confirm again: %+v, %v, %+v; want nothing pending and nothing left", h, err, o)
+		}
+	})
+	for _, tc := range []struct {
+		name    string
+		s       revert.Session
+		refused error // nil: a console
+	}{
+		{"keyonly confirmed at a console", revert.Session{Source: "login"}, nil},
+		{"keyonly confirmed from a new connection to 22", revert.Session{Remote: true, Conn: "192.0.2.10 50124 192.0.2.20 22",
+			SSHD: revert.ProcStart{PID: 4200, Start: 420000}, Source: "SSH_CONNECTION"}, revert.ErrWrongListener},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			v, a := consoleConfirmed(t)
+			b := keyonly(t, v)
+			from := len(v.f.Calls())
+			h, err, o := v.confirmNow(v.f, debian13, tc.s)
+			if err != nil || !h.Carried || h.Run() || h.Change.ID != a.ID || h.Console != (tc.refused == nil) || tc.refused != nil && !errors.Is(h.Refused, tc.refused) || o.Plan != nil {
+				t.Fatalf("Claim = %+v, %v; Cleanup %+v: want keyonly confirmed, the 2230 change's clean-up not run here", h, err, o)
+			}
+			if ch := slices.DeleteFunc(v.hostChangesSince(from), func(c string) bool {
+				return strings.Contains(c, revert.DefaultDir) || strings.Contains(c, "systemctl stop")
+			}); len(ch) > 0 {
+				t.Errorf("changed: %q", ch)
+			}
+			if v.journal(revert.ConfirmedName).ID != b.ID || !strings.Contains(v.directives(), "Port 22\n") {
+				t.Errorf("confirmed.json %s, 00-hardn.conf %q", v.journal(revert.ConfirmedName).ID, v.directives())
+			}
+			r := h.Report(o)
+			if len(r.Left) != 1 || !strings.Contains(r.Left[0], "now that change "+b.ID+" is the last one confirmed, `hardn confirm` no longer finds it") ||
+				!strings.Contains(r.Finish, "from a new SSH connection to port 2230, made from another machine, by hand: delete the `Port 22` line") ||
+				!strings.Contains(r.Finish, "`sudo ufw delete allow 22/tcp`") || strings.Contains(r.Finish, "hardn confirm") {
+				t.Errorf("Report = %+v", r)
+			}
+		})
+	}
+	t.Run("a port change after it", func(t *testing.T) {
+		v, a := consoleConfirmed(t)
+		if code, out, errOut := v.do(ctx, debian13, "port", "--port", "2240", "--hardn", testHardn); code != 0 {
+			t.Fatalf("p2drive port 2240: exit %d; %s %s", code, errOut, out)
+		}
+		b := v.journal(revert.PendingName)
+		s := revert.Session{Remote: true, Conn: "192.0.2.10 50125 192.0.2.20 2240", SSHD: revert.ProcStart{PID: 4300, Start: 430000}, Source: "SSH_CONNECTION"}
+		h, err, o := v.confirmNow(v.f, debian13, s)
+		if err != nil || h.Carried || !h.Run() || h.Change.ID != b.ID || !slices.Equal(h.Cleanup.Drop, []uint16{22, 2230}) {
+			t.Fatalf("Claim = %+v, %v; want the 2240 change, holding 22 and 2230", h, err)
+		}
+		if !o.Done() || o.Result.Nothing {
+			t.Fatalf("Cleanup = %+v, %v", o, o.Err)
+		}
+		if v.directives() != "Port 2240" || !slices.Equal(v.allowed, []uint16{2240}) || !sameStrings(v.bound, []string{"[::]:2240", "0.0.0.0:2240"}) {
+			t.Errorf("00-hardn.conf %q, ufw %v, sshd on %v; want 2240 alone, hardn's rules for 22 and 2230 (change %s's) deleted", v.directives(), v.allowed, v.bound, a.ID)
+		}
+		if r := h.Report(o); len(r.Done) != 2 || !strings.Contains(r.Done[1], "ufw's rules for 22/tcp and 2230/tcp, which hardn added, are deleted") {
+			t.Errorf("Report = %+v", r)
+		}
+	})
+}
+
+// lockFirst runs first once, just before the engine takes the run lock.
+type lockFirst struct {
+	host.System
+	first func()
+}
+
+func (l *lockFirst) Lock(ctx context.Context, name string, holder []byte) (func() error, error) {
+	if f := l.first; f != nil {
+		l.first = nil
+		f()
+	}
+	return l.System.Lock(ctx, name, holder)
+}
+
+// TestConfirmConcurrent: two hardn confirm from two new connections to
+// 2230, the second finding nothing pending and 22 still in 00-hardn.conf
+// (Finishing), and planning before the first applies: the second's apply
+// finds the host changed, and its report does not say that 22 is still
+// open, which the first has dropped, but that whether it is open is not
+// established.
+func TestConfirmConcurrent(t *testing.T) {
+	ctx := context.Background()
+	v := newVM(t)
+	inactiveUFW(v)
+	v.port2230(debian13, "--ufw", "enable")
+	var log bytes.Buffer
+	ro, co := v.confirmOptions(debian13, &log)
+	s1 := confirmingSession()
+	s2 := revert.Session{Remote: true, Conn: "192.0.2.11 50200 192.0.2.20 2230", SSHD: revert.ProcStart{PID: 4300, Start: 430000}, Source: "SSH_CONNECTION"}
+	h1, err := confirm.Claim(ctx, v.f, s1, ro)
+	if err != nil || !h1.Run() {
+		t.Fatalf("first claim: %+v, %v", h1, err)
+	}
+	h2, err := confirm.Claim(ctx, v.f, s2, ro)
+	if !errors.Is(err, revert.ErrNothingPending) || !h2.Finishing || !h2.Run() {
+		t.Fatalf("second claim: %+v, %v", h2, err)
+	}
+	var o1 confirm.Outcome
+	o2 := confirm.Cleanup(ctx, &lockFirst{System: v.f, first: func() { o1 = confirm.Cleanup(ctx, v.f, h1, s1, co) }}, h2, s2, co)
+	if !o1.Done() || !errors.Is(o2.Err, engine.ErrPlanChanged) || v.directives() != "Port 2230" {
+		t.Fatalf("first %+v, second %v; 00-hardn.conf %q", o1, o2.Err, v.directives())
+	}
+	if r := h2.Report(o2); len(r.Left) != 1 || !strings.Contains(r.Left[0], "whether it is still open is not established") || strings.Contains(r.Left[0], "is still open:") ||
+		!strings.Contains(r.Finish, "If `sudo sshd -T` still shows port 22") {
+		t.Errorf("second Report = %+v", r)
 	}
 }

@@ -21,13 +21,17 @@
 //
 // A crash between the claim and the clean-up leaves the held port recorded
 // in confirmed.json alone. Claim, finding nothing pending, reads it there
-// and finishes the clean-up (Held.Finishing), from a session that could
-// have confirmed that change; once the port is gone the clean-up plans
-// nothing.
+// and, while 00-hardn.conf still has its Port line, finishes the clean-up
+// (Held.Finishing), from a session that could have confirmed that change.
+// The claim of the next change renames its journal over confirmed.json, so
+// Claim reads the record first: when that change held no port of its own,
+// the clean-up left by the one before it is this run's (Held.Carried).
 //
 // The package reaches the host only through host.System (depguard
-// confirm-through-host) and renders nothing: cmd/hardn renders its results
-// through pkg/output. docs/engine/confirm-cleanup.md describes the
+// confirm-through-host) and renders nothing: Held.Report says in words what
+// the clean-up did and left, as the engine's summaries and errors are
+// words, and cmd/hardn renders the run through pkg/output and the report
+// through pkg/ui. docs/engine/confirm-cleanup.md describes the
 // guarantees, the facts they rely on and what is written but not yet run on
 // a Linux host.
 package confirm
@@ -36,8 +40,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"slices"
+	"strconv"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -45,6 +51,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
 // ControlID is the clean-up's control, and the prefix of its changes' ids
@@ -55,25 +62,33 @@ const ControlID = "ssh.cleanup"
 // nothing pending, of the last change confirmed: what the change held
 // during its confirm window, and whether this session cleans it up (Run).
 type Held struct {
-	// Confirmed is revert.Confirm's result when this run confirmed the
+	// Confirmed is revert.Confirm's result when this run confirmed a
 	// change; nil when nothing was pending (Finishing).
 	Confirmed *revert.ConfirmResult
-	// Change is the change whose clean-up this is: the one confirmed now,
-	// or, Finishing, the last one confirmed (confirmed.json).
+	// Change is the change whose clean-up this is: the one confirmed now;
+	// Finishing, the last one confirmed (confirmed.json); Carried, the one
+	// confirmed before Confirmed's.
 	Change revert.Journal
 	// Finishing: nothing was pending, and the last change confirmed still
-	// records a port it held (a crash between the claim and the clean-up,
-	// or a clean-up that did not finish).
+	// has a port it held in 00-hardn.conf (a crash between the claim and
+	// the clean-up, a clean-up that did not finish, or a console's
+	// confirmation).
 	Finishing bool
+	// Carried: the change confirmed now held no port, and the one
+	// confirmed before it, whose record in confirmed.json this claim
+	// replaced, still has a port it held in 00-hardn.conf. No later
+	// `hardn confirm` finds that port, so its clean-up is this one.
+	Carried bool
 	// Cleanup is what the change held (steps.CleanupOf); no Drop: nothing,
-	// and confirm behaves as before the clean-up existed.
+	// and confirm behaves as before the clean-up existed. Finishing or
+	// Carried, Drop has only the ports 00-hardn.conf still has.
 	Cleanup steps.Cleanup
 	// Console: the session is a console, not SSH (the local-console
 	// exception), so the clean-up is left for a new SSH connection to the
 	// new port.
 	Console bool
-	// Refused is why this session may not finish the clean-up, Finishing:
-	// revert.CheckConfirm's refusal over the confirmed change's journal.
+	// Refused is why this session may not finish the clean-up, Finishing
+	// or Carried: revert.CheckConfirm's refusal over Change's journal.
 	Refused error
 }
 
@@ -85,38 +100,101 @@ func (h Held) Run() bool { return h.Holds() && !h.Console && h.Refused == nil }
 
 // Claim is `hardn confirm`'s claim: revert.Confirm from session s, and what
 // the change confirmed held (steps.CleanupOf). Its error is revert.Confirm's,
-// the confirmation's: when it is that nothing is pending
-// (*revert.NotPendingError), and the last change confirmed (confirmed.json)
-// still records a held port, Held says so (Finishing), and whether this
-// session may finish its clean-up: revert.CheckConfirm over that journal,
-// over SSH (Run; Refused or Console otherwise). Claim reads the host only
-// through revert; the clean-up is Cleanup's.
+// the confirmation's. confirmed.json is read first, since the claim renames
+// the journal over it: when the change confirmed held no port, and the one
+// confirmed before it still has one in 00-hardn.conf, the clean-up is that
+// change's (Carried); when it held ports, the ufw rules the one before it
+// added are added to its clean-up's (they are deleted only for a port it
+// drops). When nothing is pending (*revert.NotPendingError), and the last
+// change confirmed still has a held port in 00-hardn.conf, Held says so
+// (Finishing). Carried or Finishing, the session runs the clean-up only when
+// it could have confirmed that change: revert.CheckConfirm over its
+// journal, over SSH (Run; Refused or Console otherwise). Claim reads the
+// host through revert and reads 00-hardn.conf; the clean-up is Cleanup's.
 func Claim(ctx context.Context, sys host.System, s revert.Session, opts revert.Options) (Held, error) {
+	before, berr := revert.ReadConfirmed(ctx, sys, opts)
 	res, err := revert.Confirm(ctx, sys, s, opts)
-	if err == nil {
-		return Held{Confirmed: &res, Change: res.Journal, Cleanup: steps.CleanupOf(res.Journal), Console: res.Local}, nil
-	}
 	var np *revert.NotPendingError
-	if !errors.As(err, &np) {
+	if err != nil && !errors.As(err, &np) {
 		return Held{}, err
 	}
-	j, rerr := revert.ReadConfirmed(ctx, sys, opts)
-	if rerr != nil {
-		logf(opts, "confirm: the last change confirmed cannot be read, so whether its clean-up is left cannot be told: %v", rerr)
+	if berr != nil {
+		logf(opts, "confirm: the last change confirmed cannot be read, so whether its clean-up is left cannot be told: %v", berr)
+		before = nil
+	}
+	if err == nil {
+		h := Held{Confirmed: &res, Change: res.Journal, Cleanup: steps.CleanupOf(res.Journal), Console: res.Local}
+		if before != nil && before.ID != res.Journal.ID {
+			h = h.carry(ctx, sys, *before, s)
+		}
+		return h, nil
+	}
+	if before == nil {
 		return Held{}, err
 	}
-	if j == nil {
+	h := Held{Change: *before, Finishing: true, Cleanup: steps.CleanupOf(*before)}
+	if h.Cleanup.Drop = stillHeld(ctx, sys, h.Cleanup.Drop); !h.Holds() {
 		return Held{}, err
 	}
-	h := Held{Change: *j, Finishing: true, Cleanup: steps.CleanupOf(*j)}
-	if !h.Holds() {
-		return Held{}, err
-	}
-	h.Console, h.Refused = revert.CheckConfirm(*j, s)
-	if h.Run() {
-		logf(opts, "confirm: nothing is pending; change %s (%s), the last confirmed, records port %v held: finishing its clean-up", j.ID, j.Summary, h.Cleanup.Drop)
-	}
+	h.Console, h.Refused = revert.CheckConfirm(*before, s)
 	return h, err
+}
+
+// carry is h, the claim of a change, with what b, the change confirmed
+// before it, left: b's record in confirmed.json is gone once h's journal is
+// renamed over it. When h's change held ports, its Drop has every port sshd
+// was configured for at its apply, b's held ones among them, so only b's
+// ufw commands are added to h's (PlanCleanup deletes a rule only for a port
+// it drops). When it held none, and 00-hardn.conf still has a port b held
+// (none that h's change added), the clean-up is b's (Carried), run when s
+// could have confirmed b, as Finishing's is.
+func (h Held) carry(ctx context.Context, sys host.System, b revert.Journal, s revert.Session) Held {
+	c := steps.CleanupOf(b)
+	if h.Holds() {
+		for _, a := range c.Firewall {
+			if !slices.ContainsFunc(h.Cleanup.Firewall, func(f []string) bool { return slices.Equal(f, a) }) {
+				h.Cleanup.Firewall = append(h.Cleanup.Firewall, a)
+			}
+		}
+		return h
+	}
+	via := viaPorts(h.Change)
+	if c.Drop = slices.DeleteFunc(stillHeld(ctx, sys, c.Drop), func(p uint16) bool { return slices.Contains(via, p) }); len(c.Drop) == 0 {
+		return h
+	}
+	k := Held{Confirmed: h.Confirmed, Change: b, Carried: true, Cleanup: c, Console: h.Console}
+	if !k.Console {
+		_, k.Refused = revert.CheckConfirm(b, s)
+	}
+	return k
+}
+
+// stillHeld are the ports of ps that 00-hardn.conf still has a Port line
+// for, in order: what is left of a clean-up, read from the one file it
+// edits (PlanCleanup refuses a port configured elsewhere). None when the
+// file is not there; ps itself when it cannot be read, since what is left
+// is then not known (the clean-up's plan reads sshd -T).
+func stillHeld(ctx context.Context, sys host.System, ps []uint16) []uint16 {
+	data, err := sys.ReadFile(ctx, sshd.HardnDropIn)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return nil
+	case err != nil:
+		return ps
+	}
+	var out []uint16
+	for _, l := range sshd.ReadOrder(data, nil) {
+		if l.Keyword != "port" || l.Match != nil {
+			continue
+		}
+		for _, a := range l.Args {
+			if n, err := strconv.ParseUint(a, 10, 16); err == nil && slices.Contains(ps, uint16(n)) && !slices.Contains(out, uint16(n)) {
+				out = append(out, uint16(n))
+			}
+		}
+	}
+	slices.Sort(out)
+	return out
 }
 
 // Options configure Cleanup's engine.
@@ -140,8 +218,9 @@ type Outcome struct {
 	// Plan is the clean-up's plan; nil when planning failed before one
 	// was made (detection).
 	Plan *engine.Plan
-	// Result is Apply's; nil when nothing was applied: an error before
-	// the plan, a refusal, or no clean-up run.
+	// Result is Apply's, once it was called (with nothing applied when the
+	// run lock or the plan made again under it stopped it); nil for an
+	// error before the plan, a refusal at plan time, or no clean-up run.
 	Result *engine.Result
 	// Err is the clean-up's error: planning's, the plan's refusals
 	// (engine.ErrRefused, with each one), or Apply's (an

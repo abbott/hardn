@@ -7,6 +7,7 @@ import (
 	"net/netip"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fatih/color"
 
@@ -15,7 +16,9 @@ import (
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
@@ -69,9 +72,10 @@ func appliedAll() []engine.Applied {
 	return out
 }
 
-// cleanupSeams are newRevertSeams with the change holding port 22, the
-// clean-up stubbed with out (recording what it was given), stdout's
-// environment plain and stdout and the legacy logger in one buffer.
+// cleanupSeams are newRevertSeams with the change holding port 22 (and
+// 00-hardn.conf with it, as the change wrote it), the clean-up stubbed with
+// out (recording what it was given), stdout's environment plain and stdout
+// and the legacy logger in one buffer.
 type cleanupSeams struct {
 	*revertSeams
 	out      bytes.Buffer
@@ -85,12 +89,13 @@ type cleanupSeams struct {
 func newCleanupSeams(t *testing.T, outcome func(h confirm.Held) confirm.Outcome) *cleanupSeams {
 	t.Helper()
 	s := &cleanupSeams{revertSeams: newRevertSeamsWith(t, 0, heldPort)}
+	s.dropIn("Port 22", "Port 2230")
 	cleanupWas, stdoutWas, envWas, signalsWas, outputWas := confirmCleanup, confirmStdout, stdoutEnv, confirmSignals, color.Output
 	confirmCleanup = func(ctx context.Context, sys host.System, h confirm.Held, se revert.Session, o confirm.Options) confirm.Outcome {
 		s.calls++
 		s.held, s.session = h, se
-		if _, ok := sys.(*host.Real); !ok || o.Hold == nil || o.Revert.Log == nil || o.PID != 4000 {
-			t.Errorf("Cleanup given %T, options %+v: want the real host, the hold, the log and hardn's pid", sys, o)
+		if sys != host.System(s.f) || o.Hold == nil || o.Revert.Log == nil || o.PID != 4000 {
+			t.Errorf("Cleanup given %T, options %+v: want confirmHost's, the hold, the log and hardn's pid", sys, o)
 		}
 		s.canceled = ctx.Err() != nil
 		return outcome(h)
@@ -107,6 +112,11 @@ func newCleanupSeams(t *testing.T, outcome func(h confirm.Held) confirm.Outcome)
 		logging.SetSilentMode(true)
 	})
 	return s
+}
+
+// dropIn writes 00-hardn.conf with lines, as hardn writes it.
+func (s *cleanupSeams) dropIn(lines ...string) {
+	s.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n"+strings.Join(lines, "\n")+"\n"), 0o644, 0, 0)
 }
 
 // TestConfirmCleanupCommand: hardn confirm, the change confirmed from a
@@ -135,7 +145,7 @@ func TestConfirmCleanupCommand(t *testing.T) {
 			"[SUCCESS] Change " + revertTestID + " confirmed",
 			"Drop port 22 from", "Operation Successful",
 			"Port 22, which change " + revertTestID + " held during its confirm window, is dropped",
-			"ufw's rule for 22/tcp, which change " + revertTestID + " added, is deleted."}},
+			"ufw's rule for 22/tcp, which hardn added, is deleted."}},
 		{"the reload failed: rolled back", failedAt(engine.StepApply, reloadErr), 1, []string{
 			"[SUCCESS] Change " + revertTestID + " confirmed", "COMMAND_FAILED", "Job for ssh.service failed",
 			"Port 22, which change " + revertTestID + " held during its confirm window, is still open",
@@ -175,12 +185,15 @@ func TestConfirmCleanupCommand(t *testing.T) {
 	}
 }
 
-// TestConfirmFinishCommand: with nothing pending, hardn confirm finishes
-// the clean-up the last confirmed change still records (a crash after its
-// claim), from a session that could have confirmed it: exit 0 once done;
-// with nothing left, it says that nothing is waiting, as before (exit 1);
-// from a session that may not (the one that applied the change), it says
-// what is left and how to finish it, and runs nothing (exit 1).
+// TestConfirmFinishCommand: with nothing pending, hardn confirm says so
+// first, as before, and finishes the clean-up the last confirmed change
+// still has in 00-hardn.conf (a crash after its claim), from a session that
+// could have confirmed it; it exits 1 all the same, since it confirmed
+// nothing. A later change rolled back by its timer is said first, and the
+// notice acknowledged, before that clean-up. With nothing left in
+// 00-hardn.conf, nothing runs (exit 1, as before); from a session that may
+// not finish it (the one that applied the change), it says what is left
+// and how to finish it, and runs nothing (exit 1).
 func TestConfirmFinishCommand(t *testing.T) {
 	crash := func(t *testing.T, s *cleanupSeams) {
 		t.Helper()
@@ -189,32 +202,61 @@ func TestConfirmFinishCommand(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	applied := func(confirm.Held) confirm.Outcome {
+		return confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}
+	}
+	inOrder := func(t *testing.T, out string, want ...string) {
+		t.Helper()
+		at := 0
+		for _, w := range want {
+			i := strings.Index(squash(out)[at:], squash(w))
+			if i < 0 {
+				t.Fatalf("no %q (in order) in:\n%s", w, out)
+			}
+			at += i
+		}
+	}
 	t.Run("finished", func(t *testing.T) {
-		s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome {
-			return confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}
-		})
+		s := newCleanupSeams(t, applied)
 		crash(t, s)
 		executeHardn(t, "confirm")
 		out := s.out.String()
-		if s.exit != -1 || s.calls != 1 || !s.held.Finishing {
+		if s.exit != 1 || s.calls != 1 || !s.held.Finishing || s.held.Change.ID != revertTestID {
 			t.Fatalf("exit %d, clean-up called %d times (%+v):\n%s", s.exit, s.calls, s.held, out)
 		}
-		for _, w := range []string{"No change is waiting for confirmation. Change " + revertTestID, "still held port 22", "Operation Successful", "is dropped"} {
-			if !strings.Contains(squash(out), squash(w)) {
-				t.Errorf("no %q in:\n%s", w, out)
-			}
+		inOrder(t, out, "[ERROR] revert: confirm: no change is waiting for confirmation",
+			"Change "+revertTestID+" (SSH port 22 to 2230 on web-01.example.net), the last one confirmed, still has port 22 in /etc/ssh/sshd_config.d/00-hardn.conf",
+			"Operation Successful", "the last one confirmed, held during its confirm window, is dropped")
+	})
+	t.Run("a later change rolled back by its timer", func(t *testing.T) {
+		s := newCleanupSeams(t, applied)
+		crash(t, s)
+		const later = "20261018T130000Z-9a8b7c6d"
+		laterNow := revertTestNow.Add(time.Hour)
+		s.arm(t, later, laterNow)
+		if _, err := revert.Rollback(context.Background(), s.f, later, revert.Options{Now: func() time.Time { return laterNow.Add(181 * time.Second) }}); err != nil {
+			t.Fatal(err)
 		}
+		executeHardn(t, "confirm")
+		out := s.out.String()
+		if s.exit != 1 || s.calls != 1 || s.has(revert.DefaultDir+"/"+revert.RevertedName) {
+			t.Fatalf("exit %d, clean-up called %d times, reverted.json kept %v:\n%s", s.exit, s.calls, s.has(revert.DefaultDir+"/"+revert.RevertedName), out)
+		}
+		inOrder(t, out, "[ERROR] revert: confirm: no change is waiting for confirmation: change "+later, "was rolled back at",
+			"Change "+revertTestID, "still has port 22", "Operation Successful")
 	})
 	t.Run("nothing left", func(t *testing.T) {
 		s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome {
-			return confirm.Outcome{Plan: &engine.Plan{ID: cleanupTestID}, Result: &engine.Result{ID: cleanupTestID, Nothing: true}}
+			t.Error("the clean-up ran")
+			return confirm.Outcome{}
 		})
 		crash(t, s)
+		s.dropIn("Port 2230")
 		executeHardn(t, "confirm")
 		out := s.out.String()
-		if s.exit != 1 || s.calls != 1 || !strings.Contains(out, "[ERROR] revert: confirm: no change is waiting for confirmation") ||
-			strings.Contains(out, "Nothing needs changing") {
-			t.Errorf("exit %d, clean-up called %d times:\n%s", s.exit, s.calls, out)
+		if s.exit != 1 || !strings.Contains(out, "[ERROR] revert: confirm: no change is waiting for confirmation") ||
+			strings.Contains(out, "Port 22") || strings.Contains(out, "Nothing needs changing") {
+			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
 	})
 	t.Run("from the session that applied the change", func(t *testing.T) {
@@ -227,10 +269,70 @@ func TestConfirmFinishCommand(t *testing.T) {
 		executeHardn(t, "confirm")
 		out := s.out.String()
 		if s.exit != 1 || !strings.Contains(out, "no change is waiting for confirmation") ||
-			!strings.Contains(squash(out), squash("this session cannot finish it")) || !strings.Contains(squash(out), squash("from a new SSH connection to port 2230")) {
+			!strings.Contains(squash(out), squash("this session cannot finish its clean-up")) || !strings.Contains(squash(out), squash("from a new SSH connection to port 2230")) {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
 	})
+}
+
+// arm arms change id, which holds no port (as keyonly), at now, and marks
+// it applied, as the engine does; then alice connects again on 2230
+// (sshd-session 4300) and runs sudo hardn, process 4000, from there.
+func (s *cleanupSeams) arm(t *testing.T, id string, now time.Time) {
+	t.Helper()
+	argv := []string{"systemd-run", "--unit=hardn-revert-" + id, "--description=hardn: roll back change " + id + " unless confirmed",
+		"--on-active=180s", "--timer-property=AccuracySec=1s", revertTestHardn, "rollback", id}
+	s.f.Respond(hostfake.Response{}, argv[0], argv[1:]...)
+	s.f.Respond(hostfake.Response{}, "systemctl", "stop", "hardn-revert-"+id+".timer")
+	clock := func() time.Time { return now }
+	j := revert.Journal{ID: id, Risk: revert.RiskLockout, TimeoutSeconds: 180, Summary: "SSH: key-only login on web-01.example.net",
+		Session: revert.Session{Remote: true, Conn: "192.0.2.10 50300 192.0.2.20 2230"}}
+	if _, err := revert.Arm(context.Background(), s.f, j, detect.Init{Kind: detect.Systemd, Running: detect.Yes},
+		revert.Options{Now: clock, Hardn: revertTestHardn}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := revert.MarkApplied(context.Background(), s.f, id, revert.Options{Now: clock}); err != nil {
+		t.Fatal(err)
+	}
+	revertProc(s.f, 4300, 900, "sshd-session")
+	revertProc(s.f, 4310, 4300, "bash", "SSH_CONNECTION=192.0.2.10 50400 192.0.2.20 2230")
+	revertProc(s.f, 4320, 4310, "sudo")
+	revertProc(s.f, 4000, 4320, "hardn")
+}
+
+// TestConfirmCarriedCommand: change A's clean-up was left (a crash after
+// its claim); change B, which holds no port, is confirmed from a new
+// connection to 2230. The claim replaces A's record, so hardn confirm
+// cleans up after A from that connection: B is confirmed (its id in the
+// success line), then A's clean-up runs and is reported (exit 0).
+func TestConfirmCarriedCommand(t *testing.T) {
+	s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome {
+		return confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}
+	})
+	if _, err := revert.Confirm(context.Background(), s.f, revert.Session{Remote: true, Conn: "192.0.2.10 50123 192.0.2.20 2230",
+		SSHD: revert.ProcStart{PID: 4100, Start: 410000}, Source: "SSH_CONNECTION"}, revert.Options{Now: revertNow}); err != nil {
+		t.Fatal(err)
+	}
+	const later = "20261018T130000Z-9a8b7c6d"
+	s.arm(t, later, revertTestNow.Add(time.Hour))
+	executeHardn(t, "confirm")
+	out := s.out.String()
+	if s.exit != -1 || s.calls != 1 || !s.held.Carried || s.held.Change.ID != revertTestID || s.held.Confirmed.Journal.ID != later {
+		t.Fatalf("exit %d, clean-up called %d times (%+v):\n%s", s.exit, s.calls, s.held, out)
+	}
+	if c, err := revert.ReadConfirmed(context.Background(), s.f, revert.Options{}); err != nil || c.ID != later {
+		t.Errorf("confirmed.json %+v, %v; want %s", c, err, later)
+	}
+	at := 0
+	for _, w := range []string{"[SUCCESS] Change " + later + " confirmed",
+		"Change " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net), confirmed before change " + later + ", still has port 22",
+		"Operation Successful", "Port 22, which change " + revertTestID + ", confirmed before change " + later + ", held during its confirm window, is dropped"} {
+		i := strings.Index(squash(out)[at:], squash(w))
+		if i < 0 {
+			t.Fatalf("no %q (in order) in:\n%s", w, out)
+		}
+		at += i
+	}
 }
 
 // TestConfirmConsoleCommand: a console confirms, as before, and cleans

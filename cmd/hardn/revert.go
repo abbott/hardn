@@ -108,6 +108,12 @@ when its confirm window ends. Run it from a new SSH connection, to the new port
 if the change moved it: a confirmation typed into the session that applied the
 change proves nothing. Away from SSH (a local console), that session may confirm.
 
+Once a port change is confirmed from a new SSH connection, it also cleans up:
+the old port, kept open during the confirm window, is dropped from
+/etc/ssh/sshd_config.d/00-hardn.conf, sshd is reloaded, and the ufw rule hardn
+added for that port is deleted. A console confirms and leaves that to a new
+SSH connection.
+
 Example:
   sudo hardn confirm`,
 	Args:             cobra.NoArgs,

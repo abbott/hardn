@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -43,52 +44,55 @@ var (
 )
 
 // confirmAndCleanUp is hardn confirm from session s: the claim, then the
-// clean-up of what the change held, and the exit status. Exit 1 when
-// nothing was confirmed (as before), and when the clean-up did not finish
-// (refused, or failed and rolled back here): the confirmation stands, but
-// the host is not as asked yet, so a script is not told it is (output.md's
-// exit statuses: an apply that failed, or a refusal, is 1); 130 when it was
-// interrupted; 0 once the change is confirmed and nothing it held is left,
-// or a console confirmed it (the clean-up is then left for SSH, by design).
+// clean-up of what the change held, and the exit status. Nothing confirmed
+// is said first, as before, with the timer's rollback of the change meant
+// (acknowledged once said), whatever clean-up follows, and exits 1 (130
+// when the clean-up was interrupted): `confirm` exits 1 when it does not
+// confirm (revert.md §2.21). A change confirmed exits 1 when its clean-up
+// ran and did not finish (refused, or failed and rolled back here): the
+// confirmation stands, but the host is not as asked yet, so a script is not
+// told it is (output.md's exit statuses: an apply that failed, or a
+// refusal, is 1); 130 when it was interrupted; 0 once nothing it held is
+// left, and when the clean-up was not run from this session (a console, by
+// design, or a session that could not have confirmed the change before
+// it), whose report says what stays open.
 func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, opts revert.Options) int {
 	h, err := confirmClaim(ctx, sys, s, opts)
-	if err != nil && !h.Run() {
+	code := 0
+	if err != nil {
 		logging.LogError("%v", err)
 		acknowledgeRolledBack(ctx, sys, opts, err)
-		showCleanup(h, confirm.Outcome{})
-		return 1
-	}
-	if err == nil {
+		code = 1
+	} else {
 		if h.Confirmed.Local {
 			logging.LogWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
 		}
-		logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", h.Change.ID, h.Change.Summary)
+		logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)
 	}
 	if !h.Run() {
 		showCleanup(h, confirm.Outcome{})
-		return 0
+		return code
+	}
+	if h.Finishing || h.Carried {
+		which := "the last one confirmed"
+		if h.Carried {
+			which = "confirmed before change " + h.Confirmed.Journal.ID
+		}
+		logging.LogInfo("Change %s (%s), %s, still has port %s in %s, which it held during its confirm window: its clean-up, from this connection.",
+			h.Change.ID, h.Change.Summary, which, portWords(h.Cleanup.Drop), sshd.HardnDropIn)
 	}
 	cctx, stop := confirmSignals(ctx)
 	o := confirmCleanup(cctx, confirmHost(), h, s, confirm.Options{
 		Revert: revert.Options{Log: revertFileLog{}, Now: revertNow}, Hold: confirmHold, PID: revertPID()})
 	stop()
-	if h.Finishing {
-		if o.Done() && o.Result.Nothing {
-			// Nothing pending, and nothing left of the last change's
-			// clean-up: hardn confirm as before.
-			logging.LogError("%v", err)
-			acknowledgeRolledBack(ctx, sys, opts, err)
-			return 1
-		}
-		logging.LogInfo("No change is waiting for confirmation. Change %s (%s), the last one confirmed, still held port %s: its clean-up, from this connection.",
-			h.Change.ID, h.Change.Summary, portWords(h.Cleanup.Drop))
-	}
 	run := output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}
-	if err := output.Emit(output.Streams{Stdout: confirmStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
-		logging.LogWarning("hardn confirm: the clean-up's report: %v", err)
+	if !o.Done() || !o.Result.Nothing {
+		if err := output.Emit(output.Streams{Stdout: confirmStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
+			logging.LogWarning("hardn confirm: the clean-up's report: %v", err)
+		}
 	}
 	showCleanup(h, o)
-	return output.ExitCode(run)
+	return max(code, output.ExitCode(run))
 }
 
 // acknowledgeRolledBack clears the timer's rollback notice once a
@@ -133,8 +137,9 @@ func portWords(ps []uint16) string {
 
 // revertFileLog writes each line to hardn's log, /var/log/hardn.log, alone,
 // as revertLog writes it to the log and the console: the clean-up's run log
-// (every command and its output) and the engine's and revert's lines,
-// which the clean-up's report sums up on the console.
+// (every command and its output) and the engine's and revert's lines
+// during the clean-up, which its report sums up on the console. The
+// claim's lines go through revertLog, to both, as before.
 type revertFileLog struct{}
 
 func (revertFileLog) Write(p []byte) (int, error) {
