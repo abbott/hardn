@@ -10,6 +10,7 @@
   "DryRun": false,
   "EnableBackups": true,
   "BackupPath": "/var/backups/hardn",
+  "ConfirmTimeout": "",
   "DmzSubnet": "",
   "Nameservers": null,
   "SshPort": 22,

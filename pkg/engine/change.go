@@ -158,10 +158,26 @@ type Change struct {
 	After []string
 	// Backups are the files the change writes or removes: the engine
 	// backs each up (backup.RollbackRequired) and journals it before
-	// Apply runs, so the rollback restores it.
+	// Apply runs, so the rollback restores it. Two changes of one plan
+	// that back up the same file are ErrConflict.
 	Backups []string
+	// Resources name what the change's plan read of the host, and what
+	// its apply changes, that another control's change in the same plan
+	// could change under it: "sshd" (sshd's files and listeners), "ufw"
+	// (its rules, policies and state), a unit's name. Two controls' changes
+	// in one plan that name the same resource are ErrConflict, at plan
+	// time: the controls must feed one planner, or go in separate plans.
+	// The changes of one control may share them (next/p3-steps).
+	Resources []string
 	// Rollback is the undo the journal holds before Apply runs.
 	Rollback Undo
+	// Findings are what the planner found that the user should know about
+	// the change, which do not refuse it: a value Proxmox VE's rules
+	// rewrote, a line another file sets first, a listener ufw would not
+	// let through once it starts. p3-output renders them, as it renders a
+	// check's (Status.Findings); their codes are in its registry
+	// (next/p3-steps).
+	Findings []Finding
 	// ConfirmVia, for a lockout-risk change that adds listeners
 	// (reload.Plan.Adds), is them: a confirming connection must reach one
 	// (revert.Journal.ConfirmVia).
@@ -252,6 +268,11 @@ func (c Change) check(plans map[string]revert.PlanRollback) error {
 			return bad("backup %q: absolute, clean, once", p)
 		}
 	}
+	for i, r := range c.Resources {
+		if r == "" || strings.ContainsAny(r, " \t\r\n") || slices.Contains(c.Resources[:i], r) {
+			return bad("resource %q: a word, once", r)
+		}
+	}
 	for _, s := range c.Rollback.Steps {
 		if s.Op == revert.OpPlan && plans[s.Unit] == nil {
 			return fmt.Errorf("engine: change %q: plan step of unit %q: %w: %w", c.ID, s.Unit, revert.ErrNoPlanRollback, ErrChange)
@@ -279,13 +300,41 @@ func checkJournals(id string, cs []Change) (int, error) {
 				j.Backup.Seqs[k] = k + 1
 			}
 		}
-		for k := len(undos) - 1; k >= 0; k-- {
-			j.Undo = append(j.Undo, undos[k].Steps...)
-			j.Reload = append(j.Reload, undos[k].Reloads...)
-		}
+		j.Undo, j.Reload = journalUndo(undos)
 		if err := j.Check(); err != nil {
 			return i, fmt.Errorf("engine: change %q: its undo, with the changes before it: %w: %w", c.ID, err, ErrChange)
 		}
 	}
 	return -1, nil
+}
+
+// journalUndo is the journal's undo for the changes started, given in the
+// order they started: the last change's steps first, each change's in its
+// own order, and their reloads the same way, except that a reload an entry
+// before it already names (the same service, keywords, listeners and
+// socket drop-ins) is journalled once, IfUp only when every one of them
+// says IfUp. A change that writes sshd's files journals the ssh reload
+// with IfUp before its write, so that a rollback after the write reloads
+// an sshd that started in between (revert.md §7; p2drive journals it so,
+// vmtest.md §2.6), and the reload change that follows journals the same
+// reload, without IfUp once its gated step ran: the rollback reloads once,
+// and starts the unit when the forward reload ran (next/p3-steps).
+func journalUndo(undos []Undo) (steps []revert.Step, reloads []revert.Reload) {
+	for i := len(undos) - 1; i >= 0; i-- {
+		steps = append(steps, undos[i].Steps...)
+		for _, r := range undos[i].Reloads {
+			if k := slices.IndexFunc(reloads, func(x revert.Reload) bool { return sameReload(x, r) }); k >= 0 {
+				reloads[k].IfUp = reloads[k].IfUp && r.IfUp
+				continue
+			}
+			reloads = append(reloads, r)
+		}
+	}
+	return steps, reloads
+}
+
+// sameReload reports whether a and b reload the same thing, IfUp aside.
+func sameReload(a, b revert.Reload) bool {
+	return a.Service == b.Service && slices.Equal(a.Keywords, b.Keywords) && slices.Equal(a.After, b.After) &&
+		slices.Equal(a.SocketDropIns, b.SocketDropIns)
 }

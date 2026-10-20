@@ -337,7 +337,47 @@ func TestExecuteInUse(t *testing.T) {
 				t.Errorf("steps ran: %+v", rep.Steps)
 			}
 			checkRuns(t, h, "ss -Htln")
+
+			// CheckFree, the same check on its own for the plan, refuses alike.
+			h = hostfake.New(host.Options{})
+			respond(h, tc.ss, ssArgv...)
+			err = reload.CheckFree(context.Background(), h, plan(t, reload.Input{SSH: tc.ssh, Change: port(at22, both), DropIns: none}))
+			if tc.want == nil && !errors.As(err, &xe) || tc.want != nil && !errors.Is(err, tc.want) {
+				t.Fatalf("CheckFree: err = %v, want %v", err, tc.want)
+			}
+			checkRuns(t, h, "ss -Htln")
 		})
+	}
+}
+
+// TestCheckFree: the plan-time check passes a port nothing holds and the
+// listeners Hold keeps, reads nothing for a change that adds no listener,
+// lets ss be missing where Execute does, and refuses a done ctx.
+func TestCheckFree(t *testing.T) {
+	ctx := context.Background()
+	h := hostfake.New(host.Options{})
+	respond(h, hostfake.Response{Stdout: ss22}, ssArgv...)
+	if err := reload.CheckFree(ctx, h, plan(t, reload.Input{SSH: debian, Change: port(at22, both)})); err != nil {
+		t.Errorf("a free port: %v", err)
+	}
+	checkRuns(t, h, "ss -Htln")
+
+	h = hostfake.New(host.Options{})
+	keyOnly := reload.Input{SSH: debian, Change: reload.Change{Keywords: []string{"PasswordAuthentication"}}}
+	if err := reload.CheckFree(ctx, h, plan(t, keyOnly)); err != nil || len(h.Calls()) != 0 {
+		t.Errorf("no listener added: %v, %d calls", err, len(h.Calls()))
+	}
+
+	h = hostfake.New(host.Options{})
+	respond(h, hostfake.Response{Err: host.ErrNotFound}, ssArgv...)
+	if err := reload.CheckFree(ctx, h, plan(t, reload.Input{SSH: alpine, Change: port(at22, both)})); err != nil {
+		t.Errorf("ss missing off a socket host: %v", err)
+	}
+
+	done, cancel := context.WithCancel(ctx)
+	cancel()
+	if err := reload.CheckFree(done, hostfake.New(host.Options{}), plan(t, reload.Input{SSH: debian, Change: port(at22, both)})); !errors.Is(err, context.Canceled) {
+		t.Errorf("done ctx: %v", err)
 	}
 }
 

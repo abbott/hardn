@@ -10,6 +10,7 @@
   "DryRun": true,
   "EnableBackups": false,
   "BackupPath": "/var/backups/hardn",
+  "ConfirmTimeout": "",
   "DmzSubnet": "192.0.2",
   "Nameservers": [
     "192.0.2.53",

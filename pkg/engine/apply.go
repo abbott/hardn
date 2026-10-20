@@ -392,17 +392,15 @@ func applyOne(ctx context.Context, sys host.System, c Change, run Run) (ran Ran,
 
 // record writes the journal as it now stands: every backup taken, and
 // every started change's undo, the last change's first (the order to undo
-// in), each change's steps in their own order.
+// in), each change's steps in their own order, a reload named twice once
+// (journalUndo).
 func (a *applier) record(ctx context.Context) error {
 	j := a.j
 	j.Backup, j.Undo, j.Reload = nil, nil, nil
 	if a.run != nil && len(a.seqs) > 0 {
 		j.Backup = &revert.Backups{Dir: a.run.Dir(), Seqs: slices.Clone(a.seqs)}
 	}
-	for i := len(a.undos) - 1; i >= 0; i-- {
-		j.Undo = append(j.Undo, a.undos[i].Steps...)
-		j.Reload = append(j.Reload, a.undos[i].Reloads...)
-	}
+	j.Undo, j.Reload = journalUndo(a.undos)
 	return revert.Record(ctx, a.e.sys, j, a.ro)
 }
 

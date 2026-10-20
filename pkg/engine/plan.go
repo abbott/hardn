@@ -105,7 +105,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 		refuse(err)
 		return p, nil
 	}
-	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg}
+	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg, Session: e.opts.Session}
 	var all []Change
 	seen := map[string]bool{}
 	for _, c := range controls {
@@ -139,6 +139,14 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("engine: plan: %w", err)
+	}
+	for _, c := range conflicts(all) {
+		for k := range p.Items {
+			if p.Items[k].Control == c.control {
+				p.Items[k].Err = errors.Join(p.Items[k].Err, c.err)
+			}
+		}
+		refuse(c.err)
 	}
 	if p.Changes, err = order(all); err != nil {
 		p.Changes = all

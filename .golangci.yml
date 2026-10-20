@@ -423,6 +423,33 @@ linters:
               desc: the engine loads no code (docs/engine/engine.md §2)
             - pkg: github.com/abbott/hardn/pkg/ui
               desc: the engine returns data and renders nothing; p3-output and the slices render it (docs/engine/engine.md §2)
+        # next/p3-steps: the engine's change kinds over the Phase 2
+        # primitives reach the host only through host.System, as the engine
+        # and the primitives do, and render nothing. (engine-through-host's
+        # glob covers the directory too; this block names the unit's own
+        # rule, so that a later change to that glob does not drop it.)
+        steps-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/engine/steps/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the change kinds read, write and run only through host.System (docs/engine/steps.md §2)
+            - pkg: io/ioutil
+              desc: the change kinds read and write only through host.System (docs/engine/steps.md §2)
+            - pkg: golang.org/x/sys
+              desc: the change kinds make no system calls of their own (docs/engine/steps.md §2)
+            - pkg: syscall
+              desc: the change kinds make no system calls of their own (docs/engine/steps.md §2)
+            - pkg: net
+              desc: the change kinds make no network calls (docs/engine/steps.md §2)
+            - pkg: plugin
+              desc: the change kinds load no code (docs/engine/steps.md §2)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: the change kinds are data; p3-output and the slices render them (docs/engine/steps.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

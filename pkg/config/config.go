@@ -30,6 +30,13 @@ type Config struct {
 	DryRun        bool   `yaml:"dryRun"`
 	EnableBackups bool   `yaml:"enableBackups"`
 	BackupPath    string `yaml:"backupPath"`
+	// ConfirmTimeout is the confirm window of a lockout-risk change
+	// (decision §3.14): whole seconds ("180") or a duration ("3m"), read
+	// with revert.ParseTimeout, at least revert.MinTimeout; "" is the
+	// default, 180 s. The --confirm-timeout flag wins over it
+	// (revert.ResolveTimeout; engine.ConfirmTimeout). Not written when
+	// unset, so a legacy save writes no new key.
+	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
 
 	// Network Configuration
 	DmzSubnet   string   `yaml:"dmzSubnet"`
