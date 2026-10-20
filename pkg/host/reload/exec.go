@@ -142,6 +142,23 @@ func Execute(ctx context.Context, sys host.System, p Plan, opts Options) (Report
 	return rep, nil
 }
 
+// CheckFree is Execute's check before its first step, on its own: with
+// p.Adds empty it reads nothing; otherwise it refuses, as Execute would, a
+// port of Adds that a socket other than Hold's may already hold (ErrInUse;
+// on a socket host also ss missing or failing). The engine runs it at plan
+// time, so that the refusal comes before the revert timer is armed and the
+// firewall changed, not from Execute after them (next/p3-steps); Execute
+// still runs it before its first step. A done ctx is refused.
+func CheckFree(ctx context.Context, sys host.System, p Plan) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("reload: %w", err)
+	}
+	if len(p.Adds) == 0 {
+		return nil
+	}
+	return free(ctx, sys, p, &Report{})
+}
+
 // free refuses a change whose added listeners may already be taken: a
 // socket ss shows on one of their ports, at an equal or unspecified address
 // on either side, whatever the family (fail closed), unless it is one of
