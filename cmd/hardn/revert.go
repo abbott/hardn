@@ -146,7 +146,7 @@ func runConfirm(*cobra.Command, []string) {
 	if err != nil {
 		logging.LogError("%v", err)
 		var np *revert.NotPendingError
-		if errors.As(err, &np) && np.Reverted != nil {
+		if errors.As(err, &np) && np.RolledBack() {
 			acknowledge(ctx, sys, opts)
 		}
 		revertExit(1)
@@ -198,7 +198,7 @@ func runAbandon(id string) {
 	if !revertPreflight("rollback --abandon") {
 		return
 	}
-	j, err := revert.Abandon(context.Background(), revertHost(), id, revert.Options{Log: revertLog{}, Now: revertNow})
+	res, err := revert.Abandon(context.Background(), revertHost(), id, revert.Options{Log: revertLog{}, Now: revertNow})
 	switch {
 	case errors.Is(err, revert.ErrID):
 		logging.LogError("%v", err)
@@ -206,14 +206,22 @@ func runAbandon(id string) {
 		return
 	case err != nil:
 		logging.LogError("%v", err)
+		if errors.Is(err, revert.ErrJournal) || errors.Is(err, revert.ErrUnsafe) {
+			logging.LogInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
+				filepath.Join(revert.DefaultDir, revert.RollbackName))
+		}
 		revertExit(1)
 		return
 	}
+	j := res.Journal
 	done, left := revert.Unfinished(j)
 	logging.LogSuccess("Gave up the rollback of change %s (%s).", j.ID, j.Summary)
 	logging.LogWarning("The host stays as the rollback left it: hardn will not undo what the rollback did not.")
 	if j.Rollback == nil {
 		logging.LogWarning("The rollback stopped before it recorded its progress, so it may have done more than its record shows.")
+	}
+	if res.RunnerUnknown {
+		logging.LogWarning("Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback %s` is still running it: check with `ps`. One that still runs writes its record again as it goes, and the next run of hardn reports it.", j.ID)
 	}
 	logging.LogInfo("Undone by the rollback, by its record:")
 	for _, line := range orNothing(done) {
@@ -223,8 +231,10 @@ func runAbandon(id string) {
 	for _, line := range orNothing(left) {
 		logging.LogWarning("  - %s", line)
 	}
-	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.",
-		filepath.Join(revert.DefaultDir, revert.AbandonedName(j.ID)))
+	if res.SSHUnchecked {
+		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.")
+	}
+	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
 }
 
 // orNothing is lines, or a line saying there are none.

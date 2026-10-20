@@ -272,7 +272,7 @@ func TestRevertAbandonCommand(t *testing.T) {
 			t.Errorf("%s: exit %d, want %d; rollback.json %v, abandoned %v; output:\n%s", tt.name, s.exit, tt.exit, s.has(rollbackJSON), s.has(kept), out)
 		}
 		for _, c := range s.f.Calls()[calls:] {
-			if !tt.host || c.Op == "rename" || c.Op == "run" || c.Op == "write-atomic" || c.Op == "remove" {
+			if !tt.host || changed(c) {
 				t.Errorf("%s: %s", tt.name, c)
 			}
 		}
@@ -303,6 +303,8 @@ func TestRevertAbandonCommand(t *testing.T) {
 			"[WARNING] Not undone, or not finished:\n" +
 			"[WARNING]   - restore the backups in /var/backups/hardn/" + revertTestID + " (entry 1)\n" +
 			"[WARNING]   - reload ssh (Port)\n" +
+			"[WARNING] The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). " +
+			"Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.\n" +
 			"[INFO] The rollback's record is kept in " + kept + ", and /var/log/hardn.log has what each of its steps did. New changes can be applied again.\n",
 		"revert: rollback " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net) abandoned: backups restored false, 1 of 1 undo steps and 0 of 1 reloads done; kept in " + kept,
 	} {
@@ -319,8 +321,110 @@ func TestRevertAbandonCommand(t *testing.T) {
 		t.Errorf("abandon again: exit %d, want 1:\n%s", s.exit, out)
 	}
 	rollbackAbandon = false
-	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "Nothing to roll back for "+revertTestID) {
+	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "[INFO] Nothing to roll back for "+revertTestID+
+		": its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in "+kept+".\n") {
 		t.Errorf("rollback after abandon: exit %d, want none:\n%s", s.exit, out)
+	}
+}
+
+// changed reports whether c changed the host or ran a command.
+func changed(c hostfake.Call) bool {
+	switch c.Op {
+	case "run", "start-detached", "rename", "write-atomic", "write-in-place", "remove", "removeall", "mkdir", "chmod", "chown":
+		return true
+	}
+	return false
+}
+
+// After the timer's own rollback did not finish and was given up, `hardn
+// rollback <id>` and `hardn confirm` say so, not that it was rolled back,
+// and leave reverted.json for the next run's notice.
+func TestRevertAbandonTimersRollback(t *testing.T) {
+	s := newRevertSeamsWith(t, 0, unfinishable)
+	s.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+	revertProc(s.f, 7000, 1, "hardn")
+	stat, _ := s.f.Entry("/proc/7000/stat")
+	s.f.AddFile("/proc/self/stat", stat.Data, 0o444, 0, 0)
+	s.f.AddFile("/proc/sys/kernel/random/boot_id", []byte("8e2a3c4d-1b2c-4d3e-8f40-0123456789ab\n"), 0o444, 0, 0)
+	deadline := revertTestNow.Add(180 * time.Second)
+	revertNow = func() time.Time { return deadline }
+	reverted := revert.DefaultDir + "/" + revert.RevertedName
+	kept := revert.DefaultDir + "/" + revert.AbandonedName(revertTestID)
+	given := "its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in " + kept
+
+	if out := s.output(t, "rollback", revertTestID); s.exit != 1 || !s.has(reverted) { // the timer's
+		t.Fatalf("the timer's rollback: exit %d, reverted.json %v:\n%s", s.exit, s.has(reverted), out)
+	}
+	if err := s.f.Remove(context.Background(), "/proc/7000/stat"); err != nil {
+		t.Fatal(err)
+	}
+	if out := s.output(t, "rollback", "--abandon", revertTestID); s.exit != -1 || !s.has(kept) {
+		t.Fatalf("abandon: exit %d:\n%s", s.exit, out)
+	}
+	rollbackAbandon = false
+	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "Nothing to roll back for "+revertTestID+": "+given+".") || strings.Contains(out, "was rolled back at") || !s.has(reverted) {
+		t.Errorf("rollback after abandon: exit %d, reverted.json %v:\n%s", s.exit, s.has(reverted), out)
+	}
+	if out := s.output(t, "confirm"); s.exit != 1 || !strings.Contains(out, "was not confirmed within 180s, and "+given) || !s.has(reverted) {
+		t.Errorf("confirm after abandon: exit %d, reverted.json %v:\n%s", s.exit, s.has(reverted), out)
+	}
+}
+
+// failRename makes the first rename of from fail with err: another hardn
+// acting between Abandon's read and its rename.
+type failRename struct {
+	*hostfake.System
+	from string
+	err  error
+}
+
+func (f *failRename) Rename(ctx context.Context, oldname, newname string) error {
+	if err := f.err; err != nil && oldname == f.from {
+		f.err = nil
+		return err
+	}
+	return f.System.Rename(ctx, oldname, newname)
+}
+
+// A journal Abandon cannot read, or a rename it loses, exits 1; the first
+// names the manual fallback.
+func TestRevertAbandonFails(t *testing.T) {
+	rollbackJSON := revert.DefaultDir + "/" + revert.RollbackName
+	fallback := "[INFO] If the file it names is " + rollbackJSON + " and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.\n"
+	for _, tt := range []struct {
+		name     string
+		setup    func(t *testing.T, s *revertSeams)
+		says     string
+		fallback bool
+	}{
+		{"another version's rollback.json", func(t *testing.T, s *revertSeams) {
+			s.f.AddFile(rollbackJSON, []byte(`{"schemaVersion":99}`), 0o600, 0, 0)
+		}, rollbackJSON + ": revert: journal \"\": schemaVersion 99, want 1: journal not valid", true},
+		{"a rollback.json others can write", func(t *testing.T, s *revertSeams) {
+			s.f.AddFile(rollbackJSON, []byte(`{}`), 0o666, 0, 0)
+		}, rollbackJSON + ": a user other than root can change it", true},
+		{"the journal changes during the rename", func(t *testing.T, s *revertSeams) {
+			if err := s.f.Rename(context.Background(), revert.DefaultDir+"/"+revert.PendingName, rollbackJSON); err != nil {
+				t.Fatal(err)
+			}
+			f := &failRename{System: s.f, from: rollbackJSON, err: &os.LinkError{Op: "rename", Old: rollbackJSON, New: "x", Err: syscall.ENOENT}}
+			revertHost = func() host.System { return f }
+		}, rollbackJSON + " changed while it was being given up; run `sudo hardn rollback --abandon " + revertTestID + "` again", false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			s := newRevertSeams(t, 0)
+			tt.setup(t, s)
+			calls := len(s.f.Calls())
+			out := s.output(t, "rollback", "--abandon", revertTestID)
+			if s.exit != 1 || !strings.Contains(out, "[ERROR] ") || !strings.Contains(out, tt.says) || strings.Contains(out, fallback) != tt.fallback {
+				t.Errorf("exit %d, want 1, saying %q (the fallback: %v):\n%s", s.exit, tt.says, tt.fallback, out)
+			}
+			for _, c := range s.f.Calls()[calls:] {
+				if changed(c) {
+					t.Errorf("changed: %s", c)
+				}
+			}
+		})
 	}
 }
 
@@ -333,6 +437,8 @@ func TestRevertAbandonNoProgress(t *testing.T) {
 	}
 	text := s.output(t, "rollback", "--abandon", revertTestID)
 	want := "[WARNING] The rollback stopped before it recorded its progress, so it may have done more than its record shows.\n" +
+		"[WARNING] Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback " + revertTestID + "` is still running it: check with `ps`. " +
+		"One that still runs writes its record again as it goes, and the next run of hardn reports it.\n" +
 		"[INFO] Undone by the rollback, by its record:\n[INFO]   - nothing\n" +
 		"[WARNING] Not undone, or not finished:\n[WARNING]   - nothing\n"
 	if s.exit != -1 || !s.has(revert.DefaultDir+"/"+revert.AbandonedName(revertTestID)) || !strings.Contains(text, want) {
