@@ -254,7 +254,7 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 	rep, err := sshd.Validate(ctx, sys, sshd.Request{Changes: []sshd.Change{{Path: sshd.HardnDropIn, Data: e.data}},
 		RunDir: st.in.RunDir, Platform: st.in.Facts.Platform, Binary: st.binary})
 	if err != nil {
-		return nil, noRunDir(fmt.Errorf("validation in context: %w", err))
+		return nil, noRunDir(st.in.Facts.SSH, fmt.Errorf("validation in context: %w", err))
 	}
 	e.cand, _ = sshd.Evaluate(sshd.EffectiveInputs{Effective: rep.Effective})
 	e.findings = append(e.findings, sshdFindings(rep.Findings)...)

@@ -53,6 +53,9 @@ import (
 
 // The stable codes of the refusals that come with a report (Refusal):
 // p3-output's registry holds them, and they do not change once released.
+// Each has its sentinel (ErrListenConfNotInEffect, ErrNoRunDir), which a
+// Refusal matches with errors.Is, so that the registry codes every error
+// by errors.Is alone.
 const (
 	// CodeListenConfNotInEffect: v0.3.x's listen.conf on an ssh.socket host
 	// where it never took effect (D9), whose migration could not be rolled
@@ -89,6 +92,16 @@ func claim(cs []engine.Change) []engine.Change {
 
 // Errors, testable with errors.Is.
 var (
+	// ErrListenConfNotInEffect is the D9 host's refusal, with its report
+	// (Refusal, CodeListenConfNotInEffect). It wraps
+	// reload.ErrRestoredListeners, migrate.Plan.CheckRollback's own, of
+	// which it is the more specific case.
+	ErrListenConfNotInEffect = errors.New("v0.3.x's listen.conf never took effect")
+	// ErrNoRunDir is the refusal of sshd -T failing for a missing
+	// privilege separation directory, with its report (Refusal,
+	// CodeNoRunDir). It wraps sshd's *EnvError (EnvPrivsepDir), to which
+	// sshd-validate.md §6 gives the same code.
+	ErrNoRunDir = errors.New("sshd -T cannot run without its privilege separation directory")
 	// ErrNoWriteStrategy: sshd_config's first directive is not exactly the
 	// stock Include (P-38), or there is none: hardn's block at the top of
 	// sshd_config is not written yet.
@@ -128,6 +141,16 @@ func (r *Refusal) Error() string {
 
 // Unwrap returns the primitive's refusal.
 func (r *Refusal) Unwrap() error { return r.Err }
+
+// refusalErrs are each code's sentinel.
+var refusalErrs = map[string]error{CodeListenConfNotInEffect: ErrListenConfNotInEffect, CodeNoRunDir: ErrNoRunDir}
+
+// Is makes errors.Is(r, target) true for the sentinel of r's Code, so that
+// the more specific code is the one a registry matches first.
+func (r *Refusal) Is(target error) bool {
+	e, ok := refusalErrs[r.Code]
+	return ok && target == e
+}
 
 // ConfirmTimeout is the engine's confirm window (engine.Options.Timeout)
 // from the --confirm-timeout flag (nil: not given) and cfg's confirmTimeout
@@ -170,7 +193,7 @@ func readSSH(ctx context.Context, sys host.System, in engine.Input, configFile s
 		}
 	}
 	if st.before, _, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: in.Facts.SSH, Binary: st.binary}); err != nil {
-		return st, noRunDir(fmt.Errorf("sshd's effective configuration: %w", err))
+		return st, noRunDir(in.Facts.SSH, fmt.Errorf("sshd's effective configuration: %w", err))
 	}
 	if st.found, err = migrate.Find(ctx, sys, migrate.FindRequest{ConfigFile: configFile}); err != nil {
 		return st, err
@@ -181,20 +204,39 @@ func readSSH(ctx context.Context, sys host.System, in engine.Input, configFile s
 	return st, nil
 }
 
-// noRunDir reports sshd failing for a missing /run/sshd as a Refusal:
-// sshd -T needs it, only ssh.service creates it (RuntimeDirectory=sshd),
-// and it is gone while the service is stopped (sshd-validate.md §3), as on
-// a socket-activated Ubuntu before its first SSH connection since boot
-// [I]. Without sshd -T, the listeners a port change must hold are not
-// established, so the change is refused rather than planned from a guess.
-func noRunDir(err error) error {
+// noRunDir reports sshd failing for a missing privilege separation
+// directory as a Refusal: sshd -T needs it. On Debian and Ubuntu it is
+// /run/sshd, which only ssh.service creates (RuntimeDirectory=sshd), and
+// it is gone while the service is stopped (sshd-validate.md §3): so the
+// fix is to start ssh.service from the console, or, where ssh.socket
+// listens (a socket-activated Ubuntu before its first SSH connection since
+// boot [I]), to open an SSH connection, which starts it. Elsewhere (OpenRC)
+// sshd names the directory it lacks, which must be root's and writable by
+// root alone (sshd-validate.md §3). Without sshd -T, the listeners a
+// change must hold are not established, so the change is refused rather
+// than planned from a guess.
+func noRunDir(ssh detect.SSH, err error) error {
 	var ee *sshd.EnvError
 	if !errors.As(err, &ee) || ee.Kind != sshd.EnvPrivsepDir {
 		return err
 	}
-	return &Refusal{Code: CodeNoRunDir, Err: err,
-		Why: "sshd -T cannot run: " + sshd.PrivsepDir + " is missing, which only ssh.service creates when it starts (on Ubuntu, at the first SSH connection since boot), so the listeners sshd configures are not established",
-		Fix: "open an SSH connection to this host (it starts ssh.service), then plan again from it"}
+	dir := ee.Path
+	if dir == "" {
+		dir = sshd.PrivsepDir
+	}
+	r := &Refusal{Code: CodeNoRunDir, Err: err}
+	switch {
+	case sshd.SocketMayListen(ssh):
+		r.Why = "sshd -T cannot run: " + dir + " is missing, which only ssh.service creates when it starts, and on this host ssh.socket starts ssh.service at the first SSH connection since boot; so the listeners sshd configures are not established"
+		r.Fix = "open an SSH connection to this host (ssh.socket then starts ssh.service, which creates " + dir + "), then plan again from it"
+	case ssh.Mode == detect.SSHOpenRC:
+		r.Why = "sshd -T cannot run: its privilege separation directory " + dir + " is missing, or another user can write to it; so the listeners sshd configures are not established"
+		r.Fix = "from the console, make " + dir + " a directory owned by root that no other user can write to, then plan again"
+	default:
+		r.Why = "sshd -T cannot run: " + dir + " is missing, which ssh.service creates when it starts and is gone while it is stopped: sshd is not running, so the listeners it configures are not established"
+		r.Fix = "start ssh.service from the console (`systemctl start ssh.service`), check that it is active, then plan again"
+	}
+	return r
 }
 
 // checkInclude refuses an sshd_config hardn has no write strategy for.

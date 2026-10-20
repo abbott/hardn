@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -343,7 +344,7 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 		code  string // a steps.Refusal's
 		is    error
 	}{
-		{"a port change on Proxmox VE (§3.18)", proxmox9(), nil, port2230(), "port 22", "", nil},
+		{"a port change on Proxmox VE (§3.18)", proxmox9(), nil, port2230(), "port [2230]", "", pve.ErrPortChange},
 		{"a ListenAddress in sshd_config pins port 22", debian13, func(v *vm) {
 			v.f.AddFile(sshd.MainConfig, []byte(stockMain+"ListenAddress 0.0.0.0:22\n"), 0o644, 0, 0)
 			v.boot()
@@ -365,7 +366,7 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 			v032Files(v)
 			v.configured = []string{"[::]:22", "0.0.0.0:22"}
 			v.bound = slices.Clone(v.configured)
-		}, migration(), "systemctl daemon-reload` and `systemctl restart ssh.socket`", steps.CodeListenConfNotInEffect, nil},
+		}, migration(), "systemctl daemon-reload` and `systemctl restart ssh.socket`", steps.CodeListenConfNotInEffect, steps.ErrListenConfNotInEffect},
 		{"the migration where ssh.socket is configured for more than listen.conf", ubuntu2604(), func(v *vm) {
 			v032Files(v)
 			v.configured = []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}
@@ -425,7 +426,7 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 				return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255},
 					strings.HasPrefix(cmd, "sshd -T")
 			}
-		}, keyOnly(), "open an SSH connection to this host", steps.CodeNoRunDir, nil},
+		}, keyOnly(), "open an SSH connection to this host", steps.CodeNoRunDir, steps.ErrNoRunDir},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)

@@ -187,8 +187,8 @@ func notInEffect(err error, drops reload.SocketDropIns, socket []sshd.Listener) 
 	return &Refusal{Code: CodeListenConfNotInEffect, Err: err,
 		Why: fmt.Sprintf("%s (hardn v0.3.x) sets ssh.socket to port %s, but it never took effect: ssh.socket is configured for %v (no daemon-reload since it was written, D9). Migrating it now could not be rolled back: the rollback's daemon-reload would move ssh.socket to port %s alone, off the port this host is reached on (P-39)",
 			migrate.ListenConf, on, socket, on),
-		Fix: fmt.Sprintf("let listen.conf take effect first, then run hardn again: reboot, or run `systemctl daemon-reload` and `systemctl restart ssh.socket`. ssh.socket then listens on port %s alone: before that, make sure the firewall lets %s through, and keep this session open until a new SSH connection to port %s works",
-			on, on, on)}
+		Fix: fmt.Sprintf("first make sure the firewall lets port %s through: ssh.socket then listens on port %s alone. Then let listen.conf take effect while this session stays open: run `systemctl daemon-reload` and `systemctl restart ssh.socket` (established SSH sessions survive the restart), check that a new SSH connection to port %s works, and run hardn again. A reboot also lets it take effect, but ends this session: reboot only with console access, in case port %s is not reachable",
+			on, on, on, on)}
 }
 
 // sameEffective checks that sshd -T after the reload shows what

@@ -244,23 +244,48 @@ func TestNotInEffect(t *testing.T) {
 				t.Fatalf("notInEffect = %v, want a report %v", err, tc.d9)
 			case !tc.d9 && err != tc.err:
 				t.Errorf("notInEffect = %v, want %v as it was", err, tc.err)
-			case tc.d9 && (r.Code != CodeListenConfNotInEffect || !errors.Is(err, reload.ErrRestoredListeners) ||
-				!strings.Contains(r.Fix, "systemctl restart ssh.socket") || !strings.Contains(r.Fix, "firewall lets 2230 through")):
+			case tc.d9 && (r.Code != CodeListenConfNotInEffect || !errors.Is(err, ErrListenConfNotInEffect) || !errors.Is(err, reload.ErrRestoredListeners)):
 				t.Errorf("report %+v", r)
+			case tc.d9:
+				// The firewall first, then the fix that keeps this session,
+				// then the reboot, which needs the console.
+				fw, restart, reboot := strings.Index(r.Fix, "firewall lets port 2230 through"), strings.Index(r.Fix, "`systemctl restart ssh.socket`"), strings.Index(r.Fix, "reboot only with console access")
+				if fw < 0 || restart < fw || reboot < restart {
+					t.Errorf("fix %q: want the firewall, the restart, then the reboot", r.Fix)
+				}
 			}
 		})
 	}
 }
 
+// TestNoRunDir: sshd -T failing for a missing privilege separation
+// directory is a report whose fix fits how sshd is started: a connection
+// starts ssh.service only where ssh.socket listens.
 func TestNoRunDir(t *testing.T) {
 	ee := &sshd.EnvError{Kind: sshd.EnvPrivsepDir, Path: sshd.PrivsepDir, Err: sshd.ErrEnvironment}
-	err := noRunDir(fmt.Errorf("sshd's effective configuration: %w", ee))
-	var r *Refusal
-	if !errors.As(err, &r) || r.Code != CodeNoRunDir || !errors.Is(err, sshd.ErrEnvironment) || !strings.Contains(err.Error(), CodeNoRunDir) {
-		t.Errorf("noRunDir = %v", err)
+	for _, tc := range []struct {
+		name string
+		ssh  detect.SSH
+		fix  string
+	}{
+		{"ssh.socket", detect.SSH{Mode: detect.SSHSocket}, "open an SSH connection to this host"},
+		{"ssh.service", detect.SSH{Mode: detect.SSHService}, "`systemctl start ssh.service`"},
+		{"OpenRC", detect.SSH{Mode: detect.SSHOpenRC}, "owned by root that no other user can write to"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := noRunDir(tc.ssh, fmt.Errorf("sshd's effective configuration: %w", ee))
+			var r *Refusal
+			if !errors.As(err, &r) || r.Code != CodeNoRunDir || !errors.Is(err, ErrNoRunDir) || !errors.Is(err, sshd.ErrEnvironment) ||
+				!strings.Contains(err.Error(), CodeNoRunDir) || !strings.Contains(r.Fix, tc.fix) {
+				t.Errorf("noRunDir = %v; want the report with %q", err, tc.fix)
+			}
+			if errors.Is(err, ErrListenConfNotInEffect) {
+				t.Errorf("noRunDir = %v: another code's sentinel", err)
+			}
+		})
 	}
 	other := &sshd.EnvError{Kind: sshd.EnvHostKeys, Err: sshd.ErrEnvironment}
-	if err := noRunDir(other); err != error(other) {
+	if err := noRunDir(detect.SSH{Mode: detect.SSHService}, other); err != error(other) {
 		t.Errorf("another environment error: %v, want it as it was", err)
 	}
 }
@@ -362,6 +387,9 @@ func TestRefusal(t *testing.T) {
 	r := &Refusal{Code: "EXAMPLE_CODE", Why: "why", Fix: "fix", Err: reload.ErrNotInEffect}
 	if got := r.Error(); got != "why. To go on: fix (EXAMPLE_CODE): "+reload.ErrNotInEffect.Error() || !errors.Is(r, reload.ErrNotInEffect) {
 		t.Errorf("Refusal %q", got)
+	}
+	if errors.Is(r, ErrNoRunDir) || errors.Is(r, ErrListenConfNotInEffect) {
+		t.Errorf("a code without a sentinel matches one: %v", r)
 	}
 }
 
