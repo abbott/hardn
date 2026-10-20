@@ -630,3 +630,67 @@ func TestCheckRollback(t *testing.T) {
 		})
 	}
 }
+
+// TestApplyTaken: with the caller's backups (Options.Taken, the engine's,
+// journalled before Apply runs), Apply takes none of its own and reports
+// those; a file a step changes that Taken lacks is refused before anything
+// is written, and a backup that shows a file changed since the plan is
+// ErrChanged, as Apply's own would be.
+func TestApplyTaken(t *testing.T) {
+	ctx := context.Background()
+	take := func(t *testing.T, opts Options, p Plan) map[string]backup.Entry {
+		t.Helper()
+		taken := map[string]backup.Entry{}
+		for _, s := range p.Sources {
+			r, err := opts.Backup.Backup(ctx, s.Path, backup.RollbackRequired)
+			if err != nil {
+				t.Fatal(err)
+			}
+			taken[s.Path] = r.Entry
+		}
+		return taken
+	}
+	t.Run("the caller's backups", func(t *testing.T) {
+		h, p, opts := applyHost(t, named(t, "v032-ubuntu"))
+		taken := take(t, opts, p)
+		run := opts.Backup
+		rep, err := Apply(ctx, h, p, Options{RunDir: opts.RunDir, Taken: taken})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if n := len(run.Manifest().Entries); n != len(p.Sources) {
+			t.Errorf("%d backups in the run, want the caller's %d alone", n, len(p.Sources))
+		}
+		for _, r := range rep.Backups {
+			if r.Entry != taken[r.Entry.Path] || r.Outcome != backup.Taken {
+				t.Errorf("Report.Backups %+v, want the caller's entry for %s", r, r.Entry.Path)
+			}
+		}
+		if _, ok := h.Entry(ManageConf); ok {
+			t.Error("not migrated")
+		}
+	})
+	t.Run("a file Taken lacks", func(t *testing.T) {
+		h, p, opts := applyHost(t, named(t, "v032-ubuntu"))
+		taken := take(t, opts, p)
+		delete(taken, ManageConf)
+		from := len(h.Calls())
+		if _, err := Apply(ctx, h, p, Options{RunDir: opts.RunDir, Taken: taken}); !errors.Is(err, fs.ErrInvalid) {
+			t.Fatalf("Apply = %v, want fs.ErrInvalid", err)
+		}
+		if muts := checkValidatedFirst(t, h, from); len(muts) != 0 {
+			t.Errorf("a refused plan changed %v", muts)
+		}
+	})
+	t.Run("a backup taken after an edit", func(t *testing.T) {
+		h, p, opts := applyHost(t, named(t, "v032-ubuntu"))
+		h.AddFile(ManageConf, []byte("# edited by bob\n"), 0o644, 0, 0)
+		taken := take(t, opts, p)
+		if _, err := Apply(ctx, h, p, Options{RunDir: opts.RunDir, Taken: taken}); !errors.Is(err, ErrChanged) {
+			t.Fatalf("Apply = %v, want ErrChanged", err)
+		}
+		if e, _ := h.Entry(ManageConf); string(e.Data) != "# edited by bob\n" {
+			t.Error("manage.conf was changed")
+		}
+	})
+}

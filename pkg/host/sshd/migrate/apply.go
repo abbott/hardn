@@ -67,6 +67,14 @@ type Options struct {
 	// Backup is the run's backup store; every file a step writes or removes
 	// is backed up first, RollbackRequired. Check does not use it.
 	Backup *backup.Run
+	// Taken are backups the caller has taken already, by path: the
+	// engine's, journalled before Apply runs, so that the journal names
+	// them before any file changes (revert.md §7 item 1; next/p3-steps).
+	// When set, Apply takes no backup of its own and Backup may be nil:
+	// every file a step writes or removes must have an entry here
+	// (fs.ErrInvalid otherwise, before anything is written), and each is
+	// checked against the plan as Apply checks its own (ErrChanged).
+	Taken map[string]backup.Entry
 }
 
 // Report is what Apply did.
@@ -178,13 +186,15 @@ func (p Plan) SocketDropIns(d reload.SocketDropIns) reload.SocketDropIns {
 // Apply carries out p. Before writing anything it runs Check: it validates
 // the state the whole plan leads to and compares its login paths with
 // p.Before, p.Hold and the listeners that accept connections now; then it
-// backs up every file the steps change, and checks that each is still as
-// the plan read it; then, for each step, it validates the state that step
-// leaves and compares again, and only then writes or removes. It stops at the first error; the steps in Report.Done have been
-// carried out, and backup.Restore of Report.Backups' entries undoes them
-// (under context.WithoutCancel after Ctrl-C). It reloads nothing: the
-// running sshd keeps its configuration until the caller's reload. Errors:
-// ctx's, fs.ErrInvalid (no Backup), ErrNotEstablished, *NarrowError
+// backs up every file the steps change (or takes the caller's backups,
+// Options.Taken), and checks that each is still as the plan read it;
+// then, for each step, it validates the state that step leaves and
+// compares again, and only then writes or removes. It stops at the first
+// error; the steps in Report.Done have been carried out, and
+// backup.Restore of Report.Backups' entries undoes them (under
+// context.WithoutCancel after Ctrl-C). It reloads nothing: the running
+// sshd keeps its configuration until the caller's reload. Errors: ctx's,
+// fs.ErrInvalid (no Backup, or a file Taken lacks), ErrNotEstablished, *NarrowError
 // (ErrFewerLoginPaths), ErrListenerOverlap, ErrChanged, sshd.Validate's
 // (wrapped), backup's and the host's.
 func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Report, error) {
@@ -195,8 +205,15 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Report, 
 	if p.Empty() {
 		return rep, nil
 	}
-	if opts.Backup == nil {
+	if opts.Backup == nil && opts.Taken == nil {
 		return rep, fmt.Errorf("migrate: no backup run: %w", fs.ErrInvalid)
+	}
+	for _, op := range p.Ops {
+		for _, name := range op.paths() {
+			if _, ok := opts.Taken[name]; opts.Taken != nil && !ok {
+				return rep, fmt.Errorf("migrate: %s: not among the backups taken: %w", name, fs.ErrInvalid)
+			}
+		}
 	}
 	after, found, err := Check(ctx, sys, p, opts)
 	if err != nil {
@@ -205,7 +222,7 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Report, 
 	rep.After, rep.Findings = after, found
 	for _, op := range p.Ops {
 		for _, name := range op.paths() {
-			r, err := opts.Backup.Backup(ctx, name, backup.RollbackRequired)
+			r, err := takenOr(ctx, opts, name)
 			if err != nil {
 				return rep, fmt.Errorf("migrate: %w", err)
 			}
@@ -231,6 +248,20 @@ func Apply(ctx context.Context, sys host.System, p Plan, opts Options) (Report, 
 		rep.Done = append(rep.Done, op)
 	}
 	return rep, nil
+}
+
+// takenOr is the backup of name: the one the caller took (Options.Taken),
+// or one taken now in Options.Backup.
+func takenOr(ctx context.Context, opts Options, name string) (backup.Result, error) {
+	if opts.Taken == nil {
+		return opts.Backup.Backup(ctx, name, backup.RollbackRequired)
+	}
+	e := opts.Taken[name]
+	out := backup.Taken
+	if e.TakenAnyway {
+		out = backup.TakenAnyway
+	}
+	return backup.Result{Outcome: out, Entry: e}, nil
 }
 
 // changes are the step's files, as sshd.Validate overlays them.
