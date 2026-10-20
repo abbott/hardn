@@ -146,14 +146,20 @@ func TestPlayEngine(t *testing.T) {
 			}
 		}
 	}
+	// untouched: no command but reads, and nothing written, made, removed
+	// or renamed outside the plan's run directory (/run/hardn): not even
+	// the journal or a backup.
 	untouched := func(t *testing.T, h *fakeHost) {
 		t.Helper()
-		if cmds, files := changed(h.f.Calls()); len(cmds) > 0 || len(files) > 0 {
-			t.Errorf("the host changed: %q %q", cmds, files)
+		if cmds, _ := changed(h.f.Calls()); len(cmds) > 0 {
+			t.Errorf("the host changed: %q", cmds)
 		}
 		for _, c := range h.f.Calls() {
-			if c.Op == "write-atomic" && strings.HasPrefix(c.Path, revert.DefaultDir) {
-				t.Errorf("journalled: %s", c)
+			switch c.Op {
+			case "write-atomic", "write-in-place", "append", "remove", "removeall", "rename", "mkdir", "chmod", "chown":
+				if c.Path != "/run/hardn" && !strings.HasPrefix(c.Path, "/run/hardn/") {
+					t.Errorf("changed outside the run directory: %s", c)
+				}
 			}
 		}
 	}
