@@ -567,24 +567,33 @@ func TestEngineMigrate(t *testing.T) {
 }
 
 // TestEnginePVERoot: PermitRootLogin prohibit-password on Proxmox VE
-// through pve.PlanSSH over the whole of 00-hardn.conf, and pve.CheckSSH
-// after the reload, whose three answers must each be yes.
+// through pve.PlanSSH over the whole of 00-hardn.conf, and pve.CheckSSH,
+// whose three answers must each be yes, over the candidate at plan time
+// and over sshd -T after the reload.
 func TestEnginePVERoot(t *testing.T) {
 	pveMain := sshd.IncludeLine + "\n\nPermitRootLogin yes\nUsePAM yes\n"
+	const site = sshd.DropInDir + "/50-site.conf"
 	for _, tc := range []struct {
 		name  string
 		login string // the PermitRootLogin asked for
 		files map[string]string
-		ok    bool
-		want  string // the directives at the end
+		// between, when set, changes the host once the reload ran.
+		between func(v *vm)
+		want    error  // nil: applied
+		dirs    string // the directives at the end, when applied
 	}{
-		{"stock", "prohibit-password", nil, true, "PermitRootLogin prohibit-password"},
+		{"stock", "prohibit-password", nil, nil, nil, "PermitRootLogin prohibit-password"},
 		// pve.PlanSSH writes prohibit-password for no (brief 2.5), and the
 		// check after the reload reads what was written, not what was asked.
-		{"no asked: key-only written and checked", "no", nil, true, "PermitRootLogin prohibit-password"},
+		{"no asked: key-only written and checked", "no", nil, nil, nil, "PermitRootLogin prohibit-password"},
 		{"a kept AllowUsers gets root", "prohibit-password", map[string]string{sshd.HardnDropIn: "# Managed by hardn.\n# From /etc/ssh/sshd_config.d/manage.conf:\nAllowUsers alice\nPubkeyAuthentication yes\n"},
-			true, "PermitRootLogin prohibit-password\nAllowUsers alice root\nPubkeyAuthentication yes"},
-		{"another drop-in keeps root out", "prohibit-password", map[string]string{sshd.DropInDir + "/50-site.conf": "AllowUsers alice\n"}, false, ""},
+			nil, nil, "PermitRootLogin prohibit-password\nAllowUsers alice root\nPubkeyAuthentication yes"},
+		// Foreseeable from the candidate: refused before the timer.
+		{"another drop-in keeps root out", "prohibit-password", map[string]string{site: "AllowUsers alice\n"}, nil, steps.ErrProxmoxRoot, ""},
+		// Not foreseeable: the check after the reload rolls it back.
+		{"a drop-in that keeps root out, written after the reload", "prohibit-password", nil, func(v *vm) {
+			v.f.AddFile(site, []byte("AllowUsers alice\n"), 0o644, 0, 0)
+		}, engine.ErrRolledBack, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -593,20 +602,33 @@ func TestEnginePVERoot(t *testing.T) {
 				v.f.AddFile(p, []byte(d), 0o644, 0, 0)
 			}
 			v.boot()
+			if tc.between != nil {
+				v.hook = func(cmd string) (hostfake.Response, bool) {
+					if cmd == "systemctl reload ssh.service" {
+						tc.between(v)
+					}
+					return hostfake.Response{}, false
+				}
+			}
 			old := v.directives()
 			root := sshControl(steps.SSH{Set: []migrate.Directive{{Keyword: "PermitRootLogin", Args: []string{tc.login}}}})
 			_, _, err := v.viaEngine(context.Background(), proxmox9(), root)
 			switch {
-			case tc.ok && err != nil:
+			case tc.want == nil && err != nil:
 				t.Fatal(err)
-			case !tc.ok && (!errors.Is(err, engine.ErrRolledBack) || !strings.Contains(err.Error(), "root by key no")):
-				t.Fatalf("err = %v, want rolled back: root by key no", err)
-			case !tc.ok:
-				tc.want = old
+			case tc.want != nil && (!errors.Is(err, tc.want) || !strings.Contains(err.Error(), "root by key no")):
+				t.Fatalf("err = %v, want %v: root by key no", err, tc.want)
+			case errors.Is(tc.want, steps.ErrProxmoxRoot):
+				if !errors.Is(err, engine.ErrRefused) || v.index(armed) >= 0 {
+					t.Errorf("err = %v, armed at %d; want refused at plan time", err, v.index(armed))
+				}
+				tc.dirs = old
+			case tc.want != nil:
+				tc.dirs = old
 				v.cleared()
 			}
-			if got := v.directives(); got != tc.want {
-				t.Errorf("00-hardn.conf's directives %q, want %q", got, tc.want)
+			if got := v.directives(); got != tc.dirs {
+				t.Errorf("00-hardn.conf's directives %q, want %q", got, tc.dirs)
 			}
 			if v.index(func(c hostfake.Call) bool { return c.Op == "run" && c.Argv[0] == "ufw" }) >= 0 {
 				t.Error("ufw was run on Proxmox VE")

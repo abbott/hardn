@@ -105,6 +105,11 @@ var (
 	// ErrChanged: a file the change writes is not as the plan read it: its
 	// backup, taken just before the write, shows another content.
 	ErrChanged = errors.New("changed since the plan")
+	// ErrProxmoxRoot: on Proxmox VE, the candidate configuration does not
+	// show root logging in key-only, by key from the other nodes, on port
+	// 22 (pve.CheckSSH, pve.md §6): a No locks the cluster out, and an
+	// Unknown is not a pass. Refused at plan time.
+	ErrProxmoxRoot = errors.New("the cluster's root SSH login by key would not be kept")
 )
 
 // Refusal is a refusal at plan time with a report: a stable code, why the

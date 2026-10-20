@@ -249,10 +249,54 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 		return nil, noRunDir(fmt.Errorf("validation in context: %w", err))
 	}
 	e.cand, _ = sshd.Evaluate(sshd.EffectiveInputs{Effective: rep.Effective})
+	if st.pve {
+		if err := st.checkPVECandidate(ctx, sys, e, rep); err != nil {
+			return nil, err
+		}
+	}
 	if e.drops, err = st.socketDropIns(ctx, sys); err != nil {
 		return nil, err
 	}
 	return e, nil
+}
+
+// checkPVECandidate is pve.CheckSSH over the candidate, before anything
+// changes: sshd -T over the validated copy, evaluated with detect's SSH
+// facts (and on a socket host ssh.socket's listeners) so that its
+// listeners are established as the check after the reload reads them, and
+// the installed files with the candidate 00-hardn.conf, for their Match
+// blocks. Root key-only, root by key from the other nodes and port 22 must
+// each be Yes (pve.md §6): what the candidate already shows keeping root
+// out (another drop-in's AllowUsers) is refused here, with ErrProxmoxRoot,
+// rather than after the reload. The check after the reload stays
+// (checkPVE).
+func (st sshState) checkPVECandidate(ctx context.Context, sys host.System, e *edit, rep sshd.Report) error {
+	drops := slices.DeleteFunc(slices.Clone(st.found.DropIns), func(f sshd.File) bool { return f.Path == sshd.HardnDropIn })
+	drops = append(drops, sshd.File{Path: sshd.HardnDropIn, Data: e.data})
+	in := sshd.EffectiveInputs{Effective: rep.Effective, Probes: rep.Probes, SSH: st.in.Facts.SSH, Main: st.found.Main, DropIns: drops}
+	if sshd.SocketMayListen(st.in.Facts.SSH) {
+		res, err := sys.Run(ctx, "systemctl", "show", "-p", "Listen", sshd.SocketUnit)
+		if err != nil {
+			return fmt.Errorf("%s listeners: %w", sshd.SocketUnit, err)
+		}
+		in.Socket = res.Stdout
+	}
+	cand, _ := sshd.Evaluate(in)
+	chk, err := pve.CheckSSH(st.in.Facts.Proxmox, pve.SSHInput{Effective: cand, Main: st.found.Main, DropIns: drops, Root: e.groups})
+	if err != nil {
+		return err
+	}
+	if chk.RootKeyOnly == detect.Yes && chk.RootByKey == detect.Yes && chk.Port22 == detect.Yes {
+		return nil
+	}
+	var why []string
+	for _, f := range chk.Findings {
+		if f.Kind == pve.FindingRootUnreachable || f.Kind == pve.FindingNotKeyOnly || f.Kind == pve.FindingPortNot22 {
+			why = append(why, f.Detail)
+		}
+	}
+	return fmt.Errorf("Proxmox VE: with %s as planned, root key-only %v, root by key %v, port 22 %v (%s); each must be yes: %w",
+		sshd.HardnDropIn, chk.RootKeyOnly, chk.RootByKey, chk.Port22, strings.Join(why, "; "), ErrProxmoxRoot)
 }
 
 // change is the write of 00-hardn.conf (StageFiles), after the engine has
