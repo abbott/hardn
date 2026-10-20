@@ -1,0 +1,286 @@
+# The engine's change kinds (`pkg/engine/steps`)
+
+> **Unit:** refactor plan Phase 3, `next/p3-steps` (plan §2, row `p3-steps`; brief 2.2, 2.3 and 2.4; brief §2 decisions "Confirm-or-revert" and "hardn's SSH settings live in `00-hardn.conf`"). Decisions it implements: §3.14 (approved 2026-10-17: `--confirm-timeout` / `confirmTimeout`), §3.17 (the legacy SSH files migrated), §3.18 (no SSH port change on Proxmox VE) and [P-39](../refactor/proposals.md#p-39) (a), decided by the maintainer on 2026-10-19: the D9 host stays refused, now with a report. It takes up the `p3-engine` items of [docs/safety/README.md](../safety/README.md) that `next/p3-engine` left to it ([engine.md](engine.md) §7). V-numbers: V7 and V12 (no validation in context, no `ssh.socket` handling) and V8's order, now on the engine's path; the engine half of V24 and R8 (the v0.3.x files migrated with a rollback) ([side-effects.md](../refactor/phase0/side-effects.md)).
+> **Status:** built and tested on macOS against the recording fake (`hostfake`) only: the planners on `internal/tools/p2drive`'s fake VM through the engine, side by side with `p2drive` on a twin VM, and the unit changes on `hostfake`. **Nothing has run on Linux** through the engine; everything host-specific is "written, not run (gate 5)" (§4).
+
+`next/p3-engine` built the engine with synthetic changes. This unit gives it the real ones. A control's `Plan` calls a planner here (`PlanSSH`, `PlanMigration`, `PlanUFWEnable`, `PlanCleanup`) or wraps a unit's plan (`Sudoers`, `DNS`, `Alpine`, `PVEKeys`). The planner makes every check a Phase 2 primitive offers before anything changes, and returns `engine.Change`s. A change is data: what it backs up, what the journal holds before it runs, the function that runs it, and what it says the journal needs once it ran. The engine orders the changes (firewall, files, reload, verify), backs them up, journals them write-ahead and rolls them back in reverse. Every refusal is a planner's error, so it shows in the plan, which is the dry run, before the revert timer is armed. No control is built here: which settings a control asks for, and from which configuration keys, is the slices' (slice 6 for SSH).
+
+## 1. Why
+
+`internal/tools/p2drive` composes the Phase 2 primitives by hand for four changes. Its order ran on Debian 13 and Ubuntu 26.04 ([vmtest.md](../safety/vmtest.md) §4.9). The engine applies any plan in that order (engine.md §2.5), but it holds no primitive itself. Without this unit, every slice would have to rebuild the driver's checks and its journal. Each one that got a check wrong would lock a user out, or would leave a change the timer cannot undo (brief §3 principle 1).
+
+## 2. Guarantees
+
+### The SSH change (`PlanSSH`)
+
+1. **One planner for every change of hardn's sshd settings** (`SSH{Prefix, Set, Port, UFW}`). Reads, all before anything changes:
+   - detect's facts, from `engine.Input`;
+   - Alpine's sshd binary (`reload.OpenRCFlavour`);
+   - `sshd -T` over the installed files (`sshd.ReadEffective`);
+   - hardn's legacy files (`migrate.Find`);
+   - whether Proxmox VE's rules apply (`pve.Applies`).
+
+   Then it refuses:
+   - an `sshd_config` whose first directive is not exactly the stock Include, or that has no Include (`ErrNoWriteStrategy`; [P-38](../refactor/proposals.md#p-38); hardn's block at the top of `sshd_config` is not written yet);
+   - legacy hardn files on the host (`ErrMigrateFirst`: their migration, §2.6, is a change of its own and comes first, as [sshd-migrate.md](../safety/sshd-migrate.md) §6 requires).
+
+   **Changes, all of lockout risk:** `<prefix>/firewall` (when ufw has something to do), `/files`, `/reload` and `/verify`. When `00-hardn.conf` already says what is asked, there are none (idempotency: `TestEngineIdempotent`). For a port, "already" means the port is in sshd's Port set and on one of its listeners.
+2. **`00-hardn.conf` is edited line by line, never regenerated** ([sshd-migrate.md](../safety/sshd-migrate.md) §6; `setDirectives`, p2drive's edit, [vmtest.md](../safety/vmtest.md) §2.4):
+   - the lines of the keywords the change sets are dropped;
+   - the new lines come first, under migrate's own label `# Set by hardn:`, so that they are global;
+   - every other line stays, the migrated `AuthorizedKeysFile` union (R8) included;
+   - a new file starts with migrate's header, `# Managed by hardn.`;
+   - a `Match` or `Include` line, and an argument that would need quoting, are refused (`fs.ErrInvalid`).
+
+   **A port change** writes `reload.HoldPorts` of the listeners sshd configures now and the new port: `Port 22` and `Port 2230` during the confirm window.
+
+   **On Proxmox VE** every write goes through `pve.PlanSSH` over the whole file it leaves, the kept lines too (`pveSet`). A migrated `AllowUsers alice` becomes `AllowUsers alice root`.
+
+   Tested: `TestSetDirectives`, `TestEnginePVERoot`.
+3. **Validated in context before the rename.** The candidate is checked with `sshd.Validate` over a copy of the whole configuration in the plan's run directory (`sshd -t`, `sshd -T`, the `Match` probes). The engine plans again under the run lock, so the check is made again moments before the apply.
+
+   The write (`<prefix>/files`, `StageFiles`) runs only when two things hold:
+   - the engine has backed up `00-hardn.conf` (`backup.RollbackRequired`, `Change.Backups`; engine.md §2.4);
+   - that backup shows the file as the plan read it (`ErrChanged` otherwise).
+
+   The write is `host.WriteFileAtomicKeep`. A write that fails after its rename (`host.ErrNotDurable`) is a failed step, which the engine rolls back ([atomic.md](../safety/atomic.md) §7). **Its undo, journalled with the backup before the write, is the `ssh` reload with `IfUp`.** An sshd that starts between the write and the reload (on Ubuntu, `ssh.service` is started by a connection) reads the new file, and the rollback then reloads it. p2drive journals the reload the same way ([vmtest.md](../safety/vmtest.md) §2.6).
+4. **The reload** (`<prefix>/reload`, `StageReload`) is `reload.Execute` of the plan `reload.PlanFor` made at plan time. It reloads `ssh.service` or OpenRC's `sshd`, or on `ssh.socket` runs `daemon-reload`, the socket check and `restart ssh.socket`, and never touches the `sshd` unit ([reload.md](../safety/reload.md) §2).
+
+   **Its journal:** before it runs, the same `ssh` reload with `IfUp`. Once its gated step ran (`reload.Report.Steps`), the same reload without `IfUp`, also when `Execute` then failed ([revert.md](../safety/revert.md) §7 item 3). The engine writes that second entry under a context without the apply's cancellation (engine.md §2.4). So after a Ctrl-C that left `ssh.service` down, the rollback starts it (`TestEngineRollsBack`, "Ctrl-C during the reload").
+
+   **One entry, not two.** The write and the reload journal the same reload, so the engine journals it once (`journalUndo`, §5). It carries `IfUp` only while both say `IfUp`. The journal therefore matches p2drive's at every moment.
+
+   **`ConfirmVia`** is the listeners the reload adds (`reload.Plan.Adds`): a confirming connection must reach one of them ([reload.md](../safety/reload.md) §6).
+5. **The check after the reload** (`<prefix>/verify`, `StageVerify`) reads `sshd -T` again. It fails unless every value the file sets shows, as written: on Proxmox VE as `pve.PlanSSH` left it, so a `PermitRootLogin no` asked for is written and checked as `prohibit-password` (brief 2.5). The values:
+   - each `Port` in the Port set **and on one of sshd's listeners**;
+   - the lockout-relevant settings (`wanted`), with `without-password` read as `prohibit-password`. An Unknown is not a pass.
+
+   On Proxmox VE, `pve.CheckSSH` must also say `yes` to all three of root key-only, root by key and port 22 (`checkPVE`, [pve.md](../safety/pve.md) §6).
+
+   A failure is `ErrNotInEffect`, and the engine rolls the change back. Tested: `TestWanted`, `TestEngineRollsBack`, `TestEnginePVERoot` ("no asked: key-only written and checked", which fails with the directives as asked; "another drop-in keeps root out": rolled back, the file as it was).
+
+### The migration (`PlanMigration`)
+
+6. **The R8 migration** ([sshd-migrate.md](../safety/sshd-migrate.md) §6, decision §3.17). It plans, in p2drive's order:
+   - `migrate.Find` with the loaded `sshConfigFile`;
+   - `migrate.PlanFor`;
+   - `migrate.Check` (validation and the login-path comparison over a copy);
+   - `reload.PlanFor` over `Plan.Reload` and `Plan.SocketDropIns`;
+   - `Plan.CheckRollback` (§2.12);
+   - for a listener change, `reload.CheckInEffect` with the applying session's port and `reload.CheckFree`;
+   - ufw over `Plan.Listening`.
+
+   **Changes:** the firewall when a port is added through an active ufw; `<prefix>/files`; the reload when the plan has keywords; and the check, which requires `sshd -T` to show what `Check` showed of the copy (`sameEffective`).
+
+   The reload's undo is `migrate.Plan.Rollback()`: the listeners that accept connections now (`Plan.Listening.All`), with `listen.conf` named as a drop-in the restore puts back (`socketDropIns`). Its apply plans again from the drop-ins read once the files are gone, as p2drive's does.
+
+   Tested: `TestEngineMigrate` covers:
+   - Debian;
+   - Ubuntu's `ssh.socket`: the journal names `listen.conf` and `[::]:2230`;
+   - `sshd -T` not showing the migration after the socket restart: `listen.conf` and `manage.conf` restored, `00-hardn.conf` gone, `ssh.socket` back on `[::]:2230`.
+7. **`migrate.Apply` takes the engine's backups (decision of this unit; [README](../safety/README.md): "`migrate.Apply` takes its own backups").** `migrate.Options` gains `Taken`, the backups the caller has taken by path. With it, `Apply` takes no backup of its own. It refuses a file a step changes that `Taken` lacks (`fs.ErrInvalid`, before anything is written). It checks each entry against the plan as it checks its own (`ErrChanged`). It reports those entries as `Report.Backups`.
+
+   The engine backs up `Plan.Sources` (`Change.Backups`) and journals them before `Apply` runs. The journal therefore names every backup of every file the migration changes before any of them changes ([revert.md](../safety/revert.md) §7 item 1). The run holds one copy of each file, where p2drive's holds two, the second unjournalled. The journal is p2drive's (`Backup.Seqs` `[1, 2, 3]` on the v0.3.2 Debian host).
+
+   **Why not a hook before `Apply`'s first write:** the engine journals a change's undo before `Apply` runs, and journals what ran once it returns (engine.md §2.4). A hook in the middle would need a journal call inside a change, an engine API that nothing else needs, and two places where a change's undo is journalled. Tested: `TestApplyTaken` (`pkg/host/sshd/migrate`), `TestEngineMigrate` (three backups in the run).
+
+### The firewall, ufw's enable and the clean-up
+
+8. **ufw** (`firewallChange`, `StageFirewall`, lockout risk). Planned with `ufw.Read` and `ufw.PlanFor` over the listeners sshd is configured for, the ports the change adds, and the applying session's own port kept (`Input.Keep`, [ufw.md](../safety/ufw.md) §6). Under `UFWKeep`, an inactive ufw gets no rule (`NoSaveWhileInactive`; [P-33](../refactor/proposals.md#p-33) is open), and on Proxmox VE or without ufw installed there is nothing to do. Under `UFWEnable`, ufw is enabled with default deny incoming, after its allow rules.
+
+   **Its journal:** `Plan.PreUndo()` before it runs; once it ran, error or not, `Report.Undo`, which comes from ufw's answers, so an allow ufw kept is not deleted. Both are `run` steps, `why: firewall`.
+
+   **`PlanUFWEnable`** is p2drive's `ufw-enable` (it needs sshd's listeners established, `ufw.ErrListenersUnknown`).
+9. **The clean-up after the confirmation is a change of its own** (`PlanCleanup`; brief 2.3 step 5: "Confirm the change from a new connection, then remove the old port rule"). Its input is `Cleanup{Drop, Firewall}`. `CleanupOf(journal)` reads it from a confirmed change's journal (`confirmed.json` keeps the last one, [revert.md](../safety/revert.md) §2.5):
+   - `Drop`: the ports of the listeners its reload restores, which are what sshd listened on before the change, less any `ConfirmVia` has;
+   - `Firewall`: its `ufw delete allow` undo commands.
+
+   It plans:
+   - `00-hardn.conf`'s Port lines without the dropped ports, edited line by line and validated in context;
+   - on Proxmox VE, `pve.CheckPort` over the ports left;
+   - the reload with `reload.Change.Confirmed`, which may only drop listeners ([reload.md](../safety/reload.md) §2.5);
+   - `CheckInEffect` with the applying session's port;
+   - before them, `ufw delete allow <port>/tcp`, only for a rule hardn added (one of `Firewall`, [ufw.md](../safety/ufw.md) §6) that ufw still has. The rule it journals first, `ufw allow <port>/tcp`, keeps an existing rule when the delete never ran.
+
+   It refuses a port another file keeps (a `Port` line in `sshd_config`), since hardn edits only `00-hardn.conf`. The check after the reload requires the dropped ports gone from the Port set and from every listener. Its changes are of lockout risk, so the clean-up is confirmed like any other change; planned again, it is empty.
+
+   **Who plans it, and when**, is the maintainer's question that engine.md §7 sets out, and it stays open: the next run, `hardn confirm`, or the session that applied the change. The change kind serves all three. Tested: `TestCleanupOf`, `TestEngineCleanup` (22's rule kept where ufw allowed 22 before the change, deleted where hardn added it; empty when planned again).
+
+### The units with a rollback of their own
+
+10. **Sudoers, DNS, Alpine's updates and Proxmox VE's root keys** (`Sudoers`, `DNS`, `Alpine`, `PVEKeys`). Each is journalled as its unit's registered plan step, made with the step function (`plans.Sudoers`, `DNS`, `Alpine`, `PVEKeys`). The step function refuses a plan its rollback would refuse, before the plan becomes a change (`plans.ErrPlan`, [revert-plans.md](../safety/revert-plans.md) §2.4).
+
+    The engine journals the step before the unit's apply. The rollback, here or from the timer, is the unit's own. Each unit's own backups go into the plan's backup run (`engine.Run.Store`) and stay out of the journal. For root's keys this is on purpose: a restore would drop the keys other nodes wrote meanwhile ([pve.md](../safety/pve.md) §2.12, §6).
+
+    **An apply refused before it wrote anything drops the step again** (an empty `engine.Ran.Rollback`), so the rollback only ends the change ([revert-plans.md](../safety/revert-plans.md) §6). Each unit signals "wrote nothing" its own way:
+    - **sudoers:** an error with nothing installed, nothing restored and not `sudoers.ErrNotRestored`, or a backup that failed before `sudoers.Apply`;
+    - **Proxmox VE:** an error from `ApplyKeys` with a zero `backup.Result`;
+    - **DNS and Alpine:** the rollback runs only after an `Apply` that returned nil ([dns.md](../safety/dns.md) §6, [alpine.md](../safety/alpine.md) §6), so any error drops the step, except `ErrNotRestored`. There the unit's own undo did not finish, and the step stays, so that the journal's rollback tries again what is left of the plan's own writes ([revert-plans.md](../safety/revert-plans.md) §6). **Decision of this unit:** the README's "only after an `Apply` that returned nil" is read with revert-plans.md's exception, because the alternative leaves a half-changed host with nothing journalled to undo it.
+
+    **Classes:**
+    - sudoers: `StageAccounts`; lockout risk when a change of the plan is `sudoers.RiskLockout` (a grant removed, or one that asks for a password), so that a new SSH connection, where elevation is checked, confirms it; plain otherwise. Its files are backed up into the run before `sudoers.Apply` ([sudoers.md](../safety/sudoers.md) §6).
+    - Proxmox VE's keys: `StageAccounts`; lockout risk when `Narrows()`.
+    - DNS: `StageFiles`, plain (brief 2.4).
+    - Alpine: `StagePackages`; a package install for apk-cron, else a service restart for crond.
+
+    Tested: `TestPlanStepDropped` (Proxmox VE off the platform, DNS on a host changed since the plan, the DNS and Alpine rule, a plan each step function refuses); `TestEngineSudoersRefused` (`visudo -c` refusing before any write: the rollback starts from a journal with no plan step, and the journal is cleared); the sudoers grant in `TestEngineParity`.
+
+### Plan-time checks: every refusal before the timer
+
+11. **`reload.Execute`'s in-use check is a check of its own.** `reload.CheckFree` (new, §5) runs it at plan time: `ss -Htln` must show no socket but the held ones on a port the change adds (`reload.ErrInUse`; on a socket host also `ss` missing or failing). It runs for every reload that adds listeners. `Execute` still runs the check before its first step. Tested: `TestCheckFree`, `TestExecuteInUse` (the same refusals on their own) and `TestEngineRefusedBeforeArm` ("another service holds the new port").
+12. **`migrate.Plan.CheckRollback`, and `reload.CheckInEffect` for every listener change.** `CheckRollback` runs for every migration. `CheckInEffect` runs for every listener change of `PlanSSH`, `PlanMigration` and `PlanCleanup`, with the applying session's own end (`revert.ParseConn`'s `Server`) from `engine.Input.Session` (§2.18). A remote session whose connection is not established is refused, closed ([revert-plans.md](../safety/revert-plans.md) §2.10).
+
+    **P-39 (a), decided:** on the D9 host, `CheckRollback`'s refusal (`reload.ErrRestoredListeners`) comes with a report (`Refusal`, code `SSH_LISTEN_CONF_NOT_IN_EFFECT`). The D9 host is one where v0.3.x's `listen.conf` names ports none of which `ssh.socket` is configured for. The report says three things:
+    - what was found: `listen.conf`'s port, and what the socket is configured for;
+    - why it is refused: the rollback's `daemon-reload` would move the socket to `listen.conf`'s port alone, off the port the host is reached on;
+    - how the host becomes migratable: a reboot, or `systemctl daemon-reload` and `systemctl restart ssh.socket`. The report also warns that the socket then listens on `listen.conf`'s port alone, so the firewall must let it through first and the session must stay open until a new connection there works. Without that warning, the fix could itself lock the user out.
+
+    A socket configured for more than `listen.conf` gives is refused by `CheckRollback` with its own words; it is not D9, and gets no report.
+
+    Tested: `TestNotInEffect`, and `TestEngineRefusedBeforeArm`, where every row of p2drive's `TestRefusedBeforeArm` is refused by the engine's plan with no change outside the run directory and no run lock taken. Among them: D9, the socket configured for more, configured 2230 and bound 22 with the session on 22 and on 2230, `sshd -T` showing 2231 while sshd listens on 22, and a session whose connection is not known.
+13. **A port change must reach a listener**, before and after:
+    - before: the new port among `reload.Plan.Adds` (`ErrNoNewListener`, naming each `ListenAddress` with its own port by file and line: the R8 path, a migrated `ListenAddress 0.0.0.0:2230`);
+    - after the reload: on one of `sshd -T`'s listeners, not only in its Port set (§2.5).
+14. **Proxmox VE.**
+    - `pve.CheckPort` before a port change (`pve.ErrPortChange`, §3.18; `TestEngineRefusedBeforeArm`);
+    - `pve.PlanSSH` over the whole file (§2.2);
+    - `pve.CheckSSH` after the reload (§2.5).
+
+    **`pve.CheckAccount` is not wired:** no change kind of this unit, nor the engine, locks, deletes or expires a password. The first one is the user-management slice's, which pve.md §6 already names; that README item stays open.
+15. **`sshd -T` without `/run/sshd`** (Ubuntu before its first SSH connection since boot) **is refused with the reason** (`Refusal`, code `SSHD_ENV_NO_RUNDIR`, sshd-validate.md §6's code). `sshd.ReadEffective` and `sshd.Validate` fail with `*sshd.EnvError{EnvPrivsepDir}`. The report says that sshd's listeners are not established without it, and that an SSH connection to the host starts `ssh.service`, which creates the directory. No other source of the listeners is used: `ss` does not say whose a socket is ([reload.md](../safety/reload.md) §6). Tested: `TestNoRunDir`, and `TestEngineRefusedBeforeArm`'s last row.
+16. **The support level** (`detect.Support`) is the engine's gate for every plan, the DNS plans included: closed by `next/p3-engine` (engine.md §2.6).
+
+### Inputs
+
+17. **`--confirm-timeout` / `confirmTimeout`** (§3.14). `ConfirmTimeout(flag, cfg)` reads `cfg.ConfirmTimeout`, a new `pkg/config` key, with `revert.ParseTimeout`, and resolves it with the flag through `revert.ResolveTimeout`. The flag wins; the default is 180 s, the floor `revert.MinTimeout`; a bad value is `revert.ErrTimeout`. The result is `engine.Options.Timeout`. The key is `omitempty`, so a legacy save writes nothing new. The six config-load characterization goldens gain one line each, `"ConfirmTimeout": ""`, which is the new field, empty (`TestConfigLoadGoldens`).
+
+    **No flag is wired in `cmd/hardn` here.** The wiring that builds the engine's `Options` (`p3-output`, or slice 6 with the first lockout-risk command) parses `--confirm-timeout` with `revert.ParseTimeout` and passes it with the loaded configuration to `ConfirmTimeout`. Tested: `TestConfirmTimeout`, `TestConfirmTimeoutKey`.
+18. **`engine.Input.Session`** (new, §5) is the session applying the change, the one the journal names. Controls read the applying session's port from it for `CheckInEffect` and ufw's `Keep`, so the plan and the journal cannot name two sessions (`TestInputSession`).
+19. **`config.prohibitPasswordApplied` is not flipped.** No change kind of this unit applies `Config.RootLogin()`: `PlanSSH` takes the directives its caller asks for, and the control that maps `permitRootLogin` to them is slice 6's. The flag flips there ([sshd-migrate.md](../safety/sshd-migrate.md) §2.21).
+
+### Parity with p2drive
+
+20. **The brief's 2230 scenario, `keyonly`, `ufw-enable` and the sudoers grant** run through the engine on p2drive's own fake VM, beside p2drive on a twin VM (`TestEngineParity`). The platforms:
+    - Debian's `ssh.service`;
+    - Ubuntu's `ssh.socket`;
+    - Alpine's OpenRC (no ufw installed).
+
+    2230 and `keyonly` run on all three; `ufw-enable` and the sudoers grant on Debian and Ubuntu (Alpine has neither ufw nor sudo in p2drive's fake, whose `doas` is not modelled).
+
+    **Compared:**
+    - the commands that change the host, in order: every command run or started (the `systemd-run` timer, the OpenRC sleeper, `ufw allow`, `systemctl reload ssh.service`, `daemon-reload`, `restart ssh.socket`, `rc-service sshd reload`, `visudo`), the change's id read as `<id>`;
+    - the last journal written;
+    - `00-hardn.conf`'s directives;
+    - ufw's rules and the bound sockets.
+
+    **Equal, except for:**
+    - the reads: `sshd -t`/`-T`, `ss`, `ufw status`, `systemctl is-active`/`show` and the engine's `list-timers` for the deadline. The engine reads more: it plans twice, once more under the run lock;
+    - the journal's `summary`: the engine's is `Plan.Summary()`, p2drive's its own words;
+    - for a change without lockout risk, the journal's `session`: the engine journals the applying session for every change, p2drive only where a confirmation needs it;
+    - `00-hardn.conf`'s header and label (hardn's, migrate's; p2drive's name itself).
+
+    `TestEngineOrder` pins the order on Debian's `ssh.service` as `TestPort2230` does: armed, `ufw allow 2230/tcp`, the backup, the journal with the reload `IfUp` before the write, the write, the reload. `TestEngineRollsBack` covers p2drive's `TestPortRollsBack`, `TestFailedAfterArm` and `TestCancelledDuringReload` under the engine's signal hold.
+
+    **p2drive itself is unchanged**: the comparison is a test file in its package (`internal/tools/p2drive/engine_test.go`) that drives the engine over its fake. `setDirectives`, `pveSet`, `wanted` and `sameEffective` are copied from it: a `main` package cannot be imported. Moving p2drive onto this package is left for a later revision of the driver.
+
+### Through `host.System`
+
+21. Depguard rule `steps-through-host`, the last of the rules, denies these to `pkg/engine/steps`' non-test files: `os`, `io/ioutil`, `golang.org/x/sys`, `syscall`, `net` (but `net/netip`), `plugin` and `pkg/ui`. `engine-through-host`'s glob covers the directory too; the rule of its own keeps the unit's rule if that glob changes. Probed in a scratch copy outside the repository: an `os` import fails lint, reported under `engine-through-host` (depguard names the first rule that denies it), and under `steps-through-host` once the engine rule's glob is narrowed to leave this directory out.
+
+## 3. Facts relied on
+
+| Fact | Source | Used for |
+|---|---|---|
+| A `ListenAddress` with its own port ignores every `Port` line ("If port is not specified, sshd will listen on the address and all Port options specified") | sshd_config(5), V_10_0_P1, as cited in [vmtest.md](../safety/vmtest.md) §2.3 | §2.13 |
+| `sshd -T` needs `/run/sshd` on Debian and Ubuntu; only `ssh.service`'s `RuntimeDirectory=sshd` creates it, and it is gone while the service is stopped | [sshd-validate.md](../safety/sshd-validate.md) §3 **[V]** (Debian `debian/rules`; LP #2107356) | §2.15 |
+| That a socket-activated Ubuntu before its first connection is in that state | **[I]** ([sshd-validate.md](../safety/sshd-validate.md) §2.8) | §2.15 |
+| v0.3.2 wrote `ssh.socket.d/listen.conf` without `daemon-reload` (D9); its `ListenStream=` reset, then `ListenStream=<port>`, replaces the generator's listeners once read | [side-effects.md](../refactor/phase0/side-effects.md) D9 (**[V]** grep, **[I]** its effect); [reload.md](../safety/reload.md) §3 | §2.12 |
+| `daemon-reload` reruns `sshd-socket-generator`; `restart ssh.socket` then binds what `systemctl show -p Listen` says; SSH sessions survive `restart ssh.socket` | [vmtest.md](../safety/vmtest.md) §4.9, the Ubuntu 26.04 run (**run**, 2026-10-19) | §2.4, §2.9, §2.12 (the report's fix) |
+| `systemctl reload ssh.service` makes sshd listen on an added `Port` before `ss` is read, and stop listening on a removed one | [vmtest.md](../safety/vmtest.md) §4.9, the Debian 13 run (**run**) | §2.4, §2.9 |
+| An established SSH connection survives `ufw --force enable`; a port whose rule is deleted then times out; `ufw delete allow N/tcp` runs without a prompt with no terminal | [vmtest.md](../safety/vmtest.md) §4.9, the Debian ufw pass (**run**, IPv4) | §2.8, §2.9 |
+| That an established session on a port whose ufw rule the clean-up deletes survives (ufw's `before.rules` accept established traffic) | **[I]** | §2.9 |
+| `revert.Rollback` restores every backup, then runs the undo steps, then the reloads, in order | [revert.md](../safety/revert.md) §2.14 | §2.4: two equal reloads journalled once undo the same |
+| p2drive's command sequence, which `TestEngineParity` shows the engine's equals on the fake, passed on Debian 13 and Ubuntu 26.04 | [vmtest.md](../safety/vmtest.md) §4.9 (**run**, p2drive built from `next/p2-revert-plans`) | §2.20: the engine's sequence is one that ran, though the engine has not |
+| yaml.v3 decodes an integer scalar (`confirmTimeout: 240`) into a string field as written | **observed**, `TestConfirmTimeoutKey` | §2.17 |
+
+## 4. Written, not run (gate 5)
+
+Nothing here has run on Linux or as root, and no change has gone through the engine on a host. On the VMs of [vmtest.md](../safety/vmtest.md), once a command puts the engine and these planners behind it (`p3-output` or slice 6), these are still to run:
+
+- **2230 through the engine** on Debian 13 (`ssh.service`), Ubuntu 26.04 (`ssh.socket`) and Alpine 3.24 (OpenRC), with and without an active ufw. The new port confirmed from a new connection; the timer's rollback at the deadline; the four refusals of `hardn confirm` ([vmtest.md](../safety/vmtest.md) §4.4).
+- **`keyonly`, `ufw-enable` and the sudoers grant** through the engine, as vmtest.md §4.4 steps 3, 10 and 13.
+- **The clean-up** after a confirmed 2230 on Debian 13 and Ubuntu 26.04:
+  - 22 dropped, `ss` showing 2230 alone;
+  - the session that applied it, on 22, surviving `systemctl reload ssh.service` and `restart ssh.socket` **[I]**;
+  - hardn's ufw rule for 22 deleted and a pre-existing one kept;
+  - its own confirmation from a new connection to 2230.
+- **The migration** on the v0.3.2-hardened images ([vmtest.md](../safety/vmtest.md) §4.8), Debian and Ubuntu, through the engine. Also **the D9 refusal and its report** on a v0.3.2 Ubuntu not rebooted since, then the report's fix (`systemctl daemon-reload`, `systemctl restart ssh.socket`, a new connection to 2230), and the migration then applied.
+- **`/run/sshd`** on Ubuntu 26.04 from the console before any SSH connection since boot: refused with the report; planned once a connection has started `ssh.service`.
+- **Proxmox VE 9 by hand** ([vmtest.md](../safety/vmtest.md) §4.7, [pve.md](../safety/pve.md) §4): `PermitRootLogin prohibit-password` through `pve.PlanSSH`, `pve.CheckSSH` after the reload; a port change refused at plan time.
+- **DNS, Alpine's updates and Proxmox VE's keys** through the engine, with their registered rollbacks from the timer and from `hardn rollback <id>` ([revert-plans.md](../safety/revert-plans.md) §4): no driver command makes these changes yet.
+
+## 5. Changes to other units' code
+
+- **`pkg/engine`** (`next/p3-engine`'s; [engine.md](engine.md)'s API list predates these):
+  - `Input` gains `Session` (§2.18);
+  - the journal's undo is built by one function, `journalUndo`, for the apply's `record` and the plan's `checkJournals` alike. It journals an `ssh` reload two changes name once, `IfUp` only while both do (§2.4).
+
+  Why in the engine: the write and the reload are separate changes in separate stages (engine.md §2.5), and each must journal the reload for its own reason. Only the journal sees both. The rollback's effect is unchanged, since revert reloads after every restore (§3). Tested: `TestJournalUndo`, `TestInputSession`; every engine test passes unchanged.
+- **`pkg/host/reload`** ([reload.md](../safety/reload.md), `next/p2-reload`'s page, whose API list predates this): `CheckFree(ctx, sys, Plan) error`, `Execute`'s check before its first step, exported. `Execute` is unchanged.
+- **`pkg/host/sshd/migrate`** ([sshd-migrate.md](../safety/sshd-migrate.md) §6 records it; its §5 API list predates it): `Options.Taken`, and `Apply` taking those backups (§2.7). Without `Taken`, `Apply` is as it was.
+- **`pkg/config`**: `Config.ConfirmTimeout` (`confirmTimeout`, `omitempty`), §2.17. `hardn.yml.example` does not document it yet, as for every key not yet wired.
+- **`.golangci.yml`**: `steps-through-host`, appended last (§2.21).
+- No dependency changes: `go.mod` and `go.sum` are unchanged.
+
+## 6. API
+
+```go
+package steps // pkg/engine/steps (new)
+
+const CodeListenConfNotInEffect = "SSH_LISTEN_CONF_NOT_IN_EFFECT"; const CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"
+var ErrNoWriteStrategy, ErrMigrateFirst, ErrNoNewListener, ErrNotInEffect, ErrChanged error
+type Refusal struct { Code, Why, Fix string; Err error } // Error, Unwrap
+
+func ConfirmTimeout(flag *time.Duration, cfg *config.Config) (time.Duration, error) // engine.Options.Timeout
+
+type UFW uint8 // UFWKeep, UFWEnable
+type SSH struct { Prefix string; Set []migrate.Directive; Port uint16; UFW UFW }
+func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]engine.Change, error)
+func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix, configFile string) ([]engine.Change, error)
+func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error)
+type Cleanup struct { Drop []uint16; Firewall [][]string }
+func CleanupOf(j revert.Journal) Cleanup
+func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix string, c Cleanup) ([]engine.Change, error)
+
+func Sudoers(id string, p sudoers.Plan, summary string) (engine.Change, error)
+func DNS(id string, p dns.Plan, summary string) (engine.Change, error)
+func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error)
+func PVEKeys(id string, px detect.Proxmox, p pve.KeysPlan, summary string) (engine.Change, error)
+
+package engine  // added: Input.Session revert.Session
+package reload  // added: func CheckFree(ctx context.Context, sys host.System, p Plan) error
+package migrate // added: Options.Taken map[string]backup.Entry
+package config  // added: Config.ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
+```
+
+The ids of a planner's changes are `<prefix>/firewall`, `/files`, `/reload` and `/verify`. A unit change's id is the caller's.
+
+## 7. Not in this unit; inputs to later units
+
+- **For the maintainer (open):**
+  - who plans the clean-up after a confirmation, and when (engine.md §7: (a) the next run, (b) `hardn confirm`, (c) the session that applied the change). The change kind serves all three (§2.9).
+  - the support gate's rule for best-effort releases (engine.md §7).
+- **Slice 6 (SSH) and Run All:**
+  - the controls: which settings are asked for, from which keys (`sshPort`, `permitRootLogin` with `Config.RootLogin()`, the password settings), and `config.prohibitPasswordApplied` flipped with them (§2.19);
+  - one `PlanSSH` per plan for every SSH setting together: two would edit the same file from the same old content;
+  - brief 2.3 step 6 (key login confirmed before password or root login goes), which the engine leaves to the controls (engine.md §7): one plan is one confirm-or-revert cycle, so the key's change and the password's must be separate plans. No change kind here can tell them apart, and no control yet needs a prerequisite across plans, so the engine does not gain one;
+  - a package install (ufw itself) before a lockout-risk change goes in a plan of its own (engine.md §7);
+  - hardn's block at the top of an `sshd_config` without an Include, and P-38.
+- **`p3-output`:**
+  - the codes: `Refusal.Code` (`SSH_LISTEN_CONF_NOT_IN_EFFECT`, `SSHD_ENV_NO_RUNDIR`), `ErrNoWriteStrategy`, `ErrMigrateFirst`, `ErrNoNewListener`, `ErrNotInEffect`, `ErrChanged`, and `reload.ErrInUse` from `CheckFree`;
+  - `Refusal.Why` and `Fix` shown as the report;
+  - the planners' findings, which no `engine.Change` field carries yet: `pve.PlanSSH`'s, `ufw.Plan.Findings`, `migrate.Plan.Dropped` and its notes. A `Findings` field on `Change`, or on the plan's item, is the engine's API to add with the renderer that shows it;
+  - the `--confirm-timeout` flag (§2.17).
+- **The user-management slice:** `pve.CheckAccount` before any password lock (§2.14).
+- **Open in the README, not this unit's:** `MkdirAll`, `RemoveAll` and `Rename` unguarded ([atomic.md](../safety/atomic.md) §7).
+- **Size:** about 1,620 lines of non-test Go in `pkg/engine/steps` (about 340 of them whole-line comments, and about 200 copied from p2drive, §2.20), 110 in the engine, `reload`, `migrate` and `pkg/config`, and about 1,260 lines of tests (`git diff --numstat next/p3-engine`), against the plan's guideline of about 500 changed lines. The unit is eight change kinds over eleven Phase 2 primitives, each refusal with its test, and a parity harness that runs every p2drive scenario beside the engine.

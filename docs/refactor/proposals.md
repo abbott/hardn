@@ -63,7 +63,7 @@
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
-| [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; for `next/p3-steps` |
+| [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; built in `next/p3-steps` (written, not run) |
 
 ---
 
@@ -740,7 +740,7 @@
 <a id="p-39"></a>
 ### P-39: Migrating `listen.conf` on a socket host where it never took effect (D9)
 
-- **Status:** decided (maintainer, 2026-10-19): **(a) keep refusing, with a report** saying why and how the host becomes migratable (a reboot, or `daemon-reload` and a restart of `ssh.socket`). The engine runs `migrate.Plan.CheckRollback` before arming, as `p2drive` does; `next/p3-steps` wires it and its report.
+- **Status:** decided (maintainer, 2026-10-19): **(a) keep refusing, with a report** saying why and how the host becomes migratable (a reboot, or `daemon-reload` and a restart of `ssh.socket`). The engine runs `migrate.Plan.CheckRollback` before arming, as `p2drive` does; `next/p3-steps` wires it and its report. **Built** in `next/p3-steps` ([docs/engine/steps.md](../engine/steps.md) §2.12): a refusal with the code `SSH_LISTEN_CONF_NOT_IN_EFFECT`, what was found, why, and the fix (a reboot, or `systemctl daemon-reload` and `systemctl restart ssh.socket`, with the firewall letting `listen.conf`'s port through first); written, not run (gate 5).
 - **Source:** `next/p2-revert-plans` ([docs/safety/revert-plans.md](../safety/revert-plans.md) §2.10, §6), on decision §3.17 (migrate the legacy artifacts automatically, approved 2026-10-17) and D9 ([side-effects.md](phase0/side-effects.md): v0.3.2 wrote `ssh.socket.d/listen.conf` without `daemon-reload`, [I] for its effect).
 - **Problem:** on an Ubuntu host hardened by v0.3.2 and not rebooted since, `ssh.socket` still listens where it did before (port 22) while `listen.conf` names another port (2230). The migration itself is safe there: it holds both ports ([sshd-migrate.md](../safety/sshd-migrate.md) §2.8). Its rollback is not: it restores the files, `listen.conf` included, and the reload that follows (`daemon-reload`) gives the socket `listen.conf`'s port alone, so it cannot give back the listeners the socket had before, and would move the socket off the port the user connected on. A rollback now stops before `daemon-reload` when the restored `listen.conf` would not give the socket what it had (`reload.ErrRestoredListeners`), but it then stays unfinished. So the migration is refused before anything changes, by planning its rollback first (`migrate.Plan.CheckRollback`, which `p2drive` runs and the engine must): on such hosts §3.17's "automatically" does not hold.
 - **Proposal:** the maintainer decides:
