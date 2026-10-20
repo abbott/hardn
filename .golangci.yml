@@ -395,6 +395,34 @@ linters:
               desc: the DNS unit makes no network calls; net/netip only parses (docs/safety/dns.md §2)
             - pkg: plugin
               desc: the DNS unit loads no code (docs/safety/dns.md §2)
+        # next/p3-engine: the plan/apply engine reaches the host only through
+        # host.System, as the Phase 2 units do, and renders nothing: its
+        # plans and results are data that pkg/ui's components render.
+        # pkg/engine/hold, the signal hold around an in-process rollback, is
+        # the one part that touches the process (os/signal, syscall).
+        engine-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/engine/**"
+            - "!${base-path}/pkg/engine/hold/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the engine reads, writes and runs only through host.System (docs/engine/engine.md §2)
+            - pkg: io/ioutil
+              desc: the engine reads and writes only through host.System (docs/engine/engine.md §2)
+            - pkg: golang.org/x/sys
+              desc: the engine makes no system calls of its own (docs/engine/engine.md §2)
+            - pkg: syscall
+              desc: the engine makes no system calls of its own; signals are pkg/engine/hold's (docs/engine/engine.md §2)
+            - pkg: net
+              desc: the engine makes no network calls (docs/engine/engine.md §2)
+            - pkg: plugin
+              desc: the engine loads no code (docs/engine/engine.md §2)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: the engine returns data and renders nothing; p3-output and the slices render it (docs/engine/engine.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.
