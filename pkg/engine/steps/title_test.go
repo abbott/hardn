@@ -18,6 +18,9 @@ func TestTitles(t *testing.T) {
 	for _, tt := range []struct{ name, got, want string }{
 		{"a port change adds its port; the held one is the clean-up's", addPortTitle(2230, 0), "Add SSH port 2230"},
 		{"a port change with other settings", addPortTitle(2230, 2), "Add SSH port 2230 and 2 more"},
+		{"root login, in the user's words", setTitle([]migrate.Directive{d("PermitRootLogin", "no")}, []string{"PermitRootLogin"}), "Disallow root login"},
+		{"a value with no words of its own keeps its directive", setTitle([]migrate.Directive{d("PermitRootLogin", "prohibit-password")}, []string{"PermitRootLogin"}),
+			"Set PermitRootLogin prohibit-password"},
 		{"Port lines as one group", setTitle([]migrate.Directive{d("Port", "22"), d("Port", "2230")}, []string{"Port"}), "Set ports 22, 2230"},
 		{"one Port line", setTitle([]migrate.Directive{d("Port", "2230")}, []string{"Port"}), "Set port 2230"},
 		{"the check names both ports", "sshd -T shows " + directiveWords([]migrate.Directive{d("Port", "22"), d("Port", "2230")}), "sshd -T shows ports 22, 2230"},

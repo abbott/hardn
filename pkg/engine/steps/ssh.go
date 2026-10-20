@@ -486,10 +486,23 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 	return bad
 }
 
-// setTitle is a set change's Title: its directives ("Set
-// PasswordAuthentication no"), else its keywords, else the first keyword
-// and how many more (engine.TitleMax); the plan's diff shows every line.
+// settingTitles are the titles of single settings in the user's words, in
+// place of the directive (design-system README §9.15), keyed by the
+// directive in lower case.
+var settingTitles = map[string]string{
+	"permitrootlogin no": "Disallow root login",
+}
+
+// setTitle is a set change's Title: a single setting's own words
+// (settingTitles), else its directives ("Set PasswordAuthentication no"),
+// else its keywords, else the first keyword and how many more
+// (engine.TitleMax); the plan's diff shows every line.
 func setTitle(set []migrate.Directive, keywords []string) string {
+	if len(set) == 1 {
+		if t, ok := settingTitles[strings.ToLower(set[0].Keyword+" "+strings.Join(set[0].Args, " "))]; ok {
+			return t
+		}
+	}
 	if t := engine.FitTitle("Set "+directiveWords(set), "Set "+strings.Join(keywords, ", ")); t != "" || len(keywords) == 0 {
 		return t
 	}

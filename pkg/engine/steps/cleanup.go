@@ -160,7 +160,7 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 	files.Summary = fmt.Sprintf("Drop port %s from %s", joinUint16(drop), sshd.HardnDropIn)
 	files.Title = engine.FitTitle("Drop SSH "+portWords(portStrings(drop)), "Drop the held SSH ports")
 	out = claim(append(out, files, reloadChange(prefix, r, rp, nil),
-		st.verifyChange(prefix, "sshd -T shows "+portWords(portStrings(left))+" alone", func(_ context.Context, _ host.System, after sshd.Effective) error {
+		st.verifyChange(prefix, "sshd -T shows "+portWords(portStrings(left)), func(_ context.Context, _ host.System, after sshd.Effective) error {
 			return wanted(after, e.set, drop)
 		})))
 	if c.Proven {
