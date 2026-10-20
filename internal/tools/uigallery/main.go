@@ -12,7 +12,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -49,8 +49,23 @@
 // only records what each step would do: the record is shown when play
 // ends. A sequence plays for its screen and fixture, the answers being the
 // user's, so one that ends cancelled, as create-user's does, cannot be
-// named: declining the confirmation plays it. Its flags, besides -theme,
-// -profile, -ascii and -override, as below:
+// named: declining the confirmation plays it.
+//
+// "play engine" opens the engine's scenarios (next/p3-gallery-engine), and
+// "play engine/<scenario>" one: the real plan/apply engine (pkg/engine),
+// its change kinds (pkg/engine/steps) and pkg/output's flow adapter, on a
+// simulated host: hostfake's recording host.System, whose commands a model
+// of the host answers (fakehost.go). The 2230 change on Debian 13's
+// ssh.service, Ubuntu 26.04's ssh.socket and Alpine 3.24's OpenRC;
+// key-only login; ufw enabled; a sudo grant; a refused plan (the D9
+// migration's report, P-39); an apply that fails and is rolled back; the
+// 2230 change confirmed from a new connection and cleaned up by hardn
+// confirm (P-40); and a plan on a best-effort release, with its warning
+// (P-41). Each shows the real plan, the confirmation, the steps, the
+// confirm countdown and the outcome, and play ends with what the fake
+// recorded of each apply. -sequence and -fail are the fixture plans', and
+// are refused with a scenario. Its flags, besides -theme, -profile, -ascii
+// and -override, as below:
 //
 //	-sequence name    the sequence each workflow plays where it has one,
 //	                  such as dry-run, failure or typed (default normal)
@@ -118,7 +133,10 @@
 // (TCFLSH or TIOCFLUSH), and while it waits for a line takes Ctrl-C,
 // giving SIGINT back its own handling before it returns; it never changes
 // the terminal's mode. Nothing the playable mode runs writes a file or
-// starts a process (TestPlayTouchesNothing). The package initialisation of Lip Gloss and
+// starts a process (TestPlayTouchesNothing): the engine's scenarios link
+// host.Real, the engine's signal hold and pkg/config, and never reach
+// them, every host.System being hostfake's and every hold the gallery's,
+// which holds nothing. The package initialisation of Lip Gloss and
 // x/ansi still runs, as in every binary that links Lip Gloss (today the
 // pkg/ui test binaries and this gallery; cmd/hardn links none): an ioctl
 // on stdout and, on a terminal, a read-only terminfo lookup and "tmux
@@ -443,7 +461,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence]")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

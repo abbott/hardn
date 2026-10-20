@@ -1,0 +1,369 @@
+# Golden file of TestPlayEngineGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.24; sshd is OpenRC's, and ufw␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis not installed. Elevation is doas.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: SSH port 2230, port 22 held until confirmed. Type␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe hostname, web-01, to apply it; 0 declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/init.d/hardn-boot: after a␛[m$
+      ␛[38;2;192;196;216mreboot inside the confirm window it re-arms the revert␛[m$
+      ␛[38;2;192;196;216mtimer or rolls the change back␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its window, or␛[m$
+      ␛[38;2;112;212;127m↪ roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only: sshd␛[m$
+      ␛[38;2;112;212;127m↪ starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet Port in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+Port 22␛[m$
+      ␛[38;2;112;212;127m+Port 2230␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156msshd␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;192;196;216mChange the SSH port to 2230?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/init.d/hardn-boot:…␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
+      ␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx␛[m$
+      ␛[38;2;129;134;156mis rolled back at about 12:03:00 UTC. To undo it now, run␛[m$
+      ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit, /etc/init.d/hardn-␛[m$
+      ␛[38;2;192;196;216mboot: after a reboot inside the confirm window it re-arms␛[m$
+      ␛[38;2;192;196;216mthe revert timer or rolls the change back␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set Port in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (openrc sshd)␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play engine/ssh-port-alpine324 -------------------------------$
+$
+# [i] Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# [i] Info: engine/ssh-port-alpine324$
+# web-01.example.net runs Alpine 3.24; sshd is OpenRC's, and ufw$
+# is not installed. Elevation is doas.$
+# The change: SSH port 2230, port 22 held until confirmed. Type$
+# the hostname, web-01, to apply it; 0 declines.$
+$
+   -  Install hardn's boot unit, /etc/init.d/hardn-boot: after a$
+      reboot inside the confirm window it re-arms the revert$
+      timer or rolls the change back$
+      /etc/init.d/hardn-boot$
+      @@ -0,0 +1,23 @@$
+      +#!/sbin/openrc-run$
+      +# hardn's boot service (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd starts: re-arm the revert timer of$
+      | a change waiting$
+      +# for "hardn confirm", for what remains of its window, or$
+      | roll the change$
+      +# back when its deadline has passed. Ordering only: sshd$
+      | starts whatever$
+      +# this service does.$
+      +$
+      +description="hardn: re-arm or run the revert timer of an$
+      | unconfirmed change"$
+      +$
+      +depend() {$
+      +    need localmount$
+      +    after bootmisc firewall$
+      +    before sshd$
+      +}$
+      +$
+      +start() {$
+      +    ebegin "hardn: checking the change journal"$
+      +    /usr/local/bin/hardn rollback --boot$
+      +    eend $?$
+      +}$
+      -not installed$
+      +installed and enabled$
+      $ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+  [*] Set Port in /etc/ssh/sshd_config.d/00-hardn.conf$
+      Lockout risk$
+$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -0,0 +1,4 @@$
+      +# Managed by hardn.$
+      +# Set by hardn:$
+      +Port 22$
+      +Port 2230$
+$
+  [*] Reload sshd (openrc sshd)$
+      Lockout risk$
+$
+      sshd$
+      $ rc-service sshd reload$
+$
+  [*] sshd -T shows Port 22, Port 2230$
+      Lockout risk$
+$
+      sshd -T$
+      $ sshd -T$
+$
+  Change the SSH port to 2230?$
+$
+  Type the hostname [web-01, 0 or q]: web-01$
+$
+  [+] Done: Install hardn's boot unit, /etc/init.d/hardn-boot...$
+  [+] Done: Set Port in /etc/ssh/sshd_config.d/00-hardn.conf$
+  [+] Done: Reload sshd (openrc sshd)$
+  [+] Done: sshd -T shows Port 22, Port 2230$
+$
+# [+] Operation Successful$
+$
+  [*] Warning: This change reverts automatically in 3:00$
+      To keep it, open a new SSH session on port 2230 and run:$
+      doas hardn confirm$
+$
+  [i] Info: Unless confirmed, change 20261020T120000Z-xxxxxxxx$
+      is rolled back at about 12:03:00 UTC. To undo it now, run$
+      doas hardn rollback 20261020T120000Z-xxxxxxxx.$
+$
+# simulated system ---------------------------------------------$
+$
+# [i] Info: engine/ssh-port-alpine324$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Install hardn's boot unit, /etc/init.d/hardn-$
+      boot: after a reboot inside the confirm window it re-arms$
+      the revert timer or rolls the change back$
+      /etc/init.d/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+   -  Armed the revert timer$
+      $ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""$
+      | /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx$
+$
+   -  Applied: Set Port in /etc/ssh/sshd_config.d/00-hardn.conf$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+$
+   -  Applied: Reload sshd (openrc sshd)$
+      $ rc-service sshd reload$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.24; sshd is OpenRC's, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw is not installed. Elevation is doas.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: SSH port 2230, port 22 held until confirmed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mType the hostname, web-01, to apply it; 0 declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/init.d/hardn-boot:␛[m$
+      ␛[38;2;192;196;216mafter a reboot inside the confirm window it re-arms␛[m$
+      ␛[38;2;192;196;216mthe revert timer or rolls the change back␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only:␛[m$
+      ␛[38;2;112;212;127m↪ sshd starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet Port in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+Port 22␛[m$
+      ␛[38;2;112;212;127m+Port 2230␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156msshd␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+      ␛[1;38;2;219;184;83mLockout risk␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;192;196;216mChange the SSH port to 2230?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/init.d/hardn-bo…␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
+      ␛[38;2;192;196;216mrun:␛[m$
+      ␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-␛[m$
+      ␛[38;2;129;134;156mxxxxxxxx is rolled back at about 12:03:00 UTC. To undo␛[m$
+      ␛[38;2;129;134;156mit now, run doas hardn rollback 20261020T120000Z-␛[m$
+      ␛[38;2;129;134;156mxxxxxxxx.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit, /etc/init.d/hardn-␛[m$
+      ␛[38;2;192;196;216mboot: after a reboot inside the confirm window it re-␛[m$
+      ␛[38;2;192;196;216marms the revert timer or rolls the change back␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set Port in /etc/ssh/sshd_config.d/00-␛[m$
+      ␛[38;2;192;196;216mhardn.conf␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (openrc sshd)␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$

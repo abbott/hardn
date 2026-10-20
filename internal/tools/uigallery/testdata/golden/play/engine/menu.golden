@@ -1,0 +1,313 @@
+# Golden file of TestPlayEngineGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mEngine scenarios␛[m ␛[48;2;22;24;29m                                             ␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mr␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSSH port, Debian 13␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.service␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH port, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.socket␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH port, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mPort 2230 through OpenRC␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKey-only login␛[m$
+      ␛[38;2;129;134;156mNo password login, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEnable ufw␛[m$
+      ␛[38;2;129;134;156mFrom an inactive ufw, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSudo grant␛[m$
+      ␛[38;2;129;134;156malice without a password, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRefused: v0.3.2 listen.conf␛[m$
+      ␛[38;2;129;134;156mThe migration on a D9 host (P-39)␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mFailed, rolled back␛[m$
+      ␛[38;2;129;134;156mPort 2230, the reload refused␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfirmed, cleaned up␛[m$
+      ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
+      ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/refused-d9-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2: its manage.conf, and a listen.conf for port 2230␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten with no daemon-reload, so ssh.socket still listens on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into 00-hardn.conf.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan refuses it, with a report (P-39 (a)).␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreached on (P-39) (SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port␛[m$
+      ␛[38;2;129;134;156m2230 through: ssh.socket then listens on port 2230 alone.␛[m$
+      ␛[38;2;129;134;156mThen let listen.conf take effect while this session stays␛[m$
+      ␛[38;2;129;134;156mopen: run `systemctl daemon-reload` and `systemctl restart␛[m$
+      ␛[38;2;129;134;156mssh.socket` (established SSH sessions survive the␛[m$
+      ␛[38;2;129;134;156mrestart), check that a new SSH connection to port 2230␛[m$
+      ␛[38;2;129;134;156mworks, and run hardn again. A reboot also lets it take␛[m$
+      ␛[38;2;129;134;156meffect, but ends this session: reboot only with console␛[m$
+      ␛[38;2;129;134;156maccess, in case port 2230 is not reachable.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mEngine scenarios␛[m ␛[48;2;22;24;29m                                             ␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mr␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSSH port, Debian 13␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.service␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH port, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.socket␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH port, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mPort 2230 through OpenRC␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKey-only login␛[m$
+      ␛[38;2;129;134;156mNo password login, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEnable ufw␛[m$
+      ␛[38;2;129;134;156mFrom an inactive ufw, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSudo grant␛[m$
+      ␛[38;2;129;134;156malice without a password, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRefused: v0.3.2 listen.conf␛[m$
+      ␛[38;2;129;134;156mThe migration on a D9 host (P-39)␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mFailed, rolled back␛[m$
+      ␛[38;2;129;134;156mPort 2230, the reload refused␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfirmed, cleaned up␛[m$
+      ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
+      ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play engine --------------------------------------------------$
+$
+# [i] Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# Engine scenarios #############################################$
+$
+  Select a scenario$
+$
+   1) SSH port, Debian 13$
+      Port 2230 through ssh.service$
+   2) SSH port, Ubuntu 26.04$
+      Port 2230 through ssh.socket$
+   3) SSH port, Alpine 3.24$
+      Port 2230 through OpenRC$
+   4) Key-only login$
+      No password login, Debian 13$
+   5) Enable ufw$
+      From an inactive ufw, Debian 13$
+   6) Sudo grant$
+      alice without a password, Debian 13$
+   7) Refused: v0.3.2 listen.conf$
+      The migration on a D9 host (P-39)$
+   8) Failed, rolled back$
+      Port 2230, the reload refused$
+   9) Confirmed, cleaned up$
+      Port 2230, then hardn confirm (P-40)$
+  10) Best-effort release$
+      The plan's warning, Ubuntu 22.04 (P-41)$
+$
+   0) Return$
+$
+  > Enter your choice [0-10 or q]: 7$
+$
+# [i] Info: engine/refused-d9-ubuntu2604$
+# web-01.example.net runs Ubuntu 26.04, hardened by hardn$
+# v0.3.2: its manage.conf, and a listen.conf for port 2230$
+# written with no daemon-reload, so ssh.socket still listens on$
+# 22.$
+# The change: hardn's v0.3.2 SSH files moved into 00-hardn.conf.$
+# The plan refuses it, with a report (P-39 (a)).$
+$
+# [!] Operation Failed$
+# /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
+# sets ssh.socket to port 2230, but it never took effect:$
+# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
+# reload since it was written, D9). Migrating it now could not$
+# be rolled back: the rollback's daemon-reload would move$
+# ssh.socket to port 2230 alone, off the port this host is$
+# reached on (P-39) (SSH_LISTEN_CONF_NOT_IN_EFFECT)$
+$
+  [i] Info: Check the log file at /var/log/hardn.log for details$
+  [i] Info: To go on: first make sure the firewall lets port$
+      2230 through: ssh.socket then listens on port 2230 alone.$
+      Then let listen.conf take effect while this session stays$
+      open: run `systemctl daemon-reload` and `systemctl restart$
+      ssh.socket` (established SSH sessions survive the$
+      restart), check that a new SSH connection to port 2230$
+      works, and run hardn again. A reboot also lets it take$
+      effect, but ends this session: reboot only with console$
+      access, in case port 2230 is not reachable.$
+$
+# Engine scenarios #############################################$
+$
+  Select a scenario$
+$
+   1) SSH port, Debian 13$
+      Port 2230 through ssh.service$
+   2) SSH port, Ubuntu 26.04$
+      Port 2230 through ssh.socket$
+   3) SSH port, Alpine 3.24$
+      Port 2230 through OpenRC$
+   4) Key-only login$
+      No password login, Debian 13$
+   5) Enable ufw$
+      From an inactive ufw, Debian 13$
+   6) Sudo grant$
+      alice without a password, Debian 13$
+   7) Refused: v0.3.2 listen.conf$
+      The migration on a D9 host (P-39)$
+   8) Failed, rolled back$
+      Port 2230, the reload refused$
+   9) Confirmed, cleaned up$
+      Port 2230, then hardn confirm (P-40)$
+  10) Best-effort release$
+      The plan's warning, Ubuntu 22.04 (P-41)$
+$
+   0) Return$
+$
+  > Enter your choice [0-10 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# [i] Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mEngine scenarios␛[m ␛[48;2;22;24;29m                                         ␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mr␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSSH port, Debian 13␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.service␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH port, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.socket␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH port, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mPort 2230 through OpenRC␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKey-only login␛[m$
+      ␛[38;2;129;134;156mNo password login, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEnable ufw␛[m$
+      ␛[38;2;129;134;156mFrom an inactive ufw, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSudo grant␛[m$
+      ␛[38;2;129;134;156malice without a password, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRefused: v0.3.2 listen.conf␛[m$
+      ␛[38;2;129;134;156mThe migration on a D9 host (P-39)␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mFailed, rolled back␛[m$
+      ␛[38;2;129;134;156mPort 2230, the reload refused␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfirmed, cleaned up␛[m$
+      ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
+      ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/refused-d9-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2: its manage.conf, and a listen.conf for port 2230␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten with no daemon-reload, so ssh.socket still listens␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon 22.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into 00-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.conf. The plan refuses it, with a report (P-39 (a)).␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [[::]:22 0.0.0.0:22]␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(no daemon-reload since it was written, D9). Migrating it␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mnow could not be rolled back: the rollback's daemon-reload␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mwould move ssh.socket to port 2230 alone, off the port␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mthis host is reached on (P-39)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
+$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
+      ␛[38;2;129;134;156mdetails␛[m$
+   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port␛[m$
+      ␛[38;2;129;134;156m2230 through: ssh.socket then listens on port 2230␛[m$
+      ␛[38;2;129;134;156malone. Then let listen.conf take effect while this␛[m$
+      ␛[38;2;129;134;156msession stays open: run `systemctl daemon-reload` and␛[m$
+      ␛[38;2;129;134;156m`systemctl restart ssh.socket` (established SSH␛[m$
+      ␛[38;2;129;134;156msessions survive the restart), check that a new SSH␛[m$
+      ␛[38;2;129;134;156mconnection to port 2230 works, and run hardn again. A␛[m$
+      ␛[38;2;129;134;156mreboot also lets it take effect, but ends this␛[m$
+      ␛[38;2;129;134;156msession: reboot only with console access, in case port␛[m$
+      ␛[38;2;129;134;156m2230 is not reachable.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mEngine scenarios␛[m ␛[48;2;22;24;29m                                         ␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mn␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mr␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSSH port, Debian 13␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.service␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH port, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mPort 2230 through ssh.socket␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH port, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mPort 2230 through OpenRC␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKey-only login␛[m$
+      ␛[38;2;129;134;156mNo password login, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEnable ufw␛[m$
+      ␛[38;2;129;134;156mFrom an inactive ufw, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSudo grant␛[m$
+      ␛[38;2;129;134;156malice without a password, Debian 13␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRefused: v0.3.2 listen.conf␛[m$
+      ␛[38;2;129;134;156mThe migration on a D9 host (P-39)␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mFailed, rolled back␛[m$
+      ␛[38;2;129;134;156mPort 2230, the reload refused␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfirmed, cleaned up␛[m$
+      ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
+      ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
