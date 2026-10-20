@@ -86,7 +86,7 @@ func (e *Engine) bootChange(ctx context.Context, p *Plan, refuse func(error)) (C
 	ro := e.opts.Revert
 	c.Apply = func(ctx context.Context, sys host.System, run Run) (Ran, error) {
 		r, err := revert.EnsureBootUnit(ctx, sys, u, run.Dir, run.Store, ro)
-		return Ran{Detail: bootDetail(r)}, err
+		return Ran{Detail: bootDetail(r, run.Store)}, err
 	}
 	return c, true
 }
@@ -110,8 +110,10 @@ func bootState(u revert.BootUnit, st revert.BootUnitState, backups bool) string 
 	return "installed, not enabled"
 }
 
-// bootDetail is the result's line for what EnsureBootUnit did.
-func bootDetail(r revert.BootUnitResult) string {
+// bootDetail is the result's line for what EnsureBootUnit did, also when
+// it failed part-way; store is the backup run it backed a replaced file up
+// into.
+func bootDetail(r revert.BootUnitResult, store *backup.Run) string {
 	if r.Already {
 		return "installed and enabled already"
 	}
@@ -120,6 +122,8 @@ func bootDetail(r revert.BootUnitResult) string {
 	case r.Backup == nil:
 	case r.Backup.Outcome == backup.Skipped:
 		did = append(did, "the file it replaced not backed up (enableBackups is false)")
+	case store != nil:
+		did = append(did, fmt.Sprintf("the file it replaced backed up (entry %d in %s)", r.Backup.Entry.Seq, store.Dir()))
 	default:
 		did = append(did, fmt.Sprintf("the file it replaced backed up (entry %d)", r.Backup.Entry.Seq))
 	}

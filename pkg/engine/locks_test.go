@@ -14,7 +14,7 @@ import (
 )
 
 // The run lock and the journal lock during an apply (next/p3-engine-boot;
-// docs/engine/engine-boot.md §2.2): `hardn rollback <id>` (the timer's or
+// docs/engine/engine-boot.md §2.14): `hardn rollback <id>` (the timer's or
 // the user's), `--abandon` and `--boot`, run while an apply holds the run
 // lock, take only the journal lock, which the apply does not hold between
 // its journal writes, so none waits for the apply; and an apply's Arm waits

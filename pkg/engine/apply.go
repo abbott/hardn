@@ -14,7 +14,9 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 )
 
-// The steps of an apply an ApplyError names.
+// The steps of an apply that a failed Event names; an ApplyError names
+// each but StepBoot, whose failure comes before revert.Arm, so there is no
+// rollback to report (ErrBootUnit).
 const (
 	StepBoot         = "boot unit"     // the boot unit's install, before revert.Arm (StageBoot): not applied, nothing armed
 	StepStart        = "start"         // cancelled (Ctrl-C, SIGTERM, a hangup) before the change started
@@ -152,6 +154,16 @@ type Confirm struct {
 	Via         []revert.Listener
 }
 
+// BootInstall is what the boot unit's install did (Result.Boot).
+type BootInstall struct {
+	// Detail is what it did, in words, also when it failed part-way: the
+	// file it replaced backed up (its entry, in the backup run's
+	// directory), written, enabled; "" when it did nothing.
+	Detail string
+	// Err is why it failed (Is(ErrBootUnit)), nil when it was done.
+	Err error
+}
+
 // Result is what Apply did, as data.
 type Result struct {
 	ID   string // the change's journal id ("" when nothing was armed)
@@ -159,8 +171,16 @@ type Result struct {
 	// Nothing: the plan had no changes, so nothing was locked, armed or
 	// journalled.
 	Nothing bool
-	// Applied are the changes whose Apply returned nil, in order. With
-	// Failed set they were rolled back after, as Failed says.
+	// Boot is set when the plan had the boot unit's change (BootChangeID,
+	// StageBoot) and its install ran: before revert.Arm, unjournalled,
+	// and never rolled back, so what it did stays on the host whatever
+	// came after it (docs/engine/engine-boot.md §2.1): its own failure
+	// (Err; the change is then not applied and nothing is armed), Arm's,
+	// or the change rolled back. It is not in Applied.
+	Boot *BootInstall
+	// Applied are the changes whose Apply returned nil, in order, the boot
+	// unit's aside (Boot). With Failed set they were rolled back after, as
+	// Failed says.
 	Applied []Applied
 	// Confirm is set for a lockout-risk plan applied and waiting for
 	// confirmation.
@@ -181,7 +201,8 @@ type Result struct {
 //  3. the boot unit (StageBoot; a lockout-risk plan on a host where it is
 //     not installed as planned): revert.EnsureBootUnit, under the run
 //     lock, unjournalled, before the timer it recovers after a reboot is
-//     armed; a failure is the change not applied, with nothing armed;
+//     armed (Result.Boot); a failure is the change not applied, with
+//     nothing armed (ErrBootUnit);
 //  4. revert.Arm: the journal, and for a lockout-risk plan the revert
 //     timer, before any change (brief 2.4);
 //  5. each change in the plan's order: ctx checked, and for a lockout-risk
@@ -200,12 +221,11 @@ type Result struct {
 // registered until Apply returns), rolls back every change started, in
 // reverse, from the journal (revert.Rollback, ReasonFailed), with signals
 // held (Options.Hold); Apply then returns Result.Failed, an *ApplyError (the
-// boot unit stays: it removes itself at a boot that finds nothing
-// journalled). A
-// rollback that did not finish stops the timer all the same (revert.md
-// §2.14 step 4): its error names `hardn rollback <id>`, and the next run's
-// notice says so. Options.Progress hears of each change as it runs, and of
-// the rollback.
+// boot unit stays, in Result.Boot: it removes itself at a boot that finds
+// nothing journalled). A rollback that did not finish stops the timer all
+// the same (revert.md §2.14 step 4): its error names `hardn rollback
+// <id>`, and the next run's notice says so. Options.Progress hears of each
+// change as it runs, and of the rollback.
 func (e *Engine) Apply(ctx context.Context, p *Plan) (Result, error) {
 	res := Result{Risk: p.Risk}
 	switch {
@@ -268,12 +288,12 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 	first := 0
 	for ; first < len(p.Changes) && p.Changes[first].Stage == StageBoot; first++ {
 		if err := a.boot(ctx, first, p.Changes[first]); err != nil {
-			return Result{Risk: p.Risk, Applied: a.res.Applied}, err
+			return Result{Risk: p.Risk, Boot: a.res.Boot}, err
 		}
 	}
 	j, err := revert.Arm(ctx, e.sys, e.journal(p), p.Facts.Init, a.ro)
 	if err != nil {
-		return Result{Risk: p.Risk, Applied: a.res.Applied}, fmt.Errorf("engine: not applied: %w", err)
+		return Result{Risk: p.Risk, Boot: a.res.Boot}, fmt.Errorf("engine: not applied: %w", err)
 	}
 	a.j = j
 	if p.Risk == RiskLockout {
@@ -307,11 +327,13 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 
 // boot runs change i of StageBoot, the boot unit's install, before
 // revert.Arm and under the run lock: there is no journal yet, so nothing is
-// backed up or journalled for it, and it is not rolled back. A failure is
-// the change not applied: no timer is armed for a change whose timer a
-// reboot would lose with nothing to re-arm it (P-34 (c)). What the
-// install did before it failed stays: a unit file written and not enabled
-// does not run at boot, and the next apply finishes it.
+// backed up or journalled for it, and it is not rolled back; Result.Boot
+// says what it did. A failure is the change not applied (ErrBootUnit): no
+// timer is armed for a change whose timer a reboot would lose with nothing
+// to re-arm it (P-34 (c)). What the install did before it failed stays,
+// and is reported (the event's Detail, Result.Boot, the log): a unit file
+// written and not enabled does not run at boot, and the next apply
+// finishes it.
 func (a *applier) boot(ctx context.Context, i int, c Change) error {
 	a.progress(Event{Index: i, Change: c.ID, State: EventRunning})
 	run := Run{ID: a.p.ID, Dir: filepath.Join(a.e.runRoot(), a.p.ID), Facts: a.p.Facts, Backups: map[string]backup.Entry{}, Store: a.run}
@@ -321,11 +343,17 @@ func (a *applier) boot(ctx context.Context, i int, c Change) error {
 		ran, err = applyOne(ctx, a.e.sys, c, run)
 	}
 	if err != nil {
-		a.progress(Event{Index: i, Change: c.ID, State: EventFailed, Step: StepBoot, Err: err})
-		a.e.logf("change %s: %s failed, so nothing is armed: %v", a.p.ID, c.ID, err)
-		return fmt.Errorf("engine: not applied: %s: %w", c.ID, err)
+		err = fmt.Errorf("engine: not applied: %s: %w: %w", c.ID, ErrBootUnit, err)
+		a.res.Boot = &BootInstall{Detail: ran.Detail, Err: err}
+		a.progress(Event{Index: i, Change: c.ID, State: EventFailed, Step: StepBoot, Detail: ran.Detail, Err: err})
+		did := ""
+		if ran.Detail != "" {
+			did = " (" + ran.Detail + ")"
+		}
+		a.e.logf("change %s: %s failed%s, so nothing is armed: %v", a.p.ID, c.ID, did, err)
+		return err
 	}
-	a.res.Applied = append(a.res.Applied, Applied{Change: c.ID, Detail: ran.Detail})
+	a.res.Boot = &BootInstall{Detail: ran.Detail}
 	a.e.logf("change %s: %s done%s", a.p.ID, c.ID, detailWords(ran.Detail))
 	a.progress(Event{Index: i, Change: c.ID, State: EventDone, Detail: ran.Detail})
 	return nil

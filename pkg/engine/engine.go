@@ -97,6 +97,10 @@ var (
 	// once it had run (ApplyError.Unjournalled), so the rollback may have
 	// left what it did.
 	ErrUnjournalled = errors.New("a change ran that the journal does not cover")
+	// ErrBootUnit: the boot unit's install (StageBoot, StepBoot) failed,
+	// before revert.Arm: the change is not applied, and nothing is armed
+	// (Result.Boot says what the install did; next/p3-engine-boot).
+	ErrBootUnit = errors.New("the boot unit was not installed, so nothing is armed")
 )
 
 // Options configure an Engine. The zero value is production's, except for
@@ -231,9 +235,17 @@ func trustedAncestor(ctx context.Context, sys host.System, dir string) error {
 }
 
 // lock takes the run lock for change id, after making sure the run root is
-// root's alone. Another apply holding it is host.ErrLocked, with its
-// holder line. The release logs a failure and goes on: the kernel releases
-// the lock at exit in any case.
+// root's alone. Another hardn holding it is a *revert.LockedError (Run,
+// host.ErrLocked), with its holder line, as revert.LockRun's. The release
+// logs a failure and goes on: the kernel releases the lock at exit in any
+// case.
+//
+// It is not revert.LockRun, though both take one file (LockName is
+// revert.RunLockName, in the run root both read from Options.Revert.RunDir)
+// with host.System.Lock, so they exclude each other whatever their words:
+// the engine's holder line names Options.PID, which the caller passes,
+// where LockRun reads /proc/self, and the engine checks the run root with
+// trustedDir, whose refusals ("engine: run lock: ") TestRunLock pins.
 func (e *Engine) lock(ctx context.Context, id string) (func(), error) {
 	root := e.runRoot()
 	if err := e.sys.MkdirAll(ctx, root, 0o700); err != nil {
@@ -251,8 +263,7 @@ func (e *Engine) lock(ctx context.Context, id string) (func(), error) {
 	unlock, err := e.sys.Lock(ctx, name, []byte(holder))
 	if errors.Is(err, host.ErrLocked) {
 		data, _, _ := e.sys.ReadFileNoFollow(ctx, name)
-		return nil, fmt.Errorf("engine: another hardn is running (%s holds the run lock %s); try again once it has finished: %w",
-			strings.TrimSpace(string(data)), name, err)
+		return nil, fmt.Errorf("engine: %w", &revert.LockedError{Run: true, Name: name, Holder: strings.TrimSpace(string(data)), Err: err})
 	} else if err != nil {
 		return nil, fmt.Errorf("engine: run lock: %w", err)
 	}

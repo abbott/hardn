@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"slices"
@@ -91,8 +92,8 @@ func TestBootUnitPlanned(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(res.Applied) != 2 || res.Applied[0].Change != BootChangeID || res.Applied[0].Detail != "written, enabled" {
-				t.Errorf("applied %+v", res.Applied)
+			if res.Boot == nil || *res.Boot != (BootInstall{Detail: "written, enabled"}) || len(res.Applied) != 1 || res.Applied[0].Change != "example.port/allow" {
+				t.Errorf("boot %+v, applied %+v; want the boot unit in Boot alone", res.Boot, res.Applied)
 			}
 			// The order: the run lock, the check, the enable, then Arm.
 			var order []string
@@ -159,13 +160,13 @@ func TestBootUnitIdempotent(t *testing.T) {
 			h.AddFile(u.Path, u.Data, 0o600, 0, 0)
 			h.AddSymlink(u.Link, u.Path)
 		}, false, "mode 0600, owner uid 0, where hardn installs it 0644, root's (backed up, then replaced)", []string{"systemd-analyze"}, "",
-			"the file it replaced backed up (entry 1), written", true, false},
+			"the file it replaced backed up (entry 1 in <run>), written", true, false},
 		{"another hardn's unit", func(h *testHost) {
 			h.AddFile(u.Path, other.Data, u.Mode, 0, 0)
 			h.AddSymlink(u.Link, u.Path)
 		}, false, "a file that is not the unit this hardn installs (backed up, then replaced)", []string{"systemd-analyze"},
 			"-ExecStart=/opt/hardn/bin/hardn rollback --boot\n+ExecStart=/usr/local/bin/hardn rollback --boot\n",
-			"the file it replaced backed up (entry 1), written", true, false},
+			"the file it replaced backed up (entry 1 in <run>), written", true, false},
 		{"another hardn's unit, backups off", func(h *testHost) {
 			h.AddFile(u.Path, other.Data, u.Mode, 0, 0)
 			h.AddSymlink(u.Link, u.Path)
@@ -207,8 +208,9 @@ func TestBootUnitIdempotent(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if planned && res.Applied[0].Detail != tc.detail {
-				t.Errorf("detail %q, want %q", res.Applied[0].Detail, tc.detail)
+			want := strings.ReplaceAll(tc.detail, "<run>", backup.DefaultPath+"/"+p.ID)
+			if planned != (res.Boot != nil) || planned && (res.Boot.Detail != want || res.Boot.Err != nil) {
+				t.Errorf("boot %+v, want detail %q", res.Boot, want)
 			}
 			if st, err := revert.ReadBootUnit(ctx, h, u); err != nil || st.Installed() != !tc.plain {
 				t.Errorf("installed %v, %v; want %v", st.Installed(), err, !tc.plain)
@@ -227,8 +229,8 @@ func TestBootUnitIdempotent(t *testing.T) {
 
 // TestBootUnitRefused: a change journalled refuses the plan before the boot
 // unit is read or shown (its recovery is that change's); what the boot unit
-// cannot be planned with is refused at plan time; a control's change in
-// StageBoot is ErrChange. Nothing runs.
+// cannot be planned with, or a unit file that cannot be read, is refused at
+// plan time; a control's change in StageBoot is ErrChange. Nothing runs.
 func TestBootUnitRefused(t *testing.T) {
 	ctx := context.Background()
 	u, err := revert.PlanBootUnit(debian13.Init, testHardn)
@@ -252,6 +254,9 @@ func TestBootUnitRefused(t *testing.T) {
 			o.Revert.Hardn = "/usr/local/bin/hardn%i"
 			h.AddFile(o.Revert.Hardn, []byte("ELF"), 0o755, 0, 0)
 		}, portControl(), revert.ErrExecutable, "engine: the boot unit"},
+		{"a unit that cannot be read", func(t *testing.T, h *testHost, o *Options) {
+			h.AddSymlink(u.Path, "/etc/hardn-boot.service")
+		}, portControl(), host.ErrSymlink, "engine: the boot unit"},
 		{"a control's change in StageBoot", nil, &stub{id: "example.boot", title: "Boot", changes: []Change{
 			command("example.boot/unit", StageBoot, RiskPlain, argv("example-boot install"), nil)}}, ErrChange, "stage boot is the engine's own"},
 	} {
@@ -290,26 +295,45 @@ func TestBootUnitRefused(t *testing.T) {
 	}
 }
 
-// TestBootUnitFails: an install that fails refuses the change: nothing is
-// armed, the run lock is released, and the progress says so; a failure
-// after Arm rolls the change back and leaves the boot unit installed, with
-// no rolled-back event for it.
+// TestBootUnitFails: an install that fails refuses the change
+// (ErrBootUnit): nothing is armed, the run lock is released, and the
+// progress, the result (Result.Boot) and the log say what the install did
+// before it failed, the backup of a file it replaced included; Arm failing
+// after the install is the change not applied too, with the unit kept, in
+// Result.Boot. A failure after Arm rolls the change back and leaves the
+// boot unit installed, with no rolled-back event for it.
 func TestBootUnitFails(t *testing.T) {
 	check := "systemd-analyze verify --recursive-errors=no /run/hardn/<id>/hardn-boot.service"
+	enable := "systemctl --no-reload enable hardn-boot.service"
+	arm := "systemd-run --unit=hardn-revert-<id> --description=hardn: roll back change <id> unless confirmed --on-active=180s --timer-property=AccuracySec=1s " +
+		testHardn + " rollback <id>"
+	u, _ := revert.PlanBootUnit(debian13.Init, testHardn)
+	other, _ := revert.PlanBootUnit(debian13.Init, "/opt/hardn/bin/hardn")
+	stale := func(h *testHost) { h.AddFile(u.Path, other.Data, u.Mode, 0, 0) } // another hardn's, not enabled
 	for _, tc := range []struct {
 		name   string
+		setup  func(h *testHost)
 		fail   string // a command refused, <id> the plan's
-		is     error
-		events string
+		is     error  // besides ErrBootUnit, for an install that fails
+		detail string // Result.Boot's; <run> the backup run's directory
+		armed  bool   // the install was done, Arm failed
+		backup bool   // the file replaced is in the backup run, entry 1
 	}{
-		{"the check refuses the copy", check, revert.ErrBootUnit, "0 " + BootChangeID + " running\n0 " + BootChangeID + " failed at boot unit\n"},
-		{"the enable fails", "systemctl --no-reload enable hardn-boot.service", nil, "0 " + BootChangeID + " running\n0 " + BootChangeID + " failed at boot unit\n"},
+		{"the check refuses the copy", nil, check, revert.ErrBootUnit, "", false, false},
+		{"the enable fails", nil, enable, nil, "written", false, false},
+		{"a file replaced, then the enable fails", stale, enable, nil, "the file it replaced backed up (entry 1 in <run>), written", false, true},
+		{"Arm fails after the install", nil, arm, nil, "written, enabled", true, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			h := newBareHost(t)
+			if tc.setup != nil {
+				tc.setup(h)
+			}
 			var evs []Event
-			o := testOptions(h, nil, nil, debian13)
+			var log bytes.Buffer
+			o := testOptions(h, nil, &log, debian13)
+			o.Backups = backup.Settings{Path: backup.DefaultPath, Enabled: true}
 			o.Progress = func(ev Event) { evs = append(evs, ev) }
 			e := New(h, o)
 			p, err := e.Plan(ctx, []Control{portControl()}, nil)
@@ -317,21 +341,42 @@ func TestBootUnitFails(t *testing.T) {
 				t.Fatal(err, p.Err())
 			}
 			h.failOn(strings.ReplaceAll(tc.fail, "<id>", p.ID))
+			detail := strings.ReplaceAll(tc.detail, "<run>", backup.DefaultPath+"/"+p.ID)
 			res, err := e.Apply(ctx, p)
-			if err == nil || !strings.Contains(err.Error(), "not applied: "+BootChangeID) || tc.is != nil && !errors.Is(err, tc.is) {
-				t.Fatalf("Apply = %v, want not applied at the boot unit (%v)", err, tc.is)
+			switch {
+			case tc.armed:
+				if err == nil || !strings.HasPrefix(err.Error(), "engine: not applied: revert: arm") || errors.Is(err, ErrBootUnit) {
+					t.Fatalf("Apply = %v, want not applied at Arm", err)
+				}
+			case err == nil || !strings.Contains(err.Error(), "not applied: "+BootChangeID) || !errors.Is(err, ErrBootUnit) || tc.is != nil && !errors.Is(err, tc.is):
+				t.Fatalf("Apply = %v, want not applied at the boot unit (ErrBootUnit, %v)", err, tc.is)
 			}
-			if res.ID != "" || res.Failed != nil || len(res.Applied) > 0 {
-				t.Errorf("result %+v", res)
+			if res.ID != "" || res.Failed != nil || len(res.Applied) > 0 || res.Boot == nil || res.Boot.Detail != detail || (res.Boot.Err == nil) != tc.armed ||
+				res.Boot.Err != nil && !errors.Is(res.Boot.Err, ErrBootUnit) {
+				t.Errorf("result %+v, boot %+v; want detail %q", res, res.Boot, detail)
 			}
-			if strings.Contains(h.runs(p.ID), "systemd-run") || strings.Contains(h.runs(p.ID), "ufw") {
+			if strings.Contains(h.runs(p.ID), "systemd-run") != tc.armed || strings.Contains(h.runs(p.ID), "ufw") {
 				t.Errorf("armed or applied after the boot unit failed:\n%s", h.runs(p.ID))
 			}
 			if st, err := revert.ReadState(ctx, h, revert.Options{}); err != nil || st.Busy() {
 				t.Errorf("journalled: %+v, %v", st, err)
 			}
-			if got := renderEvents(evs); got != tc.events {
-				t.Errorf("events:\n%s\nwant:\n%s", got, tc.events)
+			want := "0 " + BootChangeID + " running\n0 " + BootChangeID + " failed at boot unit" + detailWords(detail) + "\n"
+			if tc.armed {
+				want = "0 " + BootChangeID + " running\n0 " + BootChangeID + " done: " + detail + "\n"
+			}
+			if got := renderEvents(evs); got != want {
+				t.Errorf("events:\n%s\nwant:\n%s", got, want)
+			}
+			if detail != "" && !strings.Contains(log.String(), detail) {
+				t.Errorf("the log does not say %q:\n%s", detail, log.String())
+			}
+			m, err := backup.Load(ctx, h, backup.DefaultPath+"/"+p.ID)
+			if kept := err == nil && len(m.Entries) > 0 && m.Entries[0].Path == u.Path && m.Entries[0].Seq == 1; kept != tc.backup {
+				t.Errorf("the replaced file in the backup run %v (%+v, %v), want %v", kept, m.Entries, err, tc.backup)
+			}
+			if st, err := revert.ReadBootUnit(ctx, h, u); err != nil || st.Installed() != tc.armed {
+				t.Errorf("the boot unit: installed %v, %v; want %v", st.Installed(), err, tc.armed)
 			}
 			assertReleased(t, h, p.ID)
 		})
@@ -351,8 +396,12 @@ func TestBootUnitFails(t *testing.T) {
 		if err != nil || p.Err() != nil {
 			t.Fatal(err, p.Err())
 		}
-		if _, err := e.Apply(ctx, p); !errors.Is(err, ErrRolledBack) {
+		res, err := e.Apply(ctx, p)
+		if !errors.Is(err, ErrRolledBack) {
 			t.Fatalf("Apply = %v, want rolled back", err)
+		}
+		if res.Boot == nil || *res.Boot != (BootInstall{Detail: "written, enabled"}) || len(res.Applied) != 1 || res.Applied[0].Change != "example.port/allow" {
+			t.Errorf("boot %+v, applied %+v; want the boot unit in Boot, the change rolled back in Applied", res.Boot, res.Applied)
 		}
 		want := "0 " + BootChangeID + " running\n0 " + BootChangeID + " done: written, enabled\n" +
 			"1 example.port/allow running\n1 example.port/allow done\n2 example.port/check running\n2 example.port/check failed at apply\n" +

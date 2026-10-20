@@ -137,7 +137,9 @@ type Change struct {
 	// ID is unique in the plan: lower case letters, digits and ".-_/"
 	// ("ssh.port/firewall"). After names changes by it.
 	ID string
-	// Control is the control that planned it; the engine sets it.
+	// Control is the control that planned it; the engine sets it. It is
+	// "" for the engine's own change, the boot unit's (BootChangeID,
+	// StageBoot), which no control plans.
 	Control string
 	// Summary is one line: what the change does ("Set Port 2230 in
 	// /etc/ssh/sshd_config.d/00-hardn.conf").
