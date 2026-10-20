@@ -21,9 +21,11 @@ import (
 // rollback --boot` (Timer.Hardn, HardnSHA256, Boot; a boot id that cannot
 // be read is left out and logged, and the boot command then leaves the
 // change alone). It refuses, and writes nothing but the journal
-// directory, while a change is journalled
-// (*PendingError), and for a journal Check refuses. Then it writes
-// pending.json and starts the timer; when the timer does not start, it
+// directory and the journal lock's file, while a change is journalled
+// (*PendingError), and for a journal Check refuses. The check and the
+// write of pending.json are made under the journal lock (JournalLockName;
+// another hardn holding it past its wait is a *LockedError, host.ErrLocked,
+// and a lock that cannot be taken is refused too: nothing is written). Then it starts the timer; when the timer does not start, it
 // removes pending.json again, even after Ctrl-C (under a context of its
 // own), and returns the error: the change must not be applied. The engine
 // adds the backups, inverse steps and reloads with Record, write-ahead, and
@@ -62,15 +64,26 @@ func Arm(ctx context.Context, sys host.System, j Journal, in detect.Init, opts O
 	if err := stateDir(ctx, sys, opts.dir(), true); err != nil {
 		return j, err
 	}
+	// The check that nothing is journalled and the write, under the
+	// journal lock (lock.go): a re-arm at boot, which writes pending.json
+	// over the change it read, cannot then write it over this one.
+	unlock, err := lockJournal(ctx, sys, opts, "arm change "+j.ID)
+	if err != nil {
+		return j, fmt.Errorf("revert: arm %s: %w", j.ID, err)
+	}
 	st, err := ReadState(ctx, sys, opts)
 	if err != nil {
+		unlock()
 		return j, err
 	}
 	if st.Busy() {
+		unlock()
 		return j, &PendingError{State: st}
 	}
 	pending := filepath.Join(opts.dir(), PendingName)
-	if err := write(ctx, sys, pending, j); err != nil {
+	err = write(ctx, sys, pending, j)
+	unlock()
+	if err != nil {
 		return j, err
 	}
 	if j.Timer == nil {

@@ -96,8 +96,10 @@ func TestRunLock(t *testing.T) {
 	p2.Refused = nil
 	plansBefore := other.plans
 	_, err = second.Apply(ctx, p2)
-	if !errors.Is(err, host.ErrLocked) || !strings.Contains(err.Error(), "pid 5000, change "+p1.ID) {
-		t.Errorf("second Apply: %v; want ErrLocked naming pid 5000 and change %s", err, p1.ID)
+	var le *revert.LockedError
+	if !errors.Is(err, host.ErrLocked) || !strings.Contains(err.Error(), "pid 5000, change "+p1.ID) ||
+		!errors.As(err, &le) || !le.Run || le.Holder != "pid 5000, change "+p1.ID+", since 2026-10-19T12:00:00Z" {
+		t.Errorf("second Apply: %v; want ErrLocked, the run lock's *revert.LockedError, naming pid 5000 and change %s", err, p1.ID)
 	}
 	if other.plans != plansBefore {
 		t.Error("the second apply planned again without the lock")

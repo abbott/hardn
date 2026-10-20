@@ -834,7 +834,7 @@ func TestEngineCombined(t *testing.T) {
 		setup   func(*vm)
 		cs      []engine.Control
 		refused string   // "": applied
-		changes []string // the plan's, when applied
+		changes []string // the plan's, when applied: the boot unit first, which p2drive's fake VM lacks
 		active  bool     // ufw active at the end
 	}{
 		{"two SSH controls", nil, []engine.Control{keyOnly(), stepsControl{"ssh.port", func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
@@ -845,14 +845,14 @@ func TestEngineCombined(t *testing.T) {
 		{"the clean-up beside an SSH change", held, []engine.Control{cleanup, keyOnly()},
 			`controls "ssh.cleanup" and "ssh" both plan changes of sshd and ufw`, nil, true},
 		{"keyonly and ufw's enable through one PlanSSH", inactive, []engine.Control{keyonlyEnable}, "",
-			[]string{"ssh/firewall", "ssh/files", "ssh/reload", "ssh/verify"}, true},
+			[]string{engine.BootChangeID, "ssh/firewall", "ssh/files", "ssh/reload", "ssh/verify"}, true},
 		{"ufw's enable through PlanSSH, the SSH settings in place already", func(v *vm) {
 			inactive(v)
 			v.f.AddFile(sshd.HardnDropIn, []byte("# Managed by hardn.\n# Set by hardn:\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"), 0o644, 0, 0)
 			v.boot()
-		}, []engine.Control{keyonlyEnable}, "", []string{"ssh/firewall"}, true},
+		}, []engine.Control{keyonlyEnable}, "", []string{engine.BootChangeID, "ssh/firewall"}, true},
 		{"a sudoers grant beside keyonly", nil, []engine.Control{sudoersGrant(), keyOnly()}, "",
-			[]string{"sudoers/alice", "ssh/files", "ssh/reload", "ssh/verify"}, true},
+			[]string{engine.BootChangeID, "sudoers/alice", "ssh/files", "ssh/reload", "ssh/verify"}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)

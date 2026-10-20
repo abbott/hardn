@@ -54,14 +54,21 @@ func (r RiskClass) MarshalText() ([]byte, error) {
 // stages. Every change of a stage runs before any change of a later one;
 // within a stage, Change.After orders them, then the plan's order. Around
 // the stages: everything that validates and checks runs at plan time,
-// before anything changes; the revert timer is armed before the first
-// stage; MarkApplied (or Done) is the apply's last write.
+// before anything changes; StageBoot, the engine's own, runs before the
+// revert timer is armed, and every other stage after it; MarkApplied (or
+// Done) is the apply's last write.
 type Stage uint8
 
 // The stages, in the order they run.
 const (
+	// StageBoot: the engine's own, never a control's (ErrChange): the boot
+	// unit that re-arms the revert timer after a reboot, installed before
+	// the timer it recovers is armed, so neither backed up nor journalled
+	// by the engine, and never rolled back (next/p3-engine-boot;
+	// docs/engine/engine-boot.md §2.1).
+	StageBoot Stage = iota + 1
 	// StagePackages: packages a later change needs (ufw, apk-cron).
-	StagePackages Stage = iota + 1
+	StagePackages
 	// StageAccounts: the user and the key in place, ~/.ssh 0700 and
 	// authorized_keys 0600 (brief 2.3 step 1).
 	StageAccounts
@@ -79,10 +86,10 @@ const (
 	StageVerify
 )
 
-var stageWords = [...]string{"", "packages", "accounts", "firewall", "files", "reload", "verify"}
+var stageWords = [...]string{"", "boot", "packages", "accounts", "firewall", "files", "reload", "verify"}
 
 func (s Stage) String() string {
-	if s >= StagePackages && int(s) < len(stageWords) {
+	if s >= StageBoot && int(s) < len(stageWords) {
 		return stageWords[s]
 	}
 	return fmt.Sprintf("stage(%d)", uint8(s))
@@ -90,7 +97,7 @@ func (s Stage) String() string {
 
 // MarshalText writes the stage's word.
 func (s Stage) MarshalText() ([]byte, error) {
-	if s < StagePackages || int(s) >= len(stageWords) {
+	if s < StageBoot || int(s) >= len(stageWords) {
 		return nil, fmt.Errorf("engine: stage %d", uint8(s))
 	}
 	return []byte(stageWords[s]), nil
@@ -130,7 +137,9 @@ type Change struct {
 	// ID is unique in the plan: lower case letters, digits and ".-_/"
 	// ("ssh.port/firewall"). After names changes by it.
 	ID string
-	// Control is the control that planned it; the engine sets it.
+	// Control is the control that planned it; the engine sets it. It is
+	// "" for the engine's own change, the boot unit's (BootChangeID,
+	// StageBoot), which no control plans.
 	Control string
 	// Summary is one line: what the change does ("Set Port 2230 in
 	// /etc/ssh/sshd_config.d/00-hardn.conf").
@@ -251,6 +260,8 @@ func (c Change) check(plans map[string]revert.PlanRollback) error {
 		return bad("summary must be one line")
 	case c.Risk > RiskLockout:
 		return bad("risk %v", c.Risk)
+	case c.Stage == StageBoot:
+		return bad("stage boot is the engine's own: it runs before the revert timer, unjournalled")
 	case c.Stage < StagePackages || c.Stage > StageVerify:
 		return bad("stage %v", c.Stage)
 	case c.Apply == nil:

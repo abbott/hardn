@@ -540,12 +540,15 @@ func armed(c hostfake.Call) bool { return c.Op == "run" && c.Argv[0] == "systemd
 // changes lists the calls that changed the host outside the run
 // directories: a file written, removed, renamed or chmod-ed, a directory
 // made, or a command that is not a read.
-func (v *vm) changes() []string {
+func (v *vm) changes() []string { return changesIn(v.f.Calls()) }
+
+// changesIn is changes over calls, a part of the fake's record.
+func changesIn(calls []hostfake.Call) []string {
 	var out []string
-	for _, c := range v.f.Calls() {
+	for _, c := range calls {
 		switch c.Op {
 		case "write-atomic", "write-in-place", "remove", "removeall", "rename", "chmod", "chown", "mkdir":
-			if !strings.HasPrefix(c.Path, runRoot+"/") {
+			if c.Path != runRoot && !strings.HasPrefix(c.Path, runRoot+"/") {
 				out = append(out, c.String())
 			}
 		case "run":

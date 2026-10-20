@@ -197,7 +197,7 @@
 
     `TestEngineOrder` pins the order on Debian's `ssh.service` as `TestPort2230` does: armed, `ufw allow 2230/tcp`, the backup, the journal with the reload `IfUp` before the write, the write, the reload. `TestEngineRollsBack` covers p2drive's `TestPortRollsBack`, `TestFailedAfterArm` and `TestCancelledDuringReload` under the engine's signal hold.
 
-    **p2drive itself is unchanged**: the comparison is a test file in its package (`internal/tools/p2drive/engine_test.go`) that drives the engine over its fake. `setDirectives`, `pveSet`, `wanted` and `sameEffective` are copied from it: a `main` package cannot be imported. Moving p2drive onto this package is left for a later revision of the driver.
+    **p2drive itself is unchanged**: the comparison is a test file in its package (`internal/tools/p2drive/engine_test.go`) that drives the engine over its fake. Since `next/p3-revert-boot` p2drive installs the boot unit before it arms a lockout-risk change, and since `next/p3-engine-boot` the engine does too, so the commands compared include that install ([engine-boot.md](engine-boot.md) §2.5). `setDirectives`, `pveSet`, `wanted` and `sameEffective` are copied from it: a `main` package cannot be imported. Moving p2drive onto this package is left for a later revision of the driver.
 
 ### Through `host.System`
 

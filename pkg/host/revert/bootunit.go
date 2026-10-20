@@ -266,6 +266,11 @@ func EnsureBootUnit(ctx context.Context, sys host.System, u BootUnit, work strin
 				return res, fmt.Errorf("revert: boot unit: %w", err)
 			}
 			res.Backup = &b
+			if b.Outcome == backup.Skipped {
+				opts.logf("boot unit %s: the file there is replaced, not backed up (enableBackups is false)", u.Path)
+			} else {
+				opts.logf("boot unit %s: the file there backed up (entry %d in %s)", u.Path, b.Entry.Seq, run.Dir())
+			}
 		}
 		if err := sys.WriteFileAtomic(ctx, u.Path, u.Data, u.Mode, 0, 0); err != nil {
 			return res, fmt.Errorf("revert: boot unit: %w", err)
@@ -322,8 +327,22 @@ func checkBootUnit(ctx context.Context, sys host.System, u BootUnit, work string
 // u.Path that does not hold u.Data (hand-edited, another hardn's, or not
 // hardn's at all) is disabled but kept, and reported (ErrBootUnit): nothing
 // backs it up here. It reports whether the unit is gone because of it; a
-// unit that is not there is no error.
+// unit that is not there is no error. It holds the run lock (LockRun,
+// tried, never waited for) while it reads the journal and removes the
+// unit: an apply holding it may have installed the unit and not armed its
+// change yet, so the unit is kept, and the error is host.ErrLocked, naming
+// the apply; nothing is changed.
 func RemoveBootUnit(ctx context.Context, sys host.System, u BootUnit, opts Options) (bool, error) {
+	unlock, err := LockRun(ctx, sys, opts, "removing the boot unit "+u.Path)
+	if err != nil {
+		return false, fmt.Errorf("revert: boot unit %s kept: %w", u.Path, err)
+	}
+	defer func() { _ = unlock() }()
+	return removeUnit(ctx, sys, u, opts)
+}
+
+// removeUnit is RemoveBootUnit under the run lock, which the caller holds.
+func removeUnit(ctx context.Context, sys host.System, u BootUnit, opts Options) (bool, error) {
 	st, err := ReadState(ctx, sys, opts)
 	switch {
 	case err != nil:

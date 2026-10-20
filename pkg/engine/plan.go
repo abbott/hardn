@@ -34,16 +34,20 @@ type Item struct {
 type Plan struct {
 	// ID is the change's id: its journal's, its backup run's and its
 	// timer's (revert.NewID).
-	ID      string
-	Facts   detect.Facts
-	Items   []Item   // one per control, in the order given
-	Changes []Change // in the order Apply runs them (order)
+	ID    string
+	Facts detect.Facts
+	Items []Item // one per control, in the order given
+	// Changes are in the order Apply runs them (order); a lockout-risk
+	// plan on a host without the boot unit installed as planned starts
+	// with the boot unit's (BootChangeID, StageBoot), which no control
+	// planned and no Item lists.
+	Changes []Change
 	Risk    RiskClass
 	// Refused are the refusals: a control's (also in its Item), the
 	// order's, a change's undo, the platform's support level, a change
 	// already journalled, the journal's and the backups' directories, the
-	// files to back up, the revert timer's preconditions, the session. A
-	// plan with any is not applied.
+	// files to back up, the revert timer's preconditions, the boot unit's
+	// (next/p3-engine-boot), the session. A plan with any is not applied.
 	Refused []error
 
 	controls []Control
@@ -64,10 +68,18 @@ func (p *Plan) Err() error {
 }
 
 // Summary is the plan in one line, for the journal and the notices: the
-// change's own summary when there is one, else how many and whose.
+// change's own summary when there is one, else how many and whose. The
+// boot unit (StageBoot) is not counted: it is installed before the change
+// is journalled, and is not part of it.
 func (p *Plan) Summary() string {
-	if len(p.Changes) == 1 {
-		return p.Changes[0].Summary
+	var cs []Change
+	for _, c := range p.Changes {
+		if c.Stage != StageBoot {
+			cs = append(cs, c)
+		}
+	}
+	if len(cs) == 1 {
+		return cs[0].Summary
 	}
 	var titles []string
 	for _, it := range p.Items {
@@ -75,7 +87,7 @@ func (p *Plan) Summary() string {
 			titles = append(titles, it.Title)
 		}
 	}
-	return fmt.Sprintf("%d changes: %s", len(p.Changes), strings.Join(titles, ", "))
+	return fmt.Sprintf("%d changes: %s", len(cs), strings.Join(titles, ", "))
 }
 
 // Plan asks each control in turn for its changes on this host and returns
@@ -140,6 +152,21 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("engine: plan: %w", err)
 	}
+	// The journal, read once for the plan: a change journalled refuses the
+	// plan (refuseApply), before the boot unit is planned or shown, since
+	// the unit is that change's boot-time recovery. A lockout-risk plan
+	// installs the boot unit first, when it is not installed as planned
+	// (bootChange, StageBoot, before revert.Arm).
+	var st revert.State
+	var stErr error
+	if len(all) > 0 {
+		st, stErr = revert.ReadState(ctx, e.sys, e.opts.Revert)
+		if p.Risk == RiskLockout && stErr == nil && !st.Busy() {
+			if b, ok := e.bootChange(ctx, p, refuse); ok {
+				all = append(all, b)
+			}
+		}
+	}
 	for _, c := range conflicts(all) {
 		for k := range p.Items {
 			if p.Items[k].Control == c.control {
@@ -161,15 +188,16 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 		refuse(err)
 	}
 	if !p.Empty() {
-		e.refuseApply(ctx, p, refuse)
+		e.refuseApply(ctx, p, st, stErr, refuse)
 	}
 	return p, nil
 }
 
 // refuseApply adds the refusals that Arm, the backups or the platform would
 // make later: everything Apply refuses before it changes anything is
-// refused here, so the dry run shows it.
-func (e *Engine) refuseApply(ctx context.Context, p *Plan, refuse func(error)) {
+// refused here, so the dry run shows it. st and stErr are the journal as
+// the plan read it (revert.ReadState).
+func (e *Engine) refuseApply(ctx context.Context, p *Plan, st revert.State, stErr error, refuse func(error)) {
 	n := 0
 	refuseN := func(err error) { n++; refuse(err) }
 	switch s := p.Facts.Platform; s.Support {
@@ -177,9 +205,9 @@ func (e *Engine) refuseApply(ctx context.Context, p *Plan, refuse func(error)) {
 	default:
 		refuseN(fmt.Errorf("engine: %v %s is %v: %w", s.Distro, s.Version, s.Support, ErrUnsupported))
 	}
-	switch st, err := revert.ReadState(ctx, e.sys, e.opts.Revert); {
-	case err != nil:
-		refuseN(fmt.Errorf("engine: the change journal: %w", err))
+	switch {
+	case stErr != nil:
+		refuseN(fmt.Errorf("engine: the change journal: %w", stErr))
 	case st.Busy():
 		refuseN(&revert.PendingError{State: st})
 	default:
