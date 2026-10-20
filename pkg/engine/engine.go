@@ -41,8 +41,10 @@ import (
 )
 
 // LockName is the run lock's file in the run root (revert's RunDir,
-// /run/hardn): one engine apply per host at a time.
-const LockName = "engine.lock"
+// /run/hardn): one engine apply per host at a time. It is revert's
+// RunLockName, which `hardn rollback --boot` tries too, and never waits for
+// (next/p3-engine-boot).
+const LockName = revert.RunLockName
 
 // DefaultJournalTimeout bounds a journal write made after a step that ran
 // (Ran.Rollback), which runs without the apply's cancellation so that it is
@@ -249,7 +251,7 @@ func (e *Engine) lock(ctx context.Context, id string) (func(), error) {
 	unlock, err := e.sys.Lock(ctx, name, []byte(holder))
 	if errors.Is(err, host.ErrLocked) {
 		data, _, _ := e.sys.ReadFileNoFollow(ctx, name)
-		return nil, fmt.Errorf("engine: another hardn apply is running (%s holds %s); try again once it has finished: %w",
+		return nil, fmt.Errorf("engine: another hardn is running (%s holds the run lock %s); try again once it has finished: %w",
 			strings.TrimSpace(string(data)), name, err)
 	} else if err != nil {
 		return nil, fmt.Errorf("engine: run lock: %w", err)

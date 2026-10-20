@@ -7,6 +7,7 @@ package revert
 // at once. docs/safety/revert-boot.md has the guarantees.
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -51,6 +52,7 @@ const (
 	BootReasonRollbackRuns       BootReason = "rollback-runs"       // nothing: a rollback of it runs
 	BootReasonConfirmedMeanwhile BootReason = "confirmed-meanwhile" // nothing: confirmed after Boot read the journal
 	BootReasonClaimedMeanwhile   BootReason = "claimed-meanwhile"   // nothing: a confirmation or a rollback claimed it after Boot read the journal
+	BootReasonApplyRuns          BootReason = "apply-runs"          // nothing: its timer, of this boot, is not there, and an apply holds the run lock (next/p3-engine-boot)
 	BootReasonInWindow           BootReason = "in-window"           // rearmed: for what remains of the window
 	BootReasonClockUntrusted     BootReason = "clock-untrusted"     // rearmed: for the whole window, the clock reading before the change
 	BootReasonDeadlinePassed     BootReason = "deadline-passed"     // rolled back: past its deadline
@@ -126,7 +128,13 @@ const bootStepTimeout = time.Minute
 // change is rolled back at once: a change nothing would ever roll back is
 // what P-34 is about. The re-armed journal is written before the timer
 // starts (as Arm), and read again after: a confirmation or a rollback that
-// claimed it meanwhile wins, and the timer is not started.
+// claimed it meanwhile wins, and the timer is not started. Boot reads the
+// journal, and writes the re-armed one, under the journal lock
+// (JournalLockName), and writes it only over the journal it read
+// (writeRearmed), so it never writes over a change armed, re-armed or
+// claimed since; it holds the lock across no command, and never while it
+// rolls back (Rollback takes the lock itself). A lock it cannot have for
+// the re-arm is a timer it cannot re-arm: the change is rolled back.
 //
 // Nothing journalled: nothing to do (a change confirmed, also late, after a
 // reboot, is in confirmed.json, not pending.json), and the boot unit is
@@ -139,7 +147,21 @@ const bootStepTimeout = time.Minute
 // removal under cleanupTimeout.
 func Boot(ctx context.Context, sys host.System, in detect.Init, opts Options) (BootResult, error) {
 	dctx, cancel := context.WithTimeout(ctx, bootStepTimeout)
-	res, err := boot(dctx, sys, in, opts)
+	// The run lock, tried once and never waited for, and held to the end
+	// (lock.go): no apply installs the boot unit or arms a change while
+	// Boot acts on the journal and removes the unit. One that holds it
+	// already (applyErr is host.ErrLocked) owns a change whose timer it
+	// has not started yet; another error is logged, and Boot goes on.
+	unlockRun, applyErr := LockRun(dctx, sys, opts, "hardn rollback --boot")
+	switch {
+	case applyErr == nil:
+		defer func() { _ = unlockRun() }()
+	case errors.Is(applyErr, host.ErrLocked):
+		opts.logf("boot: an apply is running: %v", applyErr)
+	default:
+		opts.logf("boot: the run lock cannot be taken, so the boot unit is not removed: %v", applyErr)
+	}
+	res, err := boot(dctx, sys, in, applyErr, opts)
 	cancel()
 	why := res.Why
 	if err != nil {
@@ -152,19 +174,32 @@ func Boot(ctx context.Context, sys host.System, in detect.Init, opts Options) (B
 	}
 	if err == nil && (res.Action == BootNothing || res.Action == BootRolledBack) {
 		rctx, cancel := cleanupContext(ctx)
-		removeBootUnit(rctx, sys, in, opts, &res)
+		removeBootUnit(rctx, sys, in, applyErr, opts, &res)
 		cancel()
 	}
 	return res, err
 }
 
-func boot(ctx context.Context, sys host.System, in detect.Init, opts Options) (BootResult, error) {
+// boot is Boot's decision and action; applyErr is why Boot does not hold
+// the run lock (nil: it does).
+func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, opts Options) (BootResult, error) {
 	var res BootResult
 	done := func(a BootAction, r BootReason, format string, args ...any) (BootResult, error) {
 		res.Action, res.Reason, res.Why = a, r, fmt.Sprintf(format, args...)
 		return res, nil
 	}
+	// The read under the journal lock (lock.go), so that it never sees a
+	// rollback between its claim and its first progress write (which reads
+	// as one that did not finish); released before anything is run. At
+	// boot nothing else holds it; a lock that cannot be had is logged, and
+	// the journal read as it is.
+	unlock, lerr := lockJournal(ctx, sys, opts, "hardn rollback --boot")
+	if lerr != nil {
+		opts.logf("boot: the journal is read without the journal lock: %v", lerr)
+		unlock = func() {}
+	}
 	st, err := ReadState(ctx, sys, opts)
+	unlock()
 	if err != nil {
 		res.Action, res.Reason, res.Why = BootLeft, BootReasonJournalUnreadable, "the change journal cannot be read, so hardn does not act on it"
 		return res, err
@@ -196,6 +231,11 @@ func boot(ctx context.Context, sys host.System, in detect.Init, opts Options) (B
 			return done(BootLeft, BootReasonTimerUnknown, "its timer was started in this boot, and whether it is still there cannot be told (%v); %s", err, leave)
 		case runs:
 			return done(BootNothing, BootReasonTimerRuns, "its timer was started in this boot, and is there")
+		case errors.Is(applyErr, host.ErrLocked):
+			// Not after a reboot: an apply of this boot holds the run lock,
+			// between Arm's journal write and its timer's start, or
+			// removing a journal whose timer did not start.
+			return done(BootNothing, BootReasonApplyRuns, "its timer was started in this boot and is not there, and an apply holds the run lock: the change is that apply's, which starts its timer or rolls it back (%v)", applyErr)
 		}
 		opts.logf("boot: change %s (%s): its timer was started in this boot and is not there (a re-arm stopped before it started the timer, or a soft-reboot), so it is taken as after a reboot", p.ID, p.Summary)
 	}
@@ -250,19 +290,22 @@ func rearm(ctx context.Context, sys host.System, res BootResult, in detect.Init,
 	if err := j.Check(); err != nil {
 		return rollBackAtBoot(ctx, sys, res, in, BootReasonRearmFailed, fmt.Sprintf("its re-armed journal is not valid (%v)", err), opts)
 	}
-	// Written before the timer starts, as Arm writes it, then read again:
-	// a confirmation or a rollback that claimed the change since ReadState
-	// wins, and its pending.json, written again here, is removed.
-	switch err := rewritePending(ctx, sys, j, opts); {
-	case errors.Is(err, ErrRollingBack):
-		res.Action, res.Reason, res.Why = BootNothing, BootReasonClaimedMeanwhile, "a rollback claimed it while hardn re-armed its timer, and has it"
-		return res, nil
-	case err != nil:
+	// Written before the timer starts, as Arm writes it, under the journal
+	// lock, and only over the journal Boot read (writeRearmed). Released
+	// before the timer starts and before any rollback, which takes it
+	// itself.
+	unlock, err := lockJournal(ctx, sys, opts, "hardn rollback --boot")
+	if err != nil {
 		return rollBackAtBoot(ctx, sys, res, in, BootReasonRearmFailed, fmt.Sprintf("its re-armed journal could not be written (%v)", err), opts)
 	}
-	if confirmedMeanwhile(ctx, sys, j.ID, opts) {
-		res.Action, res.Reason, res.Why = BootNothing, BootReasonConfirmedMeanwhile, "it was confirmed while hardn re-armed its timer"
-		return res, removeIfThere(ctx, sys, filepath.Join(opts.dir(), PendingName))
+	reason, why, err := writeRearmed(ctx, sys, res.Change, j, opts)
+	unlock()
+	switch {
+	case reason != "":
+		res.Action, res.Reason, res.Why = BootNothing, reason, why
+		return res, err
+	case err != nil:
+		return rollBackAtBoot(ctx, sys, res, in, BootReasonRearmFailed, fmt.Sprintf("its re-armed journal could not be written (%v)", err), opts)
 	}
 	if err := startTimer(ctx, sys, t, opts); err != nil {
 		return rollBackAtBoot(ctx, sys, res, in, BootReasonRearmFailed, fmt.Sprintf("its timer did not start (%v)", err), opts)
@@ -277,6 +320,48 @@ func rearm(ctx context.Context, sys host.System, res BootResult, in detect.Init,
 			stamp(opts.now()), stamp(j.Created), res.For, how)
 	}
 	return res, nil
+}
+
+// writeRearmed writes re-armed journal j over pending.json, which must
+// still hold read, the journal Boot read: the caller holds the journal
+// lock, so no Arm, rollback or other re-arm writes or claims the journal
+// meanwhile. A journal that changed since (a rollback claimed it, another
+// `hardn rollback --boot` re-armed it, a new change was armed after a
+// confirmation) is left as it is now, and so is a change confirmed (a
+// confirmation takes no lock: its claim is one rename, so confirmed.json
+// is read again after the write, and the pending.json written is then
+// removed, before the lock is released). It returns the reason, and why,
+// when the change was not re-armed for one of these; err when the journal
+// could not be read or written.
+func writeRearmed(ctx context.Context, sys host.System, read, j Journal, opts Options) (BootReason, string, error) {
+	confirmed := "it was confirmed while hardn re-armed its timer"
+	st, err := ReadState(ctx, sys, opts)
+	if err != nil {
+		return "", "", err
+	}
+	if st.Pending == nil || !sameJournal(*st.Pending, read) {
+		if confirmedMeanwhile(ctx, sys, read.ID, opts) {
+			return BootReasonConfirmedMeanwhile, confirmed, nil
+		}
+		return BootReasonClaimedMeanwhile, "the journal changed while hardn re-armed its timer (a rollback claimed it, or another `hardn rollback --boot` re-armed it), and is left as it is now", nil
+	}
+	switch err := rewritePending(ctx, sys, j, opts); {
+	case errors.Is(err, ErrRollingBack):
+		return BootReasonClaimedMeanwhile, "a rollback claimed it while hardn re-armed its timer, and has it", nil
+	case err != nil:
+		return "", "", err
+	}
+	if confirmedMeanwhile(ctx, sys, j.ID, opts) {
+		return BootReasonConfirmedMeanwhile, confirmed, removeIfThere(ctx, sys, filepath.Join(opts.dir(), PendingName))
+	}
+	return "", "", nil
+}
+
+// sameJournal reports whether a and b are the same journal, as written.
+func sameJournal(a, b Journal) bool {
+	da, ea := encode(a)
+	db, eb := encode(b)
+	return ea == nil && eb == nil && bytes.Equal(da, db)
 }
 
 // confirmedMeanwhile reports whether confirmed.json holds change id: it was
@@ -368,15 +453,22 @@ func lastConfirmed(ctx context.Context, sys host.System, opts Options) string {
 	return fmt.Sprintf("; the last change confirmed is %s (%s)", c.ID, c.Summary)
 }
 
-// removeBootUnit removes the boot unit once nothing is journalled; a change
-// journalled since keeps it.
-func removeBootUnit(ctx context.Context, sys host.System, in detect.Init, opts Options, res *BootResult) {
+// removeBootUnit removes the boot unit once nothing is journalled, under the
+// run lock Boot holds (applyErr nil); a change journalled since keeps it,
+// and so does an apply that holds the run lock (applyErr host.ErrLocked),
+// which may have installed it and not yet armed its change. The next boot
+// that finds nothing journalled removes it.
+func removeBootUnit(ctx context.Context, sys host.System, in detect.Init, applyErr error, opts Options, res *BootResult) {
 	u, err := PlanBootUnit(in, opts.Hardn)
-	if err == nil {
-		res.Removed, err = RemoveBootUnit(ctx, sys, u, opts)
+	switch {
+	case err != nil:
+	case applyErr != nil:
+		err = fmt.Errorf("revert: boot unit %s kept: %w", u.Path, applyErr)
+	default:
+		res.Removed, err = removeUnit(ctx, sys, u, opts)
 	}
 	switch {
-	case errors.Is(err, ErrPending):
+	case errors.Is(err, ErrPending), errors.Is(err, host.ErrLocked):
 		res.Removed = false
 		opts.logf("boot: the boot unit is kept: %v", err)
 	case err != nil:

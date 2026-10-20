@@ -58,7 +58,14 @@ type RollbackResult struct {
 // signal is the caller's to hold off (cmd/hardn does).
 //
 // The change is claimed first, by renaming pending.json to rollback.json,
-// so a confirm and a rollback never both act on it. Then, in order:
+// so a confirm and a rollback never both act on it. The read of the
+// journal, the claim (or the take-up of a rollback that stopped) and the
+// first progress write, which names this process, are made under the
+// journal lock (JournalLockName), so that no Abandon or other rollback acts
+// between them; the lock is released before anything is restored or run.
+// A rollback waits for that lock at most lockWait, and goes on without it
+// past that, or when it cannot be taken at all, and logs it: a rollback is
+// never held up by a lock. Then, in order:
 //
 //  1. the backups the journal names are restored (backup.Restore: last
 //     taken first, idempotent, past a failed entry);
@@ -90,6 +97,25 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), RollbackTimeout)
 	defer cancel()
 	var res RollbackResult
+	// The read, the claim or take-up and the first progress write, under
+	// the journal lock (lock.go): an Abandon, or another rollback, cannot
+	// act between them. A rollback is never held up by it for longer than
+	// lockWait: past it, or when the lock cannot be taken at all, it goes
+	// on without it, as before the lock, and says so.
+	unlock := func() {}
+	if u, err := lockJournal(ctx, sys, opts, "hardn rollback "+id); err != nil {
+		opts.logf("rollback %s: goes on without the journal lock (a rollback does not wait on it longer): %v", id, err)
+	} else {
+		unlock = u
+	}
+	locked := true
+	release := func() {
+		if locked {
+			locked = false
+			unlock()
+		}
+	}
+	defer release()
 	st, err := ReadState(ctx, sys, opts)
 	if err != nil {
 		opts.logf("rollback %s: the journal cannot be read: %v", id, err)
@@ -138,6 +164,7 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 	}
 	j.Rollback.Runner = self
 	save()
+	release() // the claim and its runner are written: another process sees it running
 	res.Journal, res.Reason = j, j.Rollback.Reason
 	resumed := ""
 	if res.Resumed {
@@ -443,11 +470,20 @@ type AbandonResult struct {
 // back), nor anything but an unfinished rollback of id (a
 // *NoRollbackError, Is(ErrNothingPending)); each error says what to do
 // instead. A process that cannot be named (AbandonResult.RunnerUnknown)
-// counts as gone. `hardn rollback --abandon <id>` reaches it (P-35).
+// counts as gone. It runs under the journal lock (JournalLockName), so no
+// `hardn rollback <id>` takes the rollback up between its read and its
+// rename; another hardn holding the lock past lockWait is host.ErrLocked,
+// and nothing is given up. `hardn rollback --abandon <id>` reaches it
+// (P-35).
 func Abandon(ctx context.Context, sys host.System, id string, opts Options) (AbandonResult, error) {
 	if !ValidID(id) {
 		return AbandonResult{}, fmt.Errorf("revert: abandon %q: %w", id, ErrID)
 	}
+	unlock, err := lockJournal(ctx, sys, opts, "hardn rollback --abandon "+id)
+	if err != nil {
+		return AbandonResult{}, fmt.Errorf("revert: abandon %s: nothing given up: %w", id, err)
+	}
+	defer unlock()
 	rb, kept := filepath.Join(opts.dir(), RollbackName), filepath.Join(opts.dir(), AbandonedName(id))
 	st, err := ReadState(ctx, sys, opts)
 	if err != nil {
