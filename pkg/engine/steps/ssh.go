@@ -490,7 +490,8 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 // place of the directive (design-system README §9.15), keyed by the
 // directive in lower case.
 var settingTitles = map[string]string{
-	"permitrootlogin no": "Disallow root login",
+	"permitrootlogin no":                "Disallow root login",
+	"permitrootlogin prohibit-password": "Disallow root password login",
 }
 
 // setTitle is a set change's Title: a single setting's own words
