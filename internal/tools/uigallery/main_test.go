@@ -608,7 +608,7 @@ func TestScreenSelect(t *testing.T) {
 	code, out, _ := runGallery("-screens", "-profile", "plain", sudo+"/normal/2-applied")
 	plain := strings.Split(out, "\n")
 	if code != exitOK || !strings.HasPrefix(plain[0], "# "+sudo+" ") || !strings.Contains(out, "\n# normal/2-applied ") ||
-		strings.Contains(out, "normal/1-confirm") || !strings.HasSuffix(out, "# [+] Operation Successful\n\n") {
+		strings.Contains(out, "normal/1-confirm") || !strings.HasSuffix(out, "# Operation Successful\n\n") {
 		t.Errorf("one step: exit %d, output\n%s", code, out)
 	}
 }

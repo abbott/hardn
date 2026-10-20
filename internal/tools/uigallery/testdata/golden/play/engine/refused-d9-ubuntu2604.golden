@@ -5,14 +5,14 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/refused-d9-ubuntu2604␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/refused-d9-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/refused-d9-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2: its manage.conf, and a listen.conf for port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten with no daemon-reload, so ssh.socket still listens on␛[m$
@@ -20,7 +20,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into 00-hardn.conf.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan refuses it, with a report (P-39 (a)).␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
@@ -42,21 +42,21 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # play engine/refused-d9-ubuntu2604 ----------------------------$
 $
-# [i] Note$
+# Note$
 # Play mode: hardn's own screens and prompts, on the real$
 # plan/apply engine against a simulated host, hostfake's$
 # recording host.System, whose commands a model of the host$
 # answers. Nothing on this machine changes: every command and$
 # file is the fake's, and its record is shown when play ends.$
 $
-# [i] Info: engine/refused-d9-ubuntu2604$
+# Info: engine/refused-d9-ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04, hardened by hardn$
 # v0.3.2: its manage.conf, and a listen.conf for port 2230$
 # written with no daemon-reload, so ssh.socket still listens on$
@@ -64,7 +64,7 @@ $
 # The change: hardn's v0.3.2 SSH files moved into 00-hardn.conf.$
 # The plan refuses it, with a report (P-39 (a)).$
 $
-# [!] Operation Failed$
+# Operation Failed$
 # /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
 # sets ssh.socket to port 2230, but it never took effect:$
 # ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
@@ -86,14 +86,14 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# [i] Note$
+# Note$
 # Nothing was applied.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/refused-d9-ubuntu2604␛[m ␛[38;2;48;52;64m────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
@@ -101,7 +101,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/refused-d9-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/refused-d9-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2: its manage.conf, and a listen.conf for port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten with no daemon-reload, so ssh.socket still listens␛[m$
@@ -109,7 +109,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into 00-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.conf. The plan refuses it, with a report (P-39 (a)).␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105m✗ Operation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [[::]:22 0.0.0.0:22]␛[m$
@@ -134,6 +134,6 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $

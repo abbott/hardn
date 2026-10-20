@@ -7,7 +7,7 @@
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
@@ -31,7 +31,7 @@ $
 $
   Managing sudo method for: [george]$
 $
-# [*] Warning$
+# Warning$
 # A user password is required for sudo usage.$
 $
 # User Configuration -------------------------------------------$
@@ -55,7 +55,7 @@ $
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$

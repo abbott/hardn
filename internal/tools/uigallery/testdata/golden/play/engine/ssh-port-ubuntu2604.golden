@@ -5,14 +5,14 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-ubuntu2604␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04; ssh.socket listens, from␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd-socket-generator. sshd listens on port 22, and ufw is␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactive, allowing 22/tcp.␛[m$
@@ -57,14 +57,14 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -73,16 +73,16 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
 $
       ␛[38;2;129;134;156mssh.socket␛[m$
       ␛[38;2;129;134;156m$ systemctl daemon-reload␛[m$
       ␛[38;2;129;134;156m$ systemctl show -p Listen ssh.socket␛[m$
       ␛[38;2;129;134;156m$ systemctl restart ssh.socket␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
@@ -97,7 +97,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
 $
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
@@ -109,7 +109,7 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
@@ -140,14 +140,14 @@ $
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # play engine/ssh-port-ubuntu2604 ------------------------------$
 $
-# [i] Note$
+# Note$
 # Play mode: hardn's own screens and prompts, on the real$
 # plan/apply engine against a simulated host, hostfake's$
 # recording host.System, whose commands a model of the host$
 # answers. Nothing on this machine changes: every command and$
 # file is the fake's, and its record is shown when play ends.$
 $
-# [i] Info: engine/ssh-port-ubuntu2604$
+# Info: engine/ssh-port-ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04; ssh.socket listens, from$
 # sshd-socket-generator. sshd listens on port 22, and ufw is$
 # active, allowing 22/tcp.$
@@ -192,14 +192,14 @@ $
       | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] ufw: allow 2230/tcp$
-      Lockout risk$
+  [*] Lockout risk$
+      ufw: allow 2230/tcp$
 $
       ufw$
       $ ufw allow 2230/tcp$
 $
-  [*] Set Port 22, Port 2230$
-      Lockout risk$
+  [*] Lockout risk$
+      Set Port 22, Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
       @@ -0,0 +1,4 @@$
@@ -208,16 +208,16 @@ $
       +Port 22$
       +Port 2230$
 $
-  [*] Reload sshd (ssh.socket)$
-      Lockout risk$
+  [*] Lockout risk$
+      Reload sshd (ssh.socket)$
 $
       ssh.socket$
       $ systemctl daemon-reload$
       $ systemctl show -p Listen ssh.socket$
       $ systemctl restart ssh.socket$
 $
-  [*] sshd -T shows Port 22, Port 2230$
-      Lockout risk$
+  [*] Lockout risk$
+      sshd -T shows Port 22, Port 2230$
 $
       sshd -T$
       $ sshd -T$
@@ -232,7 +232,7 @@ $
   [+] Done: Reload sshd (ssh.socket)$
   [+] Done: sshd -T shows Port 22, Port 2230$
 $
-# [+] Operation Successful$
+# Operation Successful$
 $
   [*] Warning: This change reverts automatically in 3:01$
       To keep it, open a new SSH session on port 2230 and run:$
@@ -244,7 +244,7 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# [i] Info: engine/ssh-port-ubuntu2604$
+# Info: engine/ssh-port-ubuntu2604$
 # Recorded by the fake, not done: what each step ran on web-$
 # 01.example.net, and the files it changed, in order; hardn's$
 # own journal, run directory and backups left out.$
@@ -275,7 +275,7 @@ $
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-ubuntu2604␛[m ␛[38;2;48;52;64m──────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
@@ -283,7 +283,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04; ssh.socket listens,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom sshd-socket-generator. sshd listens on port 22, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw is active, allowing 22/tcp.␛[m$
@@ -330,14 +330,14 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mSet Port 22, Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
@@ -346,16 +346,16 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
 $
       ␛[38;2;129;134;156mssh.socket␛[m$
       ␛[38;2;129;134;156m$ systemctl daemon-reload␛[m$
       ␛[38;2;129;134;156m$ systemctl show -p Listen ssh.socket␛[m$
       ␛[38;2;129;134;156m$ systemctl restart ssh.socket␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
@@ -370,7 +370,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.socket)␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows Port 22, Port 2230␛[m$
 $
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
    ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
@@ -384,7 +384,7 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: engine/ssh-port-ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$

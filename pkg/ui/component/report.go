@@ -21,7 +21,7 @@ const checkLog = "Check the log file at %s for details"
 // Here with no colour and ASCII glyphs:
 //
 //	0 2   6
-//	# [!] Operation Failed
+//	# Operation Failed
 //	# Reloading ssh.service failed: exit status 1
 //
 //	  [<] Rolled back: Set Port 2230

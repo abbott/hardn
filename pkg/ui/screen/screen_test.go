@@ -550,9 +550,9 @@ func TestRunGap(t *testing.T) {
 		lines []string
 		want  string // the transcript's start
 	}{
-		{"before any prompt, the review first", sudo, false, []string{"y"}, screen + "\n\n# [*] Warning\n"},
-		{"before any prompt, a form first", withForm, false, []string{"george", "y"}, screen + "\n\n  Username [0 or q]: george\n\n# [*] Warning\n"},
-		{"after a prompt", sudo, true, []string{"1", "y"}, "  > Choose [1, 0 or q]: 1\n\n" + screen + "\n\n# [*] Warning\n"},
+		{"before any prompt, the review first", sudo, false, []string{"y"}, screen + "\n\n# Warning\n"},
+		{"before any prompt, a form first", withForm, false, []string{"george", "y"}, screen + "\n\n  Username [0 or q]: george\n\n# Warning\n"},
+		{"after a prompt", sudo, true, []string{"1", "y"}, "  > Choose [1, 0 or q]: 1\n\n" + screen + "\n\n# Warning\n"},
 	}
 	for _, tt := range tests {
 		p, out := prompter(env, tt.lines...)

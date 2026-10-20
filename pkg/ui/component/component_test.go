@@ -436,13 +436,13 @@ func TestLayout(t *testing.T) {
 			"  [i] Info: No\n      automatic\n      backups will\n      be created"},
 		{"message: a word too wide for its line breaks, as the text does", Message{Kind: MessageCancelled, Text: "Stopped"}, 12, false,
 			"  [-] Cancel\n      led:\n      Stoppe\n      d"},
-		{"callout: bar, glyph, title and body", figmaWarning, 80, false, "# [*] Warning\n# Before disabling root SSH login, ensure:"},
-		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ ⊘ Operation Cancelled"},
-		{"callout: a title of its own follows the kind's word", Callout{Kind: MessageBad, Title: " Port 2230 refused "}, 80, true, "█ ✗ Error: Port 2230 refused"},
-		{"callout: a title that is the kind's word is not repeated", Callout{Kind: MessageOK, Title: "Success"}, 80, false, "# [+] Success"},
+		{"callout: bar, title and body, no glyph", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
+		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
+		{"callout: a title of its own follows the kind's word", Callout{Kind: MessageBad, Title: " Port 2230 refused "}, 80, true, "█ Error: Port 2230 refused"},
+		{"callout: a title that is the kind's word is not repeated", Callout{Kind: MessageOK, Title: "Success"}, 80, false, "# Success"},
 		{"callout: a body wraps beside the bar", Callout{Kind: MessageOK, Title: "Success", Body: []string{"aaa bbb ccc ddd"}}, 13, false,
-			"# [+] Success\n# aaa bbb ccc\n# ddd"},
-		{"callout: a long title is cut", Callout{Kind: MessageOK, Title: "Done"}, 9, false, "# [+]..."},
+			"# Success\n# aaa bbb ccc\n# ddd"},
+		{"callout: a long title is cut", Callout{Kind: MessageOK, Title: "Done"}, 9, false, "# Succ..."},
 		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
 			"   1. Username: george"},
 		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
@@ -817,7 +817,7 @@ func TestBlockStyles(t *testing.T) {
 			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
 		}},
 		{"callout", figmaWarning, []part{
-			{" ", th.Callout.Warn.Bar}, {th.Glyphs.Warn + " Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
+			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
 		}},
 		{"field", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, []part{
 			{"2.", th.Field.Number}, {"Grant sudo privilege?", th.Field.Label}, {"[y/N]:", th.Field.Hint}, {"y", th.Field.Answer},
@@ -880,10 +880,11 @@ func TestValueStates(t *testing.T) {
 }
 
 // TestMessageKinds checks that each kind has its own glyph and word, both
-// in its style, on a Message, and its own bar, glyph, title style and
-// title on a Callout; and that without colour, at the ASCII profile and in
-// plain mode, the five kinds' messages, and their callouts given one title
-// of their own, still differ. A value outside the kinds is MessageInfo.
+// in its style, on a Message, and its own bar, title style and title, and
+// no glyph, on a Callout; and that without colour, at the ASCII profile
+// and in plain mode, the five kinds' messages, and their callouts given
+// one title of their own, still differ. A value outside the kinds is
+// MessageInfo.
 func TestMessageKinds(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
@@ -910,7 +911,7 @@ func TestMessageKinds(t *testing.T) {
 			}
 		}
 		got = Callout{Kind: tt.kind}.Render(c)
-		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.glyph+" "+tt.title); got != want {
+		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.title); got != want {
 			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
 		}
 		if tt.kind.String() != tt.word {

@@ -5,7 +5,7 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
@@ -113,7 +113,7 @@ $
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
@@ -135,7 +135,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
 $
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 $
@@ -210,7 +210,7 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: user-manage-sudo-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: user-manage-sudo-confirmation, normal␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or restore,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the commands it would run.␛[m$
 $
@@ -225,7 +225,7 @@ $
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # play main-menu/00-tui-main -----------------------------------$
 $
-# [i] Note$
+# Note$
 # Play mode: hardn's own screens and prompts, on the gallery's$
 # fixture plans. Nothing on this machine changes: the simulated$
 # system only records each step it would apply, and the record$
@@ -355,7 +355,7 @@ $
 $
   Managing sudo method for: [george]$
 $
-# [*] Warning$
+# Warning$
 # A user password is required for sudo usage.$
 $
 # User Configuration -------------------------------------------$
@@ -377,7 +377,7 @@ $
   [+] Done: Require george's password for sudo$
   [+] Done: Check the sudo configuration$
 $
-# [+] Operation Successful$
+# Operation Successful$
 $
 # Manage User ##################################################$
 $
@@ -463,7 +463,7 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# [i] Info: user-manage-sudo-confirmation, normal$
+# Info: user-manage-sudo-confirmation, normal$
 # Recorded, not done: the file each step would write or restore,$
 # and the commands it would run.$
 $
@@ -478,7 +478,7 @@ $
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Note␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
@@ -615,7 +615,7 @@ $
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
@@ -638,7 +638,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
 $
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127m✓ Operation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[48;2;22;24;29m                                              ␛[m$
 $
@@ -732,7 +732,7 @@ $
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mℹ Info: user-manage-sudo-confirmation, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: user-manage-sudo-confirmation, normal␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestore, and the commands it would run.␛[m$
 $

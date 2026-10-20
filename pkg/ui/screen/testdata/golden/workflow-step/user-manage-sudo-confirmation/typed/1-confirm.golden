@@ -7,15 +7,15 @@
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;112;212;127mPassword required␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
       ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
@@ -35,15 +35,15 @@ $
 $
   Managing sudo method for: [george]$
 $
-# [*] Warning$
+# Warning$
 # A user password is required for sudo usage.$
 $
 # User Configuration -------------------------------------------$
 $
   [+] Sudo Method          Password required$
 $
-  [*] Require george's password for sudo$
-      Lockout risk$
+  [*] Lockout risk$
+      Require george's password for sudo$
 $
       /etc/sudoers.d/hardn-george$
       @@ -1 +1 @@$
@@ -63,7 +63,7 @@ $
 $
   ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⛬ Warning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
@@ -71,8 +71,8 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m$
       ␛[38;2;112;212;127mPassword required␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-      ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
       ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$

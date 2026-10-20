@@ -30,7 +30,7 @@ $
 $
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
    1. Username [0 or q]: george$
@@ -60,7 +60,7 @@ $
 $
   Create user 'george'? [y/N, 0 or q]: n$
 $
-# [-] Operation Cancelled$
+# Operation Cancelled$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
@@ -92,4 +92,4 @@ $
 $
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83m⊘ Operation Cancelled␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
