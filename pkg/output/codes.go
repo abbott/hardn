@@ -21,6 +21,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -391,6 +392,9 @@ var findingCodes = []Entry{
 	finding("DNS_PROXMOX_NODE", "Proxmox VE's node DNS settings rewrite /etc/resolv.conf"),
 	finding(CodeDeprecated, "a configuration value in a form that is going away; it still works (§3.17)"),
 	finding(engine.CodeBestEffort, "a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41)"),
+	// The SSH controls' own (next/p4-check-ssh).
+	finding(ssh.CodeMatchAllowsMore, "a Match block lets in more than the global value does (root's login, a password), for the connections it matches"),
+	finding(ssh.CodeNotInEffect, "a listener sshd's configuration names is not bound: the configuration is not in effect"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a
