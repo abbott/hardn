@@ -193,20 +193,20 @@ func TestPlayEngine(t *testing.T) {
 		check  func(*testing.T, *fakeHost)
 		order  []string // commands and files the host changed, in this order
 	}{
-		{"ssh-port-debian13", 0, []string{"Set Port in /etc/ssh/sshd_config.d/00-hardn.conf", "Operation Successful", "reverts automatically in 3:01", "port 2230", "sudo hardn confirm", "rolled back at 12:03:01 UTC"},
+		{"ssh-port-debian13", 0, []string{"Set Port 22, Port 2230", "Operation Successful", "reverts automatically in 3:01", "port 2230", "sudo hardn confirm", "rolled back at 12:03:01 UTC"},
 			held(true), []string{"systemd-run", "ufw allow 2230/tcp", sshd.HardnDropIn, "systemctl reload ssh.service"}},
 		{"ssh-port-ubuntu2604", 0, []string{"Reload sshd (ssh.socket)", "Operation Successful", "reverts automatically in 3:01"},
 			held(true), []string{"systemd-run", "ufw allow 2230/tcp", sshd.HardnDropIn, "systemctl daemon-reload", "systemctl restart ssh.socket"}},
 		{"ssh-port-alpine324", 0, []string{"Reload sshd (openrc sshd)", "Operation Successful", "doas hardn confirm", "rolled back at about 12:03:00 UTC"},
 			held(false), []string{"/bin/sh -c", sshd.HardnDropIn, "rc-service sshd reload"}},
-		{"keyonly-debian13", 0, []string{"Set PasswordAuthentication, KbdInteractiveAuthentication", "Operation Successful", "open a new SSH session and run"},
+		{"keyonly-debian13", 0, []string{"Set PasswordAuthentication and 1 more", "Operation Successful", "open a new SSH session and run"},
 			func(t *testing.T, h *fakeHost) {
 				waiting(t, h)
 				if d := h.dropIn(); !strings.Contains(d, "PasswordAuthentication no\nKbdInteractiveAuthentication no\n") {
 					t.Errorf("00-hardn.conf:\n%s", d)
 				}
 			}, []string{"systemd-run", sshd.HardnDropIn, "systemctl reload ssh.service"}},
-		{"ufw-enable-debian13", 0, []string{"Firewall: ufw allow 22/tcp; ufw --force enable", "Operation Successful"},
+		{"ufw-enable-debian13", 0, []string{"ufw: allow 22/tcp; enable", "Operation Successful"},
 			func(t *testing.T, h *fakeHost) {
 				waiting(t, h)
 				if h.inactive || !slices.Equal(h.allowed, []uint16{22}) {
@@ -225,7 +225,7 @@ func TestPlayEngine(t *testing.T) {
 		{"refused-d9-ubuntu2604", 0, []string{"Operation Failed", "never took effect", "(SSH_LISTEN_CONF_NOT_IN_EFFECT)", "To go on: first make sure the firewall", "Nothing was applied."},
 			untouched, nil},
 		{"failed-reload-debian13", 1, []string{"Failed: Reload sshd (ssh.service) (COMMAND_FAILED)", "Skipped: sshd -T", "Operation Failed",
-			"Rolled back: Set Port in", "Rolled back: Firewall: ufw allow 2230/tcp", "Job for ssh.service failed", "Rolled back from the journal"},
+			"Rolled back: Set Port 22, Port 2230", "Rolled back: ufw: allow 2230/tcp", "Job for ssh.service failed", "Rolled back from the journal"},
 			func(t *testing.T, h *fakeHost) {
 				if d := h.dropIn(); d != "" || !slices.Equal(h.allowed, []uint16{22}) || slices.Contains(h.bound, "0.0.0.0:2230") {
 					t.Errorf("not rolled back: 00-hardn.conf %q, ufw %v, sshd on %v", d, h.allowed, h.bound)
@@ -237,7 +237,7 @@ func TestPlayEngine(t *testing.T) {
 				}
 			}, []string{"systemd-run", "ufw allow 2230/tcp", sshd.HardnDropIn, "systemctl reload ssh.service",
 				"ufw delete allow 2230/tcp", "systemctl reload ssh.service", "systemctl stop hardn-revert-"}},
-		{"confirm-cleanup-debian13", 0, []string{"reverts automatically in 3:01", "runs sudo hardn confirm", "confirmed (", "Drop port 22 from",
+		{"confirm-cleanup-debian13", 0, []string{"reverts automatically in 3:01", "runs sudo hardn confirm", "confirmed (", "Drop Port 22",
 			"Operation Successful", "Port 22, which change", "ufw's rule for 22/tcp, which hardn added, is deleted"},
 			func(t *testing.T, h *fakeHost) {
 				if d := h.dropIn(); strings.Contains(d, "Port 22\n") || !strings.Contains(d, "Port 2230\n") {
@@ -383,7 +383,7 @@ func TestPlayEngineSmoke(t *testing.T) {
 							t.Errorf("%s: line %q is wider than %d", where, l, w)
 						}
 					}
-					if !strings.Contains(out, "Drop port 22") {
+					if !strings.Contains(out, "Drop Port 22") {
 						t.Errorf("%s: no clean-up shown", where)
 					}
 				}

@@ -158,6 +158,7 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
 	files := e.change(r)
 	files.Summary = fmt.Sprintf("Drop port %s from %s", joinUint16(drop), sshd.HardnDropIn)
+	files.Title = engine.FitTitle("Drop Port "+joinUint16(drop), "Drop the held ports")
 	out = claim(append(out, files, reloadChange(prefix, r, rp, nil),
 		st.verifyChange(prefix, fmt.Sprintf("sshd -T shows ports %v alone", left), func(_ context.Context, _ host.System, after sshd.Effective) error {
 			return wanted(after, e.set, drop)
@@ -228,7 +229,7 @@ func (st sshState) cleanupFirewall(ctx context.Context, sys host.System, prefix 
 	for _, d := range dels {
 		undo = append([][]string{{"ufw", "allow", d[3]}}, undo...)
 	}
-	c := engine.Change{ID: prefix + "/firewall", Summary: "Firewall: delete the held ports' rules hardn added", Target: "ufw",
+	c := engine.Change{ID: prefix + "/firewall", Summary: "Firewall: delete the held ports' rules hardn added", Title: "Delete the held ports' ufw rules", Target: "ufw",
 		Commands: formatArgvs(dels), Risk: engine.RiskLockout, Stage: engine.StageFirewall,
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, undo)}}
 	px := st.in.Facts.Proxmox

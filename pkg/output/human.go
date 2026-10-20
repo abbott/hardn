@@ -73,7 +73,7 @@ func planView(p *engine.Plan) component.PlanView {
 		return v
 	}
 	for _, ch := range p.Changes {
-		v.Changes = append(v.Changes, component.PlanChange{Title: ch.Summary, Target: ch.Target, LockoutRisk: ch.Risk == engine.RiskLockout,
+		v.Changes = append(v.Changes, component.PlanChange{Title: ch.Heading(), Target: ch.Target, LockoutRisk: ch.Risk == engine.RiskLockout,
 			Diff: ch.Diff, Before: ch.StateBefore, After: ch.StateAfter, Commands: ch.Commands})
 	}
 	return v
@@ -102,6 +102,20 @@ var stepStates = map[string]component.StepState{StatusApplied: component.StepDon
 	StatusUnknown: component.StepDone, StatusFailed: component.StepFailed, StatusUnjournalled: component.StepFailed,
 	StatusNotRun: component.StepSkipped, StatusPlanned: component.StepPending}
 
+// heading is a change's line in the apply's steps: its engine change's
+// Heading (engine.Change.Title, short enough for one step line), found by
+// id in the plan, else the document's summary.
+func heading(r Run, ch Change) string {
+	if r.Plan != nil {
+		for _, pc := range r.Plan.Changes {
+			if pc.ID == ch.ID {
+				return pc.Heading()
+			}
+		}
+	}
+	return ch.Summary
+}
+
 // applyBlocks is an apply's: the steps, then how it ended.
 func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	res := d.Result
@@ -120,13 +134,13 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	var sp component.StepProgress
 	var undone []string
 	for _, ch := range d.Changes {
-		step := component.Step{Title: ch.Summary, State: stepStates[ch.Status]}
+		step := component.Step{Title: heading(r, ch), State: stepStates[ch.Status]}
 		if err := failedErr(r, ch.ID); err != nil {
 			step.Detail = CodeOf(err)
 		}
 		sp.Steps = append(sp.Steps, step)
 		if ch.Status == StatusRolledBack {
-			undone = append(undone, ch.Summary)
+			undone = append(undone, heading(r, ch))
 		}
 	}
 	slices.Reverse(undone) // undone last first

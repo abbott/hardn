@@ -63,10 +63,13 @@ func (e *Engine) bootChange(ctx context.Context, p *Plan, refuse func(error)) (C
 		StateBefore: bootState(u, st, e.opts.Backups.Enabled), StateAfter: "installed and enabled"}
 	switch {
 	case !st.File:
+		c.Title = "Install hardn's boot unit"
 		c.Summary = fmt.Sprintf("Install hardn's boot unit, %s: after a reboot inside the confirm window it re-arms the revert timer or rolls the change back", u.Path)
 	case !st.Current:
+		c.Title = "Replace the boot unit with hardn's"
 		c.Summary = fmt.Sprintf("Replace %s with hardn's boot unit: after a reboot inside the confirm window it re-arms the revert timer or rolls the change back", u.Path)
 	default:
+		c.Title = "Enable hardn's boot unit"
 		c.Summary = fmt.Sprintf("Enable hardn's boot unit, %s: after a reboot inside the confirm window it re-arms the revert timer or rolls the change back", u.Path)
 	}
 	if !st.Current {

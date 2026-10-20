@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -144,6 +145,11 @@ type Change struct {
 	// Summary is one line: what the change does ("Set Port 2230 in
 	// /etc/ssh/sshd_config.d/00-hardn.conf").
 	Summary string
+	// Title is the change's short name, the plan's heading for it and its
+	// line in the apply's progress (component.PlanChange.Title): no path,
+	// which Target shows, and at most TitleMax cells, so that a step's line
+	// is never cut ("Set Port 2230"). "" means Summary (Heading).
+	Title string
 	// Target is what the change acts on, for the plan's view: the file
 	// Diff changes, or a service or tool ("ufw", "ssh.service"); "" for
 	// none.
@@ -244,6 +250,35 @@ func validName(s string) bool {
 }
 
 func isAlnum(c rune) bool { return c >= 'a' && c <= 'z' || c >= '0' && c <= '9' }
+
+// TitleMax is the most cells a Title takes: what is left of one step line
+// at the narrowest width of the design system's core set (60 columns)
+// after the marker column (6) and the longest state word, "Rolled back:"
+// and its space (13). A longer one is cut with an ellipsis, as a step is
+// always one line (component.StepProgress); pkg/output's tests pin it to
+// the component's rendering (TestTitleMaxFitsAStepLine).
+const TitleMax = 41
+
+// Heading is the change's short name, Title, or its Summary when it has
+// none: the plan's heading for it and its line in the apply's progress.
+func (c Change) Heading() string {
+	if c.Title != "" {
+		return c.Title
+	}
+	return c.Summary
+}
+
+// FitTitle is title when it fits TitleMax, else shorter when that fits,
+// else "" (and Heading then shows the Summary, cut).
+func FitTitle(title, shorter string) string {
+	switch {
+	case utf8.RuneCountInString(title) <= TitleMax:
+		return title
+	case utf8.RuneCountInString(shorter) <= TitleMax:
+		return shorter
+	}
+	return ""
+}
 
 // check refuses, with ErrChange, a change the engine could not order,
 // back up or journal, before anything changes: every plan step's unit must

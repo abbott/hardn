@@ -562,7 +562,7 @@ func (r *recorder) steps() []component.PlanChange {
 	for _, m := range r.marks {
 		title := m.ev.Change
 		if r.plan != nil && m.ev.Index >= 0 && m.ev.Index < len(r.plan.Changes) {
-			title = r.plan.Changes[m.ev.Index].Summary
+			title = r.plan.Changes[m.ev.Index].Heading()
 		}
 		switch m.ev.State {
 		case engine.EventRunning:

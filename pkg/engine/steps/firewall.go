@@ -67,6 +67,27 @@ func (st sshState) planUFW(ctx context.Context, sys host.System, listeners sshd.
 	return &p, nil
 }
 
+// ufwTitle is ufw's plan's Title: the ports it allows, then whether it
+// sets a default policy and enables ufw ("ufw: allow 22/tcp, 2230/tcp;
+// enable"), or how many steps when that is too long (engine.TitleMax).
+func ufwTitle(p ufw.Plan) string {
+	var ports, rest []string
+	for _, s := range p.Steps {
+		switch s.Kind {
+		case ufw.StepAllow:
+			ports = append(ports, fmt.Sprintf("%d/tcp", s.Port))
+		case ufw.StepDefault:
+			rest = append(rest, "default policy")
+		case ufw.StepEnable:
+			rest = append(rest, "enable")
+		}
+	}
+	if len(ports) > 0 {
+		rest = append([]string{"allow " + strings.Join(ports, ", ")}, rest...)
+	}
+	return engine.FitTitle("ufw: "+strings.Join(rest, "; "), fmt.Sprintf("ufw: %d steps", len(p.Steps)))
+}
+
 // firewallChange is ufw's plan as a change, before sshd moves
 // (StageFirewall): its default and enable undos journalled before it runs
 // (Plan.PreUndo), and once it ran, error or not, the undos of what it did
@@ -78,7 +99,7 @@ func firewallChange(id string, p ufw.Plan) engine.Change {
 		argvs = append(argvs, s.Argv)
 	}
 	c := engine.Change{
-		ID: id, Summary: "Firewall: " + strings.Join(formatArgvs(argvs), "; "), Target: "ufw", Commands: formatArgvs(argvs),
+		ID: id, Summary: "Firewall: " + strings.Join(formatArgvs(argvs), "; "), Title: ufwTitle(p), Target: "ufw", Commands: formatArgvs(argvs),
 		StateBefore: activeWord(p, false), StateAfter: activeWord(p, true),
 		Risk: engine.RiskLockout, Stage: engine.StageFirewall, Findings: ufwFindings(p.Findings),
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, p.PreUndo())},

@@ -19,9 +19,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the release's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning (P-41).␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/systemd/system/hardn-␛[m$
-      ␛[38;2;192;196;216mboot.service: after a reboot inside the confirm window it␛[m$
-      ␛[38;2;192;196;216mre-arms the revert timer or rolls the change back␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
       ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
@@ -59,8 +57,7 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PasswordAuthentication, KbdInteractiveAuthentication␛[m$
-      ␛[38;2;192;196;216min /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PasswordAuthentication and 1 more␛[m$
       ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -76,8 +73,7 @@ $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows PasswordAuthentication no,␛[m$
-      ␛[38;2;192;196;216mKbdInteractiveAuthentication no␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mCheck the values with sshd -T␛[m$
       ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -112,9 +108,7 @@ $
 # The plan alone, for key-only login: it carries the release's$
 # warning (P-41).$
 $
-   -  Install hardn's boot unit, /etc/systemd/system/hardn-$
-      boot.service: after a reboot inside the confirm window it$
-      re-arms the revert timer or rolls the change back$
+   -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
       @@ -0,0 +1,23 @@$
       +# hardn's boot unit (P-34 (c);$
@@ -152,8 +146,7 @@ $
       | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] Set PasswordAuthentication, KbdInteractiveAuthentication$
-      in /etc/ssh/sshd_config.d/00-hardn.conf$
+  [*] Set PasswordAuthentication and 1 more$
       Lockout risk$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -169,8 +162,7 @@ $
       ssh.service$
       $ systemctl reload ssh.service$
 $
-  [*] sshd -T shows PasswordAuthentication no,$
-      KbdInteractiveAuthentication no$
+  [*] Check the values with sshd -T$
       Lockout risk$
 $
       sshd -T$
@@ -206,9 +198,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrelease's warning (P-41).␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, /etc/systemd/system/hardn-␛[m$
-      ␛[38;2;192;196;216mboot.service: after a reboot inside the confirm window␛[m$
-      ␛[38;2;192;196;216mit re-arms the revert timer or rolls the change back␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
       ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
@@ -248,9 +238,7 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PasswordAuthentication,␛[m$
-      ␛[38;2;192;196;216mKbdInteractiveAuthentication in␛[m$
-      ␛[38;2;192;196;216m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSet PasswordAuthentication and 1 more␛[m$
       ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -266,8 +254,7 @@ $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216msshd -T shows PasswordAuthentication no,␛[m$
-      ␛[38;2;192;196;216mKbdInteractiveAuthentication no␛[m$
+   ␛[1;38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mCheck the values with sshd -T␛[m$
       ␛[1;38;2;219;184;83mLockout risk␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$

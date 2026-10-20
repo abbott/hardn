@@ -324,7 +324,7 @@ func (e *edit) change(r revert.Reload) engine.Change {
 	sum := sha256.Sum256(e.old)
 	data, absent := e.data, e.absent
 	c := engine.Change{
-		ID: e.id, Summary: "Set " + strings.Join(e.keywords, ", ") + " in " + sshd.HardnDropIn, Target: sshd.HardnDropIn,
+		ID: e.id, Summary: "Set " + strings.Join(e.keywords, ", ") + " in " + sshd.HardnDropIn, Title: setTitle(e.set, e.keywords), Target: sshd.HardnDropIn,
 		Diff: engine.FileDiff(sshd.HardnDropIn, before, &after), Risk: engine.RiskLockout, Stage: engine.StageFiles,
 		Backups: []string{sshd.HardnDropIn}, Rollback: engine.Undo{Reloads: []revert.Reload{r}}, Findings: slices.Clone(e.findings),
 	}
@@ -353,7 +353,7 @@ func reloadChange(prefix string, r revert.Reload, rp reload.Plan, replan func(ct
 		cmds = append(cmds, host.FormatArgv(s.Argv))
 	}
 	c := engine.Change{
-		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Target: unitOf(rp), Commands: cmds,
+		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Title: engine.FitTitle("Reload sshd ("+rp.Mode.String()+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
 		Risk: engine.RiskLockout, Stage: engine.StageReload, After: []string{prefix + "/files"},
 		Rollback: engine.Undo{Reloads: []revert.Reload{r}}, ConfirmVia: revert.ListenersOf(rp.Adds),
 	}
@@ -393,7 +393,7 @@ func unitOf(rp reload.Plan) string {
 func (st sshState) verifyChange(prefix, summary string, want func(ctx context.Context, sys host.System, after sshd.Effective) error) engine.Change {
 	binary, ssh := st.binary, st.in.Facts.SSH
 	c := engine.Change{
-		ID: prefix + "/verify", Summary: summary, Target: "sshd -T", Commands: []string{"sshd -T"},
+		ID: prefix + "/verify", Summary: summary, Title: engine.FitTitle(summary, "Check the values with sshd -T"), Target: "sshd -T", Commands: []string{"sshd -T"},
 		Risk: engine.RiskLockout, Stage: engine.StageVerify,
 	}
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
@@ -484,6 +484,16 @@ func appendSetting(bad []string, kw, want string, s sshd.Setting) []string {
 }
 
 // directiveWords is set as one line.
+// setTitle is a set change's Title: its directives ("Set Port 22, Port
+// 2230"), else its keywords, else the first keyword and how many more
+// (engine.TitleMax); the plan's diff shows every line.
+func setTitle(set []migrate.Directive, keywords []string) string {
+	if t := engine.FitTitle("Set "+directiveWords(set), "Set "+strings.Join(keywords, ", ")); t != "" || len(keywords) == 0 {
+		return t
+	}
+	return engine.FitTitle(fmt.Sprintf("Set %s and %d more", keywords[0], len(keywords)-1), "Set "+strconv.Itoa(len(keywords))+" SSH settings")
+}
+
 func directiveWords(set []migrate.Directive) string {
 	var out []string
 	for _, d := range set {

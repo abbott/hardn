@@ -1,0 +1,38 @@
+package steps
+
+import (
+	"strings"
+	"testing"
+	"unicode/utf8"
+
+	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/host/sshd/migrate"
+	"github.com/abbott/hardn/pkg/host/ufw"
+)
+
+// The titles this package writes fit one step line (engine.TitleMax), so
+// that the apply's progress never cuts them, while Summary keeps the path.
+func TestTitles(t *testing.T) {
+	d := func(k string, args ...string) migrate.Directive { return migrate.Directive{Keyword: k, Args: args} }
+	allow := func(p uint16) ufw.Step { return ufw.Step{Kind: ufw.StepAllow, Port: p} }
+	for _, tt := range []struct{ name, got, want string }{
+		{"a port change", setTitle([]migrate.Directive{d("Port", "22"), d("Port", "2230")}, []string{"Port"}), "Set Port 22, Port 2230"},
+		{"keyonly: the directives do not fit, nor the keywords",
+			setTitle([]migrate.Directive{d("PasswordAuthentication", "no"), d("KbdInteractiveAuthentication", "no")},
+				[]string{"PasswordAuthentication", "KbdInteractiveAuthentication"}), "Set PasswordAuthentication and 1 more"},
+		{"the keywords fit where the directives do not",
+			setTitle([]migrate.Directive{d("AllowUsers", "alice", "bob", "carol", "dave", "erin", "frank")}, []string{"AllowUsers"}), "Set AllowUsers"},
+		{"ufw: allows and an enable", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(22), allow(2230), {Kind: ufw.StepEnable}}}), "ufw: allow 22/tcp, 2230/tcp; enable"},
+		{"ufw: one allow", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(2230)}}), "ufw: allow 2230/tcp"},
+		{"ufw: too many ports for one line", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(2201), allow(2202), allow(2203), allow(2204), allow(2205), allow(2206)}}), "ufw: 6 steps"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.got != tt.want {
+				t.Errorf("title %q, want %q", tt.got, tt.want)
+			}
+			if n := utf8.RuneCountInString(tt.got); n > engine.TitleMax || strings.Contains(tt.got, "/etc/") {
+				t.Errorf("title %q: %d cells (TitleMax %d), or a path", tt.got, n, engine.TitleMax)
+			}
+		})
+	}
+}
