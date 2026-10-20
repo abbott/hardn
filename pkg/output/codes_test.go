@@ -542,7 +542,7 @@ func TestFindingCodes(t *testing.T) {
 		}
 		return out
 	}
-	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated}
+	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated, engine.CodeBestEffort}
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

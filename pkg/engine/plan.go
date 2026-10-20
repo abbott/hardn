@@ -43,6 +43,11 @@ type Plan struct {
 	// planned and no Item lists.
 	Changes []Change
 	Risk    RiskClass
+	// Findings are what the engine found about the plan as a whole, which
+	// refuse nothing: on a best-effort release, CodeBestEffort (P-41,
+	// next/p3-confirm-cleanup). A change's own are on the change
+	// (Change.Findings).
+	Findings []Finding
 	// Refused are the refusals: a control's (also in its Item), the
 	// order's, a change's undo, the platform's support level, a change
 	// already journalled, the journal's and the backups' directories, the
@@ -107,7 +112,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	if err != nil {
 		return nil, fmt.Errorf("engine: detect: %w", err)
 	}
-	p := &Plan{ID: id, Facts: facts, controls: controls, cfg: cfg}
+	p := &Plan{ID: id, Facts: facts, Findings: platformFindings(facts.Platform), controls: controls, cfg: cfg}
 	refuse := func(err error) { p.Refused = append(p.Refused, err) }
 	runDir := filepath.Join(e.runRoot(), id)
 	if err := e.sys.MkdirAll(ctx, runDir, 0o700); err != nil {

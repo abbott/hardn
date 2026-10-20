@@ -339,6 +339,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `DNS_UDHCPC` | Alpine's udhcpc rewrites /etc/resolv.conf on each lease |
 | `DNS_PROXMOX_NODE` | Proxmox VE's node DNS settings rewrite /etc/resolv.conf |
 | `CONFIG_DEPRECATED_VALUE` | a configuration value in a form that is going away; it still works (§3.17) |
+| `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 
