@@ -9,7 +9,7 @@ One run writes **exactly one JSON value on stdout**, then a newline; everything 
 
 ### 1.1 `schemaVersion` and the rule for bumping it
 
-`schemaVersion` is `1`. **Without** a new version: a field may be added anywhere; a new value may be given to a field this page calls *open* (codes, outcomes, change statuses, stages, risk classes, `host` words), so a script must accept a value it does not know. **With** a new version: anything that would break a script reading version 1: a field removed or renamed, its type or meaning changed, a value of a closed field removed or its meaning changed, a code removed or renamed (§2), an exit status's meaning changed (§3). The codes and statuses are pinned by goldens (`pkg/output/testdata/codes.golden`, `sentinels.golden`, `json/*.json`), so such a change cannot land unseen.
+`schemaVersion` is `1`. **Without** a new version: a field may be added anywhere; a new value may be given to a field this page calls *open* (codes, outcomes, change statuses, stages, steps, risk classes, `host` words), so a script must accept a value it does not know. **With** a new version: anything that would break a script reading version 1: a field removed or renamed, its type or meaning changed, a value of a closed field removed or its meaning changed, a code removed or renamed (§2), an exit status's meaning changed (§3). The codes and statuses are pinned by goldens (`pkg/output/testdata/codes.golden`, `sentinels.golden`, `json/*.json`), so such a change cannot land unseen.
 
 ### 1.2 The nine fields
 
@@ -45,13 +45,25 @@ detect's facts in this schema's own words (they are mapped, never written as det
 
 | Field | Meaning |
 |---|---|
-| `outcome` | the run in one word (open); each has its exit status (§3): `nothing-to-do` 0, `applied` 0, `awaiting-confirmation` 0, `changes-needed` 3, `refused` 1, `failed` 1, `rolled-back` 1, `rollback-incomplete` 1, `usage-error` 2, `cancelled` 130 |
+| `outcome` | the run in one word (open); each has its exit status (§3): `nothing-to-do` 0, `applied` 0, `awaiting-confirmation` 0, `changes-needed` 3 (a check or a plan found changes to make), `declined` 3 (the user declined them at the confirmation, or quit with `q` or went back with `0` before they were applied: nothing changed), `refused` 1, `failed` 1, `rolled-back` 1 (every change started was undone), `rollback-incomplete` 1 (the rollback did not finish here, another process had the change, or a change was not covered: `result.rollback` says which), `usage-error` 2, `cancelled` 130. **`cancelled` says nothing of a rollback**: an interrupted apply is rolled back, and `result.rollback.finished` and `result.rollback.command` say whether that finished and how to finish it |
 | `exitCode` | the run's exit status, so that the audit log has it too |
 | `id` | the change's id (its journal's, its backups' and its revert timer's, `<backupPath>/<id>/`); `""` without a plan |
 | `risk` | the plan's risk class: `plain`, `package-install`, `service-restart`, `lockout` (open); `""` without a plan |
-| `confirm` | only while a lockout-risk change waits for confirmation: `deadline` (RFC 3339, UTC: when the revert timer fires), `approximate` (true when the timer's own trigger time could not be read and the deadline is the journal's: the timer fires a few seconds after it, 1 to 2 s on Ubuntu 26.04, [vmtest.md](../safety/vmtest.md) §4.9), `via` (the listeners a confirming connection must reach, `address:port`), `command` (`sudo hardn confirm`, `doas hardn confirm` on a host with doas and no sudo), `undo` (`sudo hardn rollback <id>`) |
-| `rollback` | only when an apply stopped after the timer was armed: `finished` (the rollback in this run finished and undid every change started), `byAnotherProcess` (the timer's, or a `hardn rollback <id>`, had taken the change), `step` (`start`, `window`, `backup`, `journal`, `apply`, `journal-after`, `mark-applied`, `done`), `change` (the change that failed, `""` for the apply's last write), `restored` (files put back), `undone` (the inverse steps run, in words), `unjournalled` (a change that ran whose undo the journal did not hold: what it did may be left), `command` (`sudo hardn rollback <id>`, which finishes a rollback that did not finish; `""` otherwise) |
-| `boot` | only when the apply installed hardn's boot unit, before the change was armed ([engine-boot.md](../engine/engine-boot.md) §2.1): `installed`, `detail`. It is never rolled back; it removes itself at a boot that finds nothing journalled |
+| `confirm` | only while a lockout-risk change waits for confirmation: `deadline` (RFC 3339, UTC: when the revert timer fires), `approximate` (true when the timer's own trigger time could not be read and the deadline is the journal's: the timer fires a few seconds after it, 1 to 2 s on Ubuntu 26.04, [vmtest.md](../safety/vmtest.md) §4.9), `via` (the listeners a confirming connection must reach, `address:port`), `command` (`sudo hardn confirm`, `doas hardn confirm` on a host with doas and no sudo), `undo` (`sudo hardn rollback <id>`, doas likewise) |
+| `rollback` | only when an apply stopped once its change was journalled, whatever the plan's risk: `finished` (the rollback in this run finished and undid every change started), `byAnotherProcess` (another process had taken the change: the timer's rollback, a `hardn rollback <id>`, a rollback given up, a confirmation; this run undid nothing, and its `ROLLBACK_RUNNING` error says which), `step` (`start`, `window`, `backup`, `journal`, `apply`, `journal-after`, `mark-applied`, `done`), `change` (the change that failed, or at `start` and `window` the one that was next and never started; `""` for the apply's last write), `restored` (files put back), `undone` (the inverse steps run, in words), `unjournalled` (§1.4.1; left out when none), `command` (`sudo hardn rollback <id>`, `doas` on a host with doas and no sudo, which finishes a rollback that did not finish; `""` otherwise) |
+| `boot` | only when the apply ran the install of hardn's boot unit, before the change was journalled ([engine-boot.md](../engine/engine-boot.md) §2.1): `installed` (false when the install failed, and nothing was armed), `detail`. It is never rolled back; it removes itself at a boot that finds nothing journalled |
+
+#### 1.4.1 `result.rollback.unjournalled`
+
+A change that ran whose undo the journal did not hold once it had run (its journal after the step could not be written, or another process's rollback took the journal while it ran), so the rollback did not run it: **what it did may be left on the host**, and this is what undoes it, for a person to check and run.
+
+| Field | Meaning |
+|---|---|
+| `change` | the change's id |
+| `undo` | what undoes it, in the order to run: each command as its argv (`ufw delete allow 2230/tcp`), a unit's kept plan as `the <unit> plan's rollback`, another step as its operation and path, then each reload (`reload ssh`) |
+| `backups` | the files it wrote, each `path` with its `seq`, the backup in `dir` that restores it |
+| `dir` | the change's backup run directory (`<backupPath>/<id>`) |
+| `why` | why the journal does not hold it |
 
 ### 1.5 `changes[]`
 
@@ -65,8 +77,8 @@ detect's facts in this schema's own words (they are mapped, never written as det
 | `diff` | a unified diff for a file; `""` for none |
 | `stateBefore`, `stateAfter` | a setting's or service's state, for a change with no file to diff |
 | `commands`, `backups` | the commands it runs; the files backed up before it runs |
-| `status` | `planned` (a check's or a plan's), `applied`, `failed` (the change that failed; `result.rollback` says what was undone), `rolled-back` (applied, then undone in this run), `not-run` (the apply stopped before it), `unjournalled` (§1.4) (open) |
-| `detail` | what it did, or why it failed |
+| `status` | `planned` (a check's or a plan's), `applied`, `failed` (the change that failed; `result.rollback` says what was undone), `rolled-back` (applied, then undone by the rollback in this run, which finished), `unknown` (applied, but the rollback did not finish here or another process had the change, so whether it still stands is not established), `not-run` (the apply stopped before it started: Ctrl-C, or the confirm window closing, between two changes), `unjournalled` (§1.4.1) (open) |
+| `detail` | what it did, or why it failed or did not run |
 
 ### 1.6 `status[]`
 
@@ -78,11 +90,11 @@ detect's facts in this schema's own words (they are mapped, never written as det
 
 ### 1.8 `errors[]`
 
-`code` (§2.1), `message` (the error's text, which may change: match on the code), `control` and `change` (what it is about, when known), `step` (the apply's step, as `result.rollback.step`; `rollback` for the rollback's own error; `""` otherwise), and for a refusal with a report, `why` (why the host is refused) and `fix` (what makes it one hardn can change). An apply that failed gives one entry for its step's error, one for its rollback's error when the rollback did not finish, and one (`CHANGE_UNJOURNALLED`) for a change the journal did not cover; a refused plan, one per refusal.
+`code` (§2.1), `message` (the error's text, which may change: match on the code), `control` and `change` (what it is about, when known), `step` (open: the apply's step, as `result.rollback.step`; `boot-unit` for the boot unit's install; `rollback` for the rollback's own error; `""` otherwise), and for a refusal with a report, `why` (why the host is refused) and `fix` (what makes it one hardn can change). An apply that failed gives one entry for its step's error, one for its rollback's error when the rollback did not finish, and one (`CHANGE_UNJOURNALLED`, its message naming what undoes the change, as §1.4.1) for a change the journal did not cover; a refused plan, one per refusal. Each error is there once, however the run's own error wraps it. Quitting (`q`) or going back (`0`) is not an error (`declined`), nor is the non-interactive policy's refusal for a plan with nothing to change (§6).
 
 ### 1.9 The documents
 
-The goldens are the reference, each a whole document: `pkg/output/testdata/json/check.json` (a check: drift, a finding, a deprecated value; exit 3), `plan.json` (the 2230 scenario's plan on Debian 13, the boot unit first; exit 3), `refused.json` (the D9 host refused with its report, [P-39](../refactor/proposals.md#p-39) (a); exit 1), `awaiting-confirmation.json` (applied, the deadline approximate; exit 0) and `rolled-back.json` (the reload failed, the rollback finished; exit 1). The `result` of the one waiting for confirmation:
+The goldens are the reference, each a whole document: `pkg/output/testdata/json/check.json` (a check: drift, a finding, a deprecated value; exit 3), `plan.json` (the 2230 scenario's plan on Debian 13, the boot unit first; exit 3), `refused.json` (the D9 host refused with its report, [P-39](../refactor/proposals.md#p-39) (a); exit 1), `awaiting-confirmation.json` (applied, the deadline approximate; exit 0), `rolled-back.json` (the reload failed, the rollback finished; exit 1) and `unjournalled.json` (from the engine's own run: the journal after a step failed, the change before it rolled back, the change itself with what undoes it; exit 1). The `result` of the one waiting for confirmation:
 
 ```json
 {
@@ -257,7 +269,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `DNS_CHANGED` | 1 | the resolver files changed since they were read |
 | `DNS_NOT_EFFECTIVE` | 1 | the step ran, but the host does not show its effect |
 | `DNS_NOT_RESTORED` | 1 | the steps were not all undone |
-| `UNSAFE_DIRECTORY` | 1 | a run or backup directory another user can change, or reached through a symlink |
+| `UNSAFE_DIRECTORY` | 1 | a directory hardn writes in (a run, backup or log directory) that another user can change, or reached through a symlink |
 | `BACKUP_SETTINGS_INVALID` | 1 | invalid backup settings |
 | `BACKUP_RUN_EXISTS` | 1 | backup run directory already exists |
 | `BACKUP_NOT_REGULAR` | 1 | a file to back up is neither a regular file nor a symlink |
@@ -366,17 +378,17 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 
 | Status | When |
 |---|---|
-| `130` | anything in the run was interrupted (`CANCELLED`): Ctrl-C, or `SIGTERM` or a hangup, which hardn treats as Ctrl-C ([engine.md](../engine/engine.md) §2.14), or a prompt aborted (Ctrl-C, the end of the input). An apply interrupted is rolled back first, as `result.rollback` says |
-| `2` | a usage error: bad flags or configuration (an error whose code's *Exit* is 2: `USAGE`, `CONFIRM_TIMEOUT_INVALID`, `CHANGE_ID_INVALID`, `CONFIG_ROOT_LOGIN_NOT_APPLIED`), and changes that would be applied without a terminal and without an explicit yes (`CONFIRMATION_REQUIRED`, §6) |
+| `130` | anything in the run was interrupted (`CANCELLED`): Ctrl-C, or `SIGTERM` or a hangup, which hardn treats as Ctrl-C ([engine.md](../engine/engine.md) §2.14), or a prompt aborted (Ctrl-C, the end of the input). An apply interrupted is rolled back first; whether that finished is `result.rollback.finished`, never the outcome: an unfinished one is still `cancelled`, with `result.rollback.command` to finish it |
+| `2` | a usage error: bad flags or configuration (an error whose code's *Exit* is 2: `USAGE`, `CONFIRM_TIMEOUT_INVALID`, `CHANGE_ID_INVALID`, `CONFIG_ROOT_LOGIN_NOT_APPLIED`), and changes that would be applied without a terminal and without an explicit yes (`CONFIRMATION_REQUIRED`, §6; not for a plan with nothing to change, which is 0) |
 | `1` | an error. What this run applied, it rolled back (`result.rollback.finished` says whether that finished; `rollback-incomplete` when it did not, and `result.rollback.command` finishes it). **A refusal is 1 too**: the run did not do what was asked and changed nothing, as `hardn confirm`'s and `hardn rollback`'s refusals already exit 1 ([revert.md](../safety/revert.md) §2.21), and as `hardn rollback --boot` does when it leaves a change to the person (`BOOT_LEFT`: [revert-boot.md](../safety/revert-boot.md) §6 asked for this meaning to be registered or given a code; it is registered here) |
-| `3` | a check found a control not as asked (`not-configured`, `partial`, or `unknown`: a state not established is not taken as hardened, brief §3), a plan has changes to make, or the user declined them at the confirmation: so a script can tell when a host has drifted from its hardened state |
+| `3` | a check found a control not as asked (`not-configured`, `partial`, or `unknown`: a state not established is not taken as hardened, brief §3), a plan has changes to make, or the user declined them at the confirmation or quit (`q`) or went back (`0`) before they were applied (`declined`): so a script can tell when a host has drifted from its hardened state |
 | `0` | success: nothing to change, or every change applied, a change waiting for confirmation included (it is rolled back at its deadline unless confirmed: `result.confirm`) |
 
 `pkg/cmd`'s `ExitUsage` and `pkg/ui/prompt`'s `ExitInterrupted` are the same 2 and 130 (`TestExitStatuses`). The legacy operation flags keep their own exits until their slices move them onto the engine (§3.11 is not approved).
 
 ## 4. The audit log
 
-- **Path:** `/var/log/hardn/audit.jsonl` (`output.AuditPath`, the path the refactor plan proposes, row `p3-output`). The directory is made `0750` when missing and must be a directory owned by root that neither its group nor others can write (`AUDIT_DIR_UNSAFE` otherwise); the file is created `0600`. A record holds the plan, its diffs included, so both are root's alone.
+- **Path:** `/var/log/hardn/audit.jsonl` (`output.AuditPath`, the path the refactor plan proposes, row `p3-output`). The directory is made `0750` when missing and must be a directory owned by root that neither its group nor others can write (`AUDIT_DIR_UNSAFE` otherwise), checked by its path and again on the directory the append opens, so that one put in its place in between is refused too; the file is created `0600`. A record holds the plan, its diffs included, so both are root's alone. A run ended by Ctrl-C, `SIGTERM` or a hangup still writes its record.
 - **Format:** one line per run, appended: `{"time": "<RFC 3339, UTC>", ...the run's document (§1)...}`, the same nine fields as stdout's, so the plan, the results and any rollback (`result.rollback`) are there. Written with one `write(2)` on a descriptor opened with `O_APPEND`, so two runs never overwrite each other's lines. A write cut short (a crash, a full disk) leaves a line that is not valid JSON, and the next record is appended on that same line, so a reader skips any line that does not parse: at most that record and the next are lost. Never rewritten, truncated or rotated by hardn; rotation is the packaging's (`next/p7-install`).
 - **The legacy log**, as the brief's [Verify] asked recorded (`output.LegacyLogPath`; [phase0-findings.md](../refactor/phase0-findings.md) §6, **[V]**): `/var/log/hardn.log`, opened by `main()` before flags are parsed (V26), `O_CREATE|O_APPEND`, `0644`, its directory made `0755`; each line Go's `log.LstdFlags` date and time (`2006/01/02 15:04:05`), then `ERROR: `, `WARNING: `, `INFO: `, `SUCCESS: ` or `INSTALLED: ` and the message; not rotated. The `logFile` key is only read (the Logs screen and `-p`), so the two differ when it is changed. It is unchanged: the audit log is new, beside it. **The run log** (`host.Real`'s record of each command's argv, output and exit status, [system.md](../safety/system.md) §2.6) goes where its caller says: `cmd/hardn`'s confirm and rollback commands send it to the legacy log (`revertLog`), and that stays the run log's path, a decision of `next/p3-output`, until `next/p3-startup` makes the startup writes lazy.
 - **Not written yet:** nothing in `cmd/hardn` appends to it; its first writer is `next/p3-startup`'s wiring.
@@ -390,14 +402,14 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
         deprecated; write "no", which means the same
   ```
 
-  In the JSON document it is a finding, `CONFIG_DEPRECATED_VALUE`. The value still works.
+  In the JSON document it is a finding, `CONFIG_DEPRECATED_VALUE`; nothing else repeats the warning. The value still works. **A limit:** `sudo hardn` with no operation flag goes on to the legacy main menu, which clears the screen as it opens, so there the warning is gone at once (left in the terminal's scrollback on some terminals); every other command keeps it on screen. The main menu slice (Phase 4) is to show it.
 - **No colour codes** from `hardn confirm`, `hardn rollback <id>`, `--abandon` and `--boot` unless both stdout (where their lines go) and stderr (where the notices go) are colour terminals, by `pkg/ui/term`'s detection (`NO_COLOR`, `TERM=dumb`, `HARDN_PLAIN` and `--no-color` turn it off): under the systemd timer both are the journal, under the OpenRC sleeper the null device. The Debian 13 and Ubuntu 26.04 VM runs found escape codes in the journal ([vmtest.md](../safety/vmtest.md) §4.9).
 - Nothing else: no `--output`, `--yes` or `--confirm-timeout` flag (§3.11 is not approved), and the existing flags behave as before.
 
 ## 6. Non-interactive use
 
-The policy (brief Phase 3), as a library function, `output.Confirmation`: **never prompt without a terminal on stdin; apply without asking only on an explicit yes.** Without a terminal, or with JSON output (stdout is a script's), a run without yes shows the plan, applies nothing, and exits 2 (`CONFIRMATION_REQUIRED`, naming `--yes`). With yes it applies without asking; a lockout-risk change is still confirmed afterwards from a new connection, or rolled back at its deadline. **Not wired:** `--yes` is refactor plan §3.11's, not approved, so no operation flag consults it yet ([docs/engine/output.md](../engine/output.md) §7 says where it will be).
+The policy (brief Phase 3), as a library function, `output.Confirmation`: **never prompt without a terminal on stdin; apply without asking only on an explicit yes.** Without a terminal, or with JSON output (stdout is a script's), a run without yes shows the plan, applies nothing, and exits 2 (`CONFIRMATION_REQUIRED`, naming `--yes`). It is about confirming changes: a plan with nothing to change asks nothing and exits 0, so a scheduled run on a hardened host is 0. With yes it applies without asking; a lockout-risk change is still confirmed afterwards from a new connection, or rolled back at its deadline. **Not wired:** `--yes` is refactor plan §3.11's, not approved, so no operation flag consults it yet ([docs/engine/output.md](../engine/output.md) §7 says where it will be).
 
 ## 7. The human report
 
-The same run, for a person, through `pkg/ui`'s components only (design-system README §9.15): a check's status rows; a plan's changes with "No actual changes were made to your system."; an apply's steps, then "Operation Successful", the confirm countdown with when the change is rolled back ("at about …" when the deadline is approximate) and how to undo it now, or the error report naming what was rolled back; each finding as a warning with its code; each error with its code, a refusal by its why, and its fix as "To go on: …". Its words are provisional, as the Phase 2 pages' are; they are not part of this contract. As JSON, none of it is written to stdout.
+The same run, for a person, through `pkg/ui`'s components only (design-system README §9.15): a check's status rows; a plan's changes with "No actual changes were made to your system."; an apply's steps, then "Operation Successful", the confirm countdown with when the change is rolled back ("at about …" when the deadline is approximate) and how to undo it now, or the error report naming what was rolled back, how to finish a rollback that did not finish, and what undoes a change the journal did not cover; each finding as a warning with its code; each error with its code, a refusal by its why, and its fix as "To go on: …". After the interactive flow, which draws the plan, the steps and "Operation Successful" itself, the countdown and the findings follow it. Its words are provisional, as the Phase 2 pages' are; they are not part of this contract. As JSON, none of it is written to stdout.
