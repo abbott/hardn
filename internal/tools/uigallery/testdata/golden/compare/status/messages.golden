@@ -30,7 +30,7 @@ $
 $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $
-   ␛[1;38;2;219;184;83m⊘␛[m  ␛[1;38;2;219;184;83mCancelled:␛[m ␛[38;2;129;134;156mOperation cancelled. No changes were made.␛[m$
+   ␛[1;38;2;219;184;83m⊘␛[m  ␛[1;38;2;219;184;83mCancelled:␛[m ␛[38;2;129;134;156mNo changes were made.␛[m$
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
@@ -50,7 +50,7 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOperation cancelled. No changes were made.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo changes were made.␛[m$
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
@@ -86,7 +86,7 @@ $
 $
   [!] Error: Failed to configure sudo: exit status 1$
 $
-  [-] Cancelled: Operation cancelled. No changes were made.$
+  [-] Cancelled: No changes were made.$
 $
   [i] Info: No actual changes were made to your system.$
 $
@@ -106,7 +106,7 @@ $
 # Failed to configure sudo: exit status 1$
 $
 # Operation Cancelled$
-# Operation cancelled. No changes were made.$
+# No changes were made.$
 $
   No actual changes were made to your system.$
 $
@@ -143,7 +143,7 @@ $
 $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $
-   ␛[1;38;2;219;184;83m⊘␛[m  ␛[1;38;2;219;184;83mCancelled:␛[m ␛[38;2;129;134;156mOperation cancelled. No changes were made.␛[m$
+   ␛[1;38;2;219;184;83m⊘␛[m  ␛[1;38;2;219;184;83mCancelled:␛[m ␛[38;2;129;134;156mNo changes were made.␛[m$
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
@@ -163,7 +163,7 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOperation cancelled. No changes were made.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo changes were made.␛[m$
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $

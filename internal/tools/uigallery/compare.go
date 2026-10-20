@@ -126,15 +126,16 @@ const (
 var cmpRolledBack = []string{"Set Port 22, Port 2230", "ufw: allow 2230/tcp"}
 
 // cmpMessages are the one-line messages compared: the five kinds, in the
-// texts of their component states (fixture.States's message/*), then two
-// sentences hardn says as info messages, the dry run's footer and an
-// empty plan's.
+// texts of their component states (fixture.States's message/*), but for
+// the cancelled one, whose "Operation cancelled." the callout's title
+// already says; then two sentences hardn says as info messages, the dry
+// run's footer and an empty plan's.
 var cmpMessages = []component.Message{
 	{Kind: component.MessageInfo, Text: "No automatic backups will be created"},
 	{Kind: component.MessageOK, Text: "DNS configured successfully"},
 	{Kind: component.MessageWarn, Text: "No nameservers configured"},
 	{Kind: component.MessageBad, Text: "Failed to configure sudo: exit status 1"},
-	{Kind: component.MessageCancelled, Text: "Operation cancelled. No changes were made."},
+	{Kind: component.MessageCancelled, Text: "No changes were made."},
 	{Kind: component.MessageInfo, Text: "No actual changes were made to your system."},
 	{Kind: component.MessageInfo, Text: "Nothing needs changing."},
 }
