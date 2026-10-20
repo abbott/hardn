@@ -2,13 +2,15 @@ package main
 
 // Confirm-or-revert on the command line (refactor plan P2, next/p2-revert;
 // brief 2.4, decided in brief §2): `hardn confirm`, `hardn rollback <id>`,
-// and the notice a run as root shows while a change is journalled.
+// `hardn rollback --boot` (P3, next/p3-revert-boot), and the notice a run
+// as root shows while a change is journalled.
 // pkg/host/revert does the work; this file only wires it in, so main.go is
 // unchanged.
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/signal"
@@ -21,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/logging"
@@ -29,6 +32,8 @@ import (
 func init() {
 	rollbackCmd.Flags().BoolVar(&rollbackAbandon, "abandon", false,
 		"give up the unfinished rollback of change <id>, one that cannot finish, leaving the host as the rollback left it")
+	rollbackCmd.Flags().BoolVar(&rollbackBoot, "boot", false,
+		"what hardn's boot unit runs, with no <id>: re-arm the revert timer of the change waiting for confirmation, or roll it back once its deadline has passed")
 	rootCmd.AddCommand(confirmCmd, rollbackCmd)
 	rootCmd.PersistentPreRun = showRevertNotices
 }
@@ -37,6 +42,11 @@ func init() {
 // next/p3-rollback-abandon; P-35 (a), decided 2026-10-19): give up the
 // unfinished rollback of change <id> instead of running it.
 var rollbackAbandon bool
+
+// rollbackBoot is `hardn rollback --boot` (refactor plan P3,
+// next/p3-revert-boot; P-34 (c), decided 2026-10-19): what the boot unit
+// runs at boot, before sshd starts (revert.Boot).
+var rollbackBoot bool
 
 // Seams for revert_test.go: the effective uid, the host, the session's
 // environment and process id, the exit, the clock, where notices go and
@@ -51,7 +61,19 @@ var (
 	revertStderr      io.Writer = os.Stderr
 	revertNoticeSeen            = stderrIsTerminal
 	revertHoldSignals           = holdSignals
+	revertExecutable            = executable
+	revertInit                  = detect.DetectInit
 )
+
+// executable is this hardn's path, resolved: what the boot unit ran, which
+// revert.Boot compares with the binary the journal's timer runs.
+func executable() (string, error) {
+	p, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(p)
+}
 
 // revertPlans are the rollbacks of the units whose kept plans a journal
 // carries (revert.OpPlan), by unit name: root's keys on Proxmox VE
@@ -95,7 +117,7 @@ Example:
 }
 
 var rollbackCmd = &cobra.Command{
-	Use:   "rollback [--abandon] <id>",
+	Use:   "rollback [--abandon] <id> | --boot",
 	Short: "Undo the journalled change",
 	Long: `Undo change <id>: restore the files it backed up, run its inverse steps and
 reload the services it changed. The revert timer runs this when a change is not
@@ -107,12 +129,32 @@ A rollback that did not finish blocks every new change until it does. With
 command was removed) is given up instead: the host stays as the rollback left
 it, hardn lists what the rollback did and did not undo, and keeps its record.
 
+With --boot, and no <id>, it is what hardn's boot unit runs at boot, before sshd
+starts: a reboot stops the revert timer, so it re-arms it for what remains of
+the confirm window, or rolls the change back once its deadline has passed. It
+acts only on a journal this hardn binary wrote.
+
 Examples:
   sudo hardn rollback 20261018T120000Z-1a2b3c4d
   sudo hardn rollback --abandon 20261018T120000Z-1a2b3c4d`,
-	Args:             cobra.ExactArgs(1),
+	Args:             rollbackArgs,
 	PersistentPreRun: noRevertNotices,
 	Run:              runRollback,
+}
+
+// rollbackArgs is <id>, exactly one, or none with --boot, which does not
+// go with --abandon.
+func rollbackArgs(cmd *cobra.Command, args []string) error {
+	if rollbackBoot && rollbackAbandon {
+		return errors.New("hardn rollback: --boot and --abandon do not go together")
+	}
+	if rollbackBoot && len(args) > 0 {
+		return fmt.Errorf("hardn rollback --boot takes no <id>: it acts on the change the journal holds; got %q", args)
+	}
+	if rollbackBoot {
+		return nil
+	}
+	return cobra.ExactArgs(1)(cmd, args)
 }
 
 // revertPreflight refuses -n, which only previews, and a user other than
@@ -159,6 +201,10 @@ func runConfirm(*cobra.Command, []string) {
 }
 
 func runRollback(_ *cobra.Command, args []string) {
+	if rollbackBoot {
+		runBoot()
+		return
+	}
 	if rollbackAbandon {
 		runAbandon(args[0])
 		return
@@ -235,6 +281,54 @@ func runAbandon(id string) {
 		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.")
 	}
 	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
+}
+
+// runBoot is `hardn rollback --boot` (P-34 (c)): revert.Boot, with this
+// hardn's own path and the init system detected now, and the plan
+// rollbacks `hardn rollback` passes. As `hardn rollback`: root only (exit
+// 1), -n refused (exit 2), signals held, since it may roll back. Exit 0 when
+// it had nothing to do, re-armed the timer or rolled the change back; 1 when
+// it left a change or a rollback to the person (revert.BootLeft) or its
+// rollback did not finish, so that the boot unit shows as failed. sshd is
+// only ordered after the unit, so it starts either way.
+func runBoot() {
+	if !revertPreflight("rollback --boot") {
+		return
+	}
+	defer revertHoldSignals()()
+	ctx := context.Background()
+	sys := revertHost()
+	self, err := revertExecutable()
+	if err != nil {
+		logging.LogError("hardn rollback --boot: this hardn's own path cannot be read, so whether it wrote the change journal cannot be told, and hardn does not act on it: %v", err)
+		revertExit(1)
+		return
+	}
+	opts := revert.Options{Log: revertLog{}, Now: revertNow, Hardn: self, Plans: revertPlans}
+	res, err := revert.Boot(ctx, sys, revertInit(ctx, sys), opts)
+	what := "At boot"
+	if j := res.Change; j.ID != "" {
+		what = "At boot, change " + j.ID + " (" + j.Summary + ")"
+	}
+	switch {
+	case err != nil:
+		logging.LogError("%s: %s: %v", what, res.Why, err)
+	case res.Action == revert.BootLeft:
+		logging.LogWarning("%s: %s.", what, res.Why)
+	case res.Action == revert.BootNothing:
+		logging.LogInfo("%s: nothing to do: %s.", what, res.Why)
+	default:
+		logging.LogSuccess("%s: %s.", what, res.Why)
+	}
+	if res.Removed {
+		logging.LogInfo("No change is journalled, so hardn's boot unit is removed; hardn installs it again before the next change that could lock you out.")
+	}
+	if res.RemoveErr != nil {
+		logging.LogWarning("hardn's boot unit was not removed: %v", res.RemoveErr)
+	}
+	if err != nil || res.Action == revert.BootLeft {
+		revertExit(1)
+	}
 }
 
 // orNothing is lines, or a line saying there are none.

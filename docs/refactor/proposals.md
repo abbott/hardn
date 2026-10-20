@@ -58,7 +58,7 @@
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
 | [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
-| [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; for `next/p3-revert-boot` |
+| [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
@@ -737,7 +737,7 @@
 <a id="p-34"></a>
 ### P-34: A reboot inside the confirm window
 
-- **Status:** decided (maintainer, 2026-10-19): **(c) re-arm at boot**, for what remains of the window, and an immediate rollback when the deadline has passed. A deliberate reboot inside the window then keeps the change open for confirmation, and a locked-out user's power cycle still recovers the host. To be built in `next/p3-revert-boot`, with the boot unit's install and removal, the guards named under Risk, and a VM step that reboots inside the window (written, not run until gate 5).
+- **Status:** decided (maintainer, 2026-10-19): **(c) re-arm at boot**, for what remains of the window, and an immediate rollback when the deadline has passed. A deliberate reboot inside the window then keeps the change open for confirmation, and a locked-out user's power cycle still recovers the host. Implemented in `next/p3-revert-boot`, with the boot unit's install and removal, the guards named under Risk, and VM steps that reboot inside the window and after it ([docs/safety/revert-boot.md](../safety/revert-boot.md); the VM steps are [vmtest.md](../safety/vmtest.md) §4.10, written, not run).
 - **Source:** `next/p2-revert` (brief 2.4; [docs/safety/revert.md](../safety/revert.md) §2.7, §2.20, §7).
 - **Problem:** the revert timer is runtime state: on systemd a transient timer and service (systemd keeps transient units in `/run/systemd/transient`, systemd.unit(5)), on OpenRC a detached sleeper with its pidfile in `/run/hardn`. A reboot between the apply and the deadline loses it, whoever reboots: the user, locked out, through the provider's console or a power cycle, or anything else. The change then stays applied and unconfirmed. The journal survives in `/var/lib/hardn`, so the next run of hardn says the change is overdue and how to undo it ("its timer did not run (a reboot stops it)"), but a user locked out by the change cannot reach that run over SSH, and nothing undoes it at boot.
 - **Proposal:** the maintainer decides:

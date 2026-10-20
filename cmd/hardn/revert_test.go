@@ -7,6 +7,7 @@ import (
 	"net/netip"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
@@ -26,8 +27,10 @@ import (
 
 // Synthetic values: web-01.example.net, 192.0.2.0/24, port 2230.
 const (
-	revertTestID    = "20261018T120000Z-1a2b3c4d"
-	revertTestHardn = "/usr/local/bin/hardn"
+	revertTestID     = "20261018T120000Z-1a2b3c4d"
+	revertTestHardn  = "/usr/local/bin/hardn"
+	revertBootIDFile = "/proc/sys/kernel/random/boot_id"
+	revertBootID     = "8e2a3c4d-1b2c-4d3e-8f40-0123456789ab"
 )
 
 var revertTestNow = time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
@@ -55,6 +58,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	s := &revertSeams{f: hostfake.New(host.Options{}), exit: -1}
 	s.f.AddFile(revertTestHardn, []byte("ELF"), 0o755, 0, 0)
 	s.f.AddDir("/var/lib", 0o755, 0, 0)
+	s.f.AddFile(revertBootIDFile, []byte(revertBootID+"\n"), 0o444, 0, 0) // the timer records it (revert-boot.md)
 	argv := []string{"systemd-run", "--unit=hardn-revert-" + revertTestID, "--description=hardn: roll back change " + revertTestID + " unless confirmed",
 		"--on-active=180s", "--timer-property=AccuracySec=1s", revertTestHardn, "rollback", revertTestID}
 	s.f.Respond(hostfake.Response{}, argv[0], argv[1:]...)
@@ -86,6 +90,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 
 	euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas := revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun
 	stderrWas, seenWas, holdWas := revertStderr, revertNoticeSeen, revertHoldSignals
+	executableWas, initWas := revertExecutable, revertInit
 	revertEUID = func() int { return euid }
 	revertHost = func() host.System { return s.f }
 	revertGetenv = func(string) string { return "" } // sudo reset it
@@ -95,12 +100,17 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	revertStderr = &s.stderr
 	revertNoticeSeen = func() bool { return s.seen }
 	revertHoldSignals = func() func() { s.held++; return func() { s.released++ } }
+	revertExecutable = func() (string, error) { return revertTestHardn, nil }
+	revertInit = func(context.Context, host.System) detect.Init {
+		return detect.Init{Kind: detect.Systemd, Running: detect.Yes}
+	}
 	s.seen = true
 	logging.SetSilentMode(true)
 	t.Cleanup(func() {
 		revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun = euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas
 		revertStderr, revertNoticeSeen, revertHoldSignals = stderrWas, seenWas, holdWas
-		rollbackAbandon = false // a flag's value outlives the run that set it
+		revertExecutable, revertInit = executableWas, initWas
+		rollbackAbandon, rollbackBoot = false, false // a flag's value outlives the run that set it
 		logging.SetSilentMode(false)
 		rootCmd.SetArgs(nil)
 	})
@@ -499,6 +509,9 @@ func TestRevertSeamsAreReal(t *testing.T) {
 	}
 	if _, ok := revertHost().(*host.Real); !ok {
 		t.Error("revertHost is not host.Real")
+	}
+	if p, err := revertExecutable(); err != nil || !filepath.IsAbs(p) {
+		t.Errorf("revertExecutable = %q, %v: want this process's binary, resolved", p, err)
 	}
 }
 
