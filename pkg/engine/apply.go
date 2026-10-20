@@ -16,6 +16,7 @@ import (
 
 // The steps of an apply an ApplyError names.
 const (
+	StepBoot         = "boot unit"     // the boot unit's install, before revert.Arm (StageBoot): not applied, nothing armed
 	StepStart        = "start"         // cancelled (Ctrl-C, SIGTERM, a hangup) before the change started
 	StepWindow       = "window"        // the confirm window's last Options.Margin reached (ErrWindow)
 	StepBackup       = "backup"        // a backup of one of the change's files
@@ -177,9 +178,13 @@ type Result struct {
 //  2. the plan made again under the lock, with the same id, which must
 //     have no refusals and equal p (ErrPlanChanged): what the user was
 //     shown is what runs;
-//  3. revert.Arm: the journal, and for a lockout-risk plan the revert
+//  3. the boot unit (StageBoot; a lockout-risk plan on a host where it is
+//     not installed as planned): revert.EnsureBootUnit, under the run
+//     lock, unjournalled, before the timer it recovers after a reboot is
+//     armed; a failure is the change not applied, with nothing armed;
+//  4. revert.Arm: the journal, and for a lockout-risk plan the revert
 //     timer, before any change (brief 2.4);
-//  4. each change in the plan's order: ctx checked, and for a lockout-risk
+//  5. each change in the plan's order: ctx checked, and for a lockout-risk
 //     plan the time left of the window (ErrWindow, StepWindow); its files
 //     backed up (RollbackRequired); its undo journalled with the backups
 //     (revert.Record, write-ahead); Apply, under a context that ends
@@ -187,14 +192,16 @@ type Result struct {
 //     undone journalled under a context without the cancellation, with a
 //     bound (each time: it also proves the journal was still this
 //     process's once the step had run);
-//  5. revert.MarkApplied for a lockout-risk plan (the window checked
+//  6. revert.MarkApplied for a lockout-risk plan (the window checked
 //     first), revert.Done for any other: the apply's last write.
 //
-// From step 3 on, the first failure, or ctx done (Ctrl-C, SIGTERM, a
+// From step 4 on, the first failure, or ctx done (Ctrl-C, SIGTERM, a
 // hangup: the caller cancels ctx, from signal.NotifyContext, and keeps it
 // registered until Apply returns), rolls back every change started, in
 // reverse, from the journal (revert.Rollback, ReasonFailed), with signals
-// held (Options.Hold); Apply then returns Result.Failed, an *ApplyError. A
+// held (Options.Hold); Apply then returns Result.Failed, an *ApplyError (the
+// boot unit stays: it removes itself at a boot that finds nothing
+// journalled). A
 // rollback that did not finish stops the timer all the same (revert.md
 // §2.14 step 4): its error names `hardn rollback <id>`, and the next run's
 // notice says so. Options.Progress hears of each change as it runs, and of
@@ -258,16 +265,23 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 		return Result{Risk: p.Risk}, fmt.Errorf("engine: not applied: %w", err)
 	}
 	a.run = run
+	first := 0
+	for ; first < len(p.Changes) && p.Changes[first].Stage == StageBoot; first++ {
+		if err := a.boot(ctx, first, p.Changes[first]); err != nil {
+			return Result{Risk: p.Risk, Applied: a.res.Applied}, err
+		}
+	}
 	j, err := revert.Arm(ctx, e.sys, e.journal(p), p.Facts.Init, a.ro)
 	if err != nil {
-		return Result{Risk: p.Risk}, fmt.Errorf("engine: not applied: %w", err)
+		return Result{Risk: p.Risk, Applied: a.res.Applied}, fmt.Errorf("engine: not applied: %w", err)
 	}
 	a.j = j
 	if p.Risk == RiskLockout {
 		a.cutoff = j.Deadline().Add(-e.opts.Margin)
 	}
-	e.logf("change %s armed (%s, risk %v): %d changes", p.ID, j.Risk, p.Risk, len(p.Changes))
-	for i, c := range p.Changes {
+	e.logf("change %s armed (%s, risk %v): %d changes", p.ID, j.Risk, p.Risk, len(p.Changes)-first)
+	for i := first; i < len(p.Changes); i++ {
+		c := p.Changes[i]
 		if step, err := a.change(ctx, i, c); err != nil {
 			return a.fail(ctx, c.ID, step, err)
 		}
@@ -289,6 +303,32 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 	a.res.Confirm = &c
 	e.logf("change %s applied; it is rolled back at %s%s unless confirmed", p.ID, c.Deadline.Format(time.RFC3339), approx(c.Approximate))
 	return a.res, nil
+}
+
+// boot runs change i of StageBoot, the boot unit's install, before
+// revert.Arm and under the run lock: there is no journal yet, so nothing is
+// backed up or journalled for it, and it is not rolled back. A failure is
+// the change not applied: no timer is armed for a change whose timer a
+// reboot would lose with nothing to re-arm it (P-34 (c)). What the
+// install did before it failed stays: a unit file written and not enabled
+// does not run at boot, and the next apply finishes it.
+func (a *applier) boot(ctx context.Context, i int, c Change) error {
+	a.progress(Event{Index: i, Change: c.ID, State: EventRunning})
+	run := Run{ID: a.p.ID, Dir: filepath.Join(a.e.runRoot(), a.p.ID), Facts: a.p.Facts, Backups: map[string]backup.Entry{}, Store: a.run}
+	err := ctx.Err()
+	var ran Ran
+	if err == nil {
+		ran, err = applyOne(ctx, a.e.sys, c, run)
+	}
+	if err != nil {
+		a.progress(Event{Index: i, Change: c.ID, State: EventFailed, Step: StepBoot, Err: err})
+		a.e.logf("change %s: %s failed, so nothing is armed: %v", a.p.ID, c.ID, err)
+		return fmt.Errorf("engine: not applied: %s: %w", c.ID, err)
+	}
+	a.res.Applied = append(a.res.Applied, Applied{Change: c.ID, Detail: ran.Detail})
+	a.e.logf("change %s: %s done%s", a.p.ID, c.ID, detailWords(ran.Detail))
+	a.progress(Event{Index: i, Change: c.ID, State: EventDone, Detail: ran.Detail})
+	return nil
 }
 
 // window refuses to go on in the last Options.Margin of a lockout-risk

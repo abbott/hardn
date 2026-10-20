@@ -144,7 +144,7 @@ func TestWireWords(t *testing.T) {
 	}{
 		{Unknown, "unknown"}, {Configured, "configured"}, {NotConfigured, "not-configured"}, {Partial, "partial"}, {NotApplicable, "not-applicable"},
 		{RiskPlain, "plain"}, {RiskPackageInstall, "package-install"}, {RiskServiceRestart, "service-restart"}, {RiskLockout, "lockout"},
-		{StagePackages, "packages"}, {StageAccounts, "accounts"}, {StageFirewall, "firewall"}, {StageFiles, "files"}, {StageReload, "reload"}, {StageVerify, "verify"},
+		{StageBoot, "boot"}, {StagePackages, "packages"}, {StageAccounts, "accounts"}, {StageFirewall, "firewall"}, {StageFiles, "files"}, {StageReload, "reload"}, {StageVerify, "verify"},
 	} {
 		if got, err := c.v.MarshalText(); err != nil || string(got) != c.want || fmt.Sprint(c.v) != c.want {
 			t.Errorf("%#v: %q, %v, %v; want %q", c.v, got, err, c.v, c.want)

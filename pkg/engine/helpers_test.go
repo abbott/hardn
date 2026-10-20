@@ -56,6 +56,9 @@ type testHost struct {
 	// (revert.Done).
 	journalWrites, failJournalAt int
 	failDone                     bool
+	// onRun, when set, is called with each command before it is answered,
+	// as another process acting at that moment (next/p3-engine-boot).
+	onRun func(argv []string)
 }
 
 // failNextJournal makes the n-th write of pending.json from now fail.
@@ -109,11 +112,39 @@ func (c *clock) set(t time.Time) {
 	c.t = t
 }
 
+// newHost is newBareHost with hardn's boot unit installed and enabled for
+// testHardn, for systemd and OpenRC alike, so that a lockout-risk plan has
+// no boot unit to install (bootChange plans nothing): the tests of the
+// boot unit's change start from newBareHost.
 func newHost(t *testing.T) *testHost {
+	t.Helper()
+	h := newBareHost(t)
+	for _, in := range []detect.Init{debian13.Init, {Kind: detect.OpenRC, Running: detect.Yes, Source: detect.OpenRCRunDir}} {
+		installBootUnit(t, h, in)
+	}
+	return h
+}
+
+// installBootUnit installs and enables the boot unit for testHardn on init
+// system in, as EnsureBootUnit leaves it.
+func installBootUnit(t *testing.T, h *testHost, in detect.Init) revert.BootUnit {
+	t.Helper()
+	u, err := revert.PlanBootUnit(in, testHardn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.AddFile(u.Path, u.Data, u.Mode, 0, 0)
+	h.AddSymlink(u.Link, u.Path)
+	return u
+}
+
+// newBareHost is a fake Debian 13 host with hardn installed and no boot
+// unit; see newHost.
+func newBareHost(t *testing.T) *testHost {
 	t.Helper()
 	h := &testHost{System: hostfake.New(host.Options{}), exit: map[string]int{}}
 	h.AddFile(testHardn, []byte("ELF"), 0o755, 0, 0)
-	for _, d := range []string{"/var/lib", "/var/backups", "/run", "/etc/example"} {
+	for _, d := range []string{"/var/lib", "/var/backups", "/run", "/etc/example", revert.SystemdUnitDir, revert.OpenRCInitDir} {
 		h.AddDir(d, 0o755, 0, 0)
 	}
 	h.AddFile("/proc/self/stat", []byte(statLine(selfPID, 1, "hardn")), 0o444, 0, 0)
@@ -130,9 +161,24 @@ func statLine(pid, ppid int, comm string) string {
 
 func (h *testHost) answer(argv []string, _ []byte) hostfake.Response {
 	h.mu.Lock()
+	onRun := h.onRun
+	h.mu.Unlock()
+	if onRun != nil {
+		onRun(argv)
+	}
+	h.mu.Lock()
 	defer h.mu.Unlock()
-	if code, ok := h.exit[strings.Join(argv, " ")]; ok {
+	cmd := strings.Join(argv, " ")
+	if code, ok := h.exit[cmd]; ok {
 		return hostfake.Response{ExitCode: code, Stderr: "fixture: refused"}
+	}
+	// The boot unit's enable commands make their links, as systemctl and
+	// rc-update do (revert.BootUnit.Link).
+	switch cmd {
+	case "systemctl --no-reload enable " + revert.BootUnitName + ".service":
+		h.AddSymlink(revert.SystemdWants+"/"+revert.BootUnitName+".service", revert.SystemdUnitDir+"/"+revert.BootUnitName+".service")
+	case "rc-update add " + revert.BootUnitName + " default":
+		h.AddSymlink(revert.OpenRCDefault+"/"+revert.BootUnitName, revert.OpenRCInitDir+"/"+revert.BootUnitName)
 	}
 	if len(argv) > 1 && argv[0] == "systemctl" && argv[1] == "list-timers" {
 		if h.trigger == "" {
@@ -161,9 +207,12 @@ func (h *testHost) runs(id string) string {
 
 // changedOutside lists the calls that changed something outside dir, and
 // every command run.
-func (h *testHost) changedOutside(dir string) []string {
+func (h *testHost) changedOutside(dir string) []string { return h.changedOutsideSince(dir, 0) }
+
+// changedOutsideSince is changedOutside for the calls from call number from.
+func (h *testHost) changedOutsideSince(dir string, from int) []string {
 	var out []string
-	for _, c := range h.Calls() {
+	for _, c := range h.Calls()[from:] {
 		switch c.Op {
 		case "run", "start-detached":
 			out = append(out, c.String())

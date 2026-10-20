@@ -41,7 +41,7 @@ type Event struct {
 	Index  int
 	Change string // the change's ID; "" with Index -1
 	State  EventState
-	Step   string // with EventFailed: the step that failed (StepStart … StepDone)
+	Step   string // with EventFailed: the step that failed (StepBoot, StepStart … StepDone)
 	Detail string // with EventDone: Ran.Detail
 	Err    error  // with EventFailed
 }
