@@ -51,6 +51,7 @@ Each item names the page that hands it on; the page has the detail.
 - **Backups**: `RollbackRequired` before every file change, `ErrNotDurable` as a failed step ([atomic.md](atomic.md) §7); before `sudoers.Apply` ([sudoers.md](sudoers.md) §6). `MkdirAll`, `RemoveAll` and `Rename` are still not guarded ([atomic.md](atomic.md) §7).
 - **Rollback only after an `Apply` that returned nil**, for the Alpine and DNS plans ([alpine.md](alpine.md) §6, [dns.md](dns.md) §6); the support level (`detect.Support`) is the engine's gate ([dns.md](dns.md) §6).
 - **The `Control.Applies(osdetect.OSInfo)` sketch becomes `Applies(detect.Facts)`**; the fact enums are mapped to the engine's own schema, not persisted as they are ([detect.md](detect.md) §6).
+- **The run lock covers `hardn rollback <id>` and `--abandon` too** (the plan puts the run lock in `p3-steps`): a short journal lock around their read and claim, which closes the race of [revert.md](revert.md) §8.1 item 8. It must not be the lock an apply holds across the confirm window: the timer's `hardn rollback <id>` fires inside that window, and must never wait on, or be refused by, the apply's lock ([revert.md](revert.md) §8.5).
 
 ### `p3-output` and `p3-startup`
 
