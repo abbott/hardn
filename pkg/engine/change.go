@@ -158,8 +158,17 @@ type Change struct {
 	After []string
 	// Backups are the files the change writes or removes: the engine
 	// backs each up (backup.RollbackRequired) and journals it before
-	// Apply runs, so the rollback restores it.
+	// Apply runs, so the rollback restores it. Two changes of one plan
+	// that back up the same file are ErrConflict.
 	Backups []string
+	// Resources name what the change's plan read of the host, and what
+	// its apply changes, that another control's change in the same plan
+	// could change under it: "sshd" (sshd's files and listeners), "ufw"
+	// (its rules, policies and state), a unit's name. Two controls' changes
+	// in one plan that name the same resource are ErrConflict, at plan
+	// time: the controls must feed one planner, or go in separate plans.
+	// The changes of one control may share them (next/p3-steps).
+	Resources []string
 	// Rollback is the undo the journal holds before Apply runs.
 	Rollback Undo
 	// ConfirmVia, for a lockout-risk change that adds listeners
@@ -250,6 +259,11 @@ func (c Change) check(plans map[string]revert.PlanRollback) error {
 	for i, p := range c.Backups {
 		if !filepath.IsAbs(p) || filepath.Clean(p) != p || slices.Contains(c.Backups[:i], p) {
 			return bad("backup %q: absolute, clean, once", p)
+		}
+	}
+	for i, r := range c.Resources {
+		if r == "" || strings.ContainsAny(r, " \t\r\n") || slices.Contains(c.Resources[:i], r) {
+			return bad("resource %q: a word, once", r)
 		}
 	}
 	for _, s := range c.Rollback.Steps {

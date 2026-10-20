@@ -70,6 +70,13 @@ var (
 	// ErrOrder: the changes cannot be put in one order: a cycle, a
 	// prerequisite no control planned, or one in a later stage.
 	ErrOrder = errors.New("changes cannot be ordered")
+	// ErrConflict: two changes of one plan act on the same thing: both
+	// back up one file, or two controls' changes name one resource
+	// (Change.Resources). Each was planned from the host as it is, not as
+	// the other leaves it, so the second would fail once the revert timer
+	// is armed, or the plan would end as neither planned it
+	// (next/p3-steps).
+	ErrConflict = errors.New("two changes of the plan act on the same thing")
 	// ErrPlanChanged: the plan made again under the run lock is not the
 	// plan given to Apply: the host changed since. Nothing is applied.
 	ErrPlanChanged = errors.New("the host changed since the plan was made; plan again")
