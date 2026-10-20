@@ -64,6 +64,8 @@
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
 | [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; for `next/p3-steps` |
+| [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; for `next/p3-confirm-cleanup` |
+| [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; for `next/p3-confirm-cleanup` |
 
 ---
 
@@ -751,3 +753,25 @@
 - **Effort:** (a) none; (b) S (a reload entry the rollback skips, its notice); (c) M (a writer, its own removal).
 - **Risk:** (a) Low, at the cost of no migration on those hosts until they are rebooted; (b) Low to Medium: the socket's runtime and files disagree after the rollback, as they did before the migration; (c) Medium: one more file overriding the generator.
 - **Screenshots:** none (no screen changes).
+
+<a id="p-40"></a>
+### P-40: The clean-up after a confirmation: who removes the held port and its ufw rule
+
+- **Status:** decided (maintainer, 2026-10-19): **`hardn confirm` does it.** Once a port change is confirmed from a new connection to the new port, the same command plans and applies the clean-up (the held port dropped from `00-hardn.conf`, the reload, and the ufw rule hardn added for it), and rolls it back in-process if a step fails. To be built in `next/p3-confirm-cleanup`.
+- **Source:** `next/p3-engine` and `next/p3-steps` ([docs/engine/engine.md](../engine/engine.md) §7, [steps.md](../engine/steps.md) §2.9, §7); brief 2.3 step 5 ("Confirm the change from a new connection, then remove the old port rule"); [docs/safety/revert.md](../safety/revert.md) §7.
+- **Problem:** a port change holds the old port (`Port 22` beside `Port 2230`, and its ufw rule) until the change is confirmed. `hardn confirm` only claimed the journal and stopped the timer, so the old port stayed open until something removed it. `next/p3-steps` built the change kind (`PlanCleanup`, `CleanupOf`), but who plans it was open: (a) the next run, as a lockout-risk change of its own; (b) `hardn confirm`; (c) the session that applied the change. With (a), `CleanupOf` reads `confirmed.json`, which keeps only the last confirmed change, so a second confirmed lockout-risk change loses the held port; (c) fails when that session has gone.
+- **Proposal:** (b): `hardn confirm` from the new connection runs the clean-up through the engine after the claim. The connection that confirms has just proved the new port works, and the clean-up removes only what the change held. A failed step rolls the clean-up back in-process; the confirmation itself stands.
+- **Effort:** M (the engine wired into `hardn confirm`, its refusals and output, a failure test per step, a VM step).
+- **Risk:** Medium: `hardn confirm` now changes the host. The clean-up keeps every refusal `PlanCleanup` has (a port another file keeps, a clean-up that would leave sshd no port, Proxmox VE's port 22), and runs only after the confirmation's checks passed.
+- **Screenshots:** none (no screen changes in this unit).
+
+<a id="p-41"></a>
+### P-41: Changes on best-effort releases
+
+- **Status:** decided (maintainer, 2026-10-19): **changed, with a warning in the plan** that the release is best effort and untested. To be built in `next/p3-confirm-cleanup`.
+- **Source:** `next/p3-engine` ([docs/engine/engine.md](../engine/engine.md) §7); [docs/safety/dns.md](../safety/dns.md) §6 (the support level is the engine's gate); brief §2 (supported and best-effort releases).
+- **Problem:** the engine's support gate changes supported and best-effort releases (Ubuntu 22.04, Alpine 3.22/3.21), and refuses out-of-scope, unlisted and unestablished ones while their status can still be read. Whether best-effort releases should be changed was the engine's reading, not a decision.
+- **Proposal:** keep changing them, and show a warning in every plan made on one, with a stable finding code, so the user knows the release is not one hardn is tested on.
+- **Effort:** S (a finding on the plan, its code, its rendering, a test).
+- **Risk:** Low.
+- **Screenshots:** none.
