@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"path"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -356,5 +358,52 @@ func TestPlayEngineSmoke(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestRecorderSteps checks how the record splits what the fake recorded by
+// the engine's events: the timer armed before the first change whatever
+// came before it (here no boot unit's change, as on a host that has it),
+// each change's own commands under how it ended, a command that failed
+// among them, and the rollback's after the failure; reads and hardn's own
+// state left out.
+func TestRecorderSteps(t *testing.T) {
+	ctx := context.Background()
+	h := newHost()
+	h.failReloads = 1
+	r := &recorder{host: h, f: h.f, title: "a plan"}
+	run := func(argv ...string) { _, _ = h.f.Run(ctx, argv[0], argv[1:]...) }
+	r.begin()
+	run("ss", "-Htln")
+	run("systemd-run", "--unit=hardn-revert-x", "--on-active=180s", galleryHardn, "rollback", "x")
+	r.event(engine.Event{Index: 0, State: engine.EventRunning})
+	run("ufw", "allow", "2230/tcp")
+	r.event(engine.Event{Index: 0, State: engine.EventDone})
+	r.event(engine.Event{Index: 1, State: engine.EventRunning})
+	h.f.AddDir("/var/lib/hardn", 0o700, 0, 0)
+	if err := h.f.WriteFileAtomic(ctx, "/var/lib/hardn/pending.json", []byte("{}"), 0o600, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	run("systemctl", "reload", "ssh.service")
+	r.event(engine.Event{Index: 1, State: engine.EventFailed, Step: engine.StepApply})
+	run("ufw", "delete", "allow", "2230/tcp")
+	r.event(engine.Event{Index: 0, State: engine.EventRolledBack})
+	r.end()
+	r.setPlan(&engine.Plan{Changes: []engine.Change{{Summary: "Allow 2230"}, {Summary: "Reload sshd"}}})
+	var got []string
+	for _, s := range r.steps() {
+		got = append(got, s.Title+": "+strings.Join(s.Commands, "; ")+" ["+s.Target+"]")
+	}
+	want := []string{
+		"Armed the revert timer: systemd-run --unit=hardn-revert-x --on-active=180s /usr/local/bin/hardn rollback x []",
+		"Applied: Allow 2230: ufw allow 2230/tcp []",
+		"Failed: Reload sshd: systemctl reload ssh.service []",
+		"Rolled back from the journal: ufw delete allow 2230/tcp []",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("the record:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	if !arms([]hostfake.Call{{Op: "start-detached", Argv: []string{"/bin/sh", "-c", "sleep"}}}) || arms(h.f.Calls()[:1]) {
+		t.Error("arms: OpenRC's sleeper is the timer, ss is not")
 	}
 }

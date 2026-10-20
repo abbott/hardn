@@ -573,6 +573,14 @@ func changed(calls []hostfake.Call) (commands, files []string) {
 	return commands, files
 }
 
+// arms reports whether calls start the revert timer: systemd-run, or
+// OpenRC's sleeper, started detached (revert.Arm).
+func arms(calls []hostfake.Call) bool {
+	return slices.ContainsFunc(calls, func(c hostfake.Call) bool {
+		return c.Op == "start-detached" || c.Op == "run" && path.Base(c.Argv[0]) == "systemd-run"
+	})
+}
+
 // steps returns the record of the apply as plan view changes: for each
 // change of the plan that ran, what it ran and the files it changed, under
 // how it ended ("Applied: ", "Failed: "); between them, what the engine
@@ -605,11 +613,13 @@ func (r *recorder) steps() []component.PlanChange {
 		}
 		switch m.ev.State {
 		case engine.EventRunning:
-			gap := r.opening
+			gap := "Between the changes"
 			switch {
-			case last > r.from:
+			case arms(calls[last:m.at]):
 				gap = "Armed the revert timer"
-			case gap == "":
+			case last == r.from && r.opening != "":
+				gap = r.opening
+			case last == r.from:
 				gap = "Before the first change"
 			}
 			add(gap, last, m.at)
