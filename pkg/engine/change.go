@@ -279,13 +279,41 @@ func checkJournals(id string, cs []Change) (int, error) {
 				j.Backup.Seqs[k] = k + 1
 			}
 		}
-		for k := len(undos) - 1; k >= 0; k-- {
-			j.Undo = append(j.Undo, undos[k].Steps...)
-			j.Reload = append(j.Reload, undos[k].Reloads...)
-		}
+		j.Undo, j.Reload = journalUndo(undos)
 		if err := j.Check(); err != nil {
 			return i, fmt.Errorf("engine: change %q: its undo, with the changes before it: %w: %w", c.ID, err, ErrChange)
 		}
 	}
 	return -1, nil
+}
+
+// journalUndo is the journal's undo for the changes started, given in the
+// order they started: the last change's steps first, each change's in its
+// own order, and their reloads the same way, except that a reload an entry
+// before it already names (the same service, keywords, listeners and
+// socket drop-ins) is journalled once, IfUp only when every one of them
+// says IfUp. A change that writes sshd's files journals the ssh reload
+// with IfUp before its write, so that a rollback after the write reloads
+// an sshd that started in between (revert.md §7; p2drive journals it so,
+// vmtest.md §2.6), and the reload change that follows journals the same
+// reload, without IfUp once its gated step ran: the rollback reloads once,
+// and starts the unit when the forward reload ran (next/p3-steps).
+func journalUndo(undos []Undo) (steps []revert.Step, reloads []revert.Reload) {
+	for i := len(undos) - 1; i >= 0; i-- {
+		steps = append(steps, undos[i].Steps...)
+		for _, r := range undos[i].Reloads {
+			if k := slices.IndexFunc(reloads, func(x revert.Reload) bool { return sameReload(x, r) }); k >= 0 {
+				reloads[k].IfUp = reloads[k].IfUp && r.IfUp
+				continue
+			}
+			reloads = append(reloads, r)
+		}
+	}
+	return steps, reloads
+}
+
+// sameReload reports whether a and b reload the same thing, IfUp aside.
+func sameReload(a, b revert.Reload) bool {
+	return a.Service == b.Service && slices.Equal(a.Keywords, b.Keywords) && slices.Equal(a.After, b.After) &&
+		slices.Equal(a.SocketDropIns, b.SocketDropIns)
 }

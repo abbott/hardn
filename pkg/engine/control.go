@@ -7,6 +7,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 )
 
 // State is a control's state on the host (brief Phase 4).
@@ -73,6 +74,12 @@ type Input struct {
 	RunDir string
 	Facts  detect.Facts
 	Config *config.Config
+	// Session is the session applying the change (Options.Session), the
+	// one the journal names: a listener change must keep the port it is
+	// connected to (reload.CheckInEffect, ufw's Keep), and a control
+	// that refuses a change it cannot show keeps it reads it here, so the
+	// plan and the journal cannot name two sessions (next/p3-steps).
+	Session revert.Session
 }
 
 // Control is one setting hardn checks and changes ("ssh.port").

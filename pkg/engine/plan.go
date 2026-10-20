@@ -105,7 +105,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 		refuse(err)
 		return p, nil
 	}
-	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg}
+	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg, Session: e.opts.Session}
 	var all []Change
 	seen := map[string]bool{}
 	for _, c := range controls {
