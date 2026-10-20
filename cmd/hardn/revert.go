@@ -251,9 +251,15 @@ func runAbandon(id string) {
 		return
 	case err != nil:
 		logging.LogError("%v", err)
-		if errors.Is(err, revert.ErrJournal) || errors.Is(err, revert.ErrUnsafe) {
-			logging.LogInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
-				filepath.Join(revert.DefaultDir, revert.RollbackName))
+		rb := filepath.Join(revert.DefaultDir, revert.RollbackName)
+		switch {
+		case errors.Is(err, host.ErrLocked):
+			logging.LogInfo("Run it again once that hardn has finished: one stopped inside the lock (Ctrl-Z) keeps it until it goes on or ends.")
+		case errors.Is(err, revert.ErrNoLock):
+			logging.LogInfo("The journal lock %s could not be taken, so nothing was given up: free space on its file system, or put right what the error names, and run it again. Moving %s aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
+				filepath.Join(revert.DefaultDir, revert.JournalLockName), rb)
+		case errors.Is(err, revert.ErrJournal) || errors.Is(err, revert.ErrUnsafe):
+			logging.LogInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.", rb)
 		}
 		revertExit(1)
 		return

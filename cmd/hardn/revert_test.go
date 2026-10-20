@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -289,6 +290,27 @@ func TestRevertAbandonCommand(t *testing.T) {
 		dryRun = false
 	}
 	revertEUID = func() int { return 0 }
+	// The journal lock that cannot be taken (here a directory in its
+	// place): nothing given up, and what to do instead.
+	lock := revert.DefaultDir + "/" + revert.JournalLockName
+	lockWas, hadLock := s.f.Entry(lock)
+	s.f.AddDir(lock, 0o700, 0, 0)
+	calls := len(s.f.Calls())
+	if out := s.output(t, "rollback", "--abandon", revertTestID); s.exit != 1 || !strings.Contains(out, "nothing given up") ||
+		!strings.Contains(out, "The journal lock "+lock+" could not be taken") || !s.has(rollbackJSON) || s.has(kept) {
+		t.Errorf("abandon, the journal lock a directory: exit %d; output:\n%s", s.exit, out)
+	}
+	for _, c := range s.f.Calls()[calls:] {
+		if changed(c) {
+			t.Errorf("abandon, the journal lock a directory: %s", c)
+		}
+	}
+	if err := s.f.Remove(ctx, lock); err != nil {
+		t.Fatal(err)
+	}
+	if hadLock {
+		s.f.AddFile(lock, lockWas.Data, lockWas.Mode, lockWas.UID, lockWas.GID)
+	}
 	// Arguments are cobra's: an error, and nothing run.
 	rootCmd.SetArgs([]string{"rollback", "--abandon"})
 	if err := rootCmd.Execute(); err == nil || !s.has(rollbackJSON) {
@@ -540,22 +562,55 @@ func systemDetailsCmdForTest() *cobra.Command {
 }
 
 // holdSignals keeps SIGINT and SIGHUP ignored, and SIGTERM caught, until it
-// is released: this process survives each, sent to itself.
+// is released: this process survives each, sent to itself. The SIGTERM is
+// logged as a warning, in the words `hardn rollback` has always used
+// (revertWarnLog, pkg/engine/hold's SignalsAs).
 func TestHoldSignals(t *testing.T) {
-	logging.SetSilentMode(true)
-	defer logging.SetSilentMode(false)
+	var out syncBuffer
+	outWas := color.Output
+	color.Output = &out
+	logging.SetSilentMode(false)
+	defer func() { color.Output = outWas; logging.SetSilentMode(false) }()
 	release := holdSignals()
 	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+		release()
 		t.Fatal("SIGINT and SIGHUP are not ignored")
 	}
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
 		if err := syscall.Kill(os.Getpid(), sig); err != nil {
+			release()
 			t.Fatal(err)
 		}
 	}
-	time.Sleep(50 * time.Millisecond) // the process is still here
+	const warning = "[WARNING] hardn rollback: SIGTERM received; the rollback finishes first"
+	deadline := time.Now().Add(2 * time.Second) // the process is still here
+	for !strings.Contains(out.String(), warning) && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
 	release()
+	if got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), ""); strings.Count(got, warning) != 1 {
+		t.Errorf("output %q; want one %q", got, warning)
+	}
 	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		t.Error("release left SIGINT or SIGHUP ignored")
 	}
+}
+
+// syncBuffer is an output the hold's goroutine writes while the test reads
+// it.
+type syncBuffer struct {
+	mu sync.Mutex
+	b  strings.Builder
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+
+func (s *syncBuffer) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.String()
 }
