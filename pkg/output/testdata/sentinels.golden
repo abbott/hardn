@@ -57,6 +57,7 @@ host.ErrSymlink SYMLINK_REFUSED
 host.ErrSymlinkParent SYMLINK_IN_UNSAFE_DIRECTORY
 host.ErrUnknownGroup UNKNOWN_GROUP
 host.ErrUnknownUser UNKNOWN_USER
+host.ErrUntrustedDir UNSAFE_DIRECTORY
 migrate.ErrChanged SSH_MIGRATE_CHANGED
 migrate.ErrFewerLoginPaths SSH_MIGRATE_FEWER_LOGIN_PATHS
 migrate.ErrIncludeOther SSH_MIGRATE_INCLUDE_OTHER

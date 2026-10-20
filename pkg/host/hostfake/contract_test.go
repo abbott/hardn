@@ -151,6 +151,20 @@ func TestContract(t *testing.T) {
 			wantLink(t, w, "audit.jsonl", w.path("keys"))
 			wantNames(t, w, "", "audit.jsonl", "d", "dangling", "keys")
 		}},
+		{"append refuses a directory another user can change", func(t *testing.T, w world) {
+			w.dir("open")
+			w.file("open/audit.jsonl", "{\"a\":1}\n", 0o600)
+			if err := w.sys.Chmod(ctx, w.path("open"), 0o777); err != nil {
+				t.Fatal(err)
+			}
+			for _, name := range []string{"open/audit.jsonl", "open/new.jsonl"} {
+				if err := w.sys.AppendFile(ctx, w.path(name), []byte("x\n"), 0o600); !errors.Is(err, host.ErrUntrustedDir) {
+					t.Errorf("%s: err = %v, want ErrUntrustedDir", name, err)
+				}
+			}
+			wantFile(t, w, "open/audit.jsonl", "{\"a\":1}\n", 0o600)
+			wantNames(t, w, "open", "audit.jsonl")
+		}},
 		{"rename over a symlink replaces the link, not its target", func(t *testing.T, w world) {
 			w.file("keys", "cluster\n", 0o600)
 			w.symlink("authorized_keys", w.path("keys"))

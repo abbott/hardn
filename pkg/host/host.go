@@ -141,10 +141,11 @@ type System interface {
 	// after what is there, whoever else appends, then fsync. It never
 	// replaces or truncates the file. A symlink at name is refused with
 	// ErrSymlink, never written through; so is a directory (EISDIR) or
-	// anything else that is not a regular file (fs.ErrInvalid), and a
-	// regular file with more than one hard link in a directory that is not
-	// trusted (ErrHardLink). It is guarded (see System). The audit log
-	// (p3-output).
+	// anything else that is not a regular file (fs.ErrInvalid). The
+	// directory holding name must be trusted (see System), checked on the
+	// directory it opens, else ErrUntrustedDir: what the file receives
+	// goes where no other user can rename, replace or link in front of it.
+	// It is guarded (see System). The audit log (p3-output).
 	AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error
 	// Lock takes an exclusive lock on the regular file name, creating it
 	// 0600 when absent, writes holder into it, and returns the function
@@ -301,6 +302,10 @@ var (
 	// link in a directory another user can change: the file may be a root
 	// file that user linked there.
 	ErrHardLink = errors.New("refusing a file with other hard links, in a directory another user can change")
+	// ErrUntrustedDir: AppendFile met a directory, the one it opened to
+	// hold the file, that a user other than root (or hardn's own user) can
+	// change.
+	ErrUntrustedDir = errors.New("refusing to append in a directory another user can change")
 	// ErrNotDurable: WriteFileAtomic replaced the file, but could not sync
 	// its directory, so the replacement may not survive a crash. The new
 	// content is in place; roll the change back like any failed step.

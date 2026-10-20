@@ -306,7 +306,7 @@ var errorCodes = []Entry{
 
 	// Backups (pkg/host/backup). One code for a directory another user can
 	// change, whichever unit checked it: sudoers.md §6 asks for one.
-	is("UNSAFE_DIRECTORY", backup.ErrUnsafeDir, sshd.ErrUnsafeRunDir, sudoers.ErrUnsafeRunDir).what("a run or backup directory another user can change, or reached through a symlink"),
+	is("UNSAFE_DIRECTORY", backup.ErrUnsafeDir, sshd.ErrUnsafeRunDir, sudoers.ErrUnsafeRunDir, host.ErrUntrustedDir).what("a directory hardn writes in (a run, backup or log directory) that another user can change, or reached through a symlink"),
 	is("BACKUP_SETTINGS_INVALID", backup.ErrSettings),
 	is("BACKUP_RUN_EXISTS", backup.ErrRunExists),
 	is("BACKUP_NOT_REGULAR", backup.ErrNotRegular).what("a file to back up is neither a regular file nor a symlink"),

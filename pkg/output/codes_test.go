@@ -94,6 +94,7 @@ var sentinels = map[string]error{
 	"host.ErrSymlinkParent":          host.ErrSymlinkParent,
 	"host.ErrUnknownGroup":           host.ErrUnknownGroup,
 	"host.ErrUnknownUser":            host.ErrUnknownUser,
+	"host.ErrUntrustedDir":           host.ErrUntrustedDir,
 	"migrate.ErrChanged":             migrate.ErrChanged,
 	"migrate.ErrFewerLoginPaths":     migrate.ErrFewerLoginPaths,
 	"migrate.ErrIncludeOther":        migrate.ErrIncludeOther,
