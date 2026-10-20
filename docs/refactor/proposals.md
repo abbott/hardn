@@ -59,7 +59,7 @@
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
 | [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; for `next/p3-revert-boot` |
-| [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; for `next/p3-rollback-abandon` |
+| [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
@@ -682,7 +682,7 @@
 <a id="p-35"></a>
 ### P-35: Giving up a rollback that cannot finish
 
-- **Status:** decided (maintainer, 2026-10-19): **(a) add `hardn rollback --abandon <id>`**, wired to `revert.Abandon`: root only, refused under `-n`, and it says that the host stays as the rollback left it and lists what was not undone. The manual step stays documented as the fallback. To be built in `next/p3-rollback-abandon`.
+- **Status:** decided (maintainer, 2026-10-19): **(a) add `hardn rollback --abandon <id>`**, wired to `revert.Abandon`: root only, refused under `-n`, and it says that the host stays as the rollback left it and lists what was not undone. The manual step stays documented as the fallback. Implemented in `next/p3-rollback-abandon` ([docs/safety/revert.md](../safety/revert.md) §8; the VM step is [vmtest.md](../safety/vmtest.md) §4.4 step 15, written, not run).
 - **Source:** `next/p2-revert` (review fixes; [docs/safety/revert.md](../safety/revert.md) §2.16, §7).
 - **Problem:** a rollback that stops is kept in `/var/lib/hardn/rollback.json` and taken up again by `hardn rollback <id>`; until it finishes, every new change is refused. One that can never finish (its backup run directory was deleted, an undo command such as `ufw` was removed) fails the same way on every attempt, and the only way out today is by hand: moving `rollback.json` aside, which the notice and the error now say. `revert.Abandon` does it properly (renames it to `abandoned-<id>.json`, logs what was and was not done, refuses while the rollback is running), but no command line reaches it: this unit adds no CLI form beyond `hardn confirm` and `hardn rollback <id>`.
 - **Proposal:** the maintainer decides whether to add a deliberate form, for example `hardn rollback --abandon <id>` (root, refuses `-n`, says that the host stays as the rollback left it and lists what it did not undo), wired to `revert.Abandon`; or to keep the manual step, documented.
