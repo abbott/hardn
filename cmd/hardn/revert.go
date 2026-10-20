@@ -184,20 +184,9 @@ func runConfirm(*cobra.Command, []string) {
 	if err != nil {
 		logging.LogWarning("%v", err)
 	}
-	res, err := revert.Confirm(ctx, sys, s, opts)
-	if err != nil {
-		logging.LogError("%v", err)
-		var np *revert.NotPendingError
-		if errors.As(err, &np) && np.RolledBack() {
-			acknowledge(ctx, sys, opts)
-		}
-		revertExit(1)
-		return
+	if code := confirmAndCleanUp(ctx, sys, s, opts); code != 0 {
+		revertExit(code)
 	}
-	if res.Local {
-		logging.LogWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
-	}
-	logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", res.Journal.ID, res.Journal.Summary)
 }
 
 func runRollback(_ *cobra.Command, args []string) {

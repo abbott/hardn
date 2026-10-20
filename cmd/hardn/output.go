@@ -3,7 +3,8 @@ package main
 // The two wirings of refactor plan P3, next/p3-output, that cmd/hardn owes
 // now (and nothing of pkg/output: §3.11 is not approved, so no --output,
 // --yes or --confirm-timeout flag, and the audit log comes with
-// next/p3-startup; pkg/output and the engine are not linked until then):
+// next/p3-startup; since next/p3-confirm-cleanup, hardn confirm's clean-up
+// links pkg/output and the engine, confirm.go):
 //   - §3.17's deprecation warning (approved 2026-10-17) for a bool
 //     permitRootLogin, printed to stderr once, when the configuration loads;
 //   - no colour codes from hardn confirm and hardn rollback (<id>,
