@@ -1,0 +1,510 @@
+{
+	"host": "alpine324",
+	"setuid": [
+		"/usr/bin/doas"
+	],
+	"users": [
+		{
+			"name": "alice",
+			"uid": 1000,
+			"gid": 1000,
+			"home": "/home/alice"
+		},
+		{
+			"name": "root",
+			"uid": 0,
+			"gid": 0,
+			"home": "/root"
+		}
+	],
+	"groups": [
+		{
+			"name": "alice",
+			"gid": 1000
+		},
+		{
+			"name": "root",
+			"gid": 0
+		}
+	],
+	"commands": [
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"pve-manager"
+			],
+			"exit": -1,
+			"err": "notfound"
+		},
+		{
+			"argv": [
+				"doas",
+				"-C",
+				"/etc/doas.conf"
+			]
+		},
+		{
+			"argv": [
+				"doas",
+				"-C",
+				"/etc/doas.d/20-wheel.conf"
+			]
+		},
+		{
+			"argv": [
+				"ufw",
+				"status",
+				"verbose"
+			],
+			"exit": -1,
+			"err": "notfound"
+		},
+		{
+			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"apk",
+				"info",
+				"-e",
+				"apk-cron"
+			],
+			"exit": 1
+		},
+		{
+			"argv": [
+				"rc-service",
+				"crond",
+				"status"
+			],
+			"stdout": " * status: started\n"
+		},
+		{
+			"argv": [
+				"ip",
+				"-4",
+				"addr",
+				"show",
+				"dev",
+				"eth0"
+			],
+			"stdout": "2: eth0: \u003cBROADCAST,MULTICAST,UP,LOWER_UP\u003e mtu 1500 qdisc pfifo_fast qlen 1000\n    inet 192.0.2.20/24 brd 192.0.2.255 scope global eth0\n"
+		}
+	],
+	"entries": [
+		{
+			"path": "/bin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/bin/sh",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "ELF"
+		},
+		{
+			"path": "/etc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/doas.conf",
+			"type": "file",
+			"mode": "0440",
+			"uid": 0,
+			"gid": 0,
+			"data": "# Uncomment to allow group \"wheel\" to become root.\n# permit persist :wheel\n"
+		},
+		{
+			"path": "/etc/doas.d",
+			"type": "dir",
+			"mode": "0750",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/doas.d/20-wheel.conf",
+			"type": "file",
+			"mode": "0440",
+			"uid": 0,
+			"gid": 0,
+			"data": "permit persist :wheel\n"
+		},
+		{
+			"path": "/etc/group",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "root:x:0:\nwheel:x:10:root,alice\nnogroup:x:65534:\nalice:x:1000:\n"
+		},
+		{
+			"path": "/etc/init.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/init.d/crond",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "#!/sbin/openrc-run\n"
+		},
+		{
+			"path": "/etc/init.d/sshd",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "#!/sbin/openrc-run\n"
+		},
+		{
+			"path": "/etc/os-release",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.24.2\nPRETTY_NAME=\"Alpine Linux v3.24\"\n"
+		},
+		{
+			"path": "/etc/passwd",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "root:x:0:0:root:/root:/bin/sh\ndaemon:x:1:1:daemon:/usr/sbin:/sbin/nologin\nsshd:x:100:65534::/run/sshd:/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/sbin/nologin\nalice:x:1000:1000:alice:/home/alice:/bin/sh\n"
+		},
+		{
+			"path": "/etc/periodic",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/periodic/daily",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/runlevels",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/runlevels/default",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/runlevels/default/crond",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "/etc/init.d/crond"
+		},
+		{
+			"path": "/etc/runlevels/default/sshd",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "/etc/init.d/sshd"
+		},
+		{
+			"path": "/etc/ssh",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/ssh/sshd_config",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "Include /etc/ssh/sshd_config.d/*.conf\n\nUsePAM yes\n"
+		},
+		{
+			"path": "/etc/ssh/sshd_config.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib/modules",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib/modules/6.12.40-0-lts",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib/modules/6.12.40-0-lts/kernel",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/1",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/1/environ",
+			"type": "file",
+			"mode": "0400",
+			"uid": 0,
+			"gid": 0,
+			"data": "HOME=/\u0000TERM=linux\u0000"
+		},
+		{
+			"path": "/proc/net",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/net/ipv6_route",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "00000000000000000000000000000000 00 00000000000000000000000000000000 00 00000000000000000000000000000000 ffffffff 00000001 00000000 00200200       lo\n00000000000000000000000000000001 80 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000002 00000000 80200001       lo\n"
+		},
+		{
+			"path": "/proc/net/route",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT                                                       \neth0\t00000000\t010200C0\t0003\t0\t0\t100\t00000000\t0\t0\t0                                                                             \neth0\t000200C0\t00000000\t0001\t0\t0\t100\t00FFFFFF\t0\t0\t0                                                                             \n"
+		},
+		{
+			"path": "/proc/self",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/self/mounts",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n/dev/vda1 / ext4 rw,relatime 0 0\n"
+		},
+		{
+			"path": "/proc/self/ns",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/self/ns/pid",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "pid:[4026531836]"
+		},
+		{
+			"path": "/proc/sys",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel/hostname",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "web-01\n"
+		},
+		{
+			"path": "/proc/sys/kernel/osrelease",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "6.12.40-0-lts\n"
+		},
+		{
+			"path": "/proc/uptime",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "277920.37 553000.12\n"
+		},
+		{
+			"path": "/run",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/run/openrc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/run/openrc/started",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/run/openrc/started/sshd",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "/etc/init.d/sshd"
+		},
+		{
+			"path": "/sbin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/module",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/bin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/bin/doas",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "ELF"
+		}
+	]
+}
