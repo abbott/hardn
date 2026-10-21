@@ -522,6 +522,6 @@ For each VM, with the run's date:
 - p4status's exit status, its stderr, and `/tmp/p4status.txt` whole, kept with Phase 3's transcripts (`vm-runs/p4/`), not in the repository;
 - for each row of §8.3: agrees or not; for each that does not, the main menu's line, the evidence's lines under it, the independent command's output, and which is right: a status that says the host is safer than the commands show is the finding that matters most;
 - any `refused` line, and any `failed` command the host has;
-- whether the run changed anything: `sudo ls -la /run/ufw* /var/lib/ufw /etc/ufw` and `systemctl list-units --state=failed` before and after, the same; `stat` of `/etc/ssh/sshd_config.d/`, `/etc/sudoers.d/` and `/etc/ufw/user.rules` before and after, the same mtime.
+- whether the run changed anything: `sudo ls -la /run/ufw* /var/lib/ufw /etc/ufw` and `systemctl list-units --state=failed` before and after, the same; `stat` of `/etc/ssh/sshd_config.d/`, `/etc/sudoers.d/` and `/etc/ufw/user.rules` before and after, the same mtime; `findmnt -rn -o TARGET` before and after, the same mounts (an automounted `/boot` would show here, [vmcheck.md](../engine/vmcheck.md) §2.4).
 
 Results go in a subsection of §4.9's form only once run, the host's names and addresses replaced by the synthetic ones.
