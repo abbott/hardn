@@ -95,23 +95,28 @@ type Row struct {
 	Weight    int    // points of 100
 }
 
-// rows are the main menu's status rows in Figma's order, with their
-// weights; together 100 (risk.md §5.1).
-var rows = []Row{
-	row(users.Admin{}, 10),
-	row(firewall.Incoming{}, 20),
-	row(ssh.Login{}, 15),
-	row(ssh.Auth{}, 20),
-	row(ssh.Port{}, 5),
-	row(apparmor.Enforce{}, 10),
-	row(updates.Auto{}, 20),
-}
-
-func row(c engine.Control, weight int) Row { return Row{ID: c.ID(), Title: c.Title(), Weight: weight} }
+// controls are the main menu's status rows in Figma's order, and weights
+// their weights, together 100 (risk.md §5.1).
+var (
+	controls = []engine.Control{users.Admin{}, firewall.Incoming{}, ssh.Login{}, ssh.Auth{}, ssh.Port{}, apparmor.Enforce{}, updates.Auto{}}
+	weights  = []int{10, 20, 15, 20, 5, 10, 20}
+	rows     = func() []Row {
+		out := make([]Row, len(controls))
+		for i, c := range controls {
+			out[i] = Row{ID: c.ID(), Title: c.Title(), Weight: weights[i]}
+		}
+		return out
+	}()
+)
 
 // Rows returns the rows the score weighs, in Figma's order: User,
 // Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates.
 func Rows() []Row { return slices.Clone(rows) }
+
+// Controls returns the controls the score weighs, in Rows' order, for
+// Engine.Check: its reports, and so the document's status[], then come
+// in Figma's order too.
+func Controls() []engine.Control { return slices.Clone(controls) }
 
 // noCredit are the Partial lines, by control, that protect nothing now:
 // a firewall that refuses only what a rule denies, AppArmor in complain

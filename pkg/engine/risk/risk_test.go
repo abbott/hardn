@@ -414,6 +414,11 @@ func TestRows(t *testing.T) {
 	if risk.Rows()[0].Weight == 0 {
 		t.Error("Rows shares its table")
 	}
+	for i, c := range risk.Controls() {
+		if c.ID() != rows[i].ID {
+			t.Errorf("Controls()[%d] is %s, want %s", i, c.ID(), rows[i].ID)
+		}
+	}
 }
 
 // TestBandWords: each band's word, and one outside them.
