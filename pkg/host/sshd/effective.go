@@ -209,7 +209,11 @@ type Effective struct {
 	// dump_config prints it under USE_PAM alone; the keyword is
 	// unsupported there), so no line reads as Known "no", with
 	// BuiltWithoutPAM. It is not checked against the files, which do not
-	// decide it in such a build.
+	// decide it in such a build. Both fields describe the binary sshd -T
+	// ran (EffectiveRequest.Binary), not the daemon running: on Alpine
+	// that may be another build (a container's entrypoint; sshd.pam
+	// started before UsePAM yes was removed, which only a restart
+	// replaces, reload.md §2.6).
 	UsePAM Setting
 	// BuiltWithoutPAM: sshd -T printed no usepam line, and printed the
 	// settings dump_config prints after it whatever the build, so this
