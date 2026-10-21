@@ -68,6 +68,18 @@ type reading struct {
 // ssh.socket's listeners (sshd.ReadEffective), then the files themselves
 // (migrate.Find), as pkg/engine/steps reads them for a plan.
 func read(ctx context.Context, sys host.System, f detect.Facts) (reading, error) {
+	r, err := readEffective(ctx, sys, f)
+	if err != nil {
+		return r, err
+	}
+	if r.files, err = migrate.Find(ctx, sys, migrate.FindRequest{}); err != nil {
+		return r, fmt.Errorf("sshd's files: %w", err)
+	}
+	return r, nil
+}
+
+// readEffective is read without the files: sshd -T's answer alone.
+func readEffective(ctx context.Context, sys host.System, f detect.Facts) (reading, error) {
 	var r reading
 	var bin string
 	if f.Init.Kind == detect.OpenRC {
@@ -80,9 +92,6 @@ func read(ctx context.Context, sys host.System, f detect.Facts) (reading, error)
 	var err error
 	if r.eff, r.found, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin}); err != nil {
 		return r, fmt.Errorf("sshd's effective configuration: %w", err)
-	}
-	if r.files, err = migrate.Find(ctx, sys, migrate.FindRequest{}); err != nil {
-		return r, fmt.Errorf("sshd's files: %w", err)
 	}
 	return r, nil
 }

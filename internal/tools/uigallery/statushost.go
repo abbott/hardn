@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	probe "github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -362,9 +363,17 @@ func (h *fakeHost) installKernel(k kernel) {
 	}
 }
 
-// accounts writes /etc/passwd and /etc/group: root and the system
-// accounts, and with admin alice, uid 1000 with a login shell, in sudo, or
-// on a host with doas in wheel.
+// syntheticHash stands for a password hash in the model's /etc/shadow:
+// made up, and read by the checks for its first character alone.
+const syntheticHash = "$y$synthetic$not-a-hash"
+
+// accounts writes /etc/passwd, /etc/group and /etc/shadow: root and the
+// system accounts, and with admin alice, uid 1000 with a login shell, in
+// sudo, or on a host with doas in wheel. On Alpine the shadow lock states
+// are the Alpine 3.23 VM's (vmtest.md §8.6): root locked ("!"), the login
+// account "*" (the maintainer's snippet's change from "!"); elsewhere
+// root and alice have a password (the model's choice: with PAM, which
+// those hosts' sshd uses, no lock decides a row).
 func (h *fakeHost) accounts(admin bool) {
 	shell, nologin, tool := "/bin/bash", "/usr/sbin/nologin", "sudo:x:27:"
 	if h.openRC {
@@ -385,12 +394,22 @@ func (h *fakeHost) accounts(admin bool) {
 		group += "alice"
 	}
 	group += "\nnogroup:x:65534:\n"
+	root, login := syntheticHash, syntheticHash
+	if h.openRC {
+		root, login = "!", "*"
+	}
+	shadow := "root:" + root + ":20000:0:99999:7:::\n" +
+		"daemon:*:20000:0:99999:7:::\n" +
+		"sshd:*:20000:0:99999:7:::\n" +
+		"nobody:*:20000:0:99999:7:::\n"
 	if admin {
 		passwd += "alice:x:1000:1000:alice:/home/alice:" + shell + "\n"
 		group += "alice:x:1000:\n"
+		shadow += "alice:" + login + ":20000:0:99999:7:::\n"
 	}
 	h.f.AddFile("/etc/passwd", []byte(passwd), 0o644, 0, 0)
 	h.f.AddFile("/etc/group", []byte(group), 0o644, 0, 0)
+	h.f.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)
 }
 
 // unattendedUpgrades installs unattended-upgrades, on: its package, and

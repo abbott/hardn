@@ -274,6 +274,14 @@
 			"target": "/etc/init.d/sshd"
 		},
 		{
+			"path": "/etc/shadow",
+			"type": "file",
+			"mode": "0640",
+			"uid": 0,
+			"gid": 42,
+			"data": "root:!:20000:0:99999:7:::\ndaemon:*:20000:0:99999:7:::\nsshd:*:20000:0:99999:7:::\nnobody:*:20000:0:99999:7:::\nalice:*:20000:0:99999:7:::\n"
+		},
+		{
 			"path": "/etc/ssh",
 			"type": "dir",
 			"mode": "0755",

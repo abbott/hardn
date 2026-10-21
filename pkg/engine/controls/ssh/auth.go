@@ -79,24 +79,19 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	}
 	var notPAM []engine.Finding // why the blocks' keyboard-interactive does not count, PAM not established
 	if kbd.Value == "yes" || len(moreKbd) > 0 {
-		var other []string
-		if r.eff.BuiltWithoutPAM && f.SSH.Mode != detect.SSHOpenRC {
-			if other, err = otherPAM(ctx, sys); err != nil {
-				return failed(f.SSH, err)
-			}
+		p, err := r.pam(ctx, sys, f) // otherPAM where which build runs is not established
+		if err != nil {
+			return failed(f.SSH, err)
 		}
 		_, kev := matchFindings(moreKbd, CodeMatchAllowsMore)
-		st.Evidence = slices.Concat(st.Evidence, r.pamEvidence(), other)
+		st.Evidence = slices.Concat(st.Evidence, p.Evidence)
 		switch {
-		case pam.Known && pam.Value == "yes": // a password path: a block counts below
-		case pam.Known && len(other) == 0: // no device: neither the global value nor a block's asks anything
+		case p.Uses == detect.Yes: // a password path: a block counts below
+		case p.Uses == detect.No: // no device: neither the global value nor a block's asks anything
 			st.Evidence = slices.Concat(st.Evidence, kev, []string{noPrompt})
 			moreKbd = nil
 		case kbd.Value == "yes" || len(morePW) == 0: // PAM not established, and the state depends on it
-			if len(other) > 0 {
-				return unknown("can't tell which sshd runs", slices.Concat(st.Evidence, kev), nil), nil
-			}
-			return unknown("can't read", slices.Concat(st.Evidence, kev), r.unknowns("usepam")), nil
+			return unknown(p.Why, slices.Concat(st.Evidence, kev), p.Findings), nil
 		default: // a block turns passwords on: Partial with PAM or without
 			st.Evidence, notPAM, moreKbd = append(st.Evidence, kev...), r.unknowns("usepam"), nil
 		}
