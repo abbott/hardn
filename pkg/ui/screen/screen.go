@@ -14,7 +14,8 @@ import (
 //
 // DISABLED 2026-10-17: proposal P-08, decided by the maintainer. Every
 // sub-screen, the sub-menu and the workflow step, opens with Figma's
-// single title bar on bar.bg, showing the screen's own title, and the
+// single title bar (░ in bar.shade since 2026-10-21), showing the
+// screen's own title, and the
 // trail, which merges the brief's Breadcrumb into the bar, is off by
 // default. Flip it to true to show "User Management › Manage User" in the
 // bar: the layouts keep each screen's parents in their view-models
