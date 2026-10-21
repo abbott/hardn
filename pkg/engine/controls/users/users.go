@@ -111,7 +111,7 @@ type candidate struct {
 	lockAt  string
 	refused detect.Tri
 	lockErr error  // why refused is Unknown: ShadowFile, or sshd's configuration, not read
-	why     string // or, with no lockErr, sshd's PAM not established (ssh.PAM.Why)
+	why     string // the detail: with lockErr from sshd, the SSH rows' for it; else sshd's PAM not established (ssh.PAM.Why)
 }
 
 // elevates is Yes when a tool grants the candidate root, No when every
@@ -208,7 +208,7 @@ func readLocks(ctx context.Context, sys host.System, f detect.Facts, cs []candid
 		case c.lock == accounts.LockNotRead:
 			c.lockErr = lr.err
 		case lr.pamErr != nil:
-			c.lockErr = lr.pamErr
+			c.lockErr, c.why = lr.pamErr, lr.pam.Why
 		default:
 			c.why = lr.pam.Why
 		}
@@ -285,13 +285,16 @@ func verdict(st engine.Status, f detect.Facts, tools []tool, all []candidate, lr
 	var err error
 	for _, c := range cs {
 		e := c.elevates()
-		cerr := c.err
-		if cerr == nil {
+		cerr, why := c.err, "can't read"
+		if cerr == nil && c.lockErr != nil {
 			cerr = c.lockErr
+			if c.why != "" { // sshd's error, in the SSH rows' words
+				why = c.why
+			}
 		}
 		switch decides := c.login == detect.Unknown && (e != detect.No || logins == 0); {
 		case decides && cerr != nil && err == nil:
-			err, st.Detail = cerr, "can't read"
+			err, st.Detail = cerr, why
 		case decides && cerr == nil && st.Detail == "": // its lock, sshd's PAM not established
 			st.Detail, st.Findings = c.why, append(st.Findings, lr.pam.Findings...)
 		}
@@ -406,8 +409,12 @@ func evidence(tools []tool, cs []candidate, lr locks, err error) []string {
 			l += ", shell not read" + cause(c.err, err)
 		}
 		ev = append(ev, l)
-		if lr.pam != nil && (c.lock == accounts.Locked || lr.err != nil) {
-			ev = append(ev, ssh.LockEvidence(c.Name, c.lock, c.lockAt, lr.err, errors.Is(err, lr.err)))
+		switch {
+		case lr.pam == nil:
+		case lr.err != nil:
+			ev = append(ev, accounts.ShadowFile+": "+c.Name+" not read"+cause(lr.err, err))
+		case c.lock == accounts.Locked:
+			ev = append(ev, ssh.LockEvidence(c.Name, c.lock, c.lockAt))
 		}
 		for i, g := range c.grants {
 			n := tools[i].name

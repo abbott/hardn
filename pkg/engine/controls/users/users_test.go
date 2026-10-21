@@ -95,8 +95,14 @@ type site struct {
 	// locked. files[accounts.ShadowFile] replaces the whole file.
 	locks map[string]string
 	// sshd is sshd -T's answer (sshdPAM, sshdNoPAM), with an
-	// sshd_config; "" is no sshd: sshd -T is not answered.
-	sshd string
+	// sshd_config; "" is no sshd: sshd -T is not answered. failT, when
+	// set, is sshd -T's answer instead.
+	sshd  string
+	failT *hostfake.Response
+	// pamG is Alpine's /usr/sbin/sshd.pam -G answer, which installs it;
+	// "" is not installed. failG makes that -G exit 255.
+	pamG  string
+	failG bool
 }
 
 // sshd -T's answers (next/p4-locked): a build with PAM and UsePAM yes
@@ -183,6 +189,9 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			suid[tl.Path] = tl.Path != s.bare
 		}
 	}
+	if s.pamG != "" {
+		h.AddFile(pamG[0], []byte("ELF"), 0o755, 0, 0)
+	}
 	if s.seed != nil {
 		s.seed(h)
 	}
@@ -190,8 +199,14 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 	// sudoers.CheckInstalled runs them.
 	h.Handler = func(argv []string, _ []byte) hostfake.Response {
 		switch {
+		case s.failT != nil && sshdT(argv):
+			return *s.failT
 		case s.sshd != "" && sshdT(argv):
 			return hostfake.Response{Stdout: s.sshd}
+		case s.failG && slices.Equal(argv, pamG):
+			return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\n", ExitCode: 255}
+		case s.pamG != "" && slices.Equal(argv, pamG):
+			return hostfake.Response{Stdout: s.pamG}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.runErr != nil:
 			return hostfake.Response{Err: s.runErr}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.reject != sudoers.MainConfig:
@@ -281,6 +296,10 @@ func sshdT(argv []string) bool {
 	return (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && slices.Equal(argv[1:], []string{"-T", "-f", sshdConfig})
 }
 
+// pamG is the -G of Alpine's sshd.pam that ssh.ReadPAM runs where which
+// build runs is not established (an Alpine container).
+var pamG = []string{"/usr/sbin/sshd.pam", "-f", sshdConfig, "-G"}
+
 // readOnly fails for any call that changes the fake, and any command but
 // the tools' own checks and sshd -T.
 func readOnly(t *testing.T, h *hostfake.System) {
@@ -289,7 +308,7 @@ func readOnly(t *testing.T, h *hostfake.System) {
 		switch c.Op {
 		case "read", "read-nofollow", "stat", "lstat", "readdir":
 		case "run":
-			if a := c.Argv; !slices.Equal(a, []string{"visudo", "-c"}) && (len(a) != 3 || a[0] != "doas" || a[1] != "-C") && !sshdT(a) {
+			if a := c.Argv; !slices.Equal(a, []string{"visudo", "-c"}) && (len(a) != 3 || a[0] != "doas" || a[1] != "-C") && !sshdT(a) && !slices.Equal(a, pamG) {
 				t.Errorf("ran %q", a)
 			}
 		default:
@@ -614,6 +633,23 @@ func TestLocked(t *testing.T) {
 		return site{plat: a, users: []string{aliceSh}, members: wheel, files: nopass, locks: locks, sshd: sshdNoPAM}
 	}
 	twice := sshdPAM + "usepam no\n"
+	// An Alpine container: no OpenRC, so which sshd build runs is not
+	// established, and sshd.pam's -G is asked (check-ssh.md §2.11).
+	container := a
+	container.facts.Init = detect.Init{Err: errors.New("detect: init: no signal")}
+	container.facts.SSH = detect.SSH{Err: errors.New("detect: ssh: init system not established")}
+	container.facts.Container = detect.Container{Detected: detect.Yes, Signal: "/.dockerenv"}
+	inContainer := func(pamG string) site {
+		s := vm(lock("!"))
+		s.plat, s.pamG = container, pamG
+		return s
+	}
+	// Ubuntu after a boot, before the first SSH connection: ssh.socket
+	// listens, ssh.service has not started, /run/sshd is not there.
+	socket := u
+	socket.facts.SSH = detect.SSH{Mode: detect.SSHSocket, Socket: detect.UnitState{Enabled: "enabled", Active: "active"},
+		Service: detect.UnitState{Enabled: "disabled", Active: "inactive"}}
+	noRunDir := &hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}
 	runAll(t, []row{
 		{name: "alpine: the VM, root !, alice *", site: vm(lock("*")), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
 		{name: "alpine: a cloud image, alice !", site: vm(lock("!")), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
@@ -635,6 +671,8 @@ func TestLocked(t *testing.T) {
 			state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
 		{name: "alpine: a malformed shadow", site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, files: map[string]string{accounts.ShadowFile: "alice:!\n"}},
 			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
+		{name: "alpine: /etc/tcb read first", site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, files: map[string]string{"/etc/tcb/alice/shadow": "alice:*:20000:0:99999:7:::\n"}},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_TCB"},
 		{name: "shadow unreadable, root only", site: site{plat: a, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
 			state: engine.NotConfigured, want: "root only"},
 		// With PAM sshd skips the lock: the row as before.
@@ -650,10 +688,21 @@ func TestLocked(t *testing.T) {
 			state: engine.Unknown, want: "can't read", codes: []string{"SSHD_EFFECTIVE_UNKNOWN"}},
 		{name: "debian: usepam printed twice, alice *", site: site{plat: d, users: []string{alice}, members: sudoGroup, sshd: twice},
 			state: engine.Configured, want: "non-root, sudo"},
+		// sshd -T failing: the SSH rows' words for it.
 		{name: "debian: no sshd_config, alice !", site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!")},
-			state: engine.Unknown, want: "can't read", err: "FILE_NOT_FOUND"},
+			state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
 		{name: "debian: no sshd_config, alice not in sudo", site: site{plat: d, users: []string{alice}, locks: lock("!")},
-			state: engine.Unknown, want: "can't read", err: "FILE_NOT_FOUND"},
+			state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
+		{name: "ubuntu: alice !, sshd not started yet", site: site{plat: socket, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM, failT: noRunDir},
+			state: engine.Unknown, want: "sshd not started yet", err: "SSHD_ENV_NO_RUNDIR"},
+		{name: "alpine container: alice !, sshd.pam would use PAM", site: inContainer("usepam yes\n"),
+			state: engine.Unknown, want: "can't tell which sshd runs"},
+		{name: "alpine container: alice !, sshd.pam would not", site: inContainer("usepam no\n"),
+			state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine container: alice *, sshd.pam not asked", site: func() site { s := inContainer("usepam yes\n"); s.locks = lock("*"); return s }(),
+			state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine container: sshd.pam's -G fails", site: func() site { s := inContainer("usepam yes\n"); s.failG = true; return s }(),
+			state: engine.Unknown, want: "can't read", err: "COMMAND_FAILED"},
 		{name: "proxmox: a user, no sudo, alice !", site: site{plat: p, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM},
 			state: engine.Partial, want: "non-root, no sudo"},
 	})

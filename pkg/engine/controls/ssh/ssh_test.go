@@ -108,6 +108,7 @@ type site struct {
 	bound  []string          // what ss shows; nil is what is configured
 	edit   func(string) string
 	failT  *hostfake.Response // sshd -T fails with this
+	failG  bool               // sshd.pam's -G exits 255 (next/p4-locked)
 	ssErr  *hostfake.Response // ss fails with this
 	ssBad  string             // a LISTEN line ss prints that is not read
 	files  map[string]string  // other files: path, content
@@ -194,6 +195,8 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	f.Handler = func(argv []string, _ []byte) hostfake.Response {
 		cmd := strings.Join(argv, " ")
 		switch {
+		case s.failG && argv[0] == reload.BinaryPAM && slices.Contains(argv, "-G"):
+			return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\n", ExitCode: 255}
 		case s.pam && argv[0] == reload.BinaryPAM && (slices.Contains(argv, "-G") || slices.Contains(argv, "-T")): // -G prints as -T does
 			return hostfake.Response{Stdout: pamOut}
 		case s.krb5 && argv[0] == reload.BinaryKrb5 && slices.Contains(argv, "-G"):
@@ -672,6 +675,17 @@ func TestLogin(t *testing.T) {
 // (next/p4-locked); the hash is made up.
 func shadowRoot(field string) string { return "root:" + field + ":20000:0:99999:7:::\n" }
 
+// pveBlockedEv is SSH Login's evidence on Proxmox VE with pveHardened
+// and DenyUsers root, before root's lock.
+var pveBlockedEv = []string{"sshd -T: permitrootlogin without-password", "sshd -T: pubkeyauthentication yes", "sshd -T: no allowusers",
+	"sshd -T: denyusers root", "sshd -T: no allowgroups", "sshd -T: no denygroups", "sshd -T: authenticationmethods any",
+	"sshd -T: authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2", "sshd -T: authorizedkeyscommand none",
+	"sshd -T: pubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256",
+	"sshd -T: listenaddress [::]:22", "sshd -T: listenaddress 0.0.0.0:22"}
+
+// uid0George is /etc/passwd with george, a second account with uid 0.
+const uid0George = "root:x:0:0:root:/root:/bin/sh\ngeorge:x:0:0:george:/root:/bin/sh\n"
+
 const rootHash = "$6$Kv3pXq8z$Wd5nTr2Ym7Lc9Hb4Fs1Gj6Pz0Qa"
 
 // TestLocked: SSH Login with root's password locked ("!"), which sshd
@@ -707,11 +721,40 @@ func TestLocked(t *testing.T) {
 			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
 		{name: "alpine: proxmox not established", site: site{plat: alpine324(), shadow: locked, facts: notProxmox},
 			state: engine.Unknown, want: "can't tell if Proxmox", err: "PVE_UNKNOWN"},
+		{name: "alpine: passwd unreadable", site: site{plat: alpine324(), shadow: locked, unreadable: accounts.PasswdFile},
+			state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
+		{name: "alpine: /etc/tcb read first", site: site{plat: alpine324(), shadow: locked, files: map[string]string{"/etc/tcb/root/shadow": shadowRoot(rootHash)}},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_TCB"},
+		// Lines musl's getspnam finds no entry in: sshd reads passwd's x.
+		{name: "alpine: no final newline", site: site{plat: alpine324(), shadow: strings.TrimSuffix(locked, "\n")},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
+		{name: "alpine: CRLF", site: site{plat: alpine324(), shadow: strings.Replace(locked, "\n", "\r\n", 1)},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
+		{name: "alpine: a word in a number", site: site{plat: alpine324(), shadow: "root:!:never:0:99999:7:::\n"},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
+		// PermitRootLogin applies to uid 0, whatever the name (auth2.c
+		// userauth_finish): george with uid 0 logs in as root unless locked too.
+		{name: "alpine: george uid 0 with a hash, PermitRootLogin yes", site: site{plat: alpine324(), passwd: uid0George, shadow: locked + "george:" + rootHash + ":20000:0:99999:7:::\n",
+			drops: drops("10-site.conf", "PermitRootLogin yes\n")}, state: engine.NotConfigured, want: "root allowed"},
+		{name: "alpine: george uid 0 with *", site: site{plat: alpine324(), passwd: uid0George, shadow: locked + "george:*:20000:0:99999:7:::\n"},
+			state: engine.Partial, want: "root key-only"},
+		{name: "alpine: george uid 0, no shadow line, passwd's x", site: site{plat: alpine324(), passwd: uid0George, shadow: locked},
+			state: engine.Partial, want: "root key-only"},
+		{name: "alpine: george uid 0 locked too", site: site{plat: alpine324(), passwd: uid0George, shadow: locked + "george:!:20000:0:99999:7:::\n"},
+			state: engine.Configured, want: "root locked"},
+		{name: "alpine: george uid 0 on a later line only", site: site{plat: alpine324(), passwd: "root:x:0:0:root:/root:/bin/sh\ngeorge:x:1000:1000::/home/george:/bin/sh\ngeorge:x:0:0::/root:/bin/sh\n", shadow: locked},
+			state: engine.Configured, want: "root locked"},
+		{name: "alpine: root's first line not uid 0", site: site{plat: alpine324(), passwd: "root:x:1000:0:root:/root:/bin/sh\nroot:x:0:0:root:/root:/bin/sh\n", shadow: locked},
+			state: engine.Unknown, want: "can't read", err: "UNKNOWN_USER"},
 		// A container: which build runs is not established (§2.11).
 		{name: "alpine container: sshd.pam would use PAM", site: site{plat: container, shadow: locked, pam: true, drops: drops("10-site.conf", "UsePAM yes\n")},
 			state: engine.Unknown, want: "can't tell which sshd runs"},
 		{name: "alpine container: sshd.pam would not", site: site{plat: container, shadow: locked, pam: true},
 			state: engine.Configured, want: "root locked"},
+		{name: "alpine container: sshd.pam's -G fails", site: site{plat: container, shadow: locked, pam: true, failG: true},
+			state: engine.Unknown, want: "can't read", err: "COMMAND_FAILED"},
+		{name: "alpine container: sshd.pam's -G fails, root not locked", site: site{plat: container, pam: true, failG: true},
+			state: engine.Partial, want: "root key-only"},
 		// With PAM the test is skipped.
 		{name: "debian: UsePAM yes, root locked", site: site{plat: debian13(), shadow: locked}, state: engine.Partial, want: "root key-only"},
 		{name: "debian: UsePAM yes, shadow unreadable", site: site{plat: debian13(), unreadable: accounts.ShadowFile}, state: engine.Partial, want: "root key-only"},
@@ -745,12 +788,29 @@ func TestLocked(t *testing.T) {
 	}{
 		{row{site: site{plat: alpine324(), shadow: shadowRoot("!" + rootHash)}, state: engine.Configured, want: "root locked"},
 			[]string{"sshd -T: permitrootlogin prohibit-password", "/etc/shadow:1: root locked (!)", "sshd -T: no usepam (built without PAM)"}},
+		// With UsePAM yes no lock decides, and none is read.
 		{row{site: site{plat: debian13(), shadow: locked}, state: engine.Partial, want: "root key-only"},
-			[]string{"sshd -T: permitrootlogin without-password", "/etc/shadow:1: root locked (!)", "sshd -T: usepam yes"}},
+			[]string{"sshd -T: permitrootlogin without-password"}},
+		{row{site: site{plat: debian13(), unreadable: accounts.ShadowFile}, state: engine.Partial, want: "root key-only"},
+			[]string{"sshd -T: permitrootlogin without-password"}},
+		{row{site: site{plat: debian13(), shadow: locked, drops: drops("10-site.conf", "UsePAM no\n")}, state: engine.Configured, want: "root locked"},
+			[]string{"sshd -T: permitrootlogin without-password", "/etc/shadow:1: root locked (!)", "sshd -T: usepam no"}},
 		{row{site: site{plat: alpine324(), unreadable: accounts.ShadowFile}, state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
 			[]string{"sshd -T: permitrootlogin prohibit-password", "/etc/shadow: root not read", "sshd -T: no usepam (built without PAM)"}},
-		{row{site: site{plat: debian13(), unreadable: accounts.ShadowFile}, state: engine.Partial, want: "root key-only"},
-			[]string{"sshd -T: permitrootlogin without-password", "/etc/shadow: root not read: open /etc/shadow: permission denied", "sshd -T: usepam yes"}},
+		{row{site: site{plat: alpine324(), unreadable: accounts.PasswdFile}, state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
+			[]string{"sshd -T: permitrootlogin prohibit-password", "/etc/passwd: root not read", "sshd -T: no usepam (built without PAM)"}},
+		{row{site: site{plat: alpine324(), passwd: uid0George, shadow: locked + "george:!" + rootHash + ":20000:0:99999:7:::\n"}, state: engine.Configured, want: "root locked"},
+			[]string{"sshd -T: permitrootlogin prohibit-password", "/etc/shadow:1: root locked (!)", "/etc/shadow:2: george locked (!)", "sshd -T: no usepam (built without PAM)"}},
+		// Where the lock does not decide, the error's words, short.
+		{row{site: site{plat: pve9(), unreadable: accounts.ShadowFile, drops: drops("00-hardn.conf", pveHardened+"UsePAM no\nDenyUsers root\n")},
+			state: engine.Partial, want: "root key login blocked", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			slices.Concat(pveBlockedEv, []string{"/etc/shadow: root not read: open /etc/shadow: permission denied", "sshd -T: usepam no"})},
+		{row{site: site{plat: pve9(), shadow: "root:!\n", drops: drops("00-hardn.conf", pveHardened+"UsePAM no\nDenyUsers root\n")},
+			state: engine.Partial, want: "root key login blocked", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			slices.Concat(pveBlockedEv, []string{"/etc/shadow: root not read: not a line of the account database", "sshd -T: usepam no"})},
+		{row{site: site{plat: pve9(), passwd: "alice:x:1000:1000::/home/alice:/bin/sh\n", drops: drops("00-hardn.conf", pveHardened+"UsePAM no\nDenyUsers root\n")},
+			state: engine.Partial, want: "root key login blocked", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			slices.Concat(pveBlockedEv, []string{"/etc/passwd: root not read: unknown user", "sshd -T: usepam no"})},
 		{row{site: site{plat: alpine324(), shadow: shadowRoot(rootHash)}, state: engine.Partial, want: "root key-only"},
 			[]string{"sshd -T: permitrootlogin prohibit-password"}},
 	} {
@@ -766,14 +826,27 @@ func TestLocked(t *testing.T) {
 		}
 	}
 
-	// PermitRootLogin no reads no lock: root is refused anyway.
-	f, facts := site{plat: alpine324(), shadow: locked, drops: drops("10-site.conf", "PermitRootLogin no\n")}.build(t)
-	if _, err := login.Check(context.Background(), f, facts); err != nil {
-		t.Fatal(err)
-	}
-	for _, c := range f.Calls() {
-		if c.Path == accounts.ShadowFile {
-			t.Errorf("read %s", c.Path)
+	// PermitRootLogin no reads no lock: root is refused anyway. UsePAM
+	// yes neither: sshd skips the test. Nor does otherPAM run where no
+	// account is locked.
+	for _, c := range []struct {
+		s     site
+		files bool // the accounts' files are read
+	}{
+		{site{plat: alpine324(), shadow: locked, drops: drops("10-site.conf", "PermitRootLogin no\n")}, false},
+		{site{plat: debian13(), shadow: locked}, false},
+		{site{plat: pve9(), shadow: locked}, false},
+		{site{plat: container, pam: true}, true},
+	} {
+		f, facts := c.s.build(t)
+		if _, err := login.Check(context.Background(), f, facts); err != nil {
+			t.Fatal(err)
+		}
+		for _, call := range f.Calls() {
+			if !c.files && slices.Contains([]string{accounts.PasswdFile, accounts.ShadowFile, accounts.TCBDir}, call.Path) ||
+				call.Op == "run" && slices.Contains(call.Argv, "-G") {
+				t.Errorf("%s: %v", c.s.plat.name, call)
+			}
 		}
 	}
 }

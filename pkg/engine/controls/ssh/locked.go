@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
@@ -18,7 +19,8 @@ import (
 // does not use PAM, auth.c's allowed_user() refuses an account whose
 // password is locked ("!" on Linux, platform.c's platform_locked_account())
 // before any authentication method runs, public keys included, root as any
-// other; with PAM the test is skipped.
+// other; with PAM the test is skipped. PermitRootLogin applies to every
+// account with uid 0 (auth2.c userauth_finish), so each must be locked.
 
 // PAM is whether the sshd that runs uses PAM, read as SSH Auth reads it
 // (check-ssh.md §2.11): Uses is Yes with UsePAM yes; No with UsePAM no, or
@@ -29,27 +31,42 @@ import (
 type PAM struct {
 	Uses     detect.Tri
 	Evidence []string
-	Why      string           // with Unknown and no error: "can't tell which sshd runs", or "can't read"
-	Findings []engine.Finding // with "can't read": sshd's findings that UsePAM is not established
+	// Why is the row's detail with Uses Unknown: "can't tell which sshd
+	// runs", or "can't read" with Findings; with ReadPAM's error, the SSH
+	// rows' detail for it ("sshd not started yet", "sshd not installed",
+	// "can't read", ...).
+	Why      string
+	Findings []engine.Finding // with "can't read" and no error: sshd's findings that UsePAM is not established
 }
 
 // ReadPAM reads sshd's effective configuration as the SSH rows do (sshd -T
 // of the binary OpenRC's script runs) and returns PAM: the User row asks it
 // of an account whose password is locked. A read that fails is its error,
-// with Uses Unknown.
+// with Uses Unknown and Why the SSH rows' detail for it.
 func ReadPAM(ctx context.Context, sys host.System, f detect.Facts) (PAM, error) {
 	r, err := readEffective(ctx, sys, f)
-	if err != nil {
-		return PAM{}, err
+	if err == nil {
+		var p PAM
+		if p, err = r.pam(ctx, sys, f); err == nil {
+			return p, nil
+		}
 	}
-	return r.pam(ctx, sys, f)
+	st, err := failed(f.SSH, err)
+	return PAM{Why: st.Detail}, err
+}
+
+// otherBuilds reports whether which build runs is not established from
+// sshd -T alone: its build has no PAM and OpenRC's init script does not
+// start sshd, so pam asks the other builds (otherPAM, which runs them).
+func (r reading) otherBuilds(f detect.Facts) bool {
+	return r.eff.BuiltWithoutPAM && f.SSH.Mode != detect.SSHOpenRC
 }
 
 // pam is PAM from this reading, with otherPAM's commands where which build
-// runs is not established.
+// runs is not established (otherBuilds); otherwise it runs nothing.
 func (r reading) pam(ctx context.Context, sys host.System, f detect.Facts) (PAM, error) {
 	p := PAM{Evidence: r.pamEvidence()}
-	if r.eff.BuiltWithoutPAM && f.SSH.Mode != detect.SSHOpenRC {
+	if r.otherBuilds(f) {
 		other, err := otherPAM(ctx, sys)
 		if err != nil {
 			return p, err
@@ -85,42 +102,49 @@ func LockedOut(l accounts.Lock, usesPAM detect.Tri) detect.Tri {
 	return detect.Unknown
 }
 
-// LockEvidence is the evidence of name's lock as l and at say it
-// ("/etc/shadow:1: root locked (!)"), or, with err, that it was not read:
-// with the error's words unless it is the check's own, which its errors
-// hold.
-func LockEvidence(name string, l accounts.Lock, at string, err error, own bool) string {
-	switch {
-	case err == nil:
-		return at + ": " + name + " " + l.String()
-	case own:
-		return accounts.ShadowFile + ": " + name + " not read"
-	}
-	var pe *fs.PathError
-	if errors.As(err, &pe) {
-		return accounts.ShadowFile + ": " + name + " not read: " + pe.Error()
-	}
-	return accounts.ShadowFile + ": " + name + " not read: " + err.Error()
+// LockEvidence is the evidence of name's lock l, read at at
+// ("/etc/shadow:1: root locked (!)"): never the password field.
+func LockEvidence(name string, l accounts.Lock, at string) string {
+	return at + ": " + name + " " + l.String()
 }
 
-// rootLock is root's lock as sshd reads it: PasswdFile's first root line,
-// and its lock in ShadowFile, else its PasswdFile field
-// (accounts.Shadow.LockOf), with where it was read.
-func rootLock(ctx context.Context, sys host.System) (accounts.Lock, string, error) {
+// rootAccount is an account sshd treats as root, and its lock as sshd
+// reads it (accounts.Shadow.LockOf), at at.
+type rootAccount struct {
+	accounts.User
+	lock accounts.Lock
+	at   string
+}
+
+// rootAccounts are the accounts PermitRootLogin applies to: sshd tests
+// the uid, not the name (auth2.c userauth_finish: pw_uid == 0), so each
+// name's first PasswdFile line, as getpwnam finds it [I], with uid 0,
+// root among them; each with its lock, its ShadowFile line's, else its
+// PasswdFile field's. With an error, file is the file not read: the
+// accounts are then those read, with no lock.
+func rootAccounts(ctx context.Context, sys host.System) (as []rootAccount, file string, err error) {
 	us, err := accounts.ReadPasswd(ctx, sys)
 	if err != nil {
-		return accounts.LockNotRead, "", err
+		return nil, accounts.PasswdFile, err
 	}
-	i := slices.IndexFunc(us, func(u accounts.User) bool { return u.Name == "root" })
-	if i < 0 {
-		return accounts.LockNotRead, "", fmt.Errorf("ssh: root in %s: %w", accounts.PasswdFile, host.ErrUnknownUser)
+	seen := map[string]bool{}
+	for _, u := range us {
+		if !seen[u.Name] && u.UID == 0 {
+			as = append(as, rootAccount{User: u})
+		}
+		seen[u.Name] = true
+	}
+	if !slices.ContainsFunc(as, func(a rootAccount) bool { return a.Name == "root" }) {
+		return nil, accounts.PasswdFile, fmt.Errorf("ssh: root with uid 0 in %s: %w", accounts.PasswdFile, host.ErrUnknownUser)
 	}
 	sh, err := accounts.ReadShadow(ctx, sys)
 	if err != nil {
-		return accounts.LockNotRead, "", err
+		return as, accounts.ShadowFile, err
 	}
-	l, at := sh.LockOf(us[i])
-	return l, at, nil
+	for i := range as {
+		as[i].lock, as[i].at = sh.LockOf(as[i].User)
+	}
+	return as, "", nil
 }
 
 // detailBlocked is SSH Login's Partial detail on Proxmox VE where root's
@@ -128,26 +152,54 @@ func rootLock(ctx context.Context, sys host.System) (accounts.Lock, string, erro
 const detailBlocked = "root key login blocked"
 
 // lockedOut is SSH Login's status st, read with error stErr from
-// PermitRootLogin and the Match blocks, once root's lock is read: root's
-// password locked and sshd not using PAM is Configured "root locked" off
+// PermitRootLogin and the Match blocks, once the locks of the accounts it
+// applies to are read (rootAccounts: root and any other with uid 0). Each
+// of them locked and sshd not using PAM is Configured "root locked" off
 // Proxmox VE, where the baseline is that root cannot log in, whatever
 // PermitRootLogin says; on Proxmox VE, whose cluster logs in as root by
-// key, Partial "root key login blocked". Not locked, or PAM in use: st and
-// stErr, as read. Where that is not established and it decides (st not
-// already Unknown or that Partial): Unknown, with the error that kept it
-// so (the files' read, otherPAM's), or PAM's Why and Findings.
+// key, Partial "root key login blocked". One not locked, or PAM in use:
+// st and stErr, as read. Where that is not established and it decides (st
+// not already Unknown or that Partial): Unknown, with the error that kept
+// it so (the files' read, otherPAM's), or PAM's Why and Findings.
+//
+// sshd -T's own UsePAM yes decides first, with no file read; otherPAM's
+// commands run only once the locks may decide.
 func (r reading) lockedOut(ctx context.Context, sys host.System, f detect.Facts, st engine.Status, stErr error) (engine.Status, error) {
-	lock, at, lerr := rootLock(ctx, sys)
-	if lerr == nil && lock != accounts.Locked {
-		return st, stErr
+	var p PAM
+	var perr error
+	read := !r.otherBuilds(f)
+	if read {
+		if p, perr = r.pam(ctx, sys, f); p.Uses == detect.Yes { // no command: perr is nil
+			return st, stErr
+		}
 	}
-	p, perr := r.pam(ctx, sys, f)
+	as, file, lerr := rootAccounts(ctx, sys)
+	lock := accounts.LockNotRead
+	if lerr == nil {
+		lock = accounts.Locked
+		if slices.ContainsFunc(as, func(a rootAccount) bool { return a.lock != accounts.Locked }) {
+			return st, stErr // that account logs in as root
+		}
+	}
+	if !read {
+		p, perr = r.pam(ctx, sys, f)
+	}
 	out := LockedOut(lock, p.Uses)
 	if perr != nil {
 		out = detect.Unknown
 	}
 	decides := out == detect.Yes || out == detect.Unknown && st.State != engine.Unknown && st.Detail != detailBlocked
-	st.Evidence = append(st.Evidence, LockEvidence("root", lock, at, lerr, decides && lerr != nil))
+	if lerr == nil {
+		for _, a := range as {
+			st.Evidence = append(st.Evidence, LockEvidence(a.Name, a.lock, a.at))
+		}
+	} else {
+		l := file + ": " + accountNames(as) + " not read"
+		if !decides { // else the check's error, which says it
+			l += ": " + words(lerr)
+		}
+		st.Evidence = append(st.Evidence, l)
+	}
 	st.Evidence = append(st.Evidence, p.Evidence...)
 	switch {
 	case out == detect.Yes:
@@ -175,4 +227,29 @@ func (r reading) lockedOut(ctx context.Context, sys host.System, f detect.Facts,
 	st.State, st.Detail = engine.Unknown, p.Why
 	st.Findings = append(st.Findings, p.Findings...)
 	return st, nil
+}
+
+// accountNames is the accounts' names, "root" when none was read.
+func accountNames(as []rootAccount) string {
+	if len(as) == 0 {
+		return "root"
+	}
+	ns := make([]string, len(as))
+	for i, a := range as {
+		ns[i] = a.Name
+	}
+	return strings.Join(ns, ", ")
+}
+
+// words is err as the host put it: the file operation that failed, else
+// the innermost error, without the packages' prefixes.
+func words(err error) string {
+	var pe *fs.PathError
+	if errors.As(err, &pe) {
+		return pe.Error()
+	}
+	for u := errors.Unwrap(err); u != nil; u = errors.Unwrap(err) {
+		err = u
+	}
+	return err.Error()
 }
