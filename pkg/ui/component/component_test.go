@@ -251,6 +251,11 @@ func TestLayout(t *testing.T) {
 				"  [-] c                    Not Applicable\n  [?] d                    Unknown"},
 		{"status: Word replaces the state's word", StatusRow{Label: "SSH Port", State: StatusConfigured, Word: " 2230/tcp ", Detail: "non-default"}, from, false,
 			"  [+] SSH Port             2230/tcp non-default"},
+		{"status: a shared marker keeps the state's word, not Word", StatusList{Rows: []StatusRow{
+			{Label: "Firewall", State: StatusPartial, Word: "Enabled", Detail: "no rules"},
+			{Label: "Firewall", State: StatusNotConfigured, Word: "Enabled", Detail: "no rules"},
+		}}, from, false,
+			"  [ ] Firewall             Partial no rules\n  [ ] Firewall             Not Configured no rules"},
 		{"status: a long label is cut beside the value", StatusRow{Label: "Unattended Upgrades Mail Reports", State: StatusConfigured}, from, true,
 			"   ⛛  Unattended Upgrades… Configured"},
 		{"status: a cut label drops the spaces before the ellipsis", StatusRow{Label: "Security Updates Mail", State: StatusConfigured}, from, false,
@@ -715,17 +720,21 @@ func TestStatusStates(t *testing.T) {
 
 // TestRiskGlyphDrawn checks that the risk icon, ⛬ or [*], is the risk
 // level's: rendering every state of fixture.States, in both glyph sets and
-// at widths that stack and that do not, it is drawn only before "Risk
-// Level" and, pending the maintainer (DEV-028, DEV-038), before the menu's
-// and the plan's "Lockout risk". No other glyph is the risk icon
-// (pkg/ui/theme's TestRiskGlyphAlone).
+// at widths that stack and that do not, it is drawn only by RiskSummary
+// before "Risk Level" and, pending the maintainer (DEV-028, DEV-038), by
+// Menu and PlanView before "Lockout risk", each state's component taken
+// from its fixture name. No other glyph is the risk icon (pkg/ui/theme's
+// TestRiskGlyphAlone).
 func TestRiskGlyphDrawn(t *testing.T) {
+	type use struct{ component, words string }
+	uses := []use{{"risksummary", "Risk Level"}, {"planview", LockoutRisk}, {"menu", LockoutRisk}}
 	for _, unicode := range []bool{true, false} {
 		for _, w := range []int{40, 64, 80} {
 			c := NewCtx(term.Fixed(w, colorprofile.TrueColor, unicode, true))
 			icon := c.Theme.Glyphs.Risk
-			seen := map[string]bool{}
+			seen := map[use]bool{}
 			for _, s := range fixture.States() {
+				comp, _, _ := strings.Cut(s.Name, "/")
 				out := ansi.Strip(s.VM.Render(c))
 				for rest := out; ; {
 					i := strings.Index(rest, icon)
@@ -734,18 +743,19 @@ func TestRiskGlyphDrawn(t *testing.T) {
 					}
 					rest = rest[i+len(icon):]
 					after := strings.TrimLeft(rest, " ")
-					switch {
-					case strings.HasPrefix(after, "Risk Level"):
-						seen["Risk Level"] = true
-					case strings.HasPrefix(after, LockoutRisk):
-						seen[LockoutRisk] = true
-					default:
-						t.Errorf("%s, unicode %t, width %d: the risk icon %q before %q", s.Name, unicode, w, icon, strings.SplitN(after, "\n", 2)[0])
+					if j := slices.IndexFunc(uses, func(u use) bool {
+						return u.component == comp && strings.HasPrefix(after, u.words)
+					}); j >= 0 {
+						seen[uses[j]] = true
+						continue
 					}
+					t.Errorf("%s, unicode %t, width %d: the risk icon %q before %q", s.Name, unicode, w, icon, strings.SplitN(after, "\n", 2)[0])
 				}
 			}
-			if !seen["Risk Level"] || !seen[LockoutRisk] {
-				t.Errorf("unicode %t, width %d: the states drew the risk icon before %v, want the risk level and the lockout lines", unicode, w, seen)
+			for _, u := range uses {
+				if !seen[u] {
+					t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, u.component, u.words)
+				}
 			}
 		}
 	}
