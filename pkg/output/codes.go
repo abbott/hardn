@@ -25,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -322,6 +323,8 @@ var errorCodes = []Entry{
 	is("DETECT_SIGNALS_DISAGREE", detect.ErrConflict).what("detection: two signals for one fact disagree, so it is Unknown"),
 	is("DETECT_UNRECOGNISED", detect.ErrUnrecognised).what("detection: a file or a command's output is not in a form hardn knows"),
 	is("DETECT_NO_SIGNAL", detect.ErrNoSignal).what("detection: no signal established the fact"),
+	// The account databases (pkg/host/accounts, next/p4-check-users).
+	is("ACCOUNTS_MALFORMED", accounts.ErrMalformed).what("a line of /etc/passwd or /etc/group is not in a form hardn knows"),
 
 	// The seam (pkg/host): ErrSymlinkParent wraps ErrSymlink, and a
 	// *revert.LockedError wraps ErrLocked, so both come first above.

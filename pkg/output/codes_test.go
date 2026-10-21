@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -43,6 +44,7 @@ import (
 // pkg/engine/..., by package and name. TestSentinelsRegistered fails for one
 // missing here: add it, with an entry in codes.go that matches it.
 var sentinels = map[string]error{
+	"accounts.ErrMalformed":          accounts.ErrMalformed,
 	"alpine.ErrChanged":              alpine.ErrChanged,
 	"alpine.ErrNoBackup":             alpine.ErrNoBackup,
 	"alpine.ErrNoCrond":              alpine.ErrNoCrond,

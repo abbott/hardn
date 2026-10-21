@@ -281,6 +281,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `DETECT_SIGNALS_DISAGREE` | 1 | detection: two signals for one fact disagree, so it is Unknown |
 | `DETECT_UNRECOGNISED` | 1 | detection: a file or a command's output is not in a form hardn knows |
 | `DETECT_NO_SIGNAL` | 1 | detection: no signal established the fact |
+| `ACCOUNTS_MALFORMED` | 1 | a line of /etc/passwd or /etc/group is not in a form hardn knows ([check-users.md](../engine/check-users.md)) |
 | `SYMLINK_IN_UNSAFE_DIRECTORY` | 1 | refusing a symlink in a directory another user can change |
 | `SYMLINK_REFUSED` | 1 | refusing a symlink |
 | `HARD_LINK_REFUSED` | 1 | refusing a file with other hard links, in a directory another user can change |
