@@ -270,10 +270,10 @@ That is 27 typography roles: 26 bold slots and one underlined. `TestTypography` 
 |---|---|---|---|---|---|---|
 | `Configured` | ⛛ | U+26DB, A | 1 (2) | `[+]` | 3 | Figma; ASCII DEV-012 |
 | `NotConfigured` | ⭘ | U+2B58, A | 1 (2) | `[ ]` | 3 | Figma; DEV-012 |
-| `Partial` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma; DEV-012 |
+| `Partial` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma's risk icon (Figma draws no Partial); DEV-012, DEV-024 |
 | `Unknown` | `?` | U+003F, Na | 1 | `[?]` | 3 | DEV-013 |
 | `NotApplicable` | ∅ | U+2205, N | 1 | `[-]` | 3 | DEV-014 |
-| `Risk` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma (shared with `Partial`); DEV-012 |
+| `Risk` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma, on the risk row alone (`Partial` borrows it); DEV-012 |
 | `Prompt` | ❯ | U+276F, N | 1 | `>` | 1 | Figma; DEV-012 |
 | `Approx` | ≈ | U+2248, A | 1 (2) | `~` | 1 | Figma; DEV-012 |
 | `Bullet` | `-` | U+002D, Na | 1 | `-` | 1 | Figma |
@@ -283,7 +283,7 @@ That is 27 typography roles: 26 bold slots and one underlined. `TestTypography` 
 | `Rule` | ─ | U+2500, A | 1 (2) | `-` | 1 | DEV-015 |
 | `BadgeOpen`, `BadgeClose` | `[` `]` | U+005B, U+005D, Na | 1 each | `[` `]` | 1 each | DEV-019: a badge with no colour to paint it |
 | `OK` | ✓ | U+2713, N | 1 | `[+]` | 3 | origin/main's success mark; DEV-031 |
-| `Warn` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | Figma's warning marker (shared with `Partial`); DEV-031 |
+| `Warn` | ⛬ | U+26EC, A | 1 (2) | `[*]` | 3 | `Partial`'s (Figma draws no one-line message); DEV-031 |
 | `Bad` | ✗ | U+2717, N | 1 | `[!]` | 3 | origin/main's failure mark; DEV-031 |
 | `Info` | ℹ | U+2139, N | 1 | `[i]` | 3 | origin/main's information mark; DEV-031 |
 | `Cancelled` | ⊘ | U+2298, N | 1 | `[-]` | 3 | DEV-031 (ASCII shared with `NotApplicable`) |
