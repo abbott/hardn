@@ -11,10 +11,12 @@ docs/safety/detect.md describe it, not captured from a host:
 - `ubuntu2604`: the same accounts; `/etc/sudoers` with `%admin` too
   (sudo-rs reads it, no `/etc/sudoers-rs`);
 - `alpine324`: Alpine's accounts (root's shell `/bin/sh`), `wheel`
-  listing root; `/etc/doas.conf` with its rule commented out and
-  `/etc/doas.d/20-wheel.conf` (`permit persist :wheel`), as
-  `setup-alpine` leaves them;
+  listing root; `/etc/doas.conf` in the package's layout (aports
+  `3.24-stable/main/doas/doas.conf`: comments, one with a quoted word,
+  and its rule commented out) and `/etc/doas.d/20-wheel.conf`
+  (`permit persist :wheel`), as `setup-alpine` leaves them;
 - `pve9`: Debian 13's accounts, root only, and no sudo.
 
 The tests load them into `hostfake` with the accounts and rules each case
-adds. Synthetic values only: alice, bob, george.
+adds, and the tools detect found at their paths, setuid root as packaged:
+the fake has no setuid bit, so the tests' `Stat` adds it. Synthetic values only: alice, bob, george.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -30,15 +31,16 @@ type platform struct {
 }
 
 var (
-	yes = detect.Tool{Present: detect.Yes}
-	no  = detect.Tool{Present: detect.No}
+	sudoYes = detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}
+	doasYes = detect.Tool{Present: detect.Yes, Path: "/usr/bin/doas"}
+	no      = detect.Tool{Present: detect.No}
 )
 
 func debian13() platform {
 	return platform{dir: "debian13", facts: detect.Facts{
 		Platform:  detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported},
 		Proxmox:   detect.Proxmox{Installed: detect.No},
-		Elevation: detect.Elevation{Sudo: yes, SudoFlavor: detect.SudoOriginal, Doas: no},
+		Elevation: detect.Elevation{Sudo: sudoYes, SudoFlavor: detect.SudoOriginal, Doas: no},
 	}}
 }
 
@@ -54,7 +56,7 @@ func alpine324() platform {
 	return platform{dir: "alpine324", facts: detect.Facts{
 		Platform:  detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported},
 		Proxmox:   detect.Proxmox{Installed: detect.No},
-		Elevation: detect.Elevation{Sudo: no, Doas: yes},
+		Elevation: detect.Elevation{Sudo: no, Doas: doasYes},
 	}}
 }
 
@@ -81,6 +83,9 @@ type site struct {
 	files   map[string]string // path → content, added or replacing; "" removes
 	fail    map[string]error  // "op path" → the error the host returns
 	reject  string            // the file the tool's check rejects: sudoers.MainConfig for visudo -c, a doas file for doas -C
+	runErr  error             // visudo -c cannot run: Run returns it
+	bare    string            // a tool's path whose setuid bit Stat does not show
+	seed    func(*hostfake.System)
 }
 
 // stock maps testdata's files to their paths.
@@ -133,10 +138,24 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			h.AddFile(p, []byte(data), 0o440, 0, 0)
 		}
 	}
+	// The tools detect found, setuid root as installed: hostfake has no
+	// setuid bit, so Stat adds it (suid) but at s.bare.
+	suid := map[string]bool{}
+	for _, tl := range []detect.Tool{s.plat.facts.Elevation.Sudo, s.plat.facts.Elevation.Doas} {
+		if tl.Present == detect.Yes {
+			h.AddFile(tl.Path, nil, 0o755, 0, 0)
+			suid[tl.Path] = tl.Path != s.bare
+		}
+	}
+	if s.seed != nil {
+		s.seed(h)
+	}
 	// visudo -c and doas -C accept every file but s.reject, as
 	// sudoers.CheckInstalled runs them.
 	h.Handler = func(argv []string, _ []byte) hostfake.Response {
 		switch {
+		case slices.Equal(argv, []string{"visudo", "-c"}) && s.runErr != nil:
+			return hostfake.Response{Err: s.runErr}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.reject != sudoers.MainConfig:
 			return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
 		case len(argv) == 3 && argv[0] == "doas" && argv[1] == "-C" && argv[2] != s.reject:
@@ -144,16 +163,15 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 		}
 		return hostfake.Response{Stderr: "syntax error at line 1\n", ExitCode: 1}
 	}
-	if len(s.fail) > 0 {
-		return faulty{h, s.fail}, h
-	}
-	return h, h
+	return faulty{h, s.fail, suid}, h
 }
 
-// faulty fails the reads s.fail names.
+// faulty fails the reads fail names, and shows the setuid bit of the
+// paths suid says.
 type faulty struct {
 	*hostfake.System
 	fail map[string]error
+	suid map[string]bool
 }
 
 func (f faulty) ReadFile(ctx context.Context, name string) ([]byte, error) {
@@ -167,8 +185,17 @@ func (f faulty) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 	if err := f.fail["stat "+name]; err != nil {
 		return nil, &fs.PathError{Op: "stat", Path: name, Err: err}
 	}
-	return f.System.Stat(ctx, name)
+	fi, err := f.System.Stat(ctx, name)
+	if err == nil && f.suid[name] {
+		fi = setuid{fi}
+	}
+	return fi, err
 }
+
+// setuid is a file's information with its setuid bit set.
+type setuid struct{ fs.FileInfo }
+
+func (i setuid) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetuid }
 
 type row struct {
 	name  string
@@ -240,48 +267,107 @@ func runAll(t *testing.T, rows []row) {
 const (
 	alice    = "alice:x:1000:1000:Alice,,,:/home/alice:/bin/bash"
 	bob      = "bob:x:1001:1001::/home/bob:/bin/bash"
+	aliceSh  = "alice:x:1000:1000::/home/alice:/bin/sh"
 	noPass   = users.CodeNoPassword
 	notRead  = users.CodeRuleNotRead
 	uid0     = users.CodeUID0
-	hardnPw  = sudoers.Header + "alice ALL=(ALL) ALL\n"
-	hardnNo  = sudoers.Header + "alice ALL=(ALL) NOPASSWD: ALL\n"
 	grantDir = sudoers.DropInDir + "/"
 )
 
 var sudoGroup = map[string]string{"sudo": "alice"}
 
+// written is what sudoers' writer plans for pol on p's host, path to
+// content: hardn's own rules come from the writer, so a change there that
+// this reader does not read fails here.
+func written(t *testing.T, p platform, pol sudoers.Policy) map[string]string {
+	t.Helper()
+	sys, _ := site{plat: p}.build(t)
+	want := sudoers.ToolSudo
+	if p.facts.Elevation.Sudo.Present != detect.Yes {
+		want = sudoers.ToolDoas
+	}
+	st, err := sudoers.Read(context.Background(), sys, sudoers.Choose(p.facts, want), []string{pol.User})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
+	if err != nil || len(plan.Changes) == 0 {
+		t.Fatalf("plan %+v, %v", plan, err)
+	}
+	out := map[string]string{}
+	for _, c := range plan.Changes {
+		out[c.Path] = string(c.Data)
+	}
+	return out
+}
+
+// merge is the files of ms, later ones replacing earlier.
+func merge(ms ...map[string]string) map[string]string {
+	out := map[string]string{}
+	for _, m := range ms {
+		maps.Copy(out, m)
+	}
+	return out
+}
+
 // TestSudo: every sudo line of check-users.md §5 on Debian 13, sudo's
 // reading of its rules, and the accounts that count.
 func TestSudo(t *testing.T) {
 	d := debian13()
+	grant := written(t, d, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword, Env: []string{"HARDN_CONFIG"}})
+	grantNo := written(t, d, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword})
+	dropIn := func(rules string) map[string]string { return map[string]string{grantDir + "zz-site": rules} }
+	inSudo := func(name string, files map[string]string, state engine.State, want string, codes ...string) row {
+		return row{name: name, site: site{plat: d, users: []string{alice}, members: sudoGroup, files: files}, state: state, want: want, codes: codes}
+	}
+	mainWith := func(top string) map[string]string {
+		return map[string]string{sudoers.MainConfig: top + readStock(t, d, "sudoers")}
+	}
 	runAll(t, []row{
 		{name: "stock, root only", site: site{plat: d}, state: engine.NotConfigured, want: "root only"},
 		{name: "in sudo", site: site{plat: d, users: []string{alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo"},
 		{name: "sudo as primary group", site: site{plat: d, users: []string{"alice:x:1000:27::/home/alice:/bin/bash"}}, state: engine.Configured, want: "non-root, sudo"},
 		{name: "not in sudo", site: site{plat: d, users: []string{alice}}, state: engine.Partial, want: "non-root, no sudo"},
 		{name: "one of two", site: site{plat: d, users: []string{bob, alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo"},
-		{name: "hardn's grant", site: site{plat: d, users: []string{alice}, files: map[string]string{grantDir + "hardn-grant-alice": hardnPw,
-			grantDir + "hardn-env-alice": sudoers.Header + "Defaults:alice env_keep += \"HARDN_CONFIG\"\n"}}, state: engine.Configured, want: "non-root, sudo"},
-		{name: "hardn's grant, no password", site: site{plat: d, users: []string{alice}, files: map[string]string{grantDir + "hardn-grant-alice": hardnNo}},
-			state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}},
-		{name: "cloud-init's", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{grantDir + "90-cloud-init-users": "# Created by cloud-init\n\n# User rules for alice\nalice ALL=(ALL) NOPASSWD:ALL\n"}},
-			state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}},
-		{name: "a rule not read before the grant", site: site{plat: d, users: []string{alice}, files: map[string]string{grantDir + "10-site": "User_Alias ADMINS = bob\nADMINS ALL=(ALL) ALL\n", grantDir + "hardn-grant-alice": hardnPw}},
+		{name: "hardn's grant", site: site{plat: d, users: []string{alice}, files: grant}, state: engine.Configured, want: "non-root, sudo"},
+		{name: "hardn's grant, no password", site: site{plat: d, users: []string{alice}, files: grantNo}, state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}},
+		inSudo("cloud-init's", map[string]string{grantDir + "90-cloud-init-users": "# Created by cloud-init\n\n# User rules for alice\nalice ALL=(ALL) NOPASSWD:ALL\n"},
+			engine.Configured, "non-root, sudo", noPass),
+		{name: "a rule not read before the grant", site: site{plat: d, users: []string{alice}, files: merge(grant, map[string]string{grantDir + "10-site": "User_Alias ADMINS = bob\nADMINS ALL=(ALL) ALL\n"})},
 			state: engine.Configured, want: "non-root, sudo"},
-		{name: "a rule not read after the grant", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{grantDir + "zz-site": "alice ALL=(ALL) !ALL\n"}},
-			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
+		inSudo("a rule not read after the grant", dropIn("alice ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("an alias after the grant", dropIn("User_Alias ADMINS = alice\nADMINS ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("every user after the grant", dropIn("ALL ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("a list after the grant", dropIn("bob, alice ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("another account's rule after", dropIn("bob ALL=(root) NOPASSWD: /usr/bin/systemctl restart app\n"), engine.Configured, "non-root, sudo"),
+		inSudo("another group's rule after", dropIn("%adm ALL=(root) /usr/bin/journalctl\n"), engine.Configured, "non-root, sudo"),
+		inSudo("a group /etc/group lacks", dropIn("%ldap-admins ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("the name in another case", dropIn("Alice ALL=(ALL) !ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		{name: "a grant with a comment", site: site{plat: d, users: []string{alice}, files: dropIn("alice ALL=(ALL:ALL) ALL # admin\n")}, state: engine.Configured, want: "non-root, sudo"},
 		{name: "a user ID after the includedir", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{sudoers.MainConfig: readStock(t, d, "sudoers") + "#1000 ALL=(ALL) !ALL\n"}},
 			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
-		{name: "a continued line", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{grantDir + "zz-site": "alice ALL=(ALL) \\\n  NOPASSWD: ALL\n"}},
-			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
-		{name: "files sudo skips", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{grantDir + "zz.conf": "alice ALL=(ALL) !ALL\n", grantDir + "zz~": "alice ALL=(ALL) !ALL\n"}},
-			state: engine.Configured, want: "non-root, sudo"},
+		inSudo("a continued line", dropIn("alice ALL=(ALL) \\\n  NOPASSWD: ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("a continued comment", dropIn("# admins \\\nbob ALL=(ALL) ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("files sudo skips", map[string]string{grantDir + "zz.conf": "alice ALL=(ALL) !ALL\n", grantDir + "zz~": "alice ALL=(ALL) !ALL\n"}, engine.Configured, "non-root, sudo"),
+		inSudo("root's password asked, before the grant", mainWith("Defaults rootpw\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("the target's password asked", dropIn("Defaults targetpw\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("the runas password asked, for alice", dropIn("Defaults:alice runaspw\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("no password asked, for alice", dropIn("Defaults:alice !authenticate\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("no password asked, for a group", dropIn("Defaults:%sudo authenticate, !!authenticate\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		inSudo("root's password asked, for bob", dropIn("Defaults:bob rootpw\n"), engine.Configured, "non-root, sudo"),
+		inSudo("the defaults as shipped", dropIn("Defaults !rootpw, authenticate\nDefaults env_keep += \"rootpw\" # rootpw\n"), engine.Configured, "non-root, sudo"),
+		inSudo("another file included", mainWith("@include /etc/sudoers.local\n"), engine.Unknown, "can't tell who has sudo", notRead),
 		{name: "nologin", site: site{plat: d, users: []string{"alice:x:1000:27::/home/alice:/usr/sbin/nologin"}}, state: engine.NotConfigured, want: "root only"},
+		{name: "true", site: site{plat: d, users: []string{"alice:x:1000:27::/home/alice:/bin/true"}}, state: engine.NotConfigured, want: "root only"},
+		{name: "git-shell", site: site{plat: d, users: []string{"alice:x:1000:27::/home/alice:/usr/bin/git-shell"}}, state: engine.NotConfigured, want: "root only"},
 		{name: "shell not installed", site: site{plat: d, users: []string{"alice:x:1000:27::/home/alice:/bin/zsh"}}, state: engine.NotConfigured, want: "root only"},
 		{name: "a system account", site: site{plat: d, users: []string{"backup:x:34:27::/var/backups:/bin/bash"}}, state: engine.NotConfigured, want: "root only"},
 		{name: "a second root", site: site{plat: d, users: []string{"george:x:0:0::/root:/bin/bash"}}, state: engine.NotConfigured, want: "root only", codes: []string{uid0}},
 		{name: "a second line for a name", site: site{plat: d, users: []string{"alice:x:0:0::/root:/bin/bash", alice}, members: sudoGroup}, state: engine.NotConfigured, want: "root only", codes: []string{uid0}},
 		{name: "sudo not installed", site: site{plat: with(d, func(f *detect.Facts) { f.Elevation.Sudo = no }), users: []string{alice}, members: sudoGroup}, state: engine.Partial, want: "non-root, no sudo"},
+		{name: "sudo not setuid", site: site{plat: d, users: []string{alice}, members: sudoGroup, bare: sudoYes.Path}, state: engine.Partial, want: "non-root, no sudo"},
+		{name: "sudo not root's", site: site{plat: d, users: []string{alice}, members: sudoGroup, seed: func(h *hostfake.System) { h.AddFile(sudoYes.Path, nil, 0o755, 1000, 0) }},
+			state: engine.Partial, want: "non-root, no sudo"},
 	})
 }
 
@@ -300,31 +386,39 @@ func TestPlatforms(t *testing.T) {
 	u, a, p := ubuntu2604(), alpine324(), pve9()
 	wheel := map[string]string{"wheel": "root,alice"}
 	doasFile := func(rule string) map[string]string {
-		return map[string]string{sudoers.DoasDir + "/hardn-alice.conf": sudoers.Header + rule + "\n"}
+		return map[string]string{sudoers.DoasDir + "/zz-site.conf": rule + "\n"}
+	}
+	both := with(a, func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = sudoYes, detect.SudoOriginal })
+	inWheel := func(name string, files map[string]string, state engine.State, want string, codes ...string) row {
+		return row{name: name, site: site{plat: a, users: []string{aliceSh}, members: wheel, files: files}, state: state, want: want, codes: codes}
 	}
 	runAll(t, []row{
 		{name: "ubuntu, installer's user", site: site{plat: u, users: []string{alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo"},
 		{name: "ubuntu, sudo-rs's own file", site: site{plat: u, users: []string{alice}, members: sudoGroup,
 			files: map[string]string{sudoers.SudoersRS: "root ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"}}, state: engine.Partial, want: "non-root, no sudo"},
 		{name: "alpine, setup-alpine's user", site: site{plat: a, users: []string{"alice:x:1000:1000:alice:/home/alice:/bin/sh"}, members: wheel}, state: engine.Configured, want: "non-root, doas"},
-		{name: "alpine, not in wheel", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}}, state: engine.Partial, want: "non-root, no doas"},
-		{name: "alpine, hardn's rule", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, files: doasFile("permit persist setenv { HARDN_CONFIG } alice")},
+		{name: "alpine, not in wheel", site: site{plat: a, users: []string{aliceSh}}, state: engine.Partial, want: "non-root, no doas"},
+		{name: "alpine, hardn's rule", site: site{plat: a, users: []string{aliceSh}, files: written(t, a, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword, Env: []string{"HARDN_CONFIG"}})},
 			state: engine.Configured, want: "non-root, doas"},
-		{name: "alpine, no password", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, files: doasFile("permit nopass alice as root")},
+		{name: "alpine, no password", site: site{plat: a, users: []string{aliceSh}, files: doasFile("permit nopass alice as root")},
 			state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
-		{name: "alpine, denied after wheel", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, members: wheel, files: doasFile("deny alice")},
-			state: engine.Partial, want: "non-root, no doas"},
-		{name: "alpine, a command rule", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, members: wheel, files: doasFile("deny alice cmd reboot")},
-			state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead}},
-		{name: "alpine, doas and sudo", site: site{plat: with(a, func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = yes, detect.SudoOriginal }),
-			users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, members: wheel, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},
+		{name: "alpine, a rule with a comment", site: site{plat: a, users: []string{aliceSh}, files: doasFile("permit persist alice # admin, \"wheel\" later")},
 			state: engine.Configured, want: "non-root, doas"},
-		{name: "alpine, neither grants", site: site{plat: with(a, func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = yes, detect.SudoOriginal }),
-			users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},
+		inWheel("alpine, denied after wheel", doasFile("deny alice"), engine.Partial, "non-root, no doas"),
+		inWheel("alpine, a command rule", doasFile("deny alice cmd reboot"), engine.Unknown, "can't tell who has doas", notRead),
+		inWheel("alpine, another account's command rule", doasFile("deny bob cmd reboot"), engine.Configured, "non-root, doas"),
+		inWheel("alpine, a quoted rule", doasFile(`permit setenv { PS1="# " } bob`), engine.Unknown, "can't tell who has doas", notRead),
+		{name: "alpine, a second account of the uid", site: site{plat: a, users: []string{aliceSh, "bob:x:1000:1000::/home/bob:/bin/sh"}, members: wheel, files: doasFile("deny bob")},
+			state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead, notRead}},
+		{name: "alpine, doas and sudo", site: site{plat: both, users: []string{aliceSh}, members: wheel, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},
+			state: engine.Configured, want: "non-root, doas"},
+		{name: "alpine, neither grants", site: site{plat: both, users: []string{aliceSh}, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},
 			state: engine.Partial, want: "non-root, no sudo or doas"},
+		{name: "alpine, neither installed", site: site{plat: with(a, func(f *detect.Facts) { f.Elevation.Doas = no }), users: []string{aliceSh}, members: wheel},
+			state: engine.Partial, want: "non-root, no doas"},
 		{name: "proxmox, stock", site: site{plat: p}, state: engine.NotConfigured, want: "root only"},
 		{name: "proxmox, a user, no sudo", site: site{plat: p, users: []string{alice}, members: sudoGroup}, state: engine.Partial, want: "non-root, no sudo"},
-		{name: "proxmox, sudo installed", site: site{plat: with(p, func(f *detect.Facts) { f.Elevation.Sudo = yes }), users: []string{alice}, members: sudoGroup,
+		{name: "proxmox, sudo installed", site: site{plat: with(p, func(f *detect.Facts) { f.Elevation.Sudo = sudoYes }), users: []string{alice}, members: sudoGroup,
 			files: map[string]string{sudoers.MainConfig: readStock(t, debian13(), "sudoers")}}, state: engine.Configured, want: "non-root, sudo"},
 	})
 }
@@ -335,7 +429,10 @@ func TestUnknown(t *testing.T) {
 	d, a := debian13(), alpine324()
 	denied := func(op, path string) map[string]error { return map[string]error{op + " " + path: fs.ErrPermission} }
 	sudoUnknown := with(d, func(f *detect.Facts) { f.Elevation.Sudo = detect.Tool{Err: fs.ErrPermission} })
-	doasOnDebian := with(d, func(f *detect.Facts) { f.Elevation.Doas = yes })
+	doasUnknown := with(a, func(f *detect.Facts) { f.Elevation.Doas = detect.Tool{Err: fs.ErrPermission} })
+	doasOnDebian := with(d, func(f *detect.Facts) { f.Elevation.Doas = doasYes })
+	distroUnknown := with(a, func(f *detect.Facts) { f.Platform = detect.Platform{} })
+	wheel := map[string]string{"wheel": "alice"}
 	runAll(t, []row{
 		{name: "passwd unreadable", site: site{plat: d, fail: denied("read", "/etc/passwd")}, state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
 		{name: "group malformed", site: site{plat: d, files: map[string]string{"/etc/group": "root:x:0:\nsudo:x:27\n"}}, state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
@@ -350,52 +447,97 @@ func TestUnknown(t *testing.T) {
 			state: engine.Partial, want: "non-root, no sudo"},
 		{name: "sudo not established", site: site{plat: sudoUnknown, users: []string{alice}, members: sudoGroup}, state: engine.Unknown, want: "can't tell if sudo installed", err: "PERMISSION_DENIED"},
 		{name: "sudo not established, root only", site: site{plat: sudoUnknown}, state: engine.NotConfigured, want: "root only"},
+		{name: "sudo's mode unreadable", site: site{plat: d, users: []string{alice}, members: sudoGroup, fail: denied("stat", sudoYes.Path)}, state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
+		{name: "doas not established", site: site{plat: doasUnknown, users: []string{aliceSh}, members: wheel}, state: engine.Unknown, want: "can't tell if doas installed", err: "PERMISSION_DENIED"},
 		{name: "doas off Alpine", site: site{plat: doasOnDebian, users: []string{alice}}, state: engine.Unknown, want: "can't tell who has doas", err: "SUDOERS_DOAS_UNSUPPORTED"},
 		{name: "doas off Alpine, sudo grants", site: site{plat: doasOnDebian, users: []string{alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo"},
-		{name: "doas.conf missing", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, members: map[string]string{"wheel": "alice"}, files: map[string]string{sudoers.DoasConfig: ""}},
+		{name: "doas, distribution not established", site: site{plat: distroUnknown, users: []string{aliceSh}, members: wheel}, state: engine.Unknown, want: "can't tell who has doas", err: "DETECT_NO_SIGNAL"},
+		{name: "doas.conf missing", site: site{plat: a, users: []string{aliceSh}, members: wheel, files: map[string]string{sudoers.DoasConfig: ""}},
 			state: engine.Unknown, want: "can't read", err: "SUDOERS_CHECK_FAILED"},
+		{name: "visudo cannot run", site: site{plat: d, users: []string{alice}, members: sudoGroup, runErr: host.ErrNotFound}, state: engine.Unknown, want: "can't read", err: "SUDOERS_CHECK_FAILED"},
 		{name: "visudo rejects", site: site{plat: d, users: []string{alice}, members: sudoGroup, reject: sudoers.MainConfig}, state: engine.Unknown, want: "sudo config invalid", err: "SUDOERS_INVALID_BEFORE"},
 		{name: "visudo rejects, root only", site: site{plat: d, reject: sudoers.MainConfig}, state: engine.NotConfigured, want: "root only"},
-		{name: "doas -C rejects", site: site{plat: a, users: []string{"alice:x:1000:1000::/home/alice:/bin/sh"}, members: map[string]string{"wheel": "alice"}, reject: sudoers.DoasDir + "/20-wheel.conf"},
+		{name: "doas -C rejects", site: site{plat: a, users: []string{aliceSh}, members: wheel, reject: sudoers.DoasDir + "/20-wheel.conf"},
 			state: engine.Unknown, want: "doas config invalid", err: "SUDOERS_INVALID_BEFORE"},
 	})
 }
 
-// TestEvidence: what each state was read from, one line per source.
+// TestEvidence: what each state was read from, one line per source; an
+// error the check returns is not repeated there, any other is short.
 func TestEvidence(t *testing.T) {
-	st := run(t, row{site: site{plat: debian13(), users: []string{alice, bob}, members: sudoGroup,
-		files: map[string]string{grantDir + "90-cloud-init-users": "alice ALL=(ALL) NOPASSWD:ALL\n"}},
-		state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}})
-	want := []string{
-		"doas: not installed",
-		"passwd: alice, uid 1000, /bin/bash",
-		"sudo: alice by /etc/sudoers.d/90-cloud-init-users:1: alice ALL=(ALL) NOPASSWD:ALL",
-		"passwd: bob, uid 1001, /bin/bash",
-		"sudo: no rule for bob",
-	}
-	if !slices.Equal(st.Evidence, want) {
-		t.Errorf("evidence\n%q\nwant\n%q", st.Evidence, want)
-	}
-	if f := st.Findings[0]; f.Detail != "alice: sudo without password" || f.Source != "/etc/sudoers.d/90-cloud-init-users:1" {
-		t.Errorf("finding %+v", f)
-	}
-	st = run(t, row{site: site{plat: alpine324(), users: []string{"alice:x:1000:1000::/home/alice:"}, members: map[string]string{"wheel": "root,alice"},
-		files: map[string]string{sudoers.DoasDir + "/zz.conf": "deny alice\npermit :wheel cmd apk\n"}},
-		state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead}})
-	want = []string{
-		"sudo: not installed",
-		"passwd: alice, uid 1000, /bin/sh",
-		"doas: alice not established, /etc/doas.d/zz.conf:2: permit :wheel cmd apk",
-	}
-	if !slices.Equal(st.Evidence, want) {
-		t.Errorf("evidence\n%q\nwant\n%q", st.Evidence, want)
-	}
-	if f := st.Findings[0]; f.Detail != "may decide doas for alice" || f.Source != "/etc/doas.d/zz.conf:2" {
-		t.Errorf("finding %+v", f)
-	}
-	st = run(t, row{site: site{plat: debian13()}, state: engine.NotConfigured, want: "root only"})
-	if want := []string{"passwd: no account with uid 1000 or more and a login shell"}; !slices.Equal(st.Evidence, want) {
-		t.Errorf("evidence %q, want %q", st.Evidence, want)
+	cases := []struct {
+		row  row
+		want []string
+		find string // the first finding's detail and source
+	}{{
+		row: row{site: site{plat: debian13(), users: []string{alice, bob}, members: sudoGroup,
+			files: map[string]string{grantDir + "90-cloud-init-users": "alice ALL=(ALL) NOPASSWD:ALL\n"}},
+			state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}},
+		want: []string{
+			"doas: not installed",
+			"passwd: alice, uid 1000, /bin/bash",
+			"sudo: alice by /etc/sudoers.d/90-cloud-init-users:1: alice ALL=(ALL) NOPASSWD:ALL",
+			"passwd: bob, uid 1001, /bin/bash",
+			"sudo: no rule for bob",
+		},
+		find: "alice: sudo without password /etc/sudoers.d/90-cloud-init-users:1",
+	}, {
+		row: row{site: site{plat: alpine324(), users: []string{"alice:x:1000:1000::/home/alice:"}, members: map[string]string{"wheel": "root,alice"},
+			files: map[string]string{sudoers.DoasDir + "/zz.conf": "deny alice\npermit :wheel cmd apk\n"}},
+			state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead}},
+		want: []string{
+			"sudo: not installed",
+			"passwd: alice, uid 1000, /bin/sh",
+			"doas: alice may be decided by /etc/doas.d/zz.conf:2: permit :wheel cmd apk",
+		},
+		find: "may decide doas for alice /etc/doas.d/zz.conf:2",
+	}, {
+		row:  row{site: site{plat: debian13()}, state: engine.NotConfigured, want: "root only"},
+		want: []string{"passwd: no account with uid 1000 or more and a login shell"},
+	}, {
+		row: row{site: site{plat: with(debian13(), func(f *detect.Facts) { f.Elevation.Doas = doasYes }), users: []string{alice}, members: sudoGroup},
+			state: engine.Configured, want: "non-root, sudo"},
+		want: []string{
+			"doas: not read: doas drop-ins are established on Alpine only",
+			"passwd: alice, uid 1000, /bin/bash",
+			"sudo: alice by /etc/sudoers:22: %sudo ALL=(ALL:ALL) ALL",
+		},
+	}, {
+		row: row{site: site{plat: debian13(), users: []string{alice}, members: sudoGroup, reject: sudoers.MainConfig},
+			state: engine.Unknown, want: "sudo config invalid", err: "SUDOERS_INVALID_BEFORE"},
+		want: []string{"sudo: not read", "doas: not installed", "passwd: alice, uid 1000, /bin/bash"},
+	}, {
+		row: row{site: site{plat: with(alpine324(), func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = sudoYes, detect.SudoOriginal }),
+			users: []string{aliceSh}, members: map[string]string{"wheel": "alice"}, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}, reject: sudoers.MainConfig},
+			state: engine.Configured, want: "non-root, doas"},
+		want: []string{
+			"sudo: not read: visudo -c: syntax error at line 1",
+			"passwd: alice, uid 1000, /bin/sh",
+			"doas: alice by /etc/doas.d/20-wheel.conf:1: permit persist :wheel",
+		},
+	}, {
+		row: row{site: site{plat: debian13(), users: []string{alice}, members: sudoGroup, bare: sudoYes.Path},
+			state: engine.Partial, want: "non-root, no sudo"},
+		want: []string{"sudo: /usr/bin/sudo not setuid root", "doas: not installed", "passwd: alice, uid 1000, /bin/bash"},
+	}, {
+		row: row{site: site{plat: debian13(), users: []string{alice, "bob:x:1001:1001::/home/bob:/bin/sh"}, fail: map[string]error{"stat /bin/bash": fs.ErrPermission}},
+			state: engine.Partial, want: "non-root, no sudo"},
+		want: []string{
+			"doas: not installed",
+			"passwd: alice, uid 1000, /bin/bash, shell not read: stat /bin/bash: permission denied",
+			"sudo: no rule for alice",
+			"passwd: bob, uid 1001, /bin/sh",
+			"sudo: no rule for bob",
+		},
+	}}
+	for _, c := range cases {
+		st := run(t, c.row)
+		if !slices.Equal(st.Evidence, c.want) {
+			t.Errorf("evidence\n%q\nwant\n%q", st.Evidence, c.want)
+		}
+		if c.find != "" && (len(st.Findings) == 0 || st.Findings[0].Detail+" "+st.Findings[0].Source != c.find) {
+			t.Errorf("findings %+v, want %q", st.Findings, c.find)
+		}
 	}
 }
 

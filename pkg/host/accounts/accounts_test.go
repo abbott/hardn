@@ -89,7 +89,11 @@ func TestRead(t *testing.T) {
 	if err != nil || len(db.Users) != 3 || len(db.Groups) != 4 {
 		t.Fatalf("Read: %+v, %v", db, err)
 	}
-	for _, c := range h.Calls() {
+	calls := h.Calls()
+	if len(calls) != 2 {
+		t.Errorf("%d calls, want 2: %v", len(calls), calls)
+	}
+	for _, c := range calls {
 		if c.Op != "read" {
 			t.Errorf("a call that is not a read: %v", c)
 		}

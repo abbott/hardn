@@ -4,16 +4,18 @@
 // (engine.CheckOnly) until slice 5 migrates it.
 //
 // Configured is a user account other than root (uid MinUID or more) with a
-// login shell, whom an installed elevation tool lets run every command as
-// root: sudo or sudo-rs, or doas on Alpine. Check reads the accounts
-// (accounts.Read), each candidate's shell, and, once the tool's own check
-// passes its files (sudoers.CheckInstalled: visudo -c, doas -C), each
-// tool's rules in the order the tool reads them (sudoers.Choose and
-// sudoers.Read, then the files). The last rule that matches decides, as
-// in sudo and doas; hardn reads one form of grant per tool (rules.go), and
-// any other rule after it leaves the answer Unknown. A read that fails is
-// the check's error, which the engine reports as Unknown; what it read but
-// cannot establish a state from is Unknown with findings: never a guess.
+// login shell, whom an installed elevation tool, setuid root, lets run
+// every command as root: sudo or sudo-rs, or doas on Alpine. Check reads
+// the accounts (accounts.Read), each candidate's shell, and, once the
+// tool's own check passes its files (sudoers.CheckInstalled: visudo -c,
+// doas -C), each tool's rules in the order the tool reads them
+// (sudoers.Choose and sudoers.Read, then the files). The last rule that
+// matches decides, as in sudo and doas; hardn reads one form of grant per
+// tool (rules.go), and any other rule after it that may be for the user,
+// or a sudo Defaults that may change how it asks a password, leaves the
+// answer Unknown. A read that fails is the check's error, which the
+// engine reports as Unknown; what it read but cannot establish a state
+// from is Unknown with findings: never a guess.
 // docs/engine/check-users.md has every status line the row can show.
 package users
 
@@ -23,23 +25,28 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
 // The finding codes of this package (pkg/output's registry holds them).
 const (
-	// CodeNoPassword: a login user becomes root without a password
-	// (sudo's NOPASSWD, doas's nopass).
+	// CodeNoPassword: an account the row counts (uid MinUID or more, a
+	// login shell) becomes root without a password (sudo's NOPASSWD,
+	// doas's nopass). Accounts below MinUID are not looked at.
 	CodeNoPassword = "USERS_NOPASSWD"
-	// CodeRuleNotRead: a rule in a form hardn does not read comes after
-	// the last one it reads that matches a login user, so whether that
-	// user becomes root is not established.
+	// CodeRuleNotRead: a rule in a form hardn does not read that may be
+	// for an account the row counts comes after the last one it reads
+	// that matches, or a sudo Defaults may change how sudo asks it a
+	// password, so whether that account becomes root is not established.
 	CodeRuleNotRead = "USERS_RULE_NOT_READ"
 	// CodeUID0: an account other than root has uid 0, so it is root.
 	CodeUID0 = "USERS_UID0"
@@ -124,18 +131,24 @@ func (Admin) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 			cs[i].grants = append(cs[i].grants, t.decide(db, cs[i].User))
 		}
 	}
-	st.Evidence = evidence(tools, cs)
-	return verdict(st, tools, cs)
+	st, err = verdict(st, f, tools, cs)
+	st.Evidence = evidence(tools, cs, err)
+	return st, err
 }
 
-// loginShell is whether shell lets its user log in: not nologin or false,
+// noShells are the base names of the shells that give no shell to run a
+// command from: nologin, false and true exit, git-shell runs git's
+// commands only.
+var noShells = []string{"nologin", "false", "true", "git-shell"}
+
+// loginShell is whether shell lets its user log in: not one of noShells,
 // and an executable regular file, which sshd requires [I]. An empty shell
-// is /bin/sh (passwd(5)).
+// is /bin/sh (passwd(5)). Any other program is taken for a shell.
 func loginShell(ctx context.Context, sys host.System, shell string) (detect.Tri, error) {
 	if shell == "" {
 		shell = "/bin/sh"
 	}
-	if b := path.Base(shell); b == "nologin" || b == "false" || !path.IsAbs(shell) {
+	if slices.Contains(noShells, path.Base(shell)) || !path.IsAbs(shell) {
 		return detect.No, nil
 	}
 	fi, err := sys.Stat(ctx, shell)
@@ -151,7 +164,7 @@ func loginShell(ctx context.Context, sys host.System, shell string) (detect.Tri,
 }
 
 // verdict decides the row from the candidates (see the package comment).
-func verdict(st engine.Status, tools []tool, cs []candidate) (engine.Status, error) {
+func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (engine.Status, error) {
 	logins := 0
 	for _, c := range cs {
 		if c.login != detect.Yes {
@@ -206,13 +219,13 @@ func verdict(st engine.Status, tools []tool, cs []candidate) (engine.Status, err
 	case st.Detail != "":
 		return st, nil
 	}
-	st.State, st.Detail = engine.Partial, "non-root, no "+installed(tools)
+	st.State, st.Detail = engine.Partial, "non-root, no "+installed(f, tools)
 	return st, nil
 }
 
-// installed names the tools installed, for Partial's detail; sudo when
-// none is (Figma's word).
-func installed(tools []tool) string {
+// installed names the tools installed, for Partial's detail; when none
+// is, the distribution's: doas on Alpine, sudo elsewhere (Figma's word).
+func installed(f detect.Facts, tools []tool) string {
 	var s string
 	for _, t := range tools {
 		if t.state == detect.Yes {
@@ -222,21 +235,26 @@ func installed(tools []tool) string {
 			s += t.name
 		}
 	}
-	if s == "" {
-		return "sudo"
+	switch {
+	case s != "":
+		return s
+	case f.Platform.Distro == detect.DistroAlpine:
+		return "doas"
 	}
-	return s
+	return "sudo"
 }
 
-// evidence is one line per candidate and per tool's answer for it.
-func evidence(tools []tool, cs []candidate) []string {
+// evidence is one line per tool not read, per candidate and per tool's
+// answer for it. An error that is the check's (err) is in its errors, so
+// the line says only what was not read; any other is shown short.
+func evidence(tools []tool, cs []candidate, err error) []string {
 	var ev []string
 	for _, t := range tools {
 		switch t.state {
 		case detect.No:
-			ev = append(ev, t.name+": not installed")
+			ev = append(ev, t.name+": "+t.why)
 		case detect.Unknown:
-			ev = append(ev, t.name+": "+t.err.Error())
+			ev = append(ev, t.name+": not read"+cause(t.err, err))
 		}
 	}
 	if len(cs) == 0 {
@@ -249,7 +267,7 @@ func evidence(tools []tool, cs []candidate) []string {
 		}
 		l := "passwd: " + c.Name + ", uid " + strconv.Itoa(c.UID) + ", " + shell
 		if c.err != nil {
-			l += ": " + c.err.Error()
+			l += ", shell not read" + cause(c.err, err)
 		}
 		ev = append(ev, l)
 		for i, g := range c.grants {
@@ -263,9 +281,36 @@ func evidence(tools []tool, cs []candidate) []string {
 			case g.tri == detect.No:
 				ev = append(ev, n+": no rule for "+c.Name)
 			default:
-				ev = append(ev, n+": "+c.Name+" not established, "+g.by.at+": "+g.by.text)
+				ev = append(ev, n+": "+c.Name+" may be decided by "+g.by.at+": "+g.by.text)
 			}
 		}
 	}
 	return ev
+}
+
+// cause is ": " and e short, or "" when e is the check's error, err.
+func cause(e, err error) string {
+	if errors.Is(err, e) {
+		return ""
+	}
+	return ": " + short(e)
+}
+
+// short is err as the host put it: the tool's check and the last line it
+// printed, the file operation that failed, or the innermost error.
+func short(err error) string {
+	var ce *sudoers.CheckError
+	var pe *fs.PathError
+	switch {
+	case errors.As(err, &ce) && len(ce.Tail) > 0:
+		return host.FormatArgv(ce.Argv) + ": " + ce.Tail[len(ce.Tail)-1]
+	case errors.As(err, &pe):
+		return pe.Error()
+	case ce != nil:
+		return ce.Path + ": " + short(ce.Err)
+	}
+	for u := errors.Unwrap(err); u != nil; u = errors.Unwrap(err) {
+		err = u
+	}
+	return strings.ReplaceAll(err.Error(), "\n", "; ")
 }
