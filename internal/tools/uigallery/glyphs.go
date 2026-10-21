@@ -21,10 +21,11 @@ import (
 // (status.ok), ⭘ one off (status.bad), and ⛬ the overall risk level (by
 // band). The states Figma draws no symbol for took ⛬ (Partial), ? (Unknown)
 // and ∅ (Not Applicable) in DEV-012 to DEV-014 and DEV-024, so ⛬ marks
-// Partial as well as the risk level. This mode shows today's set beside
-// candidate sets, built from the measured shortlist, in which ⛬ marks the
-// risk row alone, and a strip of each candidate beside ⛛ ⭘ ⛬
-// (docs/engine/gallery-glyphs.md).
+// Partial as well as the risk level; it also marks warnings, lockout risk
+// and, as Partial, Reboot pending, which this mode does not draw. This
+// mode shows today's set beside candidate sets, built from the measured
+// shortlist, in which ⛬ marks the risk row alone, and a strip of each
+// candidate beside ⛛ ⭘ ⛬ (docs/engine/gallery-glyphs.md).
 //
 // Like compare.go's mock it draws the rows itself, on the components'
 // grid, styled through the theme's slots' Render methods (paint) and
@@ -344,7 +345,8 @@ func glyphsNote(c component.Ctx) []string {
 	}
 	return []string{
 		"Glyphs mode: Figma's " + family + " beside candidates for Partial, Unknown and Not Applicable. " +
-			"In every candidate set " + g.Risk + " marks the risk level alone.",
+			"In every candidate set " + g.Risk + " marks the risk row alone; its other uses today " +
+			"(lockout risk, warnings, Reboot pending) are not shown.",
 		lists,
 		"Nothing is decided and no component changed: docs/engine/gallery-glyphs.md.",
 	}

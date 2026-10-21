@@ -6,7 +6,8 @@
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGlyphs mode: Figma's ⛛ ⭘ ⛬ beside candidates for Partial,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable. In every candidate set ⛬ marks the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrisk level alone.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrisk row alone; its other uses today (lockout risk, warnings,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReboot pending) are not shown.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all five␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstates. Current is today's glyphs and colours. The strip sets␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach candidate beside ⛛ ⭘ ⛬ in one colour, to compare size and␛[m$
@@ -41,7 +42,8 @@ $
 # Note$
 # Glyphs mode: Figma's [+] [ ] [*] beside candidates for$
 # Partial, Unknown and Not Applicable. In every candidate set$
-# [*] marks the risk level alone.$
+# [*] marks the risk row alone; its other uses today (lockout$
+# risk, warnings, Reboot pending) are not shown.$
 # Each list is the risk row and Figma's seven rows in all five$
 # states. Current is today's glyphs and colours.$
 # Nothing is decided and no component changed:$
@@ -57,7 +59,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGlyphs mode: Figma's ⛛ ⭘ ⛬ beside candidates for Partial,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable. In every candidate set ⛬ marks␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe risk level alone.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe risk row alone; its other uses today (lockout risk,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarnings, Reboot pending) are not shown.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfive states. Current is today's glyphs and colours. The␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstrip sets each candidate beside ⛛ ⭘ ⛬ in one colour, to␛[m$
