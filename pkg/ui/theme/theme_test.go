@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
@@ -154,9 +155,9 @@ func TestColourRoles(t *testing.T) {
 	}{
 		{"Header.Wordmark", false, "text.primary"},
 		{"Header.URL", false, "text.faint"},
-		{"ContextBar.Fill", true, "bar.bg"},
+		{"ContextBar.Fill", false, "bar.shade"},
 		{"ContextBar.Unknown", false, "text.muted"},
-		{"TitleBar.Fill", true, "bar.bg"},
+		{"TitleBar.Fill", false, "bar.shade"},
 		{"TitleBar.Parent", false, "text.muted"},
 		{"TitleBar.Separator", false, "text.faint"},
 		{"TitleBar.Title", false, "text.primary"},
@@ -188,6 +189,7 @@ func TestColourRoles(t *testing.T) {
 		{"Callout.Bad.Bar", true, "status.bad"},
 		{"Callout.Info.Bar", true, "text.muted"},
 		{"Callout.Info.Title", false, "text.primary"},
+		{"Section.Fill", false, "bar.shade"},
 		{"KeyValue.ValueUnknown", false, "text.muted"},
 		{"KeyValue.ValueNotApplicable", false, "text.muted"},
 		{"Badge", false, "badge.fg"},
@@ -261,6 +263,21 @@ func TestVersionBox(t *testing.T) {
 		got := New(env).Header.Version.GetBackground() != lipgloss.NoColor{}
 		if want := env.Profile > colorprofile.ANSI; got != want {
 			t.Errorf("%s: version box is %t, want %t", envName(env), got, want)
+		}
+	}
+}
+
+// TestBarsUnpainted checks the bars' slots in every environment: none sets
+// a background, so the stub, the fill and the text of a context bar, a
+// title bar and a section header sit on the terminal's own (the
+// maintainer, 2026-10-21; DEV-018, DEV-033).
+func TestBarsUnpainted(t *testing.T) {
+	for _, env := range envs() {
+		for path, s := range slots(New(env)) {
+			bar := strings.HasPrefix(path, "ContextBar.") || strings.HasPrefix(path, "TitleBar.") || strings.HasPrefix(path, "Section.")
+			if bar && s.GetBackground() != (lipgloss.NoColor{}) {
+				t.Errorf("%s: %s paints a background, %v", envName(env), path, s.GetBackground())
+			}
 		}
 	}
 }

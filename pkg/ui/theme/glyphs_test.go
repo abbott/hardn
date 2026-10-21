@@ -150,6 +150,18 @@ func TestStepMarkers(t *testing.T) {
 	}
 }
 
+// TestShadeOneCell checks the bars' fill glyph: one cell in both sets, and
+// in the Unicode set one cell even in a terminal that draws East Asian
+// ambiguous characters two cells wide (░ is neutral), so that a bar, a run
+// of it, keeps its width there (DEV-018).
+func TestShadeOneCell(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		if w, ww := lipgloss.Width(g.Shade), wideWidth(g.Shade); w != 1 || ww != 1 {
+			t.Errorf("%s: Shade %q is %d cells, %d when ambiguous is wide; want 1", name, g.Shade, w, ww)
+		}
+	}
+}
+
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {

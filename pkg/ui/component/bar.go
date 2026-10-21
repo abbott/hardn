@@ -3,13 +3,15 @@ package component
 // ContextBar is the main menu's distribution bar, here as drawn with no
 // colour:
 //
-//	█ Debian 12 (Bookworm) █████████████████████████████████████████
+//	░ Debian 12 (Bookworm) ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 //
 // It spans the content width, or the terminal's when
 // theme.BarsFillContent is off: a one-cell stub, the text on the
-// terminal's background with a cell either side, then the fill, painted in
-// bar.bg, or drawn with Glyphs.Bar when there is no colour (C13, DEV-015,
-// DEV-018). Text too long for the bar is cut with the ellipsis glyph.
+// terminal's background with a cell either side, then the fill. The stub
+// and fill are Glyphs.Shade, ░ (# in ASCII), in ContextBar.Fill, the
+// colour bar.shade, uncoloured when there is no colour; nothing is
+// painted behind them or the text (the maintainer, 2026-10-21; DEV-018).
+// Text too long for the bar is cut with the ellipsis glyph.
 type ContextBar struct {
 	// Name is the distribution, in bold, such as "Debian". Empty shows
 	// "Unknown".
@@ -51,11 +53,11 @@ func (vm ContextBar) Render(c Ctx) string {
 // With no title the bar is all fill, whatever its parents.
 //
 // Proposal P-08, decided by the maintainer (2026-10-17): sub-screens open
-// with this bar, wrapped by bar.bg as Figma draws it, and the trail lives
-// in it, as "User Management › Manage User", never with the product name.
-// The screens show the trail only when screen.TitleTrail is set, which by
-// default it is not, so their bars show the title alone, as Figma's
-// frames do; with no Parents the bar is that.
+// with this bar, as Figma draws them, and the trail lives in it, as "User
+// Management › Manage User", never with the product name. The screens
+// show the trail only when screen.TitleTrail is set, which by default it
+// is not, so their bars show the title alone, as Figma's frames do; with
+// no Parents the bar is that.
 type TitleBar struct {
 	// Title is the screen's title, such as "Manage User". Empty draws the
 	// bar with no text.

@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                        ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
@@ -12,7 +12,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user SSH access has been tested␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIf SSH fails, a fallback access method is available␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;231;70;105mEnabled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
@@ -67,7 +67,7 @@ $
   [i] Info: No actual changes were made to your system.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[48;2;22;24;29m                                    ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mBefore disabling root SSH login, ensure:␛[m$
@@ -76,7 +76,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNon-root user SSH access has been tested␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIf SSH fails, a fallback access method is available␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;231;70;105mEnabled␛[m$

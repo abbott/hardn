@@ -18,12 +18,13 @@ package theme
 // East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
 // characters two cells wide draws each as two. A single glyph then shifts
-// the rest of its line by one cell. Bar and Rule are drawn in runs, so a run
-// doubles in width: a 64-cell rule takes 128 cells and wraps at 80 columns.
+// the rest of its line by one cell. Rule is drawn in runs, so a run doubles
+// in width: a 64-cell rule takes 128 cells and wraps at 80 columns.
 // term.Resolve picks the ASCII set in a zh, ja or ko locale for that reason,
 // but cannot see an ambiguous-wide terminal under another UTF-8 locale, such
 // as an SSH session to a server set to C.UTF-8; HARDN_ASCII=1 avoids it
-// there. DEV-015 accepts this cost for Bar and Rule.
+// there. DEV-015 accepts this cost for Rule. Shade, the bars' run, is ░
+// U+2591, neutral width, so a bar keeps its width there (DEV-018).
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
@@ -36,7 +37,8 @@ type Glyphs struct {
 	Bullet        string // before a key-value or bullet-list item (Figma -)
 	Separator     string // between the items of a breadcrumb or a title bar's trail
 	Ellipsis      string // marks truncated text
-	Bar           string // fills a bar when there is no colour to paint it
+	Bar           string // a callout's accent bar when there is no colour to paint it
+	Shade         string // the stub and fill of the context and title bars, and a section header's stub, in bar.shade
 	Rule          string // draws a divider or a section header's rule
 	BadgeOpen     string // opens a badge when there is no colour to paint it
 	BadgeClose    string // closes a badge when there is no colour to paint it
@@ -72,7 +74,7 @@ type Glyphs struct {
 
 // unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-024,
 // DEV-031 and DEV-038 to DEV-041 for the glyphs Figma does not draw,
-// DEV-019 for the badge brackets). Partial, Warn, Unknown and
+// DEV-019 for the badge brackets, DEV-018 for the bars' shade). Partial, Warn, Unknown and
 // NotApplicable are the maintainer's of 2026-10-21.
 var unicodeGlyphs = Glyphs{
 	Configured:    "⛛",
@@ -87,6 +89,7 @@ var unicodeGlyphs = Glyphs{
 	Separator:     "›",
 	Ellipsis:      "…",
 	Bar:           "█",
+	Shade:         "░",
 	Rule:          "─",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
@@ -122,6 +125,7 @@ var asciiGlyphs = Glyphs{
 	Separator:     ">",
 	Ellipsis:      "...",
 	Bar:           "#",
+	Shade:         "#",
 	Rule:          "-",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",

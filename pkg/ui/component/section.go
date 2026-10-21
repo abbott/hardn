@@ -17,7 +17,8 @@ import (
 // title from column 2 in Section.Title with a cell either side, then a run
 // of Glyphs.Rule in Section.Rule, at least one cell, across the content
 // width, or the terminal's when theme.BarsFillContent is off. The stub is
-// a space painted in bar.bg or, with no colour, Glyphs.Bar (C13, DEV-033).
+// a bar's: Glyphs.Shade in Section.Fill, ░ in bar.shade, uncoloured with
+// no colour (the maintainer, 2026-10-21; DEV-033).
 // A title too wide is cut with the ellipsis glyph. With no title, or on a
 // terminal too narrow for one, it is the stub and the rule.
 type SectionHeader struct {
@@ -28,11 +29,11 @@ type SectionHeader struct {
 // Render renders the header for c. See SectionHeader for the layout.
 func (vm SectionHeader) Render(c Ctx) string {
 	t, w := c.Theme.Section, c.barWidth()
-	stub := c.paint(t.Fill, 1).String()
+	stub := c.shade(t.Fill, 1).String()
 	title := c.text(vm.Title)
 	if title == "" || w <= barFrame {
 		if w < 3 {
-			return c.paint(t.Fill, w).String()
+			return c.shade(t.Fill, w).String()
 		}
 		return stub + " " + c.rule(t.Rule, w-2).String()
 	}

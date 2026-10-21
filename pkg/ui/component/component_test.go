@@ -2,6 +2,7 @@ package component_test
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -223,8 +224,10 @@ func TestLayout(t *testing.T) {
 			"# " + strings.Repeat("x", 53) + "... #"},
 		{"bar: a cut between spans drops the spaces before it", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, 17, false,
 			"# Debian 12... ##"},
-		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("█", 60)},
-		{"bar: no title is all fill, whatever the parents", TitleBar{Parents: []string{"User Management"}}, 60, true, strings.Repeat("█", 60)},
+		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("░", 60)},
+		{"bar: no title is all fill, whatever the parents", TitleBar{Parents: []string{"User Management"}}, 60, true, strings.Repeat("░", 60)},
+		{"bar: the Unicode shade", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, 80, true,
+			"░ Debian 12 (Bookworm) " + strings.Repeat("░", maxWidth(ContextBar{}, 80)-23)},
 		{"bar: a trail before the title", TitleBar{Title: "Manage User", Parents: []string{" User Management", ""}}, 80, false,
 			"# User Management > Manage User " + strings.Repeat("#", maxWidth(TitleBar{}, 80)-32)},
 		{"bar: too long, the middle parents go first", TitleBar{Title: "SSH Keys", Parents: []string{"User Management", "Manage User"}}, 40, false,
@@ -391,7 +394,7 @@ func TestLayout(t *testing.T) {
 		{"subject: no label is the badge alone", SubjectLine{Subject: "george"}, 80, true, "  [george]"},
 		{"section: stub, title and rule", SectionHeader{Title: "User Configuration"}, 80, false,
 			"# User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
-		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "█ " + strings.Repeat("─", 58)},
+		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "░ " + strings.Repeat("─", 58)},
 		{"section: a long title is cut", SectionHeader{Title: strings.Repeat("x", 70)}, 60, false,
 			"# " + strings.Repeat("x", 53) + "... -"},
 		{"breadcrumb: items joined by the separator", Breadcrumb{Items: []string{"User Management", " Manage User", ""}}, 80, true,
@@ -844,6 +847,88 @@ func TestMenuItemShown(t *testing.T) {
 	}
 }
 
+// TestBars checks the bars (the maintainer, 2026-10-21; DEV-018, DEV-033)
+// at every colour profile, on both backgrounds, in both glyph sets and at
+// two widths: a ContextBar, a TitleBar and a SectionHeader open with a
+// one-cell stub of Glyphs.Shade in their Fill slot, then a space and the
+// text from column 2; a bar then has a space and Glyphs.Shade in Fill to
+// the bar width, and a section header its rule. Fill has bar.shade's
+// colour wherever there is colour and none without (pkg/ui/theme's
+// TestColourRoles), and no part of the line is painted behind: no SGR in
+// it sets a background.
+func TestBars(t *testing.T) {
+	profiles := []colorprofile.Profile{colorprofile.TrueColor, colorprofile.ANSI256, colorprofile.ANSI, colorprofile.ASCII, colorprofile.NoTTY}
+	for _, p := range profiles {
+		for _, dark := range []bool{true, false} {
+			for _, unicode := range []bool{true, false} {
+				for _, w := range []int{40, 80} {
+					env := term.Fixed(w, p, unicode, dark)
+					c := NewCtx(env)
+					th, g := c.Theme, c.Theme.Glyphs
+					tests := []struct {
+						name       string
+						vm         renderer
+						fill       lipgloss.Style
+						text, tail string // tail is the glyph after the text: the fill's or the rule's
+					}{
+						{"context bar", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, th.ContextBar.Fill, "Debian 12 (Bookworm)", g.Shade},
+						{"title bar", TitleBar{Title: "Manage User"}, th.TitleBar.Fill, "Manage User", g.Shade},
+						{"section header", SectionHeader{Title: "User Configuration"}, th.Section.Fill, "User Configuration", g.Rule},
+					}
+					for _, tt := range tests {
+						where := fmt.Sprintf("%s, %v, dark %t, unicode %t, width %d", tt.name, p, dark, env.Unicode, w)
+						out := tt.vm.Render(c)
+						n := maxWidth(tt.vm, w) - 3 - lipgloss.Width(tt.text)
+						if got, want := ansi.Strip(out), g.Shade+" "+tt.text+" "+strings.Repeat(tt.tail, n); got != want {
+							t.Errorf("%s: got\n%s\nwant\n%s", where, got, want)
+						}
+						if !strings.HasPrefix(out, tt.fill.Render(g.Shade)+" ") {
+							t.Errorf("%s: %q does not open with the stub in Fill and a space", where, out)
+						}
+						if tt.tail == g.Shade && !strings.HasSuffix(out, " "+tt.fill.Render(strings.Repeat(g.Shade, n))) {
+							t.Errorf("%s: %q does not end with a space and the fill in Fill", where, out)
+						}
+						if got := tt.fill.GetForeground() != (lipgloss.NoColor{}); got != env.HasColor() {
+							t.Errorf("%s: Fill is coloured %t, want %t", where, got, env.HasColor())
+						}
+						if paintsBackground(out) {
+							t.Errorf("%s: %q paints a background", where, out)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// paintsBackground reports whether any SGR sequence in s sets a
+// background colour: 40-47, 100-107, or 48 with an indexed or RGB colour.
+// The colour arguments of 38 and 58, the foreground and underline, are
+// skipped, so 38;5;41 is not read as background 41.
+func paintsBackground(s string) bool {
+	for _, m := range sgr.FindAllStringSubmatch(s, -1) {
+		ps := strings.Split(m[1], ";")
+		for i := 0; i < len(ps); i++ {
+			switch p := ps[i]; {
+			case p == "38" || p == "58":
+				if i+1 < len(ps) && ps[i+1] == "5" {
+					i += 2
+				} else {
+					i += 4
+				}
+			case p == "48",
+				len(p) == 2 && p >= "40" && p <= "47",
+				len(p) == 3 && p >= "100" && p <= "107":
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// sgr matches an SGR escape sequence, its parameters in the group.
+var sgr = regexp.MustCompile(`\x1b\[([0-9;]*)m`)
+
 // TestBlockStyles checks that each part of the block group takes its slot.
 func TestBlockStyles(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
@@ -860,14 +945,14 @@ func TestBlockStyles(t *testing.T) {
 		{"badge", Badge{Text: "george"}, []part{{" george ", th.Badge}}},
 		{"subject", SubjectLine{Label: "Managing", Subject: "george"}, []part{{"Managing:", th.Text.Muted}, {" george ", th.Badge}}},
 		{"section", SectionHeader{Title: "User Configuration"}, []part{
-			{" ", th.Section.Fill}, {"User Configuration", th.Section.Title},
+			{th.Glyphs.Shade, th.Section.Fill}, {"User Configuration", th.Section.Title},
 			{strings.Repeat(th.Glyphs.Rule, maxWidth(SectionHeader{}, 80)-21), th.Section.Rule},
 		}},
 		{"breadcrumb", Breadcrumb{Items: []string{"User Management", "Manage User"}}, []part{
 			{"User Management", th.Breadcrumb.Item}, {th.Glyphs.Separator, th.Breadcrumb.Separator}, {"Manage User", th.Breadcrumb.Current},
 		}},
 		{"title bar trail", TitleBar{Title: "Manage User", Parents: []string{"User Management"}}, []part{
-			{" ", th.TitleBar.Fill}, {"User Management", th.TitleBar.Parent},
+			{th.Glyphs.Shade, th.TitleBar.Fill}, {"User Management", th.TitleBar.Parent},
 			{th.Glyphs.Separator, th.TitleBar.Separator}, {"Manage User", th.TitleBar.Title},
 		}},
 		{"key-value", figmaUser, []part{

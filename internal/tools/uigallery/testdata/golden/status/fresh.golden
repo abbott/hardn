@@ -3,14 +3,14 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 installed with root alone, no first user, before␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manything is set up: no ufw, sshd's defaults on 22, AppArmor␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menforcing, no unattended-upgrades; up 3 days.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[48;2;22;24;29m                                           ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m                 ␛[38;2;129;134;156m192.0.2.20␛[m$
                            ␛[38;2;86;91;107m3 days, 5 hours, 12 minutes␛[m$
@@ -84,14 +84,14 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 installed with root alone, no first user, before␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manything is set up: no ufw, sshd's defaults on 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAppArmor enforcing, no unattended-upgrades; up 3 days.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[48;2;22;24;29m                                       ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m$
       ␛[38;2;129;134;156m192.0.2.20␛[m$

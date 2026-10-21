@@ -80,8 +80,9 @@ func TestTokensComplete(t *testing.T) {
 
 // contrastFloors are the WCAG contrast minimums of each token against the
 // page background, by palette. Tokens with no floor are listed with 0: the
-// bar and badge backgrounds are surfaces, and badge text is checked against
-// the badge instead. The dark divider's floor is lower: a rule is
+// bar and badge backgrounds are surfaces, the bars' shade is a fill
+// (TestShadeBetweenBarAndDivider), and badge text is checked against the
+// badge instead. The dark divider's floor is lower: a rule is
 // decorative, the blank lines around it already part the blocks, and it is
 // kept quieter than the faintest text (TestDividerBelowFaint; DEV-002).
 var contrastFloors = map[string]map[string]float64{
@@ -89,13 +90,13 @@ var contrastFloors = map[string]map[string]float64{
 		"text.primary": 7, "text.muted": 4.5, "text.faint": 3,
 		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5,
 		"divider": 1.5, "accent.ok": 3, "accent.warn": 3,
-		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0,
+		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0, "bar.shade": 0,
 	},
 	"light": {
 		"text.primary": 4.5, "text.muted": 3, "text.faint": 3,
 		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5,
 		"divider": 3, "accent.ok": 3, "accent.warn": 3,
-		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0,
+		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0, "bar.shade": 0,
 	},
 }
 
@@ -170,6 +171,29 @@ func TestDividerBelowFaint(t *testing.T) {
 	}
 }
 
+// TestShadeBetweenBarAndDivider holds the bars' shade, a fill drawn as ░
+// in front of the page, between the two other quiet colours: louder than
+// bar.bg, the version box's surface, and no louder than a rule, which it
+// equals at 256 colours in the dark theme (both 236). The light value,
+// proposed, stands to white as Figma's #2B2F3B stands to black, 1.57:1
+// (the maintainer, 2026-10-21; DEV-018). At 16 colours the shade is the
+// one gray beside the page, as bar.bg and the divider are.
+func TestShadeBetweenBarAndDivider(t *testing.T) {
+	dark := contrast(lipgloss.Color(darkPalette.BarShade.hex), color.Black)
+	for _, pt := range palettes {
+		shade, bar, div := profileColors(pt.p.BarShade), profileColors(pt.p.BarBG), profileColors(pt.p.Divider)
+		for _, profile := range []string{"truecolor", "256"} {
+			s, b, d := contrast(shade[profile], pt.page), contrast(bar[profile], pt.page), contrast(div[profile], pt.page)
+			if s <= b || s > d {
+				t.Errorf("%s/%s: bar.shade is %.2f:1, want above bar.bg's %.2f:1 and at most the divider's %.2f:1", pt.name, profile, s, b, d)
+			}
+		}
+		if s := contrast(shade["truecolor"], pt.page); math.Abs(s-dark) > 0.05 {
+			t.Errorf("%s: bar.shade is %.2f:1 on its page, want the dark value's %.2f:1", pt.name, s, dark)
+		}
+	}
+}
+
 func TestANSI256Nearest(t *testing.T) {
 	for _, pt := range palettes {
 		for _, tk := range tokens(t, pt.p) {
@@ -202,6 +226,7 @@ func TestDeliberateANSIPicks(t *testing.T) {
 		{"dark divider (DEV-002)", darkPalette.Divider.ansi, lipgloss.BrightBlack},
 		{"dark badge.fg (DEV-003)", darkPalette.BadgeFG.ansi, lipgloss.BrightWhite},
 		{"dark bar.bg (DEV-004)", darkPalette.BarBG.ansi, lipgloss.BrightBlack},
+		{"dark bar.shade (DEV-018)", darkPalette.BarShade.ansi, lipgloss.BrightBlack},
 	}
 	for _, tt := range tests {
 		if tt.got != tt.want {

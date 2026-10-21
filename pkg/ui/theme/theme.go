@@ -90,7 +90,7 @@ type HeaderStyles struct {
 
 // ContextBarStyles style the distro bar: "Debian 12 (Bookworm)".
 type ContextBarStyles struct {
-	Fill     lipgloss.Style // the bar's stub and fill
+	Fill     lipgloss.Style // the bar's stub and fill: Glyphs.Shade in bar.shade
 	Name     lipgloss.Style // "Debian", bold
 	Version  lipgloss.Style // "12"
 	Codename lipgloss.Style // "(Bookworm)"
@@ -101,7 +101,7 @@ type ContextBarStyles struct {
 // and the section trail it can show before the title, such as "User
 // Management › Manage User" (proposal P-08).
 type TitleBarStyles struct {
-	Fill      lipgloss.Style
+	Fill      lipgloss.Style // as ContextBar.Fill
 	Parent    lipgloss.Style // a section before the title: "User Management"
 	Separator lipgloss.Style // the separator glyph between the sections
 	Title     lipgloss.Style // bold
@@ -227,7 +227,7 @@ type KeyValueStyles struct {
 // SectionStyles style a section header: a stub, a title and a rule, such as
 // "User Configuration".
 type SectionStyles struct {
-	Fill  lipgloss.Style // the stub
+	Fill  lipgloss.Style // the stub, as ContextBar.Fill
 	Title lipgloss.Style // bold
 	Rule  lipgloss.Style
 }
@@ -313,7 +313,10 @@ func build(env term.Env, p *palette) *Theme {
 	// word and glyph tell it, in no hue of its own (the maintainer,
 	// 2026-10-21; DEV-010).
 	unknown := muted
-	fill := bg(p.BarBG)
+	// The bars' stub and fill and a section header's stub are Glyphs.Shade
+	// in bar.shade, on the terminal's own background (the maintainer,
+	// 2026-10-21; DEV-018). Without colour the glyph stands alone.
+	shade := fg(p.BarShade)
 
 	// DEV-005: at 16 colours bar.bg is BrightBlack, the colour of muted
 	// text, so the version box is dropped there.
@@ -332,9 +335,9 @@ func build(env term.Env, p *palette) *Theme {
 		Text:   TextStyles{Primary: primary, Muted: muted, Faint: faint},
 		Header: HeaderStyles{Wordmark: primary.Bold(true), Version: version, URL: faint},
 		ContextBar: ContextBarStyles{
-			Fill: fill, Name: muted.Bold(true), Version: muted, Codename: faint, Unknown: unknown,
+			Fill: shade, Name: muted.Bold(true), Version: muted, Codename: faint, Unknown: unknown,
 		},
-		TitleBar: TitleBarStyles{Fill: fill, Parent: muted, Separator: faint, Title: primary.Bold(true)},
+		TitleBar: TitleBarStyles{Fill: shade, Parent: muted, Separator: faint, Title: primary.Bold(true)},
 		Host:     HostStyles{Address: muted, Uptime: faint, Reboot: warn, Unknown: unknown},
 		Risk: RiskStyles{
 			Label: primary.Bold(true),
@@ -379,7 +382,7 @@ func build(env term.Env, p *palette) *Theme {
 			ValueUnknown: unknown, ValueNotApplicable: muted,
 		},
 		Badge:      fg(p.BadgeFG).Background(c(p.BadgeBG)).Bold(true),
-		Section:    SectionStyles{Fill: fill, Title: muted.Bold(true), Rule: fg(p.Divider)},
+		Section:    SectionStyles{Fill: shade, Title: muted.Bold(true), Rule: fg(p.Divider)},
 		Breadcrumb: BreadcrumbStyles{Item: muted, Current: primary.Bold(true), Separator: faint},
 		Plan: PlanStyles{
 			Title: primary, Target: muted,
