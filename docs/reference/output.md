@@ -88,7 +88,7 @@ A change that ran whose undo the journal did not hold once it had run (its journ
 
 `code` (§2.2), `detail`, `source` (a file and line, a command; `""` when not known), `control` (whose check or plan found it), `change` (the change it rides on; `""` for a check's). A finding stops nothing.
 
-A check with a risk level (`Run.RiskLevel`, added by `next/p4-risk`) also carries its cross-checks' own findings, after the controls': why a reboot is pending (`REBOOT_*`, the header probe's) and `UPTIME_NO_AUTO_UPDATES`, each with no `control` and no `change`. The level itself, its band and its factors, is the main menu's, not this document's ([risk.md](../engine/risk.md) §7).
+A check with a risk level (`Run.RiskLevel`, added by `next/p4-risk`) also carries its cross-checks' own findings, after the controls': why a reboot is pending (`REBOOT_*`, the header probe's) and `UPTIME_NO_AUTO_UPDATES`, each with no `control` and no `change`. The level itself, its band and its factors, is the main menu's, not this document's ([risk.md](../engine/risk.md) §8 (j)).
 
 ### 1.8 `errors[]`
 
