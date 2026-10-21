@@ -17,6 +17,7 @@ The mock draws the rows itself, on the components' grid, as `compare` does. Its 
 |---|---|---|---|---|---|
 | `current` | ⛬ U+26EC, `status.warn` | ? U+003F, `status.unknown` | ∅ U+2205, `text.muted` | `[*]` `[?]` `[-]` | Today's. ⛬ appears twice, on the Partial row as on the Moderate risk row, in the same colour |
 | `trial` | ⭘ U+2B58, `status.warn` | ? U+003F, `text.muted` | – U+2013, `text.muted` | `[ ]` `[?]` `[-]` | The maintainer's combination (2026-10-21): Figma's ⭘ in amber for Partial, and `?` and `–` in muted grey for Unknown and Not Applicable, with no new hue |
+| `power` | ⏼ U+23FC, `status.warn` | ? U+003F, `text.muted` | – U+2013, `text.muted` | `[~]` `[?]` `[-]` | `trial` with the power on-off symbol for Partial, which the maintainer asked to see (2026-10-21); its measurements are in `power-*.tsv` beside metrics.md |
 | `figma` | ⭘ U+2B58, `status.warn` | ⭘ U+2B58, `text.muted` | no marker; the row in `text.muted` | `[ ]` `[ ]` none | Treats no gap as real: Figma's glyphs and colours only, and the word carries the state |
 | `diamond` | ⬙ U+2B19, `status.warn` | ⁇ U+2047, `status.unknown` | – U+2013, `text.muted` | `[~]` `[?]` `[-]` | A new glyph for each state: the measurements' set A |
 | `diamond-dot` | ◈ U+25C8, `status.warn` | ? U+003F, `status.unknown` | ⊟ U+229F, `text.muted` | `[~]` `[?]` `[-]` | The measurements' set B, which keeps today's `?` |

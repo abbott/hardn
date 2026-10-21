@@ -89,7 +89,9 @@ const (
 // glyphSets returns the sets, in the order "all" shows them: today's, then
 // the candidates, each with ⛬ on the risk row alone. trial is the
 // maintainer's combination of 2026-10-21: Figma's ⭘ in status.warn for
-// Partial, ? and – in text.muted for Unknown and Not Applicable. figma folds the three
+// Partial, ? and – in text.muted for Unknown and Not Applicable; power is
+// the same with ⏼ U+23FC (power on-off) in status.warn for Partial, which
+// the maintainer asked to see beside it. figma folds the three
 // states into Figma's own glyphs and colours, the reading in which no gap
 // is real; diamond and diamond-dot are the measurements' sets A and B, a
 // new glyph for each state; square takes the heaviest Partial and Unknown
@@ -110,6 +112,12 @@ func glyphSets() []glyphSet {
 		{
 			name: "trial", title: "Trial",
 			partial: stateMark{same: off, paint: warn, token: tokenWarn},
+			unknown: stateMark{unicode: "?", ascii: "[?]", paint: grey, token: tokenMuted},
+			na:      stateMark{unicode: "–", ascii: "[-]", paint: grey, token: tokenMuted},
+		},
+		{
+			name: "power", title: "Power",
+			partial: stateMark{unicode: "⏼", ascii: "[~]", paint: warn, token: tokenWarn},
 			unknown: stateMark{unicode: "?", ascii: "[?]", paint: grey, token: tokenMuted},
 			na:      stateMark{unicode: "–", ascii: "[-]", paint: grey, token: tokenMuted},
 		},
@@ -313,7 +321,7 @@ var glyphStrip = []struct {
 	state  string
 	glyphs []stripGlyph
 }{
-	{"Partial", []stripGlyph{{"⬙", "diamond, bottom half black"}, {"◈", "diamond in a diamond"}, {"◧", "square, left half black"}}},
+	{"Partial", []stripGlyph{{"⬙", "diamond, bottom half black"}, {"◈", "diamond in a diamond"}, {"◧", "square, left half black"}, {"⏼", "power on-off"}}},
 	{"Unknown", []stripGlyph{{"⁇", "double question mark"}, {"⍰", "quad question"}, {"?", "question mark (current)"}}},
 	{"Not Applicable", []stripGlyph{{"–", "en dash"}, {"⊟", "squared minus"}, {"⛝", "squared saltire"}, {"∅", "empty set (current)"}}},
 	{"Warning", []stripGlyph{{"❢", "heavy exclamation mark"}}},
