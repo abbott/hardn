@@ -40,8 +40,8 @@ No other glyph is the risk icon or holds it (`TestRiskGlyphAlone`), and over eve
 | Where | Line | Status |
 |---|---|---|
 | `RiskSummary` | `⛬  Risk Level` | the maintainer's decision |
-| `PlanView`, a lockout-risk change | `⭘  Lockout risk`, the title on the next line | `Warn` since the maintainer's decision of 2026-10-21, "⛬ Lockout risk is a warning, so it would need to use the warn pattern" (DEV-038); ⛬ until then |
-| `Menu`, a risky item's note line | `⭘ Lockout risk` | `Warn`, the same decision (DEV-028; P-22 still holds the words and which items) |
+
+Two lines drew ⛬ until the maintainer's decision of 2026-10-21, "⛬ Lockout risk is a warning, so it would need to use the warn pattern": a lockout-risk change's lead line in `PlanView` (`⭘  Lockout risk`, the title on the next line; DEV-038) and a risky item's note line in `Menu` (`⭘ Lockout risk`; DEV-028, P-22 still holding the words and which items). Both draw `Warn` since, which the same test checks for each.
 
 Beyond `RiskSummary`, the theme's swatch golden lists the `Risk` glyph, and this mode names ⛬ in its note and draws it in its strip.
 
