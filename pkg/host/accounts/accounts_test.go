@@ -121,8 +121,8 @@ const (
 		"# a comment\n\n" +
 		"alice:" + hashAlice + ":20000:0:99999:7:::\n" +
 		"bob:!" + hashBob + ":20000:0:99999:7:::\n" +
-		"george:*:20000:0:99999:7:::\n" +
-		"daemon:!!:20000::::::\n" +
+		"daemon:*:20000:0:99999:7:::\n" +
+		"sshd:!!:20000::::::\n" +
 		"nobody::20000:0:99999:7:::\n" +
 		"alice:!:20000:0:99999:7:::\n"
 )
@@ -130,15 +130,15 @@ const (
 // TestShadow: each name's first line, its lock from the first character
 // alone ("!", "!!" and "!" before a hash locked; "*" and a hash not; an
 // empty field not, as platform_locked_account() reads it), and LockOf's
-// fallback to /etc/passwd's field without a line.
+// fallback to /etc/passwd's field without a line (george has none).
 func TestShadow(t *testing.T) {
 	s, err := accounts.ParseShadow([]byte(shadow))
 	want := accounts.Shadow{
 		"root":   {Lock: accounts.Locked, Line: 1},
 		"alice":  {Lock: accounts.NotLocked, Line: 4}, // the first line; the second, "!", is not getspnam's
 		"bob":    {Lock: accounts.Locked, Line: 5},
-		"george": {Lock: accounts.NotLocked, Line: 6},
-		"daemon": {Lock: accounts.Locked, Line: 7},
+		"daemon": {Lock: accounts.NotLocked, Line: 6},
+		"sshd":   {Lock: accounts.Locked, Line: 7},
 		"nobody": {Lock: accounts.Empty, Line: 8},
 	}
 	if err != nil || !reflect.DeepEqual(s, want) {
@@ -150,8 +150,8 @@ func TestShadow(t *testing.T) {
 		at, text string
 	}{
 		{accounts.User{Name: "bob", Line: 3, PasswdLock: accounts.NotLocked}, accounts.Locked, "/etc/shadow:5", "locked (!)"},
-		{accounts.User{Name: "eve", Line: 9, PasswdLock: accounts.NotLocked}, accounts.NotLocked, "/etc/passwd:9", "not locked"},
-		{accounts.User{Name: "eve", Line: 9, PasswdLock: accounts.Locked}, accounts.Locked, "/etc/passwd:9", "locked (!)"},
+		{accounts.User{Name: "george", Line: 9, PasswdLock: accounts.NotLocked}, accounts.NotLocked, "/etc/passwd:9", "not locked"},
+		{accounts.User{Name: "george", Line: 9, PasswdLock: accounts.Locked}, accounts.Locked, "/etc/passwd:9", "locked (!)"},
 		{accounts.User{Name: "nobody", Line: 4}, accounts.Empty, "/etc/shadow:8", "empty, not locked"},
 	} {
 		if l, at := s.LockOf(c.u); l != c.lock || at != c.at || l.String() != c.text {
@@ -165,14 +165,31 @@ func TestShadow(t *testing.T) {
 	if err != nil || us[0].PasswdLock != accounts.Locked || us[1].PasswdLock != accounts.Empty {
 		t.Errorf("passwd's field: %+v, %v", us, err)
 	}
+	// Lines musl's getspnam passes over, or finds no entry for
+	// (getspnam_r.c): sshd would read /etc/passwd's field instead.
 	for _, l := range []string{
-		"alice:!:20000:0:99999:7::",   // eight fields
-		"alice:!:20000:0:99999:7::::", // ten
-		":!:20000:0:99999:7:::",       // no name
-		"alice",                       // one
+		"alice:!:20000:0:99999:7::\n",                                  // eight fields
+		"alice:!:20000:0:99999:7::::\n",                                // ten
+		":!:20000:0:99999:7:::\n",                                      // no name
+		"alice\n",                                                      // one
+		"alice:!:never:0:99999:7:::\n",                                 // a word in a number
+		"alice:!:20000:-1:99999:7:::\n",                                // a sign
+		"alice:!:20000:0:99999:7:::\r\n",                               // CRLF
+		"alice:!:20000:0:99999:7:::",                                   // no final newline
+		"alice:!" + strings.Repeat("x", 229) + ":20000:0:99999:7:::\n", // 255 bytes before the newline
 	} {
-		if _, err := accounts.ParseShadow([]byte("root:*:1::::::\n" + l + "\n")); !errors.Is(err, accounts.ErrMalformed) || err.Error() != "accounts: /etc/shadow:2: "+accounts.ErrMalformed.Error() {
+		if _, err := accounts.ParseShadow([]byte("root:*:1::::::\n" + l)); !errors.Is(err, accounts.ErrMalformed) || err.Error() != "accounts: /etc/shadow:2: "+accounts.ErrMalformed.Error() {
 			t.Errorf("%q: %v", l, err)
+		}
+	}
+	for _, data := range []string{
+		"",                    // no line
+		"root:!:1::::::\n\n",  // a blank last line
+		"root:!:1::::::\n# x", // a comment with no newline
+		"alice:!" + strings.Repeat("x", 228) + ":20000:0:99999:7:::\n", // 254 bytes
+	} {
+		if _, err := accounts.ParseShadow([]byte(data)); err != nil {
+			t.Errorf("%q: %v", data, err)
 		}
 	}
 }
@@ -217,8 +234,17 @@ func TestReadShadow(t *testing.T) {
 	if s, err := accounts.ReadShadow(context.Background(), h); err != nil || len(s) != 6 {
 		t.Fatalf("ReadShadow: %v, %v", s, err)
 	}
-	if calls := h.Calls(); len(calls) != 1 || calls[0].Op != "read" || calls[0].Path != accounts.ShadowFile {
+	if calls := h.Calls(); len(calls) != 2 || calls[0].Op != "stat" || calls[0].Path != accounts.TCBDir || calls[1].Op != "read" || calls[1].Path != accounts.ShadowFile {
 		t.Errorf("calls %v", calls)
+	}
+	// musl's getspnam reads /etc/tcb/<name>/shadow first: not established,
+	// nor where whether /etc/tcb exists is not.
+	if s, err := accounts.ReadShadow(context.Background(), tcbRefused{h}); !errors.Is(err, fs.ErrPermission) || s != nil {
+		t.Errorf("tcb refused: %v, %v", s, err)
+	}
+	h.AddDir(accounts.TCBDir, 0o755, 0, 0)
+	if s, err := accounts.ReadShadow(context.Background(), h); !errors.Is(err, accounts.ErrTCB) || s != nil {
+		t.Errorf("tcb: %v, %v", s, err)
 	}
 	h = hostfake.New(host.Options{})
 	if s, err := accounts.ReadShadow(context.Background(), h); !errors.Is(err, fs.ErrNotExist) || s != nil {
@@ -228,4 +254,14 @@ func TestReadShadow(t *testing.T) {
 	if us, err := accounts.ReadPasswd(context.Background(), h); err != nil || len(us) != 3 {
 		t.Errorf("ReadPasswd: %v, %v", us, err)
 	}
+}
+
+// tcbRefused is a host whose Stat of /etc/tcb is refused.
+type tcbRefused struct{ *hostfake.System }
+
+func (h tcbRefused) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	if name == accounts.TCBDir {
+		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrPermission}
+	}
+	return h.System.Stat(ctx, name)
 }

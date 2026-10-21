@@ -50,6 +50,7 @@ import (
 // missing here: add it, with an entry in codes.go that matches it.
 var sentinels = map[string]error{
 	"accounts.ErrMalformed":          accounts.ErrMalformed,
+	"accounts.ErrTCB":                accounts.ErrTCB,
 	"alpine.ErrChanged":              alpine.ErrChanged,
 	"alpine.ErrNoBackup":             alpine.ErrNoBackup,
 	"alpine.ErrNoCrond":              alpine.ErrNoCrond,

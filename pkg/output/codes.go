@@ -330,6 +330,8 @@ var errorCodes = []Entry{
 	is("DETECT_NO_SIGNAL", detect.ErrNoSignal).what("detection: no signal established the fact"),
 	// The account databases (pkg/host/accounts, next/p4-check-users).
 	is("ACCOUNTS_MALFORMED", accounts.ErrMalformed).what("a line of /etc/passwd or /etc/group is not in a form hardn knows"),
+	// next/p4-locked: /etc/tcb, read before /etc/shadow.
+	is("ACCOUNTS_TCB", accounts.ErrTCB).what("/etc/tcb exists, whose files getspnam may read before /etc/shadow: an account's lock is not established"),
 
 	// The seam (pkg/host): ErrSymlinkParent wraps ErrSymlink, and a
 	// *revert.LockedError wraps ErrLocked, so both come first above.

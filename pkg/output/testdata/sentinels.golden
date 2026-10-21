@@ -1,4 +1,5 @@
 accounts.ErrMalformed ACCOUNTS_MALFORMED
+accounts.ErrTCB ACCOUNTS_TCB
 alpine.ErrChanged ALPINE_CHANGED
 alpine.ErrNoBackup ALPINE_NO_BACKUP
 alpine.ErrNoCrond ALPINE_NO_CROND
