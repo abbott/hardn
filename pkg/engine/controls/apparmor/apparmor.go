@@ -301,16 +301,19 @@ func bootParams(ctx context.Context, sys host.System) string {
 	return cmdline + ": " + strings.Join(ps, " ")
 }
 
-// loaded counts the host's loaded profiles by mode: those of the root
-// namespace. A container's own namespace below it ("set by the host" seen
-// from the container) confines processes of that container only, so its
-// profiles are counted apart and decide nothing.
+// loaded counts the loaded profiles by mode, every namespace's, as
+// aa-status counts them: a namespace below root's is not only a
+// container's (on Ubuntu 26.04 glycin sandboxes its image loaders on the
+// host in a namespace of its own, the Phase 4 VM run found), and the
+// number on the status line is the one an administrator's aa-status
+// shows. nested says how many of them are in other namespaces, for the
+// evidence.
 type loaded struct {
 	total     int
 	enforcing int
 	modes     map[string]int
 	other     []string // modes the kernel's list does not name, each once
-	nested    int      // profiles of namespaces below root's
+	nested    int      // of total, the profiles of namespaces below root's
 }
 
 // readProfiles reads the kernel's list of loaded profiles, as root sees
@@ -340,7 +343,6 @@ func readProfiles(ctx context.Context, sys host.System) (loaded, error) {
 				return l, fmt.Errorf("apparmor: %s: line %q: %w", profiles, line, detect.ErrUnrecognised)
 			}
 			l.nested++
-			continue
 		}
 		l.total++
 		l.modes[mode]++
@@ -354,8 +356,8 @@ func readProfiles(ctx context.Context, sys host.System) (loaded, error) {
 	return l, nil
 }
 
-// evidence is the count of the host's profiles in each mode, the kernel's
-// modes first, then the other namespaces' count.
+// evidence is the count of the loaded profiles in each mode, the kernel's
+// modes first, then how many of them are in other namespaces.
 func (l loaded) evidence() string {
 	var s []string
 	for _, m := range slices.Concat([]string{"enforce", "complain", "kill", "unconfined", "user"}, l.other) {
@@ -368,7 +370,7 @@ func (l loaded) evidence() string {
 		ev = profiles + ": none"
 	}
 	if l.nested > 0 {
-		ev += "; " + strconv.Itoa(l.nested) + " in other namespaces"
+		ev += "; " + strconv.Itoa(l.nested) + " of them in other namespaces"
 	}
 	return ev
 }
