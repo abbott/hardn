@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -122,5 +123,39 @@ func TestParseMounts(t *testing.T) {
 	}
 	if got := detect.ParseMounts([]byte(in)); !reflect.DeepEqual(got, want) {
 		t.Errorf("ParseMounts = %q, want %q", got, want)
+	}
+}
+
+// TestDpkgInstalled: pve-manager's rule for any package (next/p4-check-updates),
+// running dpkg-query --show for that package only.
+func TestDpkgInstalled(t *testing.T) {
+	ctx := context.Background()
+	argv := []string{"dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, "unattended-upgrades"}
+	for _, tt := range []struct {
+		name string
+		res  hostfake.Response
+		want detect.Tri
+		err  error
+	}{
+		{"installed", out("install ok installed\t2.12\n", 0), detect.Yes, nil},
+		{"removed, config left", out("deinstall ok config-files\t2.12\n", 0), detect.No, nil},
+		{"not installed", out("unknown ok not-installed\t\n", 0), detect.No, nil},
+		{"no such package", hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}, detect.No, nil},
+		{"no dpkg-query", hostfake.Response{Err: fmt.Errorf("fixture: %w", host.ErrNotFound)}, detect.No, nil},
+		{"unpacked", out("install ok unpacked\t2.12\n", 0), detect.Unknown, detect.ErrUnrecognised},
+		{"dpkg database error", hostfake.Response{Stderr: "dpkg-query: error: ...\n", ExitCode: 2}, detect.Unknown, new(host.ExitError)},
+	} {
+		f := newFake(t, "")
+		f.Respond(tt.res, argv[0], argv[1:]...)
+		got, err := detect.DpkgInstalled(ctx, f, "unattended-upgrades")
+		if got != tt.want || !matchesErr(err, tt.err) {
+			t.Errorf("%s: DpkgInstalled = %s, %v; want %s, %v", tt.name, got, err, tt.want, tt.err)
+		}
+		if errors.Is(err, detect.ErrUnrecognised) && !strings.Contains(err.Error(), "unattended-upgrades status") {
+			t.Errorf("%s: error %q does not name the package", tt.name, err)
+		}
+		if calls := f.Calls(); len(calls) != 1 || calls[0].Op != "run" || !reflect.DeepEqual(calls[0].Argv, argv) {
+			t.Errorf("%s: calls %v, want %q only", tt.name, calls, argv)
+		}
 	}
 }

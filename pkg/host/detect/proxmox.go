@@ -17,10 +17,10 @@ const (
 	SelfMounts    = "/proc/self/mounts"
 )
 
-// pveShowFormat is dpkg-query's --showformat: the status ("want flag
+// dpkgShowFormat is dpkg-query's --showformat: the status ("want flag
 // state"), a tab, the version. The backslash escapes are dpkg-query's own;
 // no shell is involved.
-const pveShowFormat = `${Status}\t${Version}\n`
+const dpkgShowFormat = `${Status}\t${Version}\n`
 
 // Proxmox is what the host says about Proxmox VE.
 type Proxmox struct {
@@ -86,7 +86,7 @@ func pveManager(ctx context.Context, sys host.System) (Tri, string, error) {
 // dpkg-query cannot have a dpkg package installed; exit 1 is dpkg-query's
 // "no packages found" (dpkg-query(1), EXIT STATUS).
 func dpkgStatus(ctx context.Context, sys host.System, pkg string) (Tri, string, error) {
-	res, err := sys.Run(ctx, "dpkg-query", "--show", "--showformat="+pveShowFormat, pkg)
+	res, err := sys.Run(ctx, "dpkg-query", "--show", "--showformat="+dpkgShowFormat, pkg)
 	var xe *host.ExitError
 	switch {
 	case errors.Is(err, host.ErrNotFound):
