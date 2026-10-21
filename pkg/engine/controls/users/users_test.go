@@ -450,7 +450,7 @@ func TestUnknown(t *testing.T) {
 		{name: "sudo's mode unreadable", site: site{plat: d, users: []string{alice}, members: sudoGroup, fail: denied("stat", sudoYes.Path)}, state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
 		{name: "doas not established", site: site{plat: doasUnknown, users: []string{aliceSh}, members: wheel}, state: engine.Unknown, want: "can't tell if doas installed", err: "PERMISSION_DENIED"},
 		{name: "doas off Alpine", site: site{plat: doasOnDebian, users: []string{alice}}, state: engine.Unknown, want: "can't tell who has doas", err: "SUDOERS_DOAS_UNSUPPORTED"},
-		{name: "doas off Alpine, sudo grants", site: site{plat: doasOnDebian, users: []string{alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo"},
+		{name: "doas off Alpine, sudo grants", site: site{plat: doasOnDebian, users: []string{alice}, members: sudoGroup}, state: engine.Configured, want: "non-root, sudo", codes: []string{notRead}},
 		{name: "doas, distribution not established", site: site{plat: distroUnknown, users: []string{aliceSh}, members: wheel}, state: engine.Unknown, want: "can't tell who has doas", err: "DETECT_NO_SIGNAL"},
 		{name: "doas.conf missing", site: site{plat: a, users: []string{aliceSh}, members: wheel, files: map[string]string{sudoers.DoasConfig: ""}},
 			state: engine.Unknown, want: "can't read", err: "SUDOERS_CHECK_FAILED"},
@@ -496,7 +496,7 @@ func TestEvidence(t *testing.T) {
 		want: []string{"passwd: no account with uid 1000 or more and a login shell"},
 	}, {
 		row: row{site: site{plat: with(debian13(), func(f *detect.Facts) { f.Elevation.Doas = doasYes }), users: []string{alice}, members: sudoGroup},
-			state: engine.Configured, want: "non-root, sudo"},
+			state: engine.Configured, want: "non-root, sudo", codes: []string{notRead}},
 		want: []string{
 			"doas: not read: doas drop-ins are established on Alpine only",
 			"passwd: alice, uid 1000, /bin/bash",
@@ -509,7 +509,7 @@ func TestEvidence(t *testing.T) {
 	}, {
 		row: row{site: site{plat: with(alpine324(), func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = sudoYes, detect.SudoOriginal }),
 			users: []string{aliceSh}, members: map[string]string{"wheel": "alice"}, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}, reject: sudoers.MainConfig},
-			state: engine.Configured, want: "non-root, doas"},
+			state: engine.Configured, want: "non-root, doas", codes: []string{notRead}},
 		want: []string{
 			"sudo: not read: visudo -c: syntax error at line 1",
 			"passwd: alice, uid 1000, /bin/sh",
@@ -538,6 +538,72 @@ func TestEvidence(t *testing.T) {
 		if c.find != "" && (len(st.Findings) == 0 || st.Findings[0].Detail+" "+st.Findings[0].Source != c.find) {
 			t.Errorf("findings %+v, want %q", st.Findings, c.find)
 		}
+	}
+}
+
+// TestOtherGrants: beside alice's grant, which makes the row Configured,
+// every other grant without a password is USERS_NOPASSWD and every grant
+// not established USERS_RULE_NOT_READ, at its rule: the risk review's
+// cases (the same grant for bob read, on a continued line, by an alias,
+// in a list), a Defaults, a command rule, a tool not read, a shell not
+// read; and a grant for an account that cannot log in, which is silent.
+func TestOtherGrants(t *testing.T) {
+	d := debian13()
+	both := []string{alice, bob}
+	top := func(lines string) map[string]string { // before %sudo, whose grant to alice then decides
+		return map[string]string{sudoers.MainConfig: lines + readStock(t, d, "sudoers")}
+	}
+	dropIn := func(rules string) map[string]string { return map[string]string{grantDir + "zz-site": rules} }
+	cases := []struct {
+		row
+		find []string // each finding's detail and source
+	}{
+		{row{name: "read", site: site{users: both, files: dropIn("bob ALL=(ALL) NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{noPass}},
+			[]string{"bob: sudo without password /etc/sudoers.d/zz-site:1"}},
+		{row{name: "a continued line", site: site{users: both, files: dropIn("bob ALL=(ALL) \\\n  NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers.d/zz-site:1"}},
+		{row{name: "an alias", site: site{users: both, files: top("User_Alias ADMINS = bob\nADMINS ALL=(ALL) NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers:2"}},
+		{row{name: "a list", site: site{users: both, files: top("bob, george ALL=(ALL) NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers:1"}},
+		{row{name: "an alias after alice's grant", site: site{users: both, files: dropIn("User_Alias ADMINS = bob\nADMINS ALL=(ALL) NOPASSWD: ALL\n")},
+			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead, notRead}}, nil},
+		{row{name: "no password asked of bob", site: site{users: both, files: dropIn("bob ALL=(ALL) ALL\nDefaults:bob !authenticate\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers.d/zz-site:2"}},
+		{row{name: "a command rule for bob", site: site{users: both, files: dropIn("bob ALL=(root) NOPASSWD: /usr/bin/systemctl restart app\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers.d/zz-site:1"}},
+		{row{name: "bob's grant with a password", site: site{users: both, files: dropIn("bob ALL=(ALL:ALL) ALL\n")}, state: engine.Configured}, nil},
+		{row{name: "doas not read", site: site{plat: with(d, func(f *detect.Facts) { f.Elevation.Doas = doasYes }), users: both}, state: engine.Configured, codes: []string{notRead, notRead}},
+			[]string{"may decide doas for alice ", "may decide doas for bob "}},
+		{row{name: "bob's shell not read", site: site{users: []string{alice, "bob:x:1001:1001::/home/bob:/bin/sh"}, fail: map[string]error{"stat /bin/sh": fs.ErrPermission},
+			files: dropIn("bob ALL=(ALL) NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{noPass}},
+			[]string{"bob: sudo without password /etc/sudoers.d/zz-site:1"}},
+		{row{name: "bob's shell not read, a continued line", site: site{users: []string{alice, "bob:x:1001:1001::/home/bob:/bin/sh"}, fail: map[string]error{"stat /bin/sh": fs.ErrPermission},
+			files: dropIn("bob ALL=(ALL) \\\n  NOPASSWD: ALL\n")}, state: engine.Configured, codes: []string{notRead}},
+			[]string{"may decide sudo for bob /etc/sudoers.d/zz-site:1"}},
+		{row{name: "bob cannot log in", site: site{users: []string{alice, "bob:x:1001:1001::/home/bob:/usr/sbin/nologin"}, files: dropIn("bob ALL=(ALL) \\\n  NOPASSWD: ALL\n")},
+			state: engine.Configured}, nil},
+		{row{name: "a system account", site: site{users: []string{alice, "backup:x:34:34::/var/backups:/bin/bash"}, files: dropIn("backup ALL=(ALL) \\\n  NOPASSWD: ALL\n")},
+			state: engine.Configured}, nil},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if c.site.plat.dir == "" {
+				c.site.plat = d
+			}
+			c.site.members = sudoGroup
+			if c.want == "" {
+				c.want = "non-root, sudo"
+			}
+			st := run(t, c.row)
+			var got []string
+			for _, f := range st.Findings {
+				got = append(got, f.Detail+" "+f.Source)
+			}
+			if c.find != nil && !slices.Equal(got, c.find) {
+				t.Errorf("findings %q, want %q", got, c.find)
+			}
+		})
 	}
 }
 
