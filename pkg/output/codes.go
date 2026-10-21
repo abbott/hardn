@@ -21,8 +21,10 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -410,6 +412,14 @@ var findingCodes = []Entry{
 	finding(users.CodeNoPassword, "a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass)"),
 	finding(users.CodeRuleNotRead, "an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root"),
 	finding(users.CodeUID0, "an account other than root has uid 0, so it is root"),
+	// The AppArmor control's own (next/p4-check-apparmor).
+	finding(apparmor.CodeGlobalModeUnknown, "AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established"),
+	finding(apparmor.CodeBootUnknown, "AppArmor's service is in a state that does not say whether it loads the profiles at the next boot"),
+	// The Auto Updates control's own (next/p4-check-updates).
+	finding(updates.CodeAptValueUnknown, "an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established"),
+	finding(updates.CodeScheduleUnknown, "whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot"),
+	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded"),
+	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

@@ -19,8 +19,10 @@ import (
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -553,6 +555,9 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
 	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked, firewall.CodeLocalOnly)               // next/p4-check-firewall
 	want = append(want, users.CodeNoPassword, users.CodeRuleNotRead, users.CodeUID0)                              // next/p4-check-users
+	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                 // next/p4-check-apparmor
+	// next/p4-check-updates
+	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown)
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

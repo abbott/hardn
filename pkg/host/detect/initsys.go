@@ -369,3 +369,32 @@ func systemctl(ctx context.Context, sys host.System, verb, unit string) (string,
 	}
 	return state, nil
 }
+
+// The readers above, exported for the status controls (next/p4-check-apparmor:
+// apparmor.service, and OpenRC's apparmor), so that a check reads a unit's
+// or a service's state by the rules DetectSSH uses rather than a copy of
+// them.
+
+// SystemctlIsEnabled runs systemctl is-enabled unit, and no other verb,
+// and returns the state it printed: a state systemctl(1) documents is an
+// answer whatever the exit status, any other is ErrUnrecognised. What the
+// state means is the caller's to decide: UnitState.IsEnabled reads
+// enabled-runtime as Yes, which a question about the next boot cannot.
+func SystemctlIsEnabled(ctx context.Context, sys host.System, unit string) (string, error) {
+	return systemctl(ctx, sys, "is-enabled", unit)
+}
+
+// ServiceRunlevels lists the OpenRC runlevels service is added to, as
+// DetectSSH reads sshd's: Yes with them, No for none, Unknown with the
+// error when an entry cannot be checked and none was found.
+func ServiceRunlevels(ctx context.Context, sys host.System, service string) ([]string, Tri, error) {
+	return runlevels(ctx, sys, service)
+}
+
+// SystemctlIsActive runs systemctl is-active unit, and no other verb, and
+// returns the state it printed, by SystemctlIsEnabled's rule
+// (next/p4-check-updates: whether apt's timers are running now). What the
+// state means is the caller's: UnitState.IsActive is one reading.
+func SystemctlIsActive(ctx context.Context, sys host.System, unit string) (string, error) {
+	return systemctl(ctx, sys, "is-active", unit)
+}
