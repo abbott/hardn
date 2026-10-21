@@ -19,6 +19,7 @@ import (
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -547,6 +548,7 @@ func TestFindingCodes(t *testing.T) {
 	}
 	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated, engine.CodeBestEffort}
 	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
+	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                 // next/p4-check-apparmor
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

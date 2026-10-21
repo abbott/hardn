@@ -12,8 +12,9 @@
 // loads the profiles at the next boot (apparmor.service, or OpenRC's
 // apparmor). Inside a container AppArmor is the host's (detect). The row
 // shows one of the eight lines agreed in P-43 (3); a fact hardn cannot
-// read is Unknown, "can't read", never a pass. docs/engine/check-apparmor.md
-// has every line and the order in which they are decided.
+// read, or a value it does not rank, is Unknown, "can't read", never a
+// pass. docs/engine/check-apparmor.md has every line and the order in
+// which they are decided.
 package apparmor
 
 import (
@@ -43,11 +44,57 @@ const (
 
 // The profile modes the kernel names (aa_profile_mode_names). enforce and
 // kill deny what a profile does not allow (kill also kills the task);
-// complain, user and unconfined deny nothing.
+// complain and user deny nothing and log, and the kernel does not mediate
+// an unconfined-mode profile at all (check-apparmor.md §6 (j)).
 var (
 	enforcing = []string{"enforce", "kill"}
 	logging   = []string{"complain", "unconfined", "user"}
 )
+
+// ID is the control's ID, stable once released.
+const ID = "apparmor.enforce"
+
+// The row's details, the wording agreed in P-43 (3); a Configured detail
+// is the count of enforcing profiles (Enforced). Exported so that the risk
+// level (next/p4-risk) and the gallery tell apart two lines of one state
+// without a copy of the wording.
+const (
+	DetailLoggingOnly     = "logging only"       // Partial
+	DetailOffAfterRestart = "off after restart"  // Partial
+	DetailNoProfiles      = "no profiles loaded" // NotConfigured
+	DetailOffInKernel     = "off in kernel"      // NotConfigured
+	DetailByHost          = "set by the host"    // NotApplicable
+	DetailAlpineDefault   = "Alpine default"     // NotApplicable
+	DetailCantRead        = "can't read"         // Unknown
+)
+
+// The finding codes of this package (pkg/output's registry holds them):
+// a value the kernel or the init system documents, read, that this
+// control does not rank, so the line is Unknown with the finding and no
+// error (checks.md §1.5's second kind).
+const (
+	// CodeGlobalModeUnknown: AppArmor's global mode is kill or
+	// unconfined, whose effect beside each profile's own mode is not
+	// ranked.
+	CodeGlobalModeUnknown = "APPARMOR_GLOBAL_MODE_UNKNOWN"
+	// CodeBootUnknown: AppArmor's service is in a state that does not say
+	// whether it loads the profiles at the next boot (a -runtime state,
+	// static, indirect, ...; OpenRC's apparmor in another runlevel only).
+	CodeBootUnknown = "APPARMOR_BOOT_UNKNOWN"
+)
+
+// nextBoot is what each is-enabled state systemctl(1) documents says of
+// the next boot. enabled is an enabling link in /etc/systemd/system;
+// disabled, masked, linked and not-found do not start it. The -runtime
+// states are links in /run, gone at the next boot, which say nothing of
+// what stays: systemd prints enabled-runtime even beside an enabling link
+// that outlives the boot, a mask in /run hides the state under it, and
+// linked-runtime can stand beside an enabling link in /usr/lib. Those, and
+// static, indirect, generated, transient, alias and bad, are not ranked.
+var nextBoot = map[string]detect.Tri{
+	"enabled":  detect.Yes,
+	"disabled": detect.No, "masked": detect.No, "linked": detect.No, "not-found": detect.No,
+}
 
 // Controls is the AppArmor row, the only one of its area.
 func Controls() []engine.Control { return []engine.Control{Enforce{}} }
@@ -58,8 +105,8 @@ func Controls() []engine.Control { return []engine.Control{Enforce{}} }
 // profiles again at the next boot.
 type Enforce struct{ engine.CheckOnly }
 
-// ID is "apparmor.enforce".
-func (Enforce) ID() string { return "apparmor.enforce" }
+// ID returns ID.
+func (Enforce) ID() string { return ID }
 
 // Title is Figma's row label.
 func (Enforce) Title() string { return "AppArmor" }
@@ -69,7 +116,7 @@ func (Enforce) Title() string { return "AppArmor" }
 // is not established applies, and Check reports it Unknown.
 func (Enforce) Applies(f detect.Facts) (bool, string) {
 	if f.Container.Detected == detect.Yes {
-		return false, "set by the host"
+		return false, DetailByHost
 	}
 	return true, ""
 }
@@ -78,14 +125,15 @@ func (Enforce) Applies(f detect.Facts) (bool, string) {
 // the global mode and the boot service, and stops at the first that
 // decides the line: off in the kernel before anything about profiles, no
 // profiles before their modes, nothing enforcing before the next boot. A
-// read that fails, or a value hardn does not rank, is Unknown, "can't
-// read", with the error. Alpine without AppArmor is NotApplicable here
-// rather than through Applies, which reads no file (check-apparmor.md
-// §2.2).
+// read that fails, or a value in a form neither the kernel nor systemctl
+// documents, is Unknown, "can't read", with the error; a documented value
+// hardn does not rank is Unknown with a finding and no error. Alpine
+// without AppArmor is NotApplicable here rather than through Applies,
+// which reads no file (check-apparmor.md §2.2).
 func (Enforce) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	switch f.Container.Detected {
 	case detect.Yes: // Applies' line, for a caller that does not ask it first
-		return status(engine.NotApplicable, "set by the host", nil), nil
+		return status(engine.NotApplicable, DetailByHost, nil), nil
 	case detect.Unknown: // /sys would show the host's kernel
 		return unread(nil, fmt.Errorf("apparmor: container: %w", errOr(f.Container.Err, detect.ErrNoSignal)))
 	}
@@ -101,7 +149,7 @@ func (Enforce) Check(ctx context.Context, sys host.System, f detect.Facts) (engi
 		return unread(ev, err)
 	}
 	if ev = append(ev, p.evidence()); p.total == 0 {
-		return status(engine.NotConfigured, "no profiles loaded", ev), nil
+		return status(engine.NotConfigured, DetailNoProfiles, ev), nil
 	}
 	data, err := sys.ReadFile(ctx, modeParam)
 	if err != nil {
@@ -110,21 +158,28 @@ func (Enforce) Check(ctx context.Context, sys host.System, f detect.Facts) (engi
 	ev = append(ev, fmt.Sprintf("%s: %q", modeParam, data))
 	switch mode := strings.TrimSuffix(string(data), "\n"); {
 	case mode == "complain":
-		return status(engine.Partial, "logging only", ev), nil
-	case mode != "enforce":
-		return unread(ev, fmt.Errorf("apparmor: global mode %q: not ranked: %w", mode, detect.ErrUnrecognised))
-	case p.enforcing == 0 && len(p.other) > 0:
-		return unread(ev, fmt.Errorf("apparmor: profile modes %q: not ranked: %w", p.other, detect.ErrUnrecognised))
-	case p.enforcing == 0:
-		return status(engine.Partial, "logging only", ev), nil
+		return status(engine.Partial, DetailLoggingOnly, ev), nil
+	case mode == "enforce": // each profile's own mode decides
+	case slices.Contains(enforcing, mode) || slices.Contains(logging, mode):
+		return notRanked(ev, engine.Finding{Code: CodeGlobalModeUnknown, Detail: "global mode " + mode, Source: modeParam}), nil
+	default:
+		return unread(ev, fmt.Errorf("apparmor: %s: %q: %w", modeParam, mode, detect.ErrUnrecognised))
 	}
-	boot, bev, err := atBoot(ctx, sys, f.Init)
+	switch {
+	case p.enforcing == 0 && len(p.other) > 0:
+		return unread(ev, fmt.Errorf("apparmor: %s: modes %q: %w", profiles, p.other, detect.ErrUnrecognised))
+	case p.enforcing == 0:
+		return status(engine.Partial, DetailLoggingOnly, ev), nil
+	}
+	boot, bev, why, err := atBoot(ctx, sys, f.Init)
 	ev = append(ev, bev...)
 	switch {
 	case err != nil:
 		return unread(ev, err)
+	case boot == detect.Unknown:
+		return notRanked(ev, why), nil
 	case boot == detect.No:
-		return status(engine.Partial, "off after restart", ev), nil
+		return status(engine.Partial, DetailOffAfterRestart, ev), nil
 	}
 	return status(engine.Configured, enforced(p.enforcing), ev), nil
 }
@@ -218,11 +273,11 @@ func readLSM(ctx context.Context, sys host.System) (detect.Tri, []string, error)
 func off(ctx context.Context, sys host.System, f detect.Facts, ev []string) (engine.Status, error) {
 	switch {
 	case f.Platform.Distro == detect.DistroAlpine:
-		return status(engine.NotApplicable, "Alpine default", ev), nil
+		return status(engine.NotApplicable, DetailAlpineDefault, ev), nil
 	case f.Platform.Distro == detect.DistroUnknown && (!f.OS.Known() || f.OS.ID == string(detect.DistroAlpine)):
 		return unread(ev, fmt.Errorf("apparmor: distribution: %w", errOr(f.Platform.Err, detect.ErrNoSignal)))
 	}
-	return status(engine.NotConfigured, "off in kernel", append(ev, bootParams(ctx, sys))), nil
+	return status(engine.NotConfigured, DetailOffInKernel, append(ev, bootParams(ctx, sys))), nil
 }
 
 // bootParams is the evidence of the kernel command line's AppArmor
@@ -319,42 +374,45 @@ func (l loaded) evidence() string {
 }
 
 // atBoot is whether AppArmor's own service loads the profiles at the next
-// boot: apparmor.service enabled on systemd, OpenRC's apparmor in the
-// sysinit, boot or default runlevel. Anything that does not say so either
-// way is not established, with the error.
-func atBoot(ctx context.Context, sys host.System, in detect.Init) (detect.Tri, []string, error) {
+// boot: apparmor.service enabled on systemd (nextBoot), OpenRC's apparmor
+// in the sysinit, boot or default runlevel. A read that fails is the
+// error; a state read that does not say either way is Unknown with the
+// finding that says which.
+func atBoot(ctx context.Context, sys host.System, in detect.Init) (detect.Tri, []string, engine.Finding, error) {
+	var none engine.Finding
 	switch {
 	case in.Kind == detect.Systemd && in.Running == detect.Yes:
-		st, err := detect.SystemctlState(ctx, sys, "is-enabled", unit)
+		st, err := detect.SystemctlIsEnabled(ctx, sys, unit)
 		if err != nil {
-			return detect.Unknown, nil, fmt.Errorf("apparmor: %w", err)
+			return detect.Unknown, nil, none, fmt.Errorf("apparmor: %w", err)
 		}
-		ev := []string{"systemctl is-enabled " + unit + ": " + st}
-		t := detect.UnitState{Enabled: st}.IsEnabled()
-		if t == detect.Unknown {
-			return t, ev, fmt.Errorf("apparmor: %s is %s, which does not say whether it starts at boot: %w", unit, st, detect.ErrUnrecognised)
+		cmd := "systemctl is-enabled " + unit
+		t, ok := nextBoot[st]
+		if !ok {
+			return detect.Unknown, []string{cmd + ": " + st}, engine.Finding{Code: CodeBootUnknown, Detail: unit + " " + st, Source: cmd}, nil
 		}
-		return t, ev, nil
+		return t, []string{cmd + ": " + st}, none, nil
 	case in.Kind == detect.OpenRC && in.Running == detect.Yes:
 		levels, t, err := detect.ServiceRunlevels(ctx, sys, service)
 		if t == detect.Unknown {
-			return t, nil, fmt.Errorf("apparmor: %w", errOr(err, detect.ErrNoSignal))
+			return t, nil, none, fmt.Errorf("apparmor: %w", errOr(err, detect.ErrNoSignal))
 		}
 		where := "no runlevel"
 		if len(levels) > 0 {
 			where = strings.Join(levels, ",")
 		}
 		ev := []string{detect.OpenRCRunlevels + ": " + service + " in " + where}
-		booted := slices.ContainsFunc(levels, func(l string) bool { return l == "sysinit" || l == "boot" || l == "default" })
 		switch {
 		case t == detect.No:
-			return t, ev, nil
-		case !booted:
-			return detect.Unknown, ev, fmt.Errorf("apparmor: %s only in runlevels %s, which a boot may not reach: %w", service, where, detect.ErrUnrecognised)
+			return t, ev, none, nil
+		case slices.ContainsFunc(levels, func(l string) bool { return l == "sysinit" || l == "boot" || l == "default" }):
+			return detect.Yes, ev, none, nil
+		case err != nil: // an entry not checked may hold it
+			return detect.Unknown, ev, none, fmt.Errorf("apparmor: %w", err)
 		}
-		return detect.Yes, ev, nil
+		return detect.Unknown, ev, engine.Finding{Code: CodeBootUnknown, Detail: service + " in " + where + " only", Source: detect.OpenRCRunlevels}, nil
 	}
-	return detect.Unknown, nil, fmt.Errorf("apparmor: init system: %w", errOr(in.Err, detect.ErrNoSignal))
+	return detect.Unknown, nil, none, fmt.Errorf("apparmor: init system: %w", errOr(in.Err, detect.ErrNoSignal))
 }
 
 // status is a status with no error and no findings.
@@ -366,7 +424,14 @@ func status(s engine.State, detail string, ev []string) engine.Status {
 // Unknown, "can't read", with what was read and the error, which
 // Engine.Check reports (its code is pkg/output's).
 func unread(ev []string, err error) (engine.Status, error) {
-	return engine.Status{State: engine.Unknown, Detail: "can't read", Evidence: ev}, err
+	return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev}, err
+}
+
+// notRanked is the status of a documented value read that the control
+// does not rank: Unknown, "can't read", with the finding that says which,
+// and no error (checks.md §1.5's second kind).
+func notRanked(ev []string, why engine.Finding) engine.Status {
+	return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev, Findings: []engine.Finding{why}}
 }
 
 func errOr(err, def error) error {

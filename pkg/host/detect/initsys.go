@@ -375,12 +375,13 @@ func systemctl(ctx context.Context, sys host.System, verb, unit string) (string,
 // or a service's state by the rules DetectSSH uses rather than a copy of
 // them.
 
-// SystemctlState runs systemctl verb unit, verb is-enabled or is-active,
-// and returns the state it printed: an exit status with a documented state
-// is an answer, any other state is ErrUnrecognised. UnitState's IsEnabled
-// and IsActive read it as a fact.
-func SystemctlState(ctx context.Context, sys host.System, verb, unit string) (string, error) {
-	return systemctl(ctx, sys, verb, unit)
+// SystemctlIsEnabled runs systemctl is-enabled unit, and no other verb,
+// and returns the state it printed: a state systemctl(1) documents is an
+// answer whatever the exit status, any other is ErrUnrecognised. What the
+// state means is the caller's to decide: UnitState.IsEnabled reads
+// enabled-runtime as Yes, which a question about the next boot cannot.
+func SystemctlIsEnabled(ctx context.Context, sys host.System, unit string) (string, error) {
+	return systemctl(ctx, sys, "is-enabled", unit)
 }
 
 // ServiceRunlevels lists the OpenRC runlevels service is added to, as

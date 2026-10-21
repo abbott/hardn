@@ -346,6 +346,8 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PORT_NOT_IN_EFFECT` | a listener sshd's configuration names is not bound: the configuration is not in effect ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_MATCH_VALUE_UNKNOWN` | a Match block sets a value hardn does not rank, so what it lets in is not established ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
+| `APPARMOR_GLOBAL_MODE_UNKNOWN` | AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established ([check-apparmor.md](../engine/check-apparmor.md)) |
+| `APPARMOR_BOOT_UNKNOWN` | AppArmor's service is in a state that does not say whether it loads the profiles at the next boot ([check-apparmor.md](../engine/check-apparmor.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 

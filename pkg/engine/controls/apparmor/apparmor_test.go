@@ -161,17 +161,25 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System, detect.Facts) 
 		if st == "" {
 			st = "enabled"
 		}
-		code := 0
-		if st != "enabled" {
-			code = 1
-		}
-		return hostfake.Response{Stdout: st + "\n", ExitCode: code}
+		return hostfake.Response{Stdout: st + "\n", ExitCode: exitOf(st)}
 	}
 	facts := s.plat.facts
 	if s.facts != nil {
 		s.facts(&facts)
 	}
 	return denied{System: f, paths: s.deny}, f, facts
+}
+
+// exitOf is systemctl is-enabled's exit status for a state (systemctl(1),
+// its table of states).
+func exitOf(state string) int {
+	switch state {
+	case "enabled", "enabled-runtime", "alias", "static", "indirect", "generated", "transient":
+		return 0
+	case "not-found":
+		return 4
+	}
+	return 1
 }
 
 // denied is a fake on which reads of paths fail as for a user other than
@@ -211,11 +219,12 @@ func (d denied) Lstat(ctx context.Context, name string) (fs.FileInfo, error) {
 
 // row is one line the control shows on a host.
 type row struct {
-	name   string
-	site   site
-	state  engine.State
-	detail string
-	err    string // the error's code (pkg/output), "" for none
+	name    string
+	site    site
+	state   engine.State
+	detail  string
+	err     string // the error's code (pkg/output), "" for none
+	finding string // the one finding's code, "" for none
 }
 
 func run(t *testing.T, r row) engine.Status {
@@ -231,8 +240,19 @@ func run(t *testing.T, r row) engine.Status {
 	if st.State != r.state || st.Detail != r.detail {
 		t.Errorf("%s %q, want %s %q (evidence %q, error %v)", st.State, st.Detail, r.state, r.detail, st.Evidence, err)
 	}
-	if len(st.Findings) != 0 {
-		t.Errorf("findings %v: this control has none", st.Findings)
+	switch {
+	case r.finding == "" && len(st.Findings) != 0:
+		t.Errorf("findings %v, want none", st.Findings)
+	case r.finding == "":
+	case len(st.Findings) != 1 || st.Findings[0].Code != r.finding:
+		t.Errorf("findings %v, want one %s", st.Findings, r.finding)
+	case err != nil || st.State != engine.Unknown:
+		t.Errorf("a finding with %s and error %v: a value not ranked is Unknown with no error", st.State, err)
+	}
+	for _, fd := range st.Findings {
+		if e, ok := output.Lookup(fd.Code); !ok || e.Kind != output.KindFinding {
+			t.Errorf("finding %s: not a registered finding code", fd.Code)
+		}
 	}
 	readOnly(t, f)
 	return st
@@ -295,6 +315,7 @@ func TestLines(t *testing.T) {
 		// Partial, logging only: none enforcing, or the global mode complain.
 		{name: "every profile in complain mode", site: site{plat: debian13(), profiles: "/usr/bin/man (complain)\nlsb_release (complain)\n"}, state: engine.Partial, detail: logging},
 		{name: "unconfined and user modes only", site: site{plat: ubuntu2604(), profiles: "busybox (unconfined)\nchrome (unconfined)\nfoo (user)\n"}, state: engine.Partial, detail: logging},
+		{name: "unconfined mode only (§6 (j))", site: site{plat: ubuntu2604(), profiles: "busybox (unconfined)\nchrome (unconfined)\nrunc (unconfined)\n"}, state: engine.Partial, detail: logging},
 		{name: "global mode complain", site: site{plat: ubuntu2604(), mode: "complain"}, state: engine.Partial, detail: logging},
 		{name: "global mode complain, pve9", site: site{plat: pve9(), mode: "complain\n"}, state: engine.Partial, detail: logging},
 		{name: "logging only before off after restart", site: site{plat: debian13(), mode: "complain", unit: "disabled"}, state: engine.Partial, detail: logging},
@@ -335,6 +356,7 @@ func TestLines(t *testing.T) {
 		{name: "the profiles unreadable (not root)", site: site{plat: debian13(), deny: []string{profilesFile}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
 		{name: "the mode unreadable (not root)", site: site{plat: ubuntu2604(), deny: []string{modeParam}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
 		{name: "the parameter unreadable", site: site{plat: pve9(), deny: []string{enabledParam}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
+		{name: "no parameter, the module unreadable", site: site{plat: debian13(), enabled: noParam, deny: []string{"/sys/module/apparmor"}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
 		{name: "alpine324, the parameter unreadable", site: site{plat: alpine324(), deny: []string{enabledParam}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
 		{name: "securityfs not mounted", site: site{plat: debian13(), profiles: noFile}, state: engine.Unknown, detail: cantRead, err: "FILE_NOT_FOUND"},
 		{name: "the parameter unrecognised", site: site{plat: debian13(), enabled: "1\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
@@ -342,24 +364,36 @@ func TestLines(t *testing.T) {
 		{name: "the module without its parameter", site: site{plat: debian13(), enabled: onlyDir}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "no /sys/module", site: site{plat: ubuntu2604(), enabled: noSys}, state: engine.Unknown, detail: cantRead, err: "FILE_NOT_FOUND"},
 		{name: "alpine324, no /sys/module", site: site{plat: alpine324(), enabled: noSys}, state: engine.Unknown, detail: cantRead, err: "FILE_NOT_FOUND"},
-		{name: "a global mode hardn does not rank", site: site{plat: debian13(), mode: "kill"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "global mode kill", site: site{plat: debian13(), mode: "kill"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_GLOBAL_MODE_UNKNOWN"},
+		{name: "global mode unconfined", site: site{plat: ubuntu2604(), mode: "unconfined\n"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_GLOBAL_MODE_UNKNOWN"},
+		{name: "a global mode the kernel does not name", site: site{plat: debian13(), mode: "audit"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "modes hardn does not know, none enforcing", site: site{plat: ubuntu2604(), profiles: "snap.app (prompt)\nchrome (unconfined)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a profiles line in another form", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n/usr/bin/foo\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a namespace line in another form", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103 (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a namespace line with no name", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103: (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a blank profiles line", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n\nlsb_release (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
-		{name: "apparmor.service static", site: site{plat: debian13(), unit: "static"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "an empty mode", site: site{plat: debian13(), profiles: "a (enforce)\nb ()\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "a mode with a space", site: site{plat: debian13(), profiles: "a (enforce)\nb (en force)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "apparmor.service static", site: site{plat: debian13(), unit: "static"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"},
+		{name: "debian13, apparmor.service enabled for this boot only", site: site{plat: debian13(), unit: "enabled-runtime"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"},
+		{name: "ubuntu2604, apparmor.service masked for this boot only", site: site{plat: ubuntu2604(), unit: "masked-runtime"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"},
+		{name: "pve9, apparmor.service linked for this boot only", site: site{plat: pve9(), unit: "linked-runtime"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"},
 		{name: "systemctl prints a state hardn does not know", site: site{plat: debian13(), unit: "frobnicated"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "systemctl not installed", site: site{plat: debian13(), unitRun: &hostfake.Response{Err: fmt.Errorf("host: run systemctl: %w", host.ErrNotFound)}},
 			state: engine.Unknown, detail: cantRead, err: "COMMAND_NOT_FOUND"},
 		{name: "the init system not established", site: site{plat: debian13(), facts: func(f *detect.Facts) {
 			f.Init = detect.Init{Err: fmt.Errorf("detect: init: %w", detect.ErrConflict)}
 		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_SIGNALS_DISAGREE"},
-		{name: "alpine324, apparmor only in a runlevel of its own", site: site{plat: alpine324(), levels: []string{"nonetwork"}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "alpine324, apparmor only in a runlevel of its own", site: site{plat: alpine324(), levels: []string{"nonetwork"}}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"},
 		{name: "alpine324, a runlevel unreadable", site: site{plat: alpine324(), deny: []string{detect.OpenRCRunlevels + "/boot/apparmor"}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
+		{name: "alpine324, apparmor in nonetwork, boot unreadable", site: site{plat: alpine324(), levels: []string{"nonetwork"}, deny: []string{detect.OpenRCRunlevels + "/boot/apparmor"}},
+			state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
+		{name: "the init system not established, no error", site: site{plat: debian13(), facts: func(f *detect.Facts) { f.Init = detect.Init{} }}, state: engine.Unknown, detail: cantRead, err: "DETECT_NO_SIGNAL"},
 		{name: "the container check not established", site: site{plat: debian13(), facts: func(f *detect.Facts) {
 			f.Container = detect.Container{Err: fmt.Errorf("detect: container: %w", &fs.PathError{Op: "open", Path: detect.InitEnviron, Err: fs.ErrPermission})}
 		}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
+		{name: "the container check not established, no error", site: site{plat: debian13(), facts: func(f *detect.Facts) { f.Container = detect.Container{} }},
+			state: engine.Unknown, detail: cantRead, err: "DETECT_NO_SIGNAL"},
 		{name: "the distribution not established, LSM off", site: site{plat: debian13(), enabled: "N\n", facts: func(f *detect.Facts) {
 			f.OS, f.Platform = detect.OSRelease{Err: detect.ErrNoSignal}, detect.Platform{Err: fmt.Errorf("detect: platform: %w", detect.ErrNoSignal)}
 		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_NO_SIGNAL"},
@@ -446,6 +480,8 @@ func TestEvidence(t *testing.T) {
 			"/sys/module/apparmor: absent", "/proc/cmdline: not read"}},
 		{row{site: site{plat: alpine324(), enabled: "N\n"}, state: engine.NotApplicable, detail: alpineDef}, []string{enabledParam + `: "N\n"`}},
 		{row{site: site{plat: alpine324(), enabled: noParam}, state: engine.NotApplicable, detail: alpineDef}, []string{"/sys/module/apparmor: absent"}},
+		{row{site: site{plat: debian13(), unit: "enabled-runtime"}, state: engine.Unknown, detail: cantRead, finding: "APPARMOR_BOOT_UNKNOWN"}, []string{
+			enabledParam + `: "Y\n"`, profilesFile + ": 7 enforce", modeParam + `: "enforce"`, isEnabled + ": enabled-runtime"}},
 	} {
 		t.Run(c.r.detail, func(t *testing.T) {
 			if st := run(t, c.r); !slices.Equal(st.Evidence, c.want) {
@@ -462,7 +498,7 @@ func TestSameAsAlpine(t *testing.T) {
 	for _, enabled := range []string{"Y\n", "N\n", noParam, noSys, onlyDir, "1\n", "Y"} {
 		t.Run(strings.TrimSpace(enabled), func(t *testing.T) {
 			s := site{plat: debian13(), enabled: enabled}
-			sys, _, facts := s.build(t)
+			sys, f, facts := s.build(t)
 			st, err := apparmor.Enforce{}.Check(context.Background(), sys, facts)
 			a, aerr := alpine.CheckAppArmor(context.Background(), sys, alpine324().facts)
 			if aerr != nil {
@@ -472,7 +508,49 @@ func TestSameAsAlpine(t *testing.T) {
 			if st.State != want || codeOf(err) != codeOf(a.Err) {
 				t.Errorf("Check: %s (%v); alpine.CheckAppArmor: Enabled %s (%v)", st.State, err, a.Enabled, a.Err)
 			}
+			readOnly(t, f)
 		})
+	}
+}
+
+// TestFindings: what each value not ranked is said as, and where it was
+// read.
+func TestFindings(t *testing.T) {
+	for _, c := range []struct {
+		r    row
+		want engine.Finding
+	}{
+		{row{site: site{plat: debian13(), mode: "kill"}, finding: "APPARMOR_GLOBAL_MODE_UNKNOWN"},
+			engine.Finding{Code: apparmor.CodeGlobalModeUnknown, Detail: "global mode kill", Source: modeParam}},
+		{row{site: site{plat: debian13(), unit: "enabled-runtime"}, finding: "APPARMOR_BOOT_UNKNOWN"},
+			engine.Finding{Code: apparmor.CodeBootUnknown, Detail: "apparmor.service enabled-runtime", Source: isEnabled}},
+		{row{site: site{plat: alpine324(), levels: []string{"nonetwork"}}, finding: "APPARMOR_BOOT_UNKNOWN"},
+			engine.Finding{Code: apparmor.CodeBootUnknown, Detail: "apparmor in nonetwork only", Source: "/etc/runlevels"}},
+	} {
+		t.Run(c.want.Detail, func(t *testing.T) {
+			c.r.state, c.r.detail = engine.Unknown, cantRead
+			if st := run(t, c.r); !slices.Equal(st.Findings, []engine.Finding{c.want}) {
+				t.Errorf("findings %v, want %v", st.Findings, c.want)
+			}
+		})
+	}
+}
+
+// TestDetails: the exported details and ID are the agreed wording, which
+// the risk level and the gallery compare a status with.
+func TestDetails(t *testing.T) {
+	for got, want := range map[string]string{
+		apparmor.DetailLoggingOnly: logging, apparmor.DetailOffAfterRestart: offRestart,
+		apparmor.DetailNoProfiles: noProfiles, apparmor.DetailOffInKernel: offKernel,
+		apparmor.DetailByHost: byHost, apparmor.DetailAlpineDefault: alpineDef,
+		apparmor.DetailCantRead: cantRead, apparmor.ID: "apparmor.enforce",
+	} {
+		if got != want {
+			t.Errorf("%q, want %q", got, want)
+		}
+	}
+	if (apparmor.Enforce{}).ID() != apparmor.ID {
+		t.Errorf("Enforce.ID() %q, ID %q", apparmor.Enforce{}.ID(), apparmor.ID)
 	}
 }
 

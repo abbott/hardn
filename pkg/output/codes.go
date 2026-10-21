@@ -21,6 +21,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -397,6 +398,9 @@ var findingCodes = []Entry{
 	finding(ssh.CodeNotInEffect, "a listener sshd's configuration names is not bound: the configuration is not in effect"),
 	finding(ssh.CodeMatchValueUnknown, "a Match block sets a value hardn does not rank, so what it lets in is not established"),
 	finding(ssh.Code22Bound, "a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program"),
+	// The AppArmor control's own (next/p4-check-apparmor).
+	finding(apparmor.CodeGlobalModeUnknown, "AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established"),
+	finding(apparmor.CodeBootUnknown, "AppArmor's service is in a state that does not say whether it loads the profiles at the next boot"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a
