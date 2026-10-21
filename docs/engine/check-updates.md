@@ -77,20 +77,22 @@ Nothing here has run on Linux or as root. On the VMs of [vmtest.md](../safety/vm
 In Figma's grammar (marker, label, the state's word in its colour, a faint detail). **Every detail is proposed wording**; Figma draws the row with no detail. "off after restart" is AppArmor's agreed detail (P-43 (3)), reused for the same meaning.
 
 ```text
-   ▽  Auto Updates         Configured unattended-upgrades
-   ▽  Auto Updates         Configured apk-cron
-   ⛬  Auto Updates         Partial lists not refreshed
-   ⛬  Auto Updates         Partial off after restart
-   ○  Auto Updates         Not Configured no unattended-upgrades
-   ○  Auto Updates         Not Configured upgrades off
-   ○  Auto Updates         Not Configured no origins allowed
-   ○  Auto Updates         Not Configured upgrade timer off
-   ○  Auto Updates         Not Configured upgrade job masked
-   ○  Auto Updates         Not Configured no apk-cron
-   ○  Auto Updates         Not Configured daily script not run
-   ○  Auto Updates         Not Configured crond not running
+   ⛛  Auto Updates         Configured unattended-upgrades
+   ⛛  Auto Updates         Configured apk-cron
+   ⭘  Auto Updates         Partial lists not refreshed
+   ⭘  Auto Updates         Partial off after restart
+   ⭘  Auto Updates         Not Configured no unattended-upgrades
+   ⭘  Auto Updates         Not Configured upgrades off
+   ⭘  Auto Updates         Not Configured no origins allowed
+   ⭘  Auto Updates         Not Configured upgrade timer off
+   ⭘  Auto Updates         Not Configured upgrade job masked
+   ⭘  Auto Updates         Not Configured no apk-cron
+   ⭘  Auto Updates         Not Configured daily script not run
+   ⭘  Auto Updates         Not Configured crond not running
    ?  Auto Updates         Unknown can't read
 ```
+
+Partial's ⭘ is in `status.warn`, Not Configured's in `status.bad` (the maintainer's glyphs of 2026-10-21, [gallery-glyphs.md](gallery-glyphs.md) §1).
 
 Each detail fits the room beside its state at 64 columns ([checks.md](checks.md) §1.9; "no unattended-upgrades" is exactly the 22 cells; `TestDetails`).
 
