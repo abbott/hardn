@@ -464,7 +464,7 @@ exit 2 a gate does not hold, or a usage error
 
 ## 8. Phase 4: the main menu read on the VMs (`internal/tools/p4status`, `next/p4-vmcheck`)
 
-> **Every step of this section is written, not run (gate 5).** Nothing below has run on any host; where a step says what to see, that is the expectation it checks.
+> **Run on Debian 13 and Ubuntu 26.04 on 2026-10-21 (§8.5), built from `next/p4-vmcheck` 1609b95.** Alpine 3.24 and Proxmox VE 9 have no VM: their steps stay written, not run (gate 5).
 
 `p4status` reads the host as hardn's main menu will (detect, the five checks, the header probe, the risk level) and prints the main menu, then the evidence each line was read from and every command it ran ([vmcheck.md](../engine/vmcheck.md)). It changes nothing, by construction: a guard refuses every change and runs only the commands the checks run, so it runs on a VM in any state: as installed, after §4's steps, or on the `p2-clean` snapshot. The maintainer's VMs: Debian 13 and Ubuntu 26.04, amd64. The names below are synthetic (§4); substitute the real ones when running, and do not commit them.
 
@@ -532,3 +532,28 @@ For each VM, with the run's date:
 - whether the run changed anything: §8.2's four `before` commands run again after it, each into `$after` (`after=$(mktemp -d)`, the same file names), and `diff -r "$before" "$after"` empty: ufw's files the same, no unit newly failed, the same mtimes of `/etc/ssh/sshd_config.d/`, `/etc/sudoers.d/` and `/etc/ufw/user.rules`, the same mounts (an automounted `/boot` would show here, [vmcheck.md](../engine/vmcheck.md) §2.4).
 
 Results go in a subsection of §4.9's form only once run, the host's names and addresses replaced by the synthetic ones.
+
+### 8.5 The run (2026-10-21, Debian 13 and Ubuntu 26.04)
+
+Built from `next/p4-vmcheck` 1609b95 (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64`), copied to `/tmp/p4` on each VM over the runner's shared connection and run as `sudo /tmp/p4/p4status -height 40`, with a stamp file before it; the host's own answers were taken first by a script of independent commands (the §8.3 list: `sshd -T`, `ss -tlnp`, `systemctl show -p Listen ssh.socket`, `ufw status verbose`, `/etc/ufw/ufw.conf`, `/sys/module/apparmor/parameters/*`, `/sys/kernel/security/apparmor/profiles`, `aa-status`, `apt-config dump`, `dpkg-query -W`, `systemctl is-enabled`/`is-active`, `getent passwd`, `sudo -l -U`, `uptime -p`, `ip route`, `ls /boot`, `uname -r`). The VMs were as Phase 3's run left them: port 22, ufw active allowing 22/tcp, the runner's login account (`<runner>` below) and alice in `sudo`. Names and addresses are placeholders.
+
+| Line | Debian 13 (ssh.service, sudo 1.9.16p2) | Ubuntu 26.04 (ssh.socket, sudo-rs 0.2.13) | The host's own answer |
+|---|---|---|---|
+| Distribution bar | Debian 13 (Trixie) | Ubuntu 26.04 (Resolute) | `/etc/os-release` |
+| Host block | `<host>`, `<ip>`, 21 hours, 33 minutes | `<host>`, `<ip>`, 21 hours, 33 minutes | `hostname`, `ip route show default` (eth0), `uptime -p` an hour earlier: 20 hours, 38 minutes |
+| Reboot | none (running 6.12.113+deb13-cloud-amd64, the only kernel; dpkg's version matches `/proc/sys/kernel/version`) | none (running 7.0.0-38-generic, the newest of 7.0.0-34 and -38) | `uname -r`, `ls /boot`, no `/var/run/reboot-required` |
+| Risk Level | Low ≈ strong security (82.5), factor "no password to become root" | the same | |
+| User | Configured "non-root, sudo"; USERS_NOPASSWD "`<runner>`: sudo without password" from `/etc/sudoers.d/90-cloud-init-users:4` | the same (sudo-rs reads `/etc/sudoers`) | `sudo -l -U`: `<runner>` (ALL) NOPASSWD: ALL; alice (ALL : ALL) ALL |
+| Firewall | Configured "deny policy" | the same | `ufw status verbose`: active, deny (incoming), 22/tcp allowed in IPv4 and IPv6 |
+| SSH Login | Partial "root key-only" | the same | `sshd -T`: `without-password` (Debian's cloud image), `prohibit-password` (Ubuntu) |
+| SSH Auth | Configured "key-only auth" | the same | password and keyboard-interactive no, pubkey yes |
+| SSH Port | Not Configured "default (22)" | the same | `ss`: sshd on 0.0.0.0:22 and [::]:22 (Ubuntu: `ssh.socket` Listen the same) |
+| AppArmor | Configured "7 profiles enforced" | Configured "101 profiles enforced" (**finding below**) | Debian: 7 enforce, 23 complain, 76 unconfined; Ubuntu: `aa-status` 103 in enforce mode |
+| Auto Updates | Configured "unattended-upgrades" | the same | installed; Update-Package-Lists and Unattended-Upgrade "1"; both timers enabled and active; 3 origin patterns (Debian), 4 allowed origins (Ubuntu) |
+
+**Read only, as built:** exit 0 on both, 27 and 28 commands run, none refused; no mount appeared or went (`findmnt` before and after); the only file under `/etc`, `/usr`, `/var/lib`, `/root` or `/boot` newer than the stamp was Debian's `/var/lib/systemd/timesync/clock`, which systemd-timesyncd writes on its own.
+
+**Finding, fixed on `next/p4-vmcheck`:** the AppArmor check counted the root namespace's profiles only, on the page's assumption that a namespace below it is a container's. Ubuntu 26.04 loads two profiles in glycin's namespace (`:glycin:bwrap`, `:glycin:loaders`), which confine image loaders on the host itself, and `aa-status` counts them: 103 where the line said 101. The check now counts every namespace's profiles, as `aa-status` does, and the evidence says how many are in other namespaces ([check-apparmor.md](../engine/check-apparmor.md) item 5). Debian's line is unchanged (no other namespace there).
+
+Not run: Alpine 3.24 and Proxmox VE 9 (no VM); the states the VMs are not in (a port change, ufw inactive, AppArmor off, updates off, a pending reboot): their lines are the checks' tests and the gallery's simulated hosts only.
+
