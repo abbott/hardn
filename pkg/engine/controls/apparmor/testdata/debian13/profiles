@@ -1,0 +1,7 @@
+/usr/bin/man (enforce)
+lsb_release (enforce)
+man_filter (enforce)
+man_groff (enforce)
+nvidia_modprobe (enforce)
+nvidia_modprobe//kmod (enforce)
+unix-chkpwd (enforce)
