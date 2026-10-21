@@ -175,9 +175,9 @@ const noReport = "the conflict report is not established"
 
 // effKeys are the keywords ReadEffective's sources-disagree and
 // effective-unknown findings can name, in sshd -T's lower case
-// (sshd-effective.md §2.2 to §2.6).
+// (sshd-effective.md §2.2 to §2.6), usepam SSH Auth's.
 var effKeys = []string{"permitrootlogin", "passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication",
-	"port", "listenaddress", "allowusers", "allowgroups", "denyusers", "denygroups", "acceptenv"}
+	"port", "listenaddress", "allowusers", "allowgroups", "denyusers", "denygroups", "acceptenv", "usepam"}
 
 // keyWords are the other words by which those findings name a keyword:
 // sshd -T's "ports", and the listeners' words (ssh.socket's Listen, "the

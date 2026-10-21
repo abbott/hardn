@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
 )
@@ -33,6 +34,9 @@ type platform struct {
 	old    bool   // OpenSSH before 10.1: sshd -T prints without-password
 	socket bool   // ssh.socket listens, on a dual-stack [::]
 	noSS   bool   // ss is not installed
+	// noPAM: bin is built without PAM (Alpine's /usr/sbin/sshd), so its
+	// sshd -T prints no usepam line (servconf.c dump_config).
+	noPAM bool
 }
 
 func debian13() platform {
@@ -61,7 +65,7 @@ func ubuntu2604() platform {
 
 func alpine324() platform {
 	p := debian13()
-	p.name, p.bin, p.old, p.noSS = "alpine324", "/usr/sbin/sshd", false, true
+	p.name, p.bin, p.old, p.noSS, p.noPAM = "alpine324", "/usr/sbin/sshd", false, true, true
 	p.facts.OS = detect.OSRelease{ID: "alpine", VersionID: "3.24.0"}
 	p.facts.Platform = detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported}
 	p.facts.Init = detect.Init{Kind: detect.OpenRC, Running: detect.Yes}
@@ -92,6 +96,10 @@ type site struct {
 	ssBad  string             // a LISTEN line ss prints that is not read
 	files  map[string]string  // other files: path, content
 	facts  func(*detect.Facts)
+	// pam: Alpine's openssh-server-pam is installed, its sshd.pam built
+	// with PAM, which the init script runs only with UsePAM yes
+	// (reload.OpenRCFlavour, by its own -G).
+	pam bool
 }
 
 // hardened are the drop-in lines that make every SSH row Configured off
@@ -127,9 +135,13 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	for name, data := range s.files {
 		f.AddFile(name, []byte(data), 0o644, 0, 0)
 	}
-	out, ls := sshdT(s.plat.old, []byte(main), drops)
+	out, ls := sshdT(s.plat.old, s.plat.noPAM, []byte(main), drops)
+	pamOut, _ := sshdT(s.plat.old, false, []byte(main), drops)
 	if s.edit != nil {
-		out = s.edit(out)
+		out, pamOut = s.edit(out), s.edit(pamOut)
+	}
+	if s.pam {
+		f.AddFile(reload.BinaryPAM, []byte("ELF"), 0o755, 0, 0)
 	}
 	socket, bound := s.socket, s.bound
 	if socket == nil {
@@ -147,6 +159,8 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	f.Handler = func(argv []string, _ []byte) hostfake.Response {
 		cmd := strings.Join(argv, " ")
 		switch {
+		case s.pam && argv[0] == reload.BinaryPAM && (slices.Contains(argv, "-G") || slices.Contains(argv, "-T")): // -G prints as -T does
+			return hostfake.Response{Stdout: pamOut}
 		case argv[0] == s.plat.bin && slices.Contains(argv, "-T") && s.failT != nil:
 			return *s.failT
 		case argv[0] == s.plat.bin && slices.Contains(argv, "-T"): // and each Match block's probe
@@ -185,10 +199,11 @@ var defaults = []struct{ k, v string }{
 
 // sshdT is sshd -T's output by a model of sshd's reading (sshd.ReadOrder):
 // the first value of each keyword outside Match blocks, every value of an
-// accumulating one, defaults for the rest; and the listeners: a
-// ListenAddress with a port as it is, one without on every Port, with none
-// every Port on [::] and 0.0.0.0 (sshd_config(5) ListenAddress).
-func sshdT(old bool, main []byte, drops []sshd.File) (out string, listeners []string) {
+// accumulating one, defaults for the rest, and no usepam line from a build
+// without PAM (noPAM); and the listeners: a ListenAddress with a port as
+// it is, one without on every Port, with none every Port on [::] and
+// 0.0.0.0 (sshd_config(5) ListenAddress).
+func sshdT(old, noPAM bool, main []byte, drops []sshd.File) (out string, listeners []string) {
 	first, acc := map[string]string{}, map[string][]string{}
 	for _, l := range sshd.ReadOrder(main, drops) {
 		switch {
@@ -235,6 +250,9 @@ func sshdT(old bool, main []byte, drops []sshd.File) (out string, listeners []st
 		b.WriteString("listenaddress " + l + "\n")
 	}
 	for _, d := range defaults {
+		if d.k == "usepam" && noPAM {
+			continue
+		}
 		v, ok := first[d.k]
 		if !ok {
 			v = d.v
@@ -361,7 +379,8 @@ func codeOf(err error) string {
 }
 
 // readOnly fails for any call that changes the fake, and any command but
-// the reads the checks make.
+// the reads the checks make: sshd -T of bin, or of Alpine's sshd.pam, and
+// sshd.pam's -G (reload.OpenRCFlavour).
 func readOnly(t *testing.T, f *hostfake.System, bin string) {
 	t.Helper()
 	for _, c := range f.Calls() {
@@ -369,7 +388,8 @@ func readOnly(t *testing.T, f *hostfake.System, bin string) {
 		case "read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
 		case "run":
 			cmd := strings.Join(c.Argv, " ")
-			if !strings.HasPrefix(cmd, bin+" -T -f "+sshd.MainConfig) && cmd != "systemctl show -p Listen ssh.socket" && cmd != "ss -Htln" {
+			sshdT := strings.HasPrefix(cmd, bin+" -T -f "+sshd.MainConfig) || strings.HasPrefix(cmd, reload.BinaryPAM+" -T -f "+sshd.MainConfig)
+			if !sshdT && cmd != reload.BinaryPAM+" -f "+sshd.MainConfig+" -G" && cmd != "systemctl show -p Listen ssh.socket" && cmd != "ss -Htln" {
 				t.Errorf("ran %q", cmd)
 			}
 		default:
@@ -603,7 +623,7 @@ func TestAuth(t *testing.T) {
 			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
 		{name: "cloud-init's yes shadowed by hardn's no", site: site{plat: ubuntu2604(), drops: drops("00-hardn.conf", "PasswordAuthentication no\n", "50-cloud-init.conf", "PasswordAuthentication yes\n")},
 			state: engine.Configured, want: "key-only auth", codes: []string{shadowed}},
-		{name: "an alias in a Match block", site: site{plat: alpine324(), drops: drops("10-site.conf",
+		{name: "an alias in a Match block", site: site{plat: debian13(), drops: drops("10-site.conf",
 			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tChallengeResponseAuthentication yes\n")},
 			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
 		{name: "a value printed twice", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\n"),
@@ -613,9 +633,42 @@ func TestAuth(t *testing.T) {
 			state: engine.Unknown, want: "can't read", codes: []string{disagreeF}},
 		{name: "password on, keyboard-interactive not read", site: site{plat: debian13(), edit: replace("kbdinteractiveauthentication", "maybe")},
 			state: engine.NotConfigured, want: "password auth on"},
-		// Decision (check-ssh.md §2.11): whether or not sshd uses PAM.
-		{name: "keyboard-interactive on without PAM", site: site{plat: alpine324(), drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+		// Keyboard-interactive and PAM (check-ssh.md §2.11, next/p4-kbd-pam):
+		// a password path only where sshd uses PAM, its only device.
+		{name: "Alpine's sshd, built without PAM: keyboard-interactive asks nothing", site: site{plat: alpine324(), drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "Alpine with sshd.pam installed, not used (the VM's)", site: site{plat: alpine324(), pam: true, drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "Alpine's sshd.pam, UsePAM yes", site: site{plat: alpine324(), pam: true, drops: drops("10-site.conf", "PasswordAuthentication no\nUsePAM yes\n")},
 			state: engine.NotConfigured, want: "kbd-interactive on"},
+		{name: "Alpine's sshd, UsePAM yes ignored by the build", site: site{plat: alpine324(), drops: drops("10-site.conf", "PasswordAuthentication no\nUsePAM yes\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "Alpine without PAM, public keys off too", site: site{plat: alpine324(), drops: drops("10-site.conf", "PasswordAuthentication no\nPubkeyAuthentication no\n")},
+			state: engine.Partial, want: "key auth off"},
+		{name: "UsePAM no, with PAM built in", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\nKbdInteractiveAuthentication yes\nUsePAM no\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "ubuntu, UsePAM yes, keyboard-interactive on", site: site{plat: ubuntu2604(), drops: drops("10-site.conf", "PasswordAuthentication no\nKbdInteractiveAuthentication yes\n")},
+			state: engine.NotConfigured, want: "kbd-interactive on"},
+		{name: "ubuntu, UsePAM yes, keyboard-interactive off", site: site{plat: ubuntu2604(), drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "a Match block turns keyboard-interactive on, with PAM", site: site{plat: ubuntu2604(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nMatch Address 192.0.2.0/24\n\tKbdInteractiveAuthentication yes\n")},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+		{name: "a Match block turns keyboard-interactive on, without PAM", site: site{plat: alpine324(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tChallengeResponseAuthentication yes\n")},
+			state: engine.Configured, want: "key-only auth"},
+		{name: "without PAM, a Match block allows passwords all the same", site: site{plat: alpine324(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nMatch User alice\n\tPasswordAuthentication yes\n")},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+		{name: "usepam not read, keyboard-interactive on", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\nKbdInteractiveAuthentication yes\n"),
+			edit: replace("usepam", "maybe")}, state: engine.Unknown, want: "can't read", codes: []string{unknownF}},
+		{name: "usepam printed twice, a Match block turns keyboard-interactive on", site: site{plat: debian13(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nMatch User alice\n\tKbdInteractiveAuthentication yes\n"),
+			edit: func(out string) string { return out + "usepam no\n" }}, state: engine.Unknown, want: "can't read", codes: []string{unknownF}},
+		{name: "usepam not read, keyboard-interactive off everywhere", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\n"),
+			edit: replace("usepam", "maybe")}, state: engine.Configured, want: "key-only auth"},
+		{name: "usepam not read, password on", site: site{plat: debian13(), edit: replace("usepam", "maybe")},
+			state: engine.NotConfigured, want: "password auth on"},
 		{name: "a Match block's value hardn does not rank", site: site{plat: alpine324(), drops: drops("10-site.conf",
 			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tPasswordAuthentication maybe\n")},
 			state: engine.Unknown, want: "can't read", codes: []string{ssh.CodeMatchValueUnknown}},
@@ -624,6 +677,72 @@ func TestAuth(t *testing.T) {
 	} {
 		r.ctl = auth
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
+	}
+}
+
+// TestAuthPAM: which sshd the check reads on Alpine, and the evidence that
+// says why keyboard-interactive counts or not (check-ssh.md §2.11). The
+// Alpine 3.23.6 VM of 2026-10-21 ran /usr/sbin/sshd, built without PAM,
+// with sshd.pam installed and not used: no usepam line, keyboard-interactive
+// on, passwords off, and a keyboard-interactive login refused at once.
+func TestAuthPAM(t *testing.T) {
+	const (
+		pwNo, kbdYes, keyYes = "sshd -T: passwordauthentication no", "sshd -T: kbdinteractiveauthentication yes", "sshd -T: pubkeyauthentication yes"
+		noPAM, noPrompt      = "sshd -T: no usepam (built without PAM)", "keyboard-interactive: no password prompt without PAM"
+	)
+	alpineT, debianT := "/usr/sbin/sshd -T -f "+sshd.MainConfig, "sshd -T -f "+sshd.MainConfig
+	pamG, pamT := reload.BinaryPAM+" -f "+sshd.MainConfig+" -G", reload.BinaryPAM+" -T -f "+sshd.MainConfig
+	alice := sshd.DefaultConn()
+	alice.User = "alice" // the Match block's probe
+	for _, c := range []struct {
+		name string
+		r    row
+		ev   []string
+		runs []string // the sshd commands, in order
+	}{
+		{"the Alpine VM's", row{site: site{plat: alpine324(), pam: true, drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"},
+			[]string{pwNo, kbdYes, keyYes, noPAM, noPrompt}, []string{pamG, alpineT}},
+		{"Alpine's sshd.pam with UsePAM yes", row{site: site{plat: alpine324(), pam: true, drops: drops("10-site.conf", "PasswordAuthentication no\nUsePAM yes\n")},
+			state: engine.NotConfigured, want: "kbd-interactive on"},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: usepam yes"}, []string{pamG, pamT}},
+		{"UsePAM no", row{site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\nKbdInteractiveAuthentication yes\nUsePAM no\n")},
+			state: engine.Configured, want: "key-only auth"},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: usepam no", noPrompt}, []string{debianT}},
+		{"a Match block without PAM", row{site: site{plat: alpine324(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tKbdInteractiveAuthentication yes\n")},
+			state: engine.Configured, want: "key-only auth"},
+			[]string{pwNo, "sshd -T: kbdinteractiveauthentication no", keyYes, noPAM,
+				"/etc/ssh/sshd_config.d/10-site.conf:4: KbdInteractiveAuthentication yes (Match User alice)", noPrompt},
+			[]string{alpineT, alpineT + " -C " + alice.Spec()}},
+		{"usepam not read", row{site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\nKbdInteractiveAuthentication yes\n"),
+			edit: replace("usepam", "maybe")}, state: engine.Unknown, want: "can't read", codes: []string{unknownF}},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: usepam maybe"}, []string{debianT}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			f, facts := c.r.site.build(t)
+			st, err := auth.Check(context.Background(), f, facts)
+			var codes []string
+			for _, fd := range st.Findings {
+				codes = append(codes, fd.Code)
+			}
+			if err != nil || st.State != c.r.state || st.Detail != c.r.want || !slices.Equal(codes, c.r.codes) {
+				t.Errorf("%s %q %v, error %v; want %s %q %v", st.State, st.Detail, codes, err, c.r.state, c.r.want, c.r.codes)
+			}
+			if !slices.Equal(st.Evidence, c.ev) {
+				t.Errorf("evidence %q, want %q", st.Evidence, c.ev)
+			}
+			var runs []string
+			for _, argv := range f.Runs() {
+				if cmd := strings.Join(argv, " "); strings.Contains(argv[0], "sshd") {
+					runs = append(runs, cmd)
+				}
+			}
+			if !slices.Equal(runs, c.runs) {
+				t.Errorf("sshd runs %q, want %q", runs, c.runs)
+			}
+			readOnly(t, f, c.r.site.plat.bin)
+		})
 	}
 }
 
