@@ -27,6 +27,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
@@ -426,6 +427,8 @@ var findingCodes = []Entry{
 	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
 	finding(header.CodeModulesMissing, "Alpine: the running kernel's own modules are not installed, while another kernel's are"),
 	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),
+	// The risk level's own (next/p4-risk): its cross-check of the uptime.
+	finding(risk.CodeUptimeNoUpdates, "the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own)"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

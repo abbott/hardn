@@ -10,6 +10,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -29,6 +30,11 @@ type Run struct {
 	Facts   *detect.Facts
 	Reports []engine.Report // ModeCheck: Engine.Check's
 	Plan    *engine.Plan    // ModePlan, ModeApply: Engine.Plan's
+	// RiskLevel is a check's risk level (risk.Assess over Reports and the
+	// header probe), not a plan's risk class: its cross-checks' findings,
+	// which no report carries, go in findings[] (next/p4-risk). The level
+	// itself is the main menu's (StatusViewOf), not the document's.
+	RiskLevel *risk.Level
 	// Result is Engine.Apply's, once it ran.
 	Result *engine.Result
 	// Declined: the user declined the plan at its confirmation, so
@@ -93,6 +99,11 @@ func Build(r Run) Document {
 			Detail: rep.Status.Detail, Evidence: nonNil(rep.Status.Evidence)})
 		for _, f := range rep.Status.Findings {
 			d.Findings = append(d.Findings, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source, Control: rep.Control})
+		}
+	}
+	if r.RiskLevel != nil {
+		for _, f := range r.RiskLevel.Findings {
+			d.Findings = append(d.Findings, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source})
 		}
 	}
 	if p := r.Plan; p != nil {

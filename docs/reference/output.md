@@ -88,6 +88,8 @@ A change that ran whose undo the journal did not hold once it had run (its journ
 
 `code` (§2.2), `detail`, `source` (a file and line, a command; `""` when not known), `control` (whose check or plan found it), `change` (the change it rides on; `""` for a check's). A finding stops nothing.
 
+A check with a risk level (`Run.RiskLevel`, added by `next/p4-risk`) also carries its cross-checks' own findings, after the controls': why a reboot is pending (`REBOOT_*`, the header probe's) and `UPTIME_NO_AUTO_UPDATES`, each with no `control` and no `change`. The level itself, its band and its factors, is the main menu's, not this document's ([risk.md](../engine/risk.md) §7).
+
 ### 1.8 `errors[]`
 
 `code` (§2.1), `message` (the error's text, which may change: match on the code), `control` and `change` (what it is about, when known), `step` (open: the apply's step, as `result.rollback.step`; `boot-unit` for the boot unit's install; `rollback` for the rollback's own error; `""` otherwise), and for a refusal with a report, `why` (why the host is refused) and `fix` (what makes it one hardn can change). An apply that failed gives one entry for its step's error, one for its rollback's error when the rollback did not finish, and one (`CHANGE_UNJOURNALLED`, its message naming what undoes the change, as §1.4.1) for a change the journal did not cover; a refused plan, one per refusal. Each error is there once, however the run's own error wraps it. Quitting (`q`) or going back (`0`) is not an error (`declined`), nor is the non-interactive policy's refusal for a plan with nothing to change (§6).
@@ -363,6 +365,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |
+| `UPTIME_NO_AUTO_UPDATES` | the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own); the risk level's cross-check, with no `control` ([risk.md](../engine/risk.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 
