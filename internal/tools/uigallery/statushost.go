@@ -192,14 +192,16 @@ const (
 
 // AppArmor's profiles, as the kernel lists them (name (mode)); the names
 // are written from the vendors' packages and the counts are illustrative,
-// as the check's own fixtures are.
+// as the check's own fixtures are, not a platform's. A Proxmox VE node as
+// installed runs no container, so no container's generated profile
+// (lxc-<id>_</var/lib/lxc>, loaded while it runs) is listed.
 const (
 	debianProfiles = "/usr/bin/man (enforce)\nlsb_release (enforce)\nman_filter (enforce)\nman_groff (enforce)\n" +
 		"nvidia_modprobe (enforce)\nnvidia_modprobe//kmod (enforce)\nunix-chkpwd (enforce)\n"
 	ubuntuProfiles = "/usr/bin/man (enforce)\n/usr/lib/snapd/snap-confine (enforce)\nbusybox (unconfined)\nlsb_release (enforce)\n" +
 		"man_filter (enforce)\nman_groff (enforce)\nrsyslogd (enforce)\nsbuild (complain)\ntcpdump (enforce)\nunix-chkpwd (enforce)\n" +
 		"unprivileged_userns (enforce)\n"
-	pveProfiles = "/usr/bin/lxc-start (enforce)\n/usr/bin/man (enforce)\nlsb_release (enforce)\nlxc-101_</var/lib/lxc> (enforce)\n" +
+	pveProfiles = "/usr/bin/lxc-start (enforce)\n/usr/bin/man (enforce)\nlsb_release (enforce)\n" +
 		"lxc-container-default (enforce)\nlxc-container-default-cgns (enforce)\nlxc-container-default-with-mounting (enforce)\n" +
 		"lxc-container-default-with-nesting (enforce)\nman_filter (enforce)\nman_groff (enforce)\nunix-chkpwd (enforce)\n"
 )
@@ -411,6 +413,34 @@ func (h *fakeHost) harden() {
 	h.unattendedUpgrades()
 }
 
+// ufwAsShipped is ufw as Ubuntu ships it: installed and inactive, with
+// ENABLED=no and no rule (vmtest.md §4.9, the 26.04.1 cloud image).
+func (h *fakeHost) ufwAsShipped() {
+	h.inactive, h.allowed = true, nil
+	h.saveRules()
+}
+
+// cloudImage is what Ubuntu 26.04.1's cloud image adds: its
+// 60-cloudimg-settings.conf refusing passwords (vmtest.md §4.9), and
+// cloud-init's rule letting the image's default user, alice here, use
+// sudo without a password (sudoers.md §3, unverified).
+func (h *fakeHost) cloudImage() {
+	h.f.AddFile(sshd.DropInDir+"/60-cloudimg-settings.conf", []byte("PasswordAuthentication no\n"), 0o644, 0, 0)
+	h.f.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte("# Created by cloud-init\n\n# User rules for alice\nalice ALL=(ALL) NOPASSWD:ALL\n"), 0o440, 0, 0)
+}
+
+// isoInstall is what cloud-init writes on Ubuntu installed from the
+// server ISO with no SSH key imported: 50-cloud-init.conf allowing
+// passwords (sshd-effective.md §3).
+func (h *fakeHost) isoInstall() {
+	h.f.AddFile(sshd.DropInDir+"/50-cloud-init.conf", []byte("PasswordAuthentication yes\n"), 0o600, 0, 0)
+}
+
+// stopUFW leaves ufw stopped and enabled at boot: its status inactive,
+// ufw.conf's ENABLED=yes and the rules as saveRules last wrote them
+// (check-firewall.md §5, "enabled, not running").
+func (h *fakeHost) stopUFW() { h.inactive = true }
+
 // rebootPending is a newer kernel installed than the one running, and
 // /var/run/reboot-required written, as an upgrade of the kernel leaves
 // Ubuntu.
@@ -420,8 +450,10 @@ func (h *fakeHost) rebootPending() {
 }
 
 // inContainer is the host in an LXC container, as systemd as its PID 1
-// says (/run/systemd/container): no kernel of its own in /boot, and the
-// uptime LXCFS gives it.
+// says (/run/systemd/container), with the uptime LXCFS gives it. The
+// kernel in /boot and its package stay statusOn's: the header probe reads
+// no kernel source inside a container (header.md §2.7), so no line shows
+// them.
 func (h *fakeHost) inContainer() {
 	h.f.AddFile(detect.SystemdContainerFile, []byte("lxc\n"), 0o444, 0, 0)
 	h.f.AddFile(detect.InitEnviron, []byte("container=lxc\x00HOME=/\x00TERM=linux\x00"), 0o400, 0, 0)

@@ -57,8 +57,11 @@ type statusHost struct {
 }
 
 // statusHosts returns the status hosts, in the order the menu lists them:
-// the platforms as the engine's scenarios start from them, then the host
-// states that show the other lines.
+// the platforms as the engine's scenarios start from them (not as
+// installed: ufw is set up where it is installed), then hosts as
+// installed (a Proxmox VE node, Debian 13 with root alone, Ubuntu 26.04's
+// cloud image and an install from its ISO), then the host states that
+// show the other lines.
 func statusHosts() []statusHost {
 	debian := func() *fakeHost { return statusOn(debian13Platform) }
 	hardened := func() *fakeHost { h := debian(); h.harden(); return h }
@@ -79,9 +82,16 @@ func statusHosts() []statusHost {
 		{name: "pve9", label: "Proxmox VE 9", about: "A node as installed", host: pveNode,
 			note: "A Proxmox VE 9 node as installed: root alone, PermitRootLogin yes, sshd on 22, pve-firewall running " +
 				"and disabled, AppArmor enforcing LXC's profiles, no unattended-upgrades; up 41 days."},
-		{name: "fresh", label: "Fresh Debian 13", about: "Nothing set up yet", host: fresh,
-			note: "Debian 13 as installed, before anything is set up: root alone, no ufw, sshd's defaults on 22, " +
+		{name: "fresh", label: "Fresh Debian 13", about: "Root alone, nothing set up", host: fresh,
+			note: "Debian 13 installed with root alone, no first user, before anything is set up: no ufw, sshd's defaults on 22, " +
 				"AppArmor enforcing, no unattended-upgrades; up 3 days."},
+		{name: "ubuntu2604-cloud", label: "Ubuntu 26.04 cloud image", about: "ufw inactive, key-only", host: ubuntuCloud,
+			note: "Ubuntu 26.04 as its cloud image ships: ssh.socket on 22, ufw installed and inactive, 60-cloudimg-settings.conf " +
+				"refusing passwords, alice the default user, whom cloud-init lets use sudo without a password, AppArmor enforcing, " +
+				"unattended-upgrades on; up 3 days."},
+		{name: "ubuntu2604-iso", label: "Ubuntu 26.04 from the ISO", about: "ufw inactive, passwords", host: ubuntuISO,
+			note: "Ubuntu 26.04 installed from the server ISO with no SSH key imported: ssh.socket on 22, ufw installed and inactive, " +
+				"cloud-init's 50-cloud-init.conf allowing passwords, alice in sudo, AppArmor enforcing, unattended-upgrades on; up 3 days."},
 		{name: "hardened", label: "Hardened Debian 13", about: "Every row as hardn wants it", host: hardened,
 			note: "Debian 13 after hardn: alice in sudo, ufw allowing 2230 alone, sshd on 2230 refusing root's login " +
 				"and passwords, AppArmor enforcing, unattended-upgrades on; up 3 days."},
@@ -90,6 +100,9 @@ func statusHosts() []statusHost {
 				"and unattended-upgrades is not installed; up 182 days."},
 		{name: "lockout", label: "Lockout", about: "ufw refuses SSH", host: lockout,
 			note: "The hardened host, but ufw allows 443 alone, so it refuses SSH on 2230: a new SSH session cannot log in."},
+		{name: "lockout-at-start", label: "Lockout at ufw's start", about: "ufw stopped, its rules refuse SSH", host: lockoutAtStart,
+			note: "The hardened host, but ufw is stopped, enabled at boot (ENABLED=yes), and its saved rules allow 443 alone: " +
+				"SSH on 2230 works until ufw starts, then a new SSH session cannot log in."},
 		{name: "reboot", label: "Reboot pending", about: "A newer kernel, Ubuntu 26.04", host: rebooting,
 			note: "The ubuntu2604 host, with a newer kernel installed than the one running and " +
 				"/var/run/reboot-required written."},
@@ -140,6 +153,31 @@ func lockout() *fakeHost {
 	h.harden()
 	h.allowed = []uint16{443}
 	h.saveRules()
+	return h
+}
+
+// lockoutAtStart is the hardened host, ufw stopped and enabled at boot,
+// its saved rules allowing 443 alone.
+func lockoutAtStart() *fakeHost {
+	h := lockout()
+	h.stopUFW()
+	return h
+}
+
+// ubuntuCloud is Ubuntu 26.04 as its cloud image ships.
+func ubuntuCloud() *fakeHost {
+	h := statusOn(ubuntu2604Platform)
+	h.ufwAsShipped()
+	h.cloudImage()
+	return h
+}
+
+// ubuntuISO is Ubuntu 26.04 installed from its server ISO, no SSH key
+// imported.
+func ubuntuISO() *fakeHost {
+	h := statusOn(ubuntu2604Platform)
+	h.ufwAsShipped()
+	h.isoInstall()
 	return h
 }
 
@@ -206,10 +244,9 @@ type hostStatus struct {
 
 // readStatus reads h as the main menu will: detect's facts, once, then
 // Engine.Check over the status rows' controls on them, the header probe
-// on the same facts, and the risk level over both. The error is
+// on the same facts, and the risk level over both. The error is ctx's or
 // detection's alone, as Engine.Check's: a check's error is in its report.
-func (s *session) readStatus(h *fakeHost) (hostStatus, error) {
-	ctx := context.Background()
+func (s *session) readStatus(ctx context.Context, h *fakeHost) (hostStatus, error) {
 	sys := h.sys()
 	var facts detect.Facts
 	e := engine.New(sys, engine.Options{
@@ -243,7 +280,8 @@ func (st hostStatus) mainMenu() screen.MainMenu {
 // statusNote is play's note for the status hosts.
 const statusNote = "Play mode: hardn's main menu, its header, risk level and status rows read by the real checks, " +
 	"header probe and risk level from a simulated host, hostfake's host.System, whose commands a model of the host answers. " +
-	"Its items lead to the screen mocks, on the gallery's fixture plans. Nothing on this machine changes."
+	"Its items lead to the screen mocks, which show Figma's host, not this one, on the gallery's fixture plans. " +
+	"Nothing on this machine changes."
 
 // statusStart returns the status hosts' menu, or the host, that args name
 // ("status", "status/<host>"), and whether they name one; an error for a
@@ -279,14 +317,14 @@ func hostMenu() screen.SubMenu {
 // menu for statusPrefix alone, one host for "status/<host>".
 func (s *session) openStatus(name string) func() error {
 	if sh, ok := findStatusHost(strings.TrimPrefix(name, statusPrefix+"/")); ok && name != statusPrefix {
-		return func() error { return s.openHost(sh) }
+		return func() error { return s.openHost(context.Background(), sh) }
 	}
 	return func() error {
 		vm, all := hostMenu(), statusHosts()
 		menu := nav.Menu{Exit: vm.Menu.Exit}
 		for i, it := range vm.Menu.Items {
 			sh := all[i]
-			menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return s.openHost(sh) }})
+			menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return s.openHost(context.Background(), sh) }})
 		}
 		return s.p.Run(func() nav.Screen { return vm.Screen(s.p.Ctx, menu) })
 	}
@@ -295,8 +333,8 @@ func (s *session) openStatus(name string) func() error {
 // openHost reads sh's host, fresh, and runs its main menu until the user
 // goes back from it, its note above it, set apart as a scenario's is
 // (runScenario). Its items lead where the main menu's mock's do.
-func (s *session) openHost(sh statusHost) error {
-	st, err := s.readStatus(sh.host())
+func (s *session) openHost(ctx context.Context, sh statusHost) error {
+	st, err := s.readStatus(ctx, sh.host())
 	if err != nil {
 		return fmt.Errorf("%s/%s: %w", statusPrefix, sh.name, err)
 	}
@@ -359,26 +397,37 @@ func statusList(args []string, size sizer, stdout, stderr io.Writer) int {
 	if !ok {
 		return exitError
 	}
-	ctx, err := g.ctx(c.env)
+	rc, err := g.ctx(c.env)
 	if err != nil {
 		fmt.Fprintf(stderr, "uigallery: status: %v\n", err)
 		return exitError
 	}
-	s, gap := &session{}, strings.Repeat("\n", theme.SectionGap+1)
-	for _, h := range hosts {
-		st, err := s.readStatus(h.host())
-		if err == nil {
-			out := header(ctx, statusPrefix+" "+h.name) + gap +
-				component.Callout{Kind: component.MessageInfo, Body: []string{h.note}}.Render(ctx) + gap +
-				st.mainMenu().Render(ctx) + gap
-			_, err = io.WriteString(c.env.Writer(stdout), out)
-		}
-		if err != nil {
-			fmt.Fprintf(stderr, "uigallery: status: %s: %v\n", h.name, err)
-			return exitError
-		}
+	if err := listStatus(context.Background(), rc, c.env.Writer(stdout), hosts); err != nil {
+		fmt.Fprintf(stderr, "uigallery: status: %v\n", err)
+		return exitError
 	}
 	return exitOK
+}
+
+// listStatus writes each of hosts to w, rendered in rc, a write each: the
+// gallery's header "status <host>", its note, then its main menu down to
+// its prompt. It stops at the first host it cannot read or write, its
+// error naming the host.
+func listStatus(ctx context.Context, rc component.Ctx, w io.Writer, hosts []statusHost) error {
+	s, gap := &session{}, strings.Repeat("\n", theme.SectionGap+1)
+	for _, h := range hosts {
+		st, err := s.readStatus(ctx, h.host())
+		if err == nil {
+			out := header(rc, statusPrefix+" "+h.name) + gap +
+				component.Callout{Kind: component.MessageInfo, Body: []string{h.note}}.Render(rc) + gap +
+				st.mainMenu().Render(rc) + gap
+			_, err = io.WriteString(w, out)
+		}
+		if err != nil {
+			return fmt.Errorf("%s: %w", h.name, err)
+		}
+	}
+	return nil
 }
 
 // selectHosts returns the hosts args name, in the catalogue's order: every

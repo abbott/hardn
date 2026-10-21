@@ -10,8 +10,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstatus rows read by the real checks, header probe and risk␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlevel from a simulated host, hostfake's host.System, whose␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands a model of the host answers. Its items lead to the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, on the gallery's fixture plans. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, which show Figma's host, not this one, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mStatus hosts␛[m ␛[48;2;22;24;29m                                                 ␛[m$
 $
@@ -26,29 +26,35 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mA node as installed␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mFresh Debian 13␛[m$
-      ␛[38;2;129;134;156mNothing set up yet␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
+      ␛[38;2;129;134;156mRoot alone, nothing set up␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUbuntu 26.04 cloud image␛[m$
+      ␛[38;2;129;134;156mufw inactive, key-only␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mUbuntu 26.04 from the ISO␛[m$
+      ␛[38;2;129;134;156mufw inactive, passwords␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
       ␛[38;2;129;134;156mEvery row as hardn wants it␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
       ␛[38;2;129;134;156m00-TUI-MAIN's rows␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mLockout␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLockout␛[m$
       ␛[38;2;129;134;156mufw refuses SSH␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLockout at ufw's start␛[m$
+      ␛[38;2;129;134;156mufw stopped, its rules refuse SSH␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
       ␛[38;2;129;134;156mA newer kernel, Ubuntu 26.04␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
       ␛[38;2;129;134;156mEvery profile in complain mode␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
       ␛[38;2;129;134;156mapparmor.service disabled␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
       ␛[38;2;129;134;156mapparmor=0␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mContainer␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 7$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/figma␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with 00-TUI-MAIN's rows: the hardened host, but␛[m$
@@ -94,29 +100,35 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mA node as installed␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mFresh Debian 13␛[m$
-      ␛[38;2;129;134;156mNothing set up yet␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
+      ␛[38;2;129;134;156mRoot alone, nothing set up␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUbuntu 26.04 cloud image␛[m$
+      ␛[38;2;129;134;156mufw inactive, key-only␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mUbuntu 26.04 from the ISO␛[m$
+      ␛[38;2;129;134;156mufw inactive, passwords␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
       ␛[38;2;129;134;156mEvery row as hardn wants it␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
       ␛[38;2;129;134;156m00-TUI-MAIN's rows␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mLockout␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLockout␛[m$
       ␛[38;2;129;134;156mufw refuses SSH␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLockout at ufw's start␛[m$
+      ␛[38;2;129;134;156mufw stopped, its rules refuse SSH␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
       ␛[38;2;129;134;156mA newer kernel, Ubuntu 26.04␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
       ␛[38;2;129;134;156mEvery profile in complain mode␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
       ␛[38;2;129;134;156mapparmor.service disabled␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
       ␛[38;2;129;134;156mapparmor=0␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mContainer␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -132,8 +144,8 @@ $
 # status rows read by the real checks, header probe and risk$
 # level from a simulated host, hostfake's host.System, whose$
 # commands a model of the host answers. Its items lead to the$
-# screen mocks, on the gallery's fixture plans. Nothing on this$
-# machine changes.$
+# screen mocks, which show Figma's host, not this one, on the$
+# gallery's fixture plans. Nothing on this machine changes.$
 $
 # Status hosts #################################################$
 $
@@ -148,29 +160,35 @@ $
    4) Proxmox VE 9$
       A node as installed$
    5) Fresh Debian 13$
-      Nothing set up yet$
-   6) Hardened Debian 13$
+      Root alone, nothing set up$
+   6) Ubuntu 26.04 cloud image$
+      ufw inactive, key-only$
+   7) Ubuntu 26.04 from the ISO$
+      ufw inactive, passwords$
+   8) Hardened Debian 13$
       Every row as hardn wants it$
-   7) Figma's host$
+   9) Figma's host$
       00-TUI-MAIN's rows$
-   8) Lockout$
+  10) Lockout$
       ufw refuses SSH$
-   9) Reboot pending$
+  11) Lockout at ufw's start$
+      ufw stopped, its rules refuse SSH$
+  12) Reboot pending$
       A newer kernel, Ubuntu 26.04$
-  10) AppArmor logging only$
+  13) AppArmor logging only$
       Every profile in complain mode$
-  11) AppArmor off after restart$
+  14) AppArmor off after restart$
       apparmor.service disabled$
-  12) AppArmor off in kernel$
+  15) AppArmor off in kernel$
       apparmor=0$
-  13) AppArmor unread$
+  16) AppArmor unread$
       securityfs not mounted$
-  14) Container$
+  17) Container$
       Debian 13 in LXC$
 $
    0) Return$
 $
-  > Enter your choice [0-14 or q]: 7$
+  > Enter your choice [0-17 or q]: 9$
 $
 # Info: status/figma$
 # Debian 13 with 00-TUI-MAIN's rows: the hardened host, but$
@@ -227,29 +245,35 @@ $
    4) Proxmox VE 9$
       A node as installed$
    5) Fresh Debian 13$
-      Nothing set up yet$
-   6) Hardened Debian 13$
+      Root alone, nothing set up$
+   6) Ubuntu 26.04 cloud image$
+      ufw inactive, key-only$
+   7) Ubuntu 26.04 from the ISO$
+      ufw inactive, passwords$
+   8) Hardened Debian 13$
       Every row as hardn wants it$
-   7) Figma's host$
+   9) Figma's host$
       00-TUI-MAIN's rows$
-   8) Lockout$
+  10) Lockout$
       ufw refuses SSH$
-   9) Reboot pending$
+  11) Lockout at ufw's start$
+      ufw stopped, its rules refuse SSH$
+  12) Reboot pending$
       A newer kernel, Ubuntu 26.04$
-  10) AppArmor logging only$
+  13) AppArmor logging only$
       Every profile in complain mode$
-  11) AppArmor off after restart$
+  14) AppArmor off after restart$
       apparmor.service disabled$
-  12) AppArmor off in kernel$
+  15) AppArmor off in kernel$
       apparmor=0$
-  13) AppArmor unread$
+  16) AppArmor unread$
       securityfs not mounted$
-  14) Container$
+  17) Container$
       Debian 13 in LXC$
 $
    0) Return$
 $
-  > Enter your choice [0-14 or q]: 0$
+  > Enter your choice [0-17 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -265,8 +289,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstatus rows read by the real checks, header probe and risk␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlevel from a simulated host, hostfake's host.System, whose␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands a model of the host answers. Its items lead to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe screen mocks, on the gallery's fixture plans. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe screen mocks, which show Figma's host, not this one,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon the gallery's fixture plans. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mStatus hosts␛[m ␛[48;2;22;24;29m                                             ␛[m$
 $
@@ -281,29 +306,35 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mA node as installed␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mFresh Debian 13␛[m$
-      ␛[38;2;129;134;156mNothing set up yet␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
+      ␛[38;2;129;134;156mRoot alone, nothing set up␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUbuntu 26.04 cloud image␛[m$
+      ␛[38;2;129;134;156mufw inactive, key-only␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mUbuntu 26.04 from the ISO␛[m$
+      ␛[38;2;129;134;156mufw inactive, passwords␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
       ␛[38;2;129;134;156mEvery row as hardn wants it␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
       ␛[38;2;129;134;156m00-TUI-MAIN's rows␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mLockout␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLockout␛[m$
       ␛[38;2;129;134;156mufw refuses SSH␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLockout at ufw's start␛[m$
+      ␛[38;2;129;134;156mufw stopped, its rules refuse SSH␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
       ␛[38;2;129;134;156mA newer kernel, Ubuntu 26.04␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
       ␛[38;2;129;134;156mEvery profile in complain mode␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
       ␛[38;2;129;134;156mapparmor.service disabled␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
       ␛[38;2;129;134;156mapparmor=0␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mContainer␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 7$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/figma␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with 00-TUI-MAIN's rows: the hardened host, but␛[m$
@@ -359,29 +390,35 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mA node as installed␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mFresh Debian 13␛[m$
-      ␛[38;2;129;134;156mNothing set up yet␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
+      ␛[38;2;129;134;156mRoot alone, nothing set up␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUbuntu 26.04 cloud image␛[m$
+      ␛[38;2;129;134;156mufw inactive, key-only␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mUbuntu 26.04 from the ISO␛[m$
+      ␛[38;2;129;134;156mufw inactive, passwords␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mHardened Debian 13␛[m$
       ␛[38;2;129;134;156mEvery row as hardn wants it␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mFigma's host␛[m$
       ␛[38;2;129;134;156m00-TUI-MAIN's rows␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mLockout␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLockout␛[m$
       ␛[38;2;129;134;156mufw refuses SSH␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLockout at ufw's start␛[m$
+      ␛[38;2;129;134;156mufw stopped, its rules refuse SSH␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mReboot pending␛[m$
       ␛[38;2;129;134;156mA newer kernel, Ubuntu 26.04␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor logging only␛[m$
       ␛[38;2;129;134;156mEvery profile in complain mode␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAppArmor off after restart␛[m$
       ␛[38;2;129;134;156mapparmor.service disabled␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAppArmor off in kernel␛[m$
       ␛[38;2;129;134;156mapparmor=0␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mAppArmor unread␛[m$
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mContainer␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

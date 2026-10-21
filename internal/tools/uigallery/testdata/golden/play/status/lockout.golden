@@ -10,8 +10,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstatus rows read by the real checks, header probe and risk␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlevel from a simulated host, hostfake's host.System, whose␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands a model of the host answers. Its items lead to the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, on the gallery's fixture plans. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, which show Figma's host, not this one, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/lockout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe hardened host, but ufw allows 443 alone, so it refuses SSH␛[m$
@@ -56,8 +56,8 @@ $
 # status rows read by the real checks, header probe and risk$
 # level from a simulated host, hostfake's host.System, whose$
 # commands a model of the host answers. Its items lead to the$
-# screen mocks, on the gallery's fixture plans. Nothing on this$
-# machine changes.$
+# screen mocks, which show Figma's host, not this one, on the$
+# gallery's fixture plans. Nothing on this machine changes.$
 $
 # Info: status/lockout$
 # The hardened host, but ufw allows 443 alone, so it refuses SSH$
@@ -113,8 +113,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstatus rows read by the real checks, header probe and risk␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlevel from a simulated host, hostfake's host.System, whose␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands a model of the host answers. Its items lead to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe screen mocks, on the gallery's fixture plans. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe screen mocks, which show Figma's host, not this one,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon the gallery's fixture plans. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/lockout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe hardened host, but ufw allows 443 alone, so it refuses␛[m$

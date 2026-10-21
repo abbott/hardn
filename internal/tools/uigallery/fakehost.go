@@ -68,7 +68,7 @@ type fakeHost struct {
 	f          *hostfake.System
 	platform            // what the release ships
 	allowed    []uint16 // ufw's allow rules, both families
-	inactive   bool     // ufw stopped, ENABLED=no
+	inactive   bool     // ufw stopped; saveRules writes ENABLED=no for it
 	bound      []string // what ss shows of sshd's (or ssh.socket's) sockets
 	configured []string // ssh.socket's Listen, as the last daemon-reload set it
 	// failReloads is how many reloads of ssh.service to refuse, as

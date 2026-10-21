@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -26,16 +28,17 @@ import (
 
 // wantStatus is a status host's main menu as docs/engine/gallery-status.md
 // §5 lists it: each row's state and detail in Figma's order, the risk
-// level, its gloss and factors, the distribution's bar, the uptime and
-// whether a reboot is pending; and the code of each check that failed, by
-// control.
+// level, its gloss, score and factors, the distribution's bar, the uptime
+// and whether a reboot is pending; the code of each check that failed,
+// and a finding §5 names, by control.
 type wantStatus struct {
 	rows        [7]string // "<state>: <detail>", engine.State's words
 	level       string    // "<level> ≈ <gloss>"
+	score       string    // the score, to one decimal place
 	factors     []string
 	bar, uptime string
 	reboot      bool
-	errs        map[string]string
+	errs, finds map[string]string
 }
 
 // The rows the hosts share, and the bars and uptimes.
@@ -46,6 +49,8 @@ const (
 	rootKeyOnly = "partial: root key-only"
 	passwordOn  = "not-configured: password auth on"
 	port22      = "not-configured: default (22)"
+	ufwInactive = "not-configured: inactive"
+	ubuntuAA    = "configured: 9 profiles enforced"
 	noUnattend  = "not-configured: no unattended-upgrades"
 	unattendOn  = "configured: unattended-upgrades"
 	debianBar   = "Debian 13 (Trixie)"
@@ -62,32 +67,47 @@ func debianWith(apparmor string) [7]string {
 	return [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend}
 }
 
+// hardenedWith is the hardened host's rows, with the Firewall's row
+// firewall.
+func hardenedWith(firewall string) [7]string {
+	rows := hardenedRows
+	rows[1] = firewall
+	return rows
+}
+
 // wantStatuses are the status hosts' main menus, by name.
 var wantStatuses = map[string]wantStatus{
-	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", bar: debianBar, uptime: threeDays},
-	"ubuntu2604": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, "configured: 9 profiles enforced", unattendOn},
-		level: "Moderate ≈ medium security", bar: ubuntuBar, uptime: threeDays},
+	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", score: "47.5", bar: debianBar, uptime: threeDays},
+	"ubuntu2604": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+		level: "Moderate ≈ medium security", score: "67.5", bar: ubuntuBar, uptime: threeDays},
 	"alpine324": {rows: [7]string{"configured: non-root, doas", "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22,
-		"not-applicable: Alpine default", "not-configured: no apk-cron"}, level: "Critical ≈ no security", bar: "Alpine 3.24.2", uptime: threeDays},
+		"not-applicable: Alpine default", "not-configured: no apk-cron"}, level: "Critical ≈ no security", score: "19.4", bar: "Alpine 3.24.2", uptime: threeDays},
 	"pve9": {rows: [7]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
-		"configured: 11 profiles enforced", noUnattend}, level: "Critical ≈ no security", factors: []string{"up 41 days, no auto updates"},
+		"configured: 10 profiles enforced", noUnattend}, level: "Critical ≈ no security", score: "5.0", factors: []string{"up 41 days, no auto updates"},
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
 	"fresh": {rows: [7]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend},
-		level: "Critical ≈ no security", bar: debianBar, uptime: threeDays},
-	"hardened": {rows: hardenedRows, level: "Minimal ≈ hardened security", bar: debianBar, uptime: threeDays},
+		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},
+	"ubuntu2604-cloud": {rows: [7]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn},
+		level: "Moderate ≈ medium security", score: "62.5", factors: []string{"no password to become root"}, bar: ubuntuBar, uptime: threeDays,
+		finds: map[string]string{"users.admin": "USERS_NOPASSWD"}},
+	"ubuntu2604-iso": {rows: [7]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+		level: "High ≈ weak security", score: "47.5", bar: ubuntuBar, uptime: threeDays},
+	"hardened": {rows: hardenedRows, level: "Minimal ≈ hardened security", score: "100.0", bar: debianBar, uptime: threeDays},
 	"figma": {rows: [7]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
-		"not-configured: no profiles loaded", noUnattend}, level: "Moderate ≈ medium security", factors: []string{"up 182 days, no auto updates"},
+		"not-configured: no profiles loaded", noUnattend}, level: "Moderate ≈ medium security", score: "60.0", factors: []string{"up 182 days, no auto updates"},
 		bar: debianBar, uptime: "182 days, 2 hours, 26 minutes"},
-	"lockout": {rows: [7]string{sudoAdmin, "partial: ssh blocked", "configured: root disallowed", "configured: key-only auth",
-		"configured: non-default (2230)", "configured: 7 profiles enforced", unattendOn}, level: "Critical ≈ lockout risk", bar: debianBar, uptime: threeDays},
-	"reboot": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, "configured: 9 profiles enforced", unattendOn},
-		level: "Moderate ≈ medium security", factors: []string{"reboot pending"}, bar: ubuntuBar, uptime: threeDays, reboot: true},
-	"apparmor-logging": {rows: debianWith("partial: logging only"), level: "High ≈ weak security", bar: debianBar, uptime: threeDays},
-	"apparmor-restart": {rows: debianWith("partial: off after restart"), level: "High ≈ weak security", bar: debianBar, uptime: threeDays},
-	"apparmor-kernel":  {rows: debianWith("not-configured: off in kernel"), level: "High ≈ weak security", bar: debianBar, uptime: threeDays},
-	"apparmor-unread": {rows: debianWith("unknown: can't read"), level: "High ≈ weak security", factors: []string{"unknown counted as not configured"},
+	"lockout": {rows: hardenedWith("partial: ssh blocked"), level: "Critical ≈ lockout risk", score: "90.0", bar: debianBar, uptime: threeDays},
+	"lockout-at-start": {rows: hardenedWith("not-configured: enabled, not running"), level: "Moderate ≈ medium security", score: "70.0",
+		factors: []string{"ssh may be blocked after restart"}, bar: debianBar, uptime: threeDays,
+		finds: map[string]string{"firewall.incoming": "UFW_SSH_NOT_ALLOWED_AT_START"}},
+	"reboot": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+		level: "Moderate ≈ medium security", score: "57.5", factors: []string{"reboot pending"}, bar: ubuntuBar, uptime: threeDays, reboot: true},
+	"apparmor-logging": {rows: debianWith("partial: logging only"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
+	"apparmor-restart": {rows: debianWith("partial: off after restart"), level: "High ≈ weak security", score: "42.5", bar: debianBar, uptime: threeDays},
+	"apparmor-kernel":  {rows: debianWith("not-configured: off in kernel"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
+	"apparmor-unread": {rows: debianWith("unknown: can't read"), level: "High ≈ weak security", score: "37.5", factors: []string{"unknown counted as not configured"},
 		bar: debianBar, uptime: threeDays, errs: map[string]string{"apparmor.enforce": "FILE_NOT_FOUND"}},
-	"container": {rows: debianWith("not-applicable: set by the host"), level: "High ≈ weak security", bar: debianBar, uptime: "1 hour"},
+	"container": {rows: debianWith("not-applicable: set by the host"), level: "High ≈ weak security", score: "41.7", bar: debianBar, uptime: "1 hour"},
 }
 
 // statusReads reports whether argv only reads the host: the scenarios'
@@ -115,7 +135,7 @@ func TestStatusHosts(t *testing.T) {
 	for _, sh := range statusHosts() {
 		t.Run(sh.name, func(t *testing.T) {
 			want, h, s := wantStatuses[sh.name], sh.host(), &session{}
-			st, err := s.readStatus(h)
+			st, err := s.readStatus(context.Background(), h)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -126,6 +146,9 @@ func TestStatusHosts(t *testing.T) {
 				if code := output.CodeOf(r.Err); r.Err != nil && code != want.errs[r.Control] || r.Err == nil && want.errs[r.Control] != "" {
 					t.Errorf("%s: error %v (%s), want %q", r.Control, r.Err, code, want.errs[r.Control])
 				}
+				if code, ok := want.finds[r.Control]; ok && !slices.ContainsFunc(r.Status.Findings, func(f engine.Finding) bool { return f.Code == code }) {
+					t.Errorf("%s: findings %+v, want %s", r.Control, r.Status.Findings, code)
+				}
 			}
 			if len(st.reports) != len(want.rows) {
 				t.Errorf("%d rows, want %d", len(st.reports), len(want.rows))
@@ -133,6 +156,9 @@ func TestStatusHosts(t *testing.T) {
 			vm := st.mainMenu()
 			if got := vm.Risk.Level + " ≈ " + vm.Risk.Gloss; got != want.level {
 				t.Errorf("risk %q, want %q", got, want.level)
+			}
+			if got := fmt.Sprintf("%.1f", st.level.Score); got != want.score {
+				t.Errorf("score %s, want %s", got, want.score)
 			}
 			if !slices.Equal(vm.Risk.Factors, want.factors) {
 				t.Errorf("factors %q, want %q", vm.Risk.Factors, want.factors)
@@ -231,7 +257,7 @@ func TestPlayStatusGolden(t *testing.T) {
 		args  []string
 		lines []string
 	}{
-		{"menu", []string{statusPrefix}, []string{"7", "0", "0"}},
+		{"menu", []string{statusPrefix}, []string{"9", "0", "0"}},
 		{"lockout", []string{statusPrefix + "/lockout"}, []string{"q"}},
 	} {
 		uitest.Golden(t, "play/status/"+r.name, uitest.Core(), func(env term.Env) string {
@@ -281,6 +307,7 @@ func TestStatusUsage(t *testing.T) {
 		{statusPrefix, "-width", "0", "hardened"},
 		{"play", statusPrefix + "/nope"},
 		{"play", statusPrefix, "hardened"},
+		{statusPrefix, "-nope"},
 	} {
 		var out, errs bytes.Buffer
 		read := false
@@ -296,6 +323,92 @@ func TestStatusUsage(t *testing.T) {
 	code, out, _ = runGallery(statusPrefix, "-list", "lockout", "debian13")
 	if code != exitOK || out != "debian13\nlockout\n" {
 		t.Errorf("-list lockout debian13: exit %d, stdout %q; want the catalogue's order", code, out)
+	}
+	if code, out, errs := runGallery(statusPrefix, "-h"); code != exitOK || out != "" || !strings.Contains(errs, statusUsage) {
+		t.Errorf("-h: exit %d, stdout %q, stderr %q; want exit 0 and the usage", code, out, errs)
+	}
+	if code, out, errs := runGallery(statusPrefix, "-override", writeFile(t, "not json"), "hardened"); code != exitError || out != "" || !strings.Contains(errs, "override file") {
+		t.Errorf("a bad -override: exit %d, stdout %q, stderr %q; want exit %d and a message", code, out, errs, exitError)
+	}
+}
+
+// TestStatusWriteFails: a failed write of a host's note in play, the host
+// played directly or chosen from the hosts' menu, and of a host in the
+// listing, exits 1 with the error. A host that cannot be read stops the
+// listing there, its name in the error, after the hosts before it, and
+// play's host with the host's name: the reading fails only with its
+// context (detect.Detect), cancelled here.
+func TestStatusWriteFails(t *testing.T) {
+	for _, tc := range []struct {
+		args  []string
+		lines []string
+		at    string
+		errs  string
+	}{
+		{[]string{"play", "-profile", "plain", statusPrefix + "/hardened"}, nil, "Info: status/hardened", "uigallery: play: broken pipe\n"},
+		{[]string{"play", "-profile", "plain", statusPrefix}, []string{"8"}, "Info: status/hardened", "uigallery: play: broken pipe\n"},
+		{[]string{statusPrefix, "-profile", "plain", "debian13", "hardened"}, nil, "status hardened", "uigallery: status: hardened: broken pipe\n"},
+	} {
+		var out, errs bytes.Buffer
+		w := &breaks{w: &out, at: tc.at}
+		ty := uitest.NewTypist(&out, tc.lines...)
+		code := run(tc.args, func() *prompt.Reader { return prompt.New(ty, false) }, offTerminal, w, &errs)
+		if code != exitError || errs.String() != tc.errs || !w.broke {
+			t.Errorf("%v, at %q: exit %d, stderr %q, the write failed %t; want exit %d, stderr %q", tc.args, tc.at, code, errs.String(), w.broke, exitError, tc.errs)
+		}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	debian, _ := findStatusHost("debian13")
+	hardened, _ := findStatusHost("hardened")
+	unread := statusHost{name: "unread", host: func() *fakeHost { cancel(); return hardened.host() }}
+	var out bytes.Buffer
+	err := listStatus(ctx, component.NewCtx(uitest.Core()[1].Env), &out, []statusHost{debian, unread, hardened})
+	if !errors.Is(err, context.Canceled) || !strings.HasPrefix(err.Error(), "unread: ") ||
+		!strings.Contains(out.String(), "status debian13") || strings.Contains(out.String(), "status hardened") {
+		t.Errorf("listing a host that cannot be read: %v, the listing:\n%s", err, out.String())
+	}
+	if err := (&session{}).openHost(ctx, hardened); !errors.Is(err, context.Canceled) || !strings.HasPrefix(err.Error(), statusPrefix+"/hardened: ") {
+		t.Errorf("playing a host that cannot be read: %v", err)
+	}
+}
+
+// TestReadingsAnswer checks the model's answers beside the ones the hosts
+// ask for: a unit not active or not enabled, a unit it does not know, an
+// interface with no address, crond stopped, apk-cron missing, and a host
+// with no readings, which answers nothing.
+func TestReadingsAnswer(t *testing.T) {
+	r := &readings{
+		units: map[string]unit{"a.timer": {active: "inactive", enabled: "not-found"}, "b.timer": {active: "active", enabled: "masked"}},
+		addrs: map[string]string{"eth0": ipAddr("eth0", false)},
+	}
+	for _, tc := range []struct {
+		cmd    string
+		ok     bool
+		stdout string
+		code   int
+	}{
+		{"systemctl is-active a.timer", true, "inactive\n", 3},
+		{"systemctl is-active b.timer", true, "active\n", 0},
+		{"systemctl is-enabled a.timer", true, "not-found\n", 4},
+		{"systemctl is-enabled b.timer", true, "masked\n", 1},
+		{"systemctl is-active c.timer", false, "", 0},
+		{"ip -4 addr show dev eth0", true, ipAddr("eth0", false), 0},
+		{"ip -4 addr show dev eth1", true, "", 1},
+		{"rc-service crond status", true, " * status: stopped\n", 3},
+		{"apk info -e apk-cron", true, "", 1},
+		{"doas -C /etc/doas.conf", true, "", 0},
+		{"systemctl restart b.timer", false, "", 0},
+	} {
+		got, ok := r.answer(strings.Fields(tc.cmd))
+		if ok != tc.ok || got.Stdout != tc.stdout || got.ExitCode != tc.code {
+			t.Errorf("%s: answered %t, %q, exit %d; want %t, %q, exit %d", tc.cmd, ok, got.Stdout, got.ExitCode, tc.ok, tc.stdout, tc.code)
+		}
+	}
+	var none *readings
+	if _, ok := none.answer([]string{"rc-service", "crond", "status"}); ok || none.installed("unattended-upgrades") != "" {
+		t.Error("a host with no readings answered")
 	}
 }
 

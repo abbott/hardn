@@ -6,9 +6,9 @@
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 as installed, before anything is set up: root alone,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno ufw, sshd's defaults on 22, AppArmor enforcing, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades; up 3 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 installed with root alone, no first user, before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manything is set up: no ufw, sshd's defaults on 22, AppArmor␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menforcing, no unattended-upgrades; up 3 days.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[48;2;22;24;29m                                           ␛[m$
 $
@@ -41,9 +41,9 @@ $
 # status fresh -------------------------------------------------$
 $
 # Note$
-# Debian 13 as installed, before anything is set up: root alone,$
-# no ufw, sshd's defaults on 22, AppArmor enforcing, no$
-# unattended-upgrades; up 3 days.$
+# Debian 13 installed with root alone, no first user, before$
+# anything is set up: no ufw, sshd's defaults on 22, AppArmor$
+# enforcing, no unattended-upgrades; up 3 days.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -87,9 +87,9 @@ $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mstatus fresh␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 as installed, before anything is set up: root␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, no ufw, sshd's defaults on 22, AppArmor enforcing,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno unattended-upgrades; up 3 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 installed with root alone, no first user, before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manything is set up: no ufw, sshd's defaults on 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAppArmor enforcing, no unattended-upgrades; up 3 days.␛[m$
 $
 ␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[48;2;22;24;29m                                       ␛[m$
 $

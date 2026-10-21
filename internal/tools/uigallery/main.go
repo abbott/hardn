@@ -95,11 +95,13 @@
 // Engine.Check, and mapped by pkg/output, on the model of fakehost.go with
 // what the checks read of each platform (statushost.go): Debian 13,
 // Ubuntu 26.04 and Alpine 3.24 as the engine's scenarios start from them,
-// a Proxmox VE 9 node, and host states that show the other lines (a fresh
-// host, a hardened one, Figma's, the lockout, a pending reboot, AppArmor's
-// lines, a container). The rest of the main menu is its mock's, whose
-// links its items follow, so -sequence and -fail are taken as for the
-// mocks. "status" lists the same main menus with no input, each under a
+// hosts as installed (a Proxmox VE 9 node, Debian 13 with root alone,
+// Ubuntu 26.04's cloud image and an install from its ISO), and host states
+// that show the other lines (a hardened host, Figma's, the lockout now and
+// at ufw's next start, a pending reboot, AppArmor's lines, a container).
+// The rest of the main menu is its mock's, whose links its items follow,
+// to mocks that show Figma's host, so -sequence and -fail are taken as for
+// the mocks. "status" lists the same main menus with no input, each under a
 // header naming its host and a note saying what it is, down to its
 // prompt; -list prints the hosts' names. Its flags are -list, -theme,
 // -profile, -ascii, -override, and -width and -height, sized as play's.
