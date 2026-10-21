@@ -12,12 +12,12 @@
 // cross-check the host fails then costs points: ufw set to refuse SSH once
 // it starts, a second root account, a reboot pending, a long uptime
 // without automatic updates, a user account that becomes root without a
-// password. A firewall that refuses SSH forces Critical, whatever the
-// score. Unknown counts as not configured and adds a factor, and so does a
-// row with no report. A row's state is taken as its check reports it: what
-// a check does not report is not seen here (risk.md §8). Assess is pure:
-// it reads no host and renders nothing; pkg/output maps a Level to the
-// main menu's RiskSummary.
+// password, or may. A firewall that refuses SSH forces Critical, whatever
+// the score. Unknown counts as not configured and adds a factor, and so
+// does a row with no report, and a grant the User row does not establish
+// costs as one without a password: nothing is taken as hardened that was
+// not established. Assess is pure: it reads no host and renders nothing;
+// pkg/output maps a Level to the main menu's RiskSummary.
 package risk
 
 import (
@@ -80,7 +80,7 @@ const (
 	PenaltySecondRoot = 15 // an account other than root has uid 0
 	PenaltyReboot     = 10 // a reboot pending, or not established
 	PenaltyUptime     = 10 // up LongUptime or more without automatic updates, or either not established
-	PenaltyNoPassword = 5  // a user account becomes root without a password
+	PenaltyNoPassword = 5  // a user account becomes root without a password, or may
 )
 
 // LongUptime is the uptime from which a host that does not upgrade itself
@@ -164,7 +164,7 @@ const (
 	KindUpdatesOpen                // Auto Updates Partial with a fact left open (UPDATES_APT_VALUE_UNKNOWN, UPDATES_SCHEDULE_UNKNOWN)
 	KindReboot                     // a reboot pending, or not established
 	KindUptime                     // up long without automatic updates, or either not established
-	KindNoPassword                 // a user account becomes root without a password (USERS_NOPASSWD)
+	KindNoPassword                 // a user account becomes root without a password (USERS_NOPASSWD), or may (USERS_RULE_NOT_READ)
 )
 
 var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password"}
@@ -274,8 +274,8 @@ func Assess(reports []engine.Report, h header.Header) Level {
 			l.Findings = append(l.Findings, *finding)
 		}
 	}
-	if usOK && has(us, users.CodeNoPassword) {
-		add(Factor{Kind: KindNoPassword, Control: us.Control, Detail: "no password to become root", Penalty: PenaltyNoPassword})
+	if f, ok := noPassword(us, usOK); ok {
+		add(f)
 	}
 
 	penalty := 0
@@ -333,6 +333,28 @@ func protects(r engine.Report) bool { return !slices.Contains(noCredit[r.Control
 // (openCodes).
 func open(r engine.Report) bool {
 	return slices.ContainsFunc(openCodes[r.Control], func(code string) bool { return has(r, code) })
+}
+
+// noPassword is the User row's password-free factor: USERS_NOPASSWD, a
+// grant without a password; else, on a row not Unknown, USERS_RULE_NOT_READ,
+// a grant the row does not establish, which costs the same, as a reboot or
+// an uptime not established does: it may be one without a password, and
+// costing less would rank a grant hardn cannot read above one it reads.
+// On an Unknown row the Unknown rows' factor says it, and the row earns
+// nothing. One factor for any number of accounts.
+func noPassword(r engine.Report, ok bool) (Factor, bool) {
+	f := Factor{Kind: KindNoPassword, Control: r.Control, Penalty: PenaltyNoPassword}
+	switch {
+	case !ok:
+		return Factor{}, false
+	case has(r, users.CodeNoPassword):
+		f.Detail = "no password to become root"
+	case state(r, ok) != engine.Unknown && has(r, users.CodeRuleNotRead):
+		f.Detail = "can't tell who can become root"
+	default:
+		return Factor{}, false
+	}
+	return f, true
 }
 
 // reboot is the pending-reboot factor: Yes costs PenaltyReboot; so does

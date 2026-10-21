@@ -3,6 +3,7 @@ package risk_test
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"slices"
 	"strings"
 	"testing"
@@ -229,6 +230,14 @@ func TestAssess(t *testing.T) {
 			want{band: risk.Low, score: 85, factors: []string{"second root account"}}},
 		{"no password to root: keeps the top band out", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeNoPassword, users.CodeNoPassword)), quiet,
 			want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
+		// A grant the row does not establish costs as one without a
+		// password: never Minimal, never above the grant read.
+		{"a grant not read: as no password", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead)), quiet,
+			want{band: risk.Low, score: 95, factors: []string{"can't tell who can become root"}}},
+		{"a grant not read and one read: one factor", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead, users.CodeNoPassword)), quiet,
+			want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
+		{"a grant not read on an Unknown row: the Unknown factor", with(rep(idUser, engine.Unknown, "can't tell who has sudo", users.CodeRuleNotRead)), quiet,
+			want{band: risk.Low, score: 90, factors: []string{unread}}},
 
 		// The pending reboot.
 		{"reboot pending", hardened(), pending(detect.Yes, newerKernel), want{band: risk.Low, score: 90, factors: []string{"reboot pending"}}},
@@ -392,6 +401,110 @@ func TestUpdatesFromTheCheck(t *testing.T) {
 	}
 }
 
+// userRow is the User row as the real check reports it on a Debian 13
+// host: alice in sudo, bob a second account with a login shell, sudo
+// installed and setuid root (setuidSudo), top before the %sudo line and
+// dropIn in /etc/sudoers.d/zz-site. The host is hostfake's: visudo -c is
+// answered, nothing runs.
+func userRow(t *testing.T, top, dropIn string) engine.Report {
+	t.Helper()
+	f := hostfake.New(host.Options{})
+	for _, d := range []string{"/etc", "/bin", "/usr/bin"} {
+		f.AddDir(d, 0o755, 0, 0)
+	}
+	f.AddDir("/etc/sudoers.d", 0o750, 0, 0)
+	f.AddFile("/bin/bash", nil, 0o755, 0, 0)
+	f.AddFile("/usr/bin/sudo", nil, 0o755, 0, 0)
+	for p, data := range map[string]string{
+		"/etc/passwd":            "root:x:0:0:root:/root:/bin/bash\nalice:x:1000:1000::/home/alice:/bin/bash\nbob:x:1001:1001::/home/bob:/bin/bash\n",
+		"/etc/group":             "root:x:0:\nsudo:x:27:alice\nalice:x:1000:\nbob:x:1001:\n",
+		"/etc/sudoers":           top + "root ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n",
+		"/etc/sudoers.d/zz-site": dropIn,
+	} {
+		if data != "" {
+			f.AddFile(p, []byte(data), 0o440, 0, 0)
+		}
+	}
+	f.Handler = func(argv []string, _ []byte) hostfake.Response {
+		if slices.Equal(argv, []string{"visudo", "-c"}) {
+			return hostfake.Response{Stdout: "/etc/sudoers: parsed OK\n"}
+		}
+		t.Errorf("unscripted: %q", argv)
+		return hostfake.Response{ExitCode: 127}
+	}
+	facts := detect.Facts{
+		Platform: detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported},
+		Proxmox:  detect.Proxmox{Installed: detect.No},
+		Elevation: detect.Elevation{Sudo: detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}, SudoFlavor: detect.SudoOriginal,
+			Doas: detect.Tool{Present: detect.No}},
+	}
+	st, err := users.Admin{}.Check(context.Background(), setuidSudo{f}, facts)
+	return engine.Report{Control: idUser, Title: "User", Status: st, Err: err}
+}
+
+// setuidSudo shows /usr/bin/sudo setuid root, as installed: the fake has
+// no setuid bit.
+type setuidSudo struct{ *hostfake.System }
+
+func (s setuidSudo) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	fi, err := s.System.Stat(ctx, name)
+	if err == nil && name == "/usr/bin/sudo" {
+		fi = setuidInfo{fi}
+	}
+	return fi, err
+}
+
+type setuidInfo struct{ fs.FileInfo }
+
+func (i setuidInfo) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetuid }
+
+// TestUsersFromTheCheck scores the User row as the real check reports it,
+// in the risk review's cases: alice in sudo, and the same password-free
+// grant for bob read, on a continued line, by an alias and in a list. A
+// grant the check does not read is never Minimal, and never scores above
+// the same grant read.
+func TestUsersFromTheCheck(t *testing.T) {
+	const grant = "bob ALL=(ALL) NOPASSWD: ALL\n"
+	const alias = "User_Alias ADMINS = bob\nADMINS ALL=(ALL) NOPASSWD: ALL\n"
+	read := risk.Assess(with(userRow(t, "", grant)), quiet)
+	notRead := want{band: risk.Low, score: 95, factors: []string{"can't tell who can become root"}}
+	for _, c := range []struct {
+		name, top, dropIn string
+		state             engine.State
+		codes             []string // the User row's findings
+		want              want
+	}{
+		{"nothing else", "", "", engine.Configured, nil, want{band: risk.Minimal, score: 100}},
+		{"read", "", grant, engine.Configured, []string{users.CodeNoPassword}, want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
+		{"a continued line", "", "bob ALL=(ALL) \\\n  NOPASSWD: ALL\n", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"an alias", alias, "", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"a list", "bob, george ALL=(ALL) NOPASSWD: ALL\n", "", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"an alias after alice's grant", "", alias, engine.Unknown, []string{users.CodeRuleNotRead, users.CodeRuleNotRead}, want{band: risk.Low, score: 90, factors: []string{unread}}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			r := userRow(t, c.top, c.dropIn)
+			var codes []string
+			for _, f := range r.Status.Findings {
+				codes = append(codes, f.Code)
+			}
+			if r.Err != nil || r.Status.State != c.state || !slices.Equal(codes, c.codes) {
+				t.Fatalf("the check's row: %s %q %v err %v", r.Status.State, r.Status.Detail, r.Status.Findings, r.Err)
+			}
+			l := risk.Assess(with(r), quiet)
+			var factors []string
+			for _, f := range l.Factors {
+				factors = append(factors, f.Detail)
+			}
+			if l.Band != c.want.band || !near(l.Score, c.want.score) || !slices.Equal(factors, c.want.factors) {
+				t.Errorf("got %v %v %q, want %v %v %q", l.Band, l.Score, factors, c.want.band, c.want.score, c.want.factors)
+			}
+			if slices.Contains(codes, users.CodeRuleNotRead) && (l.Band == risk.Minimal || l.Band > read.Band || l.Score > read.Score) {
+				t.Errorf("a grant not read: %v %v, above the grant read: %v %v", l.Band, l.Score, read.Band, read.Score)
+			}
+		})
+	}
+}
+
 // TestFindings: the cross-checks' findings, and only theirs: the header's
 // on a reboot pending, the uptime's once established; none for what is
 // not established, nor the reports' own.
@@ -468,6 +581,7 @@ func TestFactorsFit(t *testing.T) {
 		rep(idFW, engine.NotConfigured, "x", "UFW_SSH_NOT_ALLOWED_AT_START", firewall.CodeSSHUnchecked),
 	}, header.Header{}).Factors...)
 	all = append(all, risk.Assess(hardened(), pending(detect.Yes)).Factors...)
+	all = append(all, risk.Assess(with(rep(idUser, engine.Configured, "x", users.CodeRuleNotRead)), quiet).Factors...)
 	kinds := map[risk.Kind]bool{}
 	for _, f := range all {
 		kinds[f.Kind] = true
