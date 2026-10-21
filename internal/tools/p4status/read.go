@@ -41,30 +41,55 @@ type reading struct {
 	level   risk.Level
 }
 
-// read reads sys as hardn's main menu will, and as the gallery's status
-// hosts do (uigallery's readStatus): detect's facts once, Engine.Check over
-// controls on them, the header probe on the same facts, and the risk level
-// over both. hold is the engine's signal hold, which a check never takes.
-// The error is ctx's or detection's alone, as Engine.Check's: a check's
-// error is in its report.
-func read(ctx context.Context, sys host.System, controls []engine.Control, hold func() func()) (reading, error) {
+// read reads the host through g as hardn's main menu will, and as the
+// gallery's status hosts do (uigallery's readStatus): detect's facts once,
+// Engine.Check over controls on them, the header probe on the same facts,
+// and the risk level over both. The engine's signal hold, which a check
+// never takes, is g's (a refusal). g records each call as the part's that
+// made it (guard.within): detect's, a row's control's, the header's. The
+// error is ctx's or detection's alone, as Engine.Check's: a check's error
+// is in its report. ctx ended during the header probe is an error too, so
+// that a reading cut short is never scored and shown as a whole one.
+func read(ctx context.Context, g *guard, controls []engine.Control) (reading, error) {
 	var r reading
-	e := engine.New(sys, engine.Options{
+	e := engine.New(g, engine.Options{
 		Detect: func(ctx context.Context, sys host.System) (detect.Facts, error) {
+			g.within(partDetect)
 			var err error
 			r.facts, err = detect.Detect(ctx, sys)
 			return r.facts, err
 		},
-		Hold: hold,
+		Hold: g.hold,
 	})
-	reports, err := e.Check(ctx, controls)
+	rows := make([]engine.Control, len(controls))
+	for i, c := range controls {
+		rows[i] = row{c, g}
+	}
+	reports, err := e.Check(ctx, rows)
 	if err != nil {
 		return r, err
 	}
 	r.reports = reports
-	r.header = header.Read(ctx, sys, r.facts)
+	g.within(partHeader)
+	r.header = header.Read(ctx, g, r.facts)
+	if err := ctx.Err(); err != nil {
+		return r, fmt.Errorf("header: %w", err)
+	}
 	r.level = risk.Assess(r.reports, r.header)
 	return r, nil
+}
+
+// row is a status row's control as read checks it: the control's own,
+// but that the guard records the calls its Check makes as the row's.
+type row struct {
+	engine.Control
+	g *guard
+}
+
+// Check is the control's, its calls recorded as the row's.
+func (r row) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
+	r.g.within(r.ID())
+	return r.Control.Check(ctx, sys, f)
 }
 
 // mainMenu is r's main menu as hardn will draw it, rendered in env:

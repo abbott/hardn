@@ -56,9 +56,9 @@ func TestRunOverHosts(t *testing.T) {
 					if !allowed(c.Argv) || errors.Is(c.Err, hostfake.ErrUnscripted) {
 						t.Errorf("ran %v (allowed %t): %v", c.Argv, allowed(c.Argv), c.Err)
 					}
-					want = append(want, fmt.Sprintf("  %-10s %s", fmt.Sprintf("exit %d", c.ExitCode), host.FormatArgv(c.Argv)))
+					want = append(want, fmt.Sprintf("  %-10s %s", fmt.Sprintf("exit %d", c.ExitCode), shellWords(c.Argv)))
 					if errors.Is(c.Err, host.ErrNotFound) {
-						want[len(want)-1] = fmt.Sprintf("  %-10s %s: %v", "failed", host.FormatArgv(c.Argv), c.Err)
+						want[len(want)-1] = fmt.Sprintf("  %-10s %s: %v", "failed", shellWords(c.Argv), c.Err)
 					}
 				case !slices.Contains(reads, c.Op):
 					t.Errorf("a call that is not a read: %v", c)
@@ -70,7 +70,7 @@ func TestRunOverHosts(t *testing.T) {
 			if !strings.Contains(out, fmt.Sprintf("commands (%d run, 0 refused, in order)", len(want))) {
 				t.Errorf("no command count %d in\n%s", len(want), out)
 			}
-			for _, w := range []string{"\n  refused ", "\n  error "} {
+			for _, w := range []string{"\n  refused ", "\n  error ", "\n  incomplete ", "== incomplete"} {
 				if strings.Contains(out, w) {
 					t.Errorf("%q in the output:\n%s", w, out)
 				}
@@ -164,8 +164,9 @@ func (rogue) Check(ctx context.Context, sys host.System, _ detect.Facts) (engine
 
 // TestRefused: a command off the allowlist and a write are refused with no
 // call on the host, listed in order among the commands, counted on
-// stderr, and make the run exit 1; the control that made them is Unknown
-// with the refusal as its error.
+// stderr and above the main menu with the row that made them, and make
+// the run exit 1; the control that made them is Unknown with the refusal
+// as its error, and its row in the evidence says how many were refused.
 func TestRefused(t *testing.T) {
 	f, sys := loadHost(t, "debian13")
 	var out, errOut strings.Builder
@@ -196,9 +197,78 @@ func TestRefused(t *testing.T) {
 			t.Errorf("no %q in\n%s", w, cmds)
 		}
 	}
-	row := strings.Join(section(out.String(), "row test.rogue"), "\n")
-	if !strings.Contains(row, "  state      unknown\n") || !strings.Contains(row, "  error      UNCLASSIFIED_ERROR p4status: systemctl restart ssh.service: not a command the checks run: refused by p4status") {
-		t.Errorf("the rogue's row:\n%s", row)
+	if !strings.HasPrefix(out.String(), "== incomplete: 3 call(s) refused, in test.rogue\n\nhardn ") {
+		t.Errorf("no line above the main menu:\n%s", out.String())
+	}
+	row := strings.Join(section(out.String(), "row test.rogue"), "\n") + "\n"
+	for _, w := range []string{
+		"  incomplete 3 call(s) refused\n  state      unknown\n",
+		`  error      UNCLASSIFIED_ERROR p4status: systemctl restart ssh.service: not a command the checks run: refused\x0a`,
+	} {
+		if !strings.Contains(row, w) {
+			t.Errorf("no %q in the rogue's row:\n%s", w, row)
+		}
+	}
+	if strings.Count(out.String(), "\n  incomplete ") != 1 {
+		t.Errorf("another part marked incomplete:\n%s", out.String())
+	}
+}
+
+// TestRefusedTolerated: a refused call that its check carries on without
+// (ss, which SSH Login and SSH Auth on ssh.service read for §2.8a of
+// check-ssh.md and do without) leaves those rows as they were, so the run
+// names every row that made one, above the main menu and in the
+// evidence, whatever its state.
+func TestRefusedTolerated(t *testing.T) {
+	saved := rules
+	t.Cleanup(func() { rules = saved })
+	rules = slices.DeleteFunc(slices.Clone(rules), func(r rule) bool { return r.name == "ss" })
+	_, code, out, errOut := runOn(t, "hardened")
+	if code != exitRefused || !strings.Contains(errOut, "4 call(s) refused") {
+		t.Errorf("exit %d, stderr %q", code, errOut)
+	}
+	if !strings.HasPrefix(out, "== incomplete: 4 call(s) refused, in firewall.incoming, ssh.login, ssh.auth, ssh.port\n\nhardn ") {
+		t.Errorf("no line above the main menu:\n%s", out)
+	}
+	for id, state := range map[string]string{
+		"firewall.incoming": "unknown", "ssh.login": "configured", "ssh.auth": "configured", "ssh.port": "unknown",
+	} {
+		row := strings.Join(section(out, "row "+id), "\n")
+		if w := "  incomplete 1 call(s) refused\n  state      " + state + "\n"; !strings.Contains(row, w) {
+			t.Errorf("no %q in\n%s", w, row)
+		}
+	}
+}
+
+// TestHold: the engine's signal hold, which only an apply takes, is a
+// refusal, listed among the commands with its reason.
+func TestHold(t *testing.T) {
+	g := newGuard(hostfake.New(host.Options{}))
+	g.hold()()
+	if g.refusals() != 1 {
+		t.Fatalf("recorded %+v", g.calls())
+	}
+	b := evidenceWriter{calls: g.calls()}
+	b.commands()
+	if w := "  refused    Hold the engine's signal hold: only an apply takes it\n"; !strings.Contains(b.String(), w) {
+		t.Errorf("no %q in\n%s", w, b.String())
+	}
+}
+
+// failWriter is a stdout that cannot be written, as a closed pipe.
+type failWriter struct{}
+
+func (failWriter) Write([]byte) (int, error) { return 0, errors.New("broken pipe") }
+
+// TestWriteFails: stdout that cannot be written is said on stderr, and
+// the run exits 1.
+func TestWriteFails(t *testing.T) {
+	_, sys := loadHost(t, "debian13")
+	var errOut strings.Builder
+	e := testEnv(sys, nil, &errOut)
+	e.stdout = failWriter{}
+	if code := run(context.Background(), nil, e); code != exitRefused || errOut.String() != "p4status: broken pipe\n" {
+		t.Errorf("exit %d, stderr %q", code, errOut.String())
 	}
 }
 
@@ -235,12 +305,13 @@ func TestEvidence(t *testing.T) {
 		t.Fatalf("exit %d", code)
 	}
 	for heading, want := range map[string][]string{
-		"facts (detect)":                   {"  proxmox    installed=yes version=9.0.10 "},
+		"facts (detect)": {"  platform   distro=proxmox like= version=9 ", "  proxmox    installed=yes version=9.0.10 ",
+			" etc-pve=yes\n"},
 		"row users.admin (User)":           {"  state      not-configured\n  detail     root only\n"},
 		"row firewall.incoming (Firewall)": {"  detail     disabled\n"},
 		"row ssh.login (SSH Login)":        {"  detail     root allowed\n", "  evidence   sshd -T: permitrootlogin yes\n"},
 		"header": {"  hostname   web-01\n", "  ipv4       default route yes, vmbr0, 192.0.2.20\n", "  primary    192.0.2.20\n",
-			"  uptime     41 days, 1 hour (", "  reboot     pending no; running 6.17.2-1-pve; host's kernel false\n"},
+			"  uptime     41 days, 1 hour (", "  reboot     pending no; running 6.17.2-1-pve; own kernel\n"},
 		"risk": {"  band       critical, score 5.0, forced false\n", "  factor     up 41 days, no auto updates (uptime, row (none), cost 10)\n",
 			"  finding    UPTIME_NO_AUTO_UPDATES "},
 	} {
@@ -255,6 +326,36 @@ func TestEvidence(t *testing.T) {
 		if !strings.Contains(out, "\nrow "+id+" (") {
 			t.Errorf("no row %s", id)
 		}
+	}
+}
+
+// cancelAt is a host on which reading name ends the reading, as Ctrl-C
+// would then.
+type cancelAt struct {
+	host.System
+	name   string
+	cancel context.CancelFunc
+}
+
+func (c cancelAt) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if name == c.name {
+		c.cancel()
+	}
+	return c.System.ReadFile(ctx, name)
+}
+
+// TestReadCancelledInHeader: Ctrl-C during the header probe, after every
+// check, is a reading cut short as any other: no main menu, and exit 1.
+func TestReadCancelledInHeader(t *testing.T) {
+	_, sys := loadHost(t, "debian13")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var out, errOut strings.Builder
+	if code := run(ctx, nil, testEnv(cancelAt{sys, "/proc/sys/kernel/hostname", cancel}, &out, &errOut)); code != exitRefused {
+		t.Errorf("exit %d", code)
+	}
+	if !strings.HasPrefix(out.String(), evidenceTitle) || !strings.Contains(out.String(), "\nnot read: CANCELLED header: context canceled\n") {
+		t.Errorf("stdout:\n%s\nstderr: %s", out.String(), errOut.String())
 	}
 }
 
@@ -285,7 +386,7 @@ func TestGates(t *testing.T) {
 		want string
 	}{
 		{"macOS", nil, "darwin", 0, exitUsage, "this is darwin"},
-		{"not root", nil, "linux", 1000, exitUsage, "run it as root"},
+		{"not root", nil, "linux", 1000, exitUsage, "p4status: run as root\n"},
 		{"profile", []string{"-profile", "sepia"}, "linux", 0, exitUsage, `-profile "sepia"`},
 		{"width", []string{"-width", "0"}, "linux", 0, exitUsage, "must be positive"},
 		{"argument", []string{"apply"}, "linux", 0, exitUsage, "unexpected arguments"},
@@ -358,9 +459,32 @@ func TestStatusControls(t *testing.T) {
 	}
 }
 
-// TestClean: a control character read from the host is escaped.
+// TestClean: a control character read from the host is escaped, and a
+// format or line-separating character too (one that reorders the line
+// around it, or breaks it).
 func TestClean(t *testing.T) {
-	if got := clean("a\x1b[31mb\tc\u0085"); got != `a\x1b[31mb\x09c\x85` {
+	if got := clean("a\x1b[31mb\tc\u0085 root\u202edisallowed\u2066x\u2028y\U000e0001z é"); got != `a\x1b[31mb\x09c\x85 root\u202edisallowed\u2066x\u2028y\U000e0001z é` {
 		t.Errorf("clean = %q", got)
+	}
+}
+
+// TestShellWords: a command of the evidence is quoted for a POSIX shell,
+// so that pasted it runs what ran: dpkg-query's format is not expanded.
+func TestShellWords(t *testing.T) {
+	for _, tc := range []struct {
+		argv []string
+		want string
+	}{
+		{[]string{"sshd", "-T", "-f", "/etc/ssh/sshd_config", "-C", "user=root,host=web-01.example.net,addr=192.0.2.7"},
+			"sshd -T -f /etc/ssh/sshd_config -C user=root,host=web-01.example.net,addr=192.0.2.7"},
+		{[]string{"dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, "unattended-upgrades"},
+			`dpkg-query --show '--showformat=${Status}\t${Version}\n' unattended-upgrades`},
+		{[]string{"apt-config", "dump", "APT::Periodic"}, "apt-config dump APT::Periodic"},
+		{[]string{"echo", "", "it's", "a b"}, `echo '' 'it'\''s' 'a b'`},
+		{[]string{"X=1", "~", "$HOME"}, `'X=1' '~' '$HOME'`},
+	} {
+		if got := shellWords(tc.argv); got != tc.want {
+			t.Errorf("shellWords(%q) = %s, want %s", tc.argv, got, tc.want)
+		}
 	}
 }

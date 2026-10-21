@@ -20,8 +20,10 @@
 // its guard (guard.go), a host.System over host.Real that passes the reads
 // through, refuses every method that changes anything, and runs only the
 // commands the checks and the probe run, with the shapes of their
-// arguments (allow.go). A refused call is printed, and the run exits 1.
-// It never plans or applies.
+// arguments (allow.go). A refused call is printed, the rows it was made
+// for are named above the main menu and marked in the evidence (a check
+// may carry on without the answer, so its row is not always Unknown), and
+// the run exits 1. It never plans or applies.
 //
 // It is never part of a release, as p2drive: every build target of the
 // makefile, the goreleaser configs and the workflows builds ./cmd/hardn
@@ -127,18 +129,20 @@ func run(ctx context.Context, args []string, e env) int {
 		fmt.Fprintf(e.stderr, "p4status: refused: it reads a Linux host, and this is %s\n", e.goos)
 		return exitUsage
 	case e.euid() != 0:
-		fmt.Fprintln(e.stderr, "p4status: refused: run it as root; sshd -T and the sudoers files need root")
+		fmt.Fprintln(e.stderr, "p4status: run as root")
 		return exitUsage
 	}
 
 	g := newGuard(e.system())
-	r, readErr := read(ctx, g, e.controls(), g.hold)
+	r, readErr := read(ctx, g, e.controls())
+	calls := g.calls()
 	var out []byte
 	if readErr == nil {
+		out = append(out, incomplete(calls)...)
 		out = append(out, mainMenu(look, r)...)
 		out = append(out, "\n\n"...)
 	}
-	out = append(out, evidence(r, readErr, g.calls())...)
+	out = append(out, evidence(r, readErr, calls)...)
 	if _, err := look.Writer(e.stdout).Write(out); err != nil {
 		fmt.Fprintf(e.stderr, "p4status: %v\n", err)
 		return exitRefused

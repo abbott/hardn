@@ -15,7 +15,9 @@ import (
 // or a command that is not allowed. It is p4status's own, not hardn's: no
 // code of pkg/output's registry names it (a report's error that wraps it
 // shows as UNCLASSIFIED_ERROR), and the evidence lists every refusal.
-var errRefused = errors.New("refused by p4status, which changes nothing")
+// Its words are proposed (docs/engine/vmcheck.md §5.2): the method and
+// the reason before it say the rest.
+var errRefused = errors.New("refused")
 
 // decision is what the guard does with one method of host.System.
 type decision uint8
@@ -53,17 +55,20 @@ var decisions = map[string]decision{
 // (host.Real on a host, hostfake in the tests) that passes the reads
 // through, refuses every method that changes anything, and runs only the
 // allowed commands. It records every command it runs and every call it
-// refuses, in order, for the evidence. It is safe for concurrent use.
+// refuses, in order, each with the part of the reading that made it, for
+// the evidence. It is safe for concurrent use.
 type guard struct {
-	sys host.System
-	mu  sync.Mutex
-	log []call
+	sys  host.System
+	mu   sync.Mutex
+	log  []call
+	part string // the part of the reading under way (within)
 }
 
 var _ host.System = (*guard)(nil)
 
 // call is one command run, or one call refused.
 type call struct {
+	part   string   // the part of the reading that made it (guard.within)
 	method string   // the host.System method
 	argv   []string // a command's
 	path   string   // a refused file operation's first path
@@ -77,9 +82,29 @@ func (c call) refused() bool { return errors.Is(c.err, errRefused) }
 
 func newGuard(sys host.System) *guard { return &guard{sys: sys} }
 
+// The parts of a reading that are not a status row's control, whose part
+// is its ID (read).
+const (
+	partDetect = "detect"
+	partHeader = "header"
+)
+
+// within makes part, a control's ID, partDetect or partHeader, the part
+// of the reading the calls from now on are recorded as. The reading is
+// sequential (Engine.Check checks one control at a time), so a refused
+// call is the part's whose check made it, even when the check carries on
+// without the answer and does not report the error (a check that
+// tolerates a failing ss, check-ssh.md §2.8a).
+func (g *guard) within(part string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.part = part
+}
+
 func (g *guard) record(c call) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	c.part = g.part
 	g.log = append(g.log, c)
 }
 
@@ -148,8 +173,9 @@ func (g *guard) StartDetached(_ context.Context, name string, args ...string) (i
 
 // The reads, passed through.
 
-// notOpened is why a special file is refused.
-const notOpened = "not a regular file or a directory, which opening may change"
+// notOpened is why a special file is refused (proposed words,
+// docs/engine/vmcheck.md §5.2).
+const notOpened = "a device, FIFO or socket"
 
 // special reports whether name, followed through symlinks as ReadFile and
 // ReadDir follow it, exists and is neither a regular file nor a directory:
