@@ -18,7 +18,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -52,7 +52,7 @@ $
    -  SSH Port             2230$
    -  Allowed Users        alice$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Set PermitRootLogin no$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -89,7 +89,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156malice␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$

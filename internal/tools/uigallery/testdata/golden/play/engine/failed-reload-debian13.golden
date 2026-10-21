@@ -57,13 +57,13 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -73,13 +73,13 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -200,13 +200,13 @@ $
       | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       ufw: allow 2230/tcp$
 $
       ufw$
       $ ufw allow 2230/tcp$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Add SSH port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -216,13 +216,13 @@ $
       +Port 22$
       +Port 2230$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Reload sshd (ssh.service)$
 $
       ssh.service$
       $ systemctl reload ssh.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       sshd -T shows ports 22, 2230$
 $
       sshd -T$
@@ -346,13 +346,13 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -362,13 +362,13 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$

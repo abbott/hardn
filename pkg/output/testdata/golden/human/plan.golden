@@ -42,7 +42,7 @@
       ␛[38;2;129;134;156m↪ /run/hardn/20261019T120000Z-1a2b3c4d/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -51,7 +51,7 @@ $
       ␛[38;2;112;212;127m+2230/tcp ALLOW IN Anywhere␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
       ␛[38;2;192;196;216mkeeping Port 22 until confirmed␛[m$
 $
@@ -61,13 +61,13 @@ $
       ␛[38;2;129;134;156m Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
       ␛[38;2;129;134;156msshd␛[m$
@@ -122,7 +122,7 @@ $
       | /run/hardn/20261019T120000Z-1a2b3c4d/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Allow 2230/tcp in ufw before sshd listens on it$
 $
       ufw$
@@ -131,7 +131,7 @@ $
       +2230/tcp ALLOW IN Anywhere$
       $ ufw allow 2230/tcp$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf,$
       keeping Port 22 until confirmed$
 $
@@ -141,13 +141,13 @@ $
        Port 22$
       +Port 2230$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Reload ssh.service, which keeps established sessions$
 $
       ssh.service$
       $ systemctl reload ssh.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Check that sshd listens on 22 and 2230$
 $
       sshd$
@@ -204,7 +204,7 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -213,7 +213,7 @@ $
       ␛[38;2;112;212;127m+2230/tcp ALLOW IN Anywhere␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
       ␛[38;2;192;196;216mkeeping Port 22 until confirmed␛[m$
 $
@@ -223,13 +223,13 @@ $
       ␛[38;2;129;134;156m Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
       ␛[38;2;129;134;156msshd␛[m$

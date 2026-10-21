@@ -95,7 +95,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;112;212;127mPassword required␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
@@ -247,7 +247,7 @@ $
 $
   [+] Sudo Method          Password required$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Require george's password for sudo$
 $
       /etc/sudoers.d/hardn-george$
@@ -408,7 +408,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m$
       ␛[38;2;112;212;127mPassword required␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$

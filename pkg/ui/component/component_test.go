@@ -302,13 +302,13 @@ func TestLayout(t *testing.T) {
 		{"menu: the exit item after the section gap", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}}, Exit: figmaMenu.Exit}, from, false,
 			"   1) DNS" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		{"menu: a risky item's note line", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, from, false,
-			"   2) SSH Login            Toggle root SSH access\n                           [*] Lockout risk"},
+			"   2) SSH Login            Toggle root SSH access\n                           [ ] Lockout risk"},
 		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true, Risk: true}}}, from, true,
 			"   3) DNS                  Configure Nameservers\n                           – Unavailable"},
 		{"menu: stacked below StackBelow", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, below, false,
-			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk"},
+			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk"},
 		{"menu: a note with no description sits beside the label", Menu{Items: []MenuItem{{Key: "7", Label: "Run All", Risk: true}}}, from, false,
-			"   7) Run All              [*] Lockout risk"},
+			"   7) Run All              [ ] Lockout risk"},
 		{"menu: a long label stacks the item rather than being cut", Menu{Items: []MenuItem{{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Daily"}}}, 80, false,
 			"   1) Unattended Upgrades Mail Reports\n      Daily"},
 		{"menu: a long label stacks the whole menu", Menu{Items: []MenuItem{
@@ -327,7 +327,7 @@ func TestLayout(t *testing.T) {
 			{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true},
 			{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true},
 		}}, 40, false,
-			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
+			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
 		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers"}}}, 29, false,
 			"   3) DNS\n      Configure Nameservers"},
 		{"menu: a key of up to five cells grows into the indent", Menu{Items: []MenuItem{{Key: "100", Label: "Logs"}, {Key: "1234", Label: "DNS"}}}, 80, false,
@@ -719,23 +719,28 @@ func TestStatusStates(t *testing.T) {
 }
 
 // TestRiskGlyphDrawn checks that the risk icon, ⛬ or [*], is the risk
-// level's: rendering every state of fixture.States, in both glyph sets and
-// at widths that stack and that do not, it is drawn only by RiskSummary
-// before "Risk Level" and, pending the maintainer (DEV-028, DEV-038), by
-// Menu and PlanView before "Lockout risk", each state's component taken
-// from its fixture name. No other glyph is the risk icon (pkg/ui/theme's
+// level's alone: rendering every state of fixture.States, in both glyph
+// sets and at widths that stack and that do not, it is drawn only by
+// RiskSummary, before "Risk Level", each state's component taken from its
+// fixture name. The menu's and the plan's "Lockout risk" lines are
+// warnings and draw Glyphs.Warn (the maintainer, 2026-10-21; DEV-028,
+// DEV-038), which this test sees as any other glyph: drawn there, the icon
+// fails it. No other glyph is the risk icon (pkg/ui/theme's
 // TestRiskGlyphAlone).
 func TestRiskGlyphDrawn(t *testing.T) {
-	type use struct{ component, words string }
-	uses := []use{{"risksummary", "Risk Level"}, {"planview", LockoutRisk}, {"menu", LockoutRisk}}
+	const owner, words = "risksummary", "Risk Level"
 	for _, unicode := range []bool{true, false} {
 		for _, w := range []int{40, 64, 80} {
 			c := NewCtx(term.Fixed(w, colorprofile.TrueColor, unicode, true))
 			icon := c.Theme.Glyphs.Risk
-			seen := map[use]bool{}
+			seen, lockout := false, false
 			for _, s := range fixture.States() {
 				comp, _, _ := strings.Cut(s.Name, "/")
 				out := ansi.Strip(s.VM.Render(c))
+				for _, l := range strings.Split(out, "\n") {
+					before, _, ok := strings.Cut(l, LockoutRisk)
+					lockout = lockout || ok && strings.HasSuffix(strings.TrimRight(before, " "), c.Theme.Glyphs.Warn)
+				}
 				for rest := out; ; {
 					i := strings.Index(rest, icon)
 					if i < 0 {
@@ -743,19 +748,18 @@ func TestRiskGlyphDrawn(t *testing.T) {
 					}
 					rest = rest[i+len(icon):]
 					after := strings.TrimLeft(rest, " ")
-					if j := slices.IndexFunc(uses, func(u use) bool {
-						return u.component == comp && strings.HasPrefix(after, u.words)
-					}); j >= 0 {
-						seen[uses[j]] = true
+					if comp == owner && strings.HasPrefix(after, words) {
+						seen = true
 						continue
 					}
 					t.Errorf("%s, unicode %t, width %d: the risk icon %q before %q", s.Name, unicode, w, icon, strings.SplitN(after, "\n", 2)[0])
 				}
 			}
-			for _, u := range uses {
-				if !seen[u] {
-					t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, u.component, u.words)
-				}
+			if !seen {
+				t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, owner, words)
+			}
+			if !lockout {
+				t.Errorf("unicode %t, width %d: no state drew %q after the warning glyph %q", unicode, w, LockoutRisk, c.Theme.Glyphs.Warn)
 			}
 		}
 	}
@@ -787,7 +791,7 @@ func TestMenuStyles(t *testing.T) {
 			{"1)", m.Disabled}, {"Root SSH Login", m.Disabled}, {"Toggle root SSH access", m.Disabled},
 			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + Unavailable, m.Disabled},
 		}},
-		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Risk + " " + LockoutRisk, m.Risk}}},
+		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Warn + " " + LockoutRisk, m.Risk}}},
 		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-10 or q]:", p.Hint}}},
 		{"prompt with no hint", PromptLine{Label: "Username"}, []part{{"Username", p.Label}, {":", p.Label}}},
 	}

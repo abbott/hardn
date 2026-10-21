@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -13,7 +13,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -26,7 +26,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -36,7 +36,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -49,7 +49,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -59,7 +59,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -72,7 +72,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -82,7 +82,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -95,7 +95,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -105,7 +105,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -118,7 +118,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mEnable UFW␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -128,7 +128,7 @@ $
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mSet Port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -141,7 +141,7 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -151,7 +151,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -164,7 +164,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -174,7 +174,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -187,7 +187,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -197,7 +197,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -210,7 +210,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -220,7 +220,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -233,7 +233,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -243,7 +243,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -256,7 +256,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mEnable UFW␛[m$
 $
       ␛[38;2;87;92;110mufw␛[m$
@@ -266,7 +266,7 @@ $
       ␛[38;2;87;92;110m$ ufw allow 2230/tcp␛[m$
       ␛[38;2;87;92;110m$ ufw --force enable␛[m$
 $
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mLockout risk␛[m$
       ␛[38;2;30;34;48mSet Port 2230␛[m$
 $
       ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -279,7 +279,7 @@ $
       ␛[38;2;87;92;110m$ systemctl reload ssh␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -289,7 +289,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -302,7 +302,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -312,7 +312,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -325,7 +325,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -335,7 +335,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mLockout risk␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -348,7 +348,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -358,7 +358,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -371,7 +371,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -381,7 +381,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -394,7 +394,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
       ␛[38;5;103mufw␛[m$
@@ -404,7 +404,7 @@ $
       ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;103m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mLockout risk␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
       ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -417,7 +417,7 @@ $
       ␛[38;5;103m$ systemctl reload ssh␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -427,7 +427,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -440,7 +440,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -450,7 +450,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -463,7 +463,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -473,7 +473,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mLockout risk␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -486,7 +486,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -496,7 +496,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -509,7 +509,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -519,7 +519,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -532,7 +532,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mEnable UFW␛[m$
 $
       ␛[38;5;59mufw␛[m$
@@ -542,7 +542,7 @@ $
       ␛[38;5;59m$ ufw allow 2230/tcp␛[m$
       ␛[38;5;59m$ ufw --force enable␛[m$
 $
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mLockout risk␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mLockout risk␛[m$
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -555,7 +555,7 @@ $
       ␛[38;5;59m$ systemctl reload ssh␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -565,7 +565,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -578,7 +578,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -588,7 +588,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -601,7 +601,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -611,7 +611,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -624,7 +624,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -634,7 +634,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -647,7 +647,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -657,7 +657,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -670,7 +670,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -680,7 +680,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[37mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -693,7 +693,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -703,7 +703,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -716,7 +716,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -726,7 +726,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -739,7 +739,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -749,7 +749,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-   ␛[1;33m⛬␛[m  ␛[1;33mLockout risk␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -762,7 +762,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -772,7 +772,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -785,7 +785,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -795,7 +795,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -808,7 +808,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mEnable UFW␛[m$
 $
       ␛[90mufw␛[m$
@@ -818,7 +818,7 @@ $
       ␛[90m$ ufw allow 2230/tcp␛[m$
       ␛[90m$ ufw --force enable␛[m$
 $
-  ␛[1;33m[*]␛[m ␛[1;33mLockout risk␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mLockout risk␛[m$
       ␛[30mSet Port 2230␛[m$
 $
       ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -831,7 +831,7 @@ $
       ␛[90m$ systemctl reload ssh␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -841,7 +841,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -854,7 +854,7 @@ $
       $ systemctl reload ssh$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -864,7 +864,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -877,7 +877,7 @@ $
       $ systemctl reload ssh$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -887,7 +887,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -900,7 +900,7 @@ $
       $ systemctl reload ssh$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -910,7 +910,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -923,7 +923,7 @@ $
       $ systemctl reload ssh$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -933,7 +933,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -946,7 +946,7 @@ $
       $ systemctl reload ssh$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -956,7 +956,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -969,7 +969,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -979,7 +979,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -992,7 +992,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -1002,7 +1002,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -1015,7 +1015,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -1025,7 +1025,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-   ␛[1m⛬␛[m  ␛[1mLockout risk␛[m$
+   ␛[1m⭘␛[m  ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -1038,7 +1038,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -1048,7 +1048,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -1061,7 +1061,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -1071,7 +1071,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -1084,7 +1084,7 @@ $
       $ systemctl reload ssh$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Enable UFW$
 $
       ufw$
@@ -1094,7 +1094,7 @@ $
       $ ufw allow 2230/tcp$
       $ ufw --force enable$
 $
-  ␛[1m[*]␛[m ␛[1mLockout risk␛[m$
+  ␛[1m[ ]␛[m ␛[1mLockout risk␛[m$
       Set Port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$

@@ -427,7 +427,7 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 - **The deprecation warning** refactor plan §3.17 approved: a configuration whose `permitRootLogin` is a bool (`true`, `false`, or YAML 1.1's `on`, `Off`, `Yes`) is warned about on **stderr**, once, as it loads, with the file and line and what to write instead:
 
   ```text
-    [*] Warning: /etc/hardn/hardn.yml: permitRootLogin: false (line 12) is
+    [ ] Warning: /etc/hardn/hardn.yml: permitRootLogin: false (line 12) is
         deprecated; write "no", which means the same
   ```
 

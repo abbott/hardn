@@ -12,7 +12,8 @@ package theme
 // Partial takes Not Configured's ⭘ ([ ] in ASCII), and so does a warning:
 // they are told apart by colour and by the word always on the line, never
 // by colour alone (the maintainer, 2026-10-21). The risk icon ⛬ ([*]) is
-// no other role's.
+// no other role's, and RiskSummary alone draws it: a lockout-risk line is a
+// warning, and takes Warn (the maintainer, 2026-10-21).
 //
 // East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
@@ -29,7 +30,7 @@ type Glyphs struct {
 	Partial       string // a control partly hardened (no Figma value; Not Configured's ⭘, in status.warn: DEV-024)
 	Unknown       string // a state hardn could not check (no Figma value)
 	NotApplicable string // a control that does not apply here; an unavailable menu item (no Figma value)
-	Risk          string // the risk level's icon (Figma ⛬); for now also the menu's and plan's lockout-risk lines (DEV-028, DEV-038)
+	Risk          string // the risk level's icon (Figma ⛬), and nothing else's
 	Prompt        string // before a prompt's label (Figma ❯)
 	Approx        string // before the risk level's gloss (Figma ≈)
 	Bullet        string // before a key-value or bullet-list item (Figma -)
@@ -44,7 +45,7 @@ type Glyphs struct {
 	// Partial's ⭘ for a warning, ℹ, and a cancel sign (DEV-031). A step
 	// that is done or failed takes OK or Bad.
 	OK        string // an operation that succeeded
-	Warn      string // a warning, and the confirm countdown while there is time
+	Warn      string // a warning, a lockout-risk line (DEV-028, DEV-038), and the confirm countdown while there is time
 	Bad       string // an operation that failed
 	Info      string // information
 	Cancelled string // an operation the user stopped

@@ -49,7 +49,7 @@ type PlanChange struct {
 // a lockout-risk change to an SSH drop-in:
 //
 //	0 2   6
-//	  [*] Lockout risk
+//	  [ ] Lockout risk
 //	      Set Port 2230
 //
 //	      /etc/ssh/sshd_config.d/00-hardn.conf
@@ -61,9 +61,10 @@ type PlanChange struct {
 //
 // Each change starts with Glyphs.Bullet in the marker column and its title
 // at theme.LabelCol, wrapped under itself. A lockout-risk change leads
-// with its warning instead: Glyphs.Risk in the marker column and the words
-// "Lockout risk", the menu's (DEV-028), at theme.LabelCol, in their
-// colour, Plan.LockoutRisk (DEV-038); its title follows on the next line,
+// with its warning instead: Glyphs.Warn, a warning's glyph, in the marker
+// column and the words "Lockout risk", the menu's (DEV-028), at
+// theme.LabelCol, in their colour, Plan.LockoutRisk (DEV-038; the
+// maintainer, 2026-10-21); its title follows on the next line,
 // at theme.LabelCol, and a blank line under the title sets the two apart
 // from the details when details follow (maintainer, 2026-10-20). Under the
 // title come the target, the diff, the before and after states as removed
@@ -114,7 +115,7 @@ func (ch PlanChange) render(c Ctx) string {
 	var out []string
 	lead := marker(g.Bullet, t.Context).to(theme.LabelCol)
 	if ch.LockoutRisk {
-		out = append(out, c.fit(append(marker(g.Risk, t.LockoutRisk).to(theme.LabelCol), span{lockoutRisk, t.LockoutRisk}), w))
+		out = append(out, c.fit(append(marker(g.Warn, t.LockoutRisk).to(theme.LabelCol), span{lockoutRisk, t.LockoutRisk}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
 	for _, l := range wrap(title, w-theme.LabelCol) {

@@ -93,7 +93,7 @@ type MenuItem struct {
 //	0 2   6                    27
 //	   1) User Management      Create, Configure (sudo, SSH keys)
 //	   2) SSH Login            Toggle root SSH access
-//	                           [*] Lockout risk
+//	                           [ ] Lockout risk
 //	   3) DNS                  Configure Nameservers
 //	                           [-] Unavailable
 //	  10) Logs                 View log file
@@ -107,8 +107,8 @@ type MenuItem struct {
 // at theme.ValueCol (DEV-027). An item's states never rest on
 // colour alone: under its description a note line gives a glyph and a word,
 // Glyphs.NotApplicable and "Unavailable" in Menu.Disabled for a disabled
-// item, or Glyphs.Risk and "Lockout risk" in Menu.Risk for a risky one
-// (DEV-028).
+// item, or Glyphs.Warn, a warning's glyph, and "Lockout risk" in
+// Menu.Risk for a risky one (DEV-028; the maintainer, 2026-10-21).
 //
 // The whole menu stacks, every item's description and note under its
 // label at theme.StackCol (DEV-021), so that one description column holds
@@ -312,7 +312,7 @@ func (it MenuItem) parts(c Ctx, exit bool) (key, label span, value, note line) {
 		keyStyle, labelStyle, descStyle, asideStyle = m.Disabled, m.Disabled, m.Disabled, m.Disabled
 		note = line{{g.NotApplicable + " " + unavailable, m.Disabled}}
 	case it.Risk:
-		note = line{{g.Risk + " " + lockoutRisk, m.Risk}}
+		note = line{{g.Warn + " " + lockoutRisk, m.Risk}}
 	}
 	if k := clean(it.Key); k != "" {
 		key = span{k + ")", keyStyle}

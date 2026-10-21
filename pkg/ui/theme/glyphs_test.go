@@ -94,8 +94,9 @@ func TestSharedMarkerColours(t *testing.T) {
 
 // TestRiskGlyphAlone checks that the risk icon, ⛬ or [*], is no other
 // role's glyph and is in none, so that only the code that names
-// Glyphs.Risk draws it: RiskSummary, and the menu's and the plan's
-// lockout-risk lines (pkg/ui/component's TestRiskGlyphDrawn).
+// Glyphs.Risk draws it: RiskSummary alone (pkg/ui/component's
+// TestRiskGlyphDrawn). The lockout-risk lines take Warn (the maintainer,
+// 2026-10-21).
 func TestRiskGlyphAlone(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
 		for field, glyph := range glyphFields(g) {
