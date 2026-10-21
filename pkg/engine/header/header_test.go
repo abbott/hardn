@@ -30,8 +30,17 @@ const (
 	route6File   = "/proc/net/ipv6_route"
 	inet6File    = "/proc/net/if_inet6"
 	releaseFile  = "/proc/sys/kernel/osrelease"
+	versionFile  = "/proc/sys/kernel/version"
 	requiredFile = "/var/run/reboot-required"
 )
+
+// dpkgFormat is detect's --showformat for dpkg-query --show.
+const dpkgFormat = `--showformat=${Status}\t${Version}\n`
+
+// installed is dpkg-query's answer for a package installed at version.
+func installed(version string) hostfake.Response {
+	return hostfake.Response{Stdout: "install ok installed\t" + version + "\n"}
+}
 
 // figmaUptime is Figma's "182 days, 2 hours, 26 minutes", as
 // /proc/uptime prints it ("%lu.%02lu %lu.%02lu\n").
@@ -96,13 +105,14 @@ const (
 func lines(ls ...string) string { return strings.Join(ls, "\n") + "\n" }
 
 // site is one test's host: files with their content, empty directories,
-// ip's answers by interface, and paths a read of fails with a permission
-// error, as for a user other than root.
+// ip's answers by interface, dpkg-query's by package, and paths a read of
+// fails with a permission error, as for a user other than root.
 type site struct {
 	facts detect.Facts
 	files map[string]string
 	dirs  []string
 	ip    map[string]hostfake.Response
+	dpkg  map[string]hostfake.Response
 	deny  []string
 }
 
@@ -129,6 +139,16 @@ func (s site) answer(iface string, r hostfake.Response) site {
 	return s
 }
 
+// dpkgAnswer returns s with dpkg-query's answer for pkg set.
+func (s site) dpkgAnswer(pkg string, r hostfake.Response) site {
+	s.dpkg = maps.Clone(s.dpkg)
+	if s.dpkg == nil {
+		s.dpkg = map[string]hostfake.Response{}
+	}
+	s.dpkg[pkg] = r
+	return s
+}
+
 func (s site) denying(paths ...string) site {
 	s.deny = append(slices.Clone(s.deny), paths...)
 	return s
@@ -144,6 +164,9 @@ func (s site) build() (host.System, *hostfake.System) {
 	}
 	for iface, r := range s.ip {
 		f.Respond(r, "ip", "-4", "addr", "show", "dev", iface)
+	}
+	for pkg, r := range s.dpkg {
+		f.Respond(r, "dpkg-query", "--show", dpkgFormat, pkg)
 	}
 	return denied{System: f, paths: s.deny}, f
 }
@@ -165,6 +188,7 @@ func debian13() site {
 			route6File:                             lines(default6, prefix6, unreachable6, loopback6),
 			inet6File:                              lines(static6, linkLocal6, lo6),
 			releaseFile:                            "6.12.43+deb13-amd64\n",
+			versionFile:                            "#1 SMP PREEMPT_DYNAMIC Debian 6.12.43-1 (2025-08-27)\n",
 			"/boot/vmlinuz-6.12.41+deb13-amd64":    "",
 			"/boot/vmlinuz-6.12.43+deb13-amd64":    "",
 			"/boot/initrd.img-6.12.43+deb13-amd64": "",
@@ -172,8 +196,12 @@ func debian13() site {
 		},
 		dirs: []string{"/boot/grub"},
 		ip:   map[string]hostfake.Response{"eth0": {Stdout: ipEth0}},
+		dpkg: map[string]hostfake.Response{debianPackage: installed("6.12.43-1")},
 	}
 }
+
+// debianPackage is debian13's running kernel's package.
+const debianPackage = "linux-image-6.12.43+deb13-amd64"
 
 // ubuntu2604 has IPv6 alone routed: a SLAAC address, a temporary one and
 // a static one; a newer kernel installed, and reboot-required written.
@@ -189,10 +217,11 @@ func ubuntu2604() site {
 		"20010db8000200000000000000000020 02 40 00 80     eth0", // static: 2001:db8:2::20
 		linkLocal6, lo6)
 	s.files[releaseFile] = "6.17.0-14-generic\n"
+	s.files[versionFile] = "#14-Ubuntu SMP PREEMPT_DYNAMIC Fri Jan  9 10:00:00 UTC 2026\n"
 	s.files["/boot/vmlinuz-6.17.0-14-generic"] = ""
 	s.files["/boot/vmlinuz-6.17.0-19-generic"] = ""
 	s.files[requiredFile] = "*** System restart required ***\n"
-	s.ip = nil
+	s.ip, s.dpkg = nil, nil
 	return s
 }
 
@@ -205,9 +234,10 @@ func pve9() site {
 	s.files[route6File] = lines(unreachable6, loopback6)
 	s.files[inet6File] = lines(lo6)
 	s.files[releaseFile] = "6.17.2-1-pve\n"
+	s.files[versionFile] = "#1 SMP PREEMPT_DYNAMIC PMX 6.17.2-1 (2025-10-21T11:55Z)\n"
 	s.files["/boot/vmlinuz-6.14.8-2-pve"] = ""
 	s.files["/boot/vmlinuz-6.17.2-1-pve"] = ""
-	s.ip = map[string]hostfake.Response{"vmbr0": {Stdout: ipVmbr0}}
+	s.ip, s.dpkg = map[string]hostfake.Response{"vmbr0": {Stdout: ipVmbr0}}, nil
 	return s
 }
 
@@ -218,11 +248,11 @@ func alpine324() site {
 	s.facts.Platform = detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported}
 	s.facts.Init = detect.Init{Kind: detect.OpenRC, Running: detect.Yes}
 	s.facts.Proxmox = detect.Proxmox{}
-	s = s.without("/boot").without(releaseFile).without(route6File).without(inet6File)
+	s = s.without("/boot").without(releaseFile).without(versionFile).without(route6File).without(inet6File)
 	s.files[releaseFile] = "6.12.40-0-lts\n"
 	s.files["/boot/vmlinuz-lts"] = ""
 	s.dirs = append(s.dirs, "/lib/modules/6.12.40-0-lts/kernel")
-	s.ip = map[string]hostfake.Response{"eth0": {Stdout: ipBusyBox}}
+	s.ip, s.dpkg = map[string]hostfake.Response{"eth0": {Stdout: ipBusyBox}}, nil
 	return s
 }
 
@@ -231,8 +261,9 @@ func alpine324() site {
 func container() site {
 	s := debian13()
 	s.facts.Container = detect.Container{Detected: detect.Yes, Signal: detect.InitEnviron, Manager: "lxc"}
-	s = s.without("/boot").without(releaseFile).with(hostnameFile, "web-01\n").with(uptimeFile, "3600.00 3590.00\n")
+	s = s.without("/boot").without(releaseFile).without(versionFile).with(hostnameFile, "web-01\n").with(uptimeFile, "3600.00 3590.00\n")
 	s.ip = map[string]hostfake.Response{"eth0": {Err: fmt.Errorf("host: ip: %w", host.ErrNotFound)}}
+	s.dpkg = nil
 	return s
 }
 
@@ -271,14 +302,18 @@ func (d denied) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error)
 }
 
 // readOnly fails the test for any call that is not a read, or a run of
-// anything but ip -4 addr show dev <interface>.
+// anything but ip -4 addr show dev <interface> and dpkg-query --show of a
+// kernel's package.
 func readOnly(t *testing.T, f *hostfake.System) {
 	t.Helper()
 	for _, c := range f.Calls() {
 		switch c.Op {
 		case "read", "stat", "readdir":
 		case "run":
-			if len(c.Argv) != 6 || strings.Join(c.Argv[:5], " ") != "ip -4 addr show dev" {
+			ip := len(c.Argv) == 6 && strings.Join(c.Argv[:5], " ") == "ip -4 addr show dev"
+			dpkg := len(c.Argv) == 4 && c.Argv[0] == "dpkg-query" && c.Argv[1] == "--show" && c.Argv[2] == dpkgFormat &&
+				strings.HasPrefix(c.Argv[3], "linux-image-")
+			if !ip && !dpkg {
 				t.Errorf("ran %q", strings.Join(c.Argv, " "))
 			}
 		default:
@@ -297,12 +332,15 @@ func read(t *testing.T, s site) header.Header {
 }
 
 // fam renders a Family for comparison: "eth0 192.0.2.10", "eth0 none"
-// (a route, no address), "no route", or the error's code after the rest.
+// (a route, no address), "no route", "unknown" (the route not
+// established), and the error's code after the rest.
 func fam(f header.Family) string {
 	var s string
 	switch {
-	case f.Iface == "" && !f.Addr.IsValid():
+	case f.Route == detect.No:
 		s = "no route"
+	case f.Route == detect.Unknown:
+		s = "unknown"
 	case f.Addr.IsValid():
 		s = f.Iface + " " + f.Addr.String()
 	default:
@@ -312,6 +350,31 @@ func fam(f header.Family) string {
 		s += " " + output.CodeOf(f.Err)
 	}
 	return s
+}
+
+// primary renders Primary for comparison: the address, "none", or
+// "unknown".
+func primary(a header.Address) string {
+	p, known := a.Primary()
+	switch {
+	case !known:
+		return "unknown"
+	case !p.IsValid():
+		return "none"
+	}
+	return p.String()
+}
+
+// consistent fails the test for a Family Read could not return: a route
+// not established with no error, or none with an interface or an error.
+func consistent(t *testing.T, name string, f header.Family) {
+	t.Helper()
+	switch {
+	case f.Route == detect.Unknown && (f.Err == nil || f.Iface != "" || f.Addr.IsValid()),
+		f.Route == detect.No && (f.Err != nil || f.Iface != "" || f.Addr.IsValid()),
+		f.Route == detect.Yes && (f.Iface == "" || f.Err != nil && f.Addr.IsValid()):
+		t.Errorf("%s: %+v is not a family Read returns", name, f)
+	}
 }
 
 func codes(fs []engine.Finding) []string {
@@ -325,22 +388,24 @@ func codes(fs []engine.Finding) []string {
 // TestRead: each platform's stock host, every fact.
 func TestRead(t *testing.T) {
 	for _, c := range []struct {
-		name     string
-		site     site
-		os       header.OS
-		hostname string
-		v4, v6   string
-		primary  string
-		uptime   time.Duration
-		pending  detect.Tri
-		running  string
-		codes    []string
-		evidence []string
-		err      string // the reboot's error's code
+		name       string
+		site       site
+		os         header.OS
+		hostname   string
+		v4, v6     string
+		primary    string
+		uptime     time.Duration
+		pending    detect.Tri
+		running    string
+		hostKernel bool
+		codes      []string
+		evidence   []string
+		err        string // the reboot's error's code
 	}{
 		{name: "debian13", site: debian13(), os: header.OS{Name: "Debian", Version: "13", Codename: "trixie"}, hostname: "web-01.example.net",
 			v4: "eth0 192.0.2.10", v6: "eth0 2001:db8:1::10", primary: "192.0.2.10", uptime: figmaDur, pending: detect.No, running: "6.12.43+deb13-amd64",
-			evidence: []string{requiredFile + ": absent", releaseFile + ": 6.12.43+deb13-amd64", "/boot: newest vmlinuz-6.12.43+deb13-amd64"}},
+			evidence: []string{requiredFile + ": absent", releaseFile + ": 6.12.43+deb13-amd64", "/boot: newest vmlinuz-6.12.43+deb13-amd64",
+				versionFile + ": Debian 6.12.43-1", "dpkg: " + debianPackage + " 6.12.43-1"}},
 		{name: "ubuntu2604", site: ubuntu2604(), os: header.OS{Name: "Ubuntu", Version: "26.04", Codename: "resolute"}, hostname: "web-01.example.net",
 			v4: "no route", v6: "eth0 2001:db8:2::20", primary: "2001:db8:2::20", uptime: figmaDur, pending: detect.Yes, running: "6.17.0-14-generic",
 			codes:    []string{header.CodeRebootRequired, header.CodeNewerKernel},
@@ -350,9 +415,9 @@ func TestRead(t *testing.T) {
 			evidence: []string{requiredFile + ": absent", releaseFile + ": 6.17.2-1-pve", "/boot: newest vmlinuz-6.17.2-1-pve"}},
 		{name: "alpine324", site: alpine324(), os: header.OS{Name: "Alpine", Version: "3.24.0"}, hostname: "web-01.example.net",
 			v4: "eth0 192.0.2.20", v6: "no route", primary: "192.0.2.20", uptime: figmaDur, pending: detect.No, running: "6.12.40-0-lts",
-			evidence: []string{releaseFile + ": 6.12.40-0-lts", "/lib/modules/6.12.40-0-lts: present"}},
+			evidence: []string{releaseFile + ": 6.12.40-0-lts", "/lib/modules/6.12.40-0-lts/kernel: present"}},
 		{name: "container", site: container(), os: header.OS{Name: "Debian", Version: "13", Codename: "trixie"}, hostname: "web-01",
-			v4: "eth0 none COMMAND_NOT_FOUND", v6: "eth0 2001:db8:1::10", primary: "2001:db8:1::10", uptime: time.Hour, pending: detect.No,
+			v4: "eth0 none COMMAND_NOT_FOUND", v6: "eth0 2001:db8:1::10", primary: "unknown", uptime: time.Hour, pending: detect.No, hostKernel: true,
 			evidence: []string{requiredFile + ": absent", "kernel: the host's (container)"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -369,13 +434,16 @@ func TestRead(t *testing.T) {
 			if got := fam(h.Address.IPv6); got != c.v6 {
 				t.Errorf("ipv6 = %s, want %s", got, c.v6)
 			}
-			if a, known := h.Address.Primary(); !known || a.String() != c.primary {
-				t.Errorf("primary = %v (known %v), want %s", a, known, c.primary)
+			if got := primary(h.Address); got != c.primary {
+				t.Errorf("primary = %s, want %s", got, c.primary)
 			}
-			if h.Uptime.Err != nil || h.Uptime.Duration.Round(time.Millisecond) != c.uptime {
+			if h.Uptime.Err != nil || !h.Uptime.Known || h.Uptime.Duration.Round(time.Millisecond) != c.uptime {
 				t.Errorf("uptime = %+v, want %v", h.Uptime, c.uptime)
 			}
 			r := h.Reboot
+			if r.HostKernel != c.hostKernel {
+				t.Errorf("host kernel = %v, want %v", r.HostKernel, c.hostKernel)
+			}
 			if r.Pending != c.pending || r.Running != c.running || !slices.Equal(codes(r.Findings), c.codes) || output.CodeOf(r.Err) != c.err {
 				t.Errorf("reboot = %v %q %v %v, want %v %q %v %q", r.Pending, r.Running, codes(r.Findings), r.Err, c.pending, c.running, c.codes, c.err)
 			}
@@ -450,7 +518,7 @@ func TestHostnameAndUptime(t *testing.T) {
 			if h.Hostname.Name != c.hostname || output.CodeOf(h.Hostname.Err) != c.hostErr {
 				t.Errorf("hostname = %+v, want %q %s", h.Hostname, c.hostname, c.hostErr)
 			}
-			if h.Uptime.Duration.Round(time.Millisecond) != c.uptime || output.CodeOf(h.Uptime.Err) != c.upErr {
+			if h.Uptime.Duration.Round(time.Millisecond) != c.uptime || output.CodeOf(h.Uptime.Err) != c.upErr || h.Uptime.Known != (c.upErr == "") {
 				t.Errorf("uptime = %+v, want %v %s", h.Uptime, c.uptime, c.upErr)
 			}
 		})
@@ -465,6 +533,7 @@ func TestAddress(t *testing.T) {
 	same := "eth0\t00000000\t020200C0\t0003\t0\t0\t100\t00000000\t0\t0\t0" // a second gateway, 192.0.2.2, on eth0
 	reject := "eth0\t00000000\t00000000\t0201\t0\t0\t0\t00000000\t0\t0\t0" // unreachable default
 	blackhole := "*\t00000000\t00000000\t0001\t0\t0\t0\t00000000\t0\t0\t0"
+	unreachable := "*\t00000000\t00000000\t0201\t0\t0\t%d\t00000000\t0\t0\t0" // unreachable default metric %d, as the kernel lists it
 	noGateway := "ppp0\t00000000\t00000000\t0001\t0\t0\t0\t00000000\t0\t0\t0" // default dev ppp0
 	ip := func(body string) hostfake.Response {
 		return hostfake.Response{Stdout: "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500\n" + body}
@@ -472,6 +541,7 @@ func TestAddress(t *testing.T) {
 	slaac6 := "20010db800010000021122fffe334455 02 40 00 00     eth0"
 	tentative6 := "20010db8000100000000000000000005 02 40 00 c0     eth0"
 	deprecated6 := "20010db8000100000000000000000006 02 40 00 a0     eth0"
+	ula6 := "fd000000000000000000000000000010 02 40 00 80     eth0" // fd00::10, static
 	for _, c := range []struct {
 		name         string
 		site         site
@@ -482,7 +552,7 @@ func TestAddress(t *testing.T) {
 			answer("eth1", hostfake.Response{Stdout: "    inet 198.51.100.7/24 brd 198.51.100.255 scope global eth1\n"}),
 			v4: "eth1 198.51.100.7", v6: "eth0 2001:db8:1::10", prim: "198.51.100.7"},
 		{name: "two interfaces at one metric", site: debian13().with(routeFile, routes(defaultEth0, tie)),
-			v4: "no route DETECT_SIGNALS_DISAGREE", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+			v4: "unknown DETECT_SIGNALS_DISAGREE", v6: "eth0 2001:db8:1::10", prim: "unknown"},
 		{name: "two gateways on one interface", site: debian13().with(routeFile, routes(defaultEth0, same)), v4: "eth0 192.0.2.10", v6: "eth0 2001:db8:1::10", prim: "192.0.2.10"},
 		{name: "the address in the gateway's network", site: debian13().answer("eth0", ip(
 			"    inet 198.51.100.5/24 scope global eth0\n    inet 192.0.2.10/24 brd 192.0.2.255 scope global eth0\n    inet 192.0.2.11/24 scope global secondary eth0\n")),
@@ -498,18 +568,29 @@ func TestAddress(t *testing.T) {
 		{name: "no global IPv4 address", site: debian13().answer("eth0", ip("    inet 169.254.1.1/16 scope link eth0\n")),
 			v4: "eth0 none", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
 		{name: "ip exits 1", site: debian13().answer("eth0", hostfake.Response{Stderr: "Device \"eth0\" does not exist.\n", ExitCode: 1}),
-			v4: "eth0 none COMMAND_FAILED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+			v4: "eth0 none COMMAND_FAILED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
 		{name: "ip's line in no form known", site: debian13().answer("eth0", ip("    inet 192.0.2.10/24 brd 192.0.2.255\n")),
-			v4: "eth0 none DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+			v4: "eth0 none DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
 		{name: "ip's address in no form known", site: debian13().answer("eth0", ip("    inet 2001:db8::1/64 scope global eth0\n")),
-			v4: "eth0 none DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+			v4: "eth0 none DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
+		{name: "ip's peer in no form known", site: debian13().with(routeFile, routes(noGateway)).
+			answer("ppp0", hostfake.Response{Stdout: "    inet 192.0.2.60 peer bad/32 scope global ppp0\n"}),
+			v4: "ppp0 none DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
 		{name: "rejecting and blackhole defaults", site: debian13().with(routeFile, routes(reject, blackhole, connectEth0)),
 			v4: "no route", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
-		{name: "the route table unreadable", site: debian13().denying(routeFile), v4: "no route PERMISSION_DENIED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
-		{name: "the route table in no form known", site: debian13().with(routeFile, routes("eth0\t00000000\tzz\t0003")), v4: "no route DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
-		{name: "the route table with no header", site: debian13().with(routeFile, ""), v4: "no route DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+		{name: "a rejecting default at a lower metric", site: debian13().with(routeFile, routes(fmt.Sprintf(unreachable, 0), defaultEth0, connectEth0)),
+			v4: "no route", v6: "eth0 2001:db8:1::10", prim: "2001:db8:1::10"},
+		{name: "a rejecting default at a higher metric", site: debian13().with(routeFile, routes(defaultEth0, fmt.Sprintf(unreachable, 200), connectEth0)),
+			v4: "eth0 192.0.2.10", v6: "eth0 2001:db8:1::10", prim: "192.0.2.10"},
+		{name: "a rejecting default at the same metric", site: debian13().with(routeFile, routes(defaultEth0, fmt.Sprintf(unreachable, 100))),
+			v4: "unknown DETECT_SIGNALS_DISAGREE", v6: "eth0 2001:db8:1::10", prim: "unknown"},
+		{name: "the route table unreadable", site: debian13().denying(routeFile), v4: "unknown PERMISSION_DENIED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
+		{name: "the route table in no form known", site: debian13().with(routeFile, routes("eth0\t00000000\tzz\t0003")), v4: "unknown DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
+		{name: "a route's field in no form known", site: debian13().with(routeFile, routes("eth0\t00000000\t010200C0\t0003\t0\t0\tmany\t00000000\t0\t0\t0")),
+			v4: "unknown DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
+		{name: "the route table with no header", site: debian13().with(routeFile, ""), v4: "unknown DETECT_UNRECOGNISED", v6: "eth0 2001:db8:1::10", prim: "unknown"},
 		{name: "IPv6 off", site: debian13().without(route6File).without(inet6File), v4: "eth0 192.0.2.10", v6: "no route", prim: "192.0.2.10"},
-		{name: "no /proc/net", site: debian13().without("/proc/net"), v4: "no route FILE_NOT_FOUND", v6: "no route FILE_NOT_FOUND", prim: "unknown"},
+		{name: "no /proc/net", site: debian13().without("/proc/net"), v4: "unknown FILE_NOT_FOUND", v6: "unknown FILE_NOT_FOUND", prim: "unknown"},
 		{name: "no default route", site: debian13().with(routeFile, routes(connectEth0)).with(route6File, lines(prefix6, unreachable6)), v4: "no route", v6: "no route", prim: "none"},
 		{name: "IPv6: link-local alone", site: debian13().with(routeFile, routes()).with(inet6File, lines(linkLocal6, lo6)), v4: "no route", v6: "eth0 none", prim: "none"},
 		{name: "IPv6: permanent before SLAAC, not tentative or deprecated", site: debian13().with(routeFile, routes()).
@@ -518,9 +599,17 @@ func TestAddress(t *testing.T) {
 		{name: "IPv6: the lowest of two dynamic", site: debian13().with(routeFile, routes()).
 			with(inet6File, lines(slaac6, "20010db8000100000000000000000abc 02 40 00 00     eth0")),
 			v4: "no route", v6: "eth0 2001:db8:1::abc", prim: "2001:db8:1::abc"},
+		{name: "IPv6: a unique local address after a global one", site: debian13().with(routeFile, routes()).with(inet6File, lines(ula6, slaac6)),
+			v4: "no route", v6: "eth0 2001:db8:1:0:211:22ff:fe33:4455", prim: "2001:db8:1:0:211:22ff:fe33:4455"},
+		{name: "IPv6: a unique local address alone", site: debian13().with(routeFile, routes()).with(inet6File, lines(ula6, linkLocal6)),
+			v4: "no route", v6: "eth0 fd00::10", prim: "fd00::10"},
 		{name: "IPv6: two interfaces at one metric", site: debian13().with(route6File, lines(default6, strings.Replace(default6, "    eth0", "    eth1", 1))),
-			v4: "eth0 192.0.2.10", v6: "no route DETECT_SIGNALS_DISAGREE", prim: "192.0.2.10"},
-		{name: "IPv6: the routes in no form known", site: debian13().with(route6File, "0000 00\n"), v4: "eth0 192.0.2.10", v6: "no route DETECT_UNRECOGNISED", prim: "192.0.2.10"},
+			v4: "eth0 192.0.2.10", v6: "unknown DETECT_SIGNALS_DISAGREE", prim: "192.0.2.10"},
+		{name: "IPv6: the routes in no form known", site: debian13().with(route6File, "0000 00\n"), v4: "eth0 192.0.2.10", v6: "unknown DETECT_UNRECOGNISED", prim: "192.0.2.10"},
+		{name: "IPv6: a default route with no device", site: debian13().with(route6File, lines(strings.Replace(default6, "     eth0", "", 1), default6)),
+			v4: "eth0 192.0.2.10", v6: "eth0 2001:db8:1::10", prim: "192.0.2.10"},
+		{name: "IPv6: a route's metric in no form known", site: debian13().with(route6File, lines(strings.Replace(default6, " 00000400 ", " 0000040z ", 1))),
+			v4: "eth0 192.0.2.10", v6: "unknown DETECT_UNRECOGNISED", prim: "192.0.2.10"},
 		{name: "IPv6: addresses unreadable", site: debian13().with(routeFile, routes()).denying(inet6File), v4: "no route", v6: "eth0 none PERMISSION_DENIED", prim: "unknown"},
 		{name: "IPv6: addresses in no form known", site: debian13().with(routeFile, routes()).with(inet6File, "2001 02 40 00 80 eth0\n"), v4: "no route", v6: "eth0 none DETECT_UNRECOGNISED", prim: "unknown"},
 	} {
@@ -532,15 +621,9 @@ func TestAddress(t *testing.T) {
 			if got := fam(a.IPv6); got != c.v6 {
 				t.Errorf("ipv6 = %s, want %s", got, c.v6)
 			}
-			p, known := a.Primary()
-			got := p.String()
-			switch {
-			case !known:
-				got = "unknown"
-			case !p.IsValid():
-				got = "none"
-			}
-			if got != c.prim {
+			consistent(t, "ipv4", a.IPv4)
+			consistent(t, "ipv6", a.IPv6)
+			if got := primary(a); got != c.prim {
 				t.Errorf("primary = %s, want %s", got, c.prim)
 			}
 		})
@@ -553,8 +636,21 @@ func TestNoIPWithoutARoute(t *testing.T) {
 	s := debian13().with(routeFile, routes(connectEth0))
 	sys, f := s.build()
 	header.Read(context.Background(), sys, s.facts)
-	if runs := f.Runs(); len(runs) != 0 {
-		t.Errorf("ran %v", runs)
+	for _, argv := range f.Runs() {
+		if argv[0] == "ip" {
+			t.Errorf("ran %v", argv)
+		}
+	}
+}
+
+// TestZeroFamily: a Family or an Address Read did not fill establishes
+// nothing.
+func TestZeroFamily(t *testing.T) {
+	if (header.Family{}).Known() {
+		t.Error("the zero Family is known")
+	}
+	if _, known := (header.Address{}).Primary(); known {
+		t.Error("the zero Address's primary is known")
 	}
 }
 
@@ -577,6 +673,14 @@ func TestReboot(t *testing.T) {
 	unknownContainer := deb
 	unknownContainer.facts.Container = detect.Container{Err: detect.ErrNoSignal}
 	newer := "/boot/vmlinuz-6.12.48+deb13-amd64"
+	rebuilt := "dpkg-query --show " + debianPackage
+	modules := func(dirs ...string) site { // alp with /lib/modules holding these directories alone
+		s := alp.without("/lib/modules")
+		for _, d := range dirs {
+			s = s.with("/lib/modules/"+d+"/x.ko", "")
+		}
+		return s
+	}
 	for _, c := range []struct {
 		name    string
 		site    site
@@ -590,7 +694,27 @@ func TestReboot(t *testing.T) {
 		{name: "debian13: reboot-required", site: deb.with(requiredFile, ""), pending: detect.Yes, codes: []string{header.CodeRebootRequired}, sources: []string{requiredFile}},
 		{name: "debian13: both", site: deb.with(requiredFile, "").with(newer, ""), pending: detect.Yes,
 			codes: []string{header.CodeRebootRequired, header.CodeNewerKernel}, sources: []string{requiredFile, newer}},
-		{name: "debian13: only older kernels installed", site: deb.without("/boot").with("/boot/vmlinuz-6.12.41+deb13-amd64", ""), pending: detect.No},
+		{name: "debian13: the running kernel not in /boot, an older one there", site: deb.without("/boot").with("/boot/vmlinuz-6.12.41+deb13-amd64", ""),
+			pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "debian13: the running kernel not in /boot, a newer one there", site: deb.without("/boot").with(newer, ""), pending: detect.Yes,
+			codes: []string{header.CodeNewerKernel}, sources: []string{newer}},
+		{name: "debian13: a name that is no release", site: deb.without("/boot").with("/boot/vmlinuz-custom", ""), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "debian13: the running release rebuilt", site: deb.dpkgAnswer(debianPackage, installed("6.12.43-2")), pending: detect.Yes,
+			codes: []string{header.CodeKernelReplaced}, sources: []string{rebuilt}},
+		{name: "debian13: the running release's package older", site: deb.dpkgAnswer(debianPackage, installed("6.12.43-1~exp1")), pending: detect.Yes,
+			codes: []string{header.CodeKernelReplaced}, sources: []string{rebuilt}},
+		{name: "debian13: rebuilt, and a newer kernel", site: deb.with(newer, "").dpkgAnswer(debianPackage, installed("6.12.43-2")), pending: detect.Yes,
+			codes: []string{header.CodeNewerKernel, header.CodeKernelReplaced}, sources: []string{newer, rebuilt}},
+		{name: "debian13: the running kernel's package not installed", site: deb.dpkgAnswer(debianPackage, hostfake.Response{ExitCode: 1}),
+			pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "debian13: no dpkg-query", site: deb.dpkgAnswer(debianPackage, hostfake.Response{Err: fmt.Errorf("host: dpkg-query: %w", host.ErrNotFound)}),
+			pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "debian13: dpkg-query fails", site: deb.dpkgAnswer(debianPackage, hostfake.Response{ExitCode: 2}), pending: detect.Unknown, err: "COMMAND_FAILED"},
+		{name: "debian13: the package half installed", site: deb.dpkgAnswer(debianPackage, hostfake.Response{Stdout: "install ok half-installed\t6.12.43-2\n"}),
+			pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
+		{name: "debian13: the build unreadable", site: deb.denying(versionFile), pending: detect.Unknown, err: "PERMISSION_DENIED"},
+		{name: "debian13: the build's version in no form known", site: deb.with(versionFile, "#1 SMP Debian (2025-08-27)\n"), pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
+		{name: "debian13: a kernel built otherwise", site: deb.with(versionFile, "#1 SMP PREEMPT_DYNAMIC Tue Oct 21 10:00:00 UTC 2026\n"), pending: detect.No},
 		{name: "debian13: another flavour of the same version", site: deb.with("/boot/vmlinuz-6.12.43+deb13-cloud-amd64", ""), pending: detect.No},
 		{name: "debian13: a newer kernel of another flavour", site: deb.with("/boot/vmlinuz-6.12.48+deb13-cloud-amd64", ""), pending: detect.Yes,
 			codes: []string{header.CodeNewerKernel}, sources: []string{"/boot/vmlinuz-6.12.48+deb13-cloud-amd64"}},
@@ -601,6 +725,8 @@ func TestReboot(t *testing.T) {
 		{name: "debian13: /boot unreadable", site: deb.denying("/boot"), pending: detect.Unknown, err: "PERMISSION_DENIED"},
 		{name: "debian13: the release unreadable", site: deb.denying(releaseFile), pending: detect.Unknown, err: "PERMISSION_DENIED"},
 		{name: "debian13: the release empty", site: deb.with(releaseFile, "\n"), pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
+		{name: "debian13: the release no version", site: deb.with(releaseFile, "custom-amd64\n").with("/boot/vmlinuz-custom-amd64", ""),
+			pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
 		{name: "debian13: reboot-required unreadable", site: deb.denying(requiredFile), pending: detect.Unknown, err: "PERMISSION_DENIED"},
 		{name: "debian13: reboot-required unreadable, a newer kernel", site: deb.denying(requiredFile).with(newer, ""), pending: detect.Yes,
 			codes: []string{header.CodeNewerKernel}, sources: []string{newer}, err: "PERMISSION_DENIED"},
@@ -610,17 +736,26 @@ func TestReboot(t *testing.T) {
 		{name: "pve9", site: pve9(), pending: detect.No},
 		{name: "a derivative of Ubuntu", site: derivative, pending: detect.No},
 		{name: "alpine324: modules present", site: alp, pending: detect.No},
-		{name: "alpine324: the running kernel's modules gone", site: alp.without("/lib/modules").with("/lib/modules/6.12.45-0-lts/modules.dep", ""), pending: detect.Yes,
+		{name: "alpine324: the running kernel's modules gone", site: modules("6.12.45-0-lts/kernel"), pending: detect.Yes,
 			codes: []string{header.CodeModulesMissing}, sources: []string{"/lib/modules/6.12.40-0-lts"}},
+		{name: "alpine324: an older kernel's modules alone", site: modules("6.12.30-0-lts/kernel"), pending: detect.Yes,
+			codes: []string{header.CodeModulesMissing}, sources: []string{"/lib/modules/6.12.40-0-lts"}},
+		{name: "alpine324: the running release's directory left behind", site: modules("6.12.40-0-lts/extra", "6.12.45-0-lts/kernel"), pending: detect.Yes,
+			codes: []string{header.CodeModulesMissing}, sources: []string{"/lib/modules/6.12.40-0-lts"}},
+		{name: "alpine324: directories left behind alone", site: modules("6.12.40-0-lts/extra", "6.12.45-0-lts"), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "alpine324: kernel/ a file", site: alp.without("/lib/modules").with("/lib/modules/6.12.40-0-lts/kernel", ""), pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
 		{name: "alpine324: reboot-required is not Alpine's", site: alp.with(requiredFile, ""), pending: detect.No},
 		{name: "alpine324: no /lib/modules", site: alp.without("/lib/modules"), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
 		{name: "alpine324: no kernel's modules", site: alp.without("/lib/modules").with("/lib/modules/README", ""), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
 		{name: "alpine324: the modules a file", site: alp.without("/lib/modules").with("/lib/modules/6.12.40-0-lts", ""), pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
 		{name: "alpine324: modules unreadable", site: alp.denying("/lib/modules/6.12.40-0-lts"), pending: detect.Unknown, err: "PERMISSION_DENIED"},
-		{name: "alpine324: the list unreadable", site: alp.without("/lib/modules").with("/lib/modules/6.12.45-0-lts/modules.dep", "").denying("/lib/modules"), pending: detect.Unknown, err: "PERMISSION_DENIED"},
+		{name: "alpine324: the list unreadable", site: modules("6.12.45-0-lts/kernel").denying("/lib/modules"), pending: detect.Unknown, err: "PERMISSION_DENIED"},
+		{name: "alpine324: another kernel's unreadable", site: modules("6.12.45-0-lts/kernel").denying("/lib/modules/6.12.45-0-lts"), pending: detect.Unknown, err: "PERMISSION_DENIED"},
+		{name: "alpine324: one kernel's unreadable, another's there", site: modules("6.12.30-0-lts/kernel", "6.12.45-0-lts/kernel").denying("/lib/modules/6.12.30-0-lts"),
+			pending: detect.Yes, codes: []string{header.CodeModulesMissing}, sources: []string{"/lib/modules/6.12.40-0-lts"}},
 		{name: "container", site: container(), pending: detect.No},
 		{name: "container: reboot-required", site: container().with(requiredFile, ""), pending: detect.Yes, codes: []string{header.CodeRebootRequired}, sources: []string{requiredFile}},
-		{name: "container: Alpine", site: alpContainer.without("/lib/modules"), pending: detect.No},
+		{name: "container: Alpine", site: alpContainer.without("/lib/modules"), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
 		{name: "a distribution not known", site: other, pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
 		{name: "os-release not read", site: noOS, pending: detect.Unknown, err: "PERMISSION_DENIED"},
 	} {
@@ -636,6 +771,9 @@ func TestReboot(t *testing.T) {
 			if (r.Pending == detect.Unknown) != (r.Err != nil && r.Pending != detect.Yes) {
 				t.Errorf("Unknown without an error, or an error with No: %v %v", r.Pending, r.Err)
 			}
+			if container := c.site.facts.Container.Detected == detect.Yes; r.HostKernel != container || container && r.Running != "" {
+				t.Errorf("host kernel %v, running %q, in a container %v", r.HostKernel, r.Running, container)
+			}
 		})
 	}
 }
@@ -647,9 +785,11 @@ func TestFindings(t *testing.T) {
 		header.CodeRebootRequired: header.DetailRebootRequired,
 		header.CodeNewerKernel:    header.DetailNewerKernel,
 		header.CodeModulesMissing: header.DetailModulesMissing,
+		header.CodeKernelReplaced: header.DetailKernelReplaced,
 	}
-	alp := alpine324().without("/lib/modules").with("/lib/modules/6.12.45-0-lts/modules.dep", "")
-	got := append(read(t, ubuntu2604()).Reboot.Findings, read(t, alp).Reboot.Findings...)
+	alp := alpine324().without("/lib/modules").with("/lib/modules/6.12.45-0-lts/kernel/x.ko", "")
+	deb := debian13().dpkgAnswer(debianPackage, installed("6.12.43-2"))
+	got := slices.Concat(read(t, ubuntu2604()).Reboot.Findings, read(t, alp).Reboot.Findings, read(t, deb).Reboot.Findings)
 	if len(got) != len(want) {
 		t.Fatalf("findings %v, want one of each of %v", got, want)
 	}

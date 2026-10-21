@@ -424,7 +424,8 @@ var findingCodes = []Entry{
 	// The header probe's own (next/p4-header): why a reboot is pending.
 	finding(header.CodeRebootRequired, "/var/run/reboot-required exists: a package asks for a reboot"),
 	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
-	finding(header.CodeModulesMissing, "Alpine: the running kernel's modules are not installed, while another kernel's are: the kernel was upgraded"),
+	finding(header.CodeModulesMissing, "Alpine: the running kernel's own modules are not installed, while another kernel's are"),
+	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

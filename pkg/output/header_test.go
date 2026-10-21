@@ -48,9 +48,16 @@ func TestFormatUptime(t *testing.T) {
 // values only.
 var errDenied = &fs.PathError{Op: "open", Path: "/proc/uptime", Err: fs.ErrPermission}
 
-func v4(iface, addr string) header.Family {
-	return header.Family{Iface: iface, Addr: netip.MustParseAddr(addr)}
+// routed is a family with a default route on iface and addr there.
+func routed(iface, addr string) header.Family {
+	return header.Family{Route: detect.Yes, Iface: iface, Addr: netip.MustParseAddr(addr)}
 }
+
+// noRoute is a family established to have no default route.
+var noRoute = header.Family{Route: detect.No}
+
+// up is an uptime read.
+func up(d time.Duration) header.Uptime { return header.Uptime{Duration: d, Known: true} }
 
 func headerFixtures() []struct {
 	name string
@@ -59,36 +66,37 @@ func headerFixtures() []struct {
 	debian := header.Header{
 		OS:       header.OS{Name: "Debian", Version: "13", Codename: "trixie"},
 		Hostname: header.Hostname{Name: "web-01.example.net"},
-		Address:  header.Address{IPv4: v4("eth0", "192.0.2.10"), IPv6: v4("eth0", "2001:db8:1::10")},
-		Uptime:   header.Uptime{Duration: figmaUptime},
+		Address:  header.Address{IPv4: routed("eth0", "192.0.2.10"), IPv6: routed("eth0", "2001:db8:1::10")},
+		Uptime:   up(figmaUptime),
 		Reboot: header.Reboot{Pending: detect.Yes, Running: "6.12.43+deb13-amd64",
 			Findings: []engine.Finding{{Code: header.CodeNewerKernel, Detail: header.DetailNewerKernel, Source: "/boot/vmlinuz-6.12.48+deb13-amd64"}}},
 	}
 	ubuntu := header.Header{
 		OS:       header.OS{Name: "Ubuntu", Version: "26.04", Codename: "resolute"},
 		Hostname: header.Hostname{Name: "web-01.example.net"},
-		Address:  header.Address{IPv6: v4("eth0", "2001:db8:2::20")},
-		Uptime:   header.Uptime{Duration: 3*24*time.Hour + 5*time.Minute},
+		Address:  header.Address{IPv4: noRoute, IPv6: routed("eth0", "2001:db8:2::20")},
+		Uptime:   up(3*24*time.Hour + 5*time.Minute),
 		Reboot:   header.Reboot{Pending: detect.No},
 	}
 	pve := header.Header{
 		OS:       header.OS{Name: "Proxmox VE", Version: "9.0.10", Codename: "trixie"},
 		Hostname: header.Hostname{Name: "web-01"},
-		Address:  header.Address{IPv4: v4("vmbr0", "192.0.2.30")},
-		Uptime:   header.Uptime{Duration: 41*24*time.Hour + time.Hour},
+		Address:  header.Address{IPv4: routed("vmbr0", "192.0.2.30"), IPv6: noRoute},
+		Uptime:   up(41*24*time.Hour + time.Hour),
 		Reboot:   header.Reboot{Pending: detect.Unknown, Err: errors.New("no vmlinuz")},
 	}
 	alpine := header.Header{
 		OS:       header.OS{Name: "Alpine", Version: "3.24.0"},
 		Hostname: header.Hostname{Name: "web-01.example.net"},
-		Address:  header.Address{IPv4: v4("eth0", "192.0.2.20")},
-		Uptime:   header.Uptime{Duration: 59 * time.Second},
+		Address:  header.Address{IPv4: routed("eth0", "192.0.2.20"), IPv6: noRoute},
+		Uptime:   up(59 * time.Second),
 		Reboot:   header.Reboot{Pending: detect.No},
 	}
 	isolated := header.Header{
 		OS:       header.OS{Name: "Debian", Version: "12", Codename: "bookworm"},
 		Hostname: header.Hostname{Name: "web-01.example.net"},
-		Uptime:   header.Uptime{Duration: 24 * time.Hour},
+		Address:  header.Address{IPv4: noRoute, IPv6: noRoute},
+		Uptime:   up(24 * time.Hour),
 	}
 	unknown := header.Header{
 		OS:       header.OS{Err: errDenied},
@@ -132,23 +140,37 @@ func TestHeaderViewOf(t *testing.T) {
 // TestHeaderAddress: the address shown for each state of the two
 // families.
 func TestHeaderAddress(t *testing.T) {
-	routed := header.Family{Iface: "eth0"}
-	failed := header.Family{Iface: "eth0", Err: errDenied}
+	bare := header.Family{Route: detect.Yes, Iface: "eth0"}
+	failed := header.Family{Route: detect.Yes, Iface: "eth0", Err: errDenied}
+	unread := header.Family{Err: errDenied}
 	for _, c := range []struct {
 		name string
 		a    header.Address
 		want string
 	}{
-		{"IPv4 before IPv6", header.Address{IPv4: v4("eth0", "192.0.2.10"), IPv6: v4("eth0", "2001:db8:1::10")}, "192.0.2.10"},
-		{"IPv6 where IPv4 is not read", header.Address{IPv4: failed, IPv6: v4("eth0", "2001:db8:1::10")}, "2001:db8:1::10"},
-		{"no route in either", header.Address{}, output.NoDefaultRoute},
-		{"a route, no address", header.Address{IPv4: routed}, output.NoAddress},
-		{"IPv4 not read, no IPv6 route", header.Address{IPv4: failed}, ""},
-		{"no IPv4 route, IPv6 not read", header.Address{IPv6: failed}, ""},
+		{"IPv4 before IPv6", header.Address{IPv4: routed("eth0", "192.0.2.10"), IPv6: routed("eth0", "2001:db8:1::10")}, "192.0.2.10"},
+		{"IPv6 where IPv4 has no route", header.Address{IPv4: noRoute, IPv6: routed("eth0", "2001:db8:1::10")}, "2001:db8:1::10"},
+		{"IPv6 where IPv4 has no address", header.Address{IPv4: bare, IPv6: routed("eth0", "2001:db8:1::10")}, "2001:db8:1::10"},
+		{"IPv4's address not read, an IPv6 one", header.Address{IPv4: failed, IPv6: routed("eth0", "2001:db8:1::10")}, ""},
+		{"IPv4's route not read, an IPv6 address", header.Address{IPv4: unread, IPv6: routed("eth0", "2001:db8:1::10")}, ""},
+		{"no route in either", header.Address{IPv4: noRoute, IPv6: noRoute}, output.NoDefaultRoute},
+		{"a route, no address", header.Address{IPv4: bare, IPv6: noRoute}, output.NoAddress},
+		{"IPv4 not read, no IPv6 route", header.Address{IPv4: failed, IPv6: noRoute}, ""},
+		{"no IPv4 route, IPv6 not read", header.Address{IPv4: noRoute, IPv6: unread}, ""},
+		{"neither read (the zero Address)", header.Address{}, ""},
 	} {
 		if got := output.HeaderViewOf("", header.Header{Address: c.a}).Host.Address; got != c.want {
 			t.Errorf("%s: %q, want %q", c.name, got, c.want)
 		}
+	}
+}
+
+// TestHeaderViewOfZero: a Header Read did not fill shows every fact as
+// not established, the version and the link alone.
+func TestHeaderViewOfZero(t *testing.T) {
+	want := output.HeaderView{Header: component.Header{Version: "v0.4.0", URL: output.RepoURL}}
+	if got := output.HeaderViewOf("v0.4.0", header.Header{}); got != want {
+		t.Errorf("got  %+v\nwant %+v", got, want)
 	}
 }
 

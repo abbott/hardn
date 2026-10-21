@@ -11,14 +11,17 @@
 //   - the uptime (/proc/uptime);
 //   - whether a reboot is pending (Reboot): /var/run/reboot-required and
 //     the running kernel against the newest in /boot on Debian, Ubuntu and
-//     Proxmox VE, the running kernel's modules on Alpine.
+//     Proxmox VE, with a Debian-built kernel's package version; the
+//     running kernel's modules on Alpine.
 //
 // A fact that cannot be read, or is read in a form the probe does not
 // know, is not established, with the reason in its Err: nothing is
-// guessed. Read reads files and runs one command, `ip -4 addr show dev
-// <interface>`, and changes nothing. pkg/output maps a Header to the main
-// menu's Header, ContextBar and HostBlock. docs/engine/header.md has each
-// fact's source and every line the blocks can show.
+// guessed, and a zero fact is not established either. Read reads files
+// and runs two commands, `ip -4 addr show dev <interface>` and, for a
+// kernel Debian built, `dpkg-query --show` of its package, and changes
+// nothing. pkg/output maps a Header to the main menu's Header, ContextBar
+// and HostBlock. docs/engine/header.md has each fact's source and every
+// line the blocks can show.
 package header
 
 import (
@@ -41,8 +44,10 @@ const (
 	UptimeFile   = "/proc/uptime"
 )
 
-// Header is what the probe read of the host. Each fact but Reboot is
-// established when its Err is nil; whether Reboot is, its Pending says.
+// Header is what the probe read of the host. OS and Hostname are
+// established when they have a name, Address's families and Uptime when
+// their Known says so, and Reboot when its Pending is not Unknown; each
+// Err says why one is not. The zero Header establishes nothing.
 type Header struct {
 	OS       OS
 	Hostname Hostname
@@ -76,7 +81,9 @@ type Hostname struct {
 // Uptime is the time since the kernel booted, time in suspend included.
 type Uptime struct {
 	Duration time.Duration
-	Err      error
+	// Known is true when Duration was read; the zero Uptime was not.
+	Known bool
+	Err   error
 }
 
 // Read probes the host. f is detect's facts for it. A done ctx leaves
@@ -144,7 +151,7 @@ func readUptime(ctx context.Context, sys host.System) Uptime {
 	if err != nil || secs >= maxUptime {
 		return Uptime{Err: fmt.Errorf("header: uptime: %s: %q: %w", UptimeFile, fields[0], detect.ErrUnrecognised)}
 	}
-	return Uptime{Duration: time.Duration(secs * float64(time.Second))}
+	return Uptime{Duration: time.Duration(secs * float64(time.Second)), Known: true}
 }
 
 // decimal reports whether s is digits, with at most one point between

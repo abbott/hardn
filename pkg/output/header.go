@@ -33,9 +33,9 @@ type HeaderView struct {
 
 // HeaderViewOf maps the header probe's h to the main menu's header
 // blocks. version is hardn's, shown as given ("v0.4.0"). A fact the probe
-// did not establish is empty, which the components show as "Unknown"; a
-// pending reboot is set only when the probe established one (P-21 holds
-// its wording and place). It is pure.
+// did not establish is empty, which the components show as "Unknown", and
+// the zero Header establishes none; a pending reboot is set only when the
+// probe established one (P-21 holds its wording and place). It is pure.
 func HeaderViewOf(version string, h header.Header) HeaderView {
 	v := HeaderView{
 		Header:  component.Header{Version: version, URL: RepoURL},
@@ -43,7 +43,7 @@ func HeaderViewOf(version string, h header.Header) HeaderView {
 		Host: component.HostBlock{Hostname: h.Hostname.Name, Address: addressWords(h.Address),
 			RebootPending: h.Reboot.Pending == detect.Yes},
 	}
-	if h.Uptime.Err == nil {
+	if h.Uptime.Known {
 		v.Host.Uptime = FormatUptime(h.Uptime.Duration)
 	}
 	return v
@@ -67,7 +67,7 @@ func addressWords(a header.Address) string {
 		return addr.String()
 	case !known:
 		return ""
-	case a.IPv4.Iface == "" && a.IPv6.Iface == "":
+	case a.IPv4.Route == detect.No && a.IPv6.Route == detect.No:
 		return NoDefaultRoute
 	}
 	return NoAddress

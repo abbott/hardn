@@ -44,8 +44,12 @@ type Address struct {
 // Family is one address family's default route and the primary address
 // of the interface it leaves by.
 type Family struct {
+	// Route is Yes when the family has a default route, No when it has
+	// none (or the lowest rejects), and Unknown when that is not
+	// established: Err says why, and the zero Family was not read.
+	Route detect.Tri
 	// Iface is the interface of the default route with the lowest
-	// metric; "" when the family has no default route.
+	// metric; "" unless Route is Yes.
 	Iface string
 	// Addr is Iface's primary address; the zero Addr when there is no
 	// default route, or the interface has no global address of the
@@ -56,18 +60,25 @@ type Family struct {
 	Err error
 }
 
-// Primary is the address the header shows: IPv4's, else IPv6's. known is
-// false when neither is an address and one of them is not established;
-// with known true and no address, the host has no default route in either
-// family, or no address where it has one.
+// Known reports whether the family's route and address are established.
+func (f Family) Known() bool { return f.Route != detect.Unknown && f.Err == nil }
+
+// Primary is the address the header shows: IPv4's, else, where IPv4 is
+// established to have none, IPv6's. known is false when IPv4 is not
+// established, or has no address and IPv6 is not established: which
+// address is primary is then not known. With known true and no address,
+// the host has no default route in either family, or no address where it
+// has one.
 func (a Address) Primary() (addr netip.Addr, known bool) {
 	switch {
 	case a.IPv4.Addr.IsValid():
 		return a.IPv4.Addr, true
+	case !a.IPv4.Known():
+		return netip.Addr{}, false
 	case a.IPv6.Addr.IsValid():
 		return a.IPv6.Addr, true
 	}
-	return netip.Addr{}, a.IPv4.Err == nil && a.IPv6.Err == nil
+	return netip.Addr{}, a.IPv6.Known()
 }
 
 // readAddress reads both families. IPv6's files are absent from a kernel
@@ -83,11 +94,15 @@ type route struct {
 	iface   string
 	gateway netip.Addr // the zero Addr for a route with no gateway
 	metric  uint64
+	rejects bool // unreachable, prohibit, blackhole, throw: sends nothing
 }
 
-// lowest is the route of routes with the lowest metric. Two of them on
-// different interfaces are a conflict: which one the kernel uses is not
-// in the file (for IPv4 it depends on the gateways' reachability).
+// lowest is the route of routes with the lowest metric: the one the
+// kernel's lookup takes. A rejecting route there is no default route,
+// as the lookup stops at it. Two of them on different interfaces, or a
+// rejecting one beside one that sends, are a conflict: which one the
+// kernel uses is not in the file (for IPv4 it depends on the gateways'
+// reachability, and on the routes' order).
 func lowest(routes []route) (route, error) {
 	if len(routes) == 0 {
 		return route{}, nil
@@ -101,12 +116,20 @@ func lowest(routes []route) (route, error) {
 		}
 		return 0
 	})
+	first := routes[0]
 	for _, r := range routes[1:] {
-		if r.metric == routes[0].metric && r.iface != routes[0].iface {
-			return route{}, fmt.Errorf("default routes on %s and %s, metric %d: %w", routes[0].iface, r.iface, r.metric, detect.ErrConflict)
+		switch {
+		case r.metric != first.metric || r.rejects && first.rejects:
+		case r.rejects != first.rejects:
+			return route{}, fmt.Errorf("a rejecting default route and one that sends, metric %d: %w", r.metric, detect.ErrConflict)
+		case r.iface != first.iface:
+			return route{}, fmt.Errorf("default routes on %s and %s, metric %d: %w", first.iface, r.iface, r.metric, detect.ErrConflict)
 		}
 	}
-	return routes[0], nil
+	if first.rejects {
+		return route{}, nil
+	}
+	return first, nil
 }
 
 // readIPv4 reads the default route from /proc/net/route, then its
@@ -122,17 +145,17 @@ func readIPv4(ctx context.Context, sys host.System) (fam Family, procUp bool) {
 	case err != nil:
 		return Family{Err: fmt.Errorf("header: ipv4: %s: %w", RouteFile, err)}, true
 	case r.iface == "":
-		return Family{}, true
+		return Family{Route: detect.No}, true
 	}
 	res, err := sys.Run(ctx, "ip", "-4", "addr", "show", "dev", r.iface)
 	if err != nil {
-		return Family{Iface: r.iface, Err: fmt.Errorf("header: ipv4: %w", err)}, true
+		return Family{Route: detect.Yes, Iface: r.iface, Err: fmt.Errorf("header: ipv4: %w", err)}, true
 	}
 	addr, err := primary4(res.Stdout, r.gateway)
 	if err != nil {
-		return Family{Iface: r.iface, Err: fmt.Errorf("header: ipv4: ip -4 addr show dev %s: %w", r.iface, err)}, true
+		return Family{Route: detect.Yes, Iface: r.iface, Err: fmt.Errorf("header: ipv4: ip -4 addr show dev %s: %w", r.iface, err)}, true
 	}
-	return Family{Iface: r.iface, Addr: addr}, true
+	return Family{Route: detect.Yes, Iface: r.iface, Addr: addr}, true
 }
 
 // defaultRoute4 finds the default route in /proc/net/route: a header line,
@@ -141,8 +164,10 @@ func readIPv4(ctx context.Context, sys host.System) (fam Family, procUp bool) {
 // mask and three more, tab-separated; the addresses as the kernel's
 // __be32 printed with %08X, the flags with %04X, the metric with %u. A
 // default route has destination and mask 0. Rejecting routes
-// (unreachable, prohibit) and routes with no interface (blackhole) send
-// nothing, and are skipped.
+// (unreachable, prohibit: RTF_REJECT) and routes with no interface
+// (blackhole, throw: "*") send nothing; they count by their metric, as
+// the kernel's lookup stops at the first route of a prefix that matches,
+// in the order of their metrics (fib_table_lookup, fib_find_alias).
 func defaultRoute4(data []byte) (route, error) {
 	lines := strings.Split(string(data), "\n")
 	if f := strings.Fields(lines[0]); len(f) < 8 || f[0] != "Iface" {
@@ -165,10 +190,10 @@ func defaultRoute4(data []byte) (route, error) {
 		if errors.Join(e1, e2, e3, e4, e5) != nil {
 			return route{}, fmt.Errorf("%q: %w", strings.TrimSpace(line), detect.ErrUnrecognised)
 		}
-		if dst != 0 || mask != 0 || flags&rtfUp == 0 || flags&rtfReject != 0 || f[0] == "*" {
+		if dst != 0 || mask != 0 || flags&rtfUp == 0 {
 			continue
 		}
-		r := route{iface: f[0], metric: metric}
+		r := route{iface: f[0], metric: metric, rejects: flags&rtfReject != 0 || f[0] == "*"}
 		if gw != 0 {
 			var b [4]byte
 			binary.NativeEndian.PutUint32(b[:], uint32(gw)) // the __be32's bytes, in memory order
@@ -246,7 +271,7 @@ func readIPv6(ctx context.Context, sys host.System, procUp bool) Family {
 	data, err := sys.ReadFile(ctx, Route6File)
 	switch {
 	case missing(err) && procUp:
-		return Family{} // IPv6 off in this kernel
+		return Family{Route: detect.No} // IPv6 off in this kernel
 	case err != nil:
 		return Family{Err: fmt.Errorf("header: ipv6: %w", err)}
 	}
@@ -255,17 +280,17 @@ func readIPv6(ctx context.Context, sys host.System, procUp bool) Family {
 	case err != nil:
 		return Family{Err: fmt.Errorf("header: ipv6: %s: %w", Route6File, err)}
 	case r.iface == "":
-		return Family{}
+		return Family{Route: detect.No}
 	}
 	data, err = sys.ReadFile(ctx, Inet6File)
 	if err != nil {
-		return Family{Iface: r.iface, Err: fmt.Errorf("header: ipv6: %w", err)}
+		return Family{Route: detect.Yes, Iface: r.iface, Err: fmt.Errorf("header: ipv6: %w", err)}
 	}
 	addr, err := primary6(data, r.iface)
 	if err != nil {
-		return Family{Iface: r.iface, Err: fmt.Errorf("header: ipv6: %s: %w", Inet6File, err)}
+		return Family{Route: detect.Yes, Iface: r.iface, Err: fmt.Errorf("header: ipv6: %s: %w", Inet6File, err)}
 	}
-	return Family{Iface: r.iface, Addr: addr}
+	return Family{Route: detect.Yes, Iface: r.iface, Addr: addr}
 }
 
 // defaultRoute6 finds the default route in /proc/net/ipv6_route: per
@@ -306,8 +331,11 @@ var zero6 = strings.Repeat("0", 32)
 // scope and the flags, each in hex, then the interface. The candidates
 // are the addresses of global scope (scope 00) that are usable: not
 // tentative, not failed duplicate address detection, not deprecated and
-// not temporary (privacy addresses, which change). A permanent address
-// (configured, not autoconfigured) comes first; among several, the lowest.
+// not temporary (privacy addresses, which change). An address outside
+// the unique local ones (fc00::/7, RFC 4193, which the kernel scopes
+// global too, and no host outside the site reaches) comes first; then a
+// permanent address (configured, not autoconfigured); among several, the
+// lowest.
 func primary6(data []byte, iface string) (netip.Addr, error) {
 	var best netip.Addr
 	bestPerm := false
@@ -326,11 +354,23 @@ func primary6(data []byte, iface string) (netip.Addr, error) {
 			continue
 		}
 		a, perm := netip.AddrFrom16([16]byte(raw)), flags&ifaPermanent != 0
-		if !best.IsValid() || perm && !bestPerm || perm == bestPerm && a.Less(best) {
+		if !best.IsValid() || better6(a, perm, best, bestPerm) {
 			best, bestPerm = a, perm
 		}
 	}
 	return best, nil
+}
+
+// better6 reports whether a (perm: permanent) ranks before b: not unique
+// local before unique local, then permanent first, then the lower.
+func better6(a netip.Addr, perm bool, b netip.Addr, bPerm bool) bool {
+	switch {
+	case a.IsPrivate() != b.IsPrivate():
+		return b.IsPrivate()
+	case perm != bPerm:
+		return perm
+	}
+	return a.Less(b)
 }
 
 // hexAddr reports whether s is an IPv6 address as the kernel prints it
