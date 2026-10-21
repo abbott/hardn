@@ -424,3 +424,13 @@ func checkRunDir(ctx context.Context, sys host.System, dir string) error {
 		}
 	}
 }
+
+// CheckInstalled checks the whole configuration as it is, the check Apply
+// makes before it writes (StageBefore): sudo's visudo -c, or each doas
+// file's owner and mode and doas -C. It writes nothing; for a status check
+// (next/p4-check-users), so that rules read from files that do not parse
+// are not taken for rules the tool applies. A rejection is a *CheckError
+// that Is ErrRejected.
+func CheckInstalled(ctx context.Context, sys host.System, st State) error {
+	return checkAll(ctx, sys, Plan{Tool: st.Choice.Tool, Main: st.Main}, StageBefore)
+}
