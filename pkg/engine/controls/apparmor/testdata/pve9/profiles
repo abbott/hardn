@@ -5,6 +5,7 @@
 lsb_release (enforce)
 lxc-101_</var/lib/lxc> (enforce)
 lxc-102_</var/lib/lxc> (enforce)
+lxc-103_</var/lib/lxc> (enforce)
 lxc-container-default (enforce)
 lxc-container-default-cgns (enforce)
 lxc-container-default-with-mounting (enforce)

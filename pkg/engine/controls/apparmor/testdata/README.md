@@ -10,10 +10,10 @@ illustrative, not each release's stock count:
 - `debian13`: Debian 13, 7 profiles enforcing;
 - `ubuntu2604`: Ubuntu 26.04, 15 enforcing, with snapd's, one in complain
   mode and four in unconfined mode;
-- `pve9`: Proxmox VE 9 with three containers running, 16 enforcing: LXC's
-  `lxc-container-default*` profiles, each running container's generated
-  `lxc-<id>_</var/lib/lxc>`, and one profile of a container's own
-  namespace;
+- `pve9`: Proxmox VE 9 with three containers running, 16 of the host's
+  enforcing: LXC's `lxc-container-default*` profiles and each running
+  container's generated `lxc-<id>_</var/lib/lxc>`, beside one profile of a
+  container's own namespace, which the check counts apart;
 - `alpine324`: Alpine 3.24 with AppArmor turned on by hand, 2 enforcing and
   one in complain mode.
 

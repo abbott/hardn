@@ -246,12 +246,16 @@ func bootParams(ctx context.Context, sys host.System) string {
 	return cmdline + ": " + strings.Join(ps, " ")
 }
 
-// loaded counts the loaded profiles by mode.
+// loaded counts the host's loaded profiles by mode: those of the root
+// namespace. A container's own namespace below it ("set by the host" seen
+// from the container) confines processes of that container only, so its
+// profiles are counted apart and decide nothing.
 type loaded struct {
 	total     int
 	enforcing int
 	modes     map[string]int
 	other     []string // modes the kernel's list does not name, each once
+	nested    int      // profiles of namespaces below root's
 }
 
 // readProfiles reads the kernel's list of loaded profiles, as root sees
@@ -276,6 +280,13 @@ func readProfiles(ctx context.Context, sys host.System) (loaded, error) {
 		if mode == "" || strings.ContainsAny(mode, " ()") {
 			return l, fmt.Errorf("apparmor: %s: line %q: %w", profiles, line, detect.ErrUnrecognised)
 		}
+		if ns, ok := strings.CutPrefix(line, ":"); ok {
+			if j := strings.Index(ns, ":"); j <= 0 || j+2 >= i { // ":ns:name": neither empty
+				return l, fmt.Errorf("apparmor: %s: line %q: %w", profiles, line, detect.ErrUnrecognised)
+			}
+			l.nested++
+			continue
+		}
 		l.total++
 		l.modes[mode]++
 		switch {
@@ -288,19 +299,23 @@ func readProfiles(ctx context.Context, sys host.System) (loaded, error) {
 	return l, nil
 }
 
-// evidence is the count of profiles in each mode, the kernel's modes
-// first.
+// evidence is the count of the host's profiles in each mode, the kernel's
+// modes first, then the other namespaces' count.
 func (l loaded) evidence() string {
-	if l.total == 0 {
-		return profiles + ": none"
-	}
 	var s []string
 	for _, m := range slices.Concat([]string{"enforce", "complain", "kill", "unconfined", "user"}, l.other) {
 		if n := l.modes[m]; n > 0 {
 			s = append(s, strconv.Itoa(n)+" "+m)
 		}
 	}
-	return profiles + ": " + strings.Join(s, ", ")
+	ev := profiles + ": " + strings.Join(s, ", ")
+	if l.total == 0 {
+		ev = profiles + ": none"
+	}
+	if l.nested > 0 {
+		ev += "; " + strconv.Itoa(l.nested) + " in other namespaces"
+	}
+	return ev
 }
 
 // atBoot is whether AppArmor's own service loads the profiles at the next
@@ -325,7 +340,7 @@ func atBoot(ctx context.Context, sys host.System, in detect.Init) (detect.Tri, [
 		if t == detect.Unknown {
 			return t, nil, fmt.Errorf("apparmor: %w", errOr(err, detect.ErrNoSignal))
 		}
-		where := "none"
+		where := "no runlevel"
 		if len(levels) > 0 {
 			where = strings.Join(levels, ",")
 		}
@@ -342,6 +357,7 @@ func atBoot(ctx context.Context, sys host.System, in detect.Init) (detect.Tri, [
 	return detect.Unknown, nil, fmt.Errorf("apparmor: init system: %w", errOr(in.Err, detect.ErrNoSignal))
 }
 
+// status is a status with no error and no findings.
 func status(s engine.State, detail string, ev []string) engine.Status {
 	return engine.Status{State: s, Detail: detail, Evidence: ev}
 }

@@ -281,6 +281,8 @@ func TestLines(t *testing.T) {
 		{name: "debian13", site: site{plat: debian13()}, state: engine.Configured, detail: "7 profiles enforced"},
 		{name: "ubuntu2604, complain and unconfined profiles beside", site: site{plat: ubuntu2604()}, state: engine.Configured, detail: "15 profiles enforced"},
 		{name: "pve9 with LXC's profiles", site: site{plat: pve9()}, state: engine.Configured, detail: "16 profiles enforced"},
+		{name: "a container's namespace counts apart", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n:lxc-103_<-var-lib-lxc>:/usr/bin/man (enforce)\n"},
+			state: engine.Configured, detail: "1 profile enforced"},
 		{name: "alpine324 with AppArmor, apparmor in boot", site: site{plat: alpine324()}, state: engine.Configured, detail: "2 profiles enforced"},
 		{name: "alpine324 with AppArmor, apparmor in default", site: site{plat: alpine324(), levels: []string{"default"}}, state: engine.Configured, detail: "2 profiles enforced"},
 		{name: "one profile", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n"}, state: engine.Configured, detail: "1 profile enforced"},
@@ -308,6 +310,7 @@ func TestLines(t *testing.T) {
 		// Not Configured, no profiles loaded: the LSM on, nothing loaded.
 		{name: "debian13 without the apparmor package", site: site{plat: debian13(), profiles: noneRead, unit: "not-found"}, state: engine.NotConfigured, detail: noProfiles},
 		{name: "ubuntu2604, none loaded", site: site{plat: ubuntu2604(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles},
+		{name: "only a container's namespace's profiles", site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n"}, state: engine.NotConfigured, detail: noProfiles},
 		{name: "none loaded, the mode unreadable", site: site{plat: debian13(), profiles: noneRead, deny: []string{modeParam}}, state: engine.NotConfigured, detail: noProfiles},
 		{name: "alpine324 with AppArmor, none loaded", site: site{plat: alpine324(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles},
 
@@ -342,6 +345,8 @@ func TestLines(t *testing.T) {
 		{name: "a global mode hardn does not rank", site: site{plat: debian13(), mode: "kill"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "modes hardn does not know, none enforcing", site: site{plat: ubuntu2604(), profiles: "snap.app (prompt)\nchrome (unconfined)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a profiles line in another form", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n/usr/bin/foo\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "a namespace line in another form", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103 (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "a namespace line with no name", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103: (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "a blank profiles line", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n\nlsb_release (enforce)\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "apparmor.service static", site: site{plat: debian13(), unit: "static"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "systemctl prints a state hardn does not know", site: site{plat: debian13(), unit: "frobnicated"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
@@ -426,9 +431,13 @@ func TestEvidence(t *testing.T) {
 		{row{site: site{plat: debian13(), profiles: "a (enforce)\nb (prompt)\nc (kill)\n"}, state: engine.Configured, detail: "2 profiles enforced"}, []string{
 			enabledParam + `: "Y\n"`, profilesFile + ": 1 enforce, 1 kill, 1 prompt", modeParam + `: "enforce"`, isEnabled + ": enabled"}},
 		{row{site: site{plat: alpine324(), levels: []string{}}, state: engine.Partial, detail: offRestart}, []string{
-			enabledParam + `: "Y\n"`, profilesFile + ": 2 enforce, 1 complain", modeParam + `: "enforce"`, "/etc/runlevels: apparmor in none"}},
+			enabledParam + `: "Y\n"`, profilesFile + ": 2 enforce, 1 complain", modeParam + `: "enforce"`, "/etc/runlevels: apparmor in no runlevel"}},
 		{row{site: site{plat: debian13(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles}, []string{
 			enabledParam + `: "Y\n"`, profilesFile + ": none"}},
+		{row{site: site{plat: pve9()}, state: engine.Configured, detail: "16 profiles enforced"}, []string{
+			enabledParam + `: "Y\n"`, profilesFile + ": 16 enforce; 1 in other namespaces", modeParam + `: "enforce"`, isEnabled + ": enabled"}},
+		{row{site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (complain)\n"}, state: engine.NotConfigured, detail: noProfiles}, []string{
+			enabledParam + `: "Y\n"`, profilesFile + ": none; 1 in other namespaces"}},
 		{row{site: site{plat: debian13(), enabled: "N\n", cmdline: "root=/dev/vda1 ro apparmor=0"}, state: engine.NotConfigured, detail: offKernel}, []string{
 			enabledParam + `: "N\n"`, "/proc/cmdline: apparmor=0"}},
 		{row{site: site{plat: debian13(), enabled: "N\n"}, state: engine.NotConfigured, detail: offKernel}, []string{
