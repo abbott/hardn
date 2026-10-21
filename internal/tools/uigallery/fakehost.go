@@ -74,6 +74,10 @@ type fakeHost struct {
 	// failReloads is how many reloads of ssh.service to refuse, as
 	// systemctl does when sshd -t fails in ExecReload.
 	failReloads int
+	// What the status checks and the header probe ask beyond the
+	// scenarios' commands (statushost.go): nil on the scenarios' hosts,
+	// where those commands stay unanswered.
+	status *readings
 
 	// mu guards timers and unexpected, which a test reads once play has
 	// ended; the rest is the model's, changed only by run, which the
@@ -91,8 +95,13 @@ type platform struct {
 	openRC    bool // OpenRC booted the host, not systemd
 	socket    bool // ssh.socket holds the listeners, from sshd-socket-generator
 	noUFW     bool // ufw not installed
-	// sudo is sudo --version's first line; "" for no sudo, and doas.
+	// sudo is sudo --version's first line; "" for no sudo.
 	sudo string
+	doas bool // doas installed, setuid root
+	// proxmox is pve-manager's version, as dpkg-query shows it, on a
+	// Proxmox VE node (pveversion, pmxcfs mounted on /etc/pve); "" off
+	// Proxmox VE.
+	proxmox string
 	// session is the comm of the sshd process of a connection:
 	// sshd-session since OpenSSH 9.8, sshd before (revert's sshdNames).
 	session string
@@ -103,7 +112,8 @@ type platform struct {
 
 // The simulated platforms. Debian 13's and Ubuntu 26.04's sudo, OpenSSH
 // and permitrootlogin are the VM runs' (docs/safety/vmtest.md §4.9);
-// Ubuntu 22.04's and Alpine 3.24's are the model's, not checked on a host.
+// Ubuntu 22.04's, Alpine 3.24's and Proxmox VE 9's are the model's, not
+// checked on a host.
 var (
 	debian13Platform = platform{
 		osRelease: "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\nID=debian\n",
@@ -119,7 +129,14 @@ var (
 	}
 	alpine324Platform = platform{
 		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.24.2\nPRETTY_NAME=\"Alpine Linux v3.24\"\n",
-		openRC:    true, noUFW: true, session: "sshd-session", rootLogin: "prohibit-password",
+		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
+	}
+	// pve9Platform is a Proxmox VE 9 node: Debian 13 underneath, with
+	// pve-manager, no sudo and no ufw (brief 2.5: pve-firewall instead),
+	// and OpenSSH 10.0p1's word for prohibit-password (check-ssh.md §3).
+	pve9Platform = platform{
+		osRelease: debian13Platform.osRelease, noUFW: true, proxmox: "9.0.10",
+		session: "sshd-session", rootLogin: "without-password",
 	}
 )
 
@@ -171,9 +188,10 @@ func ubuntu2204Host() *fakeHost { return simulate(ubuntu2204Platform) }
 // simulate returns a simulated host of platform p on hostfake: its
 // os-release, sshd_config with the stock Include, sshd on 22 (by
 // ssh.service, ssh.socket or OpenRC), ufw active allowing 22 where it is
-// installed, sudo with /etc/sudoers.d or doas, the directories revert and
-// the boot unit use, the processes /proc shows, and root and alice's
-// accounts: no Proxmox VE, no container.
+// installed, sudo with /etc/sudoers.d, or doas, the directories revert
+// and the boot unit use, the processes /proc shows, root and alice's
+// accounts, and on Proxmox VE pveversion and pmxcfs mounted on /etc/pve:
+// no container.
 func simulate(p platform) *fakeHost {
 	h := &fakeHost{f: hostfake.New(host.Options{}), platform: p, allowed: []uint16{22}, timers: map[string]time.Time{}}
 	f := h.f
@@ -207,7 +225,13 @@ func simulate(p platform) *fakeHost {
 	h.self(applyPID, applyPID-1, applyStart)
 	f.AddFile("/proc/1/environ", []byte("HOME=/\x00TERM=linux\x00"), 0o400, 0, 0)
 	f.AddSymlink(detect.SelfPIDNamespace, fmt.Sprintf("pid:[%d]", detect.InitPIDNamespaceInode))
-	f.AddFile(detect.SelfMounts, []byte("proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n/dev/vda1 / ext4 rw,relatime 0 0\n"), 0o444, 0, 0)
+	mounts := "proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n/dev/vda1 / ext4 rw,relatime 0 0\n"
+	if p.proxmox != "" {
+		f.AddFile(detect.PVEVersionBin, []byte("#!/usr/bin/perl\n"), 0o755, 0, 0)
+		f.AddDir(detect.PVEDir, 0o755, 0, 33)
+		mounts += "/dev/fuse /etc/pve fuse rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other 0 0\n"
+	}
+	f.AddFile(detect.SelfMounts, []byte(mounts), 0o444, 0, 0)
 	f.AddFile("/proc/sys/kernel/random/boot_id", []byte("8e2a3c4d-1b2c-4d3e-8f40-0123456789ab\n"), 0o444, 0, 0)
 	if !p.noUFW {
 		f.AddDir(ufw.KernelIPv6, 0o555, 0, 0)
@@ -218,7 +242,8 @@ func simulate(p platform) *fakeHost {
 		f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o4755, 0, 0)
 		f.AddFile("/etc/sudoers", []byte("Defaults env_reset\nroot ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"), 0o440, 0, 0)
 		f.AddDir("/etc/sudoers.d", 0o755, 0, 0)
-	} else {
+	}
+	if p.doas {
 		f.AddFile("/usr/bin/doas", []byte("ELF"), 0o4755, 0, 0)
 	}
 	f.AddUser(host.User{Name: "root", UID: 0, GID: 0, HomeDir: "/root"})
@@ -471,9 +496,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		if cmd == "sudo --version" {
 			return hostfake.Response{Stdout: h.sudo + "\n"}
 		}
-	case "dpkg-query": // detect's Proxmox VE check: dpkg-query(1)'s "no packages found", exit 1
-		if argv[len(argv)-1] == "pve-manager" {
-			return hostfake.Response{Stderr: "dpkg-query: no packages found matching pve-manager\n", ExitCode: 1}
+	case "dpkg-query": // detect's Proxmox VE check; on a status host, any package
+		if pkg := argv[len(argv)-1]; pkg == "pve-manager" || h.status != nil {
+			return h.dpkg(pkg)
 		}
 	case "ufw":
 		if r, ok := h.ufw(argv); ok {
@@ -484,6 +509,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 			return r
 		}
 	}
+	if r, ok := h.status.answer(argv); ok {
+		return r
+	}
 	h.mu.Lock()
 	h.unexpected = append(h.unexpected, cmd)
 	h.mu.Unlock()
@@ -492,22 +520,40 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 
 // installed reports whether the platform ships the command name: an
 // init system's own tools on that init system alone, ufw unless it is not
-// installed, sudo's on a host with sudo, and dpkg-query on Debian and
-// Ubuntu. A command that is not is not found, as on the host.
+// installed, sudo's on a host with sudo, doas on a host with doas, apt's
+// and dpkg-query on Debian, Ubuntu and Proxmox VE, and apk on Alpine. A
+// command that is not is not found, as on the host.
 func (h *fakeHost) installed(name string) bool {
 	switch name {
 	case "systemctl", "systemd-run", "systemd-analyze":
 		return !h.openRC
-	case "rc-service", "rc-update":
+	case "rc-service", "rc-update", "apk":
 		return h.openRC
 	case "ufw":
 		return !h.noUFW
 	case "sudo", "visudo":
 		return h.sudo != ""
-	case "dpkg-query":
+	case "doas":
+		return h.doas
+	case "dpkg-query", "apt-config":
 		return !h.openRC
 	}
 	return true
+}
+
+// dpkg is dpkg-query --show's answer for pkg: pve-manager at the
+// platform's version on Proxmox VE, a package a status host's readings
+// install at its version, and dpkg-query(1)'s "no packages found", exit 1,
+// for any other.
+func (h *fakeHost) dpkg(pkg string) hostfake.Response {
+	version := h.proxmox
+	if pkg != "pve-manager" {
+		version = h.status.installed(pkg)
+	}
+	if version == "" {
+		return hostfake.Response{Stderr: "dpkg-query: no packages found matching " + pkg + "\n", ExitCode: 1}
+	}
+	return hostfake.Response{Stdout: "install ok installed\t" + version + "\n"}
 }
 
 // unanswered returns the commands the model did not answer, which a

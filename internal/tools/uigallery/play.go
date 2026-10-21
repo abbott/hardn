@@ -19,7 +19,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -82,9 +82,18 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 			return s.play("play "+name, []string{engineNote}, s.openEngine(name), stderr)
 		})
 	}
-	start, named, err := startAt(mocks, fs.Args())
+	status, isStatus, err := statusStart(fs.Args())
 	if err != nil {
 		return usage("%v", err)
+	}
+	var (
+		start screen.Mock
+		named string
+	)
+	if !isStatus {
+		if start, named, err = startAt(mocks, fs.Args()); err != nil {
+			return usage("%v", err)
+		}
 	}
 	if named != "" {
 		set := false
@@ -109,6 +118,12 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		s.sequence, s.sim.failAt = *sequence, *failAt
 		for _, m := range mocks {
 			s.mocks[m.Name] = m
+		}
+		if isStatus {
+			// The main menu's mock: the note says only what -sequence
+			// and -fail set, after the status hosts' own.
+			note := append([]string{statusNote}, s.mockNote(s.mocks[mainMenuMock])[1:]...)
+			return s.play("play "+status, note, s.openStatus(status), stderr)
 		}
 		return s.play("play "+start.Name, s.mockNote(start), s.open(start), stderr)
 	})

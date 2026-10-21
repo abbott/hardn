@@ -12,8 +12,9 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]
 //	go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...
+//	go run ./internal/tools/uigallery status [flags] [host | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -85,6 +86,23 @@
 // compact form. A flag given wins, each on its own; with stdout not a
 // terminal, as in the tests and through a pipe, play keeps 80 and 24, so
 // that its goldens stay deterministic.
+//
+// "play status" opens the status hosts (next/p4-gallery-status), and
+// "play status/<host>" one: hardn's main menu, its header, distribution
+// bar, host block, risk level and status rows read from a simulated host
+// by the real checks (pkg/engine/controls), header probe
+// (pkg/engine/header) and risk level (pkg/engine/risk), through
+// Engine.Check, and mapped by pkg/output, on the model of fakehost.go with
+// what the checks read of each platform (statushost.go): Debian 13,
+// Ubuntu 26.04 and Alpine 3.24 as the engine's scenarios start from them,
+// a Proxmox VE 9 node, and host states that show the other lines (a fresh
+// host, a hardened one, Figma's, the lockout, a pending reboot, AppArmor's
+// lines, a container). The rest of the main menu is its mock's, whose
+// links its items follow, so -sequence and -fail are taken as for the
+// mocks. "status" lists the same main menus with no input, each under a
+// header naming its host and a note saying what it is, down to its
+// prompt; -list prints the hosts' names. Its flags are -list, -theme,
+// -profile, -ascii, -override, and -width and -height, sized as play's.
 //
 // "compare" sets the pattern hardn draws today for the apply's steps, the
 // error report's rolled-back lines, the one-line messages and the confirm
@@ -502,13 +520,17 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == "compare" {
 		return compare(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == statusPrefix {
+		return statusList(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario]")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
