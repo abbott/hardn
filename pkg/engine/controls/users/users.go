@@ -21,7 +21,12 @@
 // MinUID or more, that may log in) is a finding (exposure), which the
 // risk level weighs: for those accounts, a grant hardn cannot read is
 // never silence. Other accounts, and NSS's, are not looked at
-// (check-users.md §6).
+// (check-users.md §6). An account whose password is locked ("!") cannot
+// log in where sshd does not use PAM (next/p4-locked): it is not counted,
+// and has a finding (CodeLocked); /etc/shadow is read for the first
+// character of each password field alone (accounts.ReadShadow), and
+// sshd's PAM as the SSH rows read it (ssh.ReadPAM), only where a lock may
+// decide.
 // docs/engine/check-users.md has every status line the row can show.
 package users
 
@@ -36,6 +41,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
@@ -63,6 +69,11 @@ const (
 	CodeRuleNotRead = "USERS_RULE_NOT_READ"
 	// CodeUID0: an account other than root has uid 0, so it is root.
 	CodeUID0 = "USERS_UID0"
+	// CodeLocked: an account the row would count (uid MinUID or more, a
+	// login shell, or one whose stat failed) whose password is locked
+	// ("!") while sshd does not use PAM, so that sshd refuses it before
+	// any method, keys included (next/p4-locked): it is not counted.
+	CodeLocked = "USERS_LOCKED"
 )
 
 // MinUID is the first uid of a user account: Figma's "UID ≥ 1000" and
@@ -91,9 +102,16 @@ func (Admin) Applies(detect.Facts) (bool, string) { return true, "" }
 // of its name (getpwnam's [I]), its shell not established as no login.
 type candidate struct {
 	accounts.User
-	login  detect.Tri // Yes: a login shell; Unknown: its stat failed (err)
+	login  detect.Tri // Yes: a login shell; Unknown: its stat failed (err), or its lock decides and is not established (lockErr, or why)
 	err    error
 	grants []grant // one per tool, in readTools' order
+	// lock is its password's lock as sshd reads it, read at lockAt;
+	// refused is ssh.LockedOut's: whether sshd refuses it for it.
+	lock    accounts.Lock
+	lockAt  string
+	refused detect.Tri
+	lockErr error  // why refused is Unknown: ShadowFile, or sshd's configuration, not read
+	why     string // or, with no lockErr, sshd's PAM not established (ssh.PAM.Why)
 }
 
 // elevates is Yes when a tool grants the candidate root, No when every
@@ -144,9 +162,58 @@ func (Admin) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 			cs[i].grants = append(cs[i].grants, t.decide(db, cs[i].User))
 		}
 	}
-	st, err = verdict(st, f, tools, cs)
-	st.Evidence = evidence(tools, cs, err)
+	var lr locks
+	if len(cs) > 0 {
+		lr = readLocks(ctx, sys, f, cs)
+	}
+	st, err = verdict(st, f, tools, cs, lr)
+	st.Evidence = evidence(tools, cs, lr, err)
 	return st, err
+}
+
+// locks is what Check read of the candidates' locks: ShadowFile's error,
+// and sshd's PAM where a lock is locked or not read.
+type locks struct {
+	err    error    // ShadowFile not read
+	pam    *ssh.PAM // nil: not read, no lock decides
+	pamErr error    // sshd's configuration not read
+}
+
+// readLocks reads each candidate's lock (ShadowFile, else its PasswdFile
+// field: accounts.Shadow.LockOf) and, only where one is locked or not
+// read, sshd's PAM as the SSH rows read it (ssh.ReadPAM); it sets each
+// candidate's refused (ssh.LockedOut) and, where that is not established,
+// its login Unknown with the reason.
+func readLocks(ctx context.Context, sys host.System, f detect.Facts, cs []candidate) locks {
+	var lr locks
+	sh, err := accounts.ReadShadow(ctx, sys)
+	lr.err = err
+	uses := detect.Unknown
+	for i := range cs {
+		if err == nil {
+			cs[i].lock, cs[i].lockAt = sh.LockOf(cs[i].User)
+		}
+		if ssh.LockedOut(cs[i].lock, uses) == detect.Unknown && lr.pam == nil {
+			p, perr := ssh.ReadPAM(ctx, sys, f)
+			lr.pam, lr.pamErr, uses = &p, perr, p.Uses
+		}
+	}
+	for i := range cs {
+		c := &cs[i]
+		c.refused = ssh.LockedOut(c.lock, uses)
+		if c.refused != detect.Unknown || c.login == detect.Unknown { // a shell not read keeps its own error
+			continue
+		}
+		switch c.login = detect.Unknown; {
+		case c.lock == accounts.LockNotRead:
+			c.lockErr = lr.err
+		case lr.pamErr != nil:
+			c.lockErr = lr.pamErr
+		default:
+			c.why = lr.pam.Why
+		}
+	}
+	return lr
 }
 
 // noShells are the base names of the shells that give no shell to run a
@@ -177,7 +244,17 @@ func loginShell(ctx context.Context, sys host.System, shell string) (detect.Tri,
 }
 
 // verdict decides the row from the candidates (see the package comment).
-func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (engine.Status, error) {
+// One sshd refuses for its lock (refused Yes) cannot log in: it is not
+// counted, and has a finding; with no other, "non-root, locked".
+func verdict(st engine.Status, f detect.Facts, tools []tool, all []candidate, lr locks) (engine.Status, error) {
+	var cs []candidate
+	for _, c := range all {
+		if c.refused == detect.Yes {
+			st.Findings = append(st.Findings, engine.Finding{Code: CodeLocked, Detail: c.Name + ": locked, no login", Source: c.lockAt})
+			continue
+		}
+		cs = append(cs, c)
+	}
 	logins := 0
 	for _, c := range cs {
 		if c.login != detect.Yes {
@@ -194,6 +271,9 @@ func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (en
 	case st.State == engine.Configured:
 		st.Findings = append(st.Findings, exposure(tools, cs)...)
 		return st, nil
+	case len(cs) == 0 && len(all) > 0:
+		st.State, st.Detail = engine.NotConfigured, "non-root, locked"
+		return st, nil
 	case len(cs) == 0:
 		st.State, st.Detail = engine.NotConfigured, "root only"
 		return st, nil
@@ -205,8 +285,15 @@ func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (en
 	var err error
 	for _, c := range cs {
 		e := c.elevates()
-		if c.login == detect.Unknown && (e != detect.No || logins == 0) && err == nil {
-			err, st.Detail = c.err, "can't read"
+		cerr := c.err
+		if cerr == nil {
+			cerr = c.lockErr
+		}
+		switch decides := c.login == detect.Unknown && (e != detect.No || logins == 0); {
+		case decides && cerr != nil && err == nil:
+			err, st.Detail = cerr, "can't read"
+		case decides && cerr == nil && st.Detail == "": // its lock, sshd's PAM not established
+			st.Detail, st.Findings = c.why, append(st.Findings, lr.pam.Findings...)
 		}
 		for i, g := range c.grants {
 			switch {
@@ -293,9 +380,10 @@ func installed(f detect.Facts, tools []tool) string {
 }
 
 // evidence is one line per tool not read, per candidate and per tool's
-// answer for it. An error that is the check's (err) is in its errors, so
-// the line says only what was not read; any other is shown short.
-func evidence(tools []tool, cs []candidate, err error) []string {
+// answer for it, with its lock where one was locked or not read, and
+// then sshd's PAM. An error that is the check's (err) is in its errors,
+// so the line says only what was not read; any other is shown short.
+func evidence(tools []tool, cs []candidate, lr locks, err error) []string {
 	var ev []string
 	for _, t := range tools {
 		switch t.state {
@@ -318,6 +406,9 @@ func evidence(tools []tool, cs []candidate, err error) []string {
 			l += ", shell not read" + cause(c.err, err)
 		}
 		ev = append(ev, l)
+		if lr.pam != nil && (c.lock == accounts.Locked || lr.err != nil) {
+			ev = append(ev, ssh.LockEvidence(c.Name, c.lock, c.lockAt, lr.err, errors.Is(err, lr.err)))
+		}
 		for i, g := range c.grants {
 			n := tools[i].name
 			switch {
@@ -332,6 +423,13 @@ func evidence(tools []tool, cs []candidate, err error) []string {
 				ev = append(ev, n+": "+c.Name+" may be decided by "+g.by.at+": "+g.by.text)
 			}
 		}
+	}
+	switch {
+	case lr.pam == nil:
+	case lr.pamErr != nil:
+		ev = append(ev, "sshd: not read"+cause(lr.pamErr, err))
+	default:
+		ev = append(ev, lr.pam.Evidence...)
 	}
 	return ev
 }

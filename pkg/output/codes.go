@@ -429,6 +429,8 @@ var findingCodes = []Entry{
 	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),
 	// The risk level's own (next/p4-risk): its cross-check of the uptime.
 	finding(risk.CodeUptimeNoUpdates, "the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own)"),
+	// The users control's, for locked accounts (next/p4-locked).
+	finding(users.CodeLocked, "a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

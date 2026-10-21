@@ -331,6 +331,14 @@
 			"data": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nalice:x:1000:1000:alice:/home/alice:/bin/bash\n"
 		},
 		{
+			"path": "/etc/shadow",
+			"type": "file",
+			"mode": "0640",
+			"uid": 0,
+			"gid": 42,
+			"data": "root:$y$synthetic$not-a-hash:20000:0:99999:7:::\ndaemon:*:20000:0:99999:7:::\nsshd:*:20000:0:99999:7:::\nnobody:*:20000:0:99999:7:::\nalice:$y$synthetic$not-a-hash:20000:0:99999:7:::\n"
+		},
+		{
 			"path": "/etc/ssh",
 			"type": "dir",
 			"mode": "0755",

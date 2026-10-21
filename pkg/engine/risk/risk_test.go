@@ -422,6 +422,7 @@ func userHost(t *testing.T, top string, dropIns map[string]string) (host.System,
 		"/etc/passwd":  "root:x:0:0:root:/root:/bin/bash\nalice:x:1000:1000::/home/alice:/bin/bash\nbob:x:1001:1001::/home/bob:/bin/bash\n",
 		"/etc/group":   "root:x:0:\nsudo:x:27:alice\nalice:x:1000:\nbob:x:1001:\n",
 		"/etc/sudoers": top + "root ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n",
+		"/etc/shadow":  "root:*:20000:0:99999:7:::\nalice:*:20000:0:99999:7:::\nbob:*:20000:0:99999:7:::\n", // no lock decides (next/p4-locked)
 	}
 	for name, data := range dropIns {
 		files["/etc/sudoers.d/"+name] = data
