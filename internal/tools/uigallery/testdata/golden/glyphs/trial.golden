@@ -1,0 +1,111 @@
+# Golden file of TestGlyphsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGlyphs mode: Figma's ⛛ ⭘ ⛬ beside candidates for Partial,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable. In every candidate set ⛬ marks the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrisk row alone; its other uses today (lockout risk, warnings,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReboot pending) are not shown.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all five␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstates. Current is today's glyphs and colours. The strip sets␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach candidate beside ⛛ ⭘ ⛬ in one colour, to compare size and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweight.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing is decided and no component changed:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdocs/engine/gallery-glyphs.md.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mglyphs sets␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mTrial␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;129;134;156mPartial␛[m              ␛[38;2;129;134;156mU+2B58␛[m ␛[38;2;86;91;107mstatus.warn␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;129;134;156mUnknown␛[m              ␛[38;2;129;134;156mU+003F␛[m ␛[38;2;86;91;107mtext.muted␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;129;134;156mNot Applicable␛[m       ␛[38;2;129;134;156mU+2013␛[m ␛[38;2;86;91;107mtext.muted␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Note$
+# Glyphs mode: Figma's [+] [ ] [*] beside candidates for$
+# Partial, Unknown and Not Applicable. In every candidate set$
+# [*] marks the risk row alone; its other uses today (lockout$
+# risk, warnings, Reboot pending) are not shown.$
+# Each list is the risk row and Figma's seven rows in all five$
+# states. Current is today's glyphs and colours.$
+# Nothing is decided and no component changed:$
+# docs/engine/gallery-glyphs.md.$
+$
+# glyphs sets --------------------------------------------------$
+$
+# Trial --------------------------------------------------------$
+$
+  [ ] Partial              status.warn$
+  [?] Unknown              text.muted$
+  [-] Not Applicable       text.muted$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [ ] SSH Login            Partial root key-only$
+  [ ] SSH Auth             Not Configured password auth on$
+  [?] SSH Port             Unknown can't read$
+  [-] AppArmor             Not Applicable set by the host$
+  [+] Auto Updates         Configured unattended-upgrades$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGlyphs mode: Figma's ⛛ ⭘ ⛬ beside candidates for Partial,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable. In every candidate set ⛬ marks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe risk row alone; its other uses today (lockout risk,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarnings, Reboot pending) are not shown.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfive states. Current is today's glyphs and colours. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstrip sets each candidate beside ⛛ ⭘ ⛬ in one colour, to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcompare size and weight.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing is decided and no component changed:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdocs/engine/gallery-glyphs.md.␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mglyphs sets␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mTrial␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;129;134;156mPartial␛[m$
+      ␛[38;2;129;134;156mU+2B58␛[m ␛[38;2;86;91;107mstatus.warn␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;129;134;156mUnknown␛[m$
+      ␛[38;2;129;134;156mU+003F␛[m ␛[38;2;86;91;107mtext.muted␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;129;134;156mNot Applicable␛[m$
+      ␛[38;2;129;134;156mU+2013␛[m ␛[38;2;86;91;107mtext.muted␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+$
+$

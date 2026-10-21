@@ -87,7 +87,9 @@ const (
 )
 
 // glyphSets returns the sets, in the order "all" shows them: today's, then
-// the candidates, each with ⛬ on the risk row alone. figma folds the three
+// the candidates, each with ⛬ on the risk row alone. trial is the
+// maintainer's combination of 2026-10-21: Figma's ⭘ in status.warn for
+// Partial, ? and – in text.muted for Unknown and Not Applicable. figma folds the three
 // states into Figma's own glyphs and colours, the reading in which no gap
 // is real; diamond and diamond-dot are the measurements' sets A and B, a
 // new glyph for each state; square takes the heaviest Partial and Unknown
@@ -104,6 +106,12 @@ func glyphSets() []glyphSet {
 			partial: stateMark{same: func(g theme.Glyphs) string { return g.Partial }, paint: warn, token: tokenWarn},
 			unknown: stateMark{same: func(g theme.Glyphs) string { return g.Unknown }, paint: blue, token: tokenUnknown},
 			na:      stateMark{same: func(g theme.Glyphs) string { return g.NotApplicable }, paint: grey, token: tokenMuted},
+		},
+		{
+			name: "trial", title: "Trial",
+			partial: stateMark{same: off, paint: warn, token: tokenWarn},
+			unknown: stateMark{unicode: "?", ascii: "[?]", paint: grey, token: tokenMuted},
+			na:      stateMark{unicode: "–", ascii: "[-]", paint: grey, token: tokenMuted},
 		},
 		{
 			name: "figma", title: "Figma's three",
