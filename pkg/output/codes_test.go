@@ -548,7 +548,7 @@ func TestFindingCodes(t *testing.T) {
 	}
 	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated, engine.CodeBestEffort}
 	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
-	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked)                                       // next/p4-check-firewall
+	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked, firewall.CodeLocalOnly)               // next/p4-check-firewall
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
@@ -81,12 +82,24 @@ type fw struct {
 	missing   bool // not installed
 	active    bool // its chains loaded
 	enabled   string
-	incoming  string // the default incoming policy: deny (""), allow or reject
+	incoming  string // the default incoming policy: deny (""), allow, reject, or one ufw does not set
 	noV6      bool   // IPV6=no
 	noKernel6 bool   // no /proc/sys/net/ipv6
 	rules     []rule
+	table     string             // the status's rule rows as ufw prints them, instead of rules'
 	garbage   bool               // the status has a line ufw does not print
 	fail      *hostfake.Response // ufw status verbose's answer
+	noDefault bool               // no /etc/default/ufw
+}
+
+// rows are rule rows of ufw status verbose: To, the action and direction,
+// From, each row three strings.
+func rows(cells ...string) string {
+	var b strings.Builder
+	for i := 0; i+2 < len(cells); i += 3 {
+		fmt.Fprintf(&b, "%-26s %-12s%s\n", cells[i], cells[i+1], cells[i+2])
+	}
+	return b.String()
 }
 
 // rule is a saved rule: action on port/tcp from anywhere, in both IP
@@ -122,8 +135,11 @@ func (u fw) status() string {
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "Status: active\nLogging: on (low)\nDefault: %s (incoming), allow (outgoing), disabled (routed)\nNew profiles: skip\n", u.policy())
-	if len(u.rules) > 0 {
+	if len(u.rules) > 0 || u.table != "" {
 		fmt.Fprintf(&b, "\n%-26s %-12s%s\n%-26s %-12s%s\n", "To", "Action", "From", "--", "------", "----")
+	}
+	if u.table != "" {
+		return b.String() + u.table
 	}
 	for _, r := range u.rules {
 		from := r.src
@@ -149,7 +165,9 @@ func (u fw) files(h *hostfake.System) {
 	if enabled == "" {
 		enabled = map[bool]string{true: "yes", false: "no"}[u.active]
 	}
-	h.AddFile(ufw.DefaultsFile, []byte(fmt.Sprintf("IPV6=%s\nDEFAULT_INPUT_POLICY=%q\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n", v6, policyWord[u.policy()])), 0o644, 0, 0)
+	if !u.noDefault {
+		h.AddFile(ufw.DefaultsFile, []byte(fmt.Sprintf("IPV6=%s\nDEFAULT_INPUT_POLICY=%q\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n", v6, policyWord[u.policy()])), 0o644, 0, 0)
+	}
 	h.AddFile(ufw.ConfFile, []byte("ENABLED="+enabled+"\nLOGLEVEL=low\n"), 0o644, 0, 0)
 	for _, f := range []struct{ path, any string }{{ufw.UserRules, "0.0.0.0/0"}, {ufw.User6Rules, "::/0"}} {
 		var b strings.Builder
@@ -177,6 +195,7 @@ type pf struct {
 	cluster, hostfw string // the files' content; "" for none
 	state           string // systemctl is-active's answer; "" is active
 	unit            string // the unit asked about; "" is pve-firewall.service
+	fail            bool   // systemctl is-active fails
 }
 
 // site is one test's host.
@@ -190,6 +209,8 @@ type site struct {
 	failT  *hostfake.Response // sshd -T's answer
 	ssErr  *hostfake.Response // ss's answer
 	facts  func(*detect.Facts)
+	edit   func(*hostfake.System) // a change to the host after the rest
+	noMain bool                   // no sshd_config
 }
 
 const stockMain = "Include /etc/ssh/sshd_config.d/*.conf\n\nKbdInteractiveAuthentication no\nUsePAM yes\n"
@@ -229,7 +250,9 @@ func ss(socks []string, dual bool) string {
 func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	t.Helper()
 	h := hostfake.New(host.Options{})
-	h.AddFile(sshd.MainConfig, []byte(stockMain), 0o644, 0, 0)
+	if !s.noMain {
+		h.AddFile(sshd.MainConfig, []byte(stockMain), 0o644, 0, 0)
+	}
 	h.AddDir(sshd.DropInDir, 0o755, 0, 0)
 	ports := s.ports
 	if ports == nil {
@@ -291,6 +314,8 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 			return *s.ssErr
 		case cmd == "ss -Htln":
 			return hostfake.Response{Stdout: ss(bound, s.plat.socket)}
+		case cmd == "systemctl is-active "+unit && s.pve.fail:
+			return hostfake.Response{Err: errors.New("host: run systemctl: connection to the bus refused")}
 		case cmd == "systemctl is-active "+unit:
 			state := s.pve.state
 			if state == "" {
@@ -304,6 +329,9 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	facts := s.plat.facts
 	if s.facts != nil {
 		s.facts(&facts)
+	}
+	if s.edit != nil {
+		s.edit(h)
 	}
 	return h, facts
 }
@@ -405,6 +433,11 @@ func with(u fw, f func(*fw)) fw {
 	return u
 }
 
+// noInputPolicy rewrites /etc/default/ufw without DEFAULT_INPUT_POLICY.
+func noInputPolicy(h *hostfake.System) {
+	h.AddFile(ufw.DefaultsFile, []byte("IPV6=yes\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n"), 0o644, 0, 0)
+}
+
 // TestUFW: every ufw line of check-firewall.md §5 on Debian 13, where sshd
 // holds its own sockets.
 func TestUFW(t *testing.T) {
@@ -417,9 +450,26 @@ func TestUFW(t *testing.T) {
 		{name: "default reject, 22 allowed", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.incoming = "reject" })}, state: engine.Configured, want: "reject policy"},
 		{name: "22 rate-limited", site: site{plat: d, ufw: fw{active: true, rules: []rule{{action: "limit", port: "22"}}}}, state: engine.Configured, want: "deny policy"},
 		{name: "22 from 192.0.2.0/24 only, no kernel IPv6", site: site{plat: d, ufw: fw{active: true, noKernel6: true, rules: []rule{{"allow", "22", "192.0.2.0/24"}}}},
-			state: engine.Configured, want: "deny policy", codes: []string{restricted}},
+			state: engine.Partial, want: "ssh allowlist", codes: []string{restricted}},
 		{name: "22 from everywhere but 192.0.2.0/24", site: site{plat: d, ufw: fw{active: true, rules: []rule{{"deny", "22", "192.0.2.0/24"}, {action: "allow", port: "22"}}}},
-			state: engine.Configured, want: "deny policy", codes: []string{excepted}},
+			state: engine.Partial, want: "ssh blocklist", codes: []string{excepted}},
+		{name: "22 on lo only", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp on lo", "ALLOW IN", "Anywhere", "22/tcp (v6) on lo", "ALLOW IN", "Anywhere (v6)")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{restricted, restricted, blockedF}},
+		{name: "22 to 127.0.0.1 and ::1 only", site: site{plat: d, ufw: fw{active: true, table: rows("127.0.0.1 22/tcp", "ALLOW IN", "Anywhere", "::1 22/tcp", "ALLOW IN", "Anywhere (v6)")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{restricted, restricted, blockedF}},
+		{name: "22 from 127.0.0.1 only, no kernel IPv6", site: site{plat: d, ufw: fw{active: true, noKernel6: true, table: rows("22/tcp", "ALLOW IN", "127.0.0.1")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{restricted, blockedF}},
+		{name: "22 on lo and from 192.0.2.0/24, no kernel IPv6", site: site{plat: d, ufw: fw{active: true, noKernel6: true,
+			table: rows("22/tcp on lo", "ALLOW IN", "Anywhere", "22/tcp", "ALLOW IN", "192.0.2.0/24")}},
+			state: engine.Partial, want: "ssh allowlist", codes: []string{restricted}},
+		{name: "every port allowed", site: site{plat: d, ufw: fw{active: true, table: rows("Anywhere", "ALLOW IN", "Anywhere", "Anywhere (v6)", "ALLOW IN", "Anywhere (v6)")}},
+			state: engine.Partial, want: "all ports allowed"},
+		{name: "every TCP port allowed", site: site{plat: d, ufw: fw{active: true, table: rows("1:65535/tcp", "ALLOW IN", "Anywhere", "1:65535/tcp (v6)", "ALLOW IN", "Anywhere (v6)")}},
+			state: engine.Partial, want: "all ports allowed"},
+		{name: "ports 1 to 1024 allowed", site: site{plat: d, ufw: fw{active: true, table: rows("1:1024/tcp", "ALLOW IN", "Anywhere", "1:1024/tcp (v6)", "ALLOW IN", "Anywhere (v6)")}},
+			state: engine.Configured, want: "deny policy"},
+		{name: "a default incoming policy ufw does not set", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.incoming = "disabled" })},
+			state: engine.Unknown, want: "can't read", codes: []string{ufwUnknown}},
 		{name: "default deny, 2230 not allowed", site: site{plat: d, ports: []uint16{2230}, ufw: allow22},
 			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
 		{name: "default deny, nothing allowed", site: site{plat: d, ufw: on}, state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
@@ -432,10 +482,13 @@ func TestUFW(t *testing.T) {
 		{name: "ENABLED=yes, stopped, 22 saved", site: site{plat: d, ufw: fw{enabled: "yes", rules: allow("22")}}, state: engine.NotConfigured, want: "enabled, not running"},
 		{name: "ENABLED=yes, stopped, nothing saved for 22", site: site{plat: d, ufw: fw{enabled: "yes"}},
 			state: engine.NotConfigured, want: "enabled, not running", codes: []string{atStart, atStart}},
+		{name: "ENABLED=yes, stopped, no saved incoming policy", site: site{plat: d, ufw: fw{enabled: "yes", rules: allow("22")}, edit: noInputPolicy},
+			state: engine.NotConfigured, want: "enabled, not running", codes: []string{uncheckedF}},
 		{name: "a rule hardn cannot read", site: site{plat: d, ufw: fw{active: true, rules: allow("70000", "22")}},
 			state: engine.Unknown, want: "can't read", codes: []string{ufwUnknown, ufwUnknown}},
 		{name: "a status line ufw does not print", site: site{plat: d, ufw: fw{garbage: true}}, state: engine.Unknown, want: "can't read", codes: []string{ufwUnknown}},
 		{name: "ufw status fails", site: site{plat: d, ufw: fw{fail: failed}}, state: engine.Unknown, want: "can't read", err: "COMMAND_FAILED"},
+		{name: "no /etc/default/ufw", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.noDefault = true })}, state: engine.Unknown, want: "can't read", err: "FILE_NOT_FOUND"},
 	} {
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
 	}
@@ -459,6 +512,9 @@ func TestSSHListeners(t *testing.T) {
 			state: engine.Unknown, want: "can't tell if 22 is ssh", codes: []string{notAllowed, notAllowed, "SSH_PORT_22_BOUND"}},
 		{name: "22 still bound after the move to 2230, both allowed", site: site{plat: d, ports: moved, bound: append([]string{"[::]:2230", "0.0.0.0:2230"}, stale22...), ufw: fw{active: true, rules: allow("22", "2230")}},
 			state: engine.Configured, want: "deny policy"},
+		{name: "22 still bound after the move to 2230, 22 from 192.0.2.0/24 only", site: site{plat: d, ports: moved, bound: append([]string{"[::]:2230", "0.0.0.0:2230"}, stale22...),
+			ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "2230"}, {"allow", "22", "192.0.2.0/24"}}}},
+			state: engine.Unknown, want: "can't tell if 22 is ssh", codes: []string{restricted, "SSH_PORT_22_BOUND"}},
 		{name: "ssh.service not running", site: site{plat: d, bound: []string{}, ufw: allow22, facts: func(f *detect.Facts) { f.SSH.Service.Active = "inactive" }},
 			state: engine.Unknown, want: "can't tell ssh ports", codes: []string{notInEffect}},
 		{name: "no sshd", site: site{plat: d, failT: noSSHD, ufw: allow22}, state: engine.Unknown, want: "sshd not installed", err: "COMMAND_NOT_FOUND"},
@@ -466,8 +522,16 @@ func TestSSHListeners(t *testing.T) {
 			state: engine.Partial, want: "allow policy", codes: []string{uncheckedF}},
 		{name: "no sshd, ENABLED=yes and stopped", site: site{plat: d, failT: noSSHD, ufw: fw{enabled: "yes"}},
 			state: engine.NotConfigured, want: "enabled, not running", codes: []string{uncheckedF}},
-		{name: "a configuration sshd refuses", site: site{plat: d, failT: invalid, ufw: allow22}, state: engine.Unknown, want: "can't tell ssh ports", err: "SSHD_CONFIG_INVALID"},
+		{name: "a configuration sshd refuses", site: site{plat: d, failT: invalid, ufw: allow22}, state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
+		{name: "no sshd_config", site: site{plat: d, noMain: true, ufw: allow22}, state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
 		{name: "ss fails", site: site{plat: d, ssErr: failed, ufw: allow22}, state: engine.Unknown, want: "can't tell ssh ports", err: "COMMAND_FAILED"},
+		{name: "no ss", site: site{plat: noSS(d), ufw: allow22}, state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
+		{name: "no ss, an edit to 2230 not reloaded, 2230 allowed", site: site{plat: noSS(d), ports: moved, ufw: allow2230},
+			state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
+		{name: "no ss, default allow", site: site{plat: noSS(d), ufw: fw{active: true, incoming: "allow"}}, state: engine.Partial, want: "allow policy", codes: []string{uncheckedF}},
+		{name: "ubuntu: stock: inactive", site: site{plat: u}, state: engine.NotConfigured, want: "inactive"},
+		{name: "ubuntu: ufw not installed", site: site{plat: u, ufw: fw{missing: true}}, state: engine.NotConfigured, want: "ufw not installed"},
+		{name: "ubuntu: default allow", site: site{plat: u, ufw: fw{active: true, incoming: "allow"}}, state: engine.Partial, want: "allow policy"},
 		{name: "ubuntu: the socket's [::]:22, 22 allowed", site: site{plat: u, ufw: allow22}, state: engine.Configured, want: "deny policy"},
 		{name: "ubuntu: socket on 2230, 2230 allowed", site: site{plat: u, ports: moved, ufw: allow2230}, state: engine.Configured, want: "deny policy"},
 		{name: "ubuntu: socket on 2230, 22 allowed only", site: site{plat: u, ports: moved, ufw: allow22},
@@ -480,6 +544,7 @@ func TestSSHListeners(t *testing.T) {
 			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, notInEffect, blockedF}},
 		{name: "ubuntu: no ss", site: site{plat: noSS(u), ufw: allow22}, state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
 		{name: "ubuntu: no ss, 22 not allowed", site: site{plat: noSS(u), ufw: on}, state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
+		{name: "ubuntu: no ss, default allow", site: site{plat: noSS(u), ufw: fw{active: true, incoming: "allow"}}, state: engine.Partial, want: "allow policy", codes: []string{uncheckedF}},
 	} {
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
 	}
@@ -491,19 +556,31 @@ func noSS(p platform) platform {
 }
 
 // TestAlpine: ufw is in the community repository, not installed by
-// setup-alpine; without ss the configured set stands.
+// setup-alpine; without ss (said not to be installed there) the listeners
+// are not established, so a deny policy is Unknown.
 func TestAlpine(t *testing.T) {
-	a := alpine324()
+	a, withSS := alpine324(), alpine324()
+	withSS.noSS = false
+	moved := []uint16{2230}
 	for _, r := range []row{
 		{name: "stock: no ufw", site: site{plat: a, ufw: fw{missing: true}}, state: engine.NotConfigured, want: "ufw not installed"},
-		{name: "ufw active, 22 allowed, no ss", site: site{plat: a, ufw: allow22}, state: engine.Configured, want: "deny policy"},
-		{name: "ufw active, 2230 not allowed, no ss", site: site{plat: a, ports: []uint16{2230}, ufw: allow22},
+		{name: "ufw active, 22 allowed, no ss", site: site{plat: a, ufw: allow22}, state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
+		{name: "ufw active, 22 allowed, ss installed", site: site{plat: withSS, ufw: allow22}, state: engine.Configured, want: "deny policy"},
+		{name: "an edit to 2230 not reloaded, 2230 allowed, no ss", site: site{plat: a, ports: moved, ufw: allow2230},
+			state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
+		{name: "an edit to 2230 not reloaded, 2230 allowed, ss installed", site: site{plat: withSS, ports: moved, bound: stale22, ufw: allow2230},
+			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, notInEffect, blockedF}},
+		{name: "ufw active, 2230 not allowed, no ss", site: site{plat: a, ports: moved, ufw: allow22},
 			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
-		{name: "ENABLED=yes after a reboot, not in a runlevel", site: site{plat: a, ufw: fw{enabled: "yes", rules: allow("22")}}, state: engine.NotConfigured, want: "enabled, not running"},
+		{name: "ENABLED=yes after a reboot, not in a runlevel, no ss", site: site{plat: a, ufw: fw{enabled: "yes", rules: allow("22")}},
+			state: engine.NotConfigured, want: "enabled, not running", codes: []string{uncheckedF}},
+		{name: "conf.d names the sshd binary", site: site{plat: withSS, ufw: allow22, edit: func(h *hostfake.System) {
+			h.AddFile(reload.OpenRCConfd, []byte("SSHD_BINARY=/usr/sbin/sshd.pam\n"), 0o644, 0, 0)
+		}}, state: engine.Unknown, want: "can't tell ssh ports", err: "RELOAD_OPENRC_CONFD"},
 	} {
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
 	}
-	st := run(t, row{site: site{plat: a, ufw: allow22}, state: engine.Configured, want: "deny policy"})
+	st := run(t, row{site: site{plat: a, ufw: allow22}, state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"})
 	if !slices.Contains(st.Evidence, "ss: not installed, so the bound sockets are not read") {
 		t.Errorf("evidence %q: does not say the bound sockets were not read", st.Evidence)
 	}
@@ -521,10 +598,19 @@ func TestProxmox(t *testing.T) {
 		{name: "stock: no firewall files", site: site{plat: p}, state: engine.NotConfigured, want: "disabled"},
 		{name: "disabled at the datacenter", site: site{plat: p, pve: pf{cluster: pveDisable}}, state: engine.NotConfigured, want: "disabled"},
 		{name: "on, DROP, sshd on 22", site: site{plat: p, pve: pf{cluster: pveOn}}, state: engine.Configured, want: "drop policy"},
-		{name: "on, REJECT", site: site{plat: p, pve: pf{cluster: "[OPTIONS]\nenable: 1\npolicy_in: REJECT\n"}}, state: engine.Configured, want: "reject policy"},
+		{name: "on, REJECT", site: site{plat: p, pve: pf{cluster: "[OPTIONS]\nenable: 1\npolicy_in: REJECT\n\n[IPSET management]\n192.0.2.0/24\n"}}, state: engine.Configured, want: "reject policy"},
+		{name: "on, DROP, no management IP set", site: site{plat: p, pve: pf{cluster: "[OPTIONS]\nenable: 1\n"}},
+			state: engine.Unknown, want: "no management ipset", codes: []string{firewall.CodeLocalOnly}},
 		{name: "on, ACCEPT", site: site{plat: p, pve: pf{cluster: "[OPTIONS]\nenable: 1\npolicy_in: ACCEPT\n"}}, state: engine.Partial, want: "accept policy"},
 		{name: "ufw installed and active: ignored", site: site{plat: p, ufw: on, pve: pf{cluster: pveOn}}, state: engine.Configured, want: "drop policy"},
-		{name: "service stopped", site: site{plat: p, pve: pf{cluster: pveOn, state: "inactive"}}, state: engine.Unknown, want: "service stopped"},
+		{name: "service stopped", site: site{plat: p, pve: pf{cluster: pveOn, state: "inactive"}}, state: engine.Unknown, want: "pve-firewall stopped"},
+		{name: "nftables, service stopped", site: site{plat: p, pve: pf{cluster: pveOn, hostfw: "[OPTIONS]\nnftables: 1\n", unit: pve.NFTablesUnit, state: "inactive"}},
+			state: engine.Unknown, want: "proxmox-firewall stopped"},
+		{name: "systemctl fails", site: site{plat: p, pve: pf{cluster: pveOn, fail: true}}, state: engine.Unknown, want: "can't read", err: "PVE_FIREWALL_UNKNOWN"},
+		{name: "cluster.fw unreadable", site: site{plat: p, edit: func(h *hostfake.System) { h.AddDir(pve.ClusterFW, 0o750, 0, 33) }},
+			state: engine.Unknown, want: "can't read", err: "PVE_FIREWALL_UNKNOWN"},
+		{name: "policy_in in a form pve-firewall skips", site: site{plat: p, pve: pf{cluster: "[OPTIONS]\nenable: 1\npolicy_in: BOGUS\n"}},
+			state: engine.Unknown, want: "can't read", err: "PVE_FIREWALL_UNKNOWN"},
 		{name: "pmxcfs not mounted", site: site{plat: p, facts: func(f *detect.Facts) { f.Proxmox.ClusterFS = detect.No }},
 			state: engine.Unknown, want: "/etc/pve not mounted", err: "PVE_CLUSTER_FS_DOWN"},
 		{name: "a host rule may drop 22", site: site{plat: p, pve: pf{cluster: pveOn, hostfw: "[RULES]\nIN DROP -p tcp -dport 22\n"}},
@@ -539,10 +625,12 @@ func TestProxmox(t *testing.T) {
 			state: engine.Unknown, want: "can't read", err: "PVE_FIREWALL_UNKNOWN"},
 		{name: "sshd on 2230", site: site{plat: p, ports: []uint16{2230}, pve: pf{cluster: pveOn}},
 			state: engine.Unknown, want: "2230 may be blocked", codes: []string{"PVE_PORT_NOT_22"}},
+		{name: "sshd on 2230 to 2233: the detail too long for the row", site: site{plat: p, ports: []uint16{2230, 2231, 2232, 2233}, pve: pf{cluster: pveOn}},
+			state: engine.Unknown, want: "ssh ports may be blocked", codes: []string{"PVE_PORT_NOT_22"}},
 		{name: "sshd still on 2230 after an edit to 22: a stale port other than 22 is not looked for", site: site{plat: p, bound: []string{"0.0.0.0:2230", "[::]:2230"}, pve: pf{cluster: pveOn}},
 			state: engine.Unknown, want: "ssh config not in effect", codes: []string{notInEffect}},
 		{name: "a configuration sshd refuses", site: site{plat: p, failT: invalid, pve: pf{cluster: pveOn}},
-			state: engine.Unknown, want: "can't tell ssh ports", err: "SSHD_CONFIG_INVALID"},
+			state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
 		{name: "whether the host runs Proxmox VE not established", site: site{plat: p, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{Installed: detect.Unknown} }},
 			state: engine.Unknown, want: "can't tell if Proxmox", err: "PVE_UNKNOWN"},
 	} {
@@ -577,13 +665,34 @@ func TestEvidence(t *testing.T) {
 	}
 	st = run(t, row{site: site{plat: debian13(), ports: []uint16{2230}, bound: stale22, ufw: fw{active: true, incoming: "allow"}},
 		state: engine.Partial, want: "allow policy", codes: []string{notInEffect, uncheckedF}})
-	if a, b := st.Findings[0], st.Findings[1]; a.Detail != "[::]:2230 0.0.0.0:2230 configured, not bound" || a.Source != "ss -Htln" ||
+	if a, b := st.Findings[0], st.Findings[1]; a.Detail != "[::]:2230 0.0.0.0:2230 configured, not bound: not in effect (an edit not reloaded)" || a.Source != "ss -Htln" ||
 		b.Detail != "ssh config not in effect" || b.Source != "ss -Htln" {
 		t.Errorf("findings %+v", st.Findings)
 	}
 	st = run(t, row{site: site{plat: debian13(), failT: noSSHD, ufw: fw{active: true, incoming: "allow"}}, state: engine.Partial, want: "allow policy", codes: []string{uncheckedF}})
-	if f := st.Findings[0]; !strings.HasPrefix(f.Detail, "sshd not installed: sshd's listeners: ") || f.Source != "sshd -T" {
+	if f := st.Findings[0]; f.Detail != "sshd not installed" || f.Source != "sshd -T" {
 		t.Errorf("finding %+v", f)
+	}
+	if !slices.ContainsFunc(st.Evidence, func(e string) bool { return strings.HasPrefix(e, "sshd -T: sshd's listeners: ") }) {
+		t.Errorf("evidence %q: no error of the read that failed", st.Evidence)
+	}
+	st = run(t, row{site: site{plat: debian13(), ports: []uint16{2230}, bound: append([]string{"[::]:2230", "0.0.0.0:2230"}, stale22...), ufw: allow2230},
+		state: engine.Unknown, want: "can't tell if 22 is ssh", codes: []string{notAllowed, notAllowed, "SSH_PORT_22_BOUND"}})
+	if f := st.Findings[2]; f.Detail != "[::]:22 0.0.0.0:22 bound, not configured: sshd not reloaded since 22 was dropped, or another program on 22" || f.Source != "ss -Htln" {
+		t.Errorf("finding %+v: not SSH Port's words", f)
+	}
+	st = run(t, row{site: site{plat: debian13(), ufw: fw{enabled: "yes", rules: allow("22")}, edit: noInputPolicy},
+		state: engine.NotConfigured, want: "enabled, not running", codes: []string{uncheckedF}})
+	if f := st.Findings[0]; f.Detail != "default policy unreadable" || f.Source != ufw.DefaultsFile {
+		t.Errorf("finding %+v", f)
+	}
+	st = run(t, row{site: site{plat: debian13(), ufw: fw{active: true, noKernel6: true, table: rows("Anywhere", "ALLOW IN", "Anywhere")}}, state: engine.Partial, want: "all ports allowed"})
+	if !slices.Contains(st.Evidence, "ufw: every port allowed by Anywhere ALLOW IN Anywhere") {
+		t.Errorf("evidence %q: no rule that opens every port", st.Evidence)
+	}
+	st = run(t, row{site: site{plat: pve9(), ports: []uint16{2230}, pve: pf{cluster: pveOn}}, state: engine.Unknown, want: "2230 may be blocked", codes: []string{"PVE_PORT_NOT_22"}})
+	if f := st.Findings[0]; f.Source != "sshd -T" {
+		t.Errorf("finding %+v: no source", f)
 	}
 	st = run(t, row{site: site{plat: pve9(), pve: pf{cluster: pveOn}}, state: engine.Configured, want: "drop policy"})
 	want = []string{

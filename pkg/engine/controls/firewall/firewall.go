@@ -10,10 +10,12 @@
 // 2.5). The SSH listeners are read as SSH Port reads them: the configured
 // set (sshd.ReadEffective) checked against the sockets ss shows bound
 // (reload.ReadBound, reload.Unbound), never the configured set alone
-// (docs/engine/check-ssh.md §6). A firewall that refuses an SSH listener is
-// the brief's critical cross-check (CodeSSHBlocked). A read that fails is
-// the check's error, which the engine reports as Unknown; what it read but
-// cannot establish a state from is Unknown with findings: never a guess.
+// (docs/engine/check-ssh.md §6), so without ss they are not established.
+// A firewall that refuses an SSH listener, or lets it through from
+// loopback only, is the brief's critical cross-check (CodeSSHBlocked). A
+// read that fails is the check's error, which the engine reports as
+// Unknown; what it read but cannot establish a state from is Unknown with
+// findings: never a guess.
 // docs/engine/check-firewall.md has every status line the row can show.
 package firewall
 
@@ -40,6 +42,10 @@ const (
 	// the firewall lets them through is not established either, beside a
 	// state that does not depend on it.
 	CodeSSHUnchecked = "FIREWALL_SSH_UNCHECKED"
+	// CodeLocalOnly: on Proxmox VE no management IP set is written, so
+	// pve-firewall's management rule accepts SSH and the web UI from the
+	// cluster's local network only, which is not read.
+	CodeLocalOnly = "FIREWALL_PVE_LOCAL_ONLY"
 )
 
 // Controls are the firewall controls in Figma's order: Firewall.
@@ -83,16 +89,6 @@ func blocked(cs []netip.AddrPort, source string) engine.Finding {
 		s[i] = c.String()
 	}
 	return engine.Finding{Code: CodeSSHBlocked, Detail: strings.Join(s, ", ") + " blocked: lockout risk", Source: source}
-}
-
-// unchecked is CodeSSHUnchecked's finding for sockets not established:
-// why, with the error of a read that failed.
-func unchecked(sk sockets) engine.Finding {
-	d := sk.why
-	if sk.err != nil {
-		d += ": " + sk.err.Error()
-	}
-	return engine.Finding{Code: CodeSSHUnchecked, Detail: d, Source: sk.source()}
 }
 
 // portList is ps ascending, joined by ", ".

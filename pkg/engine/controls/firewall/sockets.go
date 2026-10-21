@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 
@@ -15,16 +16,19 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
-// sockets are the SSH listeners as SSH Port reads them: the configured set
+// sockets are the SSH listeners read as SSH Port reads them, with the same
+// primitives and rule in this package's own copy: the configured set
 // (sshd -T's listenaddress lines, with ssh.socket's Listen entries on a
 // socket-activated host), checked against the sockets ss shows bound. Both
 // configured sources are configuration: between an edit and the reload
 // that applies it, what accepts connections is what is bound
 // (docs/engine/check-ssh.md §2.12, §6).
 type sockets struct {
+	mode    detect.SSHMode
 	conf    sshd.Listeners
 	read    bool            // conf was read
 	bound   []reload.Bound  // what ss shows; nil when not read
+	bad     []string        // LISTEN lines ss printed that were not read
 	unbound []sshd.Listener // configured, not bound
 	ev      []string
 	// why is the detail of a row whose state depends on the listeners
@@ -38,12 +42,12 @@ type sockets struct {
 // script runs (reload.OpenRCFlavour), sshd.ReadEffective, then ss -Htln
 // (reload.ReadBound). They are established when the configured set is
 // (Listeners.Known) and every listener of it is bound (reload.Unbound, the
-// rule reload.CheckInEffect uses). Without ss, off a socket-activated host
-// the configured set stands, and the evidence says so; on one, sshd -T and
-// ssh.socket agree after a daemon-reload whatever is bound, so the set is
-// not established (as SSH Port, check-ssh.md §2.12).
+// rule reload.CheckInEffect uses). Without ss they are not established on
+// any host: the configured set is configuration, and whether SSH gets
+// through is this row's claim (docs/engine/check-firewall.md §2.3), where
+// SSH Port lets the configured set stand off a socket-activated host.
 func readSockets(ctx context.Context, sys host.System, f detect.Facts) sockets {
-	var s sockets
+	s := sockets{mode: f.SSH.Mode}
 	var bin string
 	if f.Init.Kind == detect.OpenRC {
 		b, err := reload.OpenRCFlavour(ctx, sys)
@@ -54,12 +58,8 @@ func readSockets(ctx context.Context, sys host.System, f detect.Facts) sockets {
 		bin = b
 	}
 	eff, _, err := sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin})
-	switch {
-	case errors.Is(err, host.ErrNotFound):
-		s.why, s.err = "sshd not installed", fmt.Errorf("sshd's listeners: %w", err)
-		return s
-	case err != nil:
-		s.why, s.err = "can't tell ssh ports", fmt.Errorf("sshd's listeners: %w", err)
+	if err != nil {
+		s.why, s.err = sshdWhy(err), fmt.Errorf("sshd's listeners: %w", err)
 		return s
 	}
 	s.conf, s.read = eff.Listeners, true
@@ -71,14 +71,13 @@ func readSockets(ctx context.Context, sys host.System, f detect.Facts) sockets {
 	}
 	bound, bad, err := reload.ReadBound(ctx, sys)
 	switch {
-	case errors.Is(err, host.ErrNotFound) && f.SSH.Mode != detect.SSHSocket:
-		s.ev = append(s.ev, "ss: not installed, so the bound sockets are not read")
 	case errors.Is(err, host.ErrNotFound):
+		s.ev = append(s.ev, "ss: not installed, so the bound sockets are not read")
 		s.why, s.err = "ss not installed", err
 	case err != nil:
 		s.why, s.err = "can't tell ssh ports", err
 	default:
-		s.bound, s.unbound = bound, reload.Unbound(s.conf.All, bound)
+		s.bound, s.bad, s.unbound = bound, bad, reload.Unbound(s.conf.All, bound)
 		s.ev = append(s.ev, "ss -Htln: "+s.on(s.ports()))
 		if len(bad) > 0 {
 			s.ev = append(s.ev, fmt.Sprintf("ss -Htln: lines not read: %q", bad))
@@ -92,6 +91,22 @@ func readSockets(ctx context.Context, sys host.System, f detect.Facts) sockets {
 		s.why = "ssh config not in effect"
 	}
 	return s
+}
+
+// sshdWhy is what a failed sshd -T shows of the host, in the SSH rows'
+// words where they have one (ssh's failed): no sshd, no sshd_config, a
+// configuration sshd refuses; "can't tell ssh ports" otherwise.
+func sshdWhy(err error) string {
+	var pe *fs.PathError
+	switch {
+	case errors.Is(err, host.ErrNotFound):
+		return "sshd not installed"
+	case errors.As(err, &pe) && pe.Path == sshd.MainConfig && errors.Is(err, fs.ErrNotExist):
+		return "no sshd_config"
+	case errors.Is(err, sshd.ErrConfig):
+		return "sshd config invalid"
+	}
+	return "can't tell ssh ports"
 }
 
 // established: the SSH listeners are what accepts SSH connections.
@@ -159,12 +174,38 @@ func (s sockets) on(ports []uint16) string {
 }
 
 // notInEffect is SSH Port's finding of the configured listeners ss does not
-// show bound (ssh.CodeNotInEffect), nil for none.
+// show bound (ssh.CodeNotInEffect), in SSH Port's words, nil for none.
 func (s sockets) notInEffect() []engine.Finding {
 	if len(s.unbound) == 0 {
 		return nil
 	}
-	return []engine.Finding{{Code: ssh.CodeNotInEffect, Detail: listeners(s.unbound) + " configured, not bound", Source: "ss -Htln"}}
+	why := "an edit not reloaded"
+	if s.mode == detect.SSHSocket {
+		why = "ssh.socket not restarted after daemon-reload"
+	}
+	d := listeners(s.unbound) + " configured, not bound: not in effect (" + why + ")"
+	if len(s.bad) > 0 {
+		d += fmt.Sprintf("; ss lines not read: %q", s.bad)
+	}
+	return []engine.Finding{{Code: ssh.CodeNotInEffect, Detail: d, Source: "ss -Htln"}}
+}
+
+// bound22 is SSH Port's finding of a stray socket on 22 (ssh.Code22Bound),
+// in SSH Port's words.
+func (s sockets) bound22() engine.Finding {
+	return engine.Finding{Code: ssh.Code22Bound, Source: "ss -Htln",
+		Detail: s.on([]uint16{22}) + " bound, not configured: sshd not reloaded since 22 was dropped, or another program on 22"}
+}
+
+// unchecked adds CodeSSHUnchecked's finding to out, beside a state that
+// does not depend on the listeners: why they are not established, and the
+// error of a read that failed in the evidence.
+func (s sockets) unchecked(out engine.Status) engine.Status {
+	out.Findings = append(out.Findings, engine.Finding{Code: CodeSSHUnchecked, Detail: s.why, Source: s.source()})
+	if s.err != nil {
+		out.Evidence = append(out.Evidence, s.source()+": "+s.err.Error())
+	}
+	return out
 }
 
 // source is the command the listeners' reading stopped at.
