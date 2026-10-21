@@ -162,7 +162,10 @@ var ErrNotMigrated = errors.New("the control only checks the host; its changes a
 
 // CheckOnly gives a check-only control its Plan: embedded in a control
 // that implements ID, Title, Applies and Check, it makes an engine.Control
-// whose Plan returns ErrNotMigrated and changes nothing.
+// whose Plan returns ErrNotMigrated and changes nothing. For such a
+// control, Configured is the host as hardn's baseline wants it, not "as
+// the configuration asks": Check takes no configuration
+// (docs/engine/checks.md §1.3).
 type CheckOnly struct{}
 
 // Plan returns ErrNotMigrated.
