@@ -8,8 +8,8 @@
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe current set is the trial set, which the maintainer␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156madopted: Partial ⭘ in status.warn, Unknown ? and Not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable – in text.muted, ⛬ on the risk level alone, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlockout-risk lines pending. The other sets were set aside.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable – in text.muted, ⛬ for the risk level. The other␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msets were set aside.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all five␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstates. The strip sets each candidate beside ⛛ ⭘ ⛬ in one␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour, to compare size and weight.␛[m$
@@ -41,8 +41,8 @@ $
 # Partial, Unknown and Not Applicable.$
 # The current set is the trial set, which the maintainer$
 # adopted: Partial [ ] in status.warn, Unknown [?] and Not$
-# Applicable [-] in text.muted, [*] on the risk level alone, the$
-# lockout-risk lines pending. The other sets were set aside.$
+# Applicable [-] in text.muted, [*] for the risk level. The$
+# other sets were set aside.$
 # Each list is the risk row and Figma's seven rows in all five$
 # states.$
 # See docs/engine/gallery-glyphs.md.$
@@ -73,8 +73,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnknown and Not Applicable.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe current set is the trial set, which the maintainer␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156madopted: Partial ⭘ in status.warn, Unknown ? and Not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable – in text.muted, ⛬ on the risk level alone, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlockout-risk lines pending. The other sets were set aside.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable – in text.muted, ⛬ for the risk level. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother sets were set aside.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach list is the risk row and Figma's seven rows in all␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfive states. The strip sets each candidate beside ⛛ ⭘ ⛬ in␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone colour, to compare size and weight.␛[m$

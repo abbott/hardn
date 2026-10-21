@@ -358,7 +358,7 @@ func glyphsNote(c component.Ctx) []string {
 		"Glyphs mode: Figma's " + family + " beside candidates for Partial, Unknown and Not Applicable.",
 		"The current set is the trial set, which the maintainer adopted: Partial " + g.Partial +
 			" in status.warn, Unknown " + g.Unknown + " and Not Applicable " + g.NotApplicable +
-			" in text.muted, " + g.Risk + " on the risk level alone, the lockout-risk lines pending. The other sets were set aside.",
+			" in text.muted, " + g.Risk + " for the risk level. The other sets were set aside.",
 		lists,
 		"See docs/engine/gallery-glyphs.md.",
 	}
