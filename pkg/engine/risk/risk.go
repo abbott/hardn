@@ -15,9 +15,11 @@
 // password, or may. A firewall that refuses SSH forces Critical, whatever
 // the score. Unknown counts as not configured and adds a factor, and so
 // does a row with no report, and a grant the User row does not establish
-// costs as one without a password: nothing is taken as hardened that was
-// not established. Assess is pure: it reads no host and renders nothing;
-// pkg/output maps a Level to the main menu's RiskSummary.
+// costs as one without a password: of what the rows look at (the User
+// row: accounts of uid 1000 or more that may log in, risk.md §8), nothing
+// is taken as hardened that was not established. Assess is pure: it reads
+// no host and renders nothing; pkg/output maps a Level to the main menu's
+// RiskSummary.
 package risk
 
 import (
@@ -350,7 +352,7 @@ func noPassword(r engine.Report, ok bool) (Factor, bool) {
 	case has(r, users.CodeNoPassword):
 		f.Detail = "no password to become root"
 	case state(r, ok) != engine.Unknown && has(r, users.CodeRuleNotRead):
-		f.Detail = "can't tell who can become root"
+		f.Detail = "maybe no password to become root"
 	default:
 		return Factor{}, false
 	}

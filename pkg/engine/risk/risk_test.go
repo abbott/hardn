@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"maps"
+	"path"
 	"slices"
 	"strings"
 	"testing"
@@ -20,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
 // The rows' control IDs.
@@ -233,7 +236,7 @@ func TestAssess(t *testing.T) {
 		// A grant the row does not establish costs as one without a
 		// password: never Minimal, never above the grant read.
 		{"a grant not read: as no password", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead)), quiet,
-			want{band: risk.Low, score: 95, factors: []string{"can't tell who can become root"}}},
+			want{band: risk.Low, score: 95, factors: []string{"maybe no password to become root"}}},
 		{"a grant not read and one read: one factor", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead, users.CodeNoPassword)), quiet,
 			want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
 		{"a grant not read on an Unknown row: the Unknown factor", with(rep(idUser, engine.Unknown, "can't tell who has sudo", users.CodeRuleNotRead)), quiet,
@@ -401,12 +404,12 @@ func TestUpdatesFromTheCheck(t *testing.T) {
 	}
 }
 
-// userRow is the User row as the real check reports it on a Debian 13
-// host: alice in sudo, bob a second account with a login shell, sudo
-// installed and setuid root (setuidSudo), top before the %sudo line and
-// dropIn in /etc/sudoers.d/zz-site. The host is hostfake's: visudo -c is
-// answered, nothing runs.
-func userRow(t *testing.T, top, dropIn string) engine.Report {
+// userHost is a Debian 13 host for the users check: alice in sudo, bob a
+// second account with a login shell, sudo installed and setuid root
+// (setuidSudo), top before the %sudo line and dropIns in /etc/sudoers.d
+// (name to content). The host is hostfake's: visudo -c is answered,
+// nothing runs.
+func userHost(t *testing.T, top string, dropIns map[string]string) (host.System, detect.Facts) {
 	t.Helper()
 	f := hostfake.New(host.Options{})
 	for _, d := range []string{"/etc", "/bin", "/usr/bin"} {
@@ -415,15 +418,16 @@ func userRow(t *testing.T, top, dropIn string) engine.Report {
 	f.AddDir("/etc/sudoers.d", 0o750, 0, 0)
 	f.AddFile("/bin/bash", nil, 0o755, 0, 0)
 	f.AddFile("/usr/bin/sudo", nil, 0o755, 0, 0)
-	for p, data := range map[string]string{
-		"/etc/passwd":            "root:x:0:0:root:/root:/bin/bash\nalice:x:1000:1000::/home/alice:/bin/bash\nbob:x:1001:1001::/home/bob:/bin/bash\n",
-		"/etc/group":             "root:x:0:\nsudo:x:27:alice\nalice:x:1000:\nbob:x:1001:\n",
-		"/etc/sudoers":           top + "root ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n",
-		"/etc/sudoers.d/zz-site": dropIn,
-	} {
-		if data != "" {
-			f.AddFile(p, []byte(data), 0o440, 0, 0)
-		}
+	files := map[string]string{
+		"/etc/passwd":  "root:x:0:0:root:/root:/bin/bash\nalice:x:1000:1000::/home/alice:/bin/bash\nbob:x:1001:1001::/home/bob:/bin/bash\n",
+		"/etc/group":   "root:x:0:\nsudo:x:27:alice\nalice:x:1000:\nbob:x:1001:\n",
+		"/etc/sudoers": top + "root ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n",
+	}
+	for name, data := range dropIns {
+		files["/etc/sudoers.d/"+name] = data
+	}
+	for p, data := range files {
+		f.AddFile(p, []byte(data), 0o440, 0, 0)
 	}
 	f.Handler = func(argv []string, _ []byte) hostfake.Response {
 		if slices.Equal(argv, []string{"visudo", "-c"}) {
@@ -432,14 +436,37 @@ func userRow(t *testing.T, top, dropIn string) engine.Report {
 		t.Errorf("unscripted: %q", argv)
 		return hostfake.Response{ExitCode: 127}
 	}
-	facts := detect.Facts{
+	return setuidSudo{f}, detect.Facts{
 		Platform: detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported},
 		Proxmox:  detect.Proxmox{Installed: detect.No},
 		Elevation: detect.Elevation{Sudo: detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}, SudoFlavor: detect.SudoOriginal,
 			Doas: detect.Tool{Present: detect.No}},
 	}
-	st, err := users.Admin{}.Check(context.Background(), setuidSudo{f}, facts)
+}
+
+// userRow is the User row as the real check reports it on userHost's
+// host.
+func userRow(t *testing.T, top string, dropIns map[string]string) engine.Report {
+	t.Helper()
+	sys, facts := userHost(t, top, dropIns)
+	st, err := users.Admin{}.Check(context.Background(), sys, facts)
 	return engine.Report{Control: idUser, Title: "User", Status: st, Err: err}
+}
+
+// hardnGrant is the drop-in sudoers' writer plans for bob's grant with a
+// password on userHost's host, name to content: hardn's own line.
+func hardnGrant(t *testing.T) map[string]string {
+	t.Helper()
+	sys, facts := userHost(t, "", nil)
+	st, err := sudoers.Read(context.Background(), sys, sudoers.Choose(facts, sudoers.ToolSudo), []string{"bob"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := sudoers.PlanFor(st, []sudoers.Policy{{User: "bob", Grant: sudoers.GrantPassword}})
+	if err != nil || len(plan.Changes) != 1 {
+		t.Fatalf("plan %+v, %v", plan, err)
+	}
+	return map[string]string{path.Base(plan.Changes[0].Path): string(plan.Changes[0].Data)}
 }
 
 // setuidSudo shows /usr/bin/sudo setuid root, as installed: the fake has
@@ -460,29 +487,40 @@ func (i setuidInfo) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetui
 
 // TestUsersFromTheCheck scores the User row as the real check reports it,
 // in the risk review's cases: alice in sudo, and the same password-free
-// grant for bob read, on a continued line, by an alias and in a list. A
-// grant the check does not read is never Minimal, and never scores above
-// the same grant read.
+// grant for bob read, on a continued line, by an alias and in a list;
+// and, from the review of next/p4-users-grants, such a grant before a
+// later one for bob as root alone (sudo's "(ALL)", hardn's own line),
+// which still decides "sudo -u root -g bob". A grant the check does not
+// read is never Minimal, and never scores above the same grant read.
 func TestUsersFromTheCheck(t *testing.T) {
 	const grant = "bob ALL=(ALL) NOPASSWD: ALL\n"
 	const alias = "User_Alias ADMINS = bob\nADMINS ALL=(ALL) NOPASSWD: ALL\n"
-	read := risk.Assess(with(userRow(t, "", grant)), quiet)
-	notRead := want{band: risk.Low, score: 95, factors: []string{"can't tell who can become root"}}
+	zz := func(rules string) map[string]string { return map[string]string{"zz-site": rules} }
+	read := risk.Assess(with(userRow(t, "", zz(grant))), quiet)
+	noPass := want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}
+	notRead := want{band: risk.Low, score: 95, factors: []string{"maybe no password to become root"}}
 	for _, c := range []struct {
-		name, top, dropIn string
-		state             engine.State
-		codes             []string // the User row's findings
-		want              want
+		name    string
+		top     string
+		dropIns map[string]string
+		state   engine.State
+		codes   []string // the User row's findings
+		want    want
 	}{
-		{"nothing else", "", "", engine.Configured, nil, want{band: risk.Minimal, score: 100}},
-		{"read", "", grant, engine.Configured, []string{users.CodeNoPassword}, want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
-		{"a continued line", "", "bob ALL=(ALL) \\\n  NOPASSWD: ALL\n", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
-		{"an alias", alias, "", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
-		{"a list", "bob, george ALL=(ALL) NOPASSWD: ALL\n", "", engine.Configured, []string{users.CodeRuleNotRead}, notRead},
-		{"an alias after alice's grant", "", alias, engine.Unknown, []string{users.CodeRuleNotRead, users.CodeRuleNotRead}, want{band: risk.Low, score: 90, factors: []string{unread}}},
+		{"nothing else", "", nil, engine.Configured, nil, want{band: risk.Minimal, score: 100}},
+		{"read", "", zz(grant), engine.Configured, []string{users.CodeNoPassword}, noPass},
+		{"a continued line", "", zz("bob ALL=(ALL) \\\n  NOPASSWD: ALL\n"), engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"an alias", alias, nil, engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"a list", "bob, george ALL=(ALL) NOPASSWD: ALL\n", nil, engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"an alias after alice's grant", "", zz(alias), engine.Unknown, []string{users.CodeRuleNotRead, users.CodeRuleNotRead}, want{band: risk.Low, score: 90, factors: []string{unread}}},
+		{"a list, then bob as root", "bob, george ALL=(ALL:ALL) NOPASSWD: ALL\n", zz("bob ALL=(ALL) ALL\n"), engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"a continued line, then bob as root", "", map[string]string{"10-bob": "bob ALL=(ALL:ALL) \\\n  NOPASSWD: ALL\n", "90-bob": "bob ALL=(ALL) ALL\n"},
+			engine.Configured, []string{users.CodeRuleNotRead}, notRead},
+		{"read, then hardn's grant", "", merge(map[string]string{"10-bob": "bob ALL=(ALL:ALL) NOPASSWD: ALL\n"}, hardnGrant(t)), engine.Configured, []string{users.CodeNoPassword}, noPass},
+		{"a list, then bob with any group", "bob, george ALL=(ALL:ALL) NOPASSWD: ALL\n", zz("bob ALL=(ALL:ALL) ALL\n"), engine.Configured, nil, want{band: risk.Minimal, score: 100}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			r := userRow(t, c.top, c.dropIn)
+			r := userRow(t, c.top, c.dropIns)
 			var codes []string
 			for _, f := range r.Status.Findings {
 				codes = append(codes, f.Code)
@@ -503,6 +541,15 @@ func TestUsersFromTheCheck(t *testing.T) {
 			}
 		})
 	}
+}
+
+// merge is the files of ms, later ones replacing earlier.
+func merge(ms ...map[string]string) map[string]string {
+	out := map[string]string{}
+	for _, m := range ms {
+		maps.Copy(out, m)
+	}
+	return out
 }
 
 // TestFindings: the cross-checks' findings, and only theirs: the header's
