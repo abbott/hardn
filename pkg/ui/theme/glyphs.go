@@ -9,7 +9,12 @@ package theme
 // mark sit in the three-cell marker column (MarkerCol, MarkerWidth), so an
 // ASCII marker such as "[+]" fits it exactly.
 //
-// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ ≈ … █ ─.
+// Partial takes Not Configured's ⭘ ([ ] in ASCII), and so does a warning:
+// they are told apart by colour and by the word always on the line, never
+// by colour alone (the maintainer, 2026-10-21). The risk icon ⛬ ([*]) is
+// no other role's.
+//
+// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
 // characters two cells wide draws each as two. A single glyph then shifts
 // the rest of its line by one cell. Bar and Rule are drawn in runs, so a run
@@ -21,10 +26,10 @@ package theme
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
-	Partial       string // a control partly hardened, or a warning (no Figma value; Figma's risk icon ⛬, DEV-012)
+	Partial       string // a control partly hardened (no Figma value; Not Configured's ⭘, in status.warn: DEV-024)
 	Unknown       string // a state hardn could not check (no Figma value)
 	NotApplicable string // a control that does not apply here; an unavailable menu item (no Figma value)
-	Risk          string // the risk icon (Figma ⛬, on the risk row alone); a menu item's lockout-risk marker
+	Risk          string // the risk level's icon (Figma ⛬); for now also the menu's and plan's lockout-risk lines (DEV-028, DEV-038)
 	Prompt        string // before a prompt's label (Figma ❯)
 	Approx        string // before the risk level's gloss (Figma ≈)
 	Bullet        string // before a key-value or bullet-list item (Figma -)
@@ -36,10 +41,10 @@ type Glyphs struct {
 	BadgeClose    string // closes a badge when there is no colour to paint it
 
 	// A one-line message's kind (no Figma value): origin/main's ✓ and ✗,
-	// the warning marker of Partial, ℹ, and a cancel sign (DEV-031). A
-	// step that is done or failed takes OK or Bad.
+	// Partial's ⭘ for a warning, ℹ, and a cancel sign (DEV-031). A step
+	// that is done or failed takes OK or Bad.
 	OK        string // an operation that succeeded
-	Warn      string // a warning
+	Warn      string // a warning, and the confirm countdown while there is time
 	Bad       string // an operation that failed
 	Info      string // information
 	Cancelled string // an operation the user stopped
@@ -64,15 +69,16 @@ type Glyphs struct {
 	Urgent  string // the confirm countdown's last seconds
 }
 
-// unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-031 and
-// DEV-038 to DEV-041 for the glyphs Figma does not draw, DEV-019 for the
-// badge brackets).
+// unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-024,
+// DEV-031 and DEV-038 to DEV-041 for the glyphs Figma does not draw,
+// DEV-019 for the badge brackets). Partial, Warn, Unknown and
+// NotApplicable are the maintainer's of 2026-10-21.
 var unicodeGlyphs = Glyphs{
 	Configured:    "⛛",
 	NotConfigured: "⭘",
-	Partial:       "⛬",
+	Partial:       "⭘",
 	Unknown:       "?",
-	NotApplicable: "∅",
+	NotApplicable: "–",
 	Risk:          "⛬",
 	Prompt:        "❯",
 	Approx:        "≈",
@@ -84,7 +90,7 @@ var unicodeGlyphs = Glyphs{
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	OK:            "✓",
-	Warn:          "⛬",
+	Warn:          "⭘",
 	Bad:           "✗",
 	Info:          "ℹ",
 	Cancelled:     "⊘",
@@ -100,10 +106,12 @@ var unicodeGlyphs = Glyphs{
 
 // asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets,
 // DEV-031 for the message kinds, DEV-038 to DEV-041 for the plan group).
+// Partial and Warn are NotConfigured's, as in the Unicode set, so "[*]" is
+// the risk icon's alone.
 var asciiGlyphs = Glyphs{
 	Configured:    "[+]",
 	NotConfigured: "[ ]",
-	Partial:       "[*]",
+	Partial:       "[ ]",
 	Unknown:       "[?]",
 	NotApplicable: "[-]",
 	Risk:          "[*]",
@@ -117,7 +125,7 @@ var asciiGlyphs = Glyphs{
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	OK:            "[+]",
-	Warn:          "[*]",
+	Warn:          "[ ]",
 	Bad:           "[!]",
 	Info:          "[i]",
 	Cancelled:     "[-]",

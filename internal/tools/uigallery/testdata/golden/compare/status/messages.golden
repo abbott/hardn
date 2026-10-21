@@ -26,7 +26,7 @@ $
 $
    ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mDNS configured successfully␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $
@@ -82,7 +82,7 @@ $
 $
   [+] Success: DNS configured successfully$
 $
-  [*] Warning: No nameservers configured$
+  [ ] Warning: No nameservers configured$
 $
   [!] Error: Failed to configure sudo: exit status 1$
 $
@@ -139,7 +139,7 @@ $
 $
    ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mDNS configured successfully␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
    ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mFailed to configure sudo: exit status 1␛[m$
 $

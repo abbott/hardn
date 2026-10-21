@@ -89,10 +89,12 @@ func (s ValueState) word() string {
 // theme.LabelCol and the value at theme.ValueCol (DEV-034). The value
 // takes its state's colour, as Figma colours it, and a stated value's
 // bullet gives way to the state's status marker in that colour, at every
-// colour profile, so the verdict never rests on colour alone: ⛛ [+] for
-// ValueOK, ⭘ [ ] for ValueBad, ⛬ [*] for ValueWarn, ? [?] for
-// ValueUnknown and ∅ [-] for ValueNotApplicable. A plain value keeps the
-// bullet.
+// colour profile: ⛛ [+] for ValueOK, ⭘ [ ] for ValueBad and ValueWarn,
+// as Not Configured and Partial share it, ? [?] for ValueUnknown and
+// – [-] for ValueNotApplicable. A plain value keeps the bullet. ValueWarn
+// and ValueBad differ by colour, and without colour by the value's own
+// words alone, so a caller gives them words that say which (the
+// maintainer's glyphs of 2026-10-21; DEV-034).
 // Below theme.StackBelow, or when the key reaches the value column, or
 // when the value column has no room for one letter, the value goes under
 // the key at theme.StackCol (DEV-021). A value wider than its line is cut

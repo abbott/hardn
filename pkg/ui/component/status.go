@@ -81,12 +81,13 @@ func (s StatusState) style(t theme.StatusStyles) lipgloss.Style {
 // The state's glyph is centred in the marker column (DEV-020), the label
 // starts at theme.LabelCol, and the state's word at theme.ValueCol, with
 // the detail one cell after it in text.faint. The glyph and the word take
-// the state's colour, so the state never rests on colour alone. A label
-// wider than the label column, less the cell before the value column, is
-// cut with the ellipsis glyph, so a list stays one row per line; so is a
-// value that runs past the content width (DEV-025). Below
-// theme.StackBelow the row stacks: the word and detail go under the label
-// at theme.StackCol (DEV-021).
+// the state's colour, so the state never rests on colour alone: Partial
+// shares Not Configured's glyph, and its colour and word tell it (the
+// maintainer, 2026-10-21). A label wider than the label column, less the
+// cell before the value column, is cut with the ellipsis glyph, so a list
+// stays one row per line; so is a value that runs past the content width
+// (DEV-025). Below theme.StackBelow the row stacks: the word and detail go
+// under the label at theme.StackCol (DEV-021).
 type StatusRow struct {
 	// Label is the control's name, such as "SSH Port"; empty shows none.
 	Label string

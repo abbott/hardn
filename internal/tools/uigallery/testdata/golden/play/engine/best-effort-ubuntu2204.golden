@@ -81,7 +81,7 @@ $
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor␛[m$
       ␛[38;2;129;134;156mstill supports it and hardn changes it, but hardn is not␛[m$
       ␛[38;2;129;134;156mtested on it (PLATFORM_BEST_EFFORT)␛[m$
 $
@@ -170,7 +170,7 @@ $
 $
   [i] Info: No actual changes were made to your system.$
 $
-  [*] Warning: Ubuntu 22.04 is a best-effort release: its vendor$
+  [ ] Warning: Ubuntu 22.04 is a best-effort release: its vendor$
       still supports it and hardn changes it, but hardn is not$
       tested on it (PLATFORM_BEST_EFFORT)$
 $
@@ -262,7 +262,7 @@ $
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its␛[m$
       ␛[38;2;129;134;156mvendor still supports it and hardn changes it, but␛[m$
       ␛[38;2;129;134;156mhardn is not tested on it (PLATFORM_BEST_EFFORT)␛[m$
 $

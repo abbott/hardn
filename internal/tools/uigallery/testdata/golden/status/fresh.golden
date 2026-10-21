@@ -18,7 +18,7 @@ $
    ␛[38;2;231;70;105m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;231;70;105mCritical␛[m ␛[38;2;86;91;107m≈ no security␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
@@ -56,7 +56,7 @@ $
 $
   [ ] User                 Not Configured root only$
   [ ] Firewall             Not Configured ufw not installed$
-  [*] SSH Login            Partial root key-only$
+  [ ] SSH Login            Partial root key-only$
   [ ] SSH Auth             Not Configured password auth on$
   [ ] SSH Port             Not Configured default (22)$
   [+] AppArmor             Configured 7 profiles enforced$
@@ -103,7 +103,7 @@ $
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$

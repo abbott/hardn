@@ -55,8 +55,8 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit status 1␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
       ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
@@ -119,8 +119,8 @@ $
 # ssh.service: host: systemctl reload ssh.service: exit status 1$
 # (COMMAND_FAILED)$
 $
-  [*] Add SSH port 2230             Rolled back$
-  [*] ufw: allow 2230/tcp           Rolled back$
+  [ ] Add SSH port 2230             Rolled back$
+  [ ] ufw: allow 2230/tcp           Rolled back$
 $
       $ systemctl reload ssh.service$
       Job for ssh.service failed because the control process$
@@ -190,9 +190,9 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.service: host: systemctl reload ssh.service: exit␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mstatus 1 (COMMAND_FAILED)␛[m$
 $
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
       ␛[38;2;219;184;83mRolled back␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
       ␛[38;2;219;184;83mRolled back␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$

@@ -15,8 +15,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// The glyphs mode: today's status symbols beside candidate sets, and a
-// strip of each candidate beside ⛛ ⭘ ⛬.
+// The glyphs mode: today's status symbols, the set the maintainer adopted
+// on 2026-10-21, beside the candidate sets set aside, and a strip of each
+// candidate beside ⛛ ⭘ ⛬.
 
 // TestGlyphsGolden renders each set, and the strip, on the core set, and
 // pins what glyphs prints: the note, the section's header, and the set
@@ -71,11 +72,11 @@ func TestGlyphsCurrent(t *testing.T) {
 	}
 }
 
-// TestGlyphsRiskAlone checks the point of the candidate sets, in both glyph
-// sets: the risk icon is on the risk row alone, no mark is the risk icon or
-// ⛛, and a set's marks for the three states differ from one another but
-// where a set folds a state into ⭘ or shows no marker. Today's set shows
-// the risk icon twice, its Partial row's too.
+// TestGlyphsRiskAlone checks the point of every set, today's too since
+// 2026-10-21, in both glyph sets: the risk icon is on the risk row alone,
+// no mark is the risk icon or ⛛, and a set's marks for the three states
+// differ from one another but where a set folds a state into ⭘ or shows no
+// marker.
 func TestGlyphsRiskAlone(t *testing.T) {
 	for _, unicode := range []bool{true, false} {
 		c := component.NewCtx(term.Fixed(80, colorprofile.TrueColor, unicode, true))
@@ -86,15 +87,8 @@ func TestGlyphsRiskAlone(t *testing.T) {
 				rows = append(rows, s.row(c, r))
 			}
 			drawn := ansi.Strip(apart(riskRow(c), strings.Join(rows, "\n")))
-			want := 1
-			if s.name == "current" {
-				want = 2
-			}
-			if n := strings.Count(drawn, g.Risk); n != want {
-				t.Errorf("%s, unicode %t: the risk icon %s %d times, want %d:\n%s", s.name, unicode, g.Risk, n, want, drawn)
-			}
-			if s.name == "current" {
-				continue
+			if n := strings.Count(drawn, g.Risk); n != 1 {
+				t.Errorf("%s, unicode %t: the risk icon %s %d times, want once:\n%s", s.name, unicode, g.Risk, n, drawn)
 			}
 			var seen []string
 			for _, m := range []stateMark{s.partial, s.unknown, s.na} {

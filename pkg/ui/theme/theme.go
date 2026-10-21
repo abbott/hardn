@@ -308,7 +308,11 @@ func build(env term.Env, p *palette) *Theme {
 	bg := func(t token) lipgloss.Style { return lipgloss.NewStyle().Background(c(t)) }
 
 	primary, muted, faint := fg(p.TextPrimary), fg(p.TextMuted), fg(p.TextFaint)
-	ok, bad, warn, unknown := fg(p.StatusOK), fg(p.StatusBad), fg(p.StatusWarn), fg(p.StatusUnknown)
+	ok, bad, warn := fg(p.StatusOK), fg(p.StatusBad), fg(p.StatusWarn)
+	// Unknown is muted wherever it is drawn, as Not Applicable is: its
+	// word and glyph tell it, in no hue of its own (the maintainer,
+	// 2026-10-21; DEV-010).
+	unknown := muted
 	fill := bg(p.BarBG)
 
 	// DEV-005: at 16 colours bar.bg is BrightBlack, the colour of muted

@@ -15,27 +15,26 @@ import (
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
-// The glyphs mode (refactor plan P4, next/p4-glyph-compare): the status
-// rows' symbols, for the maintainer to judge in his own terminal and font.
-// Figma draws three, each with its colour: ⛛ a measure in place
-// (status.ok), ⭘ one off (status.bad), and ⛬ the overall risk level (by
-// band). The states Figma draws no symbol for took ⛬ (Partial), ? (Unknown)
-// and ∅ (Not Applicable) in DEV-012 to DEV-014 and DEV-024, so ⛬ marks
-// Partial as well as the risk level; it also marks warnings, lockout risk
-// and, as Partial, Reboot pending, which this mode does not draw. This
-// mode shows today's set beside candidate sets, built from the measured
-// shortlist, in which ⛬ marks the risk row alone, and a strip of each
-// candidate beside ⛛ ⭘ ⛬ (docs/engine/gallery-glyphs.md).
+// The glyphs mode (refactor plan P4, next/p4-glyph-compare; the adopted
+// set, next/p4-status-glyphs): the status rows' symbols, as the maintainer
+// judged them in a real terminal and font. Figma draws three, each with
+// its colour: ⛛ a measure in place (status.ok), ⭘ one off (status.bad),
+// and ⛬ the overall risk level (by band). The states Figma draws no symbol
+// for took ⛬ (Partial), ? in blue (Unknown) and ∅ (Not Applicable) in
+// Phase 1. On 2026-10-21 the maintainer adopted the trial set this mode
+// showed: Partial ⭘ in status.warn, Unknown ? and Not Applicable – in
+// text.muted, ⛬ on the risk level alone. The current set is that set, as
+// the theme holds it; the others are the candidates set aside, and a strip
+// sets each candidate beside ⛛ ⭘ ⛬ (docs/engine/gallery-glyphs.md).
 //
 // Like compare.go's mock it draws the rows itself, on the components'
 // grid, styled through the theme's slots' Render methods (paint) and
-// measured with x/ansi: no component or theme changed. Its current set
-// draws what RiskSummary and StatusList draw, byte for byte
-// (TestGlyphsCurrent), so that a set differs from it only by its glyphs and
-// colours.
+// measured with x/ansi. Its current set draws what RiskSummary and
+// StatusList draw, byte for byte (TestGlyphsCurrent), so that a set
+// differs from it only by its glyphs and colours.
 
 // glyphsUsage is the glyphs mode's usage line.
-const glyphsUsage = "usage: go run ./internal/tools/uigallery glyphs [flags] [current | figma | diamond | diamond-dot | square | strip | all]..."
+const glyphsUsage = "usage: go run ./internal/tools/uigallery glyphs [flags] [current | power | figma | diamond | diamond-dot | square | strip | all]..."
 
 // stripName names the strip among the arguments.
 const stripName = "strip"
@@ -81,24 +80,25 @@ type glyphSet struct {
 
 // The colour tokens the legends name.
 const (
-	tokenWarn    = "status.warn"
-	tokenUnknown = "status.unknown"
-	tokenMuted   = "text.muted"
+	tokenWarn  = "status.warn"
+	tokenMuted = "text.muted"
 )
 
 // glyphSets returns the sets, in the order "all" shows them: today's, then
-// the candidates, each with ⛬ on the risk row alone. trial is the
-// maintainer's combination of 2026-10-21: Figma's ⭘ in status.warn for
-// Partial, ? and – in text.muted for Unknown and Not Applicable; power is
-// the same with ⏼ U+23FC (power on-off) in status.warn for Partial, which
-// the maintainer asked to see beside it. figma folds the three
-// states into Figma's own glyphs and colours, the reading in which no gap
-// is real; diamond and diamond-dot are the measurements' sets A and B, a
-// new glyph for each state; square takes the heaviest Partial and Unknown
-// candidates and no marker for Not Applicable.
+// the candidates set aside, each with ⛬ on the risk row alone. current is
+// the theme's, the trial set the maintainer adopted on 2026-10-21:
+// Figma's ⭘ in status.warn for Partial, ? and – in text.muted for Unknown
+// and Not Applicable. power is the same with ⏼ U+23FC (power on-off) for
+// Partial, which the maintainer asked to see beside it. figma folds the
+// three states into Figma's own glyphs and colours, the reading in which
+// no gap is real; diamond and diamond-dot are the measurements' sets A and
+// B, a new glyph for each state; square takes the heaviest Partial and
+// Unknown candidates and no marker for Not Applicable. The last three drew
+// Unknown in blue, status.unknown, which left the palette with the
+// adoption, so they draw it in text.muted now.
 func glyphSets() []glyphSet {
 	warn := func(t *theme.Theme) paint { return t.Status.Partial.Render }
-	blue := func(t *theme.Theme) paint { return t.Status.Unknown.Render }
+	unknown := func(t *theme.Theme) paint { return t.Status.Unknown.Render }
 	grey := func(t *theme.Theme) paint { return t.Status.NotApplicable.Render }
 	off := func(g theme.Glyphs) string { return g.NotConfigured }
 	none := stateMark{paint: grey, token: tokenMuted, quiet: true}
@@ -106,14 +106,8 @@ func glyphSets() []glyphSet {
 		{
 			name: "current", title: "Current",
 			partial: stateMark{same: func(g theme.Glyphs) string { return g.Partial }, paint: warn, token: tokenWarn},
-			unknown: stateMark{same: func(g theme.Glyphs) string { return g.Unknown }, paint: blue, token: tokenUnknown},
+			unknown: stateMark{same: func(g theme.Glyphs) string { return g.Unknown }, paint: unknown, token: tokenMuted},
 			na:      stateMark{same: func(g theme.Glyphs) string { return g.NotApplicable }, paint: grey, token: tokenMuted},
-		},
-		{
-			name: "trial", title: "Trial",
-			partial: stateMark{same: off, paint: warn, token: tokenWarn},
-			unknown: stateMark{unicode: "?", ascii: "[?]", paint: grey, token: tokenMuted},
-			na:      stateMark{unicode: "–", ascii: "[-]", paint: grey, token: tokenMuted},
 		},
 		{
 			name: "power", title: "Power",
@@ -130,19 +124,19 @@ func glyphSets() []glyphSet {
 		{
 			name: "diamond", title: "Half diamond",
 			partial: stateMark{unicode: "⬙", ascii: "[~]", paint: warn, token: tokenWarn},
-			unknown: stateMark{unicode: "⁇", ascii: "[?]", paint: blue, token: tokenUnknown},
+			unknown: stateMark{unicode: "⁇", ascii: "[?]", paint: grey, token: tokenMuted},
 			na:      stateMark{unicode: "–", ascii: "[-]", paint: grey, token: tokenMuted},
 		},
 		{
 			name: "diamond-dot", title: "Diamond dot",
 			partial: stateMark{unicode: "◈", ascii: "[~]", paint: warn, token: tokenWarn},
-			unknown: stateMark{unicode: "?", ascii: "[?]", paint: blue, token: tokenUnknown},
+			unknown: stateMark{unicode: "?", ascii: "[?]", paint: grey, token: tokenMuted},
 			na:      stateMark{unicode: "⊟", ascii: "[-]", paint: grey, token: tokenMuted},
 		},
 		{
 			name: "square", title: "Half square",
 			partial: stateMark{unicode: "◧", ascii: "[~]", paint: warn, token: tokenWarn},
-			unknown: stateMark{unicode: "⍰", ascii: "[?]", paint: blue, token: tokenUnknown},
+			unknown: stateMark{unicode: "⍰", ascii: "[?]", paint: grey, token: tokenMuted},
 			na:      none,
 		},
 	}
@@ -162,9 +156,9 @@ var glyphRows = []component.StatusRow{
 	{Label: "Auto Updates", State: component.StatusConfigured, Detail: "unattended-upgrades"},
 }
 
-// glyphRisk is the risk row: Figma's, an amber ⛬ Moderate, where today's
-// Partial is the same glyph in the same colour. Its level is Figma's, not
-// scored from the rows.
+// glyphRisk is the risk row: Figma's, an amber ⛬ Moderate, where Partial
+// was the same glyph in the same colour until 2026-10-21. Its level is
+// Figma's, not scored from the rows.
 var glyphRisk = component.RiskSummary{Band: component.RiskModerate, Gloss: "medium security"}
 
 // markOf returns the set's mark for state st, and false for Configured and
@@ -315,15 +309,16 @@ func (s glyphSet) body(c component.Ctx) string {
 type stripGlyph struct{ glyph, name string }
 
 // glyphStrip is the measured shortlist, by the state each glyph is a
-// candidate for, with today's ? and ∅ for comparison. Warning is the
-// optional fourth gap: ⛬ also marks a warning message today.
+// candidate for, with today's ? and – and Phase 1's ∅ for comparison.
+// Warning was the optional fourth gap: ⛬ marked a warning message until
+// 2026-10-21, and Partial's ⭘ does now.
 var glyphStrip = []struct {
 	state  string
 	glyphs []stripGlyph
 }{
 	{"Partial", []stripGlyph{{"⬙", "diamond, bottom half black"}, {"◈", "diamond in a diamond"}, {"◧", "square, left half black"}, {"⏼", "power on-off"}}},
 	{"Unknown", []stripGlyph{{"⁇", "double question mark"}, {"⍰", "quad question"}, {"?", "question mark (current)"}}},
-	{"Not Applicable", []stripGlyph{{"–", "en dash"}, {"⊟", "squared minus"}, {"⛝", "squared saltire"}, {"∅", "empty set (current)"}}},
+	{"Not Applicable", []stripGlyph{{"–", "en dash (current)"}, {"⊟", "squared minus"}, {"⛝", "squared saltire"}, {"∅", "empty set (before)"}}},
 	{"Warning", []stripGlyph{{"❢", "heavy exclamation mark"}}},
 }
 
@@ -355,16 +350,17 @@ func strip(c component.Ctx) string {
 func glyphsNote(c component.Ctx) []string {
 	g := c.Theme.Glyphs
 	family := g.Configured + " " + g.NotConfigured + " " + g.Risk
-	lists := "Each list is the risk row and Figma's seven rows in all five states. Current is today's glyphs and colours."
+	lists := "Each list is the risk row and Figma's seven rows in all five states."
 	if c.Env.Unicode {
 		lists += " The strip sets each candidate beside " + family + " in one colour, to compare size and weight."
 	}
 	return []string{
-		"Glyphs mode: Figma's " + family + " beside candidates for Partial, Unknown and Not Applicable. " +
-			"In every candidate set " + g.Risk + " marks the risk row alone; its other uses today " +
-			"(lockout risk, warnings, Reboot pending) are not shown.",
+		"Glyphs mode: Figma's " + family + " beside candidates for Partial, Unknown and Not Applicable.",
+		"The current set is the trial set, which the maintainer adopted: Partial " + g.Partial +
+			" in status.warn, Unknown " + g.Unknown + " and Not Applicable " + g.NotApplicable +
+			" in text.muted, " + g.Risk + " on the risk level alone, the lockout-risk lines pending. The other sets were set aside.",
 		lists,
-		"Nothing is decided and no component changed: docs/engine/gallery-glyphs.md.",
+		"See docs/engine/gallery-glyphs.md.",
 	}
 }
 

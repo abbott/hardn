@@ -3,145 +3,145 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-  ␛[1;38;2;219;184;83m[*]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
+  ␛[1;38;2;219;184;83m[ ]␛[m ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNo nameservers configured␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-   ␛[1;38;2;138;97;0m⛬␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+   ␛[1;38;2;138;97;0m⭘␛[m  ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-  ␛[1;38;2;138;97;0m[*]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
+  ␛[1;38;2;138;97;0m[ ]␛[m ␛[1;38;2;138;97;0mWarning:␛[m ␛[38;2;87;92;110mNo nameservers configured␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;179m⛬␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+   ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[1;38;5;179m[*]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
+  ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mWarning:␛[m ␛[38;5;103mNo nameservers configured␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;94m⛬␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+   ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[1;38;5;94m[*]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
+  ␛[1;38;5;94m[ ]␛[m ␛[1;38;5;94mWarning:␛[m ␛[38;5;59mNo nameservers configured␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-   ␛[1;33m⛬␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+   ␛[1;33m⭘␛[m  ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-  ␛[1;33m[*]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
+  ␛[1;33m[ ]␛[m ␛[1;33mWarning:␛[m ␛[90mNo nameservers configured␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-   ␛[1m⛬␛[m  ␛[1mWarning:␛[m No nameservers configured$
+   ␛[1m⭘␛[m  ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-  ␛[1m[*]␛[m ␛[1mWarning:␛[m No nameservers configured$
+  ␛[1m[ ]␛[m ␛[1mWarning:␛[m No nameservers configured$

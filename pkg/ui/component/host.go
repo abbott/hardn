@@ -14,9 +14,9 @@ const rebootPending = "Reboot pending"
 //	0 2   6                    27
 //	  [BOS-SAN-L01]            192.0.2.10
 //	                           182 days, 2 hours, 26 minutes
-//	                           [*] Reboot pending
+//	                           [ ] Reboot pending
 //
-// A value hardn could not read shows "Unknown" in status.unknown; so does
+// A value hardn could not read shows "Unknown" in text.muted; so does
 // an empty hostname, in place of the badge. A badge that reaches the value
 // column stacks the block (DEV-021), and one wider than the content is cut
 // with the ellipsis glyph.
@@ -27,8 +27,8 @@ type HostBlock struct {
 	Address string
 	// Uptime is shown as given, such as "182 days, 2 hours, 26 minutes".
 	Uptime string
-	// RebootPending adds the pending-reboot line: Glyphs.Partial, the
-	// warning marker, and "Reboot pending", in status.warn. P-04 places
+	// RebootPending adds the pending-reboot line: Glyphs.Partial, ⭘ in
+	// Unicode, and "Reboot pending", in status.warn. P-04 places
 	// the flag next to the uptime, which a long uptime leaves no room for
 	// beside the label, so proposal P-21 puts its wording and place to the
 	// maintainer.

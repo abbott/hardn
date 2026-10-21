@@ -9,7 +9,7 @@
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
       ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
@@ -17,7 +17,7 @@ $
       ␛[38;2;129;134;156mis rolled back at about 12:03:00 UTC. To undo it now, run␛[m$
       ␛[38;2;129;134;156msudo hardn rollback 20261019T120000Z-1a2b3c4d.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
       ␛[38;2;129;134;156mis read before 00-hardn.conf, so sshd uses it␛[m$
       ␛[38;2;129;134;156m(SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf:1)␛[m$
@@ -30,7 +30,7 @@ $
   [+] Done: Reload ssh.service, which keeps established sessions$
   [+] Done: Check that sshd listens on 22 and 2230$
 $
-  [*] Warning: This change reverts automatically in 2:45$
+  [ ] Warning: This change reverts automatically in 2:45$
       To keep it, open a new SSH session on port 2230 and run:$
       sudo hardn confirm$
 $
@@ -38,7 +38,7 @@ $
       is rolled back at about 12:03:00 UTC. To undo it now, run$
       sudo hardn rollback 20261019T120000Z-1a2b3c4d.$
 $
-  [*] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
+  [ ] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
       is read before 00-hardn.conf, so sshd uses it$
       (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-$
       init.conf:1)$
@@ -51,7 +51,7 @@ $
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established ses…␛[m$
    ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
       ␛[38;2;192;196;216mrun:␛[m$
       ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
@@ -61,7 +61,7 @@ $
       ␛[38;2;129;134;156mit now, run sudo hardn rollback 20261019T120000Z-␛[m$
       ␛[38;2;129;134;156m1a2b3c4d.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf is read before 00-hardn.conf, so sshd uses␛[m$
       ␛[38;2;129;134;156mit (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf:1)␛[m$
