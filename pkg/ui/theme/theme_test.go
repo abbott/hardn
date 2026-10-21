@@ -242,6 +242,34 @@ func TestColourRoles(t *testing.T) {
 	}
 }
 
+// TestShadeFillOnly holds bar.shade, Figma's #2B2F3B at 1.57:1 on black,
+// which DEV-001 replaced for text, to the fill slots alone: no other slot
+// takes it as its foreground or background (the maintainer, 2026-10-21;
+// DEV-018). It is checked at truecolor, where no other token shares its
+// value; at 256 colours the dark divider is 236 too.
+func TestShadeFillOnly(t *testing.T) {
+	fills := []string{"ContextBar.Fill", "TitleBar.Fill", "Section.Fill"}
+	for _, dark := range []bool{true, false} {
+		for _, unicode := range []bool{true, false} {
+			env := term.Fixed(term.DefaultWidth, colorprofile.TrueColor, unicode, dark)
+			p := lightPalette
+			if dark {
+				p = darkPalette
+			}
+			shade := profileColors(p.BarShade)["truecolor"]
+			for path, s := range slots(New(env)) {
+				fill := slices.Contains(fills, path)
+				if got := s.GetForeground() == shade; got != fill {
+					t.Errorf("%s: %s has bar.shade as its foreground: %t, want %t", envName(env), path, got, fill)
+				}
+				if s.GetBackground() == shade {
+					t.Errorf("%s: %s has bar.shade as its background, want none", envName(env), path)
+				}
+			}
+		}
+	}
+}
+
 // profileKey maps a profile to its key in profileColors.
 func profileKey(p colorprofile.Profile) string {
 	switch p {

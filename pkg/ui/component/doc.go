@@ -54,13 +54,13 @@
 //     when Env.HasColor is false (DEV-018). With no colour there is no
 //     background to paint, so a callout's accent bar is Glyphs.Bar
 //     (DEV-015) and a badge is bracketed by Glyphs.BadgeOpen and
-//     BadgeClose (DEV-019). A state is never shown by
-//     colour alone, at any colour profile: it has a glyph and a word, as a
-//     StatusRow or a Message has them; a word, as a Callout's title has
-//     it, its bar alone being colour; or, on a key-value row, a marker
-//     beside the value that says it, with the value's own words where a
-//     warn and a bad value share ⭘. Where Figma draws a state in colour
-//     only, the word or the marker is added (DEV-032, DEV-034).
+//     BadgeClose (DEV-019). A state is never shown by colour alone, at
+//     any colour profile: it has a glyph and a word, as a StatusRow or a
+//     Message has them; a word, as a Callout's title has it, its bar
+//     alone being colour; or, on a key-value row, a marker beside the
+//     value that says it, with the value's own words where a warn and a
+//     bad value share ⭘. Where Figma draws a state in colour only, the
+//     word or the marker is added (DEV-032, DEV-034).
 //   - States. Each component documents and tests the states that apply to
 //     it: normal, empty, unknown, not applicable and error. A value hardn
 //     could not read shows the word "Unknown" in text.muted, origin/main's

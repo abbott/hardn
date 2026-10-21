@@ -726,23 +726,30 @@ func TestStatusStates(t *testing.T) {
 // sets and at widths that stack and that do not, it is drawn only by
 // RiskSummary, before "Risk Level", each state's component taken from its
 // fixture name. The menu's and the plan's "Lockout risk" lines are
-// warnings and draw Glyphs.Warn (the maintainer, 2026-10-21; DEV-028,
-// DEV-038), which this test sees as any other glyph: drawn there, the icon
-// fails it. No other glyph is the risk icon (pkg/ui/theme's
-// TestRiskGlyphAlone).
+// warnings (the maintainer, 2026-10-21; DEV-028, DEV-038): every line that
+// says it draws Glyphs.Warn before it, and Menu and PlanView each draw one.
+// No other glyph is the risk icon (pkg/ui/theme's TestRiskGlyphAlone).
 func TestRiskGlyphDrawn(t *testing.T) {
 	const owner, words = "risksummary", "Risk Level"
+	warners := []string{"menu", "planview"} // the components with a "Lockout risk" line
 	for _, unicode := range []bool{true, false} {
 		for _, w := range []int{40, 64, 80} {
 			c := NewCtx(term.Fixed(w, colorprofile.TrueColor, unicode, true))
-			icon := c.Theme.Glyphs.Risk
-			seen, lockout := false, false
+			icon, warn := c.Theme.Glyphs.Risk, c.Theme.Glyphs.Warn
+			seen, warned := false, map[string]bool{}
 			for _, s := range fixture.States() {
 				comp, _, _ := strings.Cut(s.Name, "/")
 				out := ansi.Strip(s.VM.Render(c))
 				for _, l := range strings.Split(out, "\n") {
 					before, _, ok := strings.Cut(l, LockoutRisk)
-					lockout = lockout || ok && strings.HasSuffix(strings.TrimRight(before, " "), c.Theme.Glyphs.Warn)
+					if !ok {
+						continue
+					}
+					if !strings.HasSuffix(strings.TrimRight(before, " "), warn) {
+						t.Errorf("%s, unicode %t, width %d: %q not after the warning glyph %q: %q", s.Name, unicode, w, LockoutRisk, warn, l)
+						continue
+					}
+					warned[comp] = true
 				}
 				for rest := out; ; {
 					i := strings.Index(rest, icon)
@@ -761,8 +768,10 @@ func TestRiskGlyphDrawn(t *testing.T) {
 			if !seen {
 				t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, owner, words)
 			}
-			if !lockout {
-				t.Errorf("unicode %t, width %d: no state drew %q after the warning glyph %q", unicode, w, LockoutRisk, c.Theme.Glyphs.Warn)
+			for _, comp := range warners {
+				if !warned[comp] {
+					t.Errorf("unicode %t, width %d: no %s state drew %q after the warning glyph %q", unicode, w, comp, LockoutRisk, warn)
+				}
 			}
 		}
 	}

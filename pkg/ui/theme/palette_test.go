@@ -81,10 +81,11 @@ func TestTokensComplete(t *testing.T) {
 // contrastFloors are the WCAG contrast minimums of each token against the
 // page background, by palette. Tokens with no floor are listed with 0: the
 // bar and badge backgrounds are surfaces, the bars' shade is a fill
-// (TestShadeBetweenBarAndDivider), and badge text is checked against the
-// badge instead. The dark divider's floor is lower: a rule is
-// decorative, the blank lines around it already part the blocks, and it is
-// kept quieter than the faintest text (TestDividerBelowFaint; DEV-002).
+// (TestShadeBetweenBarAndDivider, TestShadeFillOnly), and badge text is
+// checked against the badge instead. The dark divider's floor is lower: a
+// rule is decorative, the blank lines around it already part the blocks,
+// and it is kept quieter than the faintest text (TestDividerBelowFaint;
+// DEV-002).
 var contrastFloors = map[string]map[string]float64{
 	"dark": {
 		"text.primary": 7, "text.muted": 4.5, "text.faint": 3,

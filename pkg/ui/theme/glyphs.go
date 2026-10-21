@@ -74,8 +74,8 @@ type Glyphs struct {
 
 // unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-024,
 // DEV-031 and DEV-038 to DEV-041 for the glyphs Figma does not draw,
-// DEV-019 for the badge brackets, DEV-018 for the bars' shade). Partial, Warn, Unknown and
-// NotApplicable are the maintainer's of 2026-10-21.
+// DEV-019 for the badge brackets, DEV-018 for the bars' shade). Partial,
+// Warn, Unknown and NotApplicable are the maintainer's of 2026-10-21.
 var unicodeGlyphs = Glyphs{
 	Configured:    "⛛",
 	NotConfigured: "⭘",
