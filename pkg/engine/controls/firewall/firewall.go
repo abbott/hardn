@@ -48,6 +48,16 @@ const (
 	CodeLocalOnly = "FIREWALL_PVE_LOCAL_ONLY"
 )
 
+// Three of the row's Partial details (proposed wording,
+// check-firewall.md §5): a firewall that is on and refuses nothing no rule
+// denies. Exported so that the risk level (next/p4-risk) tells them apart
+// from the other Partial lines without a copy of the wording.
+const (
+	DetailAllowPolicy  = "allow policy"      // ufw: default allow incoming
+	DetailAllPorts     = "all ports allowed" // ufw: a rule that opens every port
+	DetailAcceptPolicy = "accept policy"     // pve-firewall: policy_in ACCEPT
+)
+
 // Controls are the firewall controls in Figma's order: Firewall.
 func Controls() []engine.Control { return []engine.Control{Incoming{}} }
 

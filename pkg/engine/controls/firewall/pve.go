@@ -52,7 +52,7 @@ func checkPVE(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		set(engine.Unknown, "can't read")
 		return out, fw.Err
 	case fw.PolicyIn == "ACCEPT":
-		set(engine.Partial, "accept policy")
+		set(engine.Partial, DetailAcceptPolicy)
 	case fw.SSH != pve.ReachManagement:
 		set(engine.Unknown, "ssh may be blocked")
 	case fw.Web != pve.ReachManagement:
