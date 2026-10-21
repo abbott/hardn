@@ -369,3 +369,23 @@ func systemctl(ctx context.Context, sys host.System, verb, unit string) (string,
 	}
 	return state, nil
 }
+
+// The readers above, exported for the status controls (next/p4-check-apparmor:
+// apparmor.service, and OpenRC's apparmor), so that a check reads a unit's
+// or a service's state by the rules DetectSSH uses rather than a copy of
+// them.
+
+// SystemctlState runs systemctl verb unit, verb is-enabled or is-active,
+// and returns the state it printed: an exit status with a documented state
+// is an answer, any other state is ErrUnrecognised. UnitState's IsEnabled
+// and IsActive read it as a fact.
+func SystemctlState(ctx context.Context, sys host.System, verb, unit string) (string, error) {
+	return systemctl(ctx, sys, verb, unit)
+}
+
+// ServiceRunlevels lists the OpenRC runlevels service is added to, as
+// DetectSSH reads sshd's: Yes with them, No for none, Unknown with the
+// error when an entry cannot be checked and none was found.
+func ServiceRunlevels(ctx context.Context, sys host.System, service string) ([]string, Tri, error) {
+	return runlevels(ctx, sys, service)
+}
