@@ -348,6 +348,9 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
 | `APPARMOR_GLOBAL_MODE_UNKNOWN` | AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established ([check-apparmor.md](../engine/check-apparmor.md)) |
 | `APPARMOR_BOOT_UNKNOWN` | AppArmor's service is in a state that does not say whether it loads the profiles at the next boot ([check-apparmor.md](../engine/check-apparmor.md)) |
+| `UPDATES_APT_VALUE_UNKNOWN` | an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_SCHEDULE_UNKNOWN` | whether apt's timers run its daily job is not established: a timer in a state that does not say, or a host systemd did not boot ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin names Proxmox, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 

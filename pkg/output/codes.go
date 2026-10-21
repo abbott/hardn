@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -401,6 +402,10 @@ var findingCodes = []Entry{
 	// The AppArmor control's own (next/p4-check-apparmor).
 	finding(apparmor.CodeGlobalModeUnknown, "AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established"),
 	finding(apparmor.CodeBootUnknown, "AppArmor's service is in a state that does not say whether it loads the profiles at the next boot"),
+	// The Auto Updates control's own (next/p4-check-updates).
+	finding(updates.CodeAptValueUnknown, "an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established"),
+	finding(updates.CodeScheduleUnknown, "whether apt's timers run its daily job is not established: a timer in a state that does not say, or a host systemd did not boot"),
+	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin names Proxmox, so Proxmox VE's own packages are not upgraded"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a
