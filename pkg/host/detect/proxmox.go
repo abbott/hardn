@@ -77,11 +77,16 @@ func DetectProxmox(ctx context.Context, sys host.System) Proxmox {
 	return p
 }
 
-// pveManager asks dpkg for pve-manager's status. A host without dpkg-query
-// cannot have a dpkg package installed; exit 1 is dpkg-query's "no packages
-// found" (dpkg-query(1), EXIT STATUS).
+// pveManager asks dpkg for pve-manager's status.
 func pveManager(ctx context.Context, sys host.System) (Tri, string, error) {
-	res, err := sys.Run(ctx, "dpkg-query", "--show", "--showformat="+pveShowFormat, "pve-manager")
+	return dpkgStatus(ctx, sys, "pve-manager")
+}
+
+// dpkgStatus asks dpkg for pkg's status and version. A host without
+// dpkg-query cannot have a dpkg package installed; exit 1 is dpkg-query's
+// "no packages found" (dpkg-query(1), EXIT STATUS).
+func dpkgStatus(ctx context.Context, sys host.System, pkg string) (Tri, string, error) {
+	res, err := sys.Run(ctx, "dpkg-query", "--show", "--showformat="+pveShowFormat, pkg)
 	var xe *host.ExitError
 	switch {
 	case errors.Is(err, host.ErrNotFound):
@@ -101,7 +106,7 @@ func pveManager(ctx context.Context, sys host.System) (Tri, string, error) {
 			return No, "", nil
 		}
 	}
-	return Unknown, "", fmt.Errorf("dpkg-query: pve-manager status %q: %w", status, ErrUnrecognised)
+	return Unknown, "", fmt.Errorf("dpkg-query: %s status %q: %w", pkg, status, ErrUnrecognised)
 }
 
 // pmxcfs reads the mount table for a FUSE file system at /etc/pve, the last
@@ -165,4 +170,16 @@ func unescapeOctal(s string) string {
 		b.WriteByte(s[i])
 	}
 	return b.String()
+}
+
+// DpkgInstalled asks dpkg whether pkg is installed, by the rule DetectProxmox
+// reads pve-manager with (exported for the status controls,
+// next/p4-check-updates): Yes for the status "installed"; No for
+// "not-installed" or "config-files" (removed, its configuration files
+// kept), for no such package, and on a host without dpkg-query; Unknown
+// with the error for any other status (half-installed, unpacked, ...) and
+// for a dpkg-query that fails otherwise.
+func DpkgInstalled(ctx context.Context, sys host.System, pkg string) (Tri, error) {
+	t, _, err := dpkgStatus(ctx, sys, pkg)
+	return t, err
 }

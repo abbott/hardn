@@ -390,3 +390,11 @@ func SystemctlIsEnabled(ctx context.Context, sys host.System, unit string) (stri
 func ServiceRunlevels(ctx context.Context, sys host.System, service string) ([]string, Tri, error) {
 	return runlevels(ctx, sys, service)
 }
+
+// SystemctlIsActive runs systemctl is-active unit, and no other verb, and
+// returns the state it printed, by SystemctlIsEnabled's rule
+// (next/p4-check-updates: whether apt's timers are running now). What the
+// state means is the caller's: UnitState.IsActive is one reading.
+func SystemctlIsActive(ctx context.Context, sys host.System, unit string) (string, error) {
+	return systemctl(ctx, sys, "is-active", unit)
+}
