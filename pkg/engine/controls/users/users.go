@@ -10,15 +10,18 @@
 // tool's own check passes its files (sudoers.CheckInstalled: visudo -c,
 // doas -C), each tool's rules in the order the tool reads them
 // (sudoers.Choose and sudoers.Read, then the files). The last rule that
-// matches decides, as in sudo and doas; hardn reads one form of grant per
-// tool (rules.go), and any other rule after it that may be for the user,
-// or a sudo Defaults that may change how it asks a password, leaves the
-// answer Unknown. A read that fails is the check's error, which the
-// engine reports as Unknown; what it read but cannot establish a state
-// from is Unknown with findings: never a guess. Beside the grant that
-// makes the row Configured, every grant without a password and every
-// grant not established is a finding (exposure), which the risk level
-// weighs: a grant hardn cannot read is never silence.
+// matches decides, as in sudo and doas, for each request; hardn reads one
+// form of grant per tool (rules.go), and any other rule after it that may
+// be for the user, or a sudo Defaults that may change how it asks a
+// password, leaves the answer Unknown. A read that fails is the check's
+// error, which the engine reports as Unknown; what it read but cannot
+// establish a state from is Unknown with findings: never a guess. Beside
+// the grant that makes the row Configured, every grant without a password
+// and every grant not established of an account the row counts (uid
+// MinUID or more, that may log in) is a finding (exposure), which the
+// risk level weighs: for those accounts, a grant hardn cannot read is
+// never silence. Other accounts, and NSS's, are not looked at
+// (check-users.md §6).
 // docs/engine/check-users.md has every status line the row can show.
 package users
 
@@ -44,15 +47,19 @@ import (
 const (
 	// CodeNoPassword: with Configured, an account that may log in (uid
 	// MinUID or more; a login shell, or one whose stat failed) becomes
-	// root without a password (sudo's NOPASSWD, doas's nopass). Accounts
-	// below MinUID are not looked at.
+	// root without a password (sudo's NOPASSWD, doas's nopass), by the
+	// rule that decides or by one before it that still decides some
+	// requests (another group, another target user). Accounts below
+	// MinUID are not looked at.
 	CodeNoPassword = "USERS_NOPASSWD"
 	// CodeRuleNotRead: whether an account that may log in becomes root,
 	// or how sudo asks it a password, is not established: a rule in a
 	// form hardn does not read that may be for it comes after the last
 	// one it reads that matches, or a sudo Defaults may change how sudo
 	// asks it a password; or, beside the grant that makes the row
-	// Configured, a tool's rules are not read at all.
+	// Configured, a tool's rules are not read at all, or such a rule
+	// comes before the one that decides and may still decide some
+	// requests.
 	CodeRuleNotRead = "USERS_RULE_NOT_READ"
 	// CodeUID0: an account other than root has uid 0, so it is root.
 	CodeUID0 = "USERS_UID0"
@@ -207,7 +214,7 @@ func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (en
 			case g.err != nil && err == nil:
 				err, st.Detail = g.err, tools[i].detail
 			case g.err == nil:
-				st.Findings = append(st.Findings, notRead(tools[i], c, g))
+				st.Findings = append(st.Findings, notRead(tools[i], c, g.by.at))
 				if st.Detail == "" {
 					st.Detail = "can't tell who has " + tools[i].name
 				}
@@ -226,23 +233,31 @@ func verdict(st engine.Status, f detect.Facts, tools []tool, cs []candidate) (en
 }
 
 // exposure is what a Configured or Partial row reports beside its state,
-// for the risk level: for every account that may log in (a login shell,
-// or one whose stat failed) and every tool, a grant without a password
-// (CodeNoPassword) and a grant not established (CodeRuleNotRead). They
-// cannot undo the grant that makes the row Configured: another tool's
-// rules, or a rule for another account, cannot take it away, and a rule
-// not read after it that may be for its account leaves it Unknown
-// (decide). They say who else may become root, and whether without a
-// password. A Partial row has every grant established No, so none.
+// for the risk level: for every candidate that may log in (a login
+// shell, or one whose stat failed) and every tool, a grant without a
+// password (CodeNoPassword), by the deciding rule or one before it that
+// still decides some requests (decide), and a grant not established, or
+// such a rule before it not read (CodeRuleNotRead). They cannot undo the
+// grant that makes the row Configured: another tool's rules, or a rule
+// for another account, cannot take it away; a rule before it decides
+// only requests it does not match (sudo's -g), and a rule not read after
+// it that may be for its account leaves it Unknown. They say who else
+// may become root, and whether without a password. A Partial row has
+// every grant established No, so none.
 func exposure(tools []tool, cs []candidate) []engine.Finding {
 	var fs []engine.Finding
 	for _, c := range cs {
 		for i, g := range c.grants {
-			switch {
-			case g.tri == detect.Yes && g.nopass:
-				fs = append(fs, engine.Finding{Code: CodeNoPassword, Detail: c.Name + ": " + tools[i].name + " without password", Source: g.by.at})
-			case g.tri == detect.Unknown:
-				fs = append(fs, notRead(tools[i], c, g))
+			switch g.tri {
+			case detect.Yes:
+				if g.nopass {
+					fs = append(fs, engine.Finding{Code: CodeNoPassword, Detail: c.Name + ": " + tools[i].name + " without password", Source: g.nopassAt})
+				}
+				if g.openAt != "" {
+					fs = append(fs, notRead(tools[i], c, g.openAt))
+				}
+			case detect.Unknown:
+				fs = append(fs, notRead(tools[i], c, g.by.at))
 			}
 		}
 	}
@@ -252,8 +267,8 @@ func exposure(tools []tool, cs []candidate) []engine.Finding {
 // notRead is the finding for t's grant to c, not established: at the rule
 // or Defaults that leaves it open, or with no source when t's rules are
 // not read (the evidence says why).
-func notRead(t tool, c candidate, g grant) engine.Finding {
-	return engine.Finding{Code: CodeRuleNotRead, Detail: "may decide " + t.name + " for " + c.Name, Source: g.by.at}
+func notRead(t tool, c candidate, at string) engine.Finding {
+	return engine.Finding{Code: CodeRuleNotRead, Detail: "may decide " + t.name + " for " + c.Name, Source: at}
 }
 
 // installed names the tools installed, for Partial's detail; when none
