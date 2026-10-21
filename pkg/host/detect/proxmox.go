@@ -183,3 +183,10 @@ func DpkgInstalled(ctx context.Context, sys host.System, pkg string) (Tri, error
 	t, _, err := dpkgStatus(ctx, sys, pkg)
 	return t, err
 }
+
+// DpkgVersion asks dpkg for pkg's status and version, by DpkgInstalled's
+// rule (exported for the header probe, next/p4-header): the version is
+// dpkg's, as written, when the status is Yes, and "" otherwise.
+func DpkgVersion(ctx context.Context, sys host.System, pkg string) (Tri, string, error) {
+	return dpkgStatus(ctx, sys, pkg)
+}
