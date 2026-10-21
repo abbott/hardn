@@ -3,7 +3,6 @@ package ssh
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -34,15 +33,15 @@ func (Port) Applies(detect.Facts) (bool, string) { return true, "" }
 
 // Check reads the configured listener set (sshd.ReadEffective), which must
 // be established (Listeners.Known), and the bound sockets (ss -Htln): a
-// configured listener that is not bound is Unknown, since the configuration
-// is then not what accepts connections. Without ss (Alpine does not ship
-// it) the configured set stands, and the evidence says so. On Proxmox VE,
+// configured listener that is not bound, or off Proxmox VE a socket bound
+// on 22 that no configured listener is on, is Unknown, since the
+// configuration is then not what accepts connections. Without ss: Unknown
+// on a socket-activated host, where sshd -T and ssh.socket agree after a
+// daemon-reload whatever is bound (reload.CheckInEffect refuses it too);
+// elsewhere (a stock Alpine is said not to ship ss, [unverified]) the
+// configured set stands, and the evidence says so. On Proxmox VE,
 // pve.CheckSSH's Port22. docs/engine/check-ssh.md lists each status line.
 func (Port) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
-	onPVE, err := pve.Applies(f.Proxmox)
-	if err != nil {
-		return engine.Status{State: engine.Unknown, Detail: "can't tell if Proxmox"}, err
-	}
 	r, err := read(ctx, sys, f)
 	if err != nil {
 		return failed(f.SSH, err)
@@ -52,24 +51,29 @@ func (Port) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	if !l.Known {
 		return unknown(listenersUnknown(f.SSH, r), st.Evidence, append(st.Findings, r.unknowns("port", "listenaddress")...)), nil
 	}
-	bound, bad, err := reload.ReadBound(ctx, sys)
+	ports := l.Ports()
+	b, err := readBound(ctx, sys, l)
 	switch {
+	case errors.Is(err, host.ErrNotFound) && f.SSH.Mode == detect.SSHSocket:
+		st.State, st.Detail = engine.Unknown, "ss not installed"
+		return st, err
 	case errors.Is(err, host.ErrNotFound):
 		st.Evidence = append(st.Evidence, "ss: not installed, so the bound sockets are not read")
 	case err != nil:
 		st.State, st.Detail = engine.Unknown, "can't read"
 		return st, err
 	default:
-		st.Evidence = append(st.Evidence, "ss -Htln: "+boundOn(bound, l.Ports()))
-		if missing := reload.Unbound(l.All, bound); len(missing) > 0 {
-			d := fmt.Sprintf("%v configured, not bound: not in effect (an edit not reloaded, or ssh.socket not restarted)", missing)
-			if len(bad) > 0 {
-				d += fmt.Sprintf("; ss lines not read: %q", bad)
-			}
-			st.Findings = append(st.Findings, engine.Finding{Code: CodeNotInEffect, Detail: d, Source: "ss -Htln"})
-			st.State, st.Detail = engine.Unknown, "not listening on "+portList(portsOf(missing))
+		st.Evidence = append(st.Evidence, "ss -Htln: "+b.on(with22(ports)))
+		if len(b.missing) > 0 {
+			st.Findings = append(st.Findings, b.notInEffect(f.SSH.Mode))
+			st.State, st.Detail = engine.Unknown, notListening(b)
 			return st, nil
 		}
+	}
+	onPVE, err := pve.Applies(f.Proxmox)
+	if err != nil {
+		st.State, st.Detail = engine.Unknown, "can't tell if Proxmox"
+		return st, err
 	}
 	if onPVE {
 		chk, err := r.proxmox(ctx, sys, f.Proxmox, false)
@@ -78,34 +82,64 @@ func (Port) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 			return st, err
 		}
 		st.Findings = pveFindings(st.Findings, chk.Findings, pve.FindingPortNot22)
-		switch chk.Port22 {
-		case detect.Yes:
-			st.State, st.Detail = engine.Configured, "22, as Proxmox needs"
-		case detect.No:
-			st.State, st.Detail = engine.NotConfigured, "Proxmox needs 22 only"
+		switch _, d := portState(ports); {
+		case chk.Port22 == detect.Yes:
+			st.State, st.Detail = engine.Configured, d
+		case chk.Port22 == detect.No && slices.Equal(ports, []uint16{22}): // all on 22, another Port line
+			st.State, st.Detail = engine.NotConfigured, "other ports configured"
+		case chk.Port22 == detect.No:
+			st.State, st.Detail = engine.NotConfigured, d
 		default:
 			st.State, st.Detail = engine.Unknown, "can't read"
 		}
 		return st, nil
 	}
-	ports := l.Ports()
+	if !slices.Contains(ports, 22) && slices.ContainsFunc(b.all, func(x reload.Bound) bool { return x.Port == 22 }) {
+		st.Findings = append(st.Findings, engine.Finding{Code: Code22Bound, Source: "ss -Htln",
+			Detail: b.on([]uint16{22}) + " bound, not configured: sshd not reloaded since 22 was dropped, or another program on 22"})
+		st.State, st.Detail = engine.Unknown, "22 still open"
+		return st, nil
+	}
+	st.State, st.Detail = portState(ports)
+	return st, nil
+}
+
+// portState is the state of listeners on ports off Proxmox VE, and the
+// detail that names them.
+func portState(ports []uint16) (engine.State, string) {
 	others := slices.DeleteFunc(slices.Clone(ports), func(p uint16) bool { return p == 22 })
 	switch {
 	case len(others) == len(ports):
-		st.State, st.Detail = engine.Configured, "non-default ("+portList(others)+")"
+		return engine.Configured, "non-default (" + portList(others) + ")"
 	case len(others) == 0:
-		st.State, st.Detail = engine.NotConfigured, "default (22)"
-	default: // 22 still open beside the new port: during a confirm window, say
-		st.State, st.Detail = engine.Partial, "22 and "+portList(others)
+		return engine.NotConfigured, "default (22)"
 	}
-	return st, nil
+	return engine.Partial, "22 and " + portList(others) // 22 still open beside the new port: a confirm window, say
+}
+
+// notListening is the detail of b.missing: the ports no socket is bound
+// on, or, where each is bound on another address only, that.
+func notListening(b bound) string {
+	ports := portsOf(b.missing)
+	none := slices.DeleteFunc(slices.Clone(ports), func(p uint16) bool {
+		return slices.ContainsFunc(b.all, func(x reload.Bound) bool { return x.Port == p })
+	})
+	if len(none) > 0 {
+		return "not listening on " + portList(none)
+	}
+	return portList(ports) + " on another address"
 }
 
 // listenersUnknown says why the configured listeners are not established,
 // as far as detect's facts and ReadEffective's findings show it
-// (sshd-effective.md §2.5, §2.6a).
+// (sshd-effective.md §2.5, §2.6a): a disagreement counts only for the
+// keyword it names.
 func listenersUnknown(s detect.SSH, r reading) string {
-	disagree := slices.ContainsFunc(r.found, func(f sshd.Finding) bool { return f.Kind == sshd.FindingDisagree })
+	differ := func(k string) bool {
+		return slices.ContainsFunc(r.found, func(f sshd.Finding) bool {
+			return f.Kind == sshd.FindingDisagree && slices.Contains(names(f.Detail), k)
+		})
+	}
 	switch {
 	case s.Mode == detect.SSHUnknown:
 		return "can't tell what listens"
@@ -114,9 +148,9 @@ func listenersUnknown(s detect.SSH, r reading) string {
 	case s.Mode == detect.SSHService && s.Service.IsActive() != detect.Yes,
 		s.Mode == detect.SSHOpenRC && s.OpenRC.Started != detect.Yes:
 		return "sshd not running"
-	case disagree && !r.eff.Port.Known:
+	case !r.eff.Port.Known && differ("port"):
 		return "files and sshd differ"
-	case disagree:
+	case s.Mode == detect.SSHSocket && differ("listenaddress"):
 		return "socket and sshd differ"
 	}
 	return "can't read"
@@ -143,18 +177,15 @@ func listeners(ls []sshd.Listener) string {
 	return strings.Join(s, " ")
 }
 
-// boundOn lists the bound sockets on one of ports.
-func boundOn(bound []reload.Bound, ports []uint16) string {
-	var s []string
-	for _, b := range bound {
-		if slices.Contains(ports, b.Port) {
-			s = append(s, b.String())
-		}
+// with22 is ports with 22, ascending: the ports whose bound sockets the
+// evidence lists.
+func with22(ports []uint16) []uint16 {
+	if slices.Contains(ports, 22) {
+		return ports
 	}
-	if len(s) == 0 {
-		return "none on " + portList(ports)
-	}
-	return strings.Join(s, " ")
+	out := append(slices.Clone(ports), 22)
+	slices.Sort(out)
+	return out
 }
 
 // portsOf lists ls's ports, ascending, each once.

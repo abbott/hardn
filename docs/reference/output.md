@@ -344,6 +344,8 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
 | `SSH_MATCH_ALLOWS_MORE` | a Match block lets in more than the global value does (root's login, a password), for the connections it matches ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PORT_NOT_IN_EFFECT` | a listener sshd's configuration names is not bound: the configuration is not in effect ([check-ssh.md](../engine/check-ssh.md)) |
+| `SSH_MATCH_VALUE_UNKNOWN` | a Match block sets a value hardn does not rank, so what it lets in is not established ([check-ssh.md](../engine/check-ssh.md)) |
+| `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 

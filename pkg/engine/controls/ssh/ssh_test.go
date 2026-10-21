@@ -89,6 +89,8 @@ type site struct {
 	edit   func(string) string
 	failT  *hostfake.Response // sshd -T fails with this
 	ssErr  *hostfake.Response // ss fails with this
+	ssBad  string             // a LISTEN line ss prints that is not read
+	files  map[string]string  // other files: path, content
 	facts  func(*detect.Facts)
 }
 
@@ -122,6 +124,9 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	}
 	f.AddUser(host.User{Name: "root", UID: 0, GID: 0, HomeDir: "/root"})
 	f.AddFile("/etc/group", []byte("root:x:0:\nsudo:x:27:alice\n"), 0o644, 0, 0)
+	for name, data := range s.files {
+		f.AddFile(name, []byte(data), 0o644, 0, 0)
+	}
 	out, ls := sshdT(s.plat.old, []byte(main), drops)
 	if s.edit != nil {
 		out = s.edit(out)
@@ -157,7 +162,7 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 		case cmd == "ss -Htln" && s.ssErr != nil:
 			return *s.ssErr
 		case cmd == "ss -Htln":
-			return hostfake.Response{Stdout: ss(bound, s.plat.socket)}
+			return hostfake.Response{Stdout: ss(bound, s.plat.socket) + s.ssBad}
 		}
 		t.Errorf("unexpected command %q", cmd)
 		return hostfake.Response{Err: hostfake.ErrUnscripted}
@@ -279,6 +284,23 @@ func ss(socks []string, dual bool) string {
 	return b.String()
 }
 
+// noSS is p without ss.
+func noSS(p platform) platform {
+	p.noSS = true
+	return p
+}
+
+// dropListen is an edit of sshd -T's output: no listenaddress line.
+func dropListen(out string) string {
+	var ls []string
+	for _, l := range strings.Split(out, "\n") {
+		if !strings.HasPrefix(l, "listenaddress ") {
+			ls = append(ls, l)
+		}
+	}
+	return strings.Join(ls, "\n")
+}
+
 // replace is an edit of sshd -T's output: the line of keyword k says v.
 func replace(k, v string) func(string) string {
 	return func(out string) string {
@@ -311,8 +333,8 @@ func run(t *testing.T, r row) engine.Status {
 	if code := codeOf(err); code != r.err {
 		t.Errorf("error %v: code %q, want %q", err, code, r.err)
 	}
-	if err != nil {
-		st.State = engine.Unknown // as Engine.Check reports it
+	if err != nil && st.State != engine.Unknown {
+		t.Errorf("an error with %s %q: a failed read is Unknown", st.State, st.Detail)
 	}
 	if st.State != r.state || st.Detail != r.want {
 		t.Errorf("%s %q, want %s %q (evidence %q, findings %v)", st.State, st.Detail, r.state, r.want, st.Evidence, st.Findings)
@@ -393,7 +415,7 @@ func TestStock(t *testing.T) {
 		{"debian13", site{plat: debian13()}, [3]line{{engine.Partial, "root key-only"}, {engine.NotConfigured, "password auth on"}, {engine.NotConfigured, "default (22)"}}, [3][]string{}},
 		{"ubuntu2604", site{plat: ubuntu2604()}, [3]line{{engine.Partial, "root key-only"}, {engine.NotConfigured, "password auth on"}, {engine.NotConfigured, "default (22)"}}, [3][]string{}},
 		{"alpine324", site{plat: alpine324()}, [3]line{{engine.Partial, "root key-only"}, {engine.NotConfigured, "password auth on"}, {engine.NotConfigured, "default (22)"}}, [3][]string{}},
-		{"pve9", site{plat: pve9()}, [3]line{{engine.NotConfigured, "root allowed"}, {engine.NotConfigured, "password auth on"}, {engine.Configured, "22, as Proxmox needs"}},
+		{"pve9", site{plat: pve9()}, [3]line{{engine.NotConfigured, "root allowed"}, {engine.NotConfigured, "password auth on"}, {engine.Configured, "default (22)"}},
 			[3][]string{{"PVE_ROOT_NOT_KEY_ONLY"}}},
 		{"debian13 hardened", site{plat: debian13(), drops: drops("00-hardn.conf", hardened)},
 			[3]line{{engine.Configured, "root disallowed"}, {engine.Configured, "key-only auth"}, {engine.Configured, "non-default (2230)"}}, [3][]string{}},
@@ -402,7 +424,7 @@ func TestStock(t *testing.T) {
 		{"alpine324 hardened", site{plat: alpine324(), drops: drops("00-hardn.conf", hardened)},
 			[3]line{{engine.Configured, "root disallowed"}, {engine.Configured, "key-only auth"}, {engine.Configured, "non-default (2230)"}}, [3][]string{}},
 		{"pve9 hardened", site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened)},
-			[3]line{{engine.Configured, "root key-only (Proxmox)"}, {engine.Configured, "key-only auth"}, {engine.Configured, "22, as Proxmox needs"}},
+			[3]line{{engine.Configured, "root key-only (Proxmox)"}, {engine.Configured, "key-only auth"}, {engine.Configured, "default (22)"}},
 			[3][]string{{"PVE_PROXMOX_ROOT_LOGIN"}}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -457,6 +479,54 @@ func TestEvidence(t *testing.T) {
 	}
 }
 
+// TestFindingText: the findings' details and evidence as one line each,
+// the listeners as the evidence lists them, ssh.socket named only where it
+// listens.
+func TestFindingText(t *testing.T) {
+	detail := func(st engine.Status, code string) string {
+		for _, f := range st.Findings {
+			if f.Code == code {
+				return f.Detail
+			}
+		}
+		return ""
+	}
+	st := run(t, row{ctl: port, site: site{plat: debian13(), drops: drops("10-site.conf", "ListenAddress 192.0.2.10:2230\n"), bound: []string{"0.0.0.0:22"},
+		ssBad: "LISTEN 0      4096   bogus   0.0.0.0:*\n"}, state: engine.Unknown, want: "not listening on 2230", codes: []string{ssh.CodeNotInEffect}})
+	if d, want := detail(st, ssh.CodeNotInEffect), `192.0.2.10:2230 configured, not bound: not in effect (an edit not reloaded); ss lines not read: ["LISTEN 0      4096   bogus   0.0.0.0:*"]`; d != want {
+		t.Errorf("ssh.service: %q, want %q", d, want)
+	}
+	st = run(t, row{ctl: port, site: site{plat: ubuntu2604(), drops: drops("10-site.conf", "Port 2230\n"), bound: []string{"[::]:22"}},
+		state: engine.Unknown, want: "not listening on 2230", codes: []string{ssh.CodeNotInEffect}})
+	if d := detail(st, ssh.CodeNotInEffect); !strings.HasSuffix(d, "(ssh.socket not restarted after daemon-reload)") {
+		t.Errorf("ssh.socket: %q", d)
+	}
+	st = run(t, row{ctl: port, site: site{plat: debian13(), drops: drops("00-hardn.conf", "Port 2230\n"), bound: []string{"[::]:22", "0.0.0.0:2230", "[::]:2230"}},
+		state: engine.Unknown, want: "22 still open", codes: []string{ssh.Code22Bound}})
+	if d, want := detail(st, ssh.Code22Bound), "[::]:22 bound, not configured: sshd not reloaded since 22 was dropped, or another program on 22"; d != want {
+		t.Errorf("22: %q, want %q", d, want)
+	}
+	if !slices.Contains(st.Evidence, "ss -Htln: [::]:22 0.0.0.0:2230 [::]:2230") {
+		t.Errorf("22: evidence %q, without the socket on 22", st.Evidence)
+	}
+	st = run(t, row{ctl: login, site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin no\nMatch User alice\n\tPermitRootLogin yes\n")},
+		state: engine.Partial, want: "match block allows root", codes: []string{ssh.CodeMatchAllowsMore}})
+	if d, want := detail(st, ssh.CodeMatchAllowsMore), `"PermitRootLogin yes" under "Match User alice"`; d != want {
+		t.Errorf("match: %q, want %q", d, want)
+	}
+	if want := "/etc/ssh/sshd_config.d/10-site.conf:3: PermitRootLogin yes (Match User alice)"; !slices.Contains(st.Evidence, want) {
+		t.Errorf("match: evidence %q, want %q in it", st.Evidence, want)
+	}
+	// Proxmox VE: what root's key login was read from.
+	st = run(t, row{ctl: login, site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened)},
+		state: engine.Configured, want: "root key-only (Proxmox)", codes: []string{"PVE_PROXMOX_ROOT_LOGIN"}})
+	for _, want := range []string{"sshd -T: permitrootlogin without-password", "sshd -T: no denyusers", "sshd -T: authenticationmethods any", "sshd -T: listenaddress [::]:22"} {
+		if !slices.Contains(st.Evidence, want) {
+			t.Errorf("pve: evidence %q, without %q", st.Evidence, want)
+		}
+	}
+}
+
 func TestLogin(t *testing.T) {
 	match := "Match Address 192.0.2.0/24\n\tPermitRootLogin yes\n"
 	for _, r := range []row{
@@ -465,7 +535,7 @@ func TestLogin(t *testing.T) {
 		{name: "forced-commands-only", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin forced-commands-only\n")}, state: engine.Partial, want: "root commands only"},
 		{name: "yes", site: site{plat: alpine324(), drops: drops("10-site.conf", "PermitRootLogin yes\n")}, state: engine.NotConfigured, want: "root allowed"},
 		{name: "no, and a Match block allows root", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin no\n"+match)},
-			state: engine.Partial, want: "Match allows root", codes: []string{ssh.CodeMatchAllowsMore}},
+			state: engine.Partial, want: "match block allows root", codes: []string{ssh.CodeMatchAllowsMore}},
 		{name: "no, and a Match block keeps it out", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin no\nMatch User alice\n\tPermitRootLogin no\n")},
 			state: engine.Configured, want: "root disallowed"},
 		{name: "hardn's no read after another file's yes", site: site{plat: debian13(), drops: drops("00-hardn.conf", "PermitRootLogin no\n", "00-early.conf", "PermitRootLogin yes\n")},
@@ -483,17 +553,38 @@ func TestLogin(t *testing.T) {
 		{name: "pve: no", site: site{plat: pve9(), drops: drops("00-hardn.conf", "PermitRootLogin no\n")},
 			state: engine.Partial, want: "root disallowed", codes: []string{"PVE_ROOT_NOT_KEY_ONLY", "PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
 		{name: "pve: root denied", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+"DenyUsers root\n")},
-			state: engine.Partial, want: "root blocked for keys", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			state: engine.Partial, want: "root key login blocked", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
 		{name: "pve: a Match block keeps root out", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+"Match User alice\n\tPermitRootLogin no\n")},
-			state: engine.Partial, want: "Match blocks root", codes: []string{"PVE_ROOT_NOT_KEY_ONLY", "PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			state: engine.Partial, want: "match block denies root", codes: []string{"PVE_ROOT_NOT_KEY_ONLY", "PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
 		{name: "pve: a Match block allows root", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+match)},
-			state: engine.Partial, want: "Match allows root", codes: []string{ssh.CodeMatchAllowsMore, "PVE_ROOT_NOT_KEY_ONLY", "PVE_PROXMOX_ROOT_LOGIN"}},
+			state: engine.Partial, want: "match block allows root", codes: []string{ssh.CodeMatchAllowsMore, "PVE_ROOT_NOT_KEY_ONLY", "PVE_PROXMOX_ROOT_LOGIN"}},
 		{name: "pve: root by key not established", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+"ListenAddress 192.0.2.10\n")},
-			state: engine.Unknown, want: "root key login unclear", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+			state: engine.Unknown, want: "can't tell if root key works", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
 		{name: "pve: a Match block for root asks for more than a key", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+"Match User root\n\tAuthenticationMethods publickey,password\n")},
-			state: engine.Unknown, want: "root key login unclear", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
-		{name: "proxmox not established", site: site{plat: debian13(), facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{Err: detect.ErrNoSignal} }},
+			state: engine.Unknown, want: "can't tell if root key works", codes: []string{"PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+		{name: "pve: forced-commands-only", site: site{plat: pve9(), drops: drops("00-hardn.conf", "PermitRootLogin forced-commands-only\n")},
+			state: engine.Partial, want: "root commands only", codes: []string{"PVE_ROOT_NOT_KEY_ONLY", "PVE_ROOT_UNREACHABLE", "PVE_PROXMOX_ROOT_LOGIN"}},
+		// Decision (check-ssh.md §2.10): the port is SSH Port's row, not this one's.
+		{name: "pve: root key-only, sshd moved off 22", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened+"Port 2230\n")},
+			state: engine.Configured, want: "root key-only (Proxmox)", codes: []string{"PVE_PROXMOX_ROOT_LOGIN"}},
+		{name: "pve: root's groups not read", site: site{plat: pve9(), drops: drops("00-hardn.conf", pveHardened), files: noRootGroup},
+			state: engine.Unknown, want: "can't read", codes: []string{"PVE_PROXMOX_ROOT_LOGIN"}, err: "FILE_NOT_FOUND"},
+		{name: "pve: root allowed, root's groups not read", site: site{plat: pve9(), files: noRootGroup},
+			state: engine.NotConfigured, want: "root allowed", codes: []string{"PVE_ROOT_NOT_KEY_ONLY"}},
+		{name: "proxmox not established", site: site{plat: debian13(), facts: notProxmox},
 			state: engine.Unknown, want: "can't tell if Proxmox", err: "PVE_UNKNOWN"},
+		{name: "proxmox not established, root allowed", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin yes\n"), facts: notProxmox},
+			state: engine.NotConfigured, want: "root allowed"},
+		{name: "proxmox not established, a Match block allows root", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin no\n"+match), facts: notProxmox},
+			state: engine.Partial, want: "match block allows root", codes: []string{ssh.CodeMatchAllowsMore}},
+		{name: "a Match block's value hardn does not rank", site: site{plat: debian13(), drops: drops("10-site.conf", "PermitRootLogin no\nMatch User alice\n\tPermitRootLogin maybe\n")},
+			state: engine.Unknown, want: "can't read", codes: []string{ssh.CodeMatchValueUnknown}},
+		{name: "ssh.service: a configured listener not bound", site: site{plat: debian13(), drops: drops("00-hardn.conf", hardened), bound: []string{"[::]:22", "0.0.0.0:22"}},
+			state: engine.Unknown, want: "config not in effect", codes: []string{ssh.CodeNotInEffect}},
+		{name: "ssh.socket: a listener not bound says nothing of sshd", site: site{plat: ubuntu2604(), drops: drops("00-hardn.conf", hardened), bound: []string{"[::]:22"}},
+			state: engine.Configured, want: "root disallowed"},
+		{name: "ss failing leaves sshd -T's", site: site{plat: debian13(), drops: drops("00-hardn.conf", hardened), ssErr: &hostfake.Response{Stderr: "ss: bad\n", ExitCode: 1}},
+			state: engine.Configured, want: "root disallowed"},
 	} {
 		r.ctl = login
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
@@ -509,12 +600,12 @@ func TestAuth(t *testing.T) {
 		{name: "keys off too", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\nPubkeyAuthentication no\n")},
 			state: engine.Partial, want: "key auth off"},
 		{name: "a Match block allows passwords", site: site{plat: ubuntu2604(), drops: drops("10-site.conf", "PasswordAuthentication no\nMatch Address 192.0.2.0/24\n\tPasswordAuthentication yes\n")},
-			state: engine.Partial, want: "Match allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
 		{name: "cloud-init's yes shadowed by hardn's no", site: site{plat: ubuntu2604(), drops: drops("00-hardn.conf", "PasswordAuthentication no\n", "50-cloud-init.conf", "PasswordAuthentication yes\n")},
 			state: engine.Configured, want: "key-only auth", codes: []string{shadowed}},
 		{name: "an alias in a Match block", site: site{plat: alpine324(), drops: drops("10-site.conf",
 			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tChallengeResponseAuthentication yes\n")},
-			state: engine.Partial, want: "Match allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
 		{name: "a value printed twice", site: site{plat: debian13(), drops: drops("10-site.conf", "PasswordAuthentication no\n"),
 			edit: func(out string) string { return out + "passwordauthentication yes\n" }},
 			state: engine.Unknown, want: "can't read", codes: []string{unknownF}},
@@ -522,6 +613,14 @@ func TestAuth(t *testing.T) {
 			state: engine.Unknown, want: "can't read", codes: []string{disagreeF}},
 		{name: "password on, keyboard-interactive not read", site: site{plat: debian13(), edit: replace("kbdinteractiveauthentication", "maybe")},
 			state: engine.NotConfigured, want: "password auth on"},
+		// Decision (check-ssh.md §2.11): whether or not sshd uses PAM.
+		{name: "keyboard-interactive on without PAM", site: site{plat: alpine324(), drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.NotConfigured, want: "kbd-interactive on"},
+		{name: "a Match block's value hardn does not rank", site: site{plat: alpine324(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nKbdInteractiveAuthentication no\nMatch User alice\n\tPasswordAuthentication maybe\n")},
+			state: engine.Unknown, want: "can't read", codes: []string{ssh.CodeMatchValueUnknown}},
+		{name: "ssh.service: a configured listener not bound", site: site{plat: debian13(), drops: drops("00-hardn.conf", hardened), bound: []string{"[::]:22", "0.0.0.0:22"}},
+			state: engine.Unknown, want: "config not in effect", codes: []string{ssh.CodeNotInEffect}},
 	} {
 		r.ctl = auth
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
@@ -554,20 +653,48 @@ func TestPort(t *testing.T) {
 		{name: "how sshd starts not established", site: site{plat: debian13(), facts: func(f *detect.Facts) {
 			f.SSH = detect.SSH{Socket: detect.UnitState{Enabled: "enabled", Active: "inactive"}, Service: detect.UnitState{Enabled: "enabled", Active: "active"}, Err: detect.ErrConflict}
 		}}, state: engine.Unknown, want: "can't tell what listens", codes: []string{unknownF}},
+		{name: "ssh.service stopped", site: site{plat: debian13(), facts: func(f *detect.Facts) { f.SSH.Service.Active = "inactive" }},
+			state: engine.Unknown, want: "sshd not running", codes: []string{unknownF}},
+		{name: "22 dropped, sshd not reloaded", site: site{plat: debian13(), drops: drops("00-hardn.conf", "Port 2230\n"),
+			bound: []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}},
+			state: engine.Unknown, want: "22 still open", codes: []string{ssh.Code22Bound}},
+		{name: "22 still bound beside the socket's 2230", site: site{plat: ubuntu2604(), drops: drops("00-hardn.conf", "Port 2230\n"), bound: []string{"[::]:22", "[::]:2230"}},
+			state: engine.Unknown, want: "22 still open", codes: []string{ssh.Code22Bound}},
+		{name: "another program's port is not looked at", site: site{plat: debian13(), drops: drops("00-hardn.conf", "Port 2230\n"), bound: []string{"[::]:2230", "0.0.0.0:2230", "0.0.0.0:80"}},
+			state: engine.Configured, want: "non-default (2230)"},
+		{name: "2230 bound on another address", site: site{plat: debian13(), drops: drops("00-hardn.conf", "ListenAddress 192.0.2.10:2230\n"), bound: []string{"192.0.2.11:2230"}},
+			state: engine.Unknown, want: "2230 on another address", codes: []string{ssh.CodeNotInEffect}},
+		{name: "a disagreement on another keyword is not the listeners'", site: site{plat: debian13(), drops: drops("00-hardn.conf", "PermitRootLogin no\n"),
+			edit: func(out string) string { return dropListen(replace("permitrootlogin", "yes")(out)) }},
+			state: engine.Unknown, want: "can't read", codes: []string{unknownF}},
 		{name: "ss without ss", site: site{plat: alpine324(), drops: drops("10-site.conf", "Port 2230\n")}, state: engine.Configured, want: "non-default (2230)"},
+		{name: "ss without ss on a socket host", site: site{plat: noSS(ubuntu2604()), drops: drops("10-site.conf", "Port 2230\n")},
+			state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
 		{name: "ss fails", site: site{plat: debian13(), ssErr: &hostfake.Response{Stderr: "ss: bad\n", ExitCode: 1}}, state: engine.Unknown, want: "can't read", err: "COMMAND_FAILED"},
 		// Proxmox VE: 22 alone.
 		{name: "pve: 2230", site: site{plat: pve9(), drops: drops("00-hardn.conf", "Port 2230\n")},
-			state: engine.NotConfigured, want: "Proxmox needs 22 only", codes: []string{"PVE_PORT_NOT_22"}},
+			state: engine.NotConfigured, want: "non-default (2230)", codes: []string{"PVE_PORT_NOT_22"}},
 		{name: "pve: 22 and 2230", site: site{plat: pve9(), drops: drops("00-hardn.conf", "Port 22\nPort 2230\n")},
-			state: engine.NotConfigured, want: "Proxmox needs 22 only", codes: []string{"PVE_PORT_NOT_22"}},
-		{name: "proxmox not established", site: site{plat: debian13(), facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{Err: detect.ErrNoSignal} }},
+			state: engine.NotConfigured, want: "22 and 2230", codes: []string{"PVE_PORT_NOT_22"}},
+		{name: "pve: every listener on 22, another Port line", site: site{plat: pve9(), drops: drops("00-hardn.conf", "Port 22\nPort 2230\nListenAddress 0.0.0.0:22\n")},
+			state: engine.NotConfigured, want: "other ports configured", codes: []string{"PVE_PORT_NOT_22"}},
+		{name: "pve: 22 still open is not looked for", site: site{plat: pve9(), drops: drops("00-hardn.conf", "Port 2230\n"),
+			bound: []string{"[::]:22", "0.0.0.0:22", "[::]:2230", "0.0.0.0:2230"}},
+			state: engine.NotConfigured, want: "non-default (2230)", codes: []string{"PVE_PORT_NOT_22"}},
+		{name: "proxmox not established", site: site{plat: debian13(), facts: notProxmox},
 			state: engine.Unknown, want: "can't tell if Proxmox", err: "PVE_UNKNOWN"},
+		{name: "proxmox not established, a listener not bound", site: site{plat: debian13(), drops: drops("10-site.conf", "Port 2230\n"), bound: []string{"[::]:22", "0.0.0.0:22"}, facts: notProxmox},
+			state: engine.Unknown, want: "not listening on 2230", codes: []string{ssh.CodeNotInEffect}},
 	} {
 		r.ctl = port
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
 	}
 }
+
+var (
+	notProxmox  = func(f *detect.Facts) { f.Proxmox = detect.Proxmox{Err: detect.ErrNoSignal} }
+	noRootGroup = map[string]string{"/etc/group": "sudo:x:27:alice\n"} // root's group id on no line
+)
 
 // TestUnread: a reading that fails is the check's error, its code
 // pkg/output's, and Unknown with what the error shows of the host.
@@ -575,12 +702,22 @@ func TestUnread(t *testing.T) {
 	noRunDir := &hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}
 	invalid := &hostfake.Response{Stderr: "/etc/ssh/sshd_config.d/10-site.conf line 1: Bad configuration option: Bogus\r\n" +
 		"/etc/ssh/sshd_config.d/10-site.conf: terminating, 1 bad configuration options\r\n", ExitCode: 255}
+	badMode := &hostfake.Response{Stderr: "/run/sshd must be owned by root and not group or world-writable.\r\n", ExitCode: 255}
 	missing := &hostfake.Response{Err: fmt.Errorf("host: run sshd: %w", host.ErrNotFound)}
+	stopped := func(f *detect.Facts) { f.SSH.Service.Active = "inactive" }
+	bothDown := func(f *detect.Facts) { f.SSH.Service.Active, f.SSH.Socket.Active = "inactive", "failed" }
 	for _, ctl := range ssh.Controls() {
 		for _, r := range []row{
-			{name: "ubuntu before its first connection", site: site{plat: ubuntu2604(), failT: noRunDir}, state: engine.Unknown, want: "sshd not started yet", err: "SSHD_ENV_NO_RUNDIR"},
-			{name: "debian with ssh.service stopped", site: site{plat: debian13(), failT: noRunDir}, state: engine.Unknown, want: "sshd not running", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "ubuntu before its first connection", site: site{plat: ubuntu2604(), failT: noRunDir, facts: stopped}, state: engine.Unknown, want: "sshd not started yet", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "ubuntu with ssh.socket down too", site: site{plat: ubuntu2604(), failT: noRunDir, facts: bothDown}, state: engine.Unknown, want: "sshd not running", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "debian with ssh.service stopped", site: site{plat: debian13(), failT: noRunDir, facts: stopped}, state: engine.Unknown, want: "sshd not running", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "debian with ssh.service active and no /run/sshd", site: site{plat: debian13(), failT: noRunDir}, state: engine.Unknown, want: "can't read", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "debian with ssh.service stopped, /run/sshd not root's alone", site: site{plat: debian13(), failT: badMode, facts: stopped}, state: engine.Unknown, want: "can't read", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "ubuntu with /run/sshd not root's alone", site: site{plat: ubuntu2604(), failT: badMode, facts: stopped}, state: engine.Unknown, want: "can't read", err: "SSHD_ENV_NO_RUNDIR"},
 			{name: "alpine without its privilege separation directory", site: site{plat: alpine324(), failT: noRunDir}, state: engine.Unknown, want: "can't read", err: "SSHD_ENV_NO_RUNDIR"},
+			{name: "an Include other than the stock one", site: site{plat: debian13(), main: "Include /etc/ssh/site.d/*.conf\n"}, state: engine.Unknown, want: "can't read", err: "SSHD_INCLUDE_UNSUPPORTED"},
+			{name: "alpine's conf.d naming another binary", site: site{plat: alpine324(), files: map[string]string{"/etc/conf.d/sshd": "SSHD_BINARY=/usr/local/sbin/sshd\n"}},
+				state: engine.Unknown, want: "can't read", err: "RELOAD_OPENRC_CONFD"},
 			{name: "a configuration sshd refuses", site: site{plat: debian13(), failT: invalid}, state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
 			{name: "no sshd", site: site{plat: debian13(), failT: missing}, state: engine.Unknown, want: "sshd not installed", err: "COMMAND_NOT_FOUND"},
 			{name: "no sshd_config", site: site{plat: debian13(), noMain: true}, state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},

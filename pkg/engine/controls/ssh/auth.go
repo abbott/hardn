@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"context"
+	"slices"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
@@ -9,9 +10,11 @@ import (
 )
 
 // Auth is SSH Auth: key-only authentication. The baseline, Proxmox VE's
-// too, is PasswordAuthentication and KbdInteractiveAuthentication no (with
-// PAM, keyboard-interactive asks for the password), and
-// PubkeyAuthentication yes.
+// too, is PasswordAuthentication and KbdInteractiveAuthentication no, and
+// PubkeyAuthentication yes. Keyboard-interactive on is Not Configured
+// whether or not sshd uses PAM (with PAM it asks for the password; without
+// it, what it asks is not read): a decision of this unit, pessimistic,
+// never a host shown safe (check-ssh.md §2.11).
 type Auth struct{ engine.CheckOnly }
 
 // ID is "ssh.auth".
@@ -33,6 +36,9 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	}
 	keys := []string{"passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication"}
 	ev := r.said(keys...)
+	if st, ok := r.stale(ctx, sys, f, ev); ok {
+		return st, nil
+	}
 	pw, kbd, key := r.eff.PasswordAuthentication, r.eff.KbdInteractiveAuthentication, r.eff.PubkeyAuthentication
 	st := engine.Status{Evidence: ev, Findings: r.conflicts(keys...)}
 	switch {
@@ -45,16 +51,17 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	case !pw.Known || !kbd.Known || !key.Known:
 		return unknown("can't read", ev, r.unknowns(keys...)), nil
 	}
-	morePW, ok1 := r.matchAllows("passwordauthentication", "no")
-	moreKbd, ok2 := r.matchAllows("kbdinteractiveauthentication", "no")
-	if !ok1 || !ok2 {
-		return unknown("can't read", ev, r.unknowns(keys...)), nil
+	morePW, oddPW := r.matchAllows("passwordauthentication", "no")
+	moreKbd, oddKbd := r.matchAllows("kbdinteractiveauthentication", "no")
+	if odd := slices.Concat(oddPW, oddKbd); len(odd) > 0 {
+		found, mev := matchFindings(odd, CodeMatchValueUnknown)
+		return unknown("can't read", slices.Concat(ev, mev), found), nil
 	}
-	found, mev := matchFindings(append(morePW, moreKbd...))
+	found, mev := matchFindings(slices.Concat(morePW, moreKbd), CodeMatchAllowsMore)
 	st.Evidence, st.Findings = append(st.Evidence, mev...), append(st.Findings, found...)
 	switch {
 	case len(found) > 0:
-		st.State, st.Detail = engine.Partial, "Match allows passwords"
+		st.State, st.Detail = engine.Partial, "match block allows passwords"
 	case key.Value == "no":
 		st.State, st.Detail = engine.Partial, "key auth off"
 	default:

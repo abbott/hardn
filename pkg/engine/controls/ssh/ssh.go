@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
@@ -42,6 +43,13 @@ const (
 	// CodeNotInEffect: a listener sshd's configuration names is not bound,
 	// so the configuration is not what accepts connections.
 	CodeNotInEffect = "SSH_PORT_NOT_IN_EFFECT"
+	// CodeMatchValueUnknown: a Match block sets a row's keyword to a value
+	// hardn does not rank, so what the block lets in is not established.
+	CodeMatchValueUnknown = "SSH_MATCH_VALUE_UNKNOWN"
+	// Code22Bound: a socket on port 22 is bound while no configured
+	// listener is on 22: sshd not reloaded since 22 was dropped, or
+	// another program (ss does not say whose a socket is).
+	Code22Bound = "SSH_PORT_22_BOUND"
 )
 
 // Controls are the SSH controls in Figma's order: SSH Login, SSH Auth, SSH
@@ -88,11 +96,11 @@ var allows = map[string]map[string]int{
 }
 
 // matchAllows lists the lines under a Match block that set keyword k to a
-// value that lets in more than global, sshd -T's value. Which connections
-// a block matches is not evaluated, so every such block counts. ok is
-// false when such a line's value is not one allows ranks, so what the
-// block allows is not established.
-func (r reading) matchAllows(k, global string) (more []sshd.Line, ok bool) {
+// value that lets in more than global, sshd -T's value, and in odd those
+// that set it to a value allows does not rank, so what the block lets in
+// is not established. Which connections a block matches is not evaluated,
+// so every such block counts.
+func (r reading) matchAllows(k, global string) (more, odd []sshd.Line) {
 	for _, l := range sshd.ReadOrder(r.files.Main, r.files.DropIns) {
 		if l.Match == nil || l.Keyword != k {
 			continue
@@ -104,22 +112,23 @@ func (r reading) matchAllows(k, global string) (more []sshd.Line, ok bool) {
 		if v == "without-password" {
 			v = "prohibit-password"
 		}
-		rank, known := allows[k][v]
-		if !known {
-			return nil, false
-		}
-		if rank > allows[k][global] {
+		switch rank, known := allows[k][v]; {
+		case !known:
+			odd = append(odd, l)
+		case rank > allows[k][global]:
 			more = append(more, l)
 		}
 	}
-	return more, true
+	return more, odd
 }
 
-// matchFindings are ls (matchAllows') as findings, and as evidence.
-func matchFindings(ls []sshd.Line) (found []engine.Finding, ev []string) {
+// matchFindings are ls (matchAllows') as findings of code, and as
+// evidence.
+func matchFindings(ls []sshd.Line, code string) (found []engine.Finding, ev []string) {
 	for _, l := range ls {
-		found = append(found, engine.Finding{Code: CodeMatchAllowsMore, Detail: fmt.Sprintf("%q under %q", l.Text, l.Match.Text), Source: at(l.File, l.Line)})
-		ev = append(ev, fmt.Sprintf("%s: %s (%s)", at(l.File, l.Line), l.Text, l.Match.Text))
+		text, match := strings.TrimSpace(l.Text), strings.TrimSpace(l.Match.Text)
+		found = append(found, engine.Finding{Code: code, Detail: fmt.Sprintf("%q under %q", text, match), Source: steps.SourceAt(l.File, l.Line)})
+		ev = append(ev, fmt.Sprintf("%s: %s (%s)", steps.SourceAt(l.File, l.Line), text, match))
 	}
 	return found, ev
 }
@@ -152,7 +161,7 @@ func (r reading) conflicts(keys ...string) []engine.Finding {
 		}
 		for _, f := range r.found {
 			if f.Kind == c.Kind && f.File == c.Other.File && f.Line == c.Other.Line {
-				out = append(out, sshdFinding(f))
+				out = append(out, steps.SSHDFinding(f))
 				break
 			}
 		}
@@ -170,28 +179,117 @@ const noReport = "the conflict report is not established"
 var effKeys = []string{"permitrootlogin", "passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication",
 	"port", "listenaddress", "allowusers", "allowgroups", "denyusers", "denygroups", "acceptenv"}
 
+// keyWords are the other words by which those findings name a keyword:
+// sshd -T's "ports", and the listeners' words (ssh.socket's Listen, "the
+// listeners", "listening"), which are SSH Port's.
+var keyWords = map[string]string{"ports": "port", "listen": "listenaddress", "listens": "listenaddress",
+	"listening": "listenaddress", "listener": "listenaddress", "listeners": "listenaddress"}
+
+// names lists the keywords of effKeys a finding's detail names: its whole
+// words, compared case-insensitively ("Port", "ListenAddress"), and those
+// of keyWords.
+func names(detail string) []string {
+	var out []string
+	for _, w := range strings.FieldsFunc(strings.ToLower(detail), func(c rune) bool { return c < 'a' || c > 'z' }) {
+		if k, ok := keyWords[w]; ok {
+			w = k
+		}
+		if slices.Contains(effKeys, w) && !slices.Contains(out, w) {
+			out = append(out, w)
+		}
+	}
+	return out
+}
+
 // unknowns are ReadEffective's findings that say why a value of keys is
 // Unknown (sources-disagree, effective-unknown), for a status Unknown for
 // that reason. A finding has no keyword field: one whose detail names a
-// keyword of effKeys is kept when it is one of keys, and one that names
-// none (sshd -T's output unreadable, the unit that listens not up) is
-// kept for every control.
+// keyword (names) is kept when it is one of keys, and one that names none
+// is kept for every control, as is every finding when sshd -T's output
+// was not read at all.
 func (r reading) unknowns(keys ...string) []engine.Finding {
 	var out []engine.Finding
 	for _, f := range r.found {
 		if f.Kind != sshd.FindingDisagree && (f.Kind != sshd.FindingUnknown || strings.HasPrefix(f.Detail, noReport)) {
 			continue
 		}
-		named := slices.DeleteFunc(slices.Clone(effKeys), func(k string) bool { return !strings.Contains(f.Detail, k) })
-		if len(named) == 0 || slices.ContainsFunc(named, func(k string) bool { return slices.Contains(keys, k) }) {
-			out = append(out, sshdFinding(f))
+		named := names(f.Detail)
+		if r.eff.Keywords == nil || len(named) == 0 || slices.ContainsFunc(named, func(k string) bool { return slices.Contains(keys, k) }) {
+			out = append(out, steps.SSHDFinding(f))
 		}
 	}
 	return out
 }
 
+// bound is what ss -Htln shows against the configured listeners.
+type bound struct {
+	all     []reload.Bound
+	bad     []string        // LISTEN lines ss printed that were not read
+	missing []sshd.Listener // configured, and no bound socket covers them
+}
+
+// readBound reads the bound sockets (reload.ReadBound) against l, the
+// configured listeners, by the rule reload.CheckInEffect uses
+// (reload.Unbound). ss missing is host.ErrNotFound.
+func readBound(ctx context.Context, sys host.System, l sshd.Listeners) (bound, error) {
+	all, bad, err := reload.ReadBound(ctx, sys)
+	if err != nil {
+		return bound{}, err
+	}
+	return bound{all: all, bad: bad, missing: reload.Unbound(l.All, all)}, nil
+}
+
+// notInEffect is the finding of b.missing.
+func (b bound) notInEffect(mode detect.SSHMode) engine.Finding {
+	why := "an edit not reloaded"
+	if mode == detect.SSHSocket {
+		why = "ssh.socket not restarted after daemon-reload"
+	}
+	d := listeners(b.missing) + " configured, not bound: not in effect (" + why + ")"
+	if len(b.bad) > 0 {
+		d += fmt.Sprintf("; ss lines not read: %q", b.bad)
+	}
+	return engine.Finding{Code: CodeNotInEffect, Detail: d, Source: "ss -Htln"}
+}
+
+// on lists the bound sockets on one of ports, for the evidence.
+func (b bound) on(ports []uint16) string {
+	var s []string
+	for _, x := range b.all {
+		if slices.Contains(ports, x.Port) {
+			s = append(s, x.String())
+		}
+	}
+	if len(s) == 0 {
+		return "none on " + portList(ports)
+	}
+	return strings.Join(s, " ")
+}
+
+// stale is SSH Login's and SSH Auth's status when this run shows that what
+// sshd -T read is not what the running sshd uses: where sshd holds its own
+// sockets (ssh.service, OpenRC), a configured listener that ss does not
+// show bound means that sshd has not reread its files since they were
+// edited (or could not bind), so its other settings are not established
+// either (check-ssh.md §2.8a). ok is false when that is not shown: on a
+// socket-activated host, where a daemon-reload without a restart of
+// ssh.socket leaves the sockets behind and says nothing of sshd's other
+// settings; with the listeners not established; and without ss's reading
+// (missing or failing), where the row is sshd -T's.
+func (r reading) stale(ctx context.Context, sys host.System, f detect.Facts, ev []string) (st engine.Status, ok bool) {
+	if f.SSH.Mode == detect.SSHSocket || !r.eff.Listeners.Known {
+		return st, false
+	}
+	b, err := readBound(ctx, sys, r.eff.Listeners)
+	if err != nil || len(b.missing) == 0 {
+		return st, false
+	}
+	ev = slices.Concat(ev, []string{"ss -Htln: " + b.on(r.eff.Listeners.Ports())})
+	return unknown("config not in effect", ev, []engine.Finding{b.notInEffect(f.SSH.Mode)}), true
+}
+
 // proxmox is pve.CheckSSH over this reading, with root's groups when
-// withRoot (RootByKey needs them; Port22 does not).
+// withRoot (RootByKey needs them; RootKeyOnly and Port22 do not).
 func (r reading) proxmox(ctx context.Context, sys host.System, p detect.Proxmox, withRoot bool) (pve.SSHCheck, error) {
 	var g pve.Groups
 	if withRoot {
@@ -216,44 +314,36 @@ func failed(s detect.SSH, err error) (engine.Status, error) {
 		d = "sshd not installed"
 	case errors.As(err, &pe) && pe.Path == sshd.MainConfig && errors.Is(err, fs.ErrNotExist):
 		d = "no sshd_config"
-	case errors.As(err, &env) && env.Kind == sshd.EnvPrivsepDir && s.Mode == detect.SSHSocket:
-		d = "sshd not started yet" // ssh.socket starts it at the first connection (steps.md §2.15)
-	case errors.As(err, &env) && env.Kind == sshd.EnvPrivsepDir && s.Mode == detect.SSHService:
-		d = "sshd not running" // /run/sshd is gone while ssh.service is stopped
+	case errors.As(err, &env) && env.Kind == sshd.EnvPrivsepDir:
+		d = noRunDir(s, env)
 	case errors.Is(err, sshd.ErrConfig):
 		d = "sshd config invalid"
 	}
 	return engine.Status{State: engine.Unknown, Detail: d}, err
 }
 
+// noRunDir is the detail of sshd -T failing on its privilege separation
+// directory. Only where sshd said the directory is missing and detect's
+// unit states establish ssh.service stopped does it say what that shows:
+// /run/sshd is gone while ssh.service is stopped, and on a socket-activated
+// host ssh.socket starts it at the first connection (steps.md §2.15).
+// Anything else (the directory not root's alone, a unit state not
+// established, OpenRC) is "can't read".
+func noRunDir(s detect.SSH, env *sshd.EnvError) string {
+	missing := slices.ContainsFunc(env.Tail, func(l string) bool { return strings.HasPrefix(l, "Missing privilege separation directory") })
+	switch {
+	case !missing || s.Service.IsActive() != detect.No:
+	case s.Mode == detect.SSHService:
+		return "sshd not running"
+	case s.Mode == detect.SSHSocket && s.Socket.IsActive() == detect.Yes:
+		return "sshd not started yet"
+	case s.Mode == detect.SSHSocket:
+		return "sshd not running"
+	}
+	return "can't read"
+}
+
 // unknown is an Unknown status with detail, evidence and findings.
 func unknown(detail string, ev []string, found []engine.Finding) engine.Status {
 	return engine.Status{State: engine.Unknown, Detail: detail, Evidence: ev, Findings: found}
-}
-
-func sshdFinding(f sshd.Finding) engine.Finding {
-	return engine.Finding{Code: code("SSHD", f.Kind.String()), Detail: f.Detail, Source: at(f.File, f.Line)}
-}
-
-func pveFinding(f pve.Finding) engine.Finding {
-	return engine.Finding{Code: code("PVE", f.Kind.String()), Detail: f.Detail, Source: at(f.File, f.Line)}
-}
-
-// code is a primitive's finding kind ("root-not-key-only") as a code
-// under its prefix ("PVE_ROOT_NOT_KEY_ONLY"), as pkg/engine/steps derives
-// them (steps.md §2.23).
-func code(prefix, kind string) string {
-	k := strings.ToUpper(strings.ReplaceAll(kind, "-", "_"))
-	if strings.HasPrefix(k, prefix+"_") {
-		return k
-	}
-	return prefix + "_" + k
-}
-
-// at is file:line, file alone, or "".
-func at(file string, line int) string {
-	if file != "" && line > 0 {
-		return fmt.Sprintf("%s:%d", file, line)
-	}
-	return file
 }
