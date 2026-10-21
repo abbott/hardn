@@ -6,16 +6,18 @@
 //
 // The score is the share of the rows' weight the host earns, in points of
 // 100: a Configured row earns its weight, a Partial row half of it (none
-// for a Partial line that protects nothing now), a NotConfigured or Unknown
-// row nothing, and a NotApplicable row is left out of both the share and
-// the whole. Each cross-check the host fails then costs points: a reboot
-// pending, a long uptime without automatic updates, a second root
-// account, a user account that becomes root without a password. A
-// firewall that refuses SSH forces Critical, whatever the score. Unknown
-// counts as not configured and adds a factor, and so does a row with no
-// report: nothing is taken as hardened that was not established. Assess is
-// pure: it reads no host and renders nothing; pkg/output maps a Level to
-// the main menu's RiskSummary.
+// for a Partial line that protects nothing now, or that carries a fact its
+// check left open), a NotConfigured or Unknown row nothing, and a
+// NotApplicable row is left out of both the share and the whole. Each
+// cross-check the host fails then costs points: ufw set to refuse SSH once
+// it starts, a second root account, a reboot pending, a long uptime
+// without automatic updates, a user account that becomes root without a
+// password. A firewall that refuses SSH forces Critical, whatever the
+// score. Unknown counts as not configured and adds a factor, and so does a
+// row with no report. A row's state is taken as its check reports it: what
+// a check does not report is not seen here (risk.md §8). Assess is pure:
+// it reads no host and renders nothing; pkg/output maps a Level to the
+// main menu's RiskSummary.
 package risk
 
 import (
@@ -52,8 +54,9 @@ const (
 
 var bandWords = [...]string{"unknown", "critical", "high", "moderate", "low", "minimal"}
 
-// String returns the band's word, lower case; pkg/output holds the words
-// the main menu shows.
+// String returns the band's word, lower case; the level words and glosses
+// the main menu shows are pkg/output's, the factors' words this package's
+// (risk.md §6).
 func (b Band) String() string {
 	if int(b) < len(bandWords) {
 		return bandWords[b]
@@ -73,9 +76,10 @@ const (
 
 // The cross-checks' costs, in points of 100 (risk.md §5.3).
 const (
+	PenaltyAtStart    = 10 // ufw set to start at boot, its saved rules not letting SSH through from everywhere
+	PenaltySecondRoot = 15 // an account other than root has uid 0
 	PenaltyReboot     = 10 // a reboot pending, or not established
 	PenaltyUptime     = 10 // up LongUptime or more without automatic updates, or either not established
-	PenaltySecondRoot = 15 // an account other than root has uid 0
 	PenaltyNoPassword = 5  // a user account becomes root without a password
 )
 
@@ -95,60 +99,75 @@ type Row struct {
 	Weight    int    // points of 100
 }
 
-// controls are the main menu's status rows in Figma's order, and weights
-// their weights, together 100 (risk.md §5.1).
-var (
-	controls = []engine.Control{users.Admin{}, firewall.Incoming{}, ssh.Login{}, ssh.Auth{}, ssh.Port{}, apparmor.Enforce{}, updates.Auto{}}
-	weights  = []int{10, 20, 15, 20, 5, 10, 20}
-	rows     = func() []Row {
-		out := make([]Row, len(controls))
-		for i, c := range controls {
-			out[i] = Row{ID: c.ID(), Title: c.Title(), Weight: weights[i]}
-		}
-		return out
-	}()
-)
+// row is control c's row, weighing w. The control is read for its ID and
+// title alone: Engine.Check runs the areas' own Controls().
+func row(c engine.Control, w int) Row { return Row{ID: c.ID(), Title: c.Title(), Weight: w} }
+
+// rows are the main menu's status rows in Figma's order, each with its
+// weight, together 100 (risk.md §5.1).
+var rows = []Row{
+	row(users.Admin{}, 10),
+	row(firewall.Incoming{}, 20),
+	row(ssh.Login{}, 15),
+	row(ssh.Auth{}, 20),
+	row(ssh.Port{}, 5),
+	row(apparmor.Enforce{}, 10),
+	row(updates.Auto{}, 20),
+}
 
 // Rows returns the rows the score weighs, in Figma's order: User,
 // Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates.
 func Rows() []Row { return slices.Clone(rows) }
 
-// Controls returns the controls the score weighs, in Rows' order, for
-// Engine.Check: its reports, and so the document's status[], then come
-// in Figma's order too.
-func Controls() []engine.Control { return slices.Clone(controls) }
+// The rows' controls that a cross-check reads.
+var (
+	usersID    = users.Admin{}.ID()
+	firewallID = firewall.Incoming{}.ID()
+)
 
 // noCredit are the Partial lines, by control, that protect nothing now:
 // a firewall that refuses only what a rule denies, AppArmor in complain
 // mode, upgrades that run on package lists nothing refreshes. They earn
 // nothing, as NotConfigured (risk.md §5.2).
 var noCredit = map[string][]string{
-	firewall.Incoming{}.ID(): {firewall.DetailAllowPolicy, firewall.DetailAllPorts, firewall.DetailAcceptPolicy},
-	apparmor.ID:              {apparmor.DetailLoggingOnly},
-	updates.ID:               {updates.DetailListsStale},
+	firewallID:  {firewall.DetailAllowPolicy, firewall.DetailAllPorts, firewall.DetailAcceptPolicy},
+	apparmor.ID: {apparmor.DetailLoggingOnly},
+	updates.ID:  {updates.DetailListsStale},
+}
+
+// openCodes are the findings, by control, that a Partial line carries for
+// a fact its check left open, which could have put the row on a line that
+// earns less: whether the firewall lets SSH through, whether apt refreshes
+// the package lists or starts its timers at boot. Such a line earns
+// nothing, as Unknown does: half would rank it above the same host with
+// that fact read (risk.md §5.2).
+var openCodes = map[string][]string{
+	firewallID: {firewall.CodeSSHUnchecked},
+	updates.ID: {updates.CodeAptValueUnknown, updates.CodeScheduleUnknown},
 }
 
 // codeAtStart is ufw's FindingAtStart as steps.UFWFinding codes it: ufw
-// inactive, and its saved rules would refuse an SSH listener once it
-// starts.
+// inactive and set to start at boot, and its saved rules would not let an
+// SSH listener through from everywhere once it starts.
 var codeAtStart = steps.FindingCode("UFW", ufw.FindingAtStart.String())
 
 // Kind is what a factor is about. Factors come in this order.
 type Kind uint8
 
-// The factors' kinds.
+// The factors' kinds. A firewall that refuses SSH has none: Level.Forced
+// and the level's gloss say it (risk.md §6.1).
 const (
-	KindLockout        Kind = iota // the firewall refuses SSH (FIREWALL_SSH_BLOCKED): Critical
-	KindLockoutAtStart             // ufw would refuse SSH once it starts (UFW_SSH_NOT_ALLOWED_AT_START)
-	KindUnknownRow                 // a row Unknown, or with no report
+	KindLockoutAtStart Kind = iota // ufw may refuse SSH once it starts (UFW_SSH_NOT_ALLOWED_AT_START)
+	KindUnknown                    // a row Unknown, or with no report: one factor for them all
 	KindSecondRoot                 // an account other than root has uid 0 (USERS_UID0)
 	KindSSHUnchecked               // whether the firewall lets SSH through not established (FIREWALL_SSH_UNCHECKED)
+	KindUpdatesOpen                // Auto Updates Partial with a fact left open (UPDATES_APT_VALUE_UNKNOWN, UPDATES_SCHEDULE_UNKNOWN)
 	KindReboot                     // a reboot pending, or not established
 	KindUptime                     // up long without automatic updates, or either not established
 	KindNoPassword                 // a user account becomes root without a password (USERS_NOPASSWD)
 )
 
-var kindWords = [...]string{"lockout", "lockout-at-start", "unknown-row", "second-root", "ssh-unchecked", "reboot", "uptime", "no-password"}
+var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password"}
 
 // String returns the kind's word.
 func (k Kind) String() string {
@@ -162,14 +181,13 @@ func (k Kind) String() string {
 // show of why the level is what it is.
 type Factor struct {
 	Kind Kind
-	// Control is the row it is about: the Unknown row, or the row whose
-	// finding it is; "" for the header's cross-checks.
+	// Control is the row whose finding it is; "" for the Unknown rows'
+	// factor and the header's cross-checks.
 	Control string
 	// Detail is the line the RiskSummary shows (risk.md §6, proposed).
 	Detail string
-	// Penalty is the points it cost; 0 when it costs none of its own (an
-	// Unknown row has lost its weight already; the lockout forces the
-	// band).
+	// Penalty is the points it cost; 0 when it costs none of its own (the
+	// rows it is about have lost their weight already).
 	Penalty int
 }
 
@@ -182,7 +200,7 @@ type Level struct {
 	// Score is the points the host earns of 100, after the penalties, at
 	// least 0: the rows' share less each factor's Penalty.
 	Score float64
-	// Factors explain the level, in Kind order, a row's in Figma's.
+	// Factors explain the level, in Kind order.
 	Factors []Factor
 	// Findings are the cross-checks' own findings, which no report
 	// carries: the header's on a pending reboot, and CodeUptimeNoUpdates.
@@ -201,46 +219,48 @@ func Assess(reports []engine.Report, h header.Header) Level {
 		}
 	}
 	var l Level
-	var unknown []Factor
 	earned, whole := 0, 0 // in half points
-	established := false
+	established, unknown := false, false
 	for _, rw := range rows {
 		r, ok := byID[rw.ID]
-		switch state(r, ok) {
+		s := state(r, ok)
+		switch s {
 		case engine.NotApplicable:
 			continue
 		case engine.Configured:
 			earned += 2 * rw.Weight
-			established = true
 		case engine.Partial:
-			if !slices.Contains(noCredit[rw.ID], r.Status.Detail) {
+			if protects(r) && !open(r) {
 				earned += rw.Weight
 			}
+		}
+		if s == engine.Unknown {
+			unknown = true
+		} else {
 			established = true
-		case engine.NotConfigured:
-			established = true
-		default:
-			unknown = append(unknown, Factor{Kind: KindUnknownRow, Control: rw.ID, Detail: rw.Title + " unknown"})
 		}
 		whole += 2 * rw.Weight
 	}
 
-	fw, fwOK := byID[firewall.Incoming{}.ID()]
-	us, usOK := byID[users.Admin{}.ID()]
+	fw, fwOK := byID[firewallID]
+	us, usOK := byID[usersID]
+	up, upOK := byID[updates.ID]
 	add := func(f Factor) { l.Factors = append(l.Factors, f) }
-	if fwOK && has(fw, firewall.CodeSSHBlocked) {
-		l.Forced = true
-		add(Factor{Kind: KindLockout, Control: fw.Control, Detail: "firewall blocks ssh"})
-	}
+	l.Forced = fwOK && has(fw, firewall.CodeSSHBlocked)
 	if fwOK && has(fw, codeAtStart) {
-		add(Factor{Kind: KindLockoutAtStart, Control: fw.Control, Detail: "firewall blocks ssh after restart"})
+		add(Factor{Kind: KindLockoutAtStart, Control: fw.Control, Detail: "ssh may be blocked after restart", Penalty: PenaltyAtStart})
 	}
-	l.Factors = append(l.Factors, unknown...)
+	if unknown {
+		add(Factor{Kind: KindUnknown, Detail: "unknown counted as not configured"})
+	}
 	if usOK && has(us, users.CodeUID0) {
 		add(Factor{Kind: KindSecondRoot, Control: us.Control, Detail: "second root account", Penalty: PenaltySecondRoot})
 	}
 	if fwOK && !l.Forced && has(fw, firewall.CodeSSHUnchecked) {
 		add(Factor{Kind: KindSSHUnchecked, Control: fw.Control, Detail: "can't tell if firewall blocks ssh"})
+	}
+	if upOK && state(up, true) == engine.Partial && protects(up) && open(up) {
+		add(Factor{Kind: KindUpdatesOpen, Control: up.Control, Detail: "can't tell if updates fully on"})
 	}
 	if f, ok := reboot(h.Reboot); ok {
 		add(f)
@@ -248,7 +268,6 @@ func Assess(reports []engine.Report, h header.Header) Level {
 			l.Findings = append(l.Findings, h.Reboot.Findings...)
 		}
 	}
-	up, upOK := byID[updates.ID]
 	if f, finding, ok := uptime(h, upgradesOf(up, upOK)); ok {
 		add(f)
 		if finding != nil {
@@ -307,10 +326,20 @@ func has(r engine.Report, code string) bool {
 	return slices.ContainsFunc(r.Status.Findings, func(f engine.Finding) bool { return f.Code == code })
 }
 
+// protects reports whether r's line is not one of noCredit's.
+func protects(r engine.Report) bool { return !slices.Contains(noCredit[r.Control], r.Status.Detail) }
+
+// open reports whether r carries a finding of a fact its check left open
+// (openCodes).
+func open(r engine.Report) bool {
+	return slices.ContainsFunc(openCodes[r.Control], func(code string) bool { return has(r, code) })
+}
+
 // reboot is the pending-reboot factor: Yes costs PenaltyReboot; so does
-// Unknown, by the rule for Unknown, except inside a container, whose
-// kernel is the host's (header.Reboot.HostKernel): there only a package's
-// request counts.
+// Unknown, by the rule for Unknown, except where the header read the
+// kernel as the host's (header.Reboot.HostKernel: a container of a
+// distribution its reboot check reads): there only a package's request
+// counts.
 func reboot(r header.Reboot) (Factor, bool) {
 	switch {
 	case r.Pending == detect.Yes:
@@ -326,24 +355,28 @@ func reboot(r header.Reboot) (Factor, bool) {
 type upgrades uint8
 
 const (
-	upgradesUnknown    upgrades = iota // the row Unknown, or no report: counts as no
+	upgradesUnknown    upgrades = iota // not established: the row Unknown, no report, a Partial line with a fact left open or another detail
 	upgradesYes                        // Configured; Partial "off after restart", until the next boot
-	upgradesNo                         // NotConfigured; Partial "lists not refreshed", or with a schedule or value not established
+	upgradesNo                         // NotConfigured; Partial "lists not refreshed"
 	upgradesNotProxmox                 // Proxmox VE: upgrades run, Proxmox VE's own packages not among them
 	upgradesNA                         // NotApplicable: no cross-check
 )
 
-// upgradesOf reads the Auto Updates row r (ok false: no report).
+// upgradesOf reads the Auto Updates row r (ok false: no report). A
+// Partial "off after restart" with a fact left open is not established:
+// the fact may be whether the lists are refreshed.
 func upgradesOf(r engine.Report, ok bool) upgrades {
-	st := r.Status
 	switch state(r, ok) {
 	case engine.NotApplicable:
 		return upgradesNA
 	case engine.NotConfigured:
 		return upgradesNo
 	case engine.Partial:
-		if st.Detail != updates.DetailOffAfterRestart || has(r, updates.CodeAptValueUnknown) || has(r, updates.CodeScheduleUnknown) {
+		switch d := r.Status.Detail; {
+		case d == updates.DetailListsStale:
 			return upgradesNo
+		case d != updates.DetailOffAfterRestart, open(r):
+			return upgradesUnknown
 		}
 	case engine.Configured:
 	default:
@@ -358,8 +391,9 @@ func upgradesOf(r engine.Report, ok bool) upgrades {
 // uptime is the long-uptime factor, for a host that does not upgrade
 // itself (or whose upgrades are not established) and has been up
 // LongUptime or more (or whose uptime is not established), with its
-// finding when both are established. Inside a container it is not made:
-// the uptime may be the host's (header.md §2.6).
+// finding when both are established. Where the header read the kernel as
+// the host's (header.Reboot.HostKernel) it is not made: the uptime may be
+// the host's (header.md §2.6).
 func uptime(h header.Header, u upgrades) (Factor, *engine.Finding, bool) {
 	if u == upgradesYes || u == upgradesNA || h.Reboot.HostKernel {
 		return Factor{}, nil, false
@@ -378,8 +412,8 @@ func uptime(h header.Header, u upgrades) (Factor, *engine.Finding, bool) {
 		f.Detail = fmt.Sprintf("up %d days, no auto updates", days)
 	case upgradesNotProxmox:
 		f.Detail = fmt.Sprintf("up %d days, Proxmox not upgraded", days)
-	default:
-		f.Detail = fmt.Sprintf("up %d days, auto updates unknown", days)
+	default: // the Unknown rows' factor, or KindUpdatesOpen's, says the rest
+		f.Detail = fmt.Sprintf("up %d days", days)
 		return f, nil, true
 	}
 	return f, &engine.Finding{Code: CodeUptimeNoUpdates, Detail: f.Detail, Source: header.UptimeFile}, true

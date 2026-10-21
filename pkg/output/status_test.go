@@ -106,7 +106,7 @@ func TestStatusRows(t *testing.T) {
 	if !slices.Equal(v.Status.Rows, want) {
 		t.Errorf("got  %+v\nwant %+v", v.Status.Rows, want)
 	}
-	if f := v.Risk.Factors; !slices.Equal(f, []string{"User unknown", "SSH Auth unknown"}) {
+	if f := v.Risk.Factors; !slices.Equal(f, []string{"unknown counted as not configured"}) {
 		t.Errorf("factors %q", f)
 	}
 }
@@ -119,14 +119,15 @@ func TestRiskSummaryOf(t *testing.T) {
 		want component.RiskSummary
 	}{
 		{risk.Level{Band: risk.Critical}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: "no security"}},
-		{risk.Level{Band: risk.Critical, Forced: true, Factors: []risk.Factor{{Detail: "firewall blocks ssh"}}},
-			component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss, Factors: []string{"firewall blocks ssh"}}},
+		{risk.Level{Band: risk.Critical, Forced: true}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss}},
+		{risk.Level{Band: risk.Critical, Forced: true, Factors: []risk.Factor{{Detail: "reboot pending"}}},
+			component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss, Factors: []string{"reboot pending"}}},
 		{risk.Level{Band: risk.High}, component.RiskSummary{Band: component.RiskHigh, Level: "High", Gloss: "weak security"}},
 		{risk.Level{Band: risk.Moderate}, component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"}},
 		{risk.Level{Band: risk.Low}, component.RiskSummary{Band: component.RiskLow, Level: "Low", Gloss: "strong security"}},
 		{risk.Level{Band: risk.Minimal}, component.RiskSummary{Band: component.RiskLow, Level: "Minimal", Gloss: "hardened security"}},
-		{risk.Level{Band: risk.Unknown, Factors: []risk.Factor{{Detail: "User unknown"}}},
-			component.RiskSummary{Band: component.RiskUnknown, Factors: []string{"User unknown"}}},
+		{risk.Level{Band: risk.Unknown, Factors: []risk.Factor{{Detail: "unknown counted as not configured"}}},
+			component.RiskSummary{Band: component.RiskUnknown, Factors: []string{"unknown counted as not configured"}}},
 		{risk.Level{Band: risk.Band(9)}, component.RiskSummary{}},
 	} {
 		if got := output.RiskSummaryOf(c.l); !reflect.DeepEqual(got, c.want) {
