@@ -267,14 +267,10 @@ func (s *session) readStatus(ctx context.Context, h *fakeHost) (hostStatus, erro
 
 // mainMenu is the main menu of st: the main menu's mock with its header,
 // distribution bar, host block, risk summary and status rows as pkg/output
-// maps the host's, its version the mock's.
+// maps the host's, its version the mock's (output.MainMenuOf, which
+// internal/tools/p4status draws a real host's with).
 func (st hostStatus) mainMenu() screen.MainMenu {
-	vm := screen.MainMenuFixture()
-	hv := output.HeaderViewOf(vm.Header.Version, st.header)
-	sv := output.StatusViewOf(st.reports, st.level)
-	vm.Header, vm.Context, vm.Host = hv.Header, hv.Context, hv.Host
-	vm.Risk, vm.Status = sv.Risk, sv.Status
-	return vm
+	return output.MainMenuOf(screen.MainMenuFixture(), st.header, st.reports, st.level)
 }
 
 // statusNote is play's note for the status hosts.
