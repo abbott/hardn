@@ -3,8 +3,10 @@ package accounts_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -24,9 +26,9 @@ const (
 func TestParse(t *testing.T) {
 	us, err := accounts.ParsePasswd([]byte(passwd))
 	want := []accounts.User{
-		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1},
-		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4},
-		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5},
+		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1, PasswdLock: accounts.NotLocked},
+		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4, PasswdLock: accounts.NotLocked},
+		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5, PasswdLock: accounts.NotLocked},
 	}
 	if err != nil || !reflect.DeepEqual(us, want) {
 		t.Errorf("ParsePasswd: %+v, %v", us, err)
@@ -106,5 +108,124 @@ func TestRead(t *testing.T) {
 	h.AddFile(accounts.GroupFile, []byte("sudo:x:27\n"), 0o644, 0, 0)
 	if _, err := accounts.Read(context.Background(), h); !errors.Is(err, accounts.ErrMalformed) {
 		t.Errorf("a malformed group: %v", err)
+	}
+}
+
+// Synthetic shadow lines (next/p4-locked). The hashes are made up, and
+// each holds runs of characters that appear nowhere else, so that a test
+// can show that none of them leaves the reader.
+const (
+	hashAlice = "$6$Qz7wVx3k$Jq9ZtYp4Wm2Rv8Ln5Hs1Kd6Fg0Xc"
+	hashBob   = "$y$j9T$Mn4bVq7$Zr8Wt2Yu5Io1Pa3Sd6Fh9Jk"
+	shadow    = "root:!:20000:0:99999:7:::\n" +
+		"# a comment\n\n" +
+		"alice:" + hashAlice + ":20000:0:99999:7:::\n" +
+		"bob:!" + hashBob + ":20000:0:99999:7:::\n" +
+		"george:*:20000:0:99999:7:::\n" +
+		"daemon:!!:20000::::::\n" +
+		"nobody::20000:0:99999:7:::\n" +
+		"alice:!:20000:0:99999:7:::\n"
+)
+
+// TestShadow: each name's first line, its lock from the first character
+// alone ("!", "!!" and "!" before a hash locked; "*" and a hash not; an
+// empty field not, as platform_locked_account() reads it), and LockOf's
+// fallback to /etc/passwd's field without a line.
+func TestShadow(t *testing.T) {
+	s, err := accounts.ParseShadow([]byte(shadow))
+	want := accounts.Shadow{
+		"root":   {Lock: accounts.Locked, Line: 1},
+		"alice":  {Lock: accounts.NotLocked, Line: 4}, // the first line; the second, "!", is not getspnam's
+		"bob":    {Lock: accounts.Locked, Line: 5},
+		"george": {Lock: accounts.NotLocked, Line: 6},
+		"daemon": {Lock: accounts.Locked, Line: 7},
+		"nobody": {Lock: accounts.Empty, Line: 8},
+	}
+	if err != nil || !reflect.DeepEqual(s, want) {
+		t.Fatalf("ParseShadow: %#v, %v", s, err)
+	}
+	for _, c := range []struct {
+		u        accounts.User
+		lock     accounts.Lock
+		at, text string
+	}{
+		{accounts.User{Name: "bob", Line: 3, PasswdLock: accounts.NotLocked}, accounts.Locked, "/etc/shadow:5", "locked (!)"},
+		{accounts.User{Name: "eve", Line: 9, PasswdLock: accounts.NotLocked}, accounts.NotLocked, "/etc/passwd:9", "not locked"},
+		{accounts.User{Name: "eve", Line: 9, PasswdLock: accounts.Locked}, accounts.Locked, "/etc/passwd:9", "locked (!)"},
+		{accounts.User{Name: "nobody", Line: 4}, accounts.Empty, "/etc/shadow:8", "empty, not locked"},
+	} {
+		if l, at := s.LockOf(c.u); l != c.lock || at != c.at || l.String() != c.text {
+			t.Errorf("%s: %v %q %q", c.u.Name, l, at, l)
+		}
+	}
+	if accounts.LockNotRead.String() != "not read" {
+		t.Error(accounts.LockNotRead.String())
+	}
+	us, err := accounts.ParsePasswd([]byte("root:!:0:0::/root:/bin/sh\nalice::1000:1000::/home/alice:/bin/sh\n"))
+	if err != nil || us[0].PasswdLock != accounts.Locked || us[1].PasswdLock != accounts.Empty {
+		t.Errorf("passwd's field: %+v, %v", us, err)
+	}
+	for _, l := range []string{
+		"alice:!:20000:0:99999:7::",   // eight fields
+		"alice:!:20000:0:99999:7::::", // ten
+		":!:20000:0:99999:7:::",       // no name
+		"alice",                       // one
+	} {
+		if _, err := accounts.ParseShadow([]byte("root:*:1::::::\n" + l + "\n")); !errors.Is(err, accounts.ErrMalformed) || err.Error() != "accounts: /etc/shadow:2: "+accounts.ErrMalformed.Error() {
+			t.Errorf("%q: %v", l, err)
+		}
+	}
+}
+
+// TestShadowPrivacy: no run of four characters of a password hash (the
+// field after its "!") leaves the reader, in what it returns, in its
+// errors, or in the evidence a lock gives.
+func TestShadowPrivacy(t *testing.T) {
+	leaks := func(where, out string) {
+		t.Helper()
+		for _, h := range []string{hashAlice, hashBob} {
+			for i := 0; i+4 <= len(h); i++ {
+				if strings.Contains(out, h[i:i+4]) {
+					t.Errorf("%s holds %q of a hash: %s", where, h[i:i+4], out)
+				}
+			}
+		}
+	}
+	s, err := accounts.ParseShadow([]byte(shadow))
+	leaks("ParseShadow", fmt.Sprintf("%#v %+v %v", s, s, err))
+	for _, u := range []string{"alice", "bob"} {
+		l, at := s.LockOf(accounts.User{Name: u})
+		leaks("LockOf", fmt.Sprintf("%#v %v %s", l, l, at))
+	}
+	h := hostfake.New(host.Options{})
+	h.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)
+	s, err = accounts.ReadShadow(context.Background(), h)
+	leaks("ReadShadow", fmt.Sprintf("%#v %v", s, err))
+	_, err = accounts.ParseShadow([]byte("alice:" + hashAlice + ":1\n"))
+	leaks("an error", fmt.Sprint(err))
+	us, err := accounts.ParsePasswd([]byte("alice:" + hashAlice + ":1000:1000::/home/alice:/bin/sh\n"))
+	leaks("ParsePasswd", fmt.Sprintf("%#v %v", us, err))
+	_, err = accounts.ParsePasswd([]byte("alice:" + hashBob + ":x:1000::/home/alice:/bin/sh\n"))
+	leaks("a passwd error", fmt.Sprint(err))
+}
+
+// TestReadShadow: one read through host.System, and a failed read
+// wrapped, never taken for an empty file.
+func TestReadShadow(t *testing.T) {
+	h := hostfake.New(host.Options{})
+	h.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)
+	if s, err := accounts.ReadShadow(context.Background(), h); err != nil || len(s) != 6 {
+		t.Fatalf("ReadShadow: %v, %v", s, err)
+	}
+	if calls := h.Calls(); len(calls) != 1 || calls[0].Op != "read" || calls[0].Path != accounts.ShadowFile {
+		t.Errorf("calls %v", calls)
+	}
+	h = hostfake.New(host.Options{})
+	if s, err := accounts.ReadShadow(context.Background(), h); !errors.Is(err, fs.ErrNotExist) || s != nil {
+		t.Errorf("no shadow: %v, %v", s, err)
+	}
+	h.AddFile(accounts.PasswdFile, []byte(passwd), 0o644, 0, 0)
+	if us, err := accounts.ReadPasswd(context.Background(), h); err != nil || len(us) != 3 {
+		t.Errorf("ReadPasswd: %v, %v", us, err)
 	}
 }
