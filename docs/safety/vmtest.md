@@ -461,3 +461,67 @@ exit 2 a gate does not hold, or a usage error
 ```
 
 **Size:** about 1,710 lines of non-test Go (much of it doc comments and the transcript's lines) and 1,280 of tests, against the plan's guideline of about 500: eight commands over nine primitives, the engine's write-ahead order with its failure path, and on the fake a test per gate, per scenario (Debian, Ubuntu's socket, Alpine's OpenRC, Proxmox VE, the v0.3.2 migration) and per failure after the timer is armed, with a model of sshd's reading for `sshd -T` (the review round after the first commit added about 270 lines of code and 710 of tests). The commands share one planning and one apply path; splitting them (the read-only report, the lockout changes, sudoers and the migration) would have kept each unit nearer the guideline.
+
+## 8. Phase 4: the main menu read on the VMs (`internal/tools/p4status`, `next/p4-vmcheck`)
+
+> **Every step of this section is written, not run (gate 5).** Nothing below has run on any host; where a step says what to see, that is the expectation it checks.
+
+`p4status` reads the host as hardn's main menu will (detect, the five checks, the header probe, the risk level) and prints the main menu, then the evidence each line was read from and every command it ran ([vmcheck.md](../engine/vmcheck.md)). It changes nothing, by construction: a guard refuses every change and runs only the commands the checks run, so it runs on a VM in any state: as installed, after §4's steps, or on the `p2-clean` snapshot. The maintainer's VMs: Debian 13 and Ubuntu 26.04, amd64. The names below are synthetic (§4); substitute the real ones when running, and do not commit them.
+
+### 8.1 Build and copy (on the development machine)
+
+Never run p4status here: it refuses macOS anyway.
+
+```sh
+cd hardn-p4   # the worktree on next/p4-vmcheck or later
+out=$(mktemp -d)
+GOTOOLCHAIN=local GOWORK=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  mise exec -- go build -trimpath -tags=netgo -o "$out/p4status" ./internal/tools/p4status
+git rev-parse --short HEAD      # record it
+shasum -a 256 "$out/p4status"   # record it
+scp "$out/p4status" alice@web-01.example.net:/tmp/p4status
+```
+
+### 8.2 Run (on each VM)
+
+```sh
+sha256sum /tmp/p4status          # the build's, recorded above
+chmod 0755 /tmp/p4status
+sudo /tmp/p4status > /tmp/p4status.txt; echo "exit $?"
+less /tmp/p4status.txt
+```
+
+Expect `exit 0` and nothing on stderr. Exit 1 with `p4status: <n> call(s) refused` means a check ran a command, or a shape, that the driver's list lacks: record the `refused` lines of the evidence's `commands` (vmcheck.md §7). On a `/tmp` mounted `noexec`, copy it to `/root` instead (Debian 13 mounts `/tmp` as a tmpfs; whether `noexec` **[unverified]**). To see the main menu as a terminal draws it: `sudo /tmp/p4status -profile truecolor -height 40 | less -R`.
+
+### 8.3 Check each line by hand
+
+Run each command as it stands (`sudo` where shown), on the same VM, soon after p4status, and compare: the main menu's line, and the evidence under it (`row <id>`, `header`, `risk`).
+
+| Line | Independent commands | It agrees when |
+|---|---|---|
+| Distribution bar | `cat /etc/os-release` | the name, `VERSION_ID` and `VERSION_CODENAME` are the bar's |
+| Hostname | `hostname`; `cat /proc/sys/kernel/hostname` | the badge is the kernel's name |
+| Address | `ip route get 1.1.1.1` (a route lookup: nothing is sent); `ip route show default`; `ip -4 addr show dev <dev>` | the address is `ip route get`'s `src`, on the default route's `dev`, as the evidence's `ipv4` line says |
+| Uptime | `uptime -p`; `cat /proc/uptime` | the uptime is `uptime -p`'s, and the evidence's seconds are `/proc/uptime`'s first number less the seconds between the two runs |
+| Reboot pending | `ls -l /var/run/reboot-required`; `uname -r`; `uname -v`; `ls /boot`; `dpkg-query -W "linux-image-$(uname -r)"` | the host block shows "Reboot pending" exactly when the file exists, a newer `vmlinuz-*` is in `/boot`, or (a kernel Debian built) the package's version is not the one `uname -v` names after `Debian`; each source is an `evidence` line under `header` |
+| User | `getent passwd`; `getent group sudo`; `sudo -l -U <user>` for each account of uid 1000 or more with a login shell; `sudo cat /etc/sudoers`; `sudo ls -l /etc/sudoers.d` | the detail ("non-root, sudo", "root only", …) is what `getent` and `sudo -l` show, and every grant the evidence names is one `sudo -l -U` lists ([check-users.md](../engine/check-users.md)) |
+| Firewall | `sudo ufw status verbose`; `sudo ss -tlnp`; `sudo sshd -T \| grep -i -e '^port ' -e '^listenaddress '` | the state and the policy are `ufw status verbose`'s, and every SSH listener `ss` shows is allowed by a rule it lists ([check-firewall.md](../engine/check-firewall.md)) |
+| SSH Login | `sudo sshd -T \| grep -i '^permitrootlogin'`; `sudo grep -rin '^[[:space:]]*match' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/` | the detail is `permitrootlogin`'s value ("root disallowed" for `no`, "root key-only" for `prohibit-password`/`without-password`), and a `Match` block is a finding ([check-ssh.md](../engine/check-ssh.md)) |
+| SSH Auth | `sudo sshd -T \| grep -i -e '^passwordauthentication' -e '^kbdinteractiveauthentication' -e '^pubkeyauthentication'` | "key-only auth" exactly when the first two are `no`, the third `yes`, and no `Match` block turns either of the first two on ([check-ssh.md](../engine/check-ssh.md)) |
+| SSH Port | `sudo sshd -T \| grep -i -e '^port ' -e '^listenaddress '`; `sudo ss -tlnp`; on Ubuntu `systemctl show -p Listen ssh.socket` | the port in the detail is the one sshd (or ssh.socket) listens on, and `ss` shows it bound |
+| AppArmor | `sudo aa-status`; `cat /sys/module/apparmor/parameters/enabled`; `sudo cat /sys/module/apparmor/parameters/mode`; `sudo grep -c '(enforce)' /sys/kernel/security/apparmor/profiles`; `systemctl is-enabled apparmor.service` | the count of profiles enforced is `aa-status`'s and the `grep`'s; "logging only", "off after restart", "off in kernel" as [check-apparmor.md](../engine/check-apparmor.md) says |
+| Auto Updates | `dpkg-query -W unattended-upgrades`; `apt-config dump APT::Periodic`; `apt-config dump Unattended-Upgrade::Allowed-Origins Unattended-Upgrade::Origins-Pattern`; `systemctl is-enabled apt-daily-upgrade.timer apt-daily.timer apt-daily-upgrade.service apt-daily.service`; `systemctl is-active apt-daily-upgrade.timer apt-daily.timer` | the detail is what these show, by [check-updates.md](../engine/check-updates.md)'s table |
+| Risk level | none: from the rows, by [risk.md](../engine/risk.md) §5 | the evidence's `score` is the rows' weights earned (§5.1, §5.2) less each `factor`'s `cost`, its `band` §5.4's, and each factor's cross-check holds on the host (§6.2) |
+| Commands | each `exit <n> <argv>` line of the evidence, run by hand as root | it exits with the same status, and prints what the row's evidence quotes of it |
+
+### 8.4 What to record
+
+For each VM, with the run's date:
+
+- the build's commit and sha256 (§8.1), `PRETTY_NAME` of `/etc/os-release` and `uname -r`;
+- p4status's exit status, its stderr, and `/tmp/p4status.txt` whole, kept with Phase 3's transcripts (`vm-runs/p4/`), not in the repository;
+- for each row of §8.3: agrees or not; for each that does not, the main menu's line, the evidence's lines under it, the independent command's output, and which is right: a status that says the host is safer than the commands show is the finding that matters most;
+- any `refused` line, and any `failed` command the host has;
+- whether the run changed anything: `sudo ls -la /run/ufw* /var/lib/ufw /etc/ufw` and `systemctl list-units --state=failed` before and after, the same; `stat` of `/etc/ssh/sshd_config.d/`, `/etc/sudoers.d/` and `/etc/ufw/user.rules` before and after, the same mtime.
+
+Results go in a subsection of §4.9's form only once run, the host's names and addresses replaced by the synthetic ones.
