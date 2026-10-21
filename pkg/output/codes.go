@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
@@ -405,6 +406,10 @@ var findingCodes = []Entry{
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
 	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
+	// The users control's own (next/p4-check-users).
+	finding(users.CodeNoPassword, "a login user becomes root without a password (sudo's NOPASSWD, doas's nopass)"),
+	finding(users.CodeRuleNotRead, "an elevation rule in a form hardn does not read may decide whether a login user becomes root"),
+	finding(users.CodeUID0, "an account other than root has uid 0, so it is root"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

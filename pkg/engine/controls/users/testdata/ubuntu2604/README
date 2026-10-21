@@ -1,0 +1,4 @@
+#
+# Synthetic: a comment-only file, as the README Debian ships in
+# /etc/sudoers.d; sudo reads it (no '.') and finds no rule.
+#
