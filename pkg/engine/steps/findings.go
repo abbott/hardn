@@ -90,3 +90,7 @@ func SSHDFinding(f sshd.Finding) engine.Finding { return sshdFindings([]sshd.Fin
 
 // PVEFinding is one of pve's findings as an engine.Finding (PVE_...).
 func PVEFinding(f pve.Finding) engine.Finding { return pveFindings([]pve.Finding{f})[0] }
+
+// UFWFinding is one of ufw's findings as an engine.Finding (UFW_...), for
+// the firewall's status (next/p4-check-firewall).
+func UFWFinding(f ufw.Finding) engine.Finding { return ufwFindings([]ufw.Finding{f})[0] }
