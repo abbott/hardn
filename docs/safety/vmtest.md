@@ -464,7 +464,7 @@ exit 2 a gate does not hold, or a usage error
 
 ## 8. Phase 4: the main menu read on the VMs (`internal/tools/p4status`, `next/p4-vmcheck`)
 
-> **Run on Debian 13 and Ubuntu 26.04 on 2026-10-21 (§8.5), built from `next/p4-vmcheck` 1609b95.** Alpine 3.24 and Proxmox VE 9 have no VM: their steps stay written, not run (gate 5).
+> **Run on Debian 13 and Ubuntu 26.04 (§8.5) and Alpine 3.23 (§8.6) on 2026-10-21.** Alpine 3.24 and Proxmox VE 9 have no VM: their steps stay written, not run (gate 5).
 
 `p4status` reads the host as hardn's main menu will (detect, the five checks, the header probe, the risk level) and prints the main menu, then the evidence each line was read from and every command it ran ([vmcheck.md](../engine/vmcheck.md)). It changes nothing, by construction: a guard refuses every change and runs only the commands the checks run, so it runs on a VM in any state: as installed, after §4's steps, or on the `p2-clean` snapshot. The maintainer's VMs: Debian 13 and Ubuntu 26.04, amd64. The names below are synthetic (§4); substitute the real ones when running, and do not commit them.
 
@@ -556,4 +556,26 @@ Built from `next/p4-vmcheck` 1609b95 (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64`), 
 **Finding, fixed on `next/p4-vmcheck`:** the AppArmor check counted the root namespace's profiles only, on the page's assumption that a namespace below it is a container's. Ubuntu 26.04 loads two profiles in glycin's namespace (`:glycin:bwrap`, `:glycin:loaders`), which confine image loaders on the host itself, and `aa-status` counts them: 103 where the line said 101. The check now counts every namespace's profiles, as `aa-status` does, and the evidence says how many are in other namespaces ([check-apparmor.md](../engine/check-apparmor.md) item 5). Debian's line is unchanged (no other namespace there). Rerun on both VMs with p4status built from 17f948b: Ubuntu 26.04 "103 profiles enforced" (evidence "103 enforce, 2 complain, 74 unconfined; 2 of them in other namespaces"), Debian 13 "7 profiles enforced"; exit 0, none refused.
 
 Not run: Alpine 3.24 and Proxmox VE 9 (no VM); the states the VMs are not in (a port change, ufw inactive, AppArmor off, updates off, a pending reboot): their lines are the checks' tests and the gallery's simulated hosts only.
+
+### 8.6 The run on Alpine 3.23 (2026-10-21)
+
+Alpine 3.23.6 (x86_64, kernel 6.18.53-0-virt, OpenRC), as installed by the maintainer: two login accounts (`alpine` and the runner's, `<runner>`) in `wheel`, `/etc/doas.d/wheel.conf` saying `permit nopass :wheel`, no sudo (Alpine's own notice: "'sudo' is not installed by default, please use 'doas' instead"); openssh-server running `/usr/sbin/sshd` (built without PAM), openssh-server-pam installed but unused; `PasswordAuthentication no` (OpenSSH's default is yes: what set it is not recorded); no ufw, iptables, nftables or awall; no apk-cron, crond stopped and in no runlevel; AppArmor off. The host's own answers by an Alpine script (`apk info -e`, `/etc/doas.d`, `doas -C`, `sshd -T`, `rc-service`, `rc-update show`, busybox `netstat -tln`, `/sys/module/apparmor/parameters/enabled`, `/etc/crontabs/root`, `uptime`, `ip route`, `ls /boot /lib/modules`), then `doas /tmp/p4/p4status -height 40` (doas without a password, through the rule above).
+
+| Line | p4status (from `next/p4-kbd-pam` 1efa119) | The host's own answer |
+|---|---|---|
+| Distribution bar | Alpine 3.23.6 | `/etc/alpine-release` |
+| Host block | `<host>`, `<ip>`, 3 hours, 45 minutes | `uptime`: up 3:45 |
+| Reboot | none: `/lib/modules/6.18.53-0-virt` present (Alpine's `/boot` holds `vmlinuz-virt`, whose name carries no release) | `uname -r`, `ls /boot /lib/modules` |
+| Risk Level | High ≈ weak security, factor "no password to become root" (Critical ≈ no security, 14.4, before the fix below) | |
+| User | Configured "non-root, doas"; USERS_NOPASSWD for `alpine` and `<runner>` from `/etc/doas.d/wheel.conf:1` | both in `wheel`; `permit nopass :wheel`; `doas -C` ok |
+| Firewall | Not Configured "ufw not installed" | none of ufw, iptables, nftables, awall installed |
+| SSH Login | Partial "root key-only" | `permitrootlogin prohibit-password` |
+| SSH Auth | Configured "key-only auth" (**finding below**; Not Configured "kbd-interactive on" before) | password no, keyboard-interactive yes, pubkey yes, no `usepam` line |
+| SSH Port | Not Configured "default (22)", evidence "ss: not installed, so the bound sockets are not read" | `netstat`: 0.0.0.0:22 and :::22; no `ss` on a stock Alpine |
+| AppArmor | Not Applicable "Alpine default" | `enabled`: N |
+| Auto Updates | Not Configured "no apk-cron" | apk-cron not installed; crond stopped, in no runlevel |
+
+**Read only, as built:** exit 0, 16 commands run (four of them not found on Alpine: dpkg-query, ufw, ss twice), none refused; no mount changed; no file under `/etc`, `/usr`, `/var/lib`, `/root`, `/boot` or `/lib` newer than the stamp.
+
+**Finding, fixed on `next/p4-kbd-pam`:** the SSH Auth check counted keyboard-interactive on as a password path whatever the build. On Linux keyboard-interactive's only device is PAM ([check-ssh.md](../engine/check-ssh.md) §2.11), and Alpine's `sshd` is built without it: a login offered keyboard-interactive alone (`ssh -o PubkeyAuthentication=no -o PreferredAuthentications=keyboard-interactive`) was refused at once, with no password prompt. `pkg/host/sshd` now reads `UsePAM` (a build without PAM prints no `usepam` line: a known no), and the check counts keyboard-interactive only when UsePAM is yes; on an Alpine host whose detect cannot name the running build (a container without OpenRC), an installed `sshd.pam` with UsePAM yes keeps the line from Configured. Rerun with p4status from 1efa119: Alpine "key-only auth" with the evidence "sshd -T: no usepam (built without PAM)" and "keyboard-interactive: no password prompt without PAM"; Debian 13 and Ubuntu 26.04 unchanged (keyboard-interactive off there).
 
