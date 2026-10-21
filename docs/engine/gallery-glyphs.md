@@ -30,11 +30,11 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 | "Unknown" for a distribution, hostname, address or uptime not read, a plan's untitled change, a report's unnamed rolled-back change | none | none | `text.muted` | `Unknown`'s colour |
 | the P-42 compare mock's rolled-back step, `-marker status` | ⭘ | `[ ]` | `status.warn` | `Partial` |
 
-**The rule, changed.** Partial and Not Configured share ⭘ `[ ]`, and a warning takes it too. They are told apart by colour and by the word, which is always on the line: never by colour alone. Unknown and Not Applicable share `text.muted` and differ by glyph and word. A key-value row has no state word: there a warn and a bad value differ by colour, and without colour only by the value's own words, such as "None" beside "Enabled, No password" (DEV-034). A not-applicable value's – sits in the bullet's column in the bullet's grey, which §3's measurements put close to `-` in some fonts; its value or "Not Applicable" is beside it.
+**The rule, changed.** Partial and Not Configured share ⭘ `[ ]`, and a warning takes it too. They are told apart by colour and by the word, which is always on the line: never by colour alone. Unknown and Not Applicable share `text.muted` and differ by glyph and word. A key-value row has no state word: there a warn and a bad value differ by colour, and without colour only by the value's own words, such as "None" beside "Enabled, No password" (DEV-034). A not-applicable value's – sits in the bullet's column in the bullet's grey, which §4's figures put close to `-` in some fonts; its value or "Not Applicable" is beside it. A status row on Partial or Not Configured shows its state's word, never its `Word`, which would leave the two rows alike without colour (`TestLayout`).
 
 ## 2. Where ⛬ is still drawn, for the maintainer to confirm
 
-No other glyph is the risk icon or holds it (`TestRiskGlyphAlone`), and over every component state, in both glyph sets, ⛬ `[*]` is drawn only before these words (`TestRiskGlyphDrawn`):
+No other glyph is the risk icon or holds it (`TestRiskGlyphAlone`), and over every component state, in both glyph sets, ⛬ `[*]` is drawn only by these components, before these words (`TestRiskGlyphDrawn`):
 
 | Where | Line | Status |
 |---|---|---|
@@ -98,7 +98,7 @@ The adopted set's (`next/p4-status-glyphs`), in `pkg/ui/theme` and `pkg/ui/compo
 
 - `TestStatusMarkers`: every marker fits the column; only Partial shares a marker, Not Configured's, and `Warn` is Partial's. It held "no two states share a marker" until now.
 - `TestSharedMarkerColours`: wherever there is colour, Partial's and Not Configured's styles differ, on a status row and on a key-value row.
-- `TestStatusStates`: two states sharing a glyph differ by word and colour. `TestValueStates`: a warn value's marker is a bad one's, in another colour.
+- `TestStatusStates`: two states sharing a glyph differ by word and colour. `TestLayout`: a row on Partial or Not Configured keeps its state's word when given a `Word`. `TestValueStates`: a warn value's marker is a bad one's, in another colour.
 - `TestRiskGlyphAlone` and `TestRiskGlyphDrawn`: §2.
 - `TestColourRoles`: every Unknown slot, `Risk.Unknown` included, is `text.muted`; `TestContrast` no longer lists `status.unknown`.
 
@@ -129,3 +129,11 @@ The adopted set's (`next/p4-status-glyphs`), in `pkg/ui/theme` and `pkg/ui/compo
 | `internal/tools/uigallery/testdata/golden/glyphs` | every set and the strip; `trial` removed | both, and the note's words: `current` is the adopted set; Unknown muted in every set; the strip's "(current)" labels |
 
 `internal/tools/p4status`'s host files are unchanged: they hold the hosts, not the renders, and `TestMainMenuAsGallery` still matches the gallery's plain-80 cells, which changed with p4status's own output.
+
+## 8. Written, not run (gate 5)
+
+The glyphs and colours as the components now draw them are golden only: no terminal or font showed them. How amber ⭘ reads beside red ⭘ (Partial beside Not Configured, a warn value beside a bad one) and grey `?` and `–` beside the details' fainter grey is not verified. Unknown's and Not Applicable's words in `text.muted` are 3.95:1 in the light theme at 16 colours, under the status words' 4.5:1 (DEV-010).
+
+## 9. API
+
+No exported Go identifier changed. `StatusRow.Word` is not shown on Partial or Not Configured (§1). The palette's unexported `StatusUnknown` and its token `status.unknown` are gone, so the gallery's `-override` rejects `status.unknown` as an unknown token. The glyphs mode no longer has `trial`, which now exits with status 2 (§5).
