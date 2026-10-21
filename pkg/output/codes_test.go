@@ -551,7 +551,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
 	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                 // next/p4-check-apparmor
 	// next/p4-check-updates
-	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded)
+	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown)
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

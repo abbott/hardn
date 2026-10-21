@@ -3,6 +3,7 @@ package updates
 import (
 	"context"
 	"fmt"
+	"path"
 	"slices"
 	"strings"
 
@@ -60,20 +61,28 @@ var (
 
 // checkApt reads apt's daily job. Upgrades run when unattended-upgrades
 // is installed, APT::Periodic::Enable is not 0, APT::Periodic::
-// Unattended-Upgrade is on and apt-daily-upgrade.timer runs; otherwise the
-// line is NotConfigured. With upgrades running, it is Partial while the
-// lists are not refreshed (APT::Periodic::Update-Package-Lists off, or
-// apt-daily.timer not running, or apt-daily.service masked) or a running
-// timer is not enabled for the next boot. A masked apt-daily-upgrade.service
-// is NotConfigured too: its timer runs, and starts nothing. On Proxmox VE a running job carries CodeProxmoxNotUpgraded
-// unless an origin names Proxmox.
+// Unattended-Upgrade is on, an origin is allowed and apt-daily-upgrade.timer
+// runs; otherwise the line is NotConfigured. With upgrades running, it is
+// Partial while the lists are not refreshed (APT::Periodic::
+// Update-Package-Lists off, or apt-daily.timer not running, or
+// apt-daily.service masked) or a running timer is not enabled for the
+// next boot. A masked apt-daily-upgrade.service is NotConfigured too: its
+// timer runs, and starts nothing. With upgrades running, Proxmox VE
+// carries CodeProxmoxNotUpgraded unless an origin matches Proxmox VE's
+// repository, and a derivative hardn does not list is Unknown with
+// CodeOriginsUnknown: whether its origins match its own archives is not
+// read.
 func checkApt(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	var ev []string
 	d, err := dump(ctx, sys)
-	enable, upgrade, lists := fact{err: err}, fact{err: err}, fact{err: err}
+	enable, upgrade, lists, origins := fact{err: err}, fact{err: err}, fact{err: err}, fact{err: err}
+	var allowed, patterns []string
 	if err == nil {
 		enable = d.flag(keyEnable, &ev)
 		upgrade, lists = d.interval(keyUpgrade, &ev), d.interval(keyLists, &ev)
+		allowed, patterns = d.children(keyAllowed), d.children(keyPattern)
+		ev = append(ev, fmt.Sprintf("%s: Allowed-Origins %d, Origins-Pattern %d", dumpSource, len(allowed), len(patterns)))
+		origins = known(len(allowed)+len(patterns) > 0)
 	}
 	t, err := detect.DpkgInstalled(ctx, sys, unattended)
 	pkg := fact{t: t, err: wrap(err)}
@@ -82,7 +91,7 @@ func checkApt(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	}
 	up, refresh := timers(ctx, sys, f.Init, &ev)
 	st, err := decide(ev,
-		[]cond{{pkg, DetailNoUnattended}, {enable, DetailUpgradesOff}, {upgrade, DetailUpgradesOff}, {up.now, DetailTimerOff}, {up.job, DetailJobMasked}},
+		[]cond{{pkg, DetailNoUnattended}, {enable, DetailUpgradesOff}, {upgrade, DetailUpgradesOff}, {origins, DetailNoOrigins}, {up.now, DetailTimerOff}, {up.job, DetailJobMasked}},
 		[]cond{{lists, DetailListsStale}, {refresh.now, DetailListsStale}, {refresh.job, DetailListsStale}, {up.boot, DetailOffAfterRestart}, {refresh.boot, DetailOffAfterRestart}},
 		DetailUnattended)
 	if err != nil || (st.State != engine.Configured && st.State != engine.Partial) {
@@ -90,17 +99,39 @@ func checkApt(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	}
 	switch f.Platform.Distro {
 	case detect.DistroProxmox:
-		n, named := d.origins()
-		if named {
-			st.Evidence = append(st.Evidence, fmt.Sprintf("%s: %d origins, one naming Proxmox", dumpSource, n))
-			break
+		n := 0
+		for _, o := range allowed {
+			if p, ok := allowedPattern(o); ok && coversProxmox(p, f.OS.VersionCodename) {
+				n++
+			}
 		}
-		st.Evidence = append(st.Evidence, fmt.Sprintf("%s: %d origins, none naming Proxmox", dumpSource, n))
-		st.Findings = append(st.Findings, engine.Finding{Code: CodeProxmoxNotUpgraded, Detail: "Proxmox packages not upgraded", Source: dumpSource})
+		for _, p := range patterns {
+			if coversProxmox(p, f.OS.VersionCodename) {
+				n++
+			}
+		}
+		st.Evidence = append(st.Evidence, fmt.Sprintf("%s: origins matching Proxmox VE's repository %d", dumpSource, n))
+		if n == 0 {
+			st.Findings = append(st.Findings, engine.Finding{Code: CodeProxmoxNotUpgraded, Detail: "Proxmox packages not upgraded", Source: dumpSource})
+		}
+	case detect.DistroOther:
+		// apt's job runs, and what it takes is the distribution's own
+		// archives' Origin against the origins, which hardn does not know
+		// for a distribution it does not list (Raspbian's is not Debian's).
+		why := engine.Finding{Code: CodeOriginsUnknown, Detail: fmt.Sprintf("%s, like %s", f.OS.ID, f.Platform.Like), Source: osReleaseSource(f.OS.Path)}
+		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: st.Evidence, Findings: append(st.Findings, why)}, nil
 	case detect.DistroUnknown:
 		st.Evidence = append(st.Evidence, "Proxmox VE: not established, origins not compared")
 	}
 	return st, nil
+}
+
+// osReleaseSource is the os-release file read, or its name when none was.
+func osReleaseSource(file string) string {
+	if file == "" {
+		return "os-release"
+	}
+	return file
 }
 
 // dumped is apt-config dump's output: each item's value and each list's
@@ -122,9 +153,11 @@ func dump(ctx context.Context, sys host.System) (dumped, error) {
 }
 
 // parseDump reads apt-config dump's default format, `%F "%v";` a line
-// (apt-pkg Configuration::Dump). A value is printed as it is, and apt.conf
-// allows no quote and no line break in one (apt.conf(5)); a line in
-// another form, or an item printed twice, is not established.
+// (apt-pkg Configuration::Dump), each name one of dumpArgs' roots or
+// under one. A value is printed as it is, and apt.conf allows no quote
+// and no line break in one (apt.conf(5)); a line in another form (a
+// Dump::Format of the host's, say), a name outside the roots, or an item
+// printed twice, is not established.
 func parseDump(out []byte) (dumped, error) {
 	d := dumped{values: map[string]string{}, lists: map[string][]string{}}
 	text := strings.TrimSuffix(string(out), "\n")
@@ -138,6 +171,12 @@ func parseDump(out []byte) (dumped, error) {
 			return d, fmt.Errorf("%s: line %q: %w", dumpSource, line, detect.ErrUnrecognised)
 		}
 		name = strings.ToLower(name)
+		if !slices.ContainsFunc(dumpArgs[1:], func(root string) bool {
+			root = strings.ToLower(root)
+			return name == root || strings.HasPrefix(name, root+"::")
+		}) {
+			return d, fmt.Errorf("%s: line %q: not under %s: %w", dumpSource, line, strings.Join(dumpArgs[1:], ", "), detect.ErrUnrecognised)
+		}
 		if list, item := strings.CutSuffix(name, "::"); item {
 			d.lists[list] = append(d.lists[list], value)
 			continue
@@ -191,13 +230,75 @@ func (d dumped) interval(name string, ev *[]string) fact {
 	return notRanked(name, v)
 }
 
-// origins counts unattended-upgrades' origins (Origins-Pattern and
-// Allowed-Origins), and whether one names Proxmox, whose packages'
-// Release files say Origin: Proxmox (P-43 (6) decision 5). The name is
-// not matched as unattended-upgrades matches a pattern.
-func (d dumped) origins() (n int, proxmox bool) {
-	all := slices.Concat(d.lists[strings.ToLower(keyPattern)], d.lists[strings.ToLower(keyAllowed)])
-	return len(all), slices.ContainsFunc(all, func(o string) bool { return strings.Contains(o, "Proxmox") })
+// children is what unattended-upgrade reads of root's origins
+// (get_allowed_origins, python-apt's value_list): the values of root's
+// direct children, items and named children alike, in no order of note,
+// but the empty ones, which match nothing (match_whitelist_string).
+func (d dumped) children(root string) []string {
+	root = strings.ToLower(root)
+	var named []string
+	for name, v := range d.values {
+		if seg, ok := strings.CutPrefix(name, root+"::"); ok && !strings.Contains(seg, "::") && strings.TrimSpace(v) != "" {
+			named = append(named, v)
+		}
+	}
+	slices.Sort(named)
+	items := slices.DeleteFunc(slices.Clone(d.lists[root]), func(v string) bool { return strings.TrimSpace(v) == "" })
+	return append(items, named...)
+}
+
+// proxmoxRelease is Proxmox VE 9's repository as its Release file says
+// (download.proxmox.com debian/pve dists/trixie/Release, read 2026-10-20),
+// by the keys of unattended-upgrade's patterns; its codename is the
+// host's. Debian's default origins match none of it (P-43 (6) decision 5).
+var proxmoxRelease = map[string]string{
+	"o": "Proxmox", "origin": "Proxmox",
+	"l": "Proxmox Debian Repository", "label": "Proxmox Debian Repository",
+	"a": "stable", "suite": "stable", "archive": "stable",
+}
+
+// coversProxmox is whether an Origins-Pattern entry matches Proxmox VE's
+// repository as unattended-upgrade matches one (match_whitelist_string):
+// every comma-separated key=value token, its value an fnmatch pattern,
+// with ${distro_codename} the host's codename. A token it does not model
+// (c, site, another variable, an escape, a bracket) is not a match, so
+// the finding stays.
+func coversProxmox(pattern, codename string) bool {
+	if codename != "" {
+		pattern = strings.ReplaceAll(pattern, "${distro_codename}", codename)
+	}
+	if strings.TrimSpace(pattern) == "" || strings.ContainsAny(pattern, `$\[`) {
+		return false
+	}
+	for _, tok := range strings.Split(pattern, ",") {
+		key, val, ok := strings.Cut(tok, "=")
+		key, val = strings.TrimSpace(key), strings.TrimSpace(val)
+		want, modelled := proxmoxRelease[key]
+		if key == "n" || key == "codename" {
+			want, modelled = codename, codename != ""
+		}
+		if m, err := path.Match(val, want); !ok || !modelled || strings.Contains(val, "=") || err != nil || !m {
+			return false
+		}
+	}
+	return true
+}
+
+// allowedPattern is an Allowed-Origins entry as unattended-upgrade
+// converts it (get_allowed_origins_legacy): "origin:archive", or the two
+// words, as "o=origin,a=archive"; ok is false for a form it is not.
+func allowedPattern(entry string) (string, bool) {
+	o, a, colon := strings.Cut(entry, ":")
+	switch {
+	case strings.ContainsAny(entry, `\,`):
+		return "", false
+	case colon && !strings.Contains(a, ":"):
+	case !colon && len(strings.Fields(entry)) == 2:
+		o, a = strings.Fields(entry)[0], strings.Fields(entry)[1]
+	default:
+		return "", false
+	}
+	return "o=" + o + ",a=" + a, true
 }
 
 func decimal(s string) bool {
@@ -233,18 +334,19 @@ func timers(ctx context.Context, sys host.System, in detect.Init, ev *[]string) 
 }
 
 // timer reads name's timer (systemctl is-active, then is-enabled) and
-// whether its service is masked (is-enabled).
+// whether its service is masked (is-enabled). A read that fails is its
+// error, with the finding a line decided without it carries.
 func timer(ctx context.Context, sys host.System, name string, ev *[]string) schedule {
 	read := func(verb, unit string, ranks map[string]detect.Tri) fact {
 		get := detect.SystemctlIsEnabled
 		if verb == "is-active" {
 			get = detect.SystemctlIsActive
 		}
+		cmd := "systemctl " + verb + " " + unit
 		st, err := get(ctx, sys, unit)
 		if err != nil {
-			return fact{err: wrap(err)}
+			return fact{err: wrap(err), why: engine.Finding{Code: CodeScheduleUnknown, Detail: "can't read " + unit, Source: cmd}}
 		}
-		cmd := "systemctl " + verb + " " + unit
 		*ev = append(*ev, cmd+": "+st)
 		if t, ok := ranks[st]; ok {
 			return fact{t: t}

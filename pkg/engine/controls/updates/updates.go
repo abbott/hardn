@@ -5,14 +5,15 @@
 //
 // On Debian, Ubuntu and Proxmox VE that is apt's daily job running
 // unattended-upgrade, read as apt.systemd.daily decides it: the effective
-// APT::Periodic values (apt-config dump, never the files alone), the
-// unattended-upgrades package, and the two systemd timers that run the
-// job (apt-daily-upgrade.timer upgrades, apt-daily.timer refreshes the
-// package lists). On Alpine it is apk-cron's daily script run by crond,
-// read by alpine.ReadUpdates. The line describes the host now: NotConfigured
-// when no upgrade runs, Partial when upgrades run but the lists are not
-// refreshed or the job stops at the next restart, Unknown, "can't read",
-// when what decides is not established, never a pass.
+// APT::Periodic values and unattended-upgrades' origins (apt-config
+// dump, never the files alone), the unattended-upgrades package, and the
+// two systemd timers that run the job (apt-daily-upgrade.timer upgrades,
+// apt-daily.timer refreshes the package lists). On Alpine it is
+// apk-cron's daily script run by crond, read by alpine.ReadUpdates. The
+// line describes the host now: NotConfigured when no upgrade runs,
+// Partial when upgrades run but the lists are not refreshed or the job
+// stops at the next restart, Unknown, "can't read", when what decides is
+// not established, never a pass.
 // docs/engine/check-updates.md has every line and its sources.
 package updates
 
@@ -40,6 +41,7 @@ const (
 	DetailOffAfterRestart = "off after restart"      // Partial: runs now, not after the next boot
 	DetailNoUnattended    = "no unattended-upgrades" // NotConfigured: the package not installed
 	DetailUpgradesOff     = "upgrades off"           // NotConfigured: APT::Periodic turns them off
+	DetailNoOrigins       = "no origins allowed"     // NotConfigured: unattended-upgrades takes no origin's packages
 	DetailTimerOff        = "upgrade timer off"      // NotConfigured: apt-daily-upgrade.timer not running
 	DetailJobMasked       = "upgrade job masked"     // NotConfigured: apt-daily-upgrade.service masked
 	DetailNoApkCron       = "no apk-cron"            // NotConfigured: the package not installed
@@ -54,14 +56,20 @@ const (
 	// apt.systemd.daily's reading is not ranked for ("1w", "yes", ""), so
 	// whether its job runs is not established.
 	CodeAptValueUnknown = "UPDATES_APT_VALUE_UNKNOWN"
-	// CodeScheduleUnknown: whether apt's timers run apt's daily job is not
-	// established: a timer in a state that does not say, or a host systemd
-	// did not boot (cron's apt-compat is not read).
+	// CodeScheduleUnknown: whether anything starts the daily job is not
+	// established: an apt timer in a state that does not say or that
+	// could not be read, a host systemd did not boot (cron's apt-compat
+	// is not read), or an Alpine OpenRC did not boot (no crond).
 	CodeScheduleUnknown = "UPDATES_SCHEDULE_UNKNOWN"
 	// CodeProxmoxNotUpgraded: on Proxmox VE, no unattended-upgrades origin
-	// names Proxmox, so Proxmox VE's own packages are not upgraded
-	// (Debian's default origins never match them; P-43 (6) decision 5).
+	// matches Proxmox VE's repository, so Proxmox VE's own packages are
+	// not upgraded (Debian's default origins never match them; P-43 (6)
+	// decision 5).
 	CodeProxmoxNotUpgraded = "UPDATES_PROXMOX_NOT_UPGRADED"
+	// CodeOriginsUnknown: a distribution hardn does not list, built from
+	// Debian or Ubuntu, whose apt job runs: whether its origins match the
+	// distribution's own archives is not established.
+	CodeOriginsUnknown = "UPDATES_ORIGINS_UNKNOWN"
 )
 
 // Controls is the Auto Updates row, the only one of its area.
@@ -102,8 +110,10 @@ func (Auto) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	return unread(nil, fmt.Errorf("updates: distribution: %w", errOr(f.Platform.Err, detect.ErrNoSignal)))
 }
 
-// fact is one thing a line depends on: Yes, No, or Unknown with why, a
-// read that failed (err) or a documented value not ranked (why).
+// fact is one thing a line depends on: Yes, No, or Unknown with why: a
+// read that failed (err), or a documented value not ranked (why). A read
+// that failed may carry why too: what a line decided without it says of
+// it.
 type fact struct {
 	t   detect.Tri
 	err error
@@ -127,14 +137,21 @@ type cond struct {
 // order: the first No of off is NotConfigured; with none, a fact of off
 // not established is Unknown; else the first No of partial is Partial,
 // one not established is Unknown, and with all Yes the line is
-// Configured with ok.
+// Configured with ok. A Partial line carries the findings of the facts
+// of partial left open: its two details mean different things to the
+// risk level (check-updates.md §6), and a fact left open may be the
+// other one.
 func decide(ev []string, off, partial []cond, ok string) (engine.Status, error) {
 	for _, tier := range []struct {
 		cs    []cond
 		state engine.State
 	}{{off, engine.NotConfigured}, {partial, engine.Partial}} {
 		if i := slices.IndexFunc(tier.cs, func(c cond) bool { return c.f.t == detect.No }); i >= 0 {
-			return status(tier.state, tier.cs[i].detail, ev), nil
+			st := status(tier.state, tier.cs[i].detail, ev)
+			if tier.state == engine.Partial {
+				st.Findings = open(tier.cs)
+			}
+			return st, nil
 		}
 		if st, undecided, err := unknowns(ev, tier.cs); undecided {
 			return st, err
@@ -153,7 +170,7 @@ func unknowns(ev []string, cs []cond) (st engine.Status, undecided bool, err err
 		switch {
 		case c.f.t != detect.Unknown:
 			continue
-		case c.f.why.Code != "":
+		case c.f.err == nil && c.f.why.Code != "":
 			if !slices.Contains(why, c.f.why) {
 				why = append(why, c.f.why)
 			}
@@ -173,10 +190,21 @@ func unknowns(ev []string, cs []cond) (st engine.Status, undecided bool, err err
 	case 0:
 	case 1:
 		err = errs[0]
-	default:
-		err = fmt.Errorf("updates: %w", errors.Join(errs...))
+	default: // each is the package's already (wrap): joined, not wrapped again
+		err = errors.Join(errs...)
 	}
 	return st, true, err
+}
+
+// open is the findings of the conditions not established, each once.
+func open(cs []cond) []engine.Finding {
+	var why []engine.Finding
+	for _, c := range cs {
+		if c.f.t == detect.Unknown && c.f.why.Code != "" && !slices.Contains(why, c.f.why) {
+			why = append(why, c.f.why)
+		}
+	}
+	return why
 }
 
 // status is a status with no error and no findings.

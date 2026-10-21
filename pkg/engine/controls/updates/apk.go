@@ -2,6 +2,7 @@ package updates
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/abbott/hardn/pkg/engine"
@@ -18,10 +19,17 @@ import (
 // (check-updates.md §2.6): no apk-cron, its script not run, or crond not
 // running is NotConfigured, since nothing upgrades; crond running but not
 // in the default runlevel is Partial, off after restart. A host OpenRC did
-// not boot (the Alpine container image) is Unknown with
-// alpine.ErrNoOpenRC, as alpine.md §2.1 decided.
+// not boot (the Alpine container image), which ReadUpdates refuses with
+// alpine.ErrNoOpenRC, is Unknown as alpine.md §2.1 decided, with
+// CodeScheduleUnknown and no error, as apt's job on a host systemd did
+// not boot: nothing failed, and nothing read says whether a crond runs.
 func checkApk(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	u, err := alpine.ReadUpdates(ctx, sys, f)
+	if errors.Is(err, alpine.ErrNoOpenRC) {
+		ev := []string{fmt.Sprintf("init: %s, running %s: OpenRC did not boot the host", f.Init.Kind, f.Init.Running)}
+		why := engine.Finding{Code: CodeScheduleUnknown, Detail: "openrc not running", Source: f.Init.Source}
+		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev, Findings: []engine.Finding{why}}, nil
+	}
 	if err != nil {
 		return unread(u.Evidence, wrap(err))
 	}
@@ -59,5 +67,5 @@ func legacyDetail(a alpine.Finding) string {
 	case alpine.FindingForeignScript:
 		return "other apk-upgrade file"
 	}
-	return a.Detail
+	return "apk-upgrade file" // a kind added to alpine after this unit
 }

@@ -404,8 +404,9 @@ var findingCodes = []Entry{
 	finding(apparmor.CodeBootUnknown, "AppArmor's service is in a state that does not say whether it loads the profiles at the next boot"),
 	// The Auto Updates control's own (next/p4-check-updates).
 	finding(updates.CodeAptValueUnknown, "an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established"),
-	finding(updates.CodeScheduleUnknown, "whether apt's timers run its daily job is not established: a timer in a state that does not say, or a host systemd did not boot"),
-	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin names Proxmox, so Proxmox VE's own packages are not upgraded"),
+	finding(updates.CodeScheduleUnknown, "whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot"),
+	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded"),
+	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

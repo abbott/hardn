@@ -332,6 +332,7 @@ const (
 	offRestart = "off after restart"
 	noPkg      = "no unattended-upgrades"
 	upOff      = "upgrades off"
+	noOrigins  = "no origins allowed"
 	timerOff   = "upgrade timer off"
 	jobMasked  = "upgrade job masked"
 	noApkCron  = "no apk-cron"
@@ -345,6 +346,7 @@ const (
 	valueUnknown    = "UPDATES_APT_VALUE_UNKNOWN"
 	scheduleUnknown = "UPDATES_SCHEDULE_UNKNOWN"
 	proxmox         = "UPDATES_PROXMOX_NOT_UPGRADED"
+	originsUnknown  = "UPDATES_ORIGINS_UNKNOWN"
 )
 
 // with is a dump with lines replaced or added: each "Name value" pair
@@ -408,18 +410,34 @@ func TestLines(t *testing.T) {
 		{name: "debian13", site: site{plat: debian13()}, state: engine.Configured, detail: unattended},
 		{name: "ubuntu2604", site: site{plat: ubuntu2604()}, state: engine.Configured, detail: unattended},
 		{name: "pve9, Debian's origins", site: site{plat: pve9()}, state: engine.Configured, detail: unattended, findings: []string{proxmox}},
-		{name: "pve9, an origin naming Proxmox", site: site{plat: pve9(), dump: with(pve9(), "Unattended-Upgrade::Origins-Pattern::", "") + "Unattended-Upgrade::Origins-Pattern:: \"origin=Proxmox,codename=${distro_codename}\";\n"},
+		{name: "pve9, an origin matching Proxmox VE", site: site{plat: pve9(), dump: with(pve9(), "Unattended-Upgrade::Origins-Pattern::", "") + "Unattended-Upgrade::Origins-Pattern:: \"origin=Proxmox,codename=${distro_codename}\";\n"},
 			state: engine.Configured, detail: unattended},
+		{name: "pve9, Proxmox's label and suite", site: site{plat: pve9(), dump: pveOrigin(`"o=Proxmox,l=Proxmox Debian Repository,a=stable"`)}, state: engine.Configured, detail: unattended},
+		{name: "pve9, a pattern matching Proxmox", site: site{plat: pve9(), dump: pveOrigin(`"o=Prox*,n=trixie"`)}, state: engine.Configured, detail: unattended},
+		{name: "pve9, Proxmox in Allowed-Origins with its suite", site: site{plat: pve9(), dump: pveAllowed(`"Proxmox:stable"`)}, state: engine.Configured, detail: unattended},
+		{name: "pve9, Proxmox in Allowed-Origins as two words", site: site{plat: pve9(), dump: pveAllowed(`"Proxmox stable"`)}, state: engine.Configured, detail: unattended},
+		{name: "pve9, a named origin matching Proxmox VE", site: site{plat: pve9(), dump: with(pve9()) + "Unattended-Upgrade::Origins-Pattern::pve \"origin=Proxmox\";\n"},
+			state: engine.Configured, detail: unattended},
+		{name: "pve9, Proxmox's origin for another codename", site: site{plat: pve9(), dump: pveOrigin(`"origin=Proxmox,codename=bookworm"`)},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, Proxmox's codename as a suite", site: site{plat: pve9(), dump: pveAllowed(`"Proxmox:${distro_codename}"`)},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, another origin with Proxmox in its text", site: site{plat: pve9(), dump: pveOrigin(`"origin=NotProxmox"`) + "Unattended-Upgrade::Origins-Pattern:: \"origin=Debian,label=Debian-Proxmox-mirror\";\n"},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, a key not modelled", site: site{plat: pve9(), dump: pveOrigin(`"origin=Proxmox,component=pve-no-subscription"`)},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, Allowed-Origins in a form unattended-upgrade refuses", site: site{plat: pve9(), dump: pveAllowed(`"Proxmox:stable:x"`) + "Unattended-Upgrade::Allowed-Origins:: \"Proxmox\";\n"},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, Allowed-Origins with a comma", site: site{plat: pve9(), dump: pveAllowed(`"Proxmox,l=*:stable"`)}, state: engine.Configured, detail: unattended, findings: []string{proxmox}},
+		{name: "pve9, the host's codename not known", site: site{plat: pve9(), dump: pveOrigin(`"origin=Proxmox,codename=${distro_codename}"`), facts: func(f *detect.Facts) { f.OS.VersionCodename = "" }},
+			state: engine.Configured, detail: unattended, findings: []string{proxmox}},
 		{name: "weekly upgrades, lists always", site: site{plat: debian13(), dump: with(debian13(), upgrade, `"7"`, lists, `"always"`)}, state: engine.Configured, detail: unattended},
 		{name: "intervals with units", site: site{plat: debian13(), dump: with(debian13(), upgrade, `"12h"`, lists, `"0d"`)}, state: engine.Configured, detail: unattended},
 		{name: "00 is not 0 for an interval", site: site{plat: debian13(), dump: with(debian13(), lists, `"00"`)}, state: engine.Configured, detail: unattended},
 		{name: "Enable 1", site: site{plat: debian13(), dump: with(debian13(), enable, `"1"`)}, state: engine.Configured, detail: unattended},
-		{name: "names in another case", site: site{plat: debian13(), dump: "apt::periodic \"\";\napt::periodic::update-package-lists \"1\";\napt::Periodic::UNATTENDED-UPGRADE \"1\";\n"},
+		{name: "names in another case", site: site{plat: debian13(), dump: "apt::periodic \"\";\napt::periodic::update-package-lists \"1\";\napt::Periodic::UNATTENDED-UPGRADE \"1\";\n" +
+			"unattended-upgrade::ORIGINS-PATTERN::Local \"origin=Debian\";\n"},
 			state: engine.Configured, detail: unattended},
-		{name: "a Debian derivative", site: site{plat: debian13(), facts: func(f *detect.Facts) {
-			f.OS = detect.OSRelease{ID: "raspbian", IDLike: []string{"debian"}}
-			f.Platform = detect.Platform{Distro: detect.DistroOther, Like: detect.DistroDebian, Support: detect.Unlisted}
-		}}, state: engine.Configured, detail: unattended},
 		{name: "Debian whose Proxmox VE is not established", site: site{plat: debian13(), facts: notPVE}, state: engine.Configured, detail: unattended},
 		{name: "in a container", site: site{plat: debian13(), facts: inContainer}, state: engine.Configured, detail: unattended},
 
@@ -435,7 +453,11 @@ func TestLines(t *testing.T) {
 		{name: "lists before off after restart", site: site{plat: debian13(), dump: with(debian13(), lists, `"0"`), units: units(upEnabled, "disabled")}, state: engine.Partial, detail: stale},
 		{name: "pve9, lists not refreshed", site: site{plat: pve9(), dump: with(pve9(), lists, `"0"`)}, state: engine.Partial, detail: stale, findings: []string{proxmox}},
 		{name: "a lists value not ranked, a timer off after restart", site: site{plat: debian13(), dump: with(debian13(), lists, `"weekly"`), units: units(upEnabled, "disabled")},
-			state: engine.Partial, detail: offRestart},
+			state: engine.Partial, detail: offRestart, findings: []string{valueUnknown}},
+		{name: "apt-daily.timer unreadable, a timer off after restart", site: site{plat: debian13(), units: units(upEnabled, "disabled"), runs: fails(hostfake.Response{ExitCode: 1}, listActive)},
+			state: engine.Partial, detail: offRestart, findings: []string{scheduleUnknown}},
+		{name: "lists not refreshed, a timer state not ranked", site: site{plat: ubuntu2604(), dump: with(ubuntu2604(), lists, `"0"`), units: units(upEnabled, "enabled-runtime")},
+			state: engine.Partial, detail: stale, findings: []string{scheduleUnknown}},
 
 		// Not Configured: no upgrade runs.
 		{name: "debian13 stock", site: stockOn(debian13()), state: engine.NotConfigured, detail: noPkg},
@@ -446,6 +468,21 @@ func TestLines(t *testing.T) {
 		{name: "Unattended-Upgrade unset", site: site{plat: debian13(), dump: with(debian13(), upgrade, "")}, state: engine.NotConfigured, detail: upOff},
 		{name: "Enable 0", site: site{plat: debian13(), dump: with(debian13(), enable, `"0"`)}, state: engine.NotConfigured, detail: upOff},
 		{name: "Enable 00", site: site{plat: pve9(), dump: with(pve9(), enable, `"00"`)}, state: engine.NotConfigured, detail: upOff},
+		{name: "no origins", site: site{plat: debian13(), dump: with(debian13(), "Unattended-Upgrade::Origins-Pattern::", "", "Unattended-Upgrade::Origins-Pattern::", "", "Unattended-Upgrade::Origins-Pattern::", "")},
+			state: engine.NotConfigured, detail: noOrigins},
+		{name: "no origin roots at all", site: site{plat: debian13(), dump: periodicOnly}, state: engine.NotConfigured, detail: noOrigins},
+		{name: "ubuntu2604, Allowed-Origins cleared", site: site{plat: ubuntu2604(), dump: strings.Join(slices.DeleteFunc(strings.SplitAfter(with(ubuntu2604()), "\n"), func(l string) bool {
+			return strings.HasPrefix(l, "Unattended-Upgrade::Allowed-Origins")
+		}), "")}, state: engine.NotConfigured, detail: noOrigins},
+		{name: "pve9, no origins", site: site{plat: pve9(), dump: periodicOnly}, state: engine.NotConfigured, detail: noOrigins},
+		{name: "only empty origins", site: site{plat: debian13(), dump: periodicOnly + "Unattended-Upgrade::Origins-Pattern:: \"\";\nUnattended-Upgrade::Allowed-Origins::x \" \";\n"},
+			state: engine.NotConfigured, detail: noOrigins},
+		{name: "an origin below a named child only", site: site{plat: debian13(), dump: periodicOnly + "Unattended-Upgrade::Origins-Pattern::x \"\";\nUnattended-Upgrade::Origins-Pattern::x::y \"origin=Debian\";\n"},
+			state: engine.NotConfigured, detail: noOrigins},
+		{name: "a named origin", site: site{plat: debian13(), dump: periodicOnly + "Unattended-Upgrade::Origins-Pattern::Local \"origin=Debian\";\n"}, state: engine.Configured, detail: unattended},
+		{name: "upgrades off before no origins", site: site{plat: debian13(), dump: with(debian13(), upgrade, `"0"`, "Unattended-Upgrade::Origins-Pattern::", "", "Unattended-Upgrade::Origins-Pattern::", "", "Unattended-Upgrade::Origins-Pattern::", "")},
+			state: engine.NotConfigured, detail: upOff},
+		{name: "no origins before the timer", site: site{plat: debian13(), dump: periodicOnly, units: units(upActive, "inactive")}, state: engine.NotConfigured, detail: noOrigins},
 		{name: "apt-daily-upgrade.timer off", site: site{plat: debian13(), units: units(upActive, "inactive", upEnabled, "disabled")}, state: engine.NotConfigured, detail: timerOff},
 		{name: "apt-daily-upgrade.timer stopped, enabled", site: site{plat: ubuntu2604(), units: units(upActive, "inactive")}, state: engine.NotConfigured, detail: timerOff},
 		{name: "apt-daily-upgrade.timer failed", site: site{plat: debian13(), units: units(upActive, "failed")}, state: engine.NotConfigured, detail: timerOff},
@@ -459,14 +496,24 @@ func TestLines(t *testing.T) {
 		{name: "Enable 0, dpkg-query failing", site: site{plat: debian13(), dump: with(debian13(), enable, `"0"`), runs: fails(hostfake.Response{ExitCode: 2}, dpkgCmd)},
 			state: engine.NotConfigured, detail: upOff},
 		{name: "not installed, no systemd", site: site{plat: debian13(), pkg: gone, facts: openRC}, state: engine.NotConfigured, detail: noPkg},
+		{name: "a Debian derivative, not installed", site: site{plat: debian13(), pkg: gone, facts: raspbian}, state: engine.NotConfigured, detail: noPkg},
 
 		// Unknown, can't read: an error, or a finding.
 		{name: "apt-config not installed", site: site{plat: debian13(), runs: fails(notFound, dumpCmd)}, state: engine.Unknown, detail: cantRead, err: "COMMAND_NOT_FOUND"},
 		{name: "apt-config failing", site: site{plat: ubuntu2604(), runs: fails(hostfake.Response{Stderr: "E: Syntax error /etc/apt/apt.conf.d/99local:1: Extra junk at end of file\n", ExitCode: 100}, dumpCmd)},
 			state: engine.Unknown, detail: cantRead, err: "COMMAND_FAILED"},
 		{name: "a dump line in another form", site: site{plat: debian13(), dump: with(debian13()) + "APT::Periodic::Verbose 1;\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "names outside the roots dumped", site: site{plat: debian13(), dump: "Periodic \"\";\nUpdate-Package-Lists \"1\";\nUnattended-Upgrade \"1\";\n"},
+			state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "a name beside a root", site: site{plat: debian13(), dump: with(debian13()) + "APT::PeriodicX \"1\";\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "an item printed twice", site: site{plat: debian13(), dump: with(debian13()) + "APT::Periodic::Unattended-Upgrade \"0\";\n"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "dpkg-query: half-installed", site: site{plat: debian13(), pkg: "install reinstreq half-installed"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "apt-config and dpkg-query failing", site: site{plat: debian13(), runs: twoFailing}, state: engine.Unknown, detail: cantRead, err: "COMMAND_FAILED"},
+		{name: "a Debian derivative", site: site{plat: debian13(), facts: raspbian}, state: engine.Unknown, detail: cantRead, findings: []string{originsUnknown}},
+		{name: "an Ubuntu derivative, lists not refreshed", site: site{plat: ubuntu2604(), dump: with(ubuntu2604(), lists, `"0"`), facts: func(f *detect.Facts) {
+			f.OS = detect.OSRelease{ID: "linuxmint", IDLike: []string{"ubuntu", "debian"}, VersionCodename: "zara"}
+			f.Platform = detect.Platform{Distro: detect.DistroOther, Like: detect.DistroUbuntu, Support: detect.Unlisted}
+		}}, state: engine.Unknown, detail: cantRead, findings: []string{originsUnknown}},
 		{name: "dpkg-query failing", site: site{plat: pve9(), runs: fails(hostfake.Response{Stderr: "dpkg-query: error: ...\n", ExitCode: 2}, dpkgCmd)},
 			state: engine.Unknown, detail: cantRead, err: "COMMAND_FAILED"},
 		{name: "Enable yes", site: site{plat: debian13(), dump: with(debian13(), enable, `"yes"`)}, state: engine.Unknown, detail: cantRead, findings: []string{valueUnknown}},
@@ -515,15 +562,42 @@ func TestLines(t *testing.T) {
 		{name: "alpine324, crond starting", site: site{plat: alpine324(), crond: "exit 8"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "alpine324, apk failing", site: site{plat: alpine324(), runs: fails(hostfake.Response{ExitCode: 99}, apkInfo)}, state: engine.Unknown, detail: cantRead, err: "COMMAND_FAILED"},
 		{name: "alpine324, the runlevel unreadable", site: site{plat: alpine324(), deny: []string{crondLink}}, state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
-		{name: "alpine324 container", site: site{plat: alpine324(), facts: func(f *detect.Facts) {
-			f.Init = detect.Init{Kind: detect.OpenRC, Running: detect.No, Source: detect.OpenRCRun}
-			inContainer(f)
-		}}, state: engine.Unknown, detail: cantRead, err: "ALPINE_NO_OPENRC"},
+		{name: "alpine324 container", site: site{plat: alpine324(), facts: alpineContainer}, state: engine.Unknown, detail: cantRead, findings: []string{scheduleUnknown}},
+		{name: "alpine324 container, no apk-cron", site: site{plat: alpine324(), apk: gone, script: absent, facts: alpineContainer},
+			state: engine.Unknown, detail: cantRead, findings: []string{scheduleUnknown}},
 		{name: "alpine324, the init system not established", site: site{plat: alpine324(), facts: func(f *detect.Facts) { f.Init = detect.Init{Err: detect.ErrNoSignal} }},
 			state: engine.Unknown, detail: cantRead, err: "ALPINE_UNKNOWN"},
 	} {
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
 	}
+}
+
+// pveOrigin is pve9's dump with an Origins-Pattern item added, pveAllowed
+// with an Allowed-Origins item.
+func pveOrigin(v string) string {
+	return with(pve9()) + "Unattended-Upgrade::Origins-Pattern:: " + v + ";\n"
+}
+
+func pveAllowed(v string) string {
+	return with(pve9()) + "Unattended-Upgrade::Allowed-Origins \"\";\nUnattended-Upgrade::Allowed-Origins:: " + v + ";\n"
+}
+
+// periodicOnly is a dump with upgrades on and no origin set.
+const periodicOnly = "APT::Periodic \"\";\nAPT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
+
+var twoFailing = map[string]*hostfake.Response{
+	dumpCmd: {Stderr: "E: Syntax error\n", ExitCode: 100},
+	dpkgCmd: {Stderr: "dpkg-query: error: ...\n", ExitCode: 2},
+}
+
+var raspbian = func(f *detect.Facts) {
+	f.OS = detect.OSRelease{Path: "/etc/os-release", ID: "raspbian", IDLike: []string{"debian"}, VersionCodename: "trixie"}
+	f.Platform = detect.Platform{Distro: detect.DistroOther, Like: detect.DistroDebian, Support: detect.Unlisted}
+}
+
+var alpineContainer = func(f *detect.Facts) {
+	f.Init = detect.Init{Kind: detect.OpenRC, Running: detect.No, Source: detect.OpenRCRun}
+	inContainer(f)
 }
 
 var inContainer = func(f *detect.Facts) {
@@ -583,6 +657,7 @@ func TestStock(t *testing.T) {
 // TestEvidence: what each line was read from, as the commands printed it.
 func TestEvidence(t *testing.T) {
 	timersOn := []string{upActive + ": active", upEnabled + ": enabled", upJob + ": static", listActive + ": active", listEnabled + ": enabled", listJob + ": static"}
+	const debianOrigins = "apt-config dump: Allowed-Origins 0, Origins-Pattern 3"
 	for _, c := range []struct {
 		r    row
 		want []string
@@ -591,30 +666,43 @@ func TestEvidence(t *testing.T) {
 			"apt-config dump: APT::Periodic::Enable unset",
 			`apt-config dump: APT::Periodic::Unattended-Upgrade "1"`,
 			`apt-config dump: APT::Periodic::Update-Package-Lists "1"`,
+			debianOrigins,
 			"dpkg-query --show unattended-upgrades: installed"}, timersOn...)},
 		{row{site: stockOn(debian13()), state: engine.NotConfigured, detail: noPkg}, append([]string{
 			"apt-config dump: APT::Periodic::Enable unset",
 			"apt-config dump: APT::Periodic::Unattended-Upgrade unset",
 			"apt-config dump: APT::Periodic::Update-Package-Lists unset",
+			"apt-config dump: Allowed-Origins 0, Origins-Pattern 0",
 			"dpkg-query --show unattended-upgrades: not installed"}, timersOn...)},
 		{row{site: site{plat: pve9(), units: units(upEnabled, "disabled")}, state: engine.Partial, detail: offRestart, findings: []string{proxmox}}, []string{
 			"apt-config dump: APT::Periodic::Enable unset",
 			`apt-config dump: APT::Periodic::Unattended-Upgrade "1"`,
 			`apt-config dump: APT::Periodic::Update-Package-Lists "1"`,
+			debianOrigins,
 			"dpkg-query --show unattended-upgrades: installed",
 			upActive + ": active", upEnabled + ": disabled", upJob + ": static", listActive + ": active", listEnabled + ": enabled", listJob + ": static",
-			"apt-config dump: 3 origins, none naming Proxmox"}},
+			"apt-config dump: origins matching Proxmox VE's repository 0"}},
+		{row{site: site{plat: pve9(), dump: pveAllowed(`"Proxmox:stable"`)}, state: engine.Configured, detail: unattended}, append(append([]string{
+			"apt-config dump: APT::Periodic::Enable unset",
+			`apt-config dump: APT::Periodic::Unattended-Upgrade "1"`,
+			`apt-config dump: APT::Periodic::Update-Package-Lists "1"`,
+			"apt-config dump: Allowed-Origins 1, Origins-Pattern 3",
+			"dpkg-query --show unattended-upgrades: installed"}, timersOn...), "apt-config dump: origins matching Proxmox VE's repository 1")},
 		{row{site: site{plat: debian13(), facts: notPVE}, state: engine.Configured, detail: unattended}, append(append([]string{
 			"apt-config dump: APT::Periodic::Enable unset",
 			`apt-config dump: APT::Periodic::Unattended-Upgrade "1"`,
 			`apt-config dump: APT::Periodic::Update-Package-Lists "1"`,
+			debianOrigins,
 			"dpkg-query --show unattended-upgrades: installed"}, timersOn...), "Proxmox VE: not established, origins not compared")},
 		{row{site: site{plat: debian13(), pkg: gone, facts: openRC}, state: engine.NotConfigured, detail: noPkg}, []string{
 			"apt-config dump: APT::Periodic::Enable unset",
 			`apt-config dump: APT::Periodic::Unattended-Upgrade "1"`,
 			`apt-config dump: APT::Periodic::Update-Package-Lists "1"`,
+			debianOrigins,
 			"dpkg-query --show unattended-upgrades: not installed",
 			"init: openrc, running yes: no systemd timers"}},
+		{row{site: site{plat: alpine324(), facts: alpineContainer}, state: engine.Unknown, detail: cantRead, findings: []string{scheduleUnknown}}, []string{
+			"init: openrc, running no: OpenRC did not boot the host"}},
 		{row{site: site{plat: alpine324(), inLevel: no()}, state: engine.Partial, detail: offRestart}, []string{
 			"apk info -e apk-cron: installed yes",
 			"/etc/periodic/daily/apk: executable file",
@@ -644,6 +732,13 @@ func TestFindings(t *testing.T) {
 			[]engine.Finding{{Code: updates.CodeScheduleUnknown, Detail: "no systemd timers", Source: detect.OpenRCRunDir}}},
 		{row{site: site{plat: pve9()}, state: engine.Configured, detail: unattended, findings: []string{proxmox}},
 			[]engine.Finding{{Code: updates.CodeProxmoxNotUpgraded, Detail: "Proxmox packages not upgraded", Source: "apt-config dump"}}},
+		{row{site: site{plat: debian13(), facts: raspbian}, state: engine.Unknown, detail: cantRead, findings: []string{originsUnknown}},
+			[]engine.Finding{{Code: updates.CodeOriginsUnknown, Detail: "raspbian, like debian", Source: "/etc/os-release"}}},
+		{row{site: site{plat: debian13(), units: units(upEnabled, "disabled"), runs: fails(hostfake.Response{ExitCode: 1}, listActive)}, state: engine.Partial, detail: offRestart,
+			findings: []string{scheduleUnknown}},
+			[]engine.Finding{{Code: updates.CodeScheduleUnknown, Detail: "can't read apt-daily.timer", Source: listActive}}},
+		{row{site: site{plat: alpine324(), facts: alpineContainer}, state: engine.Unknown, detail: cantRead, findings: []string{scheduleUnknown}},
+			[]engine.Finding{{Code: updates.CodeScheduleUnknown, Detail: "openrc not running", Source: detect.OpenRCRun}}},
 		{row{site: site{plat: alpine324(), legacy: "hardn"}, state: engine.Configured, detail: apkCron, findings: []string{"ALPINE_LEGACY_SCRIPT"}},
 			[]engine.Finding{{Code: "ALPINE_LEGACY_SCRIPT", Detail: "old apk-upgrade script", Source: legacyScript}}},
 		{row{site: site{plat: alpine324(), legacy: "other"}, state: engine.Configured, detail: apkCron, findings: []string{"ALPINE_FOREIGN_SCRIPT"}},
@@ -654,6 +749,20 @@ func TestFindings(t *testing.T) {
 				t.Errorf("findings %v, want %v", st.Findings, c.want)
 			}
 		})
+	}
+}
+
+// TestErrors: each read that fails is said once, with the package's name
+// once.
+func TestErrors(t *testing.T) {
+	sys, _, facts := site{plat: debian13(), runs: twoFailing}.build(t)
+	_, err := updates.Auto{}.Check(context.Background(), sys, facts)
+	if err == nil {
+		t.Fatal("no error")
+	}
+	msg := err.Error()
+	if strings.Count(msg, "updates: ") != 2 || strings.Contains(msg, "updates: updates:") || !strings.Contains(msg, "apt-config dump") || !strings.Contains(msg, "dpkg-query") {
+		t.Errorf("error %q: want each read's error once, under the package's name", msg)
 	}
 }
 
@@ -703,6 +812,7 @@ func TestDetails(t *testing.T) {
 		{updates.DetailOffAfterRestart, offRestart, engine.Partial},
 		{updates.DetailNoUnattended, noPkg, engine.NotConfigured},
 		{updates.DetailUpgradesOff, upOff, engine.NotConfigured},
+		{updates.DetailNoOrigins, noOrigins, engine.NotConfigured},
 		{updates.DetailTimerOff, timerOff, engine.NotConfigured},
 		{updates.DetailJobMasked, jobMasked, engine.NotConfigured},
 		{updates.DetailNoApkCron, noApkCron, engine.NotConfigured},
