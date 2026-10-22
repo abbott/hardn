@@ -198,7 +198,9 @@ type Factor struct {
 	// status.warn, and false, the zero value, for a line that rests on
 	// something hardn could not establish, drawn in text.muted: a factor
 	// that does not say is taken as not established, as every zero value
-	// of the status model establishes nothing.
+	// of the status model establishes nothing. KindLockoutAtStart is
+	// established for every verdict at start but OK, a saved rule ufw
+	// could not read included: the maintainer's table (risk.md §6.2).
 	Established bool
 	// Penalty is the points it cost; 0 when it costs none of its own (the
 	// rows it is about have lost their weight already).

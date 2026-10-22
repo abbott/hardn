@@ -639,7 +639,7 @@ func everyLine() []risk.Factor {
 }
 
 // TestFactorsFit: each line fits the 35 cells it has after the bullet and
-// its space at the value column at 64 columns (64 − 27 − 2; DEV-022), the
+// its space at the value column at 64 columns (64 − 27 − 2; DEV-059), the
 // longest uptime the header shows included.
 func TestFactorsFit(t *testing.T) {
 	kinds := map[risk.Kind]bool{}
