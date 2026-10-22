@@ -129,26 +129,41 @@ func TestSaveConfigUnchanged(t *testing.T) {
 	}
 }
 
-// TestSave writes the loaded path atomically, keeping its mode and owner,
-// with the canonical string in place of the deprecated bool.
+// TestSave writes the loaded path atomically, keeping its mode and owner:
+// the setting changed edited in place, the comment kept, a deprecated bool
+// replaced by its string once its value changes; nothing written when
+// nothing changed; refused for a Config loaded from no file, a file
+// changed since it was read, and a symlink, writing nothing.
 func TestSave(t *testing.T) {
 	const path = "/etc/hardn/hardn.yml"
+	ctx := context.Background()
 	sys := hostfake.New(host.Options{})
-	sys.AddFile(path, []byte("# comment\npermitRootLogin: false\n"), 0o600, 0, 0)
+	data := []byte("# comment\npermitRootLogin: false # old\n")
+	sys.AddFile(path, data, 0o600, 0, 0)
 	c := DefaultConfig()
-	data, _ := sys.Entry(path)
-	if err := yaml.Unmarshal(data.Data, c); err != nil || len(c.Deprecations()) != 1 {
+	if err := yaml.Unmarshal(data, c); err != nil || len(c.Deprecations()) != 1 {
 		t.Fatalf("load: %v, %v", err, c.Deprecations())
 	}
-	if err := Save(context.Background(), sys, c); !errors.Is(err, ErrNotLoaded) || len(sys.Calls()) != 0 {
+	if err := Save(ctx, sys, c); !errors.Is(err, ErrNotLoaded) || len(sys.Calls()) != 0 {
 		t.Fatalf("Save of a Config not loaded from a file = %v with %d calls, want ErrNotLoaded", err, len(sys.Calls()))
 	}
-	c.setPath(path) // as LoadConfig records it
-	if err := Save(context.Background(), sys, c); err != nil {
+	c.setLoaded(path, data) // as LoadConfig records it
+	if err := Save(ctx, sys, c); err != nil {
+		t.Fatal(err)
+	}
+	for _, call := range sys.Calls() {
+		if call.Op != "read-nofollow" {
+			t.Errorf("Save with nothing changed made %s", call)
+		}
+	}
+	if err := c.SetRootLogin(RootLoginYes); err != nil {
+		t.Fatal(err)
+	}
+	if err := Save(ctx, sys, c); err != nil {
 		t.Fatal(err)
 	}
 	e, _ := sys.Entry(path)
-	if e.Mode.Perm() != 0o600 || e.UID != 0 || !bytes.Contains(e.Data, []byte("permitRootLogin: \"no\"\n")) {
+	if e.Mode.Perm() != 0o600 || e.UID != 0 || string(e.Data) != "# comment\npermitRootLogin: \"yes\" # old\n" {
 		t.Errorf("saved mode %v owner %d, content:\n%s", e.Mode, e.UID, e.Data)
 	}
 	var atomic bool
@@ -162,8 +177,25 @@ func TestSave(t *testing.T) {
 		t.Error("Save did not write atomically")
 	}
 	back := DefaultConfig()
-	if err := yaml.Unmarshal(e.Data, back); err != nil || back.RootLogin() != RootLoginNo || len(back.Deprecations()) != 0 {
-		t.Errorf("read back: %v, %q, %v", err, back.RootLogin(), back.Deprecations())
+	if err := yaml.Unmarshal(e.Data, back); err != nil || back.RootLogin() != RootLoginYes || len(back.Deprecations()) != 0 || !c.LoadedFrom(e.Data) {
+		t.Errorf("read back: %v, %q, %v; LoadedFrom the bytes saved %v", err, back.RootLogin(), back.Deprecations(), c.LoadedFrom(e.Data))
+	}
+
+	edited := []byte("permitRootLogin: \"no\"\n") // by hand, since
+	sys.AddFile(path, edited, 0o600, 0, 0)
+	c.SshPort = 2230
+	if err := Save(ctx, sys, c); !errors.Is(err, ErrChanged) {
+		t.Errorf("Save over a file changed since = %v, want ErrChanged", err)
+	}
+	sys.AddSymlink("/etc/hardn/link.yml", path)
+	linked := DefaultConfig()
+	linked.setLoaded("/etc/hardn/link.yml", edited)
+	linked.SshPort = 2230
+	if err := Save(ctx, sys, linked); !errors.Is(err, host.ErrSymlink) {
+		t.Errorf("Save through a link = %v, want host.ErrSymlink", err)
+	}
+	if e, _ := sys.Entry(path); string(e.Data) != string(edited) {
+		t.Errorf("written though refused:\n%s", e.Data)
 	}
 }
 

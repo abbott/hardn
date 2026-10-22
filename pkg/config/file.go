@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -17,8 +16,8 @@ import (
 
 // hardn.yml through host.System, for the plan/apply engine's save of it
 // (refactor plan §3.19; slice 2, next/s2-control): the file read as
-// LoadConfig reads it, whether its bytes are still the ones loaded, and
-// whether saving it loses comments.
+// LoadConfig reads it, and whether its bytes are still the ones loaded.
+// The save edits them in place (Edit, next/s2-config-edit).
 
 // ErrInvalidFile: hardn.yml's bytes do not decode as the configuration
 // (Read).
@@ -69,35 +68,4 @@ func Read(ctx context.Context, sys host.System, path string) (*Config, error) {
 // other bytes at Path would undo whatever changed them.
 func (c *Config) LoadedFrom(data []byte) bool {
 	return c.loaded.sum != "" && c.loaded.sum == sum(data)
-}
-
-// HasComments reports whether data, hardn.yml's bytes, hold a comment,
-// which Save does not keep: it writes the configuration's keys alone
-// (§3.19). Data that is not YAML count as commented when a line starts
-// with "#", so that the warning errs towards being given.
-func HasComments(data []byte) bool {
-	var n yaml.Node
-	if err := yaml.Unmarshal(data, &n); err != nil || n.Kind == 0 {
-		// Not YAML, or no node at all, as for a file of comments only.
-		for _, l := range bytes.Split(data, []byte("\n")) {
-			if bytes.HasPrefix(bytes.TrimSpace(l), []byte("#")) {
-				return true
-			}
-		}
-		return false
-	}
-	return commented(&n)
-}
-
-// commented reports whether n, or a node under it, holds a comment.
-func commented(n *yaml.Node) bool {
-	if n.HeadComment != "" || n.LineComment != "" || n.FootComment != "" {
-		return true
-	}
-	for _, k := range n.Content {
-		if commented(k) {
-			return true
-		}
-	}
-	return false
 }

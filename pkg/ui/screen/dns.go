@@ -44,7 +44,6 @@ const (
 	dnsChangeUDHCPC = "Set nameservers; stop udhcpc rewriting"
 	dnsSave         = "Save the configuration"
 	dnsSaveTo       = "/etc/hardn/hardn.yml"
-	dnsLost         = "Saving hardn.yml loses its comments"
 	dnsSearch       = "Search Domains"
 	dnsServers      = "Nameservers"
 	dnsLastOne      = "The last nameserver cannot be removed."
@@ -292,15 +291,12 @@ func (h dnsHost) refusals() map[string]component.Message {
 
 // review is the review of a change to ns on h: the nameservers the host
 // will use, the search domains it keeps, then each of the plan's findings
-// as a warning line, and, when hardn.yml's list changes, that saving it
-// loses its comments (refactor plan §3.19).
+// as a warning line. Saving hardn.yml keeps its comments, and says
+// nothing of them (refactor plan §3.19, amended by the maintainer on
+// 2026-10-22; next/s2-config-edit).
 func (h dnsHost) review(ns []string, udhcpc bool) flow.Review {
 	items := []component.KeyValue{{Key: dnsServers, Value: strings.Join(ns, ", ")}, {Key: dnsSearch, Value: h.search}}
-	lines := h.findings(udhcpc)
-	if !slices.Equal(ns, h.configured) {
-		lines = append(lines, dnsLost)
-	}
-	for _, l := range lines {
+	for _, l := range h.findings(udhcpc) {
 		items = append(items, component.KeyValue{Key: l, State: component.ValueWarn})
 	}
 	return flow.Review{Title: dnsTitle, Items: items}

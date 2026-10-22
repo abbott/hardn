@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io/fs"
@@ -38,17 +37,13 @@ func TestRead(t *testing.T) {
 		t.Error("LoadedFrom holds for other bytes, or for a configuration read from none")
 	}
 	c.Nameservers = []string{"192.0.2.53"}
-	want, err := Marshal(c)
-	if err != nil {
-		t.Fatal(err)
-	}
 	if err := Save(ctx, sys, c); err != nil {
 		t.Fatal(err)
 	}
 	saved, _ := sys.Entry(path)
-	if !c.LoadedFrom(saved.Data) || c.LoadedFrom(data) || !bytes.Equal(saved.Data, want) {
-		t.Errorf("after Save, LoadedFrom the saved bytes %v, the old ones %v; Marshal's bytes saved %v", c.LoadedFrom(saved.Data), c.LoadedFrom(data),
-			bytes.Equal(saved.Data, want))
+	want := "# hardn\nnameservers:\n  - 192.0.2.53\npermitRootLogin: \"no\"\n"
+	if !c.LoadedFrom(saved.Data) || c.LoadedFrom(data) || string(saved.Data) != want {
+		t.Errorf("after Save, LoadedFrom the saved bytes %v, the old ones %v; saved:\n%s", c.LoadedFrom(saved.Data), c.LoadedFrom(data), saved.Data)
 	}
 
 	sys.AddFile("/etc/hardn/pp.yml", []byte("permitRootLogin: prohibit-password\n"), 0o600, 0, 0)
@@ -70,28 +65,5 @@ func TestRead(t *testing.T) {
 	}
 	if c, err := Read(ctx, sys, "/etc/hardn/link.yml"); err != nil || c.Path() != "/etc/hardn/link.yml" {
 		t.Errorf("Read through a link, as LoadConfig reads it: %v", err)
-	}
-}
-
-// TestHasComments: a comment anywhere, a file of comments only included;
-// a "#" inside a value is not one.
-func TestHasComments(t *testing.T) {
-	for _, tt := range []struct {
-		data string
-		want bool
-	}{
-		{"nameservers:\n  - 192.0.2.54\n", false},
-		{"username: \"#alice\"\n", false},
-		{"", false},
-		{"# hardn\nusername: alice\n", true},
-		{"username: alice # the admin\n", true},
-		{"nameservers:\n  - 192.0.2.54\n  # - 192.0.2.53\n", true},
-		{"username: alice\n\n# the end\n", true},
-		{"# only a comment\n", true},
-		{"username: [\n# not YAML\n", true},
-	} {
-		if got := HasComments([]byte(tt.data)); got != tt.want {
-			t.Errorf("HasComments(%q) = %v, want %v", tt.data, got, tt.want)
-		}
 	}
 }

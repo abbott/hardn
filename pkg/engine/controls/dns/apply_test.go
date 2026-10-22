@@ -101,7 +101,8 @@ func goldens(t *testing.T, name string, r output.Run, json bool) {
 
 // TestApply applies each platform's plan, then plans again: nothing is
 // left to change (idempotency), and the row reads Configured, with
-// hardn.yml saved when the list changed and kept otherwise.
+// hardn.yml saved when the list changed, its list edited in place and its
+// comment kept (next/s2-config-edit), and kept otherwise.
 func TestApply(t *testing.T) {
 	for _, tt := range []struct {
 		name, host string
@@ -115,7 +116,7 @@ func TestApply(t *testing.T) {
 		{name: "Ubuntu 24.04", host: ubuntu2404, list: configured, files: map[string]string{hostdns.DropIn: "DNS=192.0.2.54 2001:db8::54\n"}},
 		{name: "Debian 12 cloud", host: debian12, list: configured, files: map[string]string{hostdns.DropIn: "DNS=192.0.2.54 2001:db8::54\n"}},
 		{name: "Debian 13, a preset", host: debian13, list: cloudflare, golden: "applied-debian13-cloudflare",
-			files: map[string]string{hostdns.ResolvConf: "search example.net\nnameserver 1.1.1.1\nnameserver 1.0.0.1\n", hardnYML: "nameservers:\n    - 1.1.1.1\n    - 1.0.0.1\n"}},
+			files: map[string]string{hostdns.ResolvConf: "search example.net\nnameserver 1.1.1.1\nnameserver 1.0.0.1\n", hardnYML: "# hardn's configuration (web-01.example.net)\nusername: alice\nnameservers:\n  - \"1.1.1.1\"\n  - \"1.0.0.1\"\n"}},
 		{name: "Alpine 3.24, udhcpc stopped", host: alpine324, list: configured, stop: true,
 			files: map[string]string{hostdns.UDHCPCConf: "RESOLV_CONF=\"no\"\n", hostdns.ResolvConf: "nameserver 192.0.2.54\nnameserver 2001:db8::54\n"}},
 		{name: "Alpine 3.24, udhcpc kept", host: alpine324, list: configured,
@@ -126,6 +127,7 @@ func TestApply(t *testing.T) {
 			h, loaded := newHost(t, tt.host, configured)
 			cfg := with(loaded, tt.list)
 			ctl := dns.Nameservers{Config: loaded, StopUDHCPC: tt.stop}
+			before := content(h, hardnYML)
 			r, _ := applyOn(t, h, ctl, cfg)
 			if r.Err != nil || len(r.Result.Applied) != len(r.Plan.Changes) {
 				t.Fatalf("Apply: %v, applied %+v", r.Err, r.Result.Applied)
@@ -135,8 +137,8 @@ func TestApply(t *testing.T) {
 					t.Errorf("%s:\n%s\nwant it to hold\n%s", path, got, want)
 				}
 			}
-			if !slices.Equal(tt.list, configured) == strings.Contains(content(h, hardnYML), "# hardn's configuration") {
-				t.Errorf("hardn.yml saved %v, the list changed %v:\n%s", !strings.Contains(content(h, hardnYML), "#"), !slices.Equal(tt.list, configured), content(h, hardnYML))
+			if saved := content(h, hardnYML) != before; saved != !slices.Equal(tt.list, configured) {
+				t.Errorf("hardn.yml saved %v, the list changed %v:\n%s", saved, !slices.Equal(tt.list, configured), content(h, hardnYML))
 			}
 			again := planOn(t, h, ctl, cfg)
 			if !again.Empty() {
@@ -158,8 +160,9 @@ func TestApply(t *testing.T) {
 
 // TestPlanGoldens pins the plans a reviewer reads, as the dry run shows
 // them (ModePlan): Ubuntu's drop-in created against /dev/null with its
-// reload and the per-link finding, Debian's preset with the save and its
-// lost comments, Alpine's udhcpc stopped in the same change, Proxmox VE's
+// reload and the per-link finding, Debian's preset with the save, its
+// diff the list's lines alone (next/s2-config-edit), Alpine's udhcpc
+// stopped in the same change, Proxmox VE's
 // file and the node finding; and a configured host, which needs nothing.
 func TestPlanGoldens(t *testing.T) {
 	for _, tt := range []struct {

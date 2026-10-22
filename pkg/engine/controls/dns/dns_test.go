@@ -340,7 +340,7 @@ func TestPlans(t *testing.T) {
 		{name: "Debian 12 cloud: the uplink link", host: debian12, list: configured, changes: []string{resolvedSet("/dev/null")},
 			findings: []string{"DNS_PER_LINK"}},
 		{name: "Debian 13: a preset, saved", host: debian13, list: cloudflare, changes: []string{fileSet("Set the nameservers"), saveLine},
-			findings: []string{"DNS_DHCP_CLIENT", "CONFIG_COMMENTS_LOST"}, search: "search example.net"},
+			findings: []string{"DNS_DHCP_CLIENT"}, search: "search example.net"},
 		{name: "Alpine 3.24: udhcpc stopped", host: alpine324, list: configured, stop: true,
 			changes: []string{set + ` "Set nameservers; stop udhcpc rewriting" /etc/udhcpc/udhcpc.conf, /etc/resolv.conf [] "--- /etc/udhcpc/udhcpc.conf"`},
 			summary: "Set the nameservers to 192.0.2.54, 2001:db8::54, and stop udhcpc rewriting /etc/resolv.conf", search: "search example.net"},
@@ -357,7 +357,7 @@ func TestPlans(t *testing.T) {
 		{name: "configured: nothing", host: configuredHost, list: configured},
 		{name: "configured, no hardn.yml read: nothing", host: configuredHost, list: configured, noFile: true},
 		{name: "configured, hardn.yml's list another: the save alone", host: configuredHost, yml: []string{"192.0.2.53"}, list: configured,
-			changes: []string{saveLine}, findings: []string{"CONFIG_COMMENTS_LOST"}},
+			changes: []string{saveLine}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			yml := tt.yml

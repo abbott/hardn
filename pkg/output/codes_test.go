@@ -206,6 +206,9 @@ var otherSentinels = map[string]error{
 	"config.ErrRootLoginNotApplied":  config.ErrRootLoginNotApplied,
 	"config.ErrNotLoaded":            config.ErrNotLoaded,
 	"config.ErrInvalidFile":          config.ErrInvalidFile,
+	"config.ErrChanged":              config.ErrChanged,     // next/s2-config-edit
+	"config.ErrNotEditable":          config.ErrNotEditable, // next/s2-config-edit
+	"config.ErrEditUnsafe":           config.ErrEditUnsafe,  // next/s2-config-edit
 	"output.ErrUsage":                output.ErrUsage,
 	"output.ErrConfirmationRequired": output.ErrConfirmationRequired,
 	"output.ErrAuditDir":             output.ErrAuditDir,
@@ -566,7 +569,6 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
-	want = append(want, steps.CodeCommentsLost)                                                                                  // next/s2-control
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

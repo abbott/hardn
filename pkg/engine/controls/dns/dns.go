@@ -286,7 +286,7 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	if err != nil {
 		return nil, err
 	}
-	return append(cs, save), nil
+	return append(cs, save...), nil
 }
 
 // heading is the change's title and summary, from the steps p holds: the
