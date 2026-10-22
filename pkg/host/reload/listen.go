@@ -141,6 +141,13 @@ func uncovered(want, have []sshd.Listener, dual bool) []sshd.Listener {
 	return missing
 }
 
+// Unbound lists the listeners of want that no socket of bound (ReadBound's)
+// covers, by the rule CheckInEffect and Execute's check after the reload
+// use: the same port, and the same address or an unspecified one of its
+// family, ss's "*" covering both families. It is pure (next/p4-check-ssh:
+// the SSH Port status, configured against bound).
+func Unbound(want []sshd.Listener, bound []Bound) []sshd.Listener { return unbound(want, bound) }
+
 // unbound lists the listeners of want no bound socket covers.
 func unbound(want []sshd.Listener, bound []Bound) []sshd.Listener {
 	var missing []sshd.Listener

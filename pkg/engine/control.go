@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -151,4 +152,23 @@ func notApplicable(why string) string {
 		return "not applicable on this host"
 	}
 	return why
+}
+
+// ErrNotMigrated is a check-only control's Plan (CheckOnly): the control
+// reports the host's state, and planning its changes waits for the slice
+// that migrates it (refactor plan Phase 4, next/p4-check-ssh). Engine.Plan
+// refuses a plan with such a control, as any control's error.
+var ErrNotMigrated = errors.New("the control only checks the host; its changes are not planned yet")
+
+// CheckOnly gives a check-only control its Plan: embedded in a control
+// that implements ID, Title, Applies and Check, it makes an engine.Control
+// whose Plan returns ErrNotMigrated and changes nothing. For such a
+// control, Configured is the host as hardn's baseline wants it, not "as
+// the configuration asks": Check takes no configuration
+// (docs/engine/checks.md §1.3).
+type CheckOnly struct{}
+
+// Plan returns ErrNotMigrated.
+func (CheckOnly) Plan(context.Context, host.System, Input) ([]Change, error) {
+	return nil, ErrNotMigrated
 }

@@ -1,0 +1,16 @@
+# Synthetic sshd_config, shaped like Ubuntu 26.04's stock file (OpenSSH
+# 10.2p1). On a socket-activated host a change of Port, AddressFamily or
+# ListenAddress takes systemctl daemon-reload and a restart of ssh.socket.
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+#Port 22
+#PermitRootLogin prohibit-password
+#PasswordAuthentication yes
+
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding yes
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server

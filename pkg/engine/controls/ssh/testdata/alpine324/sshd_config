@@ -1,0 +1,14 @@
+# Synthetic sshd_config, shaped like Alpine 3.24's stock file (OpenSSH
+# 10.3_p1, no PAM).
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+#Port 22
+#PermitRootLogin prohibit-password
+#PasswordAuthentication yes
+
+AuthorizedKeysFile .ssh/authorized_keys
+AllowTcpForwarding no
+GatewayPorts no
+X11Forwarding no
+Subsystem sftp internal-sftp

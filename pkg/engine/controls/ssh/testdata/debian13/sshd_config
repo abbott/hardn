@@ -1,0 +1,14 @@
+# Synthetic sshd_config, shaped like Debian 13's stock file (OpenSSH 10.0p1).
+
+Include /etc/ssh/sshd_config.d/*.conf
+
+#Port 22
+#PermitRootLogin prohibit-password
+#PasswordAuthentication yes
+
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding yes
+PrintMotd no
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server

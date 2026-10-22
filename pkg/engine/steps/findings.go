@@ -71,3 +71,22 @@ func droppedFindings(ds []migrate.Carried) []engine.Finding {
 	}
 	return out
 }
+
+// The conversions above, exported for the status controls
+// (next/p4-check-ssh, docs/engine/checks.md §1.7), so that a check codes a
+// primitive's finding as a plan does, and the next area adds its
+// primitive's here rather than a copy of its own.
+
+// FindingCode is a primitive's finding kind ("root-not-key-only") as a
+// code under its prefix ("PVE_ROOT_NOT_KEY_ONLY"), the prefix said once.
+func FindingCode(prefix, kind string) string { return findingCode(prefix, kind) }
+
+// SourceAt is a Finding's Source for a line of a file: file:line, file
+// alone, or "".
+func SourceAt(file string, line int) string { return at(file, line) }
+
+// SSHDFinding is one of sshd's findings as an engine.Finding (SSHD_...).
+func SSHDFinding(f sshd.Finding) engine.Finding { return sshdFindings([]sshd.Finding{f})[0] }
+
+// PVEFinding is one of pve's findings as an engine.Finding (PVE_...).
+func PVEFinding(f pve.Finding) engine.Finding { return pveFindings([]pve.Finding{f})[0] }
