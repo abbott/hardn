@@ -23,8 +23,13 @@ type rule struct {
 	nopass bool   // NOPASSWD (sudo), nopass (doas)
 	deny   bool   // doas's deny
 	known  bool   // false: a line in a form hardn does not read, which may decide for who
-	at     string // file:line
-	text   string // the line, its white space collapsed
+	// A known rule's runas: as any user (sudo's "(ALL)" or "(ALL:ALL)",
+	// doas with no "as root") or root alone, and with any group (sudo's
+	// ":ALL"; doas has no group to choose) or the target user's own
+	// (covers).
+	anyUser, anyGroup bool
+	at                string // file:line
+	text              string // the line, its white space collapsed
 }
 
 // tool is one elevation tool as the host has it.
@@ -193,10 +198,11 @@ const name = `[a-z_][a-z0-9_.-]*\$?`
 
 var (
 	// sudoGrant is the one form of a sudo rule read: a user or %group,
-	// on every host, as root (ALL or root, any group), every command,
-	// with or without NOPASSWD. Debian's and Ubuntu's root and %sudo
-	// lines, origin/main's and hardn's grants and cloud-init's are in it.
-	sudoGrant = regexp.MustCompile(`^(%?` + name + `)\s+ALL\s*=\s*\(\s*(?:ALL|root)\s*(?::\s*ALL\s*)?\)\s*(NOPASSWD\s*:\s*)?ALL$`)
+	// on every host, as ALL or root, with ":ALL" or not (the runas is
+	// kept: covers), every command, with or without NOPASSWD. Debian's
+	// and Ubuntu's root and %sudo lines, origin/main's and hardn's grants
+	// and cloud-init's are in it.
+	sudoGrant = regexp.MustCompile(`^(%?` + name + `)\s+ALL\s*=\s*\(\s*(ALL|root)\s*(:\s*ALL\s*)?\)\s*(NOPASSWD\s*:\s*)?ALL$`)
 	// sudoAlias: alias definitions, which grant no one anything (a rule
 	// that uses an alias is not read).
 	sudoAlias    = regexp.MustCompile(`^(User_Alias|Runas_Alias|Host_Alias|Cmnd_Alias|Cmd_Alias)\b`)
@@ -234,7 +240,7 @@ func sudoLine(l line) (r rule, isRule, isAuth bool) {
 		return r, true, true
 	}
 	if m := sudoGrant.FindStringSubmatch(t); m != nil && !l.joined {
-		r.who, r.nopass, r.known = m[1], m[2] != "", true
+		r.who, r.anyUser, r.anyGroup, r.nopass, r.known = m[1], m[2] == "ALL", m[3] != "", m[4] != "", true
 	} else if sudoWho.MatchString(f[0]) && !strings.HasPrefix(strings.TrimSpace(t[len(f[0]):]), ",") {
 		r.who = f[0]
 	}
@@ -350,6 +356,7 @@ opts:
 	}
 	r.who, r.deny = rest[0], f[0] == "deny"
 	r.known = len(rest) == 1 || slices.Equal(rest[1:], []string{"as", "root"})
+	r.anyUser, r.anyGroup = len(rest) == 1, true // no "as": every target (doas.conf(5))
 	return r, true
 }
 
@@ -358,12 +365,17 @@ var doasKeywords = []string{"as", "cmd", "args"}
 
 // grant is what one tool's rules decide for one user. The last rule that
 // matches decides (sudoers(5), doas.conf(5)); a rule not read after it
-// that may match too leaves the answer Unknown, by that rule.
+// that may match too leaves the answer Unknown, by that rule. A rule
+// before it still decides the requests it matches that no later rule for
+// the user does (covers): with Yes, such a rule read without a password
+// makes the grant nopass, and one not read leaves it open.
 type grant struct {
-	tri    detect.Tri
-	nopass bool
-	by     rule  // the rule that decided, or the last not read; zero for no rule
-	err    error // the tool's, when it decides Unknown
+	tri      detect.Tri
+	nopass   bool
+	nopassAt string // the rule without a password: by, or one before it
+	openAt   string // with Yes: the last rule before by, not read, that may still decide
+	by       rule   // the rule that decided, or the last not read; zero for no rule
+	err      error  // the tool's, when it decides Unknown
 }
 
 func (t tool) decide(db accounts.DB, u accounts.User) grant {
@@ -373,26 +385,57 @@ func (t tool) decide(db accounts.DB, u accounts.User) grant {
 	case detect.Unknown:
 		return grant{err: t.err}
 	}
-	g := grant{tri: detect.No}
-	for _, r := range t.rules {
-		switch m := r.names(db, u); {
-		case m == detect.No:
-		case m == detect.Unknown || !r.known:
+	g, at := grant{tri: detect.No}, -1
+	ms := make([]detect.Tri, len(t.rules))
+	for i, r := range t.rules {
+		switch ms[i] = r.names(db, u); {
+		case ms[i] == detect.No:
+		case ms[i] == detect.Unknown || !r.known:
 			g = grant{by: r}
 		case r.deny:
 			g = grant{tri: detect.No, by: r}
 		default:
-			g = grant{tri: detect.Yes, nopass: r.nopass, by: r}
+			g, at = grant{tri: detect.Yes, nopass: r.nopass, nopassAt: r.at, by: r}, i
 		}
 	}
-	if g.tri == detect.Yes {
-		for _, r := range t.auth {
-			if r.names(db, u) != detect.No {
-				return grant{by: r}
+	if g.tri != detect.Yes {
+		return g
+	}
+	for _, r := range t.auth {
+		if r.names(db, u) != detect.No {
+			return grant{by: r}
+		}
+	}
+	// The rules before the deciding one that may be for u: each decides
+	// the requests no later rule for u that covers it matches.
+	for i, e := range t.rules[:at] {
+		covered := false
+		for j := i + 1; j <= at && !covered; j++ {
+			covered = ms[j] == detect.Yes && t.rules[j].known && t.rules[j].covers(e)
+		}
+		switch {
+		case ms[i] == detect.No, covered, e.known && (e.deny || !e.nopass):
+		case e.known && ms[i] == detect.Yes:
+			if !g.nopass {
+				g.nopass, g.nopassAt = true, e.at
 			}
+		default:
+			g.openAt = e.at
 		}
 	}
 	return g
+}
+
+// covers is whether l matches every request r matches, so that r, before
+// it, decides none: host and command are ALL in every rule read, so the
+// runas alone. sudo's "(ALL)" or "(root)" lets -g name only the target
+// user's own groups (sudoers(5), Runas_Spec): an earlier "(ALL:ALL)"
+// rule decides "sudo -u root -g bob". A rule not read may match any.
+func (l rule) covers(r rule) bool {
+	if !r.known {
+		return l.anyUser && l.anyGroup
+	}
+	return (l.anyUser || !r.anyUser) && (l.anyGroup || !r.anyGroup)
 }
 
 // names is whether r is for u, by its user or group. Unknown: r's user
