@@ -234,6 +234,15 @@ type Ran struct {
 	Rollback *Undo
 	// Detail is one line for the result ("firewall: verified").
 	Detail string
+	// Undone, with an error, says that the change undid what it did
+	// itself, and checked it, before it returned (dns.Apply's
+	// Result.Restored): nothing of it is left. Its Rollback is then
+	// empty, as the journal has nothing of it to undo, and once the
+	// rollback here has finished the engine reports it rolled back with
+	// the changes before it (EventRolledBack, ApplyError.Undone), so that
+	// the report says the change was undone (next/s2-control). It is not
+	// set for a change refused before it acted: nothing of it was done.
+	Undone bool
 }
 
 // validName reports whether s can name a control or a change.

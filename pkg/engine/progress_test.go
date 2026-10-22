@@ -133,6 +133,48 @@ func TestStore(t *testing.T) {
 	}
 }
 
+// TestUndoneByItself: a change that fails having undone its own steps
+// (Ran.Undone, as dns.Apply does when the reload has no effect) is reported
+// rolled back, first, once the rollback here has finished, and the
+// ApplyError says so; one refused before it acted is not (next/s2-control,
+// gallery-dns.md §8 item 3).
+func TestUndoneByItself(t *testing.T) {
+	for _, undone := range []bool{true, false} {
+		t.Run(fmt.Sprint("undone ", undone), func(t *testing.T) {
+			ctx := context.Background()
+			h := newHost(t)
+			h.AddFile(confPath, []byte(oldConf), 0o644, 0, 0)
+			o := testOptions(h, &holds{}, nil, debian13)
+			var evs []Event
+			o.Progress = func(ev Event) { evs = append(evs, ev) }
+			e := New(h, o)
+			old := oldConf
+			w := writeChange("example.port/write", confPath, &old, newConf, RiskPlain)
+			unit := Change{ID: "example.dns/apply", Summary: "Set the resolvers", Risk: RiskPlain, Stage: StageFiles, After: []string{"example.port/write"},
+				Apply: func(context.Context, host.System, Run) (Ran, error) {
+					return Ran{Rollback: &Undo{}, Undone: undone}, errors.New("fixture: the reload had no effect")
+				}}
+			p, err := e.Plan(ctx, []Control{&stub{id: "example", title: "Example", changes: []Change{w, unit}}}, nil)
+			if err != nil || p.Err() != nil {
+				t.Fatalf("Plan: %v, %v", err, p.Err())
+			}
+			_, err = e.Apply(ctx, p)
+			var ae *ApplyError
+			if !errors.As(err, &ae) || !errors.Is(err, ErrRolledBack) || ae.Undone != undone || strings.Contains(err.Error(), "undid its own") != undone {
+				t.Fatalf("Apply: %v (Undone %v)", err, ae != nil && ae.Undone)
+			}
+			want := "0 example.port/write running\n0 example.port/write done: written\n1 example.dns/apply running\n1 example.dns/apply failed at apply\n"
+			if undone {
+				want += "1 example.dns/apply rolled-back\n"
+			}
+			want += "0 example.port/write rolled-back\n"
+			if got := renderEvents(evs); got != want {
+				t.Errorf("events:\n%s\nwant:\n%s", got, want)
+			}
+		})
+	}
+}
+
 // TestWireWords: the words State, RiskClass, Stage and EventState write,
 // which nothing persisted may see change, and a plan's changes marshal to
 // JSON (Apply aside).

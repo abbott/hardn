@@ -48,6 +48,10 @@ type ApplyError struct {
 	// journal did not hold once it had run, so the rollback did not run
 	// that undo.
 	Unjournalled *Unjournalled
+	// Undone: the change that failed (Change) had undone its own steps
+	// before it returned (Ran.Undone), so nothing of it is left; with
+	// ErrRolledBack, nothing of the apply is (next/s2-control).
+	Undone bool
 }
 
 // Unjournalled is what a change that ran needs undone, which the journal
@@ -75,6 +79,9 @@ func (e *ApplyError) Error() string {
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "engine: %s: %s: %v", what, e.Step, e.Err)
+	if e.Undone {
+		b.WriteString("; it undid its own steps")
+	}
 	if e.RollbackErr != nil {
 		fmt.Fprintf(&b, "; the rollback did not finish: %v", e.RollbackErr)
 	} else {
@@ -275,7 +282,10 @@ type applier struct {
 	done    []int
 	current int
 	unj     *Unjournalled
-	res     Result
+	// undone: the change that failed had undone its own steps
+	// (Ran.Undone).
+	undone bool
+	res    Result
 }
 
 func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
@@ -430,6 +440,7 @@ func (a *applier) change(ctx context.Context, i int, c Change) (string, error) {
 		return StepJournalAfter, errors.Join(err, rerr)
 	}
 	if err != nil {
+		a.undone = ran.Undone
 		return StepApply, err
 	}
 	a.res.Applied = append(a.res.Applied, Applied{Change: c.ID, Detail: ran.Detail})
@@ -495,8 +506,11 @@ func (a *applier) fail(ctx context.Context, change, step string, err error) (Res
 		// rollback, or the journal is gone.
 		rerr = fmt.Errorf("engine: nothing rolled back here: %s: %w", rr.Why, revert.ErrRollingBack)
 	}
-	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj}
+	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj, Undone: a.undone}
 	if rerr == nil {
+		if a.undone && a.current >= 0 { // undone by itself, before the changes the rollback undid
+			a.progress(Event{Index: a.current, Change: change, State: EventRolledBack})
+		}
 		for k := len(a.done) - 1; k >= 0; k-- {
 			if c := a.p.Changes[a.done[k]]; a.unj == nil || c.ID != a.unj.Change {
 				a.progress(Event{Index: a.done[k], Change: c.ID, State: EventRolledBack})
