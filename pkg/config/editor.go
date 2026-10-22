@@ -76,7 +76,7 @@ func newEditor(src []byte, keys []string) (*editor, error) {
 	}
 	for l := range e.start {
 		if t := e.text(l); strings.HasPrefix(t, "...") && (len(t) == 3 || t[3] == ' ' || t[3] == '\t') {
-			return nil, e.refuse("", "ends its YAML document with ...")
+			return nil, e.refuse("", `has a "..." line`)
 		}
 	}
 	return e, nil
@@ -87,9 +87,14 @@ func (e *editor) refuse(key, why string) error {
 	return &EditError{Key: key, Why: why, Keys: e.keys, Err: ErrNotEditable}
 }
 
-// unusual is the refusal of a setting in a form Edit does not take apart.
+// unusual is the refusal of a value Edit cannot find the end of, or
+// cannot write on one line: key's, named when it is a setting the save
+// changes, else the file's.
 func (e *editor) unusual(key string) error {
-	return e.refuse(key, "is written in an unusual YAML form")
+	if !slices.Contains(e.keys, key) {
+		key = ""
+	}
+	return e.refuse(key, "cannot be edited in place")
 }
 
 // document edits the file from was, the configuration it gives, to want.
@@ -147,6 +152,9 @@ func (e *editor) mapping(m, was, want *yaml.Node) error {
 			merges = true
 		}
 		if !flow && k.Column != m.Column {
+			if before := e.src[e.start[k.Line-1]:e.pos(k)]; strings.TrimSpace(string(before)) == "?" {
+				return e.refuse(k.Value, "uses an explicit key (?)")
+			}
 			return e.unusual(k.Value)
 		}
 		at[k.Value] = i
@@ -203,7 +211,7 @@ func (e *editor) pair(key, val, was, want *yaml.Node, k int, flow bool) error {
 	if sp.comment {
 		return e.refuse(key.Value, "has comments inside its brackets")
 	}
-	text, err := inline(want, hintOf(val))
+	text, err := inline(want, hintOf(val), flow)
 	if err != nil {
 		return e.unusual(key.Value)
 	}
@@ -220,7 +228,9 @@ func (e *editor) pair(key, val, was, want *yaml.Node, k int, flow bool) error {
 // items edits seq, a block list of the file, from was to want, which is
 // not empty: the items want keeps keep their lines, the comments above
 // and beside them included; the others go, with theirs; the new ones take
-// seq's dash, its indent and its first item's quoting.
+// seq's dash, its indent and its first item's quoting, and a new mapping
+// its first item's list style. The lines between key and the first dash,
+// which speak of the list, stay.
 func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 	n, h, dash := len(seq.Content), key.Line-1, seq.Column-1
 	if len(was.Content) != n {
@@ -237,10 +247,10 @@ func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 		}
 		dashes[i], floor = l, l
 	}
-	last := e.blockLast(h, k, dash == k, false)
+	last := e.blockLast(h, k, dash == k)
 	first, lasts := make([]int, n), make([]int, n)
 	for i := range n {
-		first[i], lasts[i] = h+1, last
+		first[i], lasts[i] = dashes[0], last
 		if i > 0 {
 			first[i] = lasts[i-1] + 1
 		}
@@ -251,6 +261,10 @@ func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 	style := list{offset: 2, space: 2, hint: hintOf(seq)}
 	if it := seq.Content[0]; it.Line-1 == dashes[0] {
 		style.space = it.Column - seq.Column
+	}
+	if it := seq.Content[0]; it.Kind == yaml.MappingNode {
+		inner := e.listStyle(it)
+		style.inner = &inner
 	}
 	var parts []string
 	for _, o := range script(was.Content, want.Content) {
@@ -264,7 +278,7 @@ func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 		}
 		parts = append(parts, strings.Join(lines, e.nl))
 	}
-	e.splices = append(e.splices, splice{e.start[h+1], e.end[last], strings.Join(parts, e.nl)})
+	e.splices = append(e.splices, splice{e.start[dashes[0]], e.end[last], strings.Join(parts, e.nl)})
 	return nil
 }
 
@@ -276,11 +290,11 @@ func (e *editor) collapse(key, val, want *yaml.Node, k int) error {
 	if err != nil {
 		return err
 	}
-	text, err := inline(want, nil)
+	text, err := inline(want, nil, false)
 	if err != nil {
 		return e.unusual(key.Value)
 	}
-	last := e.blockLast(key.Line-1, k, val.Kind == yaml.SequenceNode && val.Column-1 == k, false)
+	last := e.blockLast(key.Line-1, k, val.Kind == yaml.SequenceNode && val.Column-1 == k)
 	e.splices = append(e.splices, splice{c + 1, c + 1, " " + text}, splice{e.end[key.Line-1], e.end[last], ""})
 	return nil
 }
@@ -306,13 +320,15 @@ func (e *editor) expand(key, val, want *yaml.Node, k int) error {
 }
 
 // add adds to m the keys of want at added, at its end: in a block mapping
-// on the lines after its last value, at its keys' column; in a flow one
-// after its last value, or inside its braces when it has none.
+// on the lines after its last value and the comment lines indented past
+// its keys that follow it (a list's commented-out items), at its keys'
+// column; in a flow one after its last value, or inside its braces when
+// it has none.
 func (e *editor) add(m, want *yaml.Node, added []int, flow bool) error {
 	if flow {
 		var parts []string
 		for _, i := range added {
-			text, err := e.list.inline(want.Content[i+1])
+			text, err := e.list.inline(want.Content[i+1], true)
 			if err != nil {
 				return e.unusual(want.Content[i].Value)
 			}
@@ -347,7 +363,15 @@ func (e *editor) add(m, want *yaml.Node, added []int, flow bool) error {
 		}
 		lines = append(lines, l...)
 	}
-	at := e.end[sp.last]
+	last := sp.last
+	for l := last + 1; l < len(e.start); l++ {
+		if e.comment(l) && e.indent(l) > k {
+			last = l
+		} else if !e.blank(l) {
+			break
+		}
+	}
+	at := e.end[last]
 	e.splices = append(e.splices, splice{at, at, e.nl + strings.Join(lines, e.nl)})
 	return nil
 }
@@ -358,7 +382,7 @@ func (e *editor) value(key, val *yaml.Node, k int, flow bool) (span, error) {
 	p := e.pos(val)
 	switch {
 	case block(val):
-		last := e.blockLast(key.Line-1, k, val.Kind == yaml.SequenceNode && val.Column-1 == k, false)
+		last := e.blockLast(key.Line-1, k, val.Kind == yaml.SequenceNode && val.Column-1 == k)
 		return span{from: e.end[key.Line-1], to: e.end[last], last: last}, nil
 	case val.Kind == yaml.SequenceNode || val.Kind == yaml.MappingNode:
 		to, comment, err := e.flowEnd(p)
@@ -368,11 +392,19 @@ func (e *editor) value(key, val *yaml.Node, k int, flow bool) (span, error) {
 		return span{from: p, to: to, last: e.lineOf(to - 1), comment: comment}, nil
 	case val.Style&(yaml.LiteralStyle|yaml.FoldedStyle) != 0:
 		h := val.Line - 1
-		to := p
-		for to < e.end[h] && e.src[to] != ' ' && e.src[to] != '\t' {
-			to++
+		at := p
+		if at < e.end[h] && e.src[at] == '!' { // a tag before the header goes with it
+			at = e.token(at, e.end[h])
+			for at < e.end[h] && (e.src[at] == ' ' || e.src[at] == '\t') {
+				at++
+			}
 		}
-		last := e.blockLast(h, k, false, true)
+		to := e.token(at, e.end[h])
+		header := string(e.src[at:to])
+		if !strings.HasPrefix(header, "|") && !strings.HasPrefix(header, ">") {
+			return span{}, e.unusual(key.Value)
+		}
+		last := e.scalarLast(h, k, header)
 		return span{from: p, to: to, last: last, tail: splice{e.end[h], e.end[last], ""}}, nil
 	case val.Style&(yaml.DoubleQuotedStyle|yaml.SingleQuotedStyle) != 0:
 		q := p
@@ -515,26 +547,57 @@ func (e *editor) plainLine(p, stop int, flow bool) (int, bool) {
 	return end, true
 }
 
-// blockLast is the last line of the block value of a key on line h at
-// column k: the lines after h indented past k, or for a list whose dashes
-// are at k (dashes) its items, until a line that is not; blank and comment
-// lines are skipped, but for a block scalar (scalar) a comment indented
-// past k is its text.
-func (e *editor) blockLast(h, k int, dashes, scalar bool) int {
+// blockLast is the last line of the block collection that is the value of
+// a key on line h at column k: the lines after h indented past k, or for
+// a list whose dashes are at k (dashes) its items, until a line that is
+// not; blank and comment lines are skipped.
+func (e *editor) blockLast(h, k int, dashes bool) int {
 	last := h
 	for l := h + 1; l < len(e.start); l++ {
 		switch {
-		case e.blank(l):
-		case e.indent(l) > k && (scalar || !e.comment(l)):
-			last = l
-		case e.comment(l) && !scalar:
-		case dashes && e.dashAt(l, k):
+		case e.blank(l), e.comment(l):
+		case e.indent(l) > k, dashes && e.dashAt(l, k):
 			last = l
 		default:
 			return last
 		}
 	}
 	return last
+}
+
+// scalarLast is the last line of the block scalar whose header, on line h,
+// is header, the value of a key at column k: the lines after h indented to
+// its text's column at least, which the header's indentation indicator
+// gives (k and its digit) or else its first line that is not blank, until
+// a line that is not; blank lines are skipped. A comment indented past k
+// but less than its text is not its text: yaml.v3 gives it to the next key.
+func (e *editor) scalarLast(h, k int, header string) int {
+	in := -1
+	if i := strings.IndexAny(header, "123456789"); i >= 0 {
+		in = k + int(header[i]-'0')
+	}
+	last := h
+	for l := h + 1; l < len(e.start); l++ {
+		switch {
+		case e.blank(l):
+		case in < 0 && e.indent(l) > k:
+			in, last = e.indent(l), l
+		case in >= 0 && e.indent(l) >= in:
+			last = l
+		default:
+			return last
+		}
+	}
+	return last
+}
+
+// token is the offset after the bytes from p, before stop, that are not a
+// space or a tab.
+func (e *editor) token(p, stop int) int {
+	for p < stop && e.src[p] != ' ' && e.src[p] != '\t' {
+		p++
+	}
+	return p
 }
 
 // contentBefore is the last line before l, after floor, that is neither
@@ -639,26 +702,29 @@ func (e *editor) listStyle(root *yaml.Node) list {
 
 // list is how a list is written: in brackets (flow), or in block style,
 // its dash offset columns right of its key's and space columns before
-// its item; its string items quoted as hint is.
+// its item; its string items quoted as hint is; and the lists of its
+// items that are mappings as inner is (nil: two spaces, a dash, one).
 type list struct {
 	flow          bool
 	offset, space int
 	hint          *yaml.Node
+	inner         *list
 }
 
-// inline is v on one line, a list's items quoted as the style's.
-func (s list) inline(v *yaml.Node) (string, error) {
+// inline is v on one line, a list's items quoted as the style's; inside
+// a flow mapping (flow) as a value there.
+func (s list) inline(v *yaml.Node, flow bool) (string, error) {
 	if v.Kind == yaml.SequenceNode {
-		return inline(v, s.hint)
+		return inline(v, s.hint, flow)
 	}
-	return inline(v, nil)
+	return inline(v, nil, flow)
 }
 
 // pair is name: v as lines, the key at column k.
 func (s list) pair(name string, v *yaml.Node, k int) ([]string, error) {
 	pad := strings.Repeat(" ", k)
 	if s.flow || v.Kind == yaml.ScalarNode || len(v.Content) == 0 {
-		text, err := s.inline(v)
+		text, err := s.inline(v, false)
 		return []string{pad + name + ": " + text}, err
 	}
 	lines, err := s.block(v, k)
@@ -689,33 +755,79 @@ func (s list) block(v *yaml.Node, k int) ([]string, error) {
 	return out, nil
 }
 
-// item is it as a list item whose dash is at column d.
+// item is it as a list item whose dash is at column d; a mapping without
+// its keys whose values are empty, false or 0, which an item read without
+// them has (a default is not written), and its lists as s.inner.
 func (s list) item(it *yaml.Node, d int) ([]string, error) {
 	dash := strings.Repeat(" ", d) + "-" + strings.Repeat(" ", max(s.space-1, 1))
+	if it.Kind == yaml.MappingNode {
+		m := *it
+		m.Content = nil
+		for i := 0; i+1 < len(it.Content); i += 2 {
+			if !zero(it.Content[i+1]) {
+				m.Content = append(m.Content, it.Content[i], it.Content[i+1])
+			}
+		}
+		it = &m
+	}
 	if it.Kind == yaml.MappingNode && len(it.Content) > 0 {
-		lines, err := list{offset: 2, space: 2}.block(it, d+max(s.space, 2)-2)
+		inner := list{offset: 2, space: 2}
+		if s.inner != nil {
+			inner = *s.inner
+		}
+		lines, err := inner.block(it, d+max(s.space, 2)-2)
 		if err != nil {
 			return nil, err
 		}
 		lines[0] = dash + strings.TrimLeft(lines[0], " ")
 		return lines, nil
 	}
-	text, err := inline(it, s.hint)
+	text, err := inline(it, s.hint, false)
 	return []string{dash + text}, err
+}
+
+// zero reports whether n, a canonical value, is its type's zero value: an
+// empty string, false, 0, null, or an empty list or mapping.
+func zero(n *yaml.Node) bool {
+	if n.Kind != yaml.ScalarNode {
+		return len(n.Content) == 0
+	}
+	switch n.Tag {
+	case "!!str", "!!null":
+		return n.Value == ""
+	case "!!bool":
+		return n.Value == "false"
+	case "!!int":
+		return n.Value == "0"
+	}
+	return false
 }
 
 // inline is v written on one line: a collection in brackets, a string in
 // hint's quotes when hint is a quoted string, or in double quotes when it
-// would take more than one line.
-func inline(v, hint *yaml.Node) (string, error) {
+// would take more than one line; inside a flow mapping (flow), as yaml.v3
+// writes it there, where a plain string may not hold , [ ] { }.
+func inline(v, hint *yaml.Node, flow bool) (string, error) {
 	c := flowCopy(v, hint)
-	text, err := encode(c)
+	n := c
+	if flow {
+		n = &yaml.Node{Kind: yaml.MappingNode, Style: yaml.FlowStyle, Content: []*yaml.Node{{Kind: yaml.ScalarNode, Tag: "!!str", Value: "k"}, c}}
+	}
+	text, err := encode(n)
 	if err == nil && c.Kind == yaml.ScalarNode && strings.Contains(text, "\n") {
 		c.Style = yaml.DoubleQuotedStyle
-		text, err = encode(c)
+		text, err = encode(n)
 	}
 	if err == nil && strings.Contains(text, "\n") {
 		err = ErrNotEditable
+	}
+	if err == nil && flow {
+		t, ok := strings.CutPrefix(text, "{k: ")
+		t, end := strings.CutSuffix(t, "}")
+		if !ok || !end {
+			return "", ErrNotEditable
+		}
+		text = t
 	}
 	return text, err
 }

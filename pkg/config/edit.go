@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"reflect"
 	"slices"
 	"strings"
@@ -25,7 +26,7 @@ import (
 var (
 	// ErrNotEditable: hardn.yml is written in a form Edit does not change
 	// in place (EditError says which, and where).
-	ErrNotEditable = errors.New("hardn.yml is written in a form that is not edited in place")
+	ErrNotEditable = errors.New("hardn.yml cannot be edited in place")
 	// ErrEditUnsafe: the edited bytes would not read back as the
 	// configuration to save, so nothing is written.
 	ErrEditUnsafe = errors.New("the edited hardn.yml would not read back as the configuration to save")
@@ -65,31 +66,39 @@ const derivedKey = "logsconfig"
 
 var bom = []byte("\xef\xbb\xbf")
 
-// Edit returns original, hardn.yml's bytes as read, with the values of the
-// settings to changes edited in place, and every other byte as it was: key
-// order, blank lines, indentation, quoting, the comments of the file's
-// head, above and beside each key, inside a list, and after it. A setting
-// differs when its value in to is not the one the file gives it, its
-// default included, so a default is never written: a setting the file does
-// not have is added, at the end of its mapping, only when to's value is
-// not its default. A scalar is replaced in its own quoting; a list in
-// brackets stays in brackets; a block list keeps the items to keeps, each
-// with its lines and comments, and its new items take its dash, indent and
-// quoting (a removed or replaced item's comments go with it); a list the
-// file has as nothing or [] takes the file's list style; a mapping is
-// edited at the key that changed. Nothing changed: a copy of original.
+// Edit returns original, hardn.yml's bytes as read, with the settings
+// whose values differ in the configuration to save (to) edited in place,
+// and every other byte as it was: key order, blank lines, indentation,
+// quoting, the comments of the file's head, above and beside each key,
+// inside a list, and after it, but those of a list item it replaces or
+// removes. With settings named (their keys
+// in hardn.yml, as "nameservers"), only those are compared and written,
+// the others staying as the file gives them, so that a value the caller
+// changed only in memory (a flag's) is not saved; with none, every
+// setting. A setting differs when its value in to is not the one the file
+// gives it, its default included, so a default is never written: a
+// setting the file does not have is added, at the end of its mapping, only
+// when to's value is not its default. A scalar is replaced in its own
+// quoting; a list in brackets stays in brackets; a block list keeps the
+// items to keeps, each with its lines and comments, and its new items take
+// its dash, indent and quoting (a removed or replaced item's comments go
+// with it; the comment lines before its first item stay); a list the file
+// has as nothing or [] takes the file's list style; a mapping is edited at
+// the key that changed. Nothing changed: a copy of original.
 //
 // Edit refuses, writing nothing, with an EditError: a file not UTF-8, with
 // a line break other than LF and CRLF, of more than one document or with a
-// document end (...), not a mapping, or merging keys (<<) into a mapping it
-// edits (ErrNotEditable); a changed setting with an anchor or alias, with a
-// comment inside its brackets, or in a form it does not take apart
-// (ErrNotEditable); and bytes that would not decode to exactly to, every
-// setting compared, with every other key as before, unknown keys and
-// logsconfig included (ErrEditUnsafe). Bytes
-// that do not decode are ErrInvalidFile; a nil to, ErrNotLoaded. A UTF-8
-// byte order mark, a leading --- and a directive are kept.
-func Edit(original []byte, to *Config) ([]byte, error) {
+// document end (...), not a mapping, with an explicit key (?), or merging
+// keys (<<) into a mapping it edits (ErrNotEditable); a changed setting
+// with an anchor or alias, with a comment inside its brackets, or whose
+// value it cannot find the end of or write on one line (ErrNotEditable);
+// and bytes that would not decode to exactly the configuration to save,
+// every setting compared, with every other key as before, unknown keys and
+// logsconfig included (ErrEditUnsafe). Bytes that do not decode are
+// ErrInvalidFile; a nil to, ErrNotLoaded; a name that is no setting,
+// fs.ErrInvalid. A UTF-8 byte order mark, a leading --- and a directive
+// are kept.
+func Edit(original []byte, to *Config, settings ...string) ([]byte, error) {
 	if to == nil {
 		return nil, fmt.Errorf("config: edit: no configuration: %w", ErrNotLoaded)
 	}
@@ -104,6 +113,11 @@ func Edit(original []byte, to *Config) ([]byte, error) {
 	want, err := tree(to)
 	if err != nil {
 		return nil, err
+	}
+	if len(settings) > 0 {
+		if want, err = only(was, want, settings); err != nil {
+			return nil, err
+		}
 	}
 	var keys []string
 	for i := 0; i+1 < len(want.Content); i += 2 {
@@ -163,6 +177,26 @@ func tree(c *Config) (*yaml.Node, error) {
 			return nil, fmt.Errorf("config: %w", err)
 		}
 		out.Content = append(out.Content, &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: name}, &z)
+	}
+	return out, nil
+}
+
+// only is was, the configuration the file gives, with the values of the
+// settings named taken from want: the configuration a save of those
+// settings alone writes. A name that is no setting is fs.ErrInvalid.
+func only(was, want *yaml.Node, settings []string) (*yaml.Node, error) {
+	for _, name := range settings {
+		if valueOf(want, name) == nil {
+			return nil, fmt.Errorf("config: edit: %q is not a setting of hardn.yml: %w", name, fs.ErrInvalid)
+		}
+	}
+	out := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+	for i := 0; i+1 < len(want.Content); i += 2 {
+		k, v := want.Content[i], want.Content[i+1]
+		if !slices.Contains(settings, k.Value) {
+			v = valueOf(was, k.Value)
+		}
+		out.Content = append(out.Content, k, v)
 	}
 	return out, nil
 }

@@ -242,11 +242,12 @@ func (c *Config) canonical() (*yaml.Node, error) {
 // (host.ErrSymlink), and refuses bytes that are not the ones c was read
 // from or last saved (ErrChanged: the edit would undo what changed them).
 // What it writes is Edit's: the settings c changes, edited in place, the
-// rest of the file as it was; Edit refuses what would not read back as c
+// rest of the file as it was; with settings named, those alone (Edit).
+// Edit refuses what would not read back as the configuration to save
 // (ErrNotEditable, ErrEditUnsafe), and with nothing changed nothing is
 // written. host.WriteFileAtomicKeep keeps the file's mode and owner. Once
-// written, the bytes are c's (LoadedFrom).
-func Save(ctx context.Context, sys host.System, c *Config) error {
+// written, c records the bytes written as its own (LoadedFrom).
+func Save(ctx context.Context, sys host.System, c *Config, settings ...string) error {
 	path := c.loaded.path
 	if path == "" {
 		return fmt.Errorf("config: %w", ErrNotLoaded)
@@ -258,7 +259,7 @@ func Save(ctx context.Context, sys host.System, c *Config) error {
 	if !c.LoadedFrom(data) {
 		return fmt.Errorf("config: saving %s: %w", path, ErrChanged)
 	}
-	out, err := Edit(data, c)
+	out, err := Edit(data, c, settings...)
 	if err != nil {
 		return fmt.Errorf("config: saving %s: %w", path, err)
 	}

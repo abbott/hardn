@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"math/rand/v2"
 	"slices"
 	"strings"
@@ -49,6 +50,11 @@ func TestEdit(t *testing.T) {
 		{name: "a value on the next line", in: "username:\n  alice\nsshPort: 22\n", set: user, want: "username:\n  bob\nsshPort: 22\n"},
 		{name: "a plain value over two lines", in: "username: alice\n  smith  # c\nsshPort: 22\n", set: user, want: "username: bob  # c\nsshPort: 22\n"},
 		{name: "a block scalar, its header comment kept", in: "username: |  # odd\n  alice\n  # text\nsshPort: 22\n", set: user, want: "username: bob  # odd\nsshPort: 22\n"},
+		{name: "a block scalar, the comment after it indented less than its text kept", in: "username: |\n    alice\n  # the admin, see the runbook\nsshPort: 22\n",
+			set: user, want: "username: bob\n  # the admin, see the runbook\nsshPort: 22\n"},
+		{name: "a block scalar with an indentation indicator", in: "username: |2 # c\n    alice\n  # text\n # not\nsshPort: 22\n",
+			set: user, want: "username: bob # c\n # not\nsshPort: 22\n"},
+		{name: "a block scalar with a tag", in: "username: !!str |\n  alice\nsshPort: 22\n", set: user, want: "username: bob\nsshPort: 22\n"},
 		{name: "a tag replaced with its value", in: "username: !!str alice\n", set: user, want: "username: bob\n"},
 		{name: "nothing after the colon", in: "username:\nsshPort: 22\n", set: user, want: "username: bob\nsshPort: 22\n"},
 		{name: "nothing after the colon but a comment", in: "username:   # who\n", set: user, want: "username: bob   # who\n"},
@@ -63,9 +69,13 @@ func TestEdit(t *testing.T) {
 			set:  list("192.0.2.53", "192.0.2.54"),
 			want: "nameservers:\n    - 192.0.2.53\n    - 192.0.2.54 # kept\n"},
 		{name: "a block list: a removed item's comments go with it",
-			in:   "nameservers:\n  # first\n  - 192.0.2.52\n\n  # second\n  - 192.0.2.54  # two\n",
-			set:  list("192.0.2.54"),
-			want: "nameservers:\n\n  # second\n  - 192.0.2.54  # two\n"},
+			in:   "nameservers:\n  - 192.0.2.52\n\n  # second\n  - 192.0.2.53\n  - 192.0.2.54  # two\n",
+			set:  list("192.0.2.52", "192.0.2.54"),
+			want: "nameservers:\n  - 192.0.2.52\n  - 192.0.2.54  # two\n"},
+		{name: "a block list replaced whole (a preset): the comments before its first item kept",
+			in:   "nameservers:\n  # ours: see the runbook before changing\n\n  - 192.0.2.54\n  - 2001:db8::54\nsshPort: 2230\n",
+			set:  list("1.1.1.1", "1.0.0.1"),
+			want: "nameservers:\n  # ours: see the runbook before changing\n\n  - 1.1.1.1\n  - 1.0.0.1\nsshPort: 2230\n"},
 		{name: "a block list whose dashes are at its key's column",
 			in: "nameservers:\n- 192.0.2.54\nsshPort: 22\n", set: list("192.0.2.54", "192.0.2.53"),
 			want: "nameservers:\n- 192.0.2.54\n- 192.0.2.53\nsshPort: 22\n"},
@@ -88,17 +98,27 @@ func TestEdit(t *testing.T) {
 			want: "nameservers: [192.0.2.53]\nsshAllowedUsers: [alice]\n"},
 		{name: "~ to a block list", in: "nameservers: ~ # none\nsshPort: 22\n", set: list("192.0.2.53"),
 			want: "nameservers: # none\n  - 192.0.2.53\nsshPort: 22\n"},
-		{name: "list items that are mappings: one kept, one added",
+		{name: "list items that are mappings: one kept, one added without its empty fields, its list as the first's",
 			in: "ufwAppProfiles:\n  - name: web # ours\n    ports: [80/tcp]\n",
 			set: func(c *Config) {
 				c.UfwAppProfiles = append(c.UfwAppProfiles, UfwAppProfile{Name: "ssh", Ports: []string{"2230/tcp"}})
 			},
-			want: "ufwAppProfiles:\n  - name: web # ours\n    ports: [80/tcp]\n  - name: ssh\n    title: \"\"\n    description: \"\"\n    ports:\n      - 2230/tcp\n"},
+			want: "ufwAppProfiles:\n  - name: web # ours\n    ports: [80/tcp]\n  - name: ssh\n    ports: [2230/tcp]\n"},
+		{name: "list items that are mappings: a block list in the first, an empty item",
+			in: "ufwAppProfiles:\n- name: web\n  ports:\n      - 80/tcp\n",
+			set: func(c *Config) {
+				c.UfwAppProfiles = append(c.UfwAppProfiles, UfwAppProfile{Name: "ssh", Title: "SSH", Ports: []string{"2230/tcp"}}, UfwAppProfile{})
+			},
+			want: "ufwAppProfiles:\n- name: web\n  ports:\n      - 80/tcp\n- name: ssh\n  title: SSH\n  ports:\n      - 2230/tcp\n- {}\n"},
 
 		{name: "a key added at the end of the mapping, before the comments after it",
 			in: "username: alice\n\n# the end\n", set: port, want: "username: alice\nsshPort: 2230\n\n# the end\n"},
 		{name: "a key added after a block list", in: "nameservers:\n  - 192.0.2.54\n# end\n", set: port,
 			want: "nameservers:\n  - 192.0.2.54\nsshPort: 2230\n# end\n"},
+		{name: "a key added after a list's commented-out items", in: "nameservers:\n  - 192.0.2.54\n\n  # - 192.0.2.52\n\n# end\n", set: port,
+			want: "nameservers:\n  - 192.0.2.54\n\n  # - 192.0.2.52\nsshPort: 2230\n\n# end\n"},
+		{name: "a key added after a block scalar and the comment after it", in: "username: |\n    alice\n  # about it\n", set: port,
+			want: "username: |\n    alice\n  # about it\nsshPort: 2230\n"},
 		{name: "a list added in the file's block style", in: "sshAllowedUsers:\n- 'alice'\n", set: list("192.0.2.53"),
 			want: "sshAllowedUsers:\n- 'alice'\nnameservers:\n- '192.0.2.53'\n"},
 		{name: "a key added after a list in brackets over several lines", in: "nameservers: [\n  192.0.2.54\n]\n# end\n", set: port,
@@ -123,6 +143,10 @@ func TestEdit(t *testing.T) {
 			set:  func(c *Config) { c.SshPort = 2230; c.Nameservers = []string{"192.0.2.53"} },
 			want: "{username: alice, sshPort: 2230, nameservers: [192.0.2.53]}  # all\n"},
 		{name: "an empty mapping in braces", in: "{}\n", set: port, want: "{sshPort: 2230}\n"},
+		{name: "a value in braces that needs quotes there", in: "{username: alice}\n", set: func(c *Config) { c.Username = "bob, george" },
+			want: "{username: 'bob, george'}\n"},
+		{name: "a value added in braces that needs quotes there", in: "{sshPort: 22}\n", set: func(c *Config) { c.Username = "bob, george" },
+			want: "{sshPort: 22, username: 'bob, george'}\n"},
 		{name: "CRLF line ends", in: "# c\r\nusername: alice\r\nnameservers:\r\n  - 192.0.2.54\r\n",
 			set:  func(c *Config) { c.Nameservers = []string{"192.0.2.54", "192.0.2.53"}; c.SshPort = 2230 },
 			want: "# c\r\nusername: alice\r\nnameservers:\r\n  - 192.0.2.54\r\n  - 192.0.2.53\r\nsshPort: 2230\r\n"},
@@ -140,13 +164,16 @@ func TestEdit(t *testing.T) {
 		{name: "nothing changed", in: "# c\nusername: alice\n", set: func(*Config) {}, want: "# c\nusername: alice\n"},
 
 		{name: "several documents", in: "username: alice\n---\nsshPort: 22\n", set: user, err: ErrNotEditable, why: "holds more than one YAML document"},
-		{name: "a document end", in: "username: alice\n...\n", set: port, err: ErrNotEditable, why: "ends its YAML document with ..."},
+		{name: "a document end", in: "username: alice\n...\n", set: port, err: ErrNotEditable, why: `has a "..." line`},
 		{name: "an alias on the key changed", in: "x: &u alice\nusername: *u\n", set: user, err: ErrNotEditable, key: "username", why: "uses a YAML anchor or alias"},
 		{name: "an anchor on the key changed", in: "username: &u alice\nx: *u\n", set: user, err: ErrNotEditable, key: "username", why: "uses a YAML anchor or alias"},
 		{name: "a merge", in: "<<: {username: alice}\nsshPort: 22\n", set: port, err: ErrNotEditable, why: "merges settings with <<"},
 		{name: "a comment inside brackets", in: "nameservers: [192.0.2.54,  # ours\n  192.0.2.52]\n", set: list("192.0.2.53"),
 			err: ErrNotEditable, key: "nameservers", why: "has comments inside its brackets"},
-		{name: "an explicit key", in: "? username\n: alice\n", set: user, err: ErrNotEditable, key: "username", why: "is written in an unusual YAML form"},
+		{name: "an explicit key", in: "? username\n: alice\n", set: user, err: ErrNotEditable, key: "username", why: "uses an explicit key (?)"},
+		{name: "an explicit key on another setting", in: "? sshPort\n: 22\nusername: alice\n", set: user, err: ErrNotEditable, key: "sshPort", why: "uses an explicit key (?)"},
+		{name: "a tag on the mapping, naming the setting changed", in: "--- !!map\nusername: alice\n", set: user, err: ErrNotEditable, key: "username", why: "cannot be edited in place"},
+		{name: "a tag on the mapping, another setting changed: the file named", in: "--- !!map\nusername: alice\n", set: port, err: ErrNotEditable, why: "cannot be edited in place"},
 		{name: "a lone carriage return", in: "username: alice\rsshPort: 22\n", set: port, err: ErrNotEditable, why: "has line breaks other than LF and CRLF"},
 		{name: "a line separator", in: "username: \"a\u2028b\"\n", set: port, err: ErrNotEditable, why: "has line breaks other than LF and CRLF"},
 		{name: "not a mapping", in: "~\n", set: port, err: ErrNotEditable, why: "does not hold its settings as key: value"},
@@ -202,6 +229,33 @@ func TestEditExample(t *testing.T) {
 	want = strings.Replace(want, "tz: \"America/New_York\"            # Timezone\n", "tz: \"America/New_York\"            # Timezone\nconfirmTimeout: 3m\n", 1)
 	if string(got) != want {
 		t.Errorf("Edit of the example:\n%s\nwant\n%s", got, want)
+	}
+}
+
+// TestEditSettings: with settings named, Edit writes those alone, the
+// others as the file has them, whatever the configuration holds in memory
+// (-n's and -u's values, as cmd/hardn sets them after loading); a name
+// that is no setting is fs.ErrInvalid.
+func TestEditSettings(t *testing.T) {
+	const in = "# hardn\ndryRun: true\nusername: alice\nnameservers:\n  - \"192.0.2.54\"\n"
+	c := load(t, in)
+	c.DryRun, c.Username, c.SshPort = false, "george", 2230
+	if got, err := Edit([]byte(in), c, "nameservers"); err != nil || string(got) != in {
+		t.Errorf("Edit of nameservers, unchanged = %q, %v; want the file as it is", got, err)
+	}
+	c.Nameservers = []string{"1.1.1.1", "1.0.0.1"}
+	want := "# hardn\ndryRun: true\nusername: alice\nnameservers:\n  - \"1.1.1.1\"\n  - \"1.0.0.1\"\n"
+	if got, err := Edit([]byte(in), c, "nameservers"); err != nil || string(got) != want {
+		t.Errorf("Edit of nameservers = %q, %v; want %q", got, err, want)
+	}
+	want = "# hardn\ndryRun: true\nusername: alice\nnameservers:\n  - \"1.1.1.1\"\n  - \"1.0.0.1\"\nsshPort: 2230\n"
+	if got, err := Edit([]byte(in), c, "nameservers", "sshPort"); err != nil || string(got) != want {
+		t.Errorf("Edit of nameservers and sshPort = %q, %v; want %q", got, err, want)
+	}
+	for _, name := range []string{"nameserver", derivedKey} {
+		if _, err := Edit([]byte(in), c, name); !errors.Is(err, fs.ErrInvalid) {
+			t.Errorf("Edit of %q = %v; want fs.ErrInvalid", name, err)
+		}
 	}
 }
 
@@ -271,7 +325,7 @@ func TestEditChecks(t *testing.T) {
 func TestEditKeepsTheRest(t *testing.T) {
 	const file = "# hardn's configuration (web-01.example.net)\n\n" +
 		"# Who\nusername: \"alice\"   # the admin\nsshAllowedUsers:   # who may log in\n  - alice # first\n  # bob is new\n  - bob\n\n" +
-		"# DNS\nnameservers:\n  - \"192.0.2.54\" # ours\n  - \"2001:db8::54\"\n  # - 192.0.2.52\n" +
+		"# DNS\nnameservers:\n  # ours, see the runbook\n  - \"192.0.2.54\" # ours\n  - \"2001:db8::54\"\n  # - 192.0.2.52\n" +
 		"sshPort: 22   # SSH\n                # a second line\ndmzSubnet: '192.0.2'\nenableLynis: false # audit\n# Time\ntz: \"UTC\"\n# the end\n"
 	pool := []string{"192.0.2.54", "2001:db8::54", "192.0.2.53", "192.0.2.52", "1.1.1.1"}
 	users := []string{"alice", "bob", "george"}
@@ -282,9 +336,11 @@ func TestEditKeepsTheRest(t *testing.T) {
 		return out[:1+r.IntN(len(out))]
 	}
 	orig := strings.Split(file, "\n")
-	// spans are each setting's lines: its key's line to its value's last.
-	spans := map[string][2]int{"username": {3, 3}, "sshAllowedUsers": {4, 7}, "nameservers": {10, 12}, "sshPort": {14, 14},
-		"dmzSubnet": {16, 16}, "enableLynis": {17, 17}, "tz": {19, 19}}
+	// spans are the lines each setting's edit may change: a scalar's line,
+	// a block list's first item's to its last's (its key's line and the
+	// comments before its first item stay).
+	spans := map[string][2]int{"username": {3, 3}, "sshAllowedUsers": {5, 7}, "nameservers": {12, 13}, "sshPort": {15, 15},
+		"dmzSubnet": {17, 17}, "enableLynis": {18, 18}, "tz": {20, 20}}
 	for i := range 300 {
 		c := load(t, file)
 		changed := map[string]bool{}
@@ -322,8 +378,8 @@ func TestEditKeepsTheRest(t *testing.T) {
 		for l, line := range orig {
 			in := false
 			for key, s := range spans {
-				// A block list keeps its key's line; a scalar its comment.
-				if changed[key] && l >= s[0] && l <= s[1] && !(s[1] > s[0] && l == s[0]) {
+				// A scalar keeps its comment.
+				if changed[key] && l >= s[0] && l <= s[1] {
 					in = true
 					if _, comment, ok := strings.Cut(line, " #"); ok && s[1] == s[0] && !strings.Contains(string(got), " #"+comment+"\n") {
 						t.Errorf("run %d: %s's comment %q lost:\n%s", i, key, comment, got)
@@ -346,9 +402,10 @@ func TestEditKeepsTheRest(t *testing.T) {
 	}
 }
 
-// FuzzEdit: on any bytes that decode, each of eight changes is either
+// FuzzEdit: on any bytes that decode, each of nine changes is either
 // refused with one of Edit's errors or saved as bytes that read back with
-// it, and nothing panics. Its seeds run with the tests; go test -fuzz
+// it (the last, of the list alone, with the user name as it was), and
+// nothing panics. Its seeds run with the tests; go test -fuzz
 // FuzzEdit explores (90 s found no failure).
 func FuzzEdit(f *testing.F) {
 	for _, s := range []string{
@@ -357,6 +414,7 @@ func FuzzEdit(f *testing.F) {
 		"username: |\n  alice\n  # x\nsshKeys: []\n", "\xef\xbb\xbfusername: alice\r\nnameservers:\r\n  - 192.0.2.54\r\n",
 		"ufwAppProfiles:\n  - name: web\n    ports: [80/tcp]\n", "username: \"a\n  b\"\nnameservers: [\n  192.0.2.54,\n]\n",
 		"", "# only\n", "---\n", "username:",
+		"username: |\n    alice\n  # x\nnameservers:\n  # y\n  - 192.0.2.54\n  # - 192.0.2.52\n", "{username: alice}\n",
 	} {
 		f.Add(s, uint8(0))
 	}
@@ -365,7 +423,9 @@ func FuzzEdit(f *testing.F) {
 		if yaml.Unmarshal([]byte(in), c) != nil {
 			return
 		}
-		switch which % 8 {
+		user := c.Username
+		var settings []string
+		switch which % 9 {
 		case 0:
 			c.SshPort = 2230
 		case 1:
@@ -384,8 +444,13 @@ func FuzzEdit(f *testing.F) {
 			if len(c.Nameservers) > 0 {
 				c.Nameservers = c.Nameservers[1:]
 			}
+		case 8: // the list saved alone, the user name changed in memory only
+			c.Username, c.Nameservers, settings = "bob, george", []string{"192.0.2.53"}, []string{"nameservers"}
 		}
-		out, err := Edit([]byte(in), c)
+		if settings == nil {
+			user = c.Username
+		}
+		out, err := Edit([]byte(in), c, settings...)
 		if err != nil {
 			if !errors.Is(err, ErrNotEditable) && !errors.Is(err, ErrEditUnsafe) && !errors.Is(err, ErrInvalidFile) {
 				t.Fatalf("Edit(%q): %v", in, err)
@@ -393,7 +458,7 @@ func FuzzEdit(f *testing.F) {
 			return
 		}
 		back := DefaultConfig()
-		if err := yaml.Unmarshal(out, back); err != nil || back.SshPort != c.SshPort || back.Username != c.Username ||
+		if err := yaml.Unmarshal(out, back); err != nil || back.SshPort != c.SshPort || back.Username != user ||
 			!slices.Equal(back.Nameservers, c.Nameservers) || back.ConfirmTimeout != c.ConfirmTimeout {
 			t.Fatalf("Edit(%q) = %q, which reads back %+v, %v", in, out, back, err)
 		}

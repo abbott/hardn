@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -53,26 +54,35 @@ func Changed(path string, cause error) *Refusal {
 
 // notEdited is the refusal of an edit of hardn.yml at path that
 // config.Edit refuses (config.EditError): what about the file stops it,
-// and the settings to set by hand (proposed words, config-edit.md §5).
+// and the settings to set by hand (proposed words, config-edit.md §5). An
+// edit that would not read back names the setting only when the save
+// changes it: "cannot be edited safely" of another would say it changes
+// that one too (the log keeps it: e.Error()).
 func notEdited(path string, err error) error {
 	var e *config.EditError
 	if !errors.As(err, &e) {
 		return fmt.Errorf("steps: save: %w", err)
 	}
 	code, at := "CONFIG_NOT_EDITABLE", path
-	if errors.Is(err, config.ErrEditUnsafe) {
+	unsafe := errors.Is(err, config.ErrEditUnsafe)
+	if unsafe {
 		code = "CONFIG_EDIT_UNSAFE"
 	}
-	if e.Key != "" {
+	if e.Key != "" && (!unsafe || slices.Contains(e.Keys, e.Key)) {
 		at = e.Key + " in " + path
 	}
 	return &Refusal{Code: code, Why: at + " " + e.Why, Fix: "set " + strings.Join(e.Keys, ", ") + " in " + path + " by hand, then try again",
 		Err: fmt.Errorf("steps: save: %w", err)}
 }
 
-// PlanSave is the change that saves cfg to the file it was loaded from,
-// cfg.Path(), through config.Save, after the changes after names
-// (StageFiles, plain); none when the file already gives cfg's settings.
+// PlanSave is the change that saves settings, the hardn.yml keys of the
+// settings the calling control changes (as "nameservers"), from cfg to the
+// file it was loaded from, cfg.Path(), through config.Save, after the
+// changes after names (StageFiles, plain); none when the file already
+// gives cfg's values of them. The other settings stay as the file has
+// them, whatever cfg holds (a flag's value, which only that run uses).
+// Naming none is fs.ErrInvalid: a save of every setting would write what
+// the control did not change.
 // It reads the file, not through a symlink, and refuses, before anything
 // changes, each with a report (Refusal): a configuration not loaded from a
 // file (config.ErrNotLoaded), a symlink, which config.Save would refuse
@@ -89,7 +99,11 @@ func notEdited(path string, err error) error {
 // configuration that no longer gives the bytes shown
 // (engine.ErrPlanChanged). One plan saves hardn.yml once: a second save in
 // it is ErrConflict.
-func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Config, after ...string) ([]engine.Change, error) {
+func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Config, settings []string, after ...string) ([]engine.Change, error) {
+	if len(settings) == 0 {
+		return nil, fmt.Errorf("steps: save %s: no setting named: %w", id, fs.ErrInvalid)
+	}
+	settings = slices.Clone(settings)
 	if cfg == nil || cfg.Path() == "" {
 		return nil, &Refusal{Code: "CONFIG_NOT_LOADED", Why: "No hardn.yml was read, so there is none to save to",
 			Fix: "create /etc/hardn/hardn.yml, then try again", Err: fmt.Errorf("steps: save: %w", config.ErrNotLoaded)}
@@ -107,7 +121,7 @@ func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Confi
 	case !cfg.LoadedFrom(data):
 		return nil, Changed(path, nil)
 	}
-	saved, err := config.Edit(data, cfg)
+	saved, err := config.Edit(data, cfg, settings...)
 	if err != nil {
 		return nil, notEdited(path, err)
 	}
@@ -124,11 +138,11 @@ func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Confi
 		if e, ok := run.Backups[path]; !ok || e.Kind != backup.KindFile || e.File == nil || e.File.SHA256 != read {
 			return engine.Ran{}, fmt.Errorf("steps: save: %s, backed up just now, is not as the plan read it: %w", path, ErrConfigChanged)
 		}
-		if now, err := config.Edit(data, cfg); err != nil || !bytes.Equal(now, saved) {
+		if now, err := config.Edit(data, cfg, settings...); err != nil || !bytes.Equal(now, saved) {
 			// What would be written is not the diff shown.
 			return engine.Ran{}, fmt.Errorf("steps: save: the configuration is not the one planned: %w", errors.Join(engine.ErrPlanChanged, err))
 		}
-		if err := config.Save(ctx, sys, cfg); err != nil {
+		if err := config.Save(ctx, sys, cfg, settings...); err != nil {
 			return engine.Ran{}, &Failure{Text: "Saving " + path + " failed", Err: err}
 		}
 		return engine.Ran{Detail: "saved " + path}, nil

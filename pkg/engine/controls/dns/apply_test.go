@@ -102,7 +102,8 @@ func goldens(t *testing.T, name string, r output.Run, json bool) {
 // TestApply applies each platform's plan, then plans again: nothing is
 // left to change (idempotency), and the row reads Configured, with
 // hardn.yml saved when the list changed, its list edited in place and its
-// comment kept (next/s2-config-edit), and kept otherwise.
+// comment kept, the user name and dry run set in memory, as flags set
+// them, not saved (next/s2-config-edit), and kept otherwise.
 func TestApply(t *testing.T) {
 	for _, tt := range []struct {
 		name, host string
@@ -126,6 +127,7 @@ func TestApply(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h, loaded := newHost(t, tt.host, configured)
 			cfg := with(loaded, tt.list)
+			cfg.Username, cfg.DryRun = "george", true // as -u and -n set them after loading: not saved, the list alone is
 			ctl := dns.Nameservers{Config: loaded, StopUDHCPC: tt.stop}
 			before := content(h, hardnYML)
 			r, _ := applyOn(t, h, ctl, cfg)

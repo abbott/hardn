@@ -678,8 +678,9 @@ func TestSameAsRead(t *testing.T) {
 
 // TestPlanSave: the save of hardn.yml is planned from the file at the
 // loaded path, its diff the file against config.Edit's bytes, the setting
-// changed alone, the comment kept; none when nothing changed; refused for
-// a configuration loaded from none, a file changed since it was read or
+// named alone, the comment kept, and not the values changed only in
+// memory (a flag's); none when nothing changed; refused for a
+// configuration loaded from none, a file changed since it was read or
 // gone, a symlink, and an edit config.Edit refuses, each with a report;
 // its Apply refuses a file whose backup is not what the plan read and a
 // configuration changed since the plan, and otherwise saves through
@@ -694,6 +695,11 @@ func TestPlanSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg.Nameservers = []string{"192.0.2.53"}
+	cfg.Username, cfg.DryRun = "george", true // as -u and -n set them: not saved
+	ns := []string{"nameservers"}
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, nil); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("PlanSave of no setting = %v; want fs.ErrInvalid", err)
+	}
 	for name, tc := range map[string]struct {
 		cfg  *config.Config
 		code string
@@ -708,7 +714,7 @@ func TestPlanSave(t *testing.T) {
 				h.AddFile(path, []byte("nameservers: []\n"), 0o600, 0, 0)
 				defer h.AddFile(path, []byte("# hardn\nnameservers:\n  - 192.0.2.54\n"), 0o600, 0, 0)
 			}
-			_, err := PlanSave(ctx, h, "dns.nameservers/save", tc.cfg)
+			_, err := PlanSave(ctx, h, "dns.nameservers/save", tc.cfg, ns)
 			var r *Refusal
 			if !errors.As(err, &r) || r.Code != tc.code || r.Why == "" || r.Fix == "" || !errors.Is(err, tc.err) {
 				t.Errorf("PlanSave = %v; want a %s refusal", err, tc.code)
@@ -721,7 +727,7 @@ func TestPlanSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	var r *Refusal
-	if _, err := PlanSave(ctx, h, "dns.nameservers/save", linked); !errors.Is(err, host.ErrSymlink) || !errors.As(err, &r) ||
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", linked, ns); !errors.Is(err, host.ErrSymlink) || !errors.As(err, &r) ||
 		r.Why != "/etc/hardn/link.yml is a link" || r.Fix != "edit the file it links to by hand" {
 		t.Errorf("PlanSave through a link = %v; want it refused with a report, as config.Save would refuse it", err)
 	}
@@ -730,7 +736,7 @@ func TestPlanSave(t *testing.T) {
 	if err != nil || h.Remove(ctx, "/etc/hardn/gone.yml") != nil {
 		t.Fatal(err)
 	}
-	if _, err := PlanSave(ctx, h, "dns.nameservers/save", gone); !errors.Is(err, ErrConfigChanged) || !errors.Is(err, fs.ErrNotExist) ||
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", gone, ns); !errors.Is(err, ErrConfigChanged) || !errors.Is(err, fs.ErrNotExist) ||
 		!errors.As(err, &r) || r.Why != "/etc/hardn/gone.yml changed since it was read" {
 		t.Errorf("PlanSave of a file gone = %v; want CONFIG_CHANGED with a report", err)
 	}
@@ -740,23 +746,28 @@ func TestPlanSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	two.Nameservers = []string{"192.0.2.53"}
-	if _, err := PlanSave(ctx, h, "dns.nameservers/save", two); !errors.Is(err, config.ErrNotEditable) || !errors.As(err, &r) || r.Code != "CONFIG_NOT_EDITABLE" ||
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", two, ns); !errors.Is(err, config.ErrNotEditable) || !errors.As(err, &r) || r.Code != "CONFIG_NOT_EDITABLE" ||
 		r.Why != "/etc/hardn/two.yml holds more than one YAML document" || r.Fix != "set nameservers in /etc/hardn/two.yml by hand, then try again" {
 		t.Errorf("PlanSave of a file of two documents = %v; want CONFIG_NOT_EDITABLE with a report", err)
 	}
-	unsafe := &config.EditError{Key: "nameservers", Why: "cannot be edited safely", Keys: []string{"nameservers", "sshPort"}, Err: config.ErrEditUnsafe}
-	if err := notEdited(path, unsafe); !errors.As(err, &r) || r.Code != "CONFIG_EDIT_UNSAFE" || !errors.Is(err, config.ErrEditUnsafe) ||
-		r.Why != "nameservers in /etc/hardn/hardn.yml cannot be edited safely" || r.Fix != "set nameservers, sshPort in /etc/hardn/hardn.yml by hand, then try again" {
-		t.Errorf("the report of an edit that would not read back: %v", err)
+	for key, why := range map[string]string{
+		"nameservers": "nameservers in /etc/hardn/hardn.yml cannot be edited safely",
+		"username":    "/etc/hardn/hardn.yml cannot be edited safely", // not a setting the save changes
+	} {
+		unsafe := &config.EditError{Key: key, Why: "cannot be edited safely", Keys: []string{"nameservers", "sshPort"}, Err: config.ErrEditUnsafe}
+		if err := notEdited(path, unsafe); !errors.As(err, &r) || r.Code != "CONFIG_EDIT_UNSAFE" || !errors.Is(err, config.ErrEditUnsafe) ||
+			r.Why != why || r.Fix != "set nameservers, sshPort in /etc/hardn/hardn.yml by hand, then try again" {
+			t.Errorf("the report of an edit that would not read back at %s: %v", key, err)
+		}
 	}
 	unchanged, err := config.Read(ctx, h, path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cs, err := PlanSave(ctx, h, "dns.nameservers/save", unchanged); err != nil || len(cs) != 0 {
+	if cs, err := PlanSave(ctx, h, "dns.nameservers/save", unchanged, ns); err != nil || len(cs) != 0 {
 		t.Errorf("PlanSave with nothing changed = %+v, %v; want no change", cs, err)
 	}
-	cs, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, "dns.nameservers/set")
+	cs, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, ns, "dns.nameservers/set")
 	if err != nil || len(cs) != 1 {
 		t.Fatalf("PlanSave = %+v, %v", cs, err)
 	}

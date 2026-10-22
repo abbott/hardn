@@ -167,6 +167,7 @@ func TestCheckGolden(t *testing.T) {
 type refusalCase struct {
 	name, host string
 	list       []string
+	yml        string   // hardn.yml's bytes, when not hardnYMLData(list)
 	edit       []string // in.Config's list, when not hardn.yml's
 	stop       bool
 	noFile     bool // in.Config not loaded from a file
@@ -240,6 +241,12 @@ var refusals = []refusalCase{
 			h.AddSymlink(hardnYML, "/etc/hardn/site.yml")
 		},
 		why: "/etc/hardn/hardn.yml is a link", fix: "edit the file it links to by hand"},
+	{name: "hardn.yml of two documents, a preset", host: debian13, edit: cloudflare, code: "CONFIG_NOT_EDITABLE",
+		yml: "nameservers:\n  - \"192.0.2.54\"\n---\nnameservers: []\n",
+		why: "/etc/hardn/hardn.yml holds more than one YAML document", fix: "set nameservers in /etc/hardn/hardn.yml by hand, then try again"},
+	{name: "hardn.yml that would not read back, a preset", host: debian13, edit: cloudflare, code: "CONFIG_EDIT_UNSAFE",
+		yml: "username: |\n  alice", // the list added after it would give the user name a line break
+		why: "/etc/hardn/hardn.yml cannot be edited safely", fix: "set nameservers in /etc/hardn/hardn.yml by hand, then try again"},
 	{name: "no hardn.yml read, a change", host: debian13, list: configured, noFile: true, code: "CONFIG_NOT_LOADED",
 		why: "No hardn.yml was read, so there is none to save to", fix: "create /etc/hardn/hardn.yml, then try again"},
 	{name: "not a family hardn knows", host: debian13, list: configured, code: "DNS_UNSUPPORTED",
@@ -257,6 +264,13 @@ func TestRefusals(t *testing.T) {
 	for _, tt := range refusals {
 		t.Run(tt.name, func(t *testing.T) {
 			h, cfg := newHost(t, tt.host, tt.list)
+			if tt.yml != "" {
+				h.AddFile(hardnYML, []byte(tt.yml), 0o600, 0, 0)
+				var err error
+				if cfg, err = config.Read(ctx, h, hardnYML); err != nil {
+					t.Fatal(err)
+				}
+			}
 			if tt.setup != nil {
 				tt.setup(h)
 			}
