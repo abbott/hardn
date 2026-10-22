@@ -507,10 +507,12 @@ func (a *applier) fail(ctx context.Context, change, step string, err error) (Res
 		rerr = fmt.Errorf("engine: nothing rolled back here: %s: %w", rr.Why, revert.ErrRollingBack)
 	}
 	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj, Undone: a.undone}
+	if a.undone && a.current >= 0 {
+		// Undone by itself, before the rollback: its undo is its own, so it
+		// is reported whether or not the journal's finished.
+		a.progress(Event{Index: a.current, Change: change, State: EventRolledBack})
+	}
 	if rerr == nil {
-		if a.undone && a.current >= 0 { // undone by itself, before the changes the rollback undid
-			a.progress(Event{Index: a.current, Change: change, State: EventRolledBack})
-		}
 		for k := len(a.done) - 1; k >= 0; k-- {
 			if c := a.p.Changes[a.done[k]]; a.unj == nil || c.ID != a.unj.Change {
 				a.progress(Event{Index: a.done[k], Change: c.ID, State: EventRolledBack})

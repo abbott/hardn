@@ -693,6 +693,14 @@ func TestPlanSave(t *testing.T) {
 			}
 		})
 	}
+	h.AddSymlink("/etc/hardn/link.yml", path)
+	linked, err := config.Read(ctx, h, "/etc/hardn/link.yml") // as LoadConfig reads it, through the link
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", linked); !errors.Is(err, host.ErrSymlink) {
+		t.Errorf("PlanSave through a link = %v; want it refused, as config.Save would refuse it", err)
+	}
 	c, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, "dns.nameservers/set")
 	if err != nil {
 		t.Fatal(err)

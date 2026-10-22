@@ -371,7 +371,7 @@ func invalid(want []string, m hostdns.Manager) string {
 		}
 		seen = append(seen, a.String())
 	}
-	if len(want) > hostdns.MaxNameservers {
+	if file := m == hostdns.ManagerFile || m == hostdns.ManagerProxmox; file && len(want) > hostdns.MaxNameservers {
 		return fmt.Sprintf("%s takes %d nameservers at most", hostdns.ResolvConf, hostdns.MaxNameservers)
 	}
 	return "The nameservers are not valid here"

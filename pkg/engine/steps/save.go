@@ -39,7 +39,8 @@ var ErrConfigChanged = errors.New("hardn.yml changed since it was read")
 
 // PlanSave is the change that saves cfg to the file it was loaded from,
 // cfg.Path(), through config.Save, after the changes after names
-// (StageFiles, plain). It reads the file and refuses, before anything
+// (StageFiles, plain). It reads the file, not through a symlink (which
+// config.Save would refuse: host.ErrSymlink), and refuses, before anything
 // changes, a configuration not loaded from a file (config.ErrNotLoaded) and
 // a file whose bytes are not the ones cfg was read from (ErrConfigChanged),
 // each with a report (Refusal). The engine backs the file up and journals

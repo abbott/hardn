@@ -35,15 +35,16 @@ func sum(data []byte) string {
 // Read loads hardn.yml from path through sys, as LoadConfig loads the file
 // it finds: the defaults, then the file's keys (UnmarshalYAML), and
 // prohibit-password refused while this build's legacy SSH code would apply
-// it as "no" (ErrRootLoginNotApplied). The file is read without following
-// a symlink, as Save writes it. path must be absolute and clean (fs.ErrInvalid
-// otherwise); it is recorded as where the configuration was loaded from
-// (Path, Save), with the bytes read (LoadedFrom).
+// it as "no" (ErrRootLoginNotApplied). A symlink is followed, as LoadConfig
+// follows it (Save, which writes no symlink, refuses one). path must be
+// absolute and clean (fs.ErrInvalid otherwise); it is recorded as where the
+// configuration was loaded from (Path, Save), with the bytes read
+// (LoadedFrom).
 func Read(ctx context.Context, sys host.System, path string) (*Config, error) {
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
 		return nil, fmt.Errorf("config: %q: not an absolute, clean path: %w", path, fs.ErrInvalid)
 	}
-	data, _, err := sys.ReadFileNoFollow(ctx, path)
+	data, err := sys.ReadFile(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("config: %w", err)
 	}

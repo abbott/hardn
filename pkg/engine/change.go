@@ -238,10 +238,10 @@ type Ran struct {
 	// itself, and checked it, before it returned (dns.Apply's
 	// Result.Restored): nothing of it is left. Its Rollback is then
 	// empty, as the journal has nothing of it to undo, and once the
-	// rollback here has finished the engine reports it rolled back with
-	// the changes before it (EventRolledBack, ApplyError.Undone), so that
-	// the report says the change was undone (next/s2-control). It is not
-	// set for a change refused before it acted: nothing of it was done.
+	// rollback here has returned the engine reports it rolled back, first
+	// (EventRolledBack, ApplyError.Undone), so that the report says the
+	// change was undone (next/s2-control). It is not set for a change
+	// refused before it acted: nothing of it was done.
 	Undone bool
 }
 
