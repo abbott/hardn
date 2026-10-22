@@ -697,3 +697,45 @@ func (d *deadlines) RemoveAll(ctx context.Context, name string) error {
 	d.seen = append(d.seen, dl)
 	return d.System.RemoveAll(ctx, name)
 }
+
+// TestCheckInstalled: the check Apply makes first, alone: visudo -c, or
+// each doas file's owner, mode and doas -C; nothing written
+// (next/p4-check-users).
+func TestCheckInstalled(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		h     *hostfake.System
+		ch    sudoers.Choice
+		edit  func(*hostfake.System)
+		runs  []string
+		stage error
+	}{
+		{"sudo", sudoHost(t), sudoChoice, nil, []string{"visudo -c"}, nil},
+		{"sudo, a drop-in rejected", sudoHost(t), sudoChoice, func(h *hostfake.System) {
+			h.AddFile(sudoers.DropInDir+"/zz-site", []byte(bad), 0o440, 0, 0)
+		}, []string{"visudo -c"}, sudoers.ErrRejected},
+		{"doas", doasHost(t), doasChoice, nil, []string{"doas -C " + sudoers.DoasConfig, "doas -C " + sudoers.DoasDir + "/20-wheel.conf"}, nil},
+		{"doas, group-writable", doasHost(t), doasChoice, func(h *hostfake.System) {
+			h.AddFile(sudoers.DoasDir+"/20-wheel.conf", []byte(wheel), 0o664, 0, 0)
+		}, []string{"doas -C " + sudoers.DoasConfig}, sudoers.ErrPerms},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			if c.edit != nil {
+				c.edit(c.h)
+			}
+			st, err := sudoers.Read(context.Background(), c.h, c.ch, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = sudoers.CheckInstalled(context.Background(), c.h, st)
+			var ce *sudoers.CheckError
+			switch {
+			case c.stage == nil && err != nil, c.stage != nil && (!errors.Is(err, c.stage) || !errors.As(err, &ce) || ce.Stage != sudoers.StageBefore):
+				t.Errorf("CheckInstalled: %v", err)
+			}
+			if !slices.Equal(runs(c.h), c.runs) || len(writes(c.h)) > 0 {
+				t.Errorf("ran %q, wrote %q", runs(c.h), writes(c.h))
+			}
+		})
+	}
+}

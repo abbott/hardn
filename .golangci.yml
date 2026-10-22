@@ -537,6 +537,25 @@ linters:
               desc: a status control returns data; pkg/output and the main menu render it (docs/engine/checks.md)
             - pkg: github.com/abbott/hardn/pkg/output
               desc: a status control returns data; pkg/output and the main menu render it (docs/engine/checks.md)
+        # next/p4-check-users: /etc/passwd and /etc/group are read only
+        # through host.System, as the sudoers unit reads its files.
+        accounts-through-host:
+          files:
+            - "${base-path}/pkg/host/accounts/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: the accounts reader reads only through host.System (docs/engine/check-users.md §2)
+            - pkg: io/ioutil
+              desc: the accounts reader reads only through host.System (docs/engine/check-users.md §2)
+            - pkg: golang.org/x/sys
+              desc: the accounts reader makes no system calls of its own (docs/engine/check-users.md §2)
+            - pkg: syscall
+              desc: the accounts reader makes no system calls of its own (docs/engine/check-users.md §2)
+            - pkg: net
+              desc: the accounts reader makes no network calls (docs/engine/check-users.md §2)
+            - pkg: plugin
+              desc: the accounts reader loads no code (docs/engine/check-users.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

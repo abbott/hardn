@@ -23,8 +23,10 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -322,6 +324,8 @@ var errorCodes = []Entry{
 	is("DETECT_SIGNALS_DISAGREE", detect.ErrConflict).what("detection: two signals for one fact disagree, so it is Unknown"),
 	is("DETECT_UNRECOGNISED", detect.ErrUnrecognised).what("detection: a file or a command's output is not in a form hardn knows"),
 	is("DETECT_NO_SIGNAL", detect.ErrNoSignal).what("detection: no signal established the fact"),
+	// The account databases (pkg/host/accounts, next/p4-check-users).
+	is("ACCOUNTS_MALFORMED", accounts.ErrMalformed).what("a line of /etc/passwd or /etc/group is not in a form hardn knows"),
 
 	// The seam (pkg/host): ErrSymlinkParent wraps ErrSymlink, and a
 	// *revert.LockedError wraps ErrLocked, so both come first above.
@@ -402,6 +406,10 @@ var findingCodes = []Entry{
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
 	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
+	// The users control's own (next/p4-check-users).
+	finding(users.CodeNoPassword, "a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass)"),
+	finding(users.CodeRuleNotRead, "an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root"),
+	finding(users.CodeUID0, "an account other than root has uid 0, so it is root"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

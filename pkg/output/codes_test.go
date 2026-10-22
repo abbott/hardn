@@ -21,8 +21,10 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -43,6 +45,7 @@ import (
 // pkg/engine/..., by package and name. TestSentinelsRegistered fails for one
 // missing here: add it, with an entry in codes.go that matches it.
 var sentinels = map[string]error{
+	"accounts.ErrMalformed":          accounts.ErrMalformed,
 	"alpine.ErrChanged":              alpine.ErrChanged,
 	"alpine.ErrNoBackup":             alpine.ErrNoBackup,
 	"alpine.ErrNoCrond":              alpine.ErrNoCrond,
@@ -549,6 +552,7 @@ func TestFindingCodes(t *testing.T) {
 	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated, engine.CodeBestEffort}
 	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
 	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked, firewall.CodeLocalOnly)               // next/p4-check-firewall
+	want = append(want, users.CodeNoPassword, users.CodeRuleNotRead, users.CodeUID0)                              // next/p4-check-users
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

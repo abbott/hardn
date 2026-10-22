@@ -281,6 +281,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `DETECT_SIGNALS_DISAGREE` | 1 | detection: two signals for one fact disagree, so it is Unknown |
 | `DETECT_UNRECOGNISED` | 1 | detection: a file or a command's output is not in a form hardn knows |
 | `DETECT_NO_SIGNAL` | 1 | detection: no signal established the fact |
+| `ACCOUNTS_MALFORMED` | 1 | a line of /etc/passwd or /etc/group is not in a form hardn knows ([check-users.md](../engine/check-users.md)) |
 | `SYMLINK_IN_UNSAFE_DIRECTORY` | 1 | refusing a symlink in a directory another user can change |
 | `SYMLINK_REFUSED` | 1 | refusing a symlink |
 | `HARD_LINK_REFUSED` | 1 | refusing a file with other hard links, in a directory another user can change |
@@ -349,6 +350,9 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_PVE_LOCAL_ONLY` | on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only ([check-firewall.md](../engine/check-firewall.md)) |
+| `USERS_NOPASSWD` | a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass) ([check-users.md](../engine/check-users.md)) |
+| `USERS_RULE_NOT_READ` | an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root ([check-users.md](../engine/check-users.md)) |
+| `USERS_UID0` | an account other than root has uid 0, so it is root ([check-users.md](../engine/check-users.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 
