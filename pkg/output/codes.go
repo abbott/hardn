@@ -21,6 +21,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -397,6 +398,10 @@ var findingCodes = []Entry{
 	finding(ssh.CodeNotInEffect, "a listener sshd's configuration names is not bound: the configuration is not in effect"),
 	finding(ssh.CodeMatchValueUnknown, "a Match block sets a value hardn does not rank, so what it lets in is not established"),
 	finding(ssh.Code22Bound, "a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program"),
+	// The firewall control's own (next/p4-check-firewall).
+	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
+	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
+	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a
