@@ -2,9 +2,12 @@ package steps
 
 import (
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
@@ -94,3 +97,48 @@ func PVEFinding(f pve.Finding) engine.Finding { return pveFindings([]pve.Finding
 // UFWFinding is one of ufw's findings as an engine.Finding (UFW_...), for
 // the firewall's status (next/p4-check-firewall).
 func UFWFinding(f ufw.Finding) engine.Finding { return ufwFindings([]ufw.Finding{f})[0] }
+
+// DNSFinding is one of dns's findings as an engine.Finding (DNS_...), in a
+// few words, for a plan and a check alike (next/s2-control; the words of
+// gallery-dns.md §5, decision 5, proposed): s is the state it was found in,
+// which says whether udhcpc's rewrite is established. dns's own detail, a
+// long sentence, is in the primitive's documentation (dns.md §2.9).
+func DNSFinding(s dns.State, f dns.Finding) engine.Finding {
+	out := engine.Finding{Code: findingCode("DNS", f.Kind.String()), Detail: f.Detail, Source: f.Path}
+	switch f.Kind {
+	case dns.FindingPerLink:
+		out.Source = "resolvectl dns"
+		if l := f.Link; l != nil {
+			name, noun := l.Name, "nameserver"
+			if l.Index == 0 {
+				name = "delegate " + name
+			}
+			if len(l.Servers) > 1 {
+				noun += "s"
+			}
+			out.Detail = fmt.Sprintf("%s still uses its own %s %s", name, noun, strings.Join(l.Servers, ", "))
+		}
+	case dns.FindingDHCPClient:
+		out.Detail = path.Base(f.Path) + " may rewrite " + dns.ResolvConf + " on a lease"
+	case dns.FindingUDHCPC:
+		switch {
+		case f.Path != dns.UDHCPCConf:
+			out.Detail = "a udhcpc hook may rewrite " + dns.ResolvConf
+		case s.UDHCPC.Rewrites == detect.Yes:
+			out.Detail = "udhcpc rewrites " + dns.ResolvConf + " on each lease"
+		default:
+			out.Detail = "udhcpc may rewrite " + dns.ResolvConf + " on each lease"
+		}
+	case dns.FindingProxmox:
+		out.Detail, out.Source = "Saving Proxmox VE's DNS settings rewrites "+dns.ResolvConf, ""
+	}
+	return out
+}
+
+func dnsFindings(s dns.State, fs []dns.Finding) []engine.Finding {
+	var out []engine.Finding
+	for _, f := range fs {
+		out = append(out, DNSFinding(s, f))
+	}
+	return out
+}

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -145,6 +146,13 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 		}
 	}
 	slices.Reverse(undone) // undone last first
+	if rb := res.Rollback; rb != nil && rb.ChangeUndone {
+		for _, ch := range d.Changes {
+			if ch.ID == rb.Change { // undone by itself, before the rollback undid the others
+				undone = append([]string{heading(r, ch)}, undone...)
+			}
+		}
+	}
 	blocks := []string{sp.Render(c)}
 	switch {
 	case res.Rollback != nil:
@@ -284,11 +292,13 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 	if len(es) == 0 {
 		return ""
 	}
-	first := es[0]
-	if first.Fix != "" {
+	first, text := es[0], errorText(d, es[0])
+	if t, n, ok := failureWords(first, failed); ok {
+		text, next = t, strings.TrimSpace(n+" "+next)
+	} else if first.Fix != "" {
 		next = strings.TrimSpace(toGoOn(first.Fix) + " " + next)
 	}
-	rep := component.ErrorReport{Failed: errorText(d, first), RolledBack: undone, Steps: steps, Next: next}
+	rep := component.ErrorReport{Failed: text, RolledBack: undone, Steps: steps, Next: next}
 	var xe *host.ExitError
 	if errors.As(failed, &xe) {
 		rep.Command, rep.Output = host.FormatArgv(xe.Argv), strings.Join(xe.Tail, "\n")
@@ -305,6 +315,18 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 		blocks = append(blocks, more.Render(c))
 	}
 	return strings.Join(blocks, strings.Repeat("\n", theme.SectionGap+1))
+}
+
+// failureWords are a failed step's words, when first is its error and the
+// step said what happened in the user's words (steps.Failure): that line
+// alone, as the step's line gives the code, and the next step
+// (next/s2-control; gallery-dns.md's failure-proposed sequence).
+func failureWords(first Error, failed error) (text, next string, ok bool) {
+	var f *steps.Failure
+	if failed == nil || !errors.As(failed, &f) || first.Message != failed.Error() {
+		return "", "", false
+	}
+	return f.Text, f.Next, true
 }
 
 // toGoOn is a refusal's Fix as a sentence, in steps.Refusal's words.

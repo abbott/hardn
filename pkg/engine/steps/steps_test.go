@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io/fs"
 	"net/netip"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -317,8 +319,8 @@ func TestPlanStepDropped(t *testing.T) {
 		h := newHost()
 		h.AddFile(dns.ResolvConf, []byte("nameserver 192.0.2.9\n"), 0o644, 0, 0) // changed since the plan
 		ran, err := c.Apply(ctx, h, runOn(t, h))
-		if !errors.Is(err, dns.ErrChanged) || errors.Is(err, dns.ErrNotRestored) || !dropped(ran) {
-			t.Errorf("Apply on a host changed since: %+v, %v; want refused and the step dropped", ran, err)
+		if !errors.Is(err, dns.ErrChanged) || errors.Is(err, dns.ErrNotRestored) || !dropped(ran) || ran.Undone {
+			t.Errorf("Apply on a host changed since: %+v, %v; want refused, the step dropped, nothing undone", ran, err)
 		}
 	})
 	for _, tc := range []struct {
@@ -330,7 +332,7 @@ func TestPlanStepDropped(t *testing.T) {
 		{"refused, or undone by itself", errors.New("refused"), true},
 		{"its own undo did not finish", fmt.Errorf("x: %w", alpine.ErrNotRestored), false},
 	} {
-		t.Run("alpine and dns: "+tc.name, func(t *testing.T) {
+		t.Run("alpine: "+tc.name, func(t *testing.T) {
 			ran, err := unitRan(tc.err, alpine.ErrNotRestored, "applied")
 			if err != tc.err || dropped(ran) != tc.drop {
 				t.Errorf("unitRan = %+v, %v; want dropped %v", ran, err, tc.drop)
@@ -352,6 +354,54 @@ func TestPlanStepDropped(t *testing.T) {
 }
 
 func second(_ engine.Change, err error) error { return err }
+
+// TestDNSChange: steps.DNS carries the plan's findings, coded and worded
+// (D1), diffs a created file against /dev/null (D2), and, when the reload
+// has no effect and dns.Apply undid its steps, drops the step, says it was
+// undone and words the failure (D3) (next/s2-control; gallery-dns.md §8).
+func TestDNSChange(t *testing.T) {
+	ctx := context.Background()
+	h, run := unitHost(t, func(cmd string) (hostfake.Response, bool) {
+		switch cmd {
+		case "systemctl is-active " + dns.ResolvedUnit:
+			return hostfake.Response{Stdout: "active\n"}, true
+		case "resolvectl --no-pager dns":
+			return hostfake.Response{Stdout: "Global:\nLink 2 (eth0): 192.0.2.1\n"}, true
+		case "resolvectl --no-pager domain":
+			return hostfake.Response{Stdout: "Global:\nLink 2 (eth0): example.net\n"}, true
+		case "systemctl try-reload-or-restart " + dns.ResolvedUnit, "systemctl reload-or-restart " + dns.ResolvedUnit:
+			return hostfake.Response{}, true // loads nothing new
+		}
+		return hostfake.Response{}, false
+	})
+	h.AddSymlink(dns.ResolvConf, "../run/systemd/resolve/stub-resolv.conf")
+	f := detect.Facts{Platform: detect.Platform{Distro: detect.DistroUbuntu, Version: "26.04", Support: detect.Supported},
+		Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes}, Container: detect.Container{Detected: detect.No}}
+	s, err := dns.Read(ctx, h, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{"192.0.2.54"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := DNS("dns.nameservers/set", p, "Set the nameservers to 192.0.2.54")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []engine.Finding{{Code: "DNS_PER_LINK", Detail: "eth0 still uses its own nameserver 192.0.2.1", Source: "resolvectl dns"}}
+	if !slices.Equal(c.Findings, want) || !strings.HasPrefix(c.Diff, "--- /dev/null\n+++ "+dns.DropIn+"\n") {
+		t.Errorf("findings %+v, diff\n%s", c.Findings, c.Diff)
+	}
+	ran, err := c.Apply(ctx, h, run)
+	var fl *Failure
+	if !errors.Is(err, dns.ErrNotEffective) || !errors.As(err, &fl) || fl.Text != "Reloading systemd-resolved had no effect" || !dropped(ran) || !ran.Undone {
+		t.Errorf("Apply = %+v, %v; want the reload's failure in words, the step dropped and undone", ran, err)
+	}
+	if _, ok := h.Entry(dns.DropIn); ok {
+		t.Error("the drop-in is left")
+	}
+}
 
 func TestRefusal(t *testing.T) {
 	r := &Refusal{Code: "EXAMPLE_CODE", Why: "why", Fix: "fix", Err: reload.ErrNotInEffect}
@@ -604,5 +654,74 @@ func TestSameAsRead(t *testing.T) {
 				t.Errorf("sameAsRead = %v, want %v", err, tc.want)
 			}
 		})
+	}
+}
+
+// TestPlanSave: the save of hardn.yml is planned from the file at the
+// loaded path, refused for a configuration loaded from none and for a file
+// changed since it was read, each with a report; its Apply refuses a file
+// whose backup is not what the plan read, and otherwise saves through
+// config.Save; the lost comments are its finding (next/s2-control).
+func TestPlanSave(t *testing.T) {
+	ctx := context.Background()
+	const path = "/etc/hardn/hardn.yml"
+	h, run := unitHost(t, func(string) (hostfake.Response, bool) { return hostfake.Response{}, false })
+	h.AddFile(path, []byte("# hardn\nnameservers:\n  - 192.0.2.54\n"), 0o600, 0, 0)
+	cfg, err := config.Read(ctx, h, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.Nameservers = []string{"192.0.2.53"}
+	for name, tc := range map[string]struct {
+		cfg  *config.Config
+		code string
+		err  error
+	}{
+		"no configuration":          {nil, "CONFIG_NOT_LOADED", config.ErrNotLoaded},
+		"not loaded from a file":    {&config.Config{Nameservers: []string{"192.0.2.53"}}, "CONFIG_NOT_LOADED", config.ErrNotLoaded},
+		"changed since it was read": {cfg, CodeConfigChanged, ErrConfigChanged},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if tc.code == CodeConfigChanged {
+				h.AddFile(path, []byte("nameservers: []\n"), 0o600, 0, 0)
+				defer h.AddFile(path, []byte("# hardn\nnameservers:\n  - 192.0.2.54\n"), 0o600, 0, 0)
+			}
+			_, err := PlanSave(ctx, h, "dns.nameservers/save", tc.cfg)
+			var r *Refusal
+			if !errors.As(err, &r) || r.Code != tc.code || r.Why == "" || r.Fix == "" || !errors.Is(err, tc.err) {
+				t.Errorf("PlanSave = %v; want a %s refusal", err, tc.code)
+			}
+		})
+	}
+	c, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, "dns.nameservers/set")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Target != path || !slices.Equal(c.Backups, []string{path}) || !slices.Equal(c.After, []string{"dns.nameservers/set"}) ||
+		c.Stage != engine.StageFiles || c.Risk != engine.RiskPlain || len(c.Findings) != 1 || c.Findings[0].Code != CodeCommentsLost {
+		t.Fatalf("PlanSave = %+v", c)
+	}
+	entry := func() backup.Entry {
+		e, err := run.Store.Backup(ctx, path, backup.RollbackRequired)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return e.Entry
+	}
+	h.AddFile(path, []byte("nameservers: []\n"), 0o600, 0, 0) // changed between the plan and the apply
+	run.Backups = map[string]backup.Entry{path: entry()}
+	if _, err := c.Apply(ctx, h, run); !errors.Is(err, ErrConfigChanged) {
+		t.Errorf("Apply of a file changed since the plan: %v", err)
+	}
+	if e, _ := h.Entry(path); string(e.Data) != "nameservers: []\n" {
+		t.Errorf("written though refused: %q", e.Data)
+	}
+	h.AddFile(path, []byte("# hardn\nnameservers:\n  - 192.0.2.54\n"), 0o600, 0, 0)
+	run.Backups = map[string]backup.Entry{path: entry()}
+	if ran, err := c.Apply(ctx, h, run); err != nil || ran.Detail != "saved "+path {
+		t.Fatalf("Apply = %+v, %v", ran, err)
+	}
+	if e, _ := h.Entry(path); !strings.Contains(string(e.Data), "- 192.0.2.53\n") || strings.Contains(string(e.Data), "#") {
+		t.Errorf("saved:\n%s", e.Data)
 	}
 }

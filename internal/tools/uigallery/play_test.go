@@ -491,7 +491,10 @@ func TestPlayWriteFails(t *testing.T) {
 // host.Real's own names the type, in any form (a literal, new, a
 // declaration, a conversion), and those make one only in host.NewReal,
 // which no file names. No file names pkg/config's or pkg/logging's
-// functions (pkg/config, unreached itself, aside). hold.Signals and
+// functions (pkg/config, unreached itself, aside), but for pkg/config's
+// Read, Save and HasComments, which reach the host only through the
+// host.System they are given, or not at all (the save of hardn.yml,
+// steps.PlanSave). hold.Signals and
 // SignalsAs are named only by pkg/engine's default hold, which an
 // Options.Hold left nil takes: so outside the gallery only
 // pkg/engine/confirm, which passes its caller's Hold on, calls engine.New,
@@ -566,6 +569,15 @@ func TestPlayTouchesNothing(t *testing.T) {
 		if len(funcs) == 0 {
 			t.Fatalf("no functions found in %s", p)
 		}
+	}
+	// pkg/config's functions that reach the host only through the
+	// host.System they are given, or not at all, which the save of
+	// hardn.yml calls (steps.PlanSave, next/s2-control): play may name them.
+	for _, name := range []string{"Read", "Save", "HasComments"} {
+		if !unreached[module+"pkg/config"][name] {
+			t.Fatalf("pkg/config has no function %s", name)
+		}
+		delete(unreached[module+"pkg/config"], name)
 	}
 	absRoot, err := filepath.Abs(root)
 	if err != nil {

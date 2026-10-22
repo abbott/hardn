@@ -149,6 +149,8 @@ var errorCodes = []Entry{
 	is("SSHD_FILE_CHANGED", steps.ErrChanged).what("a file the SSH change writes is not as the plan read it"),
 	is("PVE_ROOT_LOGIN_NOT_KEPT", steps.ErrProxmoxRoot),
 	is("SSH_CLEANUP_SESSION_NOT_KEPT", steps.ErrSessionNotKept),
+	// The save of hardn.yml (steps.PlanSave, next/s2-control).
+	is(steps.CodeConfigChanged, steps.ErrConfigChanged).what("hardn.yml changed since hardn read it: saving would undo what changed it"),
 
 	// The engine's own, before the primitives' errors they wrap.
 	is("CONFIRM_WINDOW_CLOSING", engine.ErrWindow),
@@ -433,6 +435,8 @@ var findingCodes = []Entry{
 	finding(risk.CodeUptimeNoUpdates, "the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own)"),
 	// The users control's, for locked accounts (next/p4-locked).
 	finding(users.CodeLocked, "a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it"),
+	// The save of hardn.yml (steps.PlanSave, next/s2-control).
+	finding(steps.CodeCommentsLost, "hardn.yml holds comments, which saving it does not keep (§3.19)"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

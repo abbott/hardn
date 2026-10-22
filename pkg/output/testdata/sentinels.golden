@@ -128,6 +128,7 @@ sshd.ErrUnexpected SSHD_UNEXPECTED
 sshd.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sshd.ErrUnsupportedInclude SSHD_INCLUDE_UNSUPPORTED
 steps.ErrChanged SSHD_FILE_CHANGED
+steps.ErrConfigChanged CONFIG_CHANGED
 steps.ErrListenConfNotInEffect SSH_LISTEN_CONF_NOT_IN_EFFECT
 steps.ErrMigrateFirst SSH_MIGRATE_FIRST
 steps.ErrNoNewListener SSH_PORT_NO_NEW_LISTENER

@@ -168,6 +168,7 @@ var sentinels = map[string]error{
 	"sshd.ErrUnsafeRunDir":           sshd.ErrUnsafeRunDir,
 	"sshd.ErrUnsupportedInclude":     sshd.ErrUnsupportedInclude,
 	"steps.ErrChanged":               steps.ErrChanged,
+	"steps.ErrConfigChanged":         steps.ErrConfigChanged,
 	"steps.ErrListenConfNotInEffect": steps.ErrListenConfNotInEffect,
 	"steps.ErrMigrateFirst":          steps.ErrMigrateFirst,
 	"steps.ErrNoNewListener":         steps.ErrNoNewListener,
@@ -564,6 +565,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
+	want = append(want, steps.CodeCommentsLost)                                                                                  // next/s2-control
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),
