@@ -104,6 +104,19 @@ func (s StatusState) style(t theme.StatusStyles) lipgloss.Style {
 // runs past the content width (DEV-025). Below theme.StackBelow the row
 // stacks: the word and detail go under the label at theme.StackCol
 // (DEV-021).
+//
+// Lines are drawn directly under the row, at the value column, each after
+// Glyphs.Bullet and a space, bullet and text in one colour; under the
+// stacked value, at its indent, when the row stacks; each cut with the
+// ellipsis glyph at the content width, never wrapped; here with no colour
+// and ASCII glyphs, under the column numbers:
+//
+//	0 2   6                    27
+//	  [ ] Auto Updates         Not Configured no unattended-upgrades
+//	                           - Up 182 days, no updates
+//
+// The main menu draws the risk level's factors so, under the rows they are
+// about (the maintainer, 2026-10-21; DEV-059). Elsewhere a row has none.
 type StatusRow struct {
 	// Label is the control's name, such as "SSH Port"; empty shows none.
 	Label string
@@ -120,6 +133,21 @@ type StatusRow struct {
 	// Detail follows the word, such as "non-root, sudo"; empty shows
 	// none.
 	Detail string
+	// Lines are drawn under the row, in order; empty ones are skipped.
+	// pkg/output gives them on the main menu only.
+	Lines []StatusLine
+}
+
+// StatusLine is a line under a StatusRow, such as the main menu's "No
+// password to become root".
+type StatusLine struct {
+	// Text is the line, after the bullet.
+	Text string
+	// Warn draws the bullet and the text in Status.LineWarn, status.warn:
+	// a cost hardn established. The zero value draws them in Status.Line,
+	// text.muted: a line that rests on something hardn could not
+	// establish.
+	Warn bool
 }
 
 // Render renders the row for c. See StatusRow for the layout.
@@ -142,11 +170,22 @@ func (vm StatusRow) Render(c Ctx) string {
 	if label != "" {
 		head = append(head.to(theme.LabelCol), span{label, t.Label})
 	}
-	return c.columns(head, value)
+	values := []line{value}
+	for _, l := range vm.Lines {
+		style := t.Line
+		if l.Warn {
+			style = t.LineWarn
+		}
+		if text := c.text(l.Text); text != "" {
+			values = append(values, line{{c.Theme.Glyphs.Bullet + " " + text, style}})
+		}
+	}
+	return c.columns(head, values...)
 }
 
 // StatusList is the main menu's status rows, one StatusRow per control,
-// in order, on the shared grid. A list with no rows renders as the empty
+// in order, on the shared grid, each row's lines under it with no blank
+// line between the rows. A list with no rows renders as the empty
 // string, so the caller leaves out the block and its gap: neither Figma
 // nor origin/main has wording for a host with no controls.
 type StatusList struct {

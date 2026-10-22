@@ -50,19 +50,19 @@ func (b RiskBand) style(t theme.RiskStyles) lipgloss.Style {
 	return t.Unknown
 }
 
-// RiskSummary is the risk level line and its contributing factors; here
-// with no colour, under the column numbers:
+// RiskSummary is the risk level line, Figma's one line; here with no
+// colour, under the column numbers:
 //
 //	0 2   6                    27
 //	   ⛬  Risk Level           Moderate ≈ medium security
-//	                           - AppArmor not configured
 //
 // The risk icon sits in the marker column and "Risk Level" in the label
 // column; the icon and the level word take the band's colour, so the
 // level never rests on colour alone. The gloss follows Glyphs.Approx in
-// text.faint. Each factor is one line under the level, after Glyphs.Bullet,
-// cut with the ellipsis glyph when too long (P-06, P-14, DEV-022). Below
-// theme.StackBelow the level and factors stack under the label (DEV-021).
+// text.faint. The factors that explain the level are drawn under the
+// status rows they are about (StatusRow.Lines), and the pending reboot in
+// the HostBlock, not here (the maintainer, 2026-10-21; DEV-022, DEV-059).
+// Below theme.StackBelow the level stacks under the label (DEV-021).
 type RiskSummary struct {
 	// Band sets the colour of the icon and level word.
 	Band RiskBand
@@ -72,9 +72,6 @@ type RiskSummary struct {
 	// Gloss is shown after Glyphs.Approx, such as "medium security"; empty
 	// shows neither.
 	Gloss string
-	// Factors are the contributing factors, one line each; empty ones are
-	// skipped.
-	Factors []string
 }
 
 // Render renders the summary for c. See RiskSummary for the layout.
@@ -86,14 +83,9 @@ func (vm RiskSummary) Render(c Ctx) string {
 	if level == "" {
 		level = vm.Band.String()
 	}
-	values := []line{{{level, band}}}
+	value := line{{level, band}}
 	if gloss := c.text(vm.Gloss); gloss != "" {
-		values[0] = append(values[0], gap(1), span{g.Approx + " " + gloss, t.Gloss})
+		value = append(value, gap(1), span{g.Approx + " " + gloss, t.Gloss})
 	}
-	for _, f := range vm.Factors {
-		if f = c.text(f); f != "" {
-			values = append(values, line{{g.Bullet + " " + f, t.Factor}})
-		}
-	}
-	return c.columns(label, values...)
+	return c.columns(label, value)
 }

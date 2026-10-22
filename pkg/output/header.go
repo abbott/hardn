@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/component"
 )
@@ -34,19 +35,37 @@ type HeaderView struct {
 // HeaderViewOf maps the header probe's h to the main menu's header
 // blocks. version is hardn's, shown as given ("v0.4.0"). A fact the probe
 // did not establish is empty, which the components show as "Unknown", and
-// the zero Header establishes none; a pending reboot is set only when the
-// probe established one (P-21 holds its wording and place). It is pure.
+// the zero Header establishes none. The host block's reboot line is the
+// risk level's reboot factor (rebootLine): the pending reboot's one place
+// on the main menu. It is pure.
 func HeaderViewOf(version string, h header.Header) HeaderView {
 	v := HeaderView{
 		Header:  component.Header{Version: version, URL: RepoURL},
 		Context: component.ContextBar{Name: h.OS.Name, Version: h.OS.Version, Codename: capitalised(h.OS.Codename)},
 		Host: component.HostBlock{Hostname: h.Hostname.Name, Address: addressWords(h.Address),
-			RebootPending: h.Reboot.Pending == detect.Yes},
+			Reboot: rebootLine(h.Reboot)},
 	}
 	if h.Uptime.Known {
 		v.Host.Uptime = FormatUptime(h.Uptime.Duration)
 	}
 	return v
+}
+
+// rebootLine is the host block's reboot line for r, by the rule the risk
+// level counts the reboot by (risk.RebootFactor), so that the line and
+// the cost cannot disagree: "Reboot pending" for a pending reboot, "Can't
+// tell if reboot pending" for one not established (inside a container of
+// a distribution the reboot check reads, none: the kernel is the host's),
+// and no line when none is pending (the maintainer, 2026-10-21).
+func rebootLine(r header.Reboot) component.RebootLine {
+	f, ok := risk.RebootFactor(r)
+	switch {
+	case !ok:
+		return component.RebootNone
+	case f.Established:
+		return component.RebootPending
+	}
+	return component.RebootUnknown
 }
 
 // capitalised is a codename as Figma shows it: "trixie" as "Trixie".

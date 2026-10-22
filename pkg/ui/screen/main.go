@@ -85,9 +85,10 @@ type MainMenu struct {
 	Context component.ContextBar
 	// Host is the hostname badge, the address and the uptime.
 	Host component.HostBlock
-	// Risk is the risk level and its factors.
+	// Risk is the risk level, one line.
 	Risk component.RiskSummary
-	// Status is the controls' status rows; with none the block is left
+	// Status is the controls' status rows, the risk level's factors as
+	// lines under the rows they are about; with no rows the block is left
 	// out.
 	Status component.StatusList
 	// Heading is the menu heading's title, such as "Select an option".

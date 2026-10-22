@@ -214,6 +214,14 @@ func TestLayout(t *testing.T) {
 			"  Unknown                  Unknown\n                           Unknown"},
 		{"host: zero-width values are unknown", HostBlock{Hostname: "\u200b", Address: "\u200b", Uptime: "\u200d"}, 80, false,
 			"  Unknown                  Unknown\n                           Unknown"},
+		{"host: a pending reboot under the uptime", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootPending}, from, true,
+			"  [web-01]                 192.0.2.10\n                           41 days\n                           - Reboot pending"},
+		{"host: a reboot not established", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootUnknown}, from, false,
+			"  [web-01]                 192.0.2.10\n                           41 days\n                           - Can't tell if reboot pending"},
+		{"host: the reboot line stacked", HostBlock{Hostname: "web-01", Uptime: "41 days", Reboot: RebootPending}, below, false,
+			"  [web-01]\n      Unknown\n      41 days\n      - Reboot pending"},
+		{"host: no reboot line for a value outside the three", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootLine(9)}, from, false,
+			"  [web-01]                 192.0.2.10\n                           41 days"},
 		{"risk: a Unicode icon is centred in the marker column", figmaRisk, 80, true,
 			"   ⛬  Risk Level           Moderate ≈ medium security"},
 		{"risk: an ASCII icon fills it", RiskSummary{Band: RiskBand(9)}, 80, false,
@@ -272,6 +280,27 @@ func TestLayout(t *testing.T) {
 		{"status: no label leaves the label column blank", StatusRow{}, from, true,
 			"   ?                       Unknown"},
 		{"status: an empty list is nothing", StatusList{}, 80, false, ""},
+		{"status: lines under the row at the value column, an empty one skipped", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
+			Lines: []StatusLine{{Text: "Second root account", Warn: true}, {Text: " \t"}, {Text: "Maybe no password to become root"}}}, from, true,
+			"   ⛛  User                 Configured non-root, sudo\n" +
+				"                           - Second root account\n                           - Maybe no password to become root"},
+		{"status: lines under the stacked value, at its indent", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
+			Lines: []StatusLine{{Text: "No password to become root", Warn: true}}}, below, false,
+			"  [+] User\n      Configured non-root, sudo\n      - No password to become root"},
+		{"status: a long line is cut at the content width, not wrapped", StatusRow{Label: "SSH Port", State: StatusConfigured,
+			Lines: []StatusLine{{Text: strings.Repeat("x", 60)}}}, from, false,
+			"  [+] SSH Port             Configured\n" + strings.Repeat(" ", theme.ValueCol) + "- " +
+				strings.Repeat("x", maxWidth(StatusRow{}, from)-theme.ValueCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis)) + "..."},
+		{"status: a long line under a stacked value is cut at the content width", StatusRow{Label: "SSH Port", State: StatusConfigured,
+			Lines: []StatusLine{{Text: strings.Repeat("x", 70)}}}, below, false,
+			"  [+] SSH Port\n      Configured\n      - " +
+				strings.Repeat("x", max(0, maxWidth(StatusRow{}, below)-theme.StackCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis))) + "..."},
+		{"status: a row's lines keep the rows one block", StatusList{Rows: []StatusRow{
+			{Label: "AppArmor", Detail: "can't read", Lines: []StatusLine{{Text: "Counted as not configured"}}},
+			{Label: "Auto Updates", State: StatusNotConfigured},
+		}}, from, false,
+			"  [?] AppArmor             Unknown can't read\n                           - Counted as not configured\n" +
+				"  [ ] Auto Updates         Not Configured"},
 		{"divider: fills the bar width", Divider{}, 120, false, strings.Repeat("-", maxWidth(Divider{}, 120))},
 		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("─", 60)},
 		{"mode: live at the value column", ModeIndicator{}, from, false,
@@ -520,8 +549,9 @@ func TestASCIIText(t *testing.T) {
 		{"title bar", TitleBar{Title: typo}},
 		{"title bar trail", TitleBar{Title: "x", Parents: []string{typo}}},
 		{"host block", HostBlock{Hostname: "web-01", Address: typo, Uptime: typo}},
-		{"risk summary", RiskSummary{Band: RiskModerate, Level: "Moderate", Factors: []string{typo}}},
+		{"risk summary", RiskSummary{Band: RiskModerate, Level: typo}},
 		{"status row", StatusRow{Label: "Non-root", State: StatusConfigured, Detail: "UID ≥ 1000"}},
+		{"status row lines", StatusRow{Label: "User", State: StatusConfigured, Lines: []StatusLine{{Text: typo}, {Text: typo, Warn: true}}}},
 		{"menu heading", MenuHeading{Title: typo}},
 		{"menu", Menu{Items: []MenuItem{{Key: "1", Label: "Users", Description: typo}}}},
 		{"prompt", PromptLine{Label: typo, Accepts: yesNo}},
@@ -717,6 +747,37 @@ func TestStatusStates(t *testing.T) {
 			if a.glyph == b.glyph && (a.word == b.word || a.style.GetForeground() == b.style.GetForeground()) {
 				t.Errorf("%s and %s share the glyph %q, and their word or colour too", a.word, b.word, a.glyph)
 			}
+		}
+	}
+}
+
+// TestLineStyles checks that a line under a status row takes its colour,
+// bullet and text alike: Status.LineWarn for a cost hardn established,
+// Status.Line otherwise; and that the host block's reboot line takes
+// Host.Reboot when a reboot is pending and Host.Unknown when that is not
+// established, each after the bullet, never a state's glyph (the
+// maintainer, 2026-10-21).
+func TestLineStyles(t *testing.T) {
+	for _, unicode := range []bool{true, false} {
+		c := NewCtx(term.Fixed(80, colorprofile.TrueColor, unicode, true))
+		st, h, b := c.Theme.Status, c.Theme.Host, c.Theme.Glyphs.Bullet+" "
+		tests := []struct {
+			name string
+			vm   renderer
+			want string
+		}{
+			{"warn line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Second root account", Warn: true}}}, st.LineWarn.Render(b + "Second root account")},
+			{"muted line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Counted as not configured"}}}, st.Line.Render(b + "Counted as not configured")},
+			{"reboot pending", HostBlock{Reboot: RebootPending}, h.Reboot.Render(b + "Reboot pending")},
+			{"reboot not established", HostBlock{Reboot: RebootUnknown}, h.Unknown.Render(b + "Can't tell if reboot pending")},
+		}
+		for _, tt := range tests {
+			if got := tt.vm.Render(c); !strings.Contains(got, "\n"+strings.Repeat(" ", theme.ValueCol)+tt.want) {
+				t.Errorf("%s, unicode %t: got %q, want a line at the value column of %q", tt.name, unicode, got, tt.want)
+			}
+		}
+		if st.Line.GetForeground() == st.LineWarn.GetForeground() || h.Reboot.GetForeground() == h.Unknown.GetForeground() {
+			t.Errorf("unicode %t: the two colours of a line are one", unicode)
 		}
 	}
 }

@@ -111,8 +111,10 @@ type TitleBarStyles struct {
 type HostStyles struct {
 	Address lipgloss.Style // the IP address
 	Uptime  lipgloss.Style
-	Reboot  lipgloss.Style // the pending-reboot finding (proposal P-04)
-	Unknown lipgloss.Style // "Unknown", for a value hardn could not read
+	Reboot  lipgloss.Style // "- Reboot pending", bullet and text (proposal P-04)
+	// Unknown is "Unknown", for a value hardn could not read, and "- Can't
+	// tell if reboot pending", bullet and text.
+	Unknown lipgloss.Style
 }
 
 // RiskStyles style the risk summary. The bands are named by tone, so the
@@ -125,12 +127,11 @@ type RiskStyles struct {
 	High     lipgloss.Style
 	Unknown  lipgloss.Style
 	Gloss    lipgloss.Style // "≈ medium security"
-	Factor   lipgloss.Style // a contributing factor, bullet and text (P-06)
 }
 
-// StatusStyles style a StatusRow: marker, label, state word and detail. A
-// state's style colours both its glyph and its word, so the state is never
-// shown by colour alone.
+// StatusStyles style a StatusRow: marker, label, state word and detail,
+// and the lines under it. A state's style colours both its glyph and its
+// word, so the state is never shown by colour alone.
 type StatusStyles struct {
 	Label         lipgloss.Style
 	Detail        lipgloss.Style // "non-root, sudo"
@@ -139,6 +140,12 @@ type StatusStyles struct {
 	Partial       lipgloss.Style
 	NotApplicable lipgloss.Style
 	Unknown       lipgloss.Style
+	// Line is a line under the row, bullet and text, that rests on
+	// something hardn could not establish: "- Counted as not configured".
+	Line lipgloss.Style
+	// LineWarn is a line under the row, bullet and text, for a cost hardn
+	// established: "- No password to become root".
+	LineWarn lipgloss.Style
 }
 
 // ModeStyles style the mode indicator: "Dry-run Mode Disabled".
@@ -342,12 +349,16 @@ func build(env term.Env, p *palette) *Theme {
 		Risk: RiskStyles{
 			Label: primary.Bold(true),
 			Low:   ok, Moderate: warn, High: bad, Unknown: unknown,
-			Gloss: faint, Factor: muted,
+			Gloss: faint,
 		},
+		// The lines under a row: a cost hardn established in status.warn,
+		// one resting on what it could not establish muted, as Unknown is
+		// (the maintainer, 2026-10-21).
 		Status: StatusStyles{
 			Label: primary, Detail: faint,
 			Configured: ok, NotConfigured: bad, Partial: warn,
 			NotApplicable: muted, Unknown: unknown,
+			Line: muted, LineWarn: warn,
 		},
 		Divider: fg(p.Divider),
 		Mode:    ModeStyles{Label: muted, Live: warn, DryRun: ok},

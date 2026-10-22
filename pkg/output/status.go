@@ -43,8 +43,11 @@ type StatusView struct {
 // order; a row with no report shows Unknown, as the score counts it, and a
 // report for a control the score does not weigh comes after them, in its
 // order. A control's first report counts, and a report with an error is
-// Unknown, as risk.Assess has them. The factors are l's, one line each. It
-// is pure.
+// Unknown, as risk.Assess has them. Each of l's factors is a line under
+// the row its Control names, in l's order (risk.Kind's), status.warn for
+// a cost established (the maintainer, 2026-10-21); the pending reboot,
+// with no row, is the host block's (HeaderViewOf). The lines are the main
+// menu's alone: no other screen's rows carry them. It is pure.
 func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 	first := map[string]engine.Report{}
 	var others []engine.Report
@@ -55,7 +58,9 @@ func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 		}
 	}
 	var v StatusView
+	at := map[string]int{} // a row's index, by control
 	for _, rw := range risk.Rows() {
+		at[rw.ID] = len(v.Status.Rows)
 		r, ok := first[rw.ID]
 		if !ok {
 			v.Status.Rows = append(v.Status.Rows, component.StatusRow{Label: rw.Title, State: component.StatusUnknown})
@@ -67,6 +72,11 @@ func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 	for _, r := range others {
 		if _, ok := first[r.Control]; ok {
 			v.Status.Rows = append(v.Status.Rows, statusRow(r))
+		}
+	}
+	for _, f := range l.Factors {
+		if i, ok := at[f.Control]; ok {
+			v.Status.Rows[i].Lines = append(v.Status.Rows[i].Lines, component.StatusLine{Text: f.Detail, Warn: f.Established})
 		}
 	}
 	v.Risk = RiskSummaryOf(l)
@@ -83,17 +93,15 @@ func statusRow(r engine.Report) component.StatusRow {
 	return component.StatusRow{Label: r.Title, State: statusStates[stateWord(st)], Detail: r.Status.Detail}
 }
 
-// RiskSummaryOf is the risk level l as the main menu's RiskSummary: the
-// band's tone, its level word and gloss (LockoutGloss when the lockout
-// forced it), and l's factors. It is pure.
+// RiskSummaryOf is the risk level l as the main menu's RiskSummary, Figma's
+// one line: the band's tone, its level word and gloss (LockoutGloss when
+// the lockout forced it). l's factors are drawn under the status rows
+// (StatusViewOf) and in the host block (HeaderViewOf). It is pure.
 func RiskSummaryOf(l risk.Level) component.RiskSummary {
 	w := levelWords[l.Band]
 	s := component.RiskSummary{Band: riskBands[l.Band], Level: w.level, Gloss: w.gloss}
 	if l.Forced {
 		s.Gloss = LockoutGloss
-	}
-	for _, f := range l.Factors {
-		s.Factors = append(s.Factors, f.Detail)
 	}
 	return s
 }

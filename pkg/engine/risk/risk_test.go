@@ -109,8 +109,11 @@ func pending(p detect.Tri, fs ...engine.Finding) header.Header {
 
 var newerKernel = engine.Finding{Code: header.CodeNewerKernel, Detail: header.DetailNewerKernel, Source: "/boot/vmlinuz-6.12.48+deb13-amd64"}
 
-// unread is the Unknown rows' factor.
-const unread = "unknown counted as not configured"
+// unread is an Unknown row's factor.
+const unread = "Counted as not configured"
+
+// unreads is n Unknown rows' factors.
+func unreads(n int) []string { return slices.Repeat([]string{unread}, n) }
 
 type want struct {
 	band    risk.Band
@@ -130,7 +133,7 @@ func TestAssess(t *testing.T) {
 	}{
 		// The bands, each reachable.
 		{"hardened: the top band", hardened(), quiet, want{band: risk.Minimal, score: 100}},
-		{"figma's host", figma(), uptimeOf(figmaUptime), want{band: risk.Moderate, score: 60, factors: []string{"up 182 days, no auto updates"}}},
+		{"figma's host", figma(), uptimeOf(figmaUptime), want{band: risk.Moderate, score: 60, factors: []string{"Up 182 days, no updates"}}},
 		{"figma's host, up 3 days", figma(), quiet, want{band: risk.Moderate, score: 70}},
 		{"AppArmor not configured", with(rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles)), quiet, want{band: risk.Low, score: 90}},
 		{"weak: the SSH auth, firewall, AppArmor and updates off", with(rep(idAuth, engine.NotConfigured, "password auth on"),
@@ -140,13 +143,13 @@ func TestAssess(t *testing.T) {
 			rep(idLogin, engine.NotConfigured, "root allowed"), rep(idAuth, engine.NotConfigured, "password auth on"),
 			rep(idPort, engine.NotConfigured, "default (22)"), rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles),
 			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)}, quiet, want{band: risk.Critical, score: 0}},
-		{"no row established", nil, quiet, want{band: risk.Unknown, score: 0, factors: []string{unread}}},
+		{"no row established", nil, quiet, want{band: risk.Unknown, score: 0, factors: unreads(7)}},
 
 		{"a Proxmox VE node (risk.md §5.5)", []engine.Report{rep(idUser, engine.NotConfigured, "root only"), rep(idFW, engine.NotConfigured, "disabled"),
 			rep(idLogin, engine.Configured, "root key-only (Proxmox)"), rep(idAuth, engine.Configured, "key-only auth"),
 			rep(idPort, engine.Configured, "default (22)"), rep(idAA, engine.Configured, "12 profiles enforced"),
 			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)}, uptimeOf(41*day + time.Hour),
-			want{band: risk.High, score: 40, factors: []string{"up 41 days, no auto updates"}}},
+			want{band: risk.High, score: 40, factors: []string{"Up 41 days, no updates"}}},
 
 		// The bounds.
 		{"25 is High", with(rep(idFW, engine.NotConfigured, "inactive"), rep(idAuth, engine.NotConfigured, "password auth on"),
@@ -169,13 +172,13 @@ func TestAssess(t *testing.T) {
 		// ... and none with a fact left open, as Unknown: never above the
 		// same host with the fact read (risk.md §5.2).
 		{"firewall off after restart, ssh unchecked: none", with(rep(idFW, engine.Partial, "off after restart", firewall.CodeSSHUnchecked)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"can't tell if firewall blocks ssh"}}},
+			want{band: risk.Low, score: 80, factors: []string{"Can't tell if it blocks SSH"}}},
 		{"firewall kept on at boot, ssh unchecked: unknown", with(rep(idFW, engine.Unknown, "ss not installed")), quiet,
 			want{band: risk.Low, score: 80, factors: []string{unread}}},
 		{"updates off after restart, a timer not ranked: none", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeScheduleUnknown)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"can't tell if updates fully on"}}},
+			want{band: risk.Low, score: 80, factors: []string{"Can't tell if fully on"}}},
 		{"updates off after restart, a value not ranked: none", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeAptValueUnknown)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"can't tell if updates fully on"}}},
+			want{band: risk.Low, score: 80, factors: []string{"Can't tell if fully on"}}},
 		{"updates kept on at boot, a value not ranked: unknown", with(rep(idUpdate, engine.Unknown, updates.DetailCantRead, updates.CodeAptValueUnknown)), quiet,
 			want{band: risk.Low, score: 80, factors: []string{unread}}},
 		{"updates lists not refreshed, a fact open: no factor of its own", with(rep(idUpdate, engine.Partial, updates.DetailListsStale, updates.CodeScheduleUnknown)), quiet,
@@ -198,8 +201,8 @@ func TestAssess(t *testing.T) {
 			rep(idLogin, engine.NotApplicable, "x"), rep(idAuth, engine.NotApplicable, "x"), rep(idPort, engine.NotApplicable, "x"),
 			rep(idAA, engine.NotApplicable, "x"), rep(idUpdate, engine.NotApplicable, "x")}, quiet, want{band: risk.Unknown}},
 
-		// Unknown counts as not configured, and adds a factor: one for
-		// every such row.
+		// Unknown counts as not configured, and adds a factor under each
+		// such row.
 		{"port unknown", with(rep(idPort, engine.Unknown, "can't read")), quiet, want{band: risk.Low, score: 95, factors: []string{unread}}},
 		{"firewall unknown", with(rep(idFW, engine.Unknown, "can't tell ssh ports")), quiet, want{band: risk.Low, score: 80, factors: []string{unread}}},
 		{"a failed check is unknown", with(engine.Report{Control: idAuth, Status: engine.Status{State: engine.Configured}, Err: errors.New("sshd -T")}),
@@ -207,8 +210,8 @@ func TestAssess(t *testing.T) {
 		{"a state outside the five is unknown", with(rep(idLogin, engine.State(9), "")), quiet,
 			want{band: risk.Low, score: 85, factors: []string{unread}}},
 		{"a row with no report is unknown", without(idUser), quiet, want{band: risk.Low, score: 90, factors: []string{unread}}},
-		{"two unknown rows, one factor", with(rep(idUpdate, engine.Unknown, "can't read"), rep(idUser, engine.Unknown, "can't read")), quiet,
-			want{band: risk.Moderate, score: 70, factors: []string{unread}}},
+		{"two unknown rows, a factor each", with(rep(idUpdate, engine.Unknown, "can't read"), rep(idUser, engine.Unknown, "can't read")), quiet,
+			want{band: risk.Moderate, score: 70, factors: unreads(2)}},
 
 		// The lockout forces Critical, once; the level's gloss says it, and
 		// the Firewall row, so no factor repeats it.
@@ -222,63 +225,64 @@ func TestAssess(t *testing.T) {
 		{"blocked beats unchecked", with(rep(idFW, engine.Partial, "ssh blocked", firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked)), quiet,
 			want{band: risk.Critical, score: 80, forced: true}},
 		{"ufw may block ssh at start", with(rep(idFW, engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START")), quiet,
-			want{band: risk.Moderate, score: 70, factors: []string{"ssh may be blocked after restart"}}},
+			want{band: risk.Moderate, score: 70, factors: []string{"SSH may be blocked after restart"}}},
 		{"ufw may block ssh at start, a reboot pending", with(rep(idFW, engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START")),
-			pending(detect.Yes), want{band: risk.Moderate, score: 60, factors: []string{"ssh may be blocked after restart", "reboot pending"}}},
+			pending(detect.Yes), want{band: risk.Moderate, score: 60, factors: []string{"SSH may be blocked after restart", "Reboot pending"}}},
 		{"ssh through the firewall unchecked", with(rep(idFW, engine.NotConfigured, "enabled, not running", firewall.CodeSSHUnchecked)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"can't tell if firewall blocks ssh"}}},
+			want{band: risk.Low, score: 80, factors: []string{"Can't tell if it blocks SSH"}}},
 
 		// The users' exposure.
 		{"second root account", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeUID0)), quiet,
-			want{band: risk.Low, score: 85, factors: []string{"second root account"}}},
+			want{band: risk.Low, score: 85, factors: []string{"Second root account"}}},
 		{"no password to root: keeps the top band out", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeNoPassword, users.CodeNoPassword)), quiet,
-			want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
+			want{band: risk.Low, score: 95, factors: []string{"No password to become root"}}},
 		// A grant the row does not establish costs as one without a
 		// password: never Minimal, never above the grant read.
 		{"a grant not read: as no password", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead)), quiet,
-			want{band: risk.Low, score: 95, factors: []string{"maybe no password to become root"}}},
+			want{band: risk.Low, score: 95, factors: []string{"Maybe no password to become root"}}},
 		{"a grant not read and one read: one factor", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead, users.CodeNoPassword)), quiet,
-			want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}},
+			want{band: risk.Low, score: 95, factors: []string{"No password to become root"}}},
 		{"a grant not read on an Unknown row: the Unknown factor", with(rep(idUser, engine.Unknown, "can't tell who has sudo", users.CodeRuleNotRead)), quiet,
 			want{band: risk.Low, score: 90, factors: []string{unread}}},
 
 		// The pending reboot.
-		{"reboot pending", hardened(), pending(detect.Yes, newerKernel), want{band: risk.Low, score: 90, factors: []string{"reboot pending"}}},
-		{"reboot not established", hardened(), pending(detect.Unknown), want{band: risk.Low, score: 90, factors: []string{"can't tell if reboot pending"}}},
+		{"reboot pending", hardened(), pending(detect.Yes, newerKernel), want{band: risk.Low, score: 90, factors: []string{"Reboot pending"}}},
+		{"reboot not established", hardened(), pending(detect.Unknown), want{band: risk.Low, score: 90, factors: []string{"Can't tell if reboot pending"}}},
 		{"container: a package's request counts", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost)), inContainer(detect.Yes),
-			want{band: risk.Low, score: 90, factors: []string{"reboot pending"}}},
+			want{band: risk.Low, score: 90, factors: []string{"Reboot pending"}}},
 		{"container: no source is not counted", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost)), inContainer(detect.Unknown),
 			want{band: risk.Minimal, score: 100}},
-		{"the zero header establishes nothing", hardened(), header.Header{}, want{band: risk.Low, score: 90, factors: []string{"can't tell if reboot pending"}}},
+		{"the zero header establishes nothing", hardened(), header.Header{}, want{band: risk.Low, score: 90, factors: []string{"Can't tell if reboot pending"}}},
 		{"the zero header, no auto updates", figma(), header.Header{}, want{band: risk.Moderate, score: 50,
-			factors: []string{"can't tell if reboot pending", "uptime unknown"}}},
+			factors: []string{"Can't tell if reboot pending", "Uptime unknown"}}},
 
 		// The long uptime without automatic updates.
 		{"up 30 days, no updates", with(rep(idUpdate, engine.NotConfigured, updates.DetailTimerOff)), uptimeOf(30 * day),
-			want{band: risk.Moderate, score: 70, factors: []string{"up 30 days, no auto updates"}}},
+			want{band: risk.Moderate, score: 70, factors: []string{"Up 30 days, no updates"}}},
 		{"just under 30 days", with(rep(idUpdate, engine.NotConfigured, updates.DetailTimerOff)), uptimeOf(30*day - time.Minute),
 			want{band: risk.Low, score: 80}},
 		{"up long, updates configured", hardened(), uptimeOf(figmaUptime), want{band: risk.Minimal, score: 100}},
 		{"up long, updates off after restart", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart)), uptimeOf(figmaUptime),
 			want{band: risk.Low, score: 90}},
 		// Off after restart with a fact left open: whether it upgrades is
-		// not established, so no "no auto updates" (risk.md §6.3).
+		// not established, so "Up 182 days" alone, and no finding (risk.md
+		// §6.3).
 		{"up long, off after restart with a schedule not established", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeScheduleUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"can't tell if updates fully on", "up 182 days"}}},
+			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
 		{"up long, off after restart with a value not ranked", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeAptValueUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"can't tell if updates fully on", "up 182 days"}}},
+			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
 		{"up long, lists not refreshed", with(rep(idUpdate, engine.Partial, updates.DetailListsStale)), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{"up 182 days, no auto updates"}}},
+			want{band: risk.Moderate, score: 70, factors: []string{"Up 182 days, no updates"}}},
 		{"up long, lists not refreshed, a fact open", with(rep(idUpdate, engine.Partial, updates.DetailListsStale, updates.CodeAptValueUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"up 182 days, no auto updates"}}},
+			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Up 182 days, no updates"}}},
 		{"up long, a Partial line not known here", with(rep(idUpdate, engine.Partial, "x")), uptimeOf(figmaUptime),
-			want{band: risk.Low, score: 80, factors: []string{"up 182 days"}}},
+			want{band: risk.Low, score: 80, factors: []string{"Up 182 days"}}},
 		{"up long, updates unknown", with(rep(idUpdate, engine.Unknown, updates.DetailCantRead)), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{unread, "up 182 days"}}},
+			want{band: risk.Moderate, score: 70, factors: []string{unread, "Up 182 days"}}},
 		{"up long, no updates report", without(idUpdate), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{unread, "up 182 days"}}},
+			want{band: risk.Moderate, score: 70, factors: []string{unread, "Up 182 days"}}},
 		{"up long, Proxmox not upgraded", with(rep(idUpdate, engine.Configured, updates.DetailUnattended, updates.CodeProxmoxNotUpgraded)),
-			uptimeOf(figmaUptime), want{band: risk.Low, score: 90, factors: []string{"up 182 days, Proxmox not upgraded"}}},
+			uptimeOf(figmaUptime), want{band: risk.Low, score: 90, factors: []string{"Up 182 days, Proxmox not upgraded"}}},
 		{"up long, updates not applicable", with(rep(idUpdate, engine.NotApplicable, "x")), uptimeOf(figmaUptime), want{band: risk.Minimal, score: 100}},
 		{"up long in a container", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)),
 			func() header.Header { h := inContainer(detect.No); h.Uptime.Duration = figmaUptime; return h }(),
@@ -287,7 +291,7 @@ func TestAssess(t *testing.T) {
 
 		// The penalties add up, and the score stays at 0 or more.
 		{"every penalty", []engine.Report{rep(idUser, engine.NotConfigured, "root only", users.CodeUID0)}, header.Header{Reboot: header.Reboot{Pending: detect.Yes}},
-			want{band: risk.Critical, score: 0, factors: []string{unread, "second root account", "reboot pending", "uptime unknown"}}},
+			want{band: risk.Critical, score: 0, factors: append(unreads(6), "Second root account", "Reboot pending", "Uptime unknown")}},
 
 		// What the score does not weigh.
 		{"a control the score does not weigh", append(hardened(), rep("dns.servers", engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
@@ -311,7 +315,8 @@ func TestAssess(t *testing.T) {
 func near(a, b float64) bool { return a-b < 1e-9 && b-a < 1e-9 }
 
 // TestFigma: Figma's 00-TUI-MAIN host is Moderate ("Moderate ≈ medium
-// security"), with the long uptime its one factor and finding.
+// security"), with the long uptime its one factor, under Auto Updates, and
+// its one finding, which keeps the JSON's words (risk.md §6.3).
 func TestFigma(t *testing.T) {
 	l := risk.Assess(figma(), uptimeOf(figmaUptime))
 	if l.Band != risk.Moderate {
@@ -321,8 +326,9 @@ func TestFigma(t *testing.T) {
 	if !slices.Equal(l.Findings, want) {
 		t.Errorf("findings %+v, want %+v", l.Findings, want)
 	}
-	if f := l.Factors[0]; f.Kind != risk.KindUptime || f.Penalty != risk.PenaltyUptime || f.Control != "" {
-		t.Errorf("factor %+v", f)
+	if f := l.Factors; len(f) != 1 || f[0] != (risk.Factor{Kind: risk.KindUptime, Control: idUpdate, Detail: "Up 182 days, no updates",
+		Established: true, Penalty: risk.PenaltyUptime}) {
+		t.Errorf("factors %+v", f)
 	}
 }
 
@@ -394,7 +400,7 @@ func TestUpdatesFromTheCheck(t *testing.T) {
 	for _, f := range l.Factors {
 		factors = append(factors, f.Detail)
 	}
-	if want := []string{"can't tell if updates fully on", "up 182 days"}; l.Band != risk.Moderate || !near(l.Score, 70) ||
+	if want := []string{"Can't tell if fully on", "Up 182 days"}; l.Band != risk.Moderate || !near(l.Score, 70) ||
 		!slices.Equal(factors, want) || len(l.Findings) != 0 {
 		t.Errorf("got %v %v %q %+v, want moderate 70 %q and no finding", l.Band, l.Score, factors, l.Findings, want)
 	}
@@ -498,8 +504,8 @@ func TestUsersFromTheCheck(t *testing.T) {
 	const alias = "User_Alias ADMINS = bob\nADMINS ALL=(ALL) NOPASSWD: ALL\n"
 	zz := func(rules string) map[string]string { return map[string]string{"zz-site": rules} }
 	read := risk.Assess(with(userRow(t, "", zz(grant))), quiet)
-	noPass := want{band: risk.Low, score: 95, factors: []string{"no password to become root"}}
-	notRead := want{band: risk.Low, score: 95, factors: []string{"maybe no password to become root"}}
+	noPass := want{band: risk.Low, score: 95, factors: []string{"No password to become root"}}
+	notRead := want{band: risk.Low, score: 95, factors: []string{"Maybe no password to become root"}}
 	for _, c := range []struct {
 		name    string
 		top     string
@@ -580,7 +586,8 @@ func TestFindings(t *testing.T) {
 	}
 }
 
-// TestFactors: each factor's kind, row and cost, in Kind order.
+// TestFactors: each factor's kind, row, words, colour and cost, in Kind
+// order.
 func TestFactors(t *testing.T) {
 	h := uptimeOf(figmaUptime)
 	h.Reboot.Pending = detect.Yes
@@ -592,13 +599,13 @@ func TestFactors(t *testing.T) {
 		rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended),
 	}, h)
 	want := []risk.Factor{
-		{Kind: risk.KindLockoutAtStart, Control: idFW, Detail: "ssh may be blocked after restart", Penalty: risk.PenaltyAtStart},
-		{Kind: risk.KindUnknown, Detail: unread},
-		{Kind: risk.KindSecondRoot, Control: idUser, Detail: "second root account", Penalty: risk.PenaltySecondRoot},
-		{Kind: risk.KindSSHUnchecked, Control: idFW, Detail: "can't tell if firewall blocks ssh"},
-		{Kind: risk.KindReboot, Detail: "reboot pending", Penalty: risk.PenaltyReboot},
-		{Kind: risk.KindUptime, Detail: "up 182 days, no auto updates", Penalty: risk.PenaltyUptime},
-		{Kind: risk.KindNoPassword, Control: idUser, Detail: "no password to become root", Penalty: risk.PenaltyNoPassword},
+		{Kind: risk.KindLockoutAtStart, Control: idFW, Detail: "SSH may be blocked after restart", Established: true, Penalty: risk.PenaltyAtStart},
+		{Kind: risk.KindUnknown, Control: idPort, Detail: unread},
+		{Kind: risk.KindSecondRoot, Control: idUser, Detail: "Second root account", Established: true, Penalty: risk.PenaltySecondRoot},
+		{Kind: risk.KindSSHUnchecked, Control: idFW, Detail: "Can't tell if it blocks SSH"},
+		{Kind: risk.KindReboot, Detail: "Reboot pending", Established: true, Penalty: risk.PenaltyReboot},
+		{Kind: risk.KindUptime, Control: idUpdate, Detail: "Up 182 days, no updates", Established: true, Penalty: risk.PenaltyUptime},
+		{Kind: risk.KindNoPassword, Control: idUser, Detail: "No password to become root", Established: true, Penalty: risk.PenaltyNoPassword},
 	}
 	if !slices.Equal(l.Factors, want) {
 		t.Errorf("got  %+v\nwant %+v", l.Factors, want)
@@ -610,10 +617,9 @@ func TestFactors(t *testing.T) {
 	}
 }
 
-// TestFactorsFit: each factor's line fits the 35 cells a factor has
-// beside the label at 64 columns (DEV-022), the longest uptime the header
-// shows included.
-func TestFactorsFit(t *testing.T) {
+// everyLine is every line of risk.md §6.2, each kind's, on hosts up 9999
+// days, the longest uptime the header shows.
+func everyLine() []risk.Factor {
 	var all []risk.Factor
 	long := uptimeOf(9999*day + 23*time.Hour)
 	for _, u := range []engine.Report{
@@ -629,9 +635,15 @@ func TestFactorsFit(t *testing.T) {
 		rep(idFW, engine.NotConfigured, "x", "UFW_SSH_NOT_ALLOWED_AT_START", firewall.CodeSSHUnchecked),
 	}, header.Header{}).Factors...)
 	all = append(all, risk.Assess(hardened(), pending(detect.Yes)).Factors...)
-	all = append(all, risk.Assess(with(rep(idUser, engine.Configured, "x", users.CodeRuleNotRead)), quiet).Factors...)
+	return append(all, risk.Assess(with(rep(idUser, engine.Configured, "x", users.CodeRuleNotRead)), quiet).Factors...)
+}
+
+// TestFactorsFit: each line fits the 35 cells it has after the bullet and
+// its space at the value column at 64 columns (64 − 27 − 2; DEV-059), the
+// longest uptime the header shows included.
+func TestFactorsFit(t *testing.T) {
 	kinds := map[risk.Kind]bool{}
-	for _, f := range all {
+	for _, f := range everyLine() {
 		kinds[f.Kind] = true
 		if n := len([]rune(f.Detail)); n > 35 {
 			t.Errorf("%q: %d cells, over 35", f.Detail, n)
@@ -639,6 +651,69 @@ func TestFactorsFit(t *testing.T) {
 	}
 	if len(kinds) != 8 {
 		t.Errorf("%d kinds checked, want 8", len(kinds))
+	}
+}
+
+// TestFactorLines: every line of risk.md §6.2 in its colour, status.warn
+// for a cost hardn established (Established) and text.muted for one that
+// rests on something hardn could not establish, and in its place: under
+// the main menu's row its kind is about, an Unknown row's under that row,
+// and only the pending reboot in the host block (Control ""). Every kind
+// and every line is checked, so no factor is left without a place.
+func TestFactorLines(t *testing.T) {
+	warn := map[string]bool{
+		"SSH may be blocked after restart":   true,
+		unread:                               false,
+		"Second root account":                true,
+		"Can't tell if it blocks SSH":        false,
+		"Can't tell if fully on":             false,
+		"Reboot pending":                     true,
+		"Can't tell if reboot pending":       false,
+		"Up 9999 days, no updates":           true,
+		"Up 9999 days, Proxmox not upgraded": true,
+		"Up 9999 days":                       false,
+		"Uptime unknown":                     false,
+		"No password to become root":         true,
+		"Maybe no password to become root":   false,
+	}
+	under := map[risk.Kind]string{risk.KindLockoutAtStart: idFW, risk.KindSecondRoot: idUser, risk.KindSSHUnchecked: idFW,
+		risk.KindUpdatesOpen: idUpdate, risk.KindReboot: "", risk.KindUptime: idUpdate, risk.KindNoPassword: idUser}
+	shown := map[string]bool{}
+	for _, r := range risk.Rows() {
+		shown[r.ID] = true
+	}
+	seen := map[string]bool{}
+	for _, f := range everyLine() {
+		seen[f.Detail] = true
+		if w, ok := warn[f.Detail]; !ok || f.Established != w {
+			t.Errorf("%q: established %t, want %t (listed %t)", f.Detail, f.Established, w, ok)
+		}
+		if f.Kind == risk.KindUnknown {
+			if !shown[f.Control] {
+				t.Errorf("%q under %q, not a row the main menu shows", f.Detail, f.Control)
+			}
+		} else if c, ok := under[f.Kind]; !ok || f.Control != c {
+			t.Errorf("%s %q under %q, want %q", f.Kind, f.Detail, f.Control, c)
+		}
+	}
+	for d := range warn {
+		if !seen[d] {
+			t.Errorf("%q: no host made it", d)
+		}
+	}
+}
+
+// TestUnknownLines: a line under each row Unknown, failed or with no
+// report, in the rows' order, whatever the reports' order.
+func TestUnknownLines(t *testing.T) {
+	reports := slices.Concat([]engine.Report{rep(idUpdate, engine.Unknown, "can't read"),
+		{Control: idFW, Status: engine.Status{State: engine.Configured}, Err: errors.New("ss")}}, without(idUser, idFW, idUpdate, idPort))
+	var got []string
+	for _, f := range risk.Assess(reports, quiet).Factors {
+		got = append(got, f.Control)
+	}
+	if want := []string{idUser, idFW, idPort, idUpdate}; !slices.Equal(got, want) {
+		t.Errorf("lines under %q, want %q", got, want)
 	}
 }
 
