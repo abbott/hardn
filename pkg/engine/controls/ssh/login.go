@@ -38,8 +38,9 @@ var rootKeys = []string{"pubkeyauthentication", "allowusers", "denyusers", "allo
 // that sets it, and on Proxmox VE pve.CheckSSH's root key-only and root by
 // key. A state both baselines give (yes, a Match block that lets root in
 // more, forced-commands-only) is reported whether or not Proxmox VE and
-// root's groups are established. docs/engine/check-ssh.md lists each
-// status line.
+// root's groups are established. Where they let root in, root's lock is
+// read too (lockedOut, next/p4-locked): sshd without PAM refuses a locked
+// root whatever they say. docs/engine/check-ssh.md lists each status line.
 func (Login) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
@@ -58,16 +59,27 @@ func (Login) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 		found, mev := matchFindings(odd, CodeMatchValueUnknown)
 		return unknown("can't read", slices.Concat(ev, mev), found), nil
 	}
+	st, err := r.permitted(ctx, sys, f, g.Value, more, ev)
+	if g.Value == "no" && len(more) == 0 { // root refused: its lock decides nothing
+		return st, err
+	}
+	return r.lockedOut(ctx, sys, f, st, err)
+}
+
+// permitted is SSH Login's status from PermitRootLogin's global value v,
+// the Match blocks that let root in more, and on Proxmox VE pve.CheckSSH;
+// ev is sshd -T's evidence.
+func (r reading) permitted(ctx context.Context, sys host.System, f detect.Facts, v string, more []sshd.Line, ev []string) (engine.Status, error) {
 	found, mev := matchFindings(more, CodeMatchAllowsMore)
 	st := engine.Status{Evidence: slices.Concat(ev, mev), Findings: append(r.conflicts("permitrootlogin"), found...)}
-	both := g.Value == "yes" || g.Value == "forced-commands-only" || len(more) > 0
+	both := v == "yes" || v == "forced-commands-only" || len(more) > 0
 	onPVE, err := pve.Applies(f.Proxmox)
 	switch {
 	case err != nil && !both:
 		st.State, st.Detail = engine.Unknown, "can't tell if Proxmox"
 		return st, err
 	case err != nil || !onPVE:
-		st.State, st.Detail = loginState(g.Value, len(more) > 0, "no")
+		st.State, st.Detail = loginState(v, len(more) > 0, "no")
 		return st, nil
 	}
 	chk, groupsErr := r.proxmox(ctx, sys, f.Proxmox, true)
@@ -79,7 +91,7 @@ func (Login) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 	}
 	st.Findings = pveFindings(st.Findings, chk.Findings, pve.FindingNotKeyOnly, pve.FindingRootUnreachable, pve.FindingProxmoxRootLogin)
 	if both || chk.RootKeyOnly == detect.No {
-		st.State, st.Detail = loginState(g.Value, len(more) > 0, pve.RootLogin)
+		st.State, st.Detail = loginState(v, len(more) > 0, pve.RootLogin)
 		return st, nil
 	}
 	st.Evidence = append(st.Evidence, r.said(rootKeys...)...)
@@ -92,7 +104,7 @@ func (Login) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 	case chk.RootByKey == detect.Yes:
 		st.State, st.Detail = engine.Configured, "root key-only (Proxmox)"
 	case chk.RootByKey == detect.No:
-		st.State, st.Detail = engine.Partial, "root key login blocked"
+		st.State, st.Detail = engine.Partial, detailBlocked
 	default:
 		st.State, st.Detail = engine.Unknown, "can't tell if root key works"
 	}

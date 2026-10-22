@@ -3,6 +3,7 @@ package users_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"maps"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -55,6 +57,8 @@ func ubuntu2604() platform {
 func alpine324() platform {
 	return platform{dir: "alpine324", facts: detect.Facts{
 		Platform:  detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported},
+		Init:      detect.Init{Kind: detect.OpenRC, Running: detect.Yes},
+		SSH:       detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.Yes}},
 		Proxmox:   detect.Proxmox{Installed: detect.No},
 		Elevation: detect.Elevation{Sudo: no, Doas: doasYes},
 	}}
@@ -86,7 +90,31 @@ type site struct {
 	runErr  error             // visudo -c cannot run: Run returns it
 	bare    string            // a tool's path whose setuid bit Stat does not show
 	seed    func(*hostfake.System)
+	// locks are the password fields of /etc/shadow by account
+	// (next/p4-locked); every other account of /etc/passwd has "*", not
+	// locked. files[accounts.ShadowFile] replaces the whole file.
+	locks map[string]string
+	// sshd is sshd -T's answer (sshdPAM, sshdNoPAM), with an
+	// sshd_config; "" is no sshd: sshd -T is not answered. failT, when
+	// set, is sshd -T's answer instead.
+	sshd  string
+	failT *hostfake.Response
+	// pamG is Alpine's /usr/sbin/sshd.pam -G answer, which installs it;
+	// "" is not installed. failG makes that -G exit 255.
+	pamG  string
+	failG bool
 }
+
+// sshd -T's answers (next/p4-locked): a build with PAM and UsePAM yes
+// (Debian's, Ubuntu's), and Alpine's /usr/sbin/sshd, built without PAM,
+// which prints no usepam line. Shaped like OpenSSH's, not read from a
+// binary.
+const (
+	sshdBase  = "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\n"
+	sshdRest  = "permitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication no\nkbdinteractiveauthentication no\n"
+	sshdPAM   = sshdBase + "usepam yes\n" + sshdRest
+	sshdNoPAM = sshdBase + sshdRest
+)
 
 // stock maps testdata's files to their paths.
 var stock = map[string]string{
@@ -116,6 +144,20 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			out = append(out, l)
 		}
 		files["/etc/group"] = strings.Join(out, "\n")
+	}
+	var shadow strings.Builder
+	for _, l := range strings.Split(files["/etc/passwd"], "\n") {
+		if name, _, ok := strings.Cut(l, ":"); ok {
+			field, set := s.locks[name]
+			if !set {
+				field = "*"
+			}
+			shadow.WriteString(name + ":" + field + ":20000:0:99999:7:::\n")
+		}
+	}
+	files[accounts.ShadowFile] = shadow.String()
+	if s.sshd != "" {
+		files[sshdConfig] = "PasswordAuthentication no\n"
 	}
 	for p, data := range s.files {
 		files[p] = data
@@ -147,6 +189,9 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			suid[tl.Path] = tl.Path != s.bare
 		}
 	}
+	if s.pamG != "" {
+		h.AddFile(pamG[0], []byte("ELF"), 0o755, 0, 0)
+	}
 	if s.seed != nil {
 		s.seed(h)
 	}
@@ -154,6 +199,14 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 	// sudoers.CheckInstalled runs them.
 	h.Handler = func(argv []string, _ []byte) hostfake.Response {
 		switch {
+		case s.failT != nil && sshdT(argv):
+			return *s.failT
+		case s.sshd != "" && sshdT(argv):
+			return hostfake.Response{Stdout: s.sshd}
+		case s.failG && slices.Equal(argv, pamG):
+			return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\n", ExitCode: 255}
+		case s.pamG != "" && slices.Equal(argv, pamG):
+			return hostfake.Response{Stdout: s.pamG}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.runErr != nil:
 			return hostfake.Response{Err: s.runErr}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.reject != sudoers.MainConfig:
@@ -233,15 +286,29 @@ func run(t *testing.T, r row) engine.Status {
 	return st
 }
 
+// sshdConfig is sshd's main file, which sshd -T reads.
+const sshdConfig = "/etc/ssh/sshd_config"
+
+// sshdT is sshd -T of sshd's main file, by the name on the path or
+// Alpine's /usr/sbin/sshd (reload.OpenRCFlavour's), as ssh.ReadPAM runs
+// it.
+func sshdT(argv []string) bool {
+	return (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && slices.Equal(argv[1:], []string{"-T", "-f", sshdConfig})
+}
+
+// pamG is the -G of Alpine's sshd.pam that ssh.ReadPAM runs where which
+// build runs is not established (an Alpine container).
+var pamG = []string{"/usr/sbin/sshd.pam", "-f", sshdConfig, "-G"}
+
 // readOnly fails for any call that changes the fake, and any command but
-// the tools' own checks.
+// the tools' own checks and sshd -T.
 func readOnly(t *testing.T, h *hostfake.System) {
 	t.Helper()
 	for _, c := range h.Calls() {
 		switch c.Op {
 		case "read", "read-nofollow", "stat", "lstat", "readdir":
 		case "run":
-			if a := c.Argv; !slices.Equal(a, []string{"visudo", "-c"}) && (len(a) != 3 || a[0] != "doas" || a[1] != "-C") {
+			if a := c.Argv; !slices.Equal(a, []string{"visudo", "-c"}) && (len(a) != 3 || a[0] != "doas" || a[1] != "-C") && !sshdT(a) && !slices.Equal(a, pamG) {
 				t.Errorf("ran %q", a)
 			}
 		default:
@@ -543,6 +610,178 @@ func TestEvidence(t *testing.T) {
 		}
 		if c.find != "" && (len(st.Findings) == 0 || st.Findings[0].Detail+" "+st.Findings[0].Source != c.find) {
 			t.Errorf("findings %+v, want %q", st.Findings, c.find)
+		}
+	}
+}
+
+// aliceHash is a made-up password hash: no run of four of its characters
+// may leave the check (next/p4-locked).
+const aliceHash = "$6$Rt5uWq2x$Lm8nBv3Cz6Xa1Sd4Fg7Hj0Kp9Qw"
+
+// TestLocked: an account whose password is locked ("!") cannot log in
+// where sshd does not use PAM (auth.c allowed_user), so the row does not
+// count it (check-users.md §7): the Alpine VM (root "!", the login
+// account "*"), an Alpine cloud image without the maintainer's snippet
+// (the login account "!"), Debian and Ubuntu with PAM, UsePAM no on a
+// build with PAM, and each lock and read that is not established.
+func TestLocked(t *testing.T) {
+	d, a, u, p := debian13(), alpine324(), ubuntu2604(), pve9()
+	wheel := map[string]string{"wheel": "root,alice"}
+	nopass := map[string]string{sudoers.DoasDir + "/wheel.conf": "permit nopass :wheel\n"}
+	lock := func(field string) map[string]string { return map[string]string{"root": "!", "alice": field} }
+	vm := func(locks map[string]string) site {
+		return site{plat: a, users: []string{aliceSh}, members: wheel, files: nopass, locks: locks, sshd: sshdNoPAM}
+	}
+	twice := sshdPAM + "usepam no\n"
+	// An Alpine container: no OpenRC, so which sshd build runs is not
+	// established, and sshd.pam's -G is asked (check-ssh.md §2.11).
+	container := a
+	container.facts.Init = detect.Init{Err: errors.New("detect: init: no signal")}
+	container.facts.SSH = detect.SSH{Err: errors.New("detect: ssh: init system not established")}
+	container.facts.Container = detect.Container{Detected: detect.Yes, Signal: "/.dockerenv"}
+	inContainer := func(pamG string) site {
+		s := vm(lock("!"))
+		s.plat, s.pamG = container, pamG
+		return s
+	}
+	// Ubuntu after a boot, before the first SSH connection: ssh.socket
+	// listens, ssh.service has not started, /run/sshd is not there.
+	socket := u
+	socket.facts.SSH = detect.SSH{Mode: detect.SSHSocket, Socket: detect.UnitState{Enabled: "enabled", Active: "active"},
+		Service: detect.UnitState{Enabled: "disabled", Active: "inactive"}}
+	noRunDir := &hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}
+	runAll(t, []row{
+		{name: "alpine: the VM, root !, alice *", site: vm(lock("*")), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine: a cloud image, alice !", site: vm(lock("!")), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine: !!", site: vm(lock("!!")), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine: ! before a hash", site: vm(lock("!" + aliceHash)), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine: a hash", site: vm(lock(aliceHash)), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine: an empty field", site: vm(lock("")), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine: alice locked, bob may log in", site: site{plat: a, users: []string{aliceSh, "bob:x:1001:1001::/home/bob:/bin/sh"},
+			members: map[string]string{"wheel": "root,alice,bob"}, locks: lock("!"), sshd: sshdNoPAM},
+			state: engine.Configured, want: "non-root, doas", codes: []string{users.CodeLocked}},
+		{name: "alpine: alice locked, bob not in wheel", site: site{plat: a, users: []string{aliceSh, "bob:x:1001:1001::/home/bob:/bin/sh"}, members: wheel, locks: lock("!"), sshd: sshdNoPAM},
+			state: engine.Partial, want: "non-root, no doas", codes: []string{users.CodeLocked}},
+		{name: "alpine: alice locked, not in wheel", site: site{plat: a, users: []string{aliceSh}, locks: lock("!"), sshd: sshdNoPAM},
+			state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine: no shadow line, passwd's field locked", site: site{plat: a, users: []string{"alice:!:1000:1000::/home/alice:/bin/sh"}, members: wheel, sshd: sshdNoPAM,
+			files: map[string]string{accounts.ShadowFile: "root:!:20000:0:99999:7:::\n"}},
+			state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine: shadow unreadable", site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
+			state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
+		{name: "alpine: a malformed shadow", site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, files: map[string]string{accounts.ShadowFile: "alice:!\n"}},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_MALFORMED"},
+		{name: "alpine: /etc/tcb read first", site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, files: map[string]string{"/etc/tcb/alice/shadow": "alice:*:20000:0:99999:7:::\n"}},
+			state: engine.Unknown, want: "can't read", err: "ACCOUNTS_TCB"},
+		{name: "shadow unreadable, root only", site: site{plat: a, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
+			state: engine.NotConfigured, want: "root only"},
+		// With PAM sshd skips the lock: the row as before.
+		{name: "debian: UsePAM yes, alice !", site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM},
+			state: engine.Configured, want: "non-root, sudo"},
+		{name: "ubuntu: UsePAM yes, alice !", site: site{plat: u, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM},
+			state: engine.Configured, want: "non-root, sudo"},
+		{name: "debian: UsePAM yes, shadow unreadable", site: site{plat: d, users: []string{alice}, members: sudoGroup, sshd: sshdPAM, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
+			state: engine.Configured, want: "non-root, sudo"},
+		{name: "debian: UsePAM no, alice !", site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: strings.Replace(sshdPAM, "usepam yes", "usepam no", 1)},
+			state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "debian: usepam printed twice, alice !", site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: twice},
+			state: engine.Unknown, want: "can't read", codes: []string{"SSHD_EFFECTIVE_UNKNOWN"}},
+		{name: "debian: usepam printed twice, alice *", site: site{plat: d, users: []string{alice}, members: sudoGroup, sshd: twice},
+			state: engine.Configured, want: "non-root, sudo"},
+		// sshd -T failing: the SSH rows' words for it.
+		{name: "debian: no sshd_config, alice !", site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!")},
+			state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
+		{name: "debian: no sshd_config, alice not in sudo", site: site{plat: d, users: []string{alice}, locks: lock("!")},
+			state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
+		{name: "ubuntu: alice !, sshd not started yet", site: site{plat: socket, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM, failT: noRunDir},
+			state: engine.Unknown, want: "sshd not started yet", err: "SSHD_ENV_NO_RUNDIR"},
+		{name: "alpine container: alice !, sshd.pam would use PAM", site: inContainer("usepam yes\n"),
+			state: engine.Unknown, want: "can't tell which sshd runs"},
+		{name: "alpine container: alice !, sshd.pam would not", site: inContainer("usepam no\n"),
+			state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		{name: "alpine container: alice *, sshd.pam not asked", site: func() site { s := inContainer("usepam yes\n"); s.locks = lock("*"); return s }(),
+			state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine container: sshd.pam's -G fails", site: func() site { s := inContainer("usepam yes\n"); s.failG = true; return s }(),
+			state: engine.Unknown, want: "can't read", err: "COMMAND_FAILED"},
+		{name: "proxmox: a user, no sudo, alice !", site: site{plat: p, users: []string{alice}, members: sudoGroup, locks: lock("!"), sshd: sshdPAM},
+			state: engine.Partial, want: "non-root, no sudo"},
+	})
+
+	// The evidence names each lock that may decide, with no hash, and
+	// sshd's PAM; the finding is at the lock's line.
+	for _, c := range []struct {
+		row  row
+		want []string
+	}{{
+		row: row{site: vm(lock("!" + aliceHash)), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
+		want: []string{
+			"sudo: not installed",
+			"passwd: alice, uid 1000, /bin/sh",
+			"/etc/shadow:13: alice locked (!)",
+			"doas: alice by /etc/doas.d/wheel.conf:1: permit nopass :wheel",
+			"sshd -T: no usepam (built without PAM)",
+		},
+	}, {
+		row: row{site: vm(lock(aliceHash)), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		want: []string{
+			"sudo: not installed",
+			"passwd: alice, uid 1000, /bin/sh",
+			"doas: alice by /etc/doas.d/wheel.conf:1: permit nopass :wheel",
+		},
+	}, {
+		row: row{site: site{plat: d, users: []string{alice}, members: sudoGroup, locks: lock("!" + aliceHash), sshd: sshdPAM}, state: engine.Configured, want: "non-root, sudo"},
+		want: []string{
+			"doas: not installed",
+			"passwd: alice, uid 1000, /bin/bash",
+			"/etc/shadow:10: alice locked (!)",
+			"sudo: alice by /etc/sudoers:22: %sudo ALL=(ALL:ALL) ALL",
+			"sshd -T: usepam yes",
+		},
+	}, {
+		row: row{site: site{plat: d, users: []string{alice}, members: sudoGroup, sshd: sshdPAM, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
+			state: engine.Configured, want: "non-root, sudo"},
+		want: []string{
+			"doas: not installed",
+			"passwd: alice, uid 1000, /bin/bash",
+			"/etc/shadow: alice not read: read /etc/shadow: permission denied",
+			"sudo: alice by /etc/sudoers:22: %sudo ALL=(ALL:ALL) ALL",
+			"sshd -T: usepam yes",
+		},
+	}, {
+		row: row{site: site{plat: a, users: []string{aliceSh}, members: wheel, sshd: sshdNoPAM, fail: map[string]error{"read " + accounts.ShadowFile: fs.ErrPermission}},
+			state: engine.Unknown, want: "can't read", err: "PERMISSION_DENIED"},
+		want: []string{
+			"sudo: not installed",
+			"passwd: alice, uid 1000, /bin/sh",
+			"/etc/shadow: alice not read",
+			"doas: alice by /etc/doas.d/20-wheel.conf:1: permit persist :wheel",
+			"sshd -T: no usepam (built without PAM)",
+		},
+	}} {
+		st := run(t, c.row)
+		if !slices.Equal(st.Evidence, c.want) {
+			t.Errorf("evidence\n%q\nwant\n%q", st.Evidence, c.want)
+		}
+		if c.row.state == engine.NotConfigured && (st.Findings[0].Detail != "alice: locked, no login" || st.Findings[0].Source != "/etc/shadow:13") {
+			t.Errorf("finding %+v", st.Findings[0])
+		}
+		for i := 0; i+4 <= len(aliceHash); i++ {
+			if strings.Contains(fmt.Sprintf("%+v", st), aliceHash[i:i+4]) {
+				t.Errorf("the status holds %q of alice's hash: %+v", aliceHash[i:i+4], st)
+			}
+		}
+	}
+
+	// No lock decides: neither sshd -T nor, with root alone, /etc/shadow.
+	for _, s := range []site{vm(lock("*")), {plat: a, sshd: sshdNoPAM}} {
+		sys, h := s.build(t)
+		if _, err := (users.Admin{}).Check(context.Background(), sys, s.plat.facts); err != nil {
+			t.Fatal(err)
+		}
+		for _, c := range h.Calls() {
+			if c.Op == "run" && sshdT(c.Argv) || len(s.users) == 0 && c.Path == accounts.ShadowFile {
+				t.Errorf("%v", c)
+			}
 		}
 	}
 }

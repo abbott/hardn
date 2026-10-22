@@ -2,8 +2,10 @@
 // /etc/group, through host.System (refactor plan Phase 4,
 // next/p4-check-users): every account and every group, in file order, for
 // a check that needs them all rather than one lookup (host.System's
-// LookupUser and LookupGroup find one name). It reads only; it never reads
-// /etc/shadow.
+// LookupUser and LookupGroup find one name). It reads only. Of
+// /etc/shadow (next/p4-locked) and of the password field of /etc/passwd it
+// keeps only what the field's first character says of the account's lock
+// (Lock), never the field (shadow.go).
 //
 // A line in neither file's form is an error (ErrMalformed), never skipped:
 // a line hardn cannot read may be the account or the group a check is
@@ -43,6 +45,9 @@ type User struct {
 	Home     string
 	Shell    string // as written: "" means /bin/sh (passwd(5))
 	Line     int    // its line in PasswdFile, from 1
+	// PasswdLock is the lock state of its password field here, which
+	// sshd reads when ShadowFile has no line for it (Shadow.LockOf).
+	PasswdLock Lock
 }
 
 // Group is one line of GroupFile.
@@ -77,6 +82,15 @@ func Read(ctx context.Context, sys host.System) (DB, error) {
 	return db, err
 }
 
+// ReadPasswd reads and parses PasswdFile alone. It changes nothing.
+func ReadPasswd(ctx context.Context, sys host.System) ([]User, error) {
+	p, err := sys.ReadFile(ctx, PasswdFile)
+	if err != nil {
+		return nil, fmt.Errorf("accounts: %w", err)
+	}
+	return ParsePasswd(p)
+}
+
 // ParsePasswd parses PasswdFile's content: name:password:uid:gid:gecos:home:shell.
 func ParsePasswd(data []byte) ([]User, error) {
 	var us []User
@@ -86,7 +100,7 @@ func ParsePasswd(data []byte) ([]User, error) {
 		if f[0] == "" || err1 != nil || err2 != nil {
 			return ErrMalformed
 		}
-		us = append(us, User{Name: f[0], UID: uid, GID: gid, Home: f[5], Shell: f[6], Line: n})
+		us = append(us, User{Name: f[0], UID: uid, GID: gid, Home: f[5], Shell: f[6], Line: n, PasswdLock: lockOf(f[1])})
 		return nil
 	})
 	return us, err

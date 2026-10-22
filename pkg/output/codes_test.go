@@ -50,6 +50,7 @@ import (
 // missing here: add it, with an entry in codes.go that matches it.
 var sentinels = map[string]error{
 	"accounts.ErrMalformed":          accounts.ErrMalformed,
+	"accounts.ErrTCB":                accounts.ErrTCB,
 	"alpine.ErrChanged":              alpine.ErrChanged,
 	"alpine.ErrNoBackup":             alpine.ErrNoBackup,
 	"alpine.ErrNoCrond":              alpine.ErrNoCrond,
@@ -562,6 +563,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown)
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
+	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),
