@@ -124,6 +124,29 @@ func TestHuman(t *testing.T) {
 	}
 }
 
+// TestHumanAwaitingConfirmation: a change applied and waiting for
+// confirmation reads as P-42 R7 has it, and as a flow and AfterFlow draw
+// it: the steps, "Operation Successful", the countdown's Warning callout
+// and its command, then when the change is rolled back unless confirmed.
+func TestHumanAwaitingConfirmation(t *testing.T) {
+	for _, fx := range fixtures() {
+		if fx.name != "awaiting-confirmation" {
+			continue
+		}
+		h := output.Human(plainEnv(), fx.run, fixtureNow)
+		at := 0
+		for _, w := range []string{"Done", "Operation Successful", "Warning", "reverts automatically", "sudo hardn confirm", "Unless confirmed, change"} {
+			i := strings.Index(h[at:], w)
+			if i < 0 {
+				t.Fatalf("no %q (in order) in:\n%s", w, h)
+			}
+			at += i + len(w)
+		}
+		return
+	}
+	t.Fatal("no awaiting-confirmation fixture")
+}
+
 // TestEmitHuman: the human report goes to stdout, through the Env's
 // writer (no escape sequences for a stdout that is not a terminal), and
 // says nothing of the deprecated value, which cmd/hardn warned about as

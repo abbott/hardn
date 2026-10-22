@@ -14,6 +14,8 @@
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
       ␛[38;2;112;212;127mDone␛[m$
 $
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
@@ -42,6 +44,8 @@ $
   [+] Check that sshd listens on 22 and 2230$
       Done$
 $
+# Operation Successful$
+$
 # Warning$
 # This change reverts automatically in 2:45$
 # To keep it, open a new SSH session on port 2230 and run:$
@@ -69,6 +73,8 @@ $
       ␛[38;2;112;212;127mDone␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
       ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
