@@ -461,3 +461,99 @@ exit 2 a gate does not hold, or a usage error
 ```
 
 **Size:** about 1,710 lines of non-test Go (much of it doc comments and the transcript's lines) and 1,280 of tests, against the plan's guideline of about 500: eight commands over nine primitives, the engine's write-ahead order with its failure path, and on the fake a test per gate, per scenario (Debian, Ubuntu's socket, Alpine's OpenRC, Proxmox VE, the v0.3.2 migration) and per failure after the timer is armed, with a model of sshd's reading for `sshd -T` (the review round after the first commit added about 270 lines of code and 710 of tests). The commands share one planning and one apply path; splitting them (the read-only report, the lockout changes, sudoers and the migration) would have kept each unit nearer the guideline.
+
+## 8. Phase 4: the main menu read on the VMs (`internal/tools/p4status`, `next/p4-vmcheck`)
+
+> **Run on Debian 13 and Ubuntu 26.04 on 2026-10-21 (§8.5), built from `next/p4-vmcheck` 1609b95.** Alpine 3.24 and Proxmox VE 9 have no VM: their steps stay written, not run (gate 5).
+
+`p4status` reads the host as hardn's main menu will (detect, the five checks, the header probe, the risk level) and prints the main menu, then the evidence each line was read from and every command it ran ([vmcheck.md](../engine/vmcheck.md)). It changes nothing, by construction: a guard refuses every change and runs only the commands the checks run, so it runs on a VM in any state: as installed, after §4's steps, or on the `p2-clean` snapshot. The maintainer's VMs: Debian 13 and Ubuntu 26.04, amd64. The names below are synthetic (§4); substitute the real ones when running, and do not commit them.
+
+### 8.1 Build and copy (on the development machine)
+
+Never run p4status here: it refuses macOS anyway.
+
+```sh
+cd hardn-p4   # the worktree on next/p4-vmcheck or later
+out=$(mktemp -d)
+GOTOOLCHAIN=local GOWORK=off CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  mise exec -- go build -trimpath -tags=netgo -o "$out/p4status" ./internal/tools/p4status
+git rev-parse --short HEAD      # record it
+shasum -a 256 "$out/p4status"   # record it
+scp "$out/p4status" alice@web-01.example.net:/tmp/p4status
+```
+
+### 8.2 Run (on each VM)
+
+```sh
+sha256sum /tmp/p4status          # the build's, recorded above
+chmod 0755 /tmp/p4status
+# before the run: what it must leave as it found it (§8.4)
+before=$(mktemp -d)
+sudo ls -la /run/ufw* /var/lib/ufw /etc/ufw > "$before/ufw.txt" 2>&1
+systemctl list-units --state=failed --no-legend > "$before/failed.txt"
+sudo stat -c '%y %n' /etc/ssh/sshd_config.d /etc/sudoers.d /etc/ufw/user.rules > "$before/mtimes.txt" 2>&1
+findmnt -rn -o TARGET > "$before/mounts.txt"
+# the run
+sudo /tmp/p4status > /tmp/p4status.txt; echo "exit $?"
+less /tmp/p4status.txt
+```
+
+Expect `exit 0` and nothing on stderr. Exit 1 with `p4status: <n> call(s) refused` means a check ran a command, or a shape, that the driver's list lacks: the output then starts with `== incomplete: <n> call(s) refused, in <parts>`, and the rows it names may show the host safer than it is, whatever their state (vmcheck.md §2.6). Record the `refused` lines of the evidence's `commands` and its `incomplete` lines (vmcheck.md §7), and check the rows named against §8.3 all the same. On a `/tmp` mounted `noexec`, copy it to `/root` instead (Debian 13 mounts `/tmp` as a tmpfs; whether `noexec` **[unverified]**). To see the main menu as a terminal draws it: `sudo /tmp/p4status -profile truecolor -height 40 | less -R`.
+
+### 8.3 Check each line by hand
+
+Run each command as it stands (`sudo` where shown), on the same VM, soon after p4status, and compare: the main menu's line, and the evidence under it (`row <id>`, `header`, `risk`).
+
+| Line | Independent commands | It agrees when |
+|---|---|---|
+| Distribution bar | `cat /etc/os-release` | the name, `VERSION_ID` and `VERSION_CODENAME` are the bar's |
+| Hostname | `hostname`; `cat /proc/sys/kernel/hostname` | the badge is the kernel's name |
+| Address | `ip route get 1.1.1.1` (a route lookup: nothing is sent); `ip route show default`; `ip -4 addr show dev <dev>`; `ip rule` | the address is `ip route get`'s `src`, on the default route's `dev`, as the evidence's `ipv4` line says; but where `ip route show default` sets a `src` of its own, or `ip rule` lists more than the three default rules, they may differ: a route's preferred source and policy routing are not modelled ([header.md](../engine/header.md) §7), and the address shown is then the interface's first |
+| Uptime | `uptime -p`; `cat /proc/uptime` | the uptime is `uptime -p`'s, and the evidence's seconds are `/proc/uptime`'s first number less the seconds between the two runs |
+| Reboot pending | `ls -l /var/run/reboot-required`; `uname -r`; `uname -v`; `ls /boot`; `dpkg-query -W "linux-image-$(uname -r)"` | the host block shows "Reboot pending" exactly when the file exists, a newer `vmlinuz-*` is in `/boot`, or (a kernel Debian built) the package's version is not the one `uname -v` names after `Debian`; each source is an `evidence` line under `header` |
+| User | `getent passwd`; `getent group sudo`; `sudo -l -U <user>` for each account of uid 1000 or more with a login shell; `sudo cat /etc/sudoers`; `sudo ls -l /etc/sudoers.d` | the detail ("non-root, sudo", "root only", …) is what `getent` and `sudo -l` show, and every grant the evidence names is one `sudo -l -U` lists ([check-users.md](../engine/check-users.md)) |
+| Firewall | `sudo ufw status verbose`; `sudo ss -tlnp`; `sudo sshd -T \| grep -i -e '^port ' -e '^listenaddress '` | the state and the policy are `ufw status verbose`'s, and every SSH listener `ss` shows is allowed by a rule it lists ([check-firewall.md](../engine/check-firewall.md)) |
+| SSH Login | `sudo sshd -T \| grep -i '^permitrootlogin'`; `sudo grep -rin '^[[:space:]]*match' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/`; the running daemon: `systemctl show -p ExecMainStartTimestamp ssh.service`, `sudo journalctl -u ssh.service -g 'Received SIGHUP' -o short-iso -n 1` (sshd's reload message, **[unverified]** on OpenSSH 10), `sudo stat -c '%y %n' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*` | the detail is `permitrootlogin`'s value ("root disallowed" for `no`, "root key-only" for `prohibit-password`/`without-password`); a `Match` block that lets root in more than that value is a finding (`SSH_MATCH_ALLOWS_MORE`) and keeps the row from `Configured`, one that lets in less is not ([check-ssh.md](../engine/check-ssh.md) §2.5); on Debian 13 (`ssh.service`), a configured port `ss` does not show bound makes the row `Unknown`, "config not in effect", whatever `sshd -T` says (check-ssh.md §2.8a). **`sshd -T` and the `grep` read the files, as the check does**, so they agree with it when sshd has not reread them: a file newer than both the daemon's start and its last `SIGHUP` is recorded as "the files' values, not established as in effect", whatever the row says (check-ssh.md §6, not modelled) |
+| SSH Auth | `sudo sshd -T \| grep -i -e '^passwordauthentication' -e '^kbdinteractiveauthentication' -e '^pubkeyauthentication'`; the running daemon as for SSH Login; from another host, `ssh -o BatchMode=yes -o PubkeyAuthentication=no alice@web-01.example.net true`, which fails with `Permission denied (<methods>)`, the methods the running sshd offers that account (`ssh -v` prints them as `Authentications that can continue:`) | "key-only auth" when the first two are `no`, the third `yes`, no `Match` block turns either of the first two on, and the running sshd offers `publickey` alone; but on Debian 13 (`ssh.service`), a configured port `ss` does not show bound makes it `Unknown`, "config not in effect" (check-ssh.md §2.8a); a file newer than the daemon's start and its last `SIGHUP`, as for SSH Login ([check-ssh.md](../engine/check-ssh.md)) |
+| SSH Port | `sudo sshd -T \| grep -i -e '^port ' -e '^listenaddress '`; `sudo ss -tlnp`; on Ubuntu `systemctl show -p Listen ssh.socket` | the port in the detail is the one sshd (or ssh.socket) listens on, and `ss` shows it bound |
+| AppArmor | `sudo aa-status`; `cat /sys/module/apparmor/parameters/enabled`; `sudo cat /sys/module/apparmor/parameters/mode`; `sudo grep -v '^:' /sys/kernel/security/apparmor/profiles \| grep -cE '\((enforce\|kill)\)$'`; `sudo grep -c '^:' /sys/kernel/security/apparmor/profiles`; `systemctl is-enabled apparmor.service` | the count of profiles enforced is the first `grep`'s: the root namespace's profiles in `enforce` or `kill` mode ([check-apparmor.md](../engine/check-apparmor.md) §2.5); the second `grep`'s is the evidence's `; N in other namespaces` (absent for none); `aa-status`'s enforce count agrees where no profile is in kill mode or in another namespace; "logging only", "off after restart", "off in kernel" as check-apparmor.md says |
+| Auto Updates | `dpkg-query -W unattended-upgrades`; `apt-config dump APT::Periodic`; `apt-config dump Unattended-Upgrade::Allowed-Origins Unattended-Upgrade::Origins-Pattern`; `systemctl is-enabled apt-daily-upgrade.timer apt-daily.timer apt-daily-upgrade.service apt-daily.service`; `systemctl is-active apt-daily-upgrade.timer apt-daily.timer` | the detail is what these show, by [check-updates.md](../engine/check-updates.md)'s table |
+| Risk level | none: from the rows, by [risk.md](../engine/risk.md) §5 | the evidence's `score` is risk.md §5.2's: `100 × earned ÷ applicable weight` (each row's weight, §5.1, by what its state earns, §5.2; a row `not-applicable` is left out of both), less each `factor`'s `cost` (§5.3), at least 0; its `band` §5.4's; and each factor's cross-check holds on the host (§6.2) |
+| Commands | each `exit <n> <argv>` line of the evidence, run by hand as root, its words pasted as printed: they are quoted for the shell, so `dpkg-query`'s `'--showformat=${Status}\t${Version}\n'` runs as it ran | it exits with the same status, and prints what the row's evidence quotes of it |
+
+### 8.4 What to record
+
+For each VM, with the run's date:
+
+- the build's commit and sha256 (§8.1), `PRETTY_NAME` of `/etc/os-release` and `uname -r`;
+- p4status's exit status, its stderr, and `/tmp/p4status.txt` whole, kept with Phase 3's transcripts (`vm-runs/p4/`), not in the repository;
+- for each row of §8.3: agrees or not; for each that does not, the main menu's line, the evidence's lines under it, the independent command's output, and which is right: a status that says the host is safer than the commands show is the finding that matters most;
+- any `refused` line, and any `failed` command the host has;
+- whether the run changed anything: §8.2's four `before` commands run again after it, each into `$after` (`after=$(mktemp -d)`, the same file names), and `diff -r "$before" "$after"` empty: ufw's files the same, no unit newly failed, the same mtimes of `/etc/ssh/sshd_config.d/`, `/etc/sudoers.d/` and `/etc/ufw/user.rules`, the same mounts (an automounted `/boot` would show here, [vmcheck.md](../engine/vmcheck.md) §2.4).
+
+Results go in a subsection of §4.9's form only once run, the host's names and addresses replaced by the synthetic ones.
+
+### 8.5 The run (2026-10-21, Debian 13 and Ubuntu 26.04)
+
+Built from `next/p4-vmcheck` 1609b95 (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64`), copied to `/tmp/p4` on each VM over the runner's shared connection and run as `sudo /tmp/p4/p4status -height 40`, with a stamp file before it; the host's own answers were taken first by a script of independent commands (the §8.3 list: `sshd -T`, `ss -tlnp`, `systemctl show -p Listen ssh.socket`, `ufw status verbose`, `/etc/ufw/ufw.conf`, `/sys/module/apparmor/parameters/*`, `/sys/kernel/security/apparmor/profiles`, `aa-status`, `apt-config dump`, `dpkg-query -W`, `systemctl is-enabled`/`is-active`, `getent passwd`, `sudo -l -U`, `uptime -p`, `ip route`, `ls /boot`, `uname -r`). The VMs were as Phase 3's run left them: port 22, ufw active allowing 22/tcp, the runner's login account (`<runner>` below) and alice in `sudo`. Names and addresses are placeholders.
+
+| Line | Debian 13 (ssh.service, sudo 1.9.16p2) | Ubuntu 26.04 (ssh.socket, sudo-rs 0.2.13) | The host's own answer |
+|---|---|---|---|
+| Distribution bar | Debian 13 (Trixie) | Ubuntu 26.04 (Resolute) | `/etc/os-release` |
+| Host block | `<host>`, `<ip>`, 21 hours, 33 minutes | `<host>`, `<ip>`, 21 hours, 33 minutes | `hostname`, `ip route show default` (eth0), `uptime -p` an hour earlier: 20 hours, 38 minutes |
+| Reboot | none (running 6.12.113+deb13-cloud-amd64, the only kernel; dpkg's version matches `/proc/sys/kernel/version`) | none (running 7.0.0-38-generic, the newest of 7.0.0-34 and -38) | `uname -r`, `ls /boot`, no `/var/run/reboot-required` |
+| Risk Level | Low ≈ strong security (82.5), factor "no password to become root" | the same | |
+| User | Configured "non-root, sudo"; USERS_NOPASSWD "`<runner>`: sudo without password" from `/etc/sudoers.d/90-cloud-init-users:4` | the same (sudo-rs reads `/etc/sudoers`) | `sudo -l -U`: `<runner>` (ALL) NOPASSWD: ALL; alice (ALL : ALL) ALL |
+| Firewall | Configured "deny policy" | the same | `ufw status verbose`: active, deny (incoming), 22/tcp allowed in IPv4 and IPv6 |
+| SSH Login | Partial "root key-only" | the same | `sshd -T`: `without-password` (Debian's cloud image), `prohibit-password` (Ubuntu) |
+| SSH Auth | Configured "key-only auth" | the same | password and keyboard-interactive no, pubkey yes |
+| SSH Port | Not Configured "default (22)" | the same | `ss`: sshd on 0.0.0.0:22 and [::]:22 (Ubuntu: `ssh.socket` Listen the same) |
+| AppArmor | Configured "7 profiles enforced" | Configured "101 profiles enforced" (**finding below**) | Debian: 7 enforce, 23 complain, 76 unconfined; Ubuntu: `aa-status` 103 in enforce mode |
+| Auto Updates | Configured "unattended-upgrades" | the same | installed; Update-Package-Lists and Unattended-Upgrade "1"; both timers enabled and active; 3 origin patterns (Debian), 4 allowed origins (Ubuntu) |
+
+**Read only, as built:** exit 0 on both, 27 and 28 commands run, none refused; no mount appeared or went (`findmnt` before and after); the only file under `/etc`, `/usr`, `/var/lib`, `/root` or `/boot` newer than the stamp was Debian's `/var/lib/systemd/timesync/clock`, which systemd-timesyncd writes on its own.
+
+**Finding, fixed on `next/p4-vmcheck`:** the AppArmor check counted the root namespace's profiles only, on the page's assumption that a namespace below it is a container's. Ubuntu 26.04 loads two profiles in glycin's namespace (`:glycin:bwrap`, `:glycin:loaders`), which confine image loaders on the host itself, and `aa-status` counts them: 103 where the line said 101. The check now counts every namespace's profiles, as `aa-status` does, and the evidence says how many are in other namespaces ([check-apparmor.md](../engine/check-apparmor.md) item 5). Debian's line is unchanged (no other namespace there). Rerun on both VMs with p4status built from 17f948b: Ubuntu 26.04 "103 profiles enforced" (evidence "103 enforce, 2 complain, 74 unconfined; 2 of them in other namespaces"), Debian 13 "7 profiles enforced"; exit 0, none refused.
+
+Not run: Alpine 3.24 and Proxmox VE 9 (no VM); the states the VMs are not in (a port change, ufw inactive, AppArmor off, updates off, a pending reboot): their lines are the checks' tests and the gallery's simulated hosts only.
+

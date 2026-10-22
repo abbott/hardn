@@ -1,0 +1,680 @@
+{
+	"host": "debian13",
+	"setuid": [
+		"/usr/bin/sudo"
+	],
+	"users": [
+		{
+			"name": "alice",
+			"uid": 1000,
+			"gid": 1000,
+			"home": "/home/alice"
+		},
+		{
+			"name": "root",
+			"uid": 0,
+			"gid": 0,
+			"home": "/root"
+		}
+	],
+	"groups": [
+		{
+			"name": "alice",
+			"gid": 1000
+		},
+		{
+			"name": "root",
+			"gid": 0
+		}
+	],
+	"commands": [
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"pve-manager"
+			],
+			"stderr": "dpkg-query: no packages found matching pve-manager\n",
+			"exit": 1
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"ssh.socket"
+			],
+			"stdout": "disabled\n",
+			"exit": 1
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-active",
+				"ssh.socket"
+			],
+			"stdout": "inactive\n",
+			"exit": 3
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"ssh.service"
+			],
+			"stdout": "enabled\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-active",
+				"ssh.service"
+			],
+			"stdout": "active\n"
+		},
+		{
+			"argv": [
+				"sudo",
+				"--version"
+			],
+			"stdout": "Sudo version 1.9.16p2\n"
+		},
+		{
+			"argv": [
+				"visudo",
+				"-c"
+			],
+			"stdout": "/etc/sudoers: parsed OK\n"
+		},
+		{
+			"argv": [
+				"ufw",
+				"status",
+				"verbose"
+			],
+			"stdout": "Status: active\nLogging: on (low)\nDefault: deny (incoming), allow (outgoing), disabled (routed)\nNew profiles: skip\n\nTo                         Action      From\n--                         ------      ----\n22/tcp                     ALLOW IN    Anywhere                  \n22/tcp (v6)                ALLOW IN    Anywhere (v6)             \n"
+		},
+		{
+			"argv": [
+				"sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\npermitemptypasswords no\nusepam yes\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"apparmor.service"
+			],
+			"stdout": "enabled\n"
+		},
+		{
+			"argv": [
+				"apt-config",
+				"dump",
+				"APT::Periodic",
+				"Unattended-Upgrade::Origins-Pattern",
+				"Unattended-Upgrade::Allowed-Origins"
+			]
+		},
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"unattended-upgrades"
+			],
+			"stderr": "dpkg-query: no packages found matching unattended-upgrades\n",
+			"exit": 1
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-active",
+				"apt-daily-upgrade.timer"
+			],
+			"stdout": "active\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"apt-daily-upgrade.timer"
+			],
+			"stdout": "enabled\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"apt-daily-upgrade.service"
+			],
+			"stdout": "static\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-active",
+				"apt-daily.timer"
+			],
+			"stdout": "active\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"apt-daily.timer"
+			],
+			"stdout": "enabled\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-enabled",
+				"apt-daily.service"
+			],
+			"stdout": "static\n"
+		},
+		{
+			"argv": [
+				"ip",
+				"-4",
+				"addr",
+				"show",
+				"dev",
+				"eth0"
+			],
+			"stdout": "2: eth0: \u003cBROADCAST,MULTICAST,UP,LOWER_UP\u003e mtu 1500 qdisc noqueue state UP group default qlen 1000\n    inet 192.0.2.20/24 brd 192.0.2.255 scope global eth0\n       valid_lft forever preferred_lft forever\n"
+		},
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"linux-image-6.12.43+deb13-amd64"
+			],
+			"stdout": "install ok installed\t6.12.43-1\n"
+		}
+	],
+	"entries": [
+		{
+			"path": "/bin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/bin/bash",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "ELF"
+		},
+		{
+			"path": "/boot",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/boot/vmlinuz-6.12.43+deb13-amd64",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/default",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/default/ufw",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "IPV6=yes\nDEFAULT_INPUT_POLICY=\"DROP\"\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n"
+		},
+		{
+			"path": "/etc/group",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "root:x:0:\nsudo:x:27:alice\nnogroup:x:65534:\nalice:x:1000:\n"
+		},
+		{
+			"path": "/etc/os-release",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\nID=debian\n"
+		},
+		{
+			"path": "/etc/passwd",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nalice:x:1000:1000:alice:/home/alice:/bin/bash\n"
+		},
+		{
+			"path": "/etc/ssh",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/ssh/sshd_config",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "Include /etc/ssh/sshd_config.d/*.conf\n\nUsePAM yes\n"
+		},
+		{
+			"path": "/etc/ssh/sshd_config.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/sudoers",
+			"type": "file",
+			"mode": "0440",
+			"uid": 0,
+			"gid": 0,
+			"data": "Defaults env_reset\nroot ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"
+		},
+		{
+			"path": "/etc/sudoers.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/systemd",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/systemd/system",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/ufw",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/ufw/ufw.conf",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "ENABLED=yes\nLOGLEVEL=low\n"
+		},
+		{
+			"path": "/etc/ufw/user.rules",
+			"type": "file",
+			"mode": "0640",
+			"uid": 0,
+			"gid": 0,
+			"data": "*filter\n:ufw-user-input - [0:0]\n### RULES ###\n\n### tuple ### allow tcp 22 0.0.0.0/0 any 0.0.0.0/0 in\n-A ufw-user-input -p tcp --dport 22 -j ACCEPT\n\n### END RULES ###\nCOMMIT\n"
+		},
+		{
+			"path": "/etc/ufw/user6.rules",
+			"type": "file",
+			"mode": "0640",
+			"uid": 0,
+			"gid": 0,
+			"data": "*filter\n:ufw-user-input - [0:0]\n### RULES ###\n\n### tuple ### allow tcp 22 ::/0 any ::/0 in\n-A ufw-user-input -p tcp --dport 22 -j ACCEPT\n\n### END RULES ###\nCOMMIT\n"
+		},
+		{
+			"path": "/proc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/1",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/1/environ",
+			"type": "file",
+			"mode": "0400",
+			"uid": 0,
+			"gid": 0,
+			"data": "HOME=/\u0000TERM=linux\u0000"
+		},
+		{
+			"path": "/proc/net",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/net/ipv6_route",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "00000000000000000000000000000000 00 00000000000000000000000000000000 00 00000000000000000000000000000000 ffffffff 00000001 00000000 00200200       lo\n00000000000000000000000000000001 80 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000002 00000000 80200001       lo\n"
+		},
+		{
+			"path": "/proc/net/route",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT                                                       \neth0\t00000000\t010200C0\t0003\t0\t0\t100\t00000000\t0\t0\t0                                                                             \neth0\t000200C0\t00000000\t0001\t0\t0\t100\t00FFFFFF\t0\t0\t0                                                                             \n"
+		},
+		{
+			"path": "/proc/self",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/self/mounts",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n/dev/vda1 / ext4 rw,relatime 0 0\n"
+		},
+		{
+			"path": "/proc/self/ns",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/self/ns/pid",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "pid:[4026531836]"
+		},
+		{
+			"path": "/proc/sys",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel/hostname",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "web-01\n"
+		},
+		{
+			"path": "/proc/sys/kernel/osrelease",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "6.12.43+deb13-amd64\n"
+		},
+		{
+			"path": "/proc/sys/kernel/version",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "#1 SMP PREEMPT_DYNAMIC Debian 6.12.43-1 (2025-08-27)\n"
+		},
+		{
+			"path": "/proc/sys/net",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6",
+			"type": "dir",
+			"mode": "0555",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/uptime",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "277920.37 553000.12\n"
+		},
+		{
+			"path": "/run",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/run/systemd",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/run/systemd/system",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/kernel",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/kernel/security",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/kernel/security/apparmor",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/kernel/security/apparmor/profiles",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "/usr/bin/man (enforce)\nlsb_release (enforce)\nman_filter (enforce)\nman_groff (enforce)\nnvidia_modprobe (enforce)\nnvidia_modprobe//kmod (enforce)\nunix-chkpwd (enforce)\n"
+		},
+		{
+			"path": "/sys/module",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/module/apparmor",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/module/apparmor/parameters",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/sys/module/apparmor/parameters/enabled",
+			"type": "file",
+			"mode": "0444",
+			"uid": 0,
+			"gid": 0,
+			"data": "Y\n"
+		},
+		{
+			"path": "/sys/module/apparmor/parameters/mode",
+			"type": "file",
+			"mode": "0600",
+			"uid": 0,
+			"gid": 0,
+			"data": "enforce"
+		},
+		{
+			"path": "/usr",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/bin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/bin/sudo",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "ELF"
+		},
+		{
+			"path": "/usr/local",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/var",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		}
+	]
+}

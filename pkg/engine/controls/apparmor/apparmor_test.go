@@ -300,9 +300,9 @@ func TestLines(t *testing.T) {
 		// Configured: one profile or more enforcing, loaded at boot.
 		{name: "debian13", site: site{plat: debian13()}, state: engine.Configured, detail: "7 profiles enforced"},
 		{name: "ubuntu2604, complain and unconfined profiles beside", site: site{plat: ubuntu2604()}, state: engine.Configured, detail: "15 profiles enforced"},
-		{name: "pve9 with LXC's profiles", site: site{plat: pve9()}, state: engine.Configured, detail: "16 profiles enforced"},
-		{name: "a container's namespace counts apart", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n:lxc-103_<-var-lib-lxc>:/usr/bin/man (enforce)\n"},
-			state: engine.Configured, detail: "1 profile enforced"},
+		{name: "pve9 with LXC's profiles", site: site{plat: pve9()}, state: engine.Configured, detail: "17 profiles enforced"},
+		{name: "another namespace's profiles count, as aa-status counts them", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n:lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n:lxc-103_<-var-lib-lxc>:/usr/bin/man (enforce)\n"},
+			state: engine.Configured, detail: "3 profiles enforced"},
 		{name: "alpine324 with AppArmor, apparmor in boot", site: site{plat: alpine324()}, state: engine.Configured, detail: "2 profiles enforced"},
 		{name: "alpine324 with AppArmor, apparmor in default", site: site{plat: alpine324(), levels: []string{"default"}}, state: engine.Configured, detail: "2 profiles enforced"},
 		{name: "one profile", site: site{plat: debian13(), profiles: "/usr/bin/man (enforce)\n"}, state: engine.Configured, detail: "1 profile enforced"},
@@ -331,7 +331,7 @@ func TestLines(t *testing.T) {
 		// Not Configured, no profiles loaded: the LSM on, nothing loaded.
 		{name: "debian13 without the apparmor package", site: site{plat: debian13(), profiles: noneRead, unit: "not-found"}, state: engine.NotConfigured, detail: noProfiles},
 		{name: "ubuntu2604, none loaded", site: site{plat: ubuntu2604(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles},
-		{name: "only a container's namespace's profiles", site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n"}, state: engine.NotConfigured, detail: noProfiles},
+		{name: "only a container's namespace's profiles", site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (enforce)\n"}, state: engine.Configured, detail: "1 profile enforced"},
 		{name: "none loaded, the mode unreadable", site: site{plat: debian13(), profiles: noneRead, deny: []string{modeParam}}, state: engine.NotConfigured, detail: noProfiles},
 		{name: "alpine324 with AppArmor, none loaded", site: site{plat: alpine324(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles},
 
@@ -417,7 +417,7 @@ func TestStock(t *testing.T) {
 	}{
 		{"debian13", site{plat: debian13()}, engine.Configured, "7 profiles enforced"},
 		{"ubuntu2604", site{plat: ubuntu2604()}, engine.Configured, "15 profiles enforced"},
-		{"pve9", site{plat: pve9()}, engine.Configured, "16 profiles enforced"},
+		{"pve9", site{plat: pve9()}, engine.Configured, "17 profiles enforced"},
 		{"alpine324", site{plat: alpine324(), enabled: "N\n"}, engine.NotApplicable, alpineDef},
 		{"alpine324 with AppArmor", site{plat: alpine324()}, engine.Configured, "2 profiles enforced"},
 		{"debian13 in a container", site{plat: debian13(), facts: inContainer}, engine.NotApplicable, byHost},
@@ -468,10 +468,10 @@ func TestEvidence(t *testing.T) {
 			enabledParam + `: "Y\n"`, profilesFile + ": 2 enforce, 1 complain", modeParam + `: "enforce"`, "/etc/runlevels: apparmor in no runlevel"}},
 		{row{site: site{plat: debian13(), profiles: noneRead}, state: engine.NotConfigured, detail: noProfiles}, []string{
 			enabledParam + `: "Y\n"`, profilesFile + ": none"}},
-		{row{site: site{plat: pve9()}, state: engine.Configured, detail: "16 profiles enforced"}, []string{
-			enabledParam + `: "Y\n"`, profilesFile + ": 16 enforce; 1 in other namespaces", modeParam + `: "enforce"`, isEnabled + ": enabled"}},
-		{row{site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (complain)\n"}, state: engine.NotConfigured, detail: noProfiles}, []string{
-			enabledParam + `: "Y\n"`, profilesFile + ": none; 1 in other namespaces"}},
+		{row{site: site{plat: pve9()}, state: engine.Configured, detail: "17 profiles enforced"}, []string{
+			enabledParam + `: "Y\n"`, profilesFile + ": 17 enforce; 1 of them in other namespaces", modeParam + `: "enforce"`, isEnabled + ": enabled"}},
+		{row{site: site{plat: pve9(), profiles: ":lxc-103_<-var-lib-lxc>:rsyslogd (complain)\n"}, state: engine.Partial, detail: "logging only"}, []string{
+			enabledParam + `: "Y\n"`, profilesFile + ": 1 complain; 1 of them in other namespaces", modeParam + `: "enforce"`}},
 		{row{site: site{plat: debian13(), enabled: "N\n", cmdline: "root=/dev/vda1 ro apparmor=0"}, state: engine.NotConfigured, detail: offKernel}, []string{
 			enabledParam + `: "N\n"`, "/proc/cmdline: apparmor=0"}},
 		{row{site: site{plat: debian13(), enabled: "N\n"}, state: engine.NotConfigured, detail: offKernel}, []string{
@@ -574,8 +574,8 @@ func TestEnforced(t *testing.T) {
 			t.Errorf("Enforced(%s %q) = %d, %t; want %d, %t", c.st.State, c.st.Detail, n, ok, c.n, c.ok)
 		}
 	}
-	st := run(t, row{site: site{plat: pve9()}, state: engine.Configured, detail: "16 profiles enforced"})
-	if n, ok := apparmor.Enforced(st); n != 16 || !ok {
+	st := run(t, row{site: site{plat: pve9()}, state: engine.Configured, detail: "17 profiles enforced"})
+	if n, ok := apparmor.Enforced(st); n != 17 || !ok {
 		t.Errorf("Enforced of the check's own status: %d, %t", n, ok)
 	}
 }
