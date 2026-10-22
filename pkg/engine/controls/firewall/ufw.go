@@ -105,10 +105,10 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.State, out.Detail = engine.Partial, "ssh blocked"
 		return out, nil
 	case st.Status.Incoming == ufw.PolicyAllow:
-		out.State, out.Detail = engine.Partial, "allow policy"
+		out.State, out.Detail = engine.Partial, DetailAllowPolicy
 	case allPorts:
 		out.Evidence = append(out.Evidence, "ufw: every port allowed by "+open)
-		out.State, out.Detail = engine.Partial, "all ports allowed"
+		out.State, out.Detail = engine.Partial, DetailAllPorts
 	case !st.Enabled:
 		out.State, out.Detail = engine.Partial, "off after restart"
 	case !sk.established():
