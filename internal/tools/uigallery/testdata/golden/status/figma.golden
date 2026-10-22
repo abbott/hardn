@@ -16,7 +16,6 @@ $
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
 $
    ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
-                           ␛[38;2;129;134;156m- up 182 days, no auto updates␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
@@ -24,6 +23,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno profiles loaded␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- Up 182 days, no updates␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
@@ -54,7 +54,6 @@ $
                            182 days, 2 hours, 26 minutes$
 $
   [*] Risk Level           Moderate ~ medium security$
-                           - up 182 days, no auto updates$
 $
   [+] User                 Configured non-root, sudo$
   [+] Firewall             Configured deny policy$
@@ -63,6 +62,7 @@ $
   [+] SSH Port             Configured non-default (2230)$
   [ ] AppArmor             Not Configured no profiles loaded$
   [ ] Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days, no updates$
 $
 ----------------------------------------------------------------$
 $
@@ -101,7 +101,6 @@ $
 $
    ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
       ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
-      ␛[38;2;129;134;156m- up 182 days, no auto updates␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
@@ -116,6 +115,7 @@ $
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno profiles loaded␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+      ␛[38;2;219;184;83m- Up 182 days, no updates␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
       ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$

@@ -1,6 +1,8 @@
 // Package risk is the main menu's risk level (refactor plan Phase 4,
 // next/p4-risk): one weighted score over the status rows' reports and the
-// header probe's cross-checks, with the factors that explain it.
+// header probe's cross-checks, with the factors that explain it, each
+// drawn under the status row it is about, or as the host block's reboot
+// line (next/p4-risk-lines).
 // docs/engine/risk.md is the one place the scoring is documented: every
 // weight, threshold and factor, and why.
 //
@@ -13,13 +15,14 @@
 // it starts, a second root account, a reboot pending, a long uptime
 // without automatic updates, a user account that becomes root without a
 // password, or may. A firewall that refuses SSH forces Critical, whatever
-// the score. Unknown counts as not configured and adds a factor, and so
-// does a row with no report, and a grant the User row does not establish
-// costs as one without a password: of what the rows look at (the User
-// row: accounts of uid 1000 or more that may log in, risk.md §8), nothing
-// is taken as hardened that was not established. Assess is pure: it reads
-// no host and renders nothing; pkg/output maps a Level to the main menu's
-// RiskSummary.
+// the score. Unknown counts as not configured and adds a factor under its
+// row, and so does a row with no report, and a grant the User row does
+// not establish costs as one without a password: of what the rows look at
+// (the User row: accounts of uid 1000 or more that may log in, risk.md
+// §8), nothing is taken as hardened that was not established. Assess is
+// pure: it reads no host and renders nothing; pkg/output maps a Level to
+// the main menu's RiskSummary, the lines under its status rows and the
+// host block's reboot line.
 package risk
 
 import (
@@ -160,7 +163,7 @@ type Kind uint8
 // and the level's gloss say it (risk.md §6.1).
 const (
 	KindLockoutAtStart Kind = iota // ufw may refuse SSH once it starts (UFW_SSH_NOT_ALLOWED_AT_START)
-	KindUnknown                    // a row Unknown, or with no report: one factor for them all
+	KindUnknown                    // a row Unknown, or with no report: one factor for each such row
 	KindSecondRoot                 // an account other than root has uid 0 (USERS_UID0)
 	KindSSHUnchecked               // whether the firewall lets SSH through not established (FIREWALL_SSH_UNCHECKED)
 	KindUpdatesOpen                // Auto Updates Partial with a fact left open (UPDATES_APT_VALUE_UNKNOWN, UPDATES_SCHEDULE_UNKNOWN)
@@ -179,15 +182,24 @@ func (k Kind) String() string {
 	return fmt.Sprintf("kind(%d)", uint8(k))
 }
 
-// Factor is one line of the RiskSummary: what the rows below it do not
-// show of why the level is what it is.
+// Factor is one line under a status row of the main menu, or the host
+// block's reboot line: what the row's state does not show of why the
+// level is what it is (the maintainer, 2026-10-21; risk.md §6).
 type Factor struct {
 	Kind Kind
-	// Control is the row whose finding it is; "" for the Unknown rows'
-	// factor and the header's cross-checks.
+	// Control is the row the line is drawn under: the row whose finding
+	// it is, the Unknown row itself, Auto Updates for the uptime; "" for
+	// the pending reboot, which the host block draws (RebootFactor).
 	Control string
-	// Detail is the line the RiskSummary shows (risk.md §6, proposed).
+	// Detail is the line, in sentence case (risk.md §6, the maintainer's
+	// words of 2026-10-21).
 	Detail string
+	// Established is true for a cost hardn established, drawn in
+	// status.warn, and false, the zero value, for a line that rests on
+	// something hardn could not establish, drawn in text.muted: a factor
+	// that does not say is taken as not established, as every zero value
+	// of the status model establishes nothing.
+	Established bool
 	// Penalty is the points it cost; 0 when it costs none of its own (the
 	// rows it is about have lost their weight already).
 	Penalty int
@@ -202,7 +214,8 @@ type Level struct {
 	// Score is the points the host earns of 100, after the penalties, at
 	// least 0: the rows' share less each factor's Penalty.
 	Score float64
-	// Factors explain the level, in Kind order.
+	// Factors explain the level, in Kind order, the Unknown rows' in the
+	// rows' order.
 	Factors []Factor
 	// Findings are the cross-checks' own findings, which no report
 	// carries: the header's on a pending reboot, and CodeUptimeNoUpdates.
@@ -222,7 +235,8 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	}
 	var l Level
 	earned, whole := 0, 0 // in half points
-	established, unknown := false, false
+	established := false
+	var unknown []string // the Unknown rows' controls
 	for _, rw := range rows {
 		r, ok := byID[rw.ID]
 		s := state(r, ok)
@@ -237,7 +251,7 @@ func Assess(reports []engine.Report, h header.Header) Level {
 			}
 		}
 		if s == engine.Unknown {
-			unknown = true
+			unknown = append(unknown, rw.ID)
 		} else {
 			established = true
 		}
@@ -250,21 +264,21 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	add := func(f Factor) { l.Factors = append(l.Factors, f) }
 	l.Forced = fwOK && has(fw, firewall.CodeSSHBlocked)
 	if fwOK && has(fw, codeAtStart) {
-		add(Factor{Kind: KindLockoutAtStart, Control: fw.Control, Detail: "ssh may be blocked after restart", Penalty: PenaltyAtStart})
+		add(Factor{Kind: KindLockoutAtStart, Control: fw.Control, Detail: "SSH may be blocked after restart", Established: true, Penalty: PenaltyAtStart})
 	}
-	if unknown {
-		add(Factor{Kind: KindUnknown, Detail: "unknown counted as not configured"})
+	for _, id := range unknown {
+		add(Factor{Kind: KindUnknown, Control: id, Detail: "Counted as not configured"})
 	}
 	if usOK && has(us, users.CodeUID0) {
-		add(Factor{Kind: KindSecondRoot, Control: us.Control, Detail: "second root account", Penalty: PenaltySecondRoot})
+		add(Factor{Kind: KindSecondRoot, Control: us.Control, Detail: "Second root account", Established: true, Penalty: PenaltySecondRoot})
 	}
 	if fwOK && !l.Forced && has(fw, firewall.CodeSSHUnchecked) {
-		add(Factor{Kind: KindSSHUnchecked, Control: fw.Control, Detail: "can't tell if firewall blocks ssh"})
+		add(Factor{Kind: KindSSHUnchecked, Control: fw.Control, Detail: "Can't tell if it blocks SSH"})
 	}
 	if upOK && state(up, true) == engine.Partial && protects(up) && open(up) {
-		add(Factor{Kind: KindUpdatesOpen, Control: up.Control, Detail: "can't tell if updates fully on"})
+		add(Factor{Kind: KindUpdatesOpen, Control: up.Control, Detail: "Can't tell if fully on"})
 	}
-	if f, ok := reboot(h.Reboot); ok {
+	if f, ok := RebootFactor(h.Reboot); ok {
 		add(f)
 		if h.Reboot.Pending == detect.Yes {
 			l.Findings = append(l.Findings, h.Reboot.Findings...)
@@ -342,7 +356,7 @@ func open(r engine.Report) bool {
 // a grant the row does not establish, which costs the same, as a reboot or
 // an uptime not established does: it may be one without a password, and
 // costing less would rank a grant hardn cannot read above one it reads.
-// On an Unknown row the Unknown rows' factor says it, and the row earns
+// On an Unknown row the row's Unknown factor says it, and the row earns
 // nothing. One factor for any number of accounts.
 func noPassword(r engine.Report, ok bool) (Factor, bool) {
 	f := Factor{Kind: KindNoPassword, Control: r.Control, Penalty: PenaltyNoPassword}
@@ -350,28 +364,30 @@ func noPassword(r engine.Report, ok bool) (Factor, bool) {
 	case !ok:
 		return Factor{}, false
 	case has(r, users.CodeNoPassword):
-		f.Detail = "no password to become root"
+		f.Detail, f.Established = "No password to become root", true
 	case state(r, ok) != engine.Unknown && has(r, users.CodeRuleNotRead):
-		f.Detail = "maybe no password to become root"
+		f.Detail = "Maybe no password to become root"
 	default:
 		return Factor{}, false
 	}
 	return f, true
 }
 
-// reboot is the pending-reboot factor: Yes costs PenaltyReboot; so does
-// Unknown, by the rule for Unknown, except where the header read the
-// kernel as the host's (header.Reboot.HostKernel: a container of a
-// distribution its reboot check reads): there only a package's request
-// counts.
-func reboot(r header.Reboot) (Factor, bool) {
+// RebootFactor is the pending-reboot factor of r, and whether there is
+// one: Yes costs PenaltyReboot, established; so does Unknown, by the rule
+// for Unknown, not established, except where the header read the kernel
+// as the host's (header.Reboot.HostKernel: a container of a distribution
+// its reboot check reads): there only a package's request counts. It has
+// no row: Assess counts it, and pkg/output draws the host block's reboot
+// line from it, so the line and the cost are one rule (risk.md §6.2).
+func RebootFactor(r header.Reboot) (Factor, bool) {
 	switch {
 	case r.Pending == detect.Yes:
-		return Factor{Kind: KindReboot, Detail: "reboot pending", Penalty: PenaltyReboot}, true
+		return Factor{Kind: KindReboot, Detail: "Reboot pending", Established: true, Penalty: PenaltyReboot}, true
 	case r.Pending == detect.No, r.HostKernel:
 		return Factor{}, false
 	}
-	return Factor{Kind: KindReboot, Detail: "can't tell if reboot pending", Penalty: PenaltyReboot}, true
+	return Factor{Kind: KindReboot, Detail: "Can't tell if reboot pending", Penalty: PenaltyReboot}, true
 }
 
 // upgrades is whether the host upgrades its packages by itself, as the
@@ -412,33 +428,38 @@ func upgradesOf(r engine.Report, ok bool) upgrades {
 	return upgradesYes
 }
 
-// uptime is the long-uptime factor, for a host that does not upgrade
-// itself (or whose upgrades are not established) and has been up
-// LongUptime or more (or whose uptime is not established), with its
-// finding when both are established. Where the header read the kernel as
-// the host's (header.Reboot.HostKernel) it is not made: the uptime may be
-// the host's (header.md §2.6).
+// uptime is the long-uptime factor, under the Auto Updates row, for a
+// host that does not upgrade itself (or whose upgrades are not
+// established) and has been up LongUptime or more (or whose uptime is not
+// established), with its finding when both are established. The line's
+// words are broader than its trigger, "no updates" for a host that does
+// not upgrade itself (the maintainer, 2026-10-21; the last upgrade is not
+// read, P-44); the finding keeps the JSON's words (risk.md §6.3). Where
+// the header read the kernel as the host's (header.Reboot.HostKernel) it
+// is not made: the uptime may be the host's (header.md §2.6).
 func uptime(h header.Header, u upgrades) (Factor, *engine.Finding, bool) {
 	if u == upgradesYes || u == upgradesNA || h.Reboot.HostKernel {
 		return Factor{}, nil, false
 	}
-	f := Factor{Kind: KindUptime, Penalty: PenaltyUptime}
+	f := Factor{Kind: KindUptime, Control: updates.ID, Penalty: PenaltyUptime}
 	if !h.Uptime.Known {
-		f.Detail = "uptime unknown"
+		f.Detail = "Uptime unknown"
 		return f, nil, true
 	}
 	if h.Uptime.Duration < LongUptime {
 		return Factor{}, nil, false
 	}
 	days := int64(h.Uptime.Duration / (24 * time.Hour))
+	var detail string // the finding's
 	switch u {
 	case upgradesNo:
-		f.Detail = fmt.Sprintf("up %d days, no auto updates", days)
+		f.Detail, detail = fmt.Sprintf("Up %d days, no updates", days), fmt.Sprintf("up %d days, no auto updates", days)
 	case upgradesNotProxmox:
-		f.Detail = fmt.Sprintf("up %d days, Proxmox not upgraded", days)
-	default: // the Unknown rows' factor, or KindUpdatesOpen's, says the rest
-		f.Detail = fmt.Sprintf("up %d days", days)
+		f.Detail, detail = fmt.Sprintf("Up %d days, Proxmox not upgraded", days), fmt.Sprintf("up %d days, Proxmox not upgraded", days)
+	default: // the row's Unknown line, or KindUpdatesOpen's, says the rest
+		f.Detail = fmt.Sprintf("Up %d days", days)
 		return f, nil, true
 	}
-	return f, &engine.Finding{Code: CodeUptimeNoUpdates, Detail: f.Detail, Source: header.UptimeFile}, true
+	f.Established = true
+	return f, &engine.Finding{Code: CodeUptimeNoUpdates, Detail: detail, Source: header.UptimeFile}, true
 }

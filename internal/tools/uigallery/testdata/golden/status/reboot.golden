@@ -13,10 +13,9 @@ $
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m                 ␛[38;2;129;134;156m192.0.2.20␛[m$
                            ␛[38;2;86;91;107m3 days, 5 hours, 12 minutes␛[m$
-                           ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
+                           ␛[38;2;219;184;83m- Reboot pending␛[m$
 $
    ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
-                           ␛[38;2;129;134;156m- reboot pending␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
@@ -51,10 +50,9 @@ $
 $
   [web-01]                 192.0.2.20$
                            3 days, 5 hours, 12 minutes$
-                           [ ] Reboot pending$
+                           - Reboot pending$
 $
   [*] Risk Level           Moderate ~ medium security$
-                           - reboot pending$
 $
   [+] User                 Configured non-root, sudo$
   [+] Firewall             Configured deny policy$
@@ -97,11 +95,10 @@ $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m$
       ␛[38;2;129;134;156m192.0.2.20␛[m$
       ␛[38;2;86;91;107m3 days, 5 hours, 12 minutes␛[m$
-      ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
+      ␛[38;2;219;184;83m- Reboot pending␛[m$
 $
    ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
       ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
-      ␛[38;2;129;134;156m- reboot pending␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$

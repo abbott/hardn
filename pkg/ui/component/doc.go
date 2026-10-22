@@ -83,11 +83,11 @@
 //     trailing spaces. Header, HostBlock, RiskSummary, StatusRow,
 //     ModeIndicator, MenuHeading and Menu place their columns with spaces
 //     up to the grid column instead, which never pads after the last cell.
-//   - list (the RiskSummary factors) renders through the tree renderer and
-//     defaults to the • bullet (list/list.go:50-54); the bullet can come
-//     from Glyphs, but each line still needs the value-column indent and
-//     the ellipsis cut, which leaves list nothing to do for one line per
-//     factor.
+//   - list (a StatusRow's lines, and the RiskSummary's factors until
+//     next/p4-risk-lines) renders through the tree renderer and defaults
+//     to the • bullet (list/list.go:50-54); the bullet can come from
+//     Glyphs, but each line still needs the value-column indent and the
+//     ellipsis cut, which leaves list nothing to do for one line each.
 //   - table (the label and value rows of HostBlock and RiskSummary, and
 //     the columns helper that later two-column rows share): a borderless
 //     table pads every cell to its column's width (table/table.go:512-518)

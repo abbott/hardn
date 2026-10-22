@@ -291,7 +291,7 @@ func TestCheckError(t *testing.T) {
 	if !strings.Contains(row, "  state      unknown\n  detail     can't read\n") || !strings.Contains(row, "  error      FILE_NOT_FOUND ") {
 		t.Errorf("AppArmor's row:\n%s", row)
 	}
-	if r := strings.Join(section(out.String(), "risk"), "\n"); !strings.Contains(r, "  factor     unknown counted as not configured (unknown, row (none), cost 0)") {
+	if r := strings.Join(section(out.String(), "risk"), "\n"); !strings.Contains(r, "  factor     Counted as not configured (unknown, row apparmor.enforce, cost 0)") {
 		t.Errorf("risk:\n%s", r)
 	}
 }
@@ -312,7 +312,7 @@ func TestEvidence(t *testing.T) {
 		"row ssh.login (SSH Login)":        {"  detail     root allowed\n", "  evidence   sshd -T: permitrootlogin yes\n"},
 		"header": {"  hostname   web-01\n", "  ipv4       default route yes, vmbr0, 192.0.2.20\n", "  primary    192.0.2.20\n",
 			"  uptime     41 days, 1 hour (", "  reboot     pending no; running 6.17.2-1-pve; own kernel\n"},
-		"risk": {"  band       critical, score 5.0, forced false\n", "  factor     up 41 days, no auto updates (uptime, row (none), cost 10)\n",
+		"risk": {"  band       critical, score 5.0, forced false\n", "  factor     Up 41 days, no updates (uptime, row updates.auto, cost 10)\n",
 			"  finding    UPTIME_NO_AUTO_UPDATES "},
 	} {
 		got := strings.Join(section(out, heading), "\n") + "\n"

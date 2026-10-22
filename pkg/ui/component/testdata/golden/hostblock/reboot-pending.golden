@@ -6,254 +6,254 @@
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
       ␛[38;2;129;134;156m192.0.2.10␛[m$
       ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
+      ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
+                           ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
+                           ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
       ␛[38;2;129;134;156m192.0.2.10␛[m$
       ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;2;219;184;83m[ ] Reboot pending␛[m$
+      ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;219;184;83m[ ] Reboot pending␛[m$
+                           ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
   ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;219;184;83m[ ] Reboot pending␛[m$
+                           ␛[38;2;219;184;83m- Reboot pending␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m$
       ␛[38;2;87;92;110m192.0.2.10␛[m$
       ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;2;138;97;0m⭘ Reboot pending␛[m$
+      ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;87;92;110m192.0.2.10␛[m$
                            ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;138;97;0m⭘ Reboot pending␛[m$
+                           ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;87;92;110m192.0.2.10␛[m$
                            ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;138;97;0m⭘ Reboot pending␛[m$
+                           ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m$
       ␛[38;2;87;92;110m192.0.2.10␛[m$
       ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;2;138;97;0m[ ] Reboot pending␛[m$
+      ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;87;92;110m192.0.2.10␛[m$
                            ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;138;97;0m[ ] Reboot pending␛[m$
+                           ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
   ␛[1;38;2;255;255;255;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;87;92;110m192.0.2.10␛[m$
                            ␛[38;2;129;134;156m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;138;97;0m[ ] Reboot pending␛[m$
+                           ␛[38;2;138;97;0m- Reboot pending␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m$
       ␛[38;5;103m192.0.2.10␛[m$
       ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;5;179m⭘ Reboot pending␛[m$
+      ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;103m192.0.2.10␛[m$
                            ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;179m⭘ Reboot pending␛[m$
+                           ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;103m192.0.2.10␛[m$
                            ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;179m⭘ Reboot pending␛[m$
+                           ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m$
       ␛[38;5;103m192.0.2.10␛[m$
       ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;5;179m[ ] Reboot pending␛[m$
+      ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;103m192.0.2.10␛[m$
                            ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;179m[ ] Reboot pending␛[m$
+                           ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;254;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;103m192.0.2.10␛[m$
                            ␛[38;5;59m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;179m[ ] Reboot pending␛[m$
+                           ␛[38;5;179m- Reboot pending␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
       ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;5;94m⭘ Reboot pending␛[m$
+      ␛[38;5;94m- Reboot pending␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;59m192.0.2.10␛[m$
                            ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;94m⭘ Reboot pending␛[m$
+                           ␛[38;5;94m- Reboot pending␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;59m192.0.2.10␛[m$
                            ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;94m⭘ Reboot pending␛[m$
+                           ␛[38;5;94m- Reboot pending␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
       ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;5;94m[ ] Reboot pending␛[m$
+      ␛[38;5;94m- Reboot pending␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;59m192.0.2.10␛[m$
                            ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;94m[ ] Reboot pending␛[m$
+                           ␛[38;5;94m- Reboot pending␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m BOS-SAN-L01 ␛[m            ␛[38;5;59m192.0.2.10␛[m$
                            ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;5;94m[ ] Reboot pending␛[m$
+                           ␛[38;5;94m- Reboot pending␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m$
       ␛[90m192.0.2.10␛[m$
       ␛[90m182 days, 2 hours, 26 minutes␛[m$
-      ␛[33m⭘ Reboot pending␛[m$
+      ␛[33m- Reboot pending␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m⭘ Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m⭘ Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m$
       ␛[90m192.0.2.10␛[m$
       ␛[90m182 days, 2 hours, 26 minutes␛[m$
-      ␛[33m[ ] Reboot pending␛[m$
+      ␛[33m- Reboot pending␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m[ ] Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m[ ] Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m$
       ␛[90m192.0.2.10␛[m$
       ␛[90m182 days, 2 hours, 26 minutes␛[m$
-      ␛[33m⭘ Reboot pending␛[m$
+      ␛[33m- Reboot pending␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m⭘ Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m⭘ Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m$
       ␛[90m192.0.2.10␛[m$
       ␛[90m182 days, 2 hours, 26 minutes␛[m$
-      ␛[33m[ ] Reboot pending␛[m$
+      ␛[33m- Reboot pending␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m[ ] Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
   ␛[1;97;44m BOS-SAN-L01 ␛[m            ␛[90m192.0.2.10␛[m$
                            ␛[90m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[33m[ ] Reboot pending␛[m$
+                           ␛[33m- Reboot pending␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m$
       192.0.2.10$
       182 days, 2 hours, 26 minutes$
-      ⭘ Reboot pending$
+      - Reboot pending$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           ⭘ Reboot pending$
+                           - Reboot pending$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           ⭘ Reboot pending$
+                           - Reboot pending$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m$
       192.0.2.10$
       182 days, 2 hours, 26 minutes$
-      [ ] Reboot pending$
+      - Reboot pending$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           [ ] Reboot pending$
+                           - Reboot pending$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           [ ] Reboot pending$
+                           - Reboot pending$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m$
       192.0.2.10$
       182 days, 2 hours, 26 minutes$
-      ⭘ Reboot pending$
+      - Reboot pending$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           ⭘ Reboot pending$
+                           - Reboot pending$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           ⭘ Reboot pending$
+                           - Reboot pending$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m$
       192.0.2.10$
       182 days, 2 hours, 26 minutes$
-      [ ] Reboot pending$
+      - Reboot pending$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           [ ] Reboot pending$
+                           - Reboot pending$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
   ␛[1m[BOS-SAN-L01]␛[m            192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           [ ] Reboot pending$
+                           - Reboot pending$

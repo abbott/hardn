@@ -2,6 +2,7 @@ package output_test
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"net/netip"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -115,16 +117,16 @@ func headerFixtures() []struct {
 func TestHeaderViewOf(t *testing.T) {
 	want := map[string]output.HeaderView{
 		"debian13": {Context: component.ContextBar{Name: "Debian", Version: "13", Codename: "Trixie"},
-			Host: component.HostBlock{Hostname: "web-01.example.net", Address: "192.0.2.10", Uptime: "182 days, 2 hours, 26 minutes", RebootPending: true}},
+			Host: component.HostBlock{Hostname: "web-01.example.net", Address: "192.0.2.10", Uptime: "182 days, 2 hours, 26 minutes", Reboot: component.RebootPending}},
 		"ubuntu2604": {Context: component.ContextBar{Name: "Ubuntu", Version: "26.04", Codename: "Resolute"},
 			Host: component.HostBlock{Hostname: "web-01.example.net", Address: "2001:db8:2::20", Uptime: "3 days, 5 minutes"}},
 		"pve9": {Context: component.ContextBar{Name: "Proxmox VE", Version: "9.0.10", Codename: "Trixie"},
-			Host: component.HostBlock{Hostname: "web-01", Address: "192.0.2.30", Uptime: "41 days, 1 hour"}},
+			Host: component.HostBlock{Hostname: "web-01", Address: "192.0.2.30", Uptime: "41 days, 1 hour", Reboot: component.RebootUnknown}},
 		"alpine324": {Context: component.ContextBar{Name: "Alpine", Version: "3.24.0"},
 			Host: component.HostBlock{Hostname: "web-01.example.net", Address: "192.0.2.20", Uptime: "0 minutes"}},
 		"no-default-route": {Context: component.ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"},
-			Host: component.HostBlock{Hostname: "web-01.example.net", Address: output.NoDefaultRoute, Uptime: "1 day"}},
-		"unknown": {},
+			Host: component.HostBlock{Hostname: "web-01.example.net", Address: output.NoDefaultRoute, Uptime: "1 day", Reboot: component.RebootUnknown}},
+		"unknown": {Host: component.HostBlock{Reboot: component.RebootUnknown}},
 	}
 	for _, fx := range headerFixtures() {
 		t.Run(fx.name, func(t *testing.T) {
@@ -166,12 +168,69 @@ func TestHeaderAddress(t *testing.T) {
 }
 
 // TestHeaderViewOfZero: a Header Read did not fill shows every fact as
-// not established, the version and the link alone.
+// not established, the version and the link alone, and the reboot line
+// says it could not tell, as the risk level counts it.
 func TestHeaderViewOfZero(t *testing.T) {
-	want := output.HeaderView{Header: component.Header{Version: "v0.4.0", URL: output.RepoURL}}
+	want := output.HeaderView{Header: component.Header{Version: "v0.4.0", URL: output.RepoURL},
+		Host: component.HostBlock{Reboot: component.RebootUnknown}}
 	if got := output.HeaderViewOf("v0.4.0", header.Header{}); got != want {
 		t.Errorf("got  %+v\nwant %+v", got, want)
 	}
+}
+
+// TestRebootLine: the host block's reboot line and the risk level's
+// reboot factor are one rule, for every header.Reboot: a line exactly
+// where the level counts the reboot, the warning's where it is
+// established, and the factor's words on it; the factor drawn nowhere
+// else (StatusViewOf has no row for it).
+func TestRebootLine(t *testing.T) {
+	c := component.NewCtx(plain80(t))
+	for _, p := range []detect.Tri{detect.Unknown, detect.Yes, detect.No, detect.Tri(9)} {
+		for _, hostKernel := range []bool{false, true} {
+			r := header.Reboot{Pending: p, HostKernel: hostKernel}
+			name := fmt.Sprintf("pending %v, host kernel %t", p, hostKernel)
+			var counted []risk.Factor
+			l := risk.Assess(nil, header.Header{Reboot: r})
+			for _, f := range l.Factors {
+				if f.Kind == risk.KindReboot {
+					counted = append(counted, f)
+				}
+			}
+			host := output.HeaderViewOf("", header.Header{Reboot: r}).Host
+			want := component.RebootNone
+			if len(counted) == 1 {
+				want = component.RebootUnknown
+				if counted[0].Established {
+					want = component.RebootPending
+				}
+				if out := host.Render(c); !strings.Contains(out, "- "+counted[0].Detail+"\n") && !strings.HasSuffix(out, "- "+counted[0].Detail) {
+					t.Errorf("%s: the host block\n%s\ndoes not say %q", name, out, counted[0].Detail)
+				}
+			}
+			if host.Reboot != want || len(counted) > 1 {
+				t.Errorf("%s: line %d, want %d for the factors %+v", name, host.Reboot, want, counted)
+			}
+			for _, row := range output.StatusViewOf(nil, l).Status.Rows {
+				for _, line := range row.Lines {
+					if len(counted) == 1 && line.Text == counted[0].Detail {
+						t.Errorf("%s: the reboot under %s too", name, row.Label)
+					}
+				}
+			}
+		}
+	}
+}
+
+// plain80 is the core set's plain cell at 80 columns: no escape sequence.
+func plain80(t *testing.T) term.Env {
+	t.Helper()
+	for _, c := range uitest.Core() {
+		if c.Name == "plain-80" {
+			return c.Env
+		}
+	}
+	t.Fatal("no plain-80 cell in uitest.Core()")
+	return term.Env{}
 }
 
 // TestHeaderBlocks pins the header blocks of each fixture, as the main

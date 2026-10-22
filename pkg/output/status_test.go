@@ -60,13 +60,13 @@ func upFor(d time.Duration) header.Header {
 }
 
 // TestStatusViewOfFigma: Figma's host, its rows in Figma's order with its
-// details, and its Moderate level, with the long uptime as its one factor.
+// details, and its Moderate level, Figma's one line, with the long uptime
+// its one factor, a cost established under Auto Updates.
 func TestStatusViewOfFigma(t *testing.T) {
 	rs := figmaReports()
 	v := output.StatusViewOf(rs, risk.Assess(rs, upFor(figmaUptime)))
 	want := output.StatusView{
-		Risk: component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security",
-			Factors: []string{"up 182 days, no auto updates"}},
+		Risk: component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo"},
 			{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
@@ -74,7 +74,8 @@ func TestStatusViewOfFigma(t *testing.T) {
 			{Label: "SSH Auth", State: component.StatusConfigured, Detail: "key-only auth"},
 			{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
 			{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
-			{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
+			{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades",
+				Lines: []component.StatusLine{{Text: "Up 182 days, no updates", Warn: true}}},
 		}},
 	}
 	if !reflect.DeepEqual(v, want) {
@@ -83,8 +84,8 @@ func TestStatusViewOfFigma(t *testing.T) {
 }
 
 // TestStatusRows: Figma's order whatever the reports', a row with no
-// report Unknown, a failed check Unknown, a control the score does not
-// weigh after the rows, a control's first report.
+// report Unknown, a failed check Unknown, each with its line, a control
+// the score does not weigh after the rows, a control's first report.
 func TestStatusRows(t *testing.T) {
 	rs := figmaReports()
 	rs = slices.DeleteFunc(rs, func(r engine.Report) bool { return r.Control == "users.admin" })
@@ -93,26 +94,85 @@ func TestStatusRows(t *testing.T) {
 		Err: errors.New("sshd -T")})
 	rs = append(rs, row("ssh.port", "SSH Port", engine.NotConfigured, "default (22)"), row("dns.servers", "DNS", engine.NotConfigured, "x"))
 	v := output.StatusViewOf(rs, risk.Assess(rs, upFor(time.Hour)))
+	counted := []component.StatusLine{{Text: "Counted as not configured"}}
 	want := []component.StatusRow{
-		{Label: "User", State: component.StatusUnknown},
+		{Label: "User", State: component.StatusUnknown, Lines: counted},
 		{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 		{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed"},
-		{Label: "SSH Auth", State: component.StatusUnknown, Detail: "sshd not running"},
+		{Label: "SSH Auth", State: component.StatusUnknown, Detail: "sshd not running", Lines: counted},
 		{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
 		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
 		{Label: "DNS", State: component.StatusPartial, Detail: "one server"},
 	}
-	if !slices.Equal(v.Status.Rows, want) {
+	if !reflect.DeepEqual(v.Status.Rows, want) {
 		t.Errorf("got  %+v\nwant %+v", v.Status.Rows, want)
 	}
-	if f := v.Risk.Factors; !slices.Equal(f, []string{"unknown counted as not configured"}) {
-		t.Errorf("factors %q", f)
+}
+
+// TestFactorLines: every factor of a level is drawn once, each kind
+// among them: under the row its Control names, in its colour and in
+// risk.Kind's order there, or, the pending reboot alone, as the host
+// block's line; no other line is drawn, and none under the risk level.
+func TestFactorLines(t *testing.T) {
+	titles := map[string]string{}
+	for _, r := range risk.Rows() {
+		titles[r.ID] = r.Title
+	}
+	long := upFor(9999 * 24 * time.Hour)
+	long.Reboot.Pending = detect.Yes
+	every := []engine.Report{
+		row("users.admin", "User", engine.Configured, "non-root, sudo", users.CodeNoPassword, users.CodeUID0),
+		row("firewall.incoming", "Firewall", engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START", firewall.CodeSSHUnchecked),
+		row(apparmor.ID, "AppArmor", engine.Unknown, "can't read"),
+		row(updates.ID, "Auto Updates", engine.Partial, updates.DetailOffAfterRestart, updates.CodeScheduleUnknown),
+	}
+	notRead := replaced(figmaReports(), row("users.admin", "User", engine.Configured, "non-root, sudo", users.CodeRuleNotRead))
+	kinds := map[risk.Kind]bool{}
+	for _, c := range []struct {
+		name    string
+		reports []engine.Report
+		h       header.Header
+	}{
+		{"every kind", every, long},
+		{"figma", figmaReports(), upFor(figmaUptime)},
+		{"nothing read", nil, header.Header{}},
+		{"a grant not read", notRead, upFor(time.Hour)},
+	} {
+		l := risk.Assess(c.reports, c.h)
+		v := output.StatusViewOf(c.reports, l)
+		host := output.HeaderViewOf("", c.h).Host
+		if !reflect.DeepEqual(v.Risk, output.RiskSummaryOf(l)) {
+			t.Errorf("%s: risk %+v", c.name, v.Risk)
+		}
+		want := map[string][]component.StatusLine{}
+		for _, f := range l.Factors {
+			kinds[f.Kind] = true
+			switch {
+			case f.Control == "" && f.Kind == risk.KindReboot:
+				if host.Reboot == component.RebootNone || (host.Reboot == component.RebootPending) != f.Established {
+					t.Errorf("%s: %q, the host block's line %d", c.name, f.Detail, host.Reboot)
+				}
+			case titles[f.Control] == "":
+				t.Errorf("%s: %s %q under %q, a row the main menu does not show", c.name, f.Kind, f.Detail, f.Control)
+			default:
+				want[titles[f.Control]] = append(want[titles[f.Control]], component.StatusLine{Text: f.Detail, Warn: f.Established})
+			}
+		}
+		for _, r := range v.Status.Rows {
+			if !slices.Equal(r.Lines, want[r.Label]) {
+				t.Errorf("%s: under %s %+v, want %+v", c.name, r.Label, r.Lines, want[r.Label])
+			}
+		}
+	}
+	if len(kinds) != 8 {
+		t.Errorf("%d kinds drawn, want 8", len(kinds))
 	}
 }
 
 // TestRiskSummaryOf: each band's tone, level word and gloss, origin/main's
-// (DEV-016); the lockout's gloss; no level for Unknown.
+// (DEV-016); the lockout's gloss; no level for Unknown; never a factor,
+// which the rows and the host block draw.
 func TestRiskSummaryOf(t *testing.T) {
 	for _, c := range []struct {
 		l    risk.Level
@@ -120,14 +180,14 @@ func TestRiskSummaryOf(t *testing.T) {
 	}{
 		{risk.Level{Band: risk.Critical}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: "no security"}},
 		{risk.Level{Band: risk.Critical, Forced: true}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss}},
-		{risk.Level{Band: risk.Critical, Forced: true, Factors: []risk.Factor{{Detail: "reboot pending"}}},
-			component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss, Factors: []string{"reboot pending"}}},
+		{risk.Level{Band: risk.Critical, Forced: true, Factors: []risk.Factor{{Kind: risk.KindReboot, Detail: "Reboot pending"}}},
+			component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss}},
 		{risk.Level{Band: risk.High}, component.RiskSummary{Band: component.RiskHigh, Level: "High", Gloss: "weak security"}},
 		{risk.Level{Band: risk.Moderate}, component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"}},
 		{risk.Level{Band: risk.Low}, component.RiskSummary{Band: component.RiskLow, Level: "Low", Gloss: "strong security"}},
 		{risk.Level{Band: risk.Minimal}, component.RiskSummary{Band: component.RiskLow, Level: "Minimal", Gloss: "hardened security"}},
-		{risk.Level{Band: risk.Unknown, Factors: []risk.Factor{{Detail: "unknown counted as not configured"}}},
-			component.RiskSummary{Band: component.RiskUnknown, Factors: []string{"unknown counted as not configured"}}},
+		{risk.Level{Band: risk.Unknown, Factors: []risk.Factor{{Kind: risk.KindUnknown, Control: "ssh.port", Detail: "Counted as not configured"}}},
+			component.RiskSummary{Band: component.RiskUnknown}},
 		{risk.Level{Band: risk.Band(9)}, component.RiskSummary{}},
 	} {
 		if got := output.RiskSummaryOf(c.l); !reflect.DeepEqual(got, c.want) {

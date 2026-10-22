@@ -1,0 +1,211 @@
+# Golden file of TestGolden/statusrow/long-line, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+      ␛[38;2;219;184;83m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- Up 182 days without automatic upda…␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- Up 182 days without automatic upda…␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+      ␛[38;2;219;184;83m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- Up 182 days without automatic up...␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- Up 182 days without automatic up...␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+      ␛[38;2;138;97;0m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+                           ␛[38;2;138;97;0m- Up 182 days without automatic upda…␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⭘␛[m  ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+                           ␛[38;2;138;97;0m- Up 182 days without automatic upda…␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m$
+      ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+      ␛[38;2;138;97;0m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+                           ␛[38;2;138;97;0m- Up 182 days without automatic up...␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m[ ]␛[m ␛[38;2;30;34;48mAuto Updates␛[m         ␛[38;2;194;37;74mNot Configured␛[m ␛[38;2;129;134;156mno unattended-upgrades␛[m$
+                           ␛[38;2;138;97;0m- Up 182 days without automatic up...␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m$
+      ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+      ␛[38;5;179m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+                           ␛[38;5;179m- Up 182 days without automatic upda…␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+                           ␛[38;5;179m- Up 182 days without automatic upda…␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m$
+      ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+      ␛[38;5;179m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+                           ␛[38;5;179m- Up 182 days without automatic up...␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mAuto Updates␛[m         ␛[38;5;204mNot Configured␛[m ␛[38;5;59mno unattended-upgrades␛[m$
+                           ␛[38;5;179m- Up 182 days without automatic up...␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+      ␛[38;5;94m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+                           ␛[38;5;94m- Up 182 days without automatic upda…␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+                           ␛[38;5;94m- Up 182 days without automatic upda…␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+      ␛[38;5;94m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+                           ␛[38;5;94m- Up 182 days without automatic up...␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+                           ␛[38;5;94m- Up 182 days without automatic up...␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m$
+      ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+      ␛[33m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic upda…␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⭘␛[m  ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic upda…␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m$
+      ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+      ␛[33m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic up...␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[91m[ ]␛[m ␛[37mAuto Updates␛[m         ␛[91mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic up...␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m$
+      ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+      ␛[33m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic upda…␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[31m⭘␛[m  ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic upda…␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m$
+      ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+      ␛[33m- Up 182 days without automatic updates or a reboot␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic up...␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[31m[ ]␛[m ␛[30mAuto Updates␛[m         ␛[31mNot Configured␛[m ␛[90mno unattended-upgrades␛[m$
+                           ␛[33m- Up 182 days without automatic up...␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ⭘  Auto Updates$
+      Not Configured no unattended-upgrades$
+      - Up 182 days without automatic updates or a reboot$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ⭘  Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic upda…$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ⭘  Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic upda…$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  [ ] Auto Updates$
+      Not Configured no unattended-upgrades$
+      - Up 182 days without automatic updates or a reboot$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  [ ] Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic up...$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  [ ] Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic up...$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ⭘  Auto Updates$
+      Not Configured no unattended-upgrades$
+      - Up 182 days without automatic updates or a reboot$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ⭘  Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic upda…$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ⭘  Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic upda…$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  [ ] Auto Updates$
+      Not Configured no unattended-upgrades$
+      - Up 182 days without automatic updates or a reboot$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  [ ] Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic up...$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  [ ] Auto Updates         Not Configured no unattended-upgrades$
+                           - Up 182 days without automatic up...$

@@ -66,9 +66,12 @@ const (
 
 // Values only the states use.
 const (
-	uptime     = "182 days, 2 hours, 26 minutes"
-	longHost   = "ci-runner-0042.build-cluster.eu-west-1.web-01.example.net"
-	longFactor = "Uptime of 182 days with automatic updates not configured"
+	uptime   = "182 days, 2 hours, 26 minutes"
+	longHost = "ci-runner-0042.build-cluster.eu-west-1.web-01.example.net"
+	// longLine is wider than the 35 cells a line under a status row has
+	// beside the label at 64 columns, as no line the status model makes
+	// is (pkg/engine/risk TestFactorsFit).
+	longLine = "Up 182 days without automatic updates or a reboot"
 	// sshOutput is what a failed reload of ssh.service writes.
 	sshOutput = "Job for ssh.service failed because the control process exited with error code.\n" +
 		"See \"systemctl status ssh.service\" and \"journalctl -xeu ssh.service\" for details.\n"
@@ -93,6 +96,19 @@ func FigmaStatus() component.StatusList {
 		{Label: "AppArmor", State: component.StatusNotConfigured},
 		{Label: "Auto Updates", State: component.StatusNotConfigured},
 	}}
+}
+
+// linedStatus is Figma's main-menu status rows with lines under three of
+// them, as the main menu draws the risk level's factors (the maintainer,
+// 2026-10-21): a cost under User, AppArmor not read with its line, and
+// two under Auto Updates; the rows stay one block.
+func linedStatus(noPassword, countedOff component.StatusLine) component.StatusList {
+	l := FigmaStatus()
+	l.Rows[0].Lines = []component.StatusLine{noPassword}
+	l.Rows[5] = component.StatusRow{Label: "AppArmor", Detail: "can't read", Lines: []component.StatusLine{countedOff}}
+	l.Rows[6] = component.StatusRow{Label: "Auto Updates", State: component.StatusPartial, Detail: "off after restart",
+		Lines: []component.StatusLine{{Text: "Can't tell if fully on"}, {Text: "Up 182 days"}}}
+	return l
 }
 
 // SSHPort is Figma's SSH Port status row, with port 2230.
@@ -234,13 +250,10 @@ func Steps(states ...component.StepState) []component.Step {
 func States() []State {
 	// figmaHost is Figma's host block; BOS-SAN-L01 is its mock hostname.
 	figmaHost := component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime}
-	// riskFactor fits the 35 cells a factor has beside the label (DEV-022);
-	// longFactor does not.
-	riskFactor := []string{
-		"AppArmor not configured",
-		"Auto Updates not configured",
-		"Up 182 days without auto updates",
-	}
+	// The lines under a status row: a cost hardn established, in
+	// status.warn, and one that rests on what it could not establish.
+	noPassword := component.StatusLine{Text: "No password to become root", Warn: true}
+	countedOff := component.StatusLine{Text: "Counted as not configured"}
 	// figmaSSH is Figma's SSH Configuration details (02-SSH_LOGIN), with
 	// alice as the allowed user.
 	figmaSSH := component.BulletList{Items: []component.KeyValue{
@@ -274,15 +287,13 @@ func States() []State {
 		{"hostblock/unknown-uptime", component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10"}},
 		{"hostblock/no-hostname", component.HostBlock{Address: "192.0.2.10", Uptime: uptime}},
 		{"hostblock/long-hostname", component.HostBlock{Hostname: longHost, Address: "192.0.2.10", Uptime: uptime}},
-		{"hostblock/reboot-pending", component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime, RebootPending: true}},
+		{"hostblock/reboot-pending", component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime, Reboot: component.RebootPending}},
+		{"hostblock/reboot-unknown", component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime, Reboot: component.RebootUnknown}},
 		{"hostblock/all-unknown", component.HostBlock{}},
 		{"risksummary/moderate", FigmaRisk()},
 		{"risksummary/low", component.RiskSummary{Band: component.RiskLow, Level: "Low", Gloss: "strong security"}},
 		{"risksummary/high", component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: "no security"}},
 		{"risksummary/unknown", component.RiskSummary{}},
-		{"risksummary/factors", component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security", Factors: riskFactor}},
-		{"risksummary/factors-no-gloss", component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Factors: riskFactor}},
-		{"risksummary/long-factor", component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security", Factors: []string{longFactor}}},
 		{"statusrow/configured", SSHPort()},
 		{"statusrow/not-configured", component.StatusRow{Label: "AppArmor", State: component.StatusNotConfigured}},
 		{"statusrow/partial", component.StatusRow{Label: "Auto Updates", State: component.StatusPartial, Detail: "crond not enabled"}},
@@ -291,7 +302,15 @@ func States() []State {
 		{"statusrow/word", component.StatusRow{Label: "SSH Port", State: component.StatusConfigured, Word: "2230/tcp", Detail: "non-default"}},
 		{"statusrow/long-label", component.StatusRow{Label: "Unattended Upgrades Mail Reports", State: component.StatusConfigured, Detail: "root"}},
 		{"statusrow/long-detail", component.StatusRow{Label: "SSH Auth", State: component.StatusNotConfigured, Detail: "password auth also allowed for alice and bob"}},
+		{"statusrow/line-warn", component.StatusRow{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo",
+			Lines: []component.StatusLine{noPassword}}},
+		{"statusrow/line-muted", component.StatusRow{Label: "AppArmor", Detail: "can't read", Lines: []component.StatusLine{countedOff}}},
+		{"statusrow/two-lines", component.StatusRow{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo",
+			Lines: []component.StatusLine{{Text: "Second root account", Warn: true}, {Text: "Maybe no password to become root"}}}},
+		{"statusrow/long-line", component.StatusRow{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades",
+			Lines: []component.StatusLine{{Text: longLine, Warn: true}}}},
 		{"statuslist/normal", FigmaStatus()},
+		{"statuslist/lines", linedStatus(noPassword, countedOff)},
 		{"statuslist/empty", component.StatusList{}},
 		{"divider/normal", component.Divider{}},
 		{"modeindicator/live", component.ModeIndicator{}},
