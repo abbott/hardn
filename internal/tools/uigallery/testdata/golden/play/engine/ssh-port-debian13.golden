@@ -97,7 +97,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
       ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
@@ -229,7 +229,7 @@ $
 $
 # Operation Successful$
 $
-  [*] Warning: This change reverts automatically in 3:01$
+  [ ] Warning: This change reverts automatically in 3:01$
       To keep it, open a new SSH session on port 2230 and run:$
       sudo hardn confirm$
 $
@@ -364,7 +364,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
       ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
       ␛[38;2;192;196;216mrun:␛[m$
       ␛[1;38;2;192;196;216msudo hardn confirm␛[m$

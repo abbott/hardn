@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
 	"golang.org/x/text/width"
 )
 
@@ -44,12 +45,14 @@ func TestGlyphSetsComplete(t *testing.T) {
 
 // TestStatusMarkers checks the glyphs that mark a state: they fit the
 // marker column, even where ambiguous-width glyphs are drawn two cells
-// wide, and no two states share one, so a state never rests on colour
-// alone.
+// wide, and only Partial shares a marker, Not Configured's, as a warning
+// does (the maintainer, 2026-10-21). Two states with one marker are told
+// apart by colour (TestSharedMarkerColours) and by the word on the line
+// (pkg/ui/component's TestStatusStates), never by colour alone.
 func TestStatusMarkers(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
-		markers := []string{g.Configured, g.NotConfigured, g.Partial, g.Unknown, g.NotApplicable}
-		for _, m := range append(markers, g.Risk) {
+		markers := []string{g.Configured, g.NotConfigured, g.Unknown, g.NotApplicable}
+		for _, m := range append(markers, g.Partial, g.Risk) {
 			if w := wideWidth(m); w > MarkerWidth {
 				t.Errorf("%s: marker %q is %d cells wide when ambiguous is wide, over MarkerWidth %d", name, m, w, MarkerWidth)
 			}
@@ -62,12 +65,51 @@ func TestStatusMarkers(t *testing.T) {
 				t.Errorf("%s: marker %q marks two states", name, m)
 			}
 		}
+		if g.Partial != g.NotConfigured || g.Warn != g.Partial {
+			t.Errorf("%s: Partial %q and Warn %q, want Not Configured's %q", name, g.Partial, g.Warn, g.NotConfigured)
+		}
+	}
+}
+
+// TestSharedMarkerColours checks the other half of the shared marker's
+// rule: wherever there is colour, Partial's style differs from Not
+// Configured's, on a status row and on a key-value row's marker, so that
+// the two read apart by colour as well as by their words.
+func TestSharedMarkerColours(t *testing.T) {
+	for _, env := range envs() {
+		th := New(env)
+		if env.Profile <= colorprofile.ASCII {
+			continue // no colour: the word alone tells them, as it always does
+		}
+		for _, pair := range [][2]lipgloss.Style{
+			{th.Status.Partial, th.Status.NotConfigured},
+			{th.KeyValue.ValueWarn, th.KeyValue.ValueBad},
+		} {
+			if pair[0].GetForeground() == pair[1].GetForeground() {
+				t.Errorf("%s: Partial and Not Configured share the colour %v", envName(env), pair[0].GetForeground())
+			}
+		}
+	}
+}
+
+// TestRiskGlyphAlone checks that the risk icon, ⛬ or [*], is no other
+// role's glyph and is in none, so that only the code that names
+// Glyphs.Risk draws it: RiskSummary, and the menu's and the plan's
+// lockout-risk lines (pkg/ui/component's TestRiskGlyphDrawn).
+func TestRiskGlyphAlone(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		for field, glyph := range glyphFields(g) {
+			if field != "Risk" && strings.Contains(glyph, g.Risk) {
+				t.Errorf("%s.%s = %q holds the risk icon %q", name, field, glyph, g.Risk)
+			}
+		}
 	}
 }
 
 // TestMessageMarkers checks the glyphs of a message's kind: they fit the
 // marker column, even where ambiguous-width glyphs are drawn two cells
 // wide, and no two kinds share one, so a kind never rests on colour alone.
+// A warning's glyph is Partial's (TestStatusMarkers), its word "Warning".
 func TestMessageMarkers(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
 		kinds := []string{g.OK, g.Warn, g.Bad, g.Info, g.Cancelled}
@@ -110,7 +152,7 @@ func TestStepMarkers(t *testing.T) {
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {
-	const documented = "⛛ ⭘ ⛬ ≈ … █ ─"
+	const documented = "⛛ ⭘ ⛬ – ≈ … █ ─"
 	var found []string
 	for _, glyph := range glyphFields(unicodeGlyphs) {
 		for _, r := range glyph {

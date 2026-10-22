@@ -76,7 +76,7 @@ $
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
       ␛[38;2;129;134;156mis read before 00-hardn.conf, so sshd uses it␛[m$
       ␛[38;2;129;134;156m(SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf:1)␛[m$
@@ -156,7 +156,7 @@ $
 $
   [i] Info: No actual changes were made to your system.$
 $
-  [*] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
+  [ ] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
       is read before 00-hardn.conf, so sshd uses it$
       (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-$
       init.conf:1)$
@@ -238,7 +238,7 @@ $
 $
    ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf is read before 00-hardn.conf, so sshd uses␛[m$
       ␛[38;2;129;134;156mit (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
       ␛[38;2;129;134;156minit.conf:1)␛[m$

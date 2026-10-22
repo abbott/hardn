@@ -247,10 +247,15 @@ func TestLayout(t *testing.T) {
 			{Label: "a", State: StatusNotConfigured}, {Label: "b", State: StatusPartial},
 			{Label: "c", State: StatusNotApplicable}, {Label: "d", State: StatusState(9)},
 		}}, from, false,
-			"  [ ] a                    Not Configured\n  [*] b                    Partial\n" +
+			"  [ ] a                    Not Configured\n  [ ] b                    Partial\n" +
 				"  [-] c                    Not Applicable\n  [?] d                    Unknown"},
 		{"status: Word replaces the state's word", StatusRow{Label: "SSH Port", State: StatusConfigured, Word: " 2230/tcp ", Detail: "non-default"}, from, false,
 			"  [+] SSH Port             2230/tcp non-default"},
+		{"status: a shared marker keeps the state's word, not Word", StatusList{Rows: []StatusRow{
+			{Label: "Firewall", State: StatusPartial, Word: "Enabled", Detail: "no rules"},
+			{Label: "Firewall", State: StatusNotConfigured, Word: "Enabled", Detail: "no rules"},
+		}}, from, false,
+			"  [ ] Firewall             Partial no rules\n  [ ] Firewall             Not Configured no rules"},
 		{"status: a long label is cut beside the value", StatusRow{Label: "Unattended Upgrades Mail Reports", State: StatusConfigured}, from, true,
 			"   ⛛  Unattended Upgrades… Configured"},
 		{"status: a cut label drops the spaces before the ellipsis", StatusRow{Label: "Security Updates Mail", State: StatusConfigured}, from, false,
@@ -299,7 +304,7 @@ func TestLayout(t *testing.T) {
 		{"menu: a risky item's note line", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, from, false,
 			"   2) SSH Login            Toggle root SSH access\n                           [*] Lockout risk"},
 		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true, Risk: true}}}, from, true,
-			"   3) DNS                  Configure Nameservers\n                           ∅ Unavailable"},
+			"   3) DNS                  Configure Nameservers\n                           – Unavailable"},
 		{"menu: stacked below StackBelow", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, below, false,
 			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk"},
 		{"menu: a note with no description sits beside the label", Menu{Items: []MenuItem{{Key: "7", Label: "Run All", Risk: true}}}, from, false,
@@ -406,7 +411,7 @@ func TestLayout(t *testing.T) {
 			{Key: "c", Value: "bad", State: ValueBad}, {Key: "d", State: ValueUnknown},
 			{Key: "e", State: ValueNotApplicable}, {Key: "f", Value: "plain", State: ValueState(9)},
 		}}, from, false,
-			"  [+] a                    ok\n  [*] b                    warn\n  [ ] c                    bad\n" +
+			"  [+] a                    ok\n  [ ] b                    warn\n  [ ] c                    bad\n" +
 				"  [?] d                    Unknown\n  [-] e                    Not Applicable\n   -  f                    plain"},
 		{"keyvalue: a note follows the plain value", KeyValue{Key: "Backup Path", Value: "/var/backups/hardn", State: ValueOK, Note: "Writable"}, from, true,
 			"   ⛛  Backup Path          /var/backups/hardn Writable"},
@@ -667,9 +672,11 @@ func TestShowsWhole(t *testing.T) {
 	}
 }
 
-// TestStatusStates checks that each state shows its own glyph and word,
-// both in the state's style, and that no two states share both, so that
-// no state rests on colour alone. A value outside the states is Unknown.
+// TestStatusStates checks that each state shows its glyph and its own
+// word, both in the state's style, and that no two states share both, so
+// that no state rests on colour alone: two states that share a glyph,
+// Partial and Not Configured (the maintainer, 2026-10-21), differ by word
+// and by colour. A value outside the states is Unknown.
 func TestStatusStates(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	st, g := c.Theme.Status, c.Theme.Glyphs
@@ -700,6 +707,57 @@ func TestStatusStates(t *testing.T) {
 	}
 	if len(shown) != 5 {
 		t.Errorf("the five states show %d different glyph and word pairs, want 5: %v", len(shown), shown)
+	}
+	states := tests[:5]
+	for i, a := range states {
+		for _, b := range states[i+1:] {
+			if a.glyph == b.glyph && (a.word == b.word || a.style.GetForeground() == b.style.GetForeground()) {
+				t.Errorf("%s and %s share the glyph %q, and their word or colour too", a.word, b.word, a.glyph)
+			}
+		}
+	}
+}
+
+// TestRiskGlyphDrawn checks that the risk icon, ⛬ or [*], is the risk
+// level's: rendering every state of fixture.States, in both glyph sets and
+// at widths that stack and that do not, it is drawn only by RiskSummary
+// before "Risk Level" and, pending the maintainer (DEV-028, DEV-038), by
+// Menu and PlanView before "Lockout risk", each state's component taken
+// from its fixture name. No other glyph is the risk icon (pkg/ui/theme's
+// TestRiskGlyphAlone).
+func TestRiskGlyphDrawn(t *testing.T) {
+	type use struct{ component, words string }
+	uses := []use{{"risksummary", "Risk Level"}, {"planview", LockoutRisk}, {"menu", LockoutRisk}}
+	for _, unicode := range []bool{true, false} {
+		for _, w := range []int{40, 64, 80} {
+			c := NewCtx(term.Fixed(w, colorprofile.TrueColor, unicode, true))
+			icon := c.Theme.Glyphs.Risk
+			seen := map[use]bool{}
+			for _, s := range fixture.States() {
+				comp, _, _ := strings.Cut(s.Name, "/")
+				out := ansi.Strip(s.VM.Render(c))
+				for rest := out; ; {
+					i := strings.Index(rest, icon)
+					if i < 0 {
+						break
+					}
+					rest = rest[i+len(icon):]
+					after := strings.TrimLeft(rest, " ")
+					if j := slices.IndexFunc(uses, func(u use) bool {
+						return u.component == comp && strings.HasPrefix(after, u.words)
+					}); j >= 0 {
+						seen[uses[j]] = true
+						continue
+					}
+					t.Errorf("%s, unicode %t, width %d: the risk icon %q before %q", s.Name, unicode, w, icon, strings.SplitN(after, "\n", 2)[0])
+				}
+			}
+			for _, u := range uses {
+				if !seen[u] {
+					t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, u.component, u.words)
+				}
+			}
+		}
 	}
 }
 
@@ -839,9 +897,11 @@ func TestBlockStyles(t *testing.T) {
 }
 
 // TestValueStates checks that each value state shows in the value's
-// colour and as its own status marker in place of the bullet, in the same
-// colour, and that the marker is there without colour too, so that no
-// state rests on colour alone. A plain value keeps the bullet.
+// colour and as its status marker in place of the bullet, in the same
+// colour, and that the marker is there without colour too. A warn value
+// takes a bad one's marker, as Partial takes Not Configured's, and differs
+// from it by colour; without colour the value's words tell them apart. A
+// plain value keeps the bullet.
 func TestValueStates(t *testing.T) {
 	colour := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	none := NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))
@@ -874,8 +934,11 @@ func TestValueStates(t *testing.T) {
 		}
 		shown[tt.glyph] = true
 	}
-	if len(shown) != 6 {
-		t.Errorf("the six states show %d different markers, want 6: %v", len(shown), shown)
+	if len(shown) != 5 {
+		t.Errorf("the six states show %d different markers, want 5, warn's being bad's: %v", len(shown), shown)
+	}
+	if kv.ValueWarn.GetForeground() == kv.ValueBad.GetForeground() {
+		t.Errorf("a warn and a bad value share the marker %q and the colour %v", g.NotConfigured, kv.ValueBad.GetForeground())
 	}
 }
 

@@ -112,7 +112,7 @@ Every line the three blocks can show, with the host's state that gives it, in Fi
 | address | a `Header` `Read` did not fill | `Unknown` |
 | uptime | read | Figma's form (§2.10): `182 days, 2 hours, 26 minutes` (Figma's), `41 days, 1 hour`, `3 days, 5 minutes`, `1 day`, `0 minutes` |
 | uptime | not read, in no form known, or a `Header` `Read` did not fill | `Unknown` |
-| reboot | a reboot pending (Yes) | `⛬ Reboot pending`, `[*] Reboot pending` in ASCII, under the uptime: P-21 (a) as `next/p1b-header` built it; its wording and place are P-21's, **open** |
+| reboot | a reboot pending (Yes) | `⭘ Reboot pending`, `[ ] Reboot pending` in ASCII, in `status.warn` (Partial's marker since the maintainer's glyphs of 2026-10-21), under the uptime: P-21 (a) as `next/p1b-header` built it; its wording and place are P-21's, **open** |
 | reboot | No, or Unknown | no line |
 
 ### 5.3 The findings (*proposed*)

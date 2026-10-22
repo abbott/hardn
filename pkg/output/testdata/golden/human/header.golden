@@ -10,7 +10,7 @@ $
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01.example.net ␛[m     ␛[38;2;129;134;156m192.0.2.10␛[m$
                            ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-                           ␛[38;2;219;184;83m⛬ Reboot pending␛[m$
+                           ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
 $
 [ubuntu2604]$
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
@@ -47,10 +47,10 @@ $
 [unknown]$
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
 $
-  ␛[38;2;106;176;216mUnknown␛[m                  ␛[38;2;106;176;216mUnknown␛[m$
-                           ␛[38;2;106;176;216mUnknown␛[m$
+  ␛[38;2;129;134;156mUnknown␛[m                  ␛[38;2;129;134;156mUnknown␛[m$
+                           ␛[38;2;129;134;156mUnknown␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -61,7 +61,7 @@ $
 $
   [web-01.example.net]     192.0.2.10$
                            182 days, 2 hours, 26 minutes$
-                           [*] Reboot pending$
+                           [ ] Reboot pending$
 $
 [ubuntu2604]$
 hardn  v0.4.0              https://github.com/abbott/hardn$
@@ -114,7 +114,7 @@ $
   ␛[1;38;2;223;223;223;48;2;12;42;192m web-01.example.net ␛[m$
       ␛[38;2;129;134;156m192.0.2.10␛[m$
       ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
-      ␛[38;2;219;184;83m⛬ Reboot pending␛[m$
+      ␛[38;2;219;184;83m⭘ Reboot pending␛[m$
 $
 [ubuntu2604]$
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
@@ -160,9 +160,9 @@ $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
 ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 $
-  ␛[38;2;106;176;216mUnknown␛[m$
-      ␛[38;2;106;176;216mUnknown␛[m$
-      ␛[38;2;106;176;216mUnknown␛[m$
+  ␛[38;2;129;134;156mUnknown␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m$
 $

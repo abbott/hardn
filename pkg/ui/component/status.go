@@ -40,6 +40,21 @@ func (s StatusState) String() string {
 	return unknown
 }
 
+// statusStates is every status state.
+var statusStates = [...]StatusState{StatusUnknown, StatusConfigured, StatusNotConfigured, StatusPartial, StatusNotApplicable}
+
+// sharesGlyph reports whether another state draws s's marker in g, as
+// Partial draws Not Configured's: then, without colour, only the word
+// tells s from it.
+func (s StatusState) sharesGlyph(g theme.Glyphs) bool {
+	for _, o := range statusStates {
+		if o != s && o.glyph(g) == s.glyph(g) {
+			return true
+		}
+	}
+	return false
+}
+
 // glyph returns the state's marker in g.
 func (s StatusState) glyph(g theme.Glyphs) string {
 	switch s {
@@ -81,21 +96,26 @@ func (s StatusState) style(t theme.StatusStyles) lipgloss.Style {
 // The state's glyph is centred in the marker column (DEV-020), the label
 // starts at theme.LabelCol, and the state's word at theme.ValueCol, with
 // the detail one cell after it in text.faint. The glyph and the word take
-// the state's colour, so the state never rests on colour alone. A label
-// wider than the label column, less the cell before the value column, is
-// cut with the ellipsis glyph, so a list stays one row per line; so is a
-// value that runs past the content width (DEV-025). Below
-// theme.StackBelow the row stacks: the word and detail go under the label
-// at theme.StackCol (DEV-021).
+// the state's colour, so the state never rests on colour alone: Partial
+// shares Not Configured's glyph, and its colour and word tell it (the
+// maintainer, 2026-10-21), so neither shows Word. A label wider than the
+// label column, less the cell before the value column, is cut with the
+// ellipsis glyph, so a list stays one row per line; so is a value that
+// runs past the content width (DEV-025). Below theme.StackBelow the row
+// stacks: the word and detail go under the label at theme.StackCol
+// (DEV-021).
 type StatusRow struct {
 	// Label is the control's name, such as "SSH Port"; empty shows none.
 	Label string
-	// State sets the glyph, the colour and, unless Word is set, the word.
+	// State sets the glyph, the colour and the word, which Word may
+	// replace.
 	State StatusState
 	// Word is shown in place of the state's word, in the state's colour,
-	// as Figma's SSH Login screen shows the port ("2230/tcp") and
-	// origin/main a firewall that is on but not configured ("Enabled",
-	// pkg/security status.go:134-135). Empty shows State.String().
+	// as Figma's SSH Login screen shows the port ("2230/tcp"). Empty
+	// shows State.String(). A state whose marker another state shares,
+	// Partial and Not Configured, keeps its own word and Word is not
+	// shown: without colour the word alone tells the two apart (the
+	// maintainer, 2026-10-21), so such a row puts its value in Detail.
 	Word string
 	// Detail follows the word, such as "non-root, sudo"; empty shows
 	// none.
@@ -111,7 +131,7 @@ func (vm StatusRow) Render(c Ctx) string {
 		label = c.truncate(label, theme.LabelWidth-1)
 	}
 	word := c.text(vm.Word)
-	if word == "" {
+	if word == "" || vm.State.sharesGlyph(c.Theme.Glyphs) {
 		word = vm.State.String()
 	}
 	value := line{{word, state}}

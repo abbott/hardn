@@ -87,13 +87,13 @@ func TestTokensComplete(t *testing.T) {
 var contrastFloors = map[string]map[string]float64{
 	"dark": {
 		"text.primary": 7, "text.muted": 4.5, "text.faint": 3,
-		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5, "status.unknown": 4.5,
+		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5,
 		"divider": 1.5, "accent.ok": 3, "accent.warn": 3,
 		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0,
 	},
 	"light": {
 		"text.primary": 4.5, "text.muted": 3, "text.faint": 3,
-		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5, "status.unknown": 4.5,
+		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5,
 		"divider": 3, "accent.ok": 3, "accent.warn": 3,
 		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0,
 	},

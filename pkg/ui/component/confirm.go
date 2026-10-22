@@ -37,7 +37,7 @@ const clockWidth = 5
 // glyphs, 2 minutes 45 seconds before the revert, then 25 seconds:
 //
 //	0 2   6
-//	  [*] Warning: This change reverts automatically in 2:45
+//	  [ ] Warning: This change reverts automatically in 2:45
 //	      To keep it, open a new SSH session and run:
 //	      sudo hardn confirm
 //

@@ -18,10 +18,10 @@ $
    ␛[38;2;231;70;105m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;231;70;105mHigh␛[m ␛[38;2;86;91;107m≈ weak security␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
-   ␛[38;2;129;134;156m∅␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
@@ -56,7 +56,7 @@ $
 $
   [+] User                 Configured non-root, sudo$
   [+] Firewall             Configured deny policy$
-  [*] SSH Login            Partial root key-only$
+  [ ] SSH Login            Partial root key-only$
   [ ] SSH Auth             Not Configured password auth on$
   [ ] SSH Port             Not Configured default (22)$
   [-] AppArmor             Not Applicable set by the host$
@@ -103,13 +103,13 @@ $
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-   ␛[38;2;219;184;83m⛬␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
-   ␛[38;2;129;134;156m∅␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
       ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$

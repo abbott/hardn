@@ -118,13 +118,13 @@ func TestPlanGroupLayout(t *testing.T) {
 				"      See \"systemctl status ssh.service\" and \"journalctl -xeu\n      ↪ ssh.service\" for details.\n\n" +
 				"   ℹ  Info: Check the log file at /var/log/hardn.log for details\n   ℹ  Info: Run sudo sshd -t to see what sshd rejected."},
 		{"countdown: waiting at UrgentBelow", ConfirmCountdown{Remaining: UrgentBelow}, 64, false,
-			"  [*] Warning: This change reverts automatically in 0:30\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+			"  [ ] Warning: This change reverts automatically in 0:30\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
 		{"countdown: urgent below it, on the new port", ConfirmCountdown{Remaining: UrgentBelow - 1, Port: 2230}, 64, true,
 			"   !  Urgent: This change reverts automatically in 0:29\n      To keep it, open a new SSH session on port 2230 and run:\n      sudo hardn confirm"},
 		{"countdown: minutes and seconds", ConfirmCountdown{Remaining: 61, Command: " sudo hardn confirm \n"}, 64, false,
-			"  [*] Warning: This change reverts automatically in 1:01\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+			"  [ ] Warning: This change reverts automatically in 1:01\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
 		{"countdown: the clock stays whole", ConfirmCountdown{Remaining: 600}, 24, false,
-			"  [*] Warning: This\n      change reverts\n      automatically in\n      10:00\n      To keep it, open a\n      new SSH session\n      and run:\n      sudo hardn confirm"},
+			"  [ ] Warning: This\n      change reverts\n      automatically in\n      10:00\n      To keep it, open a\n      new SSH session\n      and run:\n      sudo hardn confirm"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

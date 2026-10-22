@@ -82,6 +82,8 @@ The maintainer's lines, quoted from [P-43](../refactor/proposals.md#p-43) (3), i
    ?  AppArmor             Unknown can't read
 ```
 
+Drawn since the maintainer's glyphs of 2026-10-21 ([gallery-glyphs.md](gallery-glyphs.md) §1): Partial ⭘ in `status.warn`, Not Applicable – and Unknown ? in `text.muted`; the quote keeps P-43's markers.
+
 Every line the control can show, with the host's state that gives it. The details are exactly these strings; the count is the number of enforcing profiles, and "1 profile enforced" is the only adjustment (§2.9). No wording here is new.
 
 | The host | State | Detail |

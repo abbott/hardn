@@ -144,15 +144,17 @@
 // level's, beside candidates for the states Figma draws no symbol for,
 // Partial, Unknown and Not Applicable. Each set is the risk row and
 // 00-TUI-MAIN's seven rows in all five states, with a legend naming its
-// glyphs' code points and colours: current (today's ⛬ ? ∅, drawn as
-// RiskSummary and StatusRow draw them), figma (the three states folded into
-// Figma's glyphs and colours), diamond (⬙ ⁇ –), diamond-dot (◈ ? ⊟) and
-// square (◧ ⍰, no marker), each with ⛬ on the risk row alone; side by side
-// as many as the terminal holds, else one above the next. strip sets each
-// shortlisted glyph alone beside ⛛ ⭘ ⛬, in one colour; it has no ASCII
-// form. None, or "all", is every set and the strip. Its flags are compare's
-// but -marker and -column: -list, -theme, -profile, -ascii, -override, and
-// -width and -height sized as compare's; it draws nothing by -height.
+// glyphs' code points and colours: current (⭘ ? –, the trial set the
+// maintainer adopted on 2026-10-21, drawn as RiskSummary and StatusRow draw
+// them), and the candidates set aside: power (⏼ ? –), figma (the three
+// states folded into Figma's glyphs and colours), diamond (⬙ ⁇ –),
+// diamond-dot (◈ ? ⊟) and square (◧ ⍰, no marker), each with ⛬ on the risk
+// row alone; side by side as many as the terminal holds, else one above the
+// next. strip sets each shortlisted glyph alone beside ⛛ ⭘ ⛬, in one
+// colour; it has no ASCII form. None, or "all", is every set and the strip.
+// Its flags are compare's but -marker and -column: -list, -theme, -profile,
+// -ascii, -override, and -width and -height sized as compare's; it draws
+// nothing by -height.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //

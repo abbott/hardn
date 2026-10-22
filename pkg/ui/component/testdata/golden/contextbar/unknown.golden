@@ -3,112 +3,112 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                  ␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-␛[48;2;22;24;29m ␛[m ␛[38;2;106;176;216mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
+␛[48;2;22;24;29m ␛[m ␛[38;2;129;134;156mUnknown␛[m ␛[48;2;22;24;29m                                                      ␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                  ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                  ␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                  ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                  ␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-␛[48;2;230;232;238m ␛[m ␛[38;2;10;110;140mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
+␛[48;2;230;232;238m ␛[m ␛[38;2;87;92;110mUnknown␛[m ␛[48;2;230;232;238m                                                      ␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                  ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                  ␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                  ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                  ␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-␛[48;5;234m ␛[m ␛[38;5;74mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
+␛[48;5;234m ␛[m ␛[38;5;103mUnknown␛[m ␛[48;5;234m                                                      ␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                  ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                  ␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                  ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                  ␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-␛[48;5;254m ␛[m ␛[38;5;24mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
+␛[48;5;254m ␛[m ␛[38;5;59mUnknown␛[m ␛[48;5;254m                                                      ␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                  ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                  ␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                      ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                      ␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                      ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                      ␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                  ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                  ␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                      ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                      ␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-␛[100m ␛[m ␛[96mUnknown␛[m ␛[100m                                                      ␛[m$
+␛[100m ␛[m ␛[90mUnknown␛[m ␛[100m                                                      ␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                  ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                  ␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                      ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                      ␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                      ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                      ␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                  ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                  ␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                      ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                      ␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-␛[47m ␛[m ␛[36mUnknown␛[m ␛[47m                                                      ␛[m$
+␛[47m ␛[m ␛[90mUnknown␛[m ␛[47m                                                      ␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
 █ Unknown ██████████████████████████████████████████████████$

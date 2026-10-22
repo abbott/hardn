@@ -10,7 +10,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -21,9 +20,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -35,7 +34,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -85,7 +84,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -96,9 +94,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -110,7 +108,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -160,7 +158,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -171,9 +168,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -185,7 +182,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -235,7 +232,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -246,7 +242,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -260,7 +256,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -310,7 +306,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -321,7 +316,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -335,7 +330,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -385,7 +380,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;112;212;127mstatus.ok␛[m       ␛[48;2;112;212;127m      ␛[m$
   ␛[38;2;231;70;105mstatus.bad␛[m      ␛[48;2;231;70;105m      ␛[m$
   ␛[38;2;219;184;83mstatus.warn␛[m     ␛[48;2;219;184;83m      ␛[m$
-  ␛[38;2;106;176;216mstatus.unknown␛[m  ␛[48;2;106;176;216m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
@@ -396,7 +390,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -410,7 +404,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -460,7 +454,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -471,9 +464,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -485,7 +478,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -535,7 +528,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -546,9 +538,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -560,7 +552,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -610,7 +602,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -621,9 +612,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -635,7 +626,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -685,7 +676,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -696,7 +686,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -710,7 +700,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -760,7 +750,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -771,7 +760,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -785,7 +774,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -835,7 +824,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;26;127;55mstatus.ok␛[m       ␛[48;2;26;127;55m      ␛[m$
   ␛[38;2;194;37;74mstatus.bad␛[m      ␛[48;2;194;37;74m      ␛[m$
   ␛[38;2;138;97;0mstatus.warn␛[m     ␛[48;2;138;97;0m      ␛[m$
-  ␛[38;2;10;110;140mstatus.unknown␛[m  ␛[48;2;10;110;140m      ␛[m$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
@@ -846,7 +834,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -860,7 +848,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -910,7 +898,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -921,9 +908,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -935,7 +922,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -985,7 +972,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -996,9 +982,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1010,7 +996,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1060,7 +1046,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -1071,9 +1056,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1085,7 +1070,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1135,7 +1120,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -1146,7 +1130,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1160,7 +1144,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1210,7 +1194,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -1221,7 +1204,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1235,7 +1218,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1285,7 +1268,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
   ␛[38;5;179mstatus.warn␛[m     ␛[48;5;179m      ␛[m$
-  ␛[38;5;74mstatus.unknown␛[m  ␛[48;5;74m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
@@ -1296,7 +1278,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1310,7 +1292,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1360,7 +1342,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1371,9 +1352,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1385,7 +1366,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1435,7 +1416,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1446,9 +1426,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1460,7 +1440,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1510,7 +1490,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1521,9 +1500,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1535,7 +1514,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1585,7 +1564,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1596,7 +1574,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1610,7 +1588,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1660,7 +1638,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1671,7 +1648,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1685,7 +1662,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1735,7 +1712,6 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
-  ␛[38;5;24mstatus.unknown␛[m  ␛[48;5;24m      ␛[m$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
@@ -1746,7 +1722,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -1760,7 +1736,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -1810,7 +1786,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -1821,9 +1796,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1835,7 +1810,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1885,7 +1860,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -1896,9 +1870,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1910,7 +1884,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -1960,7 +1934,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -1971,9 +1944,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -1985,7 +1958,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2035,7 +2008,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -2046,7 +2018,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2060,7 +2032,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2110,7 +2082,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -2121,7 +2092,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2135,7 +2106,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2185,7 +2156,6 @@ Tokens: the name in its colour, then as a background$
   ␛[92mstatus.ok␛[m       ␛[102m      ␛[m$
   ␛[91mstatus.bad␛[m      ␛[101m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[96mstatus.unknown␛[m  ␛[106m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
@@ -2196,7 +2166,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2210,7 +2180,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2260,7 +2230,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2271,9 +2240,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2285,7 +2254,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2335,7 +2304,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2346,9 +2314,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2360,7 +2328,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2410,7 +2378,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2421,9 +2388,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2435,7 +2402,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2485,7 +2452,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2496,7 +2462,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2510,7 +2476,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2560,7 +2526,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2571,7 +2536,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2585,7 +2550,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2635,7 +2600,6 @@ Tokens: the name in its colour, then as a background$
   ␛[32mstatus.ok␛[m       ␛[42m      ␛[m$
   ␛[31mstatus.bad␛[m      ␛[41m      ␛[m$
   ␛[33mstatus.warn␛[m     ␛[43m      ␛[m$
-  ␛[36mstatus.unknown␛[m  ␛[46m      ␛[m$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
@@ -2646,7 +2610,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2660,7 +2624,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -2710,7 +2674,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -2721,9 +2684,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2735,7 +2698,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2785,7 +2748,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -2796,9 +2758,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2810,7 +2772,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2860,7 +2822,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -2871,9 +2832,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -2885,7 +2846,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -2935,7 +2896,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -2946,7 +2906,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -2960,7 +2920,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -3010,7 +2970,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3021,7 +2980,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -3035,7 +2994,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -3085,7 +3044,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3096,7 +3054,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -3110,7 +3068,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -3160,7 +3118,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3171,9 +3128,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -3185,7 +3142,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -3235,7 +3192,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3246,9 +3202,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -3260,7 +3216,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -3310,7 +3266,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3321,9 +3276,9 @@ $
 Glyphs$
   Configured      ⛛$
   NotConfigured   ⭘$
-  Partial         ⛬$
+  Partial         ⭘$
   Unknown         ?$
-  NotApplicable   ∅$
+  NotApplicable   –$
   Risk            ⛬$
   Prompt          ❯$
   Approx          ≈$
@@ -3335,7 +3290,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              ✓$
-  Warn            ⛬$
+  Warn            ⭘$
   Bad             ✗$
   Info            ℹ$
   Cancelled       ⊘$
@@ -3385,7 +3340,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3396,7 +3350,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -3410,7 +3364,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -3460,7 +3414,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3471,7 +3424,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -3485,7 +3438,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$
@@ -3535,7 +3488,6 @@ Tokens: the name in its colour, then as a background$
   status.ok             $
   status.bad            $
   status.warn           $
-  status.unknown        $
   badge.bg              $
   badge.fg              $
   bar.bg                $
@@ -3546,7 +3498,7 @@ $
 Glyphs$
   Configured      [+]$
   NotConfigured   [ ]$
-  Partial         [*]$
+  Partial         [ ]$
   Unknown         [?]$
   NotApplicable   [-]$
   Risk            [*]$
@@ -3560,7 +3512,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   OK              [+]$
-  Warn            [*]$
+  Warn            [ ]$
   Bad             [!]$
   Info            [i]$
   Cancelled       [-]$

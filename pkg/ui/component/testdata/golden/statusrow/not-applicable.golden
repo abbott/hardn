@@ -3,14 +3,14 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;129;134;156m∅␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
       ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;129;134;156m∅␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;129;134;156m∅␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
   ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mAppArmor␛[m$
@@ -23,14 +23,14 @@
   ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;87;92;110m∅␛[m  ␛[38;2;30;34;48mAppArmor␛[m$
+   ␛[38;2;87;92;110m–␛[m  ␛[38;2;30;34;48mAppArmor␛[m$
       ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;87;92;110m∅␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
+   ␛[38;2;87;92;110m–␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;87;92;110m∅␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
+   ␛[38;2;87;92;110m–␛[m  ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
   ␛[38;2;87;92;110m[-]␛[m ␛[38;2;30;34;48mAppArmor␛[m$
@@ -43,14 +43,14 @@
   ␛[38;2;87;92;110m[-]␛[m ␛[38;2;30;34;48mAppArmor␛[m             ␛[38;2;87;92;110mNot Applicable␛[m ␛[38;2;129;134;156mcontainer␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m∅␛[m  ␛[38;5;251mAppArmor␛[m$
+   ␛[38;5;103m–␛[m  ␛[38;5;251mAppArmor␛[m$
       ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m∅␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
+   ␛[38;5;103m–␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m∅␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
+   ␛[38;5;103m–␛[m  ␛[38;5;251mAppArmor␛[m             ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;103m[-]␛[m ␛[38;5;251mAppArmor␛[m$
@@ -63,14 +63,14 @@
   ␛[38;5;103m[-]␛[m ␛[38;5;251mAppArmor␛[m             ␛[38;5;103mNot Applicable␛[m ␛[38;5;59mcontainer␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;59m∅␛[m  ␛[38;5;235mAppArmor␛[m$
+   ␛[38;5;59m–␛[m  ␛[38;5;235mAppArmor␛[m$
       ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;59m∅␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
+   ␛[38;5;59m–␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;59m∅␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
+   ␛[38;5;59m–␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;59m[-]␛[m ␛[38;5;235mAppArmor␛[m$
@@ -83,14 +83,14 @@
   ␛[38;5;59m[-]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mNot Applicable␛[m ␛[38;5;103mcontainer␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-   ␛[90m∅␛[m  ␛[37mAppArmor␛[m$
+   ␛[90m–␛[m  ␛[37mAppArmor␛[m$
       ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-   ␛[90m∅␛[m  ␛[37mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
+   ␛[90m–␛[m  ␛[37mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-   ␛[90m∅␛[m  ␛[37mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
+   ␛[90m–␛[m  ␛[37mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
   ␛[90m[-]␛[m ␛[37mAppArmor␛[m$
@@ -103,14 +103,14 @@
   ␛[90m[-]␛[m ␛[37mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-   ␛[90m∅␛[m  ␛[30mAppArmor␛[m$
+   ␛[90m–␛[m  ␛[30mAppArmor␛[m$
       ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-   ␛[90m∅␛[m  ␛[30mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
+   ␛[90m–␛[m  ␛[30mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-   ␛[90m∅␛[m  ␛[30mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
+   ␛[90m–␛[m  ␛[30mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
   ␛[90m[-]␛[m ␛[30mAppArmor␛[m$
@@ -123,14 +123,14 @@
   ␛[90m[-]␛[m ␛[30mAppArmor␛[m             ␛[90mNot Applicable␛[m ␛[90mcontainer␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-   ∅  AppArmor$
+   –  AppArmor$
       Not Applicable container$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-   ∅  AppArmor             Not Applicable container$
+   –  AppArmor             Not Applicable container$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-   ∅  AppArmor             Not Applicable container$
+   –  AppArmor             Not Applicable container$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
   [-] AppArmor$
@@ -143,14 +143,14 @@
   [-] AppArmor             Not Applicable container$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-   ∅  AppArmor$
+   –  AppArmor$
       Not Applicable container$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-   ∅  AppArmor             Not Applicable container$
+   –  AppArmor             Not Applicable container$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-   ∅  AppArmor             Not Applicable container$
+   –  AppArmor             Not Applicable container$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
   [-] AppArmor$
