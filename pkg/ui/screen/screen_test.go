@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -221,7 +222,7 @@ func TestCreateUserPlan(t *testing.T) {
 	p, out := prompter(env, "bob", "n", "n", "y")
 	o, err := step.Run(context.Background(), p, f)
 	if got := out.String(); o != flow.Applied || err != nil || !strings.Contains(got, "Create user 'bob'?") ||
-		!strings.Contains(got, "Done: Create user bob") || strings.Contains(got, "george") || strings.Contains(got, "sudo group") {
+		!regexp.MustCompile(`Create user bob +Done\n`).MatchString(got) || strings.Contains(got, "george") || strings.Contains(got, "sudo group") {
 		t.Errorf("bob, no sudo, no key: Run() = %v, %v, transcript\n%s", o, err, got)
 	}
 }

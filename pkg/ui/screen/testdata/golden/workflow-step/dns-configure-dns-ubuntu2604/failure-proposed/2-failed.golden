@@ -4,37 +4,38 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m ␛[38;2;86;91;107m(DNS_NOT_EFFECTIVE)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mDNS_NOT_EFFECTIVE␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReloading systemd-resolved had no effect␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;219;184;83mRolled back␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
-  [!] Failed: Set the nameservers (DNS_NOT_EFFECTIVE)$
+  [ ] Set the nameservers  Failed DNS_NOT_EFFECTIVE$
 $
 # Operation Failed$
 # Reloading systemd-resolved had no effect$
 $
-  [<] Rolled back: Set the nameservers$
+  [ ] Set the nameservers  Rolled back$
 $
-  [i] Info: Check the log file at /var/log/hardn.log for details$
-  [i] Info: Run resolvectl dns to see the servers in use.$
+  Check the log file at /var/log/hardn.log for details$
+  Run resolvectl dns to see the servers in use.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m ␛[38;2;86;91;107m(DNS_NOT_EFFECTIVE)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mDNS_NOT_EFFECTIVE␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReloading systemd-resolved had no effect␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
-      ␛[38;2;129;134;156mdetails␛[m$
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$

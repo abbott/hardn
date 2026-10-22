@@ -44,8 +44,9 @@
 //
 // # Asking again
 //
-// A line a prompt does not accept is answered under the prompt by an
-// error Message, then the prompt is asked again; the screen above is not
+// A line a prompt does not accept is answered under the prompt by a
+// failed component.InlineResult, ◇ and the words in status.bad with no
+// word for the kind (P-42, DEV-062), then the prompt is asked again; the screen above is not
 // drawn again (brief 1C: re-ask only that field, keeping context). The
 // words are origin/main's "Invalid option. Please try again." on a menu,
 // and P-25's for the rest: a disabled item's key says the item is

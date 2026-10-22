@@ -13,7 +13,6 @@
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
 //	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]
-//	go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //
@@ -107,37 +106,10 @@
 // prompt; -list prints the hosts' names. Its flags are -list, -theme,
 // -profile, -ascii, -override, and -width and -height, sized as play's.
 //
-// "compare" sets the pattern hardn draws today for the apply's steps, the
-// error report's rolled-back lines, the one-line messages and the confirm
-// countdown (P-23, P-24), rendered by the real components as pkg/output
-// and the flow compose them, beside a proposed pattern after Figma's rows
-// (P-42), which the gallery draws itself (compare.go): no component has it
-// yet. Its sections are steps (an apply under way), failure (the reload
-// failed, rolled back), success (the change applied, with its countdown),
-// messages (the five kinds and two info sentences) and countdown (2:45,
-// 2:45 on port 2230, 0:05); none, or "all", is every section, in that
-// order. A note says what is compared, then each section comes under a
-// header, "compare <section>", its two renders under "Current" and
-// "Proposed": side by side when the terminal holds two content columns
-// and the gap between them (132 cells), each at the content width; else
-// one above the other, at the terminal's. The data is the engine
-// scenarios' 2230 change on Debian 13. Its flags are -theme, -profile,
-// -ascii and -override, as below; -list, which prints the names of the
-// sections it would render; -width, as play's (the terminal's own when
-// stdout is a terminal, else 80); and P-42's two open choices:
-//
-//	-marker bullet|status  the proposed rows' marker: the key-value
-//	                       bullet on every row, or Figma's status markers
-//	                       for a step done, failed or rolled back
-//	                       (default bullet)
-//	-column aligned|figma  the proposed rows' status column: two cells
-//	                       after the widest title, col 27 at the least,
-//	                       or Figma's col 27, the list stacked when a
-//	                       title reaches it, as the 2230 change's titles
-//	                       do at every width (default aligned)
-//
-// It takes -height, as play does, and refuses one under 1, but draws
-// nothing by it.
+// The compare mode, P-42's mock of Figma's row grammar beside the pattern
+// the components drew, was removed once the components drew the grammar
+// (next/s2-row-grammar, the maintainer's decision of 2026-10-22): its two
+// sides were then alike. Git keeps it (compare.go, next/p3-gallery-engine).
 //
 // "glyphs" shows the status rows' symbols (glyphs.go,
 // docs/engine/gallery-glyphs.md): Figma's ⛛ ⭘ ⛬, of which ⛬ is the risk
@@ -152,9 +124,8 @@
 // row alone; side by side as many as the terminal holds, else one above the
 // next. strip sets each shortlisted glyph alone beside ⛛ ⭘ ⛬, in one
 // colour; it has no ASCII form. None, or "all", is every set and the strip.
-// Its flags are compare's but -marker and -column: -list, -theme, -profile,
-// -ascii, -override, and -width and -height sized as compare's; it draws
-// nothing by -height.
+// Its flags are -list, -theme, -profile, -ascii, -override, and -width and
+// -height sized as play's; it draws nothing by -height.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //
@@ -188,11 +159,11 @@
 // keeps out of git, and pass its path.
 //
 // The gallery's code reads nothing but its flags, the override file and,
-// in the playable mode, stdin and the terminal's size, and in compare,
-// status and glyphs the terminal's size: no root, nothing under /etc. It
-// builds each environment with term.Fixed. Only to size itself, where
-// -width or -height is not given, the playable mode, compare, status or
-// glyphs calls term.Detect, given the dark theme so that it never queries the
+// in the playable mode, stdin and the terminal's size, and in status and
+// glyphs the terminal's size: no root, nothing under /etc. It builds each
+// environment with term.Fixed. Only to size itself, where -width or
+// -height is not given, the playable mode, status or glyphs calls
+// term.Detect, given the dark theme so that it never queries the
 // terminal's background: Detect asks whether stdin and stdout are
 // terminals, reads the size of the terminal stdout is and os.Environ
 // (COLUMNS and LINES, for a terminal whose size it cannot read), and of
@@ -224,8 +195,8 @@
 // stdout only, through each environment's term.Env.Writer, one write per
 // state and environment, or per screen mock: what the golden file holds
 // for the same cell; the playable mode writes as hardn does, a block or
-// a prompt at a time; compare writes its note, then each section, a write
-// each. A workflow's sequences play on scripted answers and
+// a prompt at a time; status and glyphs write their note, then each host
+// or set, a write each. A workflow's sequences play on scripted answers and
 // fixture plans (screen.Sequence.Play, flow.Fixture), which read no
 // terminal and change nothing.
 package main
@@ -255,17 +226,17 @@ func main() {
 }
 
 // sizer returns the size of the terminal stdout is, in cells and lines,
-// and whether stdout is a terminal at all. The playable mode and compare
-// size themselves with it where -width or -height is not given
+// and whether stdout is a terminal at all. The playable mode, status and
+// glyphs size themselves with it where -width or -height is not given
 // (look.sizeTo); the tests pass their own, so that no test depends on its
 // own terminal.
 type sizer func() (width, height int, tty bool)
 
 // stdoutSize is the gallery's sizer: the size of the terminal stdout is,
 // as term.Detect reads it for the render environment (the terminal's own,
-// else COLUMNS and LINES, else 80x24), and whether stdout is a terminal. Detect is given
-// the dark theme, so that it never queries the terminal's background; play
-// and compare take the size alone of what Detect resolves.
+// else COLUMNS and LINES, else 80x24), and whether stdout is a terminal.
+// Detect is given the dark theme, so that it never queries the terminal's
+// background; the modes take the size alone of what Detect resolves.
 func stdoutSize() (width, height int, tty bool) {
 	env := term.Detect(term.Options{Theme: term.ThemeDark}, os.Stdin, os.Stdout)
 	return env.Width, env.Height, env.TTY
@@ -431,11 +402,11 @@ type look struct {
 }
 
 // lookFlags defines the look flags on fs. With sized set, as in the
-// playable mode and compare, -width and -height default to the terminal's
-// size (look.sizeTo), 0 standing for it until then, and their help says
-// so; otherwise they default to term.DefaultWidth and term.DefaultHeight.
-// -height's help speaks of the main menu, which compare, drawing nothing
-// by the height, replaces with its own.
+// playable mode, status and glyphs, -width and -height default to the
+// terminal's size (look.sizeTo), 0 standing for it until then, and their
+// help says so; otherwise they default to term.DefaultWidth and
+// term.DefaultHeight. -height's help speaks of the main menu, which
+// glyphs, drawing nothing by the height, replaces with its own.
 func lookFlags(fs *flag.FlagSet, sized bool) look {
 	width, height := term.DefaultWidth, term.DefaultHeight
 	widthHelp := "the terminal width in cells"
@@ -456,11 +427,11 @@ func lookFlags(fs *flag.FlagSet, sized bool) look {
 }
 
 // sizeTo sets -width and -height where the command line did not give
-// them, as the playable mode and compare do before they build their
-// environment: to the size of the terminal stdout is (size), so that play
-// draws what the screens draw on that terminal, the main menu's full form
-// on one tall enough, and compare sets its two sides by side on one wide
-// enough; and where stdout is not a terminal, as in the tests and through
+// them, as the playable mode, status and glyphs do before they build
+// their environment: to the size of the terminal stdout is (size), so that
+// play draws what the screens draw on that terminal, the main menu's full
+// form on one tall enough, and glyphs sets its sets side by side on one
+// wide enough; and where stdout is not a terminal, as in the tests and through
 // a pipe, to term.DefaultWidth and term.DefaultHeight, so that their
 // goldens stay deterministic. A flag given wins, each on its own, even
 // one that look.cell refuses; with both given, size is not called.
@@ -530,16 +501,12 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns and sizes itself with size; with "compare",
-// "status" or "glyphs" first, the comparison mode (compare), the status
-// listing (statusList) or the glyphs mode (glyphs), which size themselves
-// with size too and read no input. No other mode calls either.
+// line reader stdin returns and sizes itself with size; with "status" or
+// "glyphs" first, the status listing (statusList) or the glyphs mode
+// (glyphs), which size themselves with size too and read no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
-	}
-	if len(args) > 0 && args[0] == "compare" {
-		return compare(args[1:], size, stdout, stderr)
 	}
 	if len(args) > 0 && args[0] == statusPrefix {
 		return statusList(args[1:], size, stdout, stderr)
@@ -553,7 +520,6 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fs.PrintDefaults()

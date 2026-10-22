@@ -380,18 +380,16 @@ func (s *session) confirmFromNewConnection(h *fakeHost) error {
 	}
 	rec.end()
 	r := held.Report(o)
-	var lines []string
+	var run component.Messages
 	for _, d := range r.Done {
-		lines = append(lines, component.Message{Kind: component.MessageOK, Text: d}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageOK, Text: d})
 	}
 	for _, l := range r.Left {
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: l}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: l})
 	}
-	if r.Finish != "" {
-		lines = append(lines, component.Message{Text: r.Finish}.Render(c))
-	}
-	if len(lines) > 0 {
-		blocks = append(blocks, strings.Join(lines, "\n"))
+	run = append(run, component.Message{Text: r.Finish})
+	if out := run.Render(c); out != "" {
+		blocks = append(blocks, out)
 	}
 	_, werr := io.WriteString(s.p.Out, gap+strings.Join(blocks, "\n"+gap)+"\n")
 	return werr

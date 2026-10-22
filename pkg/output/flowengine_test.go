@@ -213,7 +213,7 @@ func TestFlowEngineInAFlow(t *testing.T) {
 		t.Errorf("dry run: %s %+v", d.Mode, d.Result)
 	}
 	r, out := run(false, "y")
-	if output.ExitCode(r) != output.ExitOK || !strings.Contains(out, "Done: Listen on 192.0.2.20:443") || !strings.Contains(out, "Operation Successful") {
+	if output.ExitCode(r) != output.ExitOK || !strings.Contains(squash(out), squash("Listen on 192.0.2.20:443 in /etc/example/web.conf Done")) || !strings.Contains(out, "Operation Successful") {
 		t.Errorf("exit %d:\n%s", output.ExitCode(r), out)
 	}
 	r, out = run(false)

@@ -7,7 +7,7 @@
       ␛[38;2;129;134;156mSpecify username to create␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m $
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername cannot be empty␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mUsername cannot be empty␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mUsername␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156mgeorge␛[m$
 
@@ -16,7 +16,7 @@ $
       Specify username to create$
 $
   > [0 or q]: $
-  [!] Error: Username cannot be empty$
+  <>  Username cannot be empty$
   > [0 or q]: george$
   Username: george$
 
@@ -25,6 +25,6 @@ $
       ␛[38;2;129;134;156mSpecify username to create␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m $
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mUsername cannot be empty␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mUsername cannot be empty␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[38;2;129;134;156m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mUsername␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156mgeorge␛[m$

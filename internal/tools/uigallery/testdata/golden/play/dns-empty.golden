@@ -34,10 +34,11 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -101,10 +102,11 @@ $
    0) Return$
 $
   > Enter selection [0-2, 4-6 or q]: 3$
-  [!] Error: Invalid option. Please try again.$
+  <>  Invalid option. Please try again.$
   > Enter selection [0-2, 4-6 or q]: 1$
 $
-  [ ] Warning: Please add nameservers first.$
+# Warning$
+# Please add nameservers first.$
 $
 # DNS Configuration ############################################$
 $
@@ -176,10 +178,11 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

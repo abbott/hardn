@@ -42,9 +42,10 @@ import (
 // state, grouped by component. Build it with New.
 //
 // SubjectLine composes Text.Muted and Badge, and BulletList is KeyValue
-// rows. ErrorReport composes a bad Callout, StepProgress rows, Plan.Command,
-// Output and Messages. A form field's options are Menu rows, and its
-// inline error is a Message of kind bad, as every refused line is
+// rows. A Message is a Callout, or Text.Muted prose for info (P-42 R5).
+// ErrorReport composes a bad Callout, StepProgress rows, Plan.Command,
+// Output and prose. A form field's options are Menu rows, and its inline
+// error is an InlineResult of kind bad, as every refused line is
 // (pkg/ui/nav), so neither has a Field slot. The cursor has no slot: the
 // terminal draws its own (candidate C8).
 type Theme struct {
@@ -62,7 +63,7 @@ type Theme struct {
 	Menu       MenuStyles
 	Prompt     PromptStyles
 	Field      FieldStyles
-	Message    MessageStyles
+	Inline     InlineStyles
 	Callout    CalloutStyles
 	KeyValue   KeyValueStyles
 	Badge      lipgloss.Style // white text on blue: the host and user badges
@@ -186,15 +187,15 @@ type FieldStyles struct {
 	Description lipgloss.Style // what the field asks for, muted (DEV-046)
 }
 
-// MessageStyles style one-line messages: the kind's glyph (Glyphs.OK,
-// Warn, Bad, Info or Cancelled), bold in the kind's colour, then the text.
-type MessageStyles struct {
-	OK        lipgloss.Style
-	Warn      lipgloss.Style
-	Bad       lipgloss.Style
-	Info      lipgloss.Style
-	Cancelled lipgloss.Style
-	Text      lipgloss.Style
+// InlineStyles style an inline result under a prompt, a form field's or
+// a refused line's: Glyphs.Inline and the text, both in the state's
+// colour, regular (P-42, the maintainer, 2026-10-22; DEV-062). A
+// cancelled result takes Warn, as a cancelled callout takes warn's colour.
+type InlineStyles struct {
+	OK   lipgloss.Style // done: status.ok
+	Warn lipgloss.Style // a warning: status.warn
+	Bad  lipgloss.Style // failed: status.bad
+	Info lipgloss.Style // information: text.muted
 }
 
 // CalloutStyles style a callout: an accent bar beside a bold title, with
@@ -259,8 +260,11 @@ type PlanStyles struct {
 	LockoutRisk lipgloss.Style // a change that could lock the user out, bold
 }
 
-// StepStyles style StepProgress: one style per step state, which colours
-// the state's glyph and word, then the step's title and detail.
+// StepStyles style StepProgress's status column: one style per step
+// state, which colours the state's word, regular, and the marker of a step
+// done, failed, rolled back or running; then the aside after the word
+// (P-42 R1). A step's title is KeyValue.Key's, and the bullet of a step
+// pending or skipped KeyValue.Bullet's.
 type StepStyles struct {
 	Pending    lipgloss.Style
 	Running    lipgloss.Style
@@ -268,17 +272,17 @@ type StepStyles struct {
 	Failed     lipgloss.Style
 	RolledBack lipgloss.Style
 	Skipped    lipgloss.Style
-	Title      lipgloss.Style
-	Detail     lipgloss.Style // such as why a step was skipped
+	Detail     lipgloss.Style // the aside, such as a failed step's code
 }
 
-// ConfirmStyles style the confirm-or-revert countdown: the glyph, word
-// and time, bold, while there is time and in the last seconds; the notice;
-// and the command to run from a new session, bold.
+// ConfirmStyles style the confirm-or-revert countdown, a callout (P-42
+// R6): the time left, bold, while there is time and in the last seconds,
+// and the command to run from a new session, bold. Its title and bar are
+// Callout.Warn's, Callout.Bad's when urgent, and its sentences
+// Callout.Body.
 type ConfirmStyles struct {
 	Waiting lipgloss.Style
 	Urgent  lipgloss.Style
-	Text    lipgloss.Style
 	Command lipgloss.Style
 }
 
@@ -375,10 +379,7 @@ func build(env term.Env, p *palette) *Theme {
 		},
 		Prompt: PromptStyles{Glyph: muted.Bold(true), Label: muted.Bold(true), Hint: muted},
 		Field:  FieldStyles{Number: primary, Label: primary, Hint: primary, Answer: muted, Description: muted},
-		Message: MessageStyles{
-			OK: ok.Bold(true), Warn: warn.Bold(true), Bad: bad.Bold(true),
-			Info: primary.Bold(true), Cancelled: warn.Bold(true), Text: muted,
-		},
+		Inline: InlineStyles{OK: ok, Warn: warn, Bad: bad, Info: muted},
 		Callout: CalloutStyles{
 			OK:        CalloutKind{Bar: bg(p.AccentOK), Title: ok.Bold(true)},
 			Warn:      CalloutKind{Bar: bg(p.AccentWarn), Title: warn.Bold(true)},
@@ -402,12 +403,9 @@ func build(env term.Env, p *palette) *Theme {
 		},
 		Step: StepStyles{
 			Pending: muted, Running: primary, Done: ok, Failed: bad, RolledBack: warn,
-			Skipped: muted, Title: primary, Detail: faint,
+			Skipped: faint, Detail: faint,
 		},
-		Output: muted,
-		Confirm: ConfirmStyles{
-			Waiting: warn.Bold(true), Urgent: bad.Bold(true),
-			Text: primary, Command: primary.Bold(true),
-		},
+		Output:  muted,
+		Confirm: ConfirmStyles{Waiting: warn.Bold(true), Urgent: bad.Bold(true), Command: primary.Bold(true)},
 	}
 }

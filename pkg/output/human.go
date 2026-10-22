@@ -43,7 +43,7 @@ func Human(env term.Env, r Run, now time.Time) string {
 	}
 	blocks = append(blocks, findingsBlock(c, d.Findings))
 	if r.Mode != ModeApply || d.Result.Rollback == nil {
-		blocks = append(blocks, errorsBlock(c, d, r.Err, nil, ""))
+		blocks = append(blocks, errorsBlock(c, d, r.Err, nil, nil, ""))
 	}
 	blocks = slices.DeleteFunc(blocks, func(b string) bool { return b == "" })
 	if len(blocks) == 0 {
@@ -147,7 +147,7 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	blocks := []string{sp.Render(c)}
 	switch {
 	case res.Rollback != nil:
-		blocks = append(blocks, errorsBlock(c, d, r.Result.Failed.Err, undone, rollbackNext(*res.Rollback, r.Result.Failed)))
+		blocks = append(blocks, errorsBlock(c, d, r.Result.Failed.Err, undone, sp.Steps, rollbackNext(*res.Rollback, r.Result.Failed)))
 	case res.Confirm != nil:
 		blocks = append(blocks, countdown(c, *res.Confirm, res.ID, now)...)
 	case len(d.Errors) == 0:
@@ -252,11 +252,12 @@ func onePort(via []string) int {
 	return port
 }
 
-// findingsBlock is each finding as a warning, with its code and source;
+// findingsBlock is each finding as a warning, with its code and source,
+// one Warning callout for the run of them (component.Messages, P-42 R5);
 // the configuration's deprecated values are cmd/hardn's warning, on stderr
 // as the configuration loads.
 func findingsBlock(c component.Ctx, fs []Finding) string {
-	var lines []string
+	var run component.Messages
 	for _, f := range fs {
 		if f.Code == CodeDeprecated {
 			continue
@@ -265,16 +266,18 @@ func findingsBlock(c component.Ctx, fs []Finding) string {
 		if f.Source != "" {
 			text += ", " + f.Source
 		}
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: text + ")"}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: text + ")"})
 	}
-	return strings.Join(lines, "\n")
+	return run.Render(c)
 }
 
 // errorsBlock is the run's errors: the first as an ErrorReport, with the
-// changes rolled back, the command that failed and its output, and the
-// next step (its Fix, then next), the others as error messages, each with
-// its fix.
-func errorsBlock(c component.Ctx, d Document, failed error, undone []string, next string) string {
+// changes rolled back on the status column of steps, the apply's, the
+// command that failed and its output, and the next step (its Fix, then
+// next); the others as error messages, each with its fix, written as one
+// run (component.Messages): consecutive errors share one "Operation
+// Failed" callout, and a fix follows its error as prose.
+func errorsBlock(c component.Ctx, d Document, failed error, undone []string, steps []component.Step, next string) string {
 	es := d.Errors
 	if len(es) == 0 {
 		return ""
@@ -283,21 +286,21 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, nex
 	if first.Fix != "" {
 		next = strings.TrimSpace(toGoOn(first.Fix) + " " + next)
 	}
-	rep := component.ErrorReport{Failed: errorText(d, first), RolledBack: undone, Next: next}
+	rep := component.ErrorReport{Failed: errorText(d, first), RolledBack: undone, Steps: steps, Next: next}
 	var xe *host.ExitError
 	if errors.As(failed, &xe) {
 		rep.Command, rep.Output = host.FormatArgv(xe.Argv), strings.Join(xe.Tail, "\n")
 	}
 	blocks := []string{rep.Render(c)}
-	var more []string
+	var more component.Messages
 	for _, e := range es[1:] {
-		more = append(more, component.Message{Kind: component.MessageBad, Text: errorText(d, e)}.Render(c))
+		more = append(more, component.Message{Kind: component.MessageBad, Text: errorText(d, e)})
 		if e.Fix != "" {
-			more = append(more, component.Message{Text: toGoOn(e.Fix)}.Render(c))
+			more = append(more, component.Message{Text: toGoOn(e.Fix)})
 		}
 	}
 	if len(more) > 0 {
-		blocks = append(blocks, strings.Join(more, "\n"))
+		blocks = append(blocks, more.Render(c))
 	}
 	return strings.Join(blocks, strings.Repeat("\n", theme.SectionGap+1))
 }

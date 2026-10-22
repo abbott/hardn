@@ -79,11 +79,12 @@ $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor␛[m$
-      ␛[38;2;129;134;156mstill supports it and hardn changes it, but hardn is not␛[m$
-      ␛[38;2;129;134;156mtested on it (PLATFORM_BEST_EFFORT)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msupports it and hardn changes it, but hardn is not tested on␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mit (PLATFORM_BEST_EFFORT)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -168,11 +169,12 @@ $
       sshd -T$
       $ sshd -T$
 $
-  [i] Info: No actual changes were made to your system.$
+  No actual changes were made to your system.$
 $
-  [ ] Warning: Ubuntu 22.04 is a best-effort release: its vendor$
-      still supports it and hardn changes it, but hardn is not$
-      tested on it (PLATFORM_BEST_EFFORT)$
+# Warning$
+# Ubuntu 22.04 is a best-effort release: its vendor still$
+# supports it and hardn changes it, but hardn is not tested on$
+# it (PLATFORM_BEST_EFFORT)$
 $
 # simulated system ---------------------------------------------$
 $
@@ -260,11 +262,12 @@ $
       ␛[38;2;129;134;156msshd -T␛[m$
       ␛[38;2;129;134;156m$ sshd -T␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its␛[m$
-      ␛[38;2;129;134;156mvendor still supports it and hardn changes it, but␛[m$
-      ␛[38;2;129;134;156mhardn is not tested on it (PLATFORM_BEST_EFFORT)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msupports it and hardn changes it, but hardn is not tested␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon it (PLATFORM_BEST_EFFORT)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

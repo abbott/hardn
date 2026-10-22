@@ -56,8 +56,11 @@ func newProgress(r *run, changes []component.PlanChange) *progress {
 			pr.steps[i].Title = unknownStep
 		}
 	}
-	env := r.p.Ctx.Env
-	if pr.animate = env.Animate && len(changes) < env.Height; pr.animate {
+	// The block is drawn again in place only while it fits under the
+	// terminal's top: a line per step, two where the rows stack, whatever
+	// their states (component.StepProgress).
+	env, block := r.p.Ctx.Env, component.StepProgress{Steps: pr.steps}.Render(r.p.Ctx)
+	if pr.animate = env.Animate && strings.Count(block, "\n")+1 < env.Height; pr.animate {
 		pr.draw()
 		pr.quit, pr.ticked = make(chan struct{}), make(chan struct{})
 		go pr.spin()
@@ -136,9 +139,10 @@ func (pr *progress) stop(failed bool) ([]string, error) {
 	return pr.rolled, pr.err
 }
 
-// print writes step's line as it stands, the first line after the gap.
+// print writes step's row as it stands, in the status column of the
+// whole list, the first after the gap.
 func (pr *progress) print(step int) {
-	line := component.StepProgress{Steps: pr.steps[step : step+1]}.Render(pr.r.p.Ctx)
+	line := component.StepProgress{Steps: pr.steps}.Row(pr.r.p.Ctx, step)
 	pr.printed[step] = pr.steps[step].State
 	pr.write(line)
 }

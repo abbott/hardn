@@ -4,24 +4,27 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCreate user george␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCreate user george␛[m                      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd george to the sudo group␛[m            ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet george use sudo without a password␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
-  [+] Done: Create user george$
-  [+] Done: Add george to the sudo group$
-  [+] Done: Let george use sudo without a password$
+  [+] Create user george                      Done$
+  [+] Add george to the sudo group            Done$
+  [+] Let george use sudo without a password  Done$
 $
 # Operation Successful$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCreate user george␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCreate user george␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$

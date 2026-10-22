@@ -11,7 +11,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+  ␛[38;2;129;134;156mNothing needs changing.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Configure DNS ################################################$
@@ -22,7 +22,7 @@ $
    -  Search Domains       example.net$
    -  dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
-  [i] Info: Nothing needs changing.$
+  Nothing needs changing.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfigure DNS␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -35,4 +35,4 @@ $
       ␛[38;2;129;134;156mexample.net␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+  ␛[38;2;129;134;156mNothing needs changing.␛[m$

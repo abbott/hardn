@@ -5,17 +5,17 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m maybe$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid answer. Please try again.␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m 0$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
    1. Username [0 or q]: george$
   Create user 'george'? [y/N, 0 or q]: maybe$
-  [!] Error: Invalid answer. Please try again.$
+  <>  Invalid answer. Please try again.$
   Create user 'george'? [y/N, 0 or q]: 0$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m maybe$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid answer. Please try again.␛[m$
+   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m 0$

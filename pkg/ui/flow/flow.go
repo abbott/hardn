@@ -278,7 +278,7 @@ func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 	case ctx.Err() != nil:
 		return NotRun, ctx.Err()
 	case err != nil:
-		return Failed, r.block(failure(err, nil).Render(c))
+		return Failed, r.block(failure(err, nil, nil).Render(c))
 	case len(plan.View.Changes) == 0:
 		return Unchanged, r.block(component.Message{Text: nothingToChange}.Render(c))
 	}
@@ -305,7 +305,7 @@ func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 	rolledBack, werr := pr.stop(err != nil)
 	result, out := component.Callout{Kind: component.MessageOK}.Render(c), Applied
 	if err != nil {
-		result, out = failure(err, rolledBack).Render(c), Failed
+		result, out = failure(err, rolledBack, pr.steps).Render(c), Failed
 	}
 	if werr == nil {
 		werr = r.block(result)
@@ -314,10 +314,11 @@ func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 }
 
 // failure is the ErrorReport of err, with the steps rolled back, named in
-// the order they were undone. A Failure with no Err says nothing of what
-// failed: the report's callout stands alone.
-func failure(err error, rolledBack []string) component.ErrorReport {
-	rep := component.ErrorReport{Failed: err.Error(), RolledBack: rolledBack}
+// the order they were undone, on the status column of steps, the Apply
+// step's (P-42 R2). A Failure with no Err says nothing of what failed:
+// the report's callout stands alone.
+func failure(err error, rolledBack []string, steps []component.Step) component.ErrorReport {
+	rep := component.ErrorReport{Failed: err.Error(), RolledBack: rolledBack, Steps: steps}
 	var f *Failure
 	if errors.As(err, &f) {
 		rep.Command, rep.Output, rep.LogPath, rep.Next = f.Command, f.Output, f.LogPath, f.Next

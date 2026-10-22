@@ -4,46 +4,48 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
-   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m  ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mexit status 1␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReloading the SSH service failed: exit status 1␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m  ␛[38;2;219;184;83mRolled back␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun systemctl status ssh to see why it failed.␛[m$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mRun systemctl status ssh to see why it failed.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 $
-  [+] Done: Set PermitRootLogin no$
-  [!] Failed: Reload the SSH service (exit status 1)$
+  [+] Set PermitRootLogin no  Done$
+  [ ] Reload the SSH service  Failed exit status 1$
 $
 # Operation Failed$
 # Reloading the SSH service failed: exit status 1$
 $
-  [<] Rolled back: Set PermitRootLogin no$
+  [ ] Set PermitRootLogin no  Rolled back$
 $
       $ systemctl reload ssh$
 $
-  [i] Info: Check the log file at /var/log/hardn.log for details$
-  [i] Info: Run systemctl status ssh to see why it failed.$
+  Check the log file at /var/log/hardn.log for details$
+  Run systemctl status ssh to see why it failed.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
-   ␛[38;2;231;70;105m✗␛[m  ␛[38;2;231;70;105mFailed:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m ␛[38;2;86;91;107m(exit status 1)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
+      ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mexit status 1␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReloading the SSH service failed: exit status 1␛[m$
 $
-   ␛[38;2;219;184;83m↺␛[m  ␛[38;2;219;184;83mRolled back:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
 $
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for␛[m$
-      ␛[38;2;129;134;156mdetails␛[m$
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mRun systemctl status ssh to see why it failed.␛[m$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mRun systemctl status ssh to see why it failed.␛[m$

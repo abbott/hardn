@@ -59,8 +59,8 @@
 //     read whole, such as what a default is, belong in the description,
 //     which wraps.
 //   - A line the field does not take, and a value its Validate rejects,
-//     is answered under the prompt by an error Message, the words being
-//     nav's or the validation's, then the prompt is asked again alone;
+//     is answered under the prompt by a failed InlineResult (◇, the words
+//     in status.bad; DEV-062), the words being nav's or the validation's, then the prompt is asked again alone;
 //     nothing above it is drawn again (nav.Prompter.Ask).
 //   - Once answered, the field's echo, an AnsweredField with the answer,
 //     is written under the answer when the line typed does not already

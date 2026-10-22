@@ -250,8 +250,8 @@ type refused string
 func (r refused) Error() string { return string(r) }
 
 // Refuse returns the error with which a resolve function passed to Ask
-// refuses a line: Ask writes reason under the prompt as an error Message
-// and asks again. A form refuses so a value its field's validation
+// refuses a line: Ask writes reason under the prompt as a failed
+// InlineResult and asks again. A form refuses so a value its field's validation
 // rejects, with the validation's words.
 func Refuse(reason string) error { return refused(reason) }
 
@@ -263,8 +263,9 @@ func Refuse(reason string) error { return refused(reason) }
 // Navigate first.
 //
 // resolve returns nil to accept the line; ErrBack or ErrQuit to navigate;
-// or a reason from Refuse, which Ask writes under the prompt as an error
-// Message before it writes question again, leaving the screen above as it
+// or a reason from Refuse, which Ask writes under the prompt as a failed
+// component.InlineResult (◇ and the reason in status.bad, no word; P-42,
+// DEV-062) before it writes question again, leaving the screen above as it
 // is (brief 1C: re-ask only that field, keeping context). A line longer
 // than prompt.MaxLine is refused for the reason invalid, and so is a line
 // refused for a reason that shows nothing. Any other error, from resolve
@@ -288,9 +289,9 @@ func (p Prompter) Ask(question, invalid string, resolve func(line string) error)
 				return err
 			}
 		}
-		msg := component.Message{Kind: component.MessageBad, Text: string(why)}.Render(p.Ctx)
+		msg := component.InlineResult{Kind: component.MessageBad, Text: string(why)}.Render(p.Ctx)
 		if msg == "" {
-			msg = component.Message{Kind: component.MessageBad, Text: invalid}.Render(p.Ctx)
+			msg = component.InlineResult{Kind: component.MessageBad, Text: invalid}.Render(p.Ctx)
 		}
 		if _, err := io.WriteString(p.Out, msg+"\n"); err != nil {
 			return fmt.Errorf("nav: write: %w", err)

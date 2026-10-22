@@ -74,12 +74,12 @@ $
       ␛[38;2;129;134;156m$ sshd -T␛[m$
       ␛[38;2;129;134;156m$ ss -Htlnp␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
-      ␛[38;2;129;134;156mis read before 00-hardn.conf, so sshd uses it␛[m$
-      ␛[38;2;129;134;156m(SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf:1)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf is read␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbefore 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/50-cloud-init.conf:1)␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -154,12 +154,12 @@ $
       $ sshd -T$
       $ ss -Htlnp$
 $
-  [i] Info: No actual changes were made to your system.$
+  No actual changes were made to your system.$
 $
-  [ ] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
-      is read before 00-hardn.conf, so sshd uses it$
-      (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-$
-      init.conf:1)$
+# Warning$
+# PasswordAuthentication yes in 50-cloud-init.conf is read$
+# before 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,$
+# /etc/ssh/sshd_config.d/50-cloud-init.conf:1)$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -236,10 +236,10 @@ $
       ␛[38;2;129;134;156m$ sshd -T␛[m$
       ␛[38;2;129;134;156m$ ss -Htlnp␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf is read before 00-hardn.conf, so sshd uses␛[m$
-      ␛[38;2;129;134;156mit (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf:1)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf is read␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbefore 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/50-cloud-init.conf:1)␛[m$
 $

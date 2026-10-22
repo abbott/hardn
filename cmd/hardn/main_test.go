@@ -392,8 +392,14 @@ func TestDeprecationWarning(t *testing.T) {
 	if r.ended {
 		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 	}
-	got := strings.Join(strings.Fields(r.stderr), " ")
-	if !strings.Contains(got, "Warning: ") || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
+	// One Warning callout (P-42 R5): its title, then the warning as its
+	// body, read here without the bar.
+	lines := strings.Split(r.stderr, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimLeft(l, "#█ ")
+	}
+	got := strings.Join(strings.Fields(strings.Join(lines, "\n")), " ")
+	if !strings.HasPrefix(got, "Warning ") || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
 		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}

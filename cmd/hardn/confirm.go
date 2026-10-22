@@ -106,23 +106,22 @@ func acknowledgeRolledBack(ctx context.Context, sys host.System, opts revert.Opt
 
 // showCleanup writes what the clean-up of h did and what is left of it,
 // and how to finish it (confirm.Held.Report), on stdout through pkg/ui, with
-// no colour off a terminal.
+// no colour off a terminal: one run of messages (component.Messages), so
+// what was done is one "Operation Successful" callout, what is left one
+// "Warning", and how to finish it prose.
 func showCleanup(h confirm.Held, o confirm.Outcome) {
 	r := h.Report(o)
 	env := stdoutEnv()
-	c := component.NewCtx(env)
-	var lines []string
+	var run component.Messages
 	for _, d := range r.Done {
-		lines = append(lines, component.Message{Kind: component.MessageOK, Text: d}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageOK, Text: d})
 	}
 	for _, l := range r.Left {
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: l}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: l})
 	}
-	if r.Finish != "" {
-		lines = append(lines, component.Message{Text: r.Finish}.Render(c))
-	}
-	if len(lines) > 0 {
-		_, _ = io.WriteString(env.Writer(confirmStdout), strings.Join(lines, "\n")+"\n")
+	run = append(run, component.Message{Text: r.Finish})
+	if out := run.Render(component.NewCtx(env)); out != "" {
+		_, _ = io.WriteString(env.Writer(confirmStdout), out+"\n")
 	}
 }
 

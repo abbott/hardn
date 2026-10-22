@@ -82,20 +82,22 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mDisallow password login␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows no password login␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m        ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDisallow password login␛[m          ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m        ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows no password login␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx␛[m$
-      ␛[38;2;129;134;156mis rolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-      ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
+  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -203,20 +205,22 @@ $
 $
   Type the hostname [web-01, 0 or q]: web-01$
 $
-  [+] Done: Install hardn's boot unit$
-  [+] Done: Disallow password login$
-  [+] Done: Reload sshd (ssh.service)$
-  [+] Done: sshd -T shows no password login$
+  [+] Install hardn's boot unit        Done$
+  [+] Disallow password login          Done$
+  [+] Reload sshd (ssh.service)        Done$
+  [+] sshd -T shows no password login  Done$
 $
 # Operation Successful$
 $
-  [ ] Warning: This change reverts automatically in 3:01$
-      To keep it, open a new SSH session and run:$
-      sudo hardn confirm$
+# Warning$
+# This change reverts automatically in 3:01$
+# To keep it, open a new SSH session and run:$
 $
-  [i] Info: Unless confirmed, change 20261020T120000Z-xxxxxxxx$
-      is rolled back at 12:03:01 UTC. To undo it now, run sudo$
-      hardn rollback 20261020T120000Z-xxxxxxxx.$
+      $ sudo hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
+  20261020T120000Z-xxxxxxxx.$
 $
 # simulated system ---------------------------------------------$
 $
@@ -327,21 +331,26 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mDisallow password login␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows no password login␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDisallow password login␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows no password login␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session and run:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx is rolled back at 12:03:01 UTC. To undo it␛[m$
-      ␛[38;2;129;134;156mnow, run sudo hardn rollback 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
+  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

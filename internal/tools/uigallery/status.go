@@ -352,7 +352,7 @@ const statusUsage = "usage: go run ./internal/tools/uigallery status [flags] [ho
 // is every host) under the gallery's header, "status <host>", its note,
 // then its main menu as hardn would draw it down to its prompt, with no
 // input, a write each. -list prints the hosts' names. It sizes itself as
-// compare does (look.sizeTo), so the main menu takes its full form on a
+// play does (look.sizeTo), so the main menu takes its full form on a
 // terminal of 40 rows or more, as 00-TUI-MAIN.png shows it, and its
 // compact form below.
 func statusList(args []string, size sizer, stdout, stderr io.Writer) int {

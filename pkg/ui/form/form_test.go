@@ -118,9 +118,9 @@ func TestValidation(t *testing.T) {
 		t.Fatalf("Run: %v, %q", err, name)
 	}
 	for _, want := range []string{
-		"[!] Error: Username cannot be empty\n",
-		"[!] Error: Username must start with a lowercase letter",
-		"[!] Error: 'root' is a reserved system username",
+		"<>  Username cannot be empty\n",
+		"<>  Username must start with a lowercase letter",
+		"<>  'root' is a reserved system username",
 	} {
 		if strings.Count(out, want) != 1 {
 			t.Errorf("transcript holds %q %d times, want once:\n%s", want, strings.Count(out, want), out)
@@ -151,8 +151,8 @@ func TestValidation(t *testing.T) {
 	}}
 	out, err = play(f, "n", "y", "1", "2")
 	if err != nil || !password || who != "alice" ||
-		!strings.Contains(out, "[!] Error: A user password is required for sudo usage.\n") ||
-		!strings.Contains(out, "[!] Error: george is already managed\n") {
+		!strings.Contains(out, "<>  A user password is required for sudo usage.\n") ||
+		!strings.Contains(out, "<>  george is already managed\n") {
 		t.Errorf("Run: %v, %t, %q:\n%s", err, password, who, out)
 	}
 }

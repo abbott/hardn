@@ -354,9 +354,16 @@ func TestConfirmConsoleCommand(t *testing.T) {
 	}
 }
 
-// squash is s with no white space, so that a sentence matches however the
-// report wraps it.
-func squash(s string) string { return strings.Join(strings.Fields(s), "") }
+// squash is s with no white space, and no callout bar at the start of a
+// line ("# " with no colour), so that a sentence matches however the
+// report wraps it, as prose or in a callout's body (P-42 R5).
+func squash(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimPrefix(l, "# ")
+	}
+	return strings.Join(strings.Fields(strings.Join(lines, "\n")), "")
+}
 
 // TestConfirmSeamsAreReal: the clean-up's host is host.Real, whose run log
 // goes to hardn's log alone.

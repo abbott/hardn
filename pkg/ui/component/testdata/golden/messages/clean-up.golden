@@ -1,0 +1,627 @@
+# Golden file of TestGolden/messages/clean-up, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mport the clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;2;129;134;156mto port 2230, made from another machine.␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;129;134;156mport 2230, made from another machine.␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;129;134;156mport 2230, made from another machine.␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mport the clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;2;129;134;156mto port 2230, made from another machine.␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;129;134;156mport 2230, made from another machine.␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;129;134;156mport 2230, made from another machine.␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mport the clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;2;87;92;110mto port 2230, made from another machine.␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;87;92;110mport 2230, made from another machine.␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;87;92;110mport 2230, made from another machine.␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mport the clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;2;87;92;110mto port 2230, made from another machine.␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;87;92;110mport 2230, made from another machine.␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;2;184;138;0m ␛[m ␛[38;2;87;92;110mthe clean-up keeps.␛[m$
+$
+  ␛[38;2;87;92;110mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;2;87;92;110mport 2230, made from another machine.␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mport the clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;5;103mto port 2230, made from another machine.␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;103mport 2230, made from another machine.␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;103mport 2230, made from another machine.␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mport the clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;5;103mto port 2230, made from another machine.␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;103mport 2230, made from another machine.␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;103mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;178m ␛[m ␛[38;5;103mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;103mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;103mport 2230, made from another machine.␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mport the clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;5;59mto port 2230, made from another machine.␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;59mport 2230, made from another machine.␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;59mport 2230, made from another machine.␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mport the clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[38;5;59mto port 2230, made from another machine.␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;59mport 2230, made from another machine.␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mand sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[48;5;136m ␛[m ␛[38;5;59mthe clean-up keeps.␛[m$
+$
+  ␛[38;5;59mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[38;5;59mport 2230, made from another machine.␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a␛[m$
+␛[43m ␛[m ␛[90mport the clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[90mto port 2230, made from another machine.␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a␛[m$
+␛[43m ␛[m ␛[90mport the clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[90mto port 2230, made from another machine.␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a␛[m$
+␛[43m ␛[m ␛[90mport the clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[90mto port 2230, made from another machine.␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a␛[m$
+␛[43m ␛[m ␛[90mport the clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection␛[m$
+  ␛[90mto port 2230, made from another machine.␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,␛[m$
+␛[42m ␛[m ␛[90mand sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
+$
+␛[43m ␛[m ␛[1;33mWarning␛[m$
+␛[43m ␛[m ␛[90mPort 2222 stays open: this session is not connected to a port␛[m$
+␛[43m ␛[m ␛[90mthe clean-up keeps.␛[m$
+$
+  ␛[90mRun `sudo hardn confirm` again from a new SSH connection to␛[m$
+  ␛[90mport 2230, made from another machine.␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
+█ hardn.conf, and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a$
+█ port the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection$
+  to port 2230, made from another machine.$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+█ and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a port$
+█ the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+█ and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a port$
+█ the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
+# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a$
+# port the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection$
+  to port 2230, made from another machine.$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+# and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a port$
+# the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+# and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a port$
+# the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
+█ hardn.conf, and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a$
+█ port the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection$
+  to port 2230, made from another machine.$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+█ and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a port$
+█ the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Successful␛[m$
+█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+█ and sshd, reloaded, no longer listens on it.$
+█ ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+█ ␛[1mWarning␛[m$
+█ Port 2222 stays open: this session is not connected to a port$
+█ the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
+# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a$
+# port the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection$
+  to port 2230, made from another machine.$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+# and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a port$
+# the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Successful␛[m$
+# Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf,$
+# and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
+$
+# ␛[1mWarning␛[m$
+# Port 2222 stays open: this session is not connected to a port$
+# the clean-up keeps.$
+$
+  Run `sudo hardn confirm` again from a new SSH connection to$
+  port 2230, made from another machine.$

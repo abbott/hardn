@@ -424,19 +424,26 @@ func (c Ctx) command(col int, prefix, s string, style lipgloss.Style) []string {
 // left out, and a line of spaces is an empty line. Only when not one more
 // character fits beside col is the rest cut with the ellipsis glyph.
 func (c Ctx) code(col int, s string, style lipgloss.Style) []string {
+	return c.codeFrom(col, span{}, s, style)
+}
+
+// codeFrom lays out the code s as code does, its first piece after open,
+// a span in a style of its own that takes cells of that line, such as the
+// countdown's Glyphs.Command and a space. An empty open is code's layout.
+func (c Ctx) codeFrom(col int, open span, s string, style lipgloss.Style) []string {
 	if s = strings.TrimRight(s, " "); s == "" {
 		return []string{""}
 	}
 	w := c.width()
 	var out []string
 	for lead := ""; ; {
-		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(lead)), "")
+		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(open.text)-lipgloss.Width(lead)), "")
 		rest, ok := strings.CutPrefix(s, head)
 		if head == "" || !ok {
-			return append(out, c.fit(line{gap(col), {lead + s, style}}, w))
+			return append(out, c.fit(line{gap(col), open, {lead + s, style}}, w))
 		}
 		if rest == "" {
-			return append(out, line{gap(col), {lead + head, style}}.String())
+			return append(out, line{gap(col), open, {lead + head, style}}.String())
 		}
 		if rest[0] != ' ' {
 			if i := strings.LastIndexByte(head, ' '); i > 0 && strings.TrimLeft(head[:i], " ") != "" {
@@ -448,8 +455,8 @@ func (c Ctx) code(col int, s string, style lipgloss.Style) []string {
 			s = strings.TrimLeft(s, " ")
 			continue
 		}
-		out = append(out, line{gap(col), {lead + head, style}}.String())
-		s, lead = s[len(head):], c.Theme.Glyphs.Wrap
+		out = append(out, line{gap(col), open, {lead + head, style}}.String())
+		s, lead, open = s[len(head):], c.Theme.Glyphs.Wrap, span{}
 	}
 }
 

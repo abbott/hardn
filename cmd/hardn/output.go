@@ -15,7 +15,6 @@ package main
 import (
 	"io"
 	"os"
-	"strings"
 
 	"github.com/fatih/color"
 
@@ -57,22 +56,23 @@ func warnDeprecations(c *config.Config) {
 	}
 }
 
-// deprecationWarnings renders deps as warning Messages, each after the file
-// path it was read from, for stderr; "" when there are none.
+// deprecationWarnings renders deps as one Warning callout, a line for each
+// after the file path it was read from (component.Messages: a run of
+// warnings, its title once), for stderr; "" when there are none.
 func deprecationWarnings(env term.Env, path string, deps []config.Deprecation) string {
-	c := component.NewCtx(env)
-	var lines []string
+	var run component.Messages
 	for _, d := range deps {
 		text := d.String()
 		if path != "" {
 			text = path + ": " + text
 		}
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: text}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: text})
 	}
-	if len(lines) == 0 {
+	out := run.Render(component.NewCtx(env))
+	if out == "" {
 		return ""
 	}
-	return strings.Join(lines, "\n") + "\n"
+	return out + "\n"
 }
 
 // setRevertColour turns the legacy logger's colour (fatih/color, which the

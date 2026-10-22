@@ -149,15 +149,15 @@ func TestGlyphsCells(t *testing.T) {
 var widestSetLine = theme.ValueCol + len("Not Configured password auth on")
 
 // TestGlyphsSideBySide checks the sets' layout in plain mode: as many side
-// by side as the width holds, widestSetLine cells each and compareGap
+// by side as the width holds, widestSetLine cells each and sideGap
 // apart, every row of one beside the same row of the others, no line over
 // the width; one above the next below two sets' width, and below
 // theme.StackBelow, where the rows stack.
 func TestGlyphsSideBySide(t *testing.T) {
-	step := widestSetLine + compareGap
+	step := widestSetLine + sideGap
 	for _, tt := range []struct{ width, per int }{
-		{63, 1}, {2*widestSetLine + compareGap - 1, 1}, {2*widestSetLine + compareGap, 2},
-		{3*widestSetLine + 2*compareGap - 1, 2}, {3*widestSetLine + 2*compareGap, 3}, {5*widestSetLine + 4*compareGap, 5},
+		{63, 1}, {2*widestSetLine + sideGap - 1, 1}, {2*widestSetLine + sideGap, 2},
+		{3*widestSetLine + 2*sideGap - 1, 2}, {3*widestSetLine + 2*sideGap, 3}, {5*widestSetLine + 4*sideGap, 5},
 	} {
 		code, out, errs := runGallery("glyphs", "-profile", "plain", "-width", fmt.Sprint(tt.width))
 		if code != exitOK || errs != "" {
@@ -268,4 +268,12 @@ func TestGlyphsUsage(t *testing.T) {
 	if code, out, _ := runGallery("glyphs", "-profile", "plain", "strip"); code != exitOK || strings.Contains(out, "# Current ") || !strings.Contains(out, "# glyphs strip ") {
 		t.Errorf("glyphs strip: exit %d, want the strip alone:\n%s", code, out)
 	}
+}
+
+// from returns plain line l from column col, "" when l ends before it.
+func from(l string, col int) string {
+	if len(l) < col {
+		return ""
+	}
+	return l[col:]
 }

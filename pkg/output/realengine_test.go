@@ -167,9 +167,17 @@ func humanText(t *testing.T, run output.Run) string {
 	return b.String()
 }
 
-// squash is s with no white space, so that a sentence matches however the
-// report wrapped it (Lip Gloss wraps after a hyphen too).
-func squash(s string) string { return strings.Join(strings.Fields(s), "") }
+// squash is s with no white space, and no callout bar at the start of a
+// line ("# " in plain mode), so that a sentence matches however it is
+// wrapped (Lip Gloss wraps after a hyphen too), as prose or in a
+// callout's body, and a step's row as its title and state.
+func squash(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimPrefix(l, "# ")
+	}
+	return strings.Join(strings.Fields(strings.Join(lines, "\n")), "")
+}
 
 // stable is run with its change id, random in its last part, the
 // fixtures' instead, wherever the document takes it from (the plan, the
@@ -242,7 +250,7 @@ func TestRealUnjournalled(t *testing.T) {
 		t.Errorf("errors %+v, want CHANGE_UNJOURNALLED with %q", d.Errors, undo)
 	}
 	h := squash(humanText(t, run))
-	for _, want := range []string{"Rolled back: Allow 2230/tcp in ufw", undo, "Failed: Write 00-hardn.conf (" + code + ")"} {
+	for _, want := range []string{"Allow 2230/tcp in ufw before sshd listens on it Rolled back", undo, "Write 00-hardn.conf Failed " + code} {
 		if !strings.Contains(h, squash(want)) {
 			t.Errorf("the human report has no %q:\n%s", want, humanText(t, run))
 		}
@@ -300,7 +308,7 @@ func TestRealCancelBetweenSteps(t *testing.T) {
 		t.Errorf("document %+v, rollback %+v", d.Changes, d.Result.Rollback)
 	}
 	h := humanText(t, run)
-	if !strings.Contains(h, "Skipped: Reload ssh.service (CANCELLED)") || strings.Contains(h, "Failed: Reload") {
+	if !strings.Contains(squash(h), squash("Reload ssh.service Skipped CANCELLED")) || strings.Contains(squash(h), squash("Reload ssh.service Failed")) {
 		t.Errorf("human report:\n%s", h)
 	}
 }

@@ -32,7 +32,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Manage Root SSH Login ########################################$
@@ -64,7 +64,7 @@ $
    -  Reload the SSH service$
       $ systemctl reload ssh$
 $
-  [i] Info: No actual changes were made to your system.$
+  No actual changes were made to your system.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage Root SSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -99,4 +99,4 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
