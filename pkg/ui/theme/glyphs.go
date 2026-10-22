@@ -21,10 +21,10 @@ package theme
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
-	Partial       string // a control partly hardened, or a warning (Figma ⛬)
+	Partial       string // a control partly hardened, or a warning (no Figma value; Figma's risk icon ⛬, DEV-012)
 	Unknown       string // a state hardn could not check (no Figma value)
 	NotApplicable string // a control that does not apply here; an unavailable menu item (no Figma value)
-	Risk          string // the risk icon; a menu item's lockout-risk marker (Figma ⛬, as Partial)
+	Risk          string // the risk icon (Figma ⛬, on the risk row alone); a menu item's lockout-risk marker
 	Prompt        string // before a prompt's label (Figma ❯)
 	Approx        string // before the risk level's gloss (Figma ≈)
 	Bullet        string // before a key-value or bullet-list item (Figma -)

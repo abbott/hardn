@@ -15,6 +15,7 @@
 //	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]
 //	go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
+//	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -138,6 +139,21 @@
 // It takes -height, as play does, and refuses one under 1, but draws
 // nothing by it.
 //
+// "glyphs" shows the status rows' symbols (glyphs.go,
+// docs/engine/gallery-glyphs.md): Figma's ⛛ ⭘ ⛬, of which ⛬ is the risk
+// level's, beside candidates for the states Figma draws no symbol for,
+// Partial, Unknown and Not Applicable. Each set is the risk row and
+// 00-TUI-MAIN's seven rows in all five states, with a legend naming its
+// glyphs' code points and colours: current (today's ⛬ ? ∅, drawn as
+// RiskSummary and StatusRow draw them), figma (the three states folded into
+// Figma's glyphs and colours), diamond (⬙ ⁇ –), diamond-dot (◈ ? ⊟) and
+// square (◧ ⍰, no marker), each with ⛬ on the risk row alone; side by side
+// as many as the terminal holds, else one above the next. strip sets each
+// shortlisted glyph alone beside ⛛ ⭘ ⛬, in one colour; it has no ASCII
+// form. None, or "all", is every set and the strip. Its flags are compare's
+// but -marker and -column: -list, -theme, -profile, -ascii, -override, and
+// -width and -height sized as compare's; it draws nothing by -height.
+//
 // The flags of the other modes, whose environment is the flags' alone:
 //
 //	-list             print the names of the states, or with -screens the
@@ -170,11 +186,11 @@
 // keeps out of git, and pass its path.
 //
 // The gallery's code reads nothing but its flags, the override file and,
-// in the playable mode, stdin and the terminal's size, and in compare the
-// terminal's size: no root, nothing under /etc. It builds each
-// environment with term.Fixed. Only to size itself, where -width or
-// -height is not given, the playable mode, or compare, calls
-// term.Detect, given the dark theme so that it never queries the
+// in the playable mode, stdin and the terminal's size, and in compare,
+// status and glyphs the terminal's size: no root, nothing under /etc. It
+// builds each environment with term.Fixed. Only to size itself, where
+// -width or -height is not given, the playable mode, compare, status or
+// glyphs calls term.Detect, given the dark theme so that it never queries the
 // terminal's background: Detect asks whether stdin and stdout are
 // terminals, reads the size of the terminal stdout is and os.Environ
 // (COLUMNS and LINES, for a terminal whose size it cannot read), and of
@@ -512,9 +528,10 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns and sizes itself with size; with "compare"
-// first, the comparison mode (compare), which sizes itself with size too
-// and reads no input. No other mode calls either.
+// line reader stdin returns and sizes itself with size; with "compare",
+// "status" or "glyphs" first, the comparison mode (compare), the status
+// listing (statusList) or the glyphs mode (glyphs), which size themselves
+// with size too and read no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -525,6 +542,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == statusPrefix {
 		return statusList(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == "glyphs" {
+		return glyphs(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -533,6 +553,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery compare [flags] [steps | failure | success | messages | countdown | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
