@@ -174,25 +174,25 @@
 // (COLUMNS and LINES, for a terminal whose size it cannot read), and of
 // what it resolves either takes the size alone. The other modes read no
 // environment variable and query no terminal for their output. The
-// playable mode reads
-// stdin through prompt.Stdin, the line reader every hardn prompt uses,
-// which asks whether stdin is a terminal by reading its attributes
-// (TCGETS or TIOCGETA), on one discards typeahead before each prompt
-// (TCFLSH or TIOCFLUSH), and while it waits for a line takes Ctrl-C,
-// giving SIGINT back its own handling before it returns; it never changes
-// the terminal's mode. Nothing the playable mode runs writes a file or
-// starts a process (TestPlayTouchesNothing): the engine's scenarios link
-// host.Real, the engine's signal hold and pkg/config, and never reach
-// them, every host.System being hostfake's and every hold the gallery's,
-// which holds nothing; the DNS scenarios read and save hardn.yml through
-// the fake alone (config.Read, config.Save). Of this machine the engine's code reads only the
-// process's effective uid, the clock and crypto/rand, and fatih/color,
-// which it links, reads NO_COLOR and TERM and asks whether stdout is a
-// terminal at its initialisation. The package initialisation of Lip
-// Gloss and x/ansi still runs, as in every binary that links Lip Gloss
-// (today the pkg/ui test binaries and this gallery; cmd/hardn links
-// none): an ioctl on stdout and, on a terminal, a read-only terminfo
-// lookup and "tmux info" under tmux, and x/ansi's read of RUNEWIDTH_EASTASIAN
+// playable mode reads stdin through prompt.Stdin, the line reader every
+// hardn prompt uses, which asks whether stdin is a terminal by reading
+// its attributes (TCGETS or TIOCGETA), on one discards typeahead before
+// each prompt (TCFLSH or TIOCFLUSH), and while it waits for a line takes
+// Ctrl-C, giving SIGINT back its own handling before it returns; it never
+// changes the terminal's mode. Nothing the playable mode runs writes a
+// file or starts a process (TestPlayTouchesNothing): the engine's
+// scenarios link host.Real, the engine's signal hold and pkg/config, and
+// never reach them, every host.System being hostfake's and every hold the
+// gallery's, which holds nothing; the DNS scenarios read and save
+// hardn.yml through the fake alone (config.Read, config.Save). Of this
+// machine the engine's code reads only the process's effective uid, the
+// clock and crypto/rand, and fatih/color, which it links, reads NO_COLOR
+// and TERM and asks whether stdout is a terminal at its initialisation.
+// The package initialisation of Lip Gloss and x/ansi still runs, as in
+// every binary that links Lip Gloss (today the pkg/ui test binaries and
+// this gallery; cmd/hardn links none): an ioctl on stdout and, on a
+// terminal, a read-only terminfo lookup and "tmux info" under tmux, and
+// x/ansi's read of RUNEWIDTH_EASTASIAN
 // (docs/refactor/phase0/side-effects.md §13.1). The gallery ignores the
 // profile Lip Gloss detects. A true RUNEWIDTH_EASTASIAN makes x/ansi
 // measure ambiguous-width glyphs such as "─" as two cells, which moves
@@ -200,9 +200,9 @@
 // (exit status 1), as the golden harness refuses to run. It writes to
 // stdout only, through each environment's term.Env.Writer, one write per
 // state and environment, or per screen mock: what the golden file holds
-// for the same cell; the playable mode writes as hardn does, a block or
-// a prompt at a time; status and glyphs write their note, then each host
-// or set, a write each. A workflow's sequences play on scripted answers and
+// for the same cell; the playable mode writes as hardn does, a block or a
+// prompt at a time; status and glyphs write their note, then each host or
+// set, a write each. A workflow's sequences play on scripted answers and
 // fixture plans (screen.Sequence.Play, flow.Fixture), which read no
 // terminal and change nothing.
 package main

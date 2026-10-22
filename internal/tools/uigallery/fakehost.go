@@ -78,8 +78,11 @@ type fakeHost struct {
 	// resolved is systemd-resolved's state, nil where the release does not
 	// run it (resolver.go).
 	resolved *resolved
-	// immutable are the files whose writes fail as chattr +i makes them
-	// fail (engineSys): the operation is not permitted.
+	// immutable are the files whose atomic writes fail, as chattr +i makes
+	// the rename over them fail (engineSys): the operation is not
+	// permitted. Only WriteFileAtomic is refused, which is how hardn.yml is
+	// saved (config.Save); the file's other changes (removed, renamed,
+	// chmodded, chowned, appended to) are not modelled.
 	immutable []string
 	// What the status checks and the header probe ask beyond the
 	// scenarios' commands (statushost.go): nil on the scenarios' hosts,
@@ -233,6 +236,17 @@ func openRCHost() *fakeHost { return simulate(alpine324Platform) }
 // ubuntu2204Host returns a simulated Ubuntu 22.04 host, sshd on
 // ssh.service.
 func ubuntu2204Host() *fakeHost { return simulate(ubuntu2204Platform) }
+
+// hardnYML is where a simulated host keeps hardn.yml when a scenario gives
+// it one: the system-wide path, the first config.FindConfigFile looks at.
+const hardnYML = "/etc/hardn/hardn.yml"
+
+// withHardnYML writes hardn.yml with settings, YAML, under a comment,
+// root's 0600, as the DNS control's tests write it.
+func (h *fakeHost) withHardnYML(settings string) *fakeHost {
+	h.f.AddFile(hardnYML, []byte("# hardn's configuration ("+hostFQDN+")\n"+settings), 0o600, 0, 0)
+	return h
+}
 
 // simulate returns a simulated host of platform p on hostfake: its
 // os-release, sshd_config with the stock Include, sshd on 22 (by
@@ -630,8 +644,8 @@ func (h *fakeHost) unanswered() []string {
 }
 
 // engineSys is the simulated host as the engine reaches it: the fake, but
-// a write of one of the files the model holds immutable fails, as
-// chattr +i makes the rename over it fail.
+// an atomic write of one of the files the model holds immutable fails, as
+// chattr +i makes the rename over it fail (fakeHost.immutable).
 type engineSys struct {
 	*hostfake.System
 	h *fakeHost

@@ -52,7 +52,7 @@ func dnsScreenHost(t *testing.T, name string) *fakeHost {
 	case "empty":
 		return noListHost()
 	case "one":
-		return simulate(debian13Platform).withHardnYML(dnsList[:1])
+		return simulate(debian13Platform).withHardnYML(nameserversYML(dnsList[:1]))
 	case "configured":
 		return configuredDNSHost()
 	case "networkmanager":

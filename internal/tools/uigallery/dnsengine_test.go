@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/ui/flow"
 )
 
 // The DNS control's scenarios (next/s2-engine-gallery): the real control
@@ -85,7 +86,8 @@ func changedOutsideRun(h *fakeHost) []string {
 // systemd-resolved reloaded on Ubuntu 26.04, restarted on 24.04, the
 // per-link finding; resolv.conf rewritten and hardn.yml saved, its
 // comments gone, on Debian 13; udhcpc stopped in the same change on
-// Alpine; Proxmox VE's file and the node finding; nothing written outside
+// Alpine, the form's question answered y; Proxmox VE's file and the node
+// finding; nothing written outside
 // the run directory for a refusal, a configured host and a dry run; the
 // reload without effect undone by the change itself and reported rolled
 // back (D3); the failed save rolling the change back (decision 1 (iii)),
@@ -152,7 +154,7 @@ func TestPlayEngineDNS(t *testing.T) {
 			}, "configured: 1.1.1.1, 1.0.0.1", []string{written + dns.ResolvConf, written + hardnYML}},
 		{"dns-configure-ubuntu2404", 0, []string{"Set the nameservers", "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "(DNS_PER_LINK"},
 			ubuntu(0, 1), configured, dropInMade},
-		{"dns-udhcpc-alpine324", 0, []string{"Set nameservers; stop udhcpc rewriting", dns.UDHCPCConf + ", " + dns.ResolvConf, `+RESOLV_CONF="no"`, "+nameserver 2001:db8::54",
+		{"dns-udhcpc-alpine324", 0, []string{"Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: y", "Set nameservers; stop udhcpc rewriting", dns.UDHCPCConf + ", " + dns.ResolvConf, `+RESOLV_CONF="no"`, "+nameserver 2001:db8::54",
 			"Configure DNS? [y/N, 0 or q]: y", "Set nameservers; stop udhcpc rewriting Done", "Operation Successful"},
 			files(map[string]string{dns.ResolvConf: searchHead + listedTwo, dns.UDHCPCConf: udhcpcStock + "# hardn: keep udhcpc from rewriting /etc/resolv.conf\nRESOLV_CONF=\"no\"\n"}),
 			configured, []string{written + dns.UDHCPCConf, written + dns.ResolvConf}},
@@ -179,7 +181,7 @@ func TestPlayEngineDNS(t *testing.T) {
 		{"dns-failed-save-debian13", 1, []string{"Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Failed PERMISSION_DENIED",
 			"Operation Failed", "Saving /etc/hardn/hardn.yml failed", "Set the nameservers Rolled back", "Applied: Set the nameservers", "Rolled back from the journal"},
 			func(t *testing.T, h *fakeHost) {
-				files(map[string]string{dns.ResolvConf: dhcpcdHead + dhcpLease, hardnYML: simulate(debian13Platform).withHardnYML(dnsList).content(hardnYML)})(t, h)
+				files(map[string]string{dns.ResolvConf: dhcpcdHead + dhcpLease, hardnYML: simulate(debian13Platform).withHardnYML(nameserversYML(dnsList)).content(hardnYML)})(t, h)
 			}, notHardn, []string{written + dns.ResolvConf, written + dns.ResolvConf}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -188,17 +190,14 @@ func TestPlayEngineDNS(t *testing.T) {
 				t.Fatal("no such scenario")
 			}
 			s, out, code := playEngine(t, enginePrefix+"/"+tc.name, sc.answers...)
-			flat, at := flatText(out), 0
-			for _, w := range tc.screen {
-				i := strings.Index(flat[at:], strings.Join(strings.Fields(w), " "))
-				if i < 0 {
-					t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
-					break
-				}
-				at += i
+			if w := notShown(out, tc.screen); w != "" {
+				t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
 			}
-			if code != exitOK || s.holds != tc.holds || len(s.engineRuns) != 1 || s.engineRuns[0].outcome != sc.ends {
-				t.Fatalf("exit %d, the gallery's hold taken %d times (want %d), %d runs, ended %v (want %v)", code, s.holds, tc.holds, len(s.engineRuns), s.engineRuns[0].outcome, sc.ends)
+			if code != exitOK || s.holds != tc.holds || len(s.engineRuns) != 1 {
+				t.Fatalf("exit %d, the gallery's hold taken %d times (want %d), %d runs", code, s.holds, tc.holds, len(s.engineRuns))
+			}
+			if o := s.engineRuns[0].outcome; o != sc.ends {
+				t.Errorf("ended %v, want %v", o, sc.ends)
 			}
 			h := s.engineRuns[0].host
 			tc.check(t, h)
@@ -210,19 +209,102 @@ func TestPlayEngineDNS(t *testing.T) {
 					t.Errorf("%s left", name)
 				}
 			}
-			var all []string
-			for _, c := range h.f.Calls() {
-				switch cmds, files := changed([]hostfake.Call{c}); {
-				case len(cmds) > 0:
-					all = append(all, cmds...)
-				case len(files) > 0:
-					all = append(all, c.Op+" "+c.Path)
-				}
-			}
-			if !slices.Equal(all, tc.order) {
+			if all := hostChanges(h); !slices.Equal(all, tc.order) {
 				t.Errorf("the host changed %q, want %q", all, tc.order)
 			}
 		})
+	}
+}
+
+// notShown returns the first of want that the transcript out does not
+// show after what came before it, each compared with its blanks folded;
+// "" when it shows them all, in order.
+func notShown(out string, want []string) string {
+	flat, at := flatText(out), 0
+	for _, w := range want {
+		i := strings.Index(flat[at:], strings.Join(strings.Fields(w), " "))
+		if i < 0 {
+			return w
+		}
+		at += i
+	}
+	return ""
+}
+
+// hostChanges is what changed on h, in order, as the record counts it: each
+// call's operation and path, or its command.
+func hostChanges(h *fakeHost) []string {
+	var all []string
+	for _, c := range h.f.Calls() {
+		switch cmds, files := changed([]hostfake.Call{c}); {
+		case len(cmds) > 0:
+			all = append(all, cmds...)
+		case len(files) > 0:
+			all = append(all, c.Op+" "+c.Path)
+		}
+	}
+	return all
+}
+
+// TestPlayEngineDNSKeepsUDHCPC plays Alpine's scenario answering n to
+// "Stop udhcpc rewriting /etc/resolv.conf?" (gallery-dns.md decision 6):
+// the control then plans the file alone, titled as on every other host,
+// leaves udhcpc.conf as installed, and udhcpc's finding stays.
+func TestPlayEngineDNSKeepsUDHCPC(t *testing.T) {
+	s, out, code := playEngine(t, enginePrefix+"/dns-udhcpc-alpine324", "n", "y")
+	if w := notShown(out, []string{"Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: n", "Set the nameservers", dns.ResolvConf,
+		"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "udhcpc rewrites /etc/resolv.conf on each lease (DNS_UDHCPC"}); w != "" {
+		t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
+	}
+	if code != exitOK || len(s.engineRuns) != 1 {
+		t.Fatalf("exit %d, %d runs", code, len(s.engineRuns))
+	}
+	h := s.engineRuns[0].host
+	if o := s.engineRuns[0].outcome; o != flow.Applied {
+		t.Errorf("ended %v, want applied", o)
+	}
+	if rc, conf := h.content(dns.ResolvConf), h.content(dns.UDHCPCConf); rc != searchHead+listedTwo || conf != udhcpcStock {
+		t.Errorf("resolv.conf %q, udhcpc.conf %q; want the list set, udhcpc.conf as installed", rc, conf)
+	}
+	if all, want := hostChanges(h), []string{"write-atomic " + dns.ResolvConf}; !slices.Equal(all, want) {
+		t.Errorf("the host changed %q, want %q", all, want)
+	}
+}
+
+// TestRecordRollbackNotFinished plays the failed reload on a host where the
+// undo's reload-or-restart fails too, so that neither dns.Apply's undo nor
+// the journal's rollback finishes: the screen says the rollback did not
+// finish, and the record's last entry says so too, not that the change was
+// rolled back.
+func TestRecordRollbackNotFinished(t *testing.T) {
+	sc, ok := findScenario("dns-failed-reload-ubuntu2604")
+	if !ok {
+		t.Fatal("no such scenario")
+	}
+	sc.host = func() *fakeHost {
+		h := inertReload()
+		next := h.f.Handler
+		h.f.Handler = func(argv []string, stdin []byte) hostfake.Response {
+			if strings.Join(argv, " ") == "systemctl reload-or-restart "+dns.ResolvedUnit {
+				return hostfake.Response{Stderr: "Job for systemd-resolved.service failed.\n", ExitCode: 1}
+			}
+			return next(argv, stdin)
+		}
+		return h
+	}
+	s, out, code := playWith(t, enginePrefix+"/"+sc.name, func(s *session) func() error { return func() error { return s.runScenario(sc) } }, sc.answers...)
+	if code != exitOK || len(s.engineRuns) != 1 {
+		t.Fatalf("exit %d, %d runs", code, len(s.engineRuns))
+	}
+	if w := notShown(out, []string{"Set the nameservers Failed DNS_NOT_EFFECTIVE", "The rollback did not finish"}); w != "" {
+		t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
+	}
+	var titles []string
+	for _, st := range s.engineRuns[0].steps() {
+		titles = append(titles, st.Title)
+	}
+	if want := []string{"Failed: Set the nameservers", "Rollback not finished"}; !slices.Equal(titles, want) {
+		t.Errorf("the record: %q, want %q", titles, want)
 	}
 }
 
@@ -381,7 +463,7 @@ func TestResolvedModel(t *testing.T) {
 func planCode(t *testing.T, h *fakeHost) string {
 	t.Helper()
 	ctx := context.Background()
-	h.withHardnYML(dnsList)
+	h.withHardnYML(nameserversYML(dnsList))
 	f, err := detect.Detect(ctx, h.f)
 	if err != nil {
 		t.Fatal(err)

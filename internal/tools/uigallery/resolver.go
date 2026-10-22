@@ -18,8 +18,10 @@ import (
 // systemctl and resolvectl as pkg/host/dns asks them, so that the DNS
 // control plans from what dns.Read reads on the simulated host. Ported
 // from pkg/host/dns's test model (helpers_test.go: world, answer, load),
-// which a main package cannot share, and kept in step with it by hand;
-// written from docs/safety/dns.md §3, not captured from a host. Synthetic
+// which a main package cannot share, and extending it: loadResolved skips
+// hidden drop-ins and reads a link to /dev/null as a mask, where load
+// takes every *.conf and reads a mask as an empty file. Written from
+// docs/safety/dns.md §3, not captured from a host. Synthetic
 // values only: eth0's lease from the DHCP server 192.0.2.1, the search
 // domain example.net, hardn.yml listing 192.0.2.54 and 2001:db8::54.
 
@@ -48,9 +50,6 @@ const (
 	resolvedConf = "/etc/systemd/resolved.conf"
 	dhcpServer   = "192.0.2.1"
 	searchDomain = "example.net"
-	// hardnYML is where the DNS hosts keep hardn.yml: the system-wide
-	// path, the first config.FindConfigFile looks at.
-	hardnYML = "/etc/hardn/hardn.yml"
 	// udhcpcStock is Alpine's udhcpc.conf as installed.
 	udhcpcStock = "# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"
 )
@@ -109,21 +108,18 @@ func (h *fakeHost) addResolver() {
 	}
 }
 
-// withHardnYML writes hardn.yml listing list as its nameservers, under a
-// comment, root's 0600, as the DNS control's tests write it.
-func (h *fakeHost) withHardnYML(list []string) *fakeHost {
-	var b strings.Builder
-	b.WriteString("# hardn's configuration (" + hostFQDN + ")\nusername: alice\n")
+// nameserversYML is hardn.yml's settings on the DNS hosts, as the DNS
+// control's tests write them: alice, and list as the nameservers.
+func nameserversYML(list []string) string {
 	if len(list) == 0 {
-		b.WriteString("nameservers: []\n")
-	} else {
-		b.WriteString("nameservers:\n")
-		for _, ns := range list {
-			b.WriteString("  - \"" + ns + "\"\n")
-		}
+		return "username: alice\nnameservers: []\n"
 	}
-	h.f.AddFile(hardnYML, []byte(b.String()), 0o600, 0, 0)
-	return h
+	var b strings.Builder
+	b.WriteString("username: alice\nnameservers:\n")
+	for _, ns := range list {
+		b.WriteString("  - \"" + ns + "\"\n")
+	}
+	return b.String()
 }
 
 // loadResolved is systemd-resolved reading its files (dns.md §3): the main
@@ -265,7 +261,7 @@ func (r *resolved) list(domains bool) string {
 // dnsHost returns the builder of a host of platform p whose hardn.yml
 // lists dnsList.
 func dnsHost(p platform) func() *fakeHost {
-	return func() *fakeHost { return simulate(p).withHardnYML(dnsList) }
+	return func() *fakeHost { return simulate(p).withHardnYML(nameserversYML(dnsList)) }
 }
 
 // networkManagerHost is Debian 13 with NetworkManager, which links
@@ -277,7 +273,7 @@ func networkManagerHost() *fakeHost {
 }
 
 // noListHost is Debian 13 whose hardn.yml lists no nameserver.
-func noListHost() *fakeHost { return simulate(debian13Platform).withHardnYML(nil) }
+func noListHost() *fakeHost { return simulate(debian13Platform).withHardnYML(nameserversYML(nil)) }
 
 // configuredDNSHost is Debian 13 whose /etc/resolv.conf lists hardn.yml's
 // nameservers already, as Configure DNS leaves it.

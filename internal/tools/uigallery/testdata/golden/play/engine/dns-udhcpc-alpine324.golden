@@ -17,9 +17,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile udhcpc writes on each lease, naming 192.0.2.1, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mudhcpc.conf is as installed. hardn.yml lists 192.0.2.54,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. "Stop␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mudhcpc rewriting /etc/resolv.conf?", which the DNS screen␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masks, is answered y. y applies it; n declines.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. First␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"Stop udhcpc rewriting /etc/resolv.conf?": y stops it in the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame change. Then y applies it; n declines.␛[m$
+$
+  ␛[38;2;192;196;216mStop udhcpc rewriting /etc/resolv.conf?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
       ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$
@@ -71,9 +73,11 @@ $
 # file udhcpc writes on each lease, naming 192.0.2.1, and$
 # udhcpc.conf is as installed. hardn.yml lists 192.0.2.54,$
 # 2001:db8::54.$
-# The change: Configure DNS, hardn.yml's nameservers. "Stop$
-# udhcpc rewriting /etc/resolv.conf?", which the DNS screen$
-# asks, is answered y. y applies it; n declines.$
+# The change: Configure DNS, hardn.yml's nameservers. First$
+# "Stop udhcpc rewriting /etc/resolv.conf?": y stops it in the$
+# same change. Then y applies it; n declines.$
+$
+  Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: y$
 $
    -  Set nameservers; stop udhcpc rewriting$
       /etc/udhcpc/udhcpc.conf, /etc/resolv.conf$
@@ -126,9 +130,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile udhcpc writes on each lease, naming 192.0.2.1, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mudhcpc.conf is as installed. hardn.yml lists 192.0.2.54,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. "Stop␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mudhcpc rewriting /etc/resolv.conf?", which the DNS screen␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masks, is answered y. y applies it; n declines.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. First␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"Stop udhcpc rewriting /etc/resolv.conf?": y stops it in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe same change. Then y applies it; n declines.␛[m$
+$
+  ␛[38;2;192;196;216mStop udhcpc rewriting /etc/resolv.conf?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
       ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$

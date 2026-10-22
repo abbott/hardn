@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -398,29 +399,40 @@ func TestPlayEngineSmoke(t *testing.T) {
 // each change's own commands under how it ended, a command that failed
 // among them, a failure of the apply as a whole (Index -1, here at its
 // mark applied step) with what ran since the last change, and the
-// rollback's after the failure; reads and hardn's own state left out; a
-// directory made and its mode set, once.
+// rollback's after the failure, said finished only when the engine's
+// rollback was (the apply's ApplyError: no rollback error), not finished
+// when it says why, and neither with none; reads and hardn's own state
+// left out; a directory made and its mode set, once. resolvectl's lists
+// are reads, but not a resolvectl that sets a link's, and a chown is a
+// file changed.
 func TestRecorderSteps(t *testing.T) {
 	ctx := context.Background()
+	changeFails := func(h *fakeHost, r *recorder, run func(...string)) {
+		r.event(engine.Event{Index: 1, State: engine.EventRunning})
+		h.f.AddDir("/var/lib/hardn", 0o700, 0, 0)
+		if err := h.f.WriteFileAtomic(ctx, "/var/lib/hardn/pending.json", []byte("{}"), 0o600, 0, 0); err != nil {
+			t.Fatal(err)
+		}
+		run("systemctl", "reload", "ssh.service")
+		r.event(engine.Event{Index: 1, State: engine.EventFailed, Step: engine.StepApply})
+	}
+	const changeFailed = "Failed: Reload sshd: systemctl reload ssh.service []"
 	for _, tc := range []struct {
 		name string
 		// last runs the plan's second change, or what follows the first.
 		last func(h *fakeHost, r *recorder, run func(...string))
-		want string
+		// failure is the apply's error, as the engine returned it.
+		failure error
+		want    string
+		after   string // the last entry's title
 	}{
-		{"a change fails", func(h *fakeHost, r *recorder, run func(...string)) {
-			r.event(engine.Event{Index: 1, State: engine.EventRunning})
-			h.f.AddDir("/var/lib/hardn", 0o700, 0, 0)
-			if err := h.f.WriteFileAtomic(ctx, "/var/lib/hardn/pending.json", []byte("{}"), 0o600, 0, 0); err != nil {
-				t.Fatal(err)
-			}
-			run("systemctl", "reload", "ssh.service")
-			r.event(engine.Event{Index: 1, State: engine.EventFailed, Step: engine.StepApply})
-		}, "Failed: Reload sshd: systemctl reload ssh.service []"},
+		{"a change fails", changeFails, &engine.ApplyError{}, changeFailed, "Rolled back from the journal"},
 		{"the apply fails as a whole", func(h *fakeHost, r *recorder, run func(...string)) {
 			run("systemctl", "reload", "ssh.service")
 			r.event(engine.Event{Index: -1, State: engine.EventFailed, Step: engine.StepMarkApplied})
-		}, "Failed: the apply, at its mark applied step: systemctl reload ssh.service []"},
+		}, &engine.ApplyError{}, "Failed: the apply, at its mark applied step: systemctl reload ssh.service []", "Rolled back from the journal"},
+		{"the rollback does not finish", changeFails, &engine.ApplyError{RollbackErr: revert.ErrIncomplete}, changeFailed, "Rollback not finished"},
+		{"no rollback error known", changeFails, nil, changeFailed, "After the failure"},
 	} {
 		h := newHost()
 		h.failReloads = 1
@@ -436,6 +448,7 @@ func TestRecorderSteps(t *testing.T) {
 		run("ufw", "delete", "allow", "2230/tcp")
 		r.event(engine.Event{Index: 0, State: engine.EventRolledBack})
 		r.end()
+		r.failedWith(tc.failure)
 		r.setPlan(&engine.Plan{Changes: []engine.Change{{Summary: "Allow 2230"}, {Summary: "Reload sshd"}}})
 		var got []string
 		for _, s := range r.steps() {
@@ -445,7 +458,7 @@ func TestRecorderSteps(t *testing.T) {
 			"Armed the revert timer: systemd-run --unit=hardn-revert-x --on-active=180s /usr/local/bin/hardn rollback x []",
 			"Applied: Allow 2230: ufw allow 2230/tcp []",
 			tc.want,
-			"Rolled back from the journal: ufw delete allow 2230/tcp []",
+			tc.after + ": ufw delete allow 2230/tcp []",
 		}
 		if !slices.Equal(got, want) {
 			t.Errorf("%s: the record:\n%s\nwant\n%s", tc.name, strings.Join(got, "\n"), strings.Join(want, "\n"))
@@ -456,9 +469,16 @@ func TestRecorderSteps(t *testing.T) {
 	}
 	// The DNS change's: resolvectl reads; the drop-in's directory made and
 	// its mode set is one directory changed, before the file in it.
-	cmds, files := changed([]hostfake.Call{{Op: "run", Argv: []string{"resolvectl", "--no-pager", "dns"}}, {Op: "mkdir", Path: "/etc/systemd/resolved.conf.d"},
-		{Op: "chmod", Path: "/etc/systemd/resolved.conf.d"}, {Op: "write-atomic", Path: "/etc/systemd/resolved.conf.d/zz-hardn.conf"}})
+	cmds, files := changed([]hostfake.Call{{Op: "run", Argv: []string{"resolvectl", "--no-pager", "dns"}}, {Op: "run", Argv: []string{"resolvectl", "--no-pager", "domain"}},
+		{Op: "mkdir", Path: "/etc/systemd/resolved.conf.d"}, {Op: "chmod", Path: "/etc/systemd/resolved.conf.d"}, {Op: "write-atomic", Path: "/etc/systemd/resolved.conf.d/zz-hardn.conf"}})
 	if len(cmds) != 0 || !slices.Equal(files, []string{"/etc/systemd/resolved.conf.d", "/etc/systemd/resolved.conf.d/zz-hardn.conf"}) {
+		t.Errorf("changed: commands %q, files %q", cmds, files)
+	}
+	// A resolvectl that sets a link's servers or reverts it changes the
+	// host, and so does a chown.
+	cmds, files = changed([]hostfake.Call{{Op: "run", Argv: []string{"resolvectl", "dns", "eth0", "192.0.2.53"}}, {Op: "run", Argv: []string{"resolvectl", "revert", "eth0"}},
+		{Op: "chown", Path: dns.ResolvConf}})
+	if !slices.Equal(cmds, []string{"resolvectl dns eth0 192.0.2.53", "resolvectl revert eth0"}) || !slices.Equal(files, []string{dns.ResolvConf}) {
 		t.Errorf("changed: commands %q, files %q", cmds, files)
 	}
 }
@@ -468,7 +488,8 @@ func TestRecorderSteps(t *testing.T) {
 // engine.Options.Detect's default): every fact established, with no error,
 // and the ones the steps branch on as listed. Ubuntu 26.04's sudo is
 // sudo-rs, as the VM run found it (docs/safety/vmtest.md §4.9); a Proxmox
-// VE node has none.
+// VE node has none. The platforms no scenario runs on, Debian 12's cloud
+// image and Alpine 3.23, are checked alike.
 func TestScenarioHosts(t *testing.T) {
 	const (
 		debian13   = "debian 13 supported; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no"
@@ -491,17 +512,23 @@ func TestScenarioHosts(t *testing.T) {
 		"dns-dry-run-debian13", "dns-failed-save-debian13"} {
 		want[name] = debian13
 	}
+	hosts := map[string]func() *fakeHost{"debian12": func() *fakeHost { return simulate(debian12Platform) }, "alpine323": func() *fakeHost { return simulate(alpine323Platform) }}
+	want["debian12"] = "debian 12 supported; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no"
+	want["alpine323"] = "alpine 3.23 supported; openrc; openrc sshd, generator unknown; sudo no, unknown; doas yes; proxmox no; container no"
 	for _, sc := range scenarios() {
-		h := sc.host()
+		hosts[sc.name] = sc.host
+	}
+	for name, host := range hosts {
+		h := host()
 		f, err := detect.Detect(context.Background(), h.f)
 		e := f.Elevation
 		got := fmt.Sprintf("%s %s %s; %s; %s, generator %s; sudo %s, %s; doas %s; proxmox %s; container %s", f.Platform.Distro, f.Platform.Version,
 			f.Platform.Support, f.Init.Kind, f.SSH.Mode, f.SSH.Generator, e.Sudo.Present, e.SudoFlavor, e.Doas.Present, f.Proxmox.Installed, f.Container.Detected)
-		if err = errors.Join(err, f.OS.Err, f.Platform.Err, f.Init.Err, f.SSH.Err, f.Proxmox.Err, f.Container.Err, e.Err, e.Sudo.Err, e.Doas.Err); err != nil || got != want[sc.name] {
-			t.Errorf("%s: detect finds %q, %v; want %q", sc.name, got, err, want[sc.name])
+		if err = errors.Join(err, f.OS.Err, f.Platform.Err, f.Init.Err, f.SSH.Err, f.Proxmox.Err, f.Container.Err, e.Err, e.Sudo.Err, e.Doas.Err); err != nil || got != want[name] {
+			t.Errorf("%s: detect finds %q, %v; want %q", name, got, err, want[name])
 		}
 		if u := h.unanswered(); len(u) > 0 {
-			t.Errorf("%s: detect asked what the model does not answer: %q", sc.name, u)
+			t.Errorf("%s: detect asked what the model does not answer: %q", name, u)
 		}
 	}
 }
