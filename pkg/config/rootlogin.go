@@ -232,6 +232,21 @@ func (c *Config) canonical() (*yaml.Node, error) {
 	return &n, nil
 }
 
+// Marshal is what Save writes for c: every key of the configuration,
+// canonical, permitRootLogin as its string; for a plan to show before the
+// save (the save's diff, next/s2-control).
+func Marshal(c *Config) ([]byte, error) {
+	n, err := c.canonical()
+	if err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
+	data, err := yaml.Marshal(n)
+	if err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
+	return data, nil
+}
+
 // Save writes c to the file it was loaded from, c.Path() (refactor plan
 // §3.19: one save function, to the loaded path, atomically), and refuses a
 // Config that was not loaded from one (ErrNotLoaded): the path is the
@@ -245,13 +260,9 @@ func Save(ctx context.Context, sys host.System, c *Config) error {
 	if path == "" {
 		return fmt.Errorf("config: %w", ErrNotLoaded)
 	}
-	n, err := c.canonical()
+	data, err := Marshal(c)
 	if err != nil {
-		return fmt.Errorf("config: %w", err)
-	}
-	data, err := yaml.Marshal(n)
-	if err != nil {
-		return fmt.Errorf("config: %w", err)
+		return err
 	}
 	if err := host.WriteFileAtomicKeep(ctx, sys, path, data, 0o644, -1, -1); err != nil {
 		return fmt.Errorf("config: saving %s: %w", path, err)

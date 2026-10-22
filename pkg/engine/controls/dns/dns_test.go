@@ -80,6 +80,10 @@ func TestCheck(t *testing.T) {
 		{name: "a file resolved reads as another's", host: debian13, list: configured, state: engine.NotApplicable, detail: dns.DetailOther,
 			setup: func(h *fakeHost) { h.active = "active" }},
 		{name: "a container", host: container, list: configured, state: engine.NotApplicable, detail: dns.DetailContainer},
+		{name: "not a family hardn knows", host: debian13, list: configured, state: engine.NotApplicable, detail: dns.DetailUnsupported,
+			setup: func(h *fakeHost) {
+				h.facts.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
+			}},
 		{name: "whether a container is not established", host: debian13, list: configured, state: engine.Unknown, detail: dns.DetailCantRead, err: "DNS_UNKNOWN",
 			setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }},
 		{name: "/etc/resolv.conf a directory", host: debian13, list: configured, state: engine.Unknown, detail: dns.DetailCantRead, err: "DNS_UNKNOWN",
@@ -165,6 +169,7 @@ type refusalCase struct {
 	list       []string
 	edit       []string // in.Config's list, when not hardn.yml's
 	stop       bool
+	noFile     bool // in.Config not loaded from a file
 	setup      func(h *fakeHost)
 	code       string
 	why, fix   string
@@ -179,10 +184,16 @@ var refusals = []refusalCase{
 		why: "/etc/resolv.conf links to /run/connman/resolv.conf, which another program writes", fix: "set the nameservers with that program"},
 	{name: "a file resolved reads as another's", host: debian13, list: configured, code: "DNS_MANAGED", setup: func(h *fakeHost) { h.active = "active" },
 		why: "systemd-resolved runs, and /etc/resolv.conf is not its link",
-		fix: "link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf, or stop systemd-resolved"},
+		fix: "link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf"},
+	{name: "a copy of resolved's stub file", host: ubuntu2604, list: configured, code: "DNS_MANAGED",
+		setup: func(h *fakeHost) {
+			h.AddFile(hostdns.ResolvConf, []byte("# This is /run/systemd/resolve/stub-resolv.conf managed by man:systemd-resolved(8).\n"+
+				"nameserver 127.0.0.53\noptions edns0 trust-ad\nsearch example.net\n"), 0o644, 0, 0)
+		},
+		why: "systemd-resolved runs, and /etc/resolv.conf is not its link", fix: "link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf"},
 	{name: "a container", host: container, list: configured, code: "DNS_CONTAINER",
 		why: "This is a container: its manager provides /etc/resolv.conf", fix: "set the nameservers in the container's settings on its host"},
-	{name: "hardn.yml lists none", host: debian13, code: "DNS_NO_NAMESERVERS", why: "No nameservers configured", fix: "add a nameserver first"},
+	{name: "hardn.yml lists none", host: debian13, code: "DNS_NO_NAMESERVERS", why: "No nameservers configured", fix: "add nameservers first"},
 	{name: "not an address", host: debian13, list: []string{"192.0.2.54", "999.1.1.1"}, code: "DNS_INVALID",
 		why: "Nameserver 999.1.1.1 is not an IP address", fix: "correct the nameservers in /etc/hardn/hardn.yml"},
 	{name: "listed twice", host: debian13, list: []string{"2001:db8::54", "2001:DB8::54"}, code: "DNS_INVALID",
@@ -197,18 +208,40 @@ var refusals = []refusalCase{
 		setup: func(h *fakeHost) {
 			h.AddFile("/etc/systemd/resolved.conf.d/zzz-site.conf", []byte("[Resolve]\nDNS=192.0.2.7\n"), 0o644, 0, 0)
 		},
-		why: "/etc/systemd/resolved.conf.d/zzz-site.conf sets the nameservers after hardn's drop-in", fix: "remove DNS= from it, then try again"},
+		why: "/etc/systemd/resolved.conf.d/zzz-site.conf sets DNS= after zz-hardn.conf", fix: "remove DNS= from it, then try again"},
+	{name: "two later drop-ins", host: ubuntu2604, list: configured, code: "DNS_OVERRIDDEN",
+		setup: func(h *fakeHost) {
+			h.AddFile("/etc/systemd/resolved.conf.d/zzz-a.conf", []byte("[Resolve]\nDNS=192.0.2.7\n"), 0o644, 0, 0)
+			h.AddFile("/etc/systemd/resolved.conf.d/zzz-b.conf", []byte("[Resolve]\nDNS=192.0.2.8\n"), 0o644, 0, 0)
+		},
+		why: "/etc/systemd/resolved.conf.d/zzz-a.conf, /etc/systemd/resolved.conf.d/zzz-b.conf set DNS= after zz-hardn.conf",
+		fix: "remove DNS= from them, then try again"},
 	{name: "the drop-in masked", host: ubuntu2604, list: configured, code: "DNS_DROPIN_BLOCKED",
 		setup: func(h *fakeHost) { h.AddSymlink(hostdns.DropIn, "/dev/null") },
 		why:   "/etc/systemd/resolved.conf.d/zz-hardn.conf is not a file", fix: "remove it, then try again"},
 	{name: "udhcpc stopped off Alpine", host: debian13, list: configured, stop: true, code: "DNS_OPTION_NOT_APPLICABLE",
-		why: "Only Alpine's udhcpc can be stopped rewriting /etc/resolv.conf", fix: "leave udhcpc as it is"},
+		why: "This host is not Alpine", fix: "leave udhcpc as it is"},
 	{name: "a fact not established", host: debian13, list: configured, code: "DNS_UNKNOWN",
 		setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} },
 		why:   "The host's DNS settings could not all be read", fix: "see the log for what failed, then try again"},
 	{name: "hardn.yml changed since it was read", host: debian13, list: configured, edit: cloudflare, code: "CONFIG_CHANGED",
 		setup: func(h *fakeHost) { h.AddFile(hardnYML, hardnYMLData([]string{"192.0.2.53"}), 0o600, 0, 0) },
-		why:   "/etc/hardn/hardn.yml changed since hardn read it", fix: "run hardn again, so that it reads the file as it is now"},
+		why:   "/etc/hardn/hardn.yml changed since it was read", fix: "start again, so that the file is read as it is now"},
+	{name: "hardn.yml gone since it was read", host: debian13, list: configured, code: "CONFIG_CHANGED",
+		setup: func(h *fakeHost) { _ = h.Remove(context.Background(), hardnYML) }, // left, the plan is not refused: the test fails
+		why:   "/etc/hardn/hardn.yml changed since it was read", fix: "start again, so that the file is read as it is now"},
+	{name: "hardn.yml no longer decoding", host: debian13, list: configured, code: "CONFIG_CHANGED",
+		setup: func(h *fakeHost) { h.AddFile(hardnYML, []byte("nameservers: [\n"), 0o600, 0, 0) },
+		why:   "/etc/hardn/hardn.yml changed since it was read", fix: "start again, so that the file is read as it is now"},
+	{name: "hardn.yml a link, a preset", host: debian13, list: configured, edit: cloudflare, code: "SYMLINK_REFUSED",
+		setup: func(h *fakeHost) {
+			e, _ := h.Entry(hardnYML)
+			h.AddFile("/etc/hardn/site.yml", e.Data, 0o600, 0, 0)
+			h.AddSymlink(hardnYML, "/etc/hardn/site.yml")
+		},
+		why: "/etc/hardn/hardn.yml is a link", fix: "edit the file it links to by hand"},
+	{name: "no hardn.yml read, a change", host: debian13, list: configured, noFile: true, code: "CONFIG_NOT_LOADED",
+		why: "No hardn.yml was read, so there is none to save to", fix: "create /etc/hardn/hardn.yml, then try again"},
 	{name: "not a family hardn knows", host: debian13, list: configured, code: "DNS_UNSUPPORTED",
 		setup: func(h *fakeHost) {
 			h.facts.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
@@ -227,9 +260,14 @@ func TestRefusals(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(h)
 			}
+			own := len(h.Calls()) // the setup's
 			in := cfg
 			if tt.edit != nil {
 				in = with(cfg, tt.edit)
+			}
+			if tt.noFile {
+				cfg = &config.Config{Nameservers: tt.list}
+				in = cfg
 			}
 			p, err := engineOn(h, nil).Plan(ctx, []engine.Control{dns.Nameservers{Config: cfg, StopUDHCPC: tt.stop}}, in)
 			if err != nil {
@@ -242,7 +280,7 @@ func TestRefusals(t *testing.T) {
 			if code := output.CodeOf(p.Refused[0]); code != tt.code || r.Code != tt.code || r.Why != tt.why || r.Fix != tt.fix {
 				t.Errorf("%s (Refusal %s): %q / %q; want %s: %q / %q", code, r.Code, r.Why, r.Fix, tt.code, tt.why, tt.fix)
 			}
-			if w := writes(h); len(w) > 0 {
+			if w := writesAfter(h, own); len(w) > 0 {
 				t.Errorf("the plan wrote: %v", w)
 			}
 		})
@@ -282,13 +320,16 @@ func TestPlans(t *testing.T) {
 	fileSet := func(title string) string {
 		return set + ` "` + title + `" /etc/resolv.conf [] "--- /etc/resolv.conf"`
 	}
-	saveLine := save + ` "Save the configuration" /etc/hardn/hardn.yml [] ""`
+	saveLine := save + ` "Save the configuration" /etc/hardn/hardn.yml [] "--- /etc/hardn/hardn.yml"`
 	for _, tt := range []struct {
 		name, host string
 		yml        []string // hardn.yml's; nil for configured
 		list       []string // in.Config's
 		stop       bool
+		noFile     bool // in.Config not loaded from a file
+		setup      func(h *fakeHost)
 		changes    []string
+		summary    string // the first change's, when set
 		findings   []string
 		search     string // the line of /etc/resolv.conf after the change; "" for none
 	}{
@@ -302,12 +343,19 @@ func TestPlans(t *testing.T) {
 			findings: []string{"DNS_DHCP_CLIENT", "CONFIG_COMMENTS_LOST"}, search: "search example.net"},
 		{name: "Alpine 3.24: udhcpc stopped", host: alpine324, list: configured, stop: true,
 			changes: []string{set + ` "Set nameservers; stop udhcpc rewriting" /etc/udhcpc/udhcpc.conf, /etc/resolv.conf [] "--- /etc/udhcpc/udhcpc.conf"`},
-			search:  "search example.net"},
+			summary: "Set the nameservers to 192.0.2.54, 2001:db8::54, and stop udhcpc rewriting /etc/resolv.conf", search: "search example.net"},
+		{name: "Alpine 3.24: udhcpc stopped, the nameservers already hardn.yml's", host: alpine324, list: configured, stop: true,
+			setup: func(h *fakeHost) {
+				h.AddFile(hostdns.ResolvConf, []byte("search example.net\nnameserver 192.0.2.54\nnameserver 2001:db8::54\n"), 0o644, 0, 0)
+			},
+			changes: []string{set + ` "Stop udhcpc rewriting resolv.conf" /etc/udhcpc/udhcpc.conf [] "--- /etc/udhcpc/udhcpc.conf"`},
+			summary: "Stop udhcpc rewriting /etc/resolv.conf"},
 		{name: "Alpine 3.24: udhcpc kept", host: alpine324, list: configured, changes: []string{fileSet("Set the nameservers")},
 			findings: []string{"DNS_UDHCPC"}, search: "search example.net"},
 		{name: "Proxmox VE 9: its file, one search domain", host: pve9, list: configured, changes: []string{fileSet("Set the nameservers")},
 			findings: []string{"DNS_PROXMOX_NODE"}, search: "search example.net"},
 		{name: "configured: nothing", host: configuredHost, list: configured},
+		{name: "configured, no hardn.yml read: nothing", host: configuredHost, list: configured, noFile: true},
 		{name: "configured, hardn.yml's list another: the save alone", host: configuredHost, yml: []string{"192.0.2.53"}, list: configured,
 			changes: []string{saveLine}, findings: []string{"CONFIG_COMMENTS_LOST"}},
 	} {
@@ -317,9 +365,20 @@ func TestPlans(t *testing.T) {
 				yml = configured
 			}
 			h, cfg := newHost(t, tt.host, yml)
-			p := planOn(t, h, dns.Nameservers{Config: cfg, StopUDHCPC: tt.stop}, with(cfg, tt.list))
+			if tt.setup != nil {
+				tt.setup(h)
+			}
+			in := with(cfg, tt.list)
+			if tt.noFile {
+				cfg = &config.Config{Nameservers: tt.list}
+				in = cfg
+			}
+			p := planOn(t, h, dns.Nameservers{Config: cfg, StopUDHCPC: tt.stop}, in)
 			if got := summary(p); !slices.Equal(got, tt.changes) {
 				t.Errorf("changes\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(tt.changes, "\n"))
+			}
+			if tt.summary != "" && (len(p.Changes) == 0 || p.Changes[0].Summary != tt.summary) {
+				t.Errorf("summary %q, want %q", summary(p), tt.summary)
 			}
 			var codes []string
 			for _, c := range p.Changes {

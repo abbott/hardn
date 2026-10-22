@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -18,6 +19,10 @@ import (
 // (refactor plan §3.19; slice 2, next/s2-control): the file read as
 // LoadConfig reads it, whether its bytes are still the ones loaded, and
 // whether saving it loses comments.
+
+// ErrInvalidFile: hardn.yml's bytes do not decode as the configuration
+// (Read).
+var ErrInvalidFile = errors.New("hardn.yml does not decode as the configuration")
 
 // setLoaded records name, made absolute, as where c was loaded from, and
 // data as the bytes read there (LoadedFrom).
@@ -39,7 +44,7 @@ func sum(data []byte) string {
 // follows it (Save, which writes no symlink, refuses one). path must be
 // absolute and clean (fs.ErrInvalid otherwise); it is recorded as where the
 // configuration was loaded from (Path, Save), with the bytes read
-// (LoadedFrom).
+// (LoadedFrom). Bytes that do not decode are ErrInvalidFile.
 func Read(ctx context.Context, sys host.System, path string) (*Config, error) {
 	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
 		return nil, fmt.Errorf("config: %q: not an absolute, clean path: %w", path, fs.ErrInvalid)
@@ -50,7 +55,7 @@ func Read(ctx context.Context, sys host.System, path string) (*Config, error) {
 	}
 	c := DefaultConfig()
 	if err := yaml.Unmarshal(data, c); err != nil {
-		return nil, fmt.Errorf("config: %s: %w", path, err)
+		return nil, fmt.Errorf("config: %s: %w: %w", path, ErrInvalidFile, err)
 	}
 	if err := checkLoaded(c); err != nil {
 		return nil, fmt.Errorf("config: %s: %w", path, err)

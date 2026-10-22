@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
@@ -257,6 +258,49 @@ func TestFailedReload(t *testing.T) {
 	}
 	if want := []string{"0 Running", "0 Failed DNS_NOT_EFFECTIVE", "0 Rolled back"}; !slices.Equal(steps, want) {
 		t.Errorf("the flow's steps %q, want %q", steps, want)
+	}
+}
+
+// TestFailedReloadJournalUndoes: the reload has no effect and dns.Apply's
+// own undo does not finish (its restart of systemd-resolved fails once):
+// the step stays in the journal, whose rollback then runs dns.Rollback,
+// which finishes. The change is reported rolled back, and the report
+// words the failure, not dns's "not all undone" (D3; next/s2-control).
+func TestFailedReloadJournalUndoes(t *testing.T) {
+	h, cfg := newHost(t, ubuntu2604, configured)
+	h.inert = true
+	restarts := 0
+	h.Handler = func(argv []string, stdin []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "systemctl reload-or-restart "+hostdns.ResolvedUnit {
+			if restarts++; restarts == 1 {
+				return hostfake.Response{Stderr: "Job failed\n", ExitCode: 1}
+			}
+		}
+		return h.answer(argv, stdin)
+	}
+	r, evs := applyOn(t, h, dns.Nameservers{Config: cfg}, cfg)
+	var ae *engine.ApplyError
+	if !errors.As(r.Err, &ae) || !errors.Is(r.Err, engine.ErrRolledBack) || !ae.Undone || !errors.Is(r.Err, hostdns.ErrNotRestored) || restarts != 2 {
+		t.Fatalf("Apply: %v (restarts %d)", r.Err, restarts)
+	}
+	want := []string{dns.ChangeSet + " running", dns.ChangeSet + " failed DNS_NOT_EFFECTIVE", dns.ChangeSet + " rolled-back"}
+	if got := events(evs); !slices.Equal(got, want) {
+		t.Errorf("events %q, want %q", got, want)
+	}
+	if got := content(h, hostdns.DropIn); got != "<absent>" || h.global != nil {
+		t.Errorf("drop-in %q, resolved's servers %q: not undone", got, h.global)
+	}
+	if d := output.Build(r); d.Result.Outcome != output.OutcomeRolledBack || d.Result.Rollback == nil || !d.Result.Rollback.ChangeUndone {
+		t.Errorf("document: %+v", d.Result)
+	}
+	human := output.Human(uitest.Core()[1].Env, stable(r), now)
+	for _, w := range []string{"Reloading systemd-resolved had no effect", "Rolled back", "Run resolvectl dns to see the servers in use."} {
+		if !strings.Contains(human, w) {
+			t.Errorf("the report does not say %q:\n%s", w, human)
+		}
+	}
+	if strings.Contains(human, "not all undone") {
+		t.Errorf("the report says the steps were not undone:\n%s", human)
 	}
 }
 

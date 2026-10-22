@@ -64,7 +64,7 @@
       "after": [
         "dns.nameservers/set"
       ],
-      "diff": "",
+      "diff": "--- /etc/hardn/hardn.yml\n+++ /etc/hardn/hardn.yml\n@@ -1,5 +1,51 @@\n-# hardn's configuration (web-01.example.net)\n username: alice\n+logFile: /var/log/hardn.log\n+dryRun: false\n+enableBackups: true\n+backupPath: /var/backups/hardn\n+dmzSubnet: \"\"\n nameservers:\n-  - \"192.0.2.54\"\n-  - \"2001:db8::54\"\n+    - 1.1.1.1\n+    - 1.0.0.1\n+sshPort: 22\n+permitRootLogin: \"no\"\n+sshAllowedUsers: []\n+sshListenAddress: 0.0.0.0\n+sshKeyPath: .ssh_%u\n+sshConfigFile: /etc/ssh/sshd_config.d/hardn.conf\n+sudoNoPassword: true\n+sshKeys: []\n+linuxCorePackages: []\n+linuxDmzPackages: []\n+linuxLabPackages: []\n+pythonPackages: []\n+nonWslPythonPackages: []\n+pythonPipPackages: []\n+alpineCorePackages: []\n+alpineDmzPackages: []\n+alpineLabPackages: []\n+alpinePythonPackages: []\n+debianRepos: []\n+proxmoxSrcRepos: []\n+proxmoxCephRepo: []\n+proxmoxEnterpriseRepo: []\n+proxmoxPackagePatterns: []\n+alpineTestingRepo: false\n+ufwAppProfiles: []\n+ufwDefaultIncomingPolicy: \"\"\n+ufwDefaultOutgoingPolicy: \"\"\n+ufwAllowedPorts: []\n+useUvPackageManager: false\n+enableAppArmor: false\n+enableLynis: false\n+enableUnattendedUpgrades: false\n+enableUfwSshPolicy: false\n+configureDns: false\n+disableRootSSH: false\n+lang: \"\"\n+language: \"\"\n+lcAll: \"\"\n+tz: \"\"\n+pythonUnbuffered: \"1\"\n+logsconfig:\n+    logfilepath: \"\"\n",
       "stateBefore": "",
       "stateAfter": "",
       "commands": [],

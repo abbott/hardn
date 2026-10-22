@@ -100,8 +100,10 @@ func sudoersPaths(p sudoers.Plan) []string {
 // one that undid them says so (engine.Ran.Undone), so that the engine
 // reports the change rolled back. One whose own undo did not finish
 // (dns.ErrNotRestored) keeps it, so that the journal's rollback tries again
-// what is left of the plan's own writes (revert-plans.md §6). A reload
-// that ran without effect, undone, is a Failure in a few words. Its
+// what is left of the plan's own writes (revert-plans.md §6), and says
+// that what it did is left to that undo (Ran.Undone), so that the engine
+// reports the change rolled back once that rollback finished. A reload
+// that ran without effect is a Failure in a few words, undone or not. Its
 // backups go into the plan's backup run. A file the plan creates is
 // diffed against /dev/null, and the plan's findings ride on the change
 // (DNSFinding). The support level (detect.Support) is the engine's gate
@@ -136,7 +138,7 @@ func DNS(id string, p dns.Plan, summary string) (engine.Change, error) {
 		case err == nil:
 			return engine.Ran{Detail: "dns: applied"}, nil
 		case errors.Is(err, dns.ErrNotRestored): // the step stays, for the journal's rollback
-			return engine.Ran{}, err
+			return engine.Ran{Undone: true}, dnsFailure(res, err)
 		}
 		return engine.Ran{Rollback: emptied(), Undone: res.Restored}, dnsFailure(res, err)
 	}
@@ -158,12 +160,23 @@ func dnsBefore(p dns.Plan, s dns.Step) dns.Entry {
 }
 
 // dnsFailure is dns.Apply's error in the user's words where they are
-// known: a reload of systemd-resolved that ran without effect, undone
+// known: a reload of systemd-resolved that ran without effect, whether
+// dns.Apply's own undo finished or left the rest to the journal
 // (gallery-dns.md, the failure-proposed sequence; proposed words). Any
 // other error is err.
 func dnsFailure(res dns.Result, err error) error {
-	if res.Restored && errors.Is(err, dns.ErrNotEffective) && len(res.Done) > 0 && res.Done[len(res.Done)-1] == dns.StepReload {
+	if errors.Is(forward(err), dns.ErrNotEffective) && len(res.Done) > 0 && res.Done[len(res.Done)-1] == dns.StepReload {
 		return &Failure{Text: "Reloading systemd-resolved had no effect", Next: "Run resolvectl dns to see the servers in use.", Err: err}
+	}
+	return err
+}
+
+// forward is the step's own error of dns.Apply's err, which joins it with
+// its undo's (errors.Join): an undo's reload without effect is not the
+// step's.
+func forward(err error) error {
+	if j, ok := err.(interface{ Unwrap() []error }); ok && len(j.Unwrap()) > 0 {
+		return j.Unwrap()[0]
 	}
 	return err
 }

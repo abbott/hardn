@@ -150,7 +150,7 @@ var errorCodes = []Entry{
 	is("PVE_ROOT_LOGIN_NOT_KEPT", steps.ErrProxmoxRoot),
 	is("SSH_CLEANUP_SESSION_NOT_KEPT", steps.ErrSessionNotKept),
 	// The save of hardn.yml (steps.PlanSave, next/s2-control).
-	is(steps.CodeConfigChanged, steps.ErrConfigChanged).what("hardn.yml changed since hardn read it: saving would undo what changed it"),
+	is(steps.CodeConfigChanged, steps.ErrConfigChanged).what("hardn.yml changed since it was read: saving would undo what changed it"),
 
 	// The engine's own, before the primitives' errors they wrap.
 	is("CONFIRM_WINDOW_CLOSING", engine.ErrWindow),
@@ -171,6 +171,7 @@ var errorCodes = []Entry{
 	// The configuration (pkg/config).
 	is("CONFIG_ROOT_LOGIN_NOT_APPLIED", config.ErrRootLoginNotApplied).exit(ExitUsage),
 	is("CONFIG_NOT_LOADED", config.ErrNotLoaded),
+	is("CONFIG_FILE_INVALID", config.ErrInvalidFile), // next/s2-control
 
 	// Confirm-or-revert (pkg/host/revert): the typed refusals first.
 	typed("RUN_LOCK_HELD", "another hardn holds the run lock: an apply, or hardn rollback --boot",

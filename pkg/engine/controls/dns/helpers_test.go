@@ -260,9 +260,12 @@ func run(h *fakeHost, mode output.Mode) output.Run {
 }
 
 // writes are the calls that changed something outside /run/hardn.
-func writes(h *fakeHost) []string {
+func writes(h *fakeHost) []string { return writesAfter(h, 0) }
+
+// writesAfter are writes but the first n calls': a test's own.
+func writesAfter(h *fakeHost, n int) []string {
 	var out []string
-	for _, c := range h.Calls() {
+	for _, c := range h.Calls()[n:] {
 		switch c.Op {
 		case "write-atomic", "write-in-place", "remove", "removeall", "rename", "mkdir", "chmod", "chown", "append":
 			if !strings.HasPrefix(c.Path, "/run/hardn") {

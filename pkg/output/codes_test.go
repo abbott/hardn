@@ -205,6 +205,7 @@ var sentinels = map[string]error{
 var otherSentinels = map[string]error{
 	"config.ErrRootLoginNotApplied":  config.ErrRootLoginNotApplied,
 	"config.ErrNotLoaded":            config.ErrNotLoaded,
+	"config.ErrInvalidFile":          config.ErrInvalidFile,
 	"output.ErrUsage":                output.ErrUsage,
 	"output.ErrConfirmationRequired": output.ErrConfirmationRequired,
 	"output.ErrAuditDir":             output.ErrAuditDir,

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/fs"
@@ -37,15 +38,21 @@ func TestRead(t *testing.T) {
 		t.Error("LoadedFrom holds for other bytes, or for a configuration read from none")
 	}
 	c.Nameservers = []string{"192.0.2.53"}
+	want, err := Marshal(c)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := Save(ctx, sys, c); err != nil {
 		t.Fatal(err)
 	}
 	saved, _ := sys.Entry(path)
-	if !c.LoadedFrom(saved.Data) || c.LoadedFrom(data) {
-		t.Errorf("after Save, LoadedFrom the saved bytes %v, the old ones %v", c.LoadedFrom(saved.Data), c.LoadedFrom(data))
+	if !c.LoadedFrom(saved.Data) || c.LoadedFrom(data) || !bytes.Equal(saved.Data, want) {
+		t.Errorf("after Save, LoadedFrom the saved bytes %v, the old ones %v; Marshal's bytes saved %v", c.LoadedFrom(saved.Data), c.LoadedFrom(data),
+			bytes.Equal(saved.Data, want))
 	}
 
 	sys.AddFile("/etc/hardn/pp.yml", []byte("permitRootLogin: prohibit-password\n"), 0o600, 0, 0)
+	sys.AddFile("/etc/hardn/broken.yml", []byte("nameservers: [\n"), 0o600, 0, 0)
 	sys.AddSymlink("/etc/hardn/link.yml", path)
 	for _, tt := range []struct {
 		path string
@@ -55,6 +62,7 @@ func TestRead(t *testing.T) {
 		{"/etc/hardn/../hardn/hardn.yml", fs.ErrInvalid},
 		{"/etc/hardn/none.yml", fs.ErrNotExist},
 		{"/etc/hardn/pp.yml", ErrRootLoginNotApplied},
+		{"/etc/hardn/broken.yml", ErrInvalidFile},
 	} {
 		if _, err := Read(ctx, sys, tt.path); !errors.Is(err, tt.want) {
 			t.Errorf("Read(%q) = %v, want %v", tt.path, err, tt.want)

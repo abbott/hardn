@@ -17,6 +17,7 @@ backup.ErrNotRegular BACKUP_NOT_REGULAR
 backup.ErrRunExists BACKUP_RUN_EXISTS
 backup.ErrSettings BACKUP_SETTINGS_INVALID
 backup.ErrUnsafeDir UNSAFE_DIRECTORY
+config.ErrInvalidFile CONFIG_FILE_INVALID
 config.ErrNotLoaded CONFIG_NOT_LOADED
 config.ErrRootLoginNotApplied CONFIG_ROOT_LOGIN_NOT_APPLIED
 context.Canceled CANCELLED

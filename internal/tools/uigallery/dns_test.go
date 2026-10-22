@@ -53,12 +53,9 @@ type dnsFake struct {
 }
 
 // eth0Domain is eth0's own search domain, which resolvectl lists on the
-// Ubuntu host and dns.Read drops (Resolved keeps a link's servers alone;
-// gallery-dns.md §8); dnsLinkDomains are the screens' words for it, the
-// one reading they show that is the fake's script, not dns.Read's.
+// Ubuntu host and dns.Read keeps on the link (Link.Domains, since
+// next/s2-control: gallery-dns.md §8 item 4).
 const eth0Domain = "example.net"
-
-var dnsLinkDomains = []string{eth0Domain + " (eth0)"}
 
 // dnsFacts are detect's facts for distro on init, outside a container.
 func dnsFacts(distro detect.Distro, version string, init detect.InitKind) detect.Facts {
@@ -155,13 +152,19 @@ var dnsScreens = map[string]string{"sub-menu/03-dns": "", "sub-menu/03-dns-alpin
 
 // searchInUse is the search domains in use on the host s describes, as
 // the screens and the reviews show them: the file's, or resolved's global
-// ones and then each link's, which dns.Read does not keep, so they are
-// the fake's (dnsLinkDomains).
+// ones and then each link's (Link.Domains), named by its link,
+// "example.net (eth0)".
 func searchInUse(s dns.State) []string {
 	if s.Manager != dns.ManagerResolved {
 		return s.Search
 	}
-	return append(slices.Clone(s.Resolved.Domains), dnsLinkDomains...)
+	in := slices.Clone(s.Resolved.Domains)
+	for _, l := range s.Resolved.Links {
+		for _, d := range l.Domains {
+			in = append(in, d+" ("+l.Name+")")
+		}
+	}
+	return in
 }
 
 // TestDNSScreensAreReal checks that each DNS screen shows what dns.Read
@@ -169,8 +172,8 @@ func searchInUse(s dns.State) []string {
 // the nameservers in use, the file's, or systemd-resolved's global ones
 // and each link's after it, and Unknown where pkg/host/dns reads none, as
 // of a manager it only reports; the search domains in use, the file's, or
-// resolved's global ones and then each link's, which are the fake's
-// (searchInUse; "None" for none); and hardn.yml's list, or P-30 (b)'s
+// resolved's global ones and then each link's (searchInUse; "None" for
+// none); and hardn.yml's list, or P-30 (b)'s
 // muted item for none, item 3 then left out. Every DNS screen is one of
 // these.
 func TestDNSScreensAreReal(t *testing.T) {

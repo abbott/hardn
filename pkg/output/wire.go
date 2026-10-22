@@ -159,9 +159,10 @@ type Rollback struct {
 	// apply's last write.
 	Step   string `json:"step"`
 	Change string `json:"change"`
-	// ChangeUndone: the change that failed (Change) had undone its own
-	// steps before the rollback, as a unit with a rollback of its own does
-	// (DNS: engine.ApplyError.Undone), so nothing of it is left either.
+	// ChangeUndone: nothing of the change that failed (Change) is left
+	// either: it undid its own steps before the rollback, as a unit with a
+	// rollback of its own does, or left the rest to its journalled undo
+	// and this rollback finished (DNS: engine.ApplyError.Undone).
 	ChangeUndone bool `json:"changeUndone"`
 	// Restored are the files the rollback put back, Undone its inverse
 	// steps, in the order run.

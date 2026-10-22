@@ -5,14 +5,15 @@
 // Check reads what manages /etc/resolv.conf and the nameservers in use
 // (pkg/host/dns's Read): Configured when they are hardn.yml's, in order;
 // Not Configured otherwise, or when hardn.yml lists none; Not Applicable
-// in a container and where a manager hardn only reports owns the file
-// (resolvconf, NetworkManager, another program: P-37 (a)); Unknown, "can't
-// read", when it cannot be read. Plan is dns.PlanDNS for in.Config's list
-// through steps.DNS, then, when that list is not the one hardn.yml holds,
-// the save of hardn.yml after it (steps.PlanSave); every refusal comes
-// before any change, with a report (steps.Refusal). The host's search
-// domains are kept (decision 2). docs/engine/control-dns.md has every
-// status line, refusal and word, all proposed.
+// in a container, off the four families, and where a manager hardn only
+// reports owns the file (resolvconf, NetworkManager, another program:
+// P-37 (a)); Unknown, "can't read", when it cannot be read. Plan is
+// dns.PlanDNS for in.Config's list through steps.DNS, then, when that list
+// is not the one hardn.yml holds, the save of hardn.yml after it
+// (steps.PlanSave); every refusal comes before any change, with a report
+// (steps.Refusal). The host's search domains are kept (decision 2).
+// docs/engine/control-dns.md has every status line, refusal and word, all
+// proposed.
 //
 // The package reaches the host only through host.System (depguard
 // controls-through-host and dns-control-through-host) and renders nothing.
@@ -22,6 +23,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/netip"
 	"slices"
 	"strings"
@@ -43,10 +45,13 @@ const (
 	ChangeSave = ID + "/save" // hardn.yml's list (steps.PlanSave)
 )
 
-// The changes' titles (gallery-dns.md §5; proposed).
+// The changes' titles (gallery-dns.md §5; proposed), by the steps the
+// change holds: the nameservers set (the file, or resolved's drop-in or
+// reload), udhcpc stopped (Alpine, StopUDHCPC), or both.
 const (
 	TitleSet     = "Set the nameservers"
-	TitleSetStop = "Set nameservers; stop udhcpc rewriting" // on Alpine, StopUDHCPC
+	TitleSetStop = "Set nameservers; stop udhcpc rewriting"
+	TitleStop    = "Stop udhcpc rewriting resolv.conf"
 )
 
 // The row's details (proposed wording, control-dns.md §5). A Configured
@@ -57,6 +62,7 @@ const (
 	DetailInvalid        = "not valid in hardn.yml" // NotConfigured: hardn.yml's list is one dns.Validate refuses here
 	DetailNotRunning     = "resolved not running"   // NotConfigured: /etc/resolv.conf is systemd-resolved's link, and it does not run
 	DetailContainer      = "container"              // NotApplicable: the container's manager provides the file
+	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine or Proxmox VE
 	DetailNetworkManager = "NetworkManager"         // NotApplicable: reported only (P-37 (a))
 	DetailResolvconf     = "resolvconf"             // NotApplicable: reported only
 	DetailOther          = "another program"        // NotApplicable: a link hardn does not know, or a file resolved reads as another's
@@ -114,11 +120,12 @@ func (Nameservers) ID() string { return ID }
 // Title is the row's label.
 func (Nameservers) Title() string { return "DNS" }
 
-// Applies is true on every host. A container and the managers hardn only
-// reports are Not Applicable through Check (decision 8) and refused by Plan
-// with a report (P-37 (a)): a control that does not apply plans nothing,
-// and an empty plan reads "Nothing needs changing." on a host whose
-// nameservers are not hardn.yml's.
+// Applies is true on every host. A container, a family hardn does not
+// configure and the managers hardn only reports are Not Applicable through
+// Check (decision 8) and refused by Plan with a report (P-37 (a)): a
+// control that does not apply plans nothing, and an empty plan reads
+// "Nothing needs changing." on a host whose nameservers are not
+// hardn.yml's.
 func (Nameservers) Applies(detect.Facts) (bool, string) { return true, "" }
 
 // list is cfg's nameservers; none for no configuration.
@@ -139,6 +146,8 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 	switch {
 	case errors.Is(err, hostdns.ErrContainer):
 		return engine.Status{State: engine.NotApplicable, Detail: DetailContainer, Evidence: []string{"container: " + f.Container.Signal}}, nil
+	case errors.Is(err, hostdns.ErrUnsupported): // detect's family, established
+		return engine.Status{State: engine.NotApplicable, Detail: DetailUnsupported, Evidence: []string{"distribution: " + string(f.Platform.Distro)}}, nil
 	case err != nil:
 		return engine.Status{State: engine.Unknown, Detail: DetailCantRead}, err
 	}
@@ -235,11 +244,13 @@ func evidence(s hostdns.State) []string {
 // stopped when asked (StopUDHCPC): the change that brings the host to it
 // (steps.DNS), none when the host uses it already; then, when the list is
 // not the one hardn.yml holds at in.Config.Path(), the save of in.Config
-// there after it (steps.PlanSave, decision 1). Every refusal is made
-// before any change, with a report: a container, a manager hardn only
-// reports, a fact not established, systemd-resolved stopped, a drop-in
-// after hardn's, hardn.yml listing none or one dns.Validate refuses
-// (refusal), and the save's.
+// there after it (steps.PlanSave, decision 1); with no file loaded, a host
+// already as asked plans nothing, and a change, which could not be saved,
+// is refused (CONFIG_NOT_LOADED). Every refusal is made before any
+// change, with a report: a container, a manager hardn only reports, a
+// fact not established, systemd-resolved stopped, a drop-in after hardn's,
+// hardn.yml listing none or one dns.Validate refuses (refusal), hardn.yml
+// changed since it was read (steps.Changed), and the save's.
 func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	want := list(in.Config)
 	s, err := hostdns.Read(ctx, sys, in.Facts)
@@ -252,10 +263,7 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	}
 	var cs []engine.Change
 	if len(p.Changes) > 0 {
-		title, summary := TitleSet, "Set the nameservers to "+strings.Join(p.Want.Nameservers, ", ")
-		if slices.ContainsFunc(p.Changes, func(c hostdns.Change) bool { return c.Step == hostdns.StepUDHCPC }) {
-			title, summary = TitleSetStop, summary+", and stop udhcpc rewriting "+hostdns.ResolvConf
-		}
+		title, summary := heading(p)
 		c, err := steps.DNS(ChangeSet, p, summary)
 		if err != nil {
 			return nil, err
@@ -267,7 +275,7 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	switch {
 	case err != nil:
 		return nil, err
-	case saved != nil && slices.Equal(*saved, want):
+	case saved == nil && len(cs) == 0, saved != nil && slices.Equal(*saved, want):
 		return cs, nil
 	}
 	var after []string
@@ -281,14 +289,34 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	return append(cs, save), nil
 }
 
+// heading is the change's title and summary, from the steps p holds: the
+// nameservers set (the file, or resolved's drop-in or reload), udhcpc
+// stopped, or both (proposed).
+func heading(p hostdns.Plan) (title, summary string) {
+	stop := slices.ContainsFunc(p.Changes, func(c hostdns.Change) bool { return c.Step == hostdns.StepUDHCPC })
+	set := slices.ContainsFunc(p.Changes, func(c hostdns.Change) bool { return c.Step != hostdns.StepUDHCPC })
+	setWords, stopWords := "Set the nameservers to "+strings.Join(p.Want.Nameservers, ", "), "stop udhcpc rewriting "+hostdns.ResolvConf
+	switch {
+	case set && stop:
+		return TitleSetStop, setWords + ", and " + stopWords
+	case stop:
+		return TitleStop, "Stop udhcpc rewriting " + hostdns.ResolvConf
+	}
+	return TitleSet, setWords
+}
+
 // savedList is the list hardn.yml holds at cfg's path, read now; nil when
-// cfg was not loaded from a file, whose save PlanSave refuses.
+// cfg was not loaded from a file. A file gone, or no longer decoding,
+// changed since it was read: refused with a report (steps.Changed).
 func savedList(ctx context.Context, sys host.System, cfg *config.Config) (*[]string, error) {
 	if cfg == nil || cfg.Path() == "" {
 		return nil, nil
 	}
 	f, err := config.Read(ctx, sys, cfg.Path())
-	if err != nil {
+	switch {
+	case errors.Is(err, fs.ErrNotExist), errors.Is(err, config.ErrInvalidFile), errors.Is(err, config.ErrRootLoginNotApplied):
+		return nil, steps.Changed(cfg.Path(), err)
+	case err != nil:
 		return nil, fmt.Errorf("dns: hardn.yml: %w", err)
 	}
 	return &f.Nameservers, nil
@@ -322,13 +350,17 @@ func refusal(s hostdns.State, want []string, cfg *config.Config, err error) erro
 				later = append(later, l.Path)
 			}
 		}
-		r.Code, r.Why, r.Fix = codeOverridden, strings.Join(later, ", ")+" sets the nameservers after hardn's drop-in", "remove DNS= from it, then try again"
+		verb, it := " sets", "it"
+		if len(later) > 1 {
+			verb, it = " set", "them"
+		}
+		r.Code, r.Why, r.Fix = codeOverridden, strings.Join(later, ", ")+verb+" DNS= after "+hostdns.DropInName, "remove DNS= from "+it+", then try again"
 	case errors.Is(err, hostdns.ErrDropInBlocked):
 		r.Code, r.Why, r.Fix = codeBlocked, hostdns.DropIn+" is not a file", "remove it, then try again"
 	case errors.Is(err, hostdns.ErrNoNameservers):
-		r.Code, r.Why, r.Fix = codeNone, "No nameservers configured", "add a nameserver first"
+		r.Code, r.Why, r.Fix = codeNone, "No nameservers configured", "add nameservers first"
 	case errors.Is(err, hostdns.ErrNotApplicable):
-		r.Code, r.Why, r.Fix = codeOption, "Only Alpine's udhcpc can be stopped rewriting "+rc, "leave udhcpc as it is"
+		r.Code, r.Why, r.Fix = codeOption, "This host is not Alpine", "leave udhcpc as it is"
 	case errors.Is(err, hostdns.ErrInvalid):
 		r.Code, r.Why, r.Fix = codeInvalid, invalid(want, s.Manager), "correct the nameservers in "+file
 	case errors.Is(err, hostdns.ErrUnknown):
@@ -350,8 +382,10 @@ func managed(s hostdns.State) (why, fix string) {
 	case s.ResolvConf.Kind == hostdns.EntrySymlink:
 		return hostdns.ResolvConf + " links to " + s.ResolvConf.Target + ", which another program writes", "set the nameservers with that program"
 	}
+	// Not "or stop systemd-resolved": a copy of resolved's stub file lists
+	// 127.0.0.53 alone, which would then answer nothing.
 	return "systemd-resolved runs, and " + hostdns.ResolvConf + " is not its link",
-		"link " + hostdns.ResolvConf + " to /run/systemd/resolve/stub-resolv.conf, or stop systemd-resolved"
+		"link " + hostdns.ResolvConf + " to /run/systemd/resolve/stub-resolv.conf"
 }
 
 // invalid says which entry of want dns.Validate refuses for manager m, and

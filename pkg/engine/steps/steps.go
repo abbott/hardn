@@ -160,7 +160,12 @@ type Failure struct {
 	Err  error
 }
 
-func (f *Failure) Error() string { return f.Text + ": " + f.Err.Error() }
+func (f *Failure) Error() string {
+	if f.Err == nil {
+		return f.Text
+	}
+	return f.Text + ": " + f.Err.Error()
+}
 
 // Unwrap returns the unit's error.
 func (f *Failure) Unwrap() error { return f.Err }
