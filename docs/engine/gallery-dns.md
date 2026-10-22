@@ -89,29 +89,31 @@ No sequence was merged with another. Six were added to the twelve: Alpine's `kep
 The failure, as the engine reports it (sequence 12, `failure`, step 2, plain):
 
 ```text
-  [!] Failed: Set the nameservers (DNS_NOT_EFFECTIVE)
+  [ ] Set the nameservers  Failed DNS_NOT_EFFECTIVE
 
 # Operation Failed
 # Set the nameservers: dns: reload-resolved: global nameservers
 # [], want ["192.0.2.54" "2001:db8::54"]: the step ran, but the
 # host does not show its effect (DNS_NOT_EFFECTIVE)
 
-  [i] Info: Check the log file at /var/log/hardn.log for details
+  Check the log file at /var/log/hardn.log for details
 ```
 
 `dns.Apply` did undo the change (the drop-in is gone, resolved is back on its servers), but the report names nothing rolled back, prints the code twice and the error with Go's quoting, and gives no next step: §8, item 3. As proposed for unit (b) (`failure-proposed`, step 2, plain; its words proposed):
 
 ```text
-  [!] Failed: Set the nameservers (DNS_NOT_EFFECTIVE)
+  [ ] Set the nameservers  Failed DNS_NOT_EFFECTIVE
 
 # Operation Failed
 # Reloading systemd-resolved had no effect
 
-  [<] Rolled back: Set the nameservers
+  [ ] Set the nameservers  Rolled back
 
-  [i] Info: Check the log file at /var/log/hardn.log for details
-  [i] Info: Run resolvectl dns to see the servers in use.
+  Check the log file at /var/log/hardn.log for details
+  Run resolvectl dns to see the servers in use.
 ```
+
+Both drawn in P-42's row grammar since `next/s2-row-grammar` (the maintainer, 2026-10-22): the step's state in a status column, the report's rolled-back row on the same column, the log sentence as prose.
 
 ## 4. Decisions for the maintainer
 
@@ -130,7 +132,7 @@ Adopted by the maintainer on 2026-10-22 ("those all seem okay to adopt"): each r
 8. **P-01, a DNS row on the main menu.** Not mocked: the main menu's rows are the status model's. *Recommended* for its unit: a row from `dns.State` (the file's nameservers, or resolved's global ones), Configured when they are hardn.yml's, with the reported-only managers Not Applicable (–). The DNS screen marks the same manager otherwise, ⭘ with "reported only" in `status.warn` (sequence 11), on purpose: there it is a reading beside items that all refuse, a warning that hardn will not change it; on the main menu it is a control's status, and a control that does not apply is Not Applicable, the adopted mark. *Alternative:* a warning on both.
 9. **Add nameserver's inline errors.** *Recommended:* origin/main's words where it has them, "Nameserver cannot be empty", "Invalid IP address format" and "Nameserver 192.0.2.54 is already configured" (`addNameserver`), and one proposed, "Not a usable nameserver address", for the addresses origin/main took and `dns.Validate` refuses (a zone, IPv4-mapped, unspecified, multicast, 0.0.0.0/8, the broadcast address, IPv6 link-local); which entries are refused, and for which reason, is `dns.Validate`'s (`TestDNSCheckIsValidate`). *Alternatives:* (a) `dns.Validate`'s own text, as the first mock showed it: `dns: nameserver "999.1.1.1": not an IPv4 or IPv6 address: invalid DNS configuration`, two lines at 80 columns, Go's quoting and the sentinel's words; (b) proposed words throughout, such as "Not an IPv4 or IPv6 address" and "Already configured". `dns.Validate`'s count rule (three at most in a file) cannot be reached here, with two configured, and is not copied: the real screen calls `dns.Validate`, and would word it too.
 
-Also shown, and still proposed: P-27 (b)'s "Nothing needs changing."; P-29 (a)'s prompt, origin/main's "Enter selection"; the built patterns of P-23, P-24 and P-42 (the steps' and messages' words and glyphs). No item is marked (P-22): a refused item refuses when chosen.
+Also shown, and still proposed: P-27 (b)'s "Nothing needs changing."; P-29 (a)'s prompt, origin/main's "Enter selection"; P-23's and P-24's words (the steps' and messages'), drawn in P-42's row grammar, decided on 2026-10-22 and built in `next/s2-row-grammar`: the steps' status markers and status column, the refusals of items as Warning callouts, and Add's errors as inline results. No item is marked (P-22): a refused item refuses when chosen.
 
 ## 5. Words
 
@@ -145,15 +147,15 @@ origin/main's where it has them; **every other word is proposed**.
 | Items, descriptions, "Return", "Enter selection" | as origin/main; under decision 1, Add's and Remove's descriptions ("... to configuration", "... from configuration") understate the action: "Add a DNS server and apply it", "Remove a DNS server and apply the rest" offered | origin/main (P-29 (a)); the alternatives **proposed**, not mocked |
 | Title bars of the workflows | the item's label: "Configure DNS", "Add nameserver", ...; "Add nameserver" and "Remove nameserver" stay in origin/main's sentence case, where every other title bar is Title Case ("Create User", "Manage Root SSH Login", "Use Cloudflare DNS"): "Add Nameserver", "Remove Nameserver" offered | origin/main's labels, **proposed** as titles; the Title Case alternative **proposed**, not mocked |
 | Add's field | "Enter nameserver IP address" | origin/main |
-| Add's inline errors | "Nameserver cannot be empty", "Invalid IP address format", "Nameserver 192.0.2.54 is already configured"; "Not a usable nameserver address" | origin/main's (`addNameserver`); the last **proposed** (decision 9, with `dns.Validate`'s text as the alternative) |
+| Add's inline errors | "Nameserver cannot be empty", "Invalid IP address format", "Nameserver 192.0.2.54 is already configured"; "Not a usable nameserver address"; drawn as inline results under the prompt, ◇ (`<>` in ASCII) and the words in `status.bad`, no word for the kind (the maintainer, 2026-10-22; DEV-062), every refusal as failed, as `nav.Refuse` refuses, where origin/main shows "already configured" as a warning | origin/main's (`addNameserver`); the last **proposed** (decision 9, with `dns.Validate`'s text as the alternative) |
 | Remove's field | "Select a nameserver to remove" | **proposed** (after origin/main's "Select a key to remove") |
 | Alpine's question | "Stop udhcpc rewriting /etc/resolv.conf?" | **proposed** |
 | Review | "DNS Configuration" with "Nameservers", "Search Domains" | origin/main's words, **proposed** here |
 | Warning lines | "dhcpcd may rewrite /etc/resolv.conf on a lease" (`dns-dhcp-client`), "eth0 still uses its own nameserver 192.0.2.1" (`dns-per-link`), "udhcpc rewrites /etc/resolv.conf on each lease" (`dns-udhcpc`), "Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf" (`dns-proxmox-node`: they rewrite it on save), "Saving hardn.yml loses its comments" (§3.19) | **proposed**; `pkg/host/dns`'s detail of each finding is a sentence of 100 to 160 characters, `pkg/output`'s registry line a shorter one ("a DHCP client that may rewrite /etc/resolv.conf is installed") |
 | The plan's changes | "Set the nameservers", "Set nameservers; stop udhcpc rewriting" (Alpine, the question answered y; `engine.TitleMax` is 41), "Save the configuration" | **proposed** (the DNS control's summary, unit (b)) |
 | Questions | "Configure DNS?", "Add nameserver 192.0.2.53?", "Remove nameserver 2001:db8::54?", "Use Cloudflare DNS?" | origin/main's labels, **proposed** as questions, as Figma's "Create user 'george'?". Configure DNS's and the presets' repeat their title bar word for word, where the built questions name their subject: "Apply 192.0.2.54, 2001:db8::54?" and "Apply 1.1.1.1, 1.0.0.1?" offered (**proposed**, not mocked) |
-| Refusals | "Please add nameservers first."; "NetworkManager manages DNS here. Set the nameservers with nmcli."; "The last nameserver cannot be removed." | origin/main's; **proposed**; **proposed** |
-| The failure | as the engine gives it: "Set the nameservers: " + dns.Apply's error + " (DNS_NOT_EFFECTIVE)"; as proposed: "Reloading systemd-resolved had no effect", "Rolled back: Set the nameservers", "Run resolvectl dns to see the servers in use." | `pkg/output`'s ErrorReport, `pkg/host/dns`'s error, `pkg/output`'s code; **proposed** (unit (b)) |
+| Refusals | "Please add nameservers first."; "NetworkManager manages DNS here. Set the nameservers with nmcli."; "The last nameserver cannot be removed."; each a Warning callout since P-42 R5 | origin/main's; **proposed**; **proposed** |
+| The failure | as the engine gives it: "Set the nameservers: " + dns.Apply's error + " (DNS_NOT_EFFECTIVE)"; as proposed: "Reloading systemd-resolved had no effect", "Set the nameservers" "Rolled back", "Run resolvectl dns to see the servers in use." | `pkg/output`'s ErrorReport, `pkg/host/dns`'s error, `pkg/output`'s code; **proposed** (unit (b)) |
 | Flow | "Nothing needs changing.", "No actual changes were made to your system.", "Operation Successful", "Operation Cancelled", "Operation Failed", "Done", "Failed", "Rolled back" | P-27 (b); origin/main; Figma; P-23, P-24, P-42 |
 
 ## 6. Defects fixed, as the mocks show them
@@ -190,7 +192,7 @@ origin/main's where it has them; **every other word is proposed**.
 - **Add's check** is a copy of `dns.Validate`'s per-address rules and its duplicate check, for one more entry on a file (`addCheck`), because `pkg/ui` cannot import `pkg/host`; its count rule is not copied (decision 9). `TestDNSCheckIsValidate` holds it to `dns.Validate` on twenty entries. The real screen calls `dns.Validate`. So is the plan of an entry play's user types other than the sequence's: built from the host's file as `dns` writes it, held by the test for the sequence's.
 - **The screens do not change** after a change: the gallery has no DNS model of a host (§9), so play redraws a host's screen as it was, under a result that changed it (`play/dns`: the Add's 192.0.2.53 is in neither the list nor the nameservers in use).
 - **The review is built** from the fixture; on the real screen it would come from `dns.State.Findings()` before the plan, filtered as `dns.PlanDNS` filters them, as decision 5 notes.
-- **The proposed failure** (`failure-proposed`): its words, and its step reported rolled back after it failed, which no engine does yet (item 3). On a terminal that animates the steps (play on a terminal), `pkg/ui/flow` keeps one state per step and redraws the failed line as "Rolled back: Set the nameservers", so the step's code shows nowhere there; the goldens, which do not animate, keep the failed line. Unit (b) decides whether the rolled-back report goes with the failed line or the report alone names it.
+- **The proposed failure** (`failure-proposed`): its words, and its step reported rolled back after it failed, which no engine does yet (item 3). On a terminal that animates the steps (play on a terminal), `pkg/ui/flow` keeps one state per step and redraws the failed row as "Set the nameservers  Rolled back", so the step's code shows nowhere there; the goldens, which do not animate, keep the failed line. Unit (b) decides whether the rolled-back report goes with the failed line or the report alone names it.
 
 **Recorded by probe** (`go test -overlay` in `pkg/host/dns` and the gallery, the tests' models; inputs to unit (b)):
 1. **`steps.DNS` does not copy `dns.Plan.Findings` onto `engine.Change.Findings`.** On Ubuntu 26.04 with a DHCP link, `PlanDNS` gives one finding (`dns-per-link`), the change none, and `output.AfterFlow` then writes nothing: the real flow shows no DNS finding anywhere today.

@@ -20,8 +20,7 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 
 | Line | Unicode | ASCII | Colour | Follows |
 |---|---|---|---|---|
-| a warning message, "Warning: …" | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, the maintainer's "Warning: ⭘ status.warn" |
-| the confirm countdown, while there is time | ⭘ | `[ ]` | `status.warn`, bold | `Warn` |
+| a step done, failed or rolled back (`StepProgress`, an `ErrorReport`'s rolled-back rows), since `next/s2-row-grammar` | ⛛, ⭘, ⭘ | `[+]`, `[ ]`, `[ ]` | `status.ok`, `status.bad`, `status.warn` | `Configured`, `NotConfigured`, `Partial` (P-42 (a2), the maintainer, 2026-10-22); a step pending, running or skipped takes the bullet |
 | a plan's lockout-risk change, "Lockout risk", and a risky menu item's note line | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, a warning (the maintainer, 2026-10-21; `next/p4-bar-shade`); ⛬ `[*]` until then |
 | the host block's "Reboot pending" | - | `-` | `status.warn` | `Bullet`, dash-led (the maintainer, 2026-10-21; `next/p4-risk-lines`); ⭘ `[ ]`, `Partial`, until then |
 | a key-value row's warn value | ⭘ | `[ ]` | `status.warn` | `Partial` |
@@ -29,7 +28,8 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 | a menu item's "Unavailable" | – | `[-]` | `text.faint`, the item's | `NotApplicable` |
 | the risk level, band Unknown | ⛬ | `[*]` | `text.muted` | `Risk`; the other bands keep their colours |
 | "Unknown" for a distribution, hostname, address or uptime not read, a plan's untitled change, a report's unnamed rolled-back change | none | none | `text.muted` | `Unknown`'s colour |
-| the P-42 compare mock's rolled-back step, `-marker status` | ⭘ | `[ ]` | `status.warn` | `Partial` |
+
+A warning message and the confirm countdown drew ⭘ `[ ]` in `status.warn`, bold (`Warn`, the maintainer's "Warning: ⭘ status.warn"), until `next/s2-row-grammar` made them Warning callouts, with no glyph (P-42 R5, R6); the P-42 compare mock's rolled-back step, which drew `Partial` with `-marker status`, is the components' own row since, and the mock is gone.
 
 **The rule, changed.** Partial and Not Configured share ⭘ `[ ]`, and a warning takes it too. They are told apart by colour and by the word, which is always on the line: never by colour alone. Unknown and Not Applicable share `text.muted` and differ by glyph and word. A key-value row has no state word: there a warn and a bad value differ by colour, and without colour only by the value's own words, such as "None" beside "Enabled, No password" (DEV-034). A not-applicable value's – sits in the bullet's column in the bullet's grey, which §4's figures put close to `-` in some fonts; its value or "Not Applicable" is beside it. A status row on Partial or Not Configured shows its state's word, never its `Word`, which would leave the two rows alike without colour (`TestLayout`).
 
@@ -50,7 +50,7 @@ Beyond `RiskSummary`, the theme's swatch golden lists the `Risk` glyph, and this
 - **The sets** (§4). Each is the risk row, Figma's amber ⛬ Moderate, and 00-TUI-MAIN's seven rows in all five states, under a legend that names each mark's code point and colour token. The details are lines the checks give. Partial, Not Configured and Unknown are on adjacent rows, so a set that folds a state into ⭘ shows it beside a row that is off. As many sets sit side by side as the terminal holds: each is 58 cells wide, 4 apart, so 2 fit from 120 columns, 3 from 182 and 5 from 306. Otherwise they are one above the next, and below 64 columns the rows stack.
 - **The strip.** Each shortlisted glyph alone in the marker column, then ⛛ ⭘ ⛬ two cells apart, all in `text.primary`, so size and weight compare without colour. Today's `?` and `–`, and Phase 1's `∅`, are included. It has no ASCII form.
 
-The mock draws the rows itself, on the components' grid, as `compare` does. Its `current` set is what `RiskSummary` and `StatusList` draw, byte for byte (`TestGlyphsCurrent`), so the other sets differ from it only by their glyphs and colours.
+The mock draws the rows itself, on the components' grid, with the gallery's drawing helpers (`draw.go`, the `compare` mode's until `next/s2-row-grammar` removed that mode). Its `current` set is what `RiskSummary` and `StatusList` draw, byte for byte (`TestGlyphsCurrent`), so the other sets differ from it only by their glyphs and colours.
 
 ## 4. The sets
 
@@ -79,7 +79,7 @@ GOTOOLCHAIN=local GOWORK=off go run ./internal/tools/uigallery glyphs -ascii    
 GOTOOLCHAIN=local GOWORK=off go run ./internal/tools/uigallery glyphs -theme light -profile 256
 ```
 
-The flags are `-list`, `-theme`, `-profile`, `-ascii`, `-override` (token values; see `uigallery.local.json.example`), and `-width` and `-height`, which default to the terminal's size as `compare`'s do. `-height` changes nothing here. A name that is neither a set nor `strip`, `trial` now included, or a flag placed after a name, exits with status 2.
+The flags are `-list`, `-theme`, `-profile`, `-ascii`, `-override` (token values; see `uigallery.local.json.example`), and `-width` and `-height`, which default to the terminal's size as `play`'s do. `-height` changes nothing here. A name that is neither a set nor `strip`, `trial` now included, or a flag placed after a name, exits with status 2.
 
 ## 6. The measurements
 
@@ -125,8 +125,8 @@ The adopted set's (`next/p4-status-glyphs`), in `pkg/ui/theme` and `pkg/ui/compo
 | `internal/tools/uigallery/testdata/golden/status` | 13 hosts | glyph (Partial, Not Applicable); colour (`apparmor-unread`'s Unknown) |
 | `internal/tools/uigallery/testdata/golden/play/status` | `lockout` | glyph (Partial) |
 | `internal/tools/uigallery/testdata/golden/play/engine` | 7 scenarios | glyph (the countdown, warnings) |
-| `internal/tools/uigallery/testdata/golden/compare/bullet` | `countdown`, `messages`, `success` | glyph (the countdown, warnings) |
-| `internal/tools/uigallery/testdata/golden/compare/status` | `countdown`, `failure`, `messages`, `success` | glyph (the countdown, warnings, and the rolled-back marker) |
+| `internal/tools/uigallery/testdata/golden/compare/bullet` | `countdown`, `messages`, `success` | glyph (the countdown, warnings); the directory removed with the mode in `next/s2-row-grammar` |
+| `internal/tools/uigallery/testdata/golden/compare/status` | `countdown`, `failure`, `messages`, `success` | glyph (the countdown, warnings, and the rolled-back marker); removed as `compare/bullet` |
 | `internal/tools/uigallery/testdata/golden/glyphs` | every set and the strip; `trial` removed | both, and the note's words: `current` is the adopted set; Unknown muted in every set; the strip's "(current)" labels |
 
 `internal/tools/p4status`'s host files are unchanged: they hold the hosts, not the renders, and `TestMainMenuAsGallery` still matches the gallery's plain-80 cells, which changed with p4status's own output.
