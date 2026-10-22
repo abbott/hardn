@@ -587,3 +587,5 @@ Fixed on `next/p4-locked` (bb400b2..d4141e9, the maintainer's decision of 2026-1
 
 **Rerun after the status glyphs and the bar shade (2026-10-21):** p4status built from `next/p4-bar-shade` f6df612 (the maintainer's adopted glyphs: Partial and warnings ⭘ in status.warn, Unknown ? and Not Applicable – in text.muted, ⛬ on the risk level alone; the bars and section stubs in ░ U+2591 in bar.shade #2B2F3B) on all three VMs: every line's state and detail as before, the plain output now `[ ]` for Partial and `[-]` for Not Applicable, `[*]` on the risk row alone; exit 0 and none refused on each.
 
+**Rerun after the lines under the rows (2026-10-21):** p4status built from `next/p4-risk-lines` 181743a on all three VMs: every row's state and detail, the band and the score as before (Low 82.5 on Debian 13 and Ubuntu 26.04, High 45.0 on Alpine 3.23); the one factor each VM has, the User row's grant without a password, now drawn under the User row as "- No password to become root" in status.warn, the risk level one line; no reboot line on any (none pending, each read); exit 0 and none refused on each.
+
