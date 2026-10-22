@@ -251,12 +251,15 @@ func validName(s string) bool {
 
 func isAlnum(c rune) bool { return c >= 'a' && c <= 'z' || c >= '0' && c <= '9' }
 
-// TitleMax is the most cells a Title takes: what is left of one step line
-// at the narrowest width of the design system's core set (60 columns)
-// after the marker column (6) and the longest state word, "Rolled back:"
-// and its space (13). A longer one is cut with an ellipsis, as a step is
-// always one line (component.StepProgress); pkg/output's tests pin it to
-// the component's rendering (TestTitleMaxFitsAStepLine).
+// TitleMax is the most cells a Title takes. It was set to what one step
+// line left at the narrowest width of the design system's core set (60
+// columns) under the first step grammar: after the marker column (6) and
+// the longest state word, "Rolled back:", and its space (13). Under P-42's
+// row grammar (next/s2-row-grammar) a title of up to 54 cells fits beside
+// its state at 60 columns, so 41 leaves room; raising it is open. A longer
+// one is cut with an ellipsis, as a step is always one line
+// (component.StepProgress); pkg/output's tests pin it to the component's
+// rendering (TestTitleMaxFitsAStepLine).
 const TitleMax = 41
 
 // Heading is the change's short name, Title, or its Summary when it has
