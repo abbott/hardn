@@ -203,6 +203,23 @@ type Effective struct {
 	KbdInteractiveAuthentication Setting // yes or no
 	PubkeyAuthentication         Setting // yes or no
 
+	// UsePAM is whether sshd uses PAM, yes or no: on Linux PAM is
+	// keyboard-interactive's only device (auth2-chall.c). A build without
+	// PAM prints no usepam line and ignores the files' UsePAM (servconf.c:
+	// dump_config prints it under USE_PAM alone; the keyword is
+	// unsupported there), so no line reads as Known "no", with
+	// BuiltWithoutPAM. It is not checked against the files, which do not
+	// decide it in such a build. Both fields describe the binary sshd -T
+	// ran (EffectiveRequest.Binary), not the daemon running: on Alpine
+	// that may be another build (a container's entrypoint; sshd.pam
+	// started before UsePAM yes was removed, which only a restart
+	// replaces, reload.md §2.6).
+	UsePAM Setting
+	// BuiltWithoutPAM: sshd -T printed no usepam line, and printed the
+	// settings dump_config prints after it whatever the build, so this
+	// sshd is built without PAM (Alpine's /usr/sbin/sshd).
+	BuiltWithoutPAM bool
+
 	// Port is sshd's Port set. Where it listens is Listeners: a
 	// ListenAddress with a port of its own listens on a port not in Port.
 	Port                                                      Set
@@ -229,6 +246,7 @@ var (
 		"passwordauthentication":       {"yes", "no"},
 		"kbdinteractiveauthentication": {"yes", "no"},
 		"pubkeyauthentication":         {"yes", "no"},
+		"usepam":                       {"yes", "no"}, // read by readUsePAM
 	}
 	settingKeys = []string{"permitrootlogin", "passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication"}
 	setKeys     = []string{"port", "allowusers", "allowgroups", "denyusers", "denygroups", "acceptenv"}
@@ -289,6 +307,10 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 		if *e.setting(k), why = readSetting(kw, k); why != "" {
 			found = append(found, Finding{Kind: FindingUnknown, Detail: why})
 		}
+	}
+	var why string
+	if e.UsePAM, e.BuiltWithoutPAM, why = readUsePAM(kw); why != "" {
+		found = append(found, Finding{Kind: FindingUnknown, Detail: why})
 	}
 	for _, k := range setKeys {
 		*e.set(k) = readSet(kw, k)
@@ -484,6 +506,22 @@ func readSetting(kw map[string][]string, k string) (Setting, string) {
 		return Setting{}, fmt.Sprintf("sshd -T printed %s %q, a value hardn does not know", k, vs[0])
 	}
 	return Setting{Value: v, Known: true}, ""
+}
+
+// readUsePAM is sshd -T's usepam, whether this sshd is built without PAM,
+// and why UsePAM is Unknown. dump_config prints usepam only in a build with
+// PAM (#ifdef USE_PAM), before the four other settings Effective types,
+// which it prints whatever the build. So no usepam line where one of those
+// was printed is a build without PAM, in which UsePAM is an unsupported
+// keyword and PAM is not used: Known "no". With none of them printed
+// either, the output may not be sshd's whole answer: Unknown.
+func readUsePAM(kw map[string][]string) (s Setting, noPAM bool, why string) {
+	printed := slices.ContainsFunc(settingKeys, func(k string) bool { return len(kw[k]) > 0 })
+	if len(kw["usepam"]) == 0 && printed {
+		return Setting{Value: "no", Known: true}, true, ""
+	}
+	s, why = readSetting(kw, "usepam")
+	return s, false, why
 }
 
 // readSet is accumulating keyword k of sshd -T's output (one line per

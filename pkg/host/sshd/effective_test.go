@@ -102,8 +102,9 @@ func TestReadEffectiveSocketHost(t *testing.T) {
 	checkReadOnly(t, h)
 	known := func(v string) sshd.Setting { return sshd.Setting{Value: v, Known: true} }
 	if e.PermitRootLogin != known("prohibit-password") || e.PasswordAuthentication != known("no") ||
-		e.KbdInteractiveAuthentication != known("no") || e.PubkeyAuthentication != known("yes") {
-		t.Errorf("settings = %+v %+v %+v %+v", e.PermitRootLogin, e.PasswordAuthentication, e.KbdInteractiveAuthentication, e.PubkeyAuthentication)
+		e.KbdInteractiveAuthentication != known("no") || e.PubkeyAuthentication != known("yes") || e.UsePAM != known("yes") || e.BuiltWithoutPAM {
+		t.Errorf("settings = %+v %+v %+v %+v %+v (without PAM %v)", e.PermitRootLogin, e.PasswordAuthentication, e.KbdInteractiveAuthentication,
+			e.PubkeyAuthentication, e.UsePAM, e.BuiltWithoutPAM)
 	}
 	checkSet(t, "Port", e.Port, "2230")
 	checkSet(t, "AllowUsers", e.AllowUsers, "alice")
@@ -249,6 +250,10 @@ func TestReadEffectiveIncludeNone(t *testing.T) {
 	if e.PasswordAuthentication != (sshd.Setting{Value: "yes", Known: true}) {
 		t.Errorf("PasswordAuthentication = %+v, want the line before hardn's block", e.PasswordAuthentication)
 	}
+	// Alpine's sshd, built without PAM, prints no usepam line.
+	if e.UsePAM != (sshd.Setting{Value: "no", Known: true}) || !e.BuiltWithoutPAM {
+		t.Errorf("UsePAM = %+v (without PAM %v), want a build without PAM", e.UsePAM, e.BuiltWithoutPAM)
+	}
 	// With the default Owner (00-hardn.conf, unread here) hardn's lines are
 	// not found: the report is not established, and a finding says so.
 	h, _ = fixture(t, "include-none")
@@ -324,6 +329,28 @@ func TestEvaluateOutput(t *testing.T) {
 			check: func(e sshd.Effective) bool { return !e.Listeners.Known && len(e.Listeners.All) == 2 }},
 		{name: "sshd started by OpenRC", out: base, ssh: &openRCUp,
 			check: func(e sshd.Effective) bool { return e.Listeners.Known }},
+		// UsePAM (next/p4-kbd-pam): dump_config prints usepam only in a build
+		// with PAM, before the typed settings.
+		{name: "no usepam line: a build without PAM", out: base,
+			check: func(e sshd.Effective) bool {
+				return e.UsePAM == (sshd.Setting{Value: "no", Known: true}) && e.BuiltWithoutPAM && e.Keywords["usepam"] == nil
+			}},
+		{name: "usepam no: a build with PAM, not using it", out: base + "usepam no\n",
+			check: func(e sshd.Effective) bool {
+				return e.UsePAM == (sshd.Setting{Value: "no", Known: true}) && !e.BuiltWithoutPAM
+			}},
+		{name: "usepam yes, mixed case (OpenSSH 10.4 and later)", out: base + "UsePAM Yes\n",
+			check: func(e sshd.Effective) bool {
+				return e.UsePAM == (sshd.Setting{Value: "yes", Known: true}) && !e.BuiltWithoutPAM
+			}},
+		{name: "usepam a value hardn does not know", out: base + "usepam maybe\n", unknown: 1,
+			check: func(e sshd.Effective) bool { return e.UsePAM == sshd.Setting{} && !e.BuiltWithoutPAM }},
+		{name: "usepam printed twice", out: base + "usepam yes\nusepam no\n", unknown: 1,
+			check: func(e sshd.Effective) bool { return e.UsePAM == sshd.Setting{} && !e.BuiltWithoutPAM }},
+		{name: "no usepam line, nor a typed setting: not sshd's whole answer", out: "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\n", unknown: 5,
+			check: func(e sshd.Effective) bool { return e.UsePAM == sshd.Setting{} && !e.BuiltWithoutPAM && e.Port.Known }},
+		{name: "output not read: no build claimed", out: base + "garbage\n", unknown: 1,
+			check: func(e sshd.Effective) bool { return e.UsePAM == sshd.Setting{} && !e.BuiltWithoutPAM }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ssh := serviceUp

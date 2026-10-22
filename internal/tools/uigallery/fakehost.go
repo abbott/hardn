@@ -108,6 +108,15 @@ type platform struct {
 	// rootLogin is what sshd -T prints for PermitRootLogin when the files
 	// set none.
 	rootLogin string
+	// noPAM: sshd is built without PAM (Alpine's /usr/sbin/sshd), so sshd
+	// -T prints no usepam line and ignores the files' UsePAM.
+	noPAM bool
+	// kbdInteractive is what sshd -T prints for KbdInteractiveAuthentication
+	// when the files set none; "" is modelDefaults' no, which stands for the
+	// line Debian's and Ubuntu's sshd_config set. Alpine's leaves it
+	// commented: OpenSSH's default, yes. Both as the Alpine 3.23.6 VM's sshd
+	// -T printed them; 3.24 builds sshd alike (docs/engine/check-ssh.md §8).
+	kbdInteractive string
 }
 
 // The simulated platforms. Debian 13's and Ubuntu 26.04's sudo, OpenSSH
@@ -130,6 +139,7 @@ var (
 	alpine324Platform = platform{
 		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.24.2\nPRETTY_NAME=\"Alpine Linux v3.24\"\n",
 		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
+		noPAM: true, kbdInteractive: "yes",
 	}
 	// pve9Platform is a Proxmox VE 9 node: Debian 13 underneath, with
 	// pve-manager, no sudo and no ufw (brief 2.5: pve-firewall instead),
@@ -337,9 +347,10 @@ var modelDefaults = []struct{ k, v string }{
 
 // sshdT is sshd -T's output by a model of sshd's reading (sshd.ReadOrder):
 // the first value of each keyword outside Match blocks, every value of an
-// accumulating one, modelDefaults and the platform's PermitRootLogin for
-// the rest; and the listeners: a ListenAddress with a port as it is, one
-// without on every Port, with none every Port on [::] and 0.0.0.0
+// accumulating one, modelDefaults and the platform's PermitRootLogin and
+// KbdInteractiveAuthentication for the rest, no usepam line from a build
+// without PAM; and the listeners: a ListenAddress with a port as it is,
+// one without on every Port, with none every Port on [::] and 0.0.0.0
 // (sshd_config(5) ListenAddress).
 func (h *fakeHost) sshdT(main []byte, drops []sshd.File) (out string, listeners []string) {
 	first, acc := map[string]string{}, map[string][]string{}
@@ -389,9 +400,13 @@ func (h *fakeHost) sshdT(main []byte, drops []sshd.File) (out string, listeners 
 	for _, d := range modelDefaults {
 		v, ok := first[d.k]
 		switch {
+		case d.k == "usepam" && h.noPAM:
+			continue
 		case ok:
 		case d.k == "permitrootlogin":
 			v = h.rootLogin
+		case d.k == "kbdinteractiveauthentication" && h.kbdInteractive != "":
+			v = h.kbdInteractive
 		default:
 			v = d.v
 		}
