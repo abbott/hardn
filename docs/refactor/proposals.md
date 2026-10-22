@@ -67,7 +67,7 @@
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; implemented, `next/p3-confirm-cleanup` |
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; implemented, `next/p3-confirm-cleanup` |
 | [P-42](#p-42) | Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown | `next/p3-gallery-engine` (review) | StepProgress, ErrorReport, Message, ConfirmCountdown; Phase 3 | M | Low | proposed |
-| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk |
+| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk; implemented, `next/p4-check-apparmor` |
 | [P-44](#p-44) | Warn on no updates since boot, not on Auto Updates off | the maintainer (2026-10-21) | Risk level, Auto Updates; Phase 4 | M | Low | deferred (2026-10-21): research later; the trigger stays |
 
 ---
@@ -342,7 +342,7 @@
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
 
-- **Status:** proposed (each decision under (6) separately); AppArmor decided (maintainer, 2026-10-20): **status only in v0.4**, with the status lines in (3) and a place in the risk level. Its on and off below wait for a later release, kept as research.
+- **Status:** proposed (each decision under (6) separately); AppArmor decided (maintainer, 2026-10-20): **status only in v0.4**, with the status lines in (3) and a place in the risk level (implemented, `next/p4-check-apparmor` and `next/p4-risk`). Its on and off below wait for a later release, kept as research.
 - **Source:** the maintainer's question (2026-10-20); plan slice 7, §3.20 (approved); brief Phase 4. Depends on plan §3.12 (open) and [P-16](#p-16) (proposed). Related: [P-01](#p-01), [P-12](#p-12), [P-22](#p-22). Research of 2026-10-20 from primary sources; nothing below has run on a host or VM (gate 5).
 - **Problem:**
   - The plan turns AppArmor and Auto Updates on (slice 7, P-16) and reads their state (`next/p4-check-apparmor`, `next/p4-check-updates`). Nothing turns either off [V, plan rows p2-alpine, p4-check-<area>, slice 7].
@@ -363,16 +363,16 @@
       - **Off:** disable `apparmor.service` when hardn's apply enabled it (its package install included). Its `ExecStop=/bin/true` unloads nothing [V, apparmor `parser/apparmor.service`], so profiles stay loaded until the next boot, and the status reads "Off after restart" until then. The package: decision 3. Never `aa-teardown` (a process already running unconfined cannot be confined), `aa-remove-unknown` or a kernel parameter [V, aa-teardown(8), apparmor(7), aa-remove-unknown(8)].
     - **Proxmox VE: AppArmor.** On by default [V, `pve-kernel` `config-common.opts`]. `lxc-pve` depends on `apparmor`, and each container's generated profile is loaded at its start and unloaded at its stop [V, `lxc.git` `debian/control`; `pve-container` `src/PVE/LXC.pm`; lxc `src/lxc/lsm/apparmor.c`]. Removing the package would take container support with it, and disabling AppArmor unconfines or stops containers [I]. Decision 5.
     - **Alpine and containers: AppArmor.** NotApplicable in a container, and on Alpine unless already enabled; `next/v0.4` only reads it there [V, `pkg/host/alpine/apparmor.go:84-142`], so off is always an empty plan.
-    - **AppArmor in v0.4: status only** (maintainer, 2026-10-20). hardn neither turns AppArmor on nor off; the Debian, Ubuntu and Proxmox VE parts above wait for a later release. `next/p4-check-apparmor` shows one status line, in Figma's grammar (marker, label, the state's word in its colour, a faint detail), describing the host, never hardn:
+    - **AppArmor in v0.4: status only** (maintainer, 2026-10-20). hardn neither turns AppArmor on nor off; the Debian, Ubuntu and Proxmox VE parts above wait for a later release. `next/p4-check-apparmor` shows one status line, in Figma's grammar (marker, label, the state's word in its colour, a faint detail), describing the host, never hardn (the glyphs as adopted on 2026-10-21, `next/p4-status-glyphs`):
 
       ```text
-         ▽  AppArmor             Configured 34 profiles enforced
-         ⛬  AppArmor             Partial logging only
-         ⛬  AppArmor             Partial off after restart
-         ○  AppArmor             Not Configured no profiles loaded
-         ○  AppArmor             Not Configured off in kernel
-         ∅  AppArmor             Not Applicable set by the host
-         ∅  AppArmor             Not Applicable Alpine default
+         ⛛  AppArmor             Configured 34 profiles enforced
+         ⭘  AppArmor             Partial logging only
+         ⭘  AppArmor             Partial off after restart
+         ⭘  AppArmor             Not Configured no profiles loaded
+         ⭘  AppArmor             Not Configured off in kernel
+         –  AppArmor             Not Applicable set by the host
+         –  AppArmor             Not Applicable Alpine default
          ?  AppArmor             Unknown can't read
       ```
 
@@ -504,10 +504,10 @@
   - Some items will be unavailable: brief §2 and Phase 2.5 keep root SSH key-only on Proxmox, which P-12 makes a read-only item, and P-01 marks controls read-only.
   - A state shown by colour alone is lost without colour, and at 16 colours the faint of a disabled item is the bright black of every description.
 - **Proposal:**
-  - The wording, built in `next/p1b-menu` (DEV-028): a note line under the item's description. A risky item: `⛬ Lockout risk` (`[*] Lockout risk` in ASCII) in `status.warn`, bold, as a plan's lockout-risk change. An unavailable item: `∅ Unavailable` (`[-] Unavailable`), the whole item in `text.faint`, and its key left out of the prompt's hint ("0-2, 4-10 or q"). "Unavailable", not "Disabled", which the same screens use for a setting's state ("Dry-run Mode Disabled").
+  - The wording, built in `next/p1b-menu` (DEV-028): a note line under the item's description. A risky item: `⭘ Lockout risk` (`[ ] Lockout risk` in ASCII; `⛬` and `[*]` until 2026-10-21, `next/p4-bar-shade`) in `status.warn`, bold, as a plan's lockout-risk change. An unavailable item: `∅ Unavailable` (`[-] Unavailable`), the whole item in `text.faint`, and its key left out of the prompt's hint ("0-2, 4-10 or q"). "Unavailable", not "Disabled", which the same screens use for a setting's state ("Dry-run Mode Disabled").
   - The place, for the maintainer to choose:
     - (a) a line of its own under the description (built): never cuts the description, the same in both glyph sets; one line more per marked item.
-    - (b) the glyph alone after the label, with one legend line under the menu (`⛬ Lockout risk`): one line in all; the glyph fits labels of up to 18 cells (16 in ASCII), but reads only with the legend.
+    - (b) the glyph alone after the label, with one legend line under the menu (`⭘ Lockout risk`): one line in all; the glyph fits labels of up to 18 cells (16 in ASCII), but reads only with the legend.
     - (c) after the description when it fits, else under it: no extra line for descriptions of up to 22 cells (20 in ASCII), so "Configure UFW rules" keeps its line and "Execute hardening operations" does not; the place changes with the description's length.
   - Which items, on the main menu [I]: SSH Login (2) and Firewall (4), whose changes brief Phase 2.4 puts under confirm-or-revert, and Run All (7), which brief 1C and P-02 put under a typed confirmation; User Management (1) when it changes the sudo method (P-10). Nothing is marked until this is approved: the main-menu golden (`menu/main`) marks no item, as Figma.
   - Each word is one constant in `pkg/ui/component/menu.go`, so changing the wording is one string and the goldens.
@@ -528,7 +528,7 @@
   - Message words, before the text, bold in the kind's colour: "Success", "Info", "Warning", "Error" and "Cancelled", brief 1B's kind names and Figma's "Warning" and "Cancelled": `[!] Error: Failed to configure sudo: exit status 1`. Alternatives: "Done" or "OK"; "Note"; "Failed".
   - Callout titles for a callout given none: Figma's three for ok, warn and cancelled, and "Operation Failed" for bad and "Note" for info. Alternatives: "Error" or "Failed"; "Info" or "Information".
   - A callout given a title of the screen's own puts its kind's word before it, `Warning: Changing the SSH port`, unless the title is that word or the kind's own title. The alternative is the title as given, its kind then told by the bar's colour alone, which the never-colour-alone rule does not allow.
-  - Not built, and a departure from brief 1B, for the maintainer to choose knowingly: no word on one-line messages, as origin/main has them. It keeps the ~244 lines as they read today, many of whose sentences already say the kind ("Error: Failed to ..." repeats it), but the kind then rests on the glyph, and in ASCII `[-]` is also Not Applicable's marker and `[*]` Partial's.
+  - Not built, and a departure from brief 1B, for the maintainer to choose knowingly: no word on one-line messages, as origin/main has them. It keeps the ~244 lines as they read today, many of whose sentences already say the kind ("Error: Failed to ..." repeats it), but the kind then rests on the glyph, and in ASCII `[-]` is also Not Applicable's marker and `[ ]` Partial's and Not Configured's (`[*]`, Partial's, until 2026-10-21).
   - Each word is one string in `MessageKind.String` (message words) or `MessageKind.title` (callout titles), in `pkg/ui/component/message.go`, so changing one is a string and the goldens.
 - **Effort:** S. The words are built, so this approves them; dropping the word from messages, or from before a callout's own title, is a small change to `Message` or `Callout` and their goldens.
 - **Risk:** Low: display only.
@@ -546,7 +546,7 @@
 - **Proposal:** built as below (DEV-039, DEV-041); the maintainer decides the words.
   - Step words, before the step's title in the state's colour: "Pending", "Running", "Done", "Failed", "Rolled back" and "Skipped", as in `[<] Rolled back: Set Port 2230`. Alternatives: "Waiting" for pending, "OK" for done, "Undone" or "Reverted" for rolled back, "Not run" for skipped.
   - The countdown, under brief §2's words:
-    - `[*] Warning: This change reverts automatically in 2:45`, the word being a warning `Message`'s (P-23);
+    - `[ ] Warning: This change reverts automatically in 2:45`, the word being a warning `Message`'s (P-23);
     - `To keep it, open a new SSH session and run:`, or `... a new SSH session on port 2230 and run:` when the change moved the port;
     - `sudo hardn confirm`, in bold.
 
@@ -677,7 +677,7 @@
   - The sub-menu layout has status rows, sections of key-value rows under a header, and a menu, but no line of its own for a notice: as a section, the line would need a header origin/main does not show; as a key-value row, a key it does not have. So no Firewall mock is built ([README](../design-system/README.md) §9.12).
   - The DNS screen's empty state is the same case: with no nameserver configured, origin/main shows "No nameservers configured" under its "Configured Nameservers:" heading. The DNS mock shows two nameservers configured instead (DEV-058).
 - **Proposal:** for the maintainer to choose:
-  - (a) a notice block in the sub-menu layout, after the status rows and the sections: one or more `Message`s, such as "⛬ Warning: No firewall rules configured", the kind's word added as every glyph sentence has it (DEV-031, [P-23](#p-23)); the DNS screen's empty state the same, under its section's place.
+  - (a) a notice block in the sub-menu layout, after the status rows and the sections: one or more `Message`s, such as "⭘ Warning: No firewall rules configured", the kind's word added as every glyph sentence has it (DEV-031, [P-23](#p-23)); the DNS screen's empty state the same, under its section's place.
   - (b) no new block: the empty state as a bullet item of its section, such as "No nameservers configured" under "Configured Nameservers", and for the Firewall a "Firewall Rules" section with the item "No firewall rules configured" (a header origin/main shows only over rules).
   - (c) no line: the state said by a status row, such as "Firewall Rules" "Not Configured" (new words).
   - With rules, under any of them: a section of rows, a rule's state shown by a value state's marker (`ValueOK` for allow, `ValueBad` for deny) beside the rule, so that the mark is never colour alone (DEV-034).
@@ -863,7 +863,7 @@
   - **R5, messages:** info is muted prose at col 2, wrapped, with no glyph and no word; ok, warn, bad and cancelled are the kind's `Callout`, its title (P-23's) over the text.
   - **R6, the countdown:** a callout titled "Warning" (`Callout.Warn`), its body "This change reverts automatically in 2:45" and "To keep it, open a new SSH session and run:" (or "... on port 2230 and run:"), the time in `Confirm.Waiting`; then, outside the bar after a blank line, `$ sudo hardn confirm` at col 6. Under 30 seconds the bar and title are `Callout.Bad`'s, the title "Urgent" and the time in `Confirm.Urgent`. The waiting and urgent blocks have the same height at every width.
   - **R7, a change applied:** the steps, "Operation Successful" as built, the countdown (R6), and "Unless confirmed, change <id> is rolled back at <time> UTC. To undo it now, run sudo hardn rollback <id>." as prose.
-  - **Choice (a), the marker:** (a1) the key-value bullet "-" on every row (`-marker bullet`, the mock's default), the state told by its word and colour; or (a2) Figma's status markers for the states that say how a step ended, ⛛ `[+]` done, ⭘ `[ ]` failed and ⛬ `[*]` rolled back, and the bullet for pending and skipped (`-marker status`), as `KeyValue` marks a stated value (DEV-034).
+  - **Choice (a), the marker:** (a1) the key-value bullet "-" on every row (`-marker bullet`, the mock's default), the state told by its word and colour; or (a2) Figma's status markers for the states that say how a step ended, ⛛ `[+]` done, ⭘ `[ ]` failed and ⭘ `[ ]` rolled back, in `status.warn` (⛬ `[*]` until 2026-10-21), and the bullet for pending and skipped (`-marker status`), as `KeyValue` marks a stated value (DEV-034).
   - **Choice (b), the status column:** (b1) two cells after the widest title, as R2 and the mock have it: col 36 for the 2230 change, whose widest title is "sshd -T shows ports 22, 2230", so its rows keep two columns down to 64 columns; or (b2) Figma's fixed col 27, the value column of every other screen, with a list whose widest title reaches it stacked (DEV-021) at any width, as `KeyValue` and `BulletList` stack a key that reaches it today. Four of the 2230 change's five titles reach it, so under (b2) its rows stack at every width, as the mock's 60-column render shows them: `-column figma` draws (b2), `-column aligned` (the default) (b1).
   - **Not covered yet:** a form field's inline error, which is a bad `Message` today (DEV-046), and the configuration's deprecation warning on stderr (`cmd/hardn`'s `warnDeprecations`, warn `Message`s). R5 would make both callouts unless they are decided apart; the mock shows neither. Nor runs of messages one after another, each of which R5 as written turns into a callout of its own: `hardn confirm`'s clean-up report (`cmd/hardn/confirm.go`'s `showCleanup`: ok lines, then warn lines, then an info line), whose two ok lines in the engine's `confirm-cleanup-debian13` scenario would follow the run's own "Operation Successful" as two more; the plan's findings, warn lines (`pkg/output/human.go`'s `findingsBlock`); and an apply's further errors, each a bad line and its "To go on" info line (`errorsBlock`). The mock's messages section shows single messages only.
   - The mock: `go run ./internal/tools/uigallery compare [-marker status] [-column figma] [-profile plain] [-width 140] [steps | failure | success | messages | countdown]...`, side by side from 132 columns, one above the other below.
