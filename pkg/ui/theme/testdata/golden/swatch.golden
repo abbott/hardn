@@ -36,7 +36,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -99,7 +99,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -162,7 +162,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -225,7 +225,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -288,7 +288,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -351,7 +351,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -414,7 +414,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -477,7 +477,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -540,7 +540,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -603,7 +603,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -666,7 +666,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -729,7 +729,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -792,7 +792,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -855,7 +855,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -918,7 +918,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -981,7 +981,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1044,7 +1044,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1107,7 +1107,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1170,7 +1170,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1233,7 +1233,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1296,7 +1296,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1359,7 +1359,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1422,7 +1422,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1485,7 +1485,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1548,7 +1548,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1611,7 +1611,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1674,7 +1674,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1737,7 +1737,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1800,7 +1800,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1863,7 +1863,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -1926,7 +1926,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -1989,7 +1989,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2052,7 +2052,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2115,7 +2115,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2178,7 +2178,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2241,7 +2241,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2304,7 +2304,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2367,7 +2367,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2430,7 +2430,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2493,7 +2493,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2556,7 +2556,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2619,7 +2619,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2682,7 +2682,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2745,7 +2745,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2808,7 +2808,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
-  Inline          ≫$
+  Inline          ⨳$
   Spinner         ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏$
   Command         $$
   Wrap            ↪$
@@ -2871,7 +2871,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2934,7 +2934,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$
@@ -2997,7 +2997,7 @@ Glyphs$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
-  Inline          »$
+  Inline          x$
   Spinner         |/-\$
   Command         $$
   Wrap            |$

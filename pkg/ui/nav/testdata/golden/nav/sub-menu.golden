@@ -12,7 +12,7 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2 or q]:␛[m 1$
-   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mRoot SSH Login is unavailable.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mRoot SSH Login is unavailable.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2 or q]:␛[m q$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -25,7 +25,7 @@ $
    0) Return$
 $
   > Enter your choice [0, 2 or q]: 1$
-   »  Root SSH Login is unavailable.$
+   x  Root SSH Login is unavailable.$
   > Enter your choice [0, 2 or q]: q$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -40,5 +40,5 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2 or q]:␛[m 1$
-   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mRoot SSH Login is unavailable.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mRoot SSH Login is unavailable.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0, 2 or q]:␛[m q$
