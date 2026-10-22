@@ -36,10 +36,32 @@ $
       ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
       ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a drop-in, a reload␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDNS preset, Debian 13␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, then the save␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 24.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mDNS, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, udhcpc stopped␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mDNS, Proxmox VE 9␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a node␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mRefused: NetworkManager␛[m$
+      ␛[38;2;129;134;156mNetworkManager's DNS (P-37)␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mRefused: no nameservers␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, hardn.yml lists none␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mDNS, nothing to change␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a configured host␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mDNS preset, dry run␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, the plan alone␛[m$
+  ␛[1;38;2;192;196;216m20)␛[m ␛[38;2;192;196;216mDNS failed, rolled back␛[m$
+      ␛[38;2;129;134;156mThe reload has no effect␛[m$
+  ␛[1;38;2;192;196;216m21)␛[m ␛[38;2;192;196;216mDNS save failed␛[m$
+      ␛[38;2;129;134;156mBoth rolled back, Debian 13␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-21 or q]:␛[m 7$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/refused-d9-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
@@ -92,10 +114,32 @@ $
       ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
       ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a drop-in, a reload␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDNS preset, Debian 13␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, then the save␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 24.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mDNS, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, udhcpc stopped␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mDNS, Proxmox VE 9␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a node␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mRefused: NetworkManager␛[m$
+      ␛[38;2;129;134;156mNetworkManager's DNS (P-37)␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mRefused: no nameservers␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, hardn.yml lists none␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mDNS, nothing to change␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a configured host␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mDNS preset, dry run␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, the plan alone␛[m$
+  ␛[1;38;2;192;196;216m20)␛[m ␛[38;2;192;196;216mDNS failed, rolled back␛[m$
+      ␛[38;2;129;134;156mThe reload has no effect␛[m$
+  ␛[1;38;2;192;196;216m21)␛[m ␛[38;2;192;196;216mDNS save failed␛[m$
+      ␛[38;2;129;134;156mBoth rolled back, Debian 13␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-21 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -137,10 +181,32 @@ $
       Port 2230, then hardn confirm (P-40)$
   10) Best-effort release$
       The plan's warning, Ubuntu 22.04 (P-41)$
+  11) DNS, Ubuntu 26.04$
+      Configure DNS: a drop-in, a reload$
+  12) DNS preset, Debian 13$
+      Use Cloudflare DNS, then the save$
+  13) DNS, Ubuntu 24.04$
+      Configure DNS: a restart$
+  14) DNS, Alpine 3.24$
+      Configure DNS, udhcpc stopped$
+  15) DNS, Proxmox VE 9$
+      Configure DNS on a node$
+  16) Refused: NetworkManager$
+      NetworkManager's DNS (P-37)$
+  17) Refused: no nameservers$
+      Configure DNS, hardn.yml lists none$
+  18) DNS, nothing to change$
+      Configure DNS on a configured host$
+  19) DNS preset, dry run$
+      Use Cloudflare DNS, the plan alone$
+  20) DNS failed, rolled back$
+      The reload has no effect$
+  21) DNS save failed$
+      Both rolled back, Debian 13$
 $
    0) Return$
 $
-  > Enter your choice [0-10 or q]: 7$
+  > Enter your choice [0-21 or q]: 7$
 $
 # Info: engine/refused-d9-ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04, hardened by hardn$
@@ -193,10 +259,32 @@ $
       Port 2230, then hardn confirm (P-40)$
   10) Best-effort release$
       The plan's warning, Ubuntu 22.04 (P-41)$
+  11) DNS, Ubuntu 26.04$
+      Configure DNS: a drop-in, a reload$
+  12) DNS preset, Debian 13$
+      Use Cloudflare DNS, then the save$
+  13) DNS, Ubuntu 24.04$
+      Configure DNS: a restart$
+  14) DNS, Alpine 3.24$
+      Configure DNS, udhcpc stopped$
+  15) DNS, Proxmox VE 9$
+      Configure DNS on a node$
+  16) Refused: NetworkManager$
+      NetworkManager's DNS (P-37)$
+  17) Refused: no nameservers$
+      Configure DNS, hardn.yml lists none$
+  18) DNS, nothing to change$
+      Configure DNS on a configured host$
+  19) DNS preset, dry run$
+      Use Cloudflare DNS, the plan alone$
+  20) DNS failed, rolled back$
+      The reload has no effect$
+  21) DNS save failed$
+      Both rolled back, Debian 13$
 $
    0) Return$
 $
-  > Enter your choice [0-10 or q]: 0$
+  > Enter your choice [0-21 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -239,10 +327,32 @@ $
       ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
       ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a drop-in, a reload␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDNS preset, Debian 13␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, then the save␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 24.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mDNS, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, udhcpc stopped␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mDNS, Proxmox VE 9␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a node␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mRefused: NetworkManager␛[m$
+      ␛[38;2;129;134;156mNetworkManager's DNS (P-37)␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mRefused: no nameservers␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, hardn.yml lists none␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mDNS, nothing to change␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a configured host␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mDNS preset, dry run␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, the plan alone␛[m$
+  ␛[1;38;2;192;196;216m20)␛[m ␛[38;2;192;196;216mDNS failed, rolled back␛[m$
+      ␛[38;2;129;134;156mThe reload has no effect␛[m$
+  ␛[1;38;2;192;196;216m21)␛[m ␛[38;2;192;196;216mDNS save failed␛[m$
+      ␛[38;2;129;134;156mBoth rolled back, Debian 13␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-21 or q]:␛[m 7$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/refused-d9-ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, hardened by hardn␛[m$
@@ -297,10 +407,32 @@ $
       ␛[38;2;129;134;156mPort 2230, then hardn confirm (P-40)␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mBest-effort release␛[m$
       ␛[38;2;129;134;156mThe plan's warning, Ubuntu 22.04 (P-41)␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 26.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a drop-in, a reload␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDNS preset, Debian 13␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, then the save␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mDNS, Ubuntu 24.04␛[m$
+      ␛[38;2;129;134;156mConfigure DNS: a restart␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mDNS, Alpine 3.24␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, udhcpc stopped␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mDNS, Proxmox VE 9␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a node␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mRefused: NetworkManager␛[m$
+      ␛[38;2;129;134;156mNetworkManager's DNS (P-37)␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mRefused: no nameservers␛[m$
+      ␛[38;2;129;134;156mConfigure DNS, hardn.yml lists none␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mDNS, nothing to change␛[m$
+      ␛[38;2;129;134;156mConfigure DNS on a configured host␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mDNS preset, dry run␛[m$
+      ␛[38;2;129;134;156mUse Cloudflare DNS, the plan alone␛[m$
+  ␛[1;38;2;192;196;216m20)␛[m ␛[38;2;192;196;216mDNS failed, rolled back␛[m$
+      ␛[38;2;129;134;156mThe reload has no effect␛[m$
+  ␛[1;38;2;192;196;216m21)␛[m ␛[38;2;192;196;216mDNS save failed␛[m$
+      ␛[38;2;129;134;156mBoth rolled back, Debian 13␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-21 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

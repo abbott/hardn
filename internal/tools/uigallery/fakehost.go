@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"net/netip"
 	"path"
 	"slices"
@@ -74,6 +75,12 @@ type fakeHost struct {
 	// failReloads is how many reloads of ssh.service to refuse, as
 	// systemctl does when sshd -t fails in ExecReload.
 	failReloads int
+	// resolved is systemd-resolved's state, nil where the release does not
+	// run it (resolver.go).
+	resolved *resolved
+	// immutable are the files whose writes fail as chattr +i makes them
+	// fail (engineSys): the operation is not permitted.
+	immutable []string
 	// What the status checks and the header probe ask beyond the
 	// scenarios' commands (statushost.go): nil on the scenarios' hosts,
 	// where those commands stay unanswered.
@@ -117,36 +124,68 @@ type platform struct {
 	// commented: OpenSSH's default, yes. Both as the Alpine 3.23.6 VM's sshd
 	// -T printed them; 3.24 builds sshd alike (docs/engine/check-ssh.md §8).
 	kbdInteractive string
+	// resolver is what manages /etc/resolv.conf as the release installs
+	// it (resolver.go).
+	resolver resolverKind
+	// resolvedReload: the release's systemd-resolved reloads its files
+	// (systemd 256 and later); before, it restarts (docs/safety/dns.md §3).
+	resolvedReload bool
 }
 
 // The simulated platforms. Debian 13's and Ubuntu 26.04's sudo, OpenSSH
 // and permitrootlogin are the VM runs' (docs/safety/vmtest.md §4.9);
 // Ubuntu 22.04's, Alpine 3.24's and Proxmox VE 9's are the model's, not
-// checked on a host.
+// checked on a host, and so are Ubuntu 24.04's, Debian 12's and Alpine
+// 3.23's (next/s2-engine-gallery: the sudo versions, and an sshd before
+// OpenSSH 9.8 on the first two). Each resolver is the release's, as
+// docs/safety/dns.md §3 has it, and whether its systemd-resolved reloads
+// is its systemd's version there: 256 and later reload (Ubuntu 26.04's
+// 259); Ubuntu 24.04's 255 and Debian 12's 252 restart, as Ubuntu
+// 22.04's does, released before 256.
 var (
 	debian13Platform = platform{
 		osRelease: "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\nID=debian\n",
 		sudo:      "Sudo version 1.9.16p2", session: "sshd-session", rootLogin: "without-password",
+		resolver: resolverDHCPCD,
 	}
 	ubuntu2604Platform = platform{
 		osRelease: "PRETTY_NAME=\"Ubuntu 26.04.1 LTS\"\nVERSION_ID=\"26.04\"\nVERSION_CODENAME=resolute\nID=ubuntu\nID_LIKE=debian\n",
 		socket:    true, sudo: "sudo-rs 0.2.13", session: "sshd-session", rootLogin: "prohibit-password",
+		resolver: resolverStub, resolvedReload: true,
+	}
+	ubuntu2404Platform = platform{
+		osRelease: "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nVERSION_ID=\"24.04\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\n",
+		socket:    true, sudo: "Sudo version 1.9.15p5", session: "sshd", rootLogin: "without-password",
+		resolver: resolverStub,
 	}
 	ubuntu2204Platform = platform{
 		osRelease: "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nVERSION_ID=\"22.04\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\n",
 		sudo:      "Sudo version 1.9.9", session: "sshd", rootLogin: "without-password",
+		resolver: resolverStub,
+	}
+	// debian12Platform is Debian 12's cloud image: systemd-resolved, its
+	// uplink file linked.
+	debian12Platform = platform{
+		osRelease: "PRETTY_NAME=\"Debian GNU/Linux 12 (bookworm)\"\nVERSION_ID=\"12\"\nVERSION_CODENAME=bookworm\nID=debian\n",
+		sudo:      "Sudo version 1.9.13p3", session: "sshd", rootLogin: "without-password",
+		resolver: resolverUplink,
 	}
 	alpine324Platform = platform{
 		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.24.2\nPRETTY_NAME=\"Alpine Linux v3.24\"\n",
 		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
-		noPAM: true, kbdInteractive: "yes",
+		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC,
+	}
+	alpine323Platform = platform{
+		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.23.6\nPRETTY_NAME=\"Alpine Linux v3.23\"\n",
+		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
+		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC,
 	}
 	// pve9Platform is a Proxmox VE 9 node: Debian 13 underneath, with
 	// pve-manager, no sudo and no ufw (brief 2.5: pve-firewall instead),
 	// and OpenSSH 10.0p1's word for prohibit-password (check-ssh.md §3).
 	pve9Platform = platform{
 		osRelease: debian13Platform.osRelease, noUFW: true, proxmox: "9.0.10",
-		session: "sshd-session", rootLogin: "without-password",
+		session: "sshd-session", rootLogin: "without-password", resolver: resolverStatic,
 	}
 )
 
@@ -199,9 +238,9 @@ func ubuntu2204Host() *fakeHost { return simulate(ubuntu2204Platform) }
 // os-release, sshd_config with the stock Include, sshd on 22 (by
 // ssh.service, ssh.socket or OpenRC), ufw active allowing 22 where it is
 // installed, sudo with /etc/sudoers.d, or doas, the directories revert
-// and the boot unit use, the processes /proc shows, root and alice's
-// accounts, and on Proxmox VE pveversion and pmxcfs mounted on /etc/pve:
-// no container.
+// and the boot unit use, the processes /proc shows, what manages
+// /etc/resolv.conf (addResolver), root and alice's accounts, and on
+// Proxmox VE pveversion and pmxcfs mounted on /etc/pve: no container.
 func simulate(p platform) *fakeHost {
 	h := &fakeHost{f: hostfake.New(host.Options{}), platform: p, allowed: []uint16{22}, timers: map[string]time.Time{}}
 	f := h.f
@@ -256,6 +295,7 @@ func simulate(p platform) *fakeHost {
 	if p.doas {
 		f.AddFile("/usr/bin/doas", []byte("ELF"), 0o4755, 0, 0)
 	}
+	h.addResolver()
 	f.AddUser(host.User{Name: "root", UID: 0, GID: 0, HomeDir: "/root"})
 	f.AddUser(host.User{Name: "alice", UID: 1000, GID: 1000, HomeDir: "/home/alice"})
 	f.AddGroup(host.Group{Name: "root", GID: 0})
@@ -519,7 +559,14 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		if r, ok := h.ufw(argv); ok {
 			return r
 		}
+	case "resolvectl":
+		if r, ok := h.resolvedCommand(argv); ok {
+			return r
+		}
 	case "systemctl":
+		if r, ok := h.resolvedCommand(argv); ok {
+			return r
+		}
 		if r, ok := h.systemctl(argv); ok {
 			return r
 		}
@@ -536,8 +583,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 // installed reports whether the platform ships the command name: an
 // init system's own tools on that init system alone, ufw unless it is not
 // installed, sudo's on a host with sudo, doas on a host with doas, apt's
-// and dpkg-query on Debian, Ubuntu and Proxmox VE, and apk on Alpine. A
-// command that is not is not found, as on the host.
+// and dpkg-query on Debian, Ubuntu and Proxmox VE, apk on Alpine, and
+// resolvectl where systemd-resolved is. A command that is not is not
+// found, as on the host.
 func (h *fakeHost) installed(name string) bool {
 	switch name {
 	case "systemctl", "systemd-run", "systemd-analyze":
@@ -552,6 +600,8 @@ func (h *fakeHost) installed(name string) bool {
 		return h.doas
 	case "dpkg-query", "apt-config":
 		return !h.openRC
+	case "resolvectl":
+		return h.resolved != nil
 	}
 	return true
 }
@@ -577,6 +627,25 @@ func (h *fakeHost) unanswered() []string {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	return slices.Clone(h.unexpected)
+}
+
+// engineSys is the simulated host as the engine reaches it: the fake, but
+// a write of one of the files the model holds immutable fails, as
+// chattr +i makes the rename over it fail.
+type engineSys struct {
+	*hostfake.System
+	h *fakeHost
+}
+
+// system returns the simulated host as the engine reaches it.
+func (h *fakeHost) system() engineSys { return engineSys{h.f, h} }
+
+// WriteFileAtomic is the fake's, but for an immutable file.
+func (s engineSys) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if slices.Contains(s.h.immutable, name) {
+		return &fs.PathError{Op: "rename", Path: name, Err: fs.ErrPermission}
+	}
+	return s.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
 // arm records the timer systemd-run starts (--on-active=<N>s

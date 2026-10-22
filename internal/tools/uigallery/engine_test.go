@@ -398,7 +398,8 @@ func TestPlayEngineSmoke(t *testing.T) {
 // each change's own commands under how it ended, a command that failed
 // among them, a failure of the apply as a whole (Index -1, here at its
 // mark applied step) with what ran since the last change, and the
-// rollback's after the failure; reads and hardn's own state left out.
+// rollback's after the failure; reads and hardn's own state left out; a
+// directory made and its mode set, once.
 func TestRecorderSteps(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range []struct {
@@ -453,25 +454,42 @@ func TestRecorderSteps(t *testing.T) {
 	if !arms([]hostfake.Call{{Op: "start-detached", Argv: []string{"/bin/sh", "-c", "sleep"}}}) || arms([]hostfake.Call{{Op: "run", Argv: []string{"ss", "-Htln"}}}) {
 		t.Error("arms: OpenRC's sleeper is the timer, ss is not")
 	}
+	// The DNS change's: resolvectl reads; the drop-in's directory made and
+	// its mode set is one directory changed, before the file in it.
+	cmds, files := changed([]hostfake.Call{{Op: "run", Argv: []string{"resolvectl", "--no-pager", "dns"}}, {Op: "mkdir", Path: "/etc/systemd/resolved.conf.d"},
+		{Op: "chmod", Path: "/etc/systemd/resolved.conf.d"}, {Op: "write-atomic", Path: "/etc/systemd/resolved.conf.d/zz-hardn.conf"}})
+	if len(cmds) != 0 || !slices.Equal(files, []string{"/etc/systemd/resolved.conf.d", "/etc/systemd/resolved.conf.d/zz-hardn.conf"}) {
+		t.Errorf("changed: commands %q, files %q", cmds, files)
+	}
 }
 
 // TestScenarioHosts checks that each scenario's simulated host is the
 // platform its note names, as the engine establishes it (detect.Detect,
 // engine.Options.Detect's default): every fact established, with no error,
 // and the ones the steps branch on as listed. Ubuntu 26.04's sudo is
-// sudo-rs, as the VM run found it (docs/safety/vmtest.md §4.9).
+// sudo-rs, as the VM run found it (docs/safety/vmtest.md §4.9); a Proxmox
+// VE node has none.
 func TestScenarioHosts(t *testing.T) {
 	const (
 		debian13   = "debian 13 supported; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no"
 		ubuntu2604 = "ubuntu 26.04 supported; systemd; ssh.socket, generator yes; sudo yes, sudo-rs; doas no; proxmox no; container no"
+		alpine324  = "alpine 3.24 supported; openrc; openrc sshd, generator unknown; sudo no, unknown; doas yes; proxmox no; container no"
 	)
 	want := map[string]string{
 		"ssh-port-debian13":   debian13,
 		"ssh-port-ubuntu2604": ubuntu2604,
-		"ssh-port-alpine324":  "alpine 3.24 supported; openrc; openrc sshd, generator unknown; sudo no, unknown; doas yes; proxmox no; container no",
+		"ssh-port-alpine324":  alpine324,
 		"keyonly-debian13":    debian13, "ufw-enable-debian13": debian13, "sudoers-grant-debian13": debian13,
 		"refused-d9-ubuntu2604": ubuntu2604, "failed-reload-debian13": debian13, "confirm-cleanup-debian13": debian13,
 		"best-effort-ubuntu2204": "ubuntu 22.04 best effort; systemd; ssh.service, generator no; sudo yes, sudo; doas no; proxmox no; container no",
+	}
+	want["dns-configure-ubuntu2404"] = "ubuntu 24.04 supported; systemd; ssh.socket, generator yes; sudo yes, sudo; doas no; proxmox no; container no"
+	want["dns-configure-pve9"] = "proxmox 9 supported; systemd; ssh.service, generator no; sudo no, unknown; doas no; proxmox yes; container no"
+	want["dns-udhcpc-alpine324"] = alpine324
+	want["dns-configure-ubuntu2604"], want["dns-failed-reload-ubuntu2604"] = ubuntu2604, ubuntu2604
+	for _, name := range []string{"dns-cloudflare-debian13", "dns-refused-networkmanager", "dns-refused-empty", "dns-configured-debian13",
+		"dns-dry-run-debian13", "dns-failed-save-debian13"} {
+		want[name] = debian13
 	}
 	for _, sc := range scenarios() {
 		h := sc.host()

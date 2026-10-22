@@ -22,11 +22,12 @@ import (
 // a change with no lockout risk is (brief 2.4). pkg/ui cannot import
 // pkg/host, so each host's reading, plan, findings, refusal and check are
 // data here; the gallery's TestDNS* tests (internal/tools/uigallery
-// dns_test.go) build the same hosts on a fake system and hold each of them
-// to what pkg/host/dns, steps.DNS, the engine and pkg/output's codes make
-// of them. The words are
-// origin/main's where it has them; every other one is proposed, for the
-// maintainer to decide (gallery-dns.md, its words table).
+// dns_test.go) build the same hosts on its resolver model and hold each of
+// them to what pkg/host/dns, the DNS control (pkg/engine/controls/dns) on
+// the engine and pkg/output's codes make of them (next/s2-engine-gallery).
+// The words are origin/main's where it has them; every other one is
+// proposed, for the maintainer to decide (gallery-dns.md, its words
+// table).
 
 // The DNS screen's words: origin/main's title, headings, rows and items.
 const (
@@ -82,8 +83,8 @@ type dnsHost struct {
 	// inUse and search are the nameservers and search domains in use; ""
 	// shows Unknown, which is what pkg/host/dns reads of a manager it
 	// only reports. A link's own are shown after the global ones, with
-	// the link: dns.Read keeps a link's servers, not its search domains
-	// (gallery-dns.md §8).
+	// the link, as dns.Read keeps them on it (Link.Domains since
+	// next/s2-control).
 	inUse, search string
 	configured    []string
 	// refusal, for a host whose manager hardn only reports (P-37 (a)), is

@@ -1,0 +1,91 @@
+# Golden file of TestPlayEngineGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-refused-networkmanager␛[m ␛[38;2;48;52;64m───────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-refused-networkmanager␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. The plan␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, with a report (P-37 (a)).␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here (DNS_MANAGED)␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mTo go on: set the nameservers with nmcli.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play engine/dns-refused-networkmanager -----------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# Info: engine/dns-refused-networkmanager$
+# web-01.example.net runs Debian 13 with NetworkManager;$
+# /etc/resolv.conf links to NetworkManager's file. hardn.yml$
+# lists 192.0.2.54, 2001:db8::54.$
+# The change: Configure DNS, hardn.yml's nameservers. The plan$
+# refuses it, with a report (P-37 (a)).$
+$
+# Operation Failed$
+# NetworkManager manages DNS here (DNS_MANAGED)$
+$
+  Check the log file at /var/log/hardn.log for details$
+  To go on: set the nameservers with nmcli.$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-refused-networkmanager␛[m ␛[38;2;48;52;64m───────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-refused-networkmanager␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan refuses it, with a report (P-37 (a)).␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here (DNS_MANAGED)␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;129;134;156mTo go on: set the nameservers with nmcli.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

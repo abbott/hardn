@@ -62,12 +62,17 @@
 // key-only login; ufw enabled; a sudo grant; a refused plan (the D9
 // migration's report, P-39); an apply that fails and is rolled back; the
 // 2230 change confirmed from a new connection and cleaned up by hardn
-// confirm (P-40); and a plan on a best-effort release, with its warning
-// (P-41). Each shows the real plan, the confirmation, the steps, the
-// confirm countdown and the outcome, and play ends with what the fake
-// recorded of each apply. -sequence and -fail are the fixture plans', and
-// are refused with a scenario. Its flags, besides -theme, -profile, -ascii
-// and -override, as below:
+// confirm (P-40); a plan on a best-effort release, with its warning
+// (P-41); and the DNS control (pkg/engine/controls/dns) on the resolver
+// model (resolver.go): Configure DNS on Ubuntu 26.04 and 24.04, Alpine
+// 3.24 and Proxmox VE 9, a preset with hardn.yml's save on Debian 13, as
+// a dry run too, two refusals, a host with nothing to change, and a
+// failed reload and a failed save, both rolled back
+// (next/s2-engine-gallery). Each shows the real plan, the confirmation,
+// the steps, the confirm countdown and the outcome, and play ends with
+// what the fake recorded of each apply. -sequence and -fail are the
+// fixture plans', and are refused with a scenario. Its flags, besides
+// -theme, -profile, -ascii and -override, as below:
 //
 //	-sequence name    the sequence each workflow plays where it has one,
 //	                  such as dry-run, failure or typed (default normal)
@@ -179,7 +184,8 @@
 // starts a process (TestPlayTouchesNothing): the engine's scenarios link
 // host.Real, the engine's signal hold and pkg/config, and never reach
 // them, every host.System being hostfake's and every hold the gallery's,
-// which holds nothing. Of this machine the engine's code reads only the
+// which holds nothing; the DNS scenarios read and save hardn.yml through
+// the fake alone (config.Read, config.Save). Of this machine the engine's code reads only the
 // process's effective uid, the clock and crypto/rand, and fatih/color,
 // which it links, reads NO_COLOR and TERM and asks whether stdout is a
 // terminal at its initialisation. The package initialisation of Lip

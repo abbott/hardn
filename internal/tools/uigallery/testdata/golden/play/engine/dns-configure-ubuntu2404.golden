@@ -1,0 +1,169 @@
+# Golden file of TestPlayEngineGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-configure-ubuntu2404␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2404␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 24.04; /etc/resolv.conf links␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto systemd-resolved's stub, and eth0 has 192.0.2.1 and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexample.net from DHCP. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. systemd␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m255 cannot reload systemd-resolved, so the same command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestarts it. y applies it; n declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn: the system DNS servers for␛[m$
+      ␛[38;2;112;212;127m↪ systemd-resolved.␛[m$
+      ␛[38;2;112;212;127m+# An empty assignment resets the list that earlier files␛[m$
+      ␛[38;2;112;212;127m↪ built.␛[m$
+      ␛[38;2;112;212;127m+[Resolve]␛[m$
+      ␛[38;2;112;212;127m+DNS=␛[m$
+      ␛[38;2;112;212;127m+DNS=192.0.2.54 2001:db8::54␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart systemd-resolved.service␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mresolvectl dns)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2404␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d,␛[m$
+      ␛[38;2;129;134;156m↪ /etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart systemd-resolved.service␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play engine/dns-configure-ubuntu2404 -------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# Info: engine/dns-configure-ubuntu2404$
+# web-01.example.net runs Ubuntu 24.04; /etc/resolv.conf links$
+# to systemd-resolved's stub, and eth0 has 192.0.2.1 and$
+# example.net from DHCP. hardn.yml lists 192.0.2.54,$
+# 2001:db8::54.$
+# The change: Configure DNS, hardn.yml's nameservers. systemd$
+# 255 cannot reload systemd-resolved, so the same command$
+# restarts it. y applies it; n declines.$
+$
+   -  Set the nameservers$
+      /etc/systemd/resolved.conf.d/zz-hardn.conf$
+      @@ -0,0 +1,5 @@$
+      +# Written by hardn: the system DNS servers for$
+      | systemd-resolved.$
+      +# An empty assignment resets the list that earlier files$
+      | built.$
+      +[Resolve]$
+      +DNS=$
+      +DNS=192.0.2.54 2001:db8::54$
+      $ systemctl try-reload-or-restart systemd-resolved.service$
+$
+  Configure DNS? [y/N, 0 or q]: y$
+$
+  [+] Set the nameservers  Done$
+$
+# Operation Successful$
+$
+# Warning$
+# eth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,$
+# resolvectl dns)$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: engine/dns-configure-ubuntu2404$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Set the nameservers$
+      /etc/systemd/resolved.conf.d,$
+      | /etc/systemd/resolved.conf.d/zz-hardn.conf$
+      $ systemctl try-reload-or-restart systemd-resolved.service$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-configure-ubuntu2404␛[m ␛[38;2;48;52;64m─────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2404␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 24.04; /etc/resolv.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlinks to systemd-resolved's stub, and eth0 has 192.0.2.1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand example.net from DHCP. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemd 255 cannot reload systemd-resolved, so the same␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand restarts it. y applies it; n declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn: the system DNS servers for␛[m$
+      ␛[38;2;112;212;127m↪ systemd-resolved.␛[m$
+      ␛[38;2;112;212;127m+# An empty assignment resets the list that earlier␛[m$
+      ␛[38;2;112;212;127m↪ files built.␛[m$
+      ␛[38;2;112;212;127m+[Resolve]␛[m$
+      ␛[38;2;112;212;127m+DNS=␛[m$
+      ␛[38;2;112;212;127m+DNS=192.0.2.54 2001:db8::54␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart␛[m$
+      ␛[38;2;129;134;156m↪ systemd-resolved.service␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PER_LINK, resolvectl dns)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2404␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d,␛[m$
+      ␛[38;2;129;134;156m↪ /etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart␛[m$
+      ␛[38;2;129;134;156m↪ systemd-resolved.service␛[m$
+$
