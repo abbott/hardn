@@ -1,0 +1,208 @@
+# The main menu's header: the probe (`pkg/engine/header`) and its blocks (`pkg/output`)
+
+> **Unit:** refactor plan Phase 4, `next/p4-header` (plan §2, row `p4-header`: "Cheap header probe (OS, version, codename, hostname, primary IP, uptime) plus the pending-reboot flag shown next to uptime"; row `p4-risk`'s pending-reboot sources, "kernel vs newest installed; `/var/run/reboot-required`; Alpine `/lib/modules/$(uname -r)` missing"; brief Phase 4, "Cross-checks", and brief §7.4, "Uptime is a finding, not decoration"; [P-04](../refactor/proposals.md#p-04) and [P-21](../refactor/proposals.md#p-21), both **open**; plan §6's salvage list: `FormatUptime` in Figma's format and the cheap header probe, ideas only). It comes before `next/p4-risk`, which reads its uptime and pending reboot (§7). No V-number covers origin/main's header (§1).
+> **Status:** built and tested on macOS against the recording fake (`hostfake`) only, with the kernel's files and `ip`'s output as synthetic fixtures (§3). Nothing has run on Linux: everything host-specific is "written, not run (gate 5)" (§4). **Every word below that Figma does not show is proposed**, for the maintainer's review (§5). Nothing is wired into `cmd/hardn` or the live main menu (plan, "Phases 3–5 together": the main menu goes live with slice 2).
+
+Figma's main menu opens with three blocks: the wordmark, the version and the repository link (`Header`); the distribution's bar, "Debian 12 (Bookworm)" (`ContextBar`); and the host, its name in a badge, its address and its uptime, "182 days, 2 hours, 26 minutes" (`HostBlock`, whose pending-reboot line is P-21's). `header.Read` reads what they show, through `host.System`, as data: the distribution from detect's facts, the hostname, the primary address in each family, the uptime, and whether a reboot is pending, with the findings that say why. `output.HeaderViewOf` maps that to the three components; the engine renders nothing.
+
+## 1. Why
+
+origin/main's header (`formatHostInfoLines`, `pkg/menu/main_menu.go:350-374`) shows the hostname, `IPAddresses[0]` and the uptime. The address is the first IPv4 address, not loopback or link-local, of the first interface that is up, in `net.Interfaces`' order (`GetIPAddresses`, `pkg/adapter/secondary/os_host_info_repository.go:119-160`): an address of the host, not necessarily the one it is reached by (a second interface, a bridge, a VPN listed first), and "Unknown" on a host with IPv6 alone. The uptime is `/proc/uptime`, or else `uptime`'s output parsed by hand, formatted as "%d days, %d hours, %d minutes" (`FormatUptime`, `pkg/application/host_info_manager.go:60-72`): "1 days, 0 hours, 5 minutes". Nothing reads whether a reboot is pending, which brief §7.4 asks for: a long uptime with no automatic updates probably means an old kernel. (By code reading, not run.) The legacy header stays as it is until the main menu goes live.
+
+## 2. Guarantees
+
+1. **Read-only, through `host.System`.** `Read` reads the files of §3 and runs two commands: `ip -4 addr show dev <interface>`, only when an IPv4 default route exists (`TestNoIPWithoutARoute`), and `dpkg-query --show --showformat=… linux-image-<release>` through detect's `DpkgVersion`, only for a running kernel Debian built (§2.7). Every test checks that each call is a read, a `stat`, a `readdir` or one of those commands (`readOnly`). depguard rule `header-through-host` (the last of the rules) denies `os`, `io/ioutil`, `golang.org/x/sys`, `syscall`, `net` (but `net/netip`), `plugin`, `pkg/ui` and `pkg/output` to the package's non-test files; checked in a temporary copy of the tree with a throwaway file importing `os`, `net` and `pkg/ui/term` (each reported; `pkg/output` cannot be imported at all, as it imports this package). Nothing committed.
+2. **Each fact is established, or not with its reason; nothing is guessed** (brief Phase 4). Each has an `Err` that wraps the cause as it came, so its code in `pkg/output`'s registry is the cause's: `PERMISSION_DENIED`, `FILE_NOT_FOUND`, `COMMAND_NOT_FOUND`, `COMMAND_FAILED`, detect's `DETECT_UNRECOGNISED` (a form the probe does not know), `DETECT_NO_SIGNAL` (no source shows the fact either way), `DETECT_SIGNALS_DISAGREE` (two default routes the kernel chooses between), `CANCELLED` (§5.4). Whether a fact is established is its own field, so that **the zero value establishes nothing**, as with detect's `Tri`: the distribution and the hostname by their name, each address family by its `Route` (`detect.Tri`: Yes, a default route; No, none; Unknown, not established, also the zero `Family`) and `Known()` (the route and the address both established), the uptime by its `Known`, the pending reboot by its `Pending` (§2.7). A `Header` that `Read` did not fill (a skipped probe, a caller's own) therefore maps to "Unknown" in every block, never to "no default route" or "0 minutes" (`TestZeroFamily`, `TestHeaderViewOfZero`). A done context leaves every fact not established and runs nothing (`TestCancelled`).
+3. **The distribution** comes from detect's facts, which the caller has (as `Engine.Check` has them), so nothing is read again: on Proxmox VE (`Proxmox.Installed` Yes, whose os-release is Debian's) "Proxmox VE" with pve-manager's version; otherwise by os-release's `ID`, "Debian", "Ubuntu" or "Alpine" with `VERSION_ID`; the codename is `VERSION_CODENAME` as written. A distribution hardn does not name shows its `PRETTY_NAME`, else its `ID`, alone. Debian whose Proxmox VE is not established is "Debian": its os-release says so, and Proxmox VE runs on it. os-release not read is not established (`TestOS`).
+4. **The hostname** is the kernel's, `/proc/sys/kernel/hostname` (what `uname -n` prints, [I]), the name the host runs with, not `/etc/hostname`, which is configuration (brief §3 principle 3). An empty one is not established.
+5. **The primary address, decided:** in each family, the address of the interface the host's default route leaves by. That is the address a connection out through the default route comes from, so the one a host elsewhere sees and reaches it by; an address of another interface (a bridge, a VPN, a second network) is not. Read without running `ip` where `/proc` offers it:
+   - **The IPv4 default route** is `/proc/net/route`'s (the main table, §3): destination and mask 0, up; the lowest metric. A rejecting route (unreachable, prohibit: `RTF_REJECT`; a blackhole or throw route, which has no interface, `*`) counts by its metric too: the kernel's lookup stops at the first route of the prefix that matches, in the order of their metrics, and returns a rejecting one's error (`fib_table_lookup`, `fib_find_alias`, §3). So a rejecting default at the lowest metric is **no default route**, and one at a higher metric changes nothing. Two at the lowest metric on different interfaces, or a rejecting one beside one that sends, are not established (`DETECT_SIGNALS_DISAGREE`): the file does not show which the kernel uses (**[I]**: it chooses among default gateways of equal metric by their reachability, and among the rest by their order). Two on one interface are that interface.
+   - **The IPv4 address:** `/proc` has no IPv4 address by interface (`/proc/net/fib_trie` lists the local addresses with no interface), so this is the one fact read with a command, `ip -4 addr show dev <interface>`, in iproute2's or BusyBox's form. The address is the one the kernel takes as the source of a route through that gateway (`inet_select_addr`, §3): the first address of global scope that is not secondary and is in the gateway's network, else the first such address (an address `/32` with a gateway on the link); `tentative` and `dadfailed` ones are not usable. A route's preferred source (`ip route … src`), which `/proc/net/route` does not show, is not modelled (§7).
+   - **The IPv6 default route** is `/proc/net/ipv6_route`'s, every table (§3): `::/0` with no source prefix, up, not rejecting, not on `lo` or no device; the lowest metric, two interfaces at it not established. The file absent, while `/proc/net/route` was read, is a kernel with IPv6 off: no IPv6 route.
+   - **The IPv6 address** is `/proc/net/if_inet6`'s: of the route's interface, global scope, not tentative, not failed duplicate address detection, not deprecated and not temporary (privacy addresses change); an address outside the unique local ones (`fc00::/7`, RFC 4193, which the kernel scopes global too and which no host outside the site reaches) before a unique local one; then a permanent (configured) address before an autoconfigured one; among several, the lowest. A unique local address alone is shown. **A rule of this unit**: the kernel picks an IPv6 source per destination (RFC 6724), which no file shows, so this is "an address of the default route's interface, the configured one first", not the kernel's choice for a given peer.
+   - **`Address.Primary`** is IPv4's address; else, **only where IPv4 is established to have none** (no default route, or no global address on its interface), IPv6's (the host block shows one, as Figma does). IPv4 not established (`ip` missing or failing, its output or the route table in no form known, two defaults the kernel chooses between) is not established: which address is primary is then not known, and the block shows "Unknown", not the IPv6 address. With no address and both families established, the host has no default route in either family, or none with an address (§5.2). Tested: `TestAddress`, one case per rule.
+6. **The uptime** is `/proc/uptime`'s first number, the seconds since boot, suspend included (§3), with `Known` set. Anything but two decimal numbers in the kernel's form (`350735.47 234388.90`) is not established, as is a value a `time.Duration` cannot hold. Inside a container it is the container's where LXCFS virtualises the file (LXC and Proxmox VE's containers, §3), the host's otherwise (**[I]**, Docker).
+7. **Whether a reboot is pending** (`Reboot.Pending`, a `detect.Tri`), from the sources the platform has: on Debian, Ubuntu, Proxmox VE and their derivatives (by detect's platform, its `ID_LIKE`, or os-release's `ID` and `ID_LIKE`), `/var/run/reboot-required`, the running kernel against the newest in `/boot`, and for a kernel Debian built its package's version; on Alpine, the running kernel's modules. **Yes** when one source shows it, with one finding per source that does (§5.3); **No** when every source that applies shows none; **Unknown** otherwise, with the sources' errors, and when no source applies. A source that shows a reboot pending decides it even when another could not be read (`Err` is then set beside Yes). A platform the check knows no source for is Unknown (`DETECT_NO_SIGNAL`), as is one whose os-release was not read. Tested: `TestReboot`.
+   - **`/var/run/reboot-required`** present is Yes. Absent says only that no package asked: Debian writes it less often than Ubuntu (**[unverified]**, §3), so its absence alone is never taken as No on a host with a kernel to compare (inside a container it is the one source, below).
+   - **The kernel, decided: `/boot`, not the package database.** The running kernel's release is `/proc/sys/kernel/osrelease` (what `uname -r` prints); the installed ones are the `vmlinuz-<release>` files in `/boot`. One source for the three platforms with no command, whereas the packages are named differently on each (`linux-image-*` on Debian and Ubuntu, `proxmox-kernel-*` on Proxmox VE), and `/boot` holds what the bootloader boots. A release compares by its version, the part before its flavour (`6.12.43+deb13` of `6.12.43+deb13-amd64`, `6.17.0-14` of `6.17.0-14-generic`, `6.14.8-2` of `6.14.8-2-pve`), as dpkg compares versions (`verrevcmp`, §3), so two flavours of one version are equal; the newest of any flavour counts (the brief's "the newest installed one"). A name whose version does not start with a digit (`vmlinuz-custom`, `vmlinuz-lts`) is no release and is skipped; a running release with no version is `DETECT_UNRECOGNISED`. A newer one than the running one is Yes. **No needs the running kernel's own `vmlinuz-<release>` in `/boot`**: without it, `/boot` is not shown to be what the bootloader reads (its partition not mounted while the mount point holds an older kernel, a kernel the hypervisor or provider boots), so not newer is then Unknown (`DETECT_NO_SIGNAL`), never No. A `/boot` with no release at all (empty, absent) is Unknown too (`TestReboot`, `TestCompareKernels`).
+   - **A kernel Debian built, rebuilt under its release.** Debian's releases name the upstream version and no package revision (`6.12.43+deb13-amd64`; Debian 12's `6.1.0-<abi>-amd64`), so a new build of the same release replaces `/boot/vmlinuz-<release>` in place, and the comparison above cannot see it. The running build is `/proc/sys/kernel/version`: Debian's kernels write `Debian <version> (<date>)` there, the source package's version (§3). For such a build, dpkg's version of `linux-image-<release>` (detect's `DpkgVersion`, the rule detect reads `pve-manager` with) that **differs** from it, newer or older, is Yes (`REBOOT_KERNEL_REPLACED`): the build running is not the one installed. The same is No. The package not installed, or no `dpkg-query`, is Unknown (`DETECT_NO_SIGNAL`); a `dpkg-query` that fails or a status such as `half-installed` its error; `/proc/sys/kernel/version` unreadable is Unknown, as the build may be Debian's; `Debian` there with no version after it is `DETECT_UNRECOGNISED`. A build that names no Debian version (Ubuntu's `#14-Ubuntu …`, Proxmox VE's `… PMX 6.17.2-1 (…)`, a kernel built by hand) is not compared: Ubuntu's and Proxmox VE's releases carry the ABI or the package revision, so a new build is a new name (**[unverified]**, §7).
+   - **Alpine:** the running kernel's own modules, `/lib/modules/<release>/kernel/`, present is No. The directory of the release without `kernel/` holds others' modules only (`updates/`, `extra/`: kbuild installs a kernel's own modules under `kernel/`, an external module under `updates/`, §3), left behind, and counts as absent. Absent, with another kernel's own modules there (newer or older), is Yes: Alpine's kernel package replaces the modules when it changes the kernel (plan row `p4-risk`; **[unverified]**), so the running kernel was removed. No kernel's own modules at all (a kernel with everything built in, a container) is Unknown. `/var/run/reboot-required` is not Alpine's and is not read.
+   - **Inside a container** (detect's `Container.Detected` Yes) the kernel is the host's: the kernel sources do not apply and are not read, and `Reboot.HostKernel` is true; only a package's request (`reboot-required`) counts. So a Debian, Ubuntu or Proxmox VE container is No when no package asked, a No that says nothing of the kernel, which `HostKernel` tells `p4-risk` (§7); an Alpine container has no source at all and is Unknown (`DETECT_NO_SIGNAL`). A container check not established reads the kernel as a host's would. A container detect reports wrongly (detect.md §3: `/.dockerenv` can end up in an image) leaves the kernel unread, which `HostKernel` shows; the probe takes detect's fact as given, as every control does.
+   - **Evidence** lists what each source showed, one line each: `/var/run/reboot-required: present` (`absent`), `/proc/sys/kernel/osrelease: 6.12.43+deb13-amd64`, `/boot: newest vmlinuz-6.12.48+deb13-amd64`, `/proc/sys/kernel/version: Debian 6.12.43-1`, `dpkg: linux-image-6.12.43+deb13-amd64 6.12.43-1`, `/lib/modules/6.12.40-0-lts/kernel: present` (`absent; /lib/modules/6.12.45-0-lts/kernel: present`), `kernel: the host's (container)`.
+8. **Four findings, no others:** `REBOOT_REQUIRED`, `REBOOT_NEWER_KERNEL`, `REBOOT_MODULES_MISSING`, `REBOOT_KERNEL_REPLACED`, exported constants registered in `pkg/output` (appended, `codes.golden` regenerated, a row each in [docs/reference/output.md](../reference/output.md) §2.2), each with its detail and source (§5.3; `TestFindings`). They explain a pending reboot; they set nothing. The probe is not a control and has no status row: the findings reach a document when `p4-risk` or the wiring puts them there.
+9. **The blocks** (`output.HeaderViewOf`, pure): `Header` with hardn's version as given and `RepoURL`; `ContextBar` with the distribution's name, version and codename, capitalised as Figma shows it ("Trixie"); `HostBlock` with the hostname, the address words (§5.2), the uptime (`FormatUptime`, when `Known`) and `RebootPending` set only when the probe established a pending reboot. A fact not established is empty, which each component shows as "Unknown" (design-system README §9.11). `pkg/output` imports the probe; the probe imports neither `pkg/ui` nor `pkg/output` (§2.1). Tested: `TestHeaderViewOf`, `TestHeaderViewOfZero`, `TestHeaderAddress`, and the golden `human/header` (`TestHeaderBlocks`, the core cells, the blocks a section gap apart as the main menu lays them out), since `pkg/output`'s human tests use goldens.
+10. **The uptime's words** (`FormatUptime`): Figma's form, "182 days, 2 hours, 26 minutes", shortened only where it says the same (design-system README §9.15, "Informational text as short as it can be"): whole minutes; a unit that is 0 left out ("3 days, 5 minutes", not "3 days, 0 hours, 5 minutes"); "1 day", "1 hour", "1 minute" for one (origin/main printed "1 days"); "0 minutes" under a minute. Days stay days (no weeks or years: Figma counts days). The longest under 10,000 days, "9999 days, 23 hours, 59 minutes", is 31 cells, within the 37 beside the label at 64 columns, so it is never cut (`TestFormatUptime`).
+
+## 3. Facts relied on
+
+| Fact | Source | Used for |
+|---|---|---|
+| `/proc/net/route` lists the main table only (`fib_get_table(…, RT_TABLE_MAIN)`): a header line, then per route `"%s\t%08X\t%08X\t%04X\t%d\t%u\t%u\t%08X\t%d\t%u\t%u"` (interface or `*`, destination, gateway, flags, 0, 0, metric, mask, …), broadcast and multicast routes left out; the flags are `RTF_REJECT` for unreachable and prohibit routes, `RTF_GATEWAY` with a gateway, `RTF_UP` always | linux `net/ipv4/fib_trie.c` (`fib_route_seq_show`, `fib_flag_trans`, `fib_route_seq_start`), master, read 2026-10-20 | §2.5 |
+| The destination, gateway and mask are a `__be32` printed with `%08X`, so a little-endian host prints the address's bytes reversed (192.0.2.1 is `010200C0`); the probe takes the value's bytes in the host's own order (`binary.NativeEndian`) | follows from the row above; the test fixtures are a little-endian host's (amd64, arm64, the release targets) | §2.5 |
+| `RTF_UP` 0x0001, `RTF_GATEWAY` 0x0002, `RTF_REJECT` 0x0200 | linux `include/uapi/linux/route.h`, read 2026-10-20 | §2.5 |
+| `fib_table_lookup` walks a prefix's routes in their list's order and, at the first that matches, returns its type's error (`fib_props[fa->fa_type].error`) when it has one; `fib_find_alias` returns the first route of priority (metric) at least the new one's, and a new route goes before it (after the last of its metric with `NLM_F_APPEND`), so the list is in the order of the metrics | linux `net/ipv4/fib_trie.c`, master, read 2026-10-21 | §2.5 |
+| unreachable, prohibit, blackhole and throw routes have an error in `fib_props`, so a lookup that reaches one fails | **[I]**, from linux `net/ipv4/fib_semantics.c` as remembered, not re-read | §2.5 |
+| `/proc/net/ipv6_route` walks every fib6 table; per route the destination and its length, the source and its length (zeros without `CONFIG_IPV6_SUBTREES`), the next hop, then `" %08x %08x %08x %08x %8s\n"` (metric, reference count, 0, flags, device or "") | linux `net/ipv6/ip6_fib.c` (`ipv6_route_native_seq_show`, `ipv6_route_seq_next_table`), read 2026-10-20 | §2.5 |
+| `/proc/net/if_inet6` is `"%pi6 %02x %02x %02x %02x %8s\n"`: the address, the interface's index, the prefix length, the scope, the low byte of the flags, the interface | linux `net/ipv6/addrconf.c` (`if6_seq_show`), read 2026-10-20 | §2.5 |
+| The scope is `ipv6_addr_scope`, the address type's scope bits (`IPV6_ADDR_SCOPE_MASK` 0x00f0: loopback 0x10, link-local 0x20, site-local 0x40, v4-compatible 0x80), so a global address is 00 | linux `include/net/ipv6.h`, read 2026-10-20; "global is 00" **[I]** from the mask | §2.5 |
+| Unique local addresses are `fc00::/7`; `netip.Addr.IsPrivate` reports them | RFC 4193; Go `net/netip` documentation | §2.5 |
+| `IFA_F_TEMPORARY` 0x01, `IFA_F_DADFAILED` 0x08, `IFA_F_DEPRECATED` 0x20, `IFA_F_TENTATIVE` 0x40, `IFA_F_PERMANENT` 0x80 | linux `include/uapi/linux/if_addr.h`, read 2026-10-20 | §2.5 |
+| A route's source, with no preferred source set, is `inet_select_addr(dev, gateway, scope)`: the first address that is not secondary, of the scope, in the gateway's network, else the first such address; a new primary address is inserted after the existing primaries, a secondary at the end | linux `net/ipv4/fib_semantics.c` (`fib_result_prefsrc`, `fib_info_update_nhc_saddr`), `net/ipv4/devinet.c` (`inet_select_addr`, `__inet_insert_ifa`), read 2026-10-20 | §2.5 |
+| BusyBox's `ip` takes `-4` (`ip_parse_common_args`: `oneline`, `family`, `4`, `6`, `0`) and `dev <name>` for `addr show`, and prints `    inet <address>/<length> ` (or ` peer <address>/<length> `), `brd …`, `scope <scope> `, then `secondary`, `tentative`, `dadfailed`, `deprecated`, `dynamic` and the label | BusyBox `networking/libiproute/ip_parse_common_args.c`, `ipaddress.c` (`print_addrinfo`), GitHub mirror, read 2026-10-20 | §2.5 |
+| iproute2's `ip -4 addr show dev <name>` prints the same line form, primaries before secondaries, and exits non-zero for a device that does not exist | **[unverified]** (BusyBox mimics it) | §2.5 |
+| `/proc/uptime` holds two numbers of seconds, "the uptime of the system (including time spent in suspend)" and the idle time | proc_uptime(5), man7.org, read 2026-10-20 | §2.6 |
+| `/proc/sys/kernel/hostname` sets and shows the hostname "in exactly the same way as" hostname(1); `osrelease` is a substring of `/proc/version` | proc_sys_kernel(5), man7.org, read 2026-10-20; that `osrelease` is what `uname -r` prints **[I]** | §2.4, §2.7 |
+| `/proc/sys/kernel/version` holds the kernel's build: "#5 Wed Feb 25 21:49:24 MET 1998", the build's number and time | proc_sys_kernel(5), man7.org, read 2026-10-21 | §2.7 |
+| Debian builds its kernels with `KBUILD_BUILD_VERSION_TIMESTAMP="$(DEB_VENDOR) $(SOURCEVERSION) ($(SOURCE_DATE_UTC_ISO))"`, so the build reads `… Debian 6.12.43-1 (2025-08-27)`, the `linux` source package's version | Debian kernel team's `debian/rules.real` (salsa.debian.org, `kernel-team/linux`, `debian/latest`), read 2026-10-21; that kbuild puts it in place of the build time in `/proc/sys/kernel/version` **[I]** | §2.7 |
+| The signed image `linux-image-6.12.113+deb13-amd64` has the version `6.12.113-1`, the `linux` source's, though `linux-signed-amd64` `6.12.113+1` builds it; so dpkg's version of `linux-image-<release>` is the build's version | packages.debian.org (trixie), read 2026-10-21; that it holds for every upload **[I]** | §2.7 |
+| Trixie lists `linux-image-6.12.90+deb13-amd64` and `linux-image-6.12.90+deb13.1-amd64`: Debian renames a release for some rebuilds of one upstream version; whether for every one is not established, which is why §2.7 compares the build | packages.debian.org, `linux-signed-amd64` (trixie), read 2026-10-21 | §2.7 |
+| Ubuntu's build reads `#<upload>-Ubuntu SMP …` and Proxmox VE's `… PMX <version> (…)`, neither with `Debian`; their releases change with every build (Ubuntu's ABI, Proxmox VE's package revision) | **[unverified]** | §2.7 |
+| LXCFS virtualises `/proc/uptime` (with `cpuinfo`, `meminfo`, `stat`, …) to the container's running time | LXCFS `README.md`, read 2026-10-20; that Proxmox VE's containers use it **[unverified]** | §2.6 |
+| unattended-upgrades reboots "if the file /var/run/reboot-required is found after the upgrade" (`Automatic-Reboot`) | unattended-upgrades `README.md`, read 2026-10-20 | §2.7 |
+| Ubuntu writes `/var/run/reboot-required` from its kernel's and some libraries' package scripts (update-notifier-common); Debian writes it less often | **[unverified]** | §2.7 |
+| Debian, Ubuntu and Proxmox VE install each kernel as `/boot/vmlinuz-<release>`, `<release>` what `uname -r` prints once it boots; GRUB's default entry is the newest by version | **[unverified]** | §2.7 |
+| dpkg's version comparison: non-digit runs by character, letters before other characters, `~` before everything, digits 0; digit runs as numbers, leading zeros skipped | dpkg `lib/dpkg/version.c` (`order`, `verrevcmp`), GitHub mirror, read 2026-10-20 | §2.7 |
+| Alpine's kernel package replaces `/lib/modules/<release>` when it upgrades the kernel, so the running kernel's modules are gone until the reboot | refactor plan row `p4-risk`; **[unverified]** | §2.7 |
+| A kernel's own modules install under `/lib/modules/$(KERNELRELEASE)/kernel/`, an external module under `…/updates/` (another directory with `INSTALL_MOD_DIR`) | linux `Documentation/kbuild/modules.rst`, master, read 2026-10-21; that Alpine's package ships them so **[unverified]** | §2.7 |
+| Inside a container the kernel is the host's | brief 2.5 (decided, for AppArmor); [detect.md](../safety/detect.md) §6 | §2.7 |
+
+## 4. Written, not run (gate 5)
+
+Nothing here has run on Linux or as root. On the VMs of [vmtest.md](../safety/vmtest.md) (Debian 13, Ubuntu 26.04, Alpine 3.24) and by hand on Proxmox VE 9, through a dev-only driver or the gallery's status scenario once one calls `header.Read`:
+
+- each fact against the host's own tools: the hostname against `hostname`; the address against `ip -4 route get 192.0.2.1` and `ip -6 route show default` (with a second interface at a lower metric, a secondary address, an address in another network listed first, a host with IPv6 alone, and IPv6 off with `ipv6.disable=1`); the uptime against `uptime -p`; the running kernel against `uname -r`;
+- `ip -4 addr show dev <interface>` as BusyBox prints it on Alpine 3.24, and as iproute2 prints it on the others (§3);
+- the pending reboot: a kernel upgraded and not booted on Debian 13 and Ubuntu 26.04 (Yes, `REBOOT_NEWER_KERNEL`; on Ubuntu `REBOOT_REQUIRED` too), Proxmox VE 9 after a `proxmox-kernel` upgrade, Alpine 3.24 after `apk upgrade linux-lts` (Yes, `REBOOT_MODULES_MISSING`), then each after its reboot (No); a `/boot` on a partition left unmounted (Unknown);
+- on Debian 13 and 12, `cat /proc/sys/kernel/version` against `dpkg-query -W linux-image-$(uname -r)`: the same version after a boot (No; a systematic difference would make every Debian host Yes), and an older build of the running release installed with `dpkg -i` (Yes, `REBOOT_KERNEL_REPLACED`); `/proc/sys/kernel/version` on Ubuntu 26.04 and Proxmox VE 9 (no `Debian` in it); `/lib/modules/$(uname -r)/kernel/` on Alpine 3.24;
+- `ip route add unreachable default metric 0` beside a routed default (no default route);
+- inside an LXC container on Proxmox VE (the container's uptime, through LXCFS) and a Docker container without iproute2 (the host's uptime; IPv4 `COMMAND_NOT_FOUND`);
+- a big-endian host is not among the targets, and is not run.
+
+## 5. The lines
+
+Every line the three blocks can show, with the host's state that gives it, in Figma's grammar. Figma's own are marked; **everything else is proposed**.
+
+### 5.1 The context bar
+
+| The host | Bar (plain, ASCII) |
+|---|---|
+| Debian 12 | `# Debian 12 (Bookworm) ####…` (Figma's) |
+| Debian 13 | `# Debian 13 (Trixie) ####…` |
+| Debian 13, Proxmox VE not established | `# Debian 13 (Trixie) ####…` (§2.3) |
+| Debian testing or sid (no `VERSION_ID`) | `# Debian (Forky) ####…` |
+| Ubuntu 26.04 | `# Ubuntu 26.04 (Resolute) ####…` |
+| Proxmox VE 9 | `# Proxmox VE 9.0.10 (Trixie) ####…`: pve-manager's version, Debian's codename |
+| Proxmox VE, pve-manager's version not read | `# Proxmox VE (Trixie) ####…` |
+| Alpine 3.24 | `# Alpine 3.24.0 ####…` (os-release's `VERSION_ID`; no codename) |
+| a distribution hardn does not name | its `PRETTY_NAME` (`# Linux Mint 22.1 ####…`), else its `ID` |
+| os-release not read | `# Unknown ####…` |
+
+### 5.2 The host block
+
+| Line | The host | Exact string |
+|---|---|---|
+| badge | the kernel's hostname | as set (`web-01.example.net`, `web-01`) |
+| badge | not read, or empty | `Unknown` |
+| address | an IPv4 address of the default route's interface (§2.5) | `192.0.2.10` (Figma's form) |
+| address | IPv4 established to have no default route, or no global address on its interface, and an IPv6 address | `2001:db8:1::10` |
+| address | IPv4 not established (route table or `ip` not read, in no form known, two defaults the kernel chooses between), whatever IPv6 shows | `Unknown` |
+| address | neither family has a default route (a rejecting default at the lowest metric is none) | `no default route` (*proposed*) |
+| address | a default route, and no global address on its interface | `no address` (*proposed*) |
+| address | no IPv4 address, and IPv6 not established | `Unknown` |
+| address | a `Header` `Read` did not fill | `Unknown` |
+| uptime | read | Figma's form (§2.10): `182 days, 2 hours, 26 minutes` (Figma's), `41 days, 1 hour`, `3 days, 5 minutes`, `1 day`, `0 minutes` |
+| uptime | not read, in no form known, or a `Header` `Read` did not fill | `Unknown` |
+| reboot | a reboot pending (Yes) | `⛬ Reboot pending`, `[*] Reboot pending` in ASCII, under the uptime: P-21 (a) as `next/p1b-header` built it; its wording and place are P-21's, **open** |
+| reboot | No, or Unknown | no line |
+
+### 5.3 The findings (*proposed*)
+
+| The host | Code | Detail | Source |
+|---|---|---|---|
+| `/var/run/reboot-required` exists (a package asked) | `REBOOT_REQUIRED` | package request | `/var/run/reboot-required` |
+| `/boot` holds a kernel newer than the running one | `REBOOT_NEWER_KERNEL` | newer kernel installed | `/boot/vmlinuz-6.12.48+deb13-amd64` |
+| a kernel Debian built runs, and dpkg has its release's `linux-image-<release>` at another version | `REBOOT_KERNEL_REPLACED` | running kernel replaced | `dpkg-query --show linux-image-6.12.43+deb13-amd64` |
+| Alpine: the running kernel's own modules gone, another kernel's there | `REBOOT_MODULES_MISSING` | running kernel removed | `/lib/modules/6.12.40-0-lts` |
+
+Each detail explains the host block's "Reboot pending" without its words (design-system README §9.15) and says only what its source shows: `reboot-required` is any package's request, not only an update's; Alpine's modules gone say the running kernel was removed, not that a newer one replaced it.
+
+### 5.4 Not established, by cause
+
+| The host | Fact | Code |
+|---|---|---|
+| hardn not run as root, or a file refused | any | `PERMISSION_DENIED` |
+| no `/proc` (not mounted), no `/proc/sys/kernel/hostname` or `/proc/uptime` | hostname, uptime, address | `FILE_NOT_FOUND` |
+| `ip` not installed (a container without iproute2) | IPv4 address | `COMMAND_NOT_FOUND` |
+| `ip` exits non-zero (the interface gone since the route was read); `dpkg-query` exits otherwise than 0 or 1 | IPv4 address; reboot | `COMMAND_FAILED` |
+| a line of `/proc/net/route`, `ipv6_route`, `if_inet6` or `ip`'s output in no form known; an empty hostname; an uptime not two decimal numbers; an empty or odd kernel release, or one with no version; `Debian` in `/proc/sys/kernel/version` with no version after it; a `dpkg-query` status such as `half-installed`; `/lib/modules/<release>` or its `kernel` not a directory | that fact | `DETECT_UNRECOGNISED` |
+| two default routes of one family at the lowest metric on different interfaces; a rejecting default and one that sends at the lowest IPv4 metric | that family | `DETECT_SIGNALS_DISAGREE` |
+| no release in `/boot` (or no `/boot`); none newer than the running kernel and no `vmlinuz-<running>` there (an unmounted `/boot` over an older kernel, a kernel the hypervisor boots); for a kernel Debian built, `linux-image-<release>` not installed, or no `dpkg-query`; no kernel's own modules in `/lib/modules` (or none); no source that applies (an Alpine container); a platform the check knows no source for; no detect facts | reboot; distribution | `DETECT_NO_SIGNAL` |
+| os-release not read | distribution; reboot | detect's error's |
+| the context done | every fact | `CANCELLED` |
+
+### 5.5 The pending reboot, by host
+
+What `Reboot` holds for `p4-risk` (§7); only Yes gives a line (§5.2).
+
+| The host | `Pending` | `HostKernel` | `Findings` |
+|---|---|---|---|
+| a source shows a reboot pending (§5.3) | Yes | false; true in a container | one per source that shows it |
+| Debian, Ubuntu, Proxmox VE: no package asked, `vmlinuz-<running>` in `/boot` and none newer, and for a kernel Debian built dpkg's version the running build's | No | false | none |
+| Alpine: the running kernel's own modules present | No | false | none |
+| a container of Debian's family, no package asked (the kernel not read) | No | true | none |
+| an Alpine container (no source applies) | Unknown, `DETECT_NO_SIGNAL` | true | none |
+| a source not read, and none shows a reboot pending | Unknown, its cause (§5.4) | as above | none |
+
+## 6. API; changes to other units' code
+
+```go
+package header // pkg/engine/header (new)
+
+const HostnameFile, UptimeFile = "/proc/sys/kernel/hostname", "/proc/uptime"
+const RouteFile, Route6File, Inet6File = "/proc/net/route", "/proc/net/ipv6_route", "/proc/net/if_inet6"
+const RebootRequiredFile, KernelReleaseFile, KernelVersionFile = "/var/run/reboot-required", "/proc/sys/kernel/osrelease", "/proc/sys/kernel/version"
+const BootDir, ModulesDir, KernelPackagePrefix = "/boot", "/lib/modules", "linux-image-"
+const CodeRebootRequired, CodeNewerKernel, CodeModulesMissing, CodeKernelReplaced = "REBOOT_REQUIRED", "REBOOT_NEWER_KERNEL", "REBOOT_MODULES_MISSING", "REBOOT_KERNEL_REPLACED"
+const DetailRebootRequired, DetailNewerKernel, DetailModulesMissing, DetailKernelReplaced = "package request", "newer kernel installed", "running kernel removed", "running kernel replaced"
+
+type Header struct { OS OS; Hostname Hostname; Address Address; Uptime Uptime; Reboot Reboot }
+type OS struct { Name, Version, Codename string; Err error }
+type Hostname struct { Name string; Err error }
+type Uptime struct { Duration time.Duration; Known bool; Err error }
+type Address struct { IPv4, IPv6 Family }
+type Family struct { Route detect.Tri; Iface string; Addr netip.Addr; Err error }
+func (Family) Known() bool
+func (Address) Primary() (addr netip.Addr, known bool)
+type Reboot struct { Pending detect.Tri; HostKernel bool; Running string; Findings []engine.Finding; Evidence []string; Err error }
+func Read(ctx context.Context, sys host.System, f detect.Facts) Header
+
+package detect // pkg/host/detect, added
+func DpkgVersion(ctx context.Context, sys host.System, pkg string) (Tri, string, error) // DpkgInstalled's rule, with the version
+
+package output // added
+const RepoURL = "https://github.com/abbott/hardn"
+const NoDefaultRoute, NoAddress = "no default route", "no address"
+type HeaderView struct { Header component.Header; Context component.ContextBar; Host component.HostBlock }
+func HeaderViewOf(version string, h header.Header) HeaderView
+func FormatUptime(d time.Duration) string
+```
+
+- **`pkg/output`**: `header.go` (the mapping), the four codes appended to `findingCodes` and to `TestFindingCodes`' list, `codes.golden` regenerated (four lines added), the golden `human/header` added. [output.md](output.md)'s API list predates `HeaderViewOf`; that page is `next/p3-output`'s.
+- **`.golangci.yml`**: the rule `header-through-host`, at the end of the depguard rules.
+- **[docs/reference/output.md](../reference/output.md)** §2.2: a row per code, at the end of the table.
+- **`pkg/host/detect`**: `DpkgVersion` appended to `proxmox.go`, exporting `dpkgStatus` (the reader `DpkgInstalled` exports, `next/p4-check-updates`) with its version; `TestDpkgVersion` appended to `proxmox_test.go`. Nothing else in detect changed, and [detect.md](../safety/detect.md), `next/p2-detect`'s page, is not edited. Nothing in the controls changed; `go.mod` and `go.sum` are unchanged.
+
+## 7. Inputs to `next/p4-risk`; not modelled; for the maintainer; size
+
+- **Inputs to `next/p4-risk`**, which owns "pending reboot" and "long uptime without auto updates" (plan row `p4-risk`; brief Phase 4): `Reboot.Pending` (Yes is a factor, with `Reboot.Findings` saying why; Unknown counts as not established, by the plan's rule for `Unknown`, and `Reboot.Err` says why), and `Uptime.Duration` when `Uptime.Known`, beside the Auto Updates row's state ([check-updates.md](check-updates.md) §6 says which of its lines count as updating). Inside a container (detect's `Container.Detected` Yes) the kernel is the host's: `Reboot.HostKernel` is true, no kernel source is read, so a No is the packages' request alone and says nothing of the kernel (an Alpine container is Unknown), and the uptime may be the host's (§2.6); whether either counts there, and whether such a No counts as checked, is `p4-risk`'s to decide (§5.5). How long is "long" is `p4-risk`'s too.
+- **Not modelled:** a default route outside the main table (policy routing) for IPv4, which `/proc/net/route` does not list (a host routed that way shows "no default route" in IPv4, the pessimistic error); a route's preferred source (`ip route … src`), so the address shown is the interface's, not the route's; the kernel's per-destination IPv6 source (§2.5); a kernel pinned for the next boot (`proxmox-boot-tool kernel pin`, `GRUB_DEFAULT`), so "newer kernel installed" means installed, not what boots next; a kernel rebuilt under its release that Debian, Ubuntu or Proxmox VE did not build (no `Debian` in its build, a hand-built one), which the release names compare alone, as Ubuntu's and Proxmox VE's are compared on the premise that their releases change with each build (**[unverified]**, §3); an IPv6 rejecting default at a lower metric than one that sends, which the IPv6 reader skips as before (the IPv6 file lists every table, so the main table's order is not in it), so the address shown may be one the host does not route by; libraries and services that need a restart (needrestart's domain); `/boot` on a bootloader or architecture that names its kernel otherwise than `vmlinuz-<release>` (Raspberry Pi's `kernel8.img`; `vmlinux` on some architectures), which is Unknown.
+- **For the maintainer** (all wording here is proposed):
+  - (a) the bar's words: "Proxmox VE" with pve-manager's version and Debian's codename ("Proxmox VE 9.0.10 (Trixie)"), against "Proxmox VE 9" or Debian's own line; Alpine's full `VERSION_ID` ("3.24.0") against the branch ("3.24"); "Alpine" against os-release's `NAME`, "Alpine Linux";
+  - (b) the address when there is none: "no default route" and "no address" in the address's place, against "Unknown", which says hardn could not read it, which is not so;
+  - (c) an IPv6 address over 37 cells (four-digit groups throughout, up to 39) is cut with the ellipsis beside the label at 64 columns (`HostBlock` cuts each value to the content width); a cut address is not the address. Whether the block stacks a long address, or shows IPv4 alone, is a component change;
+  - (d) the pending-reboot line's wording and place (P-21, open; P-04, open). P-21 says nothing sets the flag before P-04 is approved: `HeaderViewOf` sets it, but only the tests and the golden call it, and the wiring into the live main menu should wait for P-04. A pending reboot not established shows no line, as nothing pending does; whether it should say so is P-21's to settle;
+  - (e) the findings' details (§5.3): "package request" (replacing "updates need a reboot", which repeated the line's word and claimed an update the file does not show), "newer kernel installed", "running kernel replaced" and "running kernel removed" (replacing "running kernel's modules gone", the mechanism rather than the host);
+  - (f) decided in review, open to the maintainer: a Debian-built kernel whose package dpkg has at another version than the build running is Yes in either direction (§2.7), on the premise, checked against one trixie image (§3), that the two versions are written alike; were they not, every Debian host would read Yes, never No (gate 5, §4);
+  - (g) the uptime's shortening (§2.10): units at 0 dropped and the singular, against Figma's three units always;
+  - (h) decided in review: the address is "Unknown" when IPv4 is not established, rather than the IPv6 address (§2.5), since which of them is primary is then not known; a unique local IPv6 address ranks after a global one.
+- **Size:** about 1100 lines of non-test Go (the probe about 1000, of them about 220 whole-line comments; the mapping about 100) and about 1050 of tests, against the plan's guideline of about 500 changed lines: three readers (the default route and the primary address in two families, one of them through `ip`; the uptime; the pending reboot with dpkg's version comparison and the Debian build's package), each fact's every "not established" path, and a test per rule of §2 and per cause of §5.4. The review's fixes changed about 700 lines of Go (about 340 of them tests): the Debian build's package, the families' `Route`, rejecting defaults, Alpine's `kernel/` and the zero values, each with its cases.

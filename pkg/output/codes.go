@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
@@ -420,6 +421,11 @@ var findingCodes = []Entry{
 	finding(updates.CodeScheduleUnknown, "whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot"),
 	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded"),
 	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
+	// The header probe's own (next/p4-header): why a reboot is pending.
+	finding(header.CodeRebootRequired, "/var/run/reboot-required exists: a package asks for a reboot"),
+	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
+	finding(header.CodeModulesMissing, "Alpine: the running kernel's own modules are not installed, while another kernel's are"),
+	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

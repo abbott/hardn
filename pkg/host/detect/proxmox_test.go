@@ -159,3 +159,32 @@ func TestDpkgInstalled(t *testing.T) {
 		}
 	}
 }
+
+// TestDpkgVersion: DpkgInstalled's rule, with the version when installed
+// (next/p4-header).
+func TestDpkgVersion(t *testing.T) {
+	ctx := context.Background()
+	argv := []string{"dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, "linux-image-6.12.43+deb13-amd64"}
+	for _, tt := range []struct {
+		name    string
+		res     hostfake.Response
+		want    detect.Tri
+		version string
+		err     error
+	}{
+		{"installed", out("install ok installed\t6.12.43-1\n", 0), detect.Yes, "6.12.43-1", nil},
+		{"removed, config left", out("deinstall ok config-files\t6.12.43-1\n", 0), detect.No, "", nil},
+		{"no such package", hostfake.Response{ExitCode: 1}, detect.No, "", nil},
+		{"half installed", out("install ok half-installed\t6.12.43-2\n", 0), detect.Unknown, "", detect.ErrUnrecognised},
+	} {
+		f := newFake(t, "")
+		f.Respond(tt.res, argv[0], argv[1:]...)
+		got, version, err := detect.DpkgVersion(ctx, f, argv[3])
+		if got != tt.want || version != tt.version || !matchesErr(err, tt.err) {
+			t.Errorf("%s: DpkgVersion = %s, %q, %v; want %s, %q, %v", tt.name, got, version, err, tt.want, tt.version, tt.err)
+		}
+		if calls := f.Calls(); len(calls) != 1 || calls[0].Op != "run" || !reflect.DeepEqual(calls[0].Argv, argv) {
+			t.Errorf("%s: calls %v, want %q only", tt.name, calls, argv)
+		}
+	}
+}
