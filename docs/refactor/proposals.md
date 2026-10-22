@@ -28,8 +28,8 @@
 | [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed |
 | [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | proposed |
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | proposed |
-| [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | proposed |
-| [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | proposed |
+| [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
+| [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
 | [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
@@ -131,7 +131,7 @@
 <a id="p-04"></a>
 ### P-04: Treat uptime as a finding (pending reboot)
 
-- **Status:** proposed
+- **Status:** approved (maintainer, 2026-10-21, at the Phase 4 sign-off); implemented, `next/p4-header` (the pending reboot, the host block's line) and `next/p4-risk` (the long uptime's factor).
 - **Source:** brief §7.4.
 - **Problem:** the HostBlock shows uptime as decoration. A long uptime with automatic updates not configured probably means an old running kernel.
 - **Proposal:**
@@ -147,7 +147,7 @@
 <a id="p-05"></a>
 ### P-05: SSH statuses from `sshd -T`, with a firewall cross-check
 
-- **Status:** proposed
+- **Status:** approved (maintainer, 2026-10-21, at the Phase 4 sign-off); implemented, `next/p4-check-ssh` (the SSH rows from `sshd -T`) and `next/p4-check-firewall` (the firewall cross-check).
 - **Source:** brief §7.5 (brief Phase 4 already requires this source; this entry covers what the user sees).
 - **Problem:**
   - On origin/main, SSH Port status is `cfg.SshPort != 22`, from the config, not the effective port [V].
