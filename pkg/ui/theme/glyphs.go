@@ -22,7 +22,7 @@ package theme
 // are callouts. origin/main's ✓ ✗ ℹ and the first build's ⊘ ◦ ▸ ↺ ↷ ! are
 // gone.
 //
-// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ ◇ – ≈ … █ ─.
+// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
 // characters two cells wide draws each as two. A single glyph then shifts
 // the rest of its line by one cell. Rule is drawn in runs, so a run doubles
@@ -55,7 +55,7 @@ type Glyphs struct {
 	// a form field's or a refused line's, glyph and text in the state's
 	// colour with no word (P-42, the maintainer, 2026-10-22; DEV-062).
 	Warn   string // a warning: a lockout-risk line
-	Inline string // an inline result under a prompt (◇)
+	Inline string // an inline result under a prompt (⨳)
 
 	// Spinner holds the frames a running step's marker cycles through
 	// when the terminal can animate, one per rune (DEV-039); without
@@ -95,7 +95,7 @@ var unicodeGlyphs = Glyphs{
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "⭘",
-	Inline:        "◇",
+	Inline:        "⨳",
 	Spinner:       "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏",
 	Command:       "$",
 	Wrap:          "↪",
@@ -103,8 +103,8 @@ var unicodeGlyphs = Glyphs{
 
 // asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets,
 // DEV-031 for a warning, DEV-038 and DEV-039 for the plan group, DEV-062
-// for the inline results' "<>", the maintainer's "use <> instead of
-// < >", two cells at columns 2 and 3). Partial and Warn are
+// for the inline results' "x", a cross as ⨳ is drawn (the maintainer's ⨳
+// of 2026-10-22; "<>" with ◇ before it), at column 3). Partial and Warn are
 // NotConfigured's, as in the Unicode set, so "[*]" is the risk icon's
 // alone.
 var asciiGlyphs = Glyphs{
@@ -125,7 +125,7 @@ var asciiGlyphs = Glyphs{
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "[ ]",
-	Inline:        "<>",
+	Inline:        "x",
 	Spinner:       `|/-\`,
 	Command:       "$",
 	Wrap:          "|",

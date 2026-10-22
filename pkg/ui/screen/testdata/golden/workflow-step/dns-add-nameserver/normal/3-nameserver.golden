@@ -3,13 +3,13 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;219;184;83m◇␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-  <>  Nameserver 192.0.2.54 is already configured$
+   x  Nameserver 192.0.2.54 is already configured$
   Enter nameserver IP address [0 or q]: 192.0.2.53$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;219;184;83m◇␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$

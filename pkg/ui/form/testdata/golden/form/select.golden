@@ -9,7 +9,7 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 3$
-   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 2$
   ␛[38;2;192;196;216mSelect a user␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156malice␛[m$
 
@@ -20,7 +20,7 @@ $
    2) alice$
 $
   > Enter your choice [1-2, 0 or q]: 3$
-  <>  Invalid option. Please try again.$
+   x  Invalid option. Please try again.$
   > Enter your choice [1-2, 0 or q]: 2$
   Select a user: alice$
 
@@ -31,6 +31,6 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 3$
-   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 2$
   ␛[38;2;192;196;216mSelect a user␛[m␛[38;2;192;196;216m:␛[m ␛[38;2;129;134;156malice␛[m$

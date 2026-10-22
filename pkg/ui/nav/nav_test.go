@@ -276,7 +276,7 @@ func TestChoose(t *testing.T) {
 		return err
 	})
 	want := "  > Enter your choice [0-10 or q]: 11\n" +
-		"  <>  Invalid option. Please try again.\n" +
+		"   x  Invalid option. Please try again.\n" +
 		"  > Enter your choice [0-10 or q]: 3\n"
 	if err != nil || chosen.Item.Label != "DNS" || out != want {
 		t.Errorf("Choose() = %q, %v, transcript\n%s\nwant DNS, nil, transcript\n%s", chosen.Item.Label, err, out, want)
@@ -286,7 +286,7 @@ func TestChoose(t *testing.T) {
 	}
 	t.Run("a disabled item", func(t *testing.T) {
 		out, _ := play([]string{"1", "0"}, chooseSSH)
-		if !strings.Contains(out, "  <>  Root SSH Login is unavailable.\n") {
+		if !strings.Contains(out, "   x  Root SSH Login is unavailable.\n") {
 			t.Errorf("transcript\n%s\nsays nothing of the item", out)
 		}
 	})
@@ -485,11 +485,11 @@ func TestAsk(t *testing.T) {
 	})
 	out = strings.ReplaceAll(out, long, "<long line>")
 	want := "  > [0 or q]: a b\n" +
-		"  <>  Username cannot contain spaces\n" +
+		"   x  Username cannot contain spaces\n" +
 		"  > [0 or q]: blank\n" +
-		"  <>  " + InvalidAnswer + "\n" +
+		"   x  " + InvalidAnswer + "\n" +
 		"  > [0 or q]: <long line>\n" +
-		"  <>  " + InvalidAnswer + "\n" +
+		"   x  " + InvalidAnswer + "\n" +
 		"  > [0 or q]: george\n"
 	if err != nil || out != want {
 		t.Errorf("Ask: %v, transcript\n%s\nwant nil and\n%s", err, out, want)

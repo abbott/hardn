@@ -59,7 +59,7 @@
 //     read whole, such as what a default is, belong in the description,
 //     which wraps.
 //   - A line the field does not take, and a value its Validate rejects,
-//     is answered under the prompt by a failed InlineResult (◇, the words
+//     is answered under the prompt by a failed InlineResult (⨳, the words
 //     in status.bad; DEV-062), the words being nav's or the validation's;
 //     a value Validate refuses with nav.Warn's error, valid but not
 //     taken, such as one already configured, by a warning one, in

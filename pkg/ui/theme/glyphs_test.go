@@ -107,7 +107,7 @@ func TestRiskGlyphAlone(t *testing.T) {
 	}
 }
 
-// TestInlineMarker checks the inline results' glyph (◇, "<>"; the
+// TestInlineMarker checks the inline results' glyph (⨳, "x"; the
 // maintainer, 2026-10-22): it fits the marker column, even where
 // ambiguous-width glyphs are drawn two cells wide, and is no state's
 // marker, the bullet or a warning's, so that an inline result never reads
@@ -125,8 +125,8 @@ func TestInlineMarker(t *testing.T) {
 			}
 		}
 	}
-	if unicodeGlyphs.Inline != "\u25c7" || asciiGlyphs.Inline != "<>" {
-		t.Errorf("Inline is %q and %q, want the maintainer's \u25c7 and <>", unicodeGlyphs.Inline, asciiGlyphs.Inline)
+	if unicodeGlyphs.Inline != "\u2a33" || asciiGlyphs.Inline != "x" {
+		t.Errorf("Inline is %q and %q, want the maintainer's \u2a33 and x", unicodeGlyphs.Inline, asciiGlyphs.Inline)
 	}
 }
 
@@ -167,7 +167,7 @@ func TestShadeOneCell(t *testing.T) {
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {
-	const documented = "⛛ ⭘ ⛬ ◇ – ≈ … █ ─"
+	const documented = "⛛ ⭘ ⛬ – ≈ … █ ─"
 	var found []string
 	for _, glyph := range glyphFields(unicodeGlyphs) {
 		for _, r := range glyph {
