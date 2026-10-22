@@ -56,8 +56,9 @@
 // layouts with synthetic data after the Figma screenshots each is named
 // for. Mocks is the dev-only gallery's catalogue of screen mocks, which
 // the goldens pin: those three, every other Figma frame that fits a
-// layout and origin/main's DNS screen, inferred, each with its source
-// label (Source). A workflow's mock is its sequences, the canonical flow
+// layout and origin/main's DNS screen, inferred, on each host of the DNS
+// mocks, with its items as workflows (dns.go), each with its source label
+// (Source). A workflow's mock is its sequences, the canonical flow
 // played on scripted answers and fixture plans (Sequence.Play), shown
 // step by step. Nothing but the tests and the gallery uses them. Figma's
 // mock host BOS-SAN-L01 and user george are mock data; the other user is

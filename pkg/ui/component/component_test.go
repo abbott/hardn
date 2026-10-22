@@ -1030,6 +1030,9 @@ func TestBlockStyles(t *testing.T) {
 			{"Enabled,", th.KeyValue.Value}, {"No password", th.KeyValue.ValueBad}, {"7 keys", th.KeyValue.Value},
 		}},
 		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
+		{"warning bullet item", KeyValue{Key: "dhcpcd may rewrite /etc/resolv.conf on a lease", State: ValueWarn}, []part{
+			{th.Glyphs.Bullet, th.KeyValue.ValueWarn}, {"dhcpcd may rewrite /etc/resolv.conf on a lease", th.KeyValue.ValueWarn},
+		}},
 		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
 			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
 		}},

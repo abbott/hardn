@@ -11,8 +11,8 @@ import (
 	"github.com/abbott/hardn/pkg/ui/form"
 )
 
-// The fixtures of Figma's other frames, and of origin/main's DNS screen,
-// for the gallery's mocks (Mocks). Each sub-screen's title bar is the
+// The fixtures of Figma's other frames for the gallery's mocks (Mocks);
+// origin/main's DNS screen's are in dns.go. Each sub-screen's title bar is the
 // frame's, and its trail the sections above it, such as "User
 // Management" above "Manage User", shown only when TitleTrail is set
 // (P-08; DEV-053, DEV-054). Where a frame's mock data is a real-looking
@@ -134,41 +134,6 @@ func sshKeysFixture() SubMenu {
 		Heading: fixtureHeading,
 		Menu:    component.Menu{Items: []component.MenuItem{{Key: "1", Label: "Add SSH key"}}, Exit: returnItem()},
 		Prompt:  figmaPrompt,
-	}
-}
-
-// dnsFixture returns origin/main's DNS screen (pkg/menu dns_menu.go) on
-// the sub-menu layout, which no Figma frame draws: its title, "DNS
-// Configuration", is its title bar's, and its two headings are sections,
-// without their colons, of key-value rows. The nameserver in use is
-// 192.0.2.1, and the two configured are not applied yet. The words are
-// origin/main's, the prompt "Enter selection" included.
-func dnsFixture() SubMenu {
-	return SubMenu{
-		Title: trail("DNS Configuration"),
-		Sections: []Section{{
-			Header: component.SectionHeader{Title: "Current DNS Configuration"},
-			Rows: component.BulletList{Items: []component.KeyValue{
-				{Key: "DNS Implementation", Value: "direct (/etc/resolv.conf)"},
-				{Key: "Nameservers", Value: "192.0.2.1"},
-			}},
-		}, {
-			Header: component.SectionHeader{Title: "Configured Nameservers"},
-			Rows: component.BulletList{Items: []component.KeyValue{
-				{Key: "Nameserver 1", Value: "192.0.2.53"},
-				{Key: "Nameserver 2", Value: "192.0.2.54"},
-			}},
-		}},
-		Heading: fixtureHeading,
-		Menu: component.Menu{Items: []component.MenuItem{
-			{Key: "1", Label: "Configure DNS", Description: "Apply nameserver settings from configuration"},
-			{Key: "2", Label: "Add nameserver", Description: "Add a new DNS server to configuration"},
-			{Key: "3", Label: "Remove nameserver", Description: "Remove a DNS server from configuration"},
-			{Key: "4", Label: "Use Cloudflare DNS", Description: "Set nameservers to 1.1.1.1, 1.0.0.1"},
-			{Key: "5", Label: "Use Google DNS", Description: "Set nameservers to 8.8.8.8, 8.8.4.4"},
-			{Key: "6", Label: "Use Quad9 DNS", Description: "Set nameservers to 9.9.9.9, 149.112.112.112"},
-		}, Exit: returnItem()},
-		Prompt: mainPrompt,
 	}
 }
 

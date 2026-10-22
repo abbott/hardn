@@ -1,0 +1,220 @@
+# Golden file of TestPlayGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay sub-menu/03-dns-empty␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNo nameservers configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m        ␛[38;2;129;134;156mApply nameserver settings from confi…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m       ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m   ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m       ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m        ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.…␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid option. Please try again.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNo nameservers configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m        ␛[38;2;129;134;156mApply nameserver settings from confi…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m       ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m   ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m       ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m        ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.…␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play sub-menu/03-dns-empty -----------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the gallery's$
+# fixture plans. Nothing on this machine changes: the simulated$
+# system only records each step it would apply, and the record$
+# is shown when play ends.$
+$
+# DNS Configuration ############################################$
+$
+# Current DNS Configuration ------------------------------------$
+$
+   -  DNS Implementation   direct (/etc/resolv.conf)$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
+$
+# Configured Nameservers ---------------------------------------$
+$
+   -  No nameservers configured$
+$
+  Select an option$
+$
+   1) Configure DNS        Apply nameserver settings from con...$
+   2) Add nameserver       Add a new DNS server to configuration$
+   4) Use Cloudflare DNS   Set nameservers to 1.1.1.1, 1.0.0.1$
+   5) Use Google DNS       Set nameservers to 8.8.8.8, 8.8.4.4$
+   6) Use Quad9 DNS        Set nameservers to 9.9.9.9, 149.11...$
+$
+   0) Return$
+$
+  > Enter selection [0-2, 4-6 or q]: 3$
+  [!] Error: Invalid option. Please try again.$
+  > Enter selection [0-2, 4-6 or q]: 1$
+$
+  [ ] Warning: Please add nameservers first.$
+$
+# DNS Configuration ############################################$
+$
+# Current DNS Configuration ------------------------------------$
+$
+   -  DNS Implementation   direct (/etc/resolv.conf)$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
+$
+# Configured Nameservers ---------------------------------------$
+$
+   -  No nameservers configured$
+$
+  Select an option$
+$
+   1) Configure DNS        Apply nameserver settings from con...$
+   2) Add nameserver       Add a new DNS server to configuration$
+   4) Use Cloudflare DNS   Set nameservers to 1.1.1.1, 1.0.0.1$
+   5) Use Google DNS       Set nameservers to 8.8.8.8, 8.8.4.4$
+   6) Use Quad9 DNS        Set nameservers to 9.9.9.9, 149.11...$
+$
+   0) Return$
+$
+  > Enter selection [0-2, 4-6 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay sub-menu/03-dns-empty␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
+      ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNo nameservers configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m$
+      ␛[38;2;129;134;156mApply nameserver settings from configuration␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m$
+      ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.112.112␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid option. Please try again.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPlease add nameservers first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
+      ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNo nameservers configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m$
+      ␛[38;2;129;134;156mApply nameserver settings from configuration␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m$
+      ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.112.112␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

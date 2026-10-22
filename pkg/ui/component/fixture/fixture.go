@@ -360,6 +360,7 @@ func States() []State {
 		{"keyvalue/long-key", component.KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}},
 		{"keyvalue/long-value", component.KeyValue{Key: "Allowed Users", Value: "alice bob carol dave erin frank grace heidi ivan judy mallory"}},
 		{"keyvalue/item", component.KeyValue{Key: "If SSH fails, a fallback access method is available"}},
+		{"keyvalue/item-warn", component.KeyValue{Key: "dhcpcd may rewrite /etc/resolv.conf on a lease", State: component.ValueWarn}},
 		{"keyvalue/empty", component.KeyValue{}},
 		{"bulletlist/user", FigmaUser()},
 		{"bulletlist/ssh", figmaSSH},

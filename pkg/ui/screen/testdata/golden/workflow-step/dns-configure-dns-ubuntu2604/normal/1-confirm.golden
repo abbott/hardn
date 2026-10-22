@@ -1,0 +1,75 @@
+# Golden file of TestGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfigure DNS␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn: the system DNS servers for␛[m$
+      ␛[38;2;112;212;127m↪ systemd-resolved.␛[m$
+      ␛[38;2;112;212;127m+# An empty assignment resets the list that earlier files␛[m$
+      ␛[38;2;112;212;127m↪ built.␛[m$
+      ␛[38;2;112;212;127m+[Resolve]␛[m$
+      ␛[38;2;112;212;127m+DNS=␛[m$
+      ␛[38;2;112;212;127m+DNS=192.0.2.54 2001:db8::54␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart systemd-resolved.service␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Configure DNS ################################################$
+$
+# DNS Configuration --------------------------------------------$
+$
+   -  Nameservers          192.0.2.54, 2001:db8::54$
+   -  Search Domains       None$
+   -  eth0 still uses its own nameserver 192.0.2.1$
+$
+   -  Set the nameservers$
+      /etc/systemd/resolved.conf.d/zz-hardn.conf$
+      @@ -0,0 +1,5 @@$
+      +# Written by hardn: the system DNS servers for$
+      | systemd-resolved.$
+      +# An empty assignment resets the list that earlier files$
+      | built.$
+      +[Resolve]$
+      +DNS=$
+      +DNS=192.0.2.54 2001:db8::54$
+      $ systemctl try-reload-or-restart systemd-resolved.service$
+$
+  Configure DNS? [y/N, 0 or q]: y$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfigure DNS␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn: the system DNS servers for␛[m$
+      ␛[38;2;112;212;127m↪ systemd-resolved.␛[m$
+      ␛[38;2;112;212;127m+# An empty assignment resets the list that earlier␛[m$
+      ␛[38;2;112;212;127m↪ files built.␛[m$
+      ␛[38;2;112;212;127m+[Resolve]␛[m$
+      ␛[38;2;112;212;127m+DNS=␛[m$
+      ␛[38;2;112;212;127m+DNS=192.0.2.54 2001:db8::54␛[m$
+      ␛[38;2;129;134;156m$ systemctl try-reload-or-restart␛[m$
+      ␛[38;2;129;134;156m↪ systemd-resolved.service␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$

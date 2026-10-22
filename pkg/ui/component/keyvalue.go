@@ -102,10 +102,13 @@ func (s ValueState) word() string {
 //
 // With no value the row is a bullet item, its key alone, as in Figma's
 // checklist under a warning, and its State shows nothing, except that
-// ValueUnknown and ValueNotApplicable show "Unknown" and "Not Applicable".
-// A bullet item's text is prose with nothing beside it, so it wraps at
-// spaces under itself, at theme.LabelCol, rather than being cut. A row
-// with neither key nor value renders as the empty string.
+// ValueUnknown and ValueNotApplicable show "Unknown" and "Not Applicable",
+// and that ValueWarn makes it a warning line: its bullet and its text in
+// the warning's colour, the maintainer's dash line of 2026-10-21 ("- " in
+// status.warn), as a plan's findings are listed before its confirmation
+// (DEV-060). A bullet item's text is prose with nothing beside it, so it
+// wraps at spaces under itself, at theme.LabelCol, rather than being cut.
+// A row with neither key nor value renders as the empty string.
 type KeyValue struct {
 	// Key names the setting, such as "Root SSH Login"; or, with no value,
 	// is the bullet item's text.
@@ -138,10 +141,14 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 		return c.layout(stack, r.head, r.value)
 	}
 	t, w := c.Theme.KeyValue, c.width()
-	lead := marker(c.Theme.Glyphs.Bullet, t.Bullet).to(theme.LabelCol)
+	bullet, text := t.Bullet, t.Key
+	if vm.State == ValueWarn {
+		bullet, text = t.ValueWarn, t.ValueWarn
+	}
+	lead := marker(c.Theme.Glyphs.Bullet, bullet).to(theme.LabelCol)
 	var out []string
 	for _, l := range wrap(c.text(vm.Key), w-theme.LabelCol) {
-		out = append(out, c.fit(append(lead, span{l, t.Key}), w))
+		out = append(out, c.fit(append(lead, span{l, text}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
 	return strings.Join(out, "\n")
