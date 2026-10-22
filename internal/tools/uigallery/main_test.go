@@ -193,6 +193,12 @@ func runGallery(args ...string) (int, string, string) {
 	return code, out.String(), errs.String()
 }
 
+// outsideASCII reports whether r has no place in plain or ASCII output:
+// anything outside printable ASCII but the inline results' », the ASCII
+// set's one glyph outside it (the maintainer, 2026-10-22: "with an
+// exception in the ASCII test for »"; DEV-062).
+func outsideASCII(r rune) bool { return r > 0x7e && r != '»' }
+
 // TestSmoke runs the gallery in-process for every profile, both themes
 // and both glyph sets, at two widths, and checks the output: every state
 // under its name, the escape sequences the profile allows and no more,
@@ -232,7 +238,7 @@ func TestSmoke(t *testing.T) {
 							t.Errorf("%s: no colour", where)
 						}
 					}
-					if (p.name == "plain" || ascii) && strings.ContainsFunc(plain, func(r rune) bool { return r > 0x7e }) {
+					if (p.name == "plain" || ascii) && strings.ContainsFunc(plain, outsideASCII) {
 						t.Errorf("%s: a glyph outside ASCII", where)
 					}
 					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
@@ -688,7 +694,7 @@ func TestScreenSmoke(t *testing.T) {
 							t.Errorf("%s: no colour", where)
 						}
 					}
-					if (p.name == "plain" || ascii) && strings.ContainsFunc(ansi.Strip(out), func(r rune) bool { return r > 0x7e }) {
+					if (p.name == "plain" || ascii) && strings.ContainsFunc(ansi.Strip(out), outsideASCII) {
 						t.Errorf("%s: a glyph outside ASCII", where)
 					}
 					for _, l := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {

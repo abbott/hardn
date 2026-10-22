@@ -195,7 +195,7 @@ func (c Ctx) prose(text string) []string {
 //	  Enter nameserver IP address [0 or q]: 999.1.1.1
 //	  <>  Invalid IP address format
 //
-// Glyphs.Inline (⨳, "x") centred in the marker column, and the text at
+// Glyphs.Inline (≫, "»") centred in the marker column, and the text at
 // theme.LabelCol, both in the kind's colour (Inline.<Kind>), regular:
 // failed in status.bad, a warning in status.warn, done in status.ok,
 // information in text.muted. It has no word, by the maintainer's decision

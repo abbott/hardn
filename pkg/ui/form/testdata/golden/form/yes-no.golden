@@ -4,18 +4,18 @@
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m maybe$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156mn␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Grant sudo privilege? [y/N, 0 or q]: maybe$
-   x  Invalid answer. Please try again.$
+   »  Invalid answer. Please try again.$
   Grant sudo privilege? [y/N, 0 or q]: $
   Grant sudo privilege? [y/N]: n$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m maybe$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mInvalid answer. Please try again.␛[m$
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
   ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N]:␛[m ␛[38;2;129;134;156mn␛[m$

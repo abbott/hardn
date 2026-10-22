@@ -31,7 +31,7 @@ $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m y$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m  ␛[38;2;112;212;127mDone␛[m$
@@ -67,7 +67,7 @@ $
   Disable SSH login for 'root'?$
 $
   Type the hostname [bos-san-l01, 0 or q]: y$
-   x  That does not match exactly. Please try again.$
+   »  That does not match exactly. Please try again.$
   Type the hostname [bos-san-l01, 0 or q]: bos-san-l01$
 $
   [+] Set PermitRootLogin no  Done$
@@ -106,7 +106,7 @@ $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m y$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$

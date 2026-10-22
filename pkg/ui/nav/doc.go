@@ -45,7 +45,7 @@
 // # Asking again
 //
 // A line a prompt does not accept is answered under the prompt by a failed
-// component.InlineResult, ⨳ and the words in status.bad with no word for
+// component.InlineResult, ≫ and the words in status.bad with no word for
 // the kind (P-42, DEV-062), or by a warning one in status.warn when refused
 // with Warn, then the prompt is asked again; the screen above is not drawn
 // again (brief 1C: re-ask only that field, keeping context). The words are

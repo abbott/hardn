@@ -284,7 +284,7 @@ func RefuseFor(err error) error {
 //
 // resolve returns nil to accept the line; ErrBack or ErrQuit to navigate;
 // or a reason from Refuse, which Ask writes under the prompt as a failed
-// component.InlineResult (⨳ and the reason in status.bad, no word; P-42,
+// component.InlineResult (≫ and the reason in status.bad, no word; P-42,
 // DEV-062), or from Warn, which it writes as a warning one (status.warn),
 // before it writes question again, leaving the screen above as it is
 // (brief 1C: re-ask only that field, keeping context). A line longer than

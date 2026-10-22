@@ -34,7 +34,7 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -102,7 +102,7 @@ $
    0) Return$
 $
   > Enter selection [0-2, 4-6 or q]: 3$
-   x  Invalid option. Please try again.$
+   »  Invalid option. Please try again.$
   > Enter selection [0-2, 4-6 or q]: 1$
 $
 # Warning$
@@ -178,7 +178,7 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 3$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+   ␛[38;2;231;70;105m≫␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$

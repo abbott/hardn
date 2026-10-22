@@ -3,145 +3,145 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;112;212;127m⨳␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m≫␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;112;212;127m⨳␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m≫␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;112;212;127m⨳␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m≫␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
-   ␛[38;2;112;212;127mx␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m»␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-   ␛[38;2;112;212;127mx␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m»␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
-   ␛[38;2;112;212;127mx␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;112;212;127m»␛[m  ␛[38;2;112;212;127mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;26;127;55m⨳␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m≫␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;26;127;55m⨳␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m≫␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
-   ␛[38;2;26;127;55m⨳␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m≫␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
-   ␛[38;2;26;127;55mx␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m»␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
-   ␛[38;2;26;127;55mx␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m»␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
-   ␛[38;2;26;127;55mx␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;2;26;127;55m»␛[m  ␛[38;2;26;127;55mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;78m⨳␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m≫␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;78m⨳␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m≫␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;78m⨳␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m≫␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;78mx␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m»␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;78mx␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m»␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;78mx␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;78m»␛[m  ␛[38;5;78mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;22m⨳␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m≫␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;22m⨳␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m≫␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;22m⨳␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m≫␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
-   ␛[38;5;22mx␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m»␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-   ␛[38;5;22mx␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m»␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-   ␛[38;5;22mx␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[38;5;22m»␛[m  ␛[38;5;22mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
-   ␛[92m⨳␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m≫␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
-   ␛[92m⨳␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m≫␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
-   ␛[92m⨳␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m≫␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
-   ␛[92mx␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m»␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
-   ␛[92mx␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m»␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
-   ␛[92mx␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[92m»␛[m  ␛[92mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
-   ␛[32m⨳␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m≫␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
-   ␛[32m⨳␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m≫␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
-   ␛[32m⨳␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m≫␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
-   ␛[32mx␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m»␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
-   ␛[32mx␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m»␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
-   ␛[32mx␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
+   ␛[32m»␛[m  ␛[32mNameserver 192.0.2.53 added to configuration␛[m$
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
-   ⨳  Nameserver 192.0.2.53 added to configuration$
+   ≫  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
-   x  Nameserver 192.0.2.53 added to configuration$
+   »  Nameserver 192.0.2.53 added to configuration$

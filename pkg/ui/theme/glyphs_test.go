@@ -35,6 +35,11 @@ func TestGlyphSetsComplete(t *testing.T) {
 		}
 	}
 	for field, glyph := range glyphFields(asciiGlyphs) {
+		// The inline results' » is the one exception, the maintainer's
+		// (2026-10-22, DEV-062): "with an exception in the ASCII test for »".
+		if field == "Inline" && glyph == "\u00bb" {
+			continue
+		}
 		for _, r := range glyph {
 			if r > unicode.MaxASCII || !unicode.IsPrint(r) {
 				t.Errorf("ascii.%s = %q is not printable ASCII", field, glyph)
@@ -107,7 +112,7 @@ func TestRiskGlyphAlone(t *testing.T) {
 	}
 }
 
-// TestInlineMarker checks the inline results' glyph (⨳, "x"; the
+// TestInlineMarker checks the inline results' glyph (≫, "»"; the
 // maintainer, 2026-10-22): it fits the marker column, even where
 // ambiguous-width glyphs are drawn two cells wide, and is no state's
 // marker, the bullet or a warning's, so that an inline result never reads
@@ -125,8 +130,8 @@ func TestInlineMarker(t *testing.T) {
 			}
 		}
 	}
-	if unicodeGlyphs.Inline != "\u2a33" || asciiGlyphs.Inline != "x" {
-		t.Errorf("Inline is %q and %q, want the maintainer's \u2a33 and x", unicodeGlyphs.Inline, asciiGlyphs.Inline)
+	if unicodeGlyphs.Inline != "\u226b" || asciiGlyphs.Inline != "\u00bb" {
+		t.Errorf("Inline is %q and %q, want the maintainer's \u226b and \u00bb", unicodeGlyphs.Inline, asciiGlyphs.Inline)
 	}
 }
 
@@ -167,7 +172,7 @@ func TestShadeOneCell(t *testing.T) {
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {
-	const documented = "⛛ ⭘ ⛬ – ≈ … █ ─"
+	const documented = "⛛ ⭘ ⛬ ≫ – ≈ … █ ─"
 	var found []string
 	for _, glyph := range glyphFields(unicodeGlyphs) {
 		for _, r := range glyph {

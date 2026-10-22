@@ -491,11 +491,11 @@ func TestLayout(t *testing.T) {
 		}, 80, false, "# Operation Failed\n# a\n\n  b\n\n# Operation Failed\n# c"},
 		{"messages: nothing to show is nothing", Messages{{Kind: MessageOK}, {Text: "\t"}}, 80, false, ""},
 		{"inline: the glyph in the marker column, the text at the label column, no word", InlineResult{Kind: MessageBad, Text: "Invalid IP address format"}, 80, true,
-			"   ⨳  Invalid IP address format"},
-		{"inline: ASCII x at column 3", InlineResult{Kind: MessageWarn, Text: "Nameserver 192.0.2.54 is already configured"}, 80, false,
-			"   x  Nameserver 192.0.2.54 is already configured"},
+			"   ≫  Invalid IP address format"},
+		{"inline: ASCII » at column 3", InlineResult{Kind: MessageWarn, Text: "Nameserver 192.0.2.54 is already configured"}, 80, false,
+			"   »  Nameserver 192.0.2.54 is already configured"},
 		{"inline: a long text wraps under itself", InlineResult{Text: "An IPv4 or IPv6 address, such as 192.0.2.53"}, 24, false,
-			"   x  An IPv4 or IPv6\n      address, such as\n      192.0.2.53"},
+			"   »  An IPv4 or IPv6\n      address, such as\n      192.0.2.53"},
 		{"inline: no text is nothing", InlineResult{Kind: MessageOK, Text: " "}, 80, false, ""},
 		{"callout: bar, title and body, no glyph", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
 		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
@@ -597,7 +597,13 @@ func TestASCIIText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ascii := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, false, true))))
-		if strings.ContainsFunc(ascii, func(r rune) bool { return r > '~' }) {
+		// The inline results' » is the ASCII set's one glyph outside ASCII
+		// (the maintainer, 2026-10-22, DEV-062); everything else is ASCII.
+		checked := ascii
+		if tt.name == "inline result" {
+			checked = strings.Replace(checked, "\u00bb", "", 1)
+		}
+		if strings.ContainsFunc(checked, func(r rune) bool { return r > '~' }) {
 			t.Errorf("%s, ASCII: a character outside ASCII in\n%s", tt.name, ascii)
 		}
 		unicode := ansi.Strip(tt.vm.Render(NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))))
