@@ -160,6 +160,9 @@ type Finding struct {
 	Kind   FindingKind
 	Path   string
 	Detail string
+	// Link is the link or delegate a FindingPerLink is about, with its
+	// servers; nil for the other kinds.
+	Link *Link `json:",omitempty"`
 }
 
 // EntryKind is what a path holds.

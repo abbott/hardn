@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -476,7 +477,7 @@ func TestPlanJSON(t *testing.T) {
 			if err := json.Unmarshal(b, &got); err != nil {
 				t.Fatal(err)
 			}
-			if !slices.Equal(steps(got), steps(p)) || got.Findings[0] != p.Findings[0] || got.From.UDHCPC.Err != nil {
+			if !slices.Equal(steps(got), steps(p)) || !reflect.DeepEqual(got.Findings, p.Findings) || got.From.UDHCPC.Err != nil {
 				t.Fatalf("decoded %+v", got)
 			}
 			if _, err := dns.Apply(context.Background(), w.h, got, dns.Options{Backups: backups(t, w.h)}); err != nil {
