@@ -25,7 +25,7 @@
 
 | ID | Title | Source | Area / slice | Effort | Risk | Status |
 |---|---|---|---|---|---|---|
-| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed |
+| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22) |
 | [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | proposed |
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | proposed |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
@@ -54,14 +54,14 @@
 | [P-27](#p-27) | The canonical flow: back at the confirmation, an empty plan, the plan's heading, the steps' lines, a long hostname and a narrow terminal | `next/p1c-flow` | Every action; Phase 1C | S | Low | proposed |
 | [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | proposed |
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed |
-| [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | proposed |
+| [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | decided for DNS (2026-10-22): (b); Firewall's proposed |
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
 | [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
-| [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | proposed |
+| [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | decided (2026-10-22): (a), report only |
 | [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
 | [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; built in `next/p3-steps` (written, not run) |
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; implemented, `next/p3-confirm-cleanup` |
@@ -77,7 +77,7 @@
 <a id="p-01"></a>
 ### P-01: Line up status rows and menu items
 
-- **Status:** proposed
+- **Status:** proposed; the DNS row's design agreed for its unit (maintainer, 2026-10-22, slice 2 decision 8: a row from `dns.State`, Configured when the servers in use are hardn.yml's; docs/engine/gallery-dns.md §4).
 - **Source:** brief §7.1. Related: [P-16](#p-16), [P-13](#p-13).
 - **Problem:**
   - AppArmor and Auto Updates show a status ("Not Configured") but have no menu item. DNS has a menu item but no status row [V, `00-TUI-MAIN` and origin/main `main_menu.go`].
@@ -670,7 +670,7 @@
 <a id="p-30"></a>
 ### P-30: A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list
 
-- **Status:** proposed
+- **Status:** decided for DNS (maintainer, 2026-10-22, slice 2 decision 3): (b), a muted bullet item, "- No nameservers configured" (`ValueNone`, DEV-061; `next/s2-gallery`). The Firewall screen's notice stays proposed (slice 4).
 - **Source:** `next/p1d-gallery-screens`, which mocks the screens that fit a layout; brief 1B: a screen that fits no layout becomes a proposal, not a one-off. Related: [P-16](#p-16), [P-23](#p-23), [P-28](#p-28).
 - **Problem:**
   - origin/main's Firewall screen (pkg/menu firewall_menu.go), of which the export holds a legacy screenshot (images/04-firewall-legacy-tui.png), shows three status rows, then, with UFW installed and no rule listed, a warning line, "No firewall rules configured", before its menu. That is what it shows on every host with UFW, since the rules list is effectively unreachable ([interaction.md](phase0/interaction.md) §4.3). With rules it shows a "Current Firewall Rules:" heading over a line per rule, marked ✓ for allow, ✗ for deny and - otherwise.
@@ -778,7 +778,7 @@
 <a id="p-37"></a>
 ### P-37: DNS on hosts whose resolver hardn reports but does not configure
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-22, slice 2 decision 4): (a), report only: the screen names the manager, "reported only", and every DNS item is refused with a warning naming it (`next/s2-gallery`).
 - **Source:** `next/p2-dns`, the DNS primitive ([docs/safety/dns.md](../safety/dns.md) §2.3, §2.9; V19). Brief 2.5 asks hardn to "configure that manager instead of overwriting the file"; the unit configures systemd-resolved (a drop-in) and plain files (Debian, Alpine, Proxmox VE), and reports the rest.
 - **Problem:**
   - **resolvconf and NetworkManager hosts.** origin/main configured a resolvconf host by writing `/etc/resolvconf/resolv.conf.d/head` and running `resolvconf -u` (side-effects.md row 22), and never detected NetworkManager. The new primitive refuses both with `ErrManaged`, so on such a host the DNS screen would stop where origin/main wrote a file. The legacy `head` is documented for comment lines and is prepended to what the interfaces provide **[unverified: resolvconf(8) not read for this unit]**; NetworkManager rewrites a regular `/etc/resolv.conf` and keeps its servers per connection (NetworkManager.conf(5), `rc-manager`).

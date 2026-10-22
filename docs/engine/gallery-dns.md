@@ -115,7 +115,7 @@ The failure, as the engine reports it (sequence 12, `failure`, step 2, plain):
 
 ## 4. Decisions for the maintainer
 
-Each is proposed; the mock shows the recommendation.
+Adopted by the maintainer on 2026-10-22 ("those all seem okay to adopt"): each recommendation below, with the recommended answers to 1 (i) to (iii); decision 8 is the design of the DNS row for its unit, P-01 itself still proposed. The alternatives stay recorded. The words in §5 not named by a decision stay proposed.
 
 1. **Edits go through the plan.** Add nameserver, Remove nameserver and the presets plan the list they make, the host's change and the save of hardn.yml, which runs only after the change applies; n changes and saves nothing. *Recommended:* this, which fixes "presets don't apply" and gives each change a review. *Alternatives:* (a) origin/main's: Add, Remove and the presets change hardn.yml alone (now at its loaded path, §3.19), and only Configure DNS applies, through the plan; (b) as recommended, but saving hardn.yml before the apply, so that a failed apply still records the list; (c) a question after a successful apply, "Save to hardn.yml?", so that a host can be changed without changing the configuration. *Consequences of the recommendation:*
    - (i) origin/main's descriptions of Add and Remove, "Add a new DNS server to configuration" and "Remove a DNS server from configuration", now understate the action, which applies to the host too; the presets' "Set nameservers to ..." reads true. The mock keeps origin/main's words; proposed alternatives: "Add a DNS server and apply it", "Remove a DNS server and apply the rest". Not mocked.
