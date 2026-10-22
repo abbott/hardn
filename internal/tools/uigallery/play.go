@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"path"
 	"slices"
 	"strings"
 	"sync"
@@ -519,11 +520,14 @@ func (e *simulated) Apply(ctx context.Context, report flow.Report) error {
 // recorded returns what the simulator records of step ch, reported in
 // state, and whether it records anything: for a step done, the file it
 // would write and the commands it would run; for one failed, why; for one
-// rolled back, the file it would restore. Its title says how the step
-// ended. Other states, such as running, record nothing.
+// rolled back, the file it would restore. A step's file is its target
+// when it shows a diff, or when the target is a path, as a save of
+// hardn.yml, whose diff a plan does not show, names it; a service, such
+// as "ufw", is not one. Its title says how the step ended. Other states,
+// such as running, record nothing.
 func recorded(ch component.PlanChange, state component.StepState, detail string) (component.PlanChange, bool) {
 	file := ""
-	if ch.Diff != "" {
+	if ch.Diff != "" || path.IsAbs(ch.Target) {
 		file = ch.Target
 	}
 	switch state {

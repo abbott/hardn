@@ -65,11 +65,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mdns: nameserver "999.1.1.1": not an IPv4 or IPv6␛[m$
-      ␛[38;2;129;134;156maddress: invalid DNS configuration␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mdns: nameserver 192.0.2.54 given twice: invalid DNS␛[m$
-      ␛[38;2;129;134;156mconfiguration␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
@@ -160,6 +158,7 @@ $
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -236,11 +235,9 @@ $
 # Add nameserver ###############################################$
 $
   Enter nameserver IP address [0 or q]: 999.1.1.1$
-  [!] Error: dns: nameserver "999.1.1.1": not an IPv4 or IPv6$
-      address: invalid DNS configuration$
+  [!] Error: Invalid IP address format$
   Enter nameserver IP address [0 or q]: 192.0.2.54$
-  [!] Error: dns: nameserver 192.0.2.54 given twice: invalid DNS$
-      configuration$
+  [!] Error: Nameserver 192.0.2.54 is already configured$
   Enter nameserver IP address [0 or q]: 192.0.2.53$
 $
 # DNS Configuration --------------------------------------------$
@@ -342,6 +339,7 @@ $
       /etc/resolv.conf$
 $
    -  Applied: Save the configuration$
+      /etc/hardn/hardn.yml$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -428,11 +426,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mdns: nameserver "999.1.1.1": not an IPv4 or␛[m$
-      ␛[38;2;129;134;156mIPv6 address: invalid DNS configuration␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mdns: nameserver 192.0.2.54 given twice: invalid␛[m$
-      ␛[38;2;129;134;156mDNS configuration␛[m$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
@@ -546,4 +542,5 @@ $
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $

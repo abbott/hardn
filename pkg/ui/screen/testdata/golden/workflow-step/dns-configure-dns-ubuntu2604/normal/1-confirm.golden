@@ -8,7 +8,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net (eth0)␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
@@ -31,7 +31,7 @@ $
 # DNS Configuration --------------------------------------------$
 $
    -  Nameservers          192.0.2.54, 2001:db8::54$
-   -  Search Domains       None$
+   -  Search Domains       example.net (eth0)$
    -  eth0 still uses its own nameserver 192.0.2.1$
 $
    -  Set the nameservers$
@@ -56,7 +56,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
       ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
-      ␛[38;2;129;134;156mNone␛[m$
+      ␛[38;2;129;134;156mexample.net (eth0)␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$

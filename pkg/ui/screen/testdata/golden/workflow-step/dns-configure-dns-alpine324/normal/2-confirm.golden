@@ -9,7 +9,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
       ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$
       ␛[38;2;86;91;107m--- /etc/udhcpc/udhcpc.conf␛[m$
       ␛[38;2;86;91;107m+++ /etc/udhcpc/udhcpc.conf␛[m$
@@ -36,7 +36,7 @@ $
    -  Nameservers          192.0.2.54, 2001:db8::54$
    -  Search Domains       example.net$
 $
-   -  Set the nameservers$
+   -  Set nameservers; stop udhcpc rewriting$
       /etc/udhcpc/udhcpc.conf, /etc/resolv.conf$
       --- /etc/udhcpc/udhcpc.conf$
       +++ /etc/udhcpc/udhcpc.conf$
@@ -65,7 +65,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
       ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$
       ␛[38;2;86;91;107m--- /etc/udhcpc/udhcpc.conf␛[m$
       ␛[38;2;86;91;107m+++ /etc/udhcpc/udhcpc.conf␛[m$

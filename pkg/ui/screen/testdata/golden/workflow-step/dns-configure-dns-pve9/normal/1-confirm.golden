@@ -9,7 +9,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE's DNS settings rewrite /etc/resolv.conf␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
@@ -28,7 +28,7 @@ $
 $
    -  Nameservers          192.0.2.54, 2001:db8::54$
    -  Search Domains       example.net$
-   -  Proxmox VE's DNS settings rewrite /etc/resolv.conf$
+   -  Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
 $
    -  Set the nameservers$
       /etc/resolv.conf$
@@ -49,7 +49,8 @@ $
       ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE's DNS settings rewrite /etc/resolv.conf␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving Proxmox VE's DNS settings rewrites␛[m$
+      ␛[38;2;219;184;83m/etc/resolv.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$

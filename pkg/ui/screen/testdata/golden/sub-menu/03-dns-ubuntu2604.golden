@@ -9,7 +9,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156msystemd-resolved␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1 (eth0)␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net (eth0)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
@@ -36,7 +36,7 @@ $
 $
    -  DNS Implementation   systemd-resolved$
    -  Nameservers          192.0.2.1 (eth0)$
-   -  Search Domains       None$
+   -  Search Domains       example.net (eth0)$
 $
 # Configured Nameservers ---------------------------------------$
 $
@@ -66,7 +66,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
       ␛[38;2;129;134;156m192.0.2.1 (eth0)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
-      ␛[38;2;129;134;156mNone␛[m$
+      ␛[38;2;129;134;156mexample.net (eth0)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $

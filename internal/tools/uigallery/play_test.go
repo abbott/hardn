@@ -67,8 +67,9 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // menu, two entries refused before one is taken, applied, and back to the
 // DNS screen with the result still above it (W1, W2), then out; the
 // NetworkManager host's DNS screen refusing Configure DNS and a preset;
-// and the screen with no nameserver configured refusing item 3, which it
-// does not show, and Configure DNS. The golden files are this package's,
+// the screen with no nameserver configured refusing item 3, which it
+// does not show, and Configure DNS; and the screen with one refusing
+// Remove nameserver. The golden files are this package's,
 // testdata/golden/play/<path>.golden, which make golden-update rewrites
 // after pkg/ui's.
 func TestPlayGolden(t *testing.T) {
@@ -86,6 +87,7 @@ func TestPlayGolden(t *testing.T) {
 		{"dns", nil, []string{"3", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
 		{"dns-networkmanager", []string{"sub-menu/03-dns-networkmanager"}, []string{"1", "4", "0"}, exitOK},
 		{"dns-empty", []string{"sub-menu/03-dns-empty"}, []string{"3", "1", "0"}, exitOK},
+		{"dns-one", []string{"sub-menu/03-dns-one"}, []string{"3", "0"}, exitOK},
 	}
 	for _, tt := range tests {
 		uitest.Golden(t, "play/"+tt.name, uitest.Core(), func(env term.Env) string {
