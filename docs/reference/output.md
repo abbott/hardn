@@ -153,7 +153,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CONFIG_ROOT_LOGIN_NOT_APPLIED` | 2 | permitRootLogin "prohibit-password" is not applied by this build's SSH code, which would write PermitRootLogin no; write "no" or "yes" |
 | `CONFIG_NOT_LOADED` | 1 | the configuration was not loaded from a file |
 | `CONFIG_FILE_INVALID` | 1 | hardn.yml does not decode as the configuration (`config.Read`, [control-dns.md](../engine/control-dns.md) §2.9; added by `next/s2-control`) |
-| `CONFIG_NOT_EDITABLE` | 1 | hardn.yml is written in a form that is not edited in place: several documents, an anchor or alias on a setting to change, a merge (`<<`), a comment inside brackets (`config.Edit`, [config-edit.md](../engine/config-edit.md); added by `next/s2-config-edit`) |
+| `CONFIG_NOT_EDITABLE` | 1 | hardn.yml cannot be edited in place: among others, several documents, an anchor or alias on a setting to change, a merge (`<<`), a comment inside brackets, and the other forms of [config-edit.md](../engine/config-edit.md) §5 (`config.Edit`; added by `next/s2-config-edit`) |
 | `CONFIG_EDIT_UNSAFE` | 1 | the edited hardn.yml would not read back as the configuration to save, so nothing is written (`config.Edit`, [config-edit.md](../engine/config-edit.md); added by `next/s2-config-edit`) |
 | `RUN_LOCK_HELD` | 1 | another hardn holds the run lock: an apply, or hardn rollback --boot |
 | `JOURNAL_LOCK_HELD` | 1 | another hardn has held the journal lock past its wait |
@@ -373,7 +373,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPTIME_NO_AUTO_UPDATES` | the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own); the risk level's cross-check, with no `control` ([risk.md](../engine/risk.md)) |
 | `USERS_LOCKED` | a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it ([check-users.md](../engine/check-users.md)) |
 
-The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST, added by `next/s2-control`) is gone: the save now edits the settings that changed and keeps every comment, and the maintainer dropped the warning (2026-10-22). It was never merged or released, so no released code went ([config-edit.md](../engine/config-edit.md)).
+The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST, added by `next/s2-control`) is gone: the save now edits the settings that changed and keeps every comment but those of a list item it replaces or removes, which its diff shows, and the maintainer dropped the warning (2026-10-22). It was never merged or released, so no released code went ([config-edit.md](../engine/config-edit.md)).
 
 ### 2.3 `hardn rollback --boot`'s codes
 

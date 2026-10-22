@@ -172,7 +172,7 @@ origin/main's where it has them; **every other word is proposed**.
 | `resolved.conf` overwritten, systemd-resolved restarted | V19; side-effects row 21 | the drop-in `zz-hardn.conf`, a new file, and `try-reload-or-restart` (sequence 1) |
 | `lan` forced | V19 | the host's search domains kept and shown (decision 2) |
 | The direct path writes through the `/etc/resolv.conf` symlink; NetworkManager not detected | V19; side-effects rows 22, 23 | the link classified, never written through; NetworkManager reported (sequence 11) |
-| hardn.yml saved to `./hardn.yml`, the whole file, with no warning | side-effects row 29 | the loaded path, listed in the plan, after the apply, its lost comments said (§3.19); since `next/s2-config-edit` the settings changed alone, edited in place, the comments kept, so nothing to say |
+| hardn.yml saved to `./hardn.yml`, the whole file, with no warning | side-effects row 29 | the loaded path, listed in the plan, after the apply, its lost comments said (§3.19); since `next/s2-config-edit` the list alone, edited in place, every comment kept but those of the list items it replaces, which the plan's diff shows, so nothing to say |
 | No backup, no rollback, non-atomic | V18 | `dns.Apply`'s, not visible in a mock but in the failure's undo, reported rolled back as proposed (sequence 12, `failure-proposed`) |
 | "Press any key to continue" after each action | interaction.md §5, anti-pattern #3 | none: the menu again under the result (P-09) |
 
