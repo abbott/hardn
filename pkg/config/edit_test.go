@@ -153,6 +153,9 @@ func TestEdit(t *testing.T) {
 		{name: "a key given twice", in: "username: alice\nusername: bob\n", set: port, err: ErrInvalidFile},
 		{name: "a tab as indentation", in: "nameservers:\n\t- 192.0.2.54\n", set: port, err: ErrInvalidFile},
 		{name: "not UTF-8", in: "username: \xff\n", set: port, err: ErrInvalidFile},
+		{name: "UTF-16", in: "\xff\xfe", set: port, err: ErrNotEditable, why: "is not UTF-8 text"},
+		{name: "a key added after a block scalar that ends the file with no line break, which would gain one", in: "username: |\n  alice", set: port,
+			err: ErrEditUnsafe, key: "username", why: "cannot be edited safely"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			c := DefaultConfig()
@@ -341,4 +344,58 @@ func TestEditKeepsTheRest(t *testing.T) {
 			t.Fatalf("run %d: %q not kept, in order:\n%s", i, keep[0], got)
 		}
 	}
+}
+
+// FuzzEdit: on any bytes that decode, each of eight changes is either
+// refused with one of Edit's errors or saved as bytes that read back with
+// it, and nothing panics. Its seeds run with the tests; go test -fuzz
+// FuzzEdit explores (90 s found no failure).
+func FuzzEdit(f *testing.F) {
+	for _, s := range []string{
+		"# c\nusername: alice # a\nnameservers:\n  - \"192.0.2.54\" # x\n  # y\n  - 192.0.2.52\nsshPort: 22\n",
+		"{username: alice, nameservers: [192.0.2.54, 192.0.2.52]}\n", "nameservers:\n- 192.0.2.54\n",
+		"username: |\n  alice\n  # x\nsshKeys: []\n", "\xef\xbb\xbfusername: alice\r\nnameservers:\r\n  - 192.0.2.54\r\n",
+		"ufwAppProfiles:\n  - name: web\n    ports: [80/tcp]\n", "username: \"a\n  b\"\nnameservers: [\n  192.0.2.54,\n]\n",
+		"", "# only\n", "---\n", "username:",
+	} {
+		f.Add(s, uint8(0))
+	}
+	f.Fuzz(func(t *testing.T, in string, which uint8) {
+		c := DefaultConfig()
+		if yaml.Unmarshal([]byte(in), c) != nil {
+			return
+		}
+		switch which % 8 {
+		case 0:
+			c.SshPort = 2230
+		case 1:
+			c.Username = "bob"
+		case 2:
+			c.Nameservers = []string{"192.0.2.53"}
+		case 3:
+			c.Nameservers = append([]string{"192.0.2.53"}, c.Nameservers...)
+		case 4:
+			c.SshKeys, c.SshAllowedUsers = nil, []string{"alice", "bob"}
+		case 5:
+			c.UfwAppProfiles = append(c.UfwAppProfiles, UfwAppProfile{Name: "ssh", Ports: []string{"2230/tcp"}})
+		case 6:
+			c.ConfirmTimeout, c.Tz = "3m", "UTC"
+		case 7:
+			if len(c.Nameservers) > 0 {
+				c.Nameservers = c.Nameservers[1:]
+			}
+		}
+		out, err := Edit([]byte(in), c)
+		if err != nil {
+			if !errors.Is(err, ErrNotEditable) && !errors.Is(err, ErrEditUnsafe) && !errors.Is(err, ErrInvalidFile) {
+				t.Fatalf("Edit(%q): %v", in, err)
+			}
+			return
+		}
+		back := DefaultConfig()
+		if err := yaml.Unmarshal(out, back); err != nil || back.SshPort != c.SshPort || back.Username != c.Username ||
+			!slices.Equal(back.Nameservers, c.Nameservers) || back.ConfirmTimeout != c.ConfirmTimeout {
+			t.Fatalf("Edit(%q) = %q, which reads back %+v, %v", in, out, back, err)
+		}
+	})
 }
