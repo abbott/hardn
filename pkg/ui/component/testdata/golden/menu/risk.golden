@@ -5,7 +5,7 @@
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-      ␛[1;38;2;219;184;83m⛬ Lockout risk␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
       ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
@@ -13,14 +13,14 @@ $
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-                           ␛[1;38;2;219;184;83m⛬ Lockout risk␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-                           ␛[1;38;2;219;184;83m⛬ Lockout risk␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -28,7 +28,7 @@ $
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-      ␛[1;38;2;219;184;83m[*] Lockout risk␛[m$
+      ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m$
       ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
@@ -36,14 +36,14 @@ $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-                           ␛[1;38;2;219;184;83m[*] Lockout risk␛[m$
+                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mToggle root SSH access␛[m$
-                           ␛[1;38;2;219;184;83m[*] Lockout risk␛[m$
+                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mView SSH Settings␛[m    ␛[38;2;129;134;156mShow SSH configuration␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -51,7 +51,7 @@ $
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m$
       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-      ␛[1;38;2;138;97;0m⛬ Lockout risk␛[m$
+      ␛[1;38;2;138;97;0m⭘ Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m$
       ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
@@ -59,14 +59,14 @@ $
 
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-                           ␛[1;38;2;138;97;0m⛬ Lockout risk␛[m$
+                           ␛[1;38;2;138;97;0m⭘ Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m    ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
    ␛[1;38;2;87;92;110m0)␛[m ␛[38;2;87;92;110mReturn␛[m$
 
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-                           ␛[1;38;2;138;97;0m⛬ Lockout risk␛[m$
+                           ␛[1;38;2;138;97;0m⭘ Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m    ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
    ␛[1;38;2;87;92;110m0)␛[m ␛[38;2;87;92;110mReturn␛[m$
@@ -74,7 +74,7 @@ $
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m$
       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-      ␛[1;38;2;138;97;0m[*] Lockout risk␛[m$
+      ␛[1;38;2;138;97;0m[ ] Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m$
       ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
@@ -82,14 +82,14 @@ $
 
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-                           ␛[1;38;2;138;97;0m[*] Lockout risk␛[m$
+                           ␛[1;38;2;138;97;0m[ ] Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m    ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
    ␛[1;38;2;87;92;110m0)␛[m ␛[38;2;87;92;110mReturn␛[m$
 
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mRoot SSH Login␛[m       ␛[38;2;87;92;110mToggle root SSH access␛[m$
-                           ␛[1;38;2;138;97;0m[*] Lockout risk␛[m$
+                           ␛[1;38;2;138;97;0m[ ] Lockout risk␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mView SSH Settings␛[m    ␛[38;2;87;92;110mShow SSH configuration␛[m$
 $
    ␛[1;38;2;87;92;110m0)␛[m ␛[38;2;87;92;110mReturn␛[m$
@@ -97,7 +97,7 @@ $
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m$
       ␛[38;5;103mToggle root SSH access␛[m$
-      ␛[1;38;5;179m⛬ Lockout risk␛[m$
+      ␛[1;38;5;179m⭘ Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m$
       ␛[38;5;103mShow SSH configuration␛[m$
 $
@@ -105,14 +105,14 @@ $
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m       ␛[38;5;103mToggle root SSH access␛[m$
-                           ␛[1;38;5;179m⛬ Lockout risk␛[m$
+                           ␛[1;38;5;179m⭘ Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m    ␛[38;5;103mShow SSH configuration␛[m$
 $
    ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m       ␛[38;5;103mToggle root SSH access␛[m$
-                           ␛[1;38;5;179m⛬ Lockout risk␛[m$
+                           ␛[1;38;5;179m⭘ Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m    ␛[38;5;103mShow SSH configuration␛[m$
 $
    ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
@@ -120,7 +120,7 @@ $
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m$
       ␛[38;5;103mToggle root SSH access␛[m$
-      ␛[1;38;5;179m[*] Lockout risk␛[m$
+      ␛[1;38;5;179m[ ] Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m$
       ␛[38;5;103mShow SSH configuration␛[m$
 $
@@ -128,14 +128,14 @@ $
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m       ␛[38;5;103mToggle root SSH access␛[m$
-                           ␛[1;38;5;179m[*] Lockout risk␛[m$
+                           ␛[1;38;5;179m[ ] Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m    ␛[38;5;103mShow SSH configuration␛[m$
 $
    ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mRoot SSH Login␛[m       ␛[38;5;103mToggle root SSH access␛[m$
-                           ␛[1;38;5;179m[*] Lockout risk␛[m$
+                           ␛[1;38;5;179m[ ] Lockout risk␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mView SSH Settings␛[m    ␛[38;5;103mShow SSH configuration␛[m$
 $
    ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
@@ -143,7 +143,7 @@ $
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m$
       ␛[38;5;59mToggle root SSH access␛[m$
-      ␛[1;38;5;94m⛬ Lockout risk␛[m$
+      ␛[1;38;5;94m⭘ Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m$
       ␛[38;5;59mShow SSH configuration␛[m$
 $
@@ -151,14 +151,14 @@ $
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m       ␛[38;5;59mToggle root SSH access␛[m$
-                           ␛[1;38;5;94m⛬ Lockout risk␛[m$
+                           ␛[1;38;5;94m⭘ Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m    ␛[38;5;59mShow SSH configuration␛[m$
 $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mReturn␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m       ␛[38;5;59mToggle root SSH access␛[m$
-                           ␛[1;38;5;94m⛬ Lockout risk␛[m$
+                           ␛[1;38;5;94m⭘ Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m    ␛[38;5;59mShow SSH configuration␛[m$
 $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mReturn␛[m$
@@ -166,7 +166,7 @@ $
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m$
       ␛[38;5;59mToggle root SSH access␛[m$
-      ␛[1;38;5;94m[*] Lockout risk␛[m$
+      ␛[1;38;5;94m[ ] Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m$
       ␛[38;5;59mShow SSH configuration␛[m$
 $
@@ -174,14 +174,14 @@ $
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m       ␛[38;5;59mToggle root SSH access␛[m$
-                           ␛[1;38;5;94m[*] Lockout risk␛[m$
+                           ␛[1;38;5;94m[ ] Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m    ␛[38;5;59mShow SSH configuration␛[m$
 $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mReturn␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mRoot SSH Login␛[m       ␛[38;5;59mToggle root SSH access␛[m$
-                           ␛[1;38;5;94m[*] Lockout risk␛[m$
+                           ␛[1;38;5;94m[ ] Lockout risk␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mView SSH Settings␛[m    ␛[38;5;59mShow SSH configuration␛[m$
 $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mReturn␛[m$
@@ -189,7 +189,7 @@ $
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m$
       ␛[90mToggle root SSH access␛[m$
-      ␛[1;33m⛬ Lockout risk␛[m$
+      ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m$
       ␛[90mShow SSH configuration␛[m$
 $
@@ -197,14 +197,14 @@ $
 
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m⛬ Lockout risk␛[m$
+                           ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
 
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m⛬ Lockout risk␛[m$
+                           ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
@@ -212,7 +212,7 @@ $
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m$
       ␛[90mToggle root SSH access␛[m$
-      ␛[1;33m[*] Lockout risk␛[m$
+      ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m$
       ␛[90mShow SSH configuration␛[m$
 $
@@ -220,14 +220,14 @@ $
 
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m[*] Lockout risk␛[m$
+                           ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
 
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m[*] Lockout risk␛[m$
+                           ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;37m2)␛[m ␛[37mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
@@ -235,7 +235,7 @@ $
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m$
       ␛[90mToggle root SSH access␛[m$
-      ␛[1;33m⛬ Lockout risk␛[m$
+      ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m$
       ␛[90mShow SSH configuration␛[m$
 $
@@ -243,14 +243,14 @@ $
 
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m⛬ Lockout risk␛[m$
+                           ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
 
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m⛬ Lockout risk␛[m$
+                           ␛[1;33m⭘ Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
@@ -258,7 +258,7 @@ $
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m$
       ␛[90mToggle root SSH access␛[m$
-      ␛[1;33m[*] Lockout risk␛[m$
+      ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m$
       ␛[90mShow SSH configuration␛[m$
 $
@@ -266,14 +266,14 @@ $
 
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m[*] Lockout risk␛[m$
+                           ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
 
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mRoot SSH Login␛[m       ␛[90mToggle root SSH access␛[m$
-                           ␛[1;33m[*] Lockout risk␛[m$
+                           ␛[1;33m[ ] Lockout risk␛[m$
    ␛[1;30m2)␛[m ␛[30mView SSH Settings␛[m    ␛[90mShow SSH configuration␛[m$
 $
    ␛[1;90m0)␛[m ␛[90mReturn␛[m$
@@ -281,7 +281,7 @@ $
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m Root SSH Login$
       Toggle root SSH access$
-      ␛[1m⛬ Lockout risk␛[m$
+      ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings$
       Show SSH configuration$
 $
@@ -289,14 +289,14 @@ $
 
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m⛬ Lockout risk␛[m$
+                           ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
 
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m⛬ Lockout risk␛[m$
+                           ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
@@ -304,7 +304,7 @@ $
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m Root SSH Login$
       Toggle root SSH access$
-      ␛[1m[*] Lockout risk␛[m$
+      ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings$
       Show SSH configuration$
 $
@@ -312,14 +312,14 @@ $
 
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m[*] Lockout risk␛[m$
+                           ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
 
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m[*] Lockout risk␛[m$
+                           ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
@@ -327,7 +327,7 @@ $
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m Root SSH Login$
       Toggle root SSH access$
-      ␛[1m⛬ Lockout risk␛[m$
+      ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings$
       Show SSH configuration$
 $
@@ -335,14 +335,14 @@ $
 
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m⛬ Lockout risk␛[m$
+                           ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
 
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m⛬ Lockout risk␛[m$
+                           ␛[1m⭘ Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
@@ -350,7 +350,7 @@ $
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m Root SSH Login$
       Toggle root SSH access$
-      ␛[1m[*] Lockout risk␛[m$
+      ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings$
       Show SSH configuration$
 $
@@ -358,14 +358,14 @@ $
 
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m[*] Lockout risk␛[m$
+                           ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$
 
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m Root SSH Login       Toggle root SSH access$
-                           ␛[1m[*] Lockout risk␛[m$
+                           ␛[1m[ ] Lockout risk␛[m$
    ␛[1m2)␛[m View SSH Settings    Show SSH configuration$
 $
    ␛[1m0)␛[m Return$

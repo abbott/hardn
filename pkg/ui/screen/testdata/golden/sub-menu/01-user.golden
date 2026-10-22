@@ -3,11 +3,11 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[48;2;22;24;29m                                              ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
@@ -49,12 +49,12 @@ $
   > Enter your choice [0-2 or q]:$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[48;2;22;24;29m                                          ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
   ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $

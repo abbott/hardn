@@ -213,13 +213,22 @@ func (c Ctx) badge(s string, limit int) span {
 	return span{left + s + right, c.Theme.Badge}
 }
 
-// paint returns n cells painted in fill: spaces on its background or, with
-// no colour to paint them, a run of Glyphs.Bar (DEV-015, DEV-018).
+// paint returns n cells painted in fill, a callout's accent bar: spaces on
+// its background or, with no colour to paint them, a run of Glyphs.Bar
+// (DEV-015, DEV-032).
 func (c Ctx) paint(fill lipgloss.Style, n int) span {
 	if c.Env.HasColor() {
 		return span{strings.Repeat(" ", max(0, n)), fill}
 	}
 	return span{strings.Repeat(c.Theme.Glyphs.Bar, max(0, n)), fill}
+}
+
+// shade returns a run of Glyphs.Shade n cells wide in style, a bar's or a
+// section header's Fill: ░ in bar.shade, or uncoloured with no colour, and
+// # in the ASCII set; never a background (the maintainer, 2026-10-21;
+// DEV-018, DEV-033).
+func (c Ctx) shade(style lipgloss.Style, n int) span {
+	return span{strings.Repeat(c.Theme.Glyphs.Shade, max(0, n)), style}
 }
 
 // rule returns a run of Glyphs.Rule n cells wide in style.
@@ -234,15 +243,16 @@ const barFrame = 4
 
 // bar renders a context or title bar across c.barWidth(): a one-cell
 // stub, the text on the terminal's own background with a cell either side,
-// and the fill (DEV-018), painted as paint paints them. Text too wide for
-// the bar is cut; a bar with no text, or too narrow for any, is all fill.
+// and the fill, the stub and fill drawn as shade draws them (DEV-018).
+// Text too wide for the bar is cut; a bar with no text, or too narrow for
+// any, is all fill.
 func (c Ctx) bar(fill lipgloss.Style, text line) string {
 	w := c.barWidth()
 	if text.width() == 0 || w <= barFrame {
-		return c.paint(fill, w).String()
+		return c.shade(fill, w).String()
 	}
 	body := c.fit(text, w-barFrame)
-	return c.paint(fill, 1).String() + " " + body + " " + c.paint(fill, w-3-lipgloss.Width(body)).String()
+	return c.shade(fill, 1).String() + " " + body + " " + c.shade(fill, w-3-lipgloss.Width(body)).String()
 }
 
 // wrap breaks plain text s into lines of at most limit cells: at spaces

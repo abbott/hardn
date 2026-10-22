@@ -13,6 +13,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -30,6 +31,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -87,6 +89,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -104,6 +107,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -161,6 +165,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -178,6 +183,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -235,6 +241,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -252,6 +259,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -309,6 +317,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -326,6 +335,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -383,6 +393,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;223;223;223mbadge.fg␛[m        ␛[48;2;223;223;223m      ␛[m$
   ␛[38;2;22;24;29mbar.bg␛[m          ␛[48;2;22;24;29m      ␛[m$
+  ␛[38;2;43;47;59mbar.shade␛[m       ␛[48;2;43;47;59m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;210;188;19maccent.warn␛[m     ␛[48;2;210;188;19m      ␛[m$
   ␛[38;2;48;52;64mdivider␛[m         ␛[48;2;48;52;64m      ␛[m$
@@ -400,6 +411,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -457,6 +469,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -474,6 +487,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -531,6 +545,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -548,6 +563,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -605,6 +621,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -622,6 +639,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -679,6 +697,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -696,6 +715,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -753,6 +773,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -770,6 +791,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -827,6 +849,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;2;12;42;192mbadge.bg␛[m        ␛[48;2;12;42;192m      ␛[m$
   ␛[38;2;255;255;255mbadge.fg␛[m        ␛[48;2;255;255;255m      ␛[m$
   ␛[38;2;230;232;238mbar.bg␛[m          ␛[48;2;230;232;238m      ␛[m$
+  ␛[38;2;202;206;218mbar.shade␛[m       ␛[48;2;202;206;218m      ␛[m$
   ␛[38;2;0;138;0maccent.ok␛[m       ␛[48;2;0;138;0m      ␛[m$
   ␛[38;2;184;138;0maccent.warn␛[m     ␛[48;2;184;138;0m      ␛[m$
   ␛[38;2;129;134;156mdivider␛[m         ␛[48;2;129;134;156m      ␛[m$
@@ -844,6 +867,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -901,6 +925,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -918,6 +943,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -975,6 +1001,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -992,6 +1019,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1049,6 +1077,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -1066,6 +1095,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1123,6 +1153,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -1140,6 +1171,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1197,6 +1229,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -1214,6 +1247,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1271,6 +1305,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;254mbadge.fg␛[m        ␛[48;5;254m      ␛[m$
   ␛[38;5;234mbar.bg␛[m          ␛[48;5;234m      ␛[m$
+  ␛[38;5;236mbar.shade␛[m       ␛[48;5;236m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;178maccent.warn␛[m     ␛[48;5;178m      ␛[m$
   ␛[38;5;236mdivider␛[m         ␛[48;5;236m      ␛[m$
@@ -1288,6 +1323,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1345,6 +1381,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1362,6 +1399,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1419,6 +1457,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1436,6 +1475,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1493,6 +1533,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1510,6 +1551,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1567,6 +1609,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1584,6 +1627,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1641,6 +1685,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1658,6 +1703,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1715,6 +1761,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;19mbadge.bg␛[m        ␛[48;5;19m      ␛[m$
   ␛[38;5;231mbadge.fg␛[m        ␛[48;5;231m      ␛[m$
   ␛[38;5;254mbar.bg␛[m          ␛[48;5;254m      ␛[m$
+  ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
   ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
@@ -1732,6 +1779,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1789,6 +1837,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -1806,6 +1855,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1863,6 +1913,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -1880,6 +1931,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -1937,6 +1989,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -1954,6 +2007,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2011,6 +2065,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2028,6 +2083,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2085,6 +2141,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2102,6 +2159,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2159,6 +2217,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[90mbar.bg␛[m          ␛[100m      ␛[m$
+  ␛[90mbar.shade␛[m       ␛[100m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2176,6 +2235,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2233,6 +2293,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2250,6 +2311,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2307,6 +2369,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2324,6 +2387,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2381,6 +2445,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2398,6 +2463,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2455,6 +2521,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2472,6 +2539,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2529,6 +2597,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2546,6 +2615,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2603,6 +2673,7 @@ Tokens: the name in its colour, then as a background$
   ␛[34mbadge.bg␛[m        ␛[44m      ␛[m$
   ␛[97mbadge.fg␛[m        ␛[107m      ␛[m$
   ␛[37mbar.bg␛[m          ␛[47m      ␛[m$
+  ␛[37mbar.shade␛[m       ␛[47m      ␛[m$
   ␛[32maccent.ok␛[m       ␛[42m      ␛[m$
   ␛[33maccent.warn␛[m     ␛[43m      ␛[m$
   ␛[90mdivider␛[m         ␛[100m      ␛[m$
@@ -2620,6 +2691,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2677,6 +2749,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -2694,6 +2767,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2751,6 +2825,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -2768,6 +2843,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2825,6 +2901,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -2842,6 +2919,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2899,6 +2977,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -2916,6 +2995,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -2973,6 +3053,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -2990,6 +3071,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3047,6 +3129,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3064,6 +3147,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3121,6 +3205,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3138,6 +3223,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3195,6 +3281,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3212,6 +3299,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3269,6 +3357,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3286,6 +3375,7 @@ Glyphs$
   Separator       ›$
   Ellipsis        …$
   Bar             █$
+  Shade           ░$
   Rule            ─$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3343,6 +3433,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3360,6 +3451,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3417,6 +3509,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3434,6 +3527,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$
@@ -3491,6 +3585,7 @@ Tokens: the name in its colour, then as a background$
   badge.bg              $
   badge.fg              $
   bar.bg                $
+  bar.shade             $
   accent.ok             $
   accent.warn           $
   divider               $
@@ -3508,6 +3603,7 @@ Glyphs$
   Separator       >$
   Ellipsis        ...$
   Bar             #$
+  Shade           #$
   Rule            -$
   BadgeOpen       [$
   BadgeClose      ]$

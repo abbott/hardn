@@ -22,6 +22,7 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 |---|---|---|---|---|
 | a warning message, "Warning: …" | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, the maintainer's "Warning: ⭘ status.warn" |
 | the confirm countdown, while there is time | ⭘ | `[ ]` | `status.warn`, bold | `Warn` |
+| a plan's lockout-risk change, "Lockout risk", and a risky menu item's note line | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, a warning (the maintainer, 2026-10-21; `next/p4-bar-shade`); ⛬ `[*]` until then |
 | the host block's "Reboot pending" | ⭘ | `[ ]` | `status.warn` | `Partial` |
 | a key-value row's warn value | ⭘ | `[ ]` | `status.warn` | `Partial` |
 | a key-value row's unknown and not-applicable values | ? and – | `[?]` and `[-]` | `text.muted` | `Unknown`, `NotApplicable` |
@@ -32,17 +33,17 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 
 **The rule, changed.** Partial and Not Configured share ⭘ `[ ]`, and a warning takes it too. They are told apart by colour and by the word, which is always on the line: never by colour alone. Unknown and Not Applicable share `text.muted` and differ by glyph and word. A key-value row has no state word: there a warn and a bad value differ by colour, and without colour only by the value's own words, such as "None" beside "Enabled, No password" (DEV-034). A not-applicable value's – sits in the bullet's column in the bullet's grey, which §4's figures put close to `-` in some fonts; its value or "Not Applicable" is beside it. A status row on Partial or Not Configured shows its state's word, never its `Word`, which would leave the two rows alike without colour (`TestLayout`).
 
-## 2. Where ⛬ is still drawn, for the maintainer to confirm
+## 2. Where ⛬ is drawn
 
-No other glyph is the risk icon or holds it (`TestRiskGlyphAlone`), and over every component state, in both glyph sets, ⛬ `[*]` is drawn only by these components, before these words (`TestRiskGlyphDrawn`):
+No other glyph is the risk icon or holds it (`TestRiskGlyphAlone`), and over every component state, in both glyph sets, ⛬ `[*]` is drawn only by `RiskSummary`, before "Risk Level" (`TestRiskGlyphDrawn`):
 
 | Where | Line | Status |
 |---|---|---|
 | `RiskSummary` | `⛬  Risk Level` | the maintainer's decision |
-| `PlanView`, a lockout-risk change | `⛬  Lockout risk`, the title on the next line | **pending** the maintainer's answer; chosen 2026-10-20 (DEV-038) |
-| `Menu`, a risky item's note line | `⛬ Lockout risk` | **pending** the maintainer's answer (DEV-028, P-22) |
 
-Beyond these, the theme's swatch golden lists the `Risk` glyph, and this mode names ⛬ in its note and draws it in its strip.
+Two lines drew ⛬ until the maintainer's decision of 2026-10-21, "⛬ Lockout risk is a warning, so it would need to use the warn pattern": a lockout-risk change's lead line in `PlanView` (`⭘  Lockout risk`, the title on the next line; DEV-038) and a risky item's note line in `Menu` (`⭘ Lockout risk`; DEV-028, P-22 still holding the words and which items). Both draw `Warn` since, which the same test checks for each.
+
+Beyond `RiskSummary`, the theme's swatch golden lists the `Risk` glyph, and this mode names ⛬ in its note and draws it in its strip.
 
 ## 3. What the mode shows
 

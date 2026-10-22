@@ -32,7 +32,8 @@ type palette struct {
 	StatusWarn  token `token:"status.warn"`  // partial, risk Moderate, warnings
 	BadgeBG     token `token:"badge.bg"`     // host and user badges
 	BadgeFG     token `token:"badge.fg"`
-	BarBG       token `token:"bar.bg"`      // context and title bars, section stubs, version box
+	BarBG       token `token:"bar.bg"`      // the version box (DEV-005)
+	BarShade    token `token:"bar.shade"`   // the ░ of the context and title bars and section stubs: a fill, never text
 	AccentOK    token `token:"accent.ok"`   // callout bar beside a success title
 	AccentWarn  token `token:"accent.warn"` // callout bar beside a warning title
 	Divider     token `token:"divider"`     // rules
@@ -62,6 +63,7 @@ var darkPalette = palette{
 	BadgeBG:     token{"#0C2AC0", 19, lipgloss.Blue},
 	BadgeFG:     token{"#DFDFDF", 254, lipgloss.BrightWhite}, // DEV-003
 	BarBG:       token{"#16181D", 234, lipgloss.BrightBlack}, // DEV-004
+	BarShade:    token{"#2B2F3B", 236, lipgloss.BrightBlack}, // DEV-018: Figma's text.dim, as a fill
 	AccentOK:    token{"#008A00", 28, lipgloss.Green},
 	AccentWarn:  token{"#D2BC13", 178, lipgloss.Yellow},
 	Divider:     token{"#303440", 236, lipgloss.BrightBlack}, // DEV-002
@@ -73,8 +75,13 @@ var darkPalette = palette{
 // bars. It is low priority; the maintainer refines it later.
 //
 // 16 colours: primary text is Black, status words take the normal hues,
-// which are the darker ones, and bars take White, the light gray that
-// matches bar.bg.
+// which are the darker ones, and the version box and the bars' shade take
+// White, the light gray that matches bar.bg.
+//
+// bar.shade is proposed (2026-10-21): #CACEDA is 1.57:1 on white as
+// Figma's #2B2F3B is on black, and the same blue-gray, its channels the
+// same steps apart; it falls between bar.bg and the divider, as the dark
+// value does (DEV-011, DEV-018).
 var lightPalette = palette{
 	TextPrimary: token{"#1E2230", 235, lipgloss.Black},
 	TextMuted:   token{"#575C6E", 59, lipgloss.BrightBlack},
@@ -85,6 +92,7 @@ var lightPalette = palette{
 	BadgeBG:     token{"#0C2AC0", 19, lipgloss.Blue},
 	BadgeFG:     token{"#FFFFFF", 231, lipgloss.BrightWhite},
 	BarBG:       token{"#E6E8EE", 254, lipgloss.White},
+	BarShade:    token{"#CACEDA", 252, lipgloss.White}, // proposed
 	AccentOK:    token{"#008A00", 28, lipgloss.Green},
 	AccentWarn:  token{"#B88A00", 136, lipgloss.Yellow},
 	Divider:     token{"#81869C", 103, lipgloss.BrightBlack},

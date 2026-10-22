@@ -94,8 +94,9 @@ func TestSharedMarkerColours(t *testing.T) {
 
 // TestRiskGlyphAlone checks that the risk icon, ⛬ or [*], is no other
 // role's glyph and is in none, so that only the code that names
-// Glyphs.Risk draws it: RiskSummary, and the menu's and the plan's
-// lockout-risk lines (pkg/ui/component's TestRiskGlyphDrawn).
+// Glyphs.Risk draws it: RiskSummary alone (pkg/ui/component's
+// TestRiskGlyphDrawn). The lockout-risk lines take Warn (the maintainer,
+// 2026-10-21).
 func TestRiskGlyphAlone(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
 		for field, glyph := range glyphFields(g) {
@@ -145,6 +146,18 @@ func TestStepMarkers(t *testing.T) {
 			if slices.Contains(states[i+1:], m) || slices.Contains(frames, m) {
 				t.Errorf("%s: glyph %q marks two step states", name, m)
 			}
+		}
+	}
+}
+
+// TestShadeOneCell checks the bars' fill glyph: one cell in both sets, and
+// in the Unicode set one cell even in a terminal that draws East Asian
+// ambiguous characters two cells wide (░ is neutral), so that a bar, a run
+// of it, keeps its width there (DEV-018).
+func TestShadeOneCell(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		if w, ww := lipgloss.Width(g.Shade), wideWidth(g.Shade); w != 1 || ww != 1 {
+			t.Errorf("%s: Shade %q is %d cells, %d when ambiguous is wide; want 1", name, g.Shade, w, ww)
 		}
 	}
 }

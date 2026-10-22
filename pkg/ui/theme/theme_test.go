@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
@@ -154,9 +155,9 @@ func TestColourRoles(t *testing.T) {
 	}{
 		{"Header.Wordmark", false, "text.primary"},
 		{"Header.URL", false, "text.faint"},
-		{"ContextBar.Fill", true, "bar.bg"},
+		{"ContextBar.Fill", false, "bar.shade"},
 		{"ContextBar.Unknown", false, "text.muted"},
-		{"TitleBar.Fill", true, "bar.bg"},
+		{"TitleBar.Fill", false, "bar.shade"},
 		{"TitleBar.Parent", false, "text.muted"},
 		{"TitleBar.Separator", false, "text.faint"},
 		{"TitleBar.Title", false, "text.primary"},
@@ -188,6 +189,7 @@ func TestColourRoles(t *testing.T) {
 		{"Callout.Bad.Bar", true, "status.bad"},
 		{"Callout.Info.Bar", true, "text.muted"},
 		{"Callout.Info.Title", false, "text.primary"},
+		{"Section.Fill", false, "bar.shade"},
 		{"KeyValue.ValueUnknown", false, "text.muted"},
 		{"KeyValue.ValueNotApplicable", false, "text.muted"},
 		{"Badge", false, "badge.fg"},
@@ -240,6 +242,34 @@ func TestColourRoles(t *testing.T) {
 	}
 }
 
+// TestShadeFillOnly holds bar.shade, Figma's #2B2F3B at 1.57:1 on black,
+// which DEV-001 replaced for text, to the fill slots alone: no other slot
+// takes it as its foreground or background (the maintainer, 2026-10-21;
+// DEV-018). It is checked at truecolor, where no other token shares its
+// value; at 256 colours the dark divider is 236 too.
+func TestShadeFillOnly(t *testing.T) {
+	fills := []string{"ContextBar.Fill", "TitleBar.Fill", "Section.Fill"}
+	for _, dark := range []bool{true, false} {
+		for _, unicode := range []bool{true, false} {
+			env := term.Fixed(term.DefaultWidth, colorprofile.TrueColor, unicode, dark)
+			p := lightPalette
+			if dark {
+				p = darkPalette
+			}
+			shade := profileColors(p.BarShade)["truecolor"]
+			for path, s := range slots(New(env)) {
+				fill := slices.Contains(fills, path)
+				if got := s.GetForeground() == shade; got != fill {
+					t.Errorf("%s: %s has bar.shade as its foreground: %t, want %t", envName(env), path, got, fill)
+				}
+				if s.GetBackground() == shade {
+					t.Errorf("%s: %s has bar.shade as its background, want none", envName(env), path)
+				}
+			}
+		}
+	}
+}
+
 // profileKey maps a profile to its key in profileColors.
 func profileKey(p colorprofile.Profile) string {
 	switch p {
@@ -261,6 +291,21 @@ func TestVersionBox(t *testing.T) {
 		got := New(env).Header.Version.GetBackground() != lipgloss.NoColor{}
 		if want := env.Profile > colorprofile.ANSI; got != want {
 			t.Errorf("%s: version box is %t, want %t", envName(env), got, want)
+		}
+	}
+}
+
+// TestBarsUnpainted checks the bars' slots in every environment: none sets
+// a background, so the stub, the fill and the text of a context bar, a
+// title bar and a section header sit on the terminal's own (the
+// maintainer, 2026-10-21; DEV-018, DEV-033).
+func TestBarsUnpainted(t *testing.T) {
+	for _, env := range envs() {
+		for path, s := range slots(New(env)) {
+			bar := strings.HasPrefix(path, "ContextBar.") || strings.HasPrefix(path, "TitleBar.") || strings.HasPrefix(path, "Section.")
+			if bar && s.GetBackground() != (lipgloss.NoColor{}) {
+				t.Errorf("%s: %s paints a background, %v", envName(env), path, s.GetBackground())
+			}
 		}
 	}
 }

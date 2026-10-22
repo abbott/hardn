@@ -2,6 +2,7 @@ package component_test
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -223,8 +224,10 @@ func TestLayout(t *testing.T) {
 			"# " + strings.Repeat("x", 53) + "... #"},
 		{"bar: a cut between spans drops the spaces before it", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, 17, false,
 			"# Debian 12... ##"},
-		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("█", 60)},
-		{"bar: no title is all fill, whatever the parents", TitleBar{Parents: []string{"User Management"}}, 60, true, strings.Repeat("█", 60)},
+		{"bar: no text is all fill", TitleBar{}, 60, true, strings.Repeat("░", 60)},
+		{"bar: no title is all fill, whatever the parents", TitleBar{Parents: []string{"User Management"}}, 60, true, strings.Repeat("░", 60)},
+		{"bar: the Unicode shade", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, 80, true,
+			"░ Debian 12 (Bookworm) " + strings.Repeat("░", maxWidth(ContextBar{}, 80)-23)},
 		{"bar: a trail before the title", TitleBar{Title: "Manage User", Parents: []string{" User Management", ""}}, 80, false,
 			"# User Management > Manage User " + strings.Repeat("#", maxWidth(TitleBar{}, 80)-32)},
 		{"bar: too long, the middle parents go first", TitleBar{Title: "SSH Keys", Parents: []string{"User Management", "Manage User"}}, 40, false,
@@ -302,13 +305,13 @@ func TestLayout(t *testing.T) {
 		{"menu: the exit item after the section gap", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}}, Exit: figmaMenu.Exit}, from, false,
 			"   1) DNS" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		{"menu: a risky item's note line", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, from, false,
-			"   2) SSH Login            Toggle root SSH access\n                           [*] Lockout risk"},
+			"   2) SSH Login            Toggle root SSH access\n                           [ ] Lockout risk"},
 		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true, Risk: true}}}, from, true,
 			"   3) DNS                  Configure Nameservers\n                           – Unavailable"},
 		{"menu: stacked below StackBelow", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, below, false,
-			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk"},
+			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk"},
 		{"menu: a note with no description sits beside the label", Menu{Items: []MenuItem{{Key: "7", Label: "Run All", Risk: true}}}, from, false,
-			"   7) Run All              [*] Lockout risk"},
+			"   7) Run All              [ ] Lockout risk"},
 		{"menu: a long label stacks the item rather than being cut", Menu{Items: []MenuItem{{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Daily"}}}, 80, false,
 			"   1) Unattended Upgrades Mail Reports\n      Daily"},
 		{"menu: a long label stacks the whole menu", Menu{Items: []MenuItem{
@@ -327,7 +330,7 @@ func TestLayout(t *testing.T) {
 			{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true},
 			{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true},
 		}}, 40, false,
-			"   2) SSH Login\n      Toggle root SSH access\n      [*] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
+			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
 		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers"}}}, 29, false,
 			"   3) DNS\n      Configure Nameservers"},
 		{"menu: a key of up to five cells grows into the indent", Menu{Items: []MenuItem{{Key: "100", Label: "Logs"}, {Key: "1234", Label: "DNS"}}}, 80, false,
@@ -391,7 +394,7 @@ func TestLayout(t *testing.T) {
 		{"subject: no label is the badge alone", SubjectLine{Subject: "george"}, 80, true, "  [george]"},
 		{"section: stub, title and rule", SectionHeader{Title: "User Configuration"}, 80, false,
 			"# User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
-		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "█ " + strings.Repeat("─", 58)},
+		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "░ " + strings.Repeat("─", 58)},
 		{"section: a long title is cut", SectionHeader{Title: strings.Repeat("x", 70)}, 60, false,
 			"# " + strings.Repeat("x", 53) + "... -"},
 		{"breadcrumb: items joined by the separator", Breadcrumb{Items: []string{"User Management", " Manage User", ""}}, 80, true,
@@ -719,23 +722,35 @@ func TestStatusStates(t *testing.T) {
 }
 
 // TestRiskGlyphDrawn checks that the risk icon, ⛬ or [*], is the risk
-// level's: rendering every state of fixture.States, in both glyph sets and
-// at widths that stack and that do not, it is drawn only by RiskSummary
-// before "Risk Level" and, pending the maintainer (DEV-028, DEV-038), by
-// Menu and PlanView before "Lockout risk", each state's component taken
-// from its fixture name. No other glyph is the risk icon (pkg/ui/theme's
-// TestRiskGlyphAlone).
+// level's alone: rendering every state of fixture.States, in both glyph
+// sets and at widths that stack and that do not, it is drawn only by
+// RiskSummary, before "Risk Level", each state's component taken from its
+// fixture name. The menu's and the plan's "Lockout risk" lines are
+// warnings (the maintainer, 2026-10-21; DEV-028, DEV-038): every line that
+// says it draws Glyphs.Warn before it, and Menu and PlanView each draw one.
+// No other glyph is the risk icon (pkg/ui/theme's TestRiskGlyphAlone).
 func TestRiskGlyphDrawn(t *testing.T) {
-	type use struct{ component, words string }
-	uses := []use{{"risksummary", "Risk Level"}, {"planview", LockoutRisk}, {"menu", LockoutRisk}}
+	const owner, words = "risksummary", "Risk Level"
+	warners := []string{"menu", "planview"} // the components with a "Lockout risk" line
 	for _, unicode := range []bool{true, false} {
 		for _, w := range []int{40, 64, 80} {
 			c := NewCtx(term.Fixed(w, colorprofile.TrueColor, unicode, true))
-			icon := c.Theme.Glyphs.Risk
-			seen := map[use]bool{}
+			icon, warn := c.Theme.Glyphs.Risk, c.Theme.Glyphs.Warn
+			seen, warned := false, map[string]bool{}
 			for _, s := range fixture.States() {
 				comp, _, _ := strings.Cut(s.Name, "/")
 				out := ansi.Strip(s.VM.Render(c))
+				for _, l := range strings.Split(out, "\n") {
+					before, _, ok := strings.Cut(l, LockoutRisk)
+					if !ok {
+						continue
+					}
+					if !strings.HasSuffix(strings.TrimRight(before, " "), warn) {
+						t.Errorf("%s, unicode %t, width %d: %q not after the warning glyph %q: %q", s.Name, unicode, w, LockoutRisk, warn, l)
+						continue
+					}
+					warned[comp] = true
+				}
 				for rest := out; ; {
 					i := strings.Index(rest, icon)
 					if i < 0 {
@@ -743,18 +758,19 @@ func TestRiskGlyphDrawn(t *testing.T) {
 					}
 					rest = rest[i+len(icon):]
 					after := strings.TrimLeft(rest, " ")
-					if j := slices.IndexFunc(uses, func(u use) bool {
-						return u.component == comp && strings.HasPrefix(after, u.words)
-					}); j >= 0 {
-						seen[uses[j]] = true
+					if comp == owner && strings.HasPrefix(after, words) {
+						seen = true
 						continue
 					}
 					t.Errorf("%s, unicode %t, width %d: the risk icon %q before %q", s.Name, unicode, w, icon, strings.SplitN(after, "\n", 2)[0])
 				}
 			}
-			for _, u := range uses {
-				if !seen[u] {
-					t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, u.component, u.words)
+			if !seen {
+				t.Errorf("unicode %t, width %d: no %s state drew the risk icon before %q", unicode, w, owner, words)
+			}
+			for _, comp := range warners {
+				if !warned[comp] {
+					t.Errorf("unicode %t, width %d: no %s state drew %q after the warning glyph %q", unicode, w, comp, LockoutRisk, warn)
 				}
 			}
 		}
@@ -787,7 +803,7 @@ func TestMenuStyles(t *testing.T) {
 			{"1)", m.Disabled}, {"Root SSH Login", m.Disabled}, {"Toggle root SSH access", m.Disabled},
 			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + Unavailable, m.Disabled},
 		}},
-		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Risk + " " + LockoutRisk, m.Risk}}},
+		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Warn + " " + LockoutRisk, m.Risk}}},
 		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-10 or q]:", p.Hint}}},
 		{"prompt with no hint", PromptLine{Label: "Username"}, []part{{"Username", p.Label}, {":", p.Label}}},
 	}
@@ -840,6 +856,88 @@ func TestMenuItemShown(t *testing.T) {
 	}
 }
 
+// TestBars checks the bars (the maintainer, 2026-10-21; DEV-018, DEV-033)
+// at every colour profile, on both backgrounds, in both glyph sets and at
+// two widths: a ContextBar, a TitleBar and a SectionHeader open with a
+// one-cell stub of Glyphs.Shade in their Fill slot, then a space and the
+// text from column 2; a bar then has a space and Glyphs.Shade in Fill to
+// the bar width, and a section header its rule. Fill has bar.shade's
+// colour wherever there is colour and none without (pkg/ui/theme's
+// TestColourRoles), and no part of the line is painted behind: no SGR in
+// it sets a background.
+func TestBars(t *testing.T) {
+	profiles := []colorprofile.Profile{colorprofile.TrueColor, colorprofile.ANSI256, colorprofile.ANSI, colorprofile.ASCII, colorprofile.NoTTY}
+	for _, p := range profiles {
+		for _, dark := range []bool{true, false} {
+			for _, unicode := range []bool{true, false} {
+				for _, w := range []int{40, 80} {
+					env := term.Fixed(w, p, unicode, dark)
+					c := NewCtx(env)
+					th, g := c.Theme, c.Theme.Glyphs
+					tests := []struct {
+						name       string
+						vm         renderer
+						fill       lipgloss.Style
+						text, tail string // tail is the glyph after the text: the fill's or the rule's
+					}{
+						{"context bar", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, th.ContextBar.Fill, "Debian 12 (Bookworm)", g.Shade},
+						{"title bar", TitleBar{Title: "Manage User"}, th.TitleBar.Fill, "Manage User", g.Shade},
+						{"section header", SectionHeader{Title: "User Configuration"}, th.Section.Fill, "User Configuration", g.Rule},
+					}
+					for _, tt := range tests {
+						where := fmt.Sprintf("%s, %v, dark %t, unicode %t, width %d", tt.name, p, dark, env.Unicode, w)
+						out := tt.vm.Render(c)
+						n := maxWidth(tt.vm, w) - 3 - lipgloss.Width(tt.text)
+						if got, want := ansi.Strip(out), g.Shade+" "+tt.text+" "+strings.Repeat(tt.tail, n); got != want {
+							t.Errorf("%s: got\n%s\nwant\n%s", where, got, want)
+						}
+						if !strings.HasPrefix(out, tt.fill.Render(g.Shade)+" ") {
+							t.Errorf("%s: %q does not open with the stub in Fill and a space", where, out)
+						}
+						if tt.tail == g.Shade && !strings.HasSuffix(out, " "+tt.fill.Render(strings.Repeat(g.Shade, n))) {
+							t.Errorf("%s: %q does not end with a space and the fill in Fill", where, out)
+						}
+						if got := tt.fill.GetForeground() != (lipgloss.NoColor{}); got != env.HasColor() {
+							t.Errorf("%s: Fill is coloured %t, want %t", where, got, env.HasColor())
+						}
+						if paintsBackground(out) {
+							t.Errorf("%s: %q paints a background", where, out)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// paintsBackground reports whether any SGR sequence in s sets a
+// background colour: 40-47, 100-107, or 48 with an indexed or RGB colour.
+// The colour arguments of 38 and 58, the foreground and underline, are
+// skipped, so 38;5;41 is not read as background 41.
+func paintsBackground(s string) bool {
+	for _, m := range sgr.FindAllStringSubmatch(s, -1) {
+		ps := strings.Split(m[1], ";")
+		for i := 0; i < len(ps); i++ {
+			switch p := ps[i]; {
+			case p == "38" || p == "58":
+				if i+1 < len(ps) && ps[i+1] == "5" {
+					i += 2
+				} else {
+					i += 4
+				}
+			case p == "48",
+				len(p) == 2 && p >= "40" && p <= "47",
+				len(p) == 3 && p >= "100" && p <= "107":
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// sgr matches an SGR escape sequence, its parameters in the group.
+var sgr = regexp.MustCompile(`\x1b\[([0-9;]*)m`)
+
 // TestBlockStyles checks that each part of the block group takes its slot.
 func TestBlockStyles(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
@@ -856,14 +954,14 @@ func TestBlockStyles(t *testing.T) {
 		{"badge", Badge{Text: "george"}, []part{{" george ", th.Badge}}},
 		{"subject", SubjectLine{Label: "Managing", Subject: "george"}, []part{{"Managing:", th.Text.Muted}, {" george ", th.Badge}}},
 		{"section", SectionHeader{Title: "User Configuration"}, []part{
-			{" ", th.Section.Fill}, {"User Configuration", th.Section.Title},
+			{th.Glyphs.Shade, th.Section.Fill}, {"User Configuration", th.Section.Title},
 			{strings.Repeat(th.Glyphs.Rule, maxWidth(SectionHeader{}, 80)-21), th.Section.Rule},
 		}},
 		{"breadcrumb", Breadcrumb{Items: []string{"User Management", "Manage User"}}, []part{
 			{"User Management", th.Breadcrumb.Item}, {th.Glyphs.Separator, th.Breadcrumb.Separator}, {"Manage User", th.Breadcrumb.Current},
 		}},
 		{"title bar trail", TitleBar{Title: "Manage User", Parents: []string{"User Management"}}, []part{
-			{" ", th.TitleBar.Fill}, {"User Management", th.TitleBar.Parent},
+			{th.Glyphs.Shade, th.TitleBar.Fill}, {"User Management", th.TitleBar.Parent},
 			{th.Glyphs.Separator, th.TitleBar.Separator}, {"Manage User", th.TitleBar.Title},
 		}},
 		{"key-value", figmaUser, []part{

@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -55,7 +55,7 @@ $
       ␛[38;2;129;134;156m$ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
       ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -65,13 +65,13 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
 $
       ␛[38;2;129;134;156msshd␛[m$
       ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -96,7 +96,7 @@ $
       ␛[38;2;129;134;156mis rolled back at about 12:03:00 UTC. To undo it now, run␛[m$
       ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-alpine324␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
@@ -171,7 +171,7 @@ $
       $ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot$
       $ rc-update add hardn-boot default$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Add SSH port 2230$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -181,13 +181,13 @@ $
       +Port 22$
       +Port 2230$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Reload sshd (openrc sshd)$
 $
       sshd$
       $ rc-service sshd reload$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       sshd -T shows ports 22, 2230$
 $
       sshd -T$
@@ -235,7 +235,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/ssh-port-alpine324␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -290,7 +290,7 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
       ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -300,13 +300,13 @@ $
       ␛[38;2;112;212;127m+Port 22␛[m$
       ␛[38;2;112;212;127m+Port 2230␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
 $
       ␛[38;2;129;134;156msshd␛[m$
       ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -333,7 +333,7 @@ $
       ␛[38;2;129;134;156mit now, run doas hardn rollback 20261020T120000Z-␛[m$
       ␛[38;2;129;134;156mxxxxxxxx.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ssh-port-alpine324␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$

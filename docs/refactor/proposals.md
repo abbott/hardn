@@ -68,6 +68,7 @@
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; implemented, `next/p3-confirm-cleanup` |
 | [P-42](#p-42) | Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown | `next/p3-gallery-engine` (review) | StepProgress, ErrorReport, Message, ConfirmCountdown; Phase 3 | M | Low | proposed |
 | [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk |
+| [P-44](#p-44) | Warn on no updates since boot, not on Auto Updates off | the maintainer (2026-10-21) | Risk level, Auto Updates; Phase 4 | M | Low | deferred (2026-10-21): research later; the trigger stays |
 
 ---
 
@@ -869,3 +870,22 @@
 - **Effort:** M: `StepProgress`, `ErrorReport`, `Message` and `ConfirmCountdown` and their goldens, the DEV records they change (DEV-031, DEV-039 to DEV-041), and the goldens of the flow, the screens and the gallery that show them.
 - **Risk:** Low: display only. Without colour a step's state still shows by its word (R1), and a notice's kind by its callout's title (R5); an info line shows none, as Figma's neutral prose shows none.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: the built pattern, the `stepprogress/*`, `errorreport/*`, `message/*` and `confirmcountdown/*` goldens; Figma's frames above for the grammar (reference only). After: `docs/refactor/img/p-42-after.png` (placeholder); the gallery's `compare/*` goldens (`internal/tools/uigallery/testdata/golden/compare/`) show the mock beside the built pattern meanwhile.
+
+## Phase 4: the risk level
+
+<a id="p-44"></a>
+### P-44: Warn on no updates since boot, not on Auto Updates off
+
+- **Status:** deferred (maintainer, 2026-10-21): researched at a later date. Until then the uptime factor keeps its trigger, under the words the maintainer chose, "Up 182 days, no updates", which are exact only once this is built.
+- **Source:** the maintainer's review of the lines under the risk level (2026-10-21), which puts each line under the status row it is about and words the uptime line "Up 182 days, no updates"; that layout is mocked, not built (`_support/hardn-audit-2026-10-16/risk-lines/mock-rows.sh`). Related: [P-06](#p-06), [P-21](#p-21); [risk.md](../engine/risk.md) §5.3, §8.
+- **Problem:**
+  - The uptime factor is made when the host has been up 30 days or more (`risk.LongUptime`) and the Auto Updates row says it does not upgrade itself [V, `pkg/engine/risk/risk.go` `uptime`, `upgradesOf`]. Nothing reads an upgrade made by hand (risk.md §8, not modelled).
+  - So "no updates" is not established: a host whose administrator upgrades it by hand every week, without unattended-upgrades, gets the line and its 10 points after 30 days.
+  - What the uptime does establish, however the host is upgraded: the running kernel booted that long ago, so a kernel fix installed since is not running. A newer kernel installed is the pending-reboot line's to say [V, `pkg/engine/header/reboot.go` `newerKernel`].
+- **Proposal (research first):**
+  - Make the factor when the host has been up 30 days or more and no package has been upgraded since it booted: the last upgrade's time against the boot time. Auto Updates then plays no part: a host upgraded by hand has no line, a host never upgraded has it, whatever does the upgrading.
+  - Research, read-only and per distribution, before any code: where the last upgrade's time can be read, and how far back it goes. Debian, Ubuntu and Proxmox VE: dpkg's log (`/var/log/dpkg.log`, one "upgrade" line per package, with its time) and apt's history (`/var/log/apt/history.log`), and how logrotate ages them out [I]. Alpine: what apk records, not yet looked at. Inside a container, and with a log rotated away or unreadable: not established, so the factor costs as found, by the rule for Unknown (risk.md §5.3).
+  - Then the words: "Up 182 days, no updates" becomes exact; the Proxmox VE line ("Proxmox not upgraded") to be looked at again with it.
+- **Effort:** M: the research; a reader per distribution on `host.System`; the factor's trigger and its tests; a VM run on each distribution.
+- **Risk:** Low: it reads logs and changes only when the line shows. A wrong read could hide a host that is never upgraded, so a log that cannot be read must count as not established, never as upgraded.
+- **Screenshots:** none: the line's look is the risk lines' layout.

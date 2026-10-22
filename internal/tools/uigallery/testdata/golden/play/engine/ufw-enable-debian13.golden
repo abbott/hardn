@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ufw-enable-debian13␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/ufw-enable-debian13␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -56,7 +56,7 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -82,7 +82,7 @@ $
       ␛[38;2;129;134;156mis rolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
       ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ufw-enable-debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
@@ -160,7 +160,7 @@ $
       | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       ufw: allow 22/tcp; enable$
 $
       ufw$
@@ -211,7 +211,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/ufw-enable-debian13␛[m ␛[38;2;48;52;64m──────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/ufw-enable-debian13␛[m ␛[38;2;48;52;64m──────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -267,7 +267,7 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
 $
       ␛[38;2;129;134;156mufw␛[m$
@@ -294,7 +294,7 @@ $
       ␛[38;2;129;134;156mnow, run sudo hardn rollback 20261020T120000Z-␛[m$
       ␛[38;2;129;134;156mxxxxxxxx.␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/ufw-enable-debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$

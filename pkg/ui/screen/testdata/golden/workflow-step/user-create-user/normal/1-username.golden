@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                                  ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$
 
@@ -13,6 +13,6 @@ $
    1. Username [0 or q]: george$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[48;2;22;24;29m                                              ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mCreate User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m george$

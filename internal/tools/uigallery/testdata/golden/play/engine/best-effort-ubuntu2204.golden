@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/best-effort-ubuntu2204␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/best-effort-ubuntu2204␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -57,7 +57,7 @@ $
       ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mDisallow password login␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -67,13 +67,13 @@ $
       ␛[38;2;112;212;127m+PasswordAuthentication no␛[m$
       ␛[38;2;112;212;127m+KbdInteractiveAuthentication no␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows no password login␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -85,7 +85,7 @@ $
       ␛[38;2;129;134;156mstill supports it and hardn changes it, but hardn is not␛[m$
       ␛[38;2;129;134;156mtested on it (PLATFORM_BEST_EFFORT)␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
@@ -146,7 +146,7 @@ $
       | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
       $ systemctl --no-reload enable hardn-boot.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Disallow password login$
 $
       /etc/ssh/sshd_config.d/00-hardn.conf$
@@ -156,13 +156,13 @@ $
       +PasswordAuthentication no$
       +KbdInteractiveAuthentication no$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       Reload sshd (ssh.service)$
 $
       ssh.service$
       $ systemctl reload ssh.service$
 $
-  [*] Lockout risk$
+  [ ] Lockout risk$
       sshd -T shows no password login$
 $
       sshd -T$
@@ -181,7 +181,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156mplay engine/best-effort-ubuntu2204␛[m ␛[38;2;48;52;64m───────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/best-effort-ubuntu2204␛[m ␛[38;2;48;52;64m───────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -238,7 +238,7 @@ $
       ␛[38;2;129;134;156m↪ice␛[m$
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mDisallow password login␛[m$
 $
       ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
@@ -248,13 +248,13 @@ $
       ␛[38;2;112;212;127m+PasswordAuthentication no␛[m$
       ␛[38;2;112;212;127m+KbdInteractiveAuthentication no␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
 $
       ␛[38;2;129;134;156mssh.service␛[m$
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
-   ␛[1;38;2;219;184;83m⛬␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216msshd -T shows no password login␛[m$
 $
       ␛[38;2;129;134;156msshd -T␛[m$
@@ -266,7 +266,7 @@ $
       ␛[38;2;129;134;156mvendor still supports it and hardn changes it, but␛[m$
       ␛[38;2;129;134;156mhardn is not tested on it (PLATFORM_BEST_EFFORT)␛[m$
 $
-␛[48;2;22;24;29m ␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
