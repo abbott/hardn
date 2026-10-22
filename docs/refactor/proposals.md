@@ -66,7 +66,7 @@
 | [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; built in `next/p3-steps` (written, not run) |
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; implemented, `next/p3-confirm-cleanup` |
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; implemented, `next/p3-confirm-cleanup` |
-| [P-42](#p-42) | Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown | `next/p3-gallery-engine` (review) | StepProgress, ErrorReport, Message, ConfirmCountdown; Phase 3 | M | Low | proposed |
+| [P-42](#p-42) | Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown | `next/p3-gallery-engine` (review) | StepProgress, ErrorReport, Message, ConfirmCountdown; Phase 3 | M | Low | proposed; inline field results decided (2026-10-22): ◇ |
 | [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk; implemented, `next/p4-check-apparmor` |
 | [P-44](#p-44) | Warn on no updates since boot, not on Auto Updates off | the maintainer (2026-10-21) | Risk level, Auto Updates; Phase 4 | M | Low | deferred (2026-10-21): research later; the trigger stays |
 
@@ -850,7 +850,7 @@
 <a id="p-42"></a>
 ### P-42: Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown
 
-- **Status:** proposed
+- **Status:** proposed; the gap it left, a form field's inline results, decided (maintainer, 2026-10-22, after three rounds of mocks, `_support/hardn-audit-2026-10-16/inline/`): "Use ◇ for inline field results, glyph and text in the state's colour, no word" (◇ U+25C7 at the marker column, the text at col 6; failed `status.bad`, warning `status.warn`, done `status.ok`, info `text.muted`). Its ASCII form, proposed: `< >`, a hollow diamond filling the marker column as `[+]` and `[ ]` do; the alternative `<>`. Not built. The markers and the column, (a) and (b) below, stay open.
 - **Source:** the maintainer's review of the Phase 3 gallery (`next/p3-gallery-engine`, 2026-10-20), against Figma's `00-TUI-MAIN`, `02-SSH_LOGIN`, `SSH_LOGIN-TOGGLE_CONFIRMATION`, `USER-CREATE_USER` and `USER-MANAGE_SUDO-CONFIRMATION`. It asks again what [P-23](#p-23) and [P-24](#p-24) built (DEV-031, DEV-039, DEV-040, DEV-041). Related: [P-27](#p-27), [P-30](#p-30).
 - **Problem:**
   - P-23 and P-24 built one pattern for `StepProgress`, `ErrorReport`'s rolled-back lines, `Message` and `ConfirmCountdown`: a glyph, the state's or the kind's word with a colon at col 6, then the subject, in one column: `[<] Rolled back: Set Port 2230`, `[i] Info: Nothing needs changing.` Its glyphs are origin/main's ✓ ✗ ℹ and new ones (◦ ▸ ↺ ↷ ⊘ !), which no Figma frame draws.
