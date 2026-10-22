@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "ubuntu",
+      "version": "26.04",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "apply",
+  "result": {
+    "outcome": "rolled-back",
+    "exitCode": 1,
+    "id": "20261022T120000Z-1a2b3c4d",
+    "risk": "plain",
+    "rollback": {
+      "finished": true,
+      "byAnotherProcess": false,
+      "step": "apply",
+      "change": "dns.nameservers/set",
+      "changeUndone": true,
+      "restored": [],
+      "undone": [],
+      "command": ""
+    }
+  },
+  "changes": [
+    {
+      "id": "dns.nameservers/set",
+      "control": "dns.nameservers",
+      "summary": "Set the nameservers to 192.0.2.54, 2001:db8::54",
+      "target": "/etc/systemd/resolved.conf.d/zz-hardn.conf",
+      "risk": "plain",
+      "stage": "files",
+      "after": [],
+      "diff": "--- /dev/null\n+++ /etc/systemd/resolved.conf.d/zz-hardn.conf\n@@ -0,0 +1,5 @@\n+# Written by hardn: the system DNS servers for systemd-resolved.\n+# An empty assignment resets the list that earlier files built.\n+[Resolve]\n+DNS=\n+DNS=192.0.2.54 2001:db8::54\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [
+        "systemctl try-reload-or-restart systemd-resolved.service"
+      ],
+      "backups": [],
+      "status": "failed",
+      "detail": "Reloading systemd-resolved had no effect: dns: reload-resolved: global nameservers [], want [\"192.0.2.54\" \"2001:db8::54\"]: the step ran, but the host does not show its effect"
+    }
+  ],
+  "status": [],
+  "findings": [
+    {
+      "code": "DNS_PER_LINK",
+      "detail": "eth0 still uses its own nameserver 192.0.2.1",
+      "source": "resolvectl dns",
+      "control": "dns.nameservers",
+      "change": "dns.nameservers/set"
+    }
+  ],
+  "errors": [
+    {
+      "code": "DNS_NOT_EFFECTIVE",
+      "message": "Reloading systemd-resolved had no effect: dns: reload-resolved: global nameservers [], want [\"192.0.2.54\" \"2001:db8::54\"]: the step ran, but the host does not show its effect",
+      "control": "dns.nameservers",
+      "change": "dns.nameservers/set",
+      "step": "apply",
+      "why": "",
+      "fix": ""
+    }
+  ]
+}

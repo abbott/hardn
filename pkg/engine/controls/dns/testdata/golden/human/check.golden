@@ -1,0 +1,106 @@
+# Golden file of TestCheckGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m192.0.2.54, 2001:db8::54␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mnot hardn.yml's␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mnone in hardn.yml␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mresolved not running␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNetworkManager␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdns: container: a fact the answer depends on is not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mestablished: no signal (DNS_UNKNOWN)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [+] DNS                  Configured 192.0.2.54, 2001:db8::54$
+$
+# Warning$
+# dhcpcd may rewrite /etc/resolv.conf on a lease$
+# (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)$
+$
+  [ ] DNS                  Not Configured not hardn.yml's$
+$
+# Warning$
+# dhcpcd may rewrite /etc/resolv.conf on a lease$
+# (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)$
+$
+  [ ] DNS                  Not Configured none in hardn.yml$
+$
+# Warning$
+# dhcpcd may rewrite /etc/resolv.conf on a lease$
+# (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)$
+$
+  [ ] DNS                  Not Configured resolved not running$
+$
+  [-] DNS                  Not Applicable NetworkManager$
+$
+  [-] DNS                  Not Applicable container$
+$
+  [?] DNS                  Unknown can't read$
+$
+# Operation Failed$
+# dns: container: a fact the answer depends on is not$
+# established: no signal (DNS_UNKNOWN)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m192.0.2.54, 2001:db8::54␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mnot hardn.yml's␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mnone in hardn.yml␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mresolved not running␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNetworkManager␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdns: container: a fact the answer depends on is not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mestablished: no signal (DNS_UNKNOWN)␛[m$
+$

@@ -625,6 +625,36 @@ linters:
               desc: p4status makes no network calls (docs/engine/vmcheck.md §2)
             - pkg: plugin
               desc: p4status loads no code (docs/engine/vmcheck.md §2)
+        # next/s2-control (refactor plan slice 2, unit (b)): the DNS control
+        # reads and plans only through host.System, pkg/host/dns and
+        # pkg/engine/steps, and renders nothing: its statuses and plans are
+        # data that pkg/output renders. (controls-through-host's glob covers
+        # the directory too; this block names the unit's own rule, so that
+        # a later change to that glob does not drop it.)
+        dns-control-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/engine/controls/dns/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the DNS control reads and plans only through host.System (docs/engine/control-dns.md §2)
+            - pkg: io/ioutil
+              desc: the DNS control reads only through host.System (docs/engine/control-dns.md §2)
+            - pkg: golang.org/x/sys
+              desc: the DNS control makes no system calls of its own (docs/engine/control-dns.md §2)
+            - pkg: syscall
+              desc: the DNS control makes no system calls of its own (docs/engine/control-dns.md §2)
+            - pkg: net
+              desc: the DNS control makes no network calls; net/netip only parses (docs/engine/control-dns.md §2)
+            - pkg: plugin
+              desc: the DNS control loads no code (docs/engine/control-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: the DNS control returns data; pkg/output renders it (docs/engine/control-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/output
+              desc: the DNS control returns data; pkg/output renders it (docs/engine/control-dns.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

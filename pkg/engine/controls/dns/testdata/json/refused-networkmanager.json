@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "plan",
+  "result": {
+    "outcome": "refused",
+    "exitCode": 1,
+    "id": "20261022T120000Z-1a2b3c4d",
+    "risk": "plain"
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "DNS_MANAGED",
+      "message": "dns.nameservers: NetworkManager manages DNS here. To go on: set the nameservers with nmcli (DNS_MANAGED): dns: plan: /etc/resolv.conf (a symlink to /run/NetworkManager/resolv.conf): networkmanager: /etc/resolv.conf is managed by something hardn does not configure",
+      "control": "dns.nameservers",
+      "change": "",
+      "step": "",
+      "why": "NetworkManager manages DNS here",
+      "fix": "set the nameservers with nmcli"
+    }
+  ]
+}

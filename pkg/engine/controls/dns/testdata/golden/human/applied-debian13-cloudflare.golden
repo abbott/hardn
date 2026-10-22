@@ -1,0 +1,44 @@
+# Golden file of TestApply/Debian_13,_a_preset, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/hardn/hardn.yml)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [+] Set the nameservers     Done$
+  [+] Save the configuration  Done$
+$
+# Operation Successful$
+$
+# Warning$
+# dhcpcd may rewrite /etc/resolv.conf on a lease$
+# (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)$
+# Saving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,$
+# /etc/hardn/hardn.yml)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/hardn/hardn.yml)␛[m$
+$

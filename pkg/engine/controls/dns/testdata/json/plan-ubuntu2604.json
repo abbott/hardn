@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "ubuntu",
+      "version": "26.04",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "plan",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "20261022T120000Z-1a2b3c4d",
+    "risk": "plain"
+  },
+  "changes": [
+    {
+      "id": "dns.nameservers/set",
+      "control": "dns.nameservers",
+      "summary": "Set the nameservers to 192.0.2.54, 2001:db8::54",
+      "target": "/etc/systemd/resolved.conf.d/zz-hardn.conf",
+      "risk": "plain",
+      "stage": "files",
+      "after": [],
+      "diff": "--- /dev/null\n+++ /etc/systemd/resolved.conf.d/zz-hardn.conf\n@@ -0,0 +1,5 @@\n+# Written by hardn: the system DNS servers for systemd-resolved.\n+# An empty assignment resets the list that earlier files built.\n+[Resolve]\n+DNS=\n+DNS=192.0.2.54 2001:db8::54\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [
+        "systemctl try-reload-or-restart systemd-resolved.service"
+      ],
+      "backups": [],
+      "status": "planned",
+      "detail": ""
+    }
+  ],
+  "status": [],
+  "findings": [
+    {
+      "code": "DNS_PER_LINK",
+      "detail": "eth0 still uses its own nameserver 192.0.2.1",
+      "source": "resolvectl dns",
+      "control": "dns.nameservers",
+      "change": "dns.nameservers/set"
+    }
+  ],
+  "errors": []
+}

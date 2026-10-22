@@ -1,0 +1,34 @@
+# Golden file of TestApply/Ubuntu_26.04, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mresolvectl dns)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [+] Set the nameservers  Done$
+$
+# Operation Successful$
+$
+# Warning$
+# eth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,$
+# resolvectl dns)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PER_LINK, resolvectl dns)␛[m$
+$
