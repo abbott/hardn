@@ -13,7 +13,7 @@ Brief 1D asks for a playable mode that runs "the real screens and prompts agains
 
 ### The scenarios (`engine.go`)
 
-1. **Ten scenarios, each the real engine on a simulated host**, selectable in play as `play engine` (a menu of them, the sub-menu layout, §2.6) or `play engine/<scenario>`:
+1. **Ten scenarios, each the real engine on a simulated host**, selectable in play as `play engine` (a menu of them, the sub-menu layout, §2.6) or `play engine/<scenario>`; eleven more, the DNS control's, since `next/s2-engine-gallery` (§8):
 
    | Scenario | Host | Asked | Ends |
    |---|---|---|---|
@@ -106,7 +106,11 @@ go run ./internal/tools/uigallery play [flags] engine              # the scenari
 go run ./internal/tools/uigallery play [flags] engine/<scenario>   # one scenario
   scenarios: ssh-port-debian13, ssh-port-ubuntu2604, ssh-port-alpine324, keyonly-debian13,
              ufw-enable-debian13, sudoers-grant-debian13, refused-d9-ubuntu2604,
-             failed-reload-debian13, confirm-cleanup-debian13, best-effort-ubuntu2204
+             failed-reload-debian13, confirm-cleanup-debian13, best-effort-ubuntu2204;
+             the DNS control's (§8): dns-configure-ubuntu2604, dns-cloudflare-debian13,
+             dns-configure-ubuntu2404, dns-udhcpc-alpine324, dns-configure-pve9,
+             dns-refused-networkmanager, dns-refused-empty, dns-configured-debian13,
+             dns-dry-run-debian13, dns-failed-reload-ubuntu2604, dns-failed-save-debian13
   flags: -theme, -profile, -ascii, -width, -height, -override (as for the mocks); -sequence and -fail refused
 ```
 
@@ -135,3 +139,107 @@ type recorder struct { /* the fake's calls of one apply, split by the engine's e
 - **The compare mode**, which the same unit's review added as P-42's mock (`compare.go`, `-marker`, `-column`, goldens under `testdata/golden/compare/`), was removed in `next/s2-row-grammar`, once the components drew the grammar the maintainer chose on 2026-10-22 ("status markers") and its two sides were alike; git keeps it, and its drawing helpers serve the `glyphs` mode (`draw.go`). Under the grammar `confirm-cleanup-debian13` shows three "Operation Successful" callouts in a row: the claim's line, the clean-up run's own, and the report's done lines, grouped into one (P-42's "Not covered yet"); folding the report into the run's callout is for the maintainer.
 - **A slot for findings above the plan** (confirm-cleanup.md §7) would move P-41's warning above the confirmation in the `best-effort-ubuntu2204` golden.
 - **Size:** about 1,380 lines of non-test Go added and 50 removed (`engine.go` 600, of them about 115 whole-line comments and 50 the ten scenarios' table; `fakehost.go` 650, about 120 of them comments, a port of p2drive's model with its formats, and the four platforms detect reads; `play.go` and `main.go` 135), and about 850 of tests (`engine_test.go` 650; `TestPlayTouchesNothing` rewritten, 200), against the guideline of about 500 changed lines; testdata 3,850 lines of goldens (eleven files, three cells each). Of these, the review's fixes added about 610 lines and removed 210: the platforms and processes of the model with the engine detecting them (net about 110 of non-test Go), the tests of the hosts' facts, the model's answers, `hardn confirm`'s other paths, the sudo grant's control and the failed writes (about 245), and the guard (about 45). Over the guideline because the simulated host is a model of four platforms, their init and socket set-ups, ufw and the timers, which cannot be shared from p2drive's test file, and because linking the engine into the gallery meant rebuilding the test that holds play to changing nothing. It could have been split as the model with the three port scenarios first, then the rest; the commits split it as the code with its tests and goldens, then the docs.
+
+## 8. DNS: the real control on a resolver model (slice 2, `next/s2-engine-gallery`)
+
+> **Unit:** refactor plan slice 2 (DNS, the pilot of the full flow), unit (b), `next/s2-engine-gallery`, on `next/s2-control`: the gallery's `play engine` scenarios for DNS with real reads, driven by the real DNS control ([control-dns.md](control-dns.md)), so that the maintainer can play the whole DNS change end to end before the screen is wired (brief Phase 5: "real plans via p3-gallery-engine"; [gallery-dns.md](gallery-dns.md) §9, its first item). Shown: slice 2's decisions 1 (edits through the plan; (iii), a failed save rolling the change back), 2 (the host's search domains kept), 4 ([P-37](../refactor/proposals.md#p-37) (a)), 6 (Alpine's question) and 7 (the presets), adopted 2026-10-22; plan §3.19 (the save to the loaded path, its lost comments said); [P-27](../refactor/proposals.md#p-27) (b); control-dns.md §8's D1 to D4. V-numbers: V18, V19 (side-effects rows 21 to 23, 29), on the engine's path.
+> **Status:** built and tested on macOS, in process, on the recording fake: each scenario played through the gallery's entry point with scripted answers, its transcript pinned as a golden on the core set, the host it leaves read again by `pkg/host/dns` and checked by the control; the race detector run on the package. No real terminal and no host were used, and nothing here runs on Linux: the model of each resolver is written from [dns.md](../safety/dns.md) §3, not captured from a host, and every host claim is **written, not run (gate 5)** (§8.6). Nothing is wired into `cmd/hardn` or the live menu, and nothing under `pkg/engine`, `pkg/host` or `pkg/output` changed: no scenario showed one wrong (§8.9). **Every word new here is proposed** (§8.4).
+
+### 8.1 The scenarios
+
+Each is the DNS control (`dns.Nameservers`, `pkg/engine/controls/dns`) on the real engine, through `output.FlowEngine` with hardn.yml as the configuration, then `output.AfterFlow`, as the existing scenarios run; the change is confirmed y/N, as no DNS change locks anyone out (brief 2.4), and no confirm-or-revert timer is armed. hardn.yml is `/etc/hardn/hardn.yml`, root's 0600, a comment above `username: alice` and `nameservers: [192.0.2.54, 2001:db8::54]`, but where the table says otherwise. Each is the sequence of the DNS mock named (gallery-dns.md §3).
+
+| Scenario | Host | Asked | Ends | Shows |
+|---|---|---|---|---|
+| `dns-configure-ubuntu2604` | Ubuntu 26.04: `/etc/resolv.conf` resolved's stub link, eth0 with 192.0.2.1 and example.net from DHCP | Configure DNS | applied | the drop-in created (`@@ -0,0 +1,5 @@`, against `/dev/null` in the plan's diff), its directory made, `systemctl try-reload-or-restart systemd-resolved.service`, which reloads (systemd 259); eth0's server as a finding (`DNS_PER_LINK`) after the flow (sequence 1) |
+| `dns-cloudflare-debian13` | Debian 13: a file dhcpcd wrote | Use Cloudflare DNS | applied | resolv.conf's nameserver lines replaced, the rest kept; then the save of hardn.yml, its diff the file rewritten whole; `DNS_DHCP_CLIENT` and `CONFIG_COMMENTS_LOST` (sequence 2) |
+| `dns-configure-ubuntu2404` | Ubuntu 24.04, as Ubuntu 26.04 | Configure DNS | applied | the same plan and screen; the same command restarts resolved there (systemd 255), as the note says and the model counts |
+| `dns-udhcpc-alpine324` | Alpine 3.24: a file udhcpc writes, its stock `udhcpc.conf` | Configure DNS, "Stop udhcpc rewriting /etc/resolv.conf?" answered y | applied | one change of both files, "Set nameservers; stop udhcpc rewriting", and no udhcpc finding (sequence 5) |
+| `dns-configure-pve9` | Proxmox VE 9: the installer's file | Configure DNS | applied | the file, its search domain kept; `DNS_PROXMOX_NODE` (sequence 6) |
+| `dns-refused-networkmanager` | Debian 13 with NetworkManager's link | Configure DNS | refused | "NetworkManager manages DNS here (DNS_MANAGED)", "To go on: set the nameservers with nmcli." (sequence 11) |
+| `dns-refused-empty` | Debian 13, hardn.yml `nameservers: []` | Configure DNS | refused | "No nameservers configured (DNS_NO_NAMESERVERS)", "To go on: add nameservers first." (sequence 10) |
+| `dns-configured-debian13` | Debian 13, the file listing hardn.yml's already | Configure DNS | unchanged | "Nothing needs changing." (sequence 9) |
+| `dns-dry-run-debian13` | Debian 13 | Use Cloudflare DNS, as a dry run | planned | both changes and the dry-run footer; the findings; nothing written (sequence 7) |
+| `dns-failed-reload-ubuntu2604` | Ubuntu 26.04, its next reload loading nothing new | Configure DNS | failed | "Set the nameservers Failed DNS_NOT_EFFECTIVE", "Reloading systemd-resolved had no effect", the change "Rolled back", "Run resolvectl dns to see the servers in use." (D3; the mock's `failure-proposed`, sequence 12); the drop-in and its directory gone, resolved back on its servers |
+| `dns-failed-save-debian13` | Debian 13, hardn.yml immutable (`chattr +i`) | Use Cloudflare DNS | failed | the change done, the save "Failed PERMISSION_DENIED", "Saving /etc/hardn/hardn.yml failed", the change "Rolled back" (decision 1 (iii)); resolv.conf and hardn.yml as they were |
+
+The menu (`play engine`) lists them after the ten of §2.1, as items 11 to 21. Tested: `TestPlayEngineDNS` (each scenario's screen, in order; how its flow ends; the files it leaves, systemd-resolved's servers and how often it reloaded or restarted; the DNS row after it, by the control's own `Check` against hardn.yml as the host then holds it: Configured with the list where the change applied, Not Configured "not hardn.yml's" after either failure; no journal left; what changed on the host, call by call, in order: nothing for a refusal, the configured host and the dry run; the gallery's hold taken once by each failure's rollback, none otherwise), `TestScenarioHosts` (each host's facts, as the engine detects them), `TestPlayEngineGolden`.
+
+### 8.2 Guarantees
+
+1. **Each platform's resolver, as the release installs it** (`resolver.go`, `platform.resolver`; dns.md §3's first row): Debian 13 a file dhcpcd wrote from eth0's lease, dhcpcd installed; Ubuntu 26.04, 24.04 and 22.04 the link to systemd-resolved's stub; Debian 12's cloud image the link to its uplink file; Alpine 3.24 and 3.23 a file udhcpc wrote, with the stock `udhcpc.conf` (every line commented out) and no hook; Proxmox VE 9 the installer's static file. Each names the DHCP server 192.0.2.1 and the search domain example.net; on systemd-resolved they are eth0's (`Link 2 (eth0)`), and the stock `resolved.conf` sets no global list. Every simulated host has its platform's, the status hosts' too, where nothing reads it. **Three platforms are new**: Ubuntu 24.04 (`ssh.socket` and the generator, sudo), Debian 12's cloud image (`ssh.service`, sudo) and Alpine 3.23 (as 3.24); each is what detect establishes (`TestScenarioHosts`, `TestResolverModel`). Tested: `TestResolverModel` (on each of the eight platforms, `dns.Read`, the facts detect's, establishes every fact, with the manager, the nameservers, eth0's server and domain, and the findings the release's resolver has: `dns-dhcp-client`, `dns-per-link`, `dns-udhcpc`, `dns-proxmox-node`; resolvectl not found, and `systemctl is-active systemd-resolved.service` "inactive", where it is not installed).
+2. **A model of systemd-resolved** in the systemctl handler, ported from `pkg/host/dns`'s test model (`helpers_test.go`: `world`, `answer`, `load`) and kept in step with it by hand: `is-active`; `try-reload-or-restart`, a reload where the release's systemd has one (256 and later: Ubuntu 26.04), a restart before (Ubuntu 24.04's 255, Debian 12's 252, Ubuntu 22.04), nothing while resolved does not run, either reading its files; `reload-or-restart`, the undo's, which also starts it; `resolvectl --no-pager dns` and `domain` in resolvectl's form, the global list, a line per delegate (`Delegate <id>:`, systemd 259) and per link, and failing while resolved does not run. **Its files**, read on each reload or restart: the main `resolved.conf`, then each drop-in by name in C byte order across the four directories, a name in `/etc` hiding the same name later, a link to `/dev/null` masking it, hidden names skipped; `DNS=` and `Domains=` collect, an empty assignment resets one, a key and its value stripped of blanks. A reload made to load nothing (`resolved.inert`) is the failed reload's. Tested: `TestResolvedModel` (reload or restart by platform; nothing done while stopped, resolvectl failing, `reload-or-restart` starting it; `/etc`'s drop-in hiding `/usr/lib`'s, a mask, a hidden file and a comment, against what `dns.Read` reads of the same host; a drop-in after hardn's adding to the list, which the control refuses, `DNS_OVERRIDDEN`; hardn's own path masked, `DNS_DROPIN_BLOCKED`; a delegate listed before the links and read as a finding; a udhcpc hook on Alpine 3.23, a finding).
+3. **hardn.yml is read through the fake, as hardn reads it** (`config.Read`, which `TestPlayTouchesNothing` allows, as `steps.PlanSave` names it), and the action's configuration is a copy with the preset's list (`scenario.plans`); the control carries the file as loaded. The save writes it through the fake (`config.Save`). **An immutable file** (`fakeHost.immutable`) is the engine's view of the host refusing its write as the operation not permitted (`engineSys`, which every scenario's engine gets, the fake's methods otherwise), as `chattr +i` refuses the rename over it. Tested: `TestEngineSysImmutable`.
+4. **The record** (`recorder`, §2.5): `resolvectl` counts as a read; a directory made and its mode set (`mkdir`, `chmod`: the drop-in's directory) are a file changed, listed once. No earlier scenario makes a directory outside hardn's own state (probed), so no earlier golden changed. A failed save's refused write never reaches the fake, so the record has no line for it; the rollback's restore of resolv.conf is "Rolled back from the journal". The recorder also keeps how the flow ended (`recorder.outcome`), which `TestPlayEngineDNS` checks against the scenario's `ends`. Tested: `TestRecorderSteps` (the DNS change's calls), `TestPlayEngineDNS`.
+5. **The DNS mocks are held to the real control** where they can be ([gallery-dns.md](gallery-dns.md) §8): `TestDNSScreensAreReal`, `TestDNSRefusalsAreReal`, `TestDNSPlansAreReal` and `TestDNSFailureIsTheEngines` now read the DNS screens' hosts on this model (the scenarios' own hosts, detected by detect, hardn.yml loaded by `config.Read`) and, where they plan, plan through the control on the engine, through `output.FlowEngine`, where they planned through `dns.PlanDNS` and `steps.DNS` on a script of their own: each change's title, target, commands and diff, the save's place, title and target, each change's stage and risk; the review's warning lines word for word as the control's findings (`steps.DNSFinding`, `CONFIG_COMMENTS_LOST`); the refusals in the control's words (NetworkManager's Why and Fix, the empty list's Fix in origin/main's sentence); the failure step for step and word for word. `TestDNSCheckIsValidate` is unchanged. What stays fixture: gallery-dns.md §8. No mock's screen changed, and no screen golden.
+6. **Nothing on this machine**, as §2.8: the model is in memory, every command a call of `fakeHost.run`; `TestPlayTouchesNothing` passes unchanged but for checking that it walked `pkg/engine/controls/dns` and `pkg/host/dns`.
+
+### 8.3 Goldens
+
+Added, on the core set (truecolor dark Unicode at 80 and 60 columns, plain at 80), `internal/tools/uigallery/testdata/golden/play/engine/`: `dns-configure-ubuntu2604`, `dns-cloudflare-debian13`, `dns-configure-ubuntu2404`, `dns-udhcpc-alpine324`, `dns-configure-pve9`, `dns-refused-networkmanager`, `dns-refused-empty`, `dns-configured-debian13`, `dns-dry-run-debian13`, `dns-failed-reload-ubuntu2604`, `dns-failed-save-debian13` (eleven files, 2,098 lines): each scenario's transcript, the scenario being new. Changed: `menu.golden`, the scenarios' menu, which lists the eleven after the ten (items 11 to 21) and so asks `[0-21 or q]`; the D9 scenario it plays is still item 7. No other golden changed: the mocks' screens and workflow steps, `play/dns*`, the components', `pkg/output`'s and the control's are as they were.
+
+### 8.4 Words
+
+All **proposed**, the gallery's, as the other scenarios' (§2.10); the questions are the DNS mock's (gallery-dns.md §5, proposed there).
+
+| Where | Words |
+|---|---|
+| Menu items | "DNS, Ubuntu 26.04" (Configure DNS: a drop-in, a reload); "DNS preset, Debian 13" (Use Cloudflare DNS, then the save); "DNS, Ubuntu 24.04" (Configure DNS: a restart); "DNS, Alpine 3.24" (Configure DNS, udhcpc stopped); "DNS, Proxmox VE 9" (Configure DNS on a node); "Refused: NetworkManager" (NetworkManager's DNS (P-37)); "Refused: no nameservers" (Configure DNS, hardn.yml lists none); "DNS, nothing to change" (Configure DNS on a configured host); "DNS preset, dry run" (Use Cloudflare DNS, the plan alone); "DNS failed, rolled back" (The reload has no effect); "DNS save failed" (Both rolled back, Debian 13) |
+| Notes | the host ("web-01.example.net runs Ubuntu 26.04; /etc/resolv.conf links to systemd-resolved's stub, and eth0 has 192.0.2.1 and example.net from DHCP. hardn.yml lists 192.0.2.54, 2001:db8::54."), then the change ("The change: Configure DNS, hardn.yml's nameservers." or "The change: Use Cloudflare DNS, 1.1.1.1 and 1.0.0.1, then hardn.yml saved with that list."), what the host does with it, and "y applies it; n declines." |
+| Questions | "Configure DNS?", "Use Cloudflare DNS?" (the mock's) |
+
+### 8.5 Facts relied on
+
+| Fact | Source | Used for |
+|---|---|---|
+| What manages `/etc/resolv.conf` on each release (Ubuntu 22.04 to 26.04 resolved's stub link; Debian 13 a file, dhcpcd-base's dhcpcd rewriting it; Debian 12's cloud image the uplink link; the Proxmox VE installer's static file); systemd's versions (Debian 12 252, Ubuntu 24.04 255, Ubuntu 26.04 259) and `try-reload-or-restart` reloading from 256, restarting before, nothing while stopped; `reload-or-restart` starting; drop-ins' order, hiding and masking; `DNS=`'s reset; resolvectl's forms, delegates from 259; Alpine's udhcpc script and stock `udhcpc.conf`, its hooks | [dns.md](../safety/dns.md) §2.3, §2.7, §3 (each with its source) | §8.2 items 1 and 2 |
+| Ubuntu 22.04's systemd is older than 256 | inferred: 22.04 was released before systemd 256 | the model restarts its resolved; no scenario shows it |
+| Each release's os-release | `pkg/host/detect/testdata/os-release` (`ubuntu-24.04`, `debian-12`, `alpine-3.23`, as for the others) | the new platforms |
+| Ubuntu 24.04 has `ssh.socket` and the generator; Debian 12 `ssh.service` | `pkg/host/detect` (`SSHSocket`, `SocketGenerator`'s doc) | the new platforms, as detect establishes them |
+| Ubuntu 24.04's sudo 1.9.15p5, Debian 12's 1.9.13p3; their OpenSSH before 9.8, so a connection's sshd is `sshd`; their `permitrootlogin` word; that a stock host has no `/etc/systemd/resolved.conf.d` and a stock `resolved.conf` sets no list; that eth0's lease gives a search domain | **[unverified]**: the model's; no DNS scenario's screen shows the first three | the new platforms; §8.2 item 1 |
+| `systemctl is-active` on a unit not installed prints `inactive` and exits 3 | **[unverified]** here; the control's tests model it so, and `dns.Read` reads any word but `active` that systemd documents as not active | Debian 13's and Proxmox VE's reads |
+| resolvectl's error while resolved is stopped | **[unverified]**: `pkg/host/dns`'s test model's words; `dns.Read` asks resolvectl only of a running resolved | `TestResolvedModel` |
+| `chattr +i` makes a rename over the file fail with "Operation not permitted" | **[unverified]** (chattr(1)); control-dns.md §4 lists the same failure for the VM | `dns-failed-save-debian13` |
+
+### 8.6 Written, not run (gate 5)
+
+Everything the DNS scenarios show of a host: each release's resolver and the control's change on it are control-dns.md §4's to run on a VM (Debian 13, Ubuntu 26.04 and 24.04 or Debian 12, Alpine 3.24, Proxmox VE 9 by hand), and the model of systemd-resolved is the tests' model, not resolved (dns.md §4). **By hand, not done here:** `go run ./internal/tools/uigallery play engine/dns-…` on a terminal.
+
+### 8.7 Decisions of this unit
+
+None is the maintainer's; each is the gallery's, and none changes hardn:
+
+1. **The scenarios plan as the DNS screen will**: hardn.yml read from the simulated host (`config.Read`), the control carrying it as loaded, the engine given it, or a copy with a preset's list (control-dns.md §2.8). A scenario names what it asks (`scenario.dns`), and the control is built for each run from the host's file.
+2. **Alpine's question is taken as answered y**, with no form: the flow's adapter takes its controls before it runs (control-dns.md §11, an input to unit (c)), and the note says that the screen asks it. *Alternative:* a form before the flow, which needs that adapter change.
+3. **No review before the plan**: the scenarios run as hardn's flow does today, so the findings show after the flow (`AfterFlow`), not in the review where decision 5 places them, which is unit (c)'s.
+4. **Ubuntu 24.04 shows the restart**; Debian 12's cloud image, which draws the same screen (the finding's words do not name its uplink link), is modelled and read in `TestResolverModel`. Alpine 3.23 likewise.
+5. **The failed save is an immutable hardn.yml**, through a wrapper of the fake the engine gets (`engineSys`), so that the save fails as on a host, not by a change of the control.
+6. **Every simulated host has its platform's resolver**, the status hosts' too: one model per platform; nothing on a status host reads it, and no golden of theirs changed.
+
+### 8.8 API
+
+```go
+package main // internal/tools/uigallery, added
+type dnsAsk struct { list []string; stopUDHCPC bool }            // scenario.dns
+func (scenario) plans(*fakeHost) ([]engine.Control, *config.Config, error)
+func dnsScenarios() []scenario
+type resolverKind uint8 // resolverDHCPCD, resolverStub, resolverUplink, resolverUDHCPC, resolverStatic
+// platform: resolver resolverKind; resolvedReload bool
+// ubuntu2404Platform, debian12Platform, alpine323Platform added
+type resolved struct { active bool; global, domains []string; links []dns.Link; reload bool; inert, reloads, restarts int }
+// fakeHost: resolved *resolved; immutable []string
+func (*fakeHost) addResolver(); func (*fakeHost) withHardnYML([]string) *fakeHost; func (*fakeHost) loadResolved()
+func (*fakeHost) resolvedCommand([]string) (hostfake.Response, bool); func (*fakeHost) system() engineSys
+type engineSys struct { *hostfake.System; h *fakeHost } // WriteFileAtomic refuses an immutable file
+func dnsHost(platform) func() *fakeHost; func networkManagerHost() *fakeHost; func noListHost() *fakeHost
+func configuredDNSHost() *fakeHost; func inertReload() *fakeHost; func immutableHardnYML() *fakeHost
+// recorder: outcome flow.Outcome, ended(flow.Outcome)
+```
+
+### 8.9 Not in this unit; inputs to later units; size
+
+- **No defect in `pkg/engine`, `pkg/host` or `pkg/output`** was shown by a scenario: each plan, step, report and record is what control-dns.md documents. Seen again, already an input to unit (c) (control-dns.md §11): after the failed save the report still warns "Saving hardn.yml loses its comments", though nothing was saved. Seen, not a defect: each failure takes the gallery's hold once, the failed reload's for a rollback with nothing left to undo, since `dns.Apply` undid the change itself (the engine's rule for every failure).
+- **Unit (c), the screen:** the DNS screen drawn from the control's `Check` and `dns.Read`, and drawn again after a change, which play cannot do while the screen is a mock of `pkg/ui/screen` (it redraws the screen as it was, gallery-dns.md §8); Alpine's question as a form field before the plan (decision 2); the review's findings before the confirmation (decision 3).
+- **Three models of systemd-resolved now**: `pkg/host/dns`'s test model, the control's (`pkg/engine/controls/dns/helpers_test.go`) and the gallery's, each kept in step by hand, and two of sshd (§7). Whoever next changes one should make one internal package the three import (a move of test code, with its reason).
+- **Not modelled:** the stub and uplink files' content and resolved's rewrite of the uplink file; a forward restart leaving resolved failed (systemd 252/255); a continued line in a drop-in; NetworkManager itself (its link alone); `IF_PEER_DNS`.
+- **Size:** about 520 lines of non-test Go added and 35 removed (`resolver.go` 304, about 75 of them whole-line comments: the model, the hosts and the platforms' resolvers; `engine.go` 120, the eleven scenarios' table about 60; `fakehost.go` 75, the four platforms and the handler's cases; `main.go` and `pkg/ui/screen/dns.go`'s comments 20), and about 655 lines of tests added and 285 removed (`dnsengine_test.go` 414; `dns_test.go` rewritten onto the model and the control, 219 for 282), against the guideline of about 500 changed lines; testdata 2,098 lines of new goldens and 144 changed in `menu.golden`. Over the guideline because the unit is a model of systemd-resolved and of five resolvers on eight platforms, eleven scenarios with a test of each host they leave, and the mocks' four tests moved onto the control; the split would have been the model and its tests first, then the scenarios, then the mocks' tests.
