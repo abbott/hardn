@@ -351,3 +351,33 @@ func matches(err, want error) bool {
 	}
 	return errors.Is(err, want)
 }
+
+// TestSystemctlIsActive: is-active only, the state printed whatever the
+// exit status, and a state systemctl(1) does not list ErrUnrecognised
+// (next/p4-check-updates).
+func TestSystemctlIsActive(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		res   hostfake.Response
+		state string
+		err   error
+	}{
+		{out("active\n", 0), "active", nil},
+		{out("inactive\n", 3), "inactive", nil},
+		{out("failed\n", 3), "failed", nil},
+		{out("activating\n", 3), "activating", nil},
+		{out("", 1), "", detect.ErrUnrecognised},
+		{out("enabled\n", 0), "", detect.ErrUnrecognised}, // is-enabled's word, not is-active's
+		{hostfake.Response{Err: fmt.Errorf("fixture: %w", host.ErrNotFound)}, "", host.ErrNotFound},
+	} {
+		f := newFake(t, "")
+		f.Respond(tt.res, "systemctl", "is-active", "apt-daily.timer")
+		got, err := detect.SystemctlIsActive(ctx, f, "apt-daily.timer")
+		if got != tt.state || !matches(err, tt.err) {
+			t.Errorf("%q: SystemctlIsActive = %q, %v; want %q, %v", tt.res.Stdout, got, err, tt.state, tt.err)
+		}
+		if calls := f.Calls(); len(calls) != 1 || strings.Join(calls[0].Argv, " ") != "systemctl is-active apt-daily.timer" {
+			t.Errorf("%q: calls %v", tt.res.Stdout, calls)
+		}
+	}
+}

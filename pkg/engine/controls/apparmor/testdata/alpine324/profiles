@@ -1,0 +1,3 @@
+/usr/sbin/chronyd (enforce)
+/usr/sbin/dnsmasq (enforce)
+ping (complain)

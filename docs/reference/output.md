@@ -353,6 +353,12 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `USERS_NOPASSWD` | a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass) ([check-users.md](../engine/check-users.md)) |
 | `USERS_RULE_NOT_READ` | an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root ([check-users.md](../engine/check-users.md)) |
 | `USERS_UID0` | an account other than root has uid 0, so it is root ([check-users.md](../engine/check-users.md)) |
+| `APPARMOR_GLOBAL_MODE_UNKNOWN` | AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established ([check-apparmor.md](../engine/check-apparmor.md)) |
+| `APPARMOR_BOOT_UNKNOWN` | AppArmor's service is in a state that does not say whether it loads the profiles at the next boot ([check-apparmor.md](../engine/check-apparmor.md)) |
+| `UPDATES_APT_VALUE_UNKNOWN` | an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_SCHEDULE_UNKNOWN` | whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 
 ### 2.3 `hardn rollback --boot`'s codes
 
