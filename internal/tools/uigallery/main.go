@@ -503,7 +503,8 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // the playable mode (play), which reads the user's answers through the
 // line reader stdin returns and sizes itself with size; with "status" or
 // "glyphs" first, the status listing (statusList) or the glyphs mode
-// (glyphs), which size themselves with size too and read no input. No other mode calls either.
+// (glyphs), which size themselves with size too and read no input. No
+// other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)

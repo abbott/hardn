@@ -27,10 +27,11 @@ import (
 // the theme holds it; the others are the candidates set aside, and a strip
 // sets each candidate beside ⛛ ⭘ ⛬ (docs/engine/gallery-glyphs.md).
 //
-// It draws the rows itself, on the components' grid (draw.go), styled through the theme's slots' Render methods (paint) and
-// measured with x/ansi. Its current set draws what RiskSummary and
-// StatusList draw, byte for byte (TestGlyphsCurrent), so that a set
-// differs from it only by its glyphs and colours.
+// It draws the rows itself, on the components' grid (draw.go), styled
+// through the theme's slots' Render methods (paint) and measured with
+// x/ansi. Its current set draws what RiskSummary and StatusList draw, byte
+// for byte (TestGlyphsCurrent), so that a set differs from it only by its
+// glyphs and colours.
 
 // glyphsUsage is the glyphs mode's usage line.
 const glyphsUsage = "usage: go run ./internal/tools/uigallery glyphs [flags] [current | power | figma | diamond | diamond-dot | square | strip | all]..."

@@ -1147,10 +1147,10 @@ func TestValueStates(t *testing.T) {
 // 2026-10-22): a Message of kind info is muted prose with no glyph and no
 // word; of any other kind it is that kind's Callout, its bar, title style
 // and own title over the text, and no glyph: at every profile and in both
-// glyph sets (uitest.Full). Each kind has its own title
-// and word, and without colour, at the ASCII profile and in plain mode,
-// the five kinds' messages, and their callouts given one title of their
-// own, still differ. A value outside the kinds is MessageInfo.
+// glyph sets (uitest.Full). Each kind has its own title and word, and
+// without colour, at the ASCII profile and in plain mode, the five kinds'
+// messages, and their callouts given one title of their own, still
+// differ. A value outside the kinds is MessageInfo.
 func TestMessageKinds(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	co := c.Theme.Callout
