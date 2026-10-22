@@ -291,6 +291,10 @@ func TestLayout(t *testing.T) {
 			Lines: []StatusLine{{Text: strings.Repeat("x", 60)}}}, from, false,
 			"  [+] SSH Port             Configured\n" + strings.Repeat(" ", theme.ValueCol) + "- " +
 				strings.Repeat("x", maxWidth(StatusRow{}, from)-theme.ValueCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis)) + "..."},
+		{"status: a long line under a stacked value is cut at the content width", StatusRow{Label: "SSH Port", State: StatusConfigured,
+			Lines: []StatusLine{{Text: strings.Repeat("x", 70)}}}, below, false,
+			"  [+] SSH Port\n      Configured\n      - " +
+				strings.Repeat("x", max(0, maxWidth(StatusRow{}, below)-theme.StackCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis))) + "..."},
 		{"status: a row's lines keep the rows one block", StatusList{Rows: []StatusRow{
 			{Label: "AppArmor", Detail: "can't read", Lines: []StatusLine{{Text: "Counted as not configured"}}},
 			{Label: "Auto Updates", State: StatusNotConfigured},
