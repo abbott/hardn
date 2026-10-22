@@ -2,6 +2,7 @@ package nav
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -245,17 +246,17 @@ func TestResolve(t *testing.T) {
 		{"a two-digit number", main, "10", 9, nil},
 		{"white space around it", main, " 7\t", 6, nil},
 		{"the exit item", main, "0", 0, ErrBack},
-		{"b is no input", main, "b", 0, refused(InvalidOption)},
+		{"b is no input", main, "b", 0, Refuse(InvalidOption)},
 		{"q", main, "Q", 0, ErrQuit},
-		{"a number not offered", main, "11", 0, refused(InvalidOption)},
-		{"a number not in canonical form", main, "01", 0, refused(InvalidOption)},
-		{"an empty line", main, "", 0, refused(InvalidOption)},
-		{"a word", main, "dns", 0, refused(InvalidOption)},
-		{"a disabled item", ssh, "1", 0, refused("Root SSH Login is unavailable.")},
+		{"a number not offered", main, "11", 0, Refuse(InvalidOption)},
+		{"a number not in canonical form", main, "01", 0, Refuse(InvalidOption)},
+		{"an empty line", main, "", 0, Refuse(InvalidOption)},
+		{"a word", main, "dns", 0, Refuse(InvalidOption)},
+		{"a disabled item", ssh, "1", 0, Refuse("Root SSH Login is unavailable.")},
 		{"the item after it", ssh, "2", 1, nil},
 		{"Return", ssh, "0", 0, ErrBack},
-		{"an item not shown", hidden, "4", 0, refused(InvalidOption)},
-		{"a disabled item not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "\x1b[0m", Disabled: true}}}}, "1", 0, refused(InvalidOption)},
+		{"an item not shown", hidden, "4", 0, Refuse(InvalidOption)},
+		{"a disabled item not shown", Menu{Options: []Option{{Item: component.MenuItem{Key: "1", Label: "\x1b[0m", Disabled: true}}}}, "1", 0, Refuse(InvalidOption)},
 		{"0 with no exit item", hidden, "0", 0, ErrBack},
 	}
 	for _, tt := range tests {
@@ -492,6 +493,38 @@ func TestAsk(t *testing.T) {
 		"  > [0 or q]: george\n"
 	if err != nil || out != want {
 		t.Errorf("Ask: %v, transcript\n%s\nwant nil and\n%s", err, out, want)
+	}
+}
+
+// TestAskKinds checks the kind a refusal is written in, read in colour:
+// Refuse's reason as a failed InlineResult, Warn's as a warning one; and
+// RefuseFor, which keeps the refusal an error holds and makes any other
+// error a failed one in its words.
+func TestAskKinds(t *testing.T) {
+	env := term.Fixed(80, colorprofile.TrueColor, true, true)
+	const twice = "Nameserver 192.0.2.54 is already configured" // origin/main's warning
+	for _, tc := range []struct {
+		name string
+		err  error
+		kind component.MessageKind
+		text string
+	}{
+		{"Refuse", Refuse(InvalidAnswer), component.MessageBad, InvalidAnswer},
+		{"Warn", Warn(twice), component.MessageWarn, twice},
+		{"RefuseFor an error", RefuseFor(errors.New("Invalid IP address format")), component.MessageBad, "Invalid IP address format"},
+		{"RefuseFor a warning", RefuseFor(fmt.Errorf("dns: %w", Warn(twice))), component.MessageWarn, twice},
+	} {
+		p, out := newPrompter(env, []string{"x", "george"})
+		err := p.Ask("  > [0 or q]: ", InvalidAnswer, func(line string) error {
+			if line == "x" {
+				return tc.err
+			}
+			return nil
+		})
+		want := component.InlineResult{Kind: tc.kind, Text: tc.text}.Render(p.Ctx) + "\n"
+		if err != nil || strings.Count(out.String(), want) != 1 || tc.err.Error() != tc.text {
+			t.Errorf("%s: Ask: %v, transcript\n%q\nwant once\n%q", tc.name, err, out.String(), want)
+		}
 	}
 }
 

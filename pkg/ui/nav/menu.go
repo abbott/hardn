@@ -113,10 +113,10 @@ func (m Menu) resolve(line string) (int, error) {
 	}
 	for _, o := range m.Options {
 		if shown(o.Item) && o.Item.Disabled {
-			return -1, refused(fmt.Sprintf(unavailable, strings.TrimSpace(o.Item.Label)))
+			return -1, Refuse(fmt.Sprintf(unavailable, strings.TrimSpace(o.Item.Label)))
 		}
 	}
-	return -1, refused(InvalidOption)
+	return -1, Refuse(InvalidOption)
 }
 
 // Choose asks label, such as Figma's "Enter your choice", as a PromptLine

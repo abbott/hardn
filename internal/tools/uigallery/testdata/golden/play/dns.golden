@@ -67,7 +67,7 @@ $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
    ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m◇␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
@@ -428,7 +428,7 @@ $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
    ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[38;2;231;70;105m◇␛[m  ␛[38;2;231;70;105mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m◇␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$

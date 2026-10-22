@@ -157,6 +157,32 @@ func TestValidation(t *testing.T) {
 	}
 }
 
+// TestValidationKinds: a Validate error is written under the prompt as a
+// failed inline result, and nav.Warn's as a warning one, read in colour,
+// in the error's words (DEV-062).
+func TestValidationKinds(t *testing.T) {
+	const twice = "Nameserver 192.0.2.54 is already configured" // origin/main's warning
+	var entry string
+	f := Form{Fields: []Field{&Text{Title: "Enter nameserver IP address", Value: &entry, Validate: func(s string) error {
+		switch s {
+		case "999.1.1.1":
+			return errors.New("Invalid IP address format")
+		case "192.0.2.54":
+			return nav.Warn(twice)
+		}
+		return nil
+	}}}}
+	p, out := newPrompter(term.Fixed(80, colorprofile.TrueColor, true, true), []string{"999.1.1.1", "192.0.2.54", "192.0.2.53"})
+	if err := f.Run(p); err != nil || entry != "192.0.2.53" {
+		t.Fatalf("Run: %v, %q", err, entry)
+	}
+	for _, want := range []component.InlineResult{{Kind: component.MessageBad, Text: "Invalid IP address format"}, {Kind: component.MessageWarn, Text: twice}} {
+		if r := want.Render(p.Ctx) + "\n"; strings.Count(out.String(), r) != 1 {
+			t.Errorf("no %v result once in:\n%q", want, out.String())
+		}
+	}
+}
+
 // TestRefusals checks the lines a field does not take: nav's words, and
 // the value left as it was until a line is taken.
 func TestRefusals(t *testing.T) {

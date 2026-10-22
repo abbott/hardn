@@ -44,22 +44,23 @@
 //
 // # Asking again
 //
-// A line a prompt does not accept is answered under the prompt by a
-// failed component.InlineResult, ◇ and the words in status.bad with no
-// word for the kind (P-42, DEV-062), then the prompt is asked again; the screen above is not
-// drawn again (brief 1C: re-ask only that field, keeping context). The
-// words are origin/main's "Invalid option. Please try again." on a menu,
-// and P-25's for the rest: a disabled item's key says the item is
-// unavailable, a y/N question says "Invalid answer", and so does a
-// free-text question for the one line it refuses, one longer than
-// prompt.MaxLine (which every prompt refuses with its own words); a typed
-// confirmation says the line does not match exactly, and the prompt under
-// it shows the phrase whole (Typed).
+// A line a prompt does not accept is answered under the prompt by a failed
+// component.InlineResult, ◇ and the words in status.bad with no word for
+// the kind (P-42, DEV-062), or by a warning one in status.warn when refused
+// with Warn, then the prompt is asked again; the screen above is not drawn
+// again (brief 1C: re-ask only that field, keeping context). The words are
+// origin/main's "Invalid option. Please try again." on a menu, and P-25's
+// for the rest: a disabled item's key says the item is unavailable, a y/N
+// question says "Invalid answer", and so does a free-text question for the
+// one line it refuses, one longer than prompt.MaxLine (which every prompt
+// refuses with its own words); a typed confirmation says the line does not
+// match exactly, and the prompt under it shows the phrase whole (Typed).
 //
 // Prompter.Ask is that loop. Other packages ask with it too: a form
 // (pkg/ui/form) asks each field with it, hands each line to Navigate
-// first, and refuses a value its validation rejects with Refuse, so a
-// validation error shows under the prompt as every refused line does.
+// first, and refuses a value its validation rejects with RefuseFor, so a
+// validation error shows under the prompt as every refused line does, a
+// failure unless the validation refused with Warn.
 //
 // # Aborting
 //

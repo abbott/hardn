@@ -60,8 +60,11 @@
 //     which wraps.
 //   - A line the field does not take, and a value its Validate rejects,
 //     is answered under the prompt by a failed InlineResult (◇, the words
-//     in status.bad; DEV-062), the words being nav's or the validation's, then the prompt is asked again alone;
-//     nothing above it is drawn again (nav.Prompter.Ask).
+//     in status.bad; DEV-062), the words being nav's or the validation's;
+//     a value Validate refuses with nav.Warn's error, valid but not
+//     taken, such as one already configured, by a warning one, in
+//     status.warn. Then the prompt is asked again alone; nothing above it
+//     is drawn again (nav.Prompter.Ask).
 //   - Once answered, the field's echo, an AnsweredField with the answer,
 //     is written under the answer when the line typed does not already
 //     read as it: after a prompt line of its own, where a Select's echo
