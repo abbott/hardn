@@ -107,7 +107,7 @@ func TestRiskGlyphAlone(t *testing.T) {
 	}
 }
 
-// TestInlineMarker checks the inline results' glyph (⨳, "x"; the
+// TestInlineMarker checks the inline results' glyph (⨳, "(x)"; the
 // maintainer, 2026-10-22): it fits the marker column, even where
 // ambiguous-width glyphs are drawn two cells wide, and is no state's
 // marker, the bullet or a warning's, so that an inline result never reads
@@ -125,8 +125,8 @@ func TestInlineMarker(t *testing.T) {
 			}
 		}
 	}
-	if unicodeGlyphs.Inline != "\u2a33" || asciiGlyphs.Inline != "x" {
-		t.Errorf("Inline is %q and %q, want the maintainer's \u2a33 and x", unicodeGlyphs.Inline, asciiGlyphs.Inline)
+	if unicodeGlyphs.Inline != "\u2a33" || asciiGlyphs.Inline != "(x)" {
+		t.Errorf("Inline is %q and %q, want the maintainer's \u2a33 and (x)", unicodeGlyphs.Inline, asciiGlyphs.Inline)
 	}
 }
 

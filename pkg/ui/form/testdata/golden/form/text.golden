@@ -10,7 +10,7 @@
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Username [0 or q]: George$
-   x  Username must start with a lowercase letter and contain$
+  (x) Username must start with a lowercase letter and contain$
       only lowercase letters, numbers, hyphens, and underscores$
   Username [0 or q]: george$
 

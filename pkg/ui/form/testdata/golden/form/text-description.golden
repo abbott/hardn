@@ -16,7 +16,7 @@ $
       Specify username to create$
 $
   > [0 or q]: $
-   x  Username cannot be empty$
+  (x) Username cannot be empty$
   > [0 or q]: george$
   Username: george$
 

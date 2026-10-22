@@ -39,7 +39,7 @@ $
    0) Exit                 q to quit$
 $
   > Enter your choice [0-10 or q]: 11$
-   x  Invalid option. Please try again.$
+  (x) Invalid option. Please try again.$
   > Enter your choice [0-10 or q]: 0$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode

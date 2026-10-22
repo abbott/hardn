@@ -9,7 +9,7 @@
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Type the hostname [bos-san-l01, 0 or q]: BOS-SAN-L01$
-   x  That does not match exactly. Please try again.$
+  (x) That does not match exactly. Please try again.$
   Type the hostname [bos-san-l01, 0 or q]: q$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode

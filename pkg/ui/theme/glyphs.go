@@ -103,10 +103,11 @@ var unicodeGlyphs = Glyphs{
 
 // asciiGlyphs is the ASCII set (DEV-012; DEV-019 for the badge brackets,
 // DEV-031 for a warning, DEV-038 and DEV-039 for the plan group, DEV-062
-// for the inline results' "x", a cross as ⨳ is drawn (the maintainer's ⨳
-// of 2026-10-22; "<>" with ◇ before it), at column 3). Partial and Warn are
-// NotConfigured's, as in the Unicode set, so "[*]" is the risk icon's
-// alone.
+// for the inline results' "(x)", a cross as ⨳ is drawn, in round brackets
+// that fill the marker column as "[+]" does, columns 2 to 4 (the
+// maintainer's "Adopt ⨳ with (x)" of 2026-10-22; "<>" went with ◇, "x" with
+// the first ⨳, » with ≫)). Partial and Warn are NotConfigured's, as in
+// the Unicode set, so "[*]" is the risk icon's alone.
 var asciiGlyphs = Glyphs{
 	Configured:    "[+]",
 	NotConfigured: "[ ]",
@@ -125,7 +126,7 @@ var asciiGlyphs = Glyphs{
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "[ ]",
-	Inline:        "x",
+	Inline:        "(x)",
 	Spinner:       `|/-\`,
 	Command:       "$",
 	Wrap:          "|",

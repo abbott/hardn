@@ -20,7 +20,7 @@ $
    2) alice$
 $
   > Enter your choice [1-2, 0 or q]: 3$
-   x  Invalid option. Please try again.$
+  (x) Invalid option. Please try again.$
   > Enter your choice [1-2, 0 or q]: 2$
   Select a user: alice$
 

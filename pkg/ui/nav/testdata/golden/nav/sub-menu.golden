@@ -25,7 +25,7 @@ $
    0) Return$
 $
   > Enter your choice [0, 2 or q]: 1$
-   x  Root SSH Login is unavailable.$
+  (x) Root SSH Login is unavailable.$
   > Enter your choice [0, 2 or q]: q$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode

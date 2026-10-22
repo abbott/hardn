@@ -10,7 +10,7 @@
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
   Grant sudo privilege? [y/N, 0 or q]: maybe$
-   x  Invalid answer. Please try again.$
+  (x) Invalid answer. Please try again.$
   Grant sudo privilege? [y/N, 0 or q]: $
   Grant sudo privilege? [y/N]: n$
 

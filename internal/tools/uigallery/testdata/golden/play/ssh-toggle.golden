@@ -227,7 +227,7 @@ $
   Disable SSH login for 'root'?$
 $
   Type the hostname [bos-san-l01, 0 or q]: BOS-SAN-L01$
-   x  That does not match exactly. Please try again.$
+  (x) That does not match exactly. Please try again.$
   Type the hostname [bos-san-l01, 0 or q]: bos-san-l01$
 $
   [+] Set PermitRootLogin no  Done$

@@ -102,7 +102,7 @@ $
    0) Return$
 $
   > Enter selection [0-2, 4-6 or q]: 3$
-   x  Invalid option. Please try again.$
+  (x) Invalid option. Please try again.$
   > Enter selection [0-2, 4-6 or q]: 1$
 $
 # Warning$

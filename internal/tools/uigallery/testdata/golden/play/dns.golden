@@ -235,9 +235,9 @@ $
 # Add nameserver ###############################################$
 $
   Enter nameserver IP address [0 or q]: 999.1.1.1$
-   x  Invalid IP address format$
+  (x) Invalid IP address format$
   Enter nameserver IP address [0 or q]: 192.0.2.54$
-   x  Nameserver 192.0.2.54 is already configured$
+  (x) Nameserver 192.0.2.54 is already configured$
   Enter nameserver IP address [0 or q]: 192.0.2.53$
 $
 # DNS Configuration --------------------------------------------$
