@@ -23,7 +23,7 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 | a warning message, "Warning: …" | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, the maintainer's "Warning: ⭘ status.warn" |
 | the confirm countdown, while there is time | ⭘ | `[ ]` | `status.warn`, bold | `Warn` |
 | a plan's lockout-risk change, "Lockout risk", and a risky menu item's note line | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, a warning (the maintainer, 2026-10-21; `next/p4-bar-shade`); ⛬ `[*]` until then |
-| the host block's "Reboot pending" | ⭘ | `[ ]` | `status.warn` | `Partial` |
+| the host block's "Reboot pending" | - | `-` | `status.warn` | `Bullet`, dash-led (the maintainer, 2026-10-21; `next/p4-risk-lines`); ⭘ `[ ]`, `Partial`, until then |
 | a key-value row's warn value | ⭘ | `[ ]` | `status.warn` | `Partial` |
 | a key-value row's unknown and not-applicable values | ? and – | `[?]` and `[-]` | `text.muted` | `Unknown`, `NotApplicable` |
 | a menu item's "Unavailable" | – | `[-]` | `text.faint`, the item's | `NotApplicable` |

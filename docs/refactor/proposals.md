@@ -30,7 +30,7 @@
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | proposed |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | proposed |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | proposed |
-| [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed |
+| [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
 | [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
@@ -38,14 +38,14 @@
 | [P-11](#p-11) | Polarity of the sudo-password question | plan §5.4 | User Management; slice 5 | S | Medium | proposed |
 | [P-12](#p-12) | Name the result instead of "Toggle root SSH access" | plan §5.5 | SSH Login; slice 6 | S | Low | proposed |
 | [P-13](#p-13) | "Sudo Method" row; "Users" vs "User" | plan §5.6 | Main menu | S | Low | proposed |
-| [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed |
+| [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed; the factors' place decided (2026-10-21), see P-06 |
 | [P-15](#p-15) | Update checker: opt-in and non-blocking | plan §5.8 | Startup; Phase 3 | M | Low | proposed |
 | [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen |
 | [P-17](#p-17) | System Details content | plan §5.10 | System Details; slice 1 | M | Low | proposed |
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
-| [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | proposed |
+| [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | decided (2026-10-21): under the uptime, "- Reboot pending"; implemented, `next/p4-risk-lines` |
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
 | [P-23](#p-23) | Words for the message kinds | `next/p1b-blocks` | Message, Callout; Phase 1C | S | Low | proposed |
 | [P-24](#p-24) | Words for the apply steps and the confirm countdown | `next/p1b-plan` | StepProgress, ConfirmCountdown; Phases 1C, 2 | S | Low | proposed |
@@ -163,7 +163,7 @@
 <a id="p-06"></a>
 ### P-06: Make the risk score transparent
 
-- **Status:** proposed
+- **Status:** proposed; the factors' place decided (maintainer, 2026-10-21): each under the status row it is about, not under the risk level, in `status.warn` for a cost hardn established and `text.muted` otherwise, in the maintainer's words ([risk.md](../engine/risk.md) §6.2); the reboot's in the host block ([P-21](#p-21)). Implemented, `next/p4-risk-lines`. The gloss stays.
 - **Source:** brief §7.6. Related: [P-14](#p-14).
 - **Problem:**
   - "Moderate ≈ medium security" says the same thing twice.
@@ -292,7 +292,7 @@
 <a id="p-14"></a>
 ### P-14: Reachable risk bands, with factors shown
 
-- **Status:** proposed
+- **Status:** proposed; the factors' place decided (maintainer, 2026-10-21): under the status rows they are about ([P-06](#p-06)).
 - **Source:** plan §5.7. Depends on [P-06](#p-06).
 - **Problem:** the top band, "Minimal / hardened security", is unreachable: the maximum score is 8, and the band needs more than 8 [V].
 - **Proposal:** set band thresholds that a fully hardened host actually reaches, and show the factors that kept a host out of the top band.
@@ -477,7 +477,7 @@
 <a id="p-21"></a>
 ### P-21: Pending-reboot wording and place in the HostBlock
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-21): (a), its own line under the uptime, the reboot's only line on the main menu (the risk level draws none for it), dash-led: "- Reboot pending" in `status.warn` (`Glyphs.Bullet`, not a warning marker); "- Can't tell if reboot pending" in `text.muted` when the risk counts it as not established. Implemented, `next/p4-risk-lines`.
 - **Source:** `next/p1b-header`, which builds the HostBlock's pending-reboot slot (brief 1B puts the finding in HostBlock). Depends on [P-04](#p-04).
 - **Problem:**
   - P-04 proposes the pending-reboot finding and places it "next to the uptime", as the plan's `next/p4-header` row does, but gives it no wording. Figma draws none.
