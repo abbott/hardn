@@ -250,9 +250,12 @@ func answers(s Sequence) []string {
 
 // TestScreen checks that nav.Run, given a layout's Screen, draws what the
 // layout's Render renders, in every golden cell: the drawing, then the
-// prompt and the one space the line reader writes after it. A view-model
-// whose Menu.Compact is set draws as one whose is not: the main menu sets
-// it from the terminal's height, and a sub-menu has no compact form.
+// prompt and the one space the line reader writes after it; for the main
+// menu with its compact form allowed too, as CompactMainMenu, gated,
+// would allow it (screen and render), the compact form in the 24-row
+// cells and at 60x40. A view-model whose Menu.Compact is set draws as one
+// whose is not: the main menu sets it from the terminal's height, and a
+// sub-menu has no compact form.
 func TestScreen(t *testing.T) {
 	main, user := MainMenuFixture(), UserFixture()
 	mainCompact, userCompact := main, user
@@ -265,6 +268,8 @@ func TestScreen(t *testing.T) {
 		{"main menu", main.Render, func(c component.Ctx) nav.Screen { return main.Screen(c, menuOf(main.Menu)) }},
 		{"sub-menu", user.Render, func(c component.Ctx) nav.Screen { return user.Screen(c, menuOf(user.Menu)) }},
 		{"main menu, Menu.Compact set", mainCompact.Render, func(c component.Ctx) nav.Screen { return main.Screen(c, menuOf(main.Menu)) }},
+		{"main menu, the compact form allowed", func(c component.Ctx) string { return main.render(c, true) },
+			func(c component.Ctx) nav.Screen { return main.screen(c, menuOf(main.Menu), true) }},
 		{"sub-menu, Menu.Compact set", userCompact.Render, func(c component.Ctx) nav.Screen { return user.Screen(c, menuOf(user.Menu)) }},
 	}
 	for _, tt := range tests {
@@ -417,51 +422,64 @@ func TestStatusBlocks(t *testing.T) {
 // TestHeights records the main menu's heights with Figma's seven status
 // rows and with an eighth, the DNS row of next/s2-menu-live
 // (docs/engine/menu-live.md §6), on a terminal of 80 and 60 columns, 24
-// and 40 rows, Unicode and ASCII. Drawn: the full form at every height,
-// the compact one gated (CompactMainMenu): 36 lines with the eighth row
-// from 64 columns, 59 at 60 columns where the rows stack; on 24 rows its
-// top 12 lines scroll off, the risk level among them. With the compact
-// form allowed (render), the form it took and its lines: with the eighth
-// row 25 at 80x24, one over theme.CompactBudget, its distribution bar
-// scrolled off, and 36 in full at 80x40. Live: StatusBlocks above a menu
-// of 17 lines after the gap, as hardn's live main menu drew its legacy
-// menu (pkg/menu: heading to prompt) until next/s2b-menu put it on this
-// layout, the blocks in full at every height. No row has a line under it
-// here: each adds one more. hardn's own main menu, the drawn column's
-// form, is pinned on the gallery's hosts by pkg/menu's
+// and 40 rows, Unicode and ASCII, in both forms: the full form, 36 lines
+// with the eighth row from 64 columns, 59 at 60 columns where the rows
+// stack, so that on 24 rows its top 12 lines scroll off, the risk level
+// among them; and, with the compact form allowed (render), the form it
+// took and its lines: with the eighth row 25 at 80x24, one over
+// theme.CompactBudget, its distribution bar scrolled off, and 36 in full
+// at 80x40. Live: StatusBlocks above a menu of 17 lines after the gap,
+// as hardn's live main menu drew its legacy menu (pkg/menu: heading to
+// prompt) until next/s2b-menu put it on this layout, with each form's
+// blocks. Drawn, by Render, StatusBlocks and the form chosen: the full
+// form's, the compact one gated (CompactMainMenu); flipped, the allowed
+// form's. No row has a line under it here: each adds one more. hardn's
+// own main menu is pinned on the gallery's hosts by pkg/menu's
 // TestMainMenuHeights.
 func TestHeights(t *testing.T) {
 	const legacyMenu = 17
 	eight := MainMenuFixture()
 	eight.Status.Rows = append(eight.Status.Rows, component.StatusRow{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"})
 	for _, tc := range []struct {
-		vm         MainMenu
-		rows, w, h int
-		drawn      int
-		form       string // with the compact form allowed
-		allowed    int
-		live       int
+		vm                MainMenu
+		rows, w, h        int
+		full, live        int    // the full form
+		form              string // with the compact form allowed
+		allowed, liveForm int
 	}{
-		{MainMenuFixture(), 7, 80, 24, 35, "compact", 24, 36},
-		{MainMenuFixture(), 7, 80, 40, 35, "full", 35, 36},
-		{eight, 8, 80, 24, 36, "compact", 25, 37},
-		{eight, 8, 80, 40, 36, "full", 36, 37},
-		{eight, 8, 60, 24, 59, "compact", 36, 48},
-		{eight, 8, 60, 40, 59, "compact", 36, 48},
+		{MainMenuFixture(), 7, 80, 24, 35, 36, "compact", 24, 31},
+		{MainMenuFixture(), 7, 80, 40, 35, 36, "full", 35, 36},
+		{eight, 8, 80, 24, 36, 37, "compact", 25, 32},
+		{eight, 8, 80, 40, 36, 37, "full", 36, 37},
+		{eight, 8, 60, 24, 59, 48, "compact", 36, 42},
+		{eight, 8, 60, 40, 59, 48, "compact", 36, 42},
 	} {
 		for _, unicode := range []bool{true, false} {
 			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
 			env.Height = tc.h
 			c := component.NewCtx(env)
-			form := "full"
-			if tc.vm.compact(c, true) {
-				form = "compact"
+			name := func(compact bool) string {
+				if tc.vm.compact(c, compact) {
+					return "compact"
+				}
+				return "full"
 			}
-			drawn, allowed := lines(tc.vm.Render(c)), lines(tc.vm.render(c, true))
-			live := lines(tc.vm.StatusBlocks(c, legacyMenu)) + theme.SectionGap + legacyMenu
-			if drawn != tc.drawn || form != tc.form || allowed != tc.allowed || live != tc.live || tc.vm.compact(c, CompactMainMenu) {
-				t.Errorf("%d rows, %dx%d, unicode %t: drawn %d lines; allowed, the %s form, %d; live %d; want %d, the %s form, %d, live %d",
-					tc.rows, tc.w, tc.h, unicode, drawn, form, allowed, live, tc.drawn, tc.form, tc.allowed, tc.live)
+			live := func(compact bool) int {
+				return lines(tc.vm.statusBlocks(c, legacyMenu, compact)) + theme.SectionGap + legacyMenu
+			}
+			full, form, allowed := lines(tc.vm.render(c, false)), name(true), lines(tc.vm.render(c, true))
+			if full != tc.full || live(false) != tc.live || name(false) != "full" ||
+				form != tc.form || allowed != tc.allowed || live(true) != tc.liveForm {
+				t.Errorf("%d rows, %dx%d, unicode %t: full %d lines, live %d; allowed, the %s form, %d, live %d; want %d, %d; the %s form, %d, %d",
+					tc.rows, tc.w, tc.h, unicode, full, live(false), form, allowed, live(true), tc.full, tc.live, tc.form, tc.allowed, tc.liveForm)
+			}
+			drawn, drawnLive, drawnForm := tc.full, tc.live, "full"
+			if CompactMainMenu {
+				drawn, drawnLive, drawnForm = tc.allowed, tc.liveForm, tc.form
+			}
+			if lines(tc.vm.Render(c)) != drawn || lines(tc.vm.StatusBlocks(c, legacyMenu))+theme.SectionGap+legacyMenu != drawnLive ||
+				name(CompactMainMenu) != drawnForm {
+				t.Errorf("%d rows, %dx%d, unicode %t: drawn not the %s form (CompactMainMenu %t)", tc.rows, tc.w, tc.h, unicode, drawnForm, CompactMainMenu)
 			}
 		}
 	}

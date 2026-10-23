@@ -99,9 +99,9 @@
 // that the main menu is drawn as hardn draws it there: its full form at
 // every height, as 00-TUI-MAIN.png shows it, its top scrolling off a
 // terminal shorter than it (its compact form is gated,
-// screen.CompactMainMenu). A flag given wins, each on its own; with stdout not a
-// terminal, as in the tests and through a pipe, play keeps 80 and 24, so
-// that its goldens stay deterministic.
+// screen.CompactMainMenu). A flag given wins, each on its own; with
+// stdout not a terminal, as in the tests and through a pipe, play keeps
+// 80 and 24, so that its goldens stay deterministic.
 //
 // "play status" opens the status hosts (next/p4-gallery-status), and
 // "play status/<host>" one: hardn's main menu, its header, distribution

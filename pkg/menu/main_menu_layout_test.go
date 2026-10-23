@@ -361,7 +361,12 @@ func TestMainMenuItems(t *testing.T) {
 // rows the first 12 lines scroll off at 80 columns, the header down to
 // the SSH Login row, the risk level among them, and at 60 columns 35, all
 // the status and the heading; on 40 rows none at 80 columns and 19 at 60.
+// With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
+// TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
+	if screen.CompactMainMenu {
+		t.Skip("screen.CompactMainMenu is set: pkg/ui/screen's TestHeights and TestCompact hold the forms")
+	}
 	for _, tc := range []struct {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs

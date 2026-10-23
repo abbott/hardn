@@ -26,9 +26,13 @@ import (
 // docs/engine/gallery-dryrun.md §4). The compact form's code, its tests
 // and its goldens are kept: the layouts take the gate as a parameter
 // (render, screen, statusBlocks), which Render, Screen and StatusBlocks
-// pass this constant and the tests pass true, as TitleTrail's tests do;
-// flipped, Render draws main-menu/00-tui-main-compact's golden again.
-// Fewer rows, when wanted, are for later, by other means.
+// pass this constant and the tests pass true, as TitleTrail's tests do.
+// Flipped, Render draws what main-menu/00-tui-main-compact's golden
+// holds, and only golden comparisons fail: regenerate them with make
+// golden-update, then go test ./pkg/menu -update, whose goldens are its
+// own. TestHeights follows the constant; TestFullAtEveryHeight and
+// pkg/menu's TestMainMenuHeights, which pin the full form, skip. Fewer
+// rows, when wanted, are for later, by other means.
 const CompactMainMenu = false
 
 // MainMenu is the main-menu layout (brief 1B), after Figma's 00-TUI-MAIN.
@@ -211,11 +215,12 @@ func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 // from refactor plan slice 2's next/s2-menu-live until slice 2b's
 // next/s2b-menu put that menu on this layout (Screen); nothing in hardn
 // calls it since, and it is kept with the compact form it can choose.
-// vm.Heading, Mode, Menu and Prompt are not drawn. The blocks take the full form; where CompactMainMenu allows it,
-// the form Render would choose for the screen they make with that menu:
-// the full form's blocks on output that is not a terminal, and on a
-// terminal from theme.CompactBelow rows that holds them, the gap and
-// below; else the compact form's (see MainMenu).
+// vm.Heading, Mode, Menu and Prompt are not drawn. The blocks take the
+// full form; where CompactMainMenu allows it, the form Render would
+// choose for the screen they make with that menu: the full form's blocks
+// on output that is not a terminal, and on a terminal from
+// theme.CompactBelow rows that holds them, the gap and below; else the
+// compact form's (see MainMenu).
 func (vm MainMenu) StatusBlocks(c component.Ctx, below int) string {
 	return vm.statusBlocks(c, below, CompactMainMenu)
 }
