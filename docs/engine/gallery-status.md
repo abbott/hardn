@@ -88,7 +88,7 @@ Nothing here runs on a host, and nothing needs to: the gallery runs no command (
 
 ## 5. The status lines
 
-Every line the hosts show, as the main menu shows them (the state's word, then its detail). **No wording is new here**: each detail is its check's, proposed on its page ([check-ssh.md](check-ssh.md) §5 and the others; AppArmor's eight lines are decided, P-43 (3)); each level and gloss the score's ([risk.md](risk.md) §6.1), each line under a row and the host block's reboot line the score's too, the maintainer's words of 2026-10-21 ([risk.md](risk.md) §6.2; under the level, lower case, until `next/p4-risk-lines`), the bar and host block the probe's ([header.md](header.md) §5). These tables, the score included, are `TestStatusHosts`' (`wantStatuses`), which holds the code to them.
+Every line the hosts show, as the main menu shows them (the state's word, then its detail). **No wording is new here**: each detail is its check's, proposed on its page ([check-ssh.md](check-ssh.md) §5 and the others; AppArmor's eight lines are decided, P-43 (3); DNS's *none configured* and *no hardn.yml* are **adopted**, the maintainer, 2026-10-23, [control-dns.md](control-dns.md) §5); each level and gloss the score's ([risk.md](risk.md) §6.1), each line under a row and the host block's reboot line the score's too, the maintainer's words of 2026-10-21 ([risk.md](risk.md) §6.2; under the level, lower case, until `next/p4-risk-lines`), the bar and host block the probe's ([header.md](header.md) §5). These tables, the score included, are `TestStatusHosts`' (`wantStatuses`), which holds the code to them.
 
 | Host | User | Firewall | SSH Login | SSH Auth | SSH Port | AppArmor | Auto Updates | DNS (*since `next/s2-menu-live`*) |
 |---|---|---|---|---|---|---|---|---|
