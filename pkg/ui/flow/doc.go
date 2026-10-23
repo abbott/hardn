@@ -63,9 +63,11 @@
 // are drawn once and drawn again in place, a spinner on the running step,
 // with the cursor moved up over them (CPL) and each line erased (EL)
 // before it is written again. Otherwise, as on a pipe, in plain mode or
-// when the steps would not fit the terminal's height, each step's line is
-// written once it settles, done, failed or skipped, so a step takes one
-// line; what was rolled back is named by the ErrorReport that follows.
+// when the steps would not fit the terminal's height, each step's row is
+// written once it settles, done, failed or skipped, on the whole list's
+// status column (component.StepProgress.Row), so a step takes one row;
+// what was rolled back is named by the ErrorReport that follows, its rows
+// on the same column.
 // Steps never reached after a failure show as skipped.
 //
 // # The engine

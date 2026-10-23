@@ -18,41 +18,43 @@ const checkLog = "Check the log file at %s for details"
 // ErrorReport is the canonical flow's report of an apply that failed
 // (brief 1B, 1C): what failed, what was rolled back, the tail of the
 // failing command's output, the log path and the suggested next step.
-// Here with no colour and ASCII glyphs:
+// Here with no colour and ASCII glyphs, after the four steps of an SSH
+// port change, whose widest title is "Remove the rule for port 22":
 //
-//	0 2   6
+//	0 2   6                            35
 //	# Operation Failed
 //	# Reloading ssh.service failed: exit status 1
 //
-//	  [<] Rolled back: Set Port 2230
-//	  [<] Rolled back: Allow 2230/tcp in UFW
+//	  [ ] Set Port 2230                Rolled back
+//	  [ ] Allow 2230/tcp in UFW        Rolled back
 //
 //	      $ systemctl reload ssh
 //	      ...
 //	      Job for ssh.service failed because the control process
 //	      | exited with error code.
 //
-//	  [i] Info: Check the log file at /var/log/hardn.log for details
-//	  [i] Info: Run sudo sshd -t to see the error.
+//	  Check the log file at /var/log/hardn.log for details
+//	  Run sudo sshd -t to see the error.
 //
-// It is built from the other components (DEV-040). What failed is a
-// Callout of kind MessageBad with its own title, "Operation Failed", and
-// Failed as its body. Each rolled-back change is laid out as a
-// StepProgress line in StepRolledBack, but its name wraps under the word,
-// as a Message's text does, rather than being cut: a report is not
-// redrawn in place, and it names in full every change it undid. A change
-// with no name shows "Unknown", so the report hides none. The output is
-// code, as a plan's lines are: the command after Glyphs.Command, then the
-// last Tail lines of Output, at theme.LabelCol in Output, muted, never
-// cut but broken after Glyphs.Wrap; a line of Glyphs.Ellipsis first says
-// that earlier lines were left out, and the log holds them all. The log
-// path is origin/main's sentence and the next step a sentence of its own,
-// each a Message of kind MessageInfo. The path names a file to open, so
-// it keeps its characters with the ASCII glyph set too, where the
-// typography of the text around it is mapped (Ctx.text).
-// Parts with nothing to show are left out, and theme.SectionGap blank
-// lines separate the rest. An ErrorReport always reports a failure, so
-// even the zero value shows the callout.
+// It is built from the other components (DEV-040), in Figma's grammar
+// (P-42 R4, the maintainer, 2026-10-22). What failed is a Callout of kind
+// MessageBad with its own title, "Operation Failed", and Failed as its
+// body. Each rolled-back change is a StepProgress row in StepRolledBack,
+// Glyphs.Partial and "Rolled back" in the status column the steps above
+// it take, given as Steps: the rows and the steps share one column (R2),
+// and stack, each word under its name, where the steps do. A change with
+// no name shows "Unknown", so the report hides none. The output is code,
+// as a plan's lines are: the command after Glyphs.Command, then the last
+// Tail lines of Output, at theme.LabelCol in Output, muted, never cut but
+// broken after Glyphs.Wrap; a line of Glyphs.Ellipsis first says that
+// earlier lines were left out, and the log holds them all. The log path
+// is origin/main's sentence and the next step a sentence of its own, muted
+// prose at theme.Indent, as an info Message. The path names a file to
+// open, so it keeps its characters with the ASCII glyph set too, where
+// the typography of the text around it is mapped (Ctx.text). Parts with
+// nothing to show are left out, and theme.SectionGap blank lines separate
+// the rest. An ErrorReport always reports a failure, so even the zero
+// value shows the callout.
 type ErrorReport struct {
 	// Failed says what failed and why, such as "Reloading ssh.service
 	// failed: exit status 1".
@@ -61,6 +63,10 @@ type ErrorReport struct {
 	// they were undone, such as "Set Port 2230"; an empty name shows
 	// "Unknown".
 	RolledBack []string
+	// Steps are the steps the report follows, as the StepProgress above it
+	// shows them: the report does not draw them, but its rolled-back rows
+	// take their status column. None lines the rows up on their own names.
+	Steps []Step
 	// Command is the command whose output Output holds, such as
 	// "systemctl reload ssh"; empty shows none.
 	Command string
@@ -86,25 +92,31 @@ func (vm ErrorReport) Render(c Ctx) string {
 	if p := clean(vm.LogPath); p != "" {
 		// The sentence is prose, made plain text for c; the path names a
 		// file to open, so it keeps its characters, through clean alone.
-		info = append(info, Message{}.render(c, fmt.Sprintf(c.text(checkLog), p)))
+		info = append(info, c.prose(fmt.Sprintf(c.text(checkLog), p))...)
 	}
-	info = append(info, Message{Text: vm.Next}.Render(c))
-	blocks = append(blocks, strings.Join(nonEmpty(info), "\n"))
+	if next := c.text(vm.Next); next != "" {
+		info = append(info, c.prose(next)...)
+	}
+	blocks = append(blocks, strings.Join(info, "\n"))
 	return strings.Join(nonEmpty(blocks), strings.Repeat("\n", theme.SectionGap+1))
 }
 
-// rolledBack renders the changes undone, each as a StepProgress line in
-// StepRolledBack whose name wraps under the word.
+// rolledBack renders the changes undone, each a StepProgress row in
+// StepRolledBack, on the status column of vm.Steps and the names.
 func (vm ErrorReport) rolledBack(c Ctx) string {
-	style := StepRolledBack.style(c.Theme.Step)
-	var out []string
-	for _, name := range vm.RolledBack {
-		title, titleStyle := c.text(name), c.Theme.Step.Title
-		if title == "" {
-			title, titleStyle = unknown, c.Theme.Status.Unknown
+	names := make([]span, len(vm.RolledBack))
+	all := titles(c, vm.Steps)
+	for i, name := range vm.RolledBack {
+		names[i] = span{c.text(name), c.Theme.KeyValue.Key}
+		if names[i].text == "" {
+			names[i] = span{unknown, c.Theme.Status.Unknown}
 		}
-		lead := marker(StepRolledBack.glyph(c.Theme.Glyphs, 0, false), style).to(theme.LabelCol)
-		out = append(out, c.worded(lead, StepRolledBack.String()+":", style, title, titleStyle)...)
+		all = append(all, names[i].text)
+	}
+	sc := newStepColumn(c, all)
+	var out []string
+	for _, name := range names {
+		out = append(out, sc.row(c, StepRolledBack, 0, name, "")...)
 	}
 	return strings.Join(out, "\n")
 }

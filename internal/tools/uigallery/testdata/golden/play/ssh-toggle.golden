@@ -88,11 +88,11 @@ $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m BOS-SAN-L01$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -227,11 +227,11 @@ $
   Disable SSH login for 'root'?$
 $
   Type the hostname [bos-san-l01, 0 or q]: BOS-SAN-L01$
-  [!] Error: That does not match exactly. Please try again.$
+  (x) That does not match exactly. Please try again.$
   Type the hostname [bos-san-l01, 0 or q]: bos-san-l01$
 $
-  [+] Done: Set PermitRootLogin no$
-  [+] Done: Reload the SSH service$
+  [+] Set PermitRootLogin no  Done$
+  [+] Reload the SSH service  Done$
 $
 # Operation Successful$
 $
@@ -375,11 +375,13 @@ $
   ␛[38;2;192;196;216mDisable SSH login for 'root'?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m BOS-SAN-L01$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mThat does not match exactly. Please try again.␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mThat does not match exactly. Please try again.␛[m$
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload the SSH service␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet PermitRootLogin no␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload the SSH service␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $

@@ -107,44 +107,46 @@ func TestRiskGlyphAlone(t *testing.T) {
 	}
 }
 
-// TestMessageMarkers checks the glyphs of a message's kind: they fit the
-// marker column, even where ambiguous-width glyphs are drawn two cells
-// wide, and no two kinds share one, so a kind never rests on colour alone.
-// A warning's glyph is Partial's (TestStatusMarkers), its word "Warning".
-func TestMessageMarkers(t *testing.T) {
+// TestInlineMarker checks the inline results' glyph (⨳, "(x)"; the
+// maintainer, 2026-10-22): it fits the marker column, even where
+// ambiguous-width glyphs are drawn two cells wide, and is no state's
+// marker, the bullet or a warning's, so that an inline result never reads
+// as a row's state. It is the same for every kind of result: by the
+// maintainer's decision its kind is told by colour, and without colour by
+// its words alone (DEV-062).
+func TestInlineMarker(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
-		kinds := []string{g.OK, g.Warn, g.Bad, g.Info, g.Cancelled}
-		for i, m := range kinds {
-			if w := max(wideWidth(m), lipgloss.Width(m)); w > MarkerWidth {
-				t.Errorf("%s: kind glyph %q is %d cells wide, over MarkerWidth %d", name, m, w, MarkerWidth)
-			}
-			if slices.Contains(kinds[i+1:], m) {
-				t.Errorf("%s: glyph %q marks two kinds", name, m)
+		if w := max(wideWidth(g.Inline), lipgloss.Width(g.Inline)); w > MarkerWidth {
+			t.Errorf("%s: Inline %q is %d cells wide, over MarkerWidth %d", name, g.Inline, w, MarkerWidth)
+		}
+		for _, m := range []string{g.Configured, g.NotConfigured, g.Partial, g.Unknown, g.NotApplicable, g.Risk, g.Bullet, g.Warn} {
+			if m == g.Inline {
+				t.Errorf("%s: Inline %q is also a row's marker", name, g.Inline)
 			}
 		}
 	}
+	if unicodeGlyphs.Inline != "\u2a33" || asciiGlyphs.Inline != "(x)" {
+		t.Errorf("Inline is %q and %q, want the maintainer's \u2a33 and (x)", unicodeGlyphs.Inline, asciiGlyphs.Inline)
+	}
 }
 
-// TestStepMarkers checks the glyphs of a step's state, each spinner frame
-// and the countdown's urgent mark: they fit the marker column, even where
-// ambiguous-width glyphs are drawn two cells wide, and no two states share
-// one, so a state never rests on colour alone. The spinner has frames to
-// cycle through, and none is another state's glyph.
+// TestStepMarkers checks the glyphs a step's row draws in the marker
+// column (P-42 (a2), the maintainer, 2026-10-22): the status markers of a
+// step done, failed or rolled back, the bullet of a step pending, running
+// or skipped, and each spinner frame of a running step where the terminal
+// animates. Each fits the column, even where ambiguous-width glyphs are
+// drawn two cells wide, and the spinner has frames to cycle through. A
+// step's state is told by its word, whatever its marker (pkg/ui/component's
+// TestStepStates).
 func TestStepMarkers(t *testing.T) {
 	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
-		states := []string{g.Pending, g.Running, g.OK, g.Bad, g.RolledBack, g.Skipped}
 		frames := strings.Split(g.Spinner, "")
 		if len(frames) < 2 {
 			t.Errorf("%s: the spinner has %d frames", name, len(frames))
 		}
-		for _, m := range slices.Concat(states, frames, []string{g.Urgent}) {
+		for _, m := range slices.Concat([]string{g.Configured, g.NotConfigured, g.Partial, g.Bullet}, frames) {
 			if w := max(wideWidth(m), lipgloss.Width(m)); w > MarkerWidth {
 				t.Errorf("%s: glyph %q is %d cells wide, over MarkerWidth %d", name, m, w, MarkerWidth)
-			}
-		}
-		for i, m := range states {
-			if slices.Contains(states[i+1:], m) || slices.Contains(frames, m) {
-				t.Errorf("%s: glyph %q marks two step states", name, m)
 			}
 		}
 	}

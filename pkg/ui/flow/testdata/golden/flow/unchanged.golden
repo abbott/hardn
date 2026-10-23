@@ -9,7 +9,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156malice␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+  ␛[38;2;129;134;156mNothing needs changing.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # SSH Configuration --------------------------------------------$
@@ -18,7 +18,7 @@ $
    -  SSH Port             2230$
    -  Allowed Users        alice$
 $
-  [i] Info: Nothing needs changing.$
+  Nothing needs changing.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
@@ -30,4 +30,4 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156malice␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+  ␛[38;2;129;134;156mNothing needs changing.␛[m$

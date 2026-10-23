@@ -65,9 +65,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
@@ -92,8 +92,8 @@ $
 $
   ␛[38;2;192;196;216mAdd nameserver 192.0.2.53?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSave the configuration␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -235,9 +235,9 @@ $
 # Add nameserver ###############################################$
 $
   Enter nameserver IP address [0 or q]: 999.1.1.1$
-  [!] Error: Invalid IP address format$
+  (x) Invalid IP address format$
   Enter nameserver IP address [0 or q]: 192.0.2.54$
-  [!] Error: Nameserver 192.0.2.54 is already configured$
+  (x) Nameserver 192.0.2.54 is already configured$
   Enter nameserver IP address [0 or q]: 192.0.2.53$
 $
 # DNS Configuration --------------------------------------------$
@@ -262,8 +262,8 @@ $
 $
   Add nameserver 192.0.2.53? [y/N, 0 or q]: y$
 $
-  [+] Done: Set the nameservers$
-  [+] Done: Save the configuration$
+  [+] Set the nameservers     Done$
+  [+] Save the configuration  Done$
 $
 # Operation Successful$
 $
@@ -426,9 +426,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid IP address format␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
-   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
+   ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83mNameserver 192.0.2.54 is already configured␛[m$
   ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
@@ -455,8 +455,10 @@ $
 $
   ␛[38;2;192;196;216mAdd nameserver 192.0.2.53?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSave the configuration␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $

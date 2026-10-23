@@ -37,8 +37,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 1$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the␛[m$
-      ␛[38;2;129;134;156mnameservers with nmcli.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -66,8 +67,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 4$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the␛[m$
-      ␛[38;2;129;134;156mnameservers with nmcli.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -136,8 +138,9 @@ $
 $
   > Enter selection [0-6 or q]: 1$
 $
-  [ ] Warning: NetworkManager manages DNS here. Set the$
-      nameservers with nmcli.$
+# Warning$
+# NetworkManager manages DNS here. Set the nameservers with$
+# nmcli.$
 $
 # DNS Configuration ############################################$
 $
@@ -165,8 +168,9 @@ $
 $
   > Enter selection [0-6 or q]: 4$
 $
-  [ ] Warning: NetworkManager manages DNS here. Set the$
-      nameservers with nmcli.$
+# Warning$
+# NetworkManager manages DNS here. Set the nameservers with$
+# nmcli.$
 $
 # DNS Configuration ############################################$
 $
@@ -246,8 +250,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 1$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the␛[m$
-      ␛[38;2;129;134;156mnameservers with nmcli.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -286,8 +291,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 4$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the␛[m$
-      ␛[38;2;129;134;156mnameservers with nmcli.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

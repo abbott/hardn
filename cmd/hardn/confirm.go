@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // Seams for the tests: the claim and the clean-up, the clean-up's host,
@@ -70,7 +71,7 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)
 	}
 	if !h.Run() {
-		showCleanup(h, confirm.Outcome{})
+		showCleanup(h, confirm.Outcome{}, false)
 		return code
 	}
 	if h.Finishing || h.Carried {
@@ -86,12 +87,13 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		Revert: revert.Options{Log: revertFileLog{}, Now: revertNow}, Hold: confirmHold, PID: revertPID()})
 	stop()
 	run := output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}
-	if !o.Done() || !o.Result.Nothing {
+	reported := !o.Done() || !o.Result.Nothing
+	if reported {
 		if err := output.Emit(output.Streams{Stdout: confirmStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
 			logging.LogWarning("hardn confirm: the clean-up's report: %v", err)
 		}
 	}
-	showCleanup(h, o)
+	showCleanup(h, o, reported)
 	return max(code, output.ExitCode(run))
 }
 
@@ -106,24 +108,31 @@ func acknowledgeRolledBack(ctx context.Context, sys host.System, opts revert.Opt
 
 // showCleanup writes what the clean-up of h did and what is left of it,
 // and how to finish it (confirm.Held.Report), on stdout through pkg/ui, with
-// no colour off a terminal.
-func showCleanup(h confirm.Held, o confirm.Outcome) {
+// no colour off a terminal: one run of messages (component.Messages), so
+// what was done is one "Operation Successful" callout, what is left one
+// "Warning", and how to finish it prose. After the clean-up's report
+// (afterReport), whose last block is a callout too, the run starts
+// theme.SectionGap blank lines down, as pkg/output separates its blocks,
+// so that its first callout is not read as the report's continued.
+func showCleanup(h confirm.Held, o confirm.Outcome, afterReport bool) {
 	r := h.Report(o)
 	env := stdoutEnv()
-	c := component.NewCtx(env)
-	var lines []string
+	var run component.Messages
 	for _, d := range r.Done {
-		lines = append(lines, component.Message{Kind: component.MessageOK, Text: d}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageOK, Text: d})
 	}
 	for _, l := range r.Left {
-		lines = append(lines, component.Message{Kind: component.MessageWarn, Text: l}.Render(c))
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: l})
 	}
-	if r.Finish != "" {
-		lines = append(lines, component.Message{Text: r.Finish}.Render(c))
+	run = append(run, component.Message{Text: r.Finish})
+	out := run.Render(component.NewCtx(env))
+	if out == "" {
+		return
 	}
-	if len(lines) > 0 {
-		_, _ = io.WriteString(env.Writer(confirmStdout), strings.Join(lines, "\n")+"\n")
+	if afterReport {
+		out = strings.Repeat("\n", theme.SectionGap) + out
 	}
+	_, _ = io.WriteString(env.Writer(confirmStdout), out+"\n")
 }
 
 // portWords is ports in words: "22", "22 and 2222".

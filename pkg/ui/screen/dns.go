@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
+	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
 // The DNS mocks (refactor plan slice 2, unit (a); docs/engine/gallery-dns.md):
@@ -392,9 +393,10 @@ const (
 // a host whose /etc/resolv.conf is a file: dns.Validate's per-address
 // rules and its duplicate check, each refusal in the screen's words, which
 // the gallery's test holds to dns.Validate's refusals entry by entry, each
-// of their kinds to its words. The list stays under dns.Validate's count
-// for a file here, so its count rule is not copied. The real screen calls
-// dns.Validate.
+// of their kinds to its words. A nameserver already configured is refused
+// with a warning (nav.Warn), as origin/main warns of it, the others as
+// failed. The list stays under dns.Validate's count for a file here, so
+// its count rule is not copied. The real screen calls dns.Validate.
 func addCheck(configured []string) func(string) error {
 	return func(entry string) error {
 		a, err := netip.ParseAddr(entry)
@@ -407,7 +409,7 @@ func addCheck(configured []string) func(string) error {
 			thisNetwork.Contains(a), a == broadcast, a.Is6() && a.IsLinkLocalUnicast():
 			return errors.New(addUnusable)
 		case slices.Contains(configured, a.String()):
-			return fmt.Errorf(addTwice, a)
+			return nav.Warn(fmt.Sprintf(addTwice, a))
 		}
 		return nil
 	}

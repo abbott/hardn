@@ -213,7 +213,7 @@ func TestPlayEngine(t *testing.T) {
 					t.Errorf("ufw inactive %t, allows %v; want active, allowing 22", h.inactive, h.allowed)
 				}
 			}, []string{"systemd-run", "ufw allow 22/tcp", "ufw --force enable"}},
-		{"sudoers-grant-debian13", 0, []string{"[y/N, 0 or q]: y", "Done: Let alice use sudo without a password", "Operation Successful"},
+		{"sudoers-grant-debian13", 0, []string{"[y/N, 0 or q]: y", "Let alice use sudo without a password Done", "Operation Successful"},
 			func(t *testing.T, h *fakeHost) {
 				if e, ok := h.f.Entry("/etc/sudoers.d/hardn-grant-alice"); !ok || !strings.Contains(string(e.Data), "alice ALL=(ALL) NOPASSWD: ALL") {
 					t.Errorf("the grant: %q, %t", e.Data, ok)
@@ -224,8 +224,8 @@ func TestPlayEngine(t *testing.T) {
 			}, []string{"/etc/sudoers.d/hardn-grant-alice"}},
 		{"refused-d9-ubuntu2604", 0, []string{"Operation Failed", "never took effect", "(SSH_LISTEN_CONF_NOT_IN_EFFECT)", "To go on: first make sure the firewall", "Nothing was applied."},
 			untouched, nil},
-		{"failed-reload-debian13", 1, []string{"Failed: Reload sshd (ssh.service) (COMMAND_FAILED)", "Skipped: sshd -T", "Operation Failed",
-			"Rolled back: Add SSH port 2230", "Rolled back: ufw: allow 2230/tcp", "Job for ssh.service failed", "Rolled back from the journal"},
+		{"failed-reload-debian13", 1, []string{"Reload sshd (ssh.service) Failed COMMAND_FAILED", "sshd -T shows ports 22, 2230 Skipped", "Operation Failed",
+			"Add SSH port 2230 Rolled back", "ufw: allow 2230/tcp Rolled back", "Job for ssh.service failed", "Rolled back from the journal"},
 			func(t *testing.T, h *fakeHost) {
 				if d := h.dropIn(); d != "" || !slices.Equal(h.allowed, []uint16{22}) || slices.Contains(h.bound, "0.0.0.0:2230") {
 					t.Errorf("not rolled back: 00-hardn.conf %q, ufw %v, sshd on %v", d, h.allowed, h.bound)
@@ -266,7 +266,7 @@ func TestPlayEngine(t *testing.T) {
 				t.Fatal("no such scenario")
 			}
 			s, out, code := playEngine(t, enginePrefix+"/"+tc.name, sc.answers...)
-			flat := strings.Join(strings.Fields(out), " ")
+			flat := flatText(out)
 			at := 0
 			for _, w := range tc.screen {
 				i := strings.Index(flat[at:], strings.Join(strings.Fields(w), " "))
@@ -557,7 +557,7 @@ func TestConfirmFromNewConnection(t *testing.T) {
 				}
 			}},
 		{"the clean-up's reload fails", inactiveUFW, func(h *fakeHost) { h.failReloads = 1 }, 1,
-			[]string{"confirmed (", "Failed: Reload sshd (ssh.service)", "Operation Failed", "Rolled back:", "Port 22, which change", "is still open", "To finish the clean-up"},
+			[]string{"confirmed (", "Reload sshd (ssh.service) Failed", "Operation Failed", "Rolled back", "Port 22, which change", "is still open", "To finish the clean-up"},
 			func(t *testing.T, h *fakeHost) {
 				if h.journalled(revert.PendingName) || !h.journalled(revert.ConfirmedName) || !strings.Contains(h.dropIn(), "Port 22\nPort 2230\n") {
 					t.Errorf("want the change confirmed and port 22 left; 00-hardn.conf:\n%s", h.dropIn())
@@ -579,7 +579,7 @@ func TestConfirmFromNewConnection(t *testing.T) {
 				}
 			}, sc.answers...)
 			_, confirmed, _ := strings.Cut(out, "hardn confirm, from a new connection")
-			flat, at := strings.Join(strings.Fields(confirmed), " "), 0
+			flat, at := flatText(confirmed), 0
 			for _, w := range tc.screen {
 				i := strings.Index(flat[at:], w)
 				if i < 0 {
@@ -649,4 +649,16 @@ func TestPlayEngineWriteFails(t *testing.T) {
 			t.Errorf("%s, at %q: exit %d, stderr %q, the write failed %t; want exit %d, stderr %q", tc.start, tc.at, code, errs.String(), w.broke, exitError, tc.errs)
 		}
 	}
+}
+
+// flatText is s as one line of words: each line without a callout's bar
+// ("# " in plain mode) and its white space collapsed, so that a sentence
+// matches however it is wrapped, as prose or in a callout's body (P-42
+// R5), and a step's row as its title, then its state.
+func flatText(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimPrefix(l, "# ")
+	}
+	return strings.Join(strings.Fields(strings.Join(lines, "\n")), " ")
 }

@@ -126,7 +126,7 @@ func (p Prompter) Confirm(q Question, defaultYes bool) (bool, error) {
 		}
 		i, ok := answers.Match(line)
 		if !ok {
-			return refused(InvalidAnswer)
+			return Refuse(InvalidAnswer)
 		}
 		yes = i == 0 // YesNo lists yes first
 		return nil
@@ -165,7 +165,7 @@ func (p Prompter) Typed(q Question, phrase string) error {
 			return err
 		}
 		if strings.TrimSpace(line) != phrase {
-			return refused(noMatch)
+			return Refuse(noMatch)
 		}
 		return nil
 	})
@@ -243,17 +243,37 @@ func CheckPhrase(phrase string) error {
 	return nil
 }
 
-// refused is a line a prompt does not accept, and why: Ask writes the
-// reason under the prompt and asks again.
-type refused string
+// refused is a line a prompt does not accept: why, and the kind of
+// InlineResult Ask writes it as under the prompt before it asks again,
+// failed (Refuse) or a warning (Warn).
+type refused struct {
+	why  string
+	kind component.MessageKind
+}
 
-func (r refused) Error() string { return string(r) }
+func (r refused) Error() string { return r.why }
 
 // Refuse returns the error with which a resolve function passed to Ask
-// refuses a line: Ask writes reason under the prompt as an error Message
-// and asks again. A form refuses so a value its field's validation
-// rejects, with the validation's words.
-func Refuse(reason string) error { return refused(reason) }
+// refuses a line: Ask writes reason under the prompt as a failed
+// InlineResult and asks again.
+func Refuse(reason string) error { return refused{reason, component.MessageBad} }
+
+// Warn is Refuse for a line refused with a warning rather than as a
+// failure, such as a value already configured: Ask writes reason as a
+// warning InlineResult, in status.warn (DEV-062).
+func Warn(reason string) error { return refused{reason, component.MessageWarn} }
+
+// RefuseFor returns the refusal of a line for err: err's own when err is
+// or wraps one (Refuse, Warn), else a failed refusal in err's words. A
+// form refuses with it a value its field's validation rejects, so that
+// the validation may refuse with Warn.
+func RefuseFor(err error) error {
+	var r refused
+	if errors.As(err, &r) {
+		return r
+	}
+	return Refuse(err.Error())
+}
 
 // Ask writes question, a prompt rendered by the caller, and reads lines
 // until resolve accepts one; every prompt of the grammar asks so, and a
@@ -263,10 +283,12 @@ func Refuse(reason string) error { return refused(reason) }
 // Navigate first.
 //
 // resolve returns nil to accept the line; ErrBack or ErrQuit to navigate;
-// or a reason from Refuse, which Ask writes under the prompt as an error
-// Message before it writes question again, leaving the screen above as it
-// is (brief 1C: re-ask only that field, keeping context). A line longer
-// than prompt.MaxLine is refused for the reason invalid, and so is a line
+// or a reason from Refuse, which Ask writes under the prompt as a failed
+// component.InlineResult (⨳ and the reason in status.bad, no word; P-42,
+// DEV-062), or from Warn, which it writes as a warning one (status.warn),
+// before it writes question again, leaving the screen above as it is
+// (brief 1C: re-ask only that field, keeping context). A line longer than
+// prompt.MaxLine is refused for the reason invalid, and so is a line
 // refused for a reason that shows nothing. Any other error, from resolve
 // or from the reader, is returned: the end of the input and Ctrl-C
 // (prompt.ErrAborted) abort, and never go back. An empty question, as a
@@ -280,7 +302,7 @@ func (p Prompter) Ask(question, invalid string, resolve func(line string) error)
 		var why refused
 		switch {
 		case errors.Is(err, prompt.ErrLineTooLong):
-			why = refused(invalid)
+			why = refused{invalid, component.MessageBad}
 		case err != nil:
 			return err
 		default:
@@ -288,9 +310,9 @@ func (p Prompter) Ask(question, invalid string, resolve func(line string) error)
 				return err
 			}
 		}
-		msg := component.Message{Kind: component.MessageBad, Text: string(why)}.Render(p.Ctx)
+		msg := component.InlineResult{Kind: why.kind, Text: why.why}.Render(p.Ctx)
 		if msg == "" {
-			msg = component.Message{Kind: component.MessageBad, Text: invalid}.Render(p.Ctx)
+			msg = component.InlineResult{Kind: component.MessageBad, Text: invalid}.Render(p.Ctx)
 		}
 		if _, err := io.WriteString(p.Out, msg+"\n"); err != nil {
 			return fmt.Errorf("nav: write: %w", err)

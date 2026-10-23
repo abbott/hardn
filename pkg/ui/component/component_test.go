@@ -123,6 +123,15 @@ func empty(vm renderer) bool {
 		return len(v.Items) == 0
 	case Message:
 		return v.Text == ""
+	case Messages:
+		for _, m := range v {
+			if strings.TrimSpace(m.Text) != "" {
+				return false
+			}
+		}
+		return true
+	case InlineResult:
+		return v.Text == ""
 	case AnsweredField:
 		return v.Label == ""
 	case FieldHead:
@@ -466,13 +475,28 @@ func TestLayout(t *testing.T) {
 		{"bulletlist: a bullet item wraps under itself", BulletList{Items: []KeyValue{{Key: "If SSH fails, a fallback access method is available"}}}, 40, false,
 			"   -  If SSH fails, a fallback access\n      method is available"},
 		{"bulletlist: an empty list is nothing", BulletList{Items: []KeyValue{{}, {Key: " "}}}, 80, false, ""},
-		{"message: the glyph in the marker column, the word at the label column, then the text", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
-			"  [+] Success: DNS configured successfully"},
-		{"message: a Unicode glyph is centred", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "   ✗  Error: Failed"},
-		{"message: a long text wraps under the word", Message{Text: "No automatic backups will be created"}, 20, false,
-			"  [i] Info: No\n      automatic\n      backups will\n      be created"},
-		{"message: a word too wide for its line breaks, as the text does", Message{Kind: MessageCancelled, Text: "Stopped"}, 12, false,
-			"  [-] Cancel\n      led:\n      Stoppe\n      d"},
+		{"message: ok is its callout, the kind's title over the text", Message{Kind: MessageOK, Text: "DNS configured successfully"}, 80, false,
+			"# Operation Successful\n# DNS configured successfully"},
+		{"message: bad is its callout, with no glyph", Message{Kind: MessageBad, Text: "Failed"}, 80, true, "█ Operation Failed\n█ Failed"},
+		{"message: info is prose at the indent, wrapped, with no glyph and no word", Message{Text: "No automatic backups will be created"}, 20, false,
+			"  No automatic\n  backups will be\n  created"},
+		{"message: a word too wide for its line breaks", Message{Text: "Unattended"}, 8, false, "  Unatte\n  nded"},
+		{"messages: a run of one kind is one callout, a run of info one block of prose", Messages{
+			{Kind: MessageOK, Text: "Held port 22 removed"}, {Kind: MessageOK, Text: "ufw rule for 22/tcp removed"},
+			{Kind: MessageWarn, Text: "The revert timer is still armed"}, {Text: "Run sudo hardn confirm again."}, {Kind: MessageKind(9), Text: "Then close this session."},
+		}, 80, false, "# Operation Successful\n# Held port 22 removed\n# ufw rule for 22/tcp removed\n\n# Warning\n# The revert timer is still armed\n\n" +
+			"  Run sudo hardn confirm again.\n  Then close this session."},
+		{"messages: a kind again after another is a callout again; empty texts are skipped", Messages{
+			{Kind: MessageBad, Text: "a"}, {Kind: MessageBad, Text: " "}, {Text: "b"}, {Kind: MessageBad, Text: "c"},
+		}, 80, false, "# Operation Failed\n# a\n\n  b\n\n# Operation Failed\n# c"},
+		{"messages: nothing to show is nothing", Messages{{Kind: MessageOK}, {Text: "\t"}}, 80, false, ""},
+		{"inline: the glyph in the marker column, the text at the label column, no word", InlineResult{Kind: MessageBad, Text: "Invalid IP address format"}, 80, true,
+			"   ⨳  Invalid IP address format"},
+		{"inline: ASCII (x) at columns 2 to 4", InlineResult{Kind: MessageWarn, Text: "Nameserver 192.0.2.54 is already configured"}, 80, false,
+			"  (x) Nameserver 192.0.2.54 is already configured"},
+		{"inline: a long text wraps under itself", InlineResult{Text: "An IPv4 or IPv6 address, such as 192.0.2.53"}, 24, false,
+			"  (x) An IPv4 or IPv6\n      address, such as\n      192.0.2.53"},
+		{"inline: no text is nothing", InlineResult{Kind: MessageOK, Text: " "}, 80, false, ""},
 		{"callout: bar, title and body, no glyph", figmaWarning, 80, false, "# Warning\n# Before disabling root SSH login, ensure:"},
 		{"callout: no title is the kind's own", Callout{Kind: MessageCancelled, Body: []string{""}}, 80, true, "█ Operation Cancelled"},
 		{"callout: a title of its own follows the kind's word", Callout{Kind: MessageBad, Title: " Port 2230 refused "}, 80, true, "█ Error: Port 2230 refused"},
@@ -495,7 +519,7 @@ func TestLayout(t *testing.T) {
 		{"field: typographic quotes are shown as ASCII (C12)", AnsweredField{Label: "Disable SSH login for \u2018root\u2019?", Accepts: yesNo, Answer: "y"}, 80, true,
 			"  Disable SSH login for 'root'? [y/N]: y"},
 		{"message: typographic double quotes are shown as ASCII (C12)", Message{Kind: MessageBad, Text: "sshd: \u201cPort 2230\u201d is in use"}, 80, true,
-			"   ✗  Error: sshd: \"Port 2230\" is in use"},
+			"█ Operation Failed\n█ sshd: \"Port 2230\" is in use"},
 		{"field: a wide number pushes the question", AnsweredField{Number: 12345, Label: "Username"}, 80, false, "12345. Username:"},
 		{"field: too narrow for the colon, an unnumbered question is cut, not left as its indent", AnsweredField{Label: "Username", Answer: "george"}, 6, false,
 			"  U...\n..."},
@@ -561,6 +585,8 @@ func TestASCIIText(t *testing.T) {
 		{"breadcrumb", Breadcrumb{Items: []string{"Firewall", typo}}},
 		{"key-value", BulletList{Items: []KeyValue{{Key: typo}, {Key: "SSH", Value: typo}}}},
 		{"message", Message{Kind: MessageInfo, Text: typo}},
+		{"messages", Messages{{Kind: MessageWarn, Text: typo}, {Text: typo}}},
+		{"inline result", InlineResult{Kind: MessageBad, Text: typo}},
 		{"callout", Callout{Kind: MessageWarn, Title: typo, Body: []string{typo}}},
 		{"answered field", AnsweredField{Number: 1, Label: typo, Answer: typo}},
 		{"an answer says what was typed", AnsweredField{Number: 1, Label: "Comment", Answer: typo}},
@@ -1040,7 +1066,13 @@ func TestBlockStyles(t *testing.T) {
 			{th.Glyphs.Bullet, th.KeyValue.Bullet}, {"SSH Keys", th.KeyValue.Key}, {"None", th.KeyValue.Value},
 		}},
 		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
-			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
+			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"No nameservers configured", th.Callout.Body},
+		}},
+		{"info message", Message{Text: "No automatic backups will be created"}, []part{
+			{"No automatic backups will be created", th.Text.Muted},
+		}},
+		{"inline result", InlineResult{Kind: MessageBad, Text: "Invalid IP address format"}, []part{
+			{th.Glyphs.Inline, th.Inline.Bad}, {"Invalid IP address format", th.Inline.Bad},
 		}},
 		{"callout", figmaWarning, []part{
 			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"Before disabling root SSH login, ensure:", th.Callout.Body},
@@ -1111,38 +1143,44 @@ func TestValueStates(t *testing.T) {
 	}
 }
 
-// TestMessageKinds checks that each kind has its own glyph and word, both
-// in its style, on a Message, and its own bar, title style and title, and
-// no glyph, on a Callout; and that without colour, at the ASCII profile
-// and in plain mode, the five kinds' messages, and their callouts given
-// one title of their own, still differ. A value outside the kinds is
-// MessageInfo.
+// TestMessageKinds checks each kind (P-42 R5, the maintainer,
+// 2026-10-22): a Message of kind info is muted prose with no glyph and no
+// word; of any other kind it is that kind's Callout, its bar, title style
+// and own title over the text, and no glyph: at every profile and in both
+// glyph sets (uitest.Full). Each kind has its own title and word, and
+// without colour, at the ASCII profile and in plain mode, the five kinds'
+// messages, and their callouts given one title of their own, still
+// differ. A value outside the kinds is MessageInfo.
 func TestMessageKinds(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
-	m, co, g := c.Theme.Message, c.Theme.Callout, c.Theme.Glyphs
+	co := c.Theme.Callout
 	tests := []struct {
 		kind        MessageKind
-		glyph       string
-		style       lipgloss.Style
 		bar         theme.CalloutKind
 		word, title string
 	}{
-		{MessageInfo, g.Info, m.Info, co.Info, "Info", "Note"},
-		{MessageOK, g.OK, m.OK, co.OK, "Success", "Operation Successful"},
-		{MessageWarn, g.Warn, m.Warn, co.Warn, "Warning", "Warning"},
-		{MessageBad, g.Bad, m.Bad, co.Bad, "Error", "Operation Failed"},
-		{MessageCancelled, g.Cancelled, m.Cancelled, co.Cancelled, "Cancelled", "Operation Cancelled"},
-		{MessageKind(9), g.Info, m.Info, co.Info, "Info", "Note"},
+		{MessageInfo, co.Info, "Info", "Note"},
+		{MessageOK, co.OK, "Success", "Operation Successful"},
+		{MessageWarn, co.Warn, "Warning", "Warning"},
+		{MessageBad, co.Bad, "Error", "Operation Failed"},
+		{MessageCancelled, co.Cancelled, "Cancelled", "Operation Cancelled"},
+		{MessageKind(9), co.Info, "Info", "Note"},
+	}
+	for _, cell := range uitest.Full() {
+		cc := NewCtx(cell.Env)
+		for _, tt := range tests {
+			got, want := Message{Kind: tt.kind, Text: "x"}.Render(cc), Callout{Kind: tt.kind, Body: []string{"x"}}.Render(cc)
+			if tt.word == "Info" {
+				want = "  " + cc.Theme.Text.Muted.Render("x")
+			}
+			if got != want {
+				t.Errorf("%s, kind %d: message %q, want %q", cell.Name, tt.kind, got, want)
+			}
+		}
 	}
 	words, titles := map[string]bool{}, map[string]bool{}
 	for _, tt := range tests {
-		got := Message{Kind: tt.kind, Text: "x"}.Render(c)
-		for _, want := range []string{tt.style.Render(tt.glyph), tt.style.Render(tt.word + ":")} {
-			if !strings.Contains(got, want) {
-				t.Errorf("kind %d: message %q, want it to hold %q", tt.kind, got, want)
-			}
-		}
-		got = Callout{Kind: tt.kind}.Render(c)
+		got := Callout{Kind: tt.kind}.Render(c)
 		if want := tt.bar.Bar.Render(" ") + " " + tt.bar.Title.Render(tt.title); got != want {
 			t.Errorf("kind %d: callout %q, want %q", tt.kind, got, want)
 		}
@@ -1153,14 +1191,6 @@ func TestMessageKinds(t *testing.T) {
 	}
 	if len(words) != 5 || len(titles) != 5 {
 		t.Errorf("the five kinds have %d different words and %d different titles, want 5: %v %v", len(words), len(titles), words, titles)
-	}
-	// A word broken over lines keeps its style on each.
-	narrow := NewCtx(term.Fixed(12, colorprofile.TrueColor, false, true))
-	got := Message{Kind: MessageCancelled, Text: "Stopped"}.Render(narrow)
-	for _, want := range []string{m.Cancelled.Render("Cancel"), m.Cancelled.Render("led:"), m.Text.Render("Stoppe")} {
-		if !strings.Contains(got, want) {
-			t.Errorf("narrow message %q, want it to hold %q", got, want)
-		}
 	}
 	for _, env := range []term.Env{
 		term.Fixed(80, colorprofile.ASCII, false, true),
@@ -1179,6 +1209,44 @@ func TestMessageKinds(t *testing.T) {
 		if len(messages) != 5 || len(callouts) != 5 {
 			t.Errorf("%v, unicode %v: the five kinds show %d different messages and %d different callouts, want 5: %v %v",
 				env.Profile, env.Unicode, len(messages), len(callouts), messages, callouts)
+		}
+	}
+}
+
+// TestInlineKinds checks an InlineResult of each kind (P-42, the
+// maintainer, 2026-10-22; DEV-062): Glyphs.Inline in the marker column
+// and the text at the label column, both in the kind's colour, regular,
+// with no word, at every profile and in both glyph sets: failed in
+// status.bad, a warning (and a cancelled result) in status.warn, done in
+// status.ok, information in text.muted. Without colour the kinds draw
+// alike but for their words, by the maintainer's decision ("no word"); a
+// value outside the kinds is MessageInfo.
+func TestInlineKinds(t *testing.T) {
+	for _, cell := range uitest.Full() {
+		env := cell.Env
+		c := NewCtx(env)
+		in := c.Theme.Inline
+		for _, tt := range []struct {
+			kind  MessageKind
+			style lipgloss.Style
+		}{
+			{MessageBad, in.Bad}, {MessageWarn, in.Warn}, {MessageOK, in.OK}, {MessageInfo, in.Info},
+			{MessageCancelled, in.Warn}, {MessageKind(9), in.Info},
+		} {
+			got := InlineResult{Kind: tt.kind, Text: "Invalid IP address format"}.Render(c)
+			lead := Marker(c.Theme.Glyphs.Inline, tt.style).String()
+			want := lead + strings.Repeat(" ", theme.LabelCol-lipgloss.Width(lead)) + tt.style.Render("Invalid IP address format")
+			if got != want {
+				t.Errorf("%s, kind %d: %q, want %q", env.Profile, tt.kind, got, want)
+			}
+			if tt.style.GetBold() {
+				t.Errorf("%s, kind %d: the result is bold", env.Profile, tt.kind)
+			}
+			for _, word := range []string{"Error", "Warning", "Success", "Info", "Failed", "Done"} {
+				if strings.Contains(ansi.Strip(got), word) {
+					t.Errorf("%s, kind %d: %q holds the word %q", env.Profile, tt.kind, got, word)
+				}
+			}
 		}
 	}
 }

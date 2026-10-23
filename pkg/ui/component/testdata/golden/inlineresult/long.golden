@@ -1,0 +1,211 @@
+# Golden file of TestGolden/inlineresult/long, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mUsername must start with a lowercase letter and␛[m$
+      ␛[38;2;231;70;105mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;2;231;70;105munderscores␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;231;70;105monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;231;70;105monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mUsername must start with a lowercase letter and␛[m$
+      ␛[38;2;231;70;105mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;2;231;70;105munderscores␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;231;70;105monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+  ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;231;70;105monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⨳␛[m  ␛[38;2;194;37;74mUsername must start with a lowercase letter and␛[m$
+      ␛[38;2;194;37;74mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;2;194;37;74munderscores␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⨳␛[m  ␛[38;2;194;37;74mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;194;37;74monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+   ␛[38;2;194;37;74m⨳␛[m  ␛[38;2;194;37;74mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;194;37;74monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m(x)␛[m ␛[38;2;194;37;74mUsername must start with a lowercase letter and␛[m$
+      ␛[38;2;194;37;74mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;2;194;37;74munderscores␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m(x)␛[m ␛[38;2;194;37;74mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;194;37;74monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+  ␛[38;2;194;37;74m(x)␛[m ␛[38;2;194;37;74mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;2;194;37;74monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⨳␛[m  ␛[38;5;204mUsername must start with a lowercase letter and␛[m$
+      ␛[38;5;204mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;5;204munderscores␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⨳␛[m  ␛[38;5;204mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;204monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+   ␛[38;5;204m⨳␛[m  ␛[38;5;204mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;204monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m(x)␛[m ␛[38;5;204mUsername must start with a lowercase letter and␛[m$
+      ␛[38;5;204mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;5;204munderscores␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m(x)␛[m ␛[38;5;204mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;204monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+  ␛[38;5;204m(x)␛[m ␛[38;5;204mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;204monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⨳␛[m  ␛[38;5;161mUsername must start with a lowercase letter and␛[m$
+      ␛[38;5;161mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;5;161munderscores␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⨳␛[m  ␛[38;5;161mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;161monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+   ␛[38;5;161m⨳␛[m  ␛[38;5;161mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;161monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m(x)␛[m ␛[38;5;161mUsername must start with a lowercase letter and␛[m$
+      ␛[38;5;161mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[38;5;161munderscores␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m(x)␛[m ␛[38;5;161mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;161monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+  ␛[38;5;161m(x)␛[m ␛[38;5;161mUsername must start with a lowercase letter and contain␛[m$
+      ␛[38;5;161monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⨳␛[m  ␛[91mUsername must start with a lowercase letter and␛[m$
+      ␛[91mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[91munderscores␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⨳␛[m  ␛[91mUsername must start with a lowercase letter and contain␛[m$
+      ␛[91monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+   ␛[91m⨳␛[m  ␛[91mUsername must start with a lowercase letter and contain␛[m$
+      ␛[91monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+  ␛[91m(x)␛[m ␛[91mUsername must start with a lowercase letter and␛[m$
+      ␛[91mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[91munderscores␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+  ␛[91m(x)␛[m ␛[91mUsername must start with a lowercase letter and contain␛[m$
+      ␛[91monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+  ␛[91m(x)␛[m ␛[91mUsername must start with a lowercase letter and contain␛[m$
+      ␛[91monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+   ␛[31m⨳␛[m  ␛[31mUsername must start with a lowercase letter and␛[m$
+      ␛[31mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[31munderscores␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+   ␛[31m⨳␛[m  ␛[31mUsername must start with a lowercase letter and contain␛[m$
+      ␛[31monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+   ␛[31m⨳␛[m  ␛[31mUsername must start with a lowercase letter and contain␛[m$
+      ␛[31monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+  ␛[31m(x)␛[m ␛[31mUsername must start with a lowercase letter and␛[m$
+      ␛[31mcontain only lowercase letters, numbers, hyphens, and␛[m$
+      ␛[31munderscores␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+  ␛[31m(x)␛[m ␛[31mUsername must start with a lowercase letter and contain␛[m$
+      ␛[31monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+  ␛[31m(x)␛[m ␛[31mUsername must start with a lowercase letter and contain␛[m$
+      ␛[31monly lowercase letters, numbers, hyphens, and underscores␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+   ⨳  Username must start with a lowercase letter and$
+      contain only lowercase letters, numbers, hyphens, and$
+      underscores$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+   ⨳  Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+   ⨳  Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+  (x) Username must start with a lowercase letter and$
+      contain only lowercase letters, numbers, hyphens, and$
+      underscores$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+  (x) Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+  (x) Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+   ⨳  Username must start with a lowercase letter and$
+      contain only lowercase letters, numbers, hyphens, and$
+      underscores$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+   ⨳  Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+   ⨳  Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+  (x) Username must start with a lowercase letter and$
+      contain only lowercase letters, numbers, hyphens, and$
+      underscores$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+  (x) Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+  (x) Username must start with a lowercase letter and contain$
+      only lowercase letters, numbers, hyphens, and underscores$

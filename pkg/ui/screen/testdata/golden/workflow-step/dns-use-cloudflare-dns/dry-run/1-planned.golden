@@ -24,7 +24,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Use Cloudflare DNS ###########################################$
@@ -48,7 +48,7 @@ $
    -  Save the configuration$
       /etc/hardn/hardn.yml$
 $
-  [i] Info: No actual changes were made to your system.$
+  No actual changes were made to your system.$
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUse Cloudflare DNS␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -74,4 +74,4 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$

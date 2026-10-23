@@ -27,11 +27,11 @@ import (
 // the theme holds it; the others are the candidates set aside, and a strip
 // sets each candidate beside ⛛ ⭘ ⛬ (docs/engine/gallery-glyphs.md).
 //
-// Like compare.go's mock it draws the rows itself, on the components'
-// grid, styled through the theme's slots' Render methods (paint) and
-// measured with x/ansi. Its current set draws what RiskSummary and
-// StatusList draw, byte for byte (TestGlyphsCurrent), so that a set
-// differs from it only by its glyphs and colours.
+// It draws the rows itself, on the components' grid (draw.go), styled
+// through the theme's slots' Render methods (paint) and measured with
+// x/ansi. Its current set draws what RiskSummary and StatusList draw, byte
+// for byte (TestGlyphsCurrent), so that a set differs from it only by its
+// glyphs and colours.
 
 // glyphsUsage is the glyphs mode's usage line.
 const glyphsUsage = "usage: go run ./internal/tools/uigallery glyphs [flags] [current | power | figma | diamond | diamond-dot | square | strip | all]..."
@@ -398,8 +398,8 @@ func glyphNames() []string {
 // glyphs is the glyphs mode: it parses args, writes the note, the sets they
 // name and the strip if named to stdout, a write each, reports errors on
 // stderr, and returns the exit status. Where -width is not given it takes
-// the width of the terminal stdout is from size, as compare does
-// (look.sizeTo), so that a wide terminal shows the sets side by side.
+// the width of the terminal stdout is from size, as the playable mode
+// does (look.sizeTo), so that a wide terminal shows the sets side by side.
 func glyphs(args []string, size sizer, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("uigallery glyphs", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -476,7 +476,7 @@ func (g gallery) renderGlyphsNote(c cell) (string, error) {
 
 // renderSets returns sets in cell c under the gallery's header "glyphs
 // sets", each under a SectionHeader with its title, and a blank line after
-// them. As many as fit the terminal's width sit side by side, compareGap
+// them. As many as fit the terminal's width sit side by side, sideGap
 // cells apart, each as wide as the widest line of any set, its header's
 // rule too; the rest follow in rows. Below theme.StackBelow, where the rows
 // stack, one is above the next. Every set has as many lines, so the rows of
@@ -496,7 +496,7 @@ func (g gallery) renderSets(c cell, sets []glyphSet) (string, error) {
 	}
 	per, heads := 1, ctx
 	if termWidth(c.env) >= theme.StackBelow {
-		per = max(1, (termWidth(c.env)+compareGap)/(widest+compareGap))
+		per = max(1, (termWidth(c.env)+sideGap)/(widest+sideGap))
 	}
 	if per > 1 {
 		env := c.env
@@ -514,7 +514,7 @@ func (g gallery) renderSets(c cell, sets []glyphSet) (string, error) {
 				row = block
 				continue
 			}
-			row = beside(row, block, (j-i)*(widest+compareGap)-compareGap, compareGap)
+			row = beside(row, block, (j-i)*(widest+sideGap)-sideGap, sideGap)
 		}
 		rows = append(rows, row)
 	}

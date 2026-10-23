@@ -3,66 +3,91 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the revert…␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.co…␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the revert timer…␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf, ke…␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-1a2b3c4d␛[m$
-      ␛[38;2;129;134;156mis rolled back at about 12:03:00 UTC. To undo it now, run␛[m$
-      ␛[38;2;129;134;156msudo hardn rollback 20261019T120000Z-1a2b3c4d.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf␛[m$
-      ␛[38;2;129;134;156mis read before 00-hardn.conf, so sshd uses it␛[m$
-      ␛[38;2;129;134;156m(SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf:1)␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-1a2b3c4d is rolled␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run sudo hardn␛[m$
+  ␛[38;2;129;134;156mrollback 20261019T120000Z-1a2b3c4d.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf is read␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbefore 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/50-cloud-init.conf:1)␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-  [+] Done: Install hardn's boot unit, which re-arms the reve...$
-  [+] Done: Allow 2230/tcp in ufw before sshd listens on it$
-  [+] Done: Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn....$
-  [+] Done: Reload ssh.service, which keeps established sessions$
-  [+] Done: Check that sshd listens on 22 and 2230$
+  [+] Install hardn's boot unit, which re-arms the revert tim...$
+      Done$
+  [+] Allow 2230/tcp in ufw before sshd listens on it$
+      Done$
+  [+] Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf,...$
+      Done$
+  [+] Reload ssh.service, which keeps established sessions$
+      Done$
+  [+] Check that sshd listens on 22 and 2230$
+      Done$
 $
-  [ ] Warning: This change reverts automatically in 2:45$
-      To keep it, open a new SSH session on port 2230 and run:$
-      sudo hardn confirm$
+# Operation Successful$
 $
-  [i] Info: Unless confirmed, change 20261019T120000Z-1a2b3c4d$
-      is rolled back at about 12:03:00 UTC. To undo it now, run$
-      sudo hardn rollback 20261019T120000Z-1a2b3c4d.$
+# Warning$
+# This change reverts automatically in 2:45$
+# To keep it, open a new SSH session on port 2230 and run:$
 $
-  [ ] Warning: PasswordAuthentication yes in 50-cloud-init.conf$
-      is read before 00-hardn.conf, so sshd uses it$
-      (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-$
-      init.conf:1)$
+      $ sudo hardn confirm$
+$
+  Unless confirmed, change 20261019T120000Z-1a2b3c4d is rolled$
+  back at about 12:03:00 UTC. To undo it now, run sudo hardn$
+  rollback 20261019T120000Z-1a2b3c4d.$
+$
+# Warning$
+# PasswordAuthentication yes in 50-cloud-init.conf is read$
+# before 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,$
+# /etc/ssh/sshd_config.d/50-cloud-init.conf:1)$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the re…␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hard…␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload ssh.service, which keeps established ses…␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit, which re-arms the revert t…␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAllow 2230/tcp in ufw before sshd listens on it␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf…␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload ssh.service, which keeps established sessions␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck that sshd listens on 22 and 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
-      ␛[38;2;192;196;216mrun:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-␛[m$
-      ␛[38;2;129;134;156m1a2b3c4d is rolled back at about 12:03:00 UTC. To undo␛[m$
-      ␛[38;2;129;134;156mit now, run sudo hardn rollback 20261019T120000Z-␛[m$
-      ␛[38;2;129;134;156m1a2b3c4d.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m2:45␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf is read before 00-hardn.conf, so sshd uses␛[m$
-      ␛[38;2;129;134;156mit (SSHD_OVERRIDDEN, /etc/ssh/sshd_config.d/50-cloud-␛[m$
-      ␛[38;2;129;134;156minit.conf:1)␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-1a2b3c4d is␛[m$
+  ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156msudo hardn rollback 20261019T120000Z-1a2b3c4d.␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes in 50-cloud-init.conf is read␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbefore 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/50-cloud-init.conf:1)␛[m$
 $

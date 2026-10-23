@@ -260,7 +260,8 @@ func TestPaths(t *testing.T) {
 		f.Confirm = func(Plan) Confirm { return Confirm{Question: "Type the hostname", Phrase: hostname} }
 		return f
 	}
-	unknownSteps := "  Apply? [y/N, 0 or q]: y\n\n  [+] Done: Unknown\n  [!] Failed: Second change\n\n# Operation Failed\n\n  [<] Rolled back: Unknown\n"
+	unknownSteps := "  Apply? [y/N, 0 or q]: y\n\n  [+] Unknown              Done\n  [ ] Second change        Failed\n\n# Operation Failed\n\n" +
+		"  [ ] Unknown              Rolled back\n"
 	tests := []struct {
 		name    string
 		flow    func(Engine) Flow
@@ -272,7 +273,7 @@ func TestPaths(t *testing.T) {
 		holds   string
 	}{
 		{"applied", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"y"}), Applied, true,
-			"  [+] Done: Let george use sudo without a password\n\n# Operation Successful\n"},
+			"  [+] Let george use sudo without a password  Done\n\n# Operation Successful\n"},
 		{"cancelled", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"n"}), Cancelled, false,
 			"'george'? [y/N, 0 or q]: n\n\n# Operation Cancelled\n"},
 		{"cancelled by the default", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{""}), Cancelled, false,
@@ -280,17 +281,17 @@ func TestPaths(t *testing.T) {
 		{"back at the confirmation", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"0"}), Cancelled, false,
 			"Operation Cancelled"},
 		{"dry-run", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, true, answers, Planned, false,
-			"  [i] Info: No actual changes were made to your system.\n"},
+			"\n\n  No actual changes were made to your system.\n"},
 		{"failed", createUser, spy{Fixture: sudoFails}, false, slices.Concat(answers, []string{"y"}), Failed, true,
-			"  [-] Skipped: Let george use sudo without a password\n"},
+			"   -  Let george use sudo without a password  Skipped\n"},
 		{"failed at the last step", createUser, spy{Fixture: Fixture{Planned: createUserPlan, FailAt: 3}}, false, slices.Concat(answers, []string{"y"}), Failed, true,
-			"  [<] Rolled back: Add george to the sudo group\n  [<] Rolled back: Create user george\n"},
+			"  [ ] Add george to the sudo group            Rolled back\n  [ ] Create user george                      Rolled back\n"},
 		{"failed to plan", createUser, spy{planErr: errors.New("Reading /etc/passwd failed")}, false, answers, Failed, false,
 			"# Reading /etc/passwd failed\n"},
 		{"unchanged", rootDisabled, spy{}, false, nil, Unchanged, false,
-			"\n\n  [i] Info: Nothing needs changing.\n"},
+			"\n\n  Nothing needs changing.\n"},
 		{"typed", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"y", hostname}, Applied, true,
-			"  [!] Error: That does not match exactly. Please try again.\n"},
+			"  (x) That does not match exactly. Please try again.\n"},
 		{"typed for a change at lockout risk", disableRoot, spy{Fixture: Fixture{Planned: planOf(RiskLow, rootLogin)}}, false, []string{hostname}, Applied, true,
 			"$ systemctl reload ssh\n\n  Disable SSH login for 'root'?\n\n  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n"},
 		{"typed with the question for its label", labelless, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
@@ -302,9 +303,9 @@ func TestPaths(t *testing.T) {
 		// b is a line as any other (P-25): no answer at a y/N question,
 		// and compared with the phrase at a typed confirmation.
 		{"b refused at the confirmation", createUser, spy{Fixture: Fixture{Planned: createUserPlan}}, false, slices.Concat(answers, []string{"b", "y"}), Applied, true,
-			"'george'? [y/N, 0 or q]: b\n  [!] Error: Invalid answer. Please try again.\n"},
+			"'george'? [y/N, 0 or q]: b\n  (x) Invalid answer. Please try again.\n"},
 		{"b refused at a typed confirmation", disableRoot, spy{Fixture: Fixture{Planned: lockout}}, false, []string{"b", hostname}, Applied, true,
-			"[bos-san-l01, 0 or q]: b\n  [!] Error: That does not match exactly. Please try again.\n"},
+			"[bos-san-l01, 0 or q]: b\n  (x) That does not match exactly. Please try again.\n"},
 		{"typed by the first label of a long hostname", longHost, spy{Fixture: Fixture{Planned: lockout}}, false, []string{hostname}, Applied, true,
 			"  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n"},
 		{"a zero-width title", zeroWidth, zeroWidthEngine, false, []string{"y"}, Failed, true, unknownSteps},
@@ -321,7 +322,7 @@ func TestPaths(t *testing.T) {
 			t.Errorf("%s: %d, %v, applied %t; want %d, nil, %t and the transcript to hold %q:\n%s", tt.name, o, err, applied, tt.want, tt.applied, tt.holds, out)
 		}
 	}
-	if rep := failure(&Failure{}, nil); rep.Failed != "" {
+	if rep := failure(&Failure{}, nil, nil); rep.Failed != "" {
 		t.Errorf("a Failure with no Err reports %q as what failed, want nothing", rep.Failed)
 	}
 }
@@ -658,15 +659,25 @@ func TestProgress(t *testing.T) {
 		t.Fatalf("an Enter typed while a step ran: %d, %v", o, err)
 	}
 	got, want := strings.Split(screen(echoed.String()), "\n"), strings.Split(ansi.Strip(still), "\n")
-	first := slices.IndexFunc(want, func(l string) bool { return strings.HasSuffix(l, "Done: Create user george") })
+	first := slices.IndexFunc(want, func(l string) bool { return strings.Contains(l, "Create user george") && strings.HasSuffix(l, "Done") })
 	if len(got) != len(want)+1 || first < 0 || !slices.Equal(got[:first], want[:first]) ||
-		!strings.HasSuffix(got[first], "Running: Create user george") || !slices.Equal(got[first+1:], want[first:]) {
+		!strings.Contains(got[first], "Create user george") || !strings.HasSuffix(got[first], "Running") || !slices.Equal(got[first+1:], want[first:]) {
 		t.Errorf("an Enter typed while a step ran: the screen\n%s\nwant\n%s\nwith a stale running line before the steps", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 
 	env.Height = 3
 	if _, got, _ := play(env, createUser(Fixture{Planned: createUserPlan}), lines...); got != still {
 		t.Errorf("3 steps on 3 lines: transcript\n%s\nwant\n%s", got, still)
+	}
+
+	// Below 64 columns the rows stack, two lines a step (P-42 R2): the
+	// three steps take six lines, so on a terminal six lines high they
+	// are written row by row too.
+	narrow := term.Fixed(60, colorprofile.TrueColor, true, true)
+	_, still60, _ := play(narrow, createUser(Fixture{Planned: createUserPlan}), lines...)
+	narrow.Animate, narrow.Height = true, 6
+	if _, got, _ := play(narrow, createUser(Fixture{Planned: createUserPlan}), lines...); got != still60 {
+		t.Errorf("3 stacked steps on 6 lines: transcript\n%s\nwant\n%s", got, still60)
 	}
 }
 

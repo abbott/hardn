@@ -118,9 +118,9 @@ func TestValidation(t *testing.T) {
 		t.Fatalf("Run: %v, %q", err, name)
 	}
 	for _, want := range []string{
-		"[!] Error: Username cannot be empty\n",
-		"[!] Error: Username must start with a lowercase letter",
-		"[!] Error: 'root' is a reserved system username",
+		"(x) Username cannot be empty\n",
+		"(x) Username must start with a lowercase letter",
+		"(x) 'root' is a reserved system username",
 	} {
 		if strings.Count(out, want) != 1 {
 			t.Errorf("transcript holds %q %d times, want once:\n%s", want, strings.Count(out, want), out)
@@ -151,9 +151,35 @@ func TestValidation(t *testing.T) {
 	}}
 	out, err = play(f, "n", "y", "1", "2")
 	if err != nil || !password || who != "alice" ||
-		!strings.Contains(out, "[!] Error: A user password is required for sudo usage.\n") ||
-		!strings.Contains(out, "[!] Error: george is already managed\n") {
+		!strings.Contains(out, "(x) A user password is required for sudo usage.\n") ||
+		!strings.Contains(out, "(x) george is already managed\n") {
 		t.Errorf("Run: %v, %t, %q:\n%s", err, password, who, out)
+	}
+}
+
+// TestValidationKinds: a Validate error is written under the prompt as a
+// failed inline result, and nav.Warn's as a warning one, read in colour,
+// in the error's words (DEV-062).
+func TestValidationKinds(t *testing.T) {
+	const twice = "Nameserver 192.0.2.54 is already configured" // origin/main's warning
+	var entry string
+	f := Form{Fields: []Field{&Text{Title: "Enter nameserver IP address", Value: &entry, Validate: func(s string) error {
+		switch s {
+		case "999.1.1.1":
+			return errors.New("Invalid IP address format")
+		case "192.0.2.54":
+			return nav.Warn(twice)
+		}
+		return nil
+	}}}}
+	p, out := newPrompter(term.Fixed(80, colorprofile.TrueColor, true, true), []string{"999.1.1.1", "192.0.2.54", "192.0.2.53"})
+	if err := f.Run(p); err != nil || entry != "192.0.2.53" {
+		t.Fatalf("Run: %v, %q", err, entry)
+	}
+	for _, want := range []component.InlineResult{{Kind: component.MessageBad, Text: "Invalid IP address format"}, {Kind: component.MessageWarn, Text: twice}} {
+		if r := want.Render(p.Ctx) + "\n"; strings.Count(out.String(), r) != 1 {
+			t.Errorf("no %v result once in:\n%q", want, out.String())
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ package component_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component/fixture"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // The plan group's fixtures, defined once in package fixture, which the
@@ -68,8 +70,8 @@ func TestPlanGroupLayout(t *testing.T) {
 		{"plan: a new file's headers name the target", PlanView{Changes: []PlanChange{{
 			Title: "Add", Target: sudoersFile, Diff: diff.Unified("/dev/null", sudoersFile+"\t2026-10-16", "", "x\n"),
 		}}}, 64, false, "   -  Add\n      " + sudoersFile + "\n      @@ -0,0 +1 @@\n      +x"},
-		{"plan: the dry-run footer", PlanView{Changes: []PlanChange{{Title: "Enable UFW"}}, DryRun: true}, 64, false,
-			"   -  Enable UFW\n\n  [i] Info: No actual changes were made to your system."},
+		{"plan: the dry-run footer, as prose", PlanView{Changes: []PlanChange{{Title: "Enable UFW"}}, DryRun: true}, 64, false,
+			"   -  Enable UFW\n\n  No actual changes were made to your system."},
 		{"plan: code breaks at a space, the space opening the next piece", PlanView{Changes: []PlanChange{{
 			Title: "Allow users", After: "AllowUsers alice bob replication-service\n\tMatch",
 		}}}, 30, true,
@@ -94,37 +96,57 @@ func TestPlanGroupLayout(t *testing.T) {
 			Title: "Allow users", After: "AllowUsers alice\u200b\u202ebob\u00a0george\ufe0f",
 		}}}, 90, false, "   -  Allow users\n      +AllowUsers alice<U+200B><U+202E>bob<U+00A0>george<U+FE0F>"},
 		{"plan: no changes", PlanView{DryRun: true}, 64, false, ""},
-		{"steps: one line each, the spinner still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
-			"   ✓  Done: Allow 2230/tcp in UFW\n   ▸  Running: Set Port 2230\n   ◦  Pending: Reload ssh.service"},
+		{"steps: a marker, the title at 6 and the state at 27, the running step's bullet still", StepProgress{Steps: steps(StepDone, StepRunning, StepPending)}, 64, true,
+			"   ⛛  Allow 2230/tcp in UFW  Done\n   -  Set Port 2230          Running\n   -  Reload ssh.service     Pending"},
 		{"steps: animated, the frame wraps", animated{VM: StepProgress{Steps: steps(StepRunning), Frame: 13}}, 64, false,
-			"   /  Running: Allow 2230/tcp in UFW"},
+			"   /  Allow 2230/tcp in UFW  Running"},
 		{"steps: a negative frame", animated{VM: StepProgress{Steps: steps(StepRunning), Frame: -1}}, 64, true,
-			"   ⠏  Running: Allow 2230/tcp in UFW"},
-		{"steps: a detail in parentheses, a step with no title skipped", StepProgress{Steps: []Step{
+			"   ⠏  Allow 2230/tcp in UFW  Running"},
+		{"steps: the status markers, an aside after the word, a step with no title skipped", StepProgress{Steps: []Step{
 			{State: StepDone}, {Title: "Install apk-cron", State: StepSkipped, Detail: "already installed"},
-		}}, 64, false, "  [-] Skipped: Install apk-cron (already installed)"},
-		{"steps: a long step is cut", StepProgress{Steps: []Step{{Title: "Set Port 2230 in " + dropIn, State: StepFailed}}}, 40, false,
-			"  [!] Failed: Set Port 2230 in /etc/s..."},
+			{Title: "Reload ssh.service", State: StepFailed, Detail: "COMMAND_FAILED"}, {Title: "Set Port 2230", State: StepRolledBack},
+		}}, 64, false, "   -  Install apk-cron     Skipped already installed\n  [ ] Reload ssh.service   Failed COMMAND_FAILED\n" +
+			"  [ ] Set Port 2230        Rolled back"},
+		{"steps: the column two cells after the widest title", StepProgress{Steps: []Step{
+			{Title: "Install hardn's boot unit", State: StepDone}, {Title: "sshd -T shows ports 22, 2230", State: StepPending},
+		}}, 64, false, "  [+] Install hardn's boot unit     Done\n   -  sshd -T shows ports 22, 2230  Pending"},
+		{"steps: an aside is cut, then left out", StepProgress{Steps: []Step{
+			{Title: "Set Port 2230", State: StepFailed, Detail: "sshd -t: Bad configuration option: Portt"},
+			{Title: "Reload ssh.service", State: StepSkipped, Detail: "not run after the failure"},
+		}}, 44, false, "  [ ] Set Port 2230\n      Failed sshd -t: Bad configuration o...\n   -  Reload ssh.service\n      Skipped not run after the failure"},
+		{"steps: where the column cannot hold Rolled back, the list stacks", StepProgress{Steps: []Step{
+			{Title: "Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf", State: StepFailed}, {Title: "Reload", State: StepPending},
+		}}, 64, false, "  [ ] Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf\n      Failed\n   -  Reload\n      Pending"},
+		{"steps: stacked, a long title is cut", StepProgress{Steps: []Step{{Title: "Set Port 2230 in " + dropIn, State: StepFailed}}}, 40, false,
+			"  [ ] Set Port 2230 in /etc/ssh/sshd_...\n      Failed"},
 		{"report: the tail, an ellipsis before it, a progress line overwritten", ErrorReport{
 			Command: "apt-get install -y ufw", Output: "one\ntwo\r\n10%\r100%\nfour\n\n", Tail: 3,
 		}, 64, false, "# Operation Failed\n\n      $ apt-get install -y ufw\n      ...\n      two\n      100%\n      four"},
-		{"report: a rolled-back name wraps, and an empty one is Unknown", ErrorReport{
+		{"report: stacked, a rolled-back name is cut as a step's, and an empty one is Unknown", ErrorReport{
 			RolledBack: []string{"Allow SSH logins for alice, bob and the backup replication service", " "},
-		}, 40, false, "# Operation Failed\n\n  [<] Rolled back: Allow SSH logins for\n      alice, bob and the backup\n      replication service\n  [<] Rolled back: Unknown"},
+		}, 40, false, "# Operation Failed\n\n  [ ] Allow SSH logins for alice, bob...\n      Rolled back\n  [ ] Unknown\n      Rolled back"},
+		{"report: the rolled-back rows take the steps' column", ErrorReport{RolledBack: []string{"Set Port 2230"}, Steps: []Step{
+			{Title: "Install hardn's boot unit"}, {Title: "Set Port 2230"}, {Title: "sshd -T shows ports 22, 2230"},
+		}}, 64, false, "# Operation Failed\n\n  [ ] Set Port 2230                 Rolled back"},
 		{"report: the parts in order", sshFailure, 64, true,
 			"█ Operation Failed\n█ Reloading ssh.service failed: exit status 1\n\n" +
-				"   ↺  Rolled back: Set Port 2230\n   ↺  Rolled back: Allow 2230/tcp in UFW\n\n" +
+				"   ⭘  Set Port 2230          Rolled back\n   ⭘  Allow 2230/tcp in UFW  Rolled back\n\n" +
 				"      $ systemctl reload ssh\n      Job for ssh.service failed because the control process\n      ↪ exited with error code.\n" +
 				"      See \"systemctl status ssh.service\" and \"journalctl -xeu\n      ↪ ssh.service\" for details.\n\n" +
-				"   ℹ  Info: Check the log file at /var/log/hardn.log for details\n   ℹ  Info: Run sudo sshd -t to see what sshd rejected."},
-		{"countdown: waiting at UrgentBelow", ConfirmCountdown{Remaining: UrgentBelow}, 64, false,
-			"  [ ] Warning: This change reverts automatically in 0:30\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+				"  Check the log file at /var/log/hardn.log for details\n  Run sudo sshd -t to see what sshd rejected."},
+		{"countdown: waiting at UrgentBelow, a Warning callout, the command under it", ConfirmCountdown{Remaining: UrgentBelow}, 64, false,
+			"# Warning\n# This change reverts automatically in 0:30\n# To keep it, open a new SSH session and run:\n\n      $ sudo hardn confirm"},
 		{"countdown: urgent below it, on the new port", ConfirmCountdown{Remaining: UrgentBelow - 1, Port: 2230}, 64, true,
-			"   !  Urgent: This change reverts automatically in 0:29\n      To keep it, open a new SSH session on port 2230 and run:\n      sudo hardn confirm"},
+			"█ Urgent\n█ This change reverts automatically in 0:29\n█ To keep it, open a new SSH session on port 2230 and run:\n\n      $ sudo hardn confirm"},
 		{"countdown: minutes and seconds", ConfirmCountdown{Remaining: 61, Command: " sudo hardn confirm \n"}, 64, false,
-			"  [ ] Warning: This change reverts automatically in 1:01\n      To keep it, open a new SSH session and run:\n      sudo hardn confirm"},
+			"# Warning\n# This change reverts automatically in 1:01\n# To keep it, open a new SSH session and run:\n\n      $ sudo hardn confirm"},
 		{"countdown: the clock stays whole", ConfirmCountdown{Remaining: 600}, 24, false,
-			"  [ ] Warning: This\n      change reverts\n      automatically in\n      10:00\n      To keep it, open a\n      new SSH session\n      and run:\n      sudo hardn confirm"},
+			"# Warning\n# This change reverts\n# automatically in 10:00\n# To keep it, open a new\n# SSH session and run:\n\n      $ sudo hardn\n      | confirm"},
+		{"countdown: the clock wraps where its line is too narrow for it", ConfirmCountdown{Remaining: 600}, 6, false,
+			"# W...\n# This\n# chan\n# ge\n# reve\n# rts\n# auto\n# mati\n# call\n# y in\n# 10:0\n# 0\n# To\n# keep\n# it,\n# open\n# a\n# new\n# SSH\n# sess\n# ion\n# and\n# run:\n\n..."},
+		{"countdown: a command's further lines under its text", ConfirmCountdown{Remaining: 90, Command: "sudo hardn confirm \\\n  --config /etc/hardn/hardn.yml"}, 64, false,
+			"# Warning\n# This change reverts automatically in 1:30\n# To keep it, open a new SSH session and run:\n\n" +
+				"      $ sudo hardn confirm \\\n          --config /etc/hardn/hardn.yml"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -207,7 +229,7 @@ func longestSpaces(s string) int {
 
 // TestPlanGroupStyles checks that each part of the plan group takes its
 // slot, and that a lockout-risk change, each step state and the
-// countdown's urgency show a glyph and a word as well as a colour.
+// countdown's urgency show a word as well as a colour.
 func TestPlanGroupStyles(t *testing.T) {
 	c := NewCtx(term.Fixed(theme.ContentWidth, colorprofile.TrueColor, true, true))
 	th, g := c.Theme, c.Theme.Glyphs
@@ -229,23 +251,31 @@ func TestPlanGroupStyles(t *testing.T) {
 		{"plan: a change with no title", PlanView{Changes: []PlanChange{{Target: "ufw"}}}, []part{
 			{g.Bullet, th.Plan.Context}, {Unknown, th.Status.Unknown},
 		}},
-		{"steps", StepProgress{Steps: []Step{{Title: "Reload ssh.service", State: StepFailed, Detail: "exit status 1"}}}, []part{
-			{g.Bad, th.Step.Failed}, {"Failed:", th.Step.Failed}, {"Reload ssh.service", th.Step.Title}, {"(exit status 1)", th.Step.Detail},
+		{"steps", StepProgress{Steps: []Step{{Title: "Reload ssh.service", State: StepFailed, Detail: "COMMAND_FAILED"}}}, []part{
+			{g.NotConfigured, th.Step.Failed}, {"Failed", th.Step.Failed}, {"Reload ssh.service", th.KeyValue.Key}, {"COMMAND_FAILED", th.Step.Detail},
+		}},
+		{"steps: pending and skipped take the key-value bullet", StepProgress{Steps: []Step{{Title: "Reload ssh.service"}, {Title: "Set Port 2230", State: StepSkipped}}}, []part{
+			{g.Bullet, th.KeyValue.Bullet}, {"Pending", th.Step.Pending}, {"Skipped", th.Step.Skipped},
+		}},
+		{"steps: running, the bullet in the word's colour", StepProgress{Steps: []Step{{Title: "Reload ssh.service", State: StepRunning}}}, []part{
+			{g.Bullet, th.Step.Running}, {"Running", th.Step.Running},
 		}},
 		{"report", sshFailure, []part{
-			{"Operation Failed", th.Callout.Bad.Title}, {g.RolledBack, th.Step.RolledBack},
+			{"Operation Failed", th.Callout.Bad.Title}, {g.Partial, th.Step.RolledBack}, {"Rolled back", th.Step.RolledBack},
+			{"Set Port 2230", th.KeyValue.Key},
 			{g.Command + " systemctl reload ssh", th.Plan.Command}, {g.Wrap + " exited with error code.", th.Output},
-			{"Info:", th.Message.Info}, {"Check the log file at /var/log/hardn.log for details", th.Message.Text},
+			{"Check the log file at /var/log/hardn.log for details", th.Text.Muted},
 		}},
 		{"report: a rolled-back change with no name", ErrorReport{RolledBack: []string{""}}, []part{
-			{g.RolledBack, th.Step.RolledBack}, {"Rolled back:", th.Step.RolledBack}, {Unknown, th.Status.Unknown},
+			{g.Partial, th.Step.RolledBack}, {"Rolled back", th.Step.RolledBack}, {Unknown, th.Status.Unknown},
 		}},
 		{"countdown", ConfirmCountdown{Remaining: 165}, []part{
-			{g.Warn, th.Confirm.Waiting}, {"Warning:", th.Confirm.Waiting}, {"2:45", th.Confirm.Waiting},
-			{" " + ConfirmReverts + " ", th.Confirm.Text}, {ConfirmKeep, th.Confirm.Text}, {ConfirmCommand, th.Confirm.Command},
+			{" ", th.Callout.Warn.Bar}, {"Warning", th.Callout.Warn.Title}, {"2:45", th.Confirm.Waiting},
+			{ConfirmReverts + " ", th.Callout.Body}, {ConfirmKeep, th.Callout.Body},
+			{g.Command + " ", th.Plan.Command}, {ConfirmCommand, th.Confirm.Command},
 		}},
 		{"countdown: urgent", ConfirmCountdown{Remaining: 5}, []part{
-			{g.Urgent, th.Confirm.Urgent}, {"Urgent:", th.Confirm.Urgent}, {"0:05", th.Confirm.Urgent},
+			{" ", th.Callout.Bad.Bar}, {"Urgent", th.Callout.Bad.Title}, {"0:05", th.Confirm.Urgent},
 		}},
 	}
 	for _, tt := range tests {
@@ -261,13 +291,12 @@ func TestPlanGroupStyles(t *testing.T) {
 // TestCountdownHeight checks that the confirm countdown keeps its lines
 // at a given width while the time left falls, through the switch to
 // urgent and as the minutes lose a digit, so that the caller can redraw
-// it in place: at every width wide enough for the word and the time
-// whole beside the word's column, in both glyph sets, with and without a
-// port.
+// it in place: at every width from 8 to 90, in both glyph sets, with and
+// without a port.
 func TestCountdownHeight(t *testing.T) {
 	left := []int{5999, 600, 599, 180, 61, 60, UrgentBelow, UrgentBelow - 1, 9, 0, -3}
 	for _, unicode := range []bool{true, false} {
-		for w := theme.LabelCol + lipgloss.Width(MessageWarn.String()+":"); w <= 90; w++ {
+		for w := 8; w <= 90; w++ {
 			c := NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))
 			for _, port := range []int{0, 2230} {
 				height := func(remaining int) int {
@@ -284,53 +313,152 @@ func TestCountdownHeight(t *testing.T) {
 	}
 }
 
-// TestStepStates checks that each step state shows its own glyph and
-// word, both in the state's style, that no two states share either, and
-// that without colour, at the ASCII profile and in plain mode, the six
-// still differ. A value outside the states is StepPending.
+// TestStepStates checks each step state's row (P-42 R1, R3, the
+// maintainer, 2026-10-22), at every profile and in both glyph sets
+// (uitest.Full), stacked below 64 columns: its marker, Figma's status
+// marker for a step done, failed or rolled back and the bullet for the
+// others, its title in KeyValue.Key, and its word in the status column,
+// each in its style, the word regular; that no two states share a
+// word; and that without colour, at the ASCII profile and in plain mode,
+// in both glyph sets, the six still differ, each by its word, as README
+// §9.15's "States read without colour" asks. With Env.Animate a running
+// step's marker is the spinner's frame. A value outside the states is
+// StepPending.
 func TestStepStates(t *testing.T) {
-	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
-	st, g := c.Theme.Step, c.Theme.Glyphs
-	tests := []struct {
+	type state struct {
 		state       StepState
 		glyph, word string
-		style       lipgloss.Style
-	}{
-		{StepPending, g.Pending, "Pending", st.Pending},
-		{StepRunning, g.Running, "Running", st.Running},
-		{StepDone, g.OK, "Done", st.Done},
-		{StepFailed, g.Bad, "Failed", st.Failed},
-		{StepRolledBack, g.RolledBack, "Rolled back", st.RolledBack},
-		{StepSkipped, g.Skipped, "Skipped", st.Skipped},
-		{StepState(-1), g.Pending, "Pending", st.Pending},
+		mark, style lipgloss.Style
 	}
-	glyphs, words := map[string]bool{}, map[string]bool{}
-	for _, tt := range tests {
-		got := StepProgress{Steps: []Step{{Title: "Set Port 2230", State: tt.state}}}.Render(c)
-		for _, want := range []string{tt.style.Render(tt.glyph), tt.style.Render(tt.word + ":")} {
-			if !strings.Contains(got, want) {
-				t.Errorf("state %d: got %q, want it to hold %q", tt.state, got, want)
+	states := func(c Ctx) []state {
+		st, kv, g := c.Theme.Step, c.Theme.KeyValue, c.Theme.Glyphs
+		return []state{
+			{StepPending, g.Bullet, "Pending", kv.Bullet, st.Pending},
+			{StepRunning, g.Bullet, "Running", st.Running, st.Running},
+			{StepDone, g.Configured, "Done", st.Done, st.Done},
+			{StepFailed, g.NotConfigured, "Failed", st.Failed, st.Failed},
+			{StepRolledBack, g.Partial, "Rolled back", st.RolledBack, st.RolledBack},
+			{StepSkipped, g.Bullet, "Skipped", kv.Bullet, st.Skipped},
+			{StepState(-1), g.Bullet, "Pending", kv.Bullet, st.Pending},
+		}
+	}
+	for _, cell := range uitest.Full() {
+		c := NewCtx(cell.Env)
+		for _, tt := range states(c) {
+			got := StepProgress{Steps: []Step{{Title: "Set Port 2230", State: tt.state}}}.Render(c)
+			lead := Marker(tt.glyph, tt.mark).String()
+			want := lead + strings.Repeat(" ", theme.LabelCol-lipgloss.Width(lead)) + c.Theme.KeyValue.Key.Render("Set Port 2230")
+			if cell.Env.Width < theme.StackBelow {
+				want += "\n" + strings.Repeat(" ", theme.StackCol) + tt.style.Render(tt.word)
+			} else {
+				want += strings.Repeat(" ", theme.ValueCol-theme.LabelCol-len("Set Port 2230")) + tt.style.Render(tt.word)
+			}
+			if got != want {
+				t.Errorf("%s, state %d: got %q, want %q", cell.Name, tt.state, got, want)
+			}
+			if tt.style.GetBold() {
+				t.Errorf("%s, state %d: the word is bold", cell.Name, tt.state)
 			}
 		}
+	}
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	st, g := c.Theme.Step, c.Theme.Glyphs
+	words := map[string]bool{}
+	for _, tt := range states(c) {
 		if tt.state.String() != tt.word {
 			t.Errorf("state %d: String() = %q, want %q", tt.state, tt.state.String(), tt.word)
 		}
-		glyphs[tt.glyph], words[tt.word] = true, true
+		words[tt.word] = true
 	}
-	if len(glyphs) != 6 || len(words) != 6 {
-		t.Errorf("the six states show %d glyphs and %d words, want 6 of each", len(glyphs), len(words))
+	if len(words) != 6 {
+		t.Errorf("the six states show %d words, want 6", len(words))
+	}
+	running := animated{VM: StepProgress{Steps: []Step{{Title: "x", State: StepRunning}}, Frame: 2}}.Render(c)
+	if want := st.Running.Render(strings.Split(g.Spinner, "")[2]); !strings.Contains(running, want) {
+		t.Errorf("animated running step %q, want the spinner's frame %q", running, want)
 	}
 	for _, env := range []term.Env{
 		term.Fixed(80, colorprofile.ASCII, true, true),
 		term.Fixed(80, colorprofile.ASCII, false, true),
 		term.Fixed(80, colorprofile.NoTTY, false, true),
+		term.Fixed(40, colorprofile.NoTTY, false, true),
 	} {
 		shown := map[string]bool{}
 		for s := StepPending; s <= StepSkipped; s++ {
-			shown[StepProgress{Steps: []Step{{Title: "x", State: s}}}.Render(NewCtx(env))] = true
+			out := ansi.Strip(StepProgress{Steps: []Step{{Title: "x", State: s}}}.Render(NewCtx(env)))
+			if !strings.HasSuffix(out, " "+s.String()) {
+				t.Errorf("%v, unicode %v, width %d: %q, want it to end with the word %q", env.Profile, env.Unicode, env.Width, out, s.String())
+			}
+			shown[out] = true
 		}
 		if len(shown) != 6 {
-			t.Errorf("%v, unicode %v: the six states render %d ways, want 6", env.Profile, env.Unicode, len(shown))
+			t.Errorf("%v, unicode %v, width %d: the six states render %d ways, want 6", env.Profile, env.Unicode, env.Width, len(shown))
 		}
 	}
+}
+
+// TestStepColumn checks the status column (P-42 R2, (b1)) over every
+// width from 1 to 90 and both glyph sets: the steps and the rolled-back
+// rows of a report given them share one column, two cells after the
+// widest title and at theme.ValueCol at the least; the list takes two
+// columns from theme.StackBelow where that column holds "Rolled back"
+// within the content width, and stacks otherwise, each word under its
+// title at theme.StackCol; its height is the same whatever its steps'
+// states; and Row renders each step as Render does, in the whole list's
+// column.
+func TestStepColumn(t *testing.T) {
+	list := []Step{
+		{Title: "Install hardn's boot unit", State: StepDone}, {Title: "ufw: allow 2230/tcp", State: StepDone},
+		{Title: "Add SSH port 2230", State: StepRolledBack}, {Title: "Reload sshd (ssh.service)", State: StepFailed, Detail: "COMMAND_FAILED"},
+		{Title: "sshd -T shows ports 22, 2230", State: StepSkipped},
+	}
+	const col = theme.LabelCol + len("sshd -T shows ports 22, 2230") + 2
+	for _, unicode := range []bool{true, false} {
+		for w := 1; w <= 90; w++ {
+			c := NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))
+			where := fmt.Sprintf("width %d, unicode %v", w, unicode)
+			sp := StepProgress{Steps: list}
+			got := ansi.Strip(sp.Render(c))
+			lines := strings.Split(got, "\n")
+			twoColumns := w >= theme.StackBelow && col+len("Rolled back") <= Width(c)
+			if want := len(list) * map[bool]int{true: 1, false: 2}[twoColumns]; len(lines) != want {
+				t.Fatalf("%s: %d lines, want %d:\n%s", where, len(lines), want, got)
+			}
+			for i, s := range list {
+				if row := ansi.Strip(sp.Row(c, i)); !strings.Contains(got, row) || row == "" {
+					t.Errorf("%s: Row(%d) %q is not in the list's render", where, i, row)
+				}
+				if twoColumns && !strings.HasPrefix(from(lines[i], col), s.State.String()) {
+					t.Errorf("%s: %q, want %q at column %d", where, lines[i], s.State.String(), col)
+				}
+				if !twoColumns && w >= theme.StackCol+len("Rolled back") && !strings.HasPrefix(lines[2*i+1], strings.Repeat(" ", theme.StackCol)+s.State.String()) {
+					t.Errorf("%s: %q, want %q at column %d", where, lines[2*i+1], s.State.String(), theme.StackCol)
+				}
+			}
+			pending := StepProgress{Steps: slices.Clone(list)}
+			for i := range pending.Steps {
+				pending.Steps[i].State, pending.Steps[i].Detail = StepPending, ""
+			}
+			if n := strings.Count(pending.Render(c), "\n") + 1; n != len(lines) {
+				t.Errorf("%s: %d lines pending, %d as the steps ended", where, n, len(lines))
+			}
+			report := ansi.Strip(ErrorReport{RolledBack: []string{"Add SSH port 2230"}, Steps: list}.Render(c))
+			if twoColumns && !strings.Contains(report, "Add SSH port 2230"+strings.Repeat(" ", col-theme.LabelCol-len("Add SSH port 2230"))+"Rolled back") {
+				t.Errorf("%s: the report's row is not on the steps' column:\n%s", where, report)
+			}
+		}
+	}
+	if got := (StepProgress{Steps: list}).Row(NewCtx(term.Fixed(80, colorprofile.ASCII, false, true)), len(list)); got != "" {
+		t.Errorf("Row past the end is %q, want nothing", got)
+	}
+}
+
+// from returns plain line l from column col, "" when l ends before it.
+// Each rune of l is one cell, as every glyph of a step's row is.
+func from(l string, col int) string {
+	r := []rune(l)
+	if len(r) < col {
+		return ""
+	}
+	return string(r[col:])
 }

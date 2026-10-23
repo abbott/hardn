@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -123,7 +124,9 @@ func (s *cleanupSeams) dropIn(lines ...string) {
 // new connection to 2230 and holding 22, runs the clean-up from that
 // session, with the signals that cancel it registered, and reports it
 // through pkg/output's renderer and what is left of it, plain off a
-// terminal; the exit status is output.ExitCode's over the clean-up: 0 once
+// terminal, the two a blank line apart, so that the report's last callout
+// and the clean-up run's first are two (read here as written, not through
+// squash); the exit status is output.ExitCode's over the clean-up: 0 once
 // applied, 1 when it failed and was rolled back or was refused, 130 when
 // interrupted. The confirmation stands in every case.
 func TestConfirmCleanupCommand(t *testing.T) {
@@ -180,6 +183,13 @@ func TestConfirmCleanupCommand(t *testing.T) {
 			}
 			if strings.Contains(out, "\x1b[") {
 				t.Errorf("escape codes off a terminal:\n%q", out)
+			}
+			// The run's first callout: its title, then "Port 22, which
+			// change ...", after the blank line that ends the report.
+			lines := strings.Split(out, "\n")
+			i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "# Port 22, which change") })
+			if i < 3 || !strings.HasPrefix(lines[i-1], "# ") || lines[i-2] != "" || lines[i-3] == "" {
+				t.Errorf("the clean-up's run is not one blank line after the report:\n%s", out)
 			}
 		})
 	}
@@ -354,9 +364,16 @@ func TestConfirmConsoleCommand(t *testing.T) {
 	}
 }
 
-// squash is s with no white space, so that a sentence matches however the
-// report wraps it.
-func squash(s string) string { return strings.Join(strings.Fields(s), "") }
+// squash is s with no white space, and no callout bar at the start of a
+// line ("# " with no colour), so that a sentence matches however the
+// report wraps it, as prose or in a callout's body (P-42 R5).
+func squash(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimPrefix(l, "# ")
+	}
+	return strings.Join(strings.Fields(strings.Join(lines, "\n")), "")
+}
 
 // TestConfirmSeamsAreReal: the clean-up's host is host.Real, whose run log
 // goes to hardn's log alone.

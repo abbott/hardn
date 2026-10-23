@@ -96,42 +96,44 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 22/tcp, 2230/tcp; enable␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m            ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: allow 22/tcp, 2230/tcp; enable␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m                    ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m            ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m         ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx␛[m$
-      ␛[38;2;129;134;156mis rolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-      ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
+  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on port␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2230, from 192.0.2.10, and runs sudo hardn confirm.␛[m$
 $
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mChange 20261020T120000Z-xxxxxxxx confirmed (4␛[m$
-      ␛[38;2;129;134;156mchanges: SSH): it will not be rolled back.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mChange 20261020T120000Z-xxxxxxxx confirmed (4 changes: SSH):␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mit will not be rolled back.␛[m$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: drop 22/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mDrop SSH port 22␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows port 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: drop 22/tcp␛[m           ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDrop SSH port 22␛[m           ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows port 2230␛[m    ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx␛[m$
-      ␛[38;2;129;134;156mheld during its confirm window, is dropped from␛[m$
-      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
-      ␛[38;2;129;134;156mno longer listens on it.␛[m$
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is␛[m$
-      ␛[38;2;129;134;156mdeleted.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx held during␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mits confirm window, is dropped from /etc/ssh/sshd_config.d/00-␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -276,42 +278,44 @@ $
 $
   Type the hostname [web-01, 0 or q]: web-01$
 $
-  [+] Done: Install hardn's boot unit$
-  [+] Done: ufw: allow 22/tcp, 2230/tcp; enable$
-  [+] Done: Add SSH port 2230$
-  [+] Done: Reload sshd (ssh.service)$
-  [+] Done: sshd -T shows ports 22, 2230$
+  [+] Install hardn's boot unit            Done$
+  [+] ufw: allow 22/tcp, 2230/tcp; enable  Done$
+  [+] Add SSH port 2230                    Done$
+  [+] Reload sshd (ssh.service)            Done$
+  [+] sshd -T shows ports 22, 2230         Done$
 $
 # Operation Successful$
 $
-  [ ] Warning: This change reverts automatically in 3:01$
-      To keep it, open a new SSH session on port 2230 and run:$
-      sudo hardn confirm$
+# Warning$
+# This change reverts automatically in 3:01$
+# To keep it, open a new SSH session on port 2230 and run:$
 $
-  [i] Info: Unless confirmed, change 20261020T120000Z-xxxxxxxx$
-      is rolled back at 12:03:01 UTC. To undo it now, run sudo$
-      hardn rollback 20261020T120000Z-xxxxxxxx.$
+      $ sudo hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
+  20261020T120000Z-xxxxxxxx.$
 $
 # Info: hardn confirm, from a new connection to port 2230$
 # alice opens a new SSH connection to web-01.example.net on port$
 # 2230, from 192.0.2.10, and runs sudo hardn confirm.$
 $
-  [+] Success: Change 20261020T120000Z-xxxxxxxx confirmed (4$
-      changes: SSH): it will not be rolled back.$
+# Operation Successful$
+# Change 20261020T120000Z-xxxxxxxx confirmed (4 changes: SSH):$
+# it will not be rolled back.$
 $
-  [+] Done: ufw: drop 22/tcp$
-  [+] Done: Drop SSH port 22$
-  [+] Done: Reload sshd (ssh.service)$
-  [+] Done: sshd -T shows port 2230$
+  [+] ufw: drop 22/tcp           Done$
+  [+] Drop SSH port 22           Done$
+  [+] Reload sshd (ssh.service)  Done$
+  [+] sshd -T shows port 2230    Done$
 $
 # Operation Successful$
 $
-  [+] Success: Port 22, which change 20261020T120000Z-xxxxxxxx$
-      held during its confirm window, is dropped from$
-      /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,$
-      no longer listens on it.$
-  [+] Success: ufw's rule for 22/tcp, which hardn added, is$
-      deleted.$
+# Operation Successful$
+# Port 22, which change 20261020T120000Z-xxxxxxxx held during$
+# its confirm window, is dropped from /etc/ssh/sshd_config.d/00-$
+# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
 # simulated system ---------------------------------------------$
 $
@@ -459,44 +463,54 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: allow 22/tcp, 2230/tcp; enable␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: allow 22/tcp, 2230/tcp; enable␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
-      ␛[38;2;192;196;216mrun:␛[m$
-      ␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx is rolled back at 12:03:01 UTC. To undo it␛[m$
-      ␛[38;2;129;134;156mnow, run sudo hardn rollback 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
+  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport 2230, from 192.0.2.10, and runs sudo hardn confirm.␛[m$
 $
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mChange 20261020T120000Z-xxxxxxxx confirmed (4␛[m$
-      ␛[38;2;129;134;156mchanges: SSH): it will not be rolled back.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mChange 20261020T120000Z-xxxxxxxx confirmed (4 changes:␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mSSH): it will not be rolled back.␛[m$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mufw: drop 22/tcp␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mDrop SSH port 22␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows port 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: drop 22/tcp␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDrop SSH port 22␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows port 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx held during its confirm window, is dropped␛[m$
-      ␛[38;2;129;134;156mfrom /etc/ssh/sshd_config.d/00-hardn.conf, and sshd,␛[m$
-      ␛[38;2;129;134;156mreloaded, no longer listens on it.␛[m$
-   ␛[1;38;2;112;212;127m✓␛[m  ␛[1;38;2;112;212;127mSuccess:␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is␛[m$
-      ␛[38;2;129;134;156mdeleted.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx held␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mduring its confirm window, is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mno longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

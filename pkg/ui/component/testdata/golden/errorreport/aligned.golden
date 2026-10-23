@@ -1,0 +1,659 @@
+# Golden file of TestGolden/errorreport/aligned, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m↪ exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m↪ exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m↪ exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
+      ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m| exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m| exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;219;184;83mRolled back␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m           ␛[38;2;219;184;83mRolled back␛[m$
+$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;129;134;156mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;129;134;156m| exited with error code.␛[m$
+$
+  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mAdd SSH port 2230␛[m$
+      ␛[38;2;138;97;0mRolled back␛[m$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m$
+      ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m↪ exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mAdd SSH port 2230␛[m             ␛[38;2;138;97;0mRolled back␛[m$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m           ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m↪ exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mAdd SSH port 2230␛[m             ␛[38;2;138;97;0mRolled back␛[m$
+   ␛[38;2;138;97;0m⭘␛[m  ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m           ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m↪ exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mAdd SSH port 2230␛[m$
+      ␛[38;2;138;97;0mRolled back␛[m$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m$
+      ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m| exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mAdd SSH port 2230␛[m             ␛[38;2;138;97;0mRolled back␛[m$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m           ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m| exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+␛[48;2;194;37;74m ␛[m ␛[1;38;2;194;37;74mOperation Failed␛[m$
+␛[48;2;194;37;74m ␛[m ␛[38;2;87;92;110mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mAdd SSH port 2230␛[m             ␛[38;2;138;97;0mRolled back␛[m$
+  ␛[38;2;138;97;0m[ ]␛[m ␛[38;2;30;34;48mufw: allow 2230/tcp␛[m           ␛[38;2;138;97;0mRolled back␛[m$
+$
+      ␛[38;2;87;92;110m$ systemctl reload ssh.service␛[m$
+      ␛[38;2;87;92;110mJob for ssh.service failed because the control process␛[m$
+      ␛[38;2;87;92;110m| exited with error code.␛[m$
+$
+  ␛[38;2;87;92;110mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mAdd SSH port 2230␛[m$
+      ␛[38;5;179mRolled back␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mufw: allow 2230/tcp␛[m$
+      ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m↪ exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;179mRolled back␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m↪ exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;179mRolled back␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m↪ exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mAdd SSH port 2230␛[m$
+      ␛[38;5;179mRolled back␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mufw: allow 2230/tcp␛[m$
+      ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m| exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;179mRolled back␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m| exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;103mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;179mRolled back␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;179mRolled back␛[m$
+$
+      ␛[38;5;103m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;103m| exited with error code.␛[m$
+$
+  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAdd SSH port 2230␛[m$
+      ␛[38;5;94mRolled back␛[m$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mufw: allow 2230/tcp␛[m$
+      ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m↪ exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAdd SSH port 2230␛[m             ␛[38;5;94mRolled back␛[m$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mufw: allow 2230/tcp␛[m           ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m↪ exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAdd SSH port 2230␛[m             ␛[38;5;94mRolled back␛[m$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mufw: allow 2230/tcp␛[m           ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m↪ exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAdd SSH port 2230␛[m$
+      ␛[38;5;94mRolled back␛[m$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mufw: allow 2230/tcp␛[m$
+      ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m| exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAdd SSH port 2230␛[m             ␛[38;5;94mRolled back␛[m$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mufw: allow 2230/tcp␛[m           ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m| exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
+␛[48;5;161m ␛[m ␛[38;5;59mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAdd SSH port 2230␛[m             ␛[38;5;94mRolled back␛[m$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mufw: allow 2230/tcp␛[m           ␛[38;5;94mRolled back␛[m$
+$
+      ␛[38;5;59m$ systemctl reload ssh.service␛[m$
+      ␛[38;5;59mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;59m| exited with error code.␛[m$
+$
+  ␛[38;5;59mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[37mAdd SSH port 2230␛[m$
+      ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[37mufw: allow 2230/tcp␛[m$
+      ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[37mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[37mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[37mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[37mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[37mAdd SSH port 2230␛[m$
+      ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[37mufw: allow 2230/tcp␛[m$
+      ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[37mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[37mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+␛[101m ␛[m ␛[1;91mOperation Failed␛[m$
+␛[101m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[37mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[37mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[30mAdd SSH port 2230␛[m$
+      ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[30mufw: allow 2230/tcp␛[m$
+      ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[30mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[30mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+   ␛[33m⭘␛[m  ␛[30mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+   ␛[33m⭘␛[m  ␛[30mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m↪ exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[30mAdd SSH port 2230␛[m$
+      ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[30mufw: allow 2230/tcp␛[m$
+      ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[30mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[30mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+␛[41m ␛[m ␛[1;31mOperation Failed␛[m$
+␛[41m ␛[m ␛[90mReload sshd (ssh.service): exit status 1 (COMMAND_FAILED)␛[m$
+$
+  ␛[33m[ ]␛[m ␛[30mAdd SSH port 2230␛[m             ␛[33mRolled back␛[m$
+  ␛[33m[ ]␛[m ␛[30mufw: allow 2230/tcp␛[m           ␛[33mRolled back␛[m$
+$
+      ␛[90m$ systemctl reload ssh.service␛[m$
+      ␛[90mJob for ssh.service failed because the control process␛[m$
+      ␛[90m| exited with error code.␛[m$
+$
+  ␛[90mCheck the log file at /var/log/hardn.log for details␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230$
+      Rolled back$
+   ⭘  ufw: allow 2230/tcp$
+      Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230             Rolled back$
+   ⭘  ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230             Rolled back$
+   ⭘  ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230$
+      Rolled back$
+  [ ] ufw: allow 2230/tcp$
+      Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230             Rolled back$
+  [ ] ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230             Rolled back$
+  [ ] ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230$
+      Rolled back$
+   ⭘  ufw: allow 2230/tcp$
+      Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230             Rolled back$
+   ⭘  ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+█ ␛[1mOperation Failed␛[m$
+█ Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+   ⭘  Add SSH port 2230             Rolled back$
+   ⭘  ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      ↪ exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230$
+      Rolled back$
+  [ ] ufw: allow 2230/tcp$
+      Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230             Rolled back$
+  [ ] ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+# ␛[1mOperation Failed␛[m$
+# Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)$
+$
+  [ ] Add SSH port 2230             Rolled back$
+  [ ] ufw: allow 2230/tcp           Rolled back$
+$
+      $ systemctl reload ssh.service$
+      Job for ssh.service failed because the control process$
+      | exited with error code.$
+$
+  Check the log file at /var/log/hardn.log for details$

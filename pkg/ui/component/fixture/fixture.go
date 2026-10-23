@@ -244,6 +244,20 @@ func Steps(states ...component.StepState) []component.Step {
 	return out
 }
 
+// PortSteps returns the five steps of the engine's 2230 change on Debian
+// 13 (the gallery's ssh-port-debian13 and failed-reload-debian13
+// scenarios), at its reload's failure: done to it, the reload failed with
+// its code, the check after it skipped.
+func PortSteps() []component.Step {
+	return []component.Step{
+		{Title: "Install hardn's boot unit", State: component.StepDone},
+		{Title: "ufw: allow 2230/tcp", State: component.StepDone},
+		{Title: "Add SSH port 2230", State: component.StepDone},
+		{Title: "Reload sshd (ssh.service)", State: component.StepFailed, Detail: "COMMAND_FAILED"},
+		{Title: "sshd -T shows ports 22, 2230", State: component.StepSkipped},
+	}
+}
+
 // States returns every component state, by golden name, in the order of
 // the design-system README's component table (§9.11): each component's
 // states together.
@@ -375,9 +389,35 @@ func States() []State {
 		{"message/warn", component.Message{Kind: component.MessageWarn, Text: "No nameservers configured"}},
 		{"message/bad", component.Message{Kind: component.MessageBad, Text: "Failed to configure sudo: exit status 1"}},
 		{"message/info", component.Message{Text: "No automatic backups will be created"}},
-		{"message/cancelled", component.Message{Kind: component.MessageCancelled, Text: "Operation cancelled. No changes were made."}},
+		{"message/cancelled", component.Message{Kind: component.MessageCancelled, Text: "No changes were made."}},
 		{"message/long", component.Message{Kind: component.MessageBad, Text: "Failed to restart ssh.service: Job for ssh.service failed because the control process exited with error code; port 2230 is still in use"}},
 		{"message/empty", component.Message{Kind: component.MessageOK}},
+		// A run of messages (P-42 R5): hardn confirm's clean-up report, what
+		// was done, what is left and how to finish it; and pkg/output's
+		// further errors, each with its fix.
+		{"messages/clean-up", component.Messages{
+			{Kind: component.MessageOK, Text: "Port 22 is dropped from /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded, no longer listens on it."},
+			{Kind: component.MessageOK, Text: "ufw's rule for 22/tcp, which hardn added, is deleted."},
+			{Kind: component.MessageWarn, Text: "Port 2222 stays open: this session is not connected to a port the clean-up keeps."},
+			{Text: "Run `sudo hardn confirm` again from a new SSH connection to port 2230, made from another machine."},
+		}},
+		{"messages/errors", component.Messages{
+			{Kind: component.MessageBad, Text: "Set the nameservers: dns: /etc/resolv.conf is a link (DNS_MANAGED)"},
+			{Text: "To go on: set the nameservers in NetworkManager."},
+			{Kind: component.MessageBad, Text: "Allow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)"},
+			{Kind: component.MessageBad, Text: "Reload ssh.service: not run (NOT_RUN)"},
+		}},
+		{"messages/empty", component.Messages{{Kind: component.MessageWarn}, {Text: " "}}},
+		// A form field's inline results (P-42, the maintainer, 2026-10-22):
+		// origin/main's Add nameserver words (pkg/menu dns_menu.go), its
+		// kinds kept, and an illustrative info line, as the maintainer's
+		// mocks show them.
+		{"inlineresult/bad", component.InlineResult{Kind: component.MessageBad, Text: "Invalid IP address format"}},
+		{"inlineresult/warn", component.InlineResult{Kind: component.MessageWarn, Text: "Nameserver 192.0.2.54 is already configured"}},
+		{"inlineresult/ok", component.InlineResult{Kind: component.MessageOK, Text: "Nameserver 192.0.2.53 added to configuration"}},
+		{"inlineresult/info", component.InlineResult{Text: "An IPv4 or IPv6 address, such as 192.0.2.53"}},
+		{"inlineresult/long", component.InlineResult{Kind: component.MessageBad, Text: "Username must start with a lowercase letter and contain only lowercase letters, numbers, hyphens, and underscores"}},
+		{"inlineresult/empty", component.InlineResult{Kind: component.MessageBad}},
 		{"callout/warn", FigmaWarning()},
 		{"callout/ok", component.Callout{Kind: component.MessageOK, Title: "Operation Successful"}},
 		{"callout/cancelled", component.Callout{Kind: component.MessageCancelled, Title: "Operation Cancelled"}},
@@ -443,8 +483,17 @@ func States() []State {
 		{"stepprogress/long", component.StepProgress{Steps: []component.Step{
 			{Title: "Set Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf", State: component.StepFailed, Detail: "sshd -t: Bad configuration option: Portt"},
 		}}},
+		// The engine's 2230 change on Debian 13 at its reload's failure,
+		// whose widest title puts the status column at 36 (P-42 R2).
+		{"stepprogress/aligned", component.StepProgress{Steps: PortSteps()}},
 		{"stepprogress/empty", component.StepProgress{Steps: []component.Step{{State: component.StepDone}}}},
 		{"errorreport/normal", SSHFailure()},
+		{"errorreport/aligned", component.ErrorReport{
+			Failed:     "Reload sshd (ssh.service): exit status 1 (COMMAND_FAILED)",
+			RolledBack: []string{"Add SSH port 2230", "ufw: allow 2230/tcp"}, Steps: PortSteps(),
+			Command: "systemctl reload ssh.service", Output: "Job for ssh.service failed because the control process exited with error code.",
+			LogPath: "/var/log/hardn.log",
+		}},
 		{"errorreport/tail", component.ErrorReport{
 			Failed: "Installing unattended-upgrades failed: exit status 100", Command: "apt-get install -y unattended-upgrades",
 			Output: installLog(), LogPath: "/var/log/hardn.log",

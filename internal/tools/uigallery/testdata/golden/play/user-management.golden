@@ -36,7 +36,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 4$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mThe gallery has no screen for Firewall yet.␛[m$
+  ␛[38;2;129;134;156mThe gallery has no screen for Firewall yet.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -132,8 +132,8 @@ $
 $
   ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m        ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -267,7 +267,7 @@ $
 $
   > Enter selection [0-10 or q]: 4$
 $
-  [i] Info: The gallery has no screen for Firewall yet.$
+  The gallery has no screen for Firewall yet.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -374,8 +374,8 @@ $
 $
   Require password for sudo? [y/N, 0 or q]: y$
 $
-  [+] Done: Require george's password for sudo$
-  [+] Done: Check the sudo configuration$
+  [+] Require george's password for sudo  Done$
+  [+] Check the sudo configuration        Done$
 $
 # Operation Successful$
 $
@@ -519,7 +519,7 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 4$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mThe gallery has no screen for Firewall yet.␛[m$
+  ␛[38;2;129;134;156mThe gallery has no screen for Firewall yet.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -635,8 +635,10 @@ $
 $
   ␛[38;2;192;196;216mRequire password for sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $

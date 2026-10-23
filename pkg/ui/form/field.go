@@ -58,8 +58,10 @@ type Text struct {
 	// answer's echo shows it after (P-26 (c)).
 	Default string
 	// Validate, when set, checks the value. Its error is shown under the
-	// prompt, and the field is asked again. It may read the system, such
-	// as whether a user exists, but must change nothing.
+	// prompt, and the field is asked again: as a failed inline result, or
+	// as a warning when the error is nav.Warn's, for a value refused
+	// though valid, such as one already configured. It may read the
+	// system, such as whether a user exists, but must change nothing.
 	Validate func(string) error
 	// Skip, when set, leaves the field out each time it returns true.
 	Skip func() bool
@@ -261,13 +263,14 @@ func pick(title string, fn func() string) string {
 }
 
 // check runs validate, when set, on v, and turns its error into a
-// refusal that shows the error's words under the prompt.
+// refusal that shows the error's words under the prompt: failed, or a
+// warning when the error is nav.Warn's.
 func check[T any](validate func(T) error, v T) error {
 	if validate == nil {
 		return nil
 	}
 	if err := validate(v); err != nil {
-		return nav.Refuse(err.Error())
+		return nav.RefuseFor(err)
 	}
 	return nil
 }

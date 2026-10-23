@@ -81,20 +81,22 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m             ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and run:␛[m$
-      ␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx␛[m$
-      ␛[38;2;129;134;156mis rolled back at about 12:03:00 UTC. To undo it now, run␛[m$
-      ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run doas hardn␛[m$
+  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -197,20 +199,22 @@ $
 $
   Type the hostname [web-01, 0 or q]: web-01$
 $
-  [+] Done: Install hardn's boot unit$
-  [+] Done: Add SSH port 2230$
-  [+] Done: Reload sshd (openrc sshd)$
-  [+] Done: sshd -T shows ports 22, 2230$
+  [+] Install hardn's boot unit     Done$
+  [+] Add SSH port 2230             Done$
+  [+] Reload sshd (openrc sshd)     Done$
+  [+] sshd -T shows ports 22, 2230  Done$
 $
 # Operation Successful$
 $
-  [ ] Warning: This change reverts automatically in 3:00$
-      To keep it, open a new SSH session on port 2230 and run:$
-      doas hardn confirm$
+# Warning$
+# This change reverts automatically in 3:00$
+# To keep it, open a new SSH session on port 2230 and run:$
 $
-  [i] Info: Unless confirmed, change 20261020T120000Z-xxxxxxxx$
-      is rolled back at about 12:03:00 UTC. To undo it now, run$
-      doas hardn rollback 20261020T120000Z-xxxxxxxx.$
+      $ doas hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at about 12:03:00 UTC. To undo it now, run doas hardn$
+  rollback 20261020T120000Z-xxxxxxxx.$
 $
 # simulated system ---------------------------------------------$
 $
@@ -316,22 +320,26 @@ $
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mWarning:␛[m␛[38;2;192;196;216m This change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
-      ␛[38;2;192;196;216mTo keep it, open a new SSH session on port 2230 and␛[m$
-      ␛[38;2;192;196;216mrun:␛[m$
-      ␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session on port 2230 and run:␛[m$
 $
-   ␛[1;38;2;192;196;216mℹ␛[m  ␛[1;38;2;192;196;216mInfo:␛[m ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx is rolled back at about 12:03:00 UTC. To undo␛[m$
-      ␛[38;2;129;134;156mit now, run doas hardn rollback 20261020T120000Z-␛[m$
-      ␛[38;2;129;134;156mxxxxxxxx.␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

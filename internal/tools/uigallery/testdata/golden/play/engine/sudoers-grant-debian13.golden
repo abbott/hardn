@@ -26,7 +26,7 @@ $
 $
   ␛[38;2;192;196;216mLet alice use sudo without a password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet alice use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet alice use sudo without a password␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -65,7 +65,7 @@ $
 $
   Let alice use sudo without a password? [y/N, 0 or q]: y$
 $
-  [+] Done: Let alice use sudo without a password$
+  [+] Let alice use sudo without a password  Done$
 $
 # Operation Successful$
 $
@@ -105,7 +105,8 @@ $
 $
   ␛[38;2;192;196;216mLet alice use sudo without a password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet alice use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet alice use sudo without a password␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $

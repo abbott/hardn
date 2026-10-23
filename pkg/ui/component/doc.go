@@ -30,16 +30,16 @@
 //     control characters are dropped and surrounding spaces trimmed. Widths
 //     are measured with lipgloss.Width, never len. Text that does not fit is
 //     cut and ends with theme.Glyphs.Ellipsis. Only prose wraps, at spaces,
-//     under its own first line: a Message's text, a Callout's body and a
-//     bullet item, which have nothing beside them. Typographic quotes in
-//     view-model text, ‘ ’ and “ ”, are shown as ASCII ' and " (C12,
-//     DEV-036); components add none. With the ASCII glyph set
-//     (term.Env.Unicode false) view-model text's ≥ ≤ ≠ … – — × → and • are
-//     shown as >= <= != ... - - x -> and * too, before it is measured
-//     (DEV-036). A menu's keys, a prompt's hint, which lists the inputs it
-//     accepts, and a report's log path keep their characters, as what must
-//     be typed or opened shows as it is; an answer AnsweredField echoes is
-//     mapped, as it says what was typed or taken.
+//     under its own first line: an info Message, a Callout's body, an
+//     InlineResult's text and a bullet item, which have the rest of their
+//     line to themselves. Typographic quotes in view-model text, ‘ ’ and
+//     “ ”, are shown as ASCII ' and " (C12, DEV-036); components add none.
+//     With the ASCII glyph set (term.Env.Unicode false) view-model text's
+//     ≥ ≤ ≠ … – — × → and • are shown as >= <= != ... - - x -> and * too,
+//     before it is measured (DEV-036). A menu's keys, a prompt's hint, which
+//     lists the inputs it accepts, and a report's log path keep their
+//     characters, as what must be typed or opened shows as it is; an answer
+//     AnsweredField echoes is mapped, as it says what was typed or taken.
 //   - Code. A diff's lines, a plan's target and commands, and captured
 //     output are code: shown as they are, quotes (typographic ones too)
 //     and indent kept, escape and control characters dropped, a tab four
@@ -56,11 +56,13 @@
 //     (DEV-015) and a badge is bracketed by Glyphs.BadgeOpen and
 //     BadgeClose (DEV-019). A state is never shown by colour alone, at
 //     any colour profile: it has a glyph and a word, as a StatusRow or a
-//     Message has them; a word, as a Callout's title has it, its bar
-//     alone being colour; or, on a key-value row, a marker beside the
-//     value that says it, with the value's own words where a warn and a
-//     bad value share ⭘. Where Figma draws a state in colour only, the
-//     word or the marker is added (DEV-032, DEV-034).
+//     step's row has them; a word, as a Callout's title has it, its bar
+//     alone being colour, and so a Message of any kind but info; or, on a
+//     key-value row, a marker beside the value that says it, with the
+//     value's own words where a warn and a bad value share ⭘. Where Figma
+//     draws a state in colour only, the word or the marker is added
+//     (DEV-032, DEV-034). The one exception is the maintainer's: an
+//     InlineResult has no word, its text saying what it is (DEV-062).
 //   - States. Each component documents and tests the states that apply to
 //     it: normal, empty, unknown, not applicable and error. A value hardn
 //     could not read shows the word "Unknown" in text.muted, origin/main's
@@ -138,7 +140,7 @@
 //     AnsweredField shares PromptLine's question and hint. SectionHeader
 //     is laid out as a bar, its fill a rule.
 //   - FieldHead is a line of spans, then its description wrapped as a
-//     Message's text is (lipgloss.Wrap), then its options rendered by
+//     Callout's body is (lipgloss.Wrap), then its options rendered by
 //     Menu, joined with line breaks: list is ruled out as for Menu, and no
 //     join or place helper is needed.
 //   - KeyValue and BulletList: list could draw the bullet as its
@@ -151,7 +153,8 @@
 //     (join.go:88): trailing spaces. The list shares Menu's stacking rule,
 //     so its rows are placed as the menu's items are. table is ruled out as
 //     for HostBlock.
-//   - Message and Callout wrap their prose with lipgloss.Wrap (wrap.go:
+//   - Message, Messages, InlineResult and Callout wrap their prose with
+//     lipgloss.Wrap (wrap.go:
 //     12-19), over x/ansi's Wrap. A style's Width wraps the same way
 //     (style.go:412-414) but then pads every line to the width
 //     (style.go:489-497, align.go:43-48): trailing spaces again. The
@@ -169,16 +172,17 @@
 //     for Glyphs.Wrap, and Wrap also breaks at every hyphen
 //     (wrap.go:270-271), which in a command such as "--unit=" reads as
 //     two words.
-//   - StepProgress: list with an Enumerator returning the state's glyph
-//     would pad a narrower glyph on the left to the widest sibling's
-//     (tree/renderer.go:79-81, 100-103), so in ASCII a one-cell spinner
-//     frame among three-cell markers would sit at column 4, not centred
-//     at column 3, and the line still needs the cut. Each step is a line
-//     of spans placed with marker and fit.
-//   - ErrorReport is built from Callout, rolled-back lines laid out as
-//     StepProgress rows but wrapped as a Message's text is (Ctx.worded,
-//     over lipgloss.Wrap), code and Message, joined with the section gap;
-//     ConfirmCountdown is lines of spans, its sentences wrapped with
-//     lipgloss.Wrap as a Message's text. Neither needs a join or place
-//     helper.
+//   - StepProgress: list with an Enumerator returning the state's marker
+//     would pad a narrower marker on the left to the widest sibling's
+//     (tree/renderer.go:79-81, 100-103), so in ASCII the one-cell bullet
+//     or spinner frame among three-cell markers would sit at column 4, not
+//     centred at column 3, and a row still needs its status column and
+//     the cut; table could hold the status column, but stacks no row and
+//     pads its cells into trailing spaces, as for HostBlock. Each row is a
+//     line of spans placed with marker, line.to and fit.
+//   - ErrorReport is built from Callout, StepProgress rows on the steps'
+//     status column, code and prose, joined with the section gap;
+//     ConfirmCountdown is a callout's lines of spans, its sentences
+//     wrapped with lipgloss.Wrap as a Callout's body, and code. Neither
+//     needs a join or place helper.
 package component

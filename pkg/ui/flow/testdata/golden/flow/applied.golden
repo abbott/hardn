@@ -30,9 +30,9 @@ $
 $
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCreate user george␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCreate user george␛[m                      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd george to the sudo group␛[m            ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet george use sudo without a password␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 
@@ -64,9 +64,9 @@ $
 $
   Create user 'george'? [y/N, 0 or q]: y$
 $
-  [+] Done: Create user george$
-  [+] Done: Add george to the sudo group$
-  [+] Done: Let george use sudo without a password$
+  [+] Create user george                      Done$
+  [+] Add george to the sudo group            Done$
+  [+] Let george use sudo without a password  Done$
 $
 # Operation Successful$
 
@@ -100,8 +100,11 @@ $
 $
   ␛[38;2;192;196;216mCreate user 'george'?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mCreate user george␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
-   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCreate user george␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAdd george to the sudo group␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mLet george use sudo without a password␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
