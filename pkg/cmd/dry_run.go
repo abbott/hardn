@@ -43,10 +43,6 @@ const (
 // flag under -n is a usage error, refused before the root check, the config
 // load and OS detection (exit status ExitUsage). -n with no operation flag
 // still opens the menus in dry-run mode, as before.
-//
-// -g is not among the flags cmd/hardn names here since slice 2's unit (d)
-// (the maintainer, 2026-10-23): it plans and applies the DNS control
-// through the engine, and under -n shows the plan and writes nothing.
 const dryRunFlagApplies = false
 
 // RefuseDryRunOperations returns the usage error for -n (dryRun) combined

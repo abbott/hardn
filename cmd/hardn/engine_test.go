@@ -29,7 +29,7 @@ func TestEngineOptions(t *testing.T) {
 	h, cfg := newDNSHost(t, "debian13", dnsTestList)
 	useDNSHost(t, h)
 	cfg.BackupPath, cfg.EnableBackups = "/srv/backups/hardn", false
-	// alice's SSH session: sshd, its session, her shell, sudo, hardn.
+	// alice's SSH session: sshd, its session, a shell, sudo, hardn.
 	revertProc(h.System, 900, 1, "sshd")
 	revertProc(h.System, 3970, 900, "sshd-session")
 	revertProc(h.System, 3980, 3970, "bash", "SSH_CONNECTION=192.0.2.10 50123 192.0.2.20 2230")

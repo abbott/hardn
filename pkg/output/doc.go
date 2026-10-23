@@ -27,10 +27,12 @@
 //   - Confirmation is the non-interactive policy: never prompt without a
 //     terminal; apply without asking only on an explicit yes.
 //
-// Nothing here is wired into cmd/hardn's operations: refactor plan §3.11
-// (--output json, --yes) is not approved, and the audit log's first writer
-// comes with next/p3-startup. docs/reference/output.md is the public
-// contract; docs/engine/output.md says what this package guarantees.
+// cmd/hardn renders hardn confirm's clean-up and -g (slice 2, unit (d):
+// Human, ExitCode) through it, and the DNS screen's changes through
+// FlowEngine; nothing else: refactor plan §3.11 (--output json, --yes)
+// is not approved, and the audit log's first writer comes with
+// next/p3-startup. docs/reference/output.md is the public contract;
+// docs/engine/output.md says what this package guarantees.
 //
 // It reaches the host only through host.System (depguard rule
 // output-through-host) and renders only through pkg/ui.
