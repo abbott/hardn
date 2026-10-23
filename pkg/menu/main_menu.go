@@ -1,9 +1,11 @@
 package menu
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
@@ -12,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -37,7 +40,31 @@ type MainMenu struct {
 
 	// dns runs the DNS item (SetDNS).
 	dns func() error
+
+	// status draws the host block, risk level and status rows (SetStatus).
+	status func(ctx context.Context, below int) (string, error)
 }
+
+// legacySecurityStatus: DISABLED 2026-10-23. Flip to true to restore.
+//
+// With it true, each pass of the main menu draws origin/main's block
+// above its items, from pkg/security: the version line, the host and
+// uptime lines (MenuManager.GetHostInfo), the OS title bar, the risk
+// level of GetSecurityRiskLevel (eight equal booleans) and the rows of
+// DisplaySecurityStatusWithCustomPrinter: Users, Sudo (when missing),
+// Sudo Method, Firewall, SSH Login, SSH Auth, SSH Port (from hardn.yml's
+// port, not the host's), AppArmor and Auto Updates, read by
+// CheckSecurityStatus from files and commands of its own (showLegacyStatus).
+// With it false, the main menu goes live (the maintainer, 2026-10-23,
+// refactor plan slice 2, next/s2-menu-live): the block is drawn from the
+// status model, the controls' checks, the header probe and the risk
+// level, through the hook cmd/hardn sets (SetStatus), as the gallery and
+// p4status draw it, the DNS row included (docs/engine/menu-live.md §7
+// says what changes). The security-update alert, which replaces the block
+// when an update check finds a security release, is drawn either way;
+// it needs update checks, off while pkg/version's updateCheckEnabled is
+// false (V26).
+const legacySecurityStatus = false
 
 // NewMainMenu creates a new MainMenu
 func NewMainMenu(
@@ -84,6 +111,89 @@ func (m *MainMenu) showDNS() bool {
 	}
 	endHardn(err)
 	return true
+}
+
+// SetStatus sets what draws the main menu's host block, risk level and
+// status rows, above its items: the status model (the controls' checks,
+// the header probe and the risk level), which cmd/hardn reads and renders
+// from the host it builds, so that pkg/menu runs no check and builds no
+// engine, as with SetDNS (refactor plan slice 2, next/s2-menu-live). It is
+// called on every pass of the main menu, with the number of lines the
+// menu takes under it, heading to prompt, and returns the text to print
+// above the heading, the blank line before it included. An error ends
+// hardn as at a legacy prompt: a cancelled context (Ctrl-C) by SIGINT,
+// any other with exit status 1 once printed. A main menu drawn without one
+// set panics: cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetStatus(draw func(ctx context.Context, below int) (string, error)) {
+	m.status = draw
+}
+
+// showStatus prints what the main menu draws above its items: origin/main's
+// block while legacySecurityStatus is set; else the security-update alert
+// when an update check found a security release, as origin/main drew it;
+// else the status model's blocks (showLiveStatus).
+func (m *MainMenu) showStatus(menu *style.Menu) {
+	switch {
+	case legacySecurityStatus:
+		m.showLegacyStatus()
+	case m.securityUpdateAvailable && m.versionService != nil && m.versionService.CurrentVersion != "":
+		m.displaySecurityUpdateAlert(nil)
+	default:
+		m.showLiveStatus(context.Background(), menu)
+	}
+}
+
+// showLiveStatus prints the status model's blocks for the main menu, menu
+// its items, heading to prompt, under them (SetStatus). The checks only
+// read, and run again on every pass, so each pass shows the host as it is
+// then. Ctrl-C while they run: no signal handler is registered for them,
+// so Go's default ends hardn by SIGINT at once, as prompt.Reraise ends it
+// at the menu's prompt; a context cancelled before they finish ends hardn
+// the same way (endHardn, prompt.ErrInterrupted).
+func (m *MainMenu) showLiveStatus(ctx context.Context, menu *style.Menu) {
+	if m.status == nil {
+		panic("menu: the main menu has no status (SetStatus)")
+	}
+	block, err := m.status(ctx, strings.Count(menu.Render(), "\n")+1)
+	switch {
+	case errors.Is(err, context.Canceled):
+		endHardn(fmt.Errorf("%w: %w", prompt.ErrInterrupted, err))
+		return
+	case err != nil:
+		endHardn(err)
+		return
+	}
+	fmt.Print(block)
+}
+
+// showLegacyStatus is origin/main's block (legacySecurityStatus): the
+// status pkg/security reads, drawn by displaySecurityStatus with
+// origin/main's formatter, or a blank line when it is not read.
+func (m *MainMenu) showLegacyStatus() {
+	// Get security status
+	securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo)
+
+	// Create formatter for security status
+	formatter := style.NewStatusFormatter([]string{
+		"Host",
+		"OS",
+		"Uptime",
+		"Risk Level",
+		"SSH Root Login",
+		"Firewall",
+		"Users",
+		"SSH Port",
+		"SSH Auth",
+		"AppArmor",
+		"Auto Updates",
+	}, 2) // 2 spaces buffer
+
+	// Display security status if available
+	if err == nil {
+		m.displaySecurityStatus(securityStatus, formatter)
+	} else {
+		fmt.Println()
+	}
 }
 
 // refresh any configuration values that might have been
@@ -427,30 +537,9 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 
 		utils.ClearScreen()
 
-		// Get security status
-		securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo)
-
-		// Create formatter for security status
-		formatter := style.NewStatusFormatter([]string{
-			"Host",
-			"OS",
-			"Uptime",
-			"Risk Level",
-			"SSH Root Login",
-			"Firewall",
-			"Users",
-			"SSH Port",
-			"SSH Auth",
-			"AppArmor",
-			"Auto Updates",
-		}, 2) // 2 spaces buffer
-
-		// Display security status if available
-		if err == nil {
-			m.displaySecurityStatus(securityStatus, formatter)
-		} else {
-			fmt.Println()
-		}
+		// Create the menu, then draw the status above it (showStatus)
+		menu := m.createMainMenu()
+		m.showStatus(menu)
 
 		// If security update is available, wait for key press and exit
 		if m.securityUpdateAvailable {
@@ -459,8 +548,7 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 			return
 		}
 
-		// Create menu and display
-		menu := m.createMainMenu()
+		// Display the menu
 		menu.Print()
 
 		choice := ReadMenuInput()
