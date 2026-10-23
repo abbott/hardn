@@ -1,0 +1,143 @@
+# Golden file of TestPlayEngineGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-configure-pve9␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node; /etc/resolv.conf is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits installer's file, naming 192.0.2.1. hardn.yml lists␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. y applies␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit; n declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PROXMOX_NODE)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play engine/dns-configure-pve9 -------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# Info: engine/dns-configure-pve9$
+# web-01.example.net is a Proxmox VE 9 node; /etc/resolv.conf is$
+# its installer's file, naming 192.0.2.1. hardn.yml lists$
+# 192.0.2.54, 2001:db8::54.$
+# The change: Configure DNS, hardn.yml's nameservers. y applies$
+# it; n declines.$
+$
+   -  Set the nameservers$
+      /etc/resolv.conf$
+      @@ -1,2 +1,3 @@$
+       search example.net$
+      -nameserver 192.0.2.1$
+      +nameserver 192.0.2.54$
+      +nameserver 2001:db8::54$
+$
+  Configure DNS? [y/N, 0 or q]: y$
+$
+  [+] Set the nameservers  Done$
+$
+# Operation Successful$
+$
+# Warning$
+# Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
+# (DNS_PROXMOX_NODE)$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: engine/dns-configure-pve9$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Set the nameservers$
+      /etc/resolv.conf$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-configure-pve9␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf is its installer's file, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.1. hardn.yml lists 192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. y␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapplies it; n declines.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+  ␛[38;2;192;196;216mConfigure DNS?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PROXMOX_NODE)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$

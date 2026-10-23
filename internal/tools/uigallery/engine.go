@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"path"
@@ -10,8 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/confirm"
+	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -23,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
+	"github.com/abbott/hardn/pkg/ui/form"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/theme"
@@ -35,7 +39,8 @@ import (
 // (output.FlowEngine) in pkg/ui/flow's canonical flow, so that what the
 // maintainer reviews is a real plan, its real steps, the confirm countdown
 // and the outcome. The words of each scenario's confirmation question are
-// the gallery's, until the slices word their actions (P-10).
+// the gallery's, until the slices word their actions (P-10); the DNS
+// scenarios' are the DNS mock's (docs/engine/gallery-dns.md §5).
 
 // enginePrefix names the scenarios in play: "engine" is the menu of them,
 // "engine/<name>" one.
@@ -53,8 +58,13 @@ type scenario struct {
 	// host returns the simulated host, fresh, whose facts the engine
 	// establishes itself (detect.Detect, engine.Options.Detect's default).
 	host func() *fakeHost
-	// controls are what the engine plans.
+	// controls are what the engine plans, with no configuration and no
+	// form.
 	controls []engine.Control
+	// setup, set in place of controls for a scenario whose controls are
+	// built on its host (from hardn.yml, as hardn reads it there, or from
+	// the answers to a form), returns what they are built from.
+	setup func(h *fakeHost) (setup, error)
 	// question is the flow's confirmation question.
 	question string
 	// dryRun stops the flow after the plan.
@@ -63,11 +73,65 @@ type scenario struct {
 	// connection to port 2230 with hardn confirm, which then cleans up
 	// what the change held (P-40).
 	confirm bool
-	// answers are what the user types to play it as it says: the
-	// hostname for a typed confirmation, y for a y/N one, nothing for a
-	// plan refused or a dry run; ends is how the flow then ends.
+	// answers are what the user types to play it as it says: the form's
+	// answers, if it has one, then the hostname for a typed confirmation,
+	// y for a y/N one, nothing for a plan refused or a dry run; ends is
+	// how the flow then ends.
 	answers []string
 	ends    flow.Outcome
+}
+
+// setup is what a scenario plans from on its host: the form the flow asks
+// first (with no fields it asks nothing), and plans, which returns the
+// controls and the configuration the action plans with. The flow's engine
+// calls plans each time the flow plans, after the form, so the controls
+// are built from its answers, as a screen of hardn builds them before
+// output.FlowEngine plans.
+type setup struct {
+	form  form.Form
+	plans func() ([]engine.Control, *config.Config)
+}
+
+// setupOn returns sc's setup on h: its setup's, or its controls, with no
+// configuration and no form.
+func (sc scenario) setupOn(h *fakeHost) (setup, error) {
+	if sc.setup != nil {
+		return sc.setup(h)
+	}
+	return setup{plans: func() ([]engine.Control, *config.Config) { return sc.controls, nil }}, nil
+}
+
+// dnsSetup is the setup of a scenario of the DNS control
+// (pkg/engine/controls/dns, next/s2-control), as the DNS screen will plan
+// (unit (c)): hardn.yml read from the host, as hardn reads it
+// (config.Read), the control checking against it as loaded, and the
+// action's configuration a copy with list in place of its nameservers when
+// list is set (a preset; nil: Configure DNS, hardn.yml's own), which the
+// control then saves (steps.PlanSave). Where udhcpc writes
+// /etc/resolv.conf, the form asks first "Stop udhcpc rewriting
+// /etc/resolv.conf?", y/N, its answer the control's StopUDHCPC
+// (gallery-dns.md decision 6).
+func dnsSetup(list []string) func(*fakeHost) (setup, error) {
+	return func(h *fakeHost) (setup, error) {
+		loaded, err := config.Read(context.Background(), h.f, hardnYML)
+		if err != nil {
+			return setup{}, err
+		}
+		cfg := loaded
+		if list != nil {
+			edited := *loaded
+			edited.Nameservers = slices.Clone(list)
+			cfg = &edited
+		}
+		stop := new(bool)
+		var ask form.Form
+		if h.resolver == resolverUDHCPC {
+			ask.Fields = []form.Field{&form.YesNo{Title: "Stop udhcpc rewriting /etc/resolv.conf?", Value: stop}}
+		}
+		return setup{form: ask, plans: func() ([]engine.Control, *config.Config) {
+			return []engine.Control{dnsctl.Nameservers{Config: loaded, StopUDHCPC: *stop}}, cfg
+		}}, nil
+	}
 }
 
 // galleryControl is one control of a scenario: its Plan calls a planner
@@ -194,7 +258,7 @@ func scenarios() []scenario {
 		stock   = "sshd listens on port 22, and ufw is active, allowing 22/tcp."
 		confirm = "Type the hostname, " + hostName + ", to apply it; 0 declines."
 	)
-	return []scenario{
+	return append([]scenario{
 		{name: "ssh-port-debian13", label: "SSH port, Debian 13", about: "Port 2230 through ssh.service",
 			note: []string{hostFQDN + " runs Debian 13; sshd is started by ssh.service. " + stock, "The change: SSH port 2230, port 22 held until confirmed. " + confirm},
 			host: newHost, controls: []engine.Control{port},
@@ -238,6 +302,64 @@ func scenarios() []scenario {
 			note: []string{hostFQDN + " runs Ubuntu 22.04, a best-effort release: hardn changes it, but is not tested on it. " + stock, "The plan alone, for key-only login: it carries the release's warning (P-41)."},
 			host: ubuntu2204Host, controls: []engine.Control{keyOnly()},
 			question: "Allow SSH login by key only?", dryRun: true, ends: flow.Planned},
+	}, dnsScenarios()...)
+}
+
+// dnsScenarios are the DNS control's scenarios (slice 2,
+// next/s2-engine-gallery), each a sequence of the DNS mock
+// (docs/engine/gallery-dns.md §3) on the real control: hardn.yml, at
+// /etc/hardn/hardn.yml under a comment, lists 192.0.2.54 and 2001:db8::54
+// but where a note says otherwise, and the change is confirmed y/N, as
+// none of DNS's locks anyone out (brief 2.4).
+func dnsScenarios() []scenario {
+	const (
+		listed    = " hardn.yml lists 192.0.2.54, 2001:db8::54."
+		yn        = " y applies it; n declines."
+		configure = "The change: Configure DNS, hardn.yml's nameservers."
+		file      = "/etc/resolv.conf is a file dhcpcd wrote from eth0's lease, naming 192.0.2.1."
+		stub      = "/etc/resolv.conf links to systemd-resolved's stub, and eth0 has 192.0.2.1 and example.net from DHCP."
+		reloads   = " systemd-resolved reloads its files"
+		preset    = "The change: Use Cloudflare DNS, 1.1.1.1 and 1.0.0.1, then hardn.yml saved with that list."
+		yes       = "y"
+	)
+	debian, cloudflare, configureDNS := hostFQDN+" runs Debian 13; "+file+listed, dnsSetup([]string{"1.1.1.1", "1.0.0.1"}), dnsSetup(nil)
+	return []scenario{
+		{name: "dns-configure-ubuntu2604", label: "DNS, Ubuntu 26.04", about: "Configure DNS: a drop-in, a reload",
+			note: []string{hostFQDN + " runs Ubuntu 26.04; " + stub + listed, configure + reloads + " (systemd 259)." + yn},
+			host: dnsHost(ubuntu2604Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Applied},
+		{name: "dns-cloudflare-debian13", label: "DNS preset, Debian 13", about: "Use Cloudflare DNS, then the save",
+			note: []string{debian, preset + yn}, host: dnsHost(debian13Platform), setup: cloudflare,
+			question: "Use Cloudflare DNS?", answers: []string{yes}, ends: flow.Applied},
+		{name: "dns-configure-ubuntu2404", label: "DNS, Ubuntu 24.04", about: "Configure DNS: a restart",
+			note: []string{hostFQDN + " runs Ubuntu 24.04; " + stub + listed, configure + " systemd 255 cannot reload systemd-resolved, so the same command restarts it." + yn},
+			host: dnsHost(ubuntu2404Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Applied},
+		{name: "dns-udhcpc-alpine324", label: "DNS, Alpine 3.24", about: "Configure DNS, udhcpc stopped",
+			note: []string{hostFQDN + " runs Alpine 3.24; /etc/resolv.conf is a file udhcpc writes on each lease, naming 192.0.2.1, and udhcpc.conf is as installed." + listed,
+				configure + " First \"Stop udhcpc rewriting /etc/resolv.conf?\": y stops it in the same change. Then" + yn},
+			host: dnsHost(alpine324Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes, yes}, ends: flow.Applied},
+		{name: "dns-configure-pve9", label: "DNS, Proxmox VE 9", about: "Configure DNS on a node",
+			note: []string{hostFQDN + " is a Proxmox VE 9 node; /etc/resolv.conf is its installer's file, naming 192.0.2.1." + listed, configure + yn},
+			host: dnsHost(pve9Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Applied},
+		{name: "dns-refused-networkmanager", label: "Refused: NetworkManager", about: "NetworkManager's DNS (P-37)",
+			note: []string{hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file." + listed,
+				configure + " The plan refuses it, with a report (P-37 (a))."},
+			host: networkManagerHost, setup: configureDNS, question: "Configure DNS?", ends: flow.Failed},
+		{name: "dns-refused-empty", label: "Refused: no nameservers", about: "Configure DNS, hardn.yml lists none",
+			note: []string{hostFQDN + " runs Debian 13; " + file + " hardn.yml lists no nameserver.", configure + " The plan refuses it, with a report."},
+			host: noListHost, setup: configureDNS, question: "Configure DNS?", ends: flow.Failed},
+		{name: "dns-configured-debian13", label: "DNS, nothing to change", about: "Configure DNS on a configured host",
+			note: []string{hostFQDN + " runs Debian 13; /etc/resolv.conf lists 192.0.2.54 and 2001:db8::54 already." + listed, configure + " There is nothing to change (P-27 (b))."},
+			host: configuredDNSHost, setup: configureDNS, question: "Configure DNS?", ends: flow.Unchanged},
+		{name: "dns-dry-run-debian13", label: "DNS preset, dry run", about: "Use Cloudflare DNS, the plan alone",
+			note: []string{debian, preset + " The plan alone: nothing changes or is saved."}, host: dnsHost(debian13Platform), setup: cloudflare,
+			question: "Use Cloudflare DNS?", dryRun: true, ends: flow.Planned},
+		{name: "dns-failed-reload-ubuntu2604", label: "DNS failed, rolled back", about: "The reload has no effect",
+			note: []string{hostFQDN + " runs Ubuntu 26.04; " + stub + listed + " Its next reload of systemd-resolved loads nothing new.",
+				configure + yn},
+			host: inertReload, setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Failed},
+		{name: "dns-failed-save-debian13", label: "DNS save failed", about: "The change rolled back, Debian 13",
+			note: []string{debian + " hardn.yml is immutable (chattr +i), so saving it fails.", preset + yn},
+			host: immutableHardnYML, setup: cloudflare, question: "Use Cloudflare DNS?", answers: []string{yes}, ends: flow.Failed},
 	}
 }
 
@@ -291,9 +413,13 @@ func (s *session) openEngine(name string) func() error {
 // connection. What the fake recorded is kept for the end of play.
 func (s *session) runScenario(sc scenario) error {
 	h := sc.host()
+	st, err := sc.setupOn(h)
+	if err != nil {
+		return err
+	}
 	rec := &recorder{host: h, f: h.f, title: enginePrefix + "/" + sc.name}
-	fe := &output.FlowEngine{Controls: sc.controls, DryRun: sc.dryRun, LogPath: output.LegacyLogPath}
-	fe.Engine = engine.New(h.f, engine.Options{
+	fe := &output.FlowEngine{DryRun: sc.dryRun, LogPath: output.LegacyLogPath}
+	fe.Engine = engine.New(h.system(), engine.Options{
 		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
 		Session:  applySession,
 		Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
@@ -314,7 +440,8 @@ func (s *session) runScenario(sc scenario) error {
 		return err
 	}
 	f := flow.Flow{
-		Engine: recording{fe, rec},
+		Form:   st.form,
+		Engine: recording{fe, rec, st.plans},
 		Confirm: func(p flow.Plan) flow.Confirm {
 			if p.Typed() {
 				return flow.Confirm{Question: sc.question, Label: typeTheHostname, Phrase: hostName}
@@ -327,6 +454,7 @@ func (s *session) runScenario(sc scenario) error {
 	if err != nil {
 		return err
 	}
+	rec.ended(o)
 	if after := output.AfterFlow(c.Env, fe.Run(o, err), galleryNow); after != "" {
 		if _, err := io.WriteString(s.p.Out, after); err != nil {
 			return err
@@ -374,6 +502,7 @@ func (s *session) confirmFromNewConnection(h *fakeHost) error {
 	if held.Run() {
 		o = confirm.Cleanup(context.Background(), h.f, held, conn, confirm.Options{Revert: ro, Hold: s.hold, PID: confirmPID, Progress: rec.event})
 		rec.setPlan(o.Plan)
+		rec.failedWith(o.Err)
 		if run := (output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}); !o.Done() || !o.Result.Nothing {
 			blocks = append(blocks, strings.TrimSuffix(output.Human(c.Env, run, galleryNow), "\n"))
 		}
@@ -409,25 +538,32 @@ func (s *session) hold() func() {
 	return func() {}
 }
 
-// recording is a scenario's flow.Engine: output.FlowEngine, with the
-// fake's record marked where the apply begins and ends.
+// recording is a scenario's flow.Engine: output.FlowEngine, its controls
+// and configuration built by plans when the flow plans, with the fake's
+// record marked where the apply begins and ends.
 type recording struct {
 	*output.FlowEngine
-	rec *recorder
+	rec   *recorder
+	plans func() ([]engine.Control, *config.Config)
 }
 
-// Plan plans as FlowEngine does, and keeps the plan for the record.
+// Plan plans as FlowEngine does, what plans builds from the form's
+// answers, and keeps the plan for the record.
 func (r recording) Plan(ctx context.Context) (flow.Plan, error) {
+	r.Controls, r.Config = r.plans()
 	p, err := r.FlowEngine.Plan(ctx)
 	r.rec.setPlan(r.FlowEngine.Run(flow.NotRun, nil).Plan)
 	return p, err
 }
 
-// Apply applies as FlowEngine does, the record taken from its start.
+// Apply applies as FlowEngine does, the record taken from its start, and
+// keeps how the engine's apply failed.
 func (r recording) Apply(ctx context.Context, report flow.Report) error {
 	r.rec.begin()
 	defer r.rec.end()
-	return r.FlowEngine.Apply(ctx, report)
+	err := r.FlowEngine.Apply(ctx, report)
+	r.rec.failedWith(r.FlowEngine.Run(flow.NotRun, nil).Err)
+	return err
 }
 
 // recorder keeps what the fake recorded of one apply: the calls it made
@@ -447,6 +583,11 @@ type recorder struct {
 	from, to int          // the fake's call count when the apply began and ended; to < 0 while it runs
 	marks    []mark
 	began    bool
+	outcome  flow.Outcome // how the scenario's flow ended
+	// failure is how the apply failed, as the engine returned it: nil
+	// when it did not fail, or failed with no rollback (the boot unit's
+	// install, before anything is armed).
+	failure *engine.ApplyError
 }
 
 // mark is one of the engine's events and the fake's call count when it
@@ -468,6 +609,23 @@ func (r *recorder) end() {
 	r.to = len(r.f.Calls())
 }
 
+// ended keeps how the scenario's flow ended.
+func (r *recorder) ended(o flow.Outcome) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.outcome = o
+}
+
+// failedWith keeps how the apply failed, from its error: the record's last
+// entry says whether its rollback finished.
+func (r *recorder) failedWith(err error) {
+	var failure *engine.ApplyError
+	errors.As(err, &failure)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.failure = failure
+}
+
 // setPlan keeps the plan whose changes the events name by index.
 func (r *recorder) setPlan(p *engine.Plan) {
 	r.mu.Lock()
@@ -486,13 +644,17 @@ func (r *recorder) event(ev engine.Event) {
 var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 
 // reads are the commands that only read the host or check a file: sshd
-// -T and sshd -t, ss, ufw's status, systemctl's queries, visudo's checks,
-// the boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
+// -T and sshd -t, ss, ufw's status, systemctl's queries, resolvectl's
+// lists as pkg/host/dns asks them (dns and domain with nothing after:
+// given a link and values they set the link's), visudo's checks, the
+// boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
 // detect's questions (sudo --version, dpkg-query).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
 	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query":
 		return true
+	case "resolvectl":
+		return len(argv) == 3 && argv[1] == "--no-pager" && (argv[2] == "dns" || argv[2] == "domain")
 	case "sudo":
 		return len(argv) == 2 && argv[1] == "--version"
 	case "systemctl":
@@ -505,8 +667,9 @@ func reads(argv []string) bool {
 
 // changed is what calls changed on the host, outside hardn's own state
 // directories: the commands run or started that do not only read, a
-// command that failed among them, and the files written, removed or
-// renamed, each once, in order.
+// command that failed among them, and the files and directories made,
+// written, chmodded, chowned, removed or renamed, each once, in order (a
+// directory made: the DNS drop-in's).
 func changed(calls []hostfake.Call) (commands, files []string) {
 	for _, c := range calls {
 		switch c.Op {
@@ -514,7 +677,7 @@ func changed(calls []hostfake.Call) (commands, files []string) {
 			if !reads(c.Argv) {
 				commands = append(commands, host.FormatArgv(c.Argv))
 			}
-		case "write-atomic", "write-in-place", "append", "remove", "removeall", "rename":
+		case "write-atomic", "write-in-place", "append", "remove", "removeall", "rename", "mkdir", "chmod", "chown":
 			if c.Err == nil && !slices.ContainsFunc(stateDirs, func(d string) bool { return c.Path == d || strings.HasPrefix(c.Path, d+"/") }) &&
 				!slices.Contains(files, c.Path) {
 				files = append(files, c.Path)
@@ -535,8 +698,9 @@ func arms(calls []hostfake.Call) bool {
 // steps returns the record of the apply as plan view changes: for each
 // change of the plan that ran, what it ran and the files it changed, under
 // how it ended ("Applied: ", "Failed: "); between them, what the engine
-// itself did (the revert timer armed, the rollback); nothing for an apply
-// that never began.
+// itself did (the revert timer armed); after a failure, the rollback,
+// said finished only when the engine's was (failure); nothing for an
+// apply that never began.
 func (r *recorder) steps() []component.PlanChange {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -589,10 +753,14 @@ func (r *recorder) steps() []component.PlanChange {
 		}
 	}
 	switch {
-	case failed:
-		add("Rolled back from the journal", last, to)
-	default:
+	case !failed:
 		add("After the last change", last, to)
+	case r.failure == nil:
+		add("After the failure", last, to)
+	case r.failure.RollbackErr != nil:
+		add("Rollback not finished", last, to)
+	default:
+		add("Rolled back from the journal", last, to)
 	}
 	return out
 }
