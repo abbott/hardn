@@ -452,22 +452,32 @@ func TestApplyReloadOnly(t *testing.T) {
 
 // TestPlanJSON: a plan survives encoding/json, the Err fields aside (a
 // finding keeps their text), so a journal can keep it: Apply and Rollback
-// accept the decoded plan.
+// accept the decoded plan, udhcpc stopped where it is the DHCP client
+// included (UDHCPC.InUse kept).
 func TestPlanJSON(t *testing.T) {
 	for _, tt := range []struct {
-		fixture, udhcpc string
+		fixture, udhcpc, interfaces string
+		stop                        bool
 	}{
-		{"alpine-3.24", "[ -f /x ] && RESOLV_CONF=no\n"},
-		{"ubuntu-26.04", ""},
+		{"alpine-3.24", "[ -f /x ] && RESOLV_CONF=no\n", "", false},
+		{"alpine-3.24", "", "", true},
+		{"alpine-3.24", "", "source /etc/network/interfaces.d/*\n", false},
+		{"ubuntu-26.04", "", "", false},
 	} {
 		t.Run(tt.fixture, func(t *testing.T) {
 			w := newWorld(t, tt.fixture)
 			if tt.udhcpc != "" {
 				w.h.AddFile(dns.UDHCPCConf, []byte(tt.udhcpc), 0o644, 0, 0)
 			}
-			p := w.plan(t, dns.Config{Nameservers: []string{ns1}})
+			if tt.interfaces != "" {
+				w.h.AddFile(dns.Interfaces, []byte(tt.interfaces), 0o644, 0, 0)
+			}
+			p := w.plan(t, dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: tt.stop})
 			if tt.udhcpc != "" && (p.From.UDHCPC.Err == nil || !strings.Contains(p.Findings[0].Detail, "not a plain assignment")) {
 				t.Fatalf("udhcpc %v, findings %+v", p.From.UDHCPC.Err, p.Findings)
+			}
+			if tt.interfaces != "" && (p.From.UDHCPC.InUseErr == nil || !strings.Contains(p.Findings[0].Detail, `"source"`)) {
+				t.Fatalf("in use %v, findings %+v", p.From.UDHCPC.InUseErr, p.Findings)
 			}
 			b, err := json.Marshal(p)
 			if err != nil {
@@ -477,7 +487,8 @@ func TestPlanJSON(t *testing.T) {
 			if err := json.Unmarshal(b, &got); err != nil {
 				t.Fatal(err)
 			}
-			if !slices.Equal(steps(got), steps(p)) || !reflect.DeepEqual(got.Findings, p.Findings) || got.From.UDHCPC.Err != nil {
+			if !slices.Equal(steps(got), steps(p)) || !reflect.DeepEqual(got.Findings, p.Findings) || got.From.UDHCPC.Err != nil ||
+				got.From.UDHCPC.InUseErr != nil || got.From.UDHCPC.InUse != p.From.UDHCPC.InUse {
 				t.Fatalf("decoded %+v", got)
 			}
 			if _, err := dns.Apply(context.Background(), w.h, got, dns.Options{Backups: backups(t, w.h)}); err != nil {

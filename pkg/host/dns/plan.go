@@ -2,6 +2,7 @@ package dns
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"path"
 	"slices"
@@ -74,7 +75,10 @@ type Plan struct {
 // does not configure (ErrManaged), a stopped systemd-resolved
 // (ErrNotRunning), a later drop-in that would override hardn's
 // (ErrOverridden), anything at DropIn that is not a regular file
-// (ErrDropInBlocked), and what Validate refuses. Its findings are
+// (ErrDropInBlocked), and what Validate refuses; with c.UDHCPCNoResolv, a
+// host where udhcpc is not the DHCP client (ErrNotApplicable) or where
+// that, or its rewrite, is not established (ErrUnknown): the step would
+// stop a client that does not run, or one not known to. Its findings are
 // s.Findings(), less dns-udhcpc when the plan sets RESOLV_CONF itself.
 func PlanDNS(s State, c Config) (Plan, error) {
 	switch s.Manager {
@@ -98,10 +102,14 @@ func PlanDNS(s State, c Config) (Plan, error) {
 		return planResolved(p)
 	}
 	if want.UDHCPCNoResolv {
-		switch u := s.UDHCPC; u.Rewrites {
-		case detect.Unknown:
+		switch u := s.UDHCPC; {
+		case u.InUse == detect.No:
+			return Plan{}, fmt.Errorf("dns: plan: RESOLV_CONF for udhcpc, which is not the DHCP client here: %w", ErrNotApplicable)
+		case u.InUse == detect.Unknown:
+			return Plan{}, fmt.Errorf("dns: plan: udhcpc: %w: %w", ErrUnknown, errOr(u.InUseErr, detect.ErrNoSignal))
+		case u.Rewrites == detect.Unknown:
 			return Plan{}, fmt.Errorf("dns: plan: udhcpc: %w: %w", ErrUnknown, errOr(u.Err, detect.ErrNoSignal))
-		case detect.Yes:
+		case u.Rewrites == detect.Yes:
 			p.Changes = append(p.Changes, write(StepUDHCPC, UDHCPCConf, u.Conf, renderUDHCPC(u.Conf.Data),
 				"udhcpc rewrites "+ResolvConf+" with the DHCP server's nameservers on each lease"))
 		}
@@ -167,9 +175,12 @@ func sameDomains(a, b []string) bool {
 // Findings are what may bypass or later undo a DNS change on the host s
 // describes, as a check reports them; pure. On systemd-resolved: each link
 // or delegate with its own servers. For a file: Proxmox VE's node
-// settings, udhcpc rewriting the file or its hooks, and DHCP clients.
-// A host whose manager hardn does not configure has none: its refusal
-// says why.
+// settings; where udhcpc is the DHCP client (UDHCPC.InUse Yes), udhcpc
+// rewriting the file and its hooks; where that is not established, one
+// finding saying so, its path the file that left it so, unless udhcpc
+// would leave the file alone anyway (RESOLV_CONF stops it and no hook);
+// and DHCP clients. A host whose manager hardn does not configure has
+// none: its refusal says why.
 func (s State) Findings() []Finding {
 	var fs []Finding
 	if s.Manager == ManagerResolved {
@@ -194,20 +205,47 @@ func (s State) Findings() []Finding {
 			"and rewrite it on save, keeping the first search domain and three nameservers"})
 	}
 	switch u := s.UDHCPC; {
-	case s.Host.Distro != detect.DistroAlpine:
-	case u.Rewrites == detect.Yes:
-		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: "udhcpc rewrites " + ResolvConf + " on each DHCP lease (except for interfaces in NO_DNS=" +
-			fmt.Sprintf("%q", u.NoDNS) + `); RESOLV_CONF="no" there stops it, as an explicit plan step`})
-	case u.Rewrites == detect.Unknown:
-		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: fmt.Sprintf("whether udhcpc rewrites %s is not established: %v", ResolvConf, errOr(u.Err, detect.ErrNoSignal))})
-	}
-	for _, h := range s.UDHCPC.Hooks {
-		fs = append(fs, Finding{Kind: FindingUDHCPC, Path: h, Detail: "udhcpc runs this hook around each DHCP event; it may rewrite " + ResolvConf + `, whatever RESOLV_CONF says`})
+	case s.Host.Distro != detect.DistroAlpine, u.InUse == detect.No:
+	case u.InUse == detect.Unknown:
+		if u.Rewrites == detect.No && len(u.Hooks) == 0 {
+			break
+		}
+		then := "it may rewrite " + ResolvConf
+		if u.Rewrites == detect.Yes {
+			then = "it rewrites " + ResolvConf + " on each DHCP lease"
+		}
+		src := Interfaces
+		if e := (*inUseError)(nil); errors.As(u.InUseErr, &e) {
+			src = e.path
+		}
+		fs = append(fs, Finding{Kind: FindingUDHCPCUnknown, Path: src, Detail: fmt.Sprintf(
+			"whether udhcpc is the DHCP client ifupdown-ng runs is not established (%v); if it is, %s", errOr(u.InUseErr, detect.ErrNoSignal), then)})
+	default:
+		switch u.Rewrites {
+		case detect.Yes:
+			fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: "udhcpc rewrites " + ResolvConf + " on each DHCP lease (except for interfaces in NO_DNS=" +
+				fmt.Sprintf("%q", u.NoDNS) + `); RESOLV_CONF="no" there stops it, as an explicit plan step`})
+		case detect.Unknown:
+			fs = append(fs, Finding{Kind: FindingUDHCPC, Path: UDHCPCConf, Detail: fmt.Sprintf("whether udhcpc rewrites %s is not established: %v", ResolvConf, errOr(u.Err, detect.ErrNoSignal))})
+		}
+		for _, h := range u.Hooks {
+			fs = append(fs, Finding{Kind: FindingUDHCPC, Path: h, Detail: "udhcpc runs this hook around each DHCP event; it may rewrite " + ResolvConf + `, whatever RESOLV_CONF says`})
+		}
 	}
 	for _, c := range s.DHCPClients {
 		fs = append(fs, Finding{Kind: FindingDHCPClient, Path: c, Detail: "a DHCP client is installed; for an interface it configures, it may rewrite " + ResolvConf + " on each lease"})
 	}
 	return fs
+}
+
+// UDHCPCStoppable reports whether, by s, udhcpc rewrites /etc/resolv.conf
+// on each lease and a plan can stop it (Config.UDHCPCNoResolv): Alpine, a
+// file, udhcpc the DHCP client (UDHCPC.InUse Yes) and its rewrite
+// established (Rewrites Yes). Only then is a user asked whether to stop it
+// (slice 2 decision 6, next/s2-udhcpc).
+func (s State) UDHCPCStoppable() bool {
+	return s.Host.Distro == detect.DistroAlpine && s.Manager == ManagerFile &&
+		s.UDHCPC.InUse == detect.Yes && s.UDHCPC.Rewrites == detect.Yes
 }
 
 func describe(e Entry) string {

@@ -101,7 +101,9 @@ func UFWFinding(f ufw.Finding) engine.Finding { return ufwFindings([]ufw.Finding
 // DNSFinding is one of dns's findings as an engine.Finding (DNS_...), in a
 // few words, for a plan and a check alike (next/s2-control; the words of
 // gallery-dns.md §5, decision 5, proposed): s is the state it was found in,
-// which says whether udhcpc's rewrite is established. A udhcpc hook is
+// which says whether udhcpc's rewrite is established; where whether udhcpc
+// is the DHCP client is not, the finding says what it would do if it is
+// (next/s2-udhcpc). A udhcpc hook is
 // named by its path (next/s2-flow-review, proposed), as a DHCP client is
 // by its name. dns's own detail, a long sentence, is in the primitive's
 // documentation (dns.md §2.9).
@@ -130,6 +132,11 @@ func DNSFinding(s dns.State, f dns.Finding) engine.Finding {
 			out.Detail = "udhcpc rewrites " + dns.ResolvConf + " on each lease"
 		default:
 			out.Detail = "udhcpc may rewrite " + dns.ResolvConf + " on each lease"
+		}
+	case dns.FindingUDHCPCUnknown: // whether udhcpc is the client is not established (next/s2-udhcpc, proposed)
+		out.Detail = "udhcpc may rewrite " + dns.ResolvConf + " if it is the DHCP client"
+		if s.UDHCPC.Rewrites == detect.Yes {
+			out.Detail = "udhcpc rewrites " + dns.ResolvConf + " if it is the DHCP client"
 		}
 	case dns.FindingProxmox:
 		out.Detail, out.Source = "Saving Proxmox VE's DNS settings rewrites "+dns.ResolvConf, ""

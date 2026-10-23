@@ -113,9 +113,13 @@ func TestScreen(t *testing.T) {
 // TestConfigure: Configure DNS applies hardn.yml's list on each platform
 // that takes one, through the plan, its findings before the question,
 // y/N; saves nothing, the list being hardn.yml's; then the screen is read
-// again under the result, the host as it is now. On Alpine the form asks
-// first whether to stop udhcpc rewriting the file (decision 6): y stops
-// it in the same change, n leaves it and the review warns.
+// again under the result, the host as it is now. On Alpine, where udhcpc
+// is the DHCP client and rewrites the file, the form asks first whether
+// to stop it (decision 6): y stops it in the same change, n leaves it and
+// the review warns. Where dhcpcd is the client (the cloud image) nothing
+// is asked or said of udhcpc; where the client is not established, the
+// review says what udhcpc would do, and nothing is asked
+// (next/s2-udhcpc).
 func TestConfigure(t *testing.T) {
 	tests := []struct {
 		host          string
@@ -123,7 +127,7 @@ func TestConfigure(t *testing.T) {
 		finding       string
 		file, content string
 		inUse         string
-		udhcpc        bool
+		ask, udhcpc   bool
 	}{
 		{host: debian13, lines: []string{"1", "y", "0"}, finding: "dhcpcd may rewrite /etc/resolv.conf on a lease",
 			file: hostdns.ResolvConf, content: resolvConf(dhcpcdHead, configured...), inUse: "192.0.2.54, 2001:db8::54"},
@@ -131,9 +135,15 @@ func TestConfigure(t *testing.T) {
 			file: hostdns.DropIn, content: "DNS=192.0.2.54 2001:db8::54\n", inUse: "192.0.2.54, 2001:db8::54, 192.0.2...."}, // eth0's cut
 		{host: pve9, lines: []string{"1", "y", "0"}, finding: "Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf",
 			file: hostdns.ResolvConf, content: resolvConf("search example.net\n", configured...), inUse: "192.0.2.54, 2001:db8::54"},
-		{host: alpine324, lines: []string{"1", "y", "y", "0"}, udhcpc: true,
+		{host: alpine324, lines: []string{"1", "y", "y", "0"}, ask: true, udhcpc: true,
 			file: hostdns.ResolvConf, content: resolvConf("search example.net\n", configured...), inUse: "192.0.2.54, 2001:db8::54"},
-		{host: alpine324, lines: []string{"1", "n", "y", "0"}, finding: "udhcpc rewrites /etc/resolv.conf on each lease",
+		{host: alpine324, lines: []string{"1", "n", "y", "0"}, ask: true, finding: "udhcpc rewrites /etc/resolv.conf on each lease",
+			file: hostdns.ResolvConf, content: resolvConf("search example.net\n", configured...), inUse: "192.0.2.54, 2001:db8::54"},
+		{host: alpineCloud, lines: []string{"1", "y", "0"}, finding: "dhcpcd may rewrite /etc/resolv.conf on a lease",
+			file: hostdns.ResolvConf, content: resolvConf(dhcpcdHead, configured...), inUse: "192.0.2.54, 2001:db8::54"},
+		{host: alpineProgram, lines: []string{"1", "y", "y", "0"}, ask: true, udhcpc: true, finding: "dhcpcd may rewrite /etc/resolv.conf on a lease",
+			file: hostdns.ResolvConf, content: resolvConf(dhcpcdHead, configured...), inUse: "192.0.2.54, 2001:db8::54"},
+		{host: alpineUnknown, lines: []string{"1", "y", "0"}, finding: "udhcpc rewrites /etc/resolv.conf if it is the DHCP client",
 			file: hostdns.ResolvConf, content: resolvConf("search example.net\n", configured...), inUse: "192.0.2.54, 2001:db8::54"},
 	}
 	for _, tt := range tests {
@@ -156,8 +166,11 @@ func TestConfigure(t *testing.T) {
 			}
 			asked := strings.Contains(p.out, "Stop udhcpc rewriting /etc/resolv.conf? [y/N")
 			stopped := strings.Contains(content(h, hostdns.UDHCPCConf), "\nRESOLV_CONF=\"no\"\n")
-			if asked != (tt.host == alpine324) || stopped != tt.udhcpc {
-				t.Errorf("udhcpc's question asked %t, udhcpc stopped %t; want %t, %t", asked, stopped, tt.host == alpine324, tt.udhcpc)
+			if asked != tt.ask || stopped != tt.udhcpc {
+				t.Errorf("udhcpc's question asked %t, udhcpc stopped %t; want %t, %t", asked, stopped, tt.ask, tt.udhcpc)
+			}
+			if said := strings.Contains(p.out, "udhcpc"); said != (tt.ask || tt.host == alpineUnknown) {
+				t.Errorf("udhcpc named %t:\n%s", said, p.out)
 			}
 			s := screens(p.out)
 			if len(s) != 2 || row(s[1], "Nameservers") != tt.inUse || strings.Index(p.out, "Operation Successful") > strings.LastIndex(p.out, "# DNS Configuration #") {

@@ -107,7 +107,10 @@ const (
 	debian13       = "debian13"       // dhcpcd's file
 	configuredHost = "configured"     // Debian 13, the file lists hardn.yml's
 	ubuntu2604     = "ubuntu2604"     // systemd-resolved's stub link, eth0 from DHCP
-	alpine324      = "alpine324"      // udhcpc's file, its stock udhcpc.conf
+	alpine324      = "alpine324"      // udhcpc's file, its stock udhcpc.conf, ifupdown-ng running udhcpc for eth0
+	alpineCloud    = "alpine-cloud"   // Alpine 3.23's cloud image, as the 2026-10-23 VM: dhcpcd installed, which ifupdown-ng runs
+	alpineProgram  = "alpine-program" // the cloud image, eth0's dhcp-program udhcpc
+	alpineUnknown  = "alpine-unknown" // Alpine 3.24, ifupdown-ng's DHCP executor absent: the client not established
 	pve9           = "pve9"           // the installer's file
 	networkManager = "networkmanager" // NetworkManager's link
 	resolvconf     = "resolvconf"     // resolvconf's link
@@ -121,6 +124,24 @@ const (
 	resolvedFile   = "resolved-file"  // Debian 13's file, systemd-resolved running beside it
 	unsupported    = "unsupported"    // a family hardn does not configure
 )
+
+// udhcpcStock is Alpine's udhcpc.conf as installed.
+const udhcpcStock = "# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"
+
+// dhcpEth0 is an interfaces file with eth0 on DHCP, as Alpine's installers
+// write it.
+const dhcpEth0 = "auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n"
+
+// ifupdown adds Alpine's ifupdown-ng as installed, with interfaces as
+// its configuration: its DHCP executor (dns.DHCPExecutorRule) and busybox's
+// udhcpc, so that it runs udhcpc for an interface on DHCP unless dhcpcd or
+// dhclient is installed.
+func ifupdown(h *hostfake.System, interfaces string) {
+	h.AddFile(hostdns.Interfaces, []byte(interfaces), 0o644, 0, 0)
+	h.AddFile(hostdns.DHCPExecutor, []byte("#!/bin/sh\n"+hostdns.DHCPExecutorRule), 0o755, 0, 0)
+	h.AddFile("/bin/busybox", nil, 0o755, 0, 0)
+	h.AddSymlink("/sbin/udhcpc", "/bin/busybox")
+}
 
 // newHost returns the host name names, with hardn.yml listing list, and
 // hardn.yml as read from it.
@@ -169,10 +190,25 @@ func newHost(t *testing.T, name string, list []string) (*fakeHost, *config.Confi
 		h.AddSymlink(hostdns.DropIn, "/dev/null")
 	case otherLink:
 		h.AddSymlink(hostdns.ResolvConf, "/run/connman/resolv.conf")
-	case alpine324:
+	case alpine324, alpineUnknown:
 		h.facts = facts(detect.DistroAlpine, "3.24", detect.OpenRC)
 		file("search example.net\nnameserver " + dhcpNS + "\n")
-		h.AddFile(hostdns.UDHCPCConf, []byte("# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"), 0o644, 0, 0)
+		h.AddFile(hostdns.UDHCPCConf, []byte(udhcpcStock), 0o644, 0, 0)
+		if name == alpine324 {
+			ifupdown(h.System, dhcpEth0)
+		} else {
+			h.AddFile(hostdns.Interfaces, []byte(dhcpEth0), 0o644, 0, 0)
+		}
+	case alpineCloud, alpineProgram:
+		h.facts = facts(detect.DistroAlpine, "3.23", detect.OpenRC)
+		file(dhcpcd + "nameserver " + dhcpNS + "\n")
+		h.AddFile(hostdns.UDHCPCConf, []byte(udhcpcStock), 0o644, 0, 0)
+		h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0)
+		if name == alpineCloud {
+			ifupdown(h.System, dhcpEth0)
+		} else {
+			ifupdown(h.System, dhcpEth0+"\tdhcp-program udhcpc\n")
+		}
 	case pve9:
 		h.facts = facts(detect.DistroProxmox, "9", detect.Systemd)
 		file("search example.net\nnameserver " + dhcpNS + "\n")

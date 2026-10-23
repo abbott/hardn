@@ -49,7 +49,8 @@ const (
 	// origin/main's "Select a key to remove").
 	removeTitle = "Select a nameserver to remove"
 	// stopUDHCPC is Alpine's question, on every change's form where
-	// udhcpc rewrites the file (decision 6; proposed).
+	// udhcpc is the DHCP client and rewrites the file (decision 6;
+	// proposed).
 	stopUDHCPC = "Stop udhcpc rewriting /etc/resolv.conf?"
 	// unreadFix and whatFailed are the refusal of a host whose DNS
 	// settings could not all be read (DNS_UNKNOWN) on the screen, in
@@ -113,8 +114,8 @@ func (r *runner) action(ctx context.Context, h reading, key, label string) func(
 }
 
 // change runs the change of the item labelled label on the host h read,
-// under its title bar: the form, fields then, where udhcpc rewrites the
-// file, Alpine's question; the review of the list list returns and the
+// under its title bar: the form, fields then, where udhcpc is the DHCP
+// client and rewrites the file, Alpine's question; the review of the list list returns and the
 // plan's findings; the plan, the DNS control's on the engine
 // (output.FlowEngine), from a copy of hardn.yml with that list, built
 // once the form is answered; question, y/N; the apply. Then what the flow

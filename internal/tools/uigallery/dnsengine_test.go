@@ -371,6 +371,7 @@ func TestResolverModel(t *testing.T) {
 		{"Debian 12", debian12Platform, resolved},
 		{"Alpine 3.24", alpine324Platform, udhcpc},
 		{"Alpine 3.23", alpine323Platform, udhcpc},
+		{"Alpine 3.23 cloud", alpine323CloudPlatform, "file; nameservers [192.0.2.1]; search [example.net]; findings [dns-dhcp-client]"},
 		{"Proxmox VE 9", pve9Platform, "proxmox; nameservers [192.0.2.1]; search [example.net]; findings [dns-proxmox-node]"},
 	} {
 		h := simulate(tc.p)

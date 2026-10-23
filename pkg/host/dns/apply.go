@@ -150,7 +150,9 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 // Unit names a DNS plan in p2-revert's change journal
 // (revert.Step.Unit of its one OpPlan step, which pkg/host/revert/plans
 // makes and whose Rollback it registers). Stable: a journal written by one
-// hardn is rolled back by the next.
+// hardn is rolled back by the next, but for a plan stopping udhcpc
+// journalled before next/s2-udhcpc, whose UDHCPC.InUse decodes Unknown,
+// so that PlanDNS, and the rollback, refuse it (docs/safety/dns.md §5).
 const Unit = "dns"
 
 // Check is the guard Apply and Rollback run first (fs.ErrInvalid): p must

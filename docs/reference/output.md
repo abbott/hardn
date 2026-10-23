@@ -346,8 +346,9 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `ALPINE_FOREIGN_SCRIPT` | something else at the legacy script's path, which hardn leaves alone |
 | `DNS_PER_LINK` | systemd-resolved queries per-link servers beside the global ones hardn sets |
 | `DNS_DHCP_CLIENT` | a DHCP client that may rewrite /etc/resolv.conf is installed |
-| `DNS_UDHCPC` | Alpine's udhcpc rewrites /etc/resolv.conf on each lease |
+| `DNS_UDHCPC` | Alpine's udhcpc, the DHCP client in use, rewrites /etc/resolv.conf on each lease |
 | `DNS_PROXMOX_NODE` | Proxmox VE's node DNS settings rewrite /etc/resolv.conf |
+| `DNS_UDHCPC_UNKNOWN` | whether Alpine's udhcpc is the DHCP client is not established ([dns.md](../safety/dns.md) §3) |
 | `CONFIG_DEPRECATED_VALUE` | a configuration value in a form that is going away; it still works (§3.17) |
 | `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
 | `SSH_MATCH_ALLOWS_MORE` | a Match block lets in more than the global value does (root's login, a password), for the connections it matches ([check-ssh.md](../engine/check-ssh.md)) |

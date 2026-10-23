@@ -87,7 +87,8 @@ func TestCodes(t *testing.T) {
 		{dns.StepUDHCPC.String(), "udhcpc-no-resolv"}, {dns.StepResolvConf.String(), "write-resolv-conf"},
 		{dns.StepDropIn.String(), "write-drop-in"}, {dns.StepReload.String(), "reload-resolved"}, {dns.Step(0).String(), "unknown"},
 		{dns.FindingPerLink.String(), "dns-per-link"}, {dns.FindingDHCPClient.String(), "dns-dhcp-client"},
-		{dns.FindingUDHCPC.String(), "dns-udhcpc"}, {dns.FindingProxmox.String(), "dns-proxmox-node"}, {dns.FindingKind(0).String(), "unknown"},
+		{dns.FindingUDHCPC.String(), "dns-udhcpc"}, {dns.FindingProxmox.String(), "dns-proxmox-node"},
+		{dns.FindingUDHCPCUnknown.String(), "dns-udhcpc-unknown"}, {dns.FindingKind(0).String(), "unknown"},
 	} {
 		if tt.got != tt.want {
 			t.Errorf("%q, want %q", tt.got, tt.want)
@@ -98,6 +99,7 @@ func TestCodes(t *testing.T) {
 		{int(dns.ManagerResolvconf), 4}, {int(dns.ManagerNetworkManager), 5}, {int(dns.ManagerForeign), 6},
 		{int(dns.StepUDHCPC), 1}, {int(dns.StepResolvConf), 2}, {int(dns.StepDropIn), 3}, {int(dns.StepReload), 4},
 		{int(dns.FindingPerLink), 1}, {int(dns.FindingDHCPClient), 2}, {int(dns.FindingUDHCPC), 3}, {int(dns.FindingProxmox), 4},
+		{int(dns.FindingUDHCPCUnknown), 5},
 		{int(dns.EntryUnknown), 0}, {int(dns.EntryAbsent), 1}, {int(dns.EntryFile), 2}, {int(dns.EntrySymlink), 3}, {int(dns.EntryOther), 4},
 	} {
 		if tt.got != tt.want {

@@ -535,7 +535,8 @@ func parityHost(t *testing.T, d parityDistro, state hostState, fixture string) (
 		case "debian":
 			h.AddFile("/usr/sbin/dhcpcd", nil, 0o755, 0, 0)
 		case "alpine":
-			h.AddFile(hostdns.UDHCPCConf, []byte("# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"), 0o644, 0, 0)
+			h.AddFile(hostdns.UDHCPCConf, []byte(udhcpcStock), 0o644, 0, 0)
+			ifupdown(h.System, dhcpEth0) // udhcpc the DHCP client (next/s2-udhcpc)
 		}
 	case stateResolved:
 		h.active = "active"

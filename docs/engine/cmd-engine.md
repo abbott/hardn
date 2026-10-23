@@ -109,9 +109,17 @@ Passed:
 - **`-r` on Debian** (`HARDN_CONFIG` with only the SSH and DNS steps' settings): the legacy service as origin/main, exit status 0. `/etc/systemd/resolved.conf` overwritten with the list and `Domains=lan`, systemd-resolved restarted (V19); `/etc/ssh/sshd_config.d/hardn.conf` and `/etc/sudoers.d/alice` written; `sshd -t` passed and a new login worked. OpenSSH 10.0p2 accepted the drop-in's `Protocol 2` ([vmtest.md](../safety/vmtest.md) §3's row, for that line).
 
 Found:
-- **udhcpc reported on a host where dhcpcd is the client.** On Alpine 3.23 with dhcpcd installed, ifupdown-ng runs dhcpcd for `iface eth0 inet dhcp` and no udhcpc runs, yet every plan says "udhcpc rewrites /etc/resolv.conf on each lease" (`DNS_UDHCPC`) and every change asks "Stop udhcpc rewriting /etc/resolv.conf?". The check reads `udhcpc.conf` alone ([dns.md](../safety/dns.md) §3's Alpine row). A claim about a client not in use: to fix.
+- **udhcpc reported on a host where dhcpcd is the client.** On Alpine 3.23 with dhcpcd installed, ifupdown-ng runs dhcpcd for `iface eth0 inet dhcp` and no udhcpc runs, yet every plan says "udhcpc rewrites /etc/resolv.conf on each lease" (`DNS_UDHCPC`) and every change asks "Stop udhcpc rewriting /etc/resolv.conf?". The check reads `udhcpc.conf` alone ([dns.md](../safety/dns.md) §3's Alpine row). A claim about a client not in use: to fix. *Fixed in `next/s2-udhcpc`* (the maintainer's decision, 2026-10-23: "report DNS_UDHCPC and ask udhcpc's question only when udhcpc is the DHCP client in use"): `dns.Read` reads which client ifupdown-ng runs ([dns.md](../safety/dns.md) §2.4, §3), `DNS_UDHCPC` and the question only where it is udhcpc, `DNS_UDHCPC_UNKNOWN` where that is not established; **rerun 2026-10-23 on the Alpine 3.23 VM, passed** (§4.1, "udhcpc rerun" below).
 - **With no hardn.yml, hardn stops at the legacy "No configuration file found. Would you like to create one? [Y/n]"** before `-g` runs; with no terminal it waited. When that session ended, a default `/etc/hardn/hardn.yml` was left (`permitRootLogin: false`, which the next run warns is deprecated); whether the session's end or the signal created it is not established. Legacy start-up, not this unit's, now in front of `-g`.
 - **`-r` needs a username** ("Please specify a username with -u flag or in the configuration file."), as on origin/main.
+
+udhcpc rerun (2026-10-23, `next/s2-udhcpc` at `eb704e5`, sha256 `4eea4cc8…`), on the Alpine 3.23 VM, `hardn -n -g` in each state of `/etc/network/interfaces`, put back after:
+- **As found** (dhcpcd installed): `DNS_DHCP_CLIENT` alone; the screen's Add asked no udhcpc question.
+- **`dhcp-program udhcpc` on `eth0`:** "udhcpc rewrites /etc/resolv.conf on each lease" (`DNS_UDHCPC`) beside dhcpcd's; the screen asked the question.
+- **A non-auto `eth1` with `dhcp-program udhcpc`:** "udhcpc rewrites /etc/resolv.conf if it is the DHCP client" (`DNS_UDHCPC_UNKNOWN`, from `/etc/network/interfaces`).
+- **An `/etc/conf.d/networking` file:** the same, from that file.
+- **`udhcpc-opts -s /bin/true`:** "udhcpc may rewrite /etc/resolv.conf on each lease".
+- **Checked first:** the executor's rule matched with its tabs, no conf.d or pid file, `ifquery --list -a` gave `lo` and `eth0`.
 
 Not run: Proxmox VE 9, Ubuntu 24.04 and Alpine 3.24 (no VMs); a NetworkManager desktop, resolvconf's link, an LXC container; a failed reload and its rollback; Ctrl-C and a hangup during an apply, and the hold's release; `-g -e`, `-n -g -d`; `hardn -n` then 3; Run All's live run; Ctrl-D at the screen. Name resolution on the Alpine VM could not be checked: it reaches no DNS server, its router not answering, before the change as after.
 

@@ -107,10 +107,10 @@ func (sc scenario) setupOn(h *fakeHost) (setup, error) {
 // (config.Read), the control checking against it as loaded, and the
 // action's configuration a copy with list in place of its nameservers when
 // list is set (a preset; nil: Configure DNS, hardn.yml's own), which the
-// control then saves (steps.PlanSave). Where udhcpc writes
-// /etc/resolv.conf, the form asks first "Stop udhcpc rewriting
-// /etc/resolv.conf?", y/N, its answer the control's StopUDHCPC
-// (gallery-dns.md decision 6).
+// control then saves (steps.PlanSave). Where udhcpc is the DHCP client
+// and writes /etc/resolv.conf (resolverUDHCPC), the form asks first "Stop
+// udhcpc rewriting /etc/resolv.conf?", y/N, its answer the control's
+// StopUDHCPC (gallery-dns.md decision 6).
 func dnsSetup(list []string) func(*fakeHost) (setup, error) {
 	return func(h *fakeHost) (setup, error) {
 		loaded, err := config.Read(context.Background(), h.f, hardnYML)

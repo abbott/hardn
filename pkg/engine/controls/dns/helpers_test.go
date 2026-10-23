@@ -106,7 +106,8 @@ const (
 	ubuntu2604     = "ubuntu2604"     // systemd-resolved's stub link, a DHCP link (systemd 259: a reload)
 	ubuntu2404     = "ubuntu2404"     // the same on systemd 255, which restarts resolved
 	debian12       = "debian12-cloud" // the uplink link (systemd 252: a restart)
-	alpine324      = "alpine324"      // udhcpc's file, its stock udhcpc.conf
+	alpine324      = "alpine324"      // udhcpc's file, its stock udhcpc.conf, ifupdown-ng running udhcpc for eth0
+	alpineCloud    = "alpine-cloud"   // Alpine 3.23's cloud image, as the 2026-10-23 VM: dhcpcd installed, which ifupdown-ng runs
 	pve9           = "pve9"           // the installer's file
 	networkManager = "networkmanager" // NetworkManager's link
 	resolvconf     = "resolvconf"     // resolvconf's link
@@ -148,7 +149,14 @@ func newHost(t *testing.T, name string, list []string) (*fakeHost, *config.Confi
 	case alpine324:
 		h.facts = facts(detect.DistroAlpine, "3.24", detect.OpenRC)
 		file("search example.net\nnameserver " + dhcpNS + "\n")
-		h.AddFile(hostdns.UDHCPCConf, []byte("# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"), 0o644, 0, 0)
+		h.AddFile(hostdns.UDHCPCConf, []byte(udhcpcStock), 0o644, 0, 0)
+		ifupdown(h.System)
+	case alpineCloud:
+		h.facts = facts(detect.DistroAlpine, "3.23", detect.OpenRC)
+		file(dhcpcd + "nameserver " + dhcpNS + "\n")
+		h.AddFile(hostdns.UDHCPCConf, []byte(udhcpcStock), 0o644, 0, 0)
+		ifupdown(h.System)
+		h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0)
 	case pve9:
 		h.facts = facts(detect.DistroProxmox, "9", detect.Systemd)
 		file("search example.net\nnameserver " + dhcpNS + "\n")
@@ -171,6 +179,19 @@ func newHost(t *testing.T, name string, list []string) (*fakeHost, *config.Confi
 		t.Fatal(err)
 	}
 	return h, cfg
+}
+
+// udhcpcStock is Alpine's udhcpc.conf as installed.
+const udhcpcStock = "# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"
+
+// ifupdown adds Alpine's ifupdown-ng as installed, eth0 on DHCP: the
+// interfaces file, its DHCP executor (dns.DHCPExecutorRule) and busybox's
+// udhcpc, so that it runs udhcpc unless dhcpcd or dhclient is installed.
+func ifupdown(h *hostfake.System) {
+	h.AddFile(hostdns.Interfaces, []byte("auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n"), 0o644, 0, 0)
+	h.AddFile(hostdns.DHCPExecutor, []byte("#!/bin/sh\n"+hostdns.DHCPExecutorRule), 0o755, 0, 0)
+	h.AddFile("/bin/busybox", nil, 0o755, 0, 0)
+	h.AddSymlink("/sbin/udhcpc", "/bin/busybox")
 }
 
 // answer is the host's commands: systemctl and resolvectl, as
