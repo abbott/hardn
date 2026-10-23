@@ -61,11 +61,9 @@ func NewMainMenu(
 // they quit with q, and an error wrapping prompt.ErrAborted at the end of
 // the input or on Ctrl-C. The screen edits hardn.yml's list in the
 // configuration this menu was given, so the main menu shows the list as
-// saved when it returns.
+// saved when it returns. A main menu whose DNS item is chosen without one
+// set panics: cmd/hardn sets it on the one main menu it builds.
 func (m *MainMenu) SetDNS(run func() error) { m.dns = run }
-
-// errNoDNS is what the DNS item reports when no screen was set (SetDNS).
-var errNoDNS = errors.New("menu: no DNS screen is set")
 
 // showDNS runs the DNS item from a cleared screen, as every item's screen
 // starts, and reports whether hardn should end: q quits from the DNS
@@ -73,11 +71,11 @@ var errNoDNS = errors.New("menu: no DNS screen is set")
 // of the input, Ctrl-C and any other error end hardn as at a legacy
 // prompt (endHardn).
 func (m *MainMenu) showDNS() bool {
-	utils.ClearScreen()
-	err := errNoDNS
-	if m.dns != nil {
-		err = m.dns()
+	if m.dns == nil {
+		panic("menu: the DNS item has no screen (SetDNS)")
 	}
+	utils.ClearScreen()
+	err := m.dns()
 	switch {
 	case err == nil:
 		return false
