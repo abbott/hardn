@@ -28,9 +28,10 @@ import (
 )
 
 // The parity harness (refactor plan §2: every slice's unit (b2)):
-// origin/main's end state, read from pkg/characterization's goldens,
-// against the new path's on hostfake, aspect by aspect, every difference
-// held to a table of ties (docs/engine/parity-dns.md §2). Nothing in this
+// origin/main's end state, read from pkg/characterization's goldens (a
+// frozen copy, legacyGoldens), against the new path's on hostfake,
+// aspect by aspect, every difference held to a table of ties
+// (docs/engine/parity-dns.md §2). Nothing in this
 // file is an area's own: a slice supplies a paritySlice (DNS's is
 // parity_test.go), and the next slice copies this file whole, renaming
 // its package clause, until a shared package holds it (parity-dns.md §8,
@@ -155,18 +156,22 @@ func (s endState) wrote() bool { return len(s.files) > 0 || s.yml != nil }
 
 // legacyRun is origin/main's run, read from its characterization golden.
 type legacyRun struct {
-	golden string   // relative to pkg/characterization/testdata/golden
+	golden string   // relative to legacyGoldens
 	vs     []string // the V-numbers its KNOWN-DEFECT and FIXED lines name
 	live   endState // cfg.DryRun=false, or the menu item's result
 	dry    endState // cfg.DryRun=true (ops goldens only)
 	cli    string   // hardn -n with the flag: what pkg/cmd's refusal says
 }
 
-// legacyGoldens and fixtures are pkg/characterization's: read in place,
-// never regenerated here.
+// legacyGoldens and fixtures are origin/main's record: pkg/characterization's
+// goldens and the hardn.yml fixtures they loaded, frozen as they were at
+// e666243 (slice 2 unit (d), next/s2-replace, which deleted the DNS menu
+// and moved -g off the legacy service), in their layout there. Nothing
+// regenerates them: no test writes under testdata/legacy, and
+// pkg/characterization's -update writes its own copies of ops/dns_*.
 var (
-	legacyGoldens = filepath.Join("..", "..", "characterization", "testdata", "golden")
-	fixtures      = filepath.Join("..", "..", "characterization", "testdata", "fixtures", "config")
+	legacyGoldens = filepath.Join("testdata", "legacy")
+	fixtures      = filepath.Join("testdata", "legacy", "fixtures", "config")
 )
 
 var (

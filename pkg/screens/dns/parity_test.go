@@ -121,8 +121,9 @@ var dnsScenarios = func() []parityScenario {
 		{name: "nm-link", golden: "ops/dns_direct/{d}.golden", state: stateNMLink, fixture: "dns-menu.yml", note: noteLink, v032: v032Link},
 		{name: "empty", golden: "ops/dns_empty_nameservers/{d}.golden", fixture: "dns-menu-empty.yml", v032: v032Empty},
 	}
-	// (b) The menu's items (pkg/characterization TestMenuDNSGoldens), on
-	// each distribution's stock install, then on a host the new path
+	// (b) The menu's items (pkg/characterization's TestMenuDNSGoldens,
+	// retired with the menu by unit (d): its goldens are frozen under
+	// testdata/legacy/menu_dns), on each distribution's stock install, then on a host the new path
 	// refuses (resolvconf's), then with no hardn.yml loaded.
 	items := []parityScenario{
 		{name: "add", golden: "menu_dns/add.golden", fixture: "dns-menu.yml", lines: []string{"2", "192.0.2.55", "{u}", "y"}},
