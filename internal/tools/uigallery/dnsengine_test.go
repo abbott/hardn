@@ -119,12 +119,14 @@ func TestPlayEngineDNS(t *testing.T) {
 			t.Errorf("changed outside the run directory: %q", w)
 		}
 	}
+	// saved: hardn.yml with the list edited in place, its comment and
+	// every other line kept (next/s2-config-edit).
 	saved := func(t *testing.T, h *fakeHost) {
 		t.Helper()
-		data := h.content(hardnYML)
+		const want = "# hardn's configuration (" + hostFQDN + ")\nusername: alice\nnameservers:\n  - \"1.1.1.1\"\n  - \"1.0.0.1\"\n"
 		c, err := config.Read(context.Background(), h.f, hardnYML)
-		if err != nil || !slices.Equal(c.Nameservers, []string{"1.1.1.1", "1.0.0.1"}) || config.HasComments([]byte(data)) {
-			t.Errorf("hardn.yml: %v, %v, comments %t:\n%s", c, err, config.HasComments([]byte(data)), data)
+		if data := h.content(hardnYML); err != nil || !slices.Equal(c.Nameservers, []string{"1.1.1.1", "1.0.0.1"}) || data != want {
+			t.Errorf("hardn.yml: %v, %v:\n%s\nwant\n%s", c, err, data, want)
 		}
 	}
 	const (
@@ -145,9 +147,9 @@ func TestPlayEngineDNS(t *testing.T) {
 		{"dns-configure-ubuntu2604", 0, []string{"Set the nameservers", dns.DropIn, "@@ -0,0 +1,5 @@", "$ " + reload,
 			"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "eth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK, resolvectl dns)"},
 			ubuntu(1, 0), configured, dropInMade},
-		{"dns-cloudflare-debian13", 0, []string{"Set the nameservers", "+nameserver 1.1.1.1", "Save the configuration", hardnYML, "+sudoNoPassword: true",
-			"Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Done", "Operation Successful",
-			"dhcpcd may rewrite /etc/resolv.conf on a lease (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)", "Saving hardn.yml loses its comments (CONFIG_COMMENTS_LOST"},
+		{"dns-cloudflare-debian13", 0, []string{"Set the nameservers", "+nameserver 1.1.1.1", "Save the configuration", hardnYML, "@@ -1,5 +1,5 @@",
+			` nameservers:`, `-  - "192.0.2.54"`, `+  - "1.1.1.1"`, "Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Done",
+			"Operation Successful", "dhcpcd may rewrite /etc/resolv.conf on a lease (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)"},
 			func(t *testing.T, h *fakeHost) {
 				files(map[string]string{dns.ResolvConf: dhcpcdHead + "nameserver 1.1.1.1\nnameserver 1.0.0.1\n"})(t, h)
 				saved(t, h)
@@ -167,7 +169,7 @@ func TestPlayEngineDNS(t *testing.T) {
 			untouched, "not-configured: none in hardn.yml", nil},
 		{"dns-configured-debian13", 0, []string{"Nothing needs changing.", "Nothing was applied."}, untouched, configured, nil},
 		{"dns-dry-run-debian13", 0, []string{"Set the nameservers", "Save the configuration", "No actual changes were made to your system.", "(DNS_DHCP_CLIENT",
-			"(CONFIG_COMMENTS_LOST", "Nothing was applied."}, untouched, notHardn, nil},
+			"Nothing was applied."}, untouched, notHardn, nil},
 		// dns.Apply undoes the change itself; the engine's rollback then
 		// has nothing left to undo, under the hold all the same.
 		{"dns-failed-reload-ubuntu2604", 1, []string{"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Failed DNS_NOT_EFFECTIVE", "Operation Failed",
@@ -192,6 +194,9 @@ func TestPlayEngineDNS(t *testing.T) {
 			s, out, code := playEngine(t, enginePrefix+"/"+tc.name, sc.answers...)
 			if w := notShown(out, tc.screen); w != "" {
 				t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
+			}
+			if strings.Contains(out, "comments") { // the warning dropped (next/s2-config-edit)
+				t.Errorf("the transcript speaks of comments:\n%s", out)
 			}
 			if code != exitOK || s.holds != tc.holds || len(s.engineRuns) != 1 {
 				t.Fatalf("exit %d, the gallery's hold taken %d times (want %d), %d runs", code, s.holds, tc.holds, len(s.engineRuns))

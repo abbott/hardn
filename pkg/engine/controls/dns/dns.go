@@ -45,6 +45,10 @@ const (
 	ChangeSave = ID + "/save" // hardn.yml's list (steps.PlanSave)
 )
 
+// Setting is the hardn.yml setting the control saves, alone: the save
+// writes no other, whatever in.Config holds (steps.PlanSave).
+const Setting = "nameservers"
+
 // The changes' titles (gallery-dns.md §5; proposed), by the steps the
 // change holds: the nameservers set (the file, or resolved's drop-in or
 // reload), udhcpc stopped (Alpine, StopUDHCPC), or both.
@@ -282,11 +286,11 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	if len(cs) > 0 {
 		after = []string{ChangeSet}
 	}
-	save, err := steps.PlanSave(ctx, sys, ChangeSave, in.Config, after...)
+	save, err := steps.PlanSave(ctx, sys, ChangeSave, in.Config, []string{Setting}, after...)
 	if err != nil {
 		return nil, err
 	}
-	return append(cs, save), nil
+	return append(cs, save...), nil
 }
 
 // heading is the change's title and summary, from the steps p holds: the

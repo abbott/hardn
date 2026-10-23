@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -206,7 +207,7 @@ func (c *Config) Deprecations() []Deprecation { return slices.Clone(c.loaded.dep
 // SaveConfig writes what it wrote before, permitRootLogin as a bool, with
 // one exception: a prohibit-password value, which the bool cannot carry, is
 // written as that string rather than lost as false. The canonical string
-// for every value is written by Save only (§3.19).
+// is written by Save only, when it changes the value (§3.19; Edit).
 func (c Config) MarshalYAML() (any, error) {
 	if c.RootLogin() != RootLoginProhibitPassword {
 		return (*plain)(&c), nil
@@ -232,41 +233,42 @@ func (c *Config) canonical() (*yaml.Node, error) {
 	return &n, nil
 }
 
-// Marshal is what Save writes for c: every key of the configuration,
-// canonical, permitRootLogin as its string; for a plan to show before the
-// save (the save's diff, next/s2-control).
-func Marshal(c *Config) ([]byte, error) {
-	n, err := c.canonical()
-	if err != nil {
-		return nil, fmt.Errorf("config: %w", err)
-	}
-	data, err := yaml.Marshal(n)
-	if err != nil {
-		return nil, fmt.Errorf("config: %w", err)
-	}
-	return data, nil
-}
-
 // Save writes c to the file it was loaded from, c.Path() (refactor plan
-// §3.19: one save function, to the loaded path, atomically), and refuses a
-// Config that was not loaded from one (ErrNotLoaded): the path is the
-// loader's, so no caller can save elsewhere. host.WriteFileAtomicKeep keeps
-// an existing file's mode and owner (a new file is 0644). permitRootLogin
-// is written as its string, so a deprecated bool becomes the value it
-// meant. Comments in the file are lost; the caller says so before saving
-// (§3.19; HasComments). Once written, the bytes are c's (LoadedFrom).
-func Save(ctx context.Context, sys host.System, c *Config) error {
+// §3.19: one save function, to the loaded path, atomically; amended by the
+// maintainer on 2026-10-22: "edit only the keys that changed, keeping the
+// rest of the file and its comments"), and refuses a Config that was not
+// loaded from one (ErrNotLoaded): the path is the loader's, so no caller
+// can save elsewhere. It reads the file, not through a symlink
+// (host.ErrSymlink), and refuses bytes that are not the ones c was read
+// from or last saved (ErrChanged: the edit would undo what changed them).
+// What it writes is Edit's: the settings c changes, edited in place, the
+// rest of the file as it was; with settings named, those alone (Edit).
+// Edit refuses what would not read back as the configuration to save
+// (ErrNotEditable, ErrEditUnsafe), and with nothing changed nothing is
+// written. host.WriteFileAtomicKeep keeps the file's mode and owner. Once
+// written, c records the bytes written as its own (LoadedFrom).
+func Save(ctx context.Context, sys host.System, c *Config, settings ...string) error {
 	path := c.loaded.path
 	if path == "" {
 		return fmt.Errorf("config: %w", ErrNotLoaded)
 	}
-	data, err := Marshal(c)
+	data, _, err := sys.ReadFileNoFollow(ctx, path)
 	if err != nil {
-		return err
-	}
-	if err := host.WriteFileAtomicKeep(ctx, sys, path, data, 0o644, -1, -1); err != nil {
 		return fmt.Errorf("config: saving %s: %w", path, err)
 	}
-	c.loaded.sum = sum(data)
+	if !c.LoadedFrom(data) {
+		return fmt.Errorf("config: saving %s: %w", path, ErrChanged)
+	}
+	out, err := Edit(data, c, settings...)
+	if err != nil {
+		return fmt.Errorf("config: saving %s: %w", path, err)
+	}
+	if bytes.Equal(out, data) {
+		return nil
+	}
+	if err := host.WriteFileAtomicKeep(ctx, sys, path, out, 0o644, -1, -1); err != nil {
+		return fmt.Errorf("config: saving %s: %w", path, err)
+	}
+	c.loaded.sum = sum(out)
 	return nil
 }

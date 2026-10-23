@@ -14,8 +14,6 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/hardn/hardn.yml)␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -30,8 +28,6 @@ $
 # Warning$
 # dhcpcd may rewrite /etc/resolv.conf on a lease$
 # (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)$
-# Saving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,$
-# /etc/hardn/hardn.yml)$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -49,6 +45,4 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving hardn.yml loses its comments (CONFIG_COMMENTS_LOST,␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/hardn/hardn.yml)␛[m$
 $

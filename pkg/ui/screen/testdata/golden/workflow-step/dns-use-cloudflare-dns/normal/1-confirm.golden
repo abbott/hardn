@@ -10,7 +10,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m1.1.1.1, 1.0.0.1␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving hardn.yml loses its comments␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
@@ -34,7 +33,6 @@ $
    -  Nameservers          1.1.1.1, 1.0.0.1$
    -  Search Domains       example.net$
    -  dhcpcd may rewrite /etc/resolv.conf on a lease$
-   -  Saving hardn.yml loses its comments$
 $
    -  Set the nameservers$
       /etc/resolv.conf$
@@ -60,7 +58,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving hardn.yml loses its comments␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/resolv.conf␛[m$

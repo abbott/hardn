@@ -353,8 +353,8 @@ func sequenceNamed(t *testing.T, m screen.Mock, name string) screen.Sequence {
 // of the host the plan keeps (dns.State.Findings, less udhcpc's on
 // udhcpc.conf when the plan stops it, as dns.PlanDNS keeps them), in the
 // control's words (steps.DNSFinding), its code in pkg/output's registry,
-// which are the host change's own findings; then the save's,
-// CONFIG_COMMENTS_LOST, in its words.
+// which are the host change's own findings; then the save's, which has
+// none since its comments-lost warning was dropped (next/s2-config-edit).
 func TestDNSPlansAreReal(t *testing.T) {
 	for _, tt := range dnsCases {
 		name := tt.mock + "/" + tt.sequence

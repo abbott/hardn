@@ -677,12 +677,14 @@ func TestSameAsRead(t *testing.T) {
 }
 
 // TestPlanSave: the save of hardn.yml is planned from the file at the
-// loaded path, its diff the file against what config.Save writes; refused
-// for a configuration loaded from none, a file changed since it was read
-// or gone, and a symlink, each with a report; its Apply refuses a file
-// whose backup is not what the plan read and a configuration changed since
-// the plan, and otherwise saves through config.Save; the lost comments are
-// its finding (next/s2-control).
+// loaded path, its diff the file against config.Edit's bytes, the setting
+// named alone, the comment kept, and not the values changed only in
+// memory (a flag's); none when nothing changed; refused for a
+// configuration loaded from none, a file changed since it was read or
+// gone, a symlink, and an edit config.Edit refuses, each with a report;
+// its Apply refuses a file whose backup is not what the plan read and a
+// configuration changed since the plan, and otherwise saves through
+// config.Save (next/s2-control; next/s2-config-edit).
 func TestPlanSave(t *testing.T) {
 	ctx := context.Background()
 	const path = "/etc/hardn/hardn.yml"
@@ -693,6 +695,11 @@ func TestPlanSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg.Nameservers = []string{"192.0.2.53"}
+	cfg.Username, cfg.DryRun = "george", true // as -u and -n set them: not saved
+	ns := []string{"nameservers"}
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, nil); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("PlanSave of no setting = %v; want fs.ErrInvalid", err)
+	}
 	for name, tc := range map[string]struct {
 		cfg  *config.Config
 		code string
@@ -707,7 +714,7 @@ func TestPlanSave(t *testing.T) {
 				h.AddFile(path, []byte("nameservers: []\n"), 0o600, 0, 0)
 				defer h.AddFile(path, []byte("# hardn\nnameservers:\n  - 192.0.2.54\n"), 0o600, 0, 0)
 			}
-			_, err := PlanSave(ctx, h, "dns.nameservers/save", tc.cfg)
+			_, err := PlanSave(ctx, h, "dns.nameservers/save", tc.cfg, ns)
 			var r *Refusal
 			if !errors.As(err, &r) || r.Code != tc.code || r.Why == "" || r.Fix == "" || !errors.Is(err, tc.err) {
 				t.Errorf("PlanSave = %v; want a %s refusal", err, tc.code)
@@ -720,7 +727,7 @@ func TestPlanSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	var r *Refusal
-	if _, err := PlanSave(ctx, h, "dns.nameservers/save", linked); !errors.Is(err, host.ErrSymlink) || !errors.As(err, &r) ||
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", linked, ns); !errors.Is(err, host.ErrSymlink) || !errors.As(err, &r) ||
 		r.Why != "/etc/hardn/link.yml is a link" || r.Fix != "edit the file it links to by hand" {
 		t.Errorf("PlanSave through a link = %v; want it refused with a report, as config.Save would refuse it", err)
 	}
@@ -729,24 +736,48 @@ func TestPlanSave(t *testing.T) {
 	if err != nil || h.Remove(ctx, "/etc/hardn/gone.yml") != nil {
 		t.Fatal(err)
 	}
-	if _, err := PlanSave(ctx, h, "dns.nameservers/save", gone); !errors.Is(err, ErrConfigChanged) || !errors.Is(err, fs.ErrNotExist) ||
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", gone, ns); !errors.Is(err, ErrConfigChanged) || !errors.Is(err, fs.ErrNotExist) ||
 		!errors.As(err, &r) || r.Why != "/etc/hardn/gone.yml changed since it was read" {
 		t.Errorf("PlanSave of a file gone = %v; want CONFIG_CHANGED with a report", err)
 	}
-	c, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, "dns.nameservers/set")
+	h.AddFile("/etc/hardn/two.yml", []byte("nameservers: [192.0.2.54]\n---\nnameservers: []\n"), 0o600, 0, 0)
+	two, err := config.Read(ctx, h, "/etc/hardn/two.yml")
 	if err != nil {
 		t.Fatal(err)
 	}
+	two.Nameservers = []string{"192.0.2.53"}
+	if _, err := PlanSave(ctx, h, "dns.nameservers/save", two, ns); !errors.Is(err, config.ErrNotEditable) || !errors.As(err, &r) || r.Code != "CONFIG_NOT_EDITABLE" ||
+		r.Why != "/etc/hardn/two.yml holds more than one YAML document" || r.Fix != "set nameservers in /etc/hardn/two.yml by hand, then try again" {
+		t.Errorf("PlanSave of a file of two documents = %v; want CONFIG_NOT_EDITABLE with a report", err)
+	}
+	for key, why := range map[string]string{
+		"nameservers": "nameservers in /etc/hardn/hardn.yml cannot be edited safely",
+		"username":    "/etc/hardn/hardn.yml cannot be edited safely", // not a setting the save changes
+	} {
+		unsafe := &config.EditError{Key: key, Why: "cannot be edited safely", Keys: []string{"nameservers", "sshPort"}, Err: config.ErrEditUnsafe}
+		if err := notEdited(path, unsafe); !errors.As(err, &r) || r.Code != "CONFIG_EDIT_UNSAFE" || !errors.Is(err, config.ErrEditUnsafe) ||
+			r.Why != why || r.Fix != "set nameservers, sshPort in /etc/hardn/hardn.yml by hand, then try again" {
+			t.Errorf("the report of an edit that would not read back at %s: %v", key, err)
+		}
+	}
+	unchanged, err := config.Read(ctx, h, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cs, err := PlanSave(ctx, h, "dns.nameservers/save", unchanged, ns); err != nil || len(cs) != 0 {
+		t.Errorf("PlanSave with nothing changed = %+v, %v; want no change", cs, err)
+	}
+	cs, err := PlanSave(ctx, h, "dns.nameservers/save", cfg, ns, "dns.nameservers/set")
+	if err != nil || len(cs) != 1 {
+		t.Fatalf("PlanSave = %+v, %v", cs, err)
+	}
+	c := cs[0]
 	if c.Target != path || !slices.Equal(c.Backups, []string{path}) || !slices.Equal(c.After, []string{"dns.nameservers/set"}) ||
-		c.Stage != engine.StageFiles || c.Risk != engine.RiskPlain || len(c.Findings) != 1 || c.Findings[0].Code != CodeCommentsLost {
+		c.Stage != engine.StageFiles || c.Risk != engine.RiskPlain || len(c.Findings) != 0 {
 		t.Fatalf("PlanSave = %+v", c)
 	}
-	marshalled, err := config.Marshal(cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	was, will := "# hardn\nnameservers:\n  - 192.0.2.54\n", string(marshalled)
-	if want := engine.FileDiff(path, &was, &will); c.Diff != want || !strings.Contains(c.Diff, "\n-# hardn\n") || !strings.Contains(c.Diff, "\n+    - 192.0.2.53\n") {
+	const want = "--- /etc/hardn/hardn.yml\n+++ /etc/hardn/hardn.yml\n@@ -1,3 +1,3 @@\n # hardn\n nameservers:\n-  - 192.0.2.54\n+  - 192.0.2.53\n"
+	if c.Diff != want {
 		t.Errorf("diff\n%s\nwant\n%s", c.Diff, want)
 	}
 	entry := func() backup.Entry {
@@ -774,7 +805,7 @@ func TestPlanSave(t *testing.T) {
 	if ran, err := c.Apply(ctx, h, run); err != nil || ran.Detail != "saved "+path {
 		t.Fatalf("Apply = %+v, %v", ran, err)
 	}
-	if e, _ := h.Entry(path); !strings.Contains(string(e.Data), "- 192.0.2.53\n") || strings.Contains(string(e.Data), "#") {
+	if e, _ := h.Entry(path); string(e.Data) != "# hardn\nnameservers:\n  - 192.0.2.53\n" {
 		t.Errorf("saved:\n%s", e.Data)
 	}
 }
