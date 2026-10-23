@@ -11,6 +11,12 @@
 - **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c`, `-d`, `-w`, `-e` and `setup-sudo-env` exit with status 2 and change nothing. `-g` shows its plan instead, and exits 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
 - **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g` now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
+- **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only. *(Refactor plan slice 2b, unit (d): not built yet; this line waits for it.)*
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
+
+## Changed: the main menu
+
+- **An invalid choice is answered under the prompt**, which asks again. The screen is no longer cleared, and there is no "Press Enter" to go on.
+- **After a screen, the main menu is drawn again below it**, so what the screen printed stays in view above it.

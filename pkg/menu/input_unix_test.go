@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -69,6 +70,47 @@ func TestInterrupt(t *testing.T) {
 				t.Errorf("printed %q, want the prompt's line ended", out)
 			}
 		})
+	}
+}
+
+// TestMainMenuInterrupt checks that Ctrl-C at the main menu's prompt, on
+// its layout (nav.Run asking through the same reader as every legacy
+// read), ends hardn by SIGINT once the main menu is drawn, as at a legacy
+// prompt: SIGINT is sent every 10 ms while the read waits on a pipe that
+// never ends, as TestInterrupt sends it.
+func TestMainMenuInterrupt(t *testing.T) {
+	guard := make(chan os.Signal, 64)
+	signal.Notify(guard, os.Interrupt)
+	t.Cleanup(func() { signal.Stop(guard) })
+	pr, pw, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
+	m := liveMenu(t, plainEnv(), fixtureStatus(new(int)))
+	useReader(t, prompt.New(pr, false))
+	stop, sent := make(chan struct{}), make(chan struct{})
+	t.Cleanup(func() { close(stop); <-sent })
+	go func() {
+		defer close(sent)
+		tick := time.NewTicker(10 * time.Millisecond)
+		defer tick.Stop()
+		giveUp := time.After(10 * time.Second)
+		for {
+			select {
+			case <-stop:
+				return
+			case <-giveUp:
+				_, _ = pw.WriteString("q\n")
+				return
+			case <-tick.C:
+				_ = syscall.Kill(os.Getpid(), syscall.SIGINT)
+			}
+		}
+	}()
+	out, code, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+	if !ended || exited(code) != sigint || !strings.HasSuffix(out, "Enter selection [0-10 or q]: \n") {
+		t.Errorf("ended %v with %d, want hardn ended by SIGINT at the prompt, its line ended:\n%q", ended, code, out)
 	}
 }
 

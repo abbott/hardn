@@ -423,10 +423,13 @@ func TestStatusBlocks(t *testing.T) {
 // top 12 lines scroll off, the risk level among them. With the compact
 // form allowed (render), the form it took and its lines: with the eighth
 // row 25 at 80x24, one over theme.CompactBudget, its distribution bar
-// scrolled off, and 36 in full at 80x40. Live: hardn's live main menu,
-// StatusBlocks above its legacy menu of 17 lines (pkg/menu: heading to
-// prompt) after the gap, the blocks in full at every height. No row has a
-// line under it here: each adds one more.
+// scrolled off, and 36 in full at 80x40. Live: StatusBlocks above a menu
+// of 17 lines after the gap, as hardn's live main menu drew its legacy
+// menu (pkg/menu: heading to prompt) until next/s2b-menu put it on this
+// layout, the blocks in full at every height. No row has a line under it
+// here: each adds one more. hardn's own main menu, the drawn column's
+// form, is pinned on the gallery's hosts by pkg/menu's
+// TestMainMenuHeights.
 func TestHeights(t *testing.T) {
 	const legacyMenu = 17
 	eight := MainMenuFixture()

@@ -108,8 +108,8 @@ const CompactMainMenu = false
 // and the compact form below. Output that is not a terminal has no height
 // to fit, and gets the full form. StatusBlocks draws the blocks above the
 // heading alone, in the same forms, for a caller that draws its own menu
-// under them: hardn's live main menu, until its menu moves onto this
-// layout (slice 2b).
+// under them, as hardn's live main menu did until its menu moved onto this
+// layout (slice 2b, next/s2b-menu).
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
@@ -207,10 +207,11 @@ func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 // StatusBlocks renders the blocks the status model fills, down to the full
 // form's Divider, for a caller that draws its own menu under them, its
 // heading and prompt included, in below lines, after theme.SectionGap
-// blank lines: hardn's live main menu, whose heading, mode indicator,
-// items and prompt are still pkg/menu's (refactor plan slice 2,
-// next/s2-menu-live; slice 2b). vm.Heading, Mode, Menu and Prompt are not
-// drawn. The blocks take the full form; where CompactMainMenu allows it,
+// blank lines. hardn's live main menu drew its legacy menu under them so
+// from refactor plan slice 2's next/s2-menu-live until slice 2b's
+// next/s2b-menu put that menu on this layout (Screen); nothing in hardn
+// calls it since, and it is kept with the compact form it can choose.
+// vm.Heading, Mode, Menu and Prompt are not drawn. The blocks take the full form; where CompactMainMenu allows it,
 // the form Render would choose for the screen they make with that menu:
 // the full form's blocks on output that is not a terminal, and on a
 // terminal from theme.CompactBelow rows that holds them, the gap and

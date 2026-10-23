@@ -2,20 +2,24 @@ package main
 
 import (
 	"context"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// TestDrawStatus: the main menu's status is read through statusHost with
-// engineDetect's facts and drawn for stdoutEnv's terminal, its header
-// showing hardn's version, its DNS row checked against the configuration
-// as it is on each pass (the DNS screen adopts each list it saves into
-// it); it only reads, and nothing is written. (pkg/menu's tests draw the
-// main menu with this status over the gallery's hosts.)
-func TestDrawStatus(t *testing.T) {
+// TestReadStatus: the main menu's status is read through statusHost with
+// engineDetect's facts, its header showing hardn's version, its DNS row
+// checked against the configuration as it is on each pass (the DNS screen
+// adopts each list it saves into it); the heading, mode, items and prompt
+// are pkg/menu's to fill; it only reads, and nothing is written.
+// (pkg/menu's tests draw the main menu with this status over the
+// gallery's hosts.)
+func TestReadStatus(t *testing.T) {
 	h, cfg := newDNSHost(t, "configured", dnsTestList)
 	useDNSHost(t, h) // engineDetect, stdoutEnv: plain at 80 columns
 	hostWas := statusHost
@@ -23,17 +27,24 @@ func TestDrawStatus(t *testing.T) {
 	statusHost = func() host.System { return h }
 	engineHost = func() host.System { t.Error("the status read engineHost, whose run log takes every command"); return h }
 
-	out, err := drawStatus(context.Background(), cfg, "0.4.0", 17)
+	rows := func(vm screen.MainMenu) string {
+		var b strings.Builder
+		env := stdoutEnv()
+		_, _ = io.WriteString(env.Writer(&b), vm.Status.Render(component.NewCtx(env)))
+		return b.String()
+	}
+	vm, err := readStatus(context.Background(), cfg, "0.4.0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(out, "hardn  v0.4.0") || !strings.Contains(out, "  [+] DNS                  Configured 192.0.2.53, 192.0.2.54\n") || !strings.HasSuffix(out, "\n\n") {
-		t.Errorf("not the status with the DNS row Configured:\n%s", out)
+	if vm.Header.Version != "v0.4.0" || vm.Heading != "" || len(vm.Menu.Items) != 0 || vm.Prompt != "" ||
+		!strings.Contains(rows(vm), "  [+] DNS                  Configured 192.0.2.53, 192.0.2.54") {
+		t.Errorf("not the status with the DNS row Configured, and nothing of the menu:\n%+v\n%s", vm, rows(vm))
 	}
 	cfg.Nameservers = []string{"192.0.2.55"} // a list the DNS screen saved
-	out, err = drawStatus(context.Background(), cfg, "0.4.0", 17)
-	if err != nil || !strings.Contains(out, "  [ ] DNS                  Not Configured not hardn.yml's\n") {
-		t.Errorf("the DNS row does not follow the configuration (%v):\n%s", err, out)
+	vm, err = readStatus(context.Background(), cfg, "0.4.0")
+	if err != nil || !strings.Contains(rows(vm), "  [ ] DNS                  Not Configured not hardn.yml's") {
+		t.Errorf("the DNS row does not follow the configuration (%v):\n%s", err, rows(vm))
 	}
 	if w := h.writes(); len(w) > 0 {
 		t.Errorf("the status wrote %q", w)

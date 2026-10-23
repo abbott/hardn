@@ -23,7 +23,7 @@ Live names no source, whatever made it live (decision 2: "live names nothing"), 
 
 ### 1.2 The source, for unit (c)
 
-`Config.DryRunSource()` names what set plan only: the flag (`DryRunFlag`) or the file (`DryRunFile`). It names nothing (`DryRunDefault`) for a live session and for plan only set inside the session. It is `ResolveDryRun`'s source only while `DryRun` still holds the value it set: `SetDryRun`, which item 6 and Run All's option 2 now call, sets no source, and any other write to `DryRun` drops it, so a mode the session set never shows "(-n)" or "(hardn.yml)" (decision 2). The main menu holds the configuration (`m.config`), so unit (c)'s indicator reads the source there. Its words are not changed here: `SetDryRunStatus(true, m.config.DryRun)` still draws "Dry-run Mode Disabled" or "Enabled".
+`Config.DryRunSource()` names what set plan only: the flag (`DryRunFlag`) or the file (`DryRunFile`). It names nothing (`DryRunDefault`) for a live session and for plan only set inside the session. It is `ResolveDryRun`'s source only while `DryRun` still holds the value it set: `SetDryRun`, which item 6 and Run All's option 2 now call, sets no source, and any other write to `DryRun` drops it, so a mode the session set never shows "(-n)" or "(hardn.yml)" (decision 2). The main menu holds the configuration (`m.config`), so unit (c)'s indicator reads the source there. Its words are not changed here: `SetDryRunStatus(true, m.config.DryRun)` still draws "Dry-run Mode Disabled" or "Enabled". *Since unit (c), `next/s2b-menu`: "Mode Live", "Mode Plan only (-n)", "Mode Plan only (hardn.yml)", or "Mode Plan only" for a mode set inside the session, read from `DryRun` and `DryRunSource()` on every pass ([menu-layout.md](menu-layout.md) §3).*
 
 ### 1.3 Plan only from hardn.yml with an operation flag (decision 9)
 
@@ -117,7 +117,7 @@ No other golden changed. The ops goldens' note "as cmd/hardn/main.go:158 does fo
 ## 8. Open items
 
 1. **Do not release this unit without unit (d)**: plan only from hardn.yml now reaches the legacy menus with `-n`'s gaps (§2), and the notes promise item 6's removal. The release notes' header says so; docs/configuration.md names the gaps.
-2. Unit (c): the indicator's words and the source after them, from `DryRunSource`.
+2. Unit (c): the indicator's words and the source after them, from `DryRunSource`. *Built: `next/s2b-menu`.*
 3. Unit (d): the line "item 6 removed" in docs/configuration.md (§4.1), its "Not yet in every menu" line removed, and the release notes' last bullet and header made current.
 4. `config.Save` and `config.Edit` with no setting named would write the session's mode; nothing calls them so (`steps.PlanSave` requires a setting). A later caller should name its settings, or this should write `dryRun` as loaded too.
 5. The release workflow does not read docs/releases/unreleased.md: its notes are copied by hand at the release until plan Phase 7's `next/p7-release` decides.

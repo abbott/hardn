@@ -282,7 +282,8 @@ func newEnvironmentMenu(t *testing.T) *EnvironmentSettingsMenu {
 
 // TestScreens drives legacy screens with scripted stdin: each pause waits
 // for one line, says "Press Enter", and leaves the next line to the next
-// prompt.
+// prompt. (The main menu's invalid choice paused too until slice 2b's unit
+// (c), which refuses it under the prompt: TestMainMenuKeys.)
 func TestScreens(t *testing.T) {
 	const pause = "Press Enter to continue..."
 	tests := []struct {
@@ -297,12 +298,6 @@ func TestScreens(t *testing.T) {
 			run:    func(*testing.T) { NewHelpMenu().Show() },
 			want:   []string{"Command Line Usage:", "Press Enter to return to the main menu..."},
 			pauses: 0,
-		},
-		{
-			name: "invalid main-menu choice", script: "\n",
-			run:    func(*testing.T) { (&MainMenu{}).handleMenuChoice("x") },
-			want:   []string{"Invalid option. Please try again.", pause},
-			pauses: 1,
 		},
 		{
 			name: "environment: guide, an invalid choice, q", script: "2\n\nx\n\nq\n",

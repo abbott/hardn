@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
@@ -13,8 +12,12 @@ import (
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -41,14 +44,31 @@ type MainMenu struct {
 	// dns runs the DNS item (SetDNS).
 	dns func() error
 
-	// status draws the host block, risk level and status rows (SetStatus).
-	status func(ctx context.Context, below int) (string, error)
+	// status reads the host block, risk level and status rows (SetStatus).
+	status func(ctx context.Context) (screen.MainMenu, error)
+
+	// terminal is the terminal the main menu is drawn on (SetTerminal).
+	terminal func() term.Env
 }
+
+// The main menu's words on its layout: origin/main's heading and prompt
+// (pkg/style's Menu, style.go:668), unchanged (refactor plan slice 2b,
+// decision 5; P-29 (a) still open).
+const (
+	mainHeading = "Select an option"
+	mainPrompt  = "Enter selection"
+)
+
+// errAgain ends a pass of the main menu once an item's screen has
+// returned, so that the next pass reads the status again and draws the
+// main menu under what the screen printed.
+var errAgain = errors.New("menu: the main menu again")
 
 // legacySecurityStatus: DISABLED 2026-10-23. Flip to true to restore.
 //
 // With it true, each pass of the main menu draws origin/main's block
-// above its items, from pkg/security: the version line, the host and
+// above its heading and items, in place of the layout's status blocks,
+// from pkg/security: the version line, the host and
 // uptime lines (MenuManager.GetHostInfo), the OS title bar, the risk
 // level of GetSecurityRiskLevel (eight equal booleans) and the rows of
 // DisplaySecurityStatusWithCustomPrinter: Users, Sudo (when missing),
@@ -92,82 +112,69 @@ func NewMainMenu(
 // set panics: cmd/hardn sets it on the one main menu it builds.
 func (m *MainMenu) SetDNS(run func() error) { m.dns = run }
 
-// showDNS runs the DNS item from a cleared screen, as every item's screen
-// starts, and reports whether hardn should end: q quits from the DNS
-// screen as from this menu (nav.ErrQuit); Return comes back here; the end
-// of the input, Ctrl-C and any other error end hardn as at a legacy
-// prompt (endHardn).
-func (m *MainMenu) showDNS() bool {
+// showDNS is the DNS item's action: the DNS screen from a cleared screen,
+// as every item's screen starts. Return, or a back from it, comes back
+// here (errAgain); q quits from the DNS screen as from this menu
+// (nav.ErrQuit); the end of the input, Ctrl-C and any other error end
+// hardn as at a legacy prompt (ShowMainMenu, endHardn).
+func (m *MainMenu) showDNS() error {
 	if m.dns == nil {
 		panic("menu: the DNS item has no screen (SetDNS)")
 	}
 	utils.ClearScreen()
 	err := m.dns()
-	switch {
-	case err == nil:
-		return false
-	case errors.Is(err, nav.ErrQuit):
-		return true
+	if err == nil || errors.Is(err, nav.ErrBack) {
+		return errAgain
 	}
-	endHardn(err)
-	return true
+	return err
 }
 
-// SetStatus sets what draws the main menu's host block, risk level and
-// status rows, above its items: the status model (the controls' checks,
-// the header probe and the risk level), which cmd/hardn reads and renders
-// from the host it builds, so that pkg/menu runs no check and builds no
-// engine, as with SetDNS (refactor plan slice 2, next/s2-menu-live). It is
-// called on every pass of the main menu, with the number of lines the
-// menu takes under it, heading to prompt, and returns the text to print
-// above the heading, the blank line before it included. An error ends
-// hardn as at a legacy prompt: a cancelled context (Ctrl-C) by SIGINT,
-// any other with exit status 1 once printed. A main menu drawn without one
-// set panics: cmd/hardn sets it on the one main menu it builds.
-func (m *MainMenu) SetStatus(draw func(ctx context.Context, below int) (string, error)) {
-	m.status = draw
+// SetStatus sets what reads the main menu's host block, risk level and
+// status rows: the status model (the controls' checks, the header probe
+// and the risk level), which cmd/hardn reads from the host it builds, so
+// that pkg/menu runs no check and builds no engine, as with SetDNS
+// (refactor plan slice 2, next/s2-menu-live). It is called on every pass
+// of the main menu and returns the main menu's view-model with those
+// blocks filled (pkg/screens/mainmenu.Status); the main menu fills in its
+// heading, mode indicator, items and prompt and draws the whole layout
+// (slice 2b, next/s2b-menu). An error ends hardn as at a legacy prompt: a
+// cancelled context (Ctrl-C) by SIGINT, any other with exit status 1 once
+// printed. A main menu drawn without one set panics: cmd/hardn sets it on
+// the one main menu it builds.
+func (m *MainMenu) SetStatus(read func(ctx context.Context) (screen.MainMenu, error)) {
+	m.status = read
 }
 
-// showStatus prints what the main menu draws above its items: origin/main's
-// block while legacySecurityStatus is set; else the security-update alert
-// when an update check found a security release, as origin/main drew it;
-// else the status model's blocks (showLiveStatus).
-func (m *MainMenu) showStatus(menu *style.Menu) {
-	switch {
-	case legacySecurityStatus:
-		m.showLegacyStatus()
-	case m.securityUpdateAvailable && m.versionService != nil && m.versionService.CurrentVersion != "":
-		m.displaySecurityUpdateAlert(nil)
-	default:
-		m.showLiveStatus(context.Background(), menu)
+// SetTerminal sets the terminal the main menu is drawn on: stdout's, as
+// cmd/hardn detects it (its width, colours and glyphs), asked again on
+// every pass, so that each pass draws for the terminal as it is then. A
+// main menu drawn without one set panics, as with SetStatus.
+func (m *MainMenu) SetTerminal(env func() term.Env) { m.terminal = env }
+
+// readStatus reads the status for one pass (SetStatus): the main menu's
+// view-model with its status blocks filled, or none while
+// legacySecurityStatus draws origin/main's block in their place. The
+// checks only read, and run again on every pass, so each pass shows the
+// host as it is then. Nothing bounds a pass: ctx is context.Background(),
+// never done, so a command that blocks holds the screen until it returns
+// or Ctrl-C ends hardn (docs/engine/menu-live.md §5). Ctrl-C while they
+// run: no signal handler is registered for them, so Go's default ends
+// hardn by SIGINT at once, as prompt.Reraise ends it at the menu's prompt;
+// it does not reach the hook through ctx. A hook that returns a cancelled
+// context's error, of a context of its own, ends hardn the same way: the
+// error is returned as Ctrl-C's (prompt.ErrInterrupted).
+func (m *MainMenu) readStatus(ctx context.Context) (screen.MainMenu, error) {
+	if legacySecurityStatus {
+		return screen.MainMenu{}, nil
 	}
-}
-
-// showLiveStatus prints the status model's blocks for the main menu, menu
-// its items, heading to prompt, under them (SetStatus). The checks only
-// read, and run again on every pass, so each pass shows the host as it is
-// then. Nothing bounds a pass: showStatus passes context.Background(),
-// never done, so a command that blocks holds the cleared screen until it
-// returns or Ctrl-C ends hardn (docs/engine/menu-live.md §5). Ctrl-C while
-// they run: no signal handler is registered for them, so Go's default
-// ends hardn by SIGINT at once, as prompt.Reraise ends it at the menu's
-// prompt; it does not reach the hook through ctx. A hook that returns a
-// cancelled context's error, of a context of its own, ends hardn the same
-// way (endHardn, prompt.ErrInterrupted).
-func (m *MainMenu) showLiveStatus(ctx context.Context, menu *style.Menu) {
 	if m.status == nil {
 		panic("menu: the main menu has no status (SetStatus)")
 	}
-	block, err := m.status(ctx, strings.Count(menu.Render(), "\n")+1)
-	switch {
-	case errors.Is(err, context.Canceled):
-		endHardn(fmt.Errorf("%w: %w", prompt.ErrInterrupted, err))
-		return
-	case err != nil:
-		endHardn(err)
-		return
+	vm, err := m.status(ctx)
+	if errors.Is(err, context.Canceled) {
+		return vm, fmt.Errorf("%w: %w", prompt.ErrInterrupted, err)
 	}
-	fmt.Print(block)
+	return vm, err
 }
 
 // showLegacyStatus is origin/main's block (legacySecurityStatus): the
@@ -524,7 +531,20 @@ func (m *MainMenu) formatHostInfoLines(hostInfo *model.HostInfo, formatter *styl
 	return hostLine, uptimeLine
 }
 
-// ShowMainMenu displays the main menu and handles user input
+// ShowMainMenu displays the main menu and handles user input. The main
+// menu is pkg/ui/screen's main-menu layout in its full form (refactor plan
+// slice 2b, next/s2b-menu; decision 5 as adopted): the status blocks
+// (SetStatus), "Select an option" with the mode indicator, origin/main's
+// items (mainMenu), and "Enter selection" with its hint generated from
+// them, asked through the one line reader every legacy screen reads
+// (prompt.Stdin, the input seam). The screen is cleared once, as hardn
+// starts; each pass then reads the status again and draws the main menu
+// on the terminal as it is then, under what the item before it printed,
+// not cleared (brief 1C), the legacy screens still clearing as they open.
+// A line no item takes is refused under the prompt, "Invalid option.
+// Please try again.", and asked again, the screen above kept (nav.Ask).
+// 0 (Exit) and q clear the screen and return, as they did; the end of the
+// input exits 130 and Ctrl-C ends hardn by SIGINT (endHardn).
 func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	// Initialize version service if not already done
 	if m.versionService == nil && currentVersion != "" {
@@ -534,45 +554,143 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	// Check for updates when the menu starts
 	m.CheckForUpdatesWithEnvVars()
 
-	// Main menu loop
+	utils.ClearScreen()
 	for {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
 
-		utils.ClearScreen()
-
-		// Create the menu, then draw the status above it (showStatus)
-		menu := m.createMainMenu()
-		m.showStatus(menu)
-
-		// If security update is available, wait for key press and exit
+		// If a security update is available, the alert replaces the main
+		// menu: wait for Enter and exit, as origin/main did
 		if m.securityUpdateAvailable {
+			if m.versionService != nil && m.versionService.CurrentVersion != "" {
+				m.displaySecurityUpdateAlert(nil)
+			}
 			ReadKey()
 			utils.ClearScreen()
 			return
 		}
 
-		// Display the menu
-		menu.Print()
-
-		choice := ReadMenuInput()
-
-		// Handle the special exit case for main menu
-		if choice == "q" {
+		switch err := m.pass(context.Background()); {
+		case errors.Is(err, errAgain):
+		case err == nil, errors.Is(err, nav.ErrQuit):
 			utils.ClearScreen()
 			return
-		}
-
-		// Process the menu choice
-		exitRequested := m.handleMenuChoice(choice)
-		if exitRequested {
-			utils.ClearScreen()
+		default:
+			endHardn(err)
 			return
 		}
 	}
 }
 
-// createMainMenu creates the main menu with all options
+// pass draws the main menu once, its status read again (readStatus) on
+// the terminal as it is now (SetTerminal), and runs what the user
+// chooses, through nav.Run, which draws the layout's Screen, asks, refuses
+// a line no item takes under the prompt and asks again, and runs the
+// item's action. It returns errAgain once an item's screen has returned,
+// so that the next pass draws the main menu again; nil for 0, the Exit
+// item; nav.ErrQuit for q; and the error that ends hardn otherwise: the
+// end of the input or Ctrl-C at its prompt (prompt.ErrAborted), a status
+// not read, a write that failed.
+func (m *MainMenu) pass(ctx context.Context) error {
+	if m.terminal == nil {
+		panic("menu: the main menu has no terminal (SetTerminal)")
+	}
+	env := m.terminal()
+	vm, err := m.readStatus(ctx)
+	if err != nil {
+		return err
+	}
+	vm.Heading, vm.Mode, vm.Prompt = mainHeading, m.mode(), mainPrompt
+	p := nav.Prompter{Ctx: component.NewCtx(env), In: input(), Out: env.Writer(os.Stdout)}
+	menu := m.mainMenu()
+	drawn := vm.Screen(p.Ctx, menu)
+	if legacySecurityStatus {
+		// origin/main's block, then the layout from its heading down
+		m.showLegacyStatus()
+		drawn.Above = component.MenuHeading{Title: vm.Heading, Mode: &vm.Mode}.Render(p.Ctx)
+	}
+	return p.Run(func() nav.Screen { return drawn })
+}
+
+// mode is the mode indicator for the session as it is now (slice 2b,
+// decisions 2 and 3): plan only or live, from the configuration every
+// legacy screen reads (DryRun), and what set plan only (DryRunSource):
+// -n or hardn.yml as hardn started, and nothing for plan only set inside
+// the session (item 6, Run All's option 2) or for live.
+func (m *MainMenu) mode() component.ModeIndicator {
+	mode := component.ModeIndicator{DryRun: m.config.DryRun}
+	switch m.config.DryRunSource() {
+	case config.DryRunFlag:
+		mode.Source = component.ModeSourceFlag
+	case config.DryRunFile:
+		mode.Source = component.ModeSourceFile
+	}
+	return mode
+}
+
+// screens are what the main menu's items open: origin/main's screens, as
+// its handleMenuChoice opened them, but the DNS item's, which is the hook
+// cmd/hardn sets (SetDNS). Each returns when the user leaves it, or ends
+// hardn itself at the end of the input or on Ctrl-C (endHardn).
+type screens struct {
+	users, sshLogin, firewall, backup, dryRun, runAll, environment, systemDetails, logs func(m *MainMenu)
+}
+
+// legacyScreens are the screens the items open. A seam for the tests,
+// which record which screen each key opens.
+var legacyScreens = screens{
+	users:         func(m *MainMenu) { NewUserMenu(m.menuManager, m.config, m.osInfo).Show() },
+	sshLogin:      func(m *MainMenu) { NewDisableRootMenu(m.menuManager, m.config, m.osInfo).Show() },
+	firewall:      func(m *MainMenu) { NewFirewallMenu(m.menuManager, m.config, m.osInfo).Show() },
+	backup:        func(m *MainMenu) { NewBackupMenu(m.menuManager, m.config).Show() },
+	dryRun:        func(m *MainMenu) { NewDryRunHandler(m.menuManager, m.config).Handle() },
+	runAll:        func(m *MainMenu) { NewRunAllHandler(m.menuManager, m.config, m.osInfo).Handle() },
+	environment:   func(m *MainMenu) { NewEnvironmentSettingsMenu(m.menuManager, m.config).Show() },
+	systemDetails: func(m *MainMenu) { NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()).Show() },
+	logs:          func(m *MainMenu) { NewLogsMenu(m.menuManager, m.config).Show() },
+}
+
+// mainMenu is the main menu's items, origin/main's (createMainMenu's)
+// unchanged in content, labels, numbering 1 to 10 and 0, and
+// descriptions, item 1's parenthesis its aside, each bound to the screen
+// it opened (legacyScreens, and the DNS screen, showDNS); its Exit item
+// "0) Exit", "q to quit" (DEV-030). Each screen ends the pass when it
+// returns (errAgain). Item 6 and Run All's option 2 stay until slice 2b's
+// unit (d).
+func (m *MainMenu) mainMenu() nav.Menu {
+	s := legacyScreens
+	open := func(show func(*MainMenu)) func() error {
+		return func() error {
+			show(m)
+			return errAgain
+		}
+	}
+	item := func(key, label, description string) component.MenuItem {
+		return component.MenuItem{Key: key, Label: label, Description: description}
+	}
+	return nav.Menu{
+		Options: []nav.Option{
+			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: open(s.users)},
+			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
+			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
+			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
+			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: open(s.backup)},
+			{Item: item("6", "Dry-Run", "Simulate changes"), Action: open(s.dryRun)},
+			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
+			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
+			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
+			{Item: item("10", "Logs", "View log file"), Action: open(s.logs)},
+		},
+		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
+	}
+}
+
+// createMainMenu is origin/main's main menu on pkg/style (style.Menu),
+// with its "Dry-run Mode" indicator (SetDryRunStatus). hardn has not drawn
+// it since slice 2b's unit (c) put the main menu on its layout (mainMenu
+// holds the same items); it is kept, its code untouched, as the record
+// pkg/menu's main_menu goldens render (TestMainMenuRenderGolden) and as
+// style.Menu.SetDryRunStatus's last caller, both until unit (d).
 func (m *MainMenu) createMainMenu() *style.Menu {
 	// Create menu options
 	menuOptions := []style.MenuOption{
@@ -607,69 +725,4 @@ func (m *MainMenu) createMainMenu() *style.Menu {
 	})
 
 	return menu
-}
-
-// handleMenuChoice processes the user's menu selection and returns true if the application should exit
-func (m *MainMenu) handleMenuChoice(choice string) bool {
-	switch choice {
-	case "1": // Sudo User
-		userMenu := NewUserMenu(m.menuManager, m.config, m.osInfo)
-		userMenu.Show()
-
-	case "2": // Root SSH
-		disableRootMenu := NewDisableRootMenu(m.menuManager, m.config, m.osInfo)
-		disableRootMenu.Show()
-
-	case "3": // DNS: the DNS screen on the engine (SetDNS)
-		return m.showDNS()
-
-	case "4": // Firewall
-		firewallMenu := NewFirewallMenu(m.menuManager, m.config, m.osInfo)
-		firewallMenu.Show()
-
-	case "5": // Backup
-		backupMenu := NewBackupMenu(m.menuManager, m.config)
-		backupMenu.Show()
-
-	case "6": // Dry-Run
-		dryRunHandler := NewDryRunHandler(m.menuManager, m.config)
-		dryRunHandler.Handle()
-
-	case "7": // Run All
-		runAllHandler := NewRunAllHandler(m.menuManager, m.config, m.osInfo)
-		runAllHandler.Handle()
-
-	// case "7": // Linux Packages
-	// 	linuxMenu := NewLinuxPackagesMenu(m.menuManager, m.config, m.osInfo)
-	// 	linuxMenu.Show()
-
-	// case "8": // Package Sources
-	// 	sourcesMenu := NewSourcesMenu(m.menuManager, m.config, m.osInfo)
-	// 	sourcesMenu.Show()
-
-	case "8": // Environment
-		envMenu := NewEnvironmentSettingsMenu(m.menuManager, m.config)
-		envMenu.Show()
-
-	case "9": // Host Info
-		systemDetailsMenu := NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
-		systemDetailsMenu.Show()
-
-	case "10": // Logs
-		logsMenu := NewLogsMenu(m.menuManager, m.config)
-		logsMenu.Show()
-
-	case "0": // Exit
-		utils.ClearScreen()
-		return true
-
-	default:
-		utils.PrintHeader()
-		fmt.Printf("%s Invalid option. Please try again.\n",
-			style.Colored(style.Red, style.SymCrossMark))
-		fmt.Printf("\n%s Press Enter to continue...", style.Dimmed(style.SymRightCarrot))
-		ReadKey()
-	}
-
-	return false
 }
