@@ -60,7 +60,8 @@ type Source struct {
 	Delta string
 	// Pending says where the mock departs from its source until a
 	// proposal is decided, beyond the layouts' own departures (DEV-053,
-	// DEV-054); empty for nowhere.
+	// DEV-054), and where its words are decided since and differ from the
+	// frame's; empty for nowhere.
 	Pending string
 }
 
@@ -129,7 +130,8 @@ func frameMocks() []Mock {
 				"package screens and Help among them, and \"Enter your choice [0-12 or q]\". origin/main has this "+
 				"layout and ten items: the package screens and Help gone, User Management, SSH Login, Environment "+
 				"and System Details new.",
-			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a).")},
+			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a). "+
+				"The mode indicator says \"Mode Live\" where Figma's says \"Dry-run Mode Disabled\" (decisions 2 and 3, DEV-065).")},
 		{Name: "sub-menu/01-user", Screen: UserFixture(), Source: figma("01-USER",
 			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
 				"asking only for a username when none is configured, with no confirmation (pkg/menu/menu.go:317-349). "+

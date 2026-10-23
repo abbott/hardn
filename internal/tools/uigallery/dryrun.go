@@ -28,7 +28,7 @@ import (
 // them. The main-menu and mode mocks, and play's proposed main menu, are
 // retired: hardn's main menu is on its layout with the decided indicator
 // since unit (c), next/s2b-menu, and play draws it as hardn does
-// (gallery-dryrun.md §8; docs/engine/menu-layout.md). "dryrun" lists the
+// (gallery-dryrun.md §10; docs/engine/menu-layout.md). "dryrun" lists the
 // mocks with no input; "play dryrun" plays the main menu with
 // origin/main's items, its 6 toggling dry run for the session, and "play
 // dryrun/saved" the same with the toggle saved to hardn.yml through the
@@ -201,7 +201,8 @@ type dryMock struct {
 
 // dryMocks are the listing's mocks, in order. The main-menu and mode
 // mocks (menu, menu-dry-run, menu-proposed, menu-proposed-plan-only and
-// mode) are retired: gallery-dryrun.md §8 records what they showed.
+// mode) are retired: gallery-dryrun.md §10 says what they showed and
+// where each is now.
 func dryMocks() []dryMock {
 	return []dryMock{
 		{name: "screen", draw: func(c component.Ctx) (string, error) { return dryRunScreen(false).Render(c), nil },

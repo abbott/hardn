@@ -9,7 +9,7 @@
 2. **The compact form is gated**, not deleted: `screen.CompactMainMenu` is `false`, "DISABLED 2026-10-23. Flip to true to restore." (§4).
 3. **The items and the loop.** `pkg/menu`'s main menu draws through `screen.MainMenu.Screen` and runs on `nav.Run`: origin/main's ten items and Exit, unchanged in content and numbering, each key opening exactly the screen it opened; a line no item takes refused under the prompt; the main menu drawn again under what an item printed (§2, §5).
 4. **The indicator.** `component.ModeIndicator` says "Mode Live" or "Mode Plan only", and what set plan only, "(-n)" or "(hardn.yml)", from `config.Config.DryRunSource` (unit (b)) (§3).
-5. **The mocks it designs are retired** from the gallery (gallery-dryrun.md §8): see that page.
+5. **The mocks it designs are retired** from the gallery (gallery-dryrun.md §8): its §10 says where each is now.
 
 ## 2. On screen: today's live menu against this one, line by line
 
@@ -148,7 +148,7 @@ Record per VM: the line counts at 80×40 and 80×24, the heading line, each indi
 - `pkg/ui/nav`: `nav/main-menu`, `nav/rounds`: the indicator's line.
 - `pkg/ui/screen`: `main-menu/00-tui-main`: the indicator's line, then the full form in the 24-row cells and at 60×40; `main-menu/00-tui-main-compact` (new): the earlier cells, byte for byte.
 - `pkg/menu`: `main_menu_live/debian13-80x24`, `-80x40`, `hardened-80x24`, `-80x40`: the whole main menu on the layout, 36 lines, the same at 24 and 40 rows (each was the blocks over pkg/style's menu, 32 and 37 lines); `main_menu/*` (origin/main's screen, the legacy record) untouched.
-- The gallery: the status hosts' and play's main menus (`status/*`, `play/*`), the indicator's line and the full form in their 24-row cells; the retired mocks' goldens deleted (gallery-dryrun.md §8).
+- The gallery: the status hosts' and play's main menus (`status/*`, `play/*`), the indicator's line and the full form in their 24-row cells; the retired mocks' goldens deleted (gallery-dryrun.md §10).
 - No characterization golden changed.
 
 ## 12. Not in this unit: unit (d)
