@@ -85,11 +85,12 @@ func newGuard(sys host.System) *guard { return &guard{sys: sys} }
 // The parts of a reading that are not a status row's control, whose part
 // is its ID (read).
 const (
+	partConfig = "hardn.yml"
 	partDetect = "detect"
 	partHeader = "header"
 )
 
-// within makes part, a control's ID, partDetect or partHeader, the part
+// within makes part, a control's ID, partConfig, partDetect or partHeader, the part
 // of the reading the calls from now on are recorded as. The reading is
 // sequential (Engine.Check checks one control at a time), so a refused
 // call is the part's whose check made it, even when the check carries on

@@ -6,15 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"slices"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
-	"github.com/abbott/hardn/pkg/engine/controls/firewall"
-	"github.com/abbott/hardn/pkg/engine/controls/ssh"
-	"github.com/abbott/hardn/pkg/engine/controls/updates"
-	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/controls"
 	probe "github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
@@ -221,17 +219,6 @@ func statusNames() []string {
 	return names
 }
 
-// statusControls are the main menu's status rows: the five areas'
-// Controls(), in Figma's order (risk.Rows), as hardn's main menu will
-// check them.
-func statusControls() []engine.Control {
-	var out []engine.Control
-	for _, cs := range [][]engine.Control{users.Controls(), firewall.Controls(), ssh.Controls(), apparmor.Controls(), updates.Controls()} {
-		out = append(out, cs...)
-	}
-	return out
-}
-
 // hostStatus is what the main menu reads of a host: detect's facts, the
 // checks' reports, the header probe's header and the risk level over
 // both.
@@ -242,12 +229,18 @@ type hostStatus struct {
 	level   risk.Level
 }
 
-// readStatus reads h as the main menu will: detect's facts, once, then
-// Engine.Check over the status rows' controls on them, the header probe
-// on the same facts, and the risk level over both. The error is ctx's or
-// detection's alone, as Engine.Check's: a check's error is in its report.
+// readStatus reads h as hardn's main menu does: hardn.yml as hardn loads
+// it (statusConfig), then detect's facts, once, Engine.Check over the main
+// menu's status controls (controls.Status) on them, the header probe on
+// the same facts, and the risk level over both. The error is hardn.yml's,
+// ctx's or detection's alone, as Engine.Check's: a check's error is in its
+// report.
 func (s *session) readStatus(ctx context.Context, h *fakeHost) (hostStatus, error) {
 	sys := h.sys()
+	cfg, err := statusConfig(ctx, sys)
+	if err != nil {
+		return hostStatus{}, err
+	}
 	var facts detect.Facts
 	e := engine.New(sys, engine.Options{
 		Detect: func(ctx context.Context, sys host.System) (detect.Facts, error) {
@@ -257,12 +250,24 @@ func (s *session) readStatus(ctx context.Context, h *fakeHost) (hostStatus, erro
 		},
 		Hold: s.hold,
 	})
-	reports, err := e.Check(ctx, statusControls())
+	reports, err := e.Check(ctx, controls.Status(cfg))
 	if err != nil {
 		return hostStatus{}, err
 	}
 	hd := probe.Read(ctx, sys, facts)
 	return hostStatus{facts: facts, reports: reports, header: hd, level: risk.Assess(reports, hd)}, nil
+}
+
+// statusConfig is the simulated host's hardn.yml as hardn loads it, from
+// the system-wide path (hardnYML, read through sys: config.Read), or the
+// defaults where there is none, as hardn has them with no file found,
+// listing no nameserver.
+func statusConfig(ctx context.Context, sys host.System) (*config.Config, error) {
+	cfg, err := config.Read(ctx, sys, hardnYML)
+	if errors.Is(err, fs.ErrNotExist) {
+		return config.DefaultConfig(), nil
+	}
+	return cfg, err
 }
 
 // mainMenu is the main menu of st: the main menu's mock with its header,

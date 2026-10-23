@@ -1,8 +1,9 @@
 // Command p4status is a dev-only, read-only driver for refactor plan
 // Phase 4 (next/p4-vmcheck): run as root on a host, it reads the host as
-// hardn's main menu will, through the real code (detect's facts, once;
-// Engine.Check over the status rows' controls in Figma's order: User,
-// Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates; the
+// hardn's main menu does, through the real code (hardn.yml, where hardn
+// looks for it; detect's facts, once; Engine.Check over the main menu's
+// status controls, controls.Status: User, Firewall, SSH Login, SSH Auth,
+// SSH Port, AppArmor, Auto Updates, then DNS since next/s2-menu-live; the
 // header probe; the risk level), and prints
 //
 //  1. the main menu as hardn will draw it: pkg/output's MainMenuOf over the
@@ -48,10 +49,13 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls"
 	"github.com/abbott/hardn/pkg/host"
 )
 
@@ -70,9 +74,13 @@ type env struct {
 	stdout, stderr io.Writer
 	// system is the host, built only once the gates hold.
 	system func() host.System
-	// controls are the status rows' controls, statusControls; the tests
-	// add one that changes the host, to see it refused.
-	controls func() []engine.Control
+	// controls are the status rows' controls over hardn.yml,
+	// controls.Status; the tests add one that changes the host, to see it
+	// refused.
+	controls func(*config.Config) []engine.Control
+	// configs are where hardn looks for hardn.yml, in its order, each
+	// absolute (configPaths).
+	configs []string
 }
 
 func production() env {
@@ -82,8 +90,23 @@ func production() env {
 		stdout:   os.Stdout,
 		stderr:   os.Stderr,
 		system:   func() host.System { return host.NewReal(host.Options{}) },
-		controls: statusControls,
+		controls: controls.Status,
+		configs:  configPaths(),
 	}
+}
+
+// configPaths are where hardn looks for hardn.yml with no -f
+// (config.ConfigFileSearchPath: HARDN_CONFIG alone when set, else
+// /etc/hardn/hardn.yml, the user's two and ./hardn.yml), each made
+// absolute, as config.Read needs them; one that cannot be is left out.
+func configPaths() []string {
+	var out []string
+	for _, p := range config.ConfigFileSearchPath("") {
+		if abs, err := filepath.Abs(p); err == nil {
+			out = append(out, abs)
+		}
+	}
+	return out
 }
 
 func main() {
@@ -134,7 +157,7 @@ func run(ctx context.Context, args []string, e env) int {
 	}
 
 	g := newGuard(e.system())
-	r, readErr := read(ctx, g, e.controls())
+	r, readErr := read(ctx, g, e.configs, e.controls)
 	calls := g.calls()
 	var out []byte
 	if readErr == nil {

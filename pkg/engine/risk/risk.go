@@ -10,7 +10,8 @@
 // 100: a Configured row earns its weight, a Partial row half of it (none
 // for a Partial line that protects nothing now, or that carries a fact its
 // check left open), a NotConfigured or Unknown row nothing, and a
-// NotApplicable row is left out of both the share and the whole. Each
+// NotApplicable row is left out of both the share and the whole, as is
+// DNS, the row of weight 0, shown and not weighed, whatever its state. Each
 // cross-check the host fails then costs points: ufw set to refuse SSH once
 // it starts, a second root account, a reboot pending, a long uptime
 // without automatic updates, a user account that becomes root without a
@@ -32,6 +33,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -98,18 +100,23 @@ const LongUptime = 30 * 24 * time.Hour
 // own). pkg/output's registry holds it.
 const CodeUptimeNoUpdates = "UPTIME_NO_AUTO_UPDATES"
 
-// Row is one status row the score weighs.
+// Row is one status row of the main menu, with what the score weighs it.
 type Row struct {
 	ID, Title string // the control's
-	Weight    int    // points of 100
+	// Weight is the row's points of 100. A row of weight 0 is shown and
+	// not weighed (DNS; the maintainer, 2026-10-23): Assess leaves it out
+	// of the share and the whole, of whether any row is established, and
+	// of the factors, whatever its state.
+	Weight int
 }
 
 // row is control c's row, weighing w. The control is read for its ID and
 // title alone: Engine.Check runs the areas' own Controls().
 func row(c engine.Control, w int) Row { return Row{ID: c.ID(), Title: c.Title(), Weight: w} }
 
-// rows are the main menu's status rows in Figma's order, each with its
-// weight, together 100 (risk.md §5.1).
+// rows are the main menu's status rows, each with its weight, together
+// 100 (risk.md §5.1): Figma's seven in Figma's order, then DNS, shown and
+// not weighed (next/s2-menu-live).
 var rows = []Row{
 	row(users.Admin{}, 10),
 	row(firewall.Incoming{}, 20),
@@ -118,10 +125,12 @@ var rows = []Row{
 	row(ssh.Port{}, 5),
 	row(apparmor.Enforce{}, 10),
 	row(updates.Auto{}, 20),
+	row(dns.Nameservers{}, 0),
 }
 
-// Rows returns the rows the score weighs, in Figma's order: User,
-// Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates.
+// Rows returns the main menu's status rows, in their order: User,
+// Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates (Figma's
+// seven, which the score weighs), then DNS, of weight 0.
 func Rows() []Row { return slices.Clone(rows) }
 
 // The rows' controls that a cross-check reads.
@@ -226,7 +235,8 @@ type Level struct {
 
 // Assess scores the host from Engine.Check's reports and the header
 // probe's h. A row's first report counts; a row with none counts as
-// Unknown; a report for a control the score does not weigh is left out.
+// Unknown; a report for a control the score does not weigh, a row of
+// weight 0 among them, is left out.
 // The zero Header establishes nothing, so it costs both cross-checks.
 func Assess(reports []engine.Report, h header.Header) Level {
 	byID := map[string]engine.Report{}
@@ -240,6 +250,9 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	established := false
 	var unknown []string // the Unknown rows' controls
 	for _, rw := range rows {
+		if rw.Weight == 0 { // shown, not weighed: no share, no factor
+			continue
+		}
 		r, ok := byID[rw.ID]
 		s := state(r, ok)
 		switch s {

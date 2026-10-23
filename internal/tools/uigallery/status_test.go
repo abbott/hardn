@@ -27,12 +27,12 @@ import (
 // here runs a command or reads a file outside the fake.
 
 // wantStatus is a status host's main menu as docs/engine/gallery-status.md
-// §5 lists it: each row's state and detail in Figma's order, the risk
+// §5 lists it: each row's state and detail in the rows' order, the risk
 // level, its gloss and score, the lines under the rows, the
 // distribution's bar, the uptime and the host block's reboot line; the
 // code of each check that failed, and a finding §5 names, by control.
 type wantStatus struct {
-	rows        [7]string // "<state>: <detail>", engine.State's words
+	rows        [8]string // "<state>: <detail>", engine.State's words
 	level       string    // "<level> ≈ <gloss>"
 	score       string    // the score, to one decimal place
 	lines       []string  // "<row>: <line>", "(muted)" after one not in status.warn
@@ -53,23 +53,33 @@ const (
 	ubuntuAA    = "configured: 9 profiles enforced"
 	noUnattend  = "not-configured: no unattended-upgrades"
 	unattendOn  = "configured: unattended-upgrades"
+	dnsNone     = "not-configured: none in hardn.yml" // no hardn.yml: hardn's defaults list no nameserver
+	dnsHardn    = "configured: 192.0.2.54, 2001:db8::54"
 	debianBar   = "Debian 13 (Trixie)"
 	ubuntuBar   = "Ubuntu 26.04 (Resolute)"
 	threeDays   = "3 days, 5 hours, 12 minutes"
 )
 
 // hardenedRows are the hardened host's rows.
-var hardenedRows = [7]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth",
-	"configured: non-default (2230)", "configured: 7 profiles enforced", unattendOn}
+var hardenedRows = [8]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth",
+	"configured: non-default (2230)", "configured: 7 profiles enforced", unattendOn, dnsHardn}
 
 // debianWith is the debian13 host's rows, with AppArmor's row apparmor.
-func debianWith(apparmor string) [7]string {
-	return [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend}
+func debianWith(apparmor string) [8]string {
+	return [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend, dnsNone}
 }
+
+// containerRows are the container's: the debian13 host's, AppArmor and
+// DNS set by the container's host.
+var containerRows = func() [8]string {
+	rows := debianWith("not-applicable: set by the host")
+	rows[7] = "not-applicable: container"
+	return rows
+}()
 
 // hardenedWith is the hardened host's rows, with the Firewall's row
 // firewall.
-func hardenedWith(firewall string) [7]string {
+func hardenedWith(firewall string) [8]string {
 	rows := hardenedRows
 	rows[1] = firewall
 	return rows
@@ -78,36 +88,36 @@ func hardenedWith(firewall string) [7]string {
 // wantStatuses are the status hosts' main menus, by name.
 var wantStatuses = map[string]wantStatus{
 	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", score: "47.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+	"ubuntu2604": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
 		level: "Moderate ≈ medium security", score: "67.5", bar: ubuntuBar, uptime: threeDays},
-	"alpine324": {rows: [7]string{"configured: non-root, doas", "not-configured: ufw not installed", "configured: root locked", passwordOn, port22,
-		"not-applicable: Alpine default", "not-configured: no apk-cron"}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
-	"pve9": {rows: [7]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
-		"configured: 10 profiles enforced", noUnattend}, level: "Critical ≈ no security", score: "5.0", lines: []string{"Auto Updates: Up 41 days, no updates"},
+	"alpine324": {rows: [8]string{"configured: non-root, doas", "not-configured: ufw not installed", "configured: root locked", passwordOn, port22,
+		"not-applicable: Alpine default", "not-configured: no apk-cron", dnsNone}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
+	"pve9": {rows: [8]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
+		"configured: 10 profiles enforced", noUnattend, dnsNone}, level: "Critical ≈ no security", score: "5.0", lines: []string{"Auto Updates: Up 41 days, no updates"},
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
-	"fresh": {rows: [7]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend},
+	"fresh": {rows: [8]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend, dnsNone},
 		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604-cloud": {rows: [7]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn},
+	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn, dnsNone},
 		level: "Moderate ≈ medium security", score: "62.5", lines: []string{"User: No password to become root"}, bar: ubuntuBar, uptime: threeDays,
 		finds: map[string]string{"users.admin": "USERS_NOPASSWD"}},
-	"ubuntu2604-iso": {rows: [7]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
 		level: "High ≈ weak security", score: "47.5", bar: ubuntuBar, uptime: threeDays},
 	"hardened": {rows: hardenedRows, level: "Minimal ≈ hardened security", score: "100.0", bar: debianBar, uptime: threeDays},
-	"figma": {rows: [7]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
-		"not-configured: no profiles loaded", noUnattend}, level: "Moderate ≈ medium security", score: "60.0", lines: []string{"Auto Updates: Up 182 days, no updates"},
+	"figma": {rows: [8]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
+		"not-configured: no profiles loaded", noUnattend, dnsHardn}, level: "Moderate ≈ medium security", score: "60.0", lines: []string{"Auto Updates: Up 182 days, no updates"},
 		bar: debianBar, uptime: "182 days, 2 hours, 26 minutes"},
 	"lockout": {rows: hardenedWith("partial: ssh blocked"), level: "Critical ≈ lockout risk", score: "90.0", bar: debianBar, uptime: threeDays},
 	"lockout-at-start": {rows: hardenedWith("not-configured: enabled, not running"), level: "Moderate ≈ medium security", score: "70.0",
 		lines: []string{"Firewall: SSH may be blocked after restart"}, bar: debianBar, uptime: threeDays,
 		finds: map[string]string{"firewall.incoming": "UFW_SSH_NOT_ALLOWED_AT_START"}},
-	"reboot": {rows: [7]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn},
+	"reboot": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
 		level: "Moderate ≈ medium security", score: "57.5", bar: ubuntuBar, uptime: threeDays, reboot: component.RebootPending},
 	"apparmor-logging": {rows: debianWith("partial: logging only"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
 	"apparmor-restart": {rows: debianWith("partial: off after restart"), level: "High ≈ weak security", score: "42.5", bar: debianBar, uptime: threeDays},
 	"apparmor-kernel":  {rows: debianWith("not-configured: off in kernel"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
 	"apparmor-unread": {rows: debianWith("unknown: can't read"), level: "High ≈ weak security", score: "37.5", lines: []string{"AppArmor: Counted as not configured (muted)"},
 		bar: debianBar, uptime: threeDays, errs: map[string]string{"apparmor.enforce": "FILE_NOT_FOUND"}},
-	"container": {rows: debianWith("not-applicable: set by the host"), level: "High ≈ weak security", score: "41.7", bar: debianBar, uptime: "1 hour"},
+	"container": {rows: containerRows, level: "High ≈ weak security", score: "41.7", bar: debianBar, uptime: "1 hour"},
 }
 
 // statusReads reports whether argv only reads the host: the scenarios'

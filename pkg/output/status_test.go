@@ -10,6 +10,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
@@ -34,7 +35,8 @@ func row(id, title string, s engine.State, detail string, codes ...string) engin
 }
 
 // figmaReports is Figma's 00-TUI-MAIN host, as the checks report it, in
-// Engine.Check's order (the areas' packages), not Figma's.
+// Engine.Check's order (the areas' packages), not Figma's, and the DNS
+// row, which Figma does not draw, its nameservers hardn.yml's.
 func figmaReports() []engine.Report {
 	return []engine.Report{
 		row("ssh.login", "SSH Login", engine.Configured, "root disallowed"),
@@ -44,6 +46,7 @@ func figmaReports() []engine.Report {
 		row("users.admin", "User", engine.Configured, "non-root, sudo"),
 		row(apparmor.ID, "AppArmor", engine.NotConfigured, apparmor.DetailNoProfiles),
 		row(updates.ID, "Auto Updates", engine.NotConfigured, updates.DetailNoUnattended),
+		row(dns.ID, "DNS", engine.Configured, "192.0.2.54, 2001:db8::54"),
 	}
 }
 
@@ -76,6 +79,7 @@ func TestStatusViewOfFigma(t *testing.T) {
 			{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 			{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades",
 				Lines: []component.StatusLine{{Text: "Up 182 days, no updates", Warn: true}}},
+			{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
 		}},
 	}
 	if !reflect.DeepEqual(v, want) {
@@ -89,10 +93,10 @@ func TestStatusViewOfFigma(t *testing.T) {
 func TestStatusRows(t *testing.T) {
 	rs := figmaReports()
 	rs = slices.DeleteFunc(rs, func(r engine.Report) bool { return r.Control == "users.admin" })
-	rs = append([]engine.Report{row("dns.servers", "DNS", engine.Partial, "one server")}, rs...)
+	rs = append([]engine.Report{row("extra.row", "Extra", engine.Partial, "one server")}, rs...)
 	rs = replaced(rs, engine.Report{Control: "ssh.auth", Title: "SSH Auth", Status: engine.Status{State: engine.Configured, Detail: "sshd not running"},
 		Err: errors.New("sshd -T")})
-	rs = append(rs, row("ssh.port", "SSH Port", engine.NotConfigured, "default (22)"), row("dns.servers", "DNS", engine.NotConfigured, "x"))
+	rs = append(rs, row("ssh.port", "SSH Port", engine.NotConfigured, "default (22)"), row("extra.row", "Extra", engine.NotConfigured, "x"))
 	v := output.StatusViewOf(rs, risk.Assess(rs, upFor(time.Hour)))
 	counted := []component.StatusLine{{Text: "Counted as not configured"}}
 	want := []component.StatusRow{
@@ -103,7 +107,8 @@ func TestStatusRows(t *testing.T) {
 		{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
 		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
-		{Label: "DNS", State: component.StatusPartial, Detail: "one server"},
+		{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
+		{Label: "Extra", State: component.StatusPartial, Detail: "one server"},
 	}
 	if !reflect.DeepEqual(v.Status.Rows, want) {
 		t.Errorf("got  %+v\nwant %+v", v.Status.Rows, want)
@@ -236,7 +241,7 @@ func statusFixtures() []struct {
 		row(updates.ID, "Auto Updates", engine.Configured, updates.DetailUnattended))
 	lockout := replaced(hardened, row("firewall.incoming", "Firewall", engine.Partial, "ssh blocked", firewall.CodeSSHBlocked))
 	container := []engine.Report{row("users.admin", "User", engine.Configured, "non-root, doas", users.CodeNoPassword),
-		row(apparmor.ID, "AppArmor", engine.NotApplicable, apparmor.DetailByHost)}
+		row(apparmor.ID, "AppArmor", engine.NotApplicable, apparmor.DetailByHost), row(dns.ID, "DNS", engine.NotApplicable, dns.DetailContainer)}
 	for _, id := range []string{"firewall.incoming", "ssh.login", "ssh.auth", "ssh.port", updates.ID} {
 		container = append(container, engine.Report{Control: id, Title: titles[id], Status: engine.Status{State: engine.Unknown, Detail: "can't read"},
 			Err: errors.New("denied")})

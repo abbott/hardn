@@ -260,6 +260,30 @@
 		},
 		{
 			"argv": [
+				"systemctl",
+				"is-active",
+				"systemd-resolved.service"
+			],
+			"stdout": "active\n"
+		},
+		{
+			"argv": [
+				"resolvectl",
+				"--no-pager",
+				"dns"
+			],
+			"stdout": "Global:\nLink 2 (eth0): 192.0.2.1\n"
+		},
+		{
+			"argv": [
+				"resolvectl",
+				"--no-pager",
+				"domain"
+			],
+			"stdout": "Global:\nLink 2 (eth0): example.net\n"
+		},
+		{
+			"argv": [
 				"ip",
 				"-4",
 				"addr",
@@ -345,6 +369,13 @@
 			"uid": 0,
 			"gid": 0,
 			"data": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nalice:x:1000:1000:alice:/home/alice:/bin/bash\n"
+		},
+		{
+			"path": "/etc/resolv.conf",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "../run/systemd/resolve/stub-resolv.conf"
 		},
 		{
 			"path": "/etc/shadow",

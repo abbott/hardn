@@ -2,14 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
-	"github.com/abbott/hardn/pkg/engine/controls/firewall"
-	"github.com/abbott/hardn/pkg/engine/controls/ssh"
-	"github.com/abbott/hardn/pkg/engine/controls/updates"
-	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
@@ -20,38 +18,40 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// statusControls are the main menu's status rows: the five areas'
-// Controls(), in Figma's order (risk.Rows), as the gallery's status hosts
-// check them (uigallery's statusControls, which this copies until slice 2
-// exports one list; TestStatusControls holds it to risk.Rows).
-func statusControls() []engine.Control {
-	var out []engine.Control
-	for _, cs := range [][]engine.Control{users.Controls(), firewall.Controls(), ssh.Controls(), apparmor.Controls(), updates.Controls()} {
-		out = append(out, cs...)
-	}
-	return out
-}
-
-// reading is what the main menu reads of a host: detect's facts, the
-// checks' reports, the header probe's header and the risk level over both.
+// reading is what the main menu reads of a host: hardn.yml's path ("" for
+// none found), detect's facts, the checks' reports, the header probe's
+// header and the risk level over both.
 type reading struct {
+	config  string
 	facts   detect.Facts
 	reports []engine.Report
 	header  header.Header
 	level   risk.Level
 }
 
-// read reads the host through g as hardn's main menu will, and as the
-// gallery's status hosts do (uigallery's readStatus): detect's facts once,
-// Engine.Check over controls on them, the header probe on the same facts,
-// and the risk level over both. The engine's signal hold, which a check
-// never takes, is g's (a refusal). g records each call as the part's that
-// made it (guard.within): detect's, a row's control's, the header's. The
-// error is ctx's or detection's alone, as Engine.Check's: a check's error
-// is in its report. ctx ended during the header probe is an error too, so
-// that a reading cut short is never scored and shown as a whole one.
-func read(ctx context.Context, g *guard, controls []engine.Control) (reading, error) {
+// read reads the host through g as hardn's main menu does, and as the
+// gallery's status hosts do (uigallery's readStatus): hardn.yml, the
+// first of configs that exists, as hardn loads it (config.Read; hardn's
+// defaults, which list no nameserver, when none does); detect's facts
+// once; Engine.Check over controlsOf(hardn.yml), the main menu's status
+// controls (controls.Status), on them; the header probe on the same
+// facts; and the risk level over both. The engine's signal hold, which a
+// check never takes, is g's (a refusal). g records each call as the
+// part's that made it (guard.within): hardn.yml's, detect's, a row's
+// control's, the header's. The error is hardn.yml's (one that does not
+// load, as hardn refuses to start with it), ctx's or detection's alone,
+// as Engine.Check's: a check's error is in its report. ctx ended during
+// the header probe is an error too, so that a reading cut short is never
+// scored and shown as a whole one.
+func read(ctx context.Context, g *guard, configs []string, controlsOf func(*config.Config) []engine.Control) (reading, error) {
 	var r reading
+	g.within(partConfig)
+	cfg, err := loadConfig(ctx, g, configs)
+	if err != nil {
+		return r, err
+	}
+	r.config = cfg.Path()
+	controls := controlsOf(cfg)
 	e := engine.New(g, engine.Options{
 		Detect: func(ctx context.Context, sys host.System) (detect.Facts, error) {
 			g.within(partDetect)
@@ -77,6 +77,23 @@ func read(ctx context.Context, g *guard, controls []engine.Control) (reading, er
 	}
 	r.level = risk.Assess(r.reports, r.header)
 	return r, nil
+}
+
+// loadConfig is hardn.yml from the first of paths that exists, read
+// through sys as hardn loads it (config.Read), or hardn's defaults when
+// none does.
+func loadConfig(ctx context.Context, sys host.System, paths []string) (*config.Config, error) {
+	for _, p := range paths {
+		cfg, err := config.Read(ctx, sys, p)
+		switch {
+		case errors.Is(err, fs.ErrNotExist):
+			continue
+		case err != nil:
+			return nil, fmt.Errorf("hardn.yml: %w", err)
+		}
+		return cfg, nil
+	}
+	return config.DefaultConfig(), nil
 }
 
 // row is a status row's control as read checks it: the control's own,

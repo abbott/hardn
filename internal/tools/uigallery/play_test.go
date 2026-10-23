@@ -591,8 +591,10 @@ func TestPlayTouchesNothing(t *testing.T) {
 	// pkg/config's functions that reach the host only through the
 	// host.System they are given, or not at all, which the save of
 	// hardn.yml calls (steps.PlanSave, next/s2-control; Edit since
-	// next/s2-config-edit): play may name them.
-	for _, name := range []string{"Read", "Save", "Edit"} {
+	// next/s2-config-edit), and the defaults a status host with no
+	// hardn.yml is checked against (statusConfig, next/s2-menu-live):
+	// play may name them.
+	for _, name := range []string{"Read", "Save", "Edit", "DefaultConfig"} {
 		if !unreached[module+"pkg/config"][name] {
 			t.Fatalf("pkg/config has no function %s", name)
 		}

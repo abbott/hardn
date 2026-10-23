@@ -147,6 +147,13 @@
 			"gid": 0
 		},
 		{
+			"path": "/bin/busybox",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
 			"path": "/bin/sh",
 			"type": "file",
 			"mode": "0755",
@@ -216,6 +223,21 @@
 			"data": "#!/sbin/openrc-run\n"
 		},
 		{
+			"path": "/etc/network",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/network/interfaces",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n"
+		},
+		{
 			"path": "/etc/os-release",
 			"type": "file",
 			"mode": "0644",
@@ -244,6 +266,14 @@
 			"mode": "0755",
 			"uid": 0,
 			"gid": 0
+		},
+		{
+			"path": "/etc/resolv.conf",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "search example.net\nnameserver 192.0.2.1\n"
 		},
 		{
 			"path": "/etc/runlevels",
@@ -302,6 +332,21 @@
 			"mode": "0755",
 			"uid": 0,
 			"gid": 0
+		},
+		{
+			"path": "/etc/udhcpc",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/udhcpc/udhcpc.conf",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"
 		},
 		{
 			"path": "/lib",
@@ -479,6 +524,13 @@
 			"gid": 0
 		},
 		{
+			"path": "/sbin/udhcpc",
+			"type": "symlink",
+			"uid": 0,
+			"gid": 0,
+			"target": "/bin/busybox"
+		},
+		{
 			"path": "/sys",
 			"type": "dir",
 			"mode": "0755",
@@ -513,6 +565,28 @@
 			"uid": 0,
 			"gid": 0,
 			"data": "ELF"
+		},
+		{
+			"path": "/usr/libexec",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/libexec/ifupdown-ng",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/libexec/ifupdown-ng/dhcp",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0,
+			"data": "#!/bin/sh\ndetermine_implementation() {\n\t[ -n \"$IF_DHCP_PROGRAM\" ] \u0026\u0026 echo \"$IF_DHCP_PROGRAM\" \u0026\u0026 return\n\t[ -x /sbin/dhcpcd ] \u0026\u0026 echo \"dhcpcd\" \u0026\u0026 return\n\t[ -x /usr/sbin/dhclient ] \u0026\u0026 echo \"dhclient\" \u0026\u0026 return\n\t[ -x /sbin/udhcpc ] \u0026\u0026 echo \"udhcpc\" \u0026\u0026 return\n"
 		}
 	]
 }
