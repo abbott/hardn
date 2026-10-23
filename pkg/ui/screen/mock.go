@@ -28,10 +28,11 @@ type Mock struct {
 	// workflow.
 	Screen MenuScreen
 	// Refusals are what a menu screen's items say, by key, in place of an
-	// action that hardn refuses before it asks or plans anything, such as
-	// every DNS item on a host whose resolver hardn only reports (P-37
-	// (a)); nil for none. The playable mode writes the Message, then the
-	// menu again under it.
+	// action that hardn refuses before it asks or plans anything, as the
+	// DNS mocks refused every item on a host whose resolver hardn only
+	// reports (P-37 (a)) until the real DNS screen replaced them
+	// (next/s2-screen); nil for none. The playable mode writes the
+	// Message, then the menu again under it.
 	Refusals map[string]component.Message
 	// Sequences are a workflow's paths, such as the normal path, the
 	// dry-run path, which stops at the plan, and the failure path, which
@@ -82,13 +83,15 @@ type Sequence struct {
 type Answer struct{ Step, Line string }
 
 // Mocks returns the gallery's screen mocks, by layout, then by name: each
-// Figma frame that fits a layout, and origin/main's DNS screen, inferred,
-// on each host of the DNS mocks, with its actions as workflows (dns.go).
-// SSH_LOGIN-SSH_SETTINGS_DISPLAY fits none (P-28), nor does origin/main's
-// Firewall screen, of which the Figma export holds a screenshot (P-30).
+// Figma frame that fits a layout. SSH_LOGIN-SSH_SETTINGS_DISPLAY fits none
+// (P-28), nor does origin/main's Firewall screen, of which the Figma
+// export holds a screenshot (P-30). origin/main's DNS screen, mocked on
+// eight hosts by next/s2-gallery, is retired from them: the real screen
+// (DNS, drawn from the host by pkg/screens/dns) replaced it, and the
+// gallery plays it on the same hosts (docs/engine/gallery-dns.md §11).
 // The workflows' sequences run on fixture plans (flow.Fixture).
 func Mocks() []Mock {
-	out := append(frameMocks(), dnsMocks()...)
+	out := frameMocks()
 	slices.SortStableFunc(out, func(a, b Mock) int { return strings.Compare(a.Name, b.Name) })
 	return out
 }

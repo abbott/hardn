@@ -11,11 +11,10 @@ import (
 	"github.com/abbott/hardn/pkg/ui/form"
 )
 
-// The fixtures of Figma's other frames for the gallery's mocks (Mocks);
-// origin/main's DNS screen's are in dns.go. Each sub-screen's title bar is the
-// frame's, and its trail the sections above it, such as "User
-// Management" above "Manage User", shown only when TitleTrail is set
-// (P-08; DEV-053, DEV-054). Where a frame's mock data is a real-looking
+// The fixtures of Figma's other frames for the gallery's mocks (Mocks).
+// Each sub-screen's title bar is the frame's, and its trail the sections
+// above it, such as "User Management" above "Manage User", shown only
+// when TitleTrail is set (P-08; DEV-053, DEV-054). Where a frame's mock data is a real-looking
 // name, the fixture has george or alice; its other words, Figma's drift
 // included, are the frame's, as UserFixture's are.
 

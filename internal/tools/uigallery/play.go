@@ -20,35 +20,23 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
 // menus lead (docs/refactor/phase0/interaction.md §9): the main menu to
 // its sub-menus, User Management's Manage User to the user list and on to
-// george's menu, its Sudo Method to the sudo change, SSH Login's first
-// item to the root-login toggle, and each DNS screen's items to their
-// workflows on its host (docs/engine/gallery-dns.md). An item with no
-// link, and no refusal (screen.Mock.Refusals), says that the gallery has
-// no screen for it.
+// george's menu, its Sudo Method to the sudo change, and SSH Login's first
+// item to the root-login toggle. The main menu's 3 leads to the real DNS
+// screen (dnsLinks, dnsscreen.go). An item with no link, and no refusal
+// (screen.Mock.Refusals), says that the gallery has no screen for it.
 var links = map[string]string{
 	"main-menu/00-tui-main/1":                 "sub-menu/01-user",
 	"main-menu/00-tui-main/2":                 "sub-menu/02-ssh-login",
-	"main-menu/00-tui-main/3":                 "sub-menu/03-dns",
 	"main-menu/00-tui-main/5":                 "sub-menu/05-backup",
 	"sub-menu/01-user/1":                      "sub-menu/user-manage-user-select-user",
 	"sub-menu/01-user/2":                      "workflow-step/user-create-user",
 	"sub-menu/02-ssh-login/1":                 "workflow-step/ssh-login-toggle-confirmation",
-	"sub-menu/03-dns/1":                       "workflow-step/dns-configure-dns",
-	"sub-menu/03-dns/2":                       "workflow-step/dns-add-nameserver",
-	"sub-menu/03-dns/3":                       "workflow-step/dns-remove-nameserver",
-	"sub-menu/03-dns/4":                       "workflow-step/dns-use-cloudflare-dns",
-	"sub-menu/03-dns/5":                       "workflow-step/dns-use-google-dns",
-	"sub-menu/03-dns/6":                       "workflow-step/dns-use-quad9-dns",
-	"sub-menu/03-dns-alpine324/1":             "workflow-step/dns-configure-dns-alpine324",
-	"sub-menu/03-dns-configured/1":            "workflow-step/dns-configure-dns-configured",
-	"sub-menu/03-dns-pve9/1":                  "workflow-step/dns-configure-dns-pve9",
-	"sub-menu/03-dns-ubuntu2604/1":            "workflow-step/dns-configure-dns-ubuntu2604",
 	"sub-menu/user-manage-user-select-user/1": "sub-menu/user-manage-user-management",
 	"sub-menu/user-manage-user-management/1":  "workflow-step/user-manage-sudo-confirmation",
 	"sub-menu/user-manage-user-management/2":  "sub-menu/user-ssh-keys",
@@ -93,6 +81,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			return s.play("play "+name, []string{engineNote}, s.openEngine(name), stderr)
+		})
+	}
+	if name, ok, err := dnsStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the DNS screen fails where its host does (dns/failed-reload, dns/failed-save)")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the DNS screen plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{engineNote}, s.openDNS(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
@@ -381,8 +385,9 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, an item m refuses says why, and an
-// item with neither says that the gallery has no screen for it.
+// opens the mock links name for it, or the DNS screen on the host
+// dnsLinks name, an item m refuses says why, and an item with none of
+// these says that the gallery has no screen for it.
 func (s *session) menu(m screen.Mock) nav.Menu {
 	view, _ := menuOf(m.Screen)
 	out := nav.Menu{Exit: view.Exit}
@@ -393,6 +398,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := links[m.Name+"/"+it.Key]; ok {
 			action = s.open(s.mocks[to])
+		}
+		if to, ok := dnsLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openDNS(to)
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}

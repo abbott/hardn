@@ -655,6 +655,49 @@ linters:
               desc: the DNS control returns data; pkg/output renders it (docs/engine/control-dns.md §2)
             - pkg: github.com/abbott/hardn/pkg/output
               desc: the DNS control returns data; pkg/output renders it (docs/engine/control-dns.md §2)
+        # next/s2-screen (refactor plan slice 2, unit (c)): the DNS screen's
+        # glue reads and changes the host only through host.System, the DNS
+        # control, pkg/host/dns and the engine, and draws only through
+        # pkg/ui and pkg/output: no file, process or network of its own.
+        screens-dns-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/screens/dns/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the DNS screen reads and changes the host only through host.System and the engine (docs/engine/screen-dns.md §2)
+            - pkg: io/ioutil
+              desc: the DNS screen reads only through host.System (docs/engine/screen-dns.md §2)
+            - pkg: golang.org/x/sys
+              desc: the DNS screen makes no system calls of its own (docs/engine/screen-dns.md §2)
+            - pkg: syscall
+              desc: the DNS screen makes no system calls of its own (docs/engine/screen-dns.md §2)
+            - pkg: net
+              desc: the DNS screen makes no network calls; net/netip only parses (docs/engine/screen-dns.md §2)
+            - pkg: plugin
+              desc: the DNS screen loads no code (docs/engine/screen-dns.md §2)
+        # next/s2-screen: pkg/ui draws and asks, and never reaches the host,
+        # the engine, hardn.yml or the output contract: what a screen shows
+        # of them comes in as its view-model, filled by the area's glue
+        # (pkg/screens/<area>), so that a layout cannot read the host.
+        ui-renders-only:
+          files:
+            - "${base-path}/pkg/ui/**"
+            - "!$test"
+          deny:
+            - pkg: github.com/abbott/hardn/pkg/host
+              desc: pkg/ui draws view-models; the area's glue reads the host (docs/engine/screen-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/engine
+              desc: pkg/ui draws view-models; pkg/output and the area's glue run the engine (docs/engine/screen-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/config
+              desc: pkg/ui draws view-models; the area's glue reads hardn.yml (docs/engine/screen-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/output
+              desc: pkg/output renders through pkg/ui, never the other way (docs/engine/screen-dns.md §2)
+            - pkg: github.com/abbott/hardn/pkg/screens
+              desc: the areas' glue draws through pkg/ui, never the other way (docs/engine/screen-dns.md §2)
     staticcheck:
       # v1 ran staticcheck (SA) and gosimple (S1) only. v2's staticcheck also
       # runs stylecheck (ST) and quickfix (QF); those stay off until reviewed.

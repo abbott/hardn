@@ -3,13 +3,20 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay sub-menu/03-dns-empty␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns/empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13; /etc/resolv.conf is a file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdhcpcd wrote from eth0's lease, naming 192.0.2.1 and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexample.net. hardn.yml lists no nameserver, so Configure DNS␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis refused and item 3 is not shown.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -71,13 +78,20 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play sub-menu/03-dns-empty -----------------------------------$
+# play dns/empty -----------------------------------------------$
 $
 # Note$
-# Play mode: hardn's own screens and prompts, on the gallery's$
-# fixture plans. Nothing on this machine changes: the simulated$
-# system only records each step it would apply, and the record$
-# is shown when play ends.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+$
+# Info: dns/empty$
+# web-01.example.net runs Debian 13; /etc/resolv.conf is a file$
+# dhcpcd wrote from eth0's lease, naming 192.0.2.1 and$
+# example.net. hardn.yml lists no nameserver, so Configure DNS$
+# is refused and item 3 is not shown.$
 $
 # DNS Configuration ############################################$
 $
@@ -139,13 +153,21 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay sub-menu/03-dns-empty␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns/empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13; /etc/resolv.conf is a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile dhcpcd wrote from eth0's lease, naming 192.0.2.1 and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexample.net. hardn.yml lists no nameserver, so Configure␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDNS is refused and item 3 is not shown.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
