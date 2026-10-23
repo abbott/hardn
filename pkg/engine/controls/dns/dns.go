@@ -326,6 +326,29 @@ func savedList(ctx context.Context, sys host.System, cfg *config.Config) (*[]str
 	return &f.Nameservers, nil
 }
 
+// HostRefusal is the refusal, with its report (steps.Refusal), that every
+// plan on the host makes whatever list it is given, or nil when there is
+// none: readErr, dns.Read's error (a container, a family hardn does not
+// configure, the family not established), or what dns.PlanDNS refuses of
+// state s before it reads a list (a manager hardn only reports, P-37 (a);
+// a fact not established). A screen asks it before asking anything, so
+// that no item asks for an answer every plan would refuse (slice 2,
+// decision 4; next/s2-screen). The refusals a plan makes of a list (none,
+// one dns.Validate refuses) and of a resolved host that takes no list
+// (stopped, a later drop-in, its path blocked) are the plan's, after the
+// question. Pure.
+func HostRefusal(s hostdns.State, readErr error) error {
+	err := readErr
+	if err == nil {
+		// PlanDNS refuses the manager and the facts before it validates
+		// the list, so an empty one leaves those refusals alone.
+		if _, err = hostdns.PlanDNS(s, hostdns.Config{}); !errors.Is(err, hostdns.ErrManaged) && !errors.Is(err, hostdns.ErrUnknown) {
+			return nil
+		}
+	}
+	return refusal(s, nil, nil, err)
+}
+
 // refusal is err, a refusal of pkg/host/dns, with its report: why the host
 // is refused and how to go on, in a few words (proposed; control-dns.md
 // §6). s is the state read, want hardn.yml's list, cfg its file. An error

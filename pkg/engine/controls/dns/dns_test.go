@@ -453,3 +453,43 @@ func TestEvidence(t *testing.T) {
 		})
 	}
 }
+
+// TestHostRefusal: HostRefusal is the plan's refusal, the same report
+// word for word, exactly where every plan on the host refuses whatever its
+// list (a container, a family hardn does not configure, a manager hardn
+// only reports, a fact not established: next/s2-screen), and nil for
+// every other refusal, which the plan makes of its list, of a resolved
+// that takes none, or of hardn.yml, and on every host that plans.
+func TestHostRefusal(t *testing.T) {
+	ctx := context.Background()
+	host := map[string]bool{"DNS_CONTAINER": true, "DNS_UNSUPPORTED": true, "DNS_MANAGED": true, "DNS_UNKNOWN": true}
+	for _, tt := range refusals {
+		t.Run(tt.name, func(t *testing.T) {
+			h, _ := newHost(t, tt.host, tt.list)
+			if tt.setup != nil {
+				tt.setup(h)
+			}
+			own := len(h.Calls())
+			s, err := hostdns.Read(ctx, h, h.facts)
+			got := dns.HostRefusal(s, err)
+			var r *steps.Refusal
+			switch {
+			case !host[tt.code]:
+				if got != nil {
+					t.Errorf("HostRefusal = %v; want nil, the plan's %s being of the list or the file", got, tt.code)
+				}
+			case !errors.As(got, &r) || output.CodeOf(got) != tt.code || r.Code != tt.code || r.Why != tt.why || r.Fix != tt.fix:
+				t.Errorf("HostRefusal = %v (%s); want the plan's %s: %q / %q", got, output.CodeOf(got), tt.code, tt.why, tt.fix)
+			}
+			if w := writesAfter(h, own); len(w) > 0 {
+				t.Errorf("it wrote: %v", w)
+			}
+		})
+	}
+	for _, name := range []string{debian13, configuredHost, ubuntu2604, ubuntu2404, debian12, alpine324, pve9} {
+		h, _ := newHost(t, name, configured)
+		if s, err := hostdns.Read(ctx, h, h.facts); dns.HostRefusal(s, err) != nil {
+			t.Errorf("%s: HostRefusal = %v; want nil", name, dns.HostRefusal(s, err))
+		}
+	}
+}
