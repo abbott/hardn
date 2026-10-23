@@ -27,7 +27,7 @@
 |---|---|---|---|---|---|---|
 | [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22) |
 | [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | proposed |
-| [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | proposed |
+| [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | decided (2026-10-23): one "Plan only" mode set at start; item 6 removed, its key unused |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
@@ -111,7 +111,7 @@
 <a id="p-03"></a>
 ### P-03: Resolve the dry-run model
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-23, slice 2b decision 1, "adopt all ten of the slice 2b recommendations"): one global "Plan only" mode, set as hardn starts by `-n` or hardn.yml's `dryRun` (§3.19's precedence, the source shown), every change's flow stopping at its plan; item 6 removed and its key left unused (neither (a) nor (b) below); the deprecation note in unit (b) (decision 10). [gallery-dryrun.md](../engine/gallery-dryrun.md) §4.
 - **Source:** brief §7.3. Related: decision on flag/config precedence (plan §3.19).
 - **Problem:**
   - The banner says "Dry-run Mode Disabled", while item 6 says "Simulate changes".
