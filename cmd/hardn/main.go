@@ -185,9 +185,9 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu with version service
+			// Create menu factory and main menu; its DNS item is the DNS screen (dns.go)
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := menuFactory.CreateMainMenu(versionService)
+			mainMenu := withDNSScreen(menuFactory.CreateMainMenu(versionService), cfg)
 
 			// Handle test flags
 			if testUpdateAvailable {

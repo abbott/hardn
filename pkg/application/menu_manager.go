@@ -100,11 +100,6 @@ func (m *MenuManager) HardenSystem(config *model.HardeningConfig) error {
 	return m.securityManager.HardenSystem(config)
 }
 
-// configure DNS with the specified nameservers
-func (m *MenuManager) ConfigureDNS(nameservers []string, domain string) error {
-	return m.dnsManager.ConfigureDNS(nameservers, domain)
-}
-
 // configure the firewall with secure settings
 func (m *MenuManager) ConfigureSecureFirewall(sshPort int, allowedPorts []int, profiles []model.FirewallProfile) error {
 	return m.firewallManager.ConfigureSecureFirewall(sshPort, allowedPorts, profiles)

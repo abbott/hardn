@@ -766,7 +766,7 @@ func dnsScenario(strategy string) opScenario {
 	return opScenario{
 		name:  "dns_" + strings.ReplaceAll(strategy, "-", "_"),
 		op:    "DNSManager.ConfigureDNS(cfg.Nameservers, \"lan\") -> FileDNSRepository.SaveDNSConfig, " + strategy + " strategy",
-		entry: "hardn -g (cmd/hardn/main.go:395-401); also Run All and the DNS menu",
+		entry: "hardn -g (cmd/hardn/main.go:395-401); also Run All",
 		cli:   []cliRun{{"-g", []string{hardncmd.FlagConfigureDNS}, refusedInRoot}},
 		setup: func(e *opEnv) { e.setDNSStrategy(strategy) },
 		run: func(e *opEnv) []callResult {
