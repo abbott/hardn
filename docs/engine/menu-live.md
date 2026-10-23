@@ -137,6 +137,8 @@ No new code in `pkg/output`'s registry: the reading's one error is a cancelled c
 
 ## 9. Tests
 
+> *Since `next/s2b-menu`: `cmd/hardn`'s `TestDrawStatus` is `TestReadStatus` (the hook returns the view-model); `pkg/screens/mainmenu`'s `TestForm` is gone with `Status`'s drawing, the form being `screen.MainMenu`'s (`TestStatusBlocks`, `TestFullAtEveryHeight`); `pkg/menu`'s tests are [menu-layout.md](menu-layout.md) §10's.*
+
 - `pkg/engine/controls`: `TestStatus` (the list is `risk.Rows`, by ID and title, DNS last, the configuration given).
 - `pkg/engine/controls/dns` (§8's decision): `TestCheck` (the empty list with and without a `hardn.yml` and with no configuration, on hosts read, on hosts with a reason of their own and on hosts not read), `TestNoneStillPlanned` (Not Applicable with its evidence and no error, and the control still planned and refused, `DNS_NO_NAMESERVERS`), `TestCheckGolden` (`human/check`: the empty list's line, and a "no hardn.yml" line added).
 - `pkg/engine/risk`: `TestShownNotWeighed` (a DNS report in every state, failed or absent, before or after the others, changes no level on six kinds of host; DNS alone established leaves the band Unknown, with no factor under it; probed to fail without the rule), `TestRows` (eight rows, DNS weight 0, the seven 100).
