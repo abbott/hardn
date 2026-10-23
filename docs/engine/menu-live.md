@@ -64,7 +64,7 @@ The file operations are `stat`, `lstat`, `read`, `readdir` and `readlink`. The r
 
 ## 6. The heights, with one row more
 
-> *Since `next/s2b-menu` (slice 2b, unit (c); [menu-layout.md](menu-layout.md) §4, §6), the compact form is gated (`screen.CompactMainMenu`, DISABLED; the maintainer, 2026-10-23, decision 5 as adopted: the full form at every height), and hardn's main menu is the layout whole, its legacy menu gone from it: 36 lines at 80×24 and 80×40, its top 12 lines scrolled off at 24 rows, the risk level among them; 59 at 60 columns. Every figure below for the compact form is what it drew, kept for the record and drawn again if the gate is flipped; the live column is hardn's main menu before that unit.*
+> *Since `next/s2b-menu` (slice 2b, unit (c); [menu-layout.md](menu-layout.md) §4, §6), the compact form is gated (`screen.CompactMainMenu`, DISABLED; the maintainer, 2026-10-23, decision 5 as adopted: the full form at every height), and hardn's main menu is the layout whole, its legacy menu gone from it: 36 lines at 80×24 and 80×40, its first 12 (the header to the SSH Login row, the risk level among them) scrolled off at 24 rows; 59 at 60 columns, where the rows stack, 35 off at 24 rows and 19 at 40. Every figure below for the compact form is what it drew, kept for the record and drawn again if the gate is flipped; the live column is hardn's main menu before that unit.*
 
 Measured by `TestHeights` (`pkg/ui/screen`), on a terminal, Figma's fixture with no line under a row (each line under a row, and the host block's reboot line, adds one to every figure), Unicode and ASCII alike:
 
