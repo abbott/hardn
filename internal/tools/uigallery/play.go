@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"path"
 	"slices"
 	"strings"
 	"sync"
@@ -26,8 +27,10 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // menus lead (docs/refactor/phase0/interaction.md §9): the main menu to
 // its sub-menus, User Management's Manage User to the user list and on to
 // george's menu, its Sudo Method to the sudo change, SSH Login's first
-// item to the root-login toggle. An item with no link says that the
-// gallery has no screen for it.
+// item to the root-login toggle, and each DNS screen's items to their
+// workflows on its host (docs/engine/gallery-dns.md). An item with no
+// link, and no refusal (screen.Mock.Refusals), says that the gallery has
+// no screen for it.
 var links = map[string]string{
 	"main-menu/00-tui-main/1":                 "sub-menu/01-user",
 	"main-menu/00-tui-main/2":                 "sub-menu/02-ssh-login",
@@ -36,6 +39,16 @@ var links = map[string]string{
 	"sub-menu/01-user/1":                      "sub-menu/user-manage-user-select-user",
 	"sub-menu/01-user/2":                      "workflow-step/user-create-user",
 	"sub-menu/02-ssh-login/1":                 "workflow-step/ssh-login-toggle-confirmation",
+	"sub-menu/03-dns/1":                       "workflow-step/dns-configure-dns",
+	"sub-menu/03-dns/2":                       "workflow-step/dns-add-nameserver",
+	"sub-menu/03-dns/3":                       "workflow-step/dns-remove-nameserver",
+	"sub-menu/03-dns/4":                       "workflow-step/dns-use-cloudflare-dns",
+	"sub-menu/03-dns/5":                       "workflow-step/dns-use-google-dns",
+	"sub-menu/03-dns/6":                       "workflow-step/dns-use-quad9-dns",
+	"sub-menu/03-dns-alpine324/1":             "workflow-step/dns-configure-dns-alpine324",
+	"sub-menu/03-dns-configured/1":            "workflow-step/dns-configure-dns-configured",
+	"sub-menu/03-dns-pve9/1":                  "workflow-step/dns-configure-dns-pve9",
+	"sub-menu/03-dns-ubuntu2604/1":            "workflow-step/dns-configure-dns-ubuntu2604",
 	"sub-menu/user-manage-user-select-user/1": "sub-menu/user-manage-user-management",
 	"sub-menu/user-manage-user-management/1":  "workflow-step/user-manage-sudo-confirmation",
 	"sub-menu/user-manage-user-management/2":  "sub-menu/user-ssh-keys",
@@ -368,12 +381,16 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, and an item with none says so.
+// opens the mock links name for it, an item m refuses says why, and an
+// item with neither says that the gallery has no screen for it.
 func (s *session) menu(m screen.Mock) nav.Menu {
 	view, _ := menuOf(m.Screen)
 	out := nav.Menu{Exit: view.Exit}
 	for _, it := range view.Items {
 		action := s.missing(it.Label)
+		if msg, ok := m.Refusals[it.Key]; ok {
+			action = s.say(msg)
+		}
 		if to, ok := links[m.Name+"/"+it.Key]; ok {
 			action = s.open(s.mocks[to])
 		}
@@ -383,12 +400,16 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 }
 
 // missing returns the action of an item the gallery has no screen for: it
-// says so in an info Message, after theme.SectionGap blank lines, as an
-// action that writes a result does (nav.Prompter.Run).
+// says so in an info Message.
 func (s *session) missing(label string) func() error {
+	return s.say(component.Message{Text: fmt.Sprintf("The gallery has no screen for %s yet.", strings.TrimSpace(label))})
+}
+
+// say returns an action that writes msg, after theme.SectionGap blank
+// lines, as an action that writes a result does (nav.Prompter.Run).
+func (s *session) say(msg component.Message) func() error {
 	return func() error {
-		msg := component.Message{Text: fmt.Sprintf("The gallery has no screen for %s yet.", strings.TrimSpace(label))}.Render(s.p.Ctx)
-		_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+msg+"\n")
+		_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+msg.Render(s.p.Ctx)+"\n")
 		return err
 	}
 }
@@ -499,11 +520,14 @@ func (e *simulated) Apply(ctx context.Context, report flow.Report) error {
 // recorded returns what the simulator records of step ch, reported in
 // state, and whether it records anything: for a step done, the file it
 // would write and the commands it would run; for one failed, why; for one
-// rolled back, the file it would restore. Its title says how the step
-// ended. Other states, such as running, record nothing.
+// rolled back, the file it would restore. A step's file is its target
+// when it shows a diff, or when the target is a path, as a save of
+// hardn.yml, whose diff a plan does not show, names it; a service, such
+// as "ufw", is not one. Its title says how the step ended. Other states,
+// such as running, record nothing.
 func recorded(ch component.PlanChange, state component.StepState, detail string) (component.PlanChange, bool) {
 	file := ""
-	if ch.Diff != "" {
+	if ch.Diff != "" || path.IsAbs(ch.Target) {
 		file = ch.Target
 	}
 	switch state {

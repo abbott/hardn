@@ -62,8 +62,14 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // 0; the same workflow with its typed sequence, then q from four
 // levels down; the root-login toggle's typed confirmation, a line refused
 // first, then q from its sub-menu; the sudo change told to fail its
-// second step, which rolls the first back; and the input ending at a
-// form's question, which exits 130. The golden files are this package's,
+// second step, which rolls the first back; the input ending at a
+// form's question, which exits 130; DNS's Add nameserver from the main
+// menu, two entries refused before one is taken, applied, and back to the
+// DNS screen with the result still above it (W1, W2), then out; the
+// NetworkManager host's DNS screen refusing Configure DNS and a preset;
+// the screen with no nameserver configured refusing item 3, which it
+// does not show, and Configure DNS; and the screen with one refusing
+// Remove nameserver. The golden files are this package's,
 // testdata/golden/play/<path>.golden, which make golden-update rewrites
 // after pkg/ui's.
 func TestPlayGolden(t *testing.T) {
@@ -78,6 +84,10 @@ func TestPlayGolden(t *testing.T) {
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
 		{"abort", []string{"sub-menu/01-user"}, []string{"2", "alice"}, prompt.ExitInterrupted},
+		{"dns", nil, []string{"3", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
+		{"dns-networkmanager", []string{"sub-menu/03-dns-networkmanager"}, []string{"1", "4", "0"}, exitOK},
+		{"dns-empty", []string{"sub-menu/03-dns-empty"}, []string{"3", "1", "0"}, exitOK},
+		{"dns-one", []string{"sub-menu/03-dns-one"}, []string{"3", "0"}, exitOK},
 	}
 	for _, tt := range tests {
 		uitest.Golden(t, "play/"+tt.name, uitest.Core(), func(env term.Env) string {
@@ -264,13 +274,27 @@ func TestPlayFail(t *testing.T) {
 
 // TestPlayReaches checks the playable mode's links: each leads from an
 // item of a menu mock to a mock, every menu mock's screen is one whose
-// menu play binds, and every mock can be reached from the main menu.
+// menu play binds, an item it refuses is one of its menu's and has no
+// link, and every mock can be reached from the main menu, or from the DNS
+// screen of a host other than the main menu's, where play starts by name
+// (play sub-menu/03-dns-<host>; docs/engine/gallery-dns.md).
 func TestPlayReaches(t *testing.T) {
 	mocks := map[string]screen.Mock{}
+	roots := []string{"main-menu/00-tui-main"}
 	for _, m := range screen.Mocks() {
 		mocks[m.Name] = m
-		if _, ok := menuOf(m.Screen); m.Screen != nil && !ok {
+		menu, ok := menuOf(m.Screen)
+		if m.Screen != nil && !ok {
 			t.Errorf("%s: play cannot bind its menu", m.Name)
+		}
+		for key := range m.Refusals {
+			_, linked := links[m.Name+"/"+key]
+			if linked || !slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == key }) {
+				t.Errorf("%s: refuses item %s, which its menu lacks or a link leads from", m.Name, key)
+			}
+		}
+		if strings.HasPrefix(m.Name, "sub-menu/03-dns-") {
+			roots = append(roots, m.Name)
 		}
 	}
 	for from, to := range links {
@@ -283,7 +307,7 @@ func TestPlayReaches(t *testing.T) {
 			t.Errorf("link %s: no mock %s", from, to)
 		}
 	}
-	reached, next := map[string]bool{}, []string{"main-menu/00-tui-main"}
+	reached, next := map[string]bool{}, roots
 	for len(next) > 0 {
 		name := next[0]
 		next = next[1:]

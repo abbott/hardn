@@ -1030,6 +1030,15 @@ func TestBlockStyles(t *testing.T) {
 			{"Enabled,", th.KeyValue.Value}, {"No password", th.KeyValue.ValueBad}, {"7 keys", th.KeyValue.Value},
 		}},
 		{"bullet item", figmaChecklist, []part{{"Non-root user has sudo privileges", th.KeyValue.Key}}},
+		{"warning bullet item", KeyValue{Key: "dhcpcd may rewrite /etc/resolv.conf on a lease", State: ValueWarn}, []part{
+			{th.Glyphs.Bullet, th.KeyValue.ValueWarn}, {"dhcpcd may rewrite /etc/resolv.conf on a lease", th.KeyValue.ValueWarn},
+		}},
+		{"muted bullet item", KeyValue{Key: "No nameservers configured", State: ValueNone}, []part{
+			{th.Glyphs.Bullet, th.KeyValue.Bullet}, {"No nameservers configured", th.KeyValue.Value},
+		}},
+		{"a none value draws as a plain one", KeyValue{Key: "SSH Keys", Value: "None", State: ValueNone}, []part{
+			{th.Glyphs.Bullet, th.KeyValue.Bullet}, {"SSH Keys", th.KeyValue.Key}, {"None", th.KeyValue.Value},
+		}},
 		{"message", Message{Kind: MessageWarn, Text: "No nameservers configured"}, []part{
 			{th.Glyphs.Warn, th.Message.Warn}, {"Warning:", th.Message.Warn}, {"No nameservers configured", th.Message.Text},
 		}},
@@ -1060,7 +1069,7 @@ func TestBlockStyles(t *testing.T) {
 // colour, and that the marker is there without colour too. A warn value
 // takes a bad one's marker, as Partial takes Not Configured's, and differs
 // from it by colour; without colour the value's words tell them apart. A
-// plain value keeps the bullet.
+// plain value keeps the bullet, and a none value draws as a plain one.
 func TestValueStates(t *testing.T) {
 	colour := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
 	none := NewCtx(term.Fixed(80, colorprofile.ASCII, true, true))
@@ -1076,6 +1085,7 @@ func TestValueStates(t *testing.T) {
 		{ValueBad, kv.ValueBad, kv.ValueBad, g.NotConfigured},
 		{ValueUnknown, kv.ValueUnknown, kv.ValueUnknown, g.Unknown},
 		{ValueNotApplicable, kv.ValueNotApplicable, kv.ValueNotApplicable, g.NotApplicable},
+		{ValueNone, kv.Value, kv.Bullet, g.Bullet},
 		{ValueState(-1), kv.Value, kv.Bullet, g.Bullet},
 	}
 	shown := map[string]bool{}
@@ -1094,7 +1104,7 @@ func TestValueStates(t *testing.T) {
 		shown[tt.glyph] = true
 	}
 	if len(shown) != 5 {
-		t.Errorf("the six states show %d different markers, want 5, warn's being bad's: %v", len(shown), shown)
+		t.Errorf("the seven states show %d different markers, want 5, warn's being bad's and none's plain's: %v", len(shown), shown)
 	}
 	if kv.ValueWarn.GetForeground() == kv.ValueBad.GetForeground() {
 		t.Errorf("a warn and a bad value share the marker %q and the colour %v", g.NotConfigured, kv.ValueBad.GetForeground())

@@ -1,0 +1,546 @@
+# Golden file of TestPlayGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m         ␛[38;2;129;134;156m192.0.2.54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 2␛[m         ␛[38;2;129;134;156m2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m        ␛[38;2;129;134;156mApply nameserver settings from confi…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m       ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mRemove nameserver␛[m    ␛[38;2;129;134;156mRemove a DNS server from configurati…␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m   ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m       ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m        ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.…␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54, 192.0.2.53␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving hardn.yml loses its comments␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,5 @@␛[m$
+      ␛[38;2;129;134;156m # Generated by dhcpcd from eth0.dhcp␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.53␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$
+  ␛[38;2;192;196;216mAdd nameserver 192.0.2.53?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSave the configuration␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m         ␛[38;2;129;134;156m192.0.2.54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 2␛[m         ␛[38;2;129;134;156m2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m        ␛[38;2;129;134;156mApply nameserver settings from confi…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m       ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mRemove nameserver␛[m    ␛[38;2;129;134;156mRemove a DNS server from configurati…␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m   ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m       ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m        ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.…␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns-add-nameserver, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or restore,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play main-menu/00-tui-main -----------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the gallery's$
+# fixture plans. Nothing on this machine changes: the simulated$
+# system only records each step it would apply, and the record$
+# is shown when play ends.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-10 or q]: 3$
+$
+# DNS Configuration ############################################$
+$
+# Current DNS Configuration ------------------------------------$
+$
+   -  DNS Implementation   direct (/etc/resolv.conf)$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
+$
+# Configured Nameservers ---------------------------------------$
+$
+   -  Nameserver 1         192.0.2.54$
+   -  Nameserver 2         2001:db8::54$
+$
+  Select an option$
+$
+   1) Configure DNS        Apply nameserver settings from con...$
+   2) Add nameserver       Add a new DNS server to configuration$
+   3) Remove nameserver    Remove a DNS server from configura...$
+   4) Use Cloudflare DNS   Set nameservers to 1.1.1.1, 1.0.0.1$
+   5) Use Google DNS       Set nameservers to 8.8.8.8, 8.8.4.4$
+   6) Use Quad9 DNS        Set nameservers to 9.9.9.9, 149.11...$
+$
+   0) Return$
+$
+  > Enter selection [0-6 or q]: 2$
+$
+# Add nameserver ###############################################$
+$
+  Enter nameserver IP address [0 or q]: 999.1.1.1$
+  [!] Error: Invalid IP address format$
+  Enter nameserver IP address [0 or q]: 192.0.2.54$
+  [!] Error: Nameserver 192.0.2.54 is already configured$
+  Enter nameserver IP address [0 or q]: 192.0.2.53$
+$
+# DNS Configuration --------------------------------------------$
+$
+   -  Nameservers          192.0.2.54, 2001:db8::54, 192.0.2.53$
+   -  Search Domains       example.net$
+   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+   -  Saving hardn.yml loses its comments$
+$
+   -  Set the nameservers$
+      /etc/resolv.conf$
+      @@ -1,3 +1,5 @@$
+       # Generated by dhcpcd from eth0.dhcp$
+       search example.net$
+      -nameserver 192.0.2.1$
+      +nameserver 192.0.2.54$
+      +nameserver 2001:db8::54$
+      +nameserver 192.0.2.53$
+$
+   -  Save the configuration$
+      /etc/hardn/hardn.yml$
+$
+  Add nameserver 192.0.2.53? [y/N, 0 or q]: y$
+$
+  [+] Done: Set the nameservers$
+  [+] Done: Save the configuration$
+$
+# Operation Successful$
+$
+# DNS Configuration ############################################$
+$
+# Current DNS Configuration ------------------------------------$
+$
+   -  DNS Implementation   direct (/etc/resolv.conf)$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
+$
+# Configured Nameservers ---------------------------------------$
+$
+   -  Nameserver 1         192.0.2.54$
+   -  Nameserver 2         2001:db8::54$
+$
+  Select an option$
+$
+   1) Configure DNS        Apply nameserver settings from con...$
+   2) Add nameserver       Add a new DNS server to configuration$
+   3) Remove nameserver    Remove a DNS server from configura...$
+   4) Use Cloudflare DNS   Set nameservers to 1.1.1.1, 1.0.0.1$
+   5) Use Google DNS       Set nameservers to 8.8.8.8, 8.8.4.4$
+   6) Use Quad9 DNS        Set nameservers to 9.9.9.9, 149.11...$
+$
+   0) Return$
+$
+  > Enter selection [0-6 or q]: 0$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Dry-run Mode Disabled$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Dry-Run              Simulate changes$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-10 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: dns-add-nameserver, normal$
+# Recorded, not done: the file each step would write or restore,$
+# and the commands it would run.$
+$
+   -  Applied: Set the nameservers$
+      /etc/resolv.conf$
+$
+   -  Applied: Save the configuration$
+      /etc/hardn/hardn.yml$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
+      ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m$
+      ␛[38;2;129;134;156m192.0.2.54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 2␛[m$
+      ␛[38;2;129;134;156m2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m$
+      ␛[38;2;129;134;156mApply nameserver settings from configuration␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m$
+      ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mRemove nameserver␛[m$
+      ␛[38;2;129;134;156mRemove a DNS server from configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.112.112␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAdd nameserver␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 999.1.1.1$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mInvalid IP address format␛[m$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.54$
+   ␛[1;38;2;231;70;105m✗␛[m  ␛[1;38;2;231;70;105mError:␛[m ␛[38;2;129;134;156mNameserver 192.0.2.54 is already configured␛[m$
+  ␛[38;2;192;196;216mEnter nameserver IP address␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 192.0.2.53$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54, 192.0.2.53␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving hardn.yml loses its comments␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,5 @@␛[m$
+      ␛[38;2;129;134;156m # Generated by dhcpcd from eth0.dhcp␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.53␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$
+  ␛[38;2;192;196;216mAdd nameserver 192.0.2.53?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSet the nameservers␛[m$
+   ␛[38;2;112;212;127m✓␛[m  ␛[38;2;112;212;127mDone:␛[m ␛[38;2;192;196;216mSave the configuration␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
+      ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 1␛[m$
+      ␛[38;2;129;134;156m192.0.2.54␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameserver 2␛[m$
+      ␛[38;2;129;134;156m2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mConfigure DNS␛[m$
+      ␛[38;2;129;134;156mApply nameserver settings from configuration␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAdd nameserver␛[m$
+      ␛[38;2;129;134;156mAdd a new DNS server to configuration␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mRemove nameserver␛[m$
+      ␛[38;2;129;134;156mRemove a DNS server from configuration␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUse Cloudflare DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 1.1.1.1, 1.0.0.1␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mUse Google DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 8.8.8.8, 8.8.4.4␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mUse Quad9 DNS␛[m$
+      ␛[38;2;129;134;156mSet nameservers to 9.9.9.9, 149.112.112.112␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-6 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mDry-run Mode␛[m ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns-add-nameserver, normal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestore, and the commands it would run.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$

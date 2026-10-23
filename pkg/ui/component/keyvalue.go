@@ -15,7 +15,10 @@ type ValueState int
 
 // The value states. ValueOK, ValueWarn and ValueBad are Figma's green,
 // amber and red; ValueUnknown and ValueNotApplicable are the brief's
-// states Figma does not draw (DEV-034).
+// states Figma does not draw (DEV-034). ValueNone says there is none of
+// what the row names, such as an empty list's "No nameservers
+// configured" (P-30 (b)): a value draws as a plain one, and a bullet
+// item's text is muted, as its bullet is (DEV-061).
 const (
 	ValuePlain ValueState = iota
 	ValueOK
@@ -23,6 +26,7 @@ const (
 	ValueBad
 	ValueUnknown
 	ValueNotApplicable
+	ValueNone
 )
 
 // style returns the state's style in t; a plain value, or a value outside
@@ -102,7 +106,12 @@ func (s ValueState) word() string {
 //
 // With no value the row is a bullet item, its key alone, as in Figma's
 // checklist under a warning, and its State shows nothing, except that
-// ValueUnknown and ValueNotApplicable show "Unknown" and "Not Applicable".
+// ValueUnknown and ValueNotApplicable show "Unknown" and "Not Applicable",
+// that ValueWarn makes it a warning line: its bullet and its text in the
+// warning's colour, the maintainer's dash line of 2026-10-21 ("- " in
+// status.warn), as a plan's findings are listed before its confirmation
+// (DEV-060), and that ValueNone mutes its text, the dash line of what is
+// not a warning ("- " in text.muted), as an empty list's line (DEV-061).
 // A bullet item's text is prose with nothing beside it, so it wraps at
 // spaces under itself, at theme.LabelCol, rather than being cut. A row
 // with neither key nor value renders as the empty string.
@@ -138,10 +147,17 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 		return c.layout(stack, r.head, r.value)
 	}
 	t, w := c.Theme.KeyValue, c.width()
-	lead := marker(c.Theme.Glyphs.Bullet, t.Bullet).to(theme.LabelCol)
+	bullet, text := t.Bullet, t.Key
+	switch vm.State {
+	case ValueWarn:
+		bullet, text = t.ValueWarn, t.ValueWarn
+	case ValueNone:
+		text = t.Value
+	}
+	lead := marker(c.Theme.Glyphs.Bullet, bullet).to(theme.LabelCol)
 	var out []string
 	for _, l := range wrap(c.text(vm.Key), w-theme.LabelCol) {
-		out = append(out, c.fit(append(lead, span{l, t.Key}), w))
+		out = append(out, c.fit(append(lead, span{l, text}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
 	return strings.Join(out, "\n")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 
@@ -26,6 +27,12 @@ type Mock struct {
 	// Screen is a menu screen's layout, a MainMenu or a SubMenu; nil for a
 	// workflow.
 	Screen MenuScreen
+	// Refusals are what a menu screen's items say, by key, in place of an
+	// action that hardn refuses before it asks or plans anything, such as
+	// every DNS item on a host whose resolver hardn only reports (P-37
+	// (a)); nil for none. The playable mode writes the Message, then the
+	// menu again under it.
+	Refusals map[string]component.Message
 	// Sequences are a workflow's paths, such as the normal path, the
 	// dry-run path, which stops at the plan, and the failure path, which
 	// shows what was rolled back.
@@ -75,11 +82,19 @@ type Sequence struct {
 type Answer struct{ Step, Line string }
 
 // Mocks returns the gallery's screen mocks, by layout, then by name: each
-// Figma frame that fits a layout, and origin/main's DNS screen, inferred.
+// Figma frame that fits a layout, and origin/main's DNS screen, inferred,
+// on each host of the DNS mocks, with its actions as workflows (dns.go).
 // SSH_LOGIN-SSH_SETTINGS_DISPLAY fits none (P-28), nor does origin/main's
 // Firewall screen, of which the Figma export holds a screenshot (P-30).
 // The workflows' sequences run on fixture plans (flow.Fixture).
 func Mocks() []Mock {
+	out := append(frameMocks(), dnsMocks()...)
+	slices.SortStableFunc(out, func(a, b Mock) int { return strings.Compare(a.Name, b.Name) })
+	return out
+}
+
+// frameMocks are the mocks of Figma's frames, and of the main menu.
+func frameMocks() []Mock {
 	figma := func(png, delta, pending string) Source {
 		return Source{Label: "Figma " + png + ".png", Delta: delta, Pending: pending}
 	}
@@ -122,13 +137,6 @@ func Mocks() []Mock {
 				"(pkg/menu/menu.go:352-381). origin/main adds the root-login state, a checklist and two items, "+
 				"to disable root SSH access and to view the SSH configuration (pkg/menu/disable_root_menu.go).",
 			figmaWords+" Item 1's description, pending P-12.")},
-		{Name: "sub-menu/03-dns", Screen: dnsFixture(), Source: Source{
-			Label: "inferred from origin/main; the Figma export holds a screenshot of its legacy screen, images/03-dns-legacy-tui.png",
-			Delta: "v0.3.2's DNS item warns and asks \"Do you want to continue? (y/n)\", then applies the configured " +
-				"nameservers (pkg/menu/menu.go:519-541). origin/main shows the nameservers in use and those configured, " +
-				"and six items, item 1 applying them with no confirmation (pkg/menu/dns_menu.go).",
-			Pending: "Its state with no nameserver configured has no block in the layout, pending P-30.",
-		}},
 		{Name: "sub-menu/05-backup", Screen: backupFixture(), Source: figma("05-BACKUP",
 			"v0.3.2's Backup Settings prints the two settings and two items, to toggle backups and change the path "+
 				"(pkg/menu/menu.go:710-770). origin/main adds a status block and a third item, to verify the "+
