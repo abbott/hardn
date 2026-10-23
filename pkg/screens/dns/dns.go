@@ -175,8 +175,7 @@ func (r *runner) read(ctx context.Context) reading {
 	s, err := hostdns.Read(ctx, o.System, o.Facts)
 	st, cerr := dnsctl.Nameservers{Config: o.Config}.Check(ctx, o.System, o.Facts)
 	h := reading{manager: s.Manager, refused: hostWords(s, err), notLoaded: notLoaded(ctx, o),
-		udhcpc: err == nil && s.Host.Distro == detect.DistroAlpine && s.Manager == hostdns.ManagerFile &&
-			s.UDHCPC.InUse == detect.Yes && s.UDHCPC.Rewrites == detect.Yes}
+		udhcpc: err == nil && s.UDHCPCStoppable()}
 	h.view = screen.DNS{Manager: managers[s.Manager], Configured: slices.Clone(o.Config.Nameservers)}
 	switch {
 	case errors.Is(err, hostdns.ErrContainer):
