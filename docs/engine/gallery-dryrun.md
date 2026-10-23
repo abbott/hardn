@@ -1,0 +1,157 @@
+# Dry-Run and the mode indicator in the gallery, before any build (slice 2b, unit (a): `dryrun`, `play dryrun`)
+
+> **Unit:** refactor plan slice 2b, unit (a), `next/s2b-gallery`: "Gallery mock and full sequence, reviewed first" (plan §2, "Phases 3–5 together", §3.22). The maintainer's request (2026-10-23): "Start slice 2b, Dry-Run and its mode indicator, with its gallery mock first for my review; include moving the main menu's item list onto the new layout and its compact form." Slice table row 2b: "Dry-Run / ModeIndicator | No frame | Ignored YAML key; Enabled menu never printed; 3 pauses | Brief §7.3 outcome; §3.19 (precedence)". Plan §2: "Dry-run becomes 'Plan only'. The menu-level DryRun checks go as each area migrates; the global mode is slice 2b." Proposals: [P-03](../refactor/proposals.md#p-03) (the dry-run model, proposed), [P-29](../refactor/proposals.md#p-29) (a) (the prompt), [P-25](../refactor/proposals.md#p-25) (c) (the refusal's words), [P-01](../refactor/proposals.md#p-01) and [P-02](../refactor/proposals.md#p-02) (the item list, later). V-numbers: V1, V2, V3 ([side-effects.md](../refactor/phase0/side-effects.md)); side-effects row 29.
+> **Status:** built and tested on macOS, in process. No hardn binary ran; nothing here runs on Linux, and nothing needs to: the gallery reads simulated hosts, and the characterization runs pkg/menu's code in a child test process on scripted stdin and a temp dir. **Every word new to origin/main is proposed** (§5), and every behaviour below is a proposal for the maintainer's review: nothing is wired into `cmd/hardn`, `pkg/menu` or `pkg/config`.
+
+## 1. Review description
+
+1. **Purpose and scope.** What origin/main does with dry run (§2); the main menu's items on its layout, under the live status block, in its full and compact forms; the mode indicator's states; origin/main's Dry-Run item on the sub-menu layout and its toggle; a change under dry run on the migrated DNS screen beside origin/main's Firewall screen under dry run (§3); nine decisions (§4). In scope: the gallery (`dryrun.go`, its tests, `main.go`'s and `play.go`'s dispatch), a characterization test of the Dry-Run item and of one legacy screen under dry run (additions only), the goldens and this page.
+2. **Behaviour changes:** none to hardn. `pkg/ui/screen`, `pkg/ui/component` and the theme are unchanged: the proposed indicator is drawn by the gallery on the components' grid (`modeView`), as the glyphs mode draws its candidates.
+3. **Tests added.** `internal/tools/uigallery/dryrun_test.go`: `TestDryRunGolden` (the nine listing mocks on the core set, a main menu also at 80×40), `TestPlayDryRunGolden` (three play transcripts), `TestDryRunHeights` and `TestDryRunHeightsLine` (§3.2, Unicode and ASCII), `TestModeHeading` (the proposed indicator beside the heading at col 27 from 64 columns, under it at col 6 below, at 20 to 120 columns, no line past the width), `TestLegacyFirewallIsReal` (the Firewall transcript is pkg/menu's, §2.4), `TestToggleSaves` (the saved toggle's plan is `steps.PlanSave`'s, hardn.yml's `dryRun` line alone, each way), `TestDryRunUsage`. `pkg/characterization/menu_dryrun_test.go`: `TestLegacyMenuDryRun` (§2.2). `TestPlayTouchesNothing` takes the new file as it comes: the mocks touch no host.
+4. **Golden diffs.** Added only: `internal/tools/uigallery/testdata/golden/dryrun/{menu,menu-dry-run,menu-proposed,menu-proposed-plan-only,mode,screen,screen-enabled,toggle,legacy-firewall}`, `.../play/{dryrun,dryrun-saved,dryrun-proposed}`, `pkg/characterization/testdata/golden/menu/{dry_run_enable,dry_run_disable,dry_run_return,dry_run_quit,firewall_configure_dry_run}`. No existing golden changed.
+5. **UI.** No component changed, so no deviation; freeze screenshots deferred (design-system README §9.16).
+6. **Inferred screens.** The Dry-Run screen mocks are "inferred from origin/main", as their notes say (no Figma frame; v0.3.2 had one screen and a y/n question, [interaction.md](../refactor/phase0/interaction.md) §9.4); the main menus are Figma's 00-TUI-MAIN.
+7. **New dependencies:** none.
+8. **Per-distro notes:** none: dry run is hardn's mode, not a host's.
+9. **`git status --short --ignored`** before the commit: this unit's paths alone, none ignored.
+
+## 2. What origin/main does
+
+Each claim is **run** (a characterization golden or a gallery test) or **read** (the code cited, not run). Line numbers are origin/main's (9d46866) unless marked trunk (`next/v0.4`, a0e5a99).
+
+### 2.1 How dry run is set (read)
+
+- **`-n`/`--dry-run`**, default false (`cmd/hardn/main.go:96`). After loading hardn.yml, `cfg.DryRun = dryRun` (`:152`; trunk `:159`) sets the mode from the flag whatever the file says.
+- **hardn.yml's `dryRun`** (`pkg/config/config.go:29`, default false `:104`; the example's line `dryRun: false # Preview changes without applying them`, `embed.go:20`) is read by the loader and then overwritten (**V3**, "Ignored YAML key"; run: `pkg/characterization`'s `config/full-flag.golden` loads `dryRun: true`; v0.3.2 the same, [v032-reference.md](../refactor/phase0/v032-reference.md) §2 item 3, where `hardn -g` applied with `dryRun: true`). So `dryRun: true` in hardn.yml gives a live session.
+- **With an operation flag**, origin/main's flag paths never read `cfg.DryRun`, so `-n -r` applied (**V1**). The trunk refuses `-n` with an operation flag, exit 2 (`pkg/cmd/dry_run.go:46-61`, P0.8), but `-g`, whose `-n -g` shows the DNS control's plan and writes nothing, exit 3 where there are changes (trunk `cmd/hardn/dns.go:47-55`, slice 2). `-n` alone opens the menus in dry run.
+- **Inside a session**, two items set the mode: the Dry-Run item, 6 (§2.2), and Run All's option 2, "Enable dry-run mode and run" or "Disable dry-run mode and run", which flips it, asks a typed "yes" when it goes live and saves `./hardn.yml` (`run_all_menu.go:108-120`, `:144-180`, read); declining the "yes" returns with the mode already flipped, so dry run stays off for the rest of the session (`:146`, `:160-170`, read; the trunk's `confirmRealChanges` the same). The trunk's DNS screen reads the mode when item 3 is chosen (trunk `cmd/hardn/dns.go:84-86`, `:112`), so it follows a toggle.
+
+### 2.2 The Dry-Run item, 6, "Simulate changes" (run)
+
+`main_menu.go:455`, `:506-508` → `DryRunHandler.Handle` (`dry_run_handler.go:31-75`) → `DryRunMenu.Show` (`dry_run_menu.go:31-126`). `TestLegacyMenuDryRun` runs each path in a child test process, stdin a script, the working directory a temp dir; its goldens hold the screens as printed and `./hardn.yml` as left. The trunk's only difference is DEV-050's "Press Enter" for "Press any key".
+
+1. **Screen 1** (cleared, the green `~~~` line): "Dry-Run Mode Configuration", two dim lines ("Dry-run mode allows you to preview changes without applying them to your system." "This is useful for testing and understanding what actions will be performed."), a dead branch (`criticalChanges := false`, `:42-49`), then **pause 1**, "Press any key to continue to dry-run configuration..." (`:52`).
+2. **Screen 2**, cleared: "Dry-Run Mode Settings"; "ℹ Dry-run Mode Disabled" (bold yellow) and "In this mode, changes will be applied to the system. Proceed with caution."; "Select an option", "1) Enable dry-run mode  Preview changes without applying them", "0) Return to main menu  Keep dry-run mode disabled", "❯ Enter selection [0-1 or q]:". In dry run: "ℹ Dry-run Mode Enabled" (bold green), "In this mode, the script will preview changes without applying them.", and **no item and no prompt**: the menu is built (1 "Disable dry-run mode", "Apply changes to the system for real"; 0 "Keep dry-run mode enabled") and never printed, while a choice is read (`:44-59`; "Enabled menu never printed", `menu/dry_run_disable.golden`).
+3. **The choice:** 1 flips the mode and prints its new line and sentence ("Changes will be simulated without affecting the system.", or "Changes will now be applied to the system. Proceed with caution."); 0 prints "Dry-run remains Disabled - proceed with caution." (or "Enabled - changes will only be simulated."); another line "⭘ Invalid option. Dry-run mode remains disabled." (read, `:73-74`, `:110-111`). Then **it saves** `config.SaveConfig(m.config, "hardn.yml")` (`:115-122`): the whole configuration, the session's `dryRun` with it, to `./hardn.yml` in the working directory, not to the file loaded, on 1, 0 and an invalid line alike (side-effects row 29; `menu/dry_run_return.golden`), and the next start ignores the key (V3). `./hardn.yml` is last in the search path (`config.go` `FindConfigFile`), so with `/etc/hardn/hardn.yml` present it is never read. Then **pause 2**, "Press any key to return to the main menu..." (`:124`).
+4. **Screen 3**, cleared: "ℹ Dry-run mode is now ENABLED - Changes will only be simulated" (green) or "DISABLED - Changes will be applied to the system" (yellow), and **pause 3** (`dry_run_handler.go:60-74`). Three pauses for one toggle ("3 pauses", interaction.md §4.3, §1 item 9).
+5. **q at screen 2** saves nothing, returns to the handler, which says "is now DISABLED" though nothing changed, and pauses: two pauses, and q does not leave hardn (`menu/dry_run_quit.golden`).
+
+### 2.3 The indicator, "Dry-run Mode Disabled" (read; run by `pkg/menu`'s goldens)
+
+`createMainMenu` calls `menu.SetDryRunStatus(true, m.config.DryRun)` (`main_menu.go:471`); `style.Menu.Render` (`pkg/style/style.go:787-825`) writes the heading "Select an option" (underlined, grey 246), eight spaces, "Dry-run Mode" (dim) and "Disabled" in yellow (SGR 33) or "Enabled" in green (SGR 32): the label from col 26. hardn's live main menu still draws it so (trunk `pkg/menu/testdata/golden/main_menu_live/*`). Figma 00-TUI-MAIN draws "Dry-run Mode Disabled", the value amber. The design system's `ModeIndicator` has origin/main's words at col 27, the label in `text.muted`, "Disabled" in `status.warn`, "Enabled" in `status.ok` (`pkg/ui/component/mode.go`; DEV-016), and no source of the mode.
+
+### 2.4 Every item under dry run (read, but item 4: run; item 3 on the trunk: run)
+
+| Item | origin/main under dry run | Evidence |
+|---|---|---|
+| 1 User Management | **Changes the host**: creating a user, the sudo toggle and adding a key run; only the success line is left out (V2) | `user_options.go:401,491,542,748,835`, `ssh_keys_options.go:82`; side-effects V2 |
+| 2 SSH Login | Asks "Are you sure you want to disable root SSH access? (y/n)", then "- [DRY-RUN] Would disable root SSH access"; trunk: the Proxmox VE key-only line too | `disable_root_menu.go:128`, `:139-140`; trunk `:142`, `:217` |
+| 3 DNS | origin/main: Configure DNS prints "[DRY-RUN] Would configure DNS with nameservers: …"; Add, Remove and the presets save `./hardn.yml` anyway. Trunk: the DNS screen stops every change at its plan, origin/main's footer "No actual changes were made to your system.", nothing saved | `dns_menu.go:146-147`; row 29; trunk `play/dns-dry-run` and `play/dryrun` (run) |
+| 4 Firewall | Install, enable, disable and Configure print "[DRY-RUN] Would …" lines, no file, rule or command named; the profiles' add and remove save `./hardn.yml` anyway | `firewall_menu.go:181,197,212,247,546`, saves `:478,528`; Configure run: `menu/firewall_configure_dry_run.golden` |
+| 5 Backup | No check: the toggle and the path save `./hardn.yml`; Verify writes and removes `<path>/.write_test` | `backup_menu.go:158,196,218`; `file_backup_repository.go:227`; row 30 |
+| 6 Dry-Run | §2.2 | — |
+| 7 Run All | Option 1: a hand-written simulation, `dryRunHardening`, not what the live run does ("separate simulation", slice 8), then "No actual changes were made to your system."; option 2 flips the mode and saves (§2.1) | `run_all_menu.go:238-290`, `:334`; interaction.md §1 item 2 |
+| 8 Environment | "[DRY-RUN] Would configure sudo to preserve HARDN_CONFIG environment variable" (as root) | `environment_settings_menu.go:86-87` |
+| 9 System Details | The export prints "[DRY-RUN] Would write system status to …" | `system_details_menu.go:225-226` |
+| 10 Logs | Reads only | — |
+
+## 3. The mocks
+
+### 3.1 What to run
+
+From the repository root, with `GOTOOLCHAIN=local GOWORK=off` (add `-profile plain`, `-width 60`, `-height 24` or `-theme light`; the listing and play take the terminal's size where `-width` and `-height` are not given):
+
+```text
+go run ./internal/tools/uigallery dryrun                                   # all nine, each under its note
+go run ./internal/tools/uigallery dryrun -height 40 menu menu-dry-run      # the full form
+go run ./internal/tools/uigallery dryrun -height 24 menu-proposed          # the compact form
+go run ./internal/tools/uigallery play dryrun                              # 6, 1, 0, then 3, 2, 192.0.2.53 (a plan only), 0, 4, 0
+go run ./internal/tools/uigallery play dryrun/saved                        # 6, 1, y, 0, 0
+go run ./internal/tools/uigallery play -sequence dry-run dryrun/proposed   # as hardn -n: 6 refused, 1 refused, 3, 2, 192.0.2.53
+```
+
+| Mock | What it shows | Task item |
+|---|---|---|
+| `menu`, `menu-dry-run` | The main menu on its layout: the hardened Debian 13 status host's block, read by the real checks as hardn's live menu reads it (eight rows, DNS last, no line under a row), origin/main's items, numbering, prompt and indicator, live and in dry run (`-n`) | 2a |
+| `menu-proposed`, `menu-proposed-plan-only` | Decisions 1 to 3: item 6 left out and its key unused (`[0-5, 7-10 or q]`), "Mode Live", and "Mode Plan only (hardn.yml)" | 2a, 2b |
+| `mode` | The indicator in six states: origin/main live, dry run from `-n`, `dryRun: true` in hardn.yml shown as live (V3); proposed live, plan only from `-n`, plan only from hardn.yml | 2b |
+| `screen`, `screen-enabled` | Decision 1's alternative (a): the Dry-Run item on the sub-menu layout, origin/main's words, its menu printed in both states | 2c |
+| `toggle` | Decision 4's alternative (a): "Enable dry-run mode" through the canonical flow: the review, the plan (`steps.PlanSave` of `dryRun` alone, `config.Edit` in place: `-dryRun: false`, `+dryRun: true`), y, "Operation Successful" | 2c |
+| `legacy-firewall` | origin/main's Firewall screen, Configure under dry run, as pkg/menu prints it (§2.4), colours left out, each line wrapped as a terminal wraps it | 2d |
+| `play dryrun` | The toggle for the session (decision 4, recommended under (a)): the result line above the screen in its new state, no pause; the main menu then says "Enabled"; 3, Add nameserver: the real DNS screen's review, plan and footer, nothing saved; 4: origin/main's Firewall transcript | 2c, 2d |
+| `play dryrun/saved` | The saved toggle, played; the simulated system records the save | 2c |
+| `play dryrun/proposed` | Started as `hardn -n`: "Mode Plan only (-n)"; 6 refused as any key no item has, "⨳ Invalid option. Please try again." (`(x)` in ASCII); 1 refused (decision 6); DNS Add stopping at its plan | 2a, 2d |
+
+Items 1, 2 and 5 lead to the screen mocks (Figma's frames, on fixture plans, their dry-run sequence under dry run), 3 to the real DNS screen on the gallery's Debian 13 DNS host, the others say the gallery has none: the mocks show the main menu and the mode, not those screens.
+
+### 3.2 Heights (run: `TestDryRunHeights`, Unicode and ASCII; the prompt on the terminal's last line)
+
+| Main menu, eight rows, no line under one | 80×24 | 80×40 | 60×24 |
+|---|---|---|---|
+| hardn's live menu today: the blocks over pkg/menu's 17-line menu | 32, compact blocks; risk level scrolled off | 37 | 42; risk level off |
+| On the layout, origin/main's items | **25**, compact; only the distribution bar scrolls off; **the risk level stays** | 36, full | 36, compact, rows stacked (DEV-021); risk level off |
+| On the layout, item 6 left out | 25 | 35 | 36; risk level off |
+
+The compact form's menu is 10 lines (heading, five rows of two columns, gap, exit, gap, prompt) where pkg/menu's is 17; leaving out item 6 shortens only the full form (nine items still take five rows). Each line under a row adds one (the gallery's Figma host, "Up 182 days, no updates" under Auto Updates: 26 at 80×24, the bar and its blank line off, the risk level on, run by the same test), as [menu-live.md](menu-live.md) §6 and DEV-052 record; which line gives way at 25 is menu-live §11 item 1, still open, and not changed here.
+
+## 4. Decisions for the maintainer
+
+1. **What dry run becomes (brief §7.3, P-03).** *Recommended:* one global mode, "Plan only": every change's flow stops at its plan with origin/main's footer, as the DNS screen does; set once, as hardn starts, by `-n` or by hardn.yml's `dryRun` (decision 2); no item turns it on or off; **item 6 is removed, its key left unused** (refused as any key no item has), so no key changes meaning; `-n` kept for the menus and the flags (`-n -g`). Reasons: every change already shows its plan and asks y/N, so n is a dry run of that change; plan only is for looking around with no question asked at all (an audit, a shared host), which a start flag gives; a switch inside the session is one key from "nothing changes" to "changes apply", which a restart makes deliberate; item 6 is a mode, not an area of the host (P-01 lines items up with rows); the defects "Enabled menu never printed" and "3 pauses" go with it; renumbering would put Run All on 6, the key that turned dry run on. Cost: until each area migrates, a legacy screen with no question (Firewall's Configure, Environment) can be previewed only by starting with `-n`. Mocked: `menu-proposed`, `menu-proposed-plan-only`, `play dryrun/proposed`. *Alternatives:* (a) P-03 (a): item 6 kept as the switch, on the sub-menu layout with origin/main's words, or proposed "Plan only" "Preview changes only" (mocked in origin/main's: `screen`, `screen-enabled`, `play dryrun`); (b) P-03 (b): item 6 removed and 7 to 10 renumbered 6 to 9, Run All on 6; (c) no global mode in the menus: `-n` for the flags alone, `hardn -n` with no flag refused, the legacy screens without preview.
+2. **The precedence of §3.19 (approved: "explicit flag wins, otherwise config"), shown.** *Recommended:* the indicator names where plan only came from, after the word: "(-n)" or "(hardn.yml)"; live names nothing. hardn.yml's key is out of sight and lasts, so a user whose changes never apply must see why; `--dry-run=false` is then how to apply on such a host, the explicit flag winning. Consequence to accept: with `dryRun: true` in hardn.yml, `hardn -g` from a script shows its plan and exits 3 where there are changes, applying nothing. *Alternatives:* (a) no source, as origin/main; (b) the source in live too, "(default)", "(--dry-run=false)"; (c) hardn.yml's alone named.
+3. **The indicator's words and colours.** *Recommended:* label "Mode" in `text.muted`; "Live" in `status.warn` (Figma's amber for the live value) or "Plan only" in `status.ok` (origin/main's green for dry run); the source in `text.faint`; the word says the mode without colour. "Dry-run Mode Disabled" says live by a double negative, and "Dry-run" no longer names what happens, a plan shown. Mocked: `mode`. *Alternatives:* (a) origin/main's and Figma's "Dry-run Mode Disabled" and "Enabled"; (b) the word alone, no label; (c) "Plan only" in `status.warn`, as a state where nothing applies.
+4. **Under alternative (a) of decision 1, whether the toggle is saved.** *Recommended:* for the session only, never saved: it changes nothing on the host, so no plan and no question, one result line (origin/main's "Dry-run mode is now ENABLED - Changes will only be simulated") above the screen in its new state, no pause (`play dryrun`). That is what origin/main's toggle does in effect, its save being ignored at the next start (V3). Saved, once V3 is fixed, it would make every later start plan only, `hardn -g` from cron included, far from where it was set; the save that ends plan only would itself have to run under plan only; and turning off a plan only that `-n` set saves nothing ("Nothing needs changing."). *Alternatives:* (a) saved through the canonical flow, the save of `dryRun` alone in the loaded hardn.yml, in place (§3.19 amended), y/N, exempt from plan only (`toggle`, `play dryrun/saved`); (b) saved with no question, as origin/main, to the loaded file.
+5. **The main menu on its layout.** *Recommended:* move pkg/menu's items onto `screen.MainMenu` unchanged in content (origin/main's labels, numbering 1 to 10 and 0, "Select an option", "Enter selection", P-29 (a) still open), with what the layout changes: the indicator and descriptions at col 27 (col 26 today); item 1's "(sudo, SSH keys)" in `text.faint`; one blank line before the prompt (two today); the hint generated from the items (the same "[0-10 or q]"); theme colours and ASCII forms for pkg/style's SGR; the compact form under 40 rows, two columns of keys and labels with no descriptions; an invalid choice refused under the prompt, "⨳ Invalid option. Please try again." (`(x)` in ASCII; P-25 (c), DEV-062), where today it clears the screen and pauses (`main_menu.go:538-544`); the screen drawn again under what an item printed, not cleared (brief 1C), the legacy screens still clearing on entry. Heights: §3.2; at 80×24 the risk level stays on screen. Mocked: `menu`, `menu-dry-run`. *Alternatives:* (a) keep pkg/menu's menu under the blocks until P-01 and P-02 settle the list (32 lines at 80×24, the risk level off); (b) the layout's full form at every height, descriptions kept.
+6. **The legacy items under plan only, until each migrates.** *Recommended:* each keeps its own check, as today, except User Management (1), which changes the host whatever the mode (V2): under plan only it is refused before its screen, "User Management can't run in plan only yet.", until slice 5 puts it on the flow (`play dryrun/proposed`). A "Plan only" beside an item that creates users would be false. *Alternatives:* (a) all as today, V2 until slice 5; (b) every legacy item refused under plan only, plan only then being exactly the flow's stop, at the cost of the previews items 2, 4, 7, 8 and 9 give; (c) a notice above each legacy screen under plan only.
+7. **Run All's option 2**, which flips the mode and saves `./hardn.yml`, and leaves it flipped when its typed "yes" is declined (§2.1). *Recommended:* under decision 1, option 2 goes with item 6, in unit (d), Run All then running in the session's mode, so the mode is set at start alone; Run All itself is slice 8's ("one plan + typed confirmation"). *Alternative:* option 2 left as it is until slice 8, a second switch.
+8. **The legacy saves write the session's mode.** Every legacy save (`SaveConfig`, 12 sites on the trunk, 10 of them reachable: Firewall profiles, Backup, User Management, SSH keys, Run All, Dry-Run) writes the whole configuration, `dryRun` with it. They write `./hardn.yml`; once V3 is fixed (decision 2), a save under `-n` puts `dryRun: true` there, and a live one overwrites a `true` the user set there, which the next start reads where `./hardn.yml` is the file it finds (no `/etc/hardn/hardn.yml`, or `-f ./hardn.yml`). *Recommended:* the legacy saves write `dryRun` as loaded, not the session's, so only an edit of the file sets it (the new saves already write only the settings their control names, `config.Edit`). *Alternative:* fix V3 only once the legacy saves are gone (slices 3, 4, 5 and 8).
+9. **Plan only from hardn.yml with an operation flag.** The trunk refuses `-n` with an operation flag (V1's gate) by the flag alone; once hardn.yml can set plan only, `hardn -r` under `dryRun: true` would run the legacy flag path, which ignores the mode. *Recommended:* the refusal covers the configuration's plan only too, naming the file and `--dry-run=false`. *Alternative:* an operation flag implies live, the configuration's mode applying to the menus alone.
+
+## 5. Words
+
+origin/main's where it has them; **every other word is proposed**.
+
+| Where | Words | Source |
+|---|---|---|
+| Indicator, live | "Dry-run Mode" "Disabled"; proposed "Mode" "Live" | origin/main, Figma; **proposed** (decision 3) |
+| Indicator, dry run | "Dry-run Mode" "Enabled"; proposed "Mode" "Plan only", "(-n)", "(hardn.yml)" | origin/main; **proposed** (decisions 2, 3) |
+| Main menu | the ten items and their descriptions, "Select an option", "0) Exit" "q to quit", "Enter selection"; item 6 "Dry-Run" "Simulate changes" removed under decision 1 | origin/main (DEV-030, P-29 (a)) |
+| Dry-Run screen (alternative (a)) | "Dry-Run Mode Settings"; the section "Dry-Run Mode Configuration" (origin/main's first screen's title); "Dry-run Mode" "Disabled"/"Enabled"; both sentences; the items, "Return to main menu", "Keep dry-run mode disabled/enabled"; "Enter selection" | origin/main; the section's place **proposed**; "Plan only" "Preview changes only" offered under decision 1 (a), not mocked |
+| Session toggle | "Dry-run mode is now ENABLED - Changes will only be simulated", "… DISABLED - Changes will be applied to the system" | origin/main (`dry_run_handler.go:63-71`) |
+| Saved toggle | title bar "Enable dry-run mode" (the item's label); review "Dry-Run Mode Configuration", "Dry-run Mode" "Enabled"; "Save the configuration" (the save's, `steps.PlanSave`); "Enable dry-run mode?" | origin/main's words; the question **proposed** |
+| Flow under plan only | "No actual changes were made to your system." | origin/main (`run_all_menu.go:288`), kept |
+| Refusals | "Invalid option. Please try again."; "User Management can't run in plan only yet." | origin/main (P-25 (c)); **proposed** (decision 6) |
+| Legacy screens | "[DRY-RUN] Would …" | origin/main, until each slice |
+
+## 6. Defects
+
+| Defect | Evidence | In the mocks |
+|---|---|---|
+| Ignored YAML key (V3) | `main.go:152`; `config/full-flag.golden`; v032-reference §2 item 3 | §3.19's precedence, the source shown: `mode`, `menu-proposed-plan-only` (decision 2) |
+| Enabled menu never printed | `dry_run_menu.go:44-59`; interaction.md §4.3; run: `menu/dry_run_disable.golden` | gone with item 6; under (a), printed: `screen-enabled` |
+| 3 pauses | `dry_run_handler.go:52`, `dry_run_menu.go:124`, `dry_run_handler.go:73`; run: `menu/dry_run_enable.golden` | none: no item; under (a), the result above the screen (`play dryrun`) |
+| The whole configuration saved to `./hardn.yml`, on 0 and an invalid line too | row 29; `dry_run_menu.go:115-122`; run: `menu/dry_run_return.golden` | nothing saved; under decision 4's alternative (a), `dryRun` alone in the loaded file, through the flow (`toggle`) |
+| q at the settings screen does not leave hardn | run: `menu/dry_run_quit.golden` | nav's q quits at every prompt |
+| "Dry-run Mode Disabled" beside "Simulate changes" (brief §7.3) | brief §7 item 3; P-03 | decisions 1, 3 |
+| User Management changes the host in dry run (V2) | side-effects V2 | decision 6 |
+| Declining Run All's "yes" after option 2 leaves dry run off | `run_all_menu.go:146`, `:160-170` (read) | decision 7 |
+| The risk level scrolled off at 80×24 | menu-live §6, §11 item 6 | on screen on the layout (§3.2) |
+| An invalid main-menu choice clears the screen and pauses | `main_menu.go:538-544` | refused under the prompt (decision 5) |
+
+Not 2b's, listed for the table of §2.4: V1 (fixed: the refusal, `-n -g`), Run All's separate simulation (slice 8), Backup's test file (slice 3).
+
+## 7. What the mocks take from real code, and what not
+
+**Real:** each main menu's status block (the controls' checks, the header probe and the risk level on the hardened host, mapped by `output.MainMenuOf`, as hardn's live menu draws it) and its layout, forms and heights (`screen.MainMenu`); origin/main's indicator (`component.ModeIndicator`, `MenuHeading`); the Dry-Run screen's layout (`screen.SubMenu`); the toggle's flow (`pkg/ui/flow`) and its plan (`steps.PlanSave` on a simulated host, `config.Edit`); the DNS screen under plan only (`pkg/screens/dns` on the real engine, `-sequence dry-run`); the Firewall transcript (`TestLegacyFirewallIsReal` against pkg/menu's own output); origin/main's Dry-Run behaviour (`TestLegacyMenuDryRun`).
+
+**Not:** the proposed indicator, drawn by the gallery on the components' grid; the item list without 6 is data; the mode's source is the mock's (nothing reads `Changed("dry-run")` yet); the toggle's apply is the gallery's simulator, which records the save and writes nothing; items 1, 2 and 5 lead to Figma's mocks, not origin/main's screens.
+
+## 8. Not in this unit: units (b) to (d) of 2b
+
+- **(b) The mode** (`cmd/hardn`, `pkg/config`): §3.19's precedence (`--dry-run` given wins, `true` or `false`, else hardn.yml's `dryRun`) and its source kept for the indicator; decisions 8 and 9; `config/full-flag.golden`'s V3 note flipped; tests for each start (no flag, `-n`, `--dry-run=false`, hardn.yml `true` and `false`) and each operation flag.
+- **(c) The main menu on its layout** (`pkg/screens/mainmenu`, `pkg/menu`): the whole `screen.MainMenu` built from the status and origin/main's items, run by `nav.Run` with the legacy screens and the DNS screen as options; the indicator in the decided words (a `ModeIndicator` change: its words and a source, README §9.3 and a deviation entry, its goldens and `main-menu/00-tui-main`'s); `main_menu_live` goldens rewritten; the heights of §3.2 pinned on hardn's menu.
+- **(d) The legacy path replaced:** item 6 removed (or rebuilt as decided), `dry_run_handler.go` and `dry_run_menu.go` deleted, their characterization goldens frozen as the parity record (as slice 2's `testdata/legacy`); Run All's option 2 and item 1 under plan only as decided (decisions 6, 7); `style.Menu.SetDryRunStatus` with its last caller.
+- **No parity unit (b2):** no host change. A table of starts and flags against the mode would serve as one, in (b).
+
+## 9. Size
+
+About 635 lines of non-test Go added (`dryrun.go` 599, about 120 of them whole-line comments and 25 the Firewall transcript's lines; `main.go` and `play.go` 35, 2 removed), about 435 of tests (`dryrun_test.go` 246, `menu_dryrun_test.go` 188), and this page: over the guideline of about 500 changed lines. Over because the unit is a listing mode, three play variants and the characterization that establishes origin/main's behaviour by running it; the split would have been the characterization, then the listing, then play. Testdata: 17 new golden files (about 3,600 lines), no existing one changed.

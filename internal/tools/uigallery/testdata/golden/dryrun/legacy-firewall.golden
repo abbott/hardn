@@ -1,0 +1,121 @@
+# Golden file of TestDryRunGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun legacy-firewall␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNot a mock: origin/main's Firewall screen under dry run, 2␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it, its colours left out and what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas typed (2, Enter) not echoed. No plan: no file, rule or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand is named.␛[m$
+$
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+UFW Firewall Configuration$
+$
+Current Firewall Status:$
+⛛  UFW Installed       Yes Uncomplicated Firewall is available$
+⭘  UFW Status          Inactive Firewall is not running$
+⛛  SSH Port            Port 2230/tcp Using non-standard port (good security)$
+$
+⭘ No firewall rules configured$
+Select an option$
+$
+ 1) Enable firewall                 Start UFW and set to run at boot$
+ 2) Configure firewall              Set up default policies and SSH rules$
+ 3) Manage application profiles     Configure custom application rules$
+$
+ 0) Return to main menu             $
+$
+$
+❯ Enter selection [0-3 or q]: $
+$
+Configuring UFW firewall...$
+-  [DRY-RUN] Would configure UFW with default policies and SSH rules$
+-  [DRY-RUN] SSH port: 2230/tcp$
+$
+-  Press Enter to return to the main menu...$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# dryrun legacy-firewall ---------------------------------------$
+$
+# Note$
+# Not a mock: origin/main's Firewall screen under dry run, 2$
+# chosen, as pkg/menu prints it, its colours left out and what$
+# was typed (2, Enter) not echoed. No plan: no file, rule or$
+# command is named.$
+$
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+UFW Firewall Configuration$
+$
+Current Firewall Status:$
+⛛  UFW Installed       Yes Uncomplicated Firewall is available$
+⭘  UFW Status          Inactive Firewall is not running$
+⛛  SSH Port            Port 2230/tcp Using non-standard port (good security)$
+$
+⭘ No firewall rules configured$
+Select an option$
+$
+ 1) Enable firewall                 Start UFW and set to run at boot$
+ 2) Configure firewall              Set up default policies and SSH rules$
+ 3) Manage application profiles     Configure custom application rules$
+$
+ 0) Return to main menu             $
+$
+$
+❯ Enter selection [0-3 or q]: $
+$
+Configuring UFW firewall...$
+-  [DRY-RUN] Would configure UFW with default policies and SSH rules$
+-  [DRY-RUN] SSH port: 2230/tcp$
+$
+-  Press Enter to return to the main menu...$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun legacy-firewall␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNot a mock: origin/main's Firewall screen under dry run, 2␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it, its colours left out and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat was typed (2, Enter) not echoed. No plan: no file,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule or command is named.␛[m$
+$
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+~~~~~~~~~~~$
+UFW Firewall Configuration$
+$
+Current Firewall Status:$
+⛛  UFW Installed       Yes Uncomplicated Firewall is availab$
+le$
+⭘  UFW Status          Inactive Firewall is not running$
+⛛  SSH Port            Port 2230/tcp Using non-standard port$
+(good security)$
+$
+⭘ No firewall rules configured$
+Select an option$
+$
+ 1) Enable firewall                 Start UFW and set to run$
+at boot$
+ 2) Configure firewall              Set up default policies $
+and SSH rules$
+ 3) Manage application profiles     Configure custom applica$
+tion rules$
+$
+ 0) Return to main menu             $
+$
+$
+❯ Enter selection [0-3 or q]: $
+$
+Configuring UFW firewall...$
+-  [DRY-RUN] Would configure UFW with default policies and S$
+SH rules$
+-  [DRY-RUN] SSH port: 2230/tcp$
+$
+-  Press Enter to return to the main menu...$
+$
+$
