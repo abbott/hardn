@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // statusHost is the host the main menu's status reads, a seam for the
@@ -27,11 +28,23 @@ import (
 // changes the host (-g, the DNS screen).
 var statusHost = func() host.System { return host.NewReal(host.Options{}) }
 
+// statusMenu is what withStatus sets the status and the terminal of:
+// pkg/menu's main menu, and the tests' record of what was set.
+type statusMenu interface {
+	SetStatus(read func(ctx context.Context) (screen.MainMenu, error))
+	SetTerminal(env func() term.Env)
+}
+
+// The main menu is a statusMenu.
+var _ statusMenu = (*menu.MainMenu)(nil)
+
 // withStatus returns m with its status read from the host hardn builds,
 // against c, the configuration m was given, and hardn's version
 // (menu.MainMenu.SetStatus), drawn on stdout's terminal, as stdoutEnv
-// detects it on each pass (menu.MainMenu.SetTerminal).
-func withStatus(m *menu.MainMenu, c *config.Config, version string) *menu.MainMenu {
+// detects it on each pass (menu.MainMenu.SetTerminal). A main menu drawn
+// without either panics, so both are set here, on the one main menu
+// hardn builds.
+func withStatus[M statusMenu](m M, c *config.Config, version string) M {
 	m.SetStatus(func(ctx context.Context) (screen.MainMenu, error) {
 		return readStatus(ctx, c, version)
 	})
