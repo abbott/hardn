@@ -1,6 +1,7 @@
 # DNS in the gallery, before any wiring (slice 2, unit (a): `-screens`, `play`)
 
 > **Unit:** refactor plan slice 2 (DNS, the pilot of the full flow), unit (a), `next/s2-gallery`: "Gallery mock and full sequence, reviewed first" (plan §2, "Phases 3-5 together", §3.22, approved 2026-10-21; brief Phase 5, "gallery first"). Slice table row 2: "Apply without confirmation; empty list; overwrite; symlink writes; presets don't apply; wiped results", decision "`lan` default". V-numbers: V18, V19; W1, W2 ([side-effects.md](../refactor/phase0/side-effects.md) rows 21-23 and 29, [interaction.md](../refactor/phase0/interaction.md) §1, §5). Proposals shown: [P-27](../refactor/proposals.md#p-27) (b), [P-29](../refactor/proposals.md#p-29) (a), [P-30](../refactor/proposals.md#p-30) (b), [P-37](../refactor/proposals.md#p-37) (a); [P-01](../refactor/proposals.md#p-01) stays out (§9).
+> **Retired by `next/s2-screen`** (slice 2, unit (c), [screen-dns.md](screen-dns.md)): the mocks below were replaced by hardn's own DNS screen, drawn from the host through the DNS control and run on the engine, which the gallery plays on the same hosts (`play dns/<host>`); their code, goldens and tests are gone from the tree, and this page is their design record (§11). The nine decisions of §4 stand, built there.
 > **Status:** built and tested on macOS, in process: the mocks' goldens on the core set, the playable mode's four DNS transcripts, and five tests that hold every plan, finding, refusal, check and failure the mocks show to what `pkg/host/dns`, `steps.DNS`, the engine and `pkg/output`'s codes make of the same hosts on hostfake, save what §8 lists. No real terminal and no host were used; nothing here runs on Linux, and nothing needs to: the gallery runs no command. **Every word new to origin/main is proposed** (§5), and every behaviour below is a proposal for the maintainer's review: nothing is wired into `cmd/hardn` or the live menu.
 
 ## 1. Review description (brief §6, the refactor plan's template)
@@ -54,7 +55,7 @@ origin/main's screen on the sub-menu layout: the title bar "DNS Configuration"; 
 
 The main DNS host is Debian 13, as the sequences asked for one ("Debian 13, a file"), with Debian 13's DHCP client, dhcpcd; play reaches its screen from the main menu's mock, which is Figma's frame and shows Figma's host, Debian 12 (Bookworm). On a Debian 12 host the finding would name isc-dhcp-client's `dhclient` ([dns.md](../safety/dns.md) §3), in the same words.
 
-To see them, from the repository root with `GOTOOLCHAIN=local GOWORK=off` (add `-profile plain`, `-width 60` or `-theme light` as wanted):
+To see them, from the repository root with `GOTOOLCHAIN=local GOWORK=off` (add `-profile plain`, `-width 60` or `-theme light` as wanted); *retired by `next/s2-screen`*: the real screen plays as `play` (the main menu's 3) and `play dns/<host>`, §11:
 
 ```text
 go run ./internal/tools/uigallery -screens sub-menu/03-dns sub-menu/03-dns-ubuntu2604 sub-menu/03-dns-alpine324 sub-menu/03-dns-pve9 sub-menu/03-dns-networkmanager sub-menu/03-dns-empty sub-menu/03-dns-one sub-menu/03-dns-configured
@@ -207,7 +208,7 @@ Later units, as the plan orders them:
 - **The gallery's DNS host model and play-engine DNS scenarios** with real reads (`dns.Read` on the gallery's simulated hosts, the screen refreshed after a change). *Done in `next/s2-engine-gallery`* ([gallery-engine.md](gallery-engine.md) §8): the resolver model and eleven scenarios on the real control, and the mocks held to the control; the screen refreshed after a change waits on unit (c), the mocks being data.
 - **The DNS engine control** (unit (b)): `Check` from `dns.Read` and `State.Findings()`, `Plan` from `PlanDNS` through `steps.DNS`, the four inputs of §8, the save of hardn.yml as a change, and the refusals as `steps.Refusal`s. *Done in `next/s2-control`* ([control-dns.md](control-dns.md)).
 - **The parity table** (unit (b2)): origin/main's end state against the new path's, per distribution.
-- **The screen on the design system** (unit (c)) and the legacy path gated (unit (d)); `pkg/menu/dns_menu.go` stays until then.
+- **The screen on the design system** (unit (c)) and the legacy path gated (unit (d)); `pkg/menu/dns_menu.go` stays until then. *Unit (c) done in `next/s2-screen`* ([screen-dns.md](screen-dns.md), §11 here); unit (d) now replaces the legacy path rather than gating it (the maintainer, 2026-10-22: `HARDN_UI=classic` withdrawn).
 - **The CLI's and Run All's DNS** (their slices): the empty list they apply (V19).
 - **The main menu's DNS status row** (P-01, decision 8) and **the compact main menu's height** with one row more (plan §3.15, DEV-052).
 - **The findings before the confirmation in the real flow** (`pkg/output` or `pkg/ui/flow`): the mocks show the proposed place (decision 5). *Done in `next/s2-flow-review`* ([flow-review.md](flow-review.md)): `flow.Plan.Findings`, listed as the review's last lines by the flow itself; the mocks' findings are their fixture plans', drawn by the same slot, every mock golden unchanged.
@@ -215,3 +216,27 @@ Later units, as the plan orders them:
 ## 10. Size
 
 The unit's first commit: about 560 lines of non-test Go added and 60 removed: `pkg/ui/screen/dns.go` 496 (98 of them whole-line comments: the hosts' data, the workflows' table and the realness note), the rest in `mock.go`, `frames.go` (the old DNS fixture removed), `doc.go`, `play.go` and `keyvalue.go`; about 560 lines of tests (`dns_test.go` 524), 190 of this page and about 20 changed in the design-system README and the deviations log. That is over the guideline of about 500 changed lines, for two reasons: the mocks are seven hosts and ten workflows, mostly data, and the realness checks run the primitive, the engine and the registry over the same seven hosts, which no package could share with them; the split would have been the screens first, then the workflows. Testdata: 43 golden files (one changed). The unit's second commit, the review's fixes: about 155 lines of non-test Go added and 70 removed (`dns.go`, `keyvalue.go`, `play.go`, the component fixture), about 130 of tests, this page revised, a dozen lines of the design-system README, and two rows of the deviations log (DEV-060 amended, DEV-061); testdata as item 4 of §1 lists it, 48 golden files in all. Over the guideline again with the first commit's, for the same reasons. `git status --short --ignored` before each commit listed only this unit's paths, modified, deleted or untracked, and nothing ignored.
+
+## 11. Retired by `next/s2-screen`
+
+Unit (c) built the screen these mocks designed: `screen.DNS` in `pkg/ui/screen`, drawn from the host by `pkg/screens/dns` through the DNS control and `pkg/host/dns`, each item a change on the engine through the flow ([screen-dns.md](screen-dns.md)). **The mocks are retired, not kept beside it**: the real screen plays on the same eight hosts, with every sequence above in a transcript of its own, and two DNS screens, one on fixture plans and a copy of `dns.Validate`, the other on the real code, would drift apart, held only by the five tests of §1, item 3. Gone from the tree: `pkg/ui/screen/dns.go`'s hosts, workflows and fixtures (the file now holds the real screen's view-model), their 42 screen goldens (`sub-menu/03-dns*`, `workflow-step/dns-*`), the play links to them, and the gallery's `dns_test.go`. git keeps all of them as of `next/s2-flow-review` (f0111c4), and this page records what they showed and why. `screen.Mock.Refusals`, added for them, stays for the next slices' mocks.
+
+Where each sequence of §3 is now, `play` on the gallery's simulated hosts (`internal/tools/uigallery/testdata/golden/play/`):
+
+| # | Sequence | Now |
+|---|---|---|
+| 1 | Ubuntu 26.04, Configure DNS | `play dns/ubuntu2604`: 1, y (`dns-ubuntu2604`) |
+| 2, 8 | Debian 13, Use Cloudflare DNS; cancelled | `play dns/debian13`: 4, y, then Google declined, n, then Quad9, y, saved over the first (`dns-presets`) |
+| 3 | Add nameserver | `play`: 3, 2, 999.1.1.1, 192.0.2.54, 192.0.2.53, y (`dns`); the screen drawn again shows the three applied and listed |
+| 4 | Remove nameserver | `play dns/debian13`: 3, 2, y (`dns-remove`) |
+| 5 | Alpine 3.24, the question answered y; `kept`, n | `play dns/alpine324`: 1, y, y (`dns-alpine324`); n is `TestConfigure`'s and `TestPlayEngineDNSKeepsUDHCPC`'s |
+| 6 | Proxmox VE 9 | `play dns/pve9`: 1, y (`dns-pve9`) |
+| 7 | Dry run | `play -sequence dry-run dns/debian13`: 4 (`dns-dry-run`) |
+| 9 | Nothing to change | `play dns/configured`: 1 (`dns-configured`); no dhcpcd line, as [flow-review.md](flow-review.md) §4 records |
+| 10 | Empty list | `play dns/empty`: 3, 1 (`dns-empty`) |
+| 11 | NetworkManager | `play dns/networkmanager`: 1, 4 (`dns-networkmanager`) |
+| 12 | Failure (`failure-proposed`, the engine's since `next/s2-control`) | `play dns/failed-reload`: 1, y (`dns-failed-reload`) |
+| 13 | One nameserver | `play dns/one`: 3 (`dns-one`) |
+| – | A save that fails (decision 1 (iii), not mocked) | `play dns/failed-save`: 4, y (`dns-failed-save`) |
+
+**What differs from the mocks**, each the real code's: the screen drawn again after a change shows the host and hardn.yml as changed (§8's last limit, gone); Add's check is `dns.Validate` itself, with the host's manager, and says a fourth nameserver on a file is one too many ("/etc/resolv.conf takes 3 nameservers at most", proposed); every refusal before asking on a host every plan refuses (a container, a fact not established) is the control's report, as NetworkManager's was; the configured host lists no dhcpcd line above "Nothing needs changing."; and a long row of nameservers in use is cut at 64 columns (screen-dns.md §11). The words of §5 stand, the real screen's table in screen-dns.md §5.
