@@ -24,7 +24,8 @@ func loadFile(t *testing.T, data string) *Config {
 }
 
 // TestResolveDryRun: §3.19's precedence, a flag given winning, true or
-// false, then the file's dryRun as loaded, then live; each with its source.
+// false, then the file's dryRun as loaded, then live; plan only with its
+// source, live with none (decision 2).
 func TestResolveDryRun(t *testing.T) {
 	for _, tt := range []struct {
 		name        string
@@ -34,13 +35,13 @@ func TestResolveDryRun(t *testing.T) {
 		source      DryRunSource
 	}{
 		{"no flag, no file", "-", false, false, false, DryRunDefault},
-		{"no flag, no key", "username: alice\n", false, false, false, DryRunFile},
-		{"no flag, file false", "dryRun: false\n", false, false, false, DryRunFile},
+		{"no flag, no key", "username: alice\n", false, false, false, DryRunDefault},
+		{"no flag, file false", "dryRun: false\n", false, false, false, DryRunDefault},
 		{"no flag, file true", "dryRun: true\n", false, false, true, DryRunFile},
 		{"no flag, file yes (YAML 1.1)", "dryRun: yes\n", false, false, true, DryRunFile},
 		{"-n, no file", "-", true, true, true, DryRunFlag},
 		{"-n, file false", "dryRun: false\n", true, true, true, DryRunFlag},
-		{"--dry-run=false, file true", "dryRun: true\n", true, false, false, DryRunFlag},
+		{"--dry-run=false, file true", "dryRun: true\n", true, false, false, DryRunDefault},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			c := DefaultConfig()

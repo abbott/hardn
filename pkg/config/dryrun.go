@@ -10,48 +10,56 @@ import "os"
 // the legacy saves write that one (SaveConfig) and the session's mode never
 // lands in a file.
 
-// DryRunSource is what set the session's mode (ResolveDryRun): what the
-// mode indicator names after "Plan only", and what the refusal of plan only
-// with an operation flag names.
+// DryRunSource is what set plan only (ResolveDryRun): what the mode
+// indicator names after "Plan only", and what the refusal of plan only with
+// an operation flag names. A live session has none, DryRunDefault: live
+// names nothing (decision 2).
 type DryRunSource int
 
 const (
-	// DryRunDefault: neither the command line nor a file set the mode, so
-	// it is live, the default; or the session has set it itself since
-	// (SetDryRun: item 6, Run All's option 2), which names no source either.
+	// DryRunDefault: no source. The session is live, whatever made it so
+	// (no file, a file's false, --dry-run=false); or plan only was set
+	// inside the session (SetDryRun: item 6, Run All's option 2).
 	DryRunDefault DryRunSource = iota
-	// DryRunFlag: -n/--dry-run given on the command line, true or false.
+	// DryRunFlag: plan only from -n/--dry-run given on the command line.
 	DryRunFlag
-	// DryRunFile: the dryRun of the hardn.yml loaded (Path), as loaded.
+	// DryRunFile: plan only from the dryRun of the hardn.yml loaded (Path),
+	// as loaded.
 	DryRunFile
 )
 
 // ResolveDryRun sets the session's mode, DryRun, by §3.19's precedence:
 // flag when -n/--dry-run was given on the command line (given), true or
 // false; otherwise the dryRun of the file c was loaded from, as loaded;
-// otherwise live. DryRunSource names which.
+// otherwise live. DryRunSource names which set plan only, and nothing for
+// live.
 func (c *Config) ResolveDryRun(given, flag bool) {
+	source := DryRunDefault
 	switch {
 	case given:
-		c.DryRun, c.loaded.source = flag, DryRunFlag
+		c.DryRun, source = flag, DryRunFlag
 	case c.loaded.path != "":
-		c.DryRun, c.loaded.source = c.loaded.dryRun, DryRunFile
+		c.DryRun, source = c.loaded.dryRun, DryRunFile
 	default:
-		c.DryRun, c.loaded.source = false, DryRunDefault
+		c.DryRun = false
 	}
-	c.loaded.resolved = c.DryRun
+	if !c.DryRun {
+		source = DryRunDefault // live names no source (decision 2)
+	}
+	c.loaded.source, c.loaded.resolved = source, c.DryRun
 }
 
 // SetDryRun sets the session's mode from inside the session (item 6, Run
 // All's option 2, until slice 2b's unit (d) removes them): DryRun on, with
-// no source (decision 2). Nothing saves it (SaveConfig).
+// no source (decision 2). No legacy save writes it: SaveConfig writes
+// dryRun as loaded.
 func (c *Config) SetDryRun(on bool) {
 	c.DryRun, c.loaded.source = on, DryRunDefault
 }
 
-// DryRunSource is what set the session's mode as it is now: ResolveDryRun's
+// DryRunSource is what set plan only as the session is now: ResolveDryRun's
 // source while DryRun still holds the value it set, and DryRunDefault once
-// anything else has set it (SetDryRun, or a write to DryRun).
+// anything else has set it (SetDryRun, or a write to DryRun), or for live.
 func (c *Config) DryRunSource() DryRunSource {
 	if c.DryRun != c.loaded.resolved {
 		return DryRunDefault

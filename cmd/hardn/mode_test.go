@@ -90,7 +90,7 @@ func (y hardnYML) setup(t *testing.T) func() {
 
 // TestDryRunPrecedence: each start's mode and its source, -n/--dry-run
 // given (true or false) winning over hardn.yml's dryRun, which wins over
-// the default, live. Run with -p, which changes nothing, so that the run
+// the default, live; live names no source (decision 2). Run with -p, which changes nothing, so that the run
 // ends past where the mode is set and the menus are not opened; the menus
 // take the same configuration.
 func TestDryRunPrecedence(t *testing.T) {
@@ -101,14 +101,14 @@ func TestDryRunPrecedence(t *testing.T) {
 		source     config.DryRunSource
 	}{
 		{"no flag, no file", "", nil, false, config.DryRunDefault},
-		{"no flag, file false", "false", nil, false, config.DryRunFile},
+		{"no flag, file false", "false", nil, false, config.DryRunDefault},
 		{"no flag, file true", "true", nil, true, config.DryRunFile},
 		{"-n, file false", "false", []string{"-n"}, true, config.DryRunFlag},
 		{"-n, file true", "true", []string{"-n"}, true, config.DryRunFlag},
-		{"--dry-run=false, file true", "true", []string{"--dry-run=false"}, false, config.DryRunFlag},
+		{"--dry-run=false, file true", "true", []string{"--dry-run=false"}, false, config.DryRunDefault},
 		{"--dry-run=true, file false", "false", []string{"--dry-run=true"}, true, config.DryRunFlag},
 		{"-n, no file", "", []string{"-n"}, true, config.DryRunFlag},
-		{"--dry-run=false, no file", "", []string{"--dry-run=false"}, false, config.DryRunFlag},
+		{"--dry-run=false, no file", "", []string{"--dry-run=false"}, false, config.DryRunDefault},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			y := newHardnYML(t, tc.file)
