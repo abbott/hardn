@@ -22,32 +22,41 @@ import (
 )
 
 // configureDNS is -g: the DNS control over hardn.yml's own list
-// (dnsctl.Controls(c)) planned and applied through the engine with
-// engineOptions, without a question (the maintainer, 2026-10-23: "apply
+// (dnsctl.Controls(c)) planned and applied as runControls runs a flag's
+// controls, without a question (the maintainer, 2026-10-23: "apply
 // without asking, -n -g shows the plan and writes nothing, and no udhcpc
-// flag (the warning only)"), its report on stdout (output.Human). The
-// list is the file's, so hardn.yml is not saved. udhcpc is not stopped
-// (StopUDHCPC false): on Alpine the plan's finding says it may rewrite
-// the file. A dry run (c.DryRun, as -n sets it) is the plan alone. A plan
-// refused (a manager hardn only reports, a container, an empty list, a
-// fact not established, ...) is reported with its code and how to go on,
-// and not applied; a failed apply is rolled back. Ctrl-C, SIGTERM and a
-// hangup cancel it, an apply rolled back, and end hardn at once with
-// 130. It returns the exit status (output.ExitCode, Phase 3's): 0 for
-// applied or nothing to change, 3 for a dry run with changes to make, 1
-// for a refusal or a failure.
+// flag (the warning only)"). The list is the file's, so hardn.yml is not
+// saved. udhcpc is not stopped (StopUDHCPC false): on Alpine the plan's
+// finding says it may rewrite the file. A plan refused (a manager hardn
+// only reports, a container, an empty list, a fact not established, ...)
+// is reported with its code and how to go on, and not applied.
 func configureDNS(c *config.Config) int {
-	ctx, stop := engineSignals(context.Background())
-	defer stop()
+	return runControls(c, dnsctl.Controls(c))
+}
+
+// runControls runs an operation flag's controls on the plan/apply engine:
+// planned over the configuration c with engineOptions, then applied
+// without a question, unless the plan is refused or c.DryRun (-n) asks
+// for the plan alone; its report on stdout (output.Human). A failed apply
+// is rolled back. The apply alone runs under engineSignals: Ctrl-C,
+// SIGTERM and a hangup during it cancel it, rolled back, and end hardn
+// at once with 130, once reported; before it they end hardn as they
+// always have, a plan having written nothing. It returns the exit status
+// (output.ExitCode, Phase 3's): 0 for applied or nothing to change, 3 for
+// a dry run with changes to make, 1 for a refusal or a failure.
+func runControls(c *config.Config, controls []engine.Control) int {
+	ctx := context.Background()
 	sys := engineHost()
 	e := engine.New(sys, engineOptions(ctx, sys, c))
 	run := output.Run{Mode: output.ModeApply}
 	if c.DryRun {
 		run.Mode = output.ModePlan
 	}
-	run.Plan, run.Err = e.Plan(ctx, dnsctl.Controls(c), c)
+	run.Plan, run.Err = e.Plan(ctx, controls, c)
 	if run.Mode == output.ModeApply && run.Err == nil && run.Plan.Err() == nil {
-		res, err := e.Apply(ctx, run.Plan)
+		actx, stop := engineSignals(ctx)
+		defer stop()
+		res, err := e.Apply(actx, run.Plan)
 		run.Result, run.Err = &res, err
 	}
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
@@ -55,7 +64,6 @@ func configureDNS(c *config.Config) int {
 	}
 	code := output.ExitCode(run)
 	if code == output.ExitInterrupted {
-		stop()
 		exit(code)
 	}
 	return code
@@ -79,15 +87,15 @@ func withDNSScreen(m *menu.MainMenu, c *config.Config) *menu.MainMenu {
 // configuration the main menu holds. No audit record is written: the
 // audit log's first writer is next/p3-startup's (Options.Ran left nil).
 //
-// Ctrl-C, SIGTERM and a hangup cancel ctx while the screen runs
-// (engineSignals, as -g's; engine.md §2.14), so that a change they
-// interrupt is rolled back here rather than left half applied; at a
-// prompt, Ctrl-C still ends hardn, as the prompt reports it
-// (prompt.ErrInterrupted). Once cancelled, the screen reads nothing more
-// of the host (Unknown) and plans nothing, until the user leaves it.
+// Each change's apply, and nothing else, runs under engineSignals
+// (dnsscreen.Options.ApplyContext; engine.md §2.14): Ctrl-C, SIGTERM and
+// a hangup during it cancel it, and the change is rolled back here
+// rather than left half applied; the screen then goes on. They are
+// registered again for each apply, since the hold around a rollback ends
+// a registration made before it. Elsewhere, at a prompt among them, they
+// end hardn as they always have: Ctrl-C at a prompt as the prompt reports
+// it (prompt.ErrInterrupted), SIGTERM and a hangup by Go's default.
 func runDNSScreen(ctx context.Context, c *config.Config) error {
-	ctx, stop := engineSignals(ctx)
-	defer stop()
 	sys := engineHost()
 	facts, err := engineDetect(ctx, sys)
 	if err != nil {
@@ -95,13 +103,14 @@ func runDNSScreen(ctx context.Context, c *config.Config) error {
 	}
 	env := stdoutEnv()
 	return dnsscreen.Run(ctx, dnsscreen.Options{
-		Prompter:  nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
-		System:    sys,
-		Facts:     facts,
-		Config:    c,
-		NewEngine: newEngine(sys, engineOptions(ctx, sys, c)),
-		DryRun:    c.DryRun,
-		LogPath:   output.LegacyLogPath,
-		Now:       revertNow,
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		System:       sys,
+		Facts:        facts,
+		Config:       c,
+		NewEngine:    newEngine(sys, engineOptions(ctx, sys, c)),
+		ApplyContext: engineSignals,
+		DryRun:       c.DryRun,
+		LogPath:      output.LegacyLogPath,
+		Now:          revertNow,
 	})
 }

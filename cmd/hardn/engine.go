@@ -23,17 +23,22 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
+// engineSignalSet are the signals that cancel an apply: Ctrl-C, SIGTERM
+// and a hangup, which hardn treats as Ctrl-C (engine.md §2.14).
+var engineSignalSet = []os.Signal{os.Interrupt, syscall.SIGTERM, syscall.SIGHUP}
+
 // Seams for the tests: the host the engine changes and the screens read,
 // with its run log; detection, the engine's and the screens'; the hold
-// around an in-process rollback (nil: the engine's own); the signals that
-// cancel a flag's or a screen's changes (engine.md §2.14); the line reader
-// and the stdout the screens and a flag's report use.
+// around an in-process rollback (nil: the engine's own); the context an
+// apply runs under, which engineSignalSet cancels, registered for that
+// apply alone (engineSignals); the line reader and the stdout the screens
+// and a flag's report use.
 var (
 	engineHost    = func() host.System { return host.NewReal(host.Options{RunLog: revertFileLog{}}) }
 	engineDetect  = detect.Detect
 	engineHold    func() (release func())
 	engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
-		return signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+		return signal.NotifyContext(ctx, engineSignalSet...)
 	}
 	engineInput            = prompt.Stdin
 	engineStdout io.Writer = os.Stdout

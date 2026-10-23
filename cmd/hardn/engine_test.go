@@ -5,7 +5,10 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"slices"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -85,6 +88,7 @@ func TestEngineOptions(t *testing.T) {
 // detection is detect.Detect, the hold is the engine's own (nil), the
 // signals' context is a live one its stop ends, and the screens read the
 // one line reader every prompt shares and write to stdout.
+// TestEngineSignals holds the signals.
 func TestEngineSeamsAreReal(t *testing.T) {
 	if _, ok := engineHost().(*host.Real); !ok {
 		t.Error("engineHost is not host.Real")
@@ -108,5 +112,28 @@ func TestEngineSeamsAreReal(t *testing.T) {
 	stop()
 	if ctx.Err() == nil {
 		t.Error("engineSignals' stop does not end its context")
+	}
+}
+
+// TestEngineSignals: the signals that cancel an apply are Ctrl-C, SIGTERM
+// and a hangup (engine.md §2.14), each, sent to this test process as the
+// kernel delivers it, caught by engineSignals' context, which it cancels:
+// one left out would end the test process by its default action.
+func TestEngineSignals(t *testing.T) {
+	if want := []os.Signal{os.Interrupt, syscall.SIGTERM, syscall.SIGHUP}; !slices.Equal(engineSignalSet, want) {
+		t.Fatalf("engineSignalSet = %v, want %v", engineSignalSet, want)
+	}
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		ctx, stop := engineSignals(context.Background())
+		if err := syscall.Kill(os.Getpid(), sig); err != nil {
+			stop()
+			t.Fatal(err)
+		}
+		select {
+		case <-ctx.Done():
+		case <-time.After(5 * time.Second):
+			t.Errorf("%v did not cancel engineSignals' context", sig)
+		}
+		stop()
 	}
 }

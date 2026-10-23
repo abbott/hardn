@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
+	"os"
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -190,17 +193,35 @@ func (h *dnsHost) writes() []string {
 }
 
 // dnsSeams is what useDNSHost points the seams at: the screen's and the
-// report's output, and the holds the engine took.
+// report's output, the holds the engine took, and the applies' signal
+// contexts (engineSignals): how many were made, how many are not stopped
+// yet, and how many reads of a prompt found one not stopped.
 type dnsSeams struct {
 	out  bytes.Buffer
 	held int
+
+	applies, live, atPrompt int
+}
+
+// watched is the user's input, a read of which counts in atPrompt while an
+// apply's signal context is live.
+type watched struct {
+	in io.Reader
+	s  *dnsSeams
+}
+
+func (w watched) Read(p []byte) (int, error) {
+	if w.s.live > 0 {
+		w.s.atPrompt++
+	}
+	return w.in.Read(p)
 }
 
 // useDNSHost points the engine's and the screens' seams at h until the
 // test ends: its facts, a hold that counts, the user typing lines, plain
 // output at 80 columns into the returned buffer, and revert's clock,
 // pid, environment and hardn's path fixed; and signals that never come
-// (a context only the test cancels).
+// (a context only the test cancels), counted.
 func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 	t.Helper()
 	s := &dnsSeams{}
@@ -210,9 +231,15 @@ func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 		engineHost, engineDetect, engineHold, engineInput, engineStdout, stdoutEnv = hostWas, detectWas, holdWas, inputWas, stdoutWas, envWas
 		engineSignals, revertNow, revertPID, revertGetenv, revertExecutable = signalsWas, nowWas, pidWas, getenvWas, executableWas
 	})
-	in := prompt.New(uitest.NewTypist(&s.out, lines...), false)
+	in := prompt.New(watched{uitest.NewTypist(&s.out, lines...), s}, false)
 	engineHost = func() host.System { return h }
-	engineSignals = context.WithCancel // no signal: nothing cancels it but the test
+	engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+		s.applies++
+		s.live++
+		c, cancel := context.WithCancel(ctx) // no signal: nothing cancels it but the test
+		var once sync.Once
+		return c, func() { once.Do(func() { s.live-- }); cancel() }
+	}
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return h.facts, nil }
 	engineHold = func() func() { s.held++; return func() {} }
 	engineInput = func() *prompt.Reader { return in }
@@ -231,7 +258,8 @@ func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 // the configuration the main menu holds adopts the list as saved; 0 goes
 // back (nil), q quits (nav.ErrQuit), the end of the input aborts
 // (prompt.ErrAborted); a dry run, as the configuration says when the item
-// is chosen, writes nothing. No audit record is written.
+// is chosen, writes nothing. No audit record is written. The signals are
+// registered for the apply alone, and never while a prompt waits.
 func TestDNSScreen(t *testing.T) {
 	added := append(slices.Clone(dnsTestList), "192.0.2.55")
 	for _, tc := range []struct {
@@ -258,6 +286,9 @@ func TestDNSScreen(t *testing.T) {
 			}
 			if !slices.Equal(cfg.Nameservers, tc.list) {
 				t.Errorf("the main menu's configuration lists %q, want %q", cfg.Nameservers, tc.list)
+			}
+			if want := map[bool]int{true: 1}[tc.written]; s.applies != want || s.live != 0 || s.atPrompt != 0 {
+				t.Errorf("signals registered %d times (want %d), %d left, %d prompts read under them", s.applies, want, s.live, s.atPrompt)
 			}
 			got := h.writes()
 			if !tc.written {
@@ -292,37 +323,72 @@ func TestDNSScreen(t *testing.T) {
 	}
 }
 
-// TestDNSScreenInterrupted: Ctrl-C, SIGTERM or a hangup during a change's
-// apply on the DNS screen (engineSignals' context cancelled) rolls the
-// change back here, the hold taken once, and the screen goes on, reading
-// nothing more of the host, until the user goes back: nil, the
-// configuration as it was. hardn is not ended half applied.
-func TestDNSScreenInterrupted(t *testing.T) {
-	h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
-	s := useDNSHost(t, h, "1", "y", "0")
-	ctx, cancel := context.WithCancel(context.Background())
-	engineSignals = func(context.Context) (context.Context, context.CancelFunc) { return ctx, cancel }
-	answer := h.Handler
-	h.Handler = func(argv []string, in []byte) hostfake.Response {
-		if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
-			cancel() // the signal, as signal.NotifyContext delivers it; the reload itself succeeds
-		}
-		return answer(argv, in)
-	}
-	if err := runDNSScreen(context.Background(), cfg); err != nil {
-		t.Fatalf("runDNSScreen = %v; screen:\n%s", err, s.out.String())
-	}
-	if got := h.content(hostdns.DropIn); got != "<absent>" || s.held != 1 || !strings.Contains(s.out.String(), "Rolled back") {
-		t.Errorf("the drop-in after the signal:\n%s\nholds %d; screen:\n%s", got, s.held, s.out.String())
-	}
-	if !slices.Equal(cfg.Nameservers, dnsTestList) {
-		t.Errorf("the configuration lists %q", cfg.Nameservers)
+// TestDNSScreenSignals: Ctrl-C, SIGTERM and a hangup, each sent to this
+// test process during a change's apply on the DNS screen, as the kernel
+// delivers it, cancel that apply: the change is rolled back here, the
+// screen goes on, reading the host again, and the user goes back (nil),
+// the configuration as it was. The change before it in the same visit
+// failed and was rolled back under the engine's own hold (hold.Signals),
+// whose release ends a registration made before it: each apply registers
+// its own (engineSignals), or the signal would end hardn half applied, as
+// Go's default would end this test process.
+func TestDNSScreenSignals(t *testing.T) {
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		t.Run(sig.String(), func(t *testing.T) {
+			signals := engineSignals // the real one: useDNSHost replaces it
+			h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
+			s := useDNSHost(t, h, "1", "y", "1", "y", "0")
+			engineHold = nil // the engine's own
+			var applying context.Context
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				c, stop := signals(ctx)
+				applying = c
+				return c, stop
+			}
+			reloads := 0
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				if strings.Join(argv, " ") != "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
+					return answer(argv, in)
+				}
+				if reloads++; reloads == 1 {
+					return hostfake.Response{} // no effect: the first change fails and is rolled back
+				}
+				if err := syscall.Kill(os.Getpid(), sig); err != nil {
+					t.Error(err)
+				}
+				select {
+				case <-applying.Done():
+				case <-time.After(5 * time.Second):
+					t.Errorf("%v did not cancel the apply", sig)
+				}
+				return answer(argv, in) // the reload itself succeeds
+			}
+			if err := runDNSScreen(context.Background(), cfg); err != nil {
+				t.Fatalf("runDNSScreen = %v; screen:\n%s", err, s.out.String())
+			}
+			out := s.out.String()
+			if s.applies != 2 || reloads != 2 || strings.Count(out, "Set the nameservers  Rolled back") != 2 || !strings.Contains(out, "Failed CANCELLED") {
+				t.Errorf("%d applies, %d reloads; screen:\n%s", s.applies, reloads, out)
+			}
+			if last := out[strings.LastIndex(out, "# DNS Configuration #"):]; strings.Contains(last, "Unknown") {
+				t.Errorf("the screen after the signal did not read the host:\n%s", last)
+			}
+			if got := h.content(hostdns.DropIn); got != "<absent>" {
+				t.Errorf("the drop-in after the signal:\n%s", got)
+			}
+			if !slices.Equal(cfg.Nameservers, dnsTestList) {
+				t.Errorf("the configuration lists %q", cfg.Nameservers)
+			}
+		})
 	}
 }
 
 // runG runs hardn with args as root (runHardnWith) on the DNS host h, its
-// configuration cfg as loaded, and returns the run and -g's report.
-func runG(t *testing.T, h *dnsHost, cfg *config.Config, setup func(), args ...string) (result, string) {
+// configuration cfg as loaded, setup, when set, run once the seams are in
+// place, and returns the run and the seams, -g's report in their out.
+func runG(t *testing.T, h *dnsHost, cfg *config.Config, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
 	t.Helper()
 	var s *dnsSeams
 	r := runHardnWith(t, asRoot, func() {
@@ -335,10 +401,10 @@ func runG(t *testing.T, h *dnsHost, cfg *config.Config, setup func(), args ...st
 			return cfg, nil
 		}
 		if setup != nil {
-			setup()
+			setup(s)
 		}
 	}, args...)
-	return r, s.out.String()
+	return r, s
 }
 
 // TestConfigureDNSFlag: -g plans and applies the DNS control through the
@@ -352,7 +418,8 @@ func runG(t *testing.T, h *dnsHost, cfg *config.Config, setup func(), args ...st
 // a plan refuses reported with its code, nothing written, exit status 1; a
 // reload with no effect rolled back, 1; -n -g the plan alone, nothing
 // written, 3 with changes to make, 0 without, 1 refused. hardn.yml is
-// never saved.
+// never saved. The signals are registered for the apply alone: once with
+// an apply, never for a plan alone or refused.
 func TestConfigureDNSFlag(t *testing.T) {
 	const drop = hostdns.DropIn
 	for _, tc := range []struct {
@@ -397,7 +464,8 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if tc.dryRun {
 				args = []string{"-n", "-g"}
 			}
-			r, report := runG(t, h, cfg, nil, args...)
+			r, s := runG(t, h, cfg, nil, args...)
+			report := s.out.String()
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -432,6 +500,10 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if len(r.calls) != 0 {
 				t.Errorf("-g went through the legacy provider: %v", r.calls)
 			}
+			applied := !tc.dryRun && (tc.code == 0 || tc.files != nil) // not refused
+			if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
+				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
+			}
 		})
 	}
 }
@@ -441,8 +513,9 @@ func TestConfigureDNSFlag(t *testing.T) {
 // reporting as before, and a refusal or a failure of -g is hardn's exit
 // status once the flags after it have run (here -e, which writes its
 // drop-in through the provider); Ctrl-C during -g's apply rolls it back
-// and ends hardn at once with 130, the flags after it not run; -n with
-// another operation flag is still refused, naming that flag alone, before
+// and ends hardn at once with 130, the flags after it not run, the
+// signals registered for the apply alone, after the plan; -n with another
+// operation flag is still refused, naming that flag alone, before
 // anything runs.
 func TestConfigureDNSFlagWithOthers(t *testing.T) {
 	sudoersWrite := func(r result) bool {
@@ -455,36 +528,48 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 	}
 	t.Run("-g refused, then -e", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "resolvconf", dnsTestList)
-		r, report := runG(t, h, cfg, nil, "-g", "-e")
-		if !r.ended || r.code != 1 || !sudoersWrite(r) || !strings.Contains(report, "DNS_MANAGED") {
+		r, s := runG(t, h, cfg, nil, "-g", "-e")
+		if report := s.out.String(); !r.ended || r.code != 1 || !sudoersWrite(r) || !strings.Contains(report, "DNS_MANAGED") {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, sudoersWrite(r), report)
 		}
 	})
 	t.Run("-g applied, then -e", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "debian13", dnsTestList)
-		r, report := runG(t, h, cfg, nil, "-g", "-e")
-		if r.ended || !sudoersWrite(r) || !strings.Contains(report, "Operation Successful") {
+		r, s := runG(t, h, cfg, nil, "-g", "-e")
+		if report := s.out.String(); r.ended || !sudoersWrite(r) || !strings.Contains(report, "Operation Successful") {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, sudoersWrite(r), report)
 		}
 	})
 	t.Run("Ctrl-C during the apply", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
 		ctx, cancel := context.WithCancel(context.Background())
-		r, report := runG(t, h, cfg, func() {
-			engineSignals = func(context.Context) (context.Context, context.CancelFunc) { return ctx, cancel }
+		var live []int // the signal contexts live as each command ran
+		r, s := runG(t, h, cfg, func(s *dnsSeams) {
+			counted := engineSignals
+			engineSignals = func(c context.Context) (context.Context, context.CancelFunc) {
+				_, stop := counted(c)
+				return ctx, func() { stop(); cancel() }
+			}
 			answer := h.Handler
 			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				live = append(live, s.live)
 				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
 					cancel() // Ctrl-C, as signal.NotifyContext delivers it; the reload itself succeeds
 				}
 				return answer(argv, in)
 			}
 		}, "-g", "-e")
+		report := s.out.String()
 		if !r.ended || r.code != 130 || sudoersWrite(r) {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, sudoersWrite(r), report)
 		}
 		if got := h.content(hostdns.DropIn); got != "<absent>" || !strings.Contains(report, "Rolled back") {
 			t.Errorf("the drop-in after Ctrl-C:\n%s\nreport:\n%s", got, report)
+		}
+		// The plan's commands ran with no signal registered, the apply's
+		// with one, stopped as hardn ended.
+		if s.applies != 1 || s.live != 0 || len(live) == 0 || live[0] != 0 || live[len(live)-1] != 1 {
+			t.Errorf("signals registered %d times, %d left; live as each command ran: %v", s.applies, s.live, live)
 		}
 	})
 	t.Run("-n -g -d", func(t *testing.T) {
