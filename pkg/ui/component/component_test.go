@@ -313,28 +313,41 @@ func TestLayout(t *testing.T) {
 		{"divider: fills the bar width", Divider{}, 120, false, strings.Repeat("-", maxWidth(Divider{}, 120))},
 		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("─", 60)},
 		{"mode: live at the value column", ModeIndicator{}, from, false,
-			strings.Repeat(" ", theme.ValueCol) + "Dry-run Mode Disabled"},
-		{"mode: dry run stacked", ModeIndicator{DryRun: true}, below, false,
-			strings.Repeat(" ", theme.StackCol) + "Dry-run Mode Enabled"},
-		{"mode: too narrow, the label is cut, not the word", ModeIndicator{}, min(below, 20), false,
-			strings.Repeat(" ", theme.StackCol) + "Dr... Disabled"},
-		{"mode: with no letter of the label left, the word alone", ModeIndicator{DryRun: true}, min(below, 17), false,
-			strings.Repeat(" ", theme.StackCol) + "Enabled"},
-		{"mode: the word moves left to stay whole", ModeIndicator{}, 10, false, "  Disabled"},
+			strings.Repeat(" ", theme.ValueCol) + "Mode Live"},
+		{"mode: live names no source", ModeIndicator{Source: ModeSourceFile}, from, false,
+			strings.Repeat(" ", theme.ValueCol) + "Mode Live"},
+		{"mode: plan only set in the session names none", ModeIndicator{DryRun: true}, from, false,
+			strings.Repeat(" ", theme.ValueCol) + "Mode Plan only"},
+		{"mode: plan only from -n", ModeIndicator{DryRun: true, Source: ModeSourceFlag}, from, false,
+			strings.Repeat(" ", theme.ValueCol) + "Mode Plan only (-n)"},
+		{"mode: plan only from hardn.yml, stacked", ModeIndicator{DryRun: true, Source: ModeSourceFile}, below, false,
+			strings.Repeat(" ", theme.StackCol) + "Mode Plan only (hardn.yml)"},
+		// At fixed widths that stack, so that they also run with
+		// theme.StackBelow refused: the room is then the value column's.
+		{"mode: too narrow, the label gives way first", ModeIndicator{DryRun: true, Source: ModeSourceFile}, min(below, 30), false,
+			strings.Repeat(" ", theme.StackCol) + "Plan only (hardn.yml)"},
+		{"mode: the source stays down to 27 columns", ModeIndicator{DryRun: true, Source: ModeSourceFile}, min(below, 27), false,
+			strings.Repeat(" ", theme.StackCol) + "Plan only (hardn.yml)"},
+		{"mode: then the source, the word kept", ModeIndicator{DryRun: true, Source: ModeSourceFile}, min(below, 26), false,
+			strings.Repeat(" ", theme.StackCol) + "Plan only"},
+		{"mode: the word moves left to stay whole", ModeIndicator{DryRun: true, Source: ModeSourceFlag}, 10, false, " Plan only"},
+		{"mode: the word is cut last", ModeIndicator{DryRun: true, Source: ModeSourceFlag}, 5, false, "Pl..."},
 		{"heading: the mode at the value column", figmaHeading, from, false,
-			"  Select an option         Dry-run Mode Disabled"},
+			"  Select an option         Mode Live"},
+		{"heading: plan only and its source beside it", MenuHeading{Title: "Select an option", Mode: &ModeIndicator{DryRun: true, Source: ModeSourceFile}}, from, false,
+			"  Select an option         Mode Plan only (hardn.yml)"},
 		{"heading: the mode under it below StackBelow", figmaHeading, below, false,
-			"  Select an option\n      Dry-run Mode Disabled"},
+			"  Select an option\n      Mode Live"},
 		{"heading: a title reaching the value column puts the mode under it", MenuHeading{Title: strings.Repeat("x", 25), Mode: &ModeIndicator{}}, from, false,
-			"  " + strings.Repeat("x", 25) + "\n      Dry-run Mode Disabled"},
+			"  " + strings.Repeat("x", 25) + "\n      Mode Live"},
 		{"heading: no mode", MenuHeading{Title: " Select an option\t"}, from, false, "  Select an option"},
-		{"heading: no title is the mode alone", MenuHeading{Mode: &ModeIndicator{DryRun: true}}, from, false,
-			strings.Repeat(" ", theme.ValueCol) + "Dry-run Mode Enabled"},
+		{"heading: no title is the mode alone", MenuHeading{Mode: &ModeIndicator{DryRun: true, Source: ModeSourceFlag}}, from, false,
+			strings.Repeat(" ", theme.ValueCol) + "Mode Plan only (-n)"},
 		// At a fixed width, so that it also runs with theme.StackBelow
 		// refused: the mode then goes under the title only because its
 		// word would not fit beside it.
-		{"heading: under a cut title the mode's word stays whole", figmaHeading, 10, false,
-			"  Selec...\n  Disabled"},
+		{"heading: under a cut title the mode's word stays whole", MenuHeading{Title: "Select an option", Mode: &ModeIndicator{DryRun: true}}, 10, false,
+			"  Selec...\n Plan only"},
 		{"menu: keys right-aligned, descriptions at the value column", Menu{Items: []MenuItem{
 			{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
 			{Key: "10", Label: "Logs", Description: "View log file"},
@@ -640,20 +653,38 @@ func TestASCIIText(t *testing.T) {
 	}
 }
 
-// TestModeWord checks that the ModeIndicator ends with its whole word, the
+// TestModeWord checks that the ModeIndicator shows its whole word, the
 // one thing that tells the modes apart, at every width the word fits, in
-// both glyph sets.
+// both glyph sets; that on a terminal too narrow for the whole text the
+// label gives way first, then the source, each whole or not at all
+// (decision 3); and that live names no source, whatever it is given
+// (decision 2).
 func TestModeWord(t *testing.T) {
-	modes := []struct {
-		vm   ModeIndicator
-		word string
-	}{{ModeIndicator{}, ModeLive}, {ModeIndicator{DryRun: true}, ModeDryRun}}
-	for w := 1; w <= 130; w++ {
-		for _, unicode := range []bool{true, false} {
-			for _, m := range modes {
-				got := ansi.Strip(m.vm.Render(NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))))
-				if w >= lipgloss.Width(m.word) && !strings.HasSuffix(got, m.word) {
-					t.Errorf("width %d, unicode %v: got %q, want it to end with %q", w, unicode, got, m.word)
+	sources := map[ModeSource]string{ModeSourceNone: "", ModeSourceFlag: " (" + ModeFromFlag + ")", ModeSourceFile: " (" + ModeFromFile + ")"}
+	for _, live := range []bool{true, false} {
+		for source, from := range sources {
+			vm, word := ModeIndicator{DryRun: !live, Source: source}, ModePlanOnly
+			if live {
+				word, from = ModeLive, ""
+			}
+			for w := 1; w <= 130; w++ {
+				col := theme.ValueCol
+				if w < theme.StackBelow {
+					col = theme.StackCol
+				}
+				room := min(w, theme.ContentWidth) - col
+				want := word
+				for _, text := range []string{ModeLabel + " " + word + from, word + from} {
+					if len(text) <= room {
+						want = text
+						break
+					}
+				}
+				for _, unicode := range []bool{true, false} {
+					got := ansi.Strip(vm.Render(NewCtx(term.Fixed(w, colorprofile.ASCII, unicode, true))))
+					if w >= len(word) && strings.TrimSpace(got) != want {
+						t.Errorf("%+v, width %d, unicode %v: got %q, want %q", vm, w, unicode, got, want)
+					}
 				}
 			}
 		}

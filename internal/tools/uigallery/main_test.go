@@ -260,7 +260,7 @@ func TestSelect(t *testing.T) {
 		{nil, every},
 		{[]string{"all"}, every},
 		{[]string{"divider"}, []string{"divider/normal"}},
-		{[]string{"modeindicator/dry-run", "badge", "divider/normal"}, []string{"divider/normal", "modeindicator/dry-run", "badge/normal", "badge/long", "badge/empty"}},
+		{[]string{"modeindicator/plan-only", "badge", "divider/normal"}, []string{"divider/normal", "modeindicator/plan-only", "badge/normal", "badge/long", "badge/empty"}},
 		{[]string{"menu"}, []string{"menu/main", "menu/sub", "menu/risk", "menu/disabled", "menu/long", "menu/compact", "menu/empty"}},
 	}
 	for _, tt := range tests {

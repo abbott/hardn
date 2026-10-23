@@ -21,7 +21,7 @@ const (
 // value column. Here with no colour (the underline is not shown):
 //
 //	0 2   6                    27
-//	  Select an option         Dry-run Mode Disabled
+//	  Select an option         Mode Live
 //
 // The title starts at theme.Indent (C11, DEV-029). Below theme.StackBelow,
 // when the title reaches the value column, or when not even the mode's
@@ -33,8 +33,8 @@ const (
 type MenuHeading struct {
 	// Title is the heading, such as "Select an option".
 	Title string
-	// Mode is the dry-run mode shown beside the title; nil shows none, as
-	// on Figma's sub-menus.
+	// Mode is the mode hardn runs in, live or plan only, shown beside the
+	// title; nil shows none, as on Figma's sub-menus.
 	Mode *ModeIndicator
 }
 

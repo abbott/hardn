@@ -233,13 +233,13 @@ One exception: light `status.warn` at 16 colours, Yellow, is 4.2:1 (DEV-011). Un
 
 ### 4.3 Where each token is used
 
-`theme.New` builds 104 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
+`theme.New` builds 105 style slots, grouped by component (`theme.Theme`). Slots carry only colours and text attributes (today bold and underline); layout belongs to the components.
 
 | Token | Slots |
 |---|---|
 | `text.primary` | `Text.Primary`, `Header.Wordmark`, `TitleBar.Title`, `Risk.Label`, `Status.Label`, `Menu.Key`, `Menu.Label`, `Field.Number`, `Field.Label`, `Field.Hint`, `Callout.Info.Title`, `KeyValue.Key`, `Breadcrumb.Current`, `Plan.Title`, `Step.Running`, `Confirm.Command` |
 | `text.muted` | `Text.Muted`, `Header.Version`, `ContextBar.Name`, `ContextBar.Version`, `ContextBar.Unknown`, `Host.Address`, `Host.Unknown`, `Risk.Unknown`, `Status.NotApplicable`, `Status.Unknown`, `Status.Line`, `Mode.Label`, `Menu.Heading`, `Menu.Description`, `Menu.ExitKey`, `Menu.Exit`, `Prompt.Glyph`, `Prompt.Label`, `Prompt.Hint`, `Field.Answer`, `Field.Description`, `Inline.Info`, `Callout.Body`, `KeyValue.Bullet`, `KeyValue.Value`, `KeyValue.ValueUnknown`, `KeyValue.ValueNotApplicable`, `Section.Title`, `Breadcrumb.Item`, `TitleBar.Parent`, `Plan.Target`, `Plan.Context`, `Plan.Command`, `Step.Pending`, `Output` |
-| `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Breadcrumb.Separator`, `TitleBar.Separator`, `Plan.Meta`, `Step.Skipped`, `Step.Detail` |
+| `text.faint` | `Text.Faint`, `Header.URL`, `ContextBar.Codename`, `Host.Uptime`, `Risk.Gloss`, `Status.Detail`, `Menu.Aside`, `Menu.Disabled`, `Mode.Source`, `Breadcrumb.Separator`, `TitleBar.Separator`, `Plan.Meta`, `Step.Skipped`, `Step.Detail` |
 | `status.ok` | `Risk.Low`, `Status.Configured`, `Mode.DryRun`, `Inline.OK`, `Callout.OK.Title`, `KeyValue.ValueOK`, `Plan.Added`, `Step.Done` |
 | `status.bad` | `Risk.High`, `Status.NotConfigured`, `Inline.Bad`, `Callout.Bad.Title`, `KeyValue.ValueBad`, `Plan.Removed`, `Step.Failed`, `Confirm.Urgent` |
 | `status.warn` | `Host.Reboot`, `Risk.Moderate`, `Status.Partial`, `Status.LineWarn`, `Mode.Live`, `Menu.Risk`, `Inline.Warn`, `Callout.Warn.Title`, `Callout.Cancelled.Title`, `KeyValue.ValueWarn`, `Plan.LockoutRisk`, `Step.RolledBack`, `Confirm.Waiting` |
@@ -421,7 +421,7 @@ Not applicable and error are not separate states here: a value hardn could not r
 | `StatusRow` | `Label`, `State` (`StatusState`; zero: `StatusUnknown`), `Word`, `Detail`, `Lines` (`StatusLine`: `Text`, `Warn`; zero: muted) | `configured`, `not-configured`, `partial`, `not-applicable`, `unknown`, `word`, `long-label`, `long-detail`, `line-warn`, `line-muted`, `two-lines`, `long-line` | Glyph centred in the marker column (DEV-020), label at col 6, the state's word at col 27 and the detail one cell after it. Each state has a glyph and its own word in its colour; Partial shares Not Configured's glyph, the colour and word telling them apart (DEV-024). A label over 20 cells is cut with the ellipsis; the value is cut at the content width (DEV-025). Stacks below 64 columns, word and detail at col 6 (DEV-021). ASCII markers `[+] [ ] [ ] [-] [?]`, Partial's in `status.warn`. **Lines**, in order, empty ones skipped: directly under the row at col 27, or under the stacked value at col 6, `Glyphs.Bullet` and a space then the text, bullet and text in `Status.LineWarn` (`status.warn`, `Warn`: a cost hardn established) or `Status.Line` (`text.muted`: a line that rests on something hardn could not establish), cut at the content width with the ellipsis, never wrapped; 35 cells after the bullet at 64 columns (the maintainer, 2026-10-21; DEV-059). The main menu's rows carry the risk level's factors there; `pkg/output` gives lines on the main menu alone, so a sub-screen's rows have none | `table` as for `HostBlock`, and its cut is a fixed `…`. `list` evaluated for the lines: its default bullet is `•` and each line would still need the value-column indent and the cut, so they are placed by hand |
 | `StatusList` | `Rows` | `normal` (Figma's seven rows), `lines` (lines under three rows), `empty` (renders nothing) | As `StatusRow`; every row on the same grid, each row's lines under it, the rows one block with no blank line | `list` evaluated: an `Enumerator` returning the marker already centred would draw the glyph at col 3 (§2.3), but each row still needs the label and value columns, the stacking and the cut, so a list adds nothing |
 | `Divider` | none | `normal` | `Glyphs.Rule` (`─`, `-` in ASCII) in `divider` from col 0 across the bar width: 64 cells, or the terminal's width when narrower (DEV-026) | none |
-| `ModeIndicator` | `DryRun` (zero: live) | `live`, `dry-run` | "Dry-run Mode" muted, then "Disabled" in `status.warn` or "Enabled" in `status.ok`, origin/main's words (P-03 decides the model). At col 27, the value column of the menu heading's line; at col 6 below 64 columns. Too narrow for it all, the label is cut before the word, which tells the modes apart, and left out once no letter of it fits; the word leaves its column only to stay whole (DEV-021) | none: placed with spaces, as `PlaceHorizontal` pads with trailing spaces (§2.3) |
+| `ModeIndicator` | `DryRun` (zero: live), `Source` (`ModeSource`: `ModeSourceNone`, `ModeSourceFlag`, `ModeSourceFile`; zero: none) | `live`, `plan-only`, `plan-only-flag`, `plan-only-file` | The maintainer's words (slice 2b, decisions 2 and 3, adopted 2026-10-23; DEV-065): "Mode" in `Mode.Label` (`text.muted`), then "Live" in `Mode.Live` (`status.warn`) or "Plan only" in `Mode.DryRun` (`status.ok`), then, after plan only's word, what set it, "(-n)" or "(hardn.yml)", in `Mode.Source` (`text.faint`). Live names no source, whatever it is given, and nor does plan only set inside the session (`ModeSourceNone`). At col 27, the value column of the menu heading's line; at col 6 below 64 columns. Too narrow for it all, the label gives way first, then the source, each whole or left out, and the word last: the source stays down to 27 columns ("Plan only (hardn.yml)" from col 6); the word leaves its column only to stay whole, and is cut only on a terminal narrower than itself (DEV-021). origin/main's "Dry-run Mode Disabled" and "Enabled" until `next/s2b-menu` | none: placed with spaces, as `PlaceHorizontal` pads with trailing spaces (§2.3) |
 
 **Words for the states Figma does not draw** (DEV-024): "Partial", "Not Applicable" and "Unknown", the brief's state names, spelt as Figma's "Not Configured" is. **Room for a detail beside the label** (DEV-025): 64 − 27 − the word − 1, so 26 cells after "Configured", 22 after "Not Configured" or "Not Applicable" and 29 after "Partial" or "Unknown"; stacked at 60 columns, 60 − 6 − the word − 1. The main menu's longest detail in Figma, "non-default (2230)", is 18 cells, and origin/main's, "password auth enabled", 21. 05-BACKUP's "UFW installed, deny policy" (a row copied from another screen) is 26: 29 cells are free beside its "Enabled", and beside "Configured" it would fit exactly.
 
@@ -696,7 +696,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
 | `StatusRow` | 9.3 | `configured`, `not-configured`, `partial` | as unknown | `unknown`, `line-muted` | `not-applicable` | as unknown | `word`, `long-label`, `long-detail`, `line-warn`, `two-lines`, `long-line` |
 | `StatusList` | 9.3 | `normal` | `empty` | per row | per row | per row | `lines` |
 | `Divider` | 9.3 | `normal` | – | – | – | – | |
-| `ModeIndicator` | 9.3 | `live`, `dry-run` | – | – | – | – | |
+| `ModeIndicator` | 9.3 | `live`, `plan-only` | – | – | – | – | `plan-only-flag`, `plan-only-file` |
 | `MenuHeading` | 9.4 | `normal` | `empty` | – | – | – | `no-mode`, `long` |
 | `Menu` | 9.4 | `main`, `sub`, `compact` | `empty` | – | `disabled` | – | `risk`, `long` |
 | `PromptLine` | 9.4 | `normal` | `empty` | – | – | – | `no-hint` |
@@ -743,7 +743,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
   [...]
   [ ] Auto Updates         Not Configured
 
-  Select an option         Dry-run Mode Disabled
+  Select an option         Mode Live
    1) User Management       6) Dry-Run
    2) SSH Login             7) Run All
    3) DNS                   8) Environment
@@ -800,7 +800,7 @@ Each element the PNGs draw, the export's tokens and component candidates behind 
 | Status rows "⛛ User Configured non-root, sudo" | 00, 01, 02, 05 | `d741958a`, `c1390b17`, `e8e27283`; `color.status.ok`, `color.status.err`, `color.text.primary`, `color.text.dim` | `StatusRow`, `StatusList` | `Status.*` |
 | Full-width rule | 00 | `color.border.divider`, `border.width` | `Divider` | `Divider` |
 | Panel outline | 00 | #17181C, no token | not drawn (DEV-023) | – |
-| "Select an option", and on 00 "Dry-run Mode Disabled" | 00, 01, 02, 05, USER-MANAGE_USER-MANAGEMENT, USER-SSH_KEYS | `color.text.muted` (underline in the PNGs only), `color.status.warn` | `MenuHeading`, `ModeIndicator` | `Menu.Heading`, `Mode.*` |
+| "Select an option", and on 00 "Dry-run Mode Disabled" (drawn "Mode Live" since `next/s2b-menu`, DEV-065) | 00, 01, 02, 05, USER-MANAGE_USER-MANAGEMENT, USER-SSH_KEYS | `color.text.muted` (underline in the PNGs only), `color.status.warn` | `MenuHeading`, `ModeIndicator` | `Menu.Heading`, `Mode.*` |
 | Numbered items and descriptions | every menu | `6f82f470`, `1726e2d0`, `411eadb8`; `type.body.strong` (keys), `color.text.primary`, `color.text.muted`, `color.text.dim` (aside) | `Menu`, `MenuItem` | `Menu.Key`, `.Label`, `.Description`, `.Aside` |
 | "0) Exit", "0) Return" | every menu | `ad108bad`, `color.text.muted` | `Menu.Exit` | `Menu.ExitKey`, `Menu.Exit` |
 | "❯ Enter your choice [0-10 or q]:" and the cursor | every menu | `213f2a96`; `type.glyph`, `type.body.strong`, `color.text.muted`, `size.prompt`; `color.cursor` (dropped, C8) | `PromptLine` | `Prompt.Glyph`, `.Label`, `.Hint` |

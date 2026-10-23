@@ -25,7 +25,7 @@ import (
 //
 //	----------------------------------------------------------------
 //
-//	  Select an option         Dry-run Mode Disabled
+//	  Select an option         Mode Live
 //
 //	   1) User Management      Create, Configure (sudo, SSH keys)
 //	  10) Logs                 View log file
@@ -66,7 +66,7 @@ import (
 //	  [+] User                 Configured non-root, sudo
 //	  [ ] Auto Updates         Not Configured
 //
-//	  Select an option         Dry-run Mode Disabled
+//	  Select an option         Mode Live
 //	   1) User Management       6) Dry-Run
 //	   5) Backup               10) Logs
 //
@@ -99,7 +99,8 @@ type MainMenu struct {
 	Status component.StatusList
 	// Heading is the menu heading's title, such as "Select an option".
 	Heading string
-	// Mode is the dry-run mode, always shown beside the heading.
+	// Mode is the mode hardn runs in, live or plan only, and what set
+	// plan only, always shown beside the heading.
 	Mode component.ModeIndicator
 	// Menu is the numbered menu and its Exit item. Its Compact is set by
 	// the layout, from the terminal's height.

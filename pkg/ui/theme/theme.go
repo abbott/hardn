@@ -149,11 +149,12 @@ type StatusStyles struct {
 	LineWarn lipgloss.Style
 }
 
-// ModeStyles style the mode indicator: "Dry-run Mode Disabled".
+// ModeStyles style the mode indicator: "Mode Live", "Mode Plan only (-n)".
 type ModeStyles struct {
 	Label  lipgloss.Style
 	Live   lipgloss.Style // changes apply: amber, as Figma's "Disabled"
-	DryRun lipgloss.Style // changes are only previewed
+	DryRun lipgloss.Style // plan only: changes are only shown as a plan
+	Source lipgloss.Style // what set plan only: "(-n)", "(hardn.yml)"
 }
 
 // MenuStyles style a numbered menu and its heading.
@@ -365,7 +366,7 @@ func build(env term.Env, p *palette) *Theme {
 			Line: muted, LineWarn: warn,
 		},
 		Divider: fg(p.Divider),
-		Mode:    ModeStyles{Label: muted, Live: warn, DryRun: ok},
+		Mode:    ModeStyles{Label: muted, Live: warn, DryRun: ok, Source: faint},
 		Menu: MenuStyles{
 			Heading:     muted.Underline(true),
 			Key:         primary.Bold(true),

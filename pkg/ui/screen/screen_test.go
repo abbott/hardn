@@ -493,7 +493,7 @@ func TestCompactForm(t *testing.T) {
   [ ] AppArmor             Not Configured
   [ ] Auto Updates         Not Configured
 
-  Select an option         Dry-run Mode Disabled
+  Select an option         Mode Live
    1) User Management       6) Dry-Run
    2) SSH Login             7) Run All
    3) DNS                   8) Environment
