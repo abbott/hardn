@@ -80,7 +80,7 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 
 ## 4. Written, not run (gate 5)
 
-Nothing here has run. For the maintainer's VM runs, as root, on Debian 13, Ubuntu 26.04 (and 24.04), Alpine 3.24 (and 3.23) and Proxmox VE 9 by hand, after each `echo $?` and name resolution checked (`getent hosts` of a public name, and `resolvectl query` on systemd-resolved):
+Run in part on 2026-10-23 (§4.1); the rest has not run. For the maintainer's VM runs, as root, on Debian 13, Ubuntu 26.04 (and 24.04), Alpine 3.24 (and 3.23) and Proxmox VE 9 by hand, after each `echo $?` and name resolution checked (`getent hosts` of a public name, and `resolvectl query` on systemd-resolved):
 
 - `sudo hardn -g` on each stock host: `/etc/resolv.conf` (Debian, Alpine, Proxmox VE) or `/etc/systemd/resolved.conf.d/zz-hardn.conf` (Ubuntu) as the report says, the findings (dhcpcd, udhcpc with `udhcpc.conf` untouched, Proxmox VE's settings, eth0's own server), exit status 0; again, "Nothing needs changing.", 0; `/var/log/hardn.log` holding the commands and the engine's lines, the console the report alone.
 - `sudo hardn -n -g`: the plan and its footer, nothing written (`/etc` unchanged; no plan directory left under `/run/hardn`, which may itself be left, empty, where it was not before), exit status 3; on a host as asked, 0.
@@ -90,6 +90,30 @@ Nothing here has run. For the maintainer's VM runs, as root, on Debian 13, Ubunt
 - The main menu's 3 as [screen-dns.md](screen-dns.md) §4 lists, then Return: the main menu again, and 3 again showing the list as saved; q in the screen ends hardn (0); Ctrl-D at its prompt ends it with 130; `sudo hardn -n` then 3, a dry run.
 - Signals on the screen (§2.6), on Ubuntu 26.04: a change whose reload is made to fail, rolled back, then in the same visit Ctrl-C during the next change's reload, and again with the SSH session dropped: rolled back each time, the drop-in as before; after Ctrl-C the screen goes on, after the hangup hardn ends at its next prompt (its input gone); `kill -TERM` and `kill -HUP` of hardn while the screen waits at a prompt: hardn ends at once, nothing changed, as at the legacy menu.
 - `sudo hardn -r` and Run All's live run on Debian 13: DNS as origin/main configures it (the legacy service, unchanged).
+
+### 4.1 Run 2026-10-23: Debian 13, Ubuntu 26.04, Alpine 3.23
+
+As root on the maintainer's three VMs, hardn built from `a343c19` (sha256 `787d6933…`), hardn.yml listing the DHCP server's own address and 1.1.1.1. Each host was put back afterwards and checked byte for byte against copies taken first.
+
+Passed:
+- **`-n -g`** on Ubuntu 26.04 (the stub link, systemd-resolved) and Alpine 3.23 (a file dhcpcd writes): the plan, the dry-run footer and the findings (`DNS_PER_LINK`; `DNS_DHCP_CLIENT`), exit status 3; every file's sha256 the same after. On Alpine an empty `/run/hardn` was left, as §2.5 says. On a host as asked, "Nothing needs changing.", 0.
+- **`-g`** on Ubuntu, Debian and Alpine: applied, exit status 0. On Ubuntu and Debian the drop-in `zz-hardn.conf`, `resolvectl dns` showing the list as global servers, names resolving. On Alpine `/etc/resolv.conf` with the list, dhcpcd's comment and `domain` lines kept, a backup under `/var/backups/hardn`. Again: "Nothing needs changing.", 0.
+- **Refused, nothing written, exit status 1:** `nameservers: []` (`DNS_NO_NAMESERVERS`) on Ubuntu and Alpine. Debian as found: systemd-resolved running with `/etc/resolv.conf` a plain file (`DNS_MANAGED`, "To go on: link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf"); with that done, `-n -g` and `-g` passed there as on Ubuntu.
+- **The main menu's 3** on all three, over a terminal (scripted with expect):
+  - Add: "Invalid IP address format" and "Nameserver … is already configured" as inline results (⨳), then 9.9.9.9 applied and saved.
+  - Remove 9.9.9.9: applied and saved. The second save was not refused `CONFIG_CHANGED`.
+  - Cloudflare declined: "Operation Cancelled", nothing written.
+  - Return to the main menu, 3 again showing the list as saved, then q: exit status 0.
+  - hardn.yml's comment kept through both saves; on Debian the maintainer's file kept its quoting and every other line.
+  - On Alpine every change asked udhcpc's question (answered n; `udhcpc.conf` unchanged).
+- **`-r` on Debian** (`HARDN_CONFIG` with only the SSH and DNS steps' settings): the legacy service as origin/main, exit status 0. `/etc/systemd/resolved.conf` overwritten with the list and `Domains=lan`, systemd-resolved restarted (V19); `/etc/ssh/sshd_config.d/hardn.conf` and `/etc/sudoers.d/alice` written; `sshd -t` passed and a new login worked. OpenSSH 10.0p2 accepted the drop-in's `Protocol 2` ([vmtest.md](../safety/vmtest.md) §3's row, for that line).
+
+Found:
+- **udhcpc reported on a host where dhcpcd is the client.** On Alpine 3.23 with dhcpcd installed, ifupdown-ng runs dhcpcd for `iface eth0 inet dhcp` and no udhcpc runs, yet every plan says "udhcpc rewrites /etc/resolv.conf on each lease" (`DNS_UDHCPC`) and every change asks "Stop udhcpc rewriting /etc/resolv.conf?". The check reads `udhcpc.conf` alone ([dns.md](../safety/dns.md) §3's Alpine row). A claim about a client not in use: to fix.
+- **With no hardn.yml, hardn stops at the legacy "No configuration file found. Would you like to create one? [Y/n]"** before `-g` runs; with no terminal it waited. When that session ended, a default `/etc/hardn/hardn.yml` was left (`permitRootLogin: false`, which the next run warns is deprecated); whether the session's end or the signal created it is not established. Legacy start-up, not this unit's, now in front of `-g`.
+- **`-r` needs a username** ("Please specify a username with -u flag or in the configuration file."), as on origin/main.
+
+Not run: Proxmox VE 9, Ubuntu 24.04 and Alpine 3.24 (no VMs); a NetworkManager desktop, resolvconf's link, an LXC container; a failed reload and its rollback; Ctrl-C and a hangup during an apply, and the hold's release; `-g -e`, `-n -g -d`; `hardn -n` then 3; Run All's live run; Ctrl-D at the screen. Name resolution on the Alpine VM could not be checked: it reaches no DNS server, its router not answering, before the change as after.
 
 ## 5. Words
 
