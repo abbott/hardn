@@ -149,8 +149,10 @@ type reading struct {
 	// list, all but Configure DNS, says them before asking; nil when
 	// hardn.yml was read.
 	notLoaded []string
-	// udhcpc: Alpine's udhcpc rewrites /etc/resolv.conf on each lease, so
-	// every change asks whether to stop it (decision 6).
+	// udhcpc: Alpine's udhcpc is the DHCP client and rewrites
+	// /etc/resolv.conf on each lease, so every change asks whether to stop
+	// it (decision 6); not where either is No or not established
+	// (next/s2-udhcpc).
 	udhcpc bool
 }
 
@@ -173,7 +175,8 @@ func (r *runner) read(ctx context.Context) reading {
 	s, err := hostdns.Read(ctx, o.System, o.Facts)
 	st, cerr := dnsctl.Nameservers{Config: o.Config}.Check(ctx, o.System, o.Facts)
 	h := reading{manager: s.Manager, refused: hostWords(s, err), notLoaded: notLoaded(ctx, o),
-		udhcpc: err == nil && s.Host.Distro == detect.DistroAlpine && s.Manager == hostdns.ManagerFile && s.UDHCPC.Rewrites == detect.Yes}
+		udhcpc: err == nil && s.Host.Distro == detect.DistroAlpine && s.Manager == hostdns.ManagerFile &&
+			s.UDHCPC.InUse == detect.Yes && s.UDHCPC.Rewrites == detect.Yes}
 	h.view = screen.DNS{Manager: managers[s.Manager], Configured: slices.Clone(o.Config.Nameservers)}
 	switch {
 	case errors.Is(err, hostdns.ErrContainer):

@@ -40,6 +40,12 @@ const (
 	// UDHCPCConf is what Alpine's udhcpc script sources before it rewrites
 	// /etc/resolv.conf on a lease.
 	UDHCPCConf = "/etc/udhcpc/udhcpc.conf"
+	// Interfaces is ifupdown-ng's configuration on Alpine: which
+	// interfaces use DHCP, and with dhcp-program which client.
+	Interfaces = "/etc/network/interfaces"
+	// DHCPExecutor is ifupdown-ng's DHCP executor, which picks the client
+	// it runs for an interface that uses DHCP (DHCPExecutorRule).
+	DHCPExecutor = "/usr/libexec/ifupdown-ng/dhcp"
 	// MaxNameservers is how many nameserver lines glibc and musl use; later
 	// ones are ignored, so more are refused for a file.
 	MaxNameservers = 3
@@ -47,6 +53,18 @@ const (
 	// it skips a longer one whole.
 	MaxLine = 255
 )
+
+// DHCPExecutorRule is how DHCPExecutor picks the DHCP client, the first
+// lines of its function verbatim as ifupdown-ng 0.12.1 (Alpine 3.23) and
+// 0.13.0 (Alpine 3.24) install it: the interface's dhcp-program, else the
+// first of dhcpcd, dhclient and udhcpc that [ -x ] accepts. Read takes the
+// choice as ifupdown-ng's only where the executor holds this text.
+const DHCPExecutorRule = `determine_implementation() {
+	[ -n "$IF_DHCP_PROGRAM" ] && echo "$IF_DHCP_PROGRAM" && return
+	[ -x /sbin/dhcpcd ] && echo "dhcpcd" && return
+	[ -x /usr/sbin/dhclient ] && echo "dhclient" && return
+	[ -x /sbin/udhcpc ] && echo "udhcpc" && return
+`
 
 // dropInDirs are the directories systemd-resolved reads drop-ins from, in
 // the order in which a name in one hides the same name in those after it.
@@ -135,10 +153,14 @@ const (
 	// FindingDHCPClient: a DHCP client that may rewrite the file is
 	// installed.
 	FindingDHCPClient
-	// FindingUDHCPC: Alpine's udhcpc rewrites the file on each lease.
+	// FindingUDHCPC: Alpine's udhcpc, the DHCP client in use, rewrites
+	// the file on each lease, or may (UDHCPC.Rewrites Unknown, a hook).
 	FindingUDHCPC
 	// FindingProxmox: Proxmox VE's node DNS settings rewrite the file.
 	FindingProxmox
+	// FindingUDHCPCUnknown: Alpine: whether udhcpc is the DHCP client is
+	// not established, and if it is, it rewrites the file or may.
+	FindingUDHCPCUnknown
 )
 
 func (k FindingKind) String() string {
@@ -151,6 +173,8 @@ func (k FindingKind) String() string {
 		return "dns-udhcpc"
 	case FindingProxmox:
 		return "dns-proxmox-node"
+	case FindingUDHCPCUnknown:
+		return "dns-udhcpc-unknown"
 	}
 	return "unknown"
 }

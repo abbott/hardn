@@ -81,6 +81,24 @@ func TestCheck(t *testing.T) {
 					h.AddFile(d+"/10-dns", []byte("#!/bin/sh\n"), 0o755, 0, 0)
 				}
 			}},
+		{name: "Alpine's cloud image: dhcpcd the client, no udhcpc", host: alpineCloud, list: configured, state: engine.NotConfigured,
+			detail: dns.DetailNotHardn, findings: []string{"DNS_DHCP_CLIENT dhcpcd may rewrite /etc/resolv.conf on a lease"}},
+		{name: "Alpine, dhcp-program udhcpc despite dhcpcd", host: alpineCloud, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
+			findings: []string{"DNS_UDHCPC udhcpc rewrites /etc/resolv.conf on each lease", "DNS_DHCP_CLIENT dhcpcd may rewrite /etc/resolv.conf on a lease"},
+			setup: func(h *fakeHost) {
+				h.AddFile(hostdns.Interfaces, []byte("auto eth0\niface eth0 inet dhcp\n\tdhcp-program udhcpc\n"), 0o644, 0, 0)
+			}},
+		{name: "Alpine, whether udhcpc is the client not established", host: alpine324, list: configured, state: engine.NotConfigured,
+			detail: dns.DetailNotHardn, findings: []string{"DNS_UDHCPC_UNKNOWN udhcpc rewrites /etc/resolv.conf if it is the DHCP client"},
+			setup: func(h *fakeHost) {
+				h.AddFile(hostdns.Interfaces, []byte("source-directory /etc/network/interfaces.d\n"), 0o644, 0, 0)
+			}},
+		{name: "Alpine, neither the client nor the rewrite established", host: alpine324, list: configured, state: engine.NotConfigured,
+			detail: dns.DetailNotHardn, findings: []string{"DNS_UDHCPC_UNKNOWN udhcpc may rewrite /etc/resolv.conf if it is the DHCP client"},
+			setup: func(h *fakeHost) {
+				h.AddFile(hostdns.Interfaces, []byte("source-directory /etc/network/interfaces.d\n"), 0o644, 0, 0)
+				h.AddFile(hostdns.UDHCPCConf, []byte("RESOLV_CONF=$(echo no)\n"), 0o644, 0, 0)
+			}},
 		{name: "Proxmox VE", host: pve9, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
 			findings: []string{"DNS_PROXMOX_NODE Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf"}},
 		{name: "NetworkManager", host: networkManager, list: configured, state: engine.NotApplicable, detail: dns.DetailNetworkManager},
@@ -231,6 +249,11 @@ var refusals = []refusalCase{
 		why:   "/etc/systemd/resolved.conf.d/zz-hardn.conf is not a file", fix: "remove it, then try again"},
 	{name: "udhcpc stopped off Alpine", host: debian13, list: configured, stop: true, code: "DNS_OPTION_NOT_APPLICABLE",
 		why: "This host is not Alpine", fix: "leave udhcpc as it is"},
+	{name: "udhcpc stopped where dhcpcd is the client", host: alpineCloud, list: configured, stop: true, code: "DNS_OPTION_NOT_APPLICABLE",
+		why: "udhcpc is not this host's DHCP client", fix: "leave udhcpc as it is"},
+	{name: "udhcpc stopped where the client is not established", host: alpine324, list: configured, stop: true, code: "DNS_UNKNOWN",
+		setup: func(h *fakeHost) { _ = h.Remove(context.Background(), hostdns.DHCPExecutor) },
+		why:   "The host's DNS settings could not all be read", fix: "see the log for what failed, then try again"},
 	{name: "a fact not established", host: debian13, list: configured, code: "DNS_UNKNOWN",
 		setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} },
 		why:   "The host's DNS settings could not all be read", fix: "see the log for what failed, then try again"},
@@ -375,6 +398,8 @@ func TestPlans(t *testing.T) {
 			summary: "Stop udhcpc rewriting /etc/resolv.conf"},
 		{name: "Alpine 3.24: udhcpc kept", host: alpine324, list: configured, changes: []string{fileSet("Set the nameservers")},
 			findings: []string{"DNS_UDHCPC"}, search: "search example.net"},
+		{name: "Alpine's cloud image: dhcpcd's finding, none of udhcpc's", host: alpineCloud, list: configured, changes: []string{fileSet("Set the nameservers")},
+			findings: []string{"DNS_DHCP_CLIENT"}, search: "search example.net"},
 		{name: "Proxmox VE 9: its file, one search domain", host: pve9, list: configured, changes: []string{fileSet("Set the nameservers")},
 			findings: []string{"DNS_PROXMOX_NODE"}, search: "search example.net"},
 		{name: "configured: nothing", host: configuredHost, list: configured},
@@ -476,7 +501,7 @@ func TestHostRefusal(t *testing.T) {
 			got := dns.HostRefusal(s, err)
 			var r *steps.Refusal
 			switch {
-			case !host[tt.code]:
+			case !host[tt.code], tt.stop: // with stop, a refusal of udhcpc's answer
 				if got != nil {
 					t.Errorf("HostRefusal = %v; want nil, the plan's %s being of the list or the file", got, tt.code)
 				}
@@ -488,7 +513,7 @@ func TestHostRefusal(t *testing.T) {
 			}
 		})
 	}
-	for _, name := range []string{debian13, configuredHost, ubuntu2604, ubuntu2404, debian12, alpine324, pve9} {
+	for _, name := range []string{debian13, configuredHost, ubuntu2604, ubuntu2404, debian12, alpine324, alpineCloud, pve9} {
 		h, _ := newHost(t, name, configured)
 		if s, err := hostdns.Read(ctx, h, h.facts); dns.HostRefusal(s, err) != nil {
 			t.Errorf("%s: HostRefusal = %v; want nil", name, dns.HostRefusal(s, err))

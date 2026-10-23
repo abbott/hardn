@@ -75,7 +75,16 @@ type Override struct {
 
 // UDHCPC is Alpine's udhcpc side of the state.
 type UDHCPC struct {
-	Conf Entry
+	// InUse: udhcpc is the DHCP client ifupdown-ng runs for an interface
+	// of Interfaces (Yes), none runs it (No), or that is not established
+	// (Unknown). Its findings, and a plan's step, are only where it is
+	// Yes. Omitted from JSON when Unknown, its zero value, so that a kept
+	// plan off Alpine is journalled as before.
+	InUse detect.Tri `json:",omitempty"`
+	// InUseErr is why InUse is Unknown: as Err, a finding, and a plan's
+	// refusal only when the plan would change UDHCPCConf. Not marshalled.
+	InUseErr error `json:"-"`
+	Conf     Entry
 	// Rewrites: udhcpc's script rewrites /etc/resolv.conf on a lease, as
 	// RESOLV_CONF in Conf decides; Hooks aside.
 	Rewrites detect.Tri
@@ -141,8 +150,10 @@ func HostOf(f detect.Facts) (Host, error) {
 // is-active systemd-resolved.service`, and for the manager found its
 // files: systemd-resolved's drop-ins and `resolvectl --no-pager dns` and
 // `domain`; for a file, whether dhclient or dhcpcd is installed, and on
-// Alpine UDHCPCConf and udhcpc's hooks. What could not be read is in
-// State.Err, with Manager or the field Unknown.
+// Alpine whether udhcpc is the DHCP client ifupdown-ng runs (DHCPExecutor,
+// Interfaces and the clients it tries), UDHCPCConf and udhcpc's hooks.
+// What could not be read is in State.Err, with Manager or the field
+// Unknown; udhcpc's own errors are kept apart (UDHCPC.InUseErr, Err).
 func Read(ctx context.Context, sys host.System, f detect.Facts) (State, error) {
 	h, err := HostOf(f)
 	if err != nil {
@@ -177,6 +188,7 @@ func read(ctx context.Context, sys host.System, h Host) State {
 	case ManagerFile, ManagerProxmox:
 		s.Nameservers, s.Search = ParseResolvConf(s.ResolvConf.Data)
 		if h.Distro == detect.DistroAlpine {
+			s.UDHCPC.InUse, s.UDHCPC.InUseErr = udhcpcInUse(ctx, sys)
 			s.UDHCPC.Err = readUDHCPC(ctx, sys, &s.UDHCPC)
 			s.UDHCPC.Hooks, err = udhcpcHooks(ctx, sys)
 			add(err)

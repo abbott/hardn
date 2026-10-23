@@ -111,10 +111,12 @@ type Nameservers struct {
 	// with; nil lists none.
 	Config *config.Config
 	// StopUDHCPC is the answer to "Stop udhcpc rewriting
-	// /etc/resolv.conf?", asked on Alpine only (slice 2 decision 6, no
-	// configuration key): yes adds RESOLV_CONF="no" to udhcpc.conf in the
-	// same change (dns.Config.UDHCPCNoResolv). Refused on another host
-	// (DNS_OPTION_NOT_APPLICABLE).
+	// /etc/resolv.conf?", asked on Alpine only where udhcpc is the DHCP
+	// client and rewrites the file (slice 2 decision 6, no configuration
+	// key; next/s2-udhcpc): yes adds RESOLV_CONF="no" to udhcpc.conf in the
+	// same change (dns.Config.UDHCPCNoResolv). Refused on another host and
+	// where udhcpc is not the client (DNS_OPTION_NOT_APPLICABLE), and where
+	// that is not established (DNS_UNKNOWN).
 	StopUDHCPC bool
 }
 
@@ -405,6 +407,9 @@ func refusal(s hostdns.State, want []string, cfg *config.Config, err error) erro
 		r.Code, r.Why, r.Fix = codeNone, "No nameservers configured", "add nameservers first"
 	case errors.Is(err, hostdns.ErrNotApplicable):
 		r.Code, r.Why, r.Fix = codeOption, "This host is not Alpine", "leave udhcpc as it is"
+		if s.Host.Distro == detect.DistroAlpine {
+			r.Why = "udhcpc is not this host's DHCP client"
+		}
 	case errors.Is(err, hostdns.ErrInvalid):
 		r.Code, r.Why, r.Fix = codeInvalid, invalid(want, s.Manager), "correct the nameservers in "+file
 	case errors.Is(err, hostdns.ErrUnknown):

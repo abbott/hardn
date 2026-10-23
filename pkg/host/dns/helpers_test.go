@@ -111,12 +111,28 @@ func newWorld(t *testing.T, fixture string) *world {
 	case "alpine-3.24":
 		w.h.AddFile(dns.ResolvConf, []byte("search example.net\nnameserver "+dhcpNS+"\n"), 0o644, 0, 0)
 		w.h.AddFile(dns.UDHCPCConf, []byte("# Do not overwrite /etc/resolv.conf\n#RESOLV_CONF=\"no\"\n\n#NO_DNS=\"eth1 wlan1\"\n"), 0o644, 0, 0)
+		ifupdown(w.h, dhcpEth0)
 	case "proxmox":
 		w.h.AddFile(dns.ResolvConf, []byte("search example.net\nnameserver "+dhcpNS+"\n"), 0o644, 0, 0)
 	}
 	w.f = facts(t, fixture)
 	w.h.Handler = w.answer
 	return w
+}
+
+// dhcpEth0 is an interfaces file with eth0 on DHCP, as Alpine's
+// installers write it (the 2026-10-23 VM's, cloud-init's, with lo).
+const dhcpEth0 = "auto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet dhcp\n"
+
+// ifupdown adds Alpine's ifupdown-ng as installed, with interfaces as
+// Interfaces: its DHCP executor (DHCPExecutorRule, as 0.12.1 and 0.13.0
+// install it) and busybox's udhcpc, a link to /bin/busybox; no dhcpcd and
+// no dhclient, so that it runs udhcpc for an interface on DHCP.
+func ifupdown(h *hostfake.System, interfaces string) {
+	h.AddFile(dns.Interfaces, []byte(interfaces), 0o644, 0, 0)
+	h.AddFile(dns.DHCPExecutor, []byte("#!/bin/sh\n"+dns.DHCPExecutorRule), 0o755, 0, 0)
+	h.AddFile("/bin/busybox", nil, 0o755, 0, 0)
+	h.AddSymlink("/sbin/udhcpc", "/bin/busybox")
 }
 
 func (w *world) answer(argv []string, _ []byte) hostfake.Response {

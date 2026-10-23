@@ -183,6 +183,9 @@ var (
 		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
 		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC,
 	}
+	// alpine323CloudPlatform is Alpine 3.23's cloud image, as the
+	// 2026-10-23 VM: dhcpcd installed, which ifupdown-ng runs, not udhcpc.
+	alpine323CloudPlatform = func() platform { p := alpine323Platform; p.resolver = resolverAlpineDHCPCD; return p }()
 	// pve9Platform is a Proxmox VE 9 node: Debian 13 underneath, with
 	// pve-manager, no sudo and no ufw (brief 2.5: pve-firewall instead),
 	// and OpenSSH 10.0p1's word for prohibit-password (check-ssh.md §3).

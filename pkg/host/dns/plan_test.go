@@ -147,35 +147,42 @@ func TestPlanRefuses(t *testing.T) {
 }
 
 // TestPlanFindings: what may undo a file manager's write later: on every
-// distribution, a DHCP client; on Alpine, udhcpc's script unless the plan
-// sets RESOLV_CONF, and its hooks whatever the plan does.
+// distribution, a DHCP client; on Alpine, where udhcpc is the DHCP
+// client, udhcpc's script unless the plan sets RESOLV_CONF, and its hooks
+// whatever the plan does; where it is not, nothing of udhcpc's, hooks
+// included.
 func TestPlanFindings(t *testing.T) {
 	hook := "/etc/udhcpc/post-renew/50-resolv"
 	for _, tt := range []struct {
 		fixture string
 		add     []string // executables added to the stock layout
+		ifaces  string   // Interfaces, when not the stock layout's
 		c       dns.Config
 		steps   []string
 		kinds   []string
 	}{
-		{"debian-13", nil, dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-dhcp-client"}},
-		{"alpine-3.24", nil, dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-udhcpc"}},
-		{"alpine-3.24", nil, dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: true}, []string{"udhcpc-no-resolv", "write-resolv-conf"}, nil},
-		{"alpine-3.24", []string{"/sbin/dhcpcd", hook}, dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: true},
+		{"debian-13", nil, "", dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-dhcp-client"}},
+		{"alpine-3.24", nil, "", dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-udhcpc"}},
+		{"alpine-3.24", nil, "", dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: true}, []string{"udhcpc-no-resolv", "write-resolv-conf"}, nil},
+		{"alpine-3.24", []string{"/sbin/dhcpcd", hook}, dhcpEth0 + "\tdhcp-program udhcpc\n", dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: true},
 			[]string{"udhcpc-no-resolv", "write-resolv-conf"}, []string{"dns-udhcpc", "dns-dhcp-client"}},
-		{"proxmox", nil, dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-proxmox-node"}},
-		{"proxmox", []string{"/usr/sbin/dhclient"}, dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-proxmox-node", "dns-dhcp-client"}},
+		{"alpine-3.24", []string{"/sbin/dhcpcd", hook}, "", dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-dhcp-client"}},
+		{"proxmox", nil, "", dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-proxmox-node"}},
+		{"proxmox", []string{"/usr/sbin/dhclient"}, "", dns.Config{Nameservers: []string{ns1}}, []string{"write-resolv-conf"}, []string{"dns-proxmox-node", "dns-dhcp-client"}},
 	} {
 		t.Run(tt.fixture, func(t *testing.T) {
 			w := newWorld(t, tt.fixture)
 			for _, a := range tt.add {
 				w.h.AddFile(a, nil, 0o755, 0, 0)
 			}
+			if tt.ifaces != "" {
+				w.h.AddFile(dns.Interfaces, []byte(tt.ifaces), 0o644, 0, 0)
+			}
 			p := w.plan(t, tt.c)
 			if !slices.Equal(steps(p), tt.steps) || !slices.Equal(kinds(p), tt.kinds) {
 				t.Errorf("steps %q, findings %q", steps(p), kinds(p))
 			}
-			if slices.Contains(tt.add, hook) && p.Findings[0].Path != hook {
+			if slices.Contains(tt.add, hook) && tt.ifaces != "" && p.Findings[0].Path != hook {
 				t.Errorf("findings %+v", p.Findings)
 			}
 		})
