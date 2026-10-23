@@ -6,7 +6,9 @@ import (
 )
 
 // ErrUsage marks a usage error: bad flags or configuration (exit 2). Wrap
-// it, with what was wrong: fmt.Errorf("%w: ...", ErrUsage).
+// it, with what was wrong: fmt.Errorf("%w: ...", ErrUsage); or, for words
+// that must carry no "usage: " prefix, return an error type whose Unwrap
+// gives it (pkg/cmd's refusals of plan only with an operation flag).
 var ErrUsage = errors.New("usage")
 
 // ErrConfirmationRequired: a run that would apply changes without a

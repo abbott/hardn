@@ -54,9 +54,9 @@ func TestRefuseConfigDryRunOperations(t *testing.T) {
 		{"file false", false, []string{FlagDisableRoot}, ""},
 		{"file true alone", true, nil, ""},
 		{"one", true, []string{FlagDisableRoot},
-			"hardn: dryRun: true in /etc/hardn/hardn.yml only previews changes, so it can't be combined with -d/--disable-root, which applies them. Nothing was changed. To apply them, add --dry-run=false."},
+			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false."},
 		{"two", true, []string{FlagRunAll, CommandSetupSudoEnv},
-			"hardn: dryRun: true in /etc/hardn/hardn.yml only previews changes, so it can't be combined with -r/--run-all and setup-sudo-env, which apply them. Nothing was changed. To apply them, add --dry-run=false."},
+			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all and setup-sudo-env can't run. Nothing was changed. To apply, add --dry-run=false."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			err := RefuseConfigDryRunOperations(tc.dryRun, path, tc.ops)

@@ -169,7 +169,7 @@ func TestPlanOnlyRefusesOperations(t *testing.T) {
 				}
 				want := []string{op.name, "-n/--dry-run only previews", "Nothing was changed."}
 				if src.want == refusedByFile {
-					want = []string{"dryRun: true in " + y.path + " only previews changes", op.name, "Nothing was changed.", "add --dry-run=false"}
+					want = []string{"hardn: " + y.path + " sets plan only (dryRun: true)", op.name, "Nothing was changed.", "add --dry-run=false"}
 				}
 				for _, w := range want {
 					if !strings.Contains(r.stderr, w) {
@@ -203,7 +203,7 @@ func TestPlanOnlyRefusedAsLoaded(t *testing.T) {
 	if want := []string{"root check", "config load"}; !slices.Equal(r.reached, want) {
 		t.Errorf("reached %v, want %v", r.reached, want)
 	}
-	if !strings.Contains(r.stderr, "dryRun: true in "+y.path) {
+	if !strings.Contains(r.stderr, y.path+" sets plan only") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}
 }

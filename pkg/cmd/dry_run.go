@@ -70,12 +70,14 @@ func RefuseConfigDryRunOperations(dryRun bool, path string, operations []string)
 	if dryRunFlagApplies || !dryRun || len(operations) == 0 {
 		return nil
 	}
-	return usageError(fmt.Sprintf("hardn: dryRun: true in %s only previews changes, so it can't be combined with %s, which %s them. Nothing was changed. To apply them, add --dry-run=false.",
-		path, joinOperations(operations), applyVerb(operations)))
+	return usageError(fmt.Sprintf("hardn: %s sets plan only (dryRun: true), so %s can't run. Nothing was changed. To apply, add --dry-run=false.",
+		path, joinOperations(operations)))
 }
 
 // usageError is a refusal of the command line: its words alone, and
-// output.ErrUsage to errors.Is (code USAGE, exit status ExitUsage).
+// output.ErrUsage to errors.Is (code USAGE, exit status ExitUsage). It does
+// not wrap ErrUsage with fmt.Errorf("%w: ...") as pkg/output suggests: that
+// would put "usage: " before words the user reads on stderr.
 type usageError string
 
 func (e usageError) Error() string { return string(e) }
