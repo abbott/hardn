@@ -139,7 +139,7 @@ No new code in `pkg/output`'s registry: the reading's one error is a cancelled c
 - `cmd/hardn`: `TestDrawStatus` (the hook's reading through `statusHost`, the version, the DNS row following the configuration, read only), `TestStatusSeams`.
 - The gallery and p4status: as before, over the one list (`TestStatusHosts`, the status goldens, `TestRunOverHosts`, `TestMainMenuAsGallery`, `TestStatusControls`, `TestRulesMatchTheCode`).
 
-## 10. Written, not run (gate 5): the VM steps, for the orchestrator
+## 10. The VM steps (run 2026-10-23, §10.1)
 
 Nothing here has run on Linux. On the VMs of [vmtest.md](../safety/vmtest.md), Debian 13, Ubuntu 26.04 and Alpine 3.23 (no 3.24 VM), with hardn and p4status built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn` and `./internal/tools/p4status`, the VM's `GOARCH`), as root (Alpine through doas), in a terminal whose size is set (tmux: `tmux new -x 80 -y 40`):
 
@@ -152,6 +152,29 @@ Nothing here has run on Linux. On the VMs of [vmtest.md](../safety/vmtest.md), D
 7. **Read only, and no run log:** `sha256sum -c /root/menu-live-before` (only what step 6 changed, before its restore); `find /etc /var/lib -newer /root/menu-live-stamp` lists nothing the main menu wrote; the run log's count from step 1 grew by step 6's change alone, not by any pass of the main menu.
 8. **The cost:** where `strace` is installed, `strace -f -tt -e trace=execve -o /root/hardn.trace ./hardn`, `q` at once: the `execve` lines after hardn's own are about 28 (Debian 13), 31 (Ubuntu 26.04), 13 (Alpine) per pass, as §5's fixtures, `sshd -T` among them three or four times (the VMs' states may add or remove a few). **Time a pass**: from its first command's `execve` to its last's, by the trace's timestamps; record it per VM. **A pass while systemd is busy** (Debian 13 and Ubuntu): in a second terminal `while :; do systemctl daemon-reload; done`; in hardn, `x` and Enter (an invalid choice), then Enter again, so that the main menu draws again; record how long the screen stays blank, then stop the loop. Whether a pass needs a bound is the maintainer's (§11 item 5).
 9. **Ctrl-C during the checks:** `./hardn`, Ctrl-C before the menu appears (or while it redraws after an item): hardn ends at once, `echo $?` 130 in bash, the terminal sane, nothing written.
+
+### 10.1 Run 2026-10-23: Debian 13, Ubuntu 26.04, Alpine 3.23
+
+Built from `a92a13e` (hardn sha256 `0e43b5ff…`, p4status `15a2535d…`), as root on the maintainer's three VMs, driven over a terminal sized 80×40 and 80×24 (expect, in place of tmux). Each VM was put back after, hardn's binary as it was.
+
+Passed:
+- **The block matches p4status** on all three, at 80×40 and 80×24: from the distribution bar to the DNS row, blank lines left out, every line the same. The only difference is the hostname, drawn as a coloured badge by hardn (256 colours) and in brackets by p4status (`-profile none`), as the design system draws it per profile. 40 rows drew the full form (header and rule); 24 rows the compact form.
+- **The DNS row against the host:**
+  - Debian 13 as found (systemd-resolved running beside a plain `/etc/resolv.conf`): "Not Applicable, another program".
+  - Ubuntu 26.04 and Alpine 3.23 with no hardn.yml: "Not Configured, none in hardn.yml" (§8's open words). The row's state matched the host's tools on each.
+- **The row follows the configuration** (Ubuntu): with hardn.yml listing the DHCP server's address and resolved's global list empty, "Not Configured, not hardn.yml's". Then 3, Configure DNS, y, 0: the main menu, drawn again, showed "Configured" with that address; the drop-in held it and `resolvectl dns`'s `Global:` line too.
+- **Read only:**
+  - no file of the snapshot changed, and no file under `/etc`, `/var/lib` or `/root` newer than the run;
+  - `/var/log/hardn.log` grew by start-up's info lines only, no command line.
+  - On Alpine, start-up wrote `/etc/hardn/hardn.yml.example` where no hardn.yml exists (`config.EnsureExampleConfigExists`, the legacy loader, unchanged by this unit, as origin/main does); the pass itself wrote nothing. The find missed it on Alpine: the file came in the same second as the run's stamp, which find compares by the second.
+- **Time to the menu**, from the command's start over SSH, its first pass included: 0.47 s on Debian 13, 0.53 s on Ubuntu 26.04, 0.13 s on Alpine 3.23. The redraw after a change on Ubuntu: 0.42 s.
+- **Ctrl-C during the checks** (Ubuntu): hardn ended at once, exit status 130.
+
+Not run:
+- strace's command count, which the tests pin;
+- a pass while systemd is busy;
+- Proxmox VE 9, Ubuntu 24.04, Alpine 3.24;
+- a locale other than UTF-8.
 
 ## 11. Open for the maintainer
 
