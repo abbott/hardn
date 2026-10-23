@@ -72,6 +72,15 @@ func TestCheck(t *testing.T) {
 			setup: func(h *fakeHost) { h.active = "inactive" }},
 		{name: "Alpine", host: alpine324, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
 			findings: []string{"DNS_UDHCPC udhcpc rewrites /etc/resolv.conf on each lease"}},
+		{name: "Alpine, two udhcpc hooks of one name", host: alpine324, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
+			findings: []string{"DNS_UDHCPC udhcpc rewrites /etc/resolv.conf on each lease",
+				"DNS_UDHCPC /etc/udhcpc/pre-bound/10-dns may rewrite /etc/resolv.conf", "DNS_UDHCPC /etc/udhcpc/post-bound/10-dns may rewrite /etc/resolv.conf"},
+			setup: func(h *fakeHost) {
+				for _, d := range []string{hostdns.UDHCPCDir + "/pre-bound", hostdns.UDHCPCDir + "/post-bound"} {
+					h.AddDir(d, 0o755, 0, 0)
+					h.AddFile(d+"/10-dns", []byte("#!/bin/sh\n"), 0o755, 0, 0)
+				}
+			}},
 		{name: "Proxmox VE", host: pve9, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
 			findings: []string{"DNS_PROXMOX_NODE Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf"}},
 		{name: "NetworkManager", host: networkManager, list: configured, state: engine.NotApplicable, detail: dns.DetailNetworkManager},

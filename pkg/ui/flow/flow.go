@@ -46,14 +46,61 @@ const (
 	RiskLockout
 )
 
-// Plan is what the Engine plans: the PlanView the Plan step shows and the
-// risk class the Confirm step asks by.
+// Plan is what the Engine plans: the PlanView the Plan step shows, the
+// risk class the Confirm step asks by, and what the plan found.
 type Plan struct {
 	// View holds the changes, in the order they apply; each is one step of
 	// the Apply step, titled by its Title. The flow sets View.DryRun.
 	View component.PlanView
 	// Risk is the plan's risk class.
 	Risk Risk
+	// Findings are what the plan found that stops nothing, such as a DHCP
+	// client that may rewrite the file a change writes, each once, in the
+	// order found. The flow lists them as the review's last lines, one
+	// line each, in the review's block (Review), before the plan and its
+	// question; with none it lists nothing.
+	Findings []Finding
+}
+
+// Severity is how much a finding matters, which decides how its line is
+// drawn. The zero value is SeverityWarn, so a finding is never drawn as
+// less than a warning by default.
+type Severity int
+
+// The severities.
+const (
+	// SeverityWarn is a warning: its line in the warning's colour, bullet
+	// and words, the maintainer's dash line ("- " in status.warn, DEV-060).
+	SeverityWarn Severity = iota
+	// SeverityNote is less than a warning: its line muted, as an empty
+	// list's line is (DEV-061).
+	SeverityNote
+)
+
+// Finding is one thing a plan found that stops nothing, listed before the
+// confirmation in a few words (slice 2, decision 5, adopted 2026-10-22;
+// DEV-063), such as "dhcpcd may rewrite /etc/resolv.conf on a lease".
+type Finding struct {
+	// Text says it, in the user's terms; a finding with none is not
+	// listed.
+	Text string
+	// Code is its stable code, such as DNS_DHCP_CLIENT. Its line does not
+	// show it: a line says what it says in the fewest words, and the code
+	// is left to what shows a run in full, the JSON document and the
+	// audit log (design-system README §9.15).
+	Code string
+	// Severity decides how its line is drawn.
+	Severity Severity
+}
+
+// line is f as a bullet item of the review: a warning's in the warning's
+// colour, a note's muted.
+func (f Finding) line() component.KeyValue {
+	state := component.ValueWarn
+	if f.Severity == SeverityNote {
+		state = component.ValueNone
+	}
+	return component.KeyValue{Key: f.Text, State: state}
 }
 
 // Typed reports whether the plan is confirmed by typing a phrase: its
@@ -78,15 +125,16 @@ func (p Plan) Typed() bool {
 type Report func(step int, state component.StepState, detail string)
 
 // Engine plans and applies one action: what the flow needs of brief Phase
-// 3's plan/apply engine, which will satisfy it through an adapter holding
-// the action's answers. Plan turns its Changes into the plan's changes, a
-// Change's Summary, Diff and Risk becoming a PlanChange's Title, Diff and
-// LockoutRisk, in the order it applies them; Apply applies them. In Phase
-// 1 a Fixture satisfies it, and nothing reads or changes the system.
+// 3's plan/apply engine, which satisfies it through an adapter holding
+// the action's answers (pkg/output's FlowEngine). Plan turns its Changes
+// into the plan's changes, a Change's Summary, Diff and Risk becoming a
+// PlanChange's Title, Diff and LockoutRisk, in the order it applies them,
+// and its findings into the plan's; Apply applies them. A Fixture
+// satisfies it with fixed data, and nothing reads or changes the system.
 type Engine interface {
 	// Plan returns the plan for the answers collected. It must change
 	// nothing. An error is shown as an ErrorReport, with a *Failure's
-	// details.
+	// details, and the plan's findings are not listed.
 	Plan(ctx context.Context) (Plan, error)
 	// Apply applies the changes Plan last returned, in order, reporting
 	// each step running, then done. On the first failure it reports the
@@ -130,7 +178,7 @@ func (f *Failure) Unwrap() error { return f.Err }
 
 // Review is the Review step: the action's notice, if it has one, then the
 // answers collected, as Figma sums up a new user under "User
-// Configuration".
+// Configuration", then the plan's findings (Plan.Findings).
 type Review struct {
 	// Notice is said above the answers, as Figma warns before disabling
 	// root SSH login; nil says nothing.
@@ -157,10 +205,14 @@ type Notice struct {
 	Items []string
 }
 
-// render renders the review: the notice's Callout and its items as a
-// BulletList, then a SectionHeader and the rows as a BulletList, each
-// block after theme.SectionGap blank lines.
-func (v Review) render(c component.Ctx) string {
+// render renders the review and the plan's findings fs: the notice's
+// Callout and its items as a BulletList, then a SectionHeader and the rows
+// as a BulletList, each block after theme.SectionGap blank lines. Each
+// finding is one more row of the section, a bullet item (Finding.line),
+// as the DNS mocks draw them (slice 2, decision 5); with no rows, so no
+// section, the findings are a BulletList of their own, in the section's
+// place.
+func (v Review) render(c component.Ctx, fs []Finding) string {
 	var blocks []string
 	if n := v.Notice; n != nil {
 		items := make([]component.KeyValue, len(n.Items))
@@ -169,8 +221,14 @@ func (v Review) render(c component.Ctx) string {
 		}
 		blocks = append(blocks, n.Callout.Render(c), component.BulletList{Items: items}.Render(c))
 	}
-	if list := (component.BulletList{Items: v.Items}).Render(c); list != "" {
-		blocks = append(blocks, component.SectionHeader{Title: v.Title}.Render(c), list)
+	lines := make([]component.KeyValue, len(fs))
+	for i, f := range fs {
+		lines[i] = f.line()
+	}
+	if (component.BulletList{Items: v.Items}).Render(c) != "" {
+		blocks = append(blocks, component.SectionHeader{Title: v.Title}.Render(c), component.BulletList{Items: slices.Concat(v.Items, lines)}.Render(c))
+	} else {
+		blocks = append(blocks, component.BulletList{Items: lines}.Render(c))
 	}
 	blocks = slices.DeleteFunc(blocks, func(b string) bool { return b == "" })
 	return strings.Join(blocks, strings.Repeat("\n", theme.SectionGap+1))
@@ -221,7 +279,8 @@ const (
 type Flow struct {
 	// Form collects the answers; with no fields it asks nothing.
 	Form form.Form
-	// Review sums up the answers, once collected; nil shows no review.
+	// Review sums up the answers, once collected and planned; nil shows
+	// no review, the plan's findings alone.
 	Review func() Review
 	// Engine plans and applies the action. Required.
 	Engine Engine
@@ -268,15 +327,25 @@ func (f Flow) Run(ctx context.Context, p nav.Prompter) (Outcome, error) {
 		return NotRun, err
 	}
 	r, c := &run{p: p}, p.Ctx
-	if f.Review != nil {
-		if err := r.block(f.Review().render(c)); err != nil {
-			return NotRun, err
-		}
-	}
+	// The Engine plans first, so that the review, drawn in one block, ends
+	// with the plan's findings, before the plan and its question. A plan
+	// that cannot be made lists none.
 	plan, err := f.Engine.Plan(ctx)
-	switch {
-	case ctx.Err() != nil:
+	if ctx.Err() != nil {
 		return NotRun, ctx.Err()
+	}
+	var review Review
+	if f.Review != nil {
+		review = f.Review()
+	}
+	found := plan.Findings
+	if err != nil {
+		found = nil
+	}
+	if werr := r.block(review.render(c, found)); werr != nil {
+		return NotRun, werr
+	}
+	switch {
 	case err != nil:
 		return Failed, r.block(failure(err, nil, nil).Render(c))
 	case len(plan.View.Changes) == 0:

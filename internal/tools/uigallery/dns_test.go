@@ -349,12 +349,16 @@ func sequenceNamed(t *testing.T, m screen.Mock, name string) screen.Sequence {
 // alone (the mock shows none: a fixture, gallery-dns.md §8); every change
 // of the files stage and plain (brief 2.4); no change where the control
 // plans none. The review: the nameservers, as dns.Validate keeps them, and
-// the search domains the host keeps; then a warning line for each finding
-// of the host the plan keeps (dns.State.Findings, less udhcpc's on
-// udhcpc.conf when the plan stops it, as dns.PlanDNS keeps them), in the
-// control's words (steps.DNSFinding), its code in pkg/output's registry,
-// which are the host change's own findings; then the save's, which has
-// none since its comments-lost warning was dropped (next/s2-config-edit).
+// the search domains the host keeps. The plan's findings, which the flow
+// lists as the review's last lines (next/s2-flow-review): those of the
+// host the plan keeps (dns.State.Findings, less udhcpc's on udhcpc.conf
+// when the plan stops it, as dns.PlanDNS keeps them), in the control's
+// words (steps.DNSFinding), each a warning, its code in pkg/output's
+// registry; with a change, the host change's own, then the save's, which
+// has none since its comments-lost warning was dropped
+// (next/s2-config-edit), exactly as the real flow is handed them
+// (output.FlowEngine); with none, the real plan carries none, where the
+// mock keeps the host's (decision 5's reading, gallery-dns.md §8).
 func TestDNSPlansAreReal(t *testing.T) {
 	for _, tt := range dnsCases {
 		name := tt.mock + "/" + tt.sequence
@@ -396,33 +400,37 @@ func TestDNSPlansAreReal(t *testing.T) {
 		if in := searchInUse(s); len(in) > 0 {
 			search = strings.Join(in, ", ")
 		}
-		var lines []string
+		var host []flow.Finding
 		for _, fd := range s.Findings() {
 			if fd.Kind != dns.FindingUDHCPC || fd.Path != dns.UDHCPCConf || !tt.udhcpc {
-				lines = append(lines, steps.DNSFinding(s, fd).Detail)
+				ef := steps.DNSFinding(s, fd)
+				host = append(host, flow.Finding{Text: ef.Detail, Code: ef.Code})
 			}
 		}
+		var found []flow.Finding
 		for _, c := range p.Changes {
-			var details []string
+			var own []flow.Finding
 			for _, fd := range c.Findings {
 				if _, ok := output.Lookup(fd.Code); !ok {
 					t.Errorf("%s: %s's finding %s is not in pkg/output's registry", name, c.ID, fd.Code)
 				}
-				details = append(details, fd.Detail)
+				own = append(own, flow.Finding{Text: fd.Detail, Code: fd.Code})
 			}
-			switch c.ID {
-			case dnsctl.ChangeSet:
-				if !slices.Equal(details, lines) {
-					t.Errorf("%s: the change's findings %q, the host's %q", name, details, lines)
-				}
-			case dnsctl.ChangeSave:
-				lines = append(lines, details...)
+			if c.ID == dnsctl.ChangeSet && !slices.Equal(own, host) {
+				t.Errorf("%s: the change's findings %+v, the host's %+v", name, own, host)
 			}
+			found = append(found, own...)
+		}
+		if !slices.Equal(real.Findings, found) {
+			t.Errorf("%s: the flow is handed %+v, the plan's findings %+v", name, real.Findings, found)
+		}
+		if len(p.Changes) == 0 {
+			found = host
+		}
+		if !slices.Equal(mock.Findings, found) {
+			t.Errorf("%s: the mock's findings\n%+v\nwant\n%+v", name, mock.Findings, found)
 		}
 		want := []component.KeyValue{{Key: "Nameservers", Value: strings.Join(v.Nameservers, ", ")}, {Key: "Search Domains", Value: search}}
-		for _, l := range lines {
-			want = append(want, component.KeyValue{Key: l, State: component.ValueWarn})
-		}
 		if r := f.Review(); !slices.Equal(r.Items, want) {
 			t.Errorf("%s: reviews\n%+v\nwant\n%+v", name, r.Items, want)
 		}

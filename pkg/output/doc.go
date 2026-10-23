@@ -18,8 +18,10 @@
 //   - The renderers: WriteJSON writes exactly one document; Human renders
 //     the same run through pkg/ui's components only; Emit routes them, the
 //     JSON alone on stdout, nothing for a person beside it. FlowEngine is
-//     pkg/ui/flow's Engine over the engine, and AfterFlow what the flow
-//     does not draw (a change's confirm countdown, the findings).
+//     pkg/ui/flow's Engine over the engine, which hands the flow the
+//     plan's findings to list before its confirmation, and AfterFlow what
+//     the flow does not draw (a change's confirm countdown, the findings
+//     it did not list).
 //   - The audit log: Append writes one Record per run, a JSON line, to
 //     AuditPath through host.System's AppendFile.
 //   - Confirmation is the non-interactive policy: never prompt without a

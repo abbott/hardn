@@ -258,7 +258,9 @@ func TestPlayEngine(t *testing.T) {
 				}
 			}, []string{"ufw allow 22/tcp", "ufw allow 2230/tcp", "ufw --force enable", sshd.HardnDropIn, "systemctl reload ssh.service",
 				"systemctl stop hardn-revert-", "ufw delete allow 22/tcp", sshd.HardnDropIn, "systemctl reload ssh.service"}},
-		{"best-effort-ubuntu2204", 0, []string{"No actual changes were made to your system.", "Ubuntu 22.04 is a best-effort release", "(PLATFORM_BEST_EFFORT)", "Nothing was applied."},
+		// P-41's warning, a line before the plan since next/s2-flow-review,
+		// and not after it.
+		{"best-effort-ubuntu2204", 0, []string{"Ubuntu 22.04 is a best-effort release", "Install hardn's boot unit", "No actual changes were made to your system.", "Nothing was applied."},
 			untouched, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -268,6 +270,9 @@ func TestPlayEngine(t *testing.T) {
 			}
 			s, out, code := playEngine(t, enginePrefix+"/"+tc.name, sc.answers...)
 			flat := flatText(out)
+			if n := strings.Count(flat, "is a best-effort release"); n > 1 || strings.Contains(flat, "PLATFORM_BEST_EFFORT") {
+				t.Errorf("P-41's warning said %d times, or with its code after the flow:\n%s", n, out)
+			}
 			at := 0
 			for _, w := range tc.screen {
 				i := strings.Index(flat[at:], strings.Join(strings.Fields(w), " "))

@@ -92,7 +92,8 @@ func changedOutsideRun(h *fakeHost) []string {
 // reload without effect undone by the change itself and reported rolled
 // back (D3); the failed save rolling the change back (decision 1 (iii)),
 // under the gallery's hold. No journal is left: no DNS change waits for a
-// confirmation (brief 2.4).
+// confirmation (brief 2.4). Each finding is a line before the plan, said
+// once, its code nowhere (next/s2-flow-review).
 func TestPlayEngineDNS(t *testing.T) {
 	ubuntu := func(reloads, restarts int) func(*testing.T, *fakeHost) {
 		return func(t *testing.T, h *fakeHost) {
@@ -130,6 +131,10 @@ func TestPlayEngineDNS(t *testing.T) {
 		}
 	}
 	const (
+		// The findings, each a warning line before the plan, said once.
+		perLink = "eth0 still uses its own nameserver 192.0.2.1"
+		dhcpcd  = "dhcpcd may rewrite /etc/resolv.conf on a lease"
+
 		configured = "configured: 192.0.2.54, 2001:db8::54"
 		notHardn   = "not-configured: not hardn.yml's"
 		written    = "write-atomic "
@@ -144,35 +149,35 @@ func TestPlayEngineDNS(t *testing.T) {
 		line   string   // the DNS row after: its state and detail
 		order  []string // what changed on the host, in order: each call's operation and path, or its command
 	}{
-		{"dns-configure-ubuntu2604", 0, []string{"Set the nameservers", dns.DropIn, "@@ -0,0 +1,5 @@", "$ " + reload,
-			"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "eth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK, resolvectl dns)"},
+		{"dns-configure-ubuntu2604", 0, []string{perLink, "Set the nameservers", dns.DropIn, "@@ -0,0 +1,5 @@", "$ " + reload,
+			"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful"},
 			ubuntu(1, 0), configured, dropInMade},
-		{"dns-cloudflare-debian13", 0, []string{"Set the nameservers", "+nameserver 1.1.1.1", "Save the configuration", hardnYML, "@@ -1,5 +1,5 @@",
+		{"dns-cloudflare-debian13", 0, []string{dhcpcd, "Set the nameservers", "+nameserver 1.1.1.1", "Save the configuration", hardnYML, "@@ -1,5 +1,5 @@",
 			` nameservers:`, `-  - "192.0.2.54"`, `+  - "1.1.1.1"`, "Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Done",
-			"Operation Successful", "dhcpcd may rewrite /etc/resolv.conf on a lease (DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)"},
+			"Operation Successful"},
 			func(t *testing.T, h *fakeHost) {
 				files(map[string]string{dns.ResolvConf: dhcpcdHead + "nameserver 1.1.1.1\nnameserver 1.0.0.1\n"})(t, h)
 				saved(t, h)
 			}, "configured: 1.1.1.1, 1.0.0.1", []string{written + dns.ResolvConf, written + hardnYML}},
-		{"dns-configure-ubuntu2404", 0, []string{"Set the nameservers", "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "(DNS_PER_LINK"},
+		{"dns-configure-ubuntu2404", 0, []string{perLink, "Set the nameservers", "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful"},
 			ubuntu(0, 1), configured, dropInMade},
 		{"dns-udhcpc-alpine324", 0, []string{"Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: y", "Set nameservers; stop udhcpc rewriting", dns.UDHCPCConf + ", " + dns.ResolvConf, `+RESOLV_CONF="no"`, "+nameserver 2001:db8::54",
 			"Configure DNS? [y/N, 0 or q]: y", "Set nameservers; stop udhcpc rewriting Done", "Operation Successful"},
 			files(map[string]string{dns.ResolvConf: searchHead + listedTwo, dns.UDHCPCConf: udhcpcStock + "# hardn: keep udhcpc from rewriting /etc/resolv.conf\nRESOLV_CONF=\"no\"\n"}),
 			configured, []string{written + dns.UDHCPCConf, written + dns.ResolvConf}},
-		{"dns-configure-pve9", 0, []string{"Set the nameservers", "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful",
-			"Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf (DNS_PROXMOX_NODE)"},
+		{"dns-configure-pve9", 0, []string{"Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf", "Set the nameservers", "Configure DNS? [y/N, 0 or q]: y",
+			"Set the nameservers Done", "Operation Successful"},
 			files(map[string]string{dns.ResolvConf: searchHead + listedTwo}), configured, []string{written + dns.ResolvConf}},
 		{"dns-refused-networkmanager", 0, []string{"Operation Failed", "NetworkManager manages DNS here (DNS_MANAGED)", "To go on: set the nameservers with nmcli.", "Nothing was applied."},
 			untouched, "not-applicable: NetworkManager", nil},
 		{"dns-refused-empty", 0, []string{"Operation Failed", "No nameservers configured (DNS_NO_NAMESERVERS)", "To go on: add nameservers first.", "Nothing was applied."},
 			untouched, "not-configured: none in hardn.yml", nil},
 		{"dns-configured-debian13", 0, []string{"Nothing needs changing.", "Nothing was applied."}, untouched, configured, nil},
-		{"dns-dry-run-debian13", 0, []string{"Set the nameservers", "Save the configuration", "No actual changes were made to your system.", "(DNS_DHCP_CLIENT",
+		{"dns-dry-run-debian13", 0, []string{dhcpcd, "Set the nameservers", "Save the configuration", "No actual changes were made to your system.",
 			"Nothing was applied."}, untouched, notHardn, nil},
 		// dns.Apply undoes the change itself; the engine's rollback then
 		// has nothing left to undo, under the hold all the same.
-		{"dns-failed-reload-ubuntu2604", 1, []string{"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Failed DNS_NOT_EFFECTIVE", "Operation Failed",
+		{"dns-failed-reload-ubuntu2604", 1, []string{perLink, "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Failed DNS_NOT_EFFECTIVE", "Operation Failed",
 			"Reloading systemd-resolved had no effect", "Set the nameservers Rolled back", "Run resolvectl dns to see the servers in use.", "Failed: Set the nameservers"},
 			func(t *testing.T, h *fakeHost) {
 				files(map[string]string{dns.DropIn: absent, dns.DropInDir: absent})(t, h)
@@ -180,7 +185,7 @@ func TestPlayEngineDNS(t *testing.T) {
 					t.Errorf("resolved running %t, on %v; want running on no global server, as before", r.active, r.global)
 				}
 			}, notHardn, append(slices.Clone(dropInMade), "remove "+dns.DropIn, "remove "+dns.DropInDir, "systemctl reload-or-restart systemd-resolved.service")},
-		{"dns-failed-save-debian13", 1, []string{"Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Failed PERMISSION_DENIED",
+		{"dns-failed-save-debian13", 1, []string{dhcpcd, "Use Cloudflare DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Save the configuration Failed PERMISSION_DENIED",
 			"Operation Failed", "Saving /etc/hardn/hardn.yml failed", "Set the nameservers Rolled back", "Applied: Set the nameservers", "Rolled back from the journal"},
 			func(t *testing.T, h *fakeHost) {
 				files(map[string]string{dns.ResolvConf: dhcpcdHead + dhcpLease, hardnYML: simulate(debian13Platform).withHardnYML(nameserversYML(dnsList)).content(hardnYML)})(t, h)
@@ -197,6 +202,9 @@ func TestPlayEngineDNS(t *testing.T) {
 			}
 			if strings.Contains(out, "comments") { // the warning dropped (next/s2-config-edit)
 				t.Errorf("the transcript speaks of comments:\n%s", out)
+			}
+			if w := repeatedFinding(out); w != "" {
+				t.Errorf("the transcript says %q again, or after the flow:\n%s", w, out)
 			}
 			if code != exitOK || s.holds != tc.holds || len(s.engineRuns) != 1 {
 				t.Fatalf("exit %d, the gallery's hold taken %d times (want %d), %d runs", code, s.holds, tc.holds, len(s.engineRuns))
@@ -219,6 +227,29 @@ func TestPlayEngineDNS(t *testing.T) {
 			}
 		})
 	}
+}
+
+// dnsFindingCodes are the DNS control's finding codes.
+var dnsFindingCodes = []string{"DNS_PER_LINK", "DNS_DHCP_CLIENT", "DNS_UDHCPC", "DNS_PROXMOX_NODE"}
+
+// repeatedFinding returns what the transcript out says of a DNS finding
+// beyond its one warning line before the confirmation: a line said twice,
+// or a finding's code, which only the human report after a flow showed
+// (output.AfterFlow, until next/s2-flow-review); "" when nothing.
+func repeatedFinding(out string) string {
+	flat := flatText(out)
+	for _, code := range dnsFindingCodes {
+		if strings.Contains(flat, code) {
+			return code
+		}
+	}
+	for _, line := range []string{"eth0 still uses its own nameserver", "may rewrite /etc/resolv.conf on a lease",
+		"rewrites /etc/resolv.conf on each lease", "Saving Proxmox VE's DNS settings"} {
+		if strings.Count(flat, line) > 1 {
+			return line
+		}
+	}
+	return ""
 }
 
 // notShown returns the first of want that the transcript out does not
@@ -257,9 +288,12 @@ func hostChanges(h *fakeHost) []string {
 // leaves udhcpc.conf as installed, and udhcpc's finding stays.
 func TestPlayEngineDNSKeepsUDHCPC(t *testing.T) {
 	s, out, code := playEngine(t, enginePrefix+"/dns-udhcpc-alpine324", "n", "y")
-	if w := notShown(out, []string{"Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: n", "Set the nameservers", dns.ResolvConf,
-		"Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful", "udhcpc rewrites /etc/resolv.conf on each lease (DNS_UDHCPC"}); w != "" {
+	if w := notShown(out, []string{"Stop udhcpc rewriting /etc/resolv.conf? [y/N, 0 or q]: n", "udhcpc rewrites /etc/resolv.conf on each lease",
+		"Set the nameservers", dns.ResolvConf, "Configure DNS? [y/N, 0 or q]: y", "Set the nameservers Done", "Operation Successful"}); w != "" {
 		t.Errorf("the transcript does not show %q after what came before it:\n%s", w, out)
+	}
+	if w := repeatedFinding(out); w != "" {
+		t.Errorf("the transcript says %q again, or after the flow:\n%s", w, out)
 	}
 	if code != exitOK || len(s.engineRuns) != 1 {
 		t.Fatalf("exit %d, %d runs", code, len(s.engineRuns))

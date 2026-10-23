@@ -51,6 +51,11 @@ type Run struct {
 	// from ConfigPath.
 	Deprecations []config.Deprecation
 	ConfigPath   string
+	// Reviewed: pkg/ui/flow's Plan step listed the plan's findings
+	// before its confirmation, as FlowEngine hands them (FlowEngine.Run),
+	// so that AfterFlow does not repeat them: each whose detail shows as
+	// a line. It changes nothing in the document.
+	Reviewed bool
 }
 
 // facts are r's host facts.
@@ -78,6 +83,25 @@ func navigated(err error) bool { return errors.Is(err, nav.ErrQuit) || errors.Is
 // nothing would have been applied, so it is not an error (Confirmation).
 func (r Run) policyMoot() bool {
 	return errors.Is(r.Err, ErrConfirmationRequired) && r.Plan != nil && r.Plan.Empty() && len(r.Plan.Refused) == 0
+}
+
+// planFindings are plan p's findings, as the document lists them: the
+// plan's as a whole first (P-41: a best-effort release), then each
+// change's, in the plan's order.
+func planFindings(p *engine.Plan) []Finding {
+	if p == nil {
+		return nil
+	}
+	var out []Finding
+	for _, f := range p.Findings {
+		out = append(out, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source})
+	}
+	for _, c := range p.Changes {
+		for _, f := range c.Findings {
+			out = append(out, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source, Control: c.Control, Change: c.ID})
+		}
+	}
+	return out
 }
 
 // Build maps run r to its document. It is pure.
@@ -108,15 +132,10 @@ func Build(r Run) Document {
 	}
 	if p := r.Plan; p != nil {
 		d.Result.ID, d.Result.Risk = p.ID, riskWord(p.Risk)
-		for _, f := range p.Findings { // the plan's as a whole (P-41: a best-effort release)
-			d.Findings = append(d.Findings, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source})
-		}
+		d.Findings = append(d.Findings, planFindings(p)...)
 		status := changeStatus(r)
 		for _, c := range p.Changes {
 			d.Changes = append(d.Changes, changeOf(c, status))
-			for _, f := range c.Findings {
-				d.Findings = append(d.Findings, Finding{Code: f.Code, Detail: f.Detail, Source: f.Source, Control: c.Control, Change: c.ID})
-			}
 		}
 	}
 	for _, dep := range r.Deprecations {

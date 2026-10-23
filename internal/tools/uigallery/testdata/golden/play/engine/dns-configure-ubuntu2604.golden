@@ -21,6 +21,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mresolved reloads its files (systemd 259). y applies it; n␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdeclines.␛[m$
 $
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
+$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
@@ -38,10 +40,6 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m  ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
-$
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mresolvectl dns)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -75,6 +73,8 @@ $
 # resolved reloads its files (systemd 259). y applies it; n$
 # declines.$
 $
+   -  eth0 still uses its own nameserver 192.0.2.1$
+$
    -  Set the nameservers$
       /etc/systemd/resolved.conf.d/zz-hardn.conf$
       @@ -0,0 +1,5 @@$
@@ -92,10 +92,6 @@ $
   [+] Set the nameservers  Done$
 $
 # Operation Successful$
-$
-# Warning$
-# eth0 still uses its own nameserver 192.0.2.1 (DNS_PER_LINK,$
-# resolvectl dns)$
 $
 # simulated system ---------------------------------------------$
 $
@@ -130,6 +126,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemd-resolved reloads its files (systemd 259). y␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapplies it; n declines.␛[m$
 $
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
+$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d/zz-hardn.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,5 @@␛[m$
@@ -149,10 +147,6 @@ $
       ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
-$
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meth0 still uses its own nameserver 192.0.2.1␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PER_LINK, resolvectl dns)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

@@ -15,8 +15,10 @@ import (
 // engine puts on a plan made on a best-effort release (engine.Plan.Findings,
 // PLATFORM_BEST_EFFORT) is a finding of the document, the plan's own (no
 // control or change), and a warning with its code in the human report of
-// the plan, of the apply and below a flow (AfterFlow); it changes no exit
-// status. A plan on a supported release shows none.
+// the plan and of the apply, and below a flow (AfterFlow) that did not
+// list it (since next/s2-flow-review a flow lists it before its
+// confirmation: the gallery's best-effort-ubuntu2204 scenario); it changes
+// no exit status. A plan on a supported release shows none.
 func TestBestEffortRendered(t *testing.T) {
 	const detail = "Ubuntu 22.04 is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it"
 	bestEffort := func() *engine.Plan {
