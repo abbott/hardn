@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"slices"
 	"strings"
 
@@ -46,6 +47,17 @@ const dryRunHost = "hardened"
 // dryRunKey is the key of origin/main's Dry-Run item on the main menu.
 const dryRunKey = "6"
 
+// origin/main's words for the mode, as style.Menu writes them beside the
+// menu heading (pkg/style style.go:787-825). They are pinned here, not
+// taken from component.ModeIndicator, so that the mocks labelled
+// origin/main's keep them once the component takes the decided words
+// (unit (c)).
+const (
+	originLabel  = "Dry-run Mode"
+	originLive   = "Disabled"
+	originDryRun = "Enabled"
+)
+
 // The indicator's proposed words (decisions 2 and 3): the label, the word
 // for each mode, and where plan only came from, after the word.
 const (
@@ -56,10 +68,9 @@ const (
 	fromConfig       = "hardn.yml"
 )
 
-// modeView is how a mock shows the mode beside the menu heading: in
-// origin/main's words, drawn by component.ModeIndicator, or in the
-// proposed ones, drawn here on the same grid, with where plan only came
-// from.
+// modeView is how a mock shows the mode beside the menu heading, in
+// origin/main's words or the proposed ones, with where plan only came
+// from, drawn here on the components' grid in the theme's mode slots.
 type modeView struct {
 	proposed bool
 	planOnly bool
@@ -68,51 +79,60 @@ type modeView struct {
 	from string
 }
 
+// text is mv's whole text: the label, the word and the source.
+func (mv modeView) text(c component.Ctx) (label piece, word piece, from []piece) {
+	t := c.Theme
+	label, word = piece{originLabel, t.Mode.Label.Render}, piece{originLive, t.Mode.Live.Render}
+	if mv.planOnly {
+		word = piece{originDryRun, t.Mode.DryRun.Render}
+	}
+	if mv.proposed {
+		label.text, word.text = proposedLabel, proposedLive
+		if mv.planOnly {
+			word.text = proposedPlanOnly
+		}
+	}
+	if mv.from != "" {
+		from = []piece{pad(1), {"(" + mv.from + ")", t.Text.Faint.Render}}
+	}
+	return label, word, from
+}
+
+// fit is mv's text in at most room cells: whole where it fits; else the
+// label gives way first, as the component's does, then the source
+// (decision 3), and the word alone is cut only when it does not fit.
+func (mv modeView) fit(c component.Ctx, room int) []piece {
+	label, word, from := mv.text(c)
+	for _, l := range [][]piece{append([]piece{label, pad(1), word}, from...), append([]piece{word}, from...), {word}} {
+		if widthOf(l) <= room {
+			return l
+		}
+	}
+	return []piece{{cut(c, word.text, room), word.paint}}
+}
+
 // heading renders the menu heading titled title with the mode beside it,
 // as component.MenuHeading places it: at theme.ValueCol on the heading's
 // line, or under it at theme.StackCol below theme.StackBelow columns, or
-// when the line cannot hold it. A proposed text too wide there loses its
-// source, then its label, as the component's loses its label first.
+// when the line cannot hold the whole text (fit).
 func (mv modeView) heading(c component.Ctx, title string) string {
-	mode := component.ModeIndicator{DryRun: mv.planOnly}
-	if !mv.proposed {
-		return component.MenuHeading{Title: title, Mode: &mode}.Render(c)
-	}
-	t := c.Theme
-	word := piece{proposedLive, t.Mode.Live.Render}
-	if mv.planOnly {
-		word = piece{proposedPlanOnly, t.Mode.DryRun.Render}
-	}
-	text := []piece{{proposedLabel, t.Mode.Label.Render}, pad(1), word}
-	if mv.from != "" {
-		text = append(text, pad(1), piece{"(" + mv.from + ")", t.Text.Faint.Render})
-	}
 	head := component.MenuHeading{Title: title}.Render(c)
-	w := contentWidth(c.Env)
-	if termWidth(c.Env) >= theme.StackBelow && ansi.StringWidth(head) < theme.ValueCol && theme.ValueCol+widthOf(text) <= w {
-		return head + draw(append([]piece{pad(theme.ValueCol - ansi.StringWidth(head))}, text...)...)
+	w, whole := contentWidth(c.Env), mv.fit(c, math.MaxInt)
+	if termWidth(c.Env) >= theme.StackBelow && ansi.StringWidth(head) < theme.ValueCol && theme.ValueCol+widthOf(whole) <= w {
+		return head + draw(append([]piece{pad(theme.ValueCol - ansi.StringWidth(head))}, whole...)...)
 	}
-	for _, keep := range [][]piece{text, text[:3], {word}} {
-		if theme.StackCol+widthOf(keep) <= w || len(keep) == 1 {
-			text = keep
-			break
-		}
-	}
-	if theme.StackCol+widthOf(text) > w {
-		text = []piece{{cut(c, word.text, w-theme.StackCol), word.paint}}
-	}
-	return head + "\n" + draw(append([]piece{pad(theme.StackCol)}, text...)...)
+	return head + "\n" + draw(append([]piece{pad(theme.StackCol)}, mv.fit(c, w-theme.StackCol)...)...)
 }
 
 // drawMenu renders main menu vm as its layout draws it, its heading line
-// in mv's words: the layout's own heading, with origin/main's indicator,
-// is replaced, as it must appear once.
+// in mv's words: the layout's own heading, with the component's
+// indicator, is replaced, as it must appear once.
 func (mv modeView) drawMenu(c component.Ctx, vm screen.MainMenu) (string, error) {
 	return mv.swap(c, vm.Render(c), vm.Heading)
 }
 
 // swap replaces in out the menu heading titled title, with mv's mode as
-// origin/main words it, by mv's heading.
+// component.ModeIndicator draws it, by mv's heading.
 func (mv modeView) swap(c component.Ctx, out, title string) (string, error) {
 	mode := component.ModeIndicator{DryRun: mv.planOnly}
 	old := component.MenuHeading{Title: title, Mode: &mode}.Render(c)
@@ -268,10 +288,11 @@ func drawLegacy(c component.Ctx) string {
 
 // dryMock is one mock the listing shows: its name, after dryRunPrefix,
 // its note, which names it a mock, and its drawing, of the status host st
-// where it draws a main menu (tall: its goldens add 80x40).
+// where it draws a main menu (main: it draws the main menu or its mode,
+// and its goldens take the main menu's cells).
 type dryMock struct {
 	name, note string
-	tall       bool
+	main       bool
 	draw       func(c component.Ctx, st hostStatus) (string, error)
 }
 
@@ -284,15 +305,15 @@ func dryMocks() []dryMock {
 	}
 	const host = "The main menu on its layout (00-TUI-MAIN), its status the gallery's hardened Debian 13 host's, as hardn's live menu reads it; "
 	return []dryMock{
-		{name: "menu", tall: true, draw: menu(false, false, ""),
+		{name: "menu", main: true, draw: menu(false, false, ""),
 			note: "Mock. " + host + "origin/main's items, numbering, prompt and indicator, live."},
-		{name: "menu-dry-run", tall: true, draw: menu(true, false, ""),
+		{name: "menu-dry-run", main: true, draw: menu(true, false, ""),
 			note: "Mock. " + host + "origin/main's items and indicator in dry run, as hardn -n starts."},
-		{name: "menu-proposed", tall: true, draw: menu(false, true, ""),
+		{name: "menu-proposed", main: true, draw: menu(false, true, ""),
 			note: "Mock, proposed (decisions 1 to 3). " + host + "item 6 left out, its key unused; the indicator's proposed words, live."},
-		{name: "menu-proposed-plan-only", tall: true, draw: menu(true, true, fromConfig),
+		{name: "menu-proposed-plan-only", main: true, draw: menu(true, true, fromConfig),
 			note: "Mock, proposed (decisions 1 to 3). " + host + "item 6 left out; plan only, set by hardn.yml's dryRun."},
-		{name: "mode", draw: func(c component.Ctx, _ hostStatus) (string, error) { return drawModes(c), nil },
+		{name: "mode", main: true, draw: func(c component.Ctx, _ hostStatus) (string, error) { return drawModes(c), nil },
 			note: "Mock. The mode indicator beside the menu heading, in each state: origin/main's words, then the proposed ones."},
 		{name: "screen", draw: func(c component.Ctx, _ hostStatus) (string, error) { return dryRunScreen(false).Render(c), nil },
 			note: "Mock (decision 1, alternative (a)), inferred from origin/main: its Dry-Run item, 6, on the sub-menu layout, in its words; live."},
@@ -360,7 +381,8 @@ const dryRunUsage = "usage: go run ./internal/tools/uigallery dryrun [flags] [mo
 // every mock) under the gallery's header, "dryrun <mock>", its note, then
 // its drawing, a write each; -list prints their names. It sizes itself as
 // play does (look.sizeTo), so the main menus take their full form on a
-// terminal of 40 rows or more and their compact form below.
+// terminal of 40 rows or more and their compact form below; plain mode,
+// which is no terminal, takes the full form at any height.
 func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("uigallery dryrun", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -412,7 +434,10 @@ func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 // gallery's header, the mock's note, then its drawing. The status host is
 // read once, fresh.
 func listDryRun(ctx context.Context, rc component.Ctx, w io.Writer, mocks []dryMock) error {
-	sh, _ := findStatusHost(dryRunHost)
+	sh, ok := findStatusHost(dryRunHost)
+	if !ok {
+		return fmt.Errorf("no status host %q", dryRunHost)
+	}
 	st, err := (&session{}).readStatus(ctx, sh.host())
 	if err != nil {
 		return err

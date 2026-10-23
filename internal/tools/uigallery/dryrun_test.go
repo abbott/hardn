@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -19,12 +20,27 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// tall is the 80x40 cell a main menu's goldens add to the core set, where
-// it takes its full form on a terminal.
-func tall() uitest.Cell {
-	env := term.Fixed(80, colorprofile.TrueColor, true, true)
-	env.Height = 40
-	return uitest.Cell{Name: "truecolor-dark-unicode-80x40", Env: env}
+// sized is a truecolor Unicode cell width columns wide and height rows
+// high, as pkg/ui/screen's tests name it.
+func sized(width, height int, dark bool) uitest.Cell {
+	bg := "light"
+	if dark {
+		bg = "dark"
+	}
+	env := term.Fixed(width, colorprofile.TrueColor, true, dark)
+	env.Height = height
+	return uitest.Cell{Name: fmt.Sprintf("truecolor-%s-unicode-%dx%d", bg, width, height), Env: env}
+}
+
+// mainCells are the cells of the mocks that draw the main menu or its
+// mode, as pkg/ui/screen pins its main menu: the core set, whose
+// terminals are 24 rows high, so its 80- and 60-column cells show the
+// compact form and plain mode, no terminal, the full one; the full form at
+// 80x40 on both themes; 60x40, where the compact form is drawn; and the
+// compact form in ASCII at 80x24.
+func mainCells() []uitest.Cell {
+	return append(uitest.Core(), sized(80, 40, true), sized(80, 40, false), sized(60, 40, true),
+		uitest.Cell{Name: "truecolor-dark-ascii-80", Env: term.Fixed(80, colorprofile.TrueColor, false, true)})
 }
 
 // cellArgs returns the flags that pick env: lookArgs's, and -height when
@@ -41,13 +57,13 @@ func cellArgs(t *testing.T, env term.Env) []string {
 }
 
 // TestDryRunGolden pins each mock of the listing on the core set, a main
-// menu also at 80x40: the gallery's header, the mock's note, then its
-// drawing.
+// menu and the mode on mainCells: the gallery's header, the mock's note,
+// then its drawing.
 func TestDryRunGolden(t *testing.T) {
 	for _, m := range dryMocks() {
 		cells := uitest.Core()
-		if m.tall {
-			cells = append(cells, tall())
+		if m.main {
+			cells = mainCells()
 		}
 		uitest.Golden(t, dryRunPrefix+"/"+m.name, cells, func(env term.Env) string {
 			args := append(append([]string{dryRunPrefix}, cellArgs(t, env)...), m.name)
@@ -97,7 +113,10 @@ func TestPlayDryRunGolden(t *testing.T) {
 // pkg/menu's 17-line menu (docs/engine/menu-live.md §6).
 func TestDryRunHeights(t *testing.T) {
 	const legacyMenu = 17
-	sh, _ := findStatusHost(dryRunHost)
+	sh, ok := findStatusHost(dryRunHost)
+	if !ok {
+		t.Fatalf("no status host %q", dryRunHost)
+	}
 	st, err := (&session{}).readStatus(context.Background(), sh.host())
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +165,10 @@ func TestDryRunHeights(t *testing.T) {
 // host, "Up 182 days, no updates" under Auto Updates, at 80x24 takes 26
 // lines on the layout, its risk level still on screen.
 func TestDryRunHeightsLine(t *testing.T) {
-	sh, _ := findStatusHost("figma")
+	sh, ok := findStatusHost("figma")
+	if !ok {
+		t.Fatal("no status host figma")
+	}
 	st, err := (&session{}).readStatus(context.Background(), sh.host())
 	if err != nil {
 		t.Fatal(err)

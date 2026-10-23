@@ -151,7 +151,10 @@
 // under dry run, as it prints. "play dryrun" plays that main menu, its 6
 // toggling dry run for the session, "play dryrun/saved" with the toggle
 // saved, "play dryrun/proposed" the proposed one; -sequence dry-run starts
-// in dry run. Its flags are those of status.
+// in dry run, as hardn -n does. Its flags are -list, -theme, -profile,
+// -ascii, -override, and -width and -height sized as play's; -height picks
+// the main menus' form, the full one from 40 rows, the compact one below,
+// and plain mode, which is no terminal, the full one at any height.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //
@@ -550,7 +553,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]")
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(playUsage, "usage: "))
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery dryrun [flags] [mock | all]...")
