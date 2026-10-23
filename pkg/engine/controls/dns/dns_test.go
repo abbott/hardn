@@ -457,12 +457,14 @@ func TestEvidence(t *testing.T) {
 // TestHostRefusal: HostRefusal is the plan's refusal, the same report
 // word for word, exactly where every plan on the host refuses whatever its
 // list (a container, a family hardn does not configure, a manager hardn
-// only reports, a fact not established: next/s2-screen), and nil for
-// every other refusal, which the plan makes of its list, of a resolved
-// that takes none, or of hardn.yml, and on every host that plans.
+// only reports, a fact not established, systemd-resolved stopped, a later
+// drop-in, hardn's drop-in path blocked: next/s2-screen), and nil for
+// every other refusal, which the plan makes of its list, of udhcpc's
+// answer or of hardn.yml, and on every host that plans.
 func TestHostRefusal(t *testing.T) {
 	ctx := context.Background()
-	host := map[string]bool{"DNS_CONTAINER": true, "DNS_UNSUPPORTED": true, "DNS_MANAGED": true, "DNS_UNKNOWN": true}
+	host := map[string]bool{"DNS_CONTAINER": true, "DNS_UNSUPPORTED": true, "DNS_MANAGED": true, "DNS_UNKNOWN": true,
+		"DNS_RESOLVED_NOT_RUNNING": true, "DNS_OVERRIDDEN": true, "DNS_DROPIN_BLOCKED": true}
 	for _, tt := range refusals {
 		t.Run(tt.name, func(t *testing.T) {
 			h, _ := newHost(t, tt.host, tt.list)

@@ -109,8 +109,11 @@ type DNS struct {
 	// InUse and Search are the nameservers and the search domains the
 	// host uses, its own first, then each link's (decision 2: the host's
 	// search domains are kept, so the screen shows them). With Read
-	// false both rows say Unknown, as for a manager hardn only reports;
-	// read and empty, "None".
+	// false both rows say Unknown, as for a manager hardn only reports.
+	// Read, no search domain is "None"; but no nameserver is Unknown:
+	// given none, a resolver uses a default of its own, which nothing
+	// read (systemd-resolved its FallbackDNS= servers, which resolvectl
+	// dns does not list; glibc the local machine's, resolv.conf(5)).
 	InUse, Search []DNSEntry
 	Read          bool
 	// Configured are hardn.yml's nameservers, as written there: the
@@ -137,6 +140,15 @@ func (d DNS) row(key string, es []DNSEntry) component.KeyValue {
 		return component.KeyValue{Key: key, State: component.ValueUnknown}
 	}
 	return component.KeyValue{Key: key, Value: entries(es)}
+}
+
+// inUse is the "Nameservers" row: the nameservers in use, or Unknown when
+// d did not read them or read none (DNS.InUse).
+func (d DNS) inUse() component.KeyValue {
+	if len(d.InUse) == 0 {
+		return component.KeyValue{Key: dnsServers, State: component.ValueUnknown}
+	}
+	return d.row(dnsServers, d.InUse)
 }
 
 // implementation is the "DNS Implementation" row: the manager's words, a
@@ -183,7 +195,7 @@ func (d DNS) SubMenu() SubMenu {
 		Title: trail(dnsTitle),
 		Sections: []Section{{
 			Header: component.SectionHeader{Title: dnsCurrent},
-			Rows:   component.BulletList{Items: []component.KeyValue{d.implementation(), d.row(dnsServers, d.InUse), d.row(dnsSearch, d.Search)}},
+			Rows:   component.BulletList{Items: []component.KeyValue{d.implementation(), d.inUse(), d.row(dnsSearch, d.Search)}},
 		}, {
 			Header: component.SectionHeader{Title: dnsConfigured},
 			Rows:   component.BulletList{Items: listed},

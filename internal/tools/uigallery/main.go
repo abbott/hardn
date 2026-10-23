@@ -43,15 +43,15 @@
 // menu's items lead where origin/main's do, to the other mocks: User
 // Management, Manage User and george's menu to the sudo change, SSH Login
 // to the root-login toggle and its typed confirmation, DNS to hardn's own
-// DNS screen on a simulated host (below); an item with no mock says so. 0 goes back and q quits at every prompt, as the
-// navigation grammar has it; going back from the first screen, or
-// quitting, exits with status 0, and the end of the input or Ctrl-C at a
-// prompt with 130. Each workflow runs its flow (pkg/ui/flow) on its
-// sequence's fixture plan, and applies it to the simulated system, which
-// only records what each step would do: the record is shown when play
-// ends. A sequence plays for its screen and fixture, the answers being the
-// user's, so one that ends cancelled, as create-user's does, cannot be
-// named: declining the confirmation plays it.
+// DNS screen on a simulated host (below); an item with no mock says so. 0
+// goes back and q quits at every prompt, as the navigation grammar has it;
+// going back from the first screen, or quitting, exits with status 0, and
+// the end of the input or Ctrl-C at a prompt with 130. Each workflow runs
+// its flow (pkg/ui/flow) on its sequence's fixture plan, and applies it to
+// the simulated system, which only records what each step would do: the
+// record is shown when play ends. A sequence plays for its screen and
+// fixture, the answers being the user's, so one that ends cancelled, as
+// create-user's does, cannot be named: declining the confirmation plays it.
 //
 // "play engine" opens the engine's scenarios (next/p3-gallery-engine), and
 // "play engine/<scenario>" one: the real plan/apply engine (pkg/engine),

@@ -1,6 +1,7 @@
 package dns_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/fs"
@@ -9,10 +10,12 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/output"
 	dnsscreen "github.com/abbott/hardn/pkg/screens/dns"
 	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
 // wide is the width the tests play at. The layouts' content stops at 64
@@ -21,9 +24,11 @@ import (
 // whole read it from the screen's reading (read_test.go).
 const wide = 120
 
-// flat is out with each callout's continued lines joined ("\n# "), its
+// flat is out with each callout's continued lines joined ("\n# "), a
+// word broken after its hyphen ("zz-\n# hardn.conf") made whole again, its
 // white space as single spaces, so that a wrapped sentence reads whole.
 func flat(out string) string {
+	out = strings.ReplaceAll(out, "-\n# ", "-")
 	return strings.Join(strings.Fields(strings.ReplaceAll(out, "\n# ", " ")), " ")
 }
 
@@ -277,13 +282,16 @@ func TestNothingWritten(t *testing.T) {
 }
 
 // TestRefusedBeforeAsking: on a host every plan refuses whatever its list
-// (P-37 (a), decision 4), every item says why and how to go on, in the
-// control's words, before asking anything; with no list Configure DNS,
-// and with one Remove nameserver, are refused so too (decisions 3,
+// (P-37 (a), decision 4; dnsctl.HostRefusal), every item says why and how
+// to go on, in the control's words, before asking anything; for a fact
+// not established, what failed in place of the control's pointer to a
+// log, which nothing has written before a plan. With no list Configure
+// DNS, and with one Remove nameserver, are refused so too (decisions 3,
 // 1 (ii)), and item 3 is not taken with none. Nothing is planned or
 // written.
 func TestRefusedBeforeAsking(t *testing.T) {
 	every := []string{"1", "2", "3", "4", "5", "6", "0"}
+	const unreadWords = "The host's DNS settings could not all be read. Correct what failed, then try again. What failed: "
 	tests := []struct {
 		host  string
 		list  []string
@@ -293,8 +301,15 @@ func TestRefusedBeforeAsking(t *testing.T) {
 	}{
 		{networkManager, configured, every, "NetworkManager manages DNS here. Set the nameservers with nmcli.", 6},
 		{resolvconf, configured, every, "resolvconf manages DNS here. Set the nameservers through resolvconf.", 6},
+		{otherLink, configured, every, "/etc/resolv.conf links to /run/connman/resolv.conf, which another program writes. Set the nameservers with that program.", 6},
+		{resolvedFile, configured, every, "systemd-resolved runs, and /etc/resolv.conf is not its link. Link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf.", 6},
 		{container, configured, every, "This is a container: its manager provides /etc/resolv.conf. Set the nameservers in the container's settings on its host.", 6},
-		{unread, configured, every, "The host's DNS settings could not all be read. See the log for what failed, then try again.", 6},
+		{unsupported, configured, every, "This host is not Debian, Ubuntu, Alpine or Proxmox VE. Set the nameservers by hand.", 6},
+		{unread, configured, every, unreadWords + "dns: container: a fact the answer depends on is not established: no signal.", 6},
+		{unreadable, configured, every, unreadWords + "lstat /etc/resolv.conf: permission denied.", 6},
+		{resolvedOff, configured, every, "systemd-resolved is not running. Start it with systemctl start systemd-resolved, then try again.", 6},
+		{overridden, configured, every, "/etc/systemd/resolved.conf.d/zzz-site.conf sets DNS= after zz-hardn.conf. Remove DNS= from it, then try again.", 6},
+		{blocked, configured, every, "/etc/systemd/resolved.conf.d/zz-hardn.conf is not a file. Remove it, then try again.", 6},
 		{debian13, nil, []string{"1", "3", "0"}, "Please add nameservers first.", 1},
 		{debian13, configured[:1], []string{"3", "0"}, "The last nameserver cannot be removed.", 1},
 	}
@@ -321,21 +336,65 @@ func TestRefusedBeforeAsking(t *testing.T) {
 	}
 }
 
-// TestRefusedByThePlan: a refusal the plan makes of its list or of a
-// resolved that takes none is the flow's report, after the question it
-// asked first, its Fix as "To go on: ...", and nothing is written.
+// TestRefusedByThePlan: a refusal the plan makes of its list or of
+// hardn.yml is the flow's report, after the form, its Fix as "To go on:
+// ...", and nothing is written. hardn.yml edited elsewhere after it was
+// read is not shown (the screen lists the configuration's list), and the
+// save is refused (CONFIG_CHANGED).
 func TestRefusedByThePlan(t *testing.T) {
-	h, cfg := newHost(t, resolvedOff, configured)
-	p := play(h, cfg, wide, false, "4", "0")
-	if p.err != nil || len(p.runs) != 1 || p.runs[0].Plan == nil || output.CodeOf(p.runs[0].Plan.Err()) != "DNS_RESOLVED_NOT_RUNNING" {
-		t.Fatalf("Run = %v, runs %+v:\n%s", p.err, p.runs, p.out)
+	tests := []struct {
+		name, code, report, toGoOn string
+		list, edit                 []string
+		lines                      []string
+	}{
+		{name: "an entry no address", list: []string{"192.0.2.54", "web-01.example.net"}, lines: []string{"1", "0"}, code: "DNS_INVALID",
+			report: "Nameserver web-01.example.net is not an IP address (DNS_INVALID)", toGoOn: "To go on: correct the nameservers in /etc/hardn/hardn.yml."},
+		{name: "hardn.yml edited elsewhere", list: configured, edit: []string{"192.0.2.99"}, lines: []string{"4", "0"}, code: "CONFIG_CHANGED",
+			report: "/etc/hardn/hardn.yml changed since it was read (CONFIG_CHANGED)", toGoOn: "To go on: start again, so that the file is read as it is now."},
 	}
-	if !strings.Contains(p.out, "systemd-resolved is not running (DNS_RESOLVED_NOT_RUNNING)") ||
-		!strings.Contains(flat(p.out), "To go on: start it with systemctl start systemd-resolved, then try again.") {
-		t.Errorf("the report:\n%s", p.out)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, cfg := newHost(t, debian13, tt.list)
+			if tt.edit != nil {
+				h.AddFile(hardnYML, hardnYMLData(tt.edit), 0o600, 0, 0)
+			}
+			p := play(h, cfg, wide, false, tt.lines...)
+			if p.err != nil || len(p.runs) != 1 || p.runs[0].Plan == nil || output.CodeOf(p.runs[0].Plan.Err()) != tt.code {
+				t.Fatalf("Run = %v, runs %+v:\n%s", p.err, p.runs, p.out)
+			}
+			if !strings.Contains(flat(p.out), tt.report) || !strings.Contains(flat(p.out), tt.toGoOn) {
+				t.Errorf("the report:\n%s", p.out)
+			}
+			if w := writes(h, 0); len(w) > 0 {
+				t.Errorf("wrote %v", w)
+			}
+			if s := screens(p.out); len(s) != 2 || !strings.Contains(s[1], "Nameserver 1         "+tt.list[0]) || !slices.Equal(cfg.Nameservers, tt.list) {
+				t.Errorf("the screen drawn again does not list the configuration's %q, which is %q:\n%s", tt.list, cfg.Nameservers, p.out)
+			}
+		})
 	}
-	if w := writes(h, 0); len(w) > 0 {
-		t.Errorf("wrote %v", w)
+}
+
+// TestNotLoaded: with no hardn.yml read, every item that saves the list
+// (Add, Remove, the presets) says so before asking, in the save's words
+// (CONFIG_NOT_LOADED); Configure DNS plans, and its change is refused for
+// the same reason. Nothing is written, nothing adopted.
+func TestNotLoaded(t *testing.T) {
+	h, _ := newHost(t, debian13, configured)
+	cfg := config.DefaultConfig()
+	cfg.Nameservers = slices.Clone(configured)
+	p := play(h, cfg, wide, false, "2", "3", "4", "5", "6", "1", "0")
+	if p.err != nil || p.unread != 0 || p.engines != 1 || len(p.runs) != 1 || output.CodeOf(p.runs[0].Plan.Err()) != "CONFIG_NOT_LOADED" {
+		t.Fatalf("Run = %v, %d unread, %d engines, runs %+v:\n%s", p.err, p.unread, p.engines, p.runs, p.out)
+	}
+	if n := strings.Count(flat(p.out), " Warning No hardn.yml was read, so there is none to save to. Create /etc/hardn/hardn.yml, then try again."); n != 5 {
+		t.Errorf("said %d times, want 5:\n%s", n, p.out)
+	}
+	if strings.Contains(p.out, "Enter nameserver") || strings.Contains(p.out, "Select a nameserver") || strings.Contains(p.out, "[y/N") {
+		t.Errorf("an item asked something:\n%s", p.out)
+	}
+	if w := writes(h, 0); len(w) > 0 || !slices.Equal(cfg.Nameservers, configured) || cfg.Path() != "" {
+		t.Errorf("wrote %v; the configuration lists %q at %q", w, cfg.Nameservers, cfg.Path())
 	}
 }
 
@@ -387,20 +446,18 @@ func TestFailedReload(t *testing.T) {
 	}
 }
 
-// TestNavigation: q quits from the screen and from a change's question,
-// and the end of the input aborts.
+// TestNavigation: 0 goes back, q quits from the screen and from a
+// change's question, and the end of the input aborts, at the screen and
+// at a form's field.
 func TestNavigation(t *testing.T) {
 	for _, tt := range []struct {
 		lines []string
 		want  error
-	}{{[]string{"q"}, nav.ErrQuit}, {[]string{"4", "q"}, nav.ErrQuit}, {[]string{"2"}, nil}} {
+	}{{[]string{"0"}, nil}, {[]string{"q"}, nav.ErrQuit}, {[]string{"4", "q"}, nav.ErrQuit}, {nil, prompt.ErrAborted}, {[]string{"2"}, prompt.ErrAborted}} {
 		h, cfg := newHost(t, debian13, configured)
 		p := play(h, cfg, wide, false, tt.lines...)
-		switch {
-		case tt.want != nil && !errors.Is(p.err, tt.want):
+		if !errors.Is(p.err, tt.want) || (tt.want == nil) != (p.err == nil) {
 			t.Errorf("%q: Run = %v, want %v", tt.lines, p.err, tt.want)
-		case tt.want == nil && p.err == nil:
-			t.Errorf("%q: Run = nil at the end of the input", tt.lines)
 		}
 		if w := writes(h, 0); len(w) > 0 {
 			t.Errorf("%q: wrote %v", tt.lines, w)
@@ -408,12 +465,74 @@ func TestNavigation(t *testing.T) {
 	}
 }
 
-// TestRunNeeds: Run refuses options it cannot run with, writing nothing.
+// TestRunNeeds: Run refuses options it cannot run with, writing nothing:
+// no Prompter's In or Out, no System, Config or NewEngine.
 func TestRunNeeds(t *testing.T) {
 	h, cfg := newHost(t, debian13, configured)
-	for _, o := range []dnsscreen.Options{{Config: cfg}, {System: h}, {System: h, Config: cfg}} {
+	var out bytes.Buffer
+	in := prompt.New(strings.NewReader("0\n"), false)
+	newEngine := func(func(engine.Event)) *engine.Engine { return nil }
+	for _, o := range []dnsscreen.Options{
+		{Config: cfg}, {System: h}, {System: h, Config: cfg},
+		{System: h, Config: cfg, NewEngine: newEngine},
+		{Prompter: nav.Prompter{In: in}, System: h, Config: cfg, NewEngine: newEngine},
+		{Prompter: nav.Prompter{Out: &out}, System: h, Config: cfg, NewEngine: newEngine},
+		{Prompter: nav.Prompter{In: in, Out: &out}, Config: cfg, NewEngine: newEngine},
+	} {
 		if err := dnsscreen.Run(context.Background(), o); !errors.Is(err, fs.ErrInvalid) {
 			t.Errorf("Run(%+v) = %v, want fs.ErrInvalid", o, err)
 		}
+	}
+	if out.Len() > 0 || len(writes(h, 0)) > 0 {
+		t.Errorf("wrote %q, %v", out.String(), writes(h, 0))
+	}
+}
+
+// TestAdopt: the configuration adopts a change's copy only when hardn.yml
+// at its path holds the bytes the copy saved and not the ones it records
+// itself; not when the file is as the configuration read it, when it
+// cannot be read, or when the configuration was read from no file.
+func TestAdopt(t *testing.T) {
+	ctx := context.Background()
+	list := []string{"192.0.2.53"}
+	tests := []struct {
+		name  string
+		save  bool
+		setup func(h *fakeHost)
+		load  bool
+		adopt bool
+	}{
+		{name: "saved", save: true, load: true, adopt: true},
+		{name: "not saved", load: true},
+		{name: "saved, then unreadable", save: true, load: true, setup: func(h *fakeHost) {
+			e, _ := h.Entry(hardnYML)
+			h.AddFile("/etc/hardn/site.yml", e.Data, 0o600, 0, 0)
+			h.AddSymlink(hardnYML, "/etc/hardn/site.yml") // ReadFileNoFollow refuses a link
+		}},
+		{name: "saved, then gone", save: true, load: true, setup: func(h *fakeHost) { _ = h.Remove(ctx, hardnYML) }},
+		{name: "no file read", save: false, load: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, cfg := newHost(t, debian13, configured)
+			if !tt.load {
+				cfg = config.DefaultConfig()
+				cfg.Nameservers = slices.Clone(configured)
+			}
+			edited := *cfg
+			edited.Nameservers = list
+			if tt.save {
+				if err := config.Save(ctx, h, &edited, "nameservers"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if tt.setup != nil {
+				tt.setup(h)
+			}
+			dnsscreen.Adopt(ctx, dnsscreen.Options{System: h, Facts: h.facts, Config: cfg}, &edited)
+			if got := slices.Equal(cfg.Nameservers, list); got != tt.adopt {
+				t.Errorf("adopted %t (the configuration lists %q); want %t", got, cfg.Nameservers, tt.adopt)
+			}
+		})
 	}
 }

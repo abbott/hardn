@@ -15,9 +15,10 @@ import (
 // TestDNSScreen: the DNS screen's rows and items for each kind of reading
 // (decisions 2, 3, 4): the manager's words, "reported only" in the
 // warning's colour for a manager hardn only reports; the lists in use, a
-// link's with the link, "None" when read and empty, Unknown when not
-// read; hardn.yml's list, or the muted empty item; item 3 only with a
-// list; origin/main's words and prompt.
+// link's with the link, Unknown when not read; read and empty, "None" for
+// the search domains and Unknown for the nameservers, a resolver given
+// none using a default nothing read; hardn.yml's list, or the muted empty
+// item; item 3 only with a list; origin/main's words and prompt.
 func TestDNSScreen(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -40,9 +41,9 @@ func TestDNSScreen(t *testing.T) {
 			inUse:   component.KeyValue{Key: "Nameservers", Value: "192.0.2.54, 192.0.2.1 (eth0)"},
 			search:  component.KeyValue{Key: "Search Domains", Value: "example.net (eth0)"},
 			listed:  []component.KeyValue{{Key: "Nameserver 1", Value: "192.0.2.54"}}, keys: []string{"1", "2", "3", "4", "5", "6"}},
-		{name: "Proxmox VE, none in use", d: DNS{Manager: DNSProxmox, Read: true},
+		{name: "Proxmox VE, none listed", d: DNS{Manager: DNSProxmox, Read: true},
 			manager: component.KeyValue{Key: "DNS Implementation", Value: "Proxmox VE (/etc/resolv.conf)"},
-			inUse:   component.KeyValue{Key: "Nameservers", Value: "None"}, search: component.KeyValue{Key: "Search Domains", Value: "None"},
+			inUse:   component.KeyValue{Key: "Nameservers", State: component.ValueUnknown}, search: component.KeyValue{Key: "Search Domains", Value: "None"},
 			listed: []component.KeyValue{{Key: "No nameservers configured", State: component.ValueNone}}, keys: []string{"1", "2", "4", "5", "6"}},
 		{name: "NetworkManager, reported only", d: DNS{Manager: DNSNetworkManager, Configured: []string{"192.0.2.54"}},
 			manager: component.KeyValue{Key: "DNS Implementation", Value: "NetworkManager,", State: component.ValueWarn, Note: "reported only"},

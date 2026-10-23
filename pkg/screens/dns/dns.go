@@ -7,13 +7,14 @@
 // flow (output.FlowEngine): the form, the review with the plan's findings
 // before the confirmation, y/N, the apply, hardn.yml saved after the
 // change in the same plan, and the screen drawn again under the result
-// from a fresh reading. Run is the one entry point, which cmd/hardn's DNS
-// menu item calls (unit (d)); docs/engine/screen-dns.md has its states,
-// its words and its API.
+// from a fresh reading of the host, with hardn.yml's list as the
+// configuration holds it, the saved one once a change saved it. Run is
+// the one entry point, which cmd/hardn's DNS menu item calls (unit (d));
+// docs/engine/screen-dns.md has its states, its words and its API.
 //
 // It reaches the host only through host.System, the control, pkg/host/dns
-// and the engine (depguard rule screens-dns-through-host), and renders
-// only through pkg/ui and pkg/output.
+// and the engine (depguard rules screens-dns-through-host and
+// screens-through-host), and renders only through pkg/ui and pkg/output.
 package dns
 
 import (
@@ -78,21 +79,26 @@ type Options struct {
 // Run shows the DNS screen and runs the items the user chooses, until
 // they go back with 0 (nil) or quit with q (nav.ErrQuit); the end of the
 // input and Ctrl-C abort (prompt.ErrAborted). Each round reads the host
-// and hardn.yml again and draws the screen under what the last item
-// wrote, so that a change's result stays above the screen and the screen
-// shows the host as it is after it (W1, W2; nav.Prompter.Run). Every
-// change is planned, reviewed, confirmed y/N and applied by the engine,
-// hardn.yml saved after it in the same plan; n changes and saves nothing,
-// and a dry run stops at the plan. An item every plan would refuse
-// (dnsctl.HostRefusal: a manager hardn only reports, a container, a
-// family hardn does not configure, a fact not established), Configure
-// DNS with no nameserver configured and Remove nameserver with one are
-// refused before anything is asked, with a warning. Run returns an error
-// wrapping fs.ErrInvalid, writing nothing, without System, Config or
-// NewEngine.
+// again and draws the screen under what the last item wrote, so that a
+// change's result stays above the screen and the screen shows the host as
+// it is after it (W1, W2; nav.Prompter.Run). hardn.yml's list is the one
+// o.Config holds: the file is read back only after a change, to adopt
+// what it saved (Options.Config), so an edit made to it elsewhere while
+// the screen is open is not shown, and a change that saves the list is
+// then refused as CONFIG_CHANGED. Every change is planned, reviewed,
+// confirmed y/N and applied by the engine, hardn.yml saved after it in
+// the same plan; n changes and saves nothing, and a dry run stops at the
+// plan. An item every plan would refuse (dnsctl.HostRefusal: a manager
+// hardn only reports, a container, a family hardn does not configure, a
+// fact not established, systemd-resolved stopped or overridden), an item
+// that saves the list with no hardn.yml read, Configure DNS with no
+// nameserver configured and Remove nameserver with one are refused
+// before anything is asked, with a warning. Run returns an error wrapping
+// fs.ErrInvalid, writing nothing, without a Prompter's In and Out, a
+// System, a Config or NewEngine.
 func Run(ctx context.Context, o Options) error {
-	if o.System == nil || o.Config == nil || o.NewEngine == nil {
-		return fmt.Errorf("dns screen: %w: it needs a System, a Config and NewEngine", fs.ErrInvalid)
+	if o.Prompter.In == nil || o.Prompter.Out == nil || o.System == nil || o.Config == nil || o.NewEngine == nil {
+		return fmt.Errorf("dns screen: %w: it needs a Prompter with In and Out, a System, a Config and NewEngine", fs.ErrInvalid)
 	}
 	if o.Now == nil {
 		o.Now = time.Now
@@ -106,8 +112,8 @@ type runner struct {
 	o Options
 }
 
-// draw reads the host and hardn.yml and returns the screen, its items
-// bound to their actions.
+// draw reads the host and returns the screen, with hardn.yml's list as
+// the configuration holds it, its items bound to their actions.
 func (r *runner) draw(ctx context.Context) nav.Screen {
 	h := r.read(ctx)
 	sub := h.view.SubMenu()
@@ -118,16 +124,23 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// reading is one reading of the host and of hardn.yml: the screen's view
-// of them, and what its items need.
+// reading is one reading of the host, with hardn.yml's list as the
+// configuration holds it: the screen's view of them, and what its items
+// need.
 type reading struct {
 	view screen.DNS
 	// manager is what manages /etc/resolv.conf, which dns.Validate checks
 	// a list for.
 	manager hostdns.Manager
-	// refused is the refusal every plan on the host makes whatever its
-	// list (dnsctl.HostRefusal): every item says it before asking.
-	refused error
+	// refused are the words of the refusal every plan on the host makes
+	// whatever its list (dnsctl.HostRefusal, hostWords): every item says
+	// them before asking; nil when there is none.
+	refused []string
+	// notLoaded are the words of the save's refusal with no hardn.yml
+	// read (steps.PlanSave, CONFIG_NOT_LOADED): every item that saves the
+	// list, all but Configure DNS, says them before asking; nil when
+	// hardn.yml was read.
+	notLoaded []string
 	// udhcpc: Alpine's udhcpc rewrites /etc/resolv.conf on each lease, so
 	// every change asks whether to stop it (decision 6).
 	udhcpc bool
@@ -140,16 +153,18 @@ var managers = map[hostdns.Manager]screen.DNSManager{
 }
 
 // read reads the host's DNS (dns.Read) and its status (the control's
-// Check, against hardn.yml as loaded): what manages /etc/resolv.conf, and
-// the nameservers and search domains in use only where they were read,
-// the file's or systemd-resolved's while it runs, and the control's
-// Check is not Unknown; Unknown otherwise, never a guess (a manager hardn
-// only reports, a fact not established).
+// Check, against hardn.yml as the configuration holds it): what manages
+// /etc/resolv.conf, and the nameservers and search domains in use only
+// where they were read, the file's or systemd-resolved's while it runs,
+// and the control's Check is not Unknown; Unknown otherwise, never a
+// guess (a manager hardn only reports, a fact not established). A file's
+// nameservers are its first dns.MaxNameservers, the ones glibc and musl
+// use. hardn.yml's list is the configuration's, not read from the file.
 func (r *runner) read(ctx context.Context) reading {
 	o := r.o
 	s, err := hostdns.Read(ctx, o.System, o.Facts)
 	st, cerr := dnsctl.Nameservers{Config: o.Config}.Check(ctx, o.System, o.Facts)
-	h := reading{manager: s.Manager, refused: dnsctl.HostRefusal(s, err),
+	h := reading{manager: s.Manager, refused: hostWords(s, err), notLoaded: notLoaded(ctx, o),
 		udhcpc: err == nil && s.Host.Distro == detect.DistroAlpine && s.Manager == hostdns.ManagerFile && s.UDHCPC.Rewrites == detect.Yes}
 	h.view = screen.DNS{Manager: managers[s.Manager], Configured: slices.Clone(o.Config.Nameservers)}
 	switch {
@@ -162,7 +177,7 @@ func (r *runner) read(ctx context.Context) reading {
 	case err != nil, cerr != nil, st.State == engine.Unknown, s.Err != nil:
 	case s.Manager == hostdns.ManagerFile, s.Manager == hostdns.ManagerProxmox:
 		h.view.Read = true
-		h.view.InUse, h.view.Search = own(s.Nameservers), own(s.Search)
+		h.view.InUse, h.view.Search = own(s.Nameservers[:min(len(s.Nameservers), hostdns.MaxNameservers)]), own(s.Search)
 	case s.Manager == hostdns.ManagerResolved && s.Resolved.Active == detect.Yes:
 		h.view.Read = true
 		h.view.InUse, h.view.Search = own(s.Resolved.Global), own(searchOnly(s.Resolved.Domains))

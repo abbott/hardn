@@ -51,14 +51,24 @@ const (
 	// stopUDHCPC is Alpine's question, on every change's form where
 	// udhcpc rewrites the file (decision 6; proposed).
 	stopUDHCPC = "Stop udhcpc rewriting /etc/resolv.conf?"
+	// unreadFix and whatFailed are the refusal of a host whose DNS
+	// settings could not all be read (DNS_UNKNOWN) on the screen, in
+	// place of the control's Fix, "see the log for what failed": before a
+	// plan nothing records what failed, so the screen says it (proposed).
+	unreadFix  = "Correct what failed, then try again."
+	whatFailed = "What failed: "
 )
 
 // action returns what choosing the item keyed key, labelled label, does
-// on the host h read: on a host every plan refuses, say why; else the
+// on the host h read: on a host every plan refuses, say why; with no
+// hardn.yml read, every item that saves the list says it cannot; else the
 // item's change, or its refusal before it asks.
 func (r *runner) action(ctx context.Context, h reading, key, label string) func() error {
 	if h.refused != nil {
-		return r.say(refusalWords(h.refused))
+		return r.say(h.refused...)
+	}
+	if h.notLoaded != nil && key != screen.DNSConfigure {
+		return r.say(h.notLoaded...)
 	}
 	configured := h.view.Configured
 	asked := func() string { return label + "?" } // "Configure DNS?", "Use Cloudflare DNS?"
@@ -170,13 +180,59 @@ func (p *planning) Plan(ctx context.Context) (flow.Plan, error) {
 	return p.FlowEngine.Plan(ctx)
 }
 
-// say returns an action that writes text as a warning, set apart as an
-// action's result is (nav.Prompter.Run), and goes back to the screen.
-func (r *runner) say(text string) func() error {
-	return func() error {
-		msg := component.Message{Kind: component.MessageWarn, Text: text}.Render(r.o.Prompter.Ctx)
-		return r.write(strings.Repeat("\n", theme.SectionGap) + msg + "\n")
+// say returns an action that writes paragraphs as one warning, set apart
+// as an action's result is (nav.Prompter.Run), and goes back to the
+// screen.
+func (r *runner) say(paragraphs ...string) func() error {
+	msgs := make(component.Messages, len(paragraphs))
+	for i, p := range paragraphs {
+		msgs[i] = component.Message{Kind: component.MessageWarn, Text: p}
 	}
+	return func() error {
+		return r.write(strings.Repeat("\n", theme.SectionGap) + msgs.Render(r.o.Prompter.Ctx) + "\n")
+	}
+}
+
+// hostWords are the words every item says before asking on the host
+// dns.Read read as s, with readErr, when every plan there refuses
+// whatever its list (dnsctl.HostRefusal); nil when none does. They are
+// the refusal's (refusalWords), but for a fact not established
+// (DNS_UNKNOWN): its Why, then the screen's Fix, and what failed, as the
+// host's error says it (readErr, else s.Err, else the refusal's own),
+// where the control's Fix points at a log that holds nothing before a
+// plan.
+func hostWords(s hostdns.State, readErr error) []string {
+	err := dnsctl.HostRefusal(s, readErr)
+	var rf *steps.Refusal
+	switch {
+	case err == nil:
+		return nil
+	case !errors.As(err, &rf) || !errors.Is(err, hostdns.ErrUnknown):
+		return []string{refusalWords(err)}
+	}
+	cause := readErr
+	if cause == nil {
+		cause = s.Err
+	}
+	if cause == nil {
+		cause = rf.Err
+	}
+	return []string{fullStop(rf.Why) + " " + unreadFix, fullStop(whatFailed + strings.ReplaceAll(cause.Error(), "\n", "; "))}
+}
+
+// notLoaded are the words of the save's refusal of o.Config when it was
+// not read from a file (steps.PlanSave's, CONFIG_NOT_LOADED), which every
+// item that saves the list says before asking; nil when it was. PlanSave
+// refuses it before it reads anything: with no path there is no file.
+func notLoaded(ctx context.Context, o Options) []string {
+	if o.Config.Path() != "" {
+		return nil
+	}
+	_, err := steps.PlanSave(ctx, o.System, dnsctl.ChangeSave, o.Config, []string{dnsctl.Setting})
+	if err == nil {
+		return nil // not reached: PlanSave refuses a configuration with no path
+	}
+	return []string{refusalWords(err)}
 }
 
 // refusalWords are a refusal's words on the screen: its Why, then its

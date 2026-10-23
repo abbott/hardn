@@ -327,26 +327,43 @@ func savedList(ctx context.Context, sys host.System, cfg *config.Config) (*[]str
 }
 
 // HostRefusal is the refusal, with its report (steps.Refusal), that every
-// plan on the host makes whatever list it is given, or nil when there is
-// none: readErr, dns.Read's error (a container, a family hardn does not
+// plan on the host makes of any list dns.Validate takes, or nil when there
+// is none: readErr, dns.Read's error (a container, a family hardn does not
 // configure, the family not established), or what dns.PlanDNS refuses of
-// state s before it reads a list (a manager hardn only reports, P-37 (a);
-// a fact not established). A screen asks it before asking anything, so
-// that no item asks for an answer every plan would refuse (slice 2,
-// decision 4; next/s2-screen). The refusals a plan makes of a list (none,
-// one dns.Validate refuses) and of a resolved host that takes no list
-// (stopped, a later drop-in, its path blocked) are the plan's, after the
-// question. Pure.
+// state s whatever the list (a manager hardn only reports, P-37 (a); a
+// fact not established; systemd-resolved stopped, a later drop-in setting
+// DNS=, hardn's drop-in path not a file). A screen asks it before asking
+// anything, so that no item asks for an answer every plan would refuse
+// (slice 2, decision 4; next/s2-screen). The refusals a plan makes of the
+// list itself (none, one dns.Validate refuses), of udhcpc's answer and of
+// hardn.yml are the plan's, after the question. Pure.
 func HostRefusal(s hostdns.State, readErr error) error {
 	err := readErr
 	if err == nil {
-		// PlanDNS refuses the manager and the facts before it validates
-		// the list, so an empty one leaves those refusals alone.
-		if _, err = hostdns.PlanDNS(s, hostdns.Config{}); !errors.Is(err, hostdns.ErrManaged) && !errors.Is(err, hostdns.ErrUnknown) {
+		// A list dns.Validate takes on every manager, so that what PlanDNS
+		// refuses is the host, not the list.
+		_, err = hostdns.PlanDNS(s, hostdns.Config{Nameservers: []string{probeNameserver}})
+		if !hostLevel(err) {
 			return nil
 		}
 	}
 	return refusal(s, nil, nil, err)
+}
+
+// probeNameserver is the list HostRefusal plans: an address of
+// 192.0.2.0/24 (TEST-NET-1, RFC 5737), which dns.Validate takes for a
+// file, Proxmox VE and systemd-resolved alike. It is never written.
+const probeNameserver = "192.0.2.53"
+
+// hostLevel reports whether err, dns.PlanDNS's, refuses the host whatever
+// the list.
+func hostLevel(err error) bool {
+	for _, e := range []error{hostdns.ErrManaged, hostdns.ErrUnknown, hostdns.ErrNotRunning, hostdns.ErrOverridden, hostdns.ErrDropInBlocked} {
+		if errors.Is(err, e) {
+			return true
+		}
+	}
+	return false
 }
 
 // refusal is err, a refusal of pkg/host/dns, with its report: why the host
