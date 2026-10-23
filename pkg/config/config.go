@@ -287,20 +287,29 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 		return config, nil
 	}
 
+	return readConfigFile(configPath)
+}
+
+// readConfigFile reads the configuration file at path as LoadConfig reads
+// the file it finds: the defaults, then the file's keys, and the path and
+// bytes read recorded (setLoaded).
+func readConfigFile(path string) (*Config, error) {
+	config := DefaultConfig()
+
 	// Read the found config file
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
 	}
 
 	// Parse YAML
 	if err := yaml.Unmarshal(data, config); err != nil {
-		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", path, err)
 	}
 	if err := checkLoaded(config); err != nil {
-		return nil, fmt.Errorf("config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("config file %s: %w", path, err)
 	}
-	config.setLoaded(configPath, data)
+	config.setLoaded(path, data)
 
 	return config, nil
 }
@@ -466,10 +475,16 @@ func CreateDefaultConfig(path string, config *Config) error {
 	return nil
 }
 
-// SaveConfig saves configuration to the specified file
+// SaveConfig saves configuration to the specified file: the whole
+// configuration, with dryRun as loaded, never the session's mode (slice 2b
+// decision 8), so that -n, --dry-run=false and a toggle inside the session
+// are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
+	saved := *config
+	saved.DryRun = config.loaded.dryRun
+
 	// Marshal YAML
-	data, err := yaml.Marshal(config)
+	data, err := yaml.Marshal(&saved)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

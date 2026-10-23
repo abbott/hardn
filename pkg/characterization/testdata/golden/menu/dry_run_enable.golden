@@ -4,8 +4,9 @@
 # Script: stdin "\n1\n\n\n", not a terminal, so nothing typed is echoed
 # Pauses: 3 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: 3 pauses for one toggle (dry_run_handler.go:52, dry_run_menu.go:124, dry_run_handler.go:73; interaction.md §4.3)
-# KNOWN-DEFECT: the whole configuration, the session's dryRun with it, saved to ./hardn.yml in the working directory, not to the file loaded (dry_run_menu.go:118; side-effects row 29)
+# KNOWN-DEFECT: the whole configuration saved to ./hardn.yml in the working directory, not to the file loaded (dry_run_menu.go:118; side-effects row 29)
 # KNOWN-DEFECT: V3: the next start sets dryRun from -n, false unless given, whatever the file says (cmd/hardn/main.go:159; config/full-flag.golden)
+# FIXED: decision 8 (slice 2b, next/s2b-mode): the save writes dryRun as loaded, here the defaults' false, never the session's mode (config.SaveConfig), so the toggle is the session's alone
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$
@@ -44,7 +45,7 @@ $
 # ./hardn.yml as written:
 username: alice
 logFile: /var/log/hardn.log
-dryRun: true
+dryRun: false
 enableBackups: true
 backupPath: /var/backups/hardn
 dmzSubnet: ""

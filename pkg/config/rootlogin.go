@@ -54,6 +54,10 @@ type loaded struct {
 	deprecations []Deprecation
 	path         string // the absolute path LoadConfig read or created; "" for none
 	sum          string // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
+	dryRun       bool   // dryRun as the file gave it, its default false included: what SaveConfig writes (dryrun.go)
+	// What set the session's mode, and the value it set (ResolveDryRun).
+	source   DryRunSource
+	resolved bool
 }
 
 // prohibitPasswordApplied: DISABLED 2026-10-17. Flip to true once the SSH
@@ -137,6 +141,7 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 			errs = append(errs, strings.ReplaceAll(e, "config.plain", "config.Config"))
 		}
 	}
+	c.loaded.dryRun = c.DryRun
 	if len(values) > 0 {
 		var te *yaml.TypeError
 		if err := c.readRootLogin(values[0]); errors.As(err, &te) {
