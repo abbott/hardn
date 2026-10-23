@@ -150,6 +150,26 @@ func (r *Refusal) Is(target error) bool {
 	return ok && target == e
 }
 
+// Failure is a change's failure in the user's words, for the report:
+// what happened on the host, in a few words, and the next step. Err is the
+// unit's own error, whose code the report gives on the step's line, and
+// which the log and the JSON document's message keep (next/s2-control).
+type Failure struct {
+	Text string // "Reloading systemd-resolved had no effect"
+	Next string // a sentence: "Run resolvectl dns to see the servers in use."
+	Err  error
+}
+
+func (f *Failure) Error() string {
+	if f.Err == nil {
+		return f.Text
+	}
+	return f.Text + ": " + f.Err.Error()
+}
+
+// Unwrap returns the unit's error.
+func (f *Failure) Unwrap() error { return f.Err }
+
 // sshState is what every SSH change reads before anything changes.
 type sshState struct {
 	in     engine.Input

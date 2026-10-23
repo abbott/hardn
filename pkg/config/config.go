@@ -276,6 +276,9 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 				return nil, fmt.Errorf("failed to create default config at %s: %w", path, err)
 			}
 			config.setPath(path)
+			if data, err := os.ReadFile(path); err == nil {
+				config.setLoaded(path, data) // what was created, for LoadedFrom
+			}
 			return config, nil
 		}
 
@@ -297,7 +300,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	if err := checkLoaded(config); err != nil {
 		return nil, fmt.Errorf("config file %s: %w", configPath, err)
 	}
-	config.setPath(configPath)
+	config.setLoaded(configPath, data)
 
 	return config, nil
 }

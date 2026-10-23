@@ -179,7 +179,7 @@ func (s State) Findings() []Finding {
 		}
 		for _, l := range s.Resolved.Links {
 			if len(l.Servers) > 0 {
-				fs = append(fs, Finding{Kind: FindingPerLink, Path: DropIn, Detail: fmt.Sprintf(
+				fs = append(fs, Finding{Kind: FindingPerLink, Path: DropIn, Link: &l, Detail: fmt.Sprintf(
 					"%s has its own nameservers (%s), from DHCP, netplan, networkd or a delegate; systemd-resolved queries them in parallel to the global ones%s",
 					l, strings.Join(l.Servers, " "), uplink)})
 			}

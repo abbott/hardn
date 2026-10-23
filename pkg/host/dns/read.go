@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -62,7 +63,7 @@ type Resolved struct {
 	Later   []Override
 	Global  []string // the global servers resolved uses now
 	Domains []string // the global search domains it uses now ("~" for route-only)
-	Links   []Link   // per-link servers
+	Links   []Link   // per-link servers and search domains
 }
 
 // Override is a drop-in sorting after hardn's, and which of its lists it
@@ -336,10 +337,30 @@ func readResolved(ctx context.Context, sys host.System, r *Resolved) error {
 	if r.Global, r.Links, err = resolvectl(ctx, sys, "dns"); err != nil {
 		errs = append(errs, err)
 	}
-	if r.Domains, _, err = resolvectl(ctx, sys, "domain"); err != nil {
+	var domains []Link
+	if r.Domains, domains, err = resolvectl(ctx, sys, "domain"); err != nil {
 		errs = append(errs, err)
 	}
+	r.Links = withDomains(r.Links, domains)
 	return errors.Join(errs...)
+}
+
+// withDomains is links with each link's search domains from domains, the
+// links resolvectl domain lists (their Servers the domains), matched by
+// index and name; a link with domains that resolvectl dns did not list is
+// added with no servers.
+func withDomains(links, domains []Link) []Link {
+	for _, d := range domains {
+		if len(d.Servers) == 0 {
+			continue
+		}
+		i := slices.IndexFunc(links, func(l Link) bool { return l.Index == d.Index && l.Name == d.Name })
+		if i < 0 {
+			links, i = append(links, Link{Index: d.Index, Name: d.Name}), len(links)
+		}
+		links[i].Domains = d.Servers
+	}
+	return links
 }
 
 // resolvectl runs `resolvectl --no-pager verb` (dns or domain, with no

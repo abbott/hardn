@@ -198,6 +198,36 @@ func TestReadResolvectl(t *testing.T) {
 	}
 }
 
+// TestReadLinkDomains: each link's search domains are read from
+// resolvectl domain beside its servers, the global ones kept apart; a link
+// with domains and no servers is kept, and its servers' finding is not
+// made; a per-link finding names its link (next/s2-control, D4).
+func TestReadLinkDomains(t *testing.T) {
+	w := newWorld(t, "ubuntu-26.04")
+	w.links = append(w.links, dns.Link{Index: 3, Name: "ens4"})
+	w.h.Handler = func(argv []string, stdin []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "resolvectl --no-pager domain" {
+			return hostfake.Response{Stdout: "Global: corp.example.net\nLink 2 (eth0): example.net\n        ~lan.example.net\nLink 3 (ens4):\nLink 4 (wg0): vpn.example.net\n"}
+		}
+		return w.answer(argv, stdin)
+	}
+	s := w.read(t)
+	readOnly(t, w.h)
+	want := []dns.Link{{Index: 2, Name: "eth0", Servers: []string{dhcpNS}, Domains: []string{"example.net", "~lan.example.net"}},
+		{Index: 3, Name: "ens4"}, {Index: 4, Name: "wg0", Domains: []string{"vpn.example.net"}}}
+	if s.Err != nil || !slices.Equal(s.Resolved.Domains, []string{"corp.example.net"}) || len(s.Resolved.Links) != len(want) {
+		t.Fatalf("domains %q, links %+v, err %v", s.Resolved.Domains, s.Resolved.Links, s.Err)
+	}
+	for i, l := range s.Resolved.Links {
+		if l.Index != want[i].Index || l.Name != want[i].Name || !slices.Equal(l.Servers, want[i].Servers) || !slices.Equal(l.Domains, want[i].Domains) {
+			t.Errorf("link %d: %+v, want %+v", i, l, want[i])
+		}
+	}
+	if f := s.Findings(); len(f) != 1 || f[0].Link == nil || f[0].Link.Name != "eth0" || !slices.Equal(f[0].Link.Servers, []string{dhcpNS}) {
+		t.Errorf("findings %+v", f)
+	}
+}
+
 // TestReadUDHCPC: udhcpc rewrites /etc/resolv.conf unless RESOLV_CONF is
 // "no", "NO", empty or another path; a line the shell could act on makes it
 // Unknown, which is a finding, not a refusal, until the plan would change

@@ -48,6 +48,12 @@ type ApplyError struct {
 	// journal did not hold once it had run, so the rollback did not run
 	// that undo.
 	Unjournalled *Unjournalled
+	// Undone: nothing of the change that failed (Change) is left, which
+	// it says (Ran.Undone): it undid its own steps before it returned, or
+	// left what it did to its journalled undo and the rollback here
+	// finished; with ErrRolledBack, nothing of the apply is
+	// (next/s2-control).
+	Undone bool
 }
 
 // Unjournalled is what a change that ran needs undone, which the journal
@@ -75,6 +81,9 @@ func (e *ApplyError) Error() string {
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "engine: %s: %s: %v", what, e.Step, e.Err)
+	if e.Undone {
+		b.WriteString("; nothing of it is left")
+	}
 	if e.RollbackErr != nil {
 		fmt.Fprintf(&b, "; the rollback did not finish: %v", e.RollbackErr)
 	} else {
@@ -275,7 +284,11 @@ type applier struct {
 	done    []int
 	current int
 	unj     *Unjournalled
-	res     Result
+	// undone: the change that failed says what it did is undone
+	// (Ran.Undone); undoneSelf: by itself, the journal holding no undo of
+	// it.
+	undone, undoneSelf bool
+	res                Result
 }
 
 func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
@@ -419,12 +432,18 @@ func (a *applier) change(ctx context.Context, i int, c Change) (string, error) {
 		undo = *ran.Rollback
 		a.undos[len(a.undos)-1] = undo
 	}
+	if err != nil {
+		a.undone = ran.Undone
+		a.undoneSelf = ran.Undone && len(undo.Steps) == 0 && len(undo.Reloads) == 0
+	}
 	rctx, rcancel := context.WithTimeout(context.WithoutCancel(ctx), a.e.opts.JournalTimeout)
 	rerr := a.record(rctx)
 	rcancel()
 	if rerr != nil {
 		taken := errors.Is(rerr, revert.ErrRollingBack) || errors.Is(rerr, revert.ErrNothingPending)
-		if ran.Rollback != nil || taken {
+		// A change that undid its own steps leaves nothing for the journal
+		// to hold.
+		if (ran.Rollback != nil || taken) && !a.undoneSelf {
 			a.unj = &Unjournalled{Change: c.ID, Undo: undo, Backups: entries, Dir: a.run.Dir(), Err: rerr}
 		}
 		return StepJournalAfter, errors.Join(err, rerr)
@@ -495,7 +514,15 @@ func (a *applier) fail(ctx context.Context, change, step string, err error) (Res
 		// rollback, or the journal is gone.
 		rerr = fmt.Errorf("engine: nothing rolled back here: %s: %w", rr.Why, revert.ErrRollingBack)
 	}
-	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj}
+	// The change that failed is undone when it undid its own steps, which
+	// holds whether or not the journal's rollback finished, or when its
+	// undo was journalled and that rollback finished.
+	journalled := a.unj == nil || a.unj.Change != change
+	undone := a.undone && a.current >= 0 && (a.undoneSelf || rerr == nil && journalled)
+	fe := &ApplyError{ID: a.p.ID, Change: change, Step: step, Err: err, Rollback: rr, RollbackErr: rerr, Unjournalled: a.unj, Undone: undone}
+	if undone {
+		a.progress(Event{Index: a.current, Change: change, State: EventRolledBack})
+	}
 	if rerr == nil {
 		for k := len(a.done) - 1; k >= 0; k-- {
 			if c := a.p.Changes[a.done[k]]; a.unj == nil || c.ID != a.unj.Change {

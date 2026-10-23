@@ -41,6 +41,7 @@
       "byAnotherProcess": false,
       "step": "apply",
       "change": "ssh.port/reload",
+      "changeUndone": false,
       "restored": [
         "/etc/ssh/sshd_config.d/00-hardn.conf"
       ],

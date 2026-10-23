@@ -157,9 +157,17 @@ func (a *FlowEngine) failure(err error) *flow.Failure {
 	f := &flow.Failure{Err: err, LogPath: a.LogPath}
 	if len(d.Errors) > 0 {
 		first := d.Errors[0]
-		f.Err = &codedError{text: errorText(d, first), err: err}
-		if first.Fix != "" {
-			f.Next = toGoOn(first.Fix)
+		var failed error
+		if a.result != nil && a.result.Failed != nil {
+			failed = a.result.Failed.Err
+		}
+		if text, next, ok := failureWords(first, failed); ok {
+			f.Err, f.Next = &codedError{text: text, err: err}, next
+		} else {
+			f.Err = &codedError{text: errorText(d, first), err: err}
+			if first.Fix != "" {
+				f.Next = toGoOn(first.Fix)
+			}
 		}
 	}
 	if rb := d.Result.Rollback; rb != nil {

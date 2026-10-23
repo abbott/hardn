@@ -53,12 +53,9 @@ type dnsFake struct {
 }
 
 // eth0Domain is eth0's own search domain, which resolvectl lists on the
-// Ubuntu host and dns.Read drops (Resolved keeps a link's servers alone;
-// gallery-dns.md §8); dnsLinkDomains are the screens' words for it, the
-// one reading they show that is the fake's script, not dns.Read's.
+// Ubuntu host and dns.Read keeps on the link (Link.Domains, since
+// next/s2-control: gallery-dns.md §8 item 4).
 const eth0Domain = "example.net"
-
-var dnsLinkDomains = []string{eth0Domain + " (eth0)"}
 
 // dnsFacts are detect's facts for distro on init, outside a container.
 func dnsFacts(distro detect.Distro, version string, init detect.InitKind) detect.Facts {
@@ -155,13 +152,19 @@ var dnsScreens = map[string]string{"sub-menu/03-dns": "", "sub-menu/03-dns-alpin
 
 // searchInUse is the search domains in use on the host s describes, as
 // the screens and the reviews show them: the file's, or resolved's global
-// ones and then each link's, which dns.Read does not keep, so they are
-// the fake's (dnsLinkDomains).
+// ones and then each link's (Link.Domains), named by its link,
+// "example.net (eth0)".
 func searchInUse(s dns.State) []string {
 	if s.Manager != dns.ManagerResolved {
 		return s.Search
 	}
-	return append(slices.Clone(s.Resolved.Domains), dnsLinkDomains...)
+	in := slices.Clone(s.Resolved.Domains)
+	for _, l := range s.Resolved.Links {
+		for _, d := range l.Domains {
+			in = append(in, d+" ("+l.Name+")")
+		}
+	}
+	return in
 }
 
 // TestDNSScreensAreReal checks that each DNS screen shows what dns.Read
@@ -169,8 +172,8 @@ func searchInUse(s dns.State) []string {
 // the nameservers in use, the file's, or systemd-resolved's global ones
 // and each link's after it, and Unknown where pkg/host/dns reads none, as
 // of a manager it only reports; the search domains in use, the file's, or
-// resolved's global ones and then each link's, which are the fake's
-// (searchInUse; "None" for none); and hardn.yml's list, or P-30 (b)'s
+// resolved's global ones and then each link's (searchInUse; "None" for
+// none); and hardn.yml's list, or P-30 (b)'s
 // muted item for none, item 3 then left out. Every DNS screen is one of
 // these.
 func TestDNSScreensAreReal(t *testing.T) {
@@ -417,8 +420,9 @@ func TestDNSPlansAreReal(t *testing.T) {
 			if ch.Stage != engine.StageFiles || ch.Risk != engine.RiskPlain {
 				t.Errorf("%s: steps.DNS's stage %v, risk %v; want files, plain (brief 2.4)", name, ch.Stage, ch.Risk)
 			}
-			// steps.DNS's own diff differs only where unit (b) fixes it.
-			if ch.Diff != want.Diff && strings.Replace(ch.Diff, "--- "+dns.DropIn+"\n", "--- /dev/null\n", 1) != want.Diff {
+			// steps.DNS diffs a created file against /dev/null since unit (b)
+			// (next/s2-control, D2).
+			if ch.Diff != want.Diff {
 				t.Errorf("%s: steps.DNS's diff\n%s\nwant\n%s", name, ch.Diff, want.Diff)
 			}
 			changes = changes[1:]
@@ -511,8 +515,9 @@ func canonicalOf(entry string) string {
 	return c.Nameservers[0]
 }
 
-// dnsControl plans the change it holds, as the DNS control will (unit
-// (b)).
+// dnsControl plans the change it holds, steps.DNS's, as the DNS control
+// (pkg/engine/controls/dns) plans it on a host whose hardn.yml needs no
+// save: the gallery's hosts have none.
 type dnsControl struct{ change engine.Change }
 
 func (dnsControl) ID() string                                    { return "dns" }
@@ -532,15 +537,15 @@ func (r *reports) report(step int, state component.StepState, detail string) {
 	*r = append(*r, fmt.Sprint(step, state, detail))
 }
 
-// TestDNSFailureIsTheEngines checks the Ubuntu host's failure sequence
+// TestDNSFailureIsTheEngines checks the Ubuntu host's failure sequences
 // against the real engine on the fake host, whose systemd-resolved reloads
-// with no effect: through output.FlowEngine, as the flow will apply it,
+// with no effect, through output.FlowEngine, as the flow will apply it:
 // the change fails with DNS_NOT_EFFECTIVE, dns.Apply puts the drop-in
-// back, and the engine reports nothing rolled back (gallery-dns.md records
-// it for unit (b)); the mock's fixture reports the same steps and fails
-// with the same report. The proposed sequence, failure-proposed, reports
-// the same steps, then the change rolled back, which dns.Apply did, with
-// the same log.
+// back, and since unit (b) (next/s2-control, D3) the engine reports the
+// change rolled back and the failure in a few words with its next step,
+// which is the proposed sequence, failure-proposed: the same steps and
+// the same report. The sequence failure, the report as the engine gave it
+// before unit (b), differs from it in both, as gallery-dns.md §3 records.
 func TestDNSFailureIsTheEngines(t *testing.T) {
 	ctx := context.Background()
 	h := newDNSFake(t, "ubuntu2604")
@@ -582,18 +587,18 @@ func TestDNSFailureIsTheEngines(t *testing.T) {
 		}
 		return mock, mf
 	}
-	mock, mf := apply("failure")
-	if rf.Error() != mf.Error() || rf.Command != mf.Command || rf.Output != mf.Output || rf.LogPath != mf.LogPath || rf.Next != mf.Next {
-		t.Errorf("the mock fails with\n%+v\nthe engine with\n%+v", *mf, *rf)
-	}
-	// The mock reports running, then failed: the engine's running comes
-	// from the change's start.
-	if !slices.Equal(real, mock) {
-		t.Errorf("the mock reports %q, the engine %q", mock, real)
-	}
 	proposed, pf := apply("failure-proposed")
-	if want := append(slices.Clone(real), fmt.Sprint(0, component.StepRolledBack, "")); !slices.Equal(proposed, want) || pf.LogPath != rf.LogPath {
-		t.Errorf("the proposed sequence reports %q, logged at %s; want %q, logged at %s", proposed, pf.LogPath, want, rf.LogPath)
+	if rf.Error() != pf.Error() || rf.Command != pf.Command || rf.Output != pf.Output || rf.LogPath != pf.LogPath || rf.Next != pf.Next {
+		t.Errorf("the proposed sequence fails with\n%+v\nthe engine with\n%+v", *pf, *rf)
+	}
+	// Running, failed, then rolled back: the engine's running comes from
+	// the change's start, its rolled back from the rollback's end.
+	if want := []string{fmt.Sprint(0, component.StepRunning, ""), fmt.Sprint(0, component.StepFailed, "DNS_NOT_EFFECTIVE"),
+		fmt.Sprint(0, component.StepRolledBack, "")}; !slices.Equal(real, proposed) || !slices.Equal(real, want) {
+		t.Errorf("the proposed sequence reports %q, the engine %q; want %q", proposed, real, want)
+	}
+	if old, mf := apply("failure"); slices.Equal(old, real) || mf.Error() == rf.Error() {
+		t.Errorf("the sequence of the report before unit (b) is the engine's now: %q, %v", old, mf)
 	}
 	if _, err := h.sys.Lstat(ctx, dns.DropIn); !errors.Is(err, fs.ErrNotExist) {
 		t.Errorf("the drop-in is left after the failure: %v", err)

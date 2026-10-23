@@ -248,12 +248,16 @@ func renderUDHCPC(old []byte) []byte {
 	return join(out)
 }
 
-// Link is one interface's DNS servers as systemd-resolved reports them,
-// or a delegate's (systemd 259 and later; Index 0, Name its id).
+// Link is one interface's DNS servers and search domains as
+// systemd-resolved reports them, or a delegate's (systemd 259 and later;
+// Index 0, Name its id).
 type Link struct {
 	Index   int
 	Name    string
 	Servers []string
+	// Domains are its search domains, from resolvectl domain ("~" for
+	// route-only); read for the status and the screen, never written.
+	Domains []string `json:",omitempty"`
 }
 
 func (l Link) String() string {

@@ -136,6 +136,11 @@
 
     Each names its unit as a resource (`plans.UnitSudoers` and the others, §2.22).
 
+    **DNS, since `next/s2-control`** ([control-dns.md](control-dns.md) §8, the defects [gallery-dns.md](gallery-dns.md) §8 recorded):
+    - the plan's findings ride on the change (`DNSFinding`, §2.23), where they were dropped (D1);
+    - a file the plan creates (the drop-in, a new `/etc/resolv.conf`) is diffed against `/dev/null`, from the plan's own reading of the path (`From`), so the diff and the JSON document's change show it created, not an empty file edited (D2);
+    - an `Apply` that failed after acting and undid its own steps (`dns.Result.Restored`) drops the step and says so (`engine.Ran.Undone`), so the engine reports the change rolled back (engine.md §2.15); one whose own undo did not finish (`dns.ErrNotRestored`) keeps the step and says so too, so the engine reports it rolled back once the journal's rollback, which runs `dns.Rollback`, finished; one refused before it acted drops the step and says nothing undone. A reload that ran without effect, undone by `dns.Apply` or left to the journal, is a `Failure` in a few words, "Reloading systemd-resolved had no effect", with the next step, "Run resolvectl dns to see the servers in use." (proposed), which `pkg/output` shows in place of `dns`'s error, its code on the step's line (D3). Tested: `TestDNSChange`.
+
     Tested: `TestPlanStepDropped` (Proxmox VE off the platform, DNS on a host changed since the plan, the DNS and Alpine rule, a plan each step function refuses); `TestPlanStepKept` (each of the four keeps its step once it wrote; sudoers drops it when its backup fails before `sudoers.Apply`); `TestEngineSudoersRefused` (`visudo -c` refusing before any write: the rollback starts from a journal with no plan step, and the journal is cleared); the sudoers grant in `TestEngineParity`.
 
 ### Plan-time checks: every refusal before the timer
@@ -217,6 +222,12 @@
 
 23. **The planners' findings ride on their changes** (`engine.Change.Findings`, new, additive; a change of the engine's, §5), instead of being dropped: `pve.PlanSSH`'s (a `PermitRootLogin no` written as `prohibit-password`), `sshd.Validate`'s and `migrate.Check`'s (a line another file sets first), `ufw.Plan.Findings` (an inactive ufw whose saved rules would not let SSH through once it starts, [P-33](../refactor/proposals.md#p-33); carried on the write when ufw has nothing to do), and `migrate.Plan.Dropped`. They do not refuse anything; p3-output renders them as it renders a check's. Each code is the primitive's own stable kind code (pinned by its `TestFindingCodes`), upper case, under its prefix, said once: `PVE_ROOT_KEY_ONLY`, `SSHD_OVERRIDDEN`, `UFW_SSH_NOT_ALLOWED_AT_START`; a dropped migration line is `SSH_MIGRATE_LINE_DROPPED`. Tested: `TestEngineFindings`, `TestFindingCode`.
 
+    **DNS's** (`DNSFinding(state, finding)`, since `next/s2-control`, for a plan and a check alike) are coded the same way (`DNS_PER_LINK`, `DNS_DHCP_CLIENT`, `DNS_UDHCPC`, `DNS_PROXMOX_NODE`) and worded in a few words where `dns`'s detail is a long sentence (gallery-dns.md §5, decision 5; proposed): "eth0 still uses its own nameserver 192.0.2.1" (its source `resolvectl dns`), "dhcpcd may rewrite /etc/resolv.conf on a lease", "udhcpc rewrites /etc/resolv.conf on each lease" (and "may", when whether it does is not established), "a udhcpc hook may rewrite /etc/resolv.conf", "Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf". The state says which of udhcpc's it is; the per-link finding's link is `dns.Finding.Link`.
+
+### The save of hardn.yml (`PlanSave`)
+
+24. **One change kind for every save of the configuration** (refactor plan §3.19, approved 2026-10-17: to the loaded path, by one atomic save function, warning that comments are lost; slice 2 decision 1, adopted 2026-10-22; `next/s2-control`). `PlanSave(ctx, sys, id, cfg, after...)` reads the file at `cfg.Path()` and plans `config.Save` of `cfg` there, after the changes `after` names: `StageFiles`, plain, `Backups` the file (so the engine backs it up and journals it before the save, and the rollback restores the bytes the plan read), `Resources` `hardn.yml` (`ResourceConfig`: one plan saves it once; a second save is `ErrConflict`). Before anything changes it refuses, each with a report (`Refusal`), a configuration not loaded from a file (`config.ErrNotLoaded`, `CONFIG_NOT_LOADED`), a symlink, which `config.Save` would refuse (`host.ErrSymlink`, `SYMLINK_REFUSED`: "<path> is a link", "edit the file it links to by hand"), and a file gone or whose bytes are not the ones the configuration was read from (`config.Config.LoadedFrom`; `ErrConfigChanged`, `CONFIG_CHANGED`, the report `Changed(path, cause)` gives: "<path> changed since it was read", "start again, so that the file is read as it is now"): a save over an edit made since would undo it. A control that reads the file to decide whether to save gives the same report for a file gone or no longer decoding (`config.ErrInvalidFile`, `CONFIG_FILE_INVALID`, new). Its `Apply` refuses, before it writes, a file whose backup, taken just before, is not what the plan read (`ErrConfigChanged`), and a configuration that no longer gives the bytes the diff shows (`engine.ErrPlanChanged`). A save that fails is a `Failure`, "Saving /etc/hardn/hardn.yml failed" (proposed), and the engine rolls back the changes before it, so that the host and `hardn.yml` agree (decision 1 (iii)). With comments in the file (`config.HasComments`), its finding is `CONFIG_COMMENTS_LOST`, "Saving hardn.yml loses its comments" (the mock's words, proposed). Its title is "Save the configuration", its target the path; **its diff is the file against what `config.Save` writes** (`config.Marshal`, new): every key of the configuration, canonical, so a short `hardn.yml` is shown rewritten whole, defaults included, rather than the plan saying "Save the configuration" alone (the mock showed none, a placeholder: gallery-dns.md §8; a review finding of `next/s2-control`; whether the screen folds it is unit (c)'s). Which controls plan it, and when, is theirs: the DNS control plans it when the list it applies is not the one `hardn.yml` holds ([control-dns.md](control-dns.md) §2.9). Tested: `TestPlanSave`; with the engine, `pkg/engine/controls/dns`' `TestApply`, `TestFailedSave`, `TestRefusals`.
+
 ## 3. Facts relied on
 
 | Fact | Source | Used for |
@@ -293,6 +304,13 @@ func PlanCleanup(ctx context.Context, sys host.System, in engine.Input, prefix s
 
 func Sudoers(id string, p sudoers.Plan, summary string) (engine.Change, error)
 func DNS(id string, p dns.Plan, summary string) (engine.Change, error)
+                                                                      // next/s2-control: findings, a created file's diff, Ran.Undone and Failure
+type Failure struct { Text, Next string; Err error }                  // a step's failure in the user's words (next/s2-control)
+func DNSFinding(s dns.State, f dns.Finding) engine.Finding            // DNS_..., in a few words (next/s2-control)
+const CodeCommentsLost = "CONFIG_COMMENTS_LOST"; const CodeConfigChanged = "CONFIG_CHANGED"; const ResourceConfig = "hardn.yml"
+func Changed(path string, cause error) *Refusal // CONFIG_CHANGED's report
+var ErrConfigChanged error
+func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Config, after ...string) (engine.Change, error) // next/s2-control
 func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error)
 func PVEKeys(id string, px detect.Proxmox, p pve.KeysPlan, summary string) (engine.Change, error)
 

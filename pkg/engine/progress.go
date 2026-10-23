@@ -19,7 +19,10 @@ const (
 	// this change's undo. Sent for each started change, last first, once
 	// revert.Rollback over the whole journal has returned: the journal is
 	// rolled back as one, so a rollback that did not finish, or that
-	// another process has, reports none.
+	// another process has, reports none. The change that failed gets one
+	// too, first, when it says what it did is undone (Ran.Undone): by
+	// itself, whether or not the journal's rollback finished, as that
+	// undo is its own; by its journalled undo, when the rollback did.
 	EventRolledBack
 )
 

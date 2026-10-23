@@ -232,7 +232,7 @@ func elevation(f detect.Facts) string {
 func rollbackOf(ae *engine.ApplyError, f detect.Facts) *Rollback {
 	rr := ae.Rollback
 	rb := &Rollback{Finished: errors.Is(ae, engine.ErrRolledBack), ByAnotherProcess: errors.Is(ae.RollbackErr, revert.ErrRollingBack),
-		Step: stepWord(ae.Step), Change: ae.Change, Restored: []string{}, Undone: []string{}}
+		Step: stepWord(ae.Step), Change: ae.Change, ChangeUndone: ae.Undone, Restored: []string{}, Undone: []string{}}
 	for _, r := range rr.Restored {
 		if r.Err == nil {
 			rb.Restored = append(rb.Restored, r.Path)

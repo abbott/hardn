@@ -41,6 +41,7 @@
       "byAnotherProcess": false,
       "step": "journal-after",
       "change": "ssh.port/files",
+      "changeUndone": false,
       "restored": [
         "/etc/ssh/sshd_config.d/00-hardn.conf"
       ],

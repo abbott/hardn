@@ -1,0 +1,69 @@
+# Golden file of TestPlanGoldens/plan-alpine324-udhcpc, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
+      ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m--- /etc/udhcpc/udhcpc.conf␛[m$
+      ␛[38;2;86;91;107m+++ /etc/udhcpc/udhcpc.conf␛[m$
+      ␛[38;2;86;91;107m@@ -2,3 +2,5 @@␛[m$
+      ␛[38;2;129;134;156m #RESOLV_CONF="no"␛[m$
+$
+      ␛[38;2;129;134;156m #NO_DNS="eth1 wlan1"␛[m$
+      ␛[38;2;112;212;127m+# hardn: keep udhcpc from rewriting /etc/resolv.conf␛[m$
+      ␛[38;2;112;212;127m+RESOLV_CONF="no"␛[m$
+      ␛[38;2;86;91;107m--- /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m+++ /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+   -  Set nameservers; stop udhcpc rewriting$
+      /etc/udhcpc/udhcpc.conf, /etc/resolv.conf$
+      --- /etc/udhcpc/udhcpc.conf$
+      +++ /etc/udhcpc/udhcpc.conf$
+      @@ -2,3 +2,5 @@$
+       #RESOLV_CONF="no"$
+$
+       #NO_DNS="eth1 wlan1"$
+      +# hardn: keep udhcpc from rewriting /etc/resolv.conf$
+      +RESOLV_CONF="no"$
+      --- /etc/resolv.conf$
+      +++ /etc/resolv.conf$
+      @@ -1,2 +1,3 @@$
+       search example.net$
+      -nameserver 192.0.2.1$
+      +nameserver 192.0.2.54$
+      +nameserver 2001:db8::54$
+$
+  No actual changes were made to your system.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet nameservers; stop udhcpc rewriting␛[m$
+      ␛[38;2;129;134;156m/etc/udhcpc/udhcpc.conf, /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m--- /etc/udhcpc/udhcpc.conf␛[m$
+      ␛[38;2;86;91;107m+++ /etc/udhcpc/udhcpc.conf␛[m$
+      ␛[38;2;86;91;107m@@ -2,3 +2,5 @@␛[m$
+      ␛[38;2;129;134;156m #RESOLV_CONF="no"␛[m$
+$
+      ␛[38;2;129;134;156m #NO_DNS="eth1 wlan1"␛[m$
+      ␛[38;2;112;212;127m+# hardn: keep udhcpc from rewriting /etc/resolv.conf␛[m$
+      ␛[38;2;112;212;127m+RESOLV_CONF="no"␛[m$
+      ␛[38;2;86;91;107m--- /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m+++ /etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,3 @@␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$

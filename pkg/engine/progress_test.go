@@ -133,6 +133,76 @@ func TestStore(t *testing.T) {
 	}
 }
 
+// TestUndoneByItself: a change that fails saying that what it did is
+// undone (Ran.Undone) is reported rolled back, first, and the ApplyError
+// says so (next/s2-control; gallery-dns.md §8 item 3, control-dns.md §8
+// D3): one that undid its own steps (dns.Apply's Result.Restored, its undo
+// empty), whether or not the rollback here finished and whether or not
+// the journal after it was written, and then it is not unjournalled; one
+// whose own undo did not finish, its undo left to the journal
+// (dns.ErrNotRestored), only once that rollback finished. One refused
+// before it acted is not.
+func TestUndoneByItself(t *testing.T) {
+	undo := Undo{Steps: runSteps(argv("example-undo"))}
+	const first = "0 example.port/allow running\n0 example.port/allow done\n1 example.dns/apply running\n1 example.dns/apply failed at "
+	for _, tc := range []struct {
+		name         string
+		rollback     Undo   // the change's, journalled before it
+		ran          Ran    // what its Apply returns, with an error
+		fail         string // a command that fails: the earlier change's undo, or this one's
+		journalAfter bool   // the journal after it is not written
+		step         string
+		undone       bool   // ApplyError.Undone
+		rolledBack   bool   // ErrRolledBack
+		events       string // after its failure
+	}{
+		{name: "undid itself", ran: Ran{Rollback: &Undo{}, Undone: true}, step: StepApply, undone: true, rolledBack: true,
+			events: "1 example.dns/apply rolled-back\n0 example.port/allow rolled-back\n"},
+		{name: "refused before it acted", ran: Ran{Rollback: &Undo{}}, step: StepApply, rolledBack: true,
+			events: "0 example.port/allow rolled-back\n"},
+		{name: "undid itself, the rollback not finished", ran: Ran{Rollback: &Undo{}, Undone: true}, fail: delete2230, step: StepApply, undone: true,
+			events: "1 example.dns/apply rolled-back\n"},
+		{name: "undid itself, the journal after it not written", ran: Ran{Rollback: &Undo{}, Undone: true}, journalAfter: true, step: StepJournalAfter,
+			undone: true, rolledBack: true, events: "1 example.dns/apply rolled-back\n0 example.port/allow rolled-back\n"},
+		{name: "its undo left to the journal, which finished", rollback: undo, ran: Ran{Undone: true}, step: StepApply, undone: true, rolledBack: true,
+			events: "1 example.dns/apply rolled-back\n0 example.port/allow rolled-back\n"},
+		{name: "its undo left to the journal, which did not finish", rollback: undo, ran: Ran{Undone: true}, fail: "example-undo", step: StepApply},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			h := newHost(t)
+			if tc.fail != "" {
+				h.failOn(tc.fail)
+			}
+			o := testOptions(h, &holds{}, nil, debian13)
+			var evs []Event
+			o.Progress = func(ev Event) { evs = append(evs, ev) }
+			e := New(h, o)
+			allow := command("example.port/allow", StageFirewall, RiskPlain, argv(allow2230), argv(delete2230))
+			unit := Change{ID: "example.dns/apply", Summary: "Set the resolvers", Risk: RiskPlain, Stage: StageFiles, Rollback: tc.rollback,
+				Apply: func(context.Context, host.System, Run) (Ran, error) {
+					if tc.journalAfter {
+						h.failNextJournal(1)
+					}
+					return tc.ran, errors.New("fixture: the reload had no effect")
+				}}
+			p, err := e.Plan(ctx, []Control{&stub{id: "example", title: "Example", changes: []Change{allow, unit}}}, nil)
+			if err != nil || p.Err() != nil {
+				t.Fatalf("Plan: %v, %v", err, p.Err())
+			}
+			_, err = e.Apply(ctx, p)
+			var ae *ApplyError
+			if !errors.As(err, &ae) || ae.Step != tc.step || ae.Undone != tc.undone || errors.Is(err, ErrRolledBack) != tc.rolledBack ||
+				ae.Unjournalled != nil || (ae.RollbackErr != nil) != (tc.fail != "") || strings.Contains(err.Error(), "nothing of it is left") != tc.undone {
+				t.Fatalf("Apply: %v (Undone %v)", err, ae != nil && ae.Undone)
+			}
+			if got, want := renderEvents(evs), first+tc.step+"\n"+tc.events; got != want {
+				t.Errorf("events:\n%s\nwant:\n%s", got, want)
+			}
+		})
+	}
+}
+
 // TestWireWords: the words State, RiskClass, Stage and EventState write,
 // which nothing persisted may see change, and a plan's changes marshal to
 // JSON (Apply aside).

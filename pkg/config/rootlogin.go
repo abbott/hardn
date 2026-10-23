@@ -52,6 +52,7 @@ type loaded struct {
 	rootLogin    RootLogin // permitRootLogin's string value; "" for the bool or no value
 	deprecations []Deprecation
 	path         string // the absolute path LoadConfig read or created; "" for none
+	sum          string // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
 }
 
 // prohibitPasswordApplied: DISABLED 2026-10-17. Flip to true once the SSH
@@ -231,6 +232,21 @@ func (c *Config) canonical() (*yaml.Node, error) {
 	return &n, nil
 }
 
+// Marshal is what Save writes for c: every key of the configuration,
+// canonical, permitRootLogin as its string; for a plan to show before the
+// save (the save's diff, next/s2-control).
+func Marshal(c *Config) ([]byte, error) {
+	n, err := c.canonical()
+	if err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
+	data, err := yaml.Marshal(n)
+	if err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
+	return data, nil
+}
+
 // Save writes c to the file it was loaded from, c.Path() (refactor plan
 // §3.19: one save function, to the loaded path, atomically), and refuses a
 // Config that was not loaded from one (ErrNotLoaded): the path is the
@@ -238,22 +254,19 @@ func (c *Config) canonical() (*yaml.Node, error) {
 // an existing file's mode and owner (a new file is 0644). permitRootLogin
 // is written as its string, so a deprecated bool becomes the value it
 // meant. Comments in the file are lost; the caller says so before saving
-// (§3.19).
+// (§3.19; HasComments). Once written, the bytes are c's (LoadedFrom).
 func Save(ctx context.Context, sys host.System, c *Config) error {
 	path := c.loaded.path
 	if path == "" {
 		return fmt.Errorf("config: %w", ErrNotLoaded)
 	}
-	n, err := c.canonical()
+	data, err := Marshal(c)
 	if err != nil {
-		return fmt.Errorf("config: %w", err)
-	}
-	data, err := yaml.Marshal(n)
-	if err != nil {
-		return fmt.Errorf("config: %w", err)
+		return err
 	}
 	if err := host.WriteFileAtomicKeep(ctx, sys, path, data, 0o644, -1, -1); err != nil {
 		return fmt.Errorf("config: saving %s: %w", path, err)
 	}
+	c.loaded.sum = sum(data)
 	return nil
 }
