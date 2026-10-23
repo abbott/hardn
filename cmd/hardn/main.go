@@ -185,9 +185,9 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu with version service
+			// Create menu factory and main menu; its DNS item is the DNS screen (dns.go)
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := menuFactory.CreateMainMenu(versionService)
+			mainMenu := withDNSScreen(menuFactory.CreateMainMenu(versionService), cfg)
 
 			// Handle test flags
 			if testUpdateAvailable {
@@ -221,7 +221,7 @@ var rootCmd = &cobra.Command{
 		// Get required managers
 		sshManager := serviceFactory.CreateSSHManager()
 		firewallManager := serviceFactory.CreateFirewallManager()
-		dnsManager := serviceFactory.CreateDNSManager()
+		// (-g needs no manager: it plans and applies the DNS control, dns.go)
 		packageManager := serviceFactory.CreatePackageManager()
 		userManager := serviceFactory.CreateUserManager()
 		menuManager := serviceFactory.CreateMenuManager()
@@ -392,12 +392,12 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Configure DNS
+		// Configure DNS: the DNS control through the engine, with no
+		// question (dns.go). A refusal or a failure is hardn's exit
+		// status, once the flags after it have run (V25).
 		if configureDns {
-			if err := dnsManager.ConfigureDNS(cfg.Nameservers, "lan"); err != nil {
-				logging.LogError("Failed to configure DNS: %v", err)
-			} else {
-				logging.LogSuccess("DNS configured successfully")
+			if code := configureDNS(cfg); code != 0 {
+				defer exit(code)
 			}
 		}
 
@@ -416,9 +416,9 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		// Output completion message for operations other than the all-in-one run
+		// Output completion message for the legacy operations other than the all-in-one run
 		if createUser || disableRootSSH || installLinux || installPython ||
-			installAll || configureUfw || configureDns || updateSources {
+			installAll || configureUfw || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
@@ -472,8 +472,10 @@ var (
 	stderr            io.Writer = os.Stderr
 )
 
-// operationFlags names the operation flags set on the command line, the
-// flags that change the host (pkg/cmd lists them).
+// operationFlags names the operation flags set on the command line that
+// -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
+// whose dry run is the DNS control's plan, shown with nothing written
+// (refactor plan slice 2, unit (d); the maintainer, 2026-10-23).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -484,7 +486,6 @@ func operationFlags() []string {
 		{createUser, hardncmd.FlagCreateUser},
 		{disableRootSSH, hardncmd.FlagDisableRoot},
 		{configureUfw, hardncmd.FlagConfigureUFW},
-		{configureDns, hardncmd.FlagConfigureDNS},
 		{setupSudoEnv, hardncmd.FlagSetupSudoEnv},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},

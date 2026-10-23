@@ -148,7 +148,9 @@ func portWords(ps []uint16) string {
 // as revertLog writes it to the log and the console: the clean-up's run log
 // (every command and its output) and the engine's and revert's lines
 // during the clean-up, which its report sums up on the console. The
-// claim's lines go through revertLog, to both, as before.
+// claim's lines go through revertLog, to both, as before. It is the
+// engine's log and run log for -g and the DNS screen too (engine.go),
+// whose report or screen is what the console shows.
 type revertFileLog struct{}
 
 func (revertFileLog) Write(p []byte) (int, error) {

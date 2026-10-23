@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	osuser "os/user"
@@ -15,6 +17,9 @@ import (
 
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -22,9 +27,11 @@ import (
 
 // These tests drive rootCmd as the hardn binary does, with every step that
 // reaches the host replaced: the provider's file system and commander by the
-// repo's mocks behind a call log, and the root check, config load and OS
-// detection by stubs. Nothing here reads this machine's user, config or OS,
-// runs a command or writes a file.
+// repo's mocks behind a call log, the root check, config load and OS
+// detection by stubs, and the engine's host by a fake that fails the test
+// when a run reaches it unasked (a test of -g gives it one: useDNSHost).
+// Nothing here reads this machine's user, config or OS, runs a command or
+// writes a file.
 
 // callLog records every call made through the provider, in order.
 type callLog struct{ calls []string }
@@ -126,6 +133,13 @@ func resetFlags() {
 
 func runHardn(t *testing.T, mode hostMode, args ...string) result {
 	t.Helper()
+	return runHardnWith(t, mode, nil, args...)
+}
+
+// runHardnWith is runHardn with setup, when set, run once every stub is in
+// place and before hardn runs, to point a seam elsewhere.
+func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) result {
+	t.Helper()
 	t.Setenv("SUDO_USER", "alice")
 	t.Setenv("USER", "root")
 	t.Setenv("HARDN_CONFIG", "")
@@ -140,10 +154,18 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		exit     func(int)
 	}{provider, lookupCurrentUser, loadConfig, detectOS, exit}
 	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
+	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
+	engineHost = func() host.System {
+		t.Error("the engine's host was reached, and the test gave it none (useDNSHost)")
+		return hostfake.New(host.Options{})
+	}
+	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return detect.Facts{}, nil }
+	engineStdout = io.Discard
 	t.Cleanup(func() {
 		provider, lookupCurrentUser, loadConfig, detectOS, exit = prev.provider, prev.user, prev.load, prev.detect, prev.exit
 		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
+		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
@@ -196,6 +218,9 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 		return nil, unreachable
 	}
 
+	if setup != nil {
+		setup()
+	}
 	resetFlags()
 	rootCmd.SetArgs(args)
 	func() {
@@ -222,8 +247,9 @@ func runHardn(t *testing.T, mode hostMode, args ...string) result {
 	return r
 }
 
-// operationRuns are the CLI operations, each with the arguments that run it
-// and the name the refusal gives it.
+// operationRuns are the CLI operations that -n refuses, each with the
+// arguments that run it and the name the refusal gives it: every one but
+// -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag).
 var operationRuns = []struct {
 	args []string
 	name string
@@ -232,7 +258,6 @@ var operationRuns = []struct {
 	{[]string{"-c", "-u", "alice"}, hardncmd.FlagCreateUser},
 	{[]string{"-d"}, hardncmd.FlagDisableRoot},
 	{[]string{"-w"}, hardncmd.FlagConfigureUFW},
-	{[]string{"-g"}, hardncmd.FlagConfigureDNS},
 	{[]string{"-e"}, hardncmd.FlagSetupSudoEnv},
 	{[]string{"setup-sudo-env"}, hardncmd.CommandSetupSudoEnv},
 }
@@ -268,21 +293,25 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
-		want := "can't be combined with " + hardncmd.FlagDisableRoot + ", " + hardncmd.FlagConfigureUFW + " and " + hardncmd.FlagConfigureDNS + ", which apply them."
+		want := "can't be combined with " + hardncmd.FlagDisableRoot + " and " + hardncmd.FlagConfigureUFW + ", which apply them."
 		if !strings.Contains(r.stderr, want) {
 			t.Errorf("stderr lacks %q:\n%s", want, r.stderr)
 		}
 		if strings.Contains(r.stderr, "print-logs") {
 			t.Errorf("-p only reads, but the refusal names it:\n%s", r.stderr)
 		}
+		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) {
+			t.Errorf("-n -g shows the plan, but the refusal names -g:\n%s", r.stderr)
+		}
 	})
 }
 
-// TestDryRunAloneIsNotRefused checks that -n without an operation, or with
-// only -p, still reaches the root check (and then the menus, in dry-run
-// mode); the stubbed root check fails, so the run ends there with status 1.
+// TestDryRunAloneIsNotRefused checks that -n without an operation, with
+// only -p, or with -g, whose dry run is its plan, still reaches the root
+// check (and then the menus in dry-run mode, or -g's plan); the stubbed
+// root check fails, so the run ends there with status 1.
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-p"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-p"}, {"-n", "-g"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
@@ -386,9 +415,10 @@ func TestDisableRootReport(t *testing.T) {
 // warned about on stderr, once, when it loads (§3.17, approved), with the
 // file and line and what to write instead; the operation goes on, and
 // stdout (the legacy logger's) does not repeat it. A configuration without
-// it warns nothing.
+// it warns nothing. (Run with -d, a legacy operation, since -g left the
+// provider for the engine: TestConfigureDNSFlag.)
 func TestDeprecationWarning(t *testing.T) {
-	r := runHardn(t, asRootBoolRootLogin, "-g")
+	r := runHardn(t, asRootBoolRootLogin, "-d")
 	if r.ended {
 		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 	}
@@ -406,7 +436,7 @@ func TestDeprecationWarning(t *testing.T) {
 	if strings.Contains(r.stdout, "deprecated") {
 		t.Errorf("stdout repeats it:\n%s", r.stdout)
 	}
-	if r := runHardn(t, asRoot, "-g"); strings.Contains(r.stderr, "deprecated") {
+	if r := runHardn(t, asRoot, "-d"); strings.Contains(r.stderr, "deprecated") {
 		t.Errorf("a configuration without the bool warns:\n%s", r.stderr)
 	}
 }

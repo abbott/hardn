@@ -59,6 +59,15 @@ func readLine(flush bool) string {
 	if err == nil || errors.Is(err, prompt.ErrLineTooLong) {
 		return strings.TrimSpace(line)
 	}
+	endHardn(err)
+	return ""
+}
+
+// endHardn ends hardn after err, as a legacy prompt ends it after a read
+// that failed: by SIGINT after Ctrl-C (reraise), with exit status 130 at
+// the end of the input, and with 1, once err is printed, for any other
+// error.
+func endHardn(err error) {
 	if errors.Is(err, prompt.ErrInterrupted) {
 		reraise()
 	}
@@ -68,7 +77,6 @@ func readLine(flush bool) string {
 		code = 1
 	}
 	exit(code)
-	return ""
 }
 
 // ReadInput reads a line of input from the user, trimmed of spaces: the

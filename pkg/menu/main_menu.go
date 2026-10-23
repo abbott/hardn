@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/utils"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -32,6 +34,9 @@ type MainMenu struct {
 	// Security update fields
 	securityUpdateAvailable bool
 	securityUpdateDetails   string
+
+	// dns runs the DNS item (SetDNS).
+	dns func() error
 }
 
 // NewMainMenu creates a new MainMenu
@@ -47,6 +52,38 @@ func NewMainMenu(
 		osInfo:         osInfo,
 		versionService: versionService,
 	}
+}
+
+// SetDNS sets what the DNS item (3) runs: the DNS screen
+// (pkg/screens/dns) on the plan/apply engine, which cmd/hardn assembles,
+// so that pkg/menu builds no engine (refactor plan slice 2, unit (d)). It
+// returns nil when the user goes back to the main menu, nav.ErrQuit when
+// they quit with q, and an error wrapping prompt.ErrAborted at the end of
+// the input or on Ctrl-C. The screen edits hardn.yml's list in the
+// configuration this menu was given, so the main menu shows the list as
+// saved when it returns. A main menu whose DNS item is chosen without one
+// set panics: cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetDNS(run func() error) { m.dns = run }
+
+// showDNS runs the DNS item from a cleared screen, as every item's screen
+// starts, and reports whether hardn should end: q quits from the DNS
+// screen as from this menu (nav.ErrQuit); Return comes back here; the end
+// of the input, Ctrl-C and any other error end hardn as at a legacy
+// prompt (endHardn).
+func (m *MainMenu) showDNS() bool {
+	if m.dns == nil {
+		panic("menu: the DNS item has no screen (SetDNS)")
+	}
+	utils.ClearScreen()
+	err := m.dns()
+	switch {
+	case err == nil:
+		return false
+	case errors.Is(err, nav.ErrQuit):
+		return true
+	}
+	endHardn(err)
+	return true
 }
 
 // refresh any configuration values that might have been
@@ -491,9 +528,8 @@ func (m *MainMenu) handleMenuChoice(choice string) bool {
 		disableRootMenu := NewDisableRootMenu(m.menuManager, m.config, m.osInfo)
 		disableRootMenu.Show()
 
-	case "3": // DNS
-		dnsMenu := NewDNSMenu(m.menuManager, m.config, m.osInfo)
-		dnsMenu.Show()
+	case "3": // DNS: the DNS screen on the engine (SetDNS)
+		return m.showDNS()
 
 	case "4": // Firewall
 		firewallMenu := NewFirewallMenu(m.menuManager, m.config, m.osInfo)

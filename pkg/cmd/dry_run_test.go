@@ -20,8 +20,8 @@ func TestRefuseDryRunOperations(t *testing.T) {
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -d/--disable-root, which applies them. Nothing was changed."},
 		{"two", true, []string{FlagCreateUser, CommandSetupSudoEnv},
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -c/--create-user and setup-sudo-env, which apply them. Nothing was changed."},
-		{"three", true, []string{FlagRunAll, FlagConfigureUFW, FlagConfigureDNS},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -w/--configure-ufw and -g/--configure-dns, which apply them. Nothing was changed."},
+		{"three", true, []string{FlagRunAll, FlagConfigureUFW, FlagDisableRoot},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -w/--configure-ufw and -d/--disable-root, which apply them. Nothing was changed."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			err := RefuseDryRunOperations(tc.dryRun, tc.ops)

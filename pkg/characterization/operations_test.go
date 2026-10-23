@@ -748,8 +748,8 @@ func opScenarios() []opScenario {
 		{
 			name:  "dns_empty_nameservers",
 			op:    "DNSManager.ConfigureDNS(no nameservers, \"lan\")",
-			entry: "hardn -g with no nameservers in the config (cmd/hardn/main.go:395-401)",
-			cli:   []cliRun{{"-g", []string{hardncmd.FlagConfigureDNS}, refusedInRoot}},
+			entry: dnsReach + ", with configureDns set and no nameservers in the config" + dnsMoved,
+			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{"Resolver set-up as defaultHostProbes: systemd-resolved on Ubuntu, a regular /etc/resolv.conf elsewhere."},
 			setup: func(e *opEnv) { e.cfg.Nameservers = nil },
 			run: func(e *opEnv) []callResult {
@@ -762,12 +762,22 @@ func opScenarios() []opScenario {
 	}
 }
 
+// What reaches the legacy DNS service since slice 2's unit (d) moved -g to
+// the DNS control and replaced the DNS menu with the DNS screen: the DNS
+// step of SecurityManager.HardenSystem, which hardn -r and Run All's live
+// run call, until slice 8 (dnsReach, then the scenario's condition, then
+// dnsMoved).
+const (
+	dnsReach = "hardn -r (cmd/hardn/main.go:254) and Run All's live run (pkg/menu/run_all_menu.go:268), through SecurityManager.HardenSystem's DNS step (pkg/application/security_manager.go:68-75)"
+	dnsMoved = "; hardn -g and the DNS screen use the DNS control since slice 2 unit (d)"
+)
+
 func dnsScenario(strategy string) opScenario {
 	return opScenario{
 		name:  "dns_" + strings.ReplaceAll(strategy, "-", "_"),
 		op:    "DNSManager.ConfigureDNS(cfg.Nameservers, \"lan\") -> FileDNSRepository.SaveDNSConfig, " + strategy + " strategy",
-		entry: "hardn -g (cmd/hardn/main.go:395-401); also Run All and the DNS menu",
-		cli:   []cliRun{{"-g", []string{hardncmd.FlagConfigureDNS}, refusedInRoot}},
+		entry: dnsReach + dnsMoved,
+		cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 		setup: func(e *opEnv) { e.setDNSStrategy(strategy) },
 		run: func(e *opEnv) []callResult {
 			return []callResult{{"DNSManager.ConfigureDNS", e.factory.CreateDNSManager().ConfigureDNS(e.cfg.Nameservers, "lan")}}

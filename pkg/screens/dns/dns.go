@@ -63,6 +63,14 @@ type Options struct {
 	// progress as its Options.Progress, so that the flow shows each step;
 	// one per change, made when the change is planned. Required.
 	NewEngine func(progress func(engine.Event)) *engine.Engine
+	// ApplyContext, when set, returns the context a change's apply runs
+	// under, made from the screen's, and its stop, called once the apply
+	// has returned; one per apply. cmd/hardn's is cancelled by Ctrl-C,
+	// SIGTERM and a hangup during the apply alone (engine.md §2.14), so
+	// that a change they interrupt is rolled back and the screen goes
+	// on, while at a prompt they act as they always have. Nil applies
+	// under the screen's context.
+	ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc)
 	// DryRun stops each change at its plan: nothing applied or saved.
 	DryRun bool
 	// LogPath is the log a failure's report names; "" names none.
