@@ -492,7 +492,9 @@ check-cross:
 # reads "<path> [<pkg>.test]", whose first word is still the path. pkg/ui's
 # packages run first, the others after them: the gallery's tests compare its
 # output with pkg/ui's golden files, which one go test of all of them could
-# be rewriting while those tests read them.
+# be rewriting while those tests read them. One golden writes outside
+# testdata/golden: pkg/screens/dns's TestParity (slice 2, unit (b2)) also
+# rewrites the marked region of docs/engine/parity-dns.md; review that diff too.
 UI_PKG = github.com/abbott/hardn/pkg/ui
 UITEST_PKG = $(UI_PKG)/uitest
 
