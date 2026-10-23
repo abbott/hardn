@@ -27,7 +27,7 @@ What each strategy of origin/main stands for, and the host the new path ran on:
 |---|---|---|---|
 | systemd-resolved | `systemctl is-active systemd-resolved` succeeds | `/etc/resolv.conf` linked to resolved's stub, systemd-resolved running | the link to `../run/systemd/resolve/stub-resolv.conf`, resolved answering `resolvectl`, eth0 with its DHCP server 192.0.2.1 and search domain example.net |
 | resolvconf | that fails, `which resolvconf` succeeds | resolvconf managing `/etc/resolv.conf` | the link to `../run/resolvconf/resolv.conf` |
-| direct | both fail | a regular `/etc/resolv.conf` | Debian 13: dhcpcd's file, dhcpcd installed; Alpine 3.23: udhcpc's file, its stock `udhcpc.conf`; Proxmox VE 9: the installer's file; Ubuntu 24.04 (forced): `search example.net`, `nameserver 192.0.2.1`, resolved stopped |
+| direct | both fail | a regular `/etc/resolv.conf` | Debian 13: dhcpcd's file, dhcpcd installed; Alpine 3.23: udhcpc's file, its stock `udhcpc.conf`, ifupdown-ng running udhcpc for eth0 (no dhcpcd; since `next/s2-udhcpc`, which reports udhcpc only where it is the client: no cell changed); Proxmox VE 9: the installer's file; Ubuntu 24.04 (forced): `search example.net`, `nameserver 192.0.2.1`, resolved stopped |
 | direct (`nm-link`) | both fail | `/etc/resolv.conf` linked to NetworkManager's file | the link to `/run/NetworkManager/resolv.conf`, resolved stopped |
 | the empty list | the stock probes (`defaultHostProbes`) | each stock install | as above: Ubuntu's stub link, a file elsewhere |
 
