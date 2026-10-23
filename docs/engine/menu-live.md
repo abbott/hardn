@@ -167,12 +167,12 @@ Passed:
 - **The block matches p4status** on all three, at 80×40 and 80×24: from the distribution bar to the DNS row, blank lines left out, every line the same. The only difference is the hostname, drawn as a coloured badge by hardn (256 colours) and in brackets by p4status (`-profile none`), as the design system draws it per profile. 40 rows drew the full form (header and rule); 24 rows the compact form.
 - **The DNS row against the host:**
   - Debian 13 as found (systemd-resolved running beside a plain `/etc/resolv.conf`): "Not Applicable, another program".
-  - Ubuntu 26.04 and Alpine 3.23 with no hardn.yml: "Not Configured, none in hardn.yml" (§8's open words). The row's state matched the host's tools on each. *Since §8's decision (2026-10-23), built after this run, this branch draws "Not Applicable, no hardn.yml" there: tested on `hostfake` only, not run on a VM.*
+  - Ubuntu 26.04 and Alpine 3.23 with no hardn.yml: "Not Configured, none in hardn.yml" (§8's open words). The row's state matched the host's tools on each. *Since §8's decision (2026-10-23), built after this run, this branch draws "Not Applicable, no hardn.yml" there: rerun in §10.2.*
 - **The row follows the configuration** (Ubuntu): with hardn.yml listing the DHCP server's address and resolved's global list empty, "Not Configured, not hardn.yml's". Then 3, Configure DNS, y, 0: the main menu, drawn again, showed "Configured" with that address; the drop-in held it and `resolvectl dns`'s `Global:` line too.
 - **Read only:**
   - no file of the snapshot changed, and no file under `/etc`, `/var/lib` or `/root` newer than the run;
   - `/var/log/hardn.log` grew by start-up's info lines only, no command line.
-  - On Alpine, start-up wrote `/etc/hardn/hardn.yml.example` where no hardn.yml exists (`config.EnsureExampleConfigExists`, the legacy loader, unchanged by this unit, as origin/main does); the pass itself wrote nothing. The find missed it on Alpine: the file came in the same second as the run's stamp, which find compares by the second.
+  - On Alpine, start-up wrote `/etc/hardn/hardn.yml.example` where no hardn.yml exists (`config.EnsureExampleConfigExists`, the legacy loader, unchanged by this unit, as origin/main does); the pass itself wrote nothing. The find missed it on Alpine: the file came in the same second as the run's stamp, and busybox's find compares by the second (GNU find, on Debian and Ubuntu, by the nanosecond); §10.2 redid it.
 - **Time to the menu**, from the command's start over SSH, its first pass included: 0.47 s on Debian 13, 0.53 s on Ubuntu 26.04, 0.13 s on Alpine 3.23. The redraw after a change on Ubuntu: 0.42 s.
 - **Ctrl-C during the checks** (Ubuntu): hardn ended at once, exit status 130.
 
@@ -181,6 +181,16 @@ Not run:
 - a pass while systemd is busy;
 - Proxmox VE 9, Ubuntu 24.04, Alpine 3.24;
 - a locale other than UTF-8.
+
+### 10.2 Rerun 2026-10-23: the DNS row's adopted words
+
+Built from `2eac16a` (hardn sha256 `8071a9a2…`, p4status `b38276ff…`), the same three VMs, 80×40, each put back after.
+- **The block matches p4status** on all three, as in §10.1; the DNS row:
+  - Ubuntu 26.04 and Alpine 3.23 with no hardn.yml: "– Not Applicable, no hardn.yml";
+  - Alpine with `nameservers: []` written for the run: "– Not Applicable, none configured";
+  - Debian 13 as found: "– Not Applicable, another program" (the host's own reason before the empty list).
+- **Read only, Alpine redone** with the stamp two seconds older than anything the run made: after the live menu on a host with no hardn.yml, the one new file under `/etc`, `/var/lib` and `/root` was start-up's `/etc/hardn/hardn.yml.example` (§10.1); the pass wrote nothing. Debian and Ubuntu: nothing new, as before.
+- **Time to the menu**, the first pass included: 0.54 s Debian 13, 0.52 s Ubuntu 26.04, 0.13–0.14 s Alpine 3.23.
 
 ## 11. Open for the maintainer
 
