@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -33,28 +34,89 @@ import (
 // result's ASCII glyph, as plainEnv draws it.
 const invalid = "  (x) Invalid option. Please try again."
 
-// recordScreens replaces the screens the main menu's items open
-// (legacyScreens) with ones that print their name, as a screen prints
-// over the main menu, and record it in the list returned, until the test
-// ends; the DNS item's screen, m's, does the same as "dns".
+// recordScreens records the screens m's items build in place of opening
+// them (openScreen), until the test ends: each is named by the screen of
+// originScreens it is, the same type built from the same values, the
+// test failing on any other, then its name recorded in the list returned
+// and printed, as a screen prints over the main menu. The DNS item's
+// screen, m's, does the same as "dns".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
-	was := legacyScreens
-	t.Cleanup(func() { legacyScreens = was })
+	was := openScreen
+	t.Cleanup(func() { openScreen = was })
 	var opened []string
-	open := func(name string) func(*MainMenu) {
-		return func(*MainMenu) {
-			opened = append(opened, name)
-			fmt.Println(strings.ToUpper(name) + " SCREEN")
+	record := func(name string) {
+		opened = append(opened, name)
+		fmt.Println(strings.ToUpper(name) + " SCREEN")
+	}
+	openScreen = func(s legacyScreen) {
+		for name, want := range originScreens(m) {
+			if sameScreen(s, want) {
+				record(name)
+				return
+			}
 		}
+		t.Errorf("an item built %#v, none of origin/main's screens", s)
 	}
-	legacyScreens = screens{
-		users: open("users"), sshLogin: open("sshLogin"), firewall: open("firewall"), backup: open("backup"),
-		dryRun: open("dryRun"), runAll: open("runAll"), environment: open("environment"),
-		systemDetails: open("systemDetails"), logs: open("logs"),
-	}
-	m.SetDNS(func() error { open("dns")(m); return nil })
+	m.SetDNS(func() error { record("dns"); return nil })
 	return &opened
+}
+
+// originScreens are the screens origin/main's handleMenuChoice built for
+// m's items, by name, transcribed from it as next/s2b-mode had it
+// (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
+// its arguments. The DNS item's screen is m's (SetDNS).
+func originScreens(m *MainMenu) map[string]legacyScreen {
+	return map[string]legacyScreen{
+		"users":         NewUserMenu(m.menuManager, m.config, m.osInfo),
+		"sshLogin":      NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
+		"firewall":      NewFirewallMenu(m.menuManager, m.config, m.osInfo),
+		"backup":        NewBackupMenu(m.menuManager, m.config),
+		"dryRun":        handled{NewDryRunHandler(m.menuManager, m.config)},
+		"runAll":        handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
+		"environment":   NewEnvironmentSettingsMenu(m.menuManager, m.config),
+		"systemDetails": NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()),
+		"logs":          NewLogsMenu(m.menuManager, m.config),
+	}
+}
+
+// sameScreen reports whether a and b are the same screen built from the
+// same values: of one type, a handled one's handler too, with fields that
+// are the same pointers.
+func sameScreen(a, b legacyScreen) bool {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false
+	}
+	unwrap := func(s legacyScreen) reflect.Value {
+		if h, ok := s.(handled); ok {
+			return reflect.ValueOf(h.handler)
+		}
+		return reflect.ValueOf(s)
+	}
+	va, vb := unwrap(a), unwrap(b)
+	return va.Type() == vb.Type() && va.Elem().Interface() == vb.Elem().Interface()
+}
+
+// shown counts its Show calls, as a legacy menu.
+type shown int
+
+func (s *shown) Show() { *s++ }
+
+// handledCount counts its Handle calls, as a legacy handler.
+type handledCount int
+
+func (h *handledCount) Handle() { *h++ }
+
+// TestOpenScreen: openScreen, which the other tests replace, opens the
+// screen an item built: a menu's Show, once; a handler's Handle, once.
+func TestOpenScreen(t *testing.T) {
+	var m shown
+	var h handledCount
+	openScreen(&m)
+	openScreen(handled{&h})
+	if m != 1 || h != 1 {
+		t.Errorf("Show called %d times and Handle %d, want once each", m, h)
+	}
 }
 
 // interrupted reads its lines, then reports Ctrl-C as the line reader
@@ -70,8 +132,9 @@ func (r interrupted) Read(p []byte) (int, error) {
 }
 
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
-// exactly the screen origin/main's handleMenuChoice opened for them, and
-// the main menu is drawn again when it returns; 0 (Exit) and q, in either
+// exactly the screen origin/main's handleMenuChoice opened for them, of
+// the same constructor with the same arguments (recordScreens), and the
+// main menu is drawn again when it returns; 0 (Exit) and q, in either
 // case, clear the screen and return, opening nothing; spaces around a key
 // are ignored, as origin/main's read trimmed them; an empty line and a
 // key no item has are refused under the prompt, "Invalid option. Please
@@ -234,9 +297,9 @@ func TestMainMenuMode(t *testing.T) {
 			lines := append(slices.Repeat([]string{"6"}, len(tc.toggle)), "q")
 			m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), lines...)
 			m.config = tc.start(t)
-			recordScreens(t, m)
-			toggles := tc.toggle
-			legacyScreens.dryRun = func(m *MainMenu) { m.config.SetDryRun(toggles[0]); toggles = toggles[1:] }
+			opened, toggles := recordScreens(t, m), tc.toggle
+			recorded := openScreen
+			openScreen = func(s legacyScreen) { recorded(s); m.config.SetDryRun(toggles[0]); toggles = toggles[1:] }
 			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 			var got []string
 			for _, l := range strings.SplitAfter(out, "\n") {
@@ -244,8 +307,9 @@ func TestMainMenuMode(t *testing.T) {
 					got = append(got, strings.TrimSuffix(mode, "\n"))
 				}
 			}
-			if ended || !slices.Equal(got, tc.want) || !strings.Contains(out, heading(tc.want[0])) {
-				t.Errorf("ended %v; the mode on each pass %q, want %q:\n%s", ended, got, tc.want, out)
+			if ended || !slices.Equal(got, tc.want) || !strings.Contains(out, heading(tc.want[0])) ||
+				!slices.Equal(*opened, slices.Repeat([]string{"dryRun"}, len(tc.toggle))) {
+				t.Errorf("ended %v, opened %q; the mode on each pass %q, want %q:\n%s", ended, *opened, got, tc.want, out)
 			}
 		})
 	}

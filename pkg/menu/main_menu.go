@@ -628,40 +628,60 @@ func (m *MainMenu) mode() component.ModeIndicator {
 	return mode
 }
 
-// screens are what the main menu's items open: origin/main's screens, as
-// its handleMenuChoice opened them, but the DNS item's, which is the hook
-// cmd/hardn sets (SetDNS). Each returns when the user leaves it, or ends
-// hardn itself at the end of the input or on Ctrl-C (endHardn).
+// legacyScreen is one of origin/main's screens as a main-menu item opens
+// it: a menu's Show, or a handler's (handled). It returns when the user
+// leaves it, or ends hardn itself at the end of the input or on Ctrl-C
+// (endHardn).
+type legacyScreen interface{ Show() }
+
+// handled is a legacy handler, Dry-Run's or Run All's, opened as a
+// screen: its Handle, as origin/main's handleMenuChoice called it.
+type handled struct{ handler interface{ Handle() } }
+
+// Show runs the handler.
+func (h handled) Show() { h.handler.Handle() }
+
+// screens build what the main menu's items open: origin/main's screens,
+// but the DNS item's, which is the hook cmd/hardn sets (SetDNS).
 type screens struct {
-	users, sshLogin, firewall, backup, dryRun, runAll, environment, systemDetails, logs func(m *MainMenu)
+	users, sshLogin, firewall, backup, dryRun, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
-// legacyScreens are the screens the items open. A seam for the tests,
-// which record which screen each key opens.
+// legacyScreens build each item's screen as origin/main's
+// handleMenuChoice built it, the same constructor with the same
+// arguments.
 var legacyScreens = screens{
-	users:         func(m *MainMenu) { NewUserMenu(m.menuManager, m.config, m.osInfo).Show() },
-	sshLogin:      func(m *MainMenu) { NewDisableRootMenu(m.menuManager, m.config, m.osInfo).Show() },
-	firewall:      func(m *MainMenu) { NewFirewallMenu(m.menuManager, m.config, m.osInfo).Show() },
-	backup:        func(m *MainMenu) { NewBackupMenu(m.menuManager, m.config).Show() },
-	dryRun:        func(m *MainMenu) { NewDryRunHandler(m.menuManager, m.config).Handle() },
-	runAll:        func(m *MainMenu) { NewRunAllHandler(m.menuManager, m.config, m.osInfo).Handle() },
-	environment:   func(m *MainMenu) { NewEnvironmentSettingsMenu(m.menuManager, m.config).Show() },
-	systemDetails: func(m *MainMenu) { NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()).Show() },
-	logs:          func(m *MainMenu) { NewLogsMenu(m.menuManager, m.config).Show() },
+	users:       func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
+	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
+	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
+	backup:      func(m *MainMenu) legacyScreen { return NewBackupMenu(m.menuManager, m.config) },
+	dryRun:      func(m *MainMenu) legacyScreen { return handled{NewDryRunHandler(m.menuManager, m.config)} },
+	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
+	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
+	systemDetails: func(m *MainMenu) legacyScreen {
+		return NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
+	},
+	logs: func(m *MainMenu) legacyScreen { return NewLogsMenu(m.menuManager, m.config) },
 }
+
+// openScreen opens the screen an item built. A seam for the tests, which
+// record the screen each key built, its type and what it was built with,
+// in place of opening it.
+var openScreen = func(s legacyScreen) { s.Show() }
 
 // mainMenu is the main menu's items, origin/main's (createMainMenu's)
 // unchanged in content, labels, numbering 1 to 10 and 0, and
 // descriptions, item 1's parenthesis its aside, each bound to the screen
 // it opened (legacyScreens, and the DNS screen, showDNS); its Exit item
-// "0) Exit", "q to quit" (DEV-030). Each screen ends the pass when it
-// returns (errAgain). Item 6 and Run All's option 2 stay until slice 2b's
-// unit (d).
+// "0) Exit", "q to quit" (DEV-030). Each screen is built as its item is
+// chosen, as origin/main built it, and ends the pass when it returns
+// (errAgain). Item 6 and Run All's option 2 stay until slice 2b's unit
+// (d).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
-	open := func(show func(*MainMenu)) func() error {
+	open := func(build func(*MainMenu) legacyScreen) func() error {
 		return func() error {
-			show(m)
+			openScreen(build(m))
 			return errAgain
 		}
 	}

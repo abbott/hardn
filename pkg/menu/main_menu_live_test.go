@@ -16,10 +16,12 @@ import (
 
 	"github.com/mattn/go-runewidth"
 
+	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -39,14 +41,19 @@ import (
 const clearScreen = "\033[H\033[2J"
 
 // liveMenu is a main menu as cmd/hardn builds it, its status read by read
-// and drawn on terminal env; the end of the input after lines.
+// and drawn on terminal env; the end of the input after lines. Its menu
+// manager, which reaches no host, and its OS are set, so that each screen
+// an item builds can be told from one built from other values
+// (recordScreens).
 func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *MainMenu {
 	t.Helper()
 	if legacySecurityStatus {
 		t.Skip("legacySecurityStatus is set: the main menu would read this machine (pkg/security)")
 	}
 	scripted(t, strings.Join(append(lines, ""), "\n"))
-	m := NewMainMenu(nil, config.DefaultConfig(), nil, version.NewService("0.4.0", "", ""))
+	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
+	m := NewMainMenu(mm, config.DefaultConfig(), &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"},
+		version.NewService("0.4.0", "", ""))
 	if read != nil {
 		m.SetStatus(read)
 	}
