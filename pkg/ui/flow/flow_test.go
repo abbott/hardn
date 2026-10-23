@@ -347,8 +347,142 @@ func TestReview(t *testing.T) {
 		{"nothing", Review{Title: "SSH Configuration"}, ""},
 	}
 	for _, tt := range tests {
-		if got := ansi.Strip(tt.review.render(component.NewCtx(plain80))); got != tt.want {
+		if got := ansi.Strip(tt.review.render(component.NewCtx(plain80), nil)); got != tt.want {
 			t.Errorf("%s:\n%s\nwant\n%s", tt.name, got, tt.want)
+		}
+	}
+}
+
+// The DNS mocks' Use Cloudflare DNS on a Debian 13 host, as a flow of its
+// own (pkg/ui/screen dns.go): nothing to collect; the "DNS Configuration"
+// review; one change, which carries a warning, dhcpcd's, in the DNS
+// control's words and code, and, as no finding of hardn's is less than a
+// warning yet, a lesser one, its words this test's alone.
+const resolvConf = "/etc/resolv.conf"
+
+var (
+	dhcpcdWarning = Finding{Text: "dhcpcd may rewrite /etc/resolv.conf on a lease", Code: "DNS_DHCP_CLIENT"}
+	searchNote    = Finding{Text: "eth0 keeps its search domain example.net", Code: "TEST_NOTE", Severity: SeverityNote}
+	dnsChange     = component.PlanChange{Title: "Set the nameservers", Target: resolvConf,
+		Diff: diff.Unified(resolvConf, resolvConf, "search example.net\nnameserver 192.0.2.1\n", "search example.net\nnameserver 1.1.1.1\nnameserver 1.0.0.1\n")}
+	dnsPlan = Plan{View: component.PlanView{Changes: []component.PlanChange{dnsChange}}, Findings: []Finding{dhcpcdWarning, searchNote}}
+)
+
+// useCloudflare is the flow, its review the DNS mocks' rows.
+func useCloudflare(e Engine) Flow {
+	return Flow{
+		Review: func() Review {
+			return Review{Title: "DNS Configuration", Items: []component.KeyValue{
+				{Key: "Nameservers", Value: "1.1.1.1, 1.0.0.1"}, {Key: "Search Domains", Value: "example.net"},
+			}}
+		},
+		Engine:  e,
+		Confirm: func(Plan) Confirm { return Confirm{Question: "Use Cloudflare DNS?"} },
+	}
+}
+
+// refusing is an Engine whose plan cannot be made, though it carries
+// findings.
+type refusing struct{ Fixture }
+
+func (r refusing) Plan(context.Context) (Plan, error) {
+	return r.Planned, errors.New("NetworkManager manages DNS here")
+}
+
+// TestFindings checks the plan's findings at every profile, background,
+// glyph set and width (uitest.Full): listed once each, as the review's
+// last lines, before the plan and its question, and never after it; the
+// warning drawn as KeyValue draws a warning's bullet item (status.warn,
+// DEV-060), the lesser one as a muted one (DEV-061); no code shown.
+func TestFindings(t *testing.T) {
+	for _, cell := range uitest.Full() {
+		_, out, err := play(cell.Env, useCloudflare(Fixture{Planned: dnsPlan}), "y")
+		if err != nil {
+			t.Fatalf("%s: %v", cell.Name, err)
+		}
+		c := component.NewCtx(cell.Env)
+		for _, kv := range []component.KeyValue{{Key: dhcpcdWarning.Text, State: component.ValueWarn}, {Key: searchNote.Text, State: component.ValueNone}} {
+			var want strings.Builder
+			if _, err := io.WriteString(cell.Env.Writer(&want), kv.Render(c)); err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(out, want.String()) {
+				t.Errorf("%s: no line drawn as %q:\n%s", cell.Name, want.String(), out)
+			}
+		}
+		flat := strings.Join(strings.Fields(ansi.Strip(out)), " ")
+		at := 0
+		for _, w := range []string{"DNS Configuration", "Search Domains example.net", dhcpcdWarning.Text, searchNote.Text, "Set the nameservers", "Use Cloudflare DNS?", "Operation Successful"} {
+			i := strings.Index(flat[at:], strings.Join(strings.Fields(w), " "))
+			if i < 0 {
+				t.Errorf("%s: no %q after what came before it:\n%s", cell.Name, w, out)
+				break
+			}
+			at += i
+		}
+		for _, f := range dnsPlan.Findings {
+			if n := strings.Count(flat, f.Text); n != 1 || strings.Contains(flat, f.Code) {
+				t.Errorf("%s: %q listed %d times, its code shown %t; want once, not shown", cell.Name, f.Text, n, strings.Contains(flat, f.Code))
+			}
+		}
+	}
+}
+
+// TestFindingsPaths checks where the plan's findings go on each path,
+// plain: under the review's rows, then the plan, whether it is applied,
+// declined, a dry run, or fails; with nothing to change, before saying
+// so; with no review, or a review with no rows, as a list of their own,
+// apart from what is above; and none for a plan that cannot be made.
+func TestFindingsPaths(t *testing.T) {
+	const (
+		review   = "   -  Search Domains       example.net\n   -  dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
+		alone    = "   -  dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
+		question = "  Use Cloudflare DNS? [y/N, 0 or q]: "
+	)
+	unchanged := Plan{Findings: dnsPlan.Findings}
+	bare := func(e Engine) Flow { f := useCloudflare(e); f.Review = nil; return f }
+	noticed := func(e Engine) Flow {
+		f := useCloudflare(e)
+		f.Review = func() Review {
+			return Review{Notice: &Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{"Check the lease first."}}}, Title: "DNS Configuration"}
+		}
+		return f
+	}
+	dryRun := func(e Engine) Flow { f := useCloudflare(e); f.DryRun = true; return f }
+	tests := []struct {
+		name   string
+		flow   func(Engine) Flow
+		engine Engine
+		lines  []string
+		want   Outcome
+		holds  []string // in order
+		listed bool
+	}{
+		{"applied", useCloudflare, Fixture{Planned: dnsPlan}, []string{"y"}, Applied, []string{review, question + "y\n", "# Operation Successful\n"}, true},
+		{"declined", useCloudflare, Fixture{Planned: dnsPlan}, []string{"n"}, Cancelled, []string{review, question + "n\n", "# Operation Cancelled\n"}, true},
+		{"a dry run", dryRun, Fixture{Planned: dnsPlan}, nil, Planned, []string{review, "  No actual changes were made to your system.\n"}, true},
+		{"failed", useCloudflare, Fixture{Planned: dnsPlan, FailAt: 1, Failure: Failure{Err: errors.New("Reloading systemd-resolved had no effect")}}, []string{"y"}, Failed,
+			[]string{review, question + "y\n", "# Operation Failed\n# Reloading systemd-resolved had no effect\n"}, true},
+		{"nothing to change", useCloudflare, Fixture{Planned: unchanged}, nil, Unchanged,
+			[]string{"   -  eth0 keeps its search domain example.net\n\n  Nothing needs changing.\n"}, true},
+		{"no review", bare, Fixture{Planned: dnsPlan}, []string{"y"}, Applied, []string{alone, question}, true},
+		{"a review with no rows", noticed, Fixture{Planned: dnsPlan}, []string{"y"}, Applied, []string{"# Check the lease first.\n\n" + alone, question}, true},
+		{"a plan that cannot be made", useCloudflare, refusing{Fixture{Planned: dnsPlan}}, nil, Failed,
+			[]string{"   -  Search Domains       example.net\n\n# Operation Failed\n# NetworkManager manages DNS here\n"}, false},
+	}
+	for _, tt := range tests {
+		o, out, err := play(plain80, tt.flow(tt.engine), tt.lines...)
+		at := 0
+		for _, w := range tt.holds {
+			i := strings.Index(out[at:], w)
+			if i < 0 {
+				t.Errorf("%s: no %q after what came before it:\n%s", tt.name, w, out)
+				break
+			}
+			at += i + len(w)
+		}
+		if n := strings.Count(out, dhcpcdWarning.Text); o != tt.want || err != nil || n != map[bool]int{true: 1, false: 0}[tt.listed] {
+			t.Errorf("%s: %d, %v, the warning listed %d times; want %d, nil, listed %t:\n%s", tt.name, o, err, n, tt.want, tt.listed, out)
 		}
 	}
 }
@@ -699,9 +833,10 @@ func (w waiting) Apply(ctx context.Context, report Report) error {
 // TestGolden pins each path's full transcript on the core set, the
 // answers echoed as a terminal shows them: Figma's create-user action
 // applied, cancelled as Figma draws it, planned in dry-run mode and failed
-// and rolled back; and Figma's root SSH login action, at lockout risk,
+// and rolled back; Figma's root SSH login action, at lockout risk,
 // confirmed by the hostname after a refused line, and with nothing to
-// change.
+// change; and the DNS mocks' Use Cloudflare DNS, its plan's findings
+// listed before its question.
 func TestGolden(t *testing.T) {
 	yes, no := slices.Concat(answers, []string{"y"}), slices.Concat(answers, []string{"n"})
 	dryRun := func(e Engine) Flow { f := createUser(e); f.DryRun = true; return f }
@@ -717,6 +852,7 @@ func TestGolden(t *testing.T) {
 		{"failed", createUser, sudoFails, yes},
 		{"typed", disableRoot, Fixture{Planned: planOf(RiskLockout, rootLogin)}, []string{"y", hostname}},
 		{"unchanged", rootDisabled, Fixture{}, nil},
+		{"findings", useCloudflare, Fixture{Planned: dnsPlan}, []string{"y"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

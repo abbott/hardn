@@ -13,14 +13,19 @@
 //     Figma draws before disabling root SSH login, a Callout and the
 //     checklist under it; then the answers, summed up as Figma sums up a
 //     new user: a SectionHeader, such as "User Configuration", over a
-//     BulletList of key-value rows. What a workflow screen draws above
-//     the flow, its title bar and a subject line such as "Managing sudo
-//     method for: george", is the screen's (screen.WorkflowStep in
-//     pkg/ui/screen).
-//  3. Plan: the Engine plans, and the plan is shown as a PlanView. In
-//     dry-run mode the flow stops here, the PlanView's footer saying that
-//     nothing was changed. A plan with no changes says that nothing needs
-//     changing, brief Phase 3's words, and the flow stops too.
+//     BulletList of key-value rows; then the plan's findings, one line
+//     each, a warning's in the warning's colour and a lesser one muted
+//     (Finding), as the section's last rows, or with no rows as a list of
+//     their own. So that the review can end with them, the Engine plans
+//     before it is drawn, and it is drawn in one block. What a workflow
+//     screen draws above the flow, its title bar and a subject line such
+//     as "Managing sudo method for: george", is the screen's
+//     (screen.WorkflowStep in pkg/ui/screen).
+//  3. Plan: the plan is shown as a PlanView. In dry-run mode the flow
+//     stops here, the PlanView's footer saying that nothing was changed.
+//     A plan with no changes says that nothing needs changing, brief
+//     Phase 3's words, and the flow stops too. A plan that cannot be made
+//     lists no findings.
 //  4. Confirm: the action's question, a y/N question whose default is
 //     no, as a one-field form asks it; or, for a plan with lockout risk
 //     (Plan.Typed), the question on a line of its own above a typed
