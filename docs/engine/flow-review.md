@@ -81,7 +81,7 @@ Unchanged: every other golden, the DNS mocks' (§2.11), the components', `flow/*
 
 ## 8. Not in this unit; inputs to later units
 
-- **The rest of unit (c)**: the DNS screen on the real control, Alpine's question on the form, Add's inline errors, the presets, the screen drawn again after a change.
+- **The rest of unit (c)**: the DNS screen on the real control, Alpine's question on the form, Add's inline errors, the presets, the screen drawn again after a change. *Done in `next/s2-screen`* ([screen-dns.md](screen-dns.md)); the DNS mocks' review lines are retired with them.
 - **For the control's owner** (the DNS control, or the engine): a control's findings on a plan with no change (§4), if the maintainer wants decision 5's reading on the real flow.
 - **For P-41's words** (§5): the shorter line, if the maintainer wants it, changes the engine's detail, the JSON document's and `confirm-cleanup.md`'s and `TestBestEffort*`'s.
 - **For the maintainer, before slice 8's Run All relies on it:** with no review (decision 3, this unit's, not the maintainer's), a finding stands alone above the plan, and without colour (plain, notty) its line is `   -  <words>` at the columns of the plan's change bullets under it (`dns-failed-reload-ubuntu2604`, `best-effort-ubuntu2204`), told apart by its words alone; in a review, among the answer rows, the maintainer adopted that look (decision 5, DEV-060). A heading or a marker for the no-review case (a Warning callout's title, the notice's form) is a decision for the maintainer, with DEV-063. Some findings' words read like a change or a setting (pve's "root added to AllowUsers: …"), which a marker would help most.

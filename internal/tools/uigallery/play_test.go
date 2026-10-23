@@ -63,15 +63,20 @@ func lookArgs(t *testing.T, env term.Env) []string {
 // levels down; the root-login toggle's typed confirmation, a line refused
 // first, then q from its sub-menu; the sudo change told to fail its
 // second step, which rolls the first back; the input ending at a
-// form's question, which exits 130; DNS's Add nameserver from the main
-// menu, two entries refused before one is taken, applied, and back to the
-// DNS screen with the result still above it (W1, W2), then out; the
-// NetworkManager host's DNS screen refusing Configure DNS and a preset;
-// the screen with no nameserver configured refusing item 3, which it
-// does not show, and Configure DNS; and the screen with one refusing
-// Remove nameserver. The golden files are this package's,
-// testdata/golden/play/<path>.golden, which make golden-update rewrites
-// after pkg/ui's.
+// form's question, which exits 130. Then the DNS screen, hardn's own on
+// the real engine (next/s2-screen): Add nameserver from the main menu, two
+// entries refused before one is taken, applied, and the screen drawn again
+// from the host under the result (W1, W2), then out; on each other host
+// its item 1 (Ubuntu 26.04's drop-in and reload, Alpine's udhcpc question
+// answered y, Proxmox VE's node, the configured host's nothing to change);
+// Remove nameserver; the presets, one declined between two applied, the
+// second saved over the first; a dry run; the NetworkManager host refusing
+// Configure DNS and a preset; the screen with no nameserver configured
+// refusing item 3, which it does not show, and Configure DNS; the screen
+// with one refusing Remove nameserver; and the two failures, a reload
+// without effect (D3) and a save refused, each rolled back. The golden
+// files are this package's, testdata/golden/play/<path>.golden, which make
+// golden-update rewrites after pkg/ui's.
 func TestPlayGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -85,9 +90,18 @@ func TestPlayGolden(t *testing.T) {
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
 		{"abort", []string{"sub-menu/01-user"}, []string{"2", "alice"}, prompt.ExitInterrupted},
 		{"dns", nil, []string{"3", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
-		{"dns-networkmanager", []string{"sub-menu/03-dns-networkmanager"}, []string{"1", "4", "0"}, exitOK},
-		{"dns-empty", []string{"sub-menu/03-dns-empty"}, []string{"3", "1", "0"}, exitOK},
-		{"dns-one", []string{"sub-menu/03-dns-one"}, []string{"3", "0"}, exitOK},
+		{"dns-ubuntu2604", []string{"dns/ubuntu2604"}, []string{"1", "y", "0"}, exitOK},
+		{"dns-alpine324", []string{"dns/alpine324"}, []string{"1", "y", "y", "0"}, exitOK},
+		{"dns-pve9", []string{"dns/pve9"}, []string{"1", "y", "0"}, exitOK},
+		{"dns-configured", []string{"dns/configured"}, []string{"1", "0"}, exitOK},
+		{"dns-remove", []string{"dns/debian13"}, []string{"3", "2", "y", "0"}, exitOK},
+		{"dns-presets", []string{"dns/debian13"}, []string{"4", "y", "5", "n", "6", "y", "0"}, exitOK},
+		{"dns-dry-run", []string{"-sequence", "dry-run", "dns/debian13"}, []string{"4", "0"}, exitOK},
+		{"dns-networkmanager", []string{"dns/networkmanager"}, []string{"1", "4", "0"}, exitOK},
+		{"dns-empty", []string{"dns/empty"}, []string{"3", "1", "0"}, exitOK},
+		{"dns-one", []string{"dns/one"}, []string{"3", "0"}, exitOK},
+		{"dns-failed-reload", []string{"dns/failed-reload"}, []string{"1", "y", "0"}, exitOK},
+		{"dns-failed-save", []string{"dns/failed-save"}, []string{"4", "y", "0"}, exitOK},
 	}
 	for _, tt := range tests {
 		uitest.Golden(t, "play/"+tt.name, uitest.Core(), func(env term.Env) string {
@@ -96,7 +110,7 @@ func TestPlayGolden(t *testing.T) {
 			if code != tt.code || errs != "" || unread != 0 {
 				t.Errorf("%s, %v: exit %d, stderr %q, %d lines unread; want exit %d", tt.name, args, code, errs, unread, tt.code)
 			}
-			return out
+			return sameIDs(t, out)
 		})
 	}
 }
@@ -273,11 +287,10 @@ func TestPlayFail(t *testing.T) {
 }
 
 // TestPlayReaches checks the playable mode's links: each leads from an
-// item of a menu mock to a mock, every menu mock's screen is one whose
-// menu play binds, an item it refuses is one of its menu's and has no
-// link, and every mock can be reached from the main menu, or from the DNS
-// screen of a host other than the main menu's, where play starts by name
-// (play sub-menu/03-dns-<host>; docs/engine/gallery-dns.md).
+// item of a menu mock to a mock, or to the DNS screen on a host
+// (dnsLinks), every menu mock's screen is one whose menu play binds, an
+// item it refuses is one of its menu's and has no link, and every mock
+// can be reached from the main menu.
 func TestPlayReaches(t *testing.T) {
 	mocks := map[string]screen.Mock{}
 	roots := []string{"main-menu/00-tui-main"}
@@ -293,8 +306,14 @@ func TestPlayReaches(t *testing.T) {
 				t.Errorf("%s: refuses item %s, which its menu lacks or a link leads from", m.Name, key)
 			}
 		}
-		if strings.HasPrefix(m.Name, "sub-menu/03-dns-") {
-			roots = append(roots, m.Name)
+	}
+	for from, to := range dnsLinks {
+		i := strings.LastIndex(from, "/")
+		menu, ok := menuOf(mocks[from[:i]].Screen)
+		_, linked := links[from]
+		if _, host := findDNSHost(strings.TrimPrefix(to, dnsPrefix+"/")); !ok || linked || !host ||
+			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
+			t.Errorf("DNS link %s to %s: no menu mock with the item, a mock link from it too, or no such host", from, to)
 		}
 	}
 	for from, to := range links {
@@ -707,7 +726,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 		}
 	}
 	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff", "pkg/engine", "pkg/engine/steps",
-		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake"} {
+		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake", "pkg/screens/dns"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}

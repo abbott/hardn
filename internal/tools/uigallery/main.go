@@ -12,7 +12,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //
@@ -42,16 +42,16 @@
 // is named), or at a workflow's sequence, "<workflow>/<sequence>". A
 // menu's items lead where origin/main's do, to the other mocks: User
 // Management, Manage User and george's menu to the sudo change, SSH Login
-// to the root-login toggle and its typed confirmation; an item with no
-// mock says so. 0 goes back and q quits at every prompt, as the
-// navigation grammar has it; going back from the first screen, or
-// quitting, exits with status 0, and the end of the input or Ctrl-C at a
-// prompt with 130. Each workflow runs its flow (pkg/ui/flow) on its
-// sequence's fixture plan, and applies it to the simulated system, which
-// only records what each step would do: the record is shown when play
-// ends. A sequence plays for its screen and fixture, the answers being the
-// user's, so one that ends cancelled, as create-user's does, cannot be
-// named: declining the confirmation plays it.
+// to the root-login toggle and its typed confirmation, DNS to hardn's own
+// DNS screen on a simulated host (below); an item with no mock says so. 0
+// goes back and q quits at every prompt, as the navigation grammar has it;
+// going back from the first screen, or quitting, exits with status 0, and
+// the end of the input or Ctrl-C at a prompt with 130. Each workflow runs
+// its flow (pkg/ui/flow) on its sequence's fixture plan, and applies it to
+// the simulated system, which only records what each step would do: the
+// record is shown when play ends. A sequence plays for its screen and
+// fixture, the answers being the user's, so one that ends cancelled, as
+// create-user's does, cannot be named: declining the confirmation plays it.
 //
 // "play engine" opens the engine's scenarios (next/p3-gallery-engine), and
 // "play engine/<scenario>" one: the real plan/apply engine (pkg/engine),
@@ -82,6 +82,15 @@
 //	                  terminal's own, when stdout is a terminal, else 80)
 //	-height N         the terminal height in lines (default: the
 //	                  terminal's own, when stdout is a terminal, else 24)
+//
+// "play dns" opens the DNS screen's hosts (next/s2-screen), and "play
+// dns/<host>" one: hardn's own DNS screen (pkg/screens/dns), drawn from a
+// simulated host's resolver and hardn.yml through the DNS control, each
+// item a change on the real engine, the screen drawn again from the host
+// under the result: Debian 13, Ubuntu 26.04, Alpine 3.24, Proxmox VE 9,
+// NetworkManager, hardn.yml listing none or one, a configured host, and a
+// reload and a save that fail. -sequence dry-run makes each change a dry
+// run; -fail is refused there.
 //
 // Play sizes itself to the terminal: where -width or -height is not given
 // and stdout is a terminal, it takes the terminal's size, as term.Detect,

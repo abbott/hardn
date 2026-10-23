@@ -50,18 +50,23 @@
 // as the flow and its form expect of a caller that draws above them; a
 // flow refused before it writes leaves no screen.
 //
+// # Screens of hardn
+//
+// DNS is the DNS screen (slice 2, next/s2-screen): origin/main's, on the
+// sub-menu layout, filled from a reading of the host and of hardn.yml that
+// pkg/screens/dns makes, which also runs its items; Review and Step give
+// its workflows' review and title bar (docs/engine/screen-dns.md).
+//
 // # Fixtures and mocks
 //
 // MainMenuFixture, UserFixture and ManageSudoFixture fill the three
 // layouts with synthetic data after the Figma screenshots each is named
 // for. Mocks is the dev-only gallery's catalogue of screen mocks, which
-// the goldens pin: those three, every other Figma frame that fits a
-// layout and origin/main's DNS screen, inferred, on each host of the DNS
-// mocks, with its items as workflows (dns.go), each with its source label
-// (Source). A workflow's mock is its sequences, the canonical flow
-// played on scripted answers and fixture plans (Sequence.Play), shown
-// step by step. Nothing but the tests and the gallery uses them. Figma's
-// mock host BOS-SAN-L01 and user george are mock data; the other user is
-// alice, the hosts' addresses are from 192.0.2.0/24 and the SSH port is
-// 2230.
+// the goldens pin: those three and every other Figma frame that fits a
+// layout, each with its source label (Source). A workflow's mock is its
+// sequences, the canonical flow played on scripted answers and fixture
+// plans (Sequence.Play), shown step by step. Nothing but the tests and the
+// gallery uses them. Figma's mock host BOS-SAN-L01 and user george are
+// mock data; the other user is alice, the hosts' addresses are from
+// 192.0.2.0/24 and the SSH port is 2230.
 package screen
