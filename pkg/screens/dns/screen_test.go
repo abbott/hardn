@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
 	dnsscreen "github.com/abbott/hardn/pkg/screens/dns"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -443,6 +444,63 @@ func TestFailedReload(t *testing.T) {
 	}
 	if s := screens(p.out); len(s) != 2 || row(s[1], "Nameservers") != "192.0.2.1 (eth0)" {
 		t.Errorf("the screen drawn again shows %q", s)
+	}
+}
+
+// TestApplyContext: a change's apply, and nothing else, runs under the
+// context Options.ApplyContext makes, stopped once the apply has
+// returned: a declined change and a dry run make none. Cancelled during
+// the apply (cmd/hardn's signals), the change is rolled back and the
+// screen goes on, drawn again from a fresh reading of the host, and the
+// next change applies.
+func TestApplyContext(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		dryRun bool
+		lines  []string
+		made   int
+	}{
+		{"declined, cancelled, applied", false, []string{"1", "n", "1", "y", "1", "y", "0"}, 2},
+		{"a dry run", true, []string{"1", "0"}, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newHost(t, ubuntu2604, configured)
+			made, stopped := 0, 0
+			cancel := context.CancelFunc(func() {})
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit && made == 1 {
+					cancel() // the signal; the reload itself succeeds
+				}
+				return answer(argv, in)
+			}
+			p := playWith(h, cfg, wide, tc.dryRun, func(o *dnsscreen.Options) {
+				o.ApplyContext = func(ctx context.Context) (context.Context, context.CancelFunc) {
+					made++
+					var c context.Context
+					c, cancel = context.WithCancel(ctx)
+					return c, func() { stopped++; cancel() }
+				}
+			}, tc.lines...)
+			if p.err != nil || made != tc.made || stopped != made {
+				t.Fatalf("Run = %v, %d contexts made, %d stopped, want %d:\n%s", p.err, made, stopped, tc.made, p.out)
+			}
+			if tc.dryRun {
+				return
+			}
+			if len(p.runs) != 3 || output.CodeOf(p.runs[1].Err) != "CANCELLED" || p.runs[2].Err != nil {
+				t.Fatalf("runs %+v:\n%s", p.runs, p.out)
+			}
+			if !strings.Contains(p.out, "Set the nameservers  Rolled back") {
+				t.Errorf("the cancelled change is not rolled back:\n%s", p.out)
+			}
+			if s := screens(p.out); len(s) != 4 || row(s[2], "Nameservers") != "192.0.2.1 (eth0)" {
+				t.Errorf("the screen drawn after the cancelled change shows %q", s)
+			}
+			if got := content(h, hostdns.DropIn); !strings.Contains(got, "DNS=192.0.2.54 2001:db8::54\n") {
+				t.Errorf("the next change did not apply; the drop-in:\n%s", got)
+			}
+		})
 	}
 }
 

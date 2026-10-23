@@ -290,11 +290,16 @@ type played struct {
 // play runs the DNS screen on h with cfg, plain at width columns (not a
 // terminal), the user typing lines; a dry run with dryRun.
 func play(h *fakeHost, cfg *config.Config, width int, dryRun bool, lines ...string) played {
+	return playWith(h, cfg, width, dryRun, nil, lines...)
+}
+
+// playWith is play with the options set changes, when not nil.
+func playWith(h *fakeHost, cfg *config.Config, width int, dryRun bool, set func(*dnsscreen.Options), lines ...string) played {
 	var out bytes.Buffer
 	env := term.Resolve(term.Options{}, term.Facts{Width: width})
 	ty := uitest.NewTypist(&out, lines...)
 	var p played
-	p.err = dnsscreen.Run(context.Background(), dnsscreen.Options{
+	o := dnsscreen.Options{
 		Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)},
 		System:   h, Facts: h.facts, Config: cfg, DryRun: dryRun, LogPath: output.LegacyLogPath,
 		Now: func() time.Time { return now },
@@ -310,7 +315,11 @@ func play(h *fakeHost, cfg *config.Config, width int, dryRun bool, lines ...stri
 			})
 		},
 		Ran: func(r output.Run) { p.runs = append(p.runs, r) },
-	})
+	}
+	if set != nil {
+		set(&o)
+	}
+	p.err = dnsscreen.Run(context.Background(), o)
 	p.out, p.unread = out.String(), ty.Unread()
 	return p
 }

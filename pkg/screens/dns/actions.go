@@ -130,7 +130,7 @@ func (r *runner) change(ctx context.Context, h reading, label string, fields []f
 	}
 	edited := *o.Config
 	fe := &output.FlowEngine{DryRun: o.DryRun, LogPath: o.LogPath}
-	e := &planning{FlowEngine: fe, build: func() {
+	e := &planning{FlowEngine: fe, applyContext: o.ApplyContext, build: func() {
 		if fe.Engine == nil {
 			fe.Engine = o.NewEngine(fe.Progress)
 		}
@@ -165,11 +165,13 @@ func (r *runner) change(ctx context.Context, h reading, label string, fields []f
 
 // planning is a change's flow.Engine: output.FlowEngine, its engine,
 // controls and configuration built when the flow plans, once the form is
-// answered (build), as FlowEngine reads them then.
+// answered (build), as FlowEngine reads them then, and its apply under
+// Options.ApplyContext's context.
 type planning struct {
 	*output.FlowEngine
-	build   func()
-	planned bool
+	build        func()
+	applyContext func(context.Context) (context.Context, context.CancelFunc)
+	planned      bool
 }
 
 // Plan builds the engine's inputs from the answers, then plans as
@@ -178,6 +180,17 @@ func (p *planning) Plan(ctx context.Context) (flow.Plan, error) {
 	p.build()
 	p.planned = true
 	return p.FlowEngine.Plan(ctx)
+}
+
+// Apply applies as FlowEngine does, under the context applyContext makes
+// for the apply alone, when set.
+func (p *planning) Apply(ctx context.Context, report flow.Report) error {
+	if p.applyContext != nil {
+		var stop context.CancelFunc
+		ctx, stop = p.applyContext(ctx)
+		defer stop()
+	}
+	return p.FlowEngine.Apply(ctx, report)
 }
 
 // say returns an action that writes paragraphs as one warning, set apart
