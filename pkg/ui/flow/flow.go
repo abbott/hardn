@@ -56,9 +56,9 @@ type Plan struct {
 	Risk Risk
 	// Findings are what the plan found that stops nothing, such as a DHCP
 	// client that may rewrite the file a change writes, each once, in the
-	// order found. The Plan step lists them before the plan and its
-	// question, as the review's last lines, one line each; with none it
-	// lists nothing.
+	// order found. The flow lists them as the review's last lines, one
+	// line each, in the review's block (Review), before the plan and its
+	// question; with none it lists nothing.
 	Findings []Finding
 }
 

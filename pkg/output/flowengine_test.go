@@ -260,14 +260,18 @@ func TestFlowEngineInAFlow(t *testing.T) {
 // port plan, waiting for confirmation, having listed the plan's finding
 // before its confirmation (Run.Reviewed): the countdown, when it is
 // rolled back ("at about") and how to undo it, and not the finding again.
-// A run whose findings the flow did not list has them after the
-// countdown, as a warning with its code.
+// A run whose findings the flow did not list (a refused plan's, or a flow
+// that ended before listing them) has them after the countdown, as a
+// warning with its code and source (after-flow-not-listed).
 func TestAfterFlow(t *testing.T) {
 	fx := fixtures()[3]
 	reviewed := fx.run
 	reviewed.Reviewed = true
 	uitest.Golden(t, "human/after-flow", uitest.Core(), func(env term.Env) string {
 		return output.AfterFlow(env, reviewed, fixtureNow)
+	})
+	uitest.Golden(t, "human/after-flow-not-listed", uitest.Core(), func(env term.Env) string {
+		return output.AfterFlow(env, fx.run, fixtureNow)
 	})
 	const finding = "PasswordAuthentication yes in 50-cloud-init.conf is read before 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN"
 	for _, tc := range []struct {
@@ -367,5 +371,20 @@ func TestFlowEngineFindings(t *testing.T) {
 	}
 	if after := squash(output.AfterFlow(env, a.Run(flow.NotRun, context.Canceled), fixtureNow)); !strings.Contains(after, squash(fs[1].Detail+" ("+fs[1].Code)) {
 		t.Errorf("a flow done as it planned: AfterFlow does not report the findings:\n%s", after)
+	}
+	// A finding whose detail shows nothing, empty, blank or escape
+	// sequences alone, is no line of the flow's; AfterFlow reports it once,
+	// by its code and source, applied or declined, and the one the flow
+	// listed not again: never missed.
+	for _, detail := range []string{"", "   ", "\x1b[2J"} {
+		blank := engine.Finding{Code: "EXAMPLE_EMPTY", Detail: detail, Source: "/etc/example/conf.d/x.conf"}
+		for _, line := range []string{"y", "n"} {
+			r := play(exampleControl{findings: []engine.Finding{blank, fs[1]}}, false, false, line)
+			after := squash(r.after)
+			if !r.run.Reviewed || strings.Contains(r.screen, blank.Code) || strings.Count(after, squash("("+blank.Code+", "+blank.Source+")")) != 1 ||
+				strings.Contains(after, squash(fs[1].Detail)) {
+				t.Errorf("a detail %q, answered %s: reviewed %t; want the blank finding after the flow once, the other not:\n%s%s", detail, line, r.run.Reviewed, r.screen, r.after)
+			}
+		}
 	}
 }

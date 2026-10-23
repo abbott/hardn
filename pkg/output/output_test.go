@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -145,6 +146,46 @@ func TestHumanAwaitingConfirmation(t *testing.T) {
 		return
 	}
 	t.Fatal("no awaiting-confirmation fixture")
+}
+
+// TestHumanSaysAFindingOnce: the human report says once a finding with
+// the same words, code and source that two changes of a plan carry, or
+// two controls' checks (ssh's and the firewall's SSH_NOT_IN_EFFECT), with
+// its code and source (findingsBlock); the document keeps one per change
+// or control. Another source is another line.
+func TestHumanSaysAFindingOnce(t *testing.T) {
+	f := engine.Finding{Code: "SSH_NOT_IN_EFFECT", Detail: "sshd listens on 22, not 2230", Source: "ss -Htln"}
+	other := f
+	other.Source = "sshd -T"
+	p := portPlan()
+	for i := range p.Changes[:2] {
+		p.Changes[i].Findings = append(p.Changes[i].Findings, f)
+	}
+	report := func(id string, fs ...engine.Finding) engine.Report {
+		return engine.Report{Control: id, Title: id, Status: engine.Status{State: engine.NotConfigured, Detail: "Port 22", Findings: fs}}
+	}
+	line := func(f engine.Finding) string { return squash(f.Detail + " (" + f.Code + ", " + f.Source + ")") }
+	for _, tc := range []struct {
+		name        string
+		run         output.Run
+		inDocument  int
+		said, again int // f's line, other's
+	}{
+		{"two changes", output.Run{Mode: output.ModePlan, Plan: p}, 2, 1, 0},
+		{"two controls", output.Run{Mode: output.ModeCheck, Reports: []engine.Report{report("ssh.port", f), report("firewall.ufw", f)}}, 2, 1, 0},
+		{"another source", output.Run{Mode: output.ModeCheck, Reports: []engine.Report{report("ssh.port", f), report("firewall.ufw", other)}}, 2, 1, 1},
+	} {
+		n := 0
+		for _, d := range output.Build(tc.run).Findings {
+			if d.Code == f.Code {
+				n++
+			}
+		}
+		h := squash(humanText(t, tc.run))
+		if said, again := strings.Count(h, line(f)), strings.Count(h, line(other)); n != tc.inDocument || said != tc.said || again != tc.again {
+			t.Errorf("%s: %d in the document, said %d and %d times; want %d, %d, %d:\n%s", tc.name, n, said, again, tc.inDocument, tc.said, tc.again, humanText(t, tc.run))
+		}
+	}
 }
 
 // TestEmitHuman: the human report goes to stdout, through the Env's

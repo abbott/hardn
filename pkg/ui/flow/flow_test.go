@@ -430,7 +430,8 @@ func TestFindings(t *testing.T) {
 
 // TestFindingsPaths checks where the plan's findings go on each path,
 // plain: under the review's rows, then the plan, whether it is applied,
-// declined, a dry run, or fails; with nothing to change, before saying
+// declined, a dry run, confirmed by typing (before the question on its
+// line), or fails; with nothing to change, before saying
 // so; with no review, or a review with no rows, as a list of their own,
 // apart from what is above; and none for a plan that cannot be made.
 func TestFindingsPaths(t *testing.T) {
@@ -449,6 +450,15 @@ func TestFindingsPaths(t *testing.T) {
 		return f
 	}
 	dryRun := func(e Engine) Flow { f := useCloudflare(e); f.DryRun = true; return f }
+	typed := func(e Engine) Flow {
+		f := useCloudflare(e)
+		f.Confirm = func(Plan) Confirm {
+			return Confirm{Question: "Use Cloudflare DNS?", Label: "Type the hostname", Phrase: hostname}
+		}
+		return f
+	}
+	locked := dnsPlan
+	locked.Risk = RiskLockout
 	tests := []struct {
 		name   string
 		flow   func(Engine) Flow
@@ -461,6 +471,8 @@ func TestFindingsPaths(t *testing.T) {
 		{"applied", useCloudflare, Fixture{Planned: dnsPlan}, []string{"y"}, Applied, []string{review, question + "y\n", "# Operation Successful\n"}, true},
 		{"declined", useCloudflare, Fixture{Planned: dnsPlan}, []string{"n"}, Cancelled, []string{review, question + "n\n", "# Operation Cancelled\n"}, true},
 		{"a dry run", dryRun, Fixture{Planned: dnsPlan}, nil, Planned, []string{review, "  No actual changes were made to your system.\n"}, true},
+		{"typed", typed, Fixture{Planned: locked}, []string{hostname}, Applied,
+			[]string{review, "  Use Cloudflare DNS?\n\n  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01\n", "# Operation Successful\n"}, true},
 		{"failed", useCloudflare, Fixture{Planned: dnsPlan, FailAt: 1, Failure: Failure{Err: errors.New("Reloading systemd-resolved had no effect")}}, []string{"y"}, Failed,
 			[]string{review, question + "y\n", "# Operation Failed\n# Reloading systemd-resolved had no effect\n"}, true},
 		{"nothing to change", useCloudflare, Fixture{Planned: unchanged}, nil, Unchanged,

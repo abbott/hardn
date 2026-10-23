@@ -29,7 +29,10 @@ import (
 // the run lock and runs the changes of that plan (engine.md §2.9), so the
 // shown plan's Change.Apply functions are never wrapped. A plan is applied
 // once (engine.ErrPlanUsed): Apply never retries; a caller that wants to
-// try again runs the flow again, which plans again.
+// try again runs the flow again, which plans again. A FlowEngine serves
+// one run of a flow: it keeps the last plan it made, so a second flow on
+// it that ended before planning would be reported with the first's plan
+// (Run); a caller makes one per run.
 //
 // Plan hands the flow the plan's findings, which its Plan step lists
 // before the confirmation (slice 2, decision 5). After Flow.Run returns,
@@ -106,10 +109,12 @@ func (a *FlowEngine) Plan(ctx context.Context) (flow.Plan, error) {
 }
 
 // reviewFindings are plan p's findings as the flow's Plan step lists them:
-// the document's (planFindings), in its order, each once, a finding that
-// two changes carry being one line; each a warning, as the human report
-// words every finding (findingsBlock), its line the finding's detail, its
-// code kept with it but not shown (flow.Finding).
+// the document's (planFindings), in its order, each once by its words and
+// code, which is what its line says, a finding that two changes carry
+// being one line; each a warning, as the human report words every finding
+// (findingsBlock), its line the finding's detail, its code kept with it
+// but not shown (flow.Finding). A finding whose detail shows nothing is
+// not listed by the flow, and AfterFlow reports it (listedFindings).
 func reviewFindings(p *engine.Plan) []flow.Finding {
 	var out []flow.Finding
 	for _, f := range planFindings(p) {
@@ -155,7 +160,9 @@ func (a *FlowEngine) Apply(ctx context.Context, report flow.Report) error {
 // the end of the input), which it asks after them. A flow that ended
 // before a result otherwise, a context done as it planned or a write
 // that failed, is taken not to have listed them, so that AfterFlow
-// reports them: a finding is shown twice at worst, never missed.
+// reports them; and a finding whose detail shows nothing, which no line
+// lists, AfterFlow reports whichever (listedFindings): a finding is shown
+// twice at worst, never missed.
 func (a *FlowEngine) Run(o flow.Outcome, flowErr error) Run {
 	a.mu.Lock()
 	defer a.mu.Unlock()

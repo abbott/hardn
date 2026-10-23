@@ -101,8 +101,10 @@ func UFWFinding(f ufw.Finding) engine.Finding { return ufwFindings([]ufw.Finding
 // DNSFinding is one of dns's findings as an engine.Finding (DNS_...), in a
 // few words, for a plan and a check alike (next/s2-control; the words of
 // gallery-dns.md §5, decision 5, proposed): s is the state it was found in,
-// which says whether udhcpc's rewrite is established. dns's own detail, a
-// long sentence, is in the primitive's documentation (dns.md §2.9).
+// which says whether udhcpc's rewrite is established. A udhcpc hook is
+// named by its path (next/s2-flow-review, proposed), as a DHCP client is
+// by its name. dns's own detail, a long sentence, is in the primitive's
+// documentation (dns.md §2.9).
 func DNSFinding(s dns.State, f dns.Finding) engine.Finding {
 	out := engine.Finding{Code: findingCode("DNS", f.Kind.String()), Detail: f.Detail, Source: f.Path}
 	switch f.Kind {
@@ -122,8 +124,8 @@ func DNSFinding(s dns.State, f dns.Finding) engine.Finding {
 		out.Detail = path.Base(f.Path) + " may rewrite " + dns.ResolvConf + " on a lease"
 	case dns.FindingUDHCPC:
 		switch {
-		case f.Path != dns.UDHCPCConf:
-			out.Detail = "a udhcpc hook may rewrite " + dns.ResolvConf
+		case f.Path != dns.UDHCPCConf: // a hook, named by its path, so that two are two lines
+			out.Detail = f.Path + " may rewrite " + dns.ResolvConf
 		case s.UDHCPC.Rewrites == detect.Yes:
 			out.Detail = "udhcpc rewrites " + dns.ResolvConf + " on each lease"
 		default:

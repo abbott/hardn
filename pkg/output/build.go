@@ -52,8 +52,9 @@ type Run struct {
 	Deprecations []config.Deprecation
 	ConfigPath   string
 	// Reviewed: pkg/ui/flow's Plan step listed the plan's findings
-	// before its confirmation (FlowEngine.Run), so that AfterFlow does
-	// not repeat them. It changes nothing in the document.
+	// before its confirmation, as FlowEngine hands them (FlowEngine.Run),
+	// so that AfterFlow does not repeat them: each whose detail shows as
+	// a line. It changes nothing in the document.
 	Reviewed bool
 }
 

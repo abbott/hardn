@@ -211,9 +211,10 @@ func rollbackNext(rb Rollback, ae *engine.ApplyError) string {
 // confirmation, the confirm countdown counted from now, when it is rolled
 // back unless confirmed ("at about" when the deadline is approximate) and
 // how to undo it now; and as warnings the findings the flow did not list
-// before its confirmation: with r.Reviewed, none of the plan's, which the
-// flow's Plan step listed (slice 2, decision 5), so that a finding is not
-// said twice; without, as a plan refused, every one, as before. The flow
+// before its confirmation: with r.Reviewed, none of those of the plan
+// that the flow's Plan step listed (slice 2, decision 5; listedFindings),
+// so that a finding is not said twice, and one whose detail shows nothing
+// is still said; without, as a plan refused, every one, as before. The flow
 // ends a lockout-risk apply with "Operation Successful" alone, so a
 // caller that runs a flow on a FlowEngine must write AfterFlow on the
 // flow's writer right after Flow.Run returns, or the person never learns
@@ -228,7 +229,7 @@ func AfterFlow(env term.Env, r Run, now time.Time) string {
 	}
 	found := d.Findings
 	if r.Reviewed {
-		listed := planFindings(r.Plan)
+		listed := listedFindings(c, r.Plan)
 		found = slices.DeleteFunc(slices.Clone(found), func(f Finding) bool { return slices.Contains(listed, f) })
 	}
 	blocks = append(blocks, findingsBlock(c, found))
@@ -238,6 +239,18 @@ func AfterFlow(env term.Env, r Run, now time.Time) string {
 	}
 	gap := strings.Repeat("\n", theme.SectionGap)
 	return gap + strings.Join(blocks, gap+"\n") + "\n"
+}
+
+// listedFindings are the findings of plan p that pkg/ui/flow's Plan step
+// lists on c when FlowEngine hands it p (reviewFindings): each whose
+// detail shows as a line, as a component draws it. A detail that shows
+// nothing, empty, blank or escape sequences alone, is no line of the
+// flow's (flow.Finding: a finding with no text is not listed), so that
+// finding is not among them, and AfterFlow reports it, with its code.
+func listedFindings(c component.Ctx, p *engine.Plan) []Finding {
+	return slices.DeleteFunc(planFindings(p), func(f Finding) bool {
+		return component.KeyValue{Key: f.Detail}.Render(c) == ""
+	})
 }
 
 // countdown is a change waiting for confirmation: the confirm countdown,
