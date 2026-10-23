@@ -144,17 +144,16 @@
 // -height sized as play's; it draws nothing by -height.
 //
 // "dryrun" lists the Dry-Run mocks (dryrun.go, refactor plan slice 2b,
-// docs/engine/gallery-dryrun.md), for the maintainer's review: the main
-// menu's items on its layout under a status host's block, live and in dry
-// run, in origin/main's words and the proposed ones; the mode indicator's
-// states; origin/main's Dry-Run item on the sub-menu layout and its toggle
-// saved through the canonical flow; and origin/main's Firewall screen
-// under dry run, as it prints. "play dryrun" plays that main menu, its 6
-// toggling dry run for the session, "play dryrun/saved" with the toggle
-// saved, "play dryrun/proposed" the proposed one; -sequence dry-run starts
-// in dry run, as hardn -n does. Its flags are -list, -theme, -profile,
-// -ascii, -override, and -width and -height sized as play's; the main
-// menus take their full form at every height (screen.CompactMainMenu).
+// docs/engine/gallery-dryrun.md), for the maintainer's review:
+// origin/main's Dry-Run item on the sub-menu layout and its toggle saved
+// through the canonical flow; and origin/main's Firewall screen under dry
+// run, as it prints (the main-menu and mode mocks are retired, hardn's
+// main menu being on its layout since next/s2b-menu). "play dryrun"
+// plays hardn's main menu on its layout with them, its 6 toggling dry run
+// for the session, "play dryrun/saved" with the toggle saved; -sequence
+// dry-run starts in dry run, as hardn -n does. Its flags are -list,
+// -theme, -profile, -ascii, -override, and -width and -height sized as
+// play's.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //

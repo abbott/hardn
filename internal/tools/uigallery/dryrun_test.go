@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -13,59 +11,17 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
-	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// sized is a truecolor Unicode cell width columns wide and height rows
-// high, as pkg/ui/screen's tests name it.
-func sized(width, height int, dark bool) uitest.Cell {
-	bg := "light"
-	if dark {
-		bg = "dark"
-	}
-	env := term.Fixed(width, colorprofile.TrueColor, true, dark)
-	env.Height = height
-	return uitest.Cell{Name: fmt.Sprintf("truecolor-%s-unicode-%dx%d", bg, width, height), Env: env}
-}
-
-// mainCells are the cells of the mocks that draw the main menu or its
-// mode, as pkg/ui/screen pins its main menu: the core set, whose
-// terminals are 24 rows high; 80x40 on both themes; 60x40; and ASCII at
-// 80x24. The main menu takes its full form in each
-// (screen.CompactMainMenu).
-func mainCells() []uitest.Cell {
-	return append(uitest.Core(), sized(80, 40, true), sized(80, 40, false), sized(60, 40, true),
-		uitest.Cell{Name: "truecolor-dark-ascii-80", Env: term.Fixed(80, colorprofile.TrueColor, false, true)})
-}
-
-// cellArgs returns the flags that pick env: lookArgs's, and -height when
-// env is not term.DefaultHeight rows high.
-func cellArgs(t *testing.T, env term.Env) []string {
-	t.Helper()
-	base := env
-	base.Height = term.DefaultHeight
-	args := lookArgs(t, base)
-	if env.Height != term.DefaultHeight {
-		args = append(args, "-height", strconv.Itoa(env.Height))
-	}
-	return args
-}
-
-// TestDryRunGolden pins each mock of the listing on the core set, a main
-// menu and the mode on mainCells: the gallery's header, the mock's note,
-// then its drawing.
+// TestDryRunGolden pins each mock of the listing on the core set: the
+// gallery's header, the mock's note, then its drawing.
 func TestDryRunGolden(t *testing.T) {
 	for _, m := range dryMocks() {
-		cells := uitest.Core()
-		if m.main {
-			cells = mainCells()
-		}
-		uitest.Golden(t, dryRunPrefix+"/"+m.name, cells, func(env term.Env) string {
-			args := append(append([]string{dryRunPrefix}, cellArgs(t, env)...), m.name)
+		uitest.Golden(t, dryRunPrefix+"/"+m.name, uitest.Core(), func(env term.Env) string {
+			args := append(append([]string{dryRunPrefix}, lookArgs(t, env)...), m.name)
 			code, out, errs := runGallery(args...)
 			if code != exitOK || errs != "" {
 				t.Errorf("%v: exit %d, stderr %q; want exit 0", args, code, errs)
@@ -76,13 +32,11 @@ func TestDryRunGolden(t *testing.T) {
 }
 
 // TestPlayDryRunGolden plays the mocks on the core set and pins each
-// transcript: origin/main's main menu, 6 turning dry run on for the
-// session, then DNS Add stopping at its plan with the footer, then 4,
-// origin/main's Firewall screen under dry run, then 1, the note of what
-// origin/main does there (V2) above Figma's mock, then out; the toggle
-// saved through the canonical flow; and the proposed main menu started in
-// dry run (-n), its 6 refused as no item's key, its 1 and 5 refused under
-// plan only (decision 6), then DNS Add.
+// transcript: hardn's main menu on its layout, 6 turning dry run on for
+// the session ("Mode Plan only"), then DNS Add stopping at its plan with
+// the footer, then 4, origin/main's Firewall screen under dry run, then
+// 1, the note of what origin/main does there (V2) above Figma's mock,
+// then out; and the toggle saved through the canonical flow.
 func TestPlayDryRunGolden(t *testing.T) {
 	for _, r := range []struct {
 		name  string
@@ -91,7 +45,6 @@ func TestPlayDryRunGolden(t *testing.T) {
 	}{
 		{"dryrun", []string{dryRunPrefix}, []string{"6", "1", "0", "3", "2", "192.0.2.53", "0", "4", "1", "0", "0"}},
 		{"dryrun-saved", []string{dryRunPrefix + "/" + variantSaved}, []string{"6", "1", "y", "0", "0"}},
-		{"dryrun-proposed", []string{"-sequence", "dry-run", dryRunPrefix + "/" + variantProposed}, []string{"6", "1", "5", "3", "2", "192.0.2.53", "0", "0"}},
 	} {
 		uitest.Golden(t, "play/"+r.name, uitest.Core(), func(env term.Env) string {
 			args := append(lookArgs(t, env), r.args...)
@@ -101,111 +54,6 @@ func TestPlayDryRunGolden(t *testing.T) {
 			}
 			return out
 		})
-	}
-}
-
-// TestDryRunHeights measures the main menu on its layout over the
-// hardened host's eight rows, no line under any, Unicode and ASCII, in
-// its full form at every height, as adopted (decision 5; the compact form
-// gated, screen.CompactMainMenu): its lines and whether the risk level is
-// on screen, the prompt being the terminal's last line; origin/main's
-// items and the proposed ones (item 6 out); and hardn's live main menu
-// today, the status blocks over pkg/menu's 17-line menu
-// (docs/engine/menu-live.md §6).
-func TestDryRunHeights(t *testing.T) {
-	const legacyMenu = 17
-	sh, ok := findStatusHost(dryRunHost)
-	if !ok {
-		t.Fatalf("no status host %q", dryRunHost)
-	}
-	st, err := (&session{}).readStatus(context.Background(), sh.host())
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, tc := range []struct {
-		w, h             int
-		layout, proposed int
-		live             int
-		risk, riskLive   bool
-	}{
-		{80, 24, 36, 35, 37, false, false},
-		{80, 40, 36, 35, 37, true, true},
-		{60, 24, 59, 57, 48, false, false},
-	} {
-		for _, unicode := range []bool{true, false} {
-			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
-			env.Height = tc.h
-			c := component.NewCtx(env)
-			shown := func(out string) (int, bool) {
-				ls := strings.Split(ansi.Strip(out), "\n")
-				for i, l := range ls {
-					if strings.Contains(l, "Risk Level") {
-						return len(ls), i >= len(ls)-tc.h
-					}
-				}
-				t.Fatalf("%dx%d: no risk line:\n%s", tc.w, tc.h, out)
-				return 0, false
-			}
-			layout, risk := shown(mainMenu(st, false, false).Render(c))
-			proposed, err := modeView{proposed: true}.drawMenu(c, mainMenu(st, false, true))
-			if err != nil {
-				t.Fatal(err)
-			}
-			nProposed, riskProposed := shown(proposed)
-			blocks := mainMenu(st, false, false).StatusBlocks(c, legacyMenu)
-			live, riskLive := shown(blocks + strings.Repeat("\n", theme.SectionGap+legacyMenu))
-			if layout != tc.layout || nProposed != tc.proposed || live != tc.live || risk != tc.risk || riskProposed != tc.risk || riskLive != tc.riskLive {
-				t.Errorf("%dx%d, unicode %t: layout %d lines (risk shown %t), proposed %d (%t), live %d (%t); want %d (%t), %d, %d (%t)",
-					tc.w, tc.h, unicode, layout, risk, nProposed, riskProposed, live, riskLive, tc.layout, tc.risk, tc.proposed, tc.live, tc.riskLive)
-			}
-		}
-	}
-}
-
-// TestDryRunHeightsLine adds a line under a row: the gallery's Figma
-// host, "Up 182 days, no updates" under Auto Updates, takes 37 lines on
-// the layout, its full form at every height, so at 80x24 its risk level
-// scrolls off (it took 26 in the compact form, the risk level on screen).
-func TestDryRunHeightsLine(t *testing.T) {
-	sh, ok := findStatusHost("figma")
-	if !ok {
-		t.Fatal("no status host figma")
-	}
-	st, err := (&session{}).readStatus(context.Background(), sh.host())
-	if err != nil {
-		t.Fatal(err)
-	}
-	env := term.Fixed(80, colorprofile.TrueColor, true, true)
-	ls := strings.Split(ansi.Strip(mainMenu(st, false, false).Render(component.NewCtx(env))), "\n")
-	risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
-	if len(ls) != 37 || risk >= len(ls)-env.Height || !slices.ContainsFunc(ls, func(l string) bool { return strings.Contains(l, "Up 182 days, no updates") }) {
-		t.Errorf("Figma's host at 80x24: %d lines, the risk level on line %d; want 37, scrolled off, with its line under Auto Updates:\n%s", len(ls), risk, strings.Join(ls, "\n"))
-	}
-}
-
-// TestModeHeading checks the proposed indicator's place against the
-// component's, in each state: beside the heading at the value column from
-// theme.StackBelow columns, under it at the stack column below; no line
-// wider than the terminal.
-func TestModeHeading(t *testing.T) {
-	for _, w := range []int{120, 80, 64, 63, 60, 40, 20} {
-		c := component.NewCtx(term.Fixed(w, colorprofile.ASCII, false, true))
-		for _, s := range modeStates {
-			ls := strings.Split(ansi.Strip(s.mv.heading(c, "Select an option")), "\n")
-			stacked := w < theme.StackBelow
-			at, col := ls[0], theme.ValueCol
-			if stacked {
-				at, col = ls[len(ls)-1], theme.StackCol
-			}
-			if len(ls) != map[bool]int{false: 1, true: 2}[stacked] || len(at) <= col || strings.TrimSpace(at[:col]) != map[bool]string{false: "Select an option", true: ""}[stacked] || at[col] == ' ' {
-				t.Errorf("%d columns, %s: %q; want the mode from col %d, stacked %t", w, s.label, ls, col, stacked)
-			}
-			for _, l := range ls {
-				if n := ansi.StringWidth(l); n > w {
-					t.Errorf("%d columns, %s: a line of %d cells: %q", w, s.label, n, l)
-				}
-			}
-		}
 	}
 }
 
@@ -264,9 +112,9 @@ func TestToggleSaves(t *testing.T) {
 }
 
 // TestPlayDryRunNotes plays each variant started in dry run (-n) and
-// chooses 1, 2 and 5, which lead to Figma's mocks: in origin/main's
-// menus, each mock comes after the note of what origin/main does there
-// (V2 for 1); in the proposed one, 1 and 5 are refused and 2 is noted.
+// chooses 1, 2 and 5, which lead to Figma's mocks: each comes after the
+// note of what origin/main does there (V2 for 1); the main menu says
+// "Mode Plan only (-n)".
 func TestPlayDryRunNotes(t *testing.T) {
 	titles := map[string]string{}
 	for _, m := range screen.Mocks() {
@@ -282,7 +130,6 @@ func TestPlayDryRunNotes(t *testing.T) {
 	}{
 		{dryRunPrefix, []string{"1", "0", "2", "0", "5", "0", "0"}, []string{"1", "2", "5"}},
 		{dryRunPrefix + "/" + variantSaved, []string{"1", "0", "2", "0", "5", "0", "0"}, []string{"1", "2", "5"}},
-		{dryRunPrefix + "/" + variantProposed, []string{"1", "5", "2", "0", "0"}, []string{"2"}},
 	} {
 		args := append(lookArgs(t, term.Fixed(80, colorprofile.TrueColor, true, true)), "-sequence", "dry-run", r.variant)
 		code, out, errs, unread := playGallery(r.lines, args...)
@@ -297,16 +144,16 @@ func TestPlayDryRunNotes(t *testing.T) {
 				t.Errorf("%s, %s: want the note %q, then the mock titled %q:\n%s", r.variant, key, legacyDryRun[key], title, text)
 			}
 		}
-		refused := strings.Count(text, planOnlyRefused)
-		if want := map[bool]int{false: 0, true: len(refusedKeys)}[r.variant == dryRunPrefix+"/"+variantProposed]; refused != want {
-			t.Errorf("%s: %q said %d times, want %d", r.variant, planOnlyRefused, refused, want)
+		if !strings.Contains(text, "Select an option Mode Plan only (-n)") {
+			t.Errorf("%s: the main menu does not say plan only from -n:\n%s", r.variant, text)
 		}
 	}
 }
 
 // TestPlayDryRunSavedUnderFlag plays the saved toggle started as hardn -n:
 // turning plan only off finds hardn.yml already live and saves nothing,
-// and the flag keeps plan only (plan §3.19, decision 4).
+// and the flag keeps plan only (plan §3.19, decision 4), the main menu
+// still naming it, "Mode Plan only (-n)".
 func TestPlayDryRunSavedUnderFlag(t *testing.T) {
 	args := append(lookArgs(t, term.Fixed(80, colorprofile.TrueColor, true, true)), "-sequence", "dry-run", dryRunPrefix+"/"+variantSaved)
 	code, out, errs, unread := playGallery([]string{"6", "1", "0", "0"}, args...)
@@ -316,7 +163,7 @@ func TestPlayDryRunSavedUnderFlag(t *testing.T) {
 	text := strings.Join(strings.Fields(ansi.Strip(out)), " ")
 	last := text[strings.LastIndex(text, "Select an option"):]
 	if !strings.Contains(text, "Nothing needs changing.") || !strings.Contains(text, flagHolds) || strings.Contains(text, "+dryRun") ||
-		!strings.Contains(text, "Nothing was applied.") || !strings.Contains(last, "Dry-run Mode Enabled") {
+		!strings.Contains(text, "Nothing was applied.") || !strings.HasPrefix(last, "Select an option Mode Plan only (-n)") {
 		t.Errorf("want nothing saved, %q, and the main menu still in dry run:\n%s", flagHolds, text)
 	}
 }
