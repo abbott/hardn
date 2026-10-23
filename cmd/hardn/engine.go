@@ -26,8 +26,8 @@ import (
 // Seams for the tests: the host the engine changes and the screens read,
 // with its run log; detection, the engine's and the screens'; the hold
 // around an in-process rollback (nil: the engine's own); the signals that
-// cancel a flag's plan and apply (engine.md §2.14); the line reader and
-// the stdout the screens and a flag's report use.
+// cancel a flag's or a screen's changes (engine.md §2.14); the line reader
+// and the stdout the screens and a flag's report use.
 var (
 	engineHost    = func() host.System { return host.NewReal(host.Options{RunLog: revertFileLog{}}) }
 	engineDetect  = detect.Detect

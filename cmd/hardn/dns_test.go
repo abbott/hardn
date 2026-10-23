@@ -199,8 +199,8 @@ type dnsSeams struct {
 // useDNSHost points the engine's and the screens' seams at h until the
 // test ends: its facts, a hold that counts, the user typing lines, plain
 // output at 80 columns into the returned buffer, and revert's clock,
-// pid, environment and hardn's path fixed; the signals' seam is restored
-// too, for a test that replaces it.
+// pid, environment and hardn's path fixed; and signals that never come
+// (a context only the test cancels).
 func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 	t.Helper()
 	s := &dnsSeams{}
@@ -212,6 +212,7 @@ func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 	})
 	in := prompt.New(uitest.NewTypist(&s.out, lines...), false)
 	engineHost = func() host.System { return h }
+	engineSignals = context.WithCancel // no signal: nothing cancels it but the test
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return h.facts, nil }
 	engineHold = func() func() { s.held++; return func() {} }
 	engineInput = func() *prompt.Reader { return in }
@@ -288,6 +289,34 @@ func TestDNSScreen(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestDNSScreenInterrupted: Ctrl-C, SIGTERM or a hangup during a change's
+// apply on the DNS screen (engineSignals' context cancelled) rolls the
+// change back here, the hold taken once, and the screen goes on, reading
+// nothing more of the host, until the user goes back: nil, the
+// configuration as it was. hardn is not ended half applied.
+func TestDNSScreenInterrupted(t *testing.T) {
+	h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
+	s := useDNSHost(t, h, "1", "y", "0")
+	ctx, cancel := context.WithCancel(context.Background())
+	engineSignals = func(context.Context) (context.Context, context.CancelFunc) { return ctx, cancel }
+	answer := h.Handler
+	h.Handler = func(argv []string, in []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
+			cancel() // the signal, as signal.NotifyContext delivers it; the reload itself succeeds
+		}
+		return answer(argv, in)
+	}
+	if err := runDNSScreen(context.Background(), cfg); err != nil {
+		t.Fatalf("runDNSScreen = %v; screen:\n%s", err, s.out.String())
+	}
+	if got := h.content(hostdns.DropIn); got != "<absent>" || s.held != 1 || !strings.Contains(s.out.String(), "Rolled back") {
+		t.Errorf("the drop-in after the signal:\n%s\nholds %d; screen:\n%s", got, s.held, s.out.String())
+	}
+	if !slices.Equal(cfg.Nameservers, dnsTestList) {
+		t.Errorf("the configuration lists %q", cfg.Nameservers)
 	}
 }
 
@@ -446,8 +475,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 			answer := h.Handler
 			h.Handler = func(argv []string, in []byte) hostfake.Response {
 				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
-					cancel() // Ctrl-C, as signal.NotifyContext delivers it
-					return hostfake.Response{Err: context.Canceled, ExitCode: -1}
+					cancel() // Ctrl-C, as signal.NotifyContext delivers it; the reload itself succeeds
 				}
 				return answer(argv, in)
 			}

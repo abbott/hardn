@@ -78,7 +78,16 @@ func withDNSScreen(m *menu.MainMenu, c *config.Config) *menu.MainMenu {
 // adopts hardn.yml as each change saved it into c (dnsscreen.Options), the
 // configuration the main menu holds. No audit record is written: the
 // audit log's first writer is next/p3-startup's (Options.Ran left nil).
+//
+// Ctrl-C, SIGTERM and a hangup cancel ctx while the screen runs
+// (engineSignals, as -g's; engine.md §2.14), so that a change they
+// interrupt is rolled back here rather than left half applied; at a
+// prompt, Ctrl-C still ends hardn, as the prompt reports it
+// (prompt.ErrInterrupted). Once cancelled, the screen reads nothing more
+// of the host (Unknown) and plans nothing, until the user leaves it.
 func runDNSScreen(ctx context.Context, c *config.Config) error {
+	ctx, stop := engineSignals(ctx)
+	defer stop()
 	sys := engineHost()
 	facts, err := engineDetect(ctx, sys)
 	if err != nil {
