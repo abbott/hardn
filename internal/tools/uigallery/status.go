@@ -92,7 +92,7 @@ func statusHosts() []statusHost {
 				"cloud-init's 50-cloud-init.conf allowing passwords, alice in sudo, AppArmor enforcing, unattended-upgrades on; up 3 days."},
 		{name: "hardened", label: "Hardened Debian 13", about: "Every row as hardn wants it", host: hardened,
 			note: "Debian 13 after hardn: alice in sudo, ufw allowing 2230 alone, sshd on 2230 refusing root's login " +
-				"and passwords, AppArmor enforcing, unattended-upgrades on; up 3 days."},
+				"and passwords, AppArmor enforcing, unattended-upgrades on, hardn.yml's nameservers in use; up 3 days."},
 		{name: "figma", label: "Figma's host", about: "00-TUI-MAIN's rows", host: figmaHost,
 			note: "Debian 13 with 00-TUI-MAIN's rows: the hardened host, but AppArmor loads no profile " +
 				"and unattended-upgrades is not installed; up 182 days."},

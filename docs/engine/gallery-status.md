@@ -25,7 +25,7 @@ A status line is reviewed in its place: beside the six others, under the level t
    | `fresh` | Debian 13 installed with root alone (no first user), before anything is set up: no ufw | "root only", Critical |
    | `ubuntu2604-cloud` | Ubuntu 26.04 as its 26.04.1 cloud image ships: ufw installed and inactive (`ENABLED=no`), `60-cloudimg-settings.conf`'s `PasswordAuthentication no`, alice the default user, whom cloud-init's rule lets use sudo without a password | "inactive", "key-only auth", "no password to become root", Moderate |
    | `ubuntu2604-iso` | Ubuntu 26.04 from the server ISO with no SSH key imported: ufw installed and inactive, cloud-init's `50-cloud-init.conf` `PasswordAuthentication yes`, alice in sudo | "inactive", "password auth on", High |
-   | `hardened` | Debian 13 after hardn: 2230, root and passwords refused, ufw allowing 2230 alone, unattended-upgrades on | every row Configured, Minimal |
+   | `hardened` | Debian 13 after hardn: 2230, root and passwords refused, ufw allowing 2230 alone, unattended-upgrades on; *since `next/s2-menu-live`* hardn.yml's nameservers in use (its note says so) | every row Configured, Minimal |
    | `figma` | the hardened host with no AppArmor profile and no unattended-upgrades, up 182 days, 2 hours, 26 minutes | 00-TUI-MAIN's rows' states and level; Figma draws no factor and no detail on AppArmor or Auto Updates (§5 (c)) |
    | `lockout` | the hardened host, ufw allowing 443 alone | "ssh blocked", "Critical ≈ lockout risk" |
    | `lockout-at-start` | the hardened host, ufw stopped and enabled at boot (`ENABLED=yes`), its saved rules allowing 443 alone | "enabled, not running", "ssh may be blocked after restart", Moderate (§5 (f)) |

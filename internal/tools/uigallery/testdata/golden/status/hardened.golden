@@ -8,7 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 after hardn: alice in sudo, ufw allowing 2230 alone,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd on 2230 refusing root's login and passwords, AppArmor␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menforcing, unattended-upgrades on; up 3 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menforcing, unattended-upgrades on, hardn.yml's nameservers in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muse; up 3 days.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -44,7 +45,8 @@ $
 # Note$
 # Debian 13 after hardn: alice in sudo, ufw allowing 2230 alone,$
 # sshd on 2230 refusing root's login and passwords, AppArmor$
-# enforcing, unattended-upgrades on; up 3 days.$
+# enforcing, unattended-upgrades on, hardn.yml's nameservers in$
+# use; up 3 days.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -91,7 +93,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 after hardn: alice in sudo, ufw allowing 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, sshd on 2230 refusing root's login and passwords,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAppArmor enforcing, unattended-upgrades on; up 3 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAppArmor enforcing, unattended-upgrades on, hardn.yml's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnameservers in use; up 3 days.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
