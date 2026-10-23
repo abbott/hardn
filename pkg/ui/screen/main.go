@@ -45,14 +45,17 @@ import (
 // On a terminal (term.Env.TTY) shorter than theme.CompactBelow, or too
 // short for the full form, prompt included, the main menu renders its
 // compact form, which fits theme.CompactBudget lines, an 80x24 console,
-// with Figma's content from theme.StackBelow columns up (DEV-052): the
-// Header and the Divider are left out; the ContextBar keeps the blank line
-// under it, as a bar always has, Figma's and the sub-screens' title bar
-// alike; the RiskSummary and the StatusList are one group, with no blank
-// line inside it; the menu's items start on the line under the heading,
-// with no blank line between; and the menu is laid out in two columns,
-// its items' keys and labels alone (component.Menu.Compact). Here plain,
-// at 80x24, cut short:
+// with Figma's content from theme.StackBelow columns up (DEV-052); a
+// host's eight rows, DNS among them, take one line more, 25, so that at
+// 80x24 its first line scrolls off, and each line under a row another
+// (open for the maintainer: docs/engine/menu-live.md §6). In the compact
+// form the Header and the Divider are left out; the ContextBar keeps the
+// blank line under it, as a bar always has, Figma's and the sub-screens'
+// title bar alike; the RiskSummary and the StatusList are one group, with
+// no blank line inside it; the menu's items start on the line under the
+// heading, with no blank line between; and the menu is laid out in two
+// columns, its items' keys and labels alone (component.Menu.Compact).
+// Here plain, at 80x24, cut short:
 //
 //	# Debian 12 (Bookworm) #########################################
 //

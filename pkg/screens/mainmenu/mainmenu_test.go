@@ -18,8 +18,11 @@ import (
 // The main menu's status over hostfake (pkg/menu's tests draw it over the
 // gallery's status hosts). Nothing on this machine is read or run.
 
-// reads are hostfake's records of the methods that only read.
-var reads = []string{"read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "run"}
+// calls are hostfake's records of the methods that only read, and of
+// Run, whose commands this host answers none of: which commands a pass
+// runs, and that each only reads, pkg/menu's TestLiveStatusOnHosts checks
+// on hosts that answer them.
+var calls = []string{"read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "run"}
 
 // options are a status drawn on f, plain at 80 columns, hardn.yml listing
 // one nameserver.
@@ -36,7 +39,8 @@ func plain() term.Env { return term.Resolve(term.Options{}, term.Facts{Width: 80
 // command failing), every row is Unknown, never a guess, and the status
 // is still drawn: each weighed row with "Counted as not configured" under
 // it, DNS with its own "can't read" and nothing under it, the risk level
-// Unknown; and every call only read.
+// Unknown; and every call a read or a command (calls), so no file is
+// written (which commands, this test does not check).
 func TestNothingRead(t *testing.T) {
 	f := hostfake.New(host.Options{})
 	out, err := mainmenu.Status(context.Background(), options(f, plain()), 17)
@@ -61,8 +65,8 @@ func TestNothingRead(t *testing.T) {
 		t.Errorf("the risk level is not Unknown:\n%s", out)
 	}
 	for _, c := range f.Calls() {
-		if !slices.Contains(reads, c.Op) {
-			t.Errorf("a call that is not a read: %v", c)
+		if !slices.Contains(calls, c.Op) {
+			t.Errorf("a call that is neither a read nor a command: %v", c)
 		}
 	}
 }

@@ -146,10 +146,14 @@ func (m *MainMenu) showStatus(menu *style.Menu) {
 // showLiveStatus prints the status model's blocks for the main menu, menu
 // its items, heading to prompt, under them (SetStatus). The checks only
 // read, and run again on every pass, so each pass shows the host as it is
-// then. Ctrl-C while they run: no signal handler is registered for them,
-// so Go's default ends hardn by SIGINT at once, as prompt.Reraise ends it
-// at the menu's prompt; a context cancelled before they finish ends hardn
-// the same way (endHardn, prompt.ErrInterrupted).
+// then. Nothing bounds a pass: showStatus passes context.Background(),
+// never done, so a command that blocks holds the cleared screen until it
+// returns or Ctrl-C ends hardn (docs/engine/menu-live.md §5). Ctrl-C while
+// they run: no signal handler is registered for them, so Go's default
+// ends hardn by SIGINT at once, as prompt.Reraise ends it at the menu's
+// prompt; it does not reach the hook through ctx. A hook that returns a
+// cancelled context's error, of a context of its own, ends hardn the same
+// way (endHardn, prompt.ErrInterrupted).
 func (m *MainMenu) showLiveStatus(ctx context.Context, menu *style.Menu) {
 	if m.status == nil {
 		panic("menu: the main menu has no status (SetStatus)")
