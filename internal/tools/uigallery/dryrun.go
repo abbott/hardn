@@ -380,9 +380,8 @@ const dryRunUsage = "usage: go run ./internal/tools/uigallery dryrun [flags] [mo
 // dryRunList is the listing: each mock args name (none, or "all", is
 // every mock) under the gallery's header, "dryrun <mock>", its note, then
 // its drawing, a write each; -list prints their names. It sizes itself as
-// play does (look.sizeTo), so the main menus take their full form on a
-// terminal of 40 rows or more and their compact form below; plain mode,
-// which is no terminal, takes the full form at any height.
+// play does (look.sizeTo); the main menus take their full form at every
+// height (screen.CompactMainMenu).
 func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("uigallery dryrun", flag.ContinueOnError)
 	fs.SetOutput(stderr)

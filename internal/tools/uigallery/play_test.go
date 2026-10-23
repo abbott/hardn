@@ -122,9 +122,10 @@ func TestPlayGolden(t *testing.T) {
 // refused, and the terminal not asked when both are; off a terminal, 80
 // and 24 whatever size the sizer reports, as on a terminal of unknown
 // size. Then, end to end, that the main menu takes the form the size
-// gives it: its full form on an 80x40 terminal, and its compact form on
-// one of 24 rows, at -height 24 on the 80x40 terminal, and off a
-// terminal.
+// gives it: its full form on an 80x40 terminal, and a 24-row terminal's
+// form on one of 24 rows, at -height 24 on the 80x40 terminal, and off a
+// terminal: the full form too while its compact form is gated
+// (screen.CompactMainMenu), else the compact one.
 func TestPlaySize(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -167,9 +168,9 @@ func TestPlaySize(t *testing.T) {
 		env.Height = height
 		return ansi.Strip(vm.Render(component.NewCtx(env)))
 	}
-	full, compact := drawn(theme.CompactBelow), drawn(term.DefaultHeight)
-	if full == compact || !strings.HasPrefix(full, "hardn") {
-		t.Fatalf("the main menu at 80x40 is not its full form:\n%s", full)
+	full, short := drawn(theme.CompactBelow), drawn(term.DefaultHeight)
+	if (full == short) == screen.CompactMainMenu || !strings.HasPrefix(full, "hardn") {
+		t.Fatalf("the main menu at 80x40 is not its full form, or at 80x24 not the form CompactMainMenu gives:\n%s\n\n%s", full, short)
 	}
 	for _, tt := range []struct {
 		name string
@@ -178,9 +179,9 @@ func TestPlaySize(t *testing.T) {
 		want string
 	}{
 		{"an 80x40 terminal", nil, on(80, 40), full},
-		{"an 80x24 terminal", nil, on(80, 24), compact},
-		{"an 80x40 terminal, -height 24", []string{"-height", "24"}, on(80, 40), compact},
-		{"no terminal", nil, offTerminal, compact},
+		{"an 80x24 terminal", nil, on(80, 24), short},
+		{"an 80x40 terminal, -height 24", []string{"-height", "24"}, on(80, 40), short},
+		{"no terminal", nil, offTerminal, short},
 	} {
 		var out, errs bytes.Buffer
 		ty := uitest.NewTypist(&out, "q")

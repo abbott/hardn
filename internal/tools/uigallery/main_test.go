@@ -334,8 +334,8 @@ func TestUsage(t *testing.T) {
 	if code, _, errs := runGallery("menu", "-profile", "plain"); code != exitUsage || !strings.Contains(errs, "flag -profile comes after a component or state name; flags go before them") {
 		t.Errorf("a flag after a name: exit %d, stderr %q; want exit %d and a hint at the order", code, errs, exitUsage)
 	}
-	if code, _, errs := runGallery("-h"); code != exitOK || !strings.Contains(errs, "compact form under 40 rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height 40") {
-		t.Errorf("-h: exit %d, stderr %q; want %d, and -height's help to say when the main menu takes its compact form", code, errs, exitOK)
+	if code, _, errs := runGallery("-h"); code != exitOK || !strings.Contains(errs, mainForm) {
+		t.Errorf("-h: exit %d, stderr %q; want %d, and -height's help to say which form the main menu takes", code, errs, exitOK)
 	}
 }
 

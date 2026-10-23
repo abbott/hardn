@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
@@ -71,11 +72,12 @@ func TestNothingRead(t *testing.T) {
 	}
 }
 
-// TestForm: the blocks' form is the terminal's, for a menu of the lines
-// given (screen.MainMenu.StatusBlocks): in full on output that is not a
-// terminal, compact on a terminal of 24 rows, in full on one of 60 rows
-// that holds them and the menu; each ends with the blank line before the
-// menu, and the header shows the version given.
+// TestForm: the blocks' form (screen.MainMenu.StatusBlocks): in full on
+// output that is not a terminal and on a terminal of 60 rows that holds
+// them and the menu; on one of 24 rows compact where
+// screen.CompactMainMenu allows it, and in full while it is gated; each
+// ends with the blank line before the menu, and the header shows the
+// version given.
 func TestForm(t *testing.T) {
 	tty := func(h int) term.Env {
 		return term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: h, Environ: []string{"TERM=xterm-256color"}})
@@ -84,7 +86,7 @@ func TestForm(t *testing.T) {
 		name string
 		env  term.Env
 		full bool
-	}{{"plain", plain(), true}, {"80x24", tty(24), false}, {"80x60", tty(60), true}} {
+	}{{"plain", plain(), true}, {"80x24", tty(24), !screen.CompactMainMenu}, {"80x60", tty(60), true}} {
 		out, err := mainmenu.Status(context.Background(), options(hostfake.New(host.Options{}), tc.env), 17)
 		if err != nil {
 			t.Fatal(err)

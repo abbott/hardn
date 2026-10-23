@@ -202,8 +202,9 @@ func TestLiveStatusOnHosts(t *testing.T) {
 
 // TestLiveMainMenuGolden records hardn's live main menu, one pass before
 // input, on the gallery's Debian 13 and hardened hosts, on a 256-colour
-// UTF-8 terminal of 80 columns: at 24 rows, the status in its compact form
-// above origin/main's menu; at 40, in full (docs/engine/menu-live.md §6).
+// UTF-8 terminal of 80 columns, at 24 and 40 rows: the status in its full
+// form above origin/main's menu, its compact form gated
+// (screen.CompactMainMenu; docs/engine/menu-live.md §6).
 func TestLiveMainMenuGolden(t *testing.T) {
 	prevEastAsian, prevColors := runewidth.DefaultCondition.EastAsianWidth, style.UseColors
 	runewidth.DefaultCondition.EastAsianWidth, style.UseColors = false, true

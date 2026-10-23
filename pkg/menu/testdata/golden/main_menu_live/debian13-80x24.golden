@@ -4,12 +4,15 @@
 # The status: pkg/screens/mainmenu (screen.MainMenu.StatusBlocks); under it, origin/main's menu (createMainMenu)
 # ESC bytes are shown as the four characters \x1b, and each screen line ends with $ (as cat -e shows it).
 # ----
+\x1b[1;38;5;251mhardn\x1b[m \x1b[38;5;103;48;5;234m v0.4.0 \x1b[m             \x1b[38;5;59mhttps://github.com/abbott/hardn\x1b[m$
+$
 \x1b[38;5;236m░\x1b[m \x1b[1;38;5;103mDebian\x1b[m \x1b[38;5;103m13\x1b[m \x1b[38;5;59m(Trixie)\x1b[m \x1b[38;5;236m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\x1b[m$
 $
   \x1b[1;38;5;254;48;5;19m web-01 \x1b[m                 \x1b[38;5;103m192.0.2.20\x1b[m$
                            \x1b[38;5;59m3 days, 5 hours, 12 minutes\x1b[m$
 $
    \x1b[38;5;204m⛬\x1b[m  \x1b[1;38;5;251mRisk Level\x1b[m           \x1b[38;5;204mHigh\x1b[m \x1b[38;5;59m≈ weak security\x1b[m$
+$
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mUser\x1b[m                 \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59mnon-root, sudo\x1b[m$
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59mdeny policy\x1b[m$
    \x1b[38;5;179m⭘\x1b[m  \x1b[38;5;251mSSH Login\x1b[m            \x1b[38;5;179mPartial\x1b[m \x1b[38;5;59mroot key-only\x1b[m$
@@ -18,6 +21,8 @@ $
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mAppArmor\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59m7 profiles enforced\x1b[m$
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
    \x1b[38;5;103m–\x1b[m  \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;103mNot Applicable\x1b[m \x1b[38;5;59mno hardn.yml\x1b[m$
+$
+\x1b[38;5;236m────────────────────────────────────────────────────────────────\x1b[m$
 $
   \x1b[4m\x1b[38;5;246mSelect an option\x1b[0m        \x1b[33m\x1b[0m\x1b[2mDry-run Mode\x1b[0m \x1b[33mDisabled\x1b[0m \x1b[2m\x1b[0m$
 $

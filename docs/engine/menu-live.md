@@ -64,6 +64,8 @@ The file operations are `stat`, `lstat`, `read`, `readdir` and `readlink`. The r
 
 ## 6. The heights, with one row more
 
+> *Since `next/s2b-menu` (slice 2b, unit (c)), the compact form is gated (`screen.CompactMainMenu`, DISABLED; the maintainer, 2026-10-23, decision 5 as adopted: the full form at every height): every figure below for the compact form is what it drew, kept for the record and drawn again if the gate is flipped; hardn's live main menu draws the full blocks at every height, 37 lines at 80×24 over its legacy menu, until the same unit puts that menu on the layout.*
+
 Measured by `TestHeights` (`pkg/ui/screen`), on a terminal, Figma's fixture with no line under a row (each line under a row, and the host block's reboot line, adds one to every figure), Unicode and ASCII alike:
 
 | Rows | Terminal | Form drawn | Lines | hardn's live main menu (§5) |

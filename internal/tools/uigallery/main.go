@@ -96,9 +96,10 @@
 // Play sizes itself to the terminal: where -width or -height is not given
 // and stdout is a terminal, it takes the terminal's size, as term.Detect,
 // which builds the render environment, reads it, once at the start, so
-// that a terminal of 40 rows or more, from 64 columns, shows the main
-// menu's full form, as 00-TUI-MAIN.png does, and a shorter one its
-// compact form. A flag given wins, each on its own; with stdout not a
+// that the main menu is drawn as hardn draws it there: its full form at
+// every height, as 00-TUI-MAIN.png shows it, its top scrolling off a
+// terminal shorter than it (its compact form is gated,
+// screen.CompactMainMenu). A flag given wins, each on its own; with stdout not a
 // terminal, as in the tests and through a pipe, play keeps 80 and 24, so
 // that its goldens stay deterministic.
 //
@@ -152,9 +153,8 @@
 // toggling dry run for the session, "play dryrun/saved" with the toggle
 // saved, "play dryrun/proposed" the proposed one; -sequence dry-run starts
 // in dry run, as hardn -n does. Its flags are -list, -theme, -profile,
-// -ascii, -override, and -width and -height sized as play's; -height picks
-// the main menus' form, the full one from 40 rows, the compact one below,
-// and plain mode, which is no terminal, the full one at any height.
+// -ascii, -override, and -width and -height sized as play's; the main
+// menus take their full form at every height (screen.CompactMainMenu).
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //
@@ -166,12 +166,9 @@
 //	                  glyphs) (default truecolor)
 //	-ascii            the ASCII glyph set
 //	-width N          the terminal width in cells (default 80)
-//	-height N         the terminal height in lines (default 24), which
-//	                  decides the main menu's form: it takes its compact
-//	                  form under 40 rows, or when its full form does not
-//	                  fit, so comparing it with 00-TUI-MAIN.png needs
-//	                  -height 40 (from 64 columns; at 60 the full form
-//	                  takes 57 lines)
+//	-height N         the terminal height in lines (default 24); the main
+//	                  menu takes its full form at every height, its
+//	                  compact form gated (screen.CompactMainMenu)
 //	-screens          the screen mocks, in place of the component states
 //	-matrix           render each state in every cell of the golden matrix,
 //	                  uitest.Full's 48, then plain mode at 60, 80 and 120,
@@ -431,6 +428,16 @@ type look struct {
 	width, height            *int
 }
 
+// mainForm is what -height's help says of the main menu's form: its full
+// form at every height while its compact form is gated
+// (screen.CompactMainMenu), and otherwise when it takes its compact form.
+var mainForm = func() string {
+	if !screen.CompactMainMenu {
+		return "The main menu takes its full form at every height, its top scrolling off a shorter terminal (its compact form is gated: screen.CompactMainMenu)"
+	}
+	return fmt.Sprintf("The main menu takes its compact form under %d rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height %d", theme.CompactBelow, theme.CompactBelow)
+}()
+
 // lookFlags defines the look flags on fs. With sized set, as in the
 // playable mode, status and glyphs, -width and -height default to the
 // terminal's size (look.sizeTo), 0 standing for it until then, and their
@@ -440,11 +447,11 @@ type look struct {
 func lookFlags(fs *flag.FlagSet, sized bool) look {
 	width, height := term.DefaultWidth, term.DefaultHeight
 	widthHelp := "the terminal width in cells"
-	heightHelp := fmt.Sprintf("the terminal height in lines; the main menu takes its compact form under %d rows, or when its full form does not fit, so comparing it with 00-TUI-MAIN.png needs -height %d", theme.CompactBelow, theme.CompactBelow)
+	heightHelp := "the terminal height in lines. " + mainForm
 	if sized {
 		width, height = 0, 0
 		widthHelp = fmt.Sprintf("the terminal width in cells: by default the terminal's own when stdout is a terminal, else %d", term.DefaultWidth)
-		heightHelp = fmt.Sprintf("the terminal height in lines: by default the terminal's own when stdout is a terminal, else %d. The main menu takes its compact form under %d rows, or when its full form does not fit, so a terminal of %d rows or more, from %d columns, shows its full form, as 00-TUI-MAIN.png", term.DefaultHeight, theme.CompactBelow, theme.CompactBelow, theme.StackBelow)
+		heightHelp = fmt.Sprintf("the terminal height in lines: by default the terminal's own when stdout is a terminal, else %d. ", term.DefaultHeight) + mainForm
 	}
 	return look{
 		theme:    fs.String("theme", "dark", "the palette: dark or light"),

@@ -259,7 +259,7 @@ func TestStatusSys(t *testing.T) {
 
 // TestStatusGolden pins each host's listing on the core set: the
 // gallery's header, the host's note, then its main menu down to its
-// prompt, compact at 24 rows on a terminal, whole in plain mode.
+// prompt, in its full form (screen.CompactMainMenu).
 func TestStatusGolden(t *testing.T) {
 	for _, name := range statusNames() {
 		uitest.Golden(t, statusPrefix+"/"+name, uitest.Core(), func(env term.Env) string {

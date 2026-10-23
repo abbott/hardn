@@ -63,7 +63,10 @@ const (
 	// CompactBelow is the terminal height, in rows, below which the main
 	// menu renders in its compact form; a taller terminal gets it too when
 	// the full form's lines do not fit it. The full menu is 35 lines from
-	// StackBelow columns up, and more below, where its rows stack.
+	// StackBelow columns up, and more below, where its rows stack. The
+	// compact form is gated (pkg/ui/screen's CompactMainMenu, DISABLED
+	// 2026-10-23: the main menu takes its full form at every height), so
+	// this and CompactBudget are read only where the gate allows it.
 	CompactBelow = 40
 	// CompactBudget is the most lines the compact main menu may use,
 	// prompt included, so that it fits an 80x24 console: Figma's seven

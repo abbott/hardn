@@ -34,10 +34,9 @@ func sized(width, height int, dark bool) uitest.Cell {
 
 // mainCells are the cells of the mocks that draw the main menu or its
 // mode, as pkg/ui/screen pins its main menu: the core set, whose
-// terminals are 24 rows high, so its 80- and 60-column cells show the
-// compact form and plain mode, no terminal, the full one; the full form at
-// 80x40 on both themes; 60x40, where the compact form is drawn; and the
-// compact form in ASCII at 80x24.
+// terminals are 24 rows high; 80x40 on both themes; 60x40; and ASCII at
+// 80x24. The main menu takes its full form in each
+// (screen.CompactMainMenu).
 func mainCells() []uitest.Cell {
 	return append(uitest.Core(), sized(80, 40, true), sized(80, 40, false), sized(60, 40, true),
 		uitest.Cell{Name: "truecolor-dark-ascii-80", Env: term.Fixed(80, colorprofile.TrueColor, false, true)})
@@ -106,11 +105,13 @@ func TestPlayDryRunGolden(t *testing.T) {
 }
 
 // TestDryRunHeights measures the main menu on its layout over the
-// hardened host's eight rows, no line under any, Unicode and ASCII: its
-// lines and whether the risk level is on screen, the prompt being the
-// terminal's last line; origin/main's items and the proposed ones (item
-// 6 out); and hardn's live main menu today, the status blocks over
-// pkg/menu's 17-line menu (docs/engine/menu-live.md §6).
+// hardened host's eight rows, no line under any, Unicode and ASCII, in
+// its full form at every height, as adopted (decision 5; the compact form
+// gated, screen.CompactMainMenu): its lines and whether the risk level is
+// on screen, the prompt being the terminal's last line; origin/main's
+// items and the proposed ones (item 6 out); and hardn's live main menu
+// today, the status blocks over pkg/menu's 17-line menu
+// (docs/engine/menu-live.md §6).
 func TestDryRunHeights(t *testing.T) {
 	const legacyMenu = 17
 	sh, ok := findStatusHost(dryRunHost)
@@ -127,9 +128,9 @@ func TestDryRunHeights(t *testing.T) {
 		live             int
 		risk, riskLive   bool
 	}{
-		{80, 24, 25, 25, 32, true, false},
+		{80, 24, 36, 35, 37, false, false},
 		{80, 40, 36, 35, 37, true, true},
-		{60, 24, 36, 36, 42, false, false},
+		{60, 24, 59, 57, 48, false, false},
 	} {
 		for _, unicode := range []bool{true, false} {
 			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
@@ -162,8 +163,9 @@ func TestDryRunHeights(t *testing.T) {
 }
 
 // TestDryRunHeightsLine adds a line under a row: the gallery's Figma
-// host, "Up 182 days, no updates" under Auto Updates, at 80x24 takes 26
-// lines on the layout, its risk level still on screen.
+// host, "Up 182 days, no updates" under Auto Updates, takes 37 lines on
+// the layout, its full form at every height, so at 80x24 its risk level
+// scrolls off (it took 26 in the compact form, the risk level on screen).
 func TestDryRunHeightsLine(t *testing.T) {
 	sh, ok := findStatusHost("figma")
 	if !ok {
@@ -176,8 +178,8 @@ func TestDryRunHeightsLine(t *testing.T) {
 	env := term.Fixed(80, colorprofile.TrueColor, true, true)
 	ls := strings.Split(ansi.Strip(mainMenu(st, false, false).Render(component.NewCtx(env))), "\n")
 	risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
-	if len(ls) != 26 || risk < len(ls)-env.Height || !slices.ContainsFunc(ls, func(l string) bool { return strings.Contains(l, "Up 182 days, no updates") }) {
-		t.Errorf("Figma's host at 80x24: %d lines, the risk level on line %d; want 26, on screen, with its line under Auto Updates:\n%s", len(ls), risk, strings.Join(ls, "\n"))
+	if len(ls) != 37 || risk >= len(ls)-env.Height || !slices.ContainsFunc(ls, func(l string) bool { return strings.Contains(l, "Up 182 days, no updates") }) {
+		t.Errorf("Figma's host at 80x24: %d lines, the risk level on line %d; want 37, scrolled off, with its line under Auto Updates:\n%s", len(ls), risk, strings.Join(ls, "\n"))
 	}
 }
 

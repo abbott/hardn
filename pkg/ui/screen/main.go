@@ -7,6 +7,30 @@ import (
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
+// CompactMainMenu is whether the main menu takes its compact form on a
+// short terminal.
+//
+// DISABLED 2026-10-23. Flip to true to restore. With it true, the main
+// menu takes its compact form on a terminal (term.Env.TTY) shorter than
+// theme.CompactBelow, 40 rows, or too short for its full form, prompt
+// included: the Header and the Divider left out, the risk line and the
+// status rows one group, and the menu in two columns of keys and labels on
+// the line under its heading (component.Menu.Compact, nav.Screen.Compact),
+// so that Figma's content fits theme.CompactBudget lines, an 80x24
+// console (DEV-052); and StatusBlocks draws the blocks a caller's own menu
+// goes under in the same forms. It is off because the maintainer adopted
+// slice 2b's decision 5 with the full form at every height (2026-10-23):
+// "i'd like to avoid using a compact menu. if we need to reduce row
+// counts, we can explore that later, but a two-column menu is not a
+// desired method" (refactor plan §3.15, its compact main menu withdrawn;
+// docs/engine/gallery-dryrun.md §4). The compact form's code, its tests
+// and its goldens are kept: the layouts take the gate as a parameter
+// (render, screen, statusBlocks), which Render, Screen and StatusBlocks
+// pass this constant and the tests pass true, as TitleTrail's tests do;
+// flipped, Render draws main-menu/00-tui-main-compact's golden again.
+// Fewer rows, when wanted, are for later, by other means.
+const CompactMainMenu = false
+
 // MainMenu is the main-menu layout (brief 1B), after Figma's 00-TUI-MAIN.
 // Here its full form with no colour and ASCII glyphs, Figma's fixture
 // (MainMenuFixture) cut short, the blank lines being theme.SectionGap:
@@ -39,23 +63,25 @@ import (
 // ModeIndicator beside it, Menu, then the PromptLine after
 // theme.PromptGap blank lines. An empty StatusList is left out with its
 // gap. From theme.StackBelow columns up Figma's content takes 35 lines,
-// which fit a terminal from theme.CompactBelow rows; below that width the
-// rows stack (DEV-021), and at 60 columns it takes 57.
+// and a host's eight rows, DNS among them, 36, with each line under a row
+// one more; below that width the rows stack (DEV-021), and at 60 columns
+// Figma's content takes 57. The main menu takes this form at every height
+// (CompactMainMenu): on a terminal shorter than its lines, its top
+// scrolls off, the prompt staying on the terminal's last line.
 //
-// On a terminal (term.Env.TTY) shorter than theme.CompactBelow, or too
-// short for the full form, prompt included, the main menu renders its
-// compact form, which fits theme.CompactBudget lines, an 80x24 console,
-// with Figma's content from theme.StackBelow columns up (DEV-052); a
-// host's eight rows, DNS among them, take one line more, 25, so that at
-// 80x24 its first line scrolls off, and each line under a row another
-// (open for the maintainer: docs/engine/menu-live.md §6). In the compact
-// form the Header and the Divider are left out; the ContextBar keeps the
-// blank line under it, as a bar always has, Figma's and the sub-screens'
-// title bar alike; the RiskSummary and the StatusList are one group, with
-// no blank line inside it; the menu's items start on the line under the
-// heading, with no blank line between; and the menu is laid out in two
-// columns, its items' keys and labels alone (component.Menu.Compact).
-// Here plain, at 80x24, cut short:
+// Gated by CompactMainMenu, its compact form: on a terminal shorter than
+// theme.CompactBelow, or too short for the full form, prompt included, it
+// fits theme.CompactBudget lines, an 80x24 console, with Figma's content
+// from theme.StackBelow columns up (DEV-052); a host's eight rows, DNS
+// among them, take one line more, 25, so that at 80x24 its first line
+// scrolls off, and each line under a row another. In the compact form the
+// Header and the Divider are left out; the ContextBar keeps the blank line
+// under it, as a bar always has, Figma's and the sub-screens' title bar
+// alike; the RiskSummary and the StatusList are one group, with no blank
+// line inside it; the menu's items start on the line under the heading,
+// with no blank line between; and the menu is laid out in two columns,
+// its items' keys and labels alone (component.Menu.Compact). Here plain,
+// at 80x24, cut short:
 //
 //	# Debian 12 (Bookworm) #########################################
 //
@@ -103,16 +129,26 @@ type MainMenu struct {
 	// plan only, always shown beside the heading.
 	Mode component.ModeIndicator
 	// Menu is the numbered menu and its Exit item. Its Compact is set by
-	// the layout, from the terminal's height.
+	// the layout, from the terminal's height, where CompactMainMenu allows
+	// the compact form.
 	Menu component.Menu
 	// Prompt is the prompt's label, such as "Enter selection".
 	Prompt string
 }
 
-// Render renders the main menu for c, down to its prompt. See MainMenu for
-// the layout and its compact form.
+// Render renders the main menu for c, down to its prompt: its full form,
+// or, where CompactMainMenu allows it, the form the terminal calls for.
+// See MainMenu.
 func (vm MainMenu) Render(c component.Ctx) string {
-	if out, ok := vm.full(c); ok {
+	return vm.render(c, CompactMainMenu)
+}
+
+// render renders the main menu for c in its full form, or in its compact
+// form where compact is set and the terminal calls for it. Render passes
+// CompactMainMenu; the tests pass true too, to hold the compact form while
+// it is gated.
+func (vm MainMenu) render(c component.Ctx, compact bool) string {
+	if out, ok := vm.full(c, compact); ok {
 		return out
 	}
 	return vm.form(c, true)
@@ -121,13 +157,20 @@ func (vm MainMenu) Render(c component.Ctx) string {
 // Screen returns what nav.Run draws for the main menu, with m as its menu
 // in place of vm.Menu: Above holds every block down to the menu heading,
 // and Compact, which lays the menu out in two columns on the line under
-// the heading, is set on a terminal too short for the full form drawn with
-// m, the menu nav.Run draws, so that nav.Run draws what Render renders
-// for a view-model whose Menu holds m's items. Call it in each round of
-// Run's draw, so that the screen shows the state the last action left.
+// the heading, is set where CompactMainMenu allows it on a terminal too
+// short for the full form drawn with m, the menu nav.Run draws, so that
+// nav.Run draws what Render renders for a view-model whose Menu holds m's
+// items. Call it in each round of Run's draw, so that the screen shows
+// the state the last action left.
 func (vm MainMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
+	return vm.screen(c, m, CompactMainMenu)
+}
+
+// screen is Screen with the compact form allowed where compact is set:
+// Screen passes CompactMainMenu, the tests true too.
+func (vm MainMenu) screen(c component.Ctx, m nav.Menu, compact bool) nav.Screen {
 	vm.Menu = m.View()
-	short := vm.compact(c)
+	short := vm.compact(c, compact)
 	return nav.Screen{Above: vm.above(c, short), Menu: m, Label: vm.Prompt, Compact: short}
 }
 
@@ -166,42 +209,50 @@ func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 // heading and prompt included, in below lines, after theme.SectionGap
 // blank lines: hardn's live main menu, whose heading, mode indicator,
 // items and prompt are still pkg/menu's (refactor plan slice 2,
-// next/s2-menu-live; slice 2b). Their form is the one Render would choose
-// for the screen they make with that menu: the full form's blocks on
-// output that is not a terminal, and on a terminal from
-// theme.CompactBelow rows that holds them, the gap and below; else the
-// compact form's (see MainMenu). vm.Heading, Mode, Menu and Prompt are
-// not drawn.
+// next/s2-menu-live; slice 2b). vm.Heading, Mode, Menu and Prompt are not
+// drawn. The blocks take the full form; where CompactMainMenu allows it,
+// the form Render would choose for the screen they make with that menu:
+// the full form's blocks on output that is not a terminal, and on a
+// terminal from theme.CompactBelow rows that holds them, the gap and
+// below; else the compact form's (see MainMenu).
 func (vm MainMenu) StatusBlocks(c component.Ctx, below int) string {
-	if !c.Env.TTY || height(c) >= theme.CompactBelow {
-		if full := join(vm.blocks(c, false)...); fullFits(c, lines(full)+theme.SectionGap+below) {
+	return vm.statusBlocks(c, below, CompactMainMenu)
+}
+
+// statusBlocks is StatusBlocks with the compact form allowed where compact
+// is set: StatusBlocks passes CompactMainMenu, the tests true too.
+func (vm MainMenu) statusBlocks(c component.Ctx, below int, compact bool) string {
+	if !compact || !c.Env.TTY || height(c) >= theme.CompactBelow {
+		if full := join(vm.blocks(c, false)...); !compact || fullFits(c, lines(full)+theme.SectionGap+below) {
 			return full
 		}
 	}
 	return join(vm.blocks(c, true)...)
 }
 
-// compact reports whether the main menu takes its compact form in c.
-func (vm MainMenu) compact(c component.Ctx) bool {
-	_, ok := vm.full(c)
+// compact reports whether the main menu takes its compact form in c, the
+// compact form allowed where compact is set.
+func (vm MainMenu) compact(c component.Ctx, compact bool) bool {
+	_, ok := vm.full(c, compact)
 	return !ok
 }
 
 // full reports whether the main menu takes its full form in c, and if so
-// returns it: when it fits (fullFits), prompt included. Below
-// theme.StackBelow columns the rows stack, and the full form may not fit
-// 40 rows (57 lines at 60 columns).
-func (vm MainMenu) full(c component.Ctx) (string, bool) {
-	if c.Env.TTY && height(c) < theme.CompactBelow {
+// returns it: always where compact is not set; else when it fits
+// (fullFits), prompt included. Below theme.StackBelow columns the rows
+// stack, and the full form may not fit 40 rows (57 lines at 60 columns).
+func (vm MainMenu) full(c component.Ctx, compact bool) (string, bool) {
+	if compact && c.Env.TTY && height(c) < theme.CompactBelow {
 		return "", false
 	}
 	out := vm.form(c, false)
-	return out, fullFits(c, lines(out))
+	return out, !compact || fullFits(c, lines(out))
 }
 
-// fullFits reports whether a full form of n lines is drawn in c: on
-// output that is not a terminal, which has no height to fit, and on a
-// terminal from theme.CompactBelow rows whose height holds the n lines.
+// fullFits reports whether a full form of n lines fits c where the
+// compact form is allowed: on output that is not a terminal, which has no
+// height to fit, and on a terminal from theme.CompactBelow rows whose
+// height holds the n lines.
 func fullFits(c component.Ctx, n int) bool {
 	return !c.Env.TTY || height(c) >= theme.CompactBelow && n <= height(c)
 }
