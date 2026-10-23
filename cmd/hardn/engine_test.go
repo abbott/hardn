@@ -82,9 +82,9 @@ func TestEngineOptions(t *testing.T) {
 }
 
 // TestEngineSeamsAreReal: in production the engine's host is host.Real,
-// detection is detect.Detect, the hold is the engine's own (nil), and the
-// screens read the one line reader every prompt shares and write to
-// stdout.
+// detection is detect.Detect, the hold is the engine's own (nil), the
+// signals' context is a live one its stop ends, and the screens read the
+// one line reader every prompt shares and write to stdout.
 func TestEngineSeamsAreReal(t *testing.T) {
 	if _, ok := engineHost().(*host.Real); !ok {
 		t.Error("engineHost is not host.Real")
@@ -100,5 +100,13 @@ func TestEngineSeamsAreReal(t *testing.T) {
 	}
 	if engineStdout != os.Stdout {
 		t.Error("engineStdout is not os.Stdout")
+	}
+	ctx, stop := engineSignals(context.Background())
+	if ctx.Err() != nil {
+		t.Error("engineSignals' context is done before any signal")
+	}
+	stop()
+	if ctx.Err() == nil {
+		t.Error("engineSignals' stop does not end its context")
 	}
 }

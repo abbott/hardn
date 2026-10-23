@@ -11,6 +11,8 @@ import (
 	"context"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
@@ -23,12 +25,16 @@ import (
 
 // Seams for the tests: the host the engine changes and the screens read,
 // with its run log; detection, the engine's and the screens'; the hold
-// around an in-process rollback (nil: the engine's own); the line reader
-// and the stdout the screens use.
+// around an in-process rollback (nil: the engine's own); the signals that
+// cancel a flag's plan and apply (engine.md §2.14); the line reader and
+// the stdout the screens and a flag's report use.
 var (
-	engineHost   = func() host.System { return host.NewReal(host.Options{RunLog: revertFileLog{}}) }
-	engineDetect = detect.Detect
-	engineHold   func() (release func())
+	engineHost    = func() host.System { return host.NewReal(host.Options{RunLog: revertFileLog{}}) }
+	engineDetect  = detect.Detect
+	engineHold    func() (release func())
+	engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+		return signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+	}
 	engineInput            = prompt.Stdin
 	engineStdout io.Writer = os.Stdout
 )
