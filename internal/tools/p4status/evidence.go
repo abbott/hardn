@@ -48,6 +48,7 @@ func incomplete(calls []call) string {
 func evidence(r reading, readErr error, calls []call) string {
 	b := evidenceWriter{calls: calls}
 	b.printf("%s\n", evidenceTitle)
+	b.config(r.config)
 	b.facts(r.facts)
 	if readErr != nil {
 		b.printf("\nnot read: %s %s\n", output.CodeOf(readErr), clean(readErr.Error()))
@@ -101,6 +102,17 @@ func (b *evidenceWriter) findings(fs []engine.Finding) {
 	for _, f := range fs {
 		b.item("finding", "%s %s [%s]", f.Code, f.Detail, f.Source)
 	}
+}
+
+// config writes where hardn.yml was read, whose list the DNS row is
+// checked against: path, or none found, hardn's defaults listing none.
+func (b *evidenceWriter) config(path string) {
+	b.printf("\nhardn.yml\n")
+	b.incomplete(partConfig)
+	if path == "" {
+		path = "none found: hardn's defaults, no nameservers"
+	}
+	b.item("file", "%s", path)
 }
 
 // facts writes detect's facts, which every row and the header read, as

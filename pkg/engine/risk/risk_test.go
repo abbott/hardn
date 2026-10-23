@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"maps"
 	"path"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -719,11 +721,13 @@ func TestUnknownLines(t *testing.T) {
 
 // TestRows: the rows are the five areas' controls, once each, in Figma's
 // order, their weights 100 together, the port lighter than either auth
-// setting, the firewall one row. Engine.Check over the areas' Controls(),
-// in this order, gives its reports in Figma's order too.
+// setting, the firewall one row; then DNS, of weight 0. Engine.Check over
+// the areas' Controls(), in this order, gives its reports in Figma's
+// order too (pkg/engine/controls's Status holds the main menu's list to
+// these rows).
 func TestRows(t *testing.T) {
 	var controls []engine.Control
-	for _, cs := range [][]engine.Control{users.Controls(), firewall.Controls(), ssh.Controls(), apparmor.Controls(), updates.Controls()} {
+	for _, cs := range [][]engine.Control{users.Controls(), firewall.Controls(), ssh.Controls(), apparmor.Controls(), updates.Controls(), dns.Controls(nil)} {
 		controls = append(controls, cs...)
 	}
 	rows := risk.Rows()
@@ -736,7 +740,7 @@ func TestRows(t *testing.T) {
 		if r.ID != controls[i].ID() || r.Title != controls[i].Title() {
 			t.Errorf("row %d is %s %q, want %s %q", i, r.ID, r.Title, controls[i].ID(), controls[i].Title())
 		}
-		if r.Weight <= 0 {
+		if r.Weight <= 0 && r.ID != dns.ID || r.ID == dns.ID && r.Weight != 0 {
 			t.Errorf("%s weighs %d", r.ID, r.Weight)
 		}
 		weight[r.ID] = r.Weight
@@ -746,8 +750,8 @@ func TestRows(t *testing.T) {
 	for _, r := range rows {
 		titles = append(titles, r.Title)
 	}
-	if want := []string{"User", "Firewall", "SSH Login", "SSH Auth", "SSH Port", "AppArmor", "Auto Updates"}; !slices.Equal(titles, want) {
-		t.Errorf("titles %q, want Figma's %q", titles, want)
+	if want := []string{"User", "Firewall", "SSH Login", "SSH Auth", "SSH Port", "AppArmor", "Auto Updates", "DNS"}; !slices.Equal(titles, want) {
+		t.Errorf("titles %q, want Figma's %q then DNS", titles, want)
 	}
 	if sum != 100 {
 		t.Errorf("weights sum to %d, want 100", sum)
@@ -761,6 +765,46 @@ func TestRows(t *testing.T) {
 	rows[0].Weight = 0
 	if risk.Rows()[0].Weight == 0 {
 		t.Error("Rows shares its table")
+	}
+}
+
+// TestShownNotWeighed: the DNS row, of weight 0, changes no level: in
+// every state, failed, with a finding, or with no report, the band, the
+// score, the factors and the findings are the ones without it, on every
+// host of TestAssess's kinds; an Unknown DNS row adds no "Counted as not
+// configured", and a DNS row alone established leaves the band Unknown.
+func TestShownNotWeighed(t *testing.T) {
+	dnsRows := []engine.Report{
+		rep(dns.ID, engine.Configured, "192.0.2.54, 2001:db8::54"),
+		rep(dns.ID, engine.NotConfigured, dns.DetailNotHardn, "DNS_DHCP_CLIENT"),
+		rep(dns.ID, engine.NotApplicable, dns.DetailContainer),
+		rep(dns.ID, engine.Unknown, dns.DetailCantRead),
+		{Control: dns.ID, Status: engine.Status{State: engine.Configured, Detail: "192.0.2.54"}, Err: errors.New("resolvectl")},
+	}
+	hosts := []struct {
+		name    string
+		reports []engine.Report
+		h       header.Header
+	}{
+		{"hardened", hardened(), quiet},
+		{"figma", figma(), uptimeOf(figmaUptime)},
+		{"nothing read", nil, header.Header{}},
+		{"a container", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost)), inContainer(detect.Unknown)},
+		{"the lockout", with(rep(idFW, engine.Partial, "ssh blocked", firewall.CodeSSHBlocked)), pending(detect.Yes, newerKernel)},
+		{"a row unknown", with(rep(idUser, engine.Unknown, "can't read")), quiet},
+	}
+	for _, hc := range hosts {
+		base := risk.Assess(hc.reports, hc.h)
+		for _, d := range dnsRows {
+			for _, rs := range [][]engine.Report{append(slices.Clone(hc.reports), d), append([]engine.Report{d}, hc.reports...)} {
+				if got := risk.Assess(rs, hc.h); !reflect.DeepEqual(got, base) {
+					t.Errorf("%s, DNS %s (error %v): %+v\nwithout it: %+v", hc.name, d.Status.State, d.Err, got, base)
+				}
+			}
+		}
+	}
+	if l := risk.Assess(dnsRows[:1], header.Header{}); l.Band != risk.Unknown || slices.ContainsFunc(l.Factors, func(f risk.Factor) bool { return f.Control == dns.ID }) {
+		t.Errorf("DNS alone established: %+v, want Unknown, no factor under DNS", l)
 	}
 }
 

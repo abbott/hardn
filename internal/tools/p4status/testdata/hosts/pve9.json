@@ -191,6 +191,15 @@
 		},
 		{
 			"argv": [
+				"systemctl",
+				"is-active",
+				"systemd-resolved.service"
+			],
+			"stdout": "inactive\n",
+			"exit": 3
+		},
+		{
+			"argv": [
 				"ip",
 				"-4",
 				"addr",
@@ -260,6 +269,14 @@
 			"mode": "0755",
 			"uid": 0,
 			"gid": 33
+		},
+		{
+			"path": "/etc/resolv.conf",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "search example.net\nnameserver 192.0.2.1\n"
 		},
 		{
 			"path": "/etc/ssh",

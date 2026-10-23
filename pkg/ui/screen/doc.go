@@ -11,8 +11,9 @@
 //     HostBlock, RiskSummary, StatusList and Divider, the MenuHeading with
 //     the ModeIndicator, the Menu and the PromptLine. On a terminal
 //     shorter than theme.CompactBelow, or too short for its full form, it
-//     renders its compact form, which fits theme.CompactBudget lines (see
-//     MainMenu).
+//     renders its compact form, which fits theme.CompactBudget lines with
+//     Figma's seven rows; a host's eight, DNS among them, take one more
+//     (see MainMenu).
 //   - SubMenu, after 01-USER: the TitleBar, a SubjectLine, the area's
 //     StatusList, its sections (Section: a SectionHeader, a Badge and a
 //     BulletList), a MenuHeading, the Menu and the PromptLine.

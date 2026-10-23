@@ -11,18 +11,24 @@ import (
 	"testing"
 	"unicode/utf8"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
+// fixtureConfig is where the fixtures keep hardn.yml, when they have one:
+// the system-wide path, the first hardn looks at.
+const fixtureConfig = "/etc/hardn/hardn.yml"
+
 // testEnv is run's environment over sys, on Linux as root, its output in
-// out and errOut.
+// out and errOut, hardn.yml looked for at fixtureConfig alone.
 func testEnv(sys host.System, out, errOut *strings.Builder) env {
 	return env{goos: "linux", euid: func() int { return 0 }, stdout: out, stderr: errOut,
-		system: func() host.System { return sys }, controls: statusControls}
+		system: func() host.System { return sys }, controls: controls.Status, configs: []string{fixtureConfig}}
 }
 
 // runOn runs p4status with args over the fixture name, and returns the
@@ -171,7 +177,7 @@ func TestRefused(t *testing.T) {
 	f, sys := loadHost(t, "debian13")
 	var out, errOut strings.Builder
 	e := testEnv(sys, &out, &errOut)
-	e.controls = func() []engine.Control { return append(statusControls(), rogue{}) }
+	e.controls = func(c *config.Config) []engine.Control { return append(controls.Status(c), rogue{}) }
 	if code := run(context.Background(), nil, e); code != exitRefused {
 		t.Errorf("exit %d, want %d", code, exitRefused)
 	}
@@ -395,7 +401,7 @@ func TestGates(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var out, errOut strings.Builder
-			e := env{goos: tc.goos, euid: func() int { return tc.euid }, stdout: &out, stderr: &errOut, controls: statusControls,
+			e := env{goos: tc.goos, euid: func() int { return tc.euid }, stdout: &out, stderr: &errOut, controls: controls.Status,
 				system: func() host.System { t.Fatal("the host was built"); return nil }}
 			if code := run(context.Background(), tc.args, e); code != tc.code || out.Len() != 0 || !strings.Contains(errOut.String(), tc.want) {
 				t.Errorf("exit %d, stdout %q, stderr %q", code, out.String(), errOut.String())
@@ -444,11 +450,14 @@ func TestProfiles(t *testing.T) {
 	}
 }
 
-// TestStatusControls: the rows p4status checks are the score's, in its
-// order (Figma's), as the gallery checks them.
+// TestStatusControls: the rows p4status checks are the main menu's one
+// list, controls.Status, which pkg/engine/controls's TestStatus holds to
+// the score's rows, as hardn's main menu and the gallery check them; and
+// hardn.yml is looked for where hardn looks, each path absolute.
 func TestStatusControls(t *testing.T) {
+	e := production()
 	var got, want []string
-	for _, c := range statusControls() {
+	for _, c := range e.controls(nil) {
 		got = append(got, c.ID())
 	}
 	for _, r := range risk.Rows() {
@@ -456,6 +465,14 @@ func TestStatusControls(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("controls %v, want %v", got, want)
+	}
+	t.Setenv("HARDN_CONFIG", "")
+	if paths := configPaths(); len(paths) == 0 || paths[0] != fixtureConfig || !slices.ContainsFunc(paths, func(p string) bool { return strings.HasSuffix(p, "/hardn.yml") && filepath.IsAbs(p) }) {
+		t.Errorf("hardn.yml looked for at %q", paths)
+	}
+	t.Setenv("HARDN_CONFIG", "hardn-test.yml")
+	if paths := configPaths(); len(paths) != 1 || !filepath.IsAbs(paths[0]) || filepath.Base(paths[0]) != "hardn-test.yml" {
+		t.Errorf("with HARDN_CONFIG, hardn.yml looked for at %q", paths)
 	}
 }
 

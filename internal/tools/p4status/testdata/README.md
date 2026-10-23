@@ -20,3 +20,5 @@ EXPORT_HOSTS=debian13,ubuntu2604,alpine324,pve9,hardened GOTOOLCHAIN=local GOWOR
 ```
 
 Review the diff, as for a golden file.
+
+**`pkg/menu` reads these files too.** `TestLiveStatusOnHosts` and `TestLiveMainMenuGolden` (`pkg/menu/main_menu_live_test.go`, `next/s2-menu-live`) load them with a loader of their own (`statusFixture`, `loadStatusHost`, `setuidHost`), a copy of `fixture_test.go`'s, since a test file of this package `main` cannot be imported; and they compare against the gallery's status goldens' plain-80 cells, as `TestMainMenuAsGallery` does. So a library package's tests depend on two dev tools' testdata: a change to these files' format is made in both loaders, and a rewrite of the files or of the gallery's goldens is checked by both packages' tests.

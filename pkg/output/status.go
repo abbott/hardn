@@ -38,11 +38,12 @@ type StatusView struct {
 
 // StatusViewOf maps Engine.Check's reports and their risk level l
 // (risk.Assess over the same reports) to the main menu's blocks. The rows
-// are the score's, in Figma's order (risk.Rows: User, Firewall, SSH Login,
-// SSH Auth, SSH Port, AppArmor, Auto Updates), whatever the reports'
-// order; a row with no report shows Unknown, as the score counts it, and a
-// report for a control the score does not weigh comes after them, in its
-// order. A control's first report counts, and a report with an error is
+// are the score's, in their order (risk.Rows: User, Firewall, SSH Login,
+// SSH Auth, SSH Port, AppArmor, Auto Updates, Figma's, then DNS, shown and
+// not weighed), whatever the reports' order; a row with no report shows
+// Unknown, as the score counts it (DNS: Unknown, with no line, as it is
+// not counted), and a report for a control that is no row comes after
+// them, in its order. A control's first report counts, and a report with an error is
 // Unknown, as risk.Assess has them. Each of l's factors is a line under
 // the row its Control names, in l's order (risk.Kind's), status.warn for
 // a cost established (the maintainer, 2026-10-21); the pending reboot,

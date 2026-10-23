@@ -171,7 +171,7 @@ func TestPlayEngineDNS(t *testing.T) {
 		{"dns-refused-networkmanager", 0, []string{"Operation Failed", "NetworkManager manages DNS here (DNS_MANAGED)", "To go on: set the nameservers with nmcli.", "Nothing was applied."},
 			untouched, "not-applicable: NetworkManager", nil},
 		{"dns-refused-empty", 0, []string{"Operation Failed", "No nameservers configured (DNS_NO_NAMESERVERS)", "To go on: add nameservers first.", "Nothing was applied."},
-			untouched, "not-configured: none in hardn.yml", nil},
+			untouched, "not-applicable: none configured", nil},
 		{"dns-configured-debian13", 0, []string{"Nothing needs changing.", "Nothing was applied."}, untouched, configured, nil},
 		{"dns-dry-run-debian13", 0, []string{dhcpcd, "Set the nameservers", "Save the configuration", "No actual changes were made to your system.",
 			"Nothing was applied."}, untouched, notHardn, nil},

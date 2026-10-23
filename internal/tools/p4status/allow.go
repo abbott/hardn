@@ -41,6 +41,9 @@ var rules = []rule{
 	{"ip", ipAddr},                             // the header probe's address
 	{"apk", exactly("info", "-e", "apk-cron")}, // alpine.ReadUpdates
 	{"rc-service", exactly("crond", "status")}, // alpine.ReadUpdates
+	// The DNS check (dns.Read): systemd-resolved's servers and search
+	// domains, as resolvectl lists them.
+	{"resolvectl", either(exactly("--no-pager", "dns"), exactly("--no-pager", "domain"))},
 }
 
 // allowed reports whether argv is a command p4status runs: a rule's name
@@ -82,13 +85,13 @@ func sshdT(args []string) bool {
 
 // units are the units the checks ask systemctl about, by verb: detect's
 // (ssh.socket, ssh.service), the AppArmor check's (apparmor.service), the
-// Auto Updates check's (apt's timers and their services) and Proxmox VE's
-// firewall's (pve.ReadFirewall).
+// Auto Updates check's (apt's timers and their services), Proxmox VE's
+// firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
 	"is-enabled": {"ssh.socket", "ssh.service", "apparmor.service",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
 	"is-active": {"ssh.socket", "ssh.service", "apt-daily-upgrade.timer", "apt-daily.timer",
-		"pve-firewall.service", "proxmox-firewall.service"},
+		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service"},
 }
 
 // systemctl is is-enabled or is-active of one of units, or ssh.socket's

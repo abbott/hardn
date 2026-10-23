@@ -168,6 +168,10 @@ func renderStatusRows(cfg *config.Config, status *security.SecurityStatus, sudoM
 // renderMainScreen produces what one pass of ShowMainMenu's loop prints
 // (main_menu.go:387-427) before it waits for input: the status block of
 // displayNormalSecurityStatus (main_menu.go:213-283) and menu.Print().
+// Since next/s2-menu-live that block is origin/main's alone, behind
+// legacySecurityStatus (showLegacyStatus), DISABLED: these goldens keep
+// the legacy screen's record, the gate's other side (their line numbers
+// are origin/main's file's). The live block is main_menu_live_test.go's.
 // formatHardnVersionLine, formatHostInfoLines, formatOSTitle, createMainMenu,
 // style.Box, style.StatusFormatter and security.GetSecurityRiskLevel are the
 // real code; the composition and the status rows are mirrored, because

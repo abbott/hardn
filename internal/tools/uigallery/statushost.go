@@ -423,13 +423,16 @@ func (h *fakeHost) unattendedUpgrades() {
 // hardn's 2230 change, key-only login and root's login refused leave it
 // once confirmed: 00-hardn.conf with Port 2230, PermitRootLogin no,
 // PasswordAuthentication no and KbdInteractiveAuthentication no, sshd
-// reloaded onto 2230, ufw allowing 2230 alone, and unattended-upgrades on.
+// reloaded onto 2230, ufw allowing 2230 alone, and unattended-upgrades on;
+// and DNS as Configure DNS leaves Debian 13 (dnsConfigured: hardn.yml's
+// nameservers in use, next/s2-menu-live).
 func (h *fakeHost) harden() {
 	h.f.AddFile(sshd.DropInDir+"/00-hardn.conf", []byte("Port 2230\nPermitRootLogin no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"), 0o644, 0, 0)
 	h.boot()
 	h.allowed = []uint16{2230}
 	h.saveRules()
 	h.unattendedUpgrades()
+	h.dnsConfigured()
 }
 
 // ufwAsShipped is ufw as Ubuntu ships it: installed and inactive, with

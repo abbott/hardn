@@ -66,6 +66,9 @@ const (
 	// StackBelow columns up, and more below, where its rows stack.
 	CompactBelow = 40
 	// CompactBudget is the most lines the compact main menu may use,
-	// prompt included, so that it fits an 80x24 console.
+	// prompt included, so that it fits an 80x24 console: Figma's seven
+	// rows with no line under one fit it. A host's eight rows, DNS among
+	// them, take one line more, 25, and each line under a row another
+	// (docs/engine/menu-live.md §6, open for the maintainer).
 	CompactBudget = term.DefaultHeight
 )

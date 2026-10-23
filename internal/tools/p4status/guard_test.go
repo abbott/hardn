@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -199,6 +200,7 @@ func TestRulesMatchTheCode(t *testing.T) {
 		{reload.ServiceUnit, "ssh.service"}, {pve.FirewallUnit, "pve-firewall.service"}, {pve.NFTablesUnit, "proxmox-firewall.service"},
 		{alpine.Package, "apk-cron"}, {alpine.Service, "crond"},
 		{sudoers.DoasConfig, "/etc/doas.conf"}, {sudoers.DoasDir, "/etc/doas.d"}, {header.KernelPackagePrefix, "linux-image-"},
+		{hostdns.ResolvedUnit, "systemd-resolved.service"},
 	} {
 		if c.got != c.want {
 			t.Errorf("the code has %q where the rules have %q", c.got, c.want)

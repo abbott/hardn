@@ -346,6 +346,105 @@ func TestCompact(t *testing.T) {
 	}
 }
 
+// TestStatusBlocks checks the blocks a caller's own menu goes under
+// (StatusBlocks; hardn's live main menu, next/s2-menu-live): at widths
+// from 1 to 130, heights 0, 1 and 24 to 60, and menus of several heights,
+// the full form's blocks exactly where they fit with the gap and the
+// menu, from theme.CompactBelow rows, or with no terminal, else the
+// compact form's; each is what Render draws above the heading in its
+// form; and for the lines Render's own menu takes, the form Render
+// chooses.
+func TestStatusBlocks(t *testing.T) {
+	vm := MainMenuFixture()
+	heights := []int{0, 1}
+	for h := term.DefaultHeight; h <= 60; h++ {
+		heights = append(heights, h)
+	}
+	mode := vm.Mode
+	for w := 1; w <= 130; w++ {
+		env := term.Fixed(w, colorprofile.TrueColor, true, true)
+		c := component.NewCtx(env)
+		heading := component.MenuHeading{Title: vm.Heading, Mode: &mode}.Render(c)
+		full, short := join(vm.blocks(c, false)...), join(vm.blocks(c, true)...)
+		gap := strings.Repeat("\n", theme.SectionGap+1)
+		if !strings.HasPrefix(vm.form(c, false), full+gap+heading) || !strings.HasPrefix(vm.form(c, true), short+gap+heading) {
+			t.Fatalf("%d columns: the blocks are not what Render draws above the heading", w)
+		}
+		own := lines(vm.form(c, false)) - lines(full) - theme.SectionGap // Render's menu, heading to prompt
+		for _, h := range heights {
+			env.Height = h
+			c := component.NewCtx(env)
+			rows := h
+			if rows < 1 {
+				rows = term.DefaultHeight
+			}
+			for _, below := range []int{0, 16, 17, own, 40} {
+				want := short
+				if rows >= theme.CompactBelow && lines(full)+theme.SectionGap+below <= rows {
+					want = full
+				}
+				if got := vm.StatusBlocks(c, below); got != want {
+					t.Errorf("%dx%d, a menu of %d lines: got\n%s", w, h, below, ansi.Strip(got))
+				}
+			}
+			if (vm.StatusBlocks(c, own) == full) == vm.compact(c) {
+				t.Errorf("%dx%d: with Render's own menu, the blocks are not in Render's form", w, h)
+			}
+		}
+		piped := term.Fixed(w, colorprofile.NoTTY, false, true)
+		piped.Height = term.DefaultHeight
+		pc := component.NewCtx(piped)
+		if got := vm.StatusBlocks(pc, 40); got != join(vm.blocks(pc, false)...) {
+			t.Errorf("%d columns, no terminal: want the full form's blocks, got\n%s", w, got)
+		}
+	}
+}
+
+// TestHeights records the main menu's heights with Figma's seven status
+// rows and with an eighth, the DNS row of next/s2-menu-live
+// (docs/engine/menu-live.md §6), on a terminal of 80 and 60 columns, 24
+// and 40 rows, Unicode and ASCII: the form drawn and its lines, and the
+// lines of hardn's live main menu, StatusBlocks above its legacy menu of
+// 17 lines (pkg/menu: heading to prompt) after the gap. With the eighth
+// row the compact form takes 25 lines at 80x24, one over
+// theme.CompactBudget, so its first line, the distribution bar, scrolls
+// off; the full form, 36, fits 40 rows. No row has a line under it here:
+// each adds one more.
+func TestHeights(t *testing.T) {
+	const legacyMenu = 17
+	eight := MainMenuFixture()
+	eight.Status.Rows = append(eight.Status.Rows, component.StatusRow{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"})
+	for _, tc := range []struct {
+		vm         MainMenu
+		rows, w, h int
+		form       string
+		drawn      int
+		live       int
+	}{
+		{MainMenuFixture(), 7, 80, 24, "compact", 24, 31},
+		{MainMenuFixture(), 7, 80, 40, "full", 35, 36},
+		{eight, 8, 80, 24, "compact", 25, 32},
+		{eight, 8, 80, 40, "full", 36, 37},
+		{eight, 8, 60, 24, "compact", 36, 42},
+		{eight, 8, 60, 40, "compact", 36, 42},
+	} {
+		for _, unicode := range []bool{true, false} {
+			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
+			env.Height = tc.h
+			c := component.NewCtx(env)
+			form := "full"
+			if tc.vm.compact(c) {
+				form = "compact"
+			}
+			drawn, live := lines(tc.vm.Render(c)), lines(tc.vm.StatusBlocks(c, legacyMenu))+theme.SectionGap+legacyMenu
+			if form != tc.form || drawn != tc.drawn || live != tc.live {
+				t.Errorf("%d rows, %dx%d, unicode %t: the %s form, %d lines, live %d; want the %s form, %d lines, live %d",
+					tc.rows, tc.w, tc.h, unicode, form, drawn, live, tc.form, tc.drawn, tc.live)
+			}
+		}
+	}
+}
+
 // TestScreenMenu checks that the main menu's Screen chooses its form by
 // the menu it is given, the one nav.Run draws, rather than by vm.Menu: a
 // view-model with no menu, given the fixture's, gets the form the
