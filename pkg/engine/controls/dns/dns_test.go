@@ -39,13 +39,37 @@ func check(t *testing.T, h *fakeHost, cfg *config.Config) engine.Report {
 	return reps[0]
 }
 
+// The configurations Check is given beside hardn.yml as loaded.
+const (
+	fromFile = iota // hardn.yml as loaded (newHost)
+	defaults        // no hardn.yml: hardn's defaults, config.DefaultConfig, no path
+	noConfig        // no configuration at all (nil)
+)
+
+// configOf is the configuration conf names, file being hardn.yml as
+// loaded.
+func configOf(conf int, file *config.Config) *config.Config {
+	switch conf {
+	case defaults:
+		return config.DefaultConfig()
+	case noConfig:
+		return nil
+	}
+	return file
+}
+
 // TestCheck is every status line on every host (control-dns.md §5): the
 // state, the exact detail, the findings' codes and words, and an error
-// exactly for Unknown; Check only reads.
+// exactly for Unknown; Check only reads. With no nameserver configured
+// (the maintainer, 2026-10-23): Not Applicable, "none configured" with a
+// hardn.yml, "no hardn.yml" without; the host's own Not Applicable detail
+// first; before Unknown, on a host not read, with no finding; and before
+// every Not Configured line.
 func TestCheck(t *testing.T) {
 	type tc struct {
 		name, host string
 		list       []string
+		conf       int // fromFile, defaults or noConfig
 		state      engine.State
 		detail     string
 		findings   []string // "CODE detail"
@@ -61,7 +85,37 @@ func TestCheck(t *testing.T) {
 			detail: dns.DetailNotHardn, findings: []string{dhcp}},
 		{name: "a file, hardn.yml's as written otherwise", host: configuredHost, list: []string{"192.0.2.54", "2001:DB8:0::54"}, state: engine.Configured,
 			detail: "192.0.2.54, 2001:db8::54", findings: []string{dhcp}},
-		{name: "hardn.yml lists none", host: configuredHost, state: engine.NotConfigured, detail: dns.DetailNone, findings: []string{dhcp}},
+		{name: "hardn.yml lists none", host: configuredHost, state: engine.NotApplicable, detail: dns.DetailNoneConfigured, findings: []string{dhcp}},
+		{name: "hardn.yml lists none, other nameservers in use", host: debian13, state: engine.NotApplicable, detail: dns.DetailNoneConfigured, findings: []string{dhcp}},
+		{name: "no hardn.yml: hardn's defaults list none", host: debian13, conf: defaults, state: engine.NotApplicable, detail: dns.DetailNoFile, findings: []string{dhcp}},
+		{name: "no configuration", host: debian13, conf: noConfig, state: engine.NotApplicable, detail: dns.DetailNoFile, findings: []string{dhcp}},
+		{name: "systemd-resolved, hardn.yml lists none", host: ubuntu2604, state: engine.NotApplicable, detail: dns.DetailNoneConfigured, findings: []string{perLink}},
+		{name: "systemd-resolved stopped, hardn.yml lists none", host: ubuntu2604, state: engine.NotApplicable, detail: dns.DetailNoneConfigured,
+			setup: func(h *fakeHost) { h.active = "inactive" }},
+		{name: "Alpine, no hardn.yml", host: alpine324, conf: defaults, state: engine.NotApplicable, detail: dns.DetailNoFile,
+			findings: []string{"DNS_UDHCPC udhcpc rewrites /etc/resolv.conf on each lease"}},
+		{name: "NetworkManager, hardn.yml lists none", host: networkManager, state: engine.NotApplicable, detail: dns.DetailNetworkManager},
+		{name: "resolvconf, no hardn.yml", host: resolvconf, conf: defaults, state: engine.NotApplicable, detail: dns.DetailResolvconf},
+		{name: "a container, hardn.yml lists none", host: container, state: engine.NotApplicable, detail: dns.DetailContainer},
+		{name: "not a family hardn knows, no hardn.yml", host: debian13, conf: defaults, state: engine.NotApplicable, detail: dns.DetailUnsupported,
+			setup: func(h *fakeHost) {
+				h.facts.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
+			}},
+		{name: "whether a container is not established, hardn.yml lists none", host: debian13, state: engine.NotApplicable, detail: dns.DetailNoneConfigured,
+			setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }},
+		{name: "/etc/resolv.conf a directory, no hardn.yml", host: debian13, conf: defaults, state: engine.NotApplicable, detail: dns.DetailNoFile,
+			setup: func(h *fakeHost) {
+				h.AddDir(hostdns.ResolvConf, 0o755, 0, 0)
+			}},
+		{name: "resolvectl not answering, hardn.yml lists none", host: ubuntu2604, state: engine.NotApplicable, detail: dns.DetailNoneConfigured,
+			setup: func(h *fakeHost) {
+				h.Handler = func(argv []string, stdin []byte) hostfake.Response {
+					if strings.Join(argv, " ") == "resolvectl --no-pager domain" {
+						return hostfake.Response{Stderr: "Failed to get global data\n", ExitCode: 1}
+					}
+					return h.answer(argv, stdin)
+				}
+			}},
 		{name: "hardn.yml's list is not valid", host: configuredHost, list: []string{"999.1.1.1"}, state: engine.NotConfigured, detail: dns.DetailInvalid,
 			findings: []string{dhcp}},
 		{name: "systemd-resolved, its global servers others", host: ubuntu2604, list: configured, state: engine.NotConfigured, detail: dns.DetailNotHardn,
@@ -132,7 +186,7 @@ func TestCheck(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(h)
 			}
-			rep := check(t, h, cfg)
+			rep := check(t, h, configOf(tt.conf, cfg))
 			var fs []string
 			for _, f := range rep.Status.Findings {
 				fs = append(fs, f.Code+" "+f.Detail)
@@ -163,10 +217,13 @@ func TestCheckGolden(t *testing.T) {
 		host string
 		list []string
 		set  func(*fakeHost)
+		conf int
 	}
-	lines := []line{{configuredHost, configured, nil}, {debian13, configured, nil}, {configuredHost, nil, nil},
-		{ubuntu2604, configured, func(h *fakeHost) { h.active = "inactive" }}, {networkManager, configured, nil}, {container, configured, nil},
-		{debian13, configured, func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }}}
+	lines := []line{{configuredHost, configured, nil, fromFile}, {debian13, configured, nil, fromFile}, {configuredHost, nil, nil, fromFile},
+		{ubuntu2604, configured, func(h *fakeHost) { h.active = "inactive" }, fromFile}, {networkManager, configured, nil, fromFile},
+		{container, configured, nil, fromFile},
+		{debian13, configured, func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }, fromFile},
+		{debian13, nil, nil, defaults}}
 	var runs []output.Run
 	for _, l := range lines {
 		h, cfg := newHost(t, l.host, l.list)
@@ -174,7 +231,7 @@ func TestCheckGolden(t *testing.T) {
 			l.set(h)
 		}
 		r := run(h, output.ModeCheck)
-		r.Reports = []engine.Report{check(t, h, cfg)}
+		r.Reports = []engine.Report{check(t, h, configOf(l.conf, cfg))}
 		r.Err = r.Reports[0].Err
 		runs = append(runs, r)
 	}
@@ -188,6 +245,47 @@ func TestCheckGolden(t *testing.T) {
 		}
 		return b.String()
 	})
+}
+
+// TestNoneStillPlanned: with no nameserver configured, Check is Not
+// Applicable (the maintainer, 2026-10-23), with the host's evidence and
+// hardn.yml's list where one was read, and no error; and the engine still
+// plans the control, whose Check it never asks: the plan is refused,
+// DNS_NO_NAMESERVERS, with its report, as -g's and the DNS screen's are,
+// and nothing is written.
+func TestNoneStillPlanned(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		name     string
+		conf     int
+		detail   string
+		evidence []string
+	}{
+		{"hardn.yml lists none", fromFile, dns.DetailNoneConfigured,
+			[]string{"/etc/resolv.conf: nameservers 192.0.2.1", "/etc/resolv.conf: search example.net", "/etc/hardn/hardn.yml: nameservers none"}},
+		{"no hardn.yml", defaults, dns.DetailNoFile, []string{"/etc/resolv.conf: nameservers 192.0.2.1", "/etc/resolv.conf: search example.net"}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			h, file := newHost(t, debian13, nil)
+			cfg := configOf(tt.conf, file)
+			rep := check(t, h, cfg)
+			if st := rep.Status; st.State != engine.NotApplicable || st.Detail != tt.detail || rep.Err != nil || !slices.Equal(st.Evidence, tt.evidence) {
+				t.Errorf("%v %q, error %v, evidence %q; want not applicable %q, no error, evidence %q", st.State, st.Detail, rep.Err, st.Evidence, tt.detail, tt.evidence)
+			}
+			p, err := engineOn(h, nil).Plan(ctx, dns.Controls(cfg), cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var r *steps.Refusal
+			if len(p.Items) != 1 || p.Items[0].NotApplicable != "" || len(p.Changes) != 0 || len(p.Refused) != 1 || !errors.As(p.Err(), &r) ||
+				output.CodeOf(p.Refused[0]) != "DNS_NO_NAMESERVERS" || r.Why != "No nameservers configured" || r.Fix != "add nameservers first" {
+				t.Errorf("plan: items %+v, %d changes, refused %v; want the control planned and refused, DNS_NO_NAMESERVERS", p.Items, len(p.Changes), p.Refused)
+			}
+			if w := writes(h); len(w) > 0 {
+				t.Errorf("wrote: %v", w)
+			}
+		})
+	}
 }
 
 // refusalCase is a host whose plan is refused, and the report it gets.

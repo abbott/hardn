@@ -53,7 +53,7 @@ const (
 	ubuntuAA    = "configured: 9 profiles enforced"
 	noUnattend  = "not-configured: no unattended-upgrades"
 	unattendOn  = "configured: unattended-upgrades"
-	dnsNone     = "not-configured: none in hardn.yml" // no hardn.yml: hardn's defaults list no nameserver
+	dnsNoFile   = "not-applicable: no hardn.yml" // no hardn.yml: hardn's defaults list no nameserver
 	dnsHardn    = "configured: 192.0.2.54, 2001:db8::54"
 	debianBar   = "Debian 13 (Trixie)"
 	ubuntuBar   = "Ubuntu 26.04 (Resolute)"
@@ -66,7 +66,7 @@ var hardenedRows = [8]string{sudoAdmin, denyPolicy, "configured: root disallowed
 
 // debianWith is the debian13 host's rows, with AppArmor's row apparmor.
 func debianWith(apparmor string) [8]string {
-	return [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend, dnsNone}
+	return [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend, dnsNoFile}
 }
 
 // containerRows are the container's: the debian13 host's, AppArmor and
@@ -88,19 +88,19 @@ func hardenedWith(firewall string) [8]string {
 // wantStatuses are the status hosts' main menus, by name.
 var wantStatuses = map[string]wantStatus{
 	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", score: "47.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
+	"ubuntu2604": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
 		level: "Moderate ≈ medium security", score: "67.5", bar: ubuntuBar, uptime: threeDays},
 	"alpine324": {rows: [8]string{"configured: non-root, doas", "not-configured: ufw not installed", "configured: root locked", passwordOn, port22,
-		"not-applicable: Alpine default", "not-configured: no apk-cron", dnsNone}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
+		"not-applicable: Alpine default", "not-configured: no apk-cron", dnsNoFile}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
 	"pve9": {rows: [8]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
-		"configured: 10 profiles enforced", noUnattend, dnsNone}, level: "Critical ≈ no security", score: "5.0", lines: []string{"Auto Updates: Up 41 days, no updates"},
+		"configured: 10 profiles enforced", noUnattend, dnsNoFile}, level: "Critical ≈ no security", score: "5.0", lines: []string{"Auto Updates: Up 41 days, no updates"},
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
-	"fresh": {rows: [8]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend, dnsNone},
+	"fresh": {rows: [8]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend, dnsNoFile},
 		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn, dnsNone},
+	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn, dnsNoFile},
 		level: "Moderate ≈ medium security", score: "62.5", lines: []string{"User: No password to become root"}, bar: ubuntuBar, uptime: threeDays,
 		finds: map[string]string{"users.admin": "USERS_NOPASSWD"}},
-	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
+	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
 		level: "High ≈ weak security", score: "47.5", bar: ubuntuBar, uptime: threeDays},
 	"hardened": {rows: hardenedRows, level: "Minimal ≈ hardened security", score: "100.0", bar: debianBar, uptime: threeDays},
 	"figma": {rows: [8]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
@@ -110,7 +110,7 @@ var wantStatuses = map[string]wantStatus{
 	"lockout-at-start": {rows: hardenedWith("not-configured: enabled, not running"), level: "Moderate ≈ medium security", score: "70.0",
 		lines: []string{"Firewall: SSH may be blocked after restart"}, bar: debianBar, uptime: threeDays,
 		finds: map[string]string{"firewall.incoming": "UFW_SSH_NOT_ALLOWED_AT_START"}},
-	"reboot": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNone},
+	"reboot": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
 		level: "Moderate ≈ medium security", score: "57.5", bar: ubuntuBar, uptime: threeDays, reboot: component.RebootPending},
 	"apparmor-logging": {rows: debianWith("partial: logging only"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
 	"apparmor-restart": {rows: debianWith("partial: off after restart"), level: "High ≈ weak security", score: "42.5", bar: debianBar, uptime: threeDays},

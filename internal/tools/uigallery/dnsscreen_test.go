@@ -147,7 +147,7 @@ func TestPlayDNS(t *testing.T) {
 			listed(dnsList...), "not-applicable: NetworkManager", nil},
 		{"empty", "empty", false, []string{"3", "1", "0"}, 0,
 			[]string{"No nameservers configured", "[0-2, 4-6 or q]: 3", "(x) Invalid option. Please try again.", "Warning Please add nameservers first.", "Nothing was applied."},
-			listed(), "not-configured: none in hardn.yml", nil},
+			listed(), "not-applicable: none configured", nil},
 		{"one", "one", false, []string{"3", "0"}, 0,
 			[]string{"Warning The last nameserver cannot be removed.", "Nothing was applied."}, listed("192.0.2.54"), notHardn, nil},
 		{"nothing to change", "configured", false, []string{"1", "0"}, 0,

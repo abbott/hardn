@@ -17,7 +17,7 @@ $
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mSSH Port\x1b[m             \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mdefault (22)\x1b[m$
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mAppArmor\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59m7 profiles enforced\x1b[m$
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
-   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mnone in hardn.yml\x1b[m$
+   \x1b[38;5;103m–\x1b[m  \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;103mNot Applicable\x1b[m \x1b[38;5;59mno hardn.yml\x1b[m$
 $
   \x1b[4m\x1b[38;5;246mSelect an option\x1b[0m        \x1b[33m\x1b[0m\x1b[2mDry-run Mode\x1b[0m \x1b[33mDisabled\x1b[0m \x1b[2m\x1b[0m$
 $

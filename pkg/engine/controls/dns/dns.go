@@ -4,16 +4,18 @@
 //
 // Check reads what manages /etc/resolv.conf and the nameservers in use
 // (pkg/host/dns's Read): Configured when they are hardn.yml's, in order;
-// Not Configured otherwise, or when hardn.yml lists none; Not Applicable
-// in a container, off the four families, and where a manager hardn only
-// reports owns the file (resolvconf, NetworkManager, another program:
-// P-37 (a)); Unknown, "can't read", when it cannot be read. Plan is
+// Not Configured otherwise; Not Applicable in a container, off the four
+// families, and where a manager hardn only reports owns the file
+// (resolvconf, NetworkManager, another program: P-37 (a)), and, on any
+// other host, when the configuration lists no nameserver, "none
+// configured", or no hardn.yml was read, "no hardn.yml" (the maintainer,
+// 2026-10-23); Unknown, "can't read", when it cannot be read. Plan is
 // dns.PlanDNS for in.Config's list through steps.DNS, then, when that list
 // is not the one hardn.yml holds, the save of hardn.yml after it
 // (steps.PlanSave); every refusal comes before any change, with a report
 // (steps.Refusal). The host's search domains are kept (decision 2).
 // docs/engine/control-dns.md has every status line, refusal and word, all
-// proposed.
+// proposed but the two details the maintainer adopted on 2026-10-23.
 //
 // The package reaches the host only through host.System (depguard
 // controls-through-host and dns-control-through-host) and renders nothing.
@@ -58,10 +60,13 @@ const (
 	TitleStop    = "Stop udhcpc rewriting resolv.conf"
 )
 
-// The row's details (proposed wording, control-dns.md §5). A Configured
-// row's detail is the list in use, "192.0.2.54, 2001:db8::54".
+// The row's details (control-dns.md §5): proposed wording, but
+// DetailNoneConfigured and DetailNoFile, the maintainer's (adopted
+// 2026-10-23). A Configured row's detail is the list in use, "192.0.2.54,
+// 2001:db8::54".
 const (
-	DetailNone           = "none in hardn.yml"      // NotConfigured: hardn.yml lists no nameserver
+	DetailNoneConfigured = "none configured"        // NotApplicable: hardn.yml lists no nameserver
+	DetailNoFile         = "no hardn.yml"           // NotApplicable: no hardn.yml was read, and hardn's defaults list none
 	DetailNotHardn       = "not hardn.yml's"        // NotConfigured: the nameservers in use are others, or in another order
 	DetailInvalid        = "not valid in hardn.yml" // NotConfigured: hardn.yml's list is one dns.Validate refuses here
 	DetailNotRunning     = "resolved not running"   // NotConfigured: /etc/resolv.conf is systemd-resolved's link, and it does not run
@@ -108,7 +113,7 @@ func Controls(cfg *config.Config) []engine.Control { return []engine.Control{Nam
 // with the same control values, so the answer shown is the one applied.
 type Nameservers struct {
 	// Config is hardn.yml as loaded, whose list Check compares the host's
-	// with; nil lists none.
+	// with; nil lists none, and reads as no hardn.yml.
 	Config *config.Config
 	// StopUDHCPC is the answer to "Stop udhcpc rewriting
 	// /etc/resolv.conf?", asked on Alpine only where udhcpc is the DHCP
@@ -128,7 +133,9 @@ func (Nameservers) Title() string { return "DNS" }
 
 // Applies is true on every host. A container, a family hardn does not
 // configure and the managers hardn only reports are Not Applicable through
-// Check (decision 8) and refused by Plan with a report (P-37 (a)): a
+// Check (decision 8) and refused by Plan with a report (P-37 (a)), as is
+// a configuration listing no nameserver (DNS_NO_NAMESERVERS; Not
+// Applicable since the maintainer's decision of 2026-10-23): a
 // control that does not apply plans nothing, and an empty plan reads
 // "Nothing needs changing." on a host whose nameservers are not
 // hardn.yml's.
@@ -145,8 +152,12 @@ func list(cfg *config.Config) []string {
 // Check reads the host's DNS and compares the nameservers in use (the
 // file's, or systemd-resolved's global ones) with hardn.yml's, in order,
 // as dns.Validate writes them: resolvers query them in that order, and the
-// plan changes the host when the order differs. Each finding of the host
-// (dns.State.Findings) explains the line; none sets it.
+// plan changes the host when the order differs. The host's own reasons not
+// to apply come first, as they hold whatever the list; then an empty list
+// (none), before Unknown: with nothing to compare, every reading of the
+// host is Not Applicable, so a fact not established changes nothing the
+// row could say. Each finding of the host (dns.State.Findings) explains
+// the line where the host was read; none sets it.
 func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	s, err := hostdns.Read(ctx, sys, f)
 	switch {
@@ -154,35 +165,35 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 		return engine.Status{State: engine.NotApplicable, Detail: DetailContainer, Evidence: []string{"container: " + f.Container.Signal}}, nil
 	case errors.Is(err, hostdns.ErrUnsupported): // detect's family, established
 		return engine.Status{State: engine.NotApplicable, Detail: DetailUnsupported, Evidence: []string{"distribution: " + string(f.Platform.Distro)}}, nil
+	}
+	var ev []string
+	if err == nil {
+		ev = evidence(s)
+		if d, ok := reportedOnly[s.Manager]; ok {
+			return engine.Status{State: engine.NotApplicable, Detail: d, Evidence: ev}, nil
+		}
+	}
+	read := err == nil && s.Manager != hostdns.ManagerUnknown && s.Err == nil
+	want := list(n.Config)
+	if len(want) == 0 {
+		return none(n.Config, s, read, ev), nil
+	}
+	switch {
 	case err != nil:
 		return engine.Status{State: engine.Unknown, Detail: DetailCantRead}, err
-	}
-	ev := evidence(s)
-	if d, ok := reportedOnly[s.Manager]; ok {
-		return engine.Status{State: engine.NotApplicable, Detail: d, Evidence: ev}, nil
-	}
-	if s.Manager == hostdns.ManagerUnknown || s.Err != nil {
+	case !read:
 		why := s.Err
 		if why == nil {
 			why = hostdns.ErrUnknown
 		}
 		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev}, fmt.Errorf("dns: %w", why)
 	}
-	st := engine.Status{State: engine.NotConfigured, Evidence: ev}
-	for _, fd := range s.Findings() {
-		st.Findings = append(st.Findings, steps.DNSFinding(s, fd))
-	}
-	want := list(n.Config)
-	if n.Config != nil && n.Config.Path() != "" {
-		st.Evidence = append(st.Evidence, n.Config.Path()+": nameservers "+words(want))
-	}
+	st := engine.Status{State: engine.NotConfigured, Evidence: append(ev, listEvidence(n.Config)...), Findings: findings(s)}
 	inUse := s.Nameservers
 	if s.Manager == hostdns.ManagerResolved {
 		inUse = s.Resolved.Global
 	}
 	switch v, err := hostdns.Validate(hostdns.Config{Nameservers: want}, s.Manager); {
-	case len(want) == 0:
-		st.Detail = DetailNone
 	case err != nil:
 		st.Detail = DetailInvalid
 	case s.Manager == hostdns.ManagerResolved && s.Resolved.Active != detect.Yes:
@@ -193,6 +204,42 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 		st.Detail = DetailNotHardn
 	}
 	return st, nil
+}
+
+// none is the row where cfg lists no nameserver (the maintainer,
+// 2026-10-23): Not Applicable, "none configured" where a hardn.yml was
+// read, "no hardn.yml" where none was (cfg nil, or hardn on its defaults,
+// cfg.Path() empty); its evidence the host's, ev, and hardn.yml's list;
+// its findings the host's where read is true, none where the host was not
+// read, as Unknown's.
+func none(cfg *config.Config, s hostdns.State, read bool, ev []string) engine.Status {
+	st := engine.Status{State: engine.NotApplicable, Detail: DetailNoFile, Evidence: append(ev, listEvidence(cfg)...)}
+	if cfg != nil && cfg.Path() != "" {
+		st.Detail = DetailNoneConfigured
+	}
+	if read {
+		st.Findings = findings(s)
+	}
+	return st
+}
+
+// listEvidence is hardn.yml's list, with its path, as the evidence's last
+// line; none when no hardn.yml was read.
+func listEvidence(cfg *config.Config) []string {
+	if cfg == nil || cfg.Path() == "" {
+		return nil
+	}
+	return []string{cfg.Path() + ": nameservers " + words(cfg.Nameservers)}
+}
+
+// findings are the host's findings (dns.State.Findings), coded and worded
+// by steps.DNSFinding.
+func findings(s hostdns.State) []engine.Finding {
+	var out []engine.Finding
+	for _, fd := range s.Findings() {
+		out = append(out, steps.DNSFinding(s, fd))
+	}
+	return out
 }
 
 // words is a list for the evidence: its items, or "none".
