@@ -1,0 +1,19 @@
+# Synthetic fixture for the DNS parity table (refactor plan slice 2, unit
+# (b2)): the characterization fixture's settings (operations_test.go,
+# fixtureConfig) as a hardn.yml. Not a real host's configuration.
+username: "alice"
+sshPort: 2230
+sshAllowedUsers:
+  - "alice"
+sshKeys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"
+enableUfwSshPolicy: true
+configureDns: true
+# The nameservers hardn -g, Run All and the DNS screen apply.
+nameservers: []
+ufwAppProfiles:
+  - name: "ExampleHTTPS"
+    title: "Example web server (HTTPS)"
+    description: "Example HTTPS port"
+    ports:
+      - "8443/tcp"
