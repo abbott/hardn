@@ -407,9 +407,10 @@ func (s *session) openEngine(name string) func() error {
 }
 
 // runScenario runs sc once: its note, then the canonical flow on the real
-// engine over a fresh simulated host (output.FlowEngine), then what the
-// flow does not draw (output.AfterFlow: the countdown, the plan's
-// findings), and for a scenario that confirms, hardn confirm from a new
+// engine over a fresh simulated host (output.FlowEngine), the plan's
+// findings listed before its question, then what the flow does not draw
+// (output.AfterFlow: the countdown, the findings of a plan refused), and
+// for a scenario that confirms, hardn confirm from a new
 // connection. What the fake recorded is kept for the end of play.
 func (s *session) runScenario(sc scenario) error {
 	h := sc.host()

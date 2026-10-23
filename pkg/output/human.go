@@ -210,20 +210,28 @@ func rollbackNext(rb Rollback, ae *engine.ApplyError) string {
 // r, the Run of FlowEngine.Run: for a lockout-risk change waiting for
 // confirmation, the confirm countdown counted from now, when it is rolled
 // back unless confirmed ("at about" when the deadline is approximate) and
-// how to undo it now; and the plan's findings as warnings. The flow ends a
-// lockout-risk apply with "Operation Successful" alone, so a caller that
-// runs a flow on a FlowEngine must write AfterFlow on the flow's writer
-// right after Flow.Run returns, or the person never learns that the change
-// is rolled back unless confirmed. The string starts with the flow's gap
-// between blocks and ends with a line break, ready to write as it is; ""
-// when there is nothing to add.
+// how to undo it now; and as warnings the findings the flow did not list
+// before its confirmation: with r.Reviewed, none of the plan's, which the
+// flow's Plan step listed (slice 2, decision 5), so that a finding is not
+// said twice; without, as a plan refused, every one, as before. The flow
+// ends a lockout-risk apply with "Operation Successful" alone, so a
+// caller that runs a flow on a FlowEngine must write AfterFlow on the
+// flow's writer right after Flow.Run returns, or the person never learns
+// that the change is rolled back unless confirmed. The string starts with
+// the flow's gap between blocks and ends with a line break, ready to write
+// as it is; "" when there is nothing to add.
 func AfterFlow(env term.Env, r Run, now time.Time) string {
 	c, d := component.NewCtx(env), Build(r)
 	var blocks []string
 	if cf := d.Result.Confirm; cf != nil && r.Mode == ModeApply {
 		blocks = append(blocks, countdown(c, *cf, d.Result.ID, now)...)
 	}
-	blocks = append(blocks, findingsBlock(c, d.Findings))
+	found := d.Findings
+	if r.Reviewed {
+		listed := planFindings(r.Plan)
+		found = slices.DeleteFunc(slices.Clone(found), func(f Finding) bool { return slices.Contains(listed, f) })
+	}
+	blocks = append(blocks, findingsBlock(c, found))
 	blocks = slices.DeleteFunc(blocks, func(b string) bool { return b == "" })
 	if len(blocks) == 0 {
 		return ""
@@ -263,9 +271,10 @@ func onePort(via []string) int {
 }
 
 // findingsBlock is each finding as a warning, with its code and source,
-// one Warning callout for the run of them (component.Messages, P-42 R5);
-// the configuration's deprecated values are cmd/hardn's warning, on stderr
-// as the configuration loads.
+// one Warning callout for the run of them (component.Messages, P-42 R5),
+// a finding two changes carry said once (the document keeps one per
+// change); the configuration's deprecated values are cmd/hardn's warning,
+// on stderr as the configuration loads.
 func findingsBlock(c component.Ctx, fs []Finding) string {
 	var run component.Messages
 	for _, f := range fs {
@@ -276,7 +285,9 @@ func findingsBlock(c component.Ctx, fs []Finding) string {
 		if f.Source != "" {
 			text += ", " + f.Source
 		}
-		run = append(run, component.Message{Kind: component.MessageWarn, Text: text + ")"})
+		if m := (component.Message{Kind: component.MessageWarn, Text: text + ")"}); !slices.Contains(run, m) {
+			run = append(run, m)
+		}
 	}
 	return run.Render(c)
 }

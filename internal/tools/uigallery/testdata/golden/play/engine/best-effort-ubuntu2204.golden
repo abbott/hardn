@@ -19,6 +19,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the release's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning (P-41).␛[m$
 $
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
+      ␛[38;2;219;184;83msupports it and hardn changes it, but hardn is not tested␛[m$
+      ␛[38;2;219;184;83mon it␛[m$
+$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
@@ -81,11 +85,6 @@ $
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msupports it and hardn changes it, but hardn is not tested on␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mit (PLATFORM_BEST_EFFORT)␛[m$
-$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
@@ -108,6 +107,10 @@ $
 # port 22, and ufw is active, allowing 22/tcp.$
 # The plan alone, for key-only login: it carries the release's$
 # warning (P-41).$
+$
+   -  Ubuntu 22.04 is a best-effort release: its vendor still$
+      supports it and hardn changes it, but hardn is not tested$
+      on it$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
@@ -171,11 +174,6 @@ $
 $
   No actual changes were made to your system.$
 $
-# Warning$
-# Ubuntu 22.04 is a best-effort release: its vendor still$
-# supports it and hardn changes it, but hardn is not tested on$
-# it (PLATFORM_BEST_EFFORT)$
-$
 # simulated system ---------------------------------------------$
 $
 # Note$
@@ -199,6 +197,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlistens on port 22, and ufw is active, allowing 22/tcp.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrelease's warning (P-41).␛[m$
+$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mUbuntu 22.04 is a best-effort release: its vendor␛[m$
+      ␛[38;2;219;184;83mstill supports it and hardn changes it, but hardn is␛[m$
+      ␛[38;2;219;184;83mnot tested on it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -263,11 +265,6 @@ $
       ␛[38;2;129;134;156m$ sshd -T␛[m$
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
-$
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msupports it and hardn changes it, but hardn is not tested␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon it (PLATFORM_BEST_EFFORT)␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

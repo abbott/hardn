@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -34,6 +36,9 @@ const exampleConf = "/etc/example/web.conf"
 type exampleControl struct {
 	failSecond bool  // the second change's Apply fails
 	refuse     error // Plan refuses
+	// findings ride on the first change; the first of them on the second
+	// too.
+	findings []engine.Finding
 }
 
 func (exampleControl) ID() string                                    { return "example.web" }
@@ -63,11 +68,17 @@ func (c exampleControl) Plan(_ context.Context, sys host.System, _ engine.Input)
 	return []engine.Change{
 		{ID: "example.web/files", Summary: "Listen on 192.0.2.20:443 in " + exampleConf, Target: exampleConf,
 			Diff: engine.FileDiff(exampleConf, &before, &after), Risk: engine.RiskPlain, Stage: engine.StageFiles,
-			Backups: []string{exampleConf}, Apply: write},
+			Backups: []string{exampleConf}, Apply: write, Findings: c.findings},
 		{ID: "example.web/verify", Summary: "Check the configuration with nginx -t", Target: "nginx", Commands: []string{"nginx -t"},
-			Risk: engine.RiskPlain, Stage: engine.StageVerify, Apply: second},
+			Risk: engine.RiskPlain, Stage: engine.StageVerify, Apply: second, Findings: c.findings[:min(1, len(c.findings))]},
 	}, nil
 }
+
+// otherControl is exampleControl under another ID, so that a plan can
+// hold both.
+type otherControl struct{ exampleControl }
+
+func (otherControl) ID() string { return "example.other" }
 
 // newFlowHost is a fake Debian 13 host with /etc/example/web.conf.
 func newFlowHost() *hostfake.System {
@@ -246,15 +257,115 @@ func TestFlowEngineInAFlow(t *testing.T) {
 }
 
 // TestAfterFlow pins what AfterFlow adds below a flow that applied the
-// port plan, waiting for confirmation: the countdown, when it is rolled
-// back ("at about"), how to undo it, and the plan's finding.
+// port plan, waiting for confirmation, having listed the plan's finding
+// before its confirmation (Run.Reviewed): the countdown, when it is
+// rolled back ("at about") and how to undo it, and not the finding again.
+// A run whose findings the flow did not list has them after the
+// countdown, as a warning with its code.
 func TestAfterFlow(t *testing.T) {
 	fx := fixtures()[3]
+	reviewed := fx.run
+	reviewed.Reviewed = true
 	uitest.Golden(t, "human/after-flow", uitest.Core(), func(env term.Env) string {
-		return output.AfterFlow(env, fx.run, fixtureNow)
+		return output.AfterFlow(env, reviewed, fixtureNow)
 	})
+	const finding = "PasswordAuthentication yes in 50-cloud-init.conf is read before 00-hardn.conf, so sshd uses it (SSHD_OVERRIDDEN"
+	for _, tc := range []struct {
+		name string
+		run  output.Run
+		want bool
+	}{{"listed", reviewed, false}, {"not listed", fx.run, true}} {
+		got := squash(output.AfterFlow(plainEnv(), tc.run, fixtureNow))
+		if strings.Contains(got, squash(finding)) != tc.want || !strings.Contains(got, squash("reverts automatically")) {
+			t.Errorf("%s: the countdown and the finding (want %t):\n%s", tc.name, tc.want, got)
+		}
+	}
 	if got := output.AfterFlow(plainEnv(), output.Run{Mode: output.ModeApply, Plan: &engine.Plan{ID: fixtureID},
 		Result: &engine.Result{Nothing: true}}, fixtureNow); got != "" {
 		t.Errorf("nothing to add: %q", got)
+	}
+	if d, dr := output.Build(fx.run), output.Build(reviewed); !reflect.DeepEqual(d, dr) {
+		t.Errorf("Reviewed changes the document:\n%+v\n%+v", d, dr)
+	}
+}
+
+// TestFlowEngineFindings runs the canonical flow on the adapter over a
+// control whose two changes carry one finding, the first change another
+// too: the flow is handed each once, in the plan's order, each a warning
+// with its code; its Plan step lists them before the question, and
+// AfterFlow does not say them again, after an apply, a decline, a dry run,
+// a failure, or q and the end of the input at the confirmation. A plan
+// refused by a second control lists none, and AfterFlow reports them
+// after the refusal, as warnings with their codes, as it did every
+// finding before; so it does for a flow that ended before listing them
+// (a context done as it planned). The document's findings are the same
+// whichever.
+func TestFlowEngineFindings(t *testing.T) {
+	fs := []engine.Finding{
+		{Code: "EXAMPLE_INCLUDE", Detail: "conf.d/old.conf also listens on 443", Source: "/etc/example/conf.d/old.conf"},
+		{Code: "EXAMPLE_TLS", Detail: "No certificate for 192.0.2.20 yet"},
+	}
+	want := []flow.Finding{{Text: fs[0].Detail, Code: fs[0].Code}, {Text: fs[1].Detail, Code: fs[1].Code}}
+	env := plainEnv()
+	type ran struct {
+		run              output.Run
+		screen, after    string
+		listed, repeated int
+	}
+	play := func(c exampleControl, refused, dryRun bool, lines ...string) ran {
+		sys := newFlowHost()
+		a := newAdapter(sys, c)
+		if refused {
+			a.Controls = append(a.Controls, otherControl{exampleControl{refuse: fmt.Errorf("example: %w", engine.ErrUnsupported)}})
+		}
+		a.DryRun = dryRun
+		var out bytes.Buffer
+		p := nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, lines...), false), Out: env.Writer(&out)}
+		o, err := flow.Flow{Engine: a, Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Listen on 443?"} }, DryRun: dryRun}.Run(context.Background(), p)
+		r := ran{run: a.Run(o, err), screen: out.String()}
+		r.after = output.AfterFlow(env, r.run, fixtureNow)
+		question := strings.Index(r.screen, "Listen on 443?")
+		for _, f := range fs {
+			i := strings.Index(r.screen, f.Detail)
+			if i >= 0 && (question < 0 || i < question) {
+				r.listed++
+			}
+			r.repeated += strings.Count(squash(r.after), squash(f.Detail+" ("+f.Code))
+		}
+		return r
+	}
+	a := newAdapter(newFlowHost(), exampleControl{findings: fs})
+	if p, err := a.Plan(context.Background()); err != nil || !slices.Equal(p.Findings, want) {
+		t.Fatalf("Plan = %+v, %v; want the findings %+v", p.Findings, err, want)
+	}
+	for _, tc := range []struct {
+		name             string
+		c                exampleControl
+		refused, dryRun  bool
+		lines            []string
+		listed, repeated int
+	}{
+		{"applied", exampleControl{findings: fs}, false, false, []string{"y"}, 2, 0},
+		{"declined", exampleControl{findings: fs}, false, false, []string{"n"}, 2, 0},
+		{"a dry run", exampleControl{findings: fs}, false, true, nil, 2, 0},
+		{"failed", exampleControl{findings: fs, failSecond: true}, false, false, []string{"y"}, 2, 0},
+		{"q at the confirmation", exampleControl{findings: fs}, false, false, []string{"q"}, 2, 0},
+		{"the end of the input at the confirmation", exampleControl{findings: fs}, false, false, nil, 2, 0},
+		{"refused", exampleControl{findings: fs}, true, false, nil, 0, 2},
+	} {
+		r := play(tc.c, tc.refused, tc.dryRun, tc.lines...)
+		if r.listed != tc.listed || r.repeated != tc.repeated {
+			t.Errorf("%s: listed before the question %d, after the flow %d; want %d, %d:\n%s%s", tc.name, r.listed, r.repeated, tc.listed, tc.repeated, r.screen, r.after)
+		}
+		if n := len(output.Build(r.run).Findings); n != 3 {
+			t.Errorf("%s: the document holds %d findings, want 3 (one twice, on two changes)", tc.name, n)
+		}
+	}
+	a = newAdapter(newFlowHost(), exampleControl{findings: fs})
+	if _, err := a.Plan(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if after := squash(output.AfterFlow(env, a.Run(flow.NotRun, context.Canceled), fixtureNow)); !strings.Contains(after, squash(fs[1].Detail+" ("+fs[1].Code)) {
+		t.Errorf("a flow done as it planned: AfterFlow does not report the findings:\n%s", after)
 	}
 }

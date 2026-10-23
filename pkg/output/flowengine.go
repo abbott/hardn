@@ -3,6 +3,7 @@ package output
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"sync"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
 // FlowEngine is pkg/ui/flow's Engine over the plan/apply engine
@@ -29,10 +31,12 @@ import (
 // once (engine.ErrPlanUsed): Apply never retries; a caller that wants to
 // try again runs the flow again, which plans again.
 //
-// After Flow.Run returns, the caller writes AfterFlow(env, a.Run(o, err),
-// now) on the flow's writer: the flow ends an apply with "Operation
-// Successful", and a lockout-risk change waiting for confirmation needs
-// its countdown, its deadline and the confirm command shown after it.
+// Plan hands the flow the plan's findings, which its Plan step lists
+// before the confirmation (slice 2, decision 5). After Flow.Run returns,
+// the caller writes AfterFlow(env, a.Run(o, err), now) on the flow's
+// writer: the flow ends an apply with "Operation Successful", and a
+// lockout-risk change waiting for confirmation needs its countdown, its
+// deadline and the confirm command shown after it.
 type FlowEngine struct {
 	Engine   *engine.Engine
 	Controls []engine.Control
@@ -50,6 +54,7 @@ type FlowEngine struct {
 	plan   *engine.Plan
 	result *engine.Result
 	err    error
+	handed bool // Plan gave the flow the plan, its findings with it
 }
 
 var _ flow.Engine = (*FlowEngine)(nil)
@@ -79,11 +84,13 @@ func (a *FlowEngine) Progress(ev engine.Event) {
 
 // Plan plans the action. A plan the engine refuses is an error, a
 // *flow.Failure whose text is the first refusal's Why (or message) with
-// its code, and whose next step is its Fix.
+// its code, and whose next step is its Fix; its findings are then not the
+// flow's, and AfterFlow reports them. Otherwise the plan's findings go
+// with it (reviewFindings).
 func (a *FlowEngine) Plan(ctx context.Context) (flow.Plan, error) {
 	p, err := a.Engine.Plan(ctx, a.Controls, a.Config)
 	a.mu.Lock()
-	a.plan, a.result, a.err = p, nil, err
+	a.plan, a.result, a.err, a.handed = p, nil, err, err == nil && p.Err() == nil
 	a.mu.Unlock()
 	if err == nil {
 		err = p.Err()
@@ -91,11 +98,26 @@ func (a *FlowEngine) Plan(ctx context.Context) (flow.Plan, error) {
 	if err != nil {
 		return flow.Plan{}, a.failure(err)
 	}
-	fp := flow.Plan{View: planView(p)}
+	fp := flow.Plan{View: planView(p), Findings: reviewFindings(p)}
 	if p.Risk == engine.RiskLockout {
 		fp.Risk = flow.RiskLockout
 	}
 	return fp, nil
+}
+
+// reviewFindings are plan p's findings as the flow's Plan step lists them:
+// the document's (planFindings), in its order, each once, a finding that
+// two changes carry being one line; each a warning, as the human report
+// words every finding (findingsBlock), its line the finding's detail, its
+// code kept with it but not shown (flow.Finding).
+func reviewFindings(p *engine.Plan) []flow.Finding {
+	var out []flow.Finding
+	for _, f := range planFindings(p) {
+		if ff := (flow.Finding{Text: f.Detail, Code: f.Code, Severity: flow.SeverityWarn}); !slices.Contains(out, ff) {
+			out = append(out, ff)
+		}
+	}
+	return out
 }
 
 // Apply applies the plan Plan last returned, reporting each step through
@@ -128,11 +150,17 @@ func (a *FlowEngine) Apply(ctx context.Context, report flow.Report) error {
 // with DryRun); a declined confirmation is Declined; a flow that ended
 // before a result has its error: prompt.ErrAborted is CANCELLED (130), and
 // nav.ErrQuit and nav.ErrBack, q or 0 at a prompt, are declining (3, not
-// an error).
+// an error). Reviewed is set when the flow listed the plan's findings: it
+// had the plan, and it reached a result or ended at the confirmation (q,
+// the end of the input), which it asks after them. A flow that ended
+// before a result otherwise, a context done as it planned or a write
+// that failed, is taken not to have listed them, so that AfterFlow
+// reports them: a finding is shown twice at worst, never missed.
 func (a *FlowEngine) Run(o flow.Outcome, flowErr error) Run {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	r := Run{Mode: ModeApply, Plan: a.plan, Result: a.result, Err: a.err}
+	r := Run{Mode: ModeApply, Plan: a.plan, Result: a.result, Err: a.err,
+		Reviewed: a.handed && (o != flow.NotRun || navigated(flowErr) || errors.Is(flowErr, prompt.ErrAborted))}
 	switch {
 	case o == flow.Planned || (o == flow.Unchanged && a.DryRun):
 		r.Mode = ModePlan
