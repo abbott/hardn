@@ -7,10 +7,11 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the main menu on its layout, its status read␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom the gallery's hardened Debian 13 host, its items leading␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto the screen mocks, the real DNS screen and, under dry run,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Firewall screen as it prints. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom the gallery's hardened Debian 13 host; its 3 the real DNS␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen, on another Debian 13 host; its 1, 2 and 5 Figma's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, under dry run after a note of what origin/main␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoes there; its 4, under dry run, origin/main's Firewall␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen as it prints. Nothing on this machine changes.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -134,10 +135,11 @@ $
 $
 # Note$
 # Play mode, mocks: the main menu on its layout, its status read$
-# from the gallery's hardened Debian 13 host, its items leading$
-# to the screen mocks, the real DNS screen and, under dry run,$
-# origin/main's Firewall screen as it prints. Nothing on this$
-# machine changes.$
+# from the gallery's hardened Debian 13 host; its 3 the real DNS$
+# screen, on another Debian 13 host; its 1, 2 and 5 Figma's$
+# screen mocks, under dry run after a note of what origin/main$
+# does there; its 4, under dry run, origin/main's Firewall$
+# screen as it prints. Nothing on this machine changes.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -283,10 +285,12 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the main menu on its layout, its status␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread from the gallery's hardened Debian 13 host, its items␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mleading to the screen mocks, the real DNS screen and,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder dry run, origin/main's Firewall screen as it prints.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread from the gallery's hardened Debian 13 host; its 3 the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal DNS screen, on another Debian 13 host; its 1, 2 and 5␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mFigma's screen mocks, under dry run after a note of what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main does there; its 4, under dry run,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Firewall screen as it prints. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

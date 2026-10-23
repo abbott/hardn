@@ -7,9 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNot a mock: origin/main's Firewall screen under dry run, 2␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it, its colours left out and what␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas typed (2, Enter) not echoed. No plan: no file, rule or␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand is named.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it on a host with ufw installed and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minactive, not the menu's host; colours left out, what was␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtyped (2, Enter) not echoed, the pause in the trunk's words␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(DEV-050). No plan: no file, rule or command is named.␛[m$
 $
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
 UFW Firewall Configuration$
@@ -44,9 +45,10 @@ $
 $
 # Note$
 # Not a mock: origin/main's Firewall screen under dry run, 2$
-# chosen, as pkg/menu prints it, its colours left out and what$
-# was typed (2, Enter) not echoed. No plan: no file, rule or$
-# command is named.$
+# chosen, as pkg/menu prints it on a host with ufw installed and$
+# inactive, not the menu's host; colours left out, what was$
+# typed (2, Enter) not echoed, the pause in the trunk's words$
+# (DEV-050). No plan: no file, rule or command is named.$
 $
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
 UFW Firewall Configuration$
@@ -81,9 +83,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNot a mock: origin/main's Firewall screen under dry run, 2␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it, its colours left out and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat was typed (2, Enter) not echoed. No plan: no file,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule or command is named.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchosen, as pkg/menu prints it on a host with ufw installed␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand inactive, not the menu's host; colours left out, what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas typed (2, Enter) not echoed, the pause in the trunk's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwords (DEV-050). No plan: no file, rule or command is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnamed.␛[m$
 $
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
 ~~~~~~~~~~~$

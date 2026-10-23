@@ -173,27 +173,27 @@ func nowWords(planOnly bool) string {
 
 // toggleYML is the simulated host's hardn.yml for the saved toggle: the
 // DNS hosts' file with the dryRun key in it, as hardn.yml.example has it,
-// set to planOnly.
-func toggleYML(planOnly bool) string {
+// set to dryRun.
+func toggleYML(dryRun bool) string {
 	list := nameserversYML(dnsList)
 	user, rest, _ := strings.Cut(list, "\n")
-	return fmt.Sprintf("%s\ndryRun: %t\n%s", user, planOnly, rest)
+	return fmt.Sprintf("%s\ndryRun: %t\n%s", user, dryRun, rest)
 }
 
-// toggleFlow is the saved toggle, from plan only when planOnly is set
-// (alternative (a) of decision 4): the canonical flow, its review the
-// mode it sets, its plan the real save of hardn.yml's dryRun key, planned
-// by steps.PlanSave on a simulated host with toggleYML, edited in place
-// (config.Edit), and a y/N question. It is never a dry run itself: it is
-// the change that ends one.
-func toggleFlow(ctx context.Context, planOnly bool) (screen.WorkflowStep, flow.Flow, error) {
-	h := simulate(debian13Platform).withHardnYML(toggleYML(planOnly))
+// toggleFlow is the saved toggle (alternative (a) of decision 4), setting
+// hardn.yml's dryRun, which file holds, to want: the canonical flow, its
+// review the mode it sets, its plan the real save of the key, planned by
+// steps.PlanSave on a simulated host with toggleYML(file), edited in place
+// (config.Edit), and a y/N question; with the key already want, nothing
+// to change. It is never a dry run itself: it is the change that ends one.
+func toggleFlow(ctx context.Context, file, want bool) (screen.WorkflowStep, flow.Flow, error) {
+	h := simulate(debian13Platform).withHardnYML(toggleYML(file))
 	sys := h.system()
 	cfg, err := config.Read(ctx, sys, hardnYML)
 	if err != nil {
 		return screen.WorkflowStep{}, flow.Flow{}, err
 	}
-	cfg.DryRun = !planOnly
+	cfg.DryRun = want
 	changes, err := steps.PlanSave(ctx, sys, "dryrun.mode", cfg, []string{"dryRun"})
 	if err != nil {
 		return screen.WorkflowStep{}, flow.Flow{}, err
@@ -203,7 +203,7 @@ func toggleFlow(ctx context.Context, planOnly bool) (screen.WorkflowStep, flow.F
 		plan.View.Changes = append(plan.View.Changes, component.PlanChange{Title: ch.Title, Target: ch.Target, Diff: ch.Diff})
 	}
 	label, value, state := "Enable dry-run mode", "Enabled", component.ValueOK
-	if planOnly {
+	if !want {
 		label, value, state = "Disable dry-run mode", "Disabled", component.ValueWarn
 	}
 	f := flow.Flow{
@@ -252,8 +252,9 @@ var legacyFirewall = []string{
 }
 
 // legacyNote heads the Firewall transcript, in the listing and in play.
-const legacyNote = "origin/main's Firewall screen under dry run, 2 chosen, as pkg/menu prints it, its colours left out " +
-	"and what was typed (2, Enter) not echoed. No plan: no file, rule or command is named."
+const legacyNote = "origin/main's Firewall screen under dry run, 2 chosen, as pkg/menu prints it on a host with ufw installed " +
+	"and inactive, not the menu's host; colours left out, what was typed (2, Enter) not echoed, the pause in the trunk's words " +
+	"(DEV-050). No plan: no file, rule or command is named."
 
 // drawLegacy renders the Firewall transcript in c, each line wrapped at
 // the terminal's width as a terminal wraps it.
@@ -331,15 +332,13 @@ func drawModes(c component.Ctx) string {
 // drawToggle renders the saved toggle's sequence, step by step, each
 // under the gallery's header naming it, as -screens shows a workflow's.
 func drawToggle(c component.Ctx, _ hostStatus) (string, error) {
+	step, f, err := toggleFlow(context.Background(), false, true)
+	if err != nil {
+		return "", err
+	}
 	seq := screen.Sequence{
-		Name: "saved",
-		Build: func() (screen.WorkflowStep, flow.Flow) {
-			step, f, err := toggleFlow(context.Background(), false)
-			if err != nil {
-				f = flow.Flow{} // refused by Check: Play reports it
-			}
-			return step, f
-		},
+		Name:    "saved",
+		Build:   func() (screen.WorkflowStep, flow.Flow) { return step, f },
 		Answers: []screen.Answer{{Step: "confirm", Line: "y"}},
 		Ends:    flow.Applied,
 	}
@@ -472,8 +471,9 @@ func dryRunStart(args []string) (string, bool, error) {
 }
 
 // dryRunNote is play's note for the Dry-Run mocks.
-const dryRunNote = "Play mode, mocks: the main menu on its layout, its status read from the gallery's hardened Debian 13 host, " +
-	"its items leading to the screen mocks, the real DNS screen and, under dry run, origin/main's Firewall screen as it prints. " +
+const dryRunNote = "Play mode, mocks: the main menu on its layout, its status read from the gallery's hardened Debian 13 host; " +
+	"its 3 the real DNS screen, on another Debian 13 host; its 1, 2 and 5 Figma's screen mocks, under dry run after a note " +
+	"of what origin/main does there; its 4, under dry run, origin/main's Firewall screen as it prints. " +
 	"Nothing on this machine changes."
 
 // planOnly is whether the session plays in dry run: started with
@@ -489,106 +489,158 @@ func (s *session) setPlanOnly(on bool) {
 	}
 }
 
+// dryRunMode is where a play of the Dry-Run mocks takes its mode from:
+// flag, -sequence dry-run, as hardn -n sets it; and file, the dryRun key
+// of the simulated host's hardn.yml, false until the saved toggle edits
+// it. The flag wins (plan §3.19): with it, plan only stays whatever the
+// file says.
+type dryRunMode struct {
+	flag, file bool
+}
+
 // openDryRun returns the action that opens the main menu of the variant
 // name names, until the user goes back from it, the status host read
-// fresh. The proposed menu says plan only in the proposed words, as from
-// -n, the one way play starts in it; its heading is swapped in each round
-// (modeView.swap), which TestPlayDryRunGolden holds, a failed swap leaving
-// origin/main's words.
+// fresh. Its heading says the mode in origin/main's words, or in the
+// proposed ones, where plan only comes from -n, the one way the proposed
+// menu starts in it; it is swapped in each round (modeView.swap), which
+// TestPlayDryRunGolden holds, a failed swap leaving the component's
+// words.
 func (s *session) openDryRun(name string) func() error {
 	variant := strings.TrimPrefix(strings.TrimPrefix(name, dryRunPrefix), "/")
 	proposed := variant == variantProposed
 	return func() error {
-		sh, _ := findStatusHost(dryRunHost)
+		sh, ok := findStatusHost(dryRunHost)
+		if !ok {
+			return fmt.Errorf("%s: no status host %q", name, dryRunHost)
+		}
 		st, err := s.readStatus(context.Background(), sh.host())
 		if err != nil {
 			return fmt.Errorf("%s: %w", name, err)
 		}
+		mode := &dryRunMode{flag: s.planOnly()}
 		return s.p.Run(func() nav.Screen {
 			vm := mainMenu(st, s.planOnly(), proposed)
-			sc := vm.Screen(s.p.Ctx, s.dryRunMenu(vm, variant == variantSaved, proposed))
-			if proposed {
-				mv := modeView{proposed: true, planOnly: s.planOnly()}
-				if mv.planOnly {
-					mv.from = fromFlag
-				}
-				if out, err := mv.swap(s.p.Ctx, sc.Above, vm.Heading); err == nil {
-					sc.Above = out
-				}
+			sc := vm.Screen(s.p.Ctx, s.dryRunMenu(vm, variant == variantSaved, proposed, mode))
+			mv := modeView{proposed: proposed, planOnly: s.planOnly()}
+			if proposed && mv.planOnly {
+				mv.from = fromFlag
+			}
+			if out, err := mv.swap(s.p.Ctx, sc.Above, vm.Heading); err == nil {
+				sc.Above = out
 			}
 			return sc
 		})
 	}
 }
 
-// userRefused is what the proposed menu's 1 says under plan only
-// (decision 6): User Management changes the host whatever the mode (V2)
-// until slice 5 puts it on the flow.
-const userRefused = "User Management can't run in plan only yet."
+// planOnlyRefused is what the proposed menu's 1 and 5 say under plan only
+// (decision 6): each writes to the host whatever the mode until its slice
+// puts it on the flow.
+const planOnlyRefused = "Not available in plan only."
+
+// refusedKeys are the items the proposed menu refuses under plan only:
+// User Management (V2) and Backup (side-effects rows 29 and 30).
+var refusedKeys = []string{"1", "5"}
+
+// legacyDryRun says, above the screen mock an item leads to under dry
+// run, what origin/main does there instead (gallery-dryrun.md §2.4), so
+// that the mock's dry-run sequence, which stops at its plan, is not taken
+// for origin/main's.
+var legacyDryRun = map[string]string{
+	"1": "origin/main, under dry run, creates the user, changes sudo and adds or removes keys all the same, " +
+		"leaving out only the success line (V2). Below, Figma's mock of the flow slice 5 builds, not origin/main's.",
+	"2": "origin/main, under dry run, asks \"Are you sure you want to disable root SSH access? (y/n)\", then prints " +
+		"\"[DRY-RUN] Would disable root SSH access\". Below, Figma's mock of the flow slice 6 builds, not origin/main's.",
+	"5": "origin/main, under dry run, has no check: with backups on, opening it writes and removes <path>/.write_test, " +
+		"and its toggle and path save ./hardn.yml. Below, Figma's mock of the screen slice 3 builds, not origin/main's.",
+}
 
 // dryRunMenu binds the items of main menu vm: each where the main menu's
 // mock leads (session.menu), but 4, which under dry run shows origin/main's
 // Firewall screen, and 6, the Dry-Run screen, its toggle saved when saved
-// is set; the proposed menu's 1 refuses under plan only.
-func (s *session) dryRunMenu(vm screen.MainMenu, saved, proposed bool) nav.Menu {
+// is set; under dry run, 1, 2 and 5 say first what origin/main does there,
+// and the proposed menu refuses 1 and 5.
+func (s *session) dryRunMenu(vm screen.MainMenu, saved, proposed bool, mode *dryRunMode) nav.Menu {
 	m := s.menu(screen.Mock{Name: mainMenuMock, Screen: vm})
 	for i, o := range m.Options {
-		switch o.Item.Key {
-		case "1":
-			if proposed {
-				open := o.Action
-				m.Options[i].Action = func() error {
-					if s.planOnly() {
-						return s.say(component.Message{Kind: component.MessageWarn, Text: userRefused})()
-					}
-					return open()
-				}
-			}
-		case "4":
+		switch key := o.Item.Key; {
+		case key == "4":
 			m.Options[i].Action = s.legacy(o.Action)
-		case dryRunKey:
-			m.Options[i].Action = s.openDryRunScreen(saved)
+		case key == dryRunKey:
+			m.Options[i].Action = s.openDryRunScreen(saved, mode)
+		case proposed && slices.Contains(refusedKeys, key):
+			m.Options[i].Action = s.unlessPlanOnly(s.say(component.Message{Kind: component.MessageWarn, Text: planOnlyRefused}), o.Action)
+		case legacyDryRun[key] != "":
+			m.Options[i].Action = s.unlessPlanOnly(s.noted(legacyDryRun[key], o.Action), o.Action)
 		}
 	}
 	return m
+}
+
+// unlessPlanOnly returns an action that runs dry under plan only, live
+// otherwise.
+func (s *session) unlessPlanOnly(dry, live func() error) func() error {
+	return func() error {
+		if s.planOnly() {
+			return dry()
+		}
+		return live()
+	}
+}
+
+// noted returns an action that writes note, as a result is written
+// (session.say), then runs then.
+func (s *session) noted(note string, then func() error) func() error {
+	return func() error {
+		if err := s.say(component.Message{Text: note})(); err != nil {
+			return err
+		}
+		return then()
+	}
 }
 
 // legacy returns item 4's action: origin/main's Firewall transcript under
 // dry run, after its note; live, missing, as the gallery has no Firewall
 // screen.
 func (s *session) legacy(missing func() error) func() error {
-	return func() error {
-		if !s.planOnly() {
-			return missing()
-		}
+	return s.unlessPlanOnly(func() error {
 		gap := strings.Repeat("\n", theme.SectionGap)
 		_, err := io.WriteString(s.p.Out, gap+component.Message{Text: legacyNote}.Render(s.p.Ctx)+"\n"+gap+drawLegacy(s.p.Ctx)+"\n")
 		return err
-	}
+	}, missing)
 }
+
+// flagHolds is what the saved toggle says when the file is saved, or
+// already says live, while -n keeps plan only (plan §3.19).
+const flagHolds = "Plan only stays on: -n set it, and a flag given wins over hardn.yml (plan §3.19)."
 
 // openDryRunScreen returns the action of the Dry-Run item: its screen
 // until the user goes back, drawn each round in the session's mode, its
 // item 1 the toggle: for the session, with origin/main's sentence, or
-// saved, through toggleFlow, the mode set once the flow applies or finds
-// the file already so.
-func (s *session) openDryRunScreen(saved bool) func() error {
+// saved, through toggleFlow on mode's file, the session's mode then the
+// flag's, else the file's.
+func (s *session) openDryRunScreen(saved bool, mode *dryRunMode) func() error {
 	toggle := func() error {
 		on := !s.planOnly()
 		if !saved {
 			s.setPlanOnly(on)
 			return s.say(component.Message{Text: nowWords(on)})()
 		}
-		step, f, err := toggleFlow(context.Background(), !on)
+		step, f, err := toggleFlow(context.Background(), mode.file, on)
 		if err != nil {
 			return err
 		}
 		f.Engine = s.sim.engine(dryRunPrefix+"/"+variantSaved+", "+step.Title.Title, f.Engine)
 		o, err := step.Run(context.Background(), s.p, f)
-		if err == nil && (o == flow.Applied || o == flow.Unchanged) {
-			s.setPlanOnly(on)
+		if err != nil || (o != flow.Applied && o != flow.Unchanged) {
+			return err
 		}
-		return err
+		mode.file = on
+		s.setPlanOnly(mode.flag || mode.file)
+		if mode.flag && !on {
+			return s.say(component.Message{Text: flagHolds})()
+		}
+		return nil
 	}
 	return func() error {
 		return s.p.Run(func() nav.Screen {

@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -62,19 +63,20 @@ func TestDryRunGolden(t *testing.T) {
 // TestPlayDryRunGolden plays the mocks on the core set and pins each
 // transcript: origin/main's main menu, 6 turning dry run on for the
 // session, then DNS Add stopping at its plan with the footer, then 4,
-// origin/main's Firewall screen under dry run, then out; the toggle saved
-// through the canonical flow; and the proposed main menu started in dry
-// run (-n), its 6 refused as no item's key, its 1 refused under plan only
-// (decision 6), then DNS Add.
+// origin/main's Firewall screen under dry run, then 1, the note of what
+// origin/main does there (V2) above Figma's mock, then out; the toggle
+// saved through the canonical flow; and the proposed main menu started in
+// dry run (-n), its 6 refused as no item's key, its 1 and 5 refused under
+// plan only (decision 6), then DNS Add.
 func TestPlayDryRunGolden(t *testing.T) {
 	for _, r := range []struct {
 		name  string
 		args  []string
 		lines []string
 	}{
-		{"dryrun", []string{dryRunPrefix}, []string{"6", "1", "0", "3", "2", "192.0.2.53", "0", "4", "0"}},
+		{"dryrun", []string{dryRunPrefix}, []string{"6", "1", "0", "3", "2", "192.0.2.53", "0", "4", "1", "0", "0"}},
 		{"dryrun-saved", []string{dryRunPrefix + "/" + variantSaved}, []string{"6", "1", "y", "0", "0"}},
-		{"dryrun-proposed", []string{"-sequence", "dry-run", dryRunPrefix + "/" + variantProposed}, []string{"6", "1", "3", "2", "192.0.2.53", "0", "0"}},
+		{"dryrun-proposed", []string{"-sequence", "dry-run", dryRunPrefix + "/" + variantProposed}, []string{"6", "1", "5", "3", "2", "192.0.2.53", "0", "0"}},
 	} {
 		uitest.Golden(t, "play/"+r.name, uitest.Core(), func(env term.Env) string {
 			args := append(lookArgs(t, env), r.args...)
@@ -204,10 +206,12 @@ func TestLegacyFirewallIsReal(t *testing.T) {
 }
 
 // TestToggleSaves checks the saved toggle's plan, steps.PlanSave's: one
-// change, hardn.yml's dryRun line alone, each way.
+// change, hardn.yml's dryRun line alone, each way; and none where the
+// file already says what the toggle sets, as when -n set plan only and
+// the toggle turns it off.
 func TestToggleSaves(t *testing.T) {
-	for _, from := range []bool{false, true} {
-		_, f, err := toggleFlow(context.Background(), from)
+	for _, tc := range []struct{ file, want bool }{{false, true}, {true, false}, {false, false}} {
+		_, f, err := toggleFlow(context.Background(), tc.file, tc.want)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -216,16 +220,80 @@ func TestToggleSaves(t *testing.T) {
 			t.Fatal(err)
 		}
 		ch := plan.View.Changes
+		if tc.file == tc.want {
+			if len(ch) != 0 {
+				t.Errorf("file %t, want %t: %+v; want no change", tc.file, tc.want, ch)
+			}
+			continue
+		}
 		var changed []string
 		for _, l := range strings.Split(ch[0].Diff, "\n") {
 			if (strings.HasPrefix(l, "-") || strings.HasPrefix(l, "+")) && !strings.HasPrefix(l, "---") && !strings.HasPrefix(l, "+++") {
 				changed = append(changed, l)
 			}
 		}
-		want := "-dryRun: " + strconv.FormatBool(from) + " +dryRun: " + strconv.FormatBool(!from)
+		want := "-dryRun: " + strconv.FormatBool(tc.file) + " +dryRun: " + strconv.FormatBool(tc.want)
 		if len(ch) != 1 || ch[0].Title != "Save the configuration" || ch[0].Target != hardnYML || strings.Join(changed, " ") != want {
-			t.Errorf("from %t: %+v; want one save of %s changing the dryRun line alone", from, ch, hardnYML)
+			t.Errorf("file %t, want %t: %+v; want one save of %s changing the dryRun line alone", tc.file, tc.want, ch, hardnYML)
 		}
+	}
+}
+
+// TestPlayDryRunNotes plays each variant started in dry run (-n) and
+// chooses 1, 2 and 5, which lead to Figma's mocks: in origin/main's
+// menus, each mock comes after the note of what origin/main does there
+// (V2 for 1); in the proposed one, 1 and 5 are refused and 2 is noted.
+func TestPlayDryRunNotes(t *testing.T) {
+	titles := map[string]string{}
+	for _, m := range screen.Mocks() {
+		if sm, ok := m.Screen.(screen.SubMenu); ok {
+			titles[m.Name] = sm.Title.Title
+		}
+	}
+	flat := func(out string) string { return strings.Join(strings.Fields(ansi.Strip(out)), " ") }
+	for _, r := range []struct {
+		variant string
+		lines   []string
+		noted   []string
+	}{
+		{dryRunPrefix, []string{"1", "0", "2", "0", "5", "0", "0"}, []string{"1", "2", "5"}},
+		{dryRunPrefix + "/" + variantSaved, []string{"1", "0", "2", "0", "5", "0", "0"}, []string{"1", "2", "5"}},
+		{dryRunPrefix + "/" + variantProposed, []string{"1", "5", "2", "0", "0"}, []string{"2"}},
+	} {
+		args := append(lookArgs(t, term.Fixed(80, colorprofile.TrueColor, true, true)), "-sequence", "dry-run", r.variant)
+		code, out, errs, unread := playGallery(r.lines, args...)
+		if code != exitOK || errs != "" || unread != 0 {
+			t.Fatalf("%s: exit %d, stderr %q, %d lines unread; want exit 0", r.variant, code, errs, unread)
+		}
+		text := flat(out)
+		for _, key := range r.noted {
+			title := titles[links[mainMenuMock+"/"+key]]
+			at := strings.Index(text, flat(legacyDryRun[key]))
+			if at < 0 || title == "" || !strings.Contains(text[at:], title) {
+				t.Errorf("%s, %s: want the note %q, then the mock titled %q:\n%s", r.variant, key, legacyDryRun[key], title, text)
+			}
+		}
+		refused := strings.Count(text, planOnlyRefused)
+		if want := map[bool]int{false: 0, true: len(refusedKeys)}[r.variant == dryRunPrefix+"/"+variantProposed]; refused != want {
+			t.Errorf("%s: %q said %d times, want %d", r.variant, planOnlyRefused, refused, want)
+		}
+	}
+}
+
+// TestPlayDryRunSavedUnderFlag plays the saved toggle started as hardn -n:
+// turning plan only off finds hardn.yml already live and saves nothing,
+// and the flag keeps plan only (plan §3.19, decision 4).
+func TestPlayDryRunSavedUnderFlag(t *testing.T) {
+	args := append(lookArgs(t, term.Fixed(80, colorprofile.TrueColor, true, true)), "-sequence", "dry-run", dryRunPrefix+"/"+variantSaved)
+	code, out, errs, unread := playGallery([]string{"6", "1", "0", "0"}, args...)
+	if code != exitOK || errs != "" || unread != 0 {
+		t.Fatalf("exit %d, stderr %q, %d lines unread; want exit 0", code, errs, unread)
+	}
+	text := strings.Join(strings.Fields(ansi.Strip(out)), " ")
+	last := text[strings.LastIndex(text, "Select an option"):]
+	if !strings.Contains(text, "Nothing needs changing.") || !strings.Contains(text, flagHolds) || strings.Contains(text, "+dryRun") ||
+		!strings.Contains(text, "Nothing was applied.") || !strings.Contains(last, "Dry-run Mode Enabled") {
+		t.Errorf("want nothing saved, %q, and the main menu still in dry run:\n%s", flagHolds, text)
 	}
 }
 

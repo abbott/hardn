@@ -7,10 +7,11 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the main menu on its layout, its status read␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom the gallery's hardened Debian 13 host, its items leading␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto the screen mocks, the real DNS screen and, under dry run,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Firewall screen as it prints. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom the gallery's hardened Debian 13 host; its 3 the real DNS␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen, on another Debian 13 host; its 1, 2 and 5 Figma's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen mocks, under dry run after a note of what origin/main␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoes there; its 4, under dry run, origin/main's Firewall␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen as it prints. Nothing on this machine changes.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -41,7 +42,36 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUser Management can't run in plan only yet.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot available in plan only.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m                 ␛[38;2;129;134;156m192.0.2.20␛[m$
+                           ␛[38;2;86;91;107m3 days, 5 hours, 12 minutes␛[m$
+$
+   ␛[38;2;112;212;127m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;112;212;127mMinimal␛[m ␛[38;2;86;91;107m≈ hardened security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m192.0.2.54, 2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;112;212;127mPlan only␛[m ␛[38;2;86;91;107m(-n)␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 5$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot available in plan only.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -195,10 +225,11 @@ $
 $
 # Note$
 # Play mode, mocks: the main menu on its layout, its status read$
-# from the gallery's hardened Debian 13 host, its items leading$
-# to the screen mocks, the real DNS screen and, under dry run,$
-# origin/main's Firewall screen as it prints. Nothing on this$
-# machine changes.$
+# from the gallery's hardened Debian 13 host; its 3 the real DNS$
+# screen, on another Debian 13 host; its 1, 2 and 5 Figma's$
+# screen mocks, under dry run after a note of what origin/main$
+# does there; its 4, under dry run, origin/main's Firewall$
+# screen as it prints. Nothing on this machine changes.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -239,7 +270,46 @@ $
   > Enter selection [0-5, 7-10 or q]: 1$
 $
 # Warning$
-# User Management can't run in plan only yet.$
+# Not available in plan only.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 13 (Trixie) ###########################################$
+$
+  [web-01]                 192.0.2.20$
+                           3 days, 5 hours, 12 minutes$
+$
+  [*] Risk Level           Minimal ~ hardened security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [+] AppArmor             Configured 7 profiles enforced$
+  [+] Auto Updates         Configured unattended-upgrades$
+  [+] DNS                  Configured 192.0.2.54, 2001:db8::54$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Mode Plan only (-n)$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   7) Run All              Execute hardening operations$
+   8) Environment          Configure environment variable$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-5, 7-10 or q]: 5$
+$
+# Warning$
+# Not available in plan only.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -413,10 +483,12 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the main menu on its layout, its status␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread from the gallery's hardened Debian 13 host, its items␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mleading to the screen mocks, the real DNS screen and,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder dry run, origin/main's Firewall screen as it prints.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread from the gallery's hardened Debian 13 host; its 3 the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal DNS screen, on another Debian 13 host; its 1, 2 and 5␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mFigma's screen mocks, under dry run after a note of what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main does there; its 4, under dry run,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Firewall screen as it prints. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -458,7 +530,47 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUser Management can't run in plan only yet.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot available in plan only.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m web-01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.20␛[m$
+      ␛[38;2;86;91;107m3 days, 5 hours, 12 minutes␛[m$
+$
+   ␛[38;2;112;212;127m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;112;212;127mMinimal␛[m ␛[38;2;86;91;107m≈ hardened security␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m192.0.2.54, 2001:db8::54␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mMode␛[m ␛[38;2;112;212;127mPlan only␛[m ␛[38;2;86;91;107m(-n)␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 5$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot available in plan only.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m13␛[m ␛[38;2;86;91;107m(Trixie)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
