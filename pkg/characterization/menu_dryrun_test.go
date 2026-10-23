@@ -44,16 +44,16 @@ func menuCases() []menuCase {
 		// Fixed by refactor plan slice 2b, next/s2b-mode: origin/main saved
 		// the session's dryRun, which the next start ignored.
 		asLoaded = "decision 8 (slice 2b, next/s2b-mode): the save writes dryRun as loaded, here the defaults' false, never the session's mode (config.SaveConfig), so the toggle is the session's alone"
-		v3       = "V3: the next start sets dryRun from -n, false unless given, whatever the file says (cmd/hardn/main.go:159; config/full-flag.golden)"
+		v3       = "V3 (slice 2b, next/s2b-mode): the next start takes the dryRun of the file it loads unless -n/--dry-run is given (§3.19; config/full-flag.golden)"
 	)
 	return []menuCase{
 		{name: "dry_run_enable", screen: "Dry-Run (main menu 6) in live mode, 1 to enable", script: "\n1\n\n\n",
-			defects: []string{pauses, saved, v3}, fixed: []string{asLoaded}},
+			defects: []string{pauses, saved}, fixed: []string{asLoaded, v3}},
 		{name: "dry_run_disable", screen: "Dry-Run (main menu 6) in dry-run mode, 1 to disable", script: "\n1\n\n\n",
 			defects: []string{
 				"the Enabled state builds its menu and never prints it: no item and no prompt, though a choice is read (dry_run_menu.go:44-59)",
-				pauses, saved, v3,
-			}, fixed: []string{asLoaded}},
+				pauses, saved,
+			}, fixed: []string{asLoaded, v3}},
 		{name: "dry_run_return", screen: "Dry-Run (main menu 6) in live mode, 0 to keep it", script: "\n0\n\n\n",
 			notes:   []string{"0 changes nothing and still saves."},
 			defects: []string{pauses, saved}},
