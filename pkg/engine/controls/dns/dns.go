@@ -116,7 +116,7 @@ type Nameservers struct {
 	// key; next/s2-udhcpc): yes adds RESOLV_CONF="no" to udhcpc.conf in the
 	// same change (dns.Config.UDHCPCNoResolv). Refused on another host and
 	// where udhcpc is not the client (DNS_OPTION_NOT_APPLICABLE), and where
-	// that is not established (DNS_UNKNOWN).
+	// that, or its rewrite, is not established (DNS_UNKNOWN, saying which).
 	StopUDHCPC bool
 }
 
@@ -414,6 +414,12 @@ func refusal(s hostdns.State, want []string, cfg *config.Config, err error) erro
 		r.Code, r.Why, r.Fix = codeInvalid, invalid(want, s.Manager), "correct the nameservers in "+file
 	case errors.Is(err, hostdns.ErrUnknown):
 		r.Code, r.Why, r.Fix = codeUnknown, "The host's DNS settings could not all be read", "see the log for what failed, then try again"
+		switch u := s.UDHCPC; { // StopUDHCPC where udhcpc's part is not established
+		case u.InUseErr != nil && errors.Is(err, u.InUseErr):
+			r.Why, r.Fix = "Whether udhcpc is this host's DHCP client is not established", "leave udhcpc as it is"
+		case u.Err != nil && errors.Is(err, u.Err):
+			r.Why, r.Fix = "Whether udhcpc rewrites "+rc+" is not established", "leave udhcpc as it is"
+		}
 	default:
 		return err
 	}

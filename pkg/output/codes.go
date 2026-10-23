@@ -407,7 +407,7 @@ var findingCodes = []Entry{
 	finding("DNS_DHCP_CLIENT", "a DHCP client that may rewrite /etc/resolv.conf is installed"),
 	finding("DNS_UDHCPC", "Alpine's udhcpc, the DHCP client in use, rewrites /etc/resolv.conf on each lease"),
 	finding("DNS_PROXMOX_NODE", "Proxmox VE's node DNS settings rewrite /etc/resolv.conf"),
-	finding("DNS_UDHCPC_UNKNOWN", "whether Alpine's udhcpc is the DHCP client, which would rewrite /etc/resolv.conf, is not established"),
+	finding("DNS_UDHCPC_UNKNOWN", "whether Alpine's udhcpc is the DHCP client is not established"),
 	finding(CodeDeprecated, "a configuration value in a form that is going away; it still works (§3.17)"),
 	finding(engine.CodeBestEffort, "a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41)"),
 	// The SSH controls' own (next/p4-check-ssh).
