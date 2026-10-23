@@ -2,6 +2,7 @@ package dns
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"path"
 	"slices"
@@ -176,9 +177,10 @@ func sameDomains(a, b []string) bool {
 // or delegate with its own servers. For a file: Proxmox VE's node
 // settings; where udhcpc is the DHCP client (UDHCPC.InUse Yes), udhcpc
 // rewriting the file and its hooks; where that is not established, one
-// finding saying so, unless udhcpc would leave the file alone anyway
-// (RESOLV_CONF stops it and no hook); and DHCP clients. A host whose
-// manager hardn does not configure has none: its refusal says why.
+// finding saying so, its path the file that left it so, unless udhcpc
+// would leave the file alone anyway (RESOLV_CONF stops it and no hook);
+// and DHCP clients. A host whose manager hardn does not configure has
+// none: its refusal says why.
 func (s State) Findings() []Finding {
 	var fs []Finding
 	if s.Manager == ManagerResolved {
@@ -212,7 +214,11 @@ func (s State) Findings() []Finding {
 		if u.Rewrites == detect.Yes {
 			then = "it rewrites " + ResolvConf + " on each DHCP lease"
 		}
-		fs = append(fs, Finding{Kind: FindingUDHCPCUnknown, Path: Interfaces, Detail: fmt.Sprintf(
+		src := Interfaces
+		if e := (*inUseError)(nil); errors.As(u.InUseErr, &e) {
+			src = e.path
+		}
+		fs = append(fs, Finding{Kind: FindingUDHCPCUnknown, Path: src, Detail: fmt.Sprintf(
 			"whether udhcpc is the DHCP client ifupdown-ng runs is not established (%v); if it is, %s", errOr(u.InUseErr, detect.ErrNoSignal), then)})
 	default:
 		switch u.Rewrites {
@@ -230,6 +236,16 @@ func (s State) Findings() []Finding {
 		fs = append(fs, Finding{Kind: FindingDHCPClient, Path: c, Detail: "a DHCP client is installed; for an interface it configures, it may rewrite " + ResolvConf + " on each lease"})
 	}
 	return fs
+}
+
+// UDHCPCStoppable reports whether, by s, udhcpc rewrites /etc/resolv.conf
+// on each lease and a plan can stop it (Config.UDHCPCNoResolv): Alpine, a
+// file, udhcpc the DHCP client (UDHCPC.InUse Yes) and its rewrite
+// established (Rewrites Yes). Only then is a user asked whether to stop it
+// (slice 2 decision 6, next/s2-udhcpc).
+func (s State) UDHCPCStoppable() bool {
+	return s.Host.Distro == detect.DistroAlpine && s.Manager == ManagerFile &&
+		s.UDHCPC.InUse == detect.Yes && s.UDHCPC.Rewrites == detect.Yes
 }
 
 func describe(e Entry) string {

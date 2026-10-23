@@ -278,9 +278,9 @@ func TestReadUDHCPC(t *testing.T) {
 // TestReadUDHCPCInUse: whether udhcpc is the DHCP client ifupdown-ng runs
 // (dns.md §3): an interface on DHCP runs its dhcp-program, else the first
 // of /sbin/dhcpcd, /usr/sbin/dhclient and /sbin/udhcpc that [ -x ] takes;
-// Yes when one runs udhcpc, No when it is established that none does,
-// else Unknown with why. udhcpc's finding and the plan's step are only
-// where it is Yes; Unknown is a finding saying so; No is nothing.
+// Yes when an auto one runs udhcpc, No when it is established that none
+// does, else Unknown with why. udhcpc's finding and the plan's step are
+// only where it is Yes; Unknown is a finding saying so; No is nothing.
 func TestReadUDHCPCInUse(t *testing.T) {
 	const static = "auto eth0\niface eth0 inet static\n\taddress 192.0.2.10/24\n"
 	exe := func(name string) func(h *hostfake.System) {
@@ -304,9 +304,9 @@ func TestReadUDHCPCInUse(t *testing.T) {
 		{"dhclient before udhcpc", dhcpEth0, exe("/usr/sbin/dhclient"), detect.No, []string{"dns-dhcp-client"}},
 		{"dhcpcd without an execute bit", dhcpEth0, func(h *hostfake.System) { h.AddFile("/sbin/dhcpcd", nil, 0o644, 0, 0) }, detect.Yes, []string{"dns-udhcpc"}},
 		{"dhcpcd a dangling link", dhcpEth0, func(h *hostfake.System) { h.AddSymlink("/sbin/dhcpcd", "/opt/dhcpcd") }, detect.Yes, []string{"dns-udhcpc"}},
-		{"use dhcp", "iface eth0\n\tuse dhcp\n", nil, detect.Yes, []string{"dns-udhcpc"}},
-		{"inet6 dhcp", "iface eth0 inet6 dhcp\n", nil, detect.Yes, []string{"dns-udhcpc"}},
-		{"one of two interfaces", dhcpEth0 + "iface eth1 inet dhcp\n\tdhcp-program udhcpc\n", dhcpcd, detect.Yes, []string{"dns-udhcpc", "dns-dhcp-client"}},
+		{"use dhcp", "auto eth0\niface eth0\n\tuse dhcp\n", nil, detect.Yes, []string{"dns-udhcpc"}},
+		{"inet6 dhcp", "auto eth0\niface eth0 inet6 dhcp\n", nil, detect.Yes, []string{"dns-udhcpc"}},
+		{"one of two interfaces", dhcpEth0 + "auto eth1\niface eth1 inet dhcp\n\tdhcp-program udhcpc\n", dhcpcd, detect.Yes, []string{"dns-udhcpc", "dns-dhcp-client"}},
 		{"stanzas merged", dhcpEth0 + "iface eth0\n\tdhcp-program udhcpc\n", dhcpcd, detect.Yes, []string{"dns-udhcpc", "dns-dhcp-client"}},
 		{"auto names the current interface", "iface eth0 inet dhcp\nauto eth0\ndhcp-program udhcpc\n", dhcpcd, detect.Yes, []string{"dns-udhcpc", "dns-dhcp-client"}},
 		{"a dhcp-* property uses DHCP", static + "\tdhcp-program udhcpc\n", nil, detect.Yes, []string{"dns-udhcpc"}},
@@ -314,14 +314,47 @@ func TestReadUDHCPCInUse(t *testing.T) {
 		{"no interface on DHCP", static, nil, detect.No, nil},
 		{"no client installed", dhcpEth0, func(h *hostfake.System) { _ = h.Remove(context.Background(), "/sbin/udhcpc") }, detect.No, nil},
 		{"Yes whatever another is", dhcpEth0 + "\tdhcp-program udhcpc\niface eth1 inet dhcp\n\tdhcp-program pump\n", nil, detect.Yes, []string{"dns-udhcpc"}},
+		{"dhcp_program, as the executor reads it", dhcpEth0 + "\tdhcp_program dhcpcd\n", nil, detect.No, nil},
+		{"DHCP-PROGRAM, as the executor reads it", dhcpEth0 + "\tDHCP-PROGRAM udhcpc\n", dhcpcd, detect.Yes, []string{"dns-udhcpc", "dns-dhcp-client"}},
+		{"udhcpc_opts, as udhcpc-opts", dhcpEth0 + "\tudhcpc_opts -O search\n", nil, detect.Yes, []string{"dns-udhcpc"}},
+		{"another client on a non-auto interface", dhcpEth0 + "iface eth1 inet dhcp\n", dhcpcd, detect.No, []string{"dns-dhcp-client"}},
+		{"iface without a name, a property before any", "iface\ndhcp-program dhcpcd\n" + dhcpEth0, nil, detect.Yes, []string{"dns-udhcpc"}},
 
 		{"no executor", dhcpEth0, func(h *hostfake.System) { _ = h.Remove(context.Background(), dns.DHCPExecutor) }, detect.Unknown, []string{"dns-udhcpc-unknown"}},
 		{"another executor", dhcpEth0, file(dns.DHCPExecutor, "#!/bin/sh\n[ -x /sbin/udhcpc ] && echo udhcpc\n"), detect.Unknown, []string{"dns-udhcpc-unknown"}},
 		{"no interfaces file", "", func(h *hostfake.System) { _ = h.Remove(context.Background(), dns.Interfaces) }, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"an executor not executable", dhcpEth0, func(h *hostfake.System) { h.AddFile(dns.DHCPExecutor, []byte(dns.DHCPExecutorRule), 0o644, 0, 0) },
+			detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"the interfaces file a directory", "", func(h *hostfake.System) {
+			_ = h.Remove(context.Background(), dns.Interfaces)
+			h.AddDir(dns.Interfaces, 0o755, 0, 0)
+		}, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"the networking service's configuration", dhcpEth0, file("/etc/conf.d/networking", "cfgfile=/etc/network/interfaces.lab\n"), detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"its runlevel's", dhcpEth0, file("/etc/conf.d/networking.boot", "\n"), detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"/etc/conf.d not read", dhcpEth0, file("/etc/conf.d", ""), detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"/var/run not read, dhcpcd the client", dhcpEth0, func(h *hostfake.System) {
+			h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0)
+			h.AddFile("/var/run", nil, 0o644, 0, 0)
+		}, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"a udhcpc pid file, dhcpcd the client", dhcpEth0, func(h *hostfake.System) {
+			h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0)
+			h.AddFile("/var/run/udhcpc.eth0.pid", []byte("2741\n"), 0o644, 0, 0)
+		}, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"not auto: brought up by hand", static + "iface eth1 inet dhcp\n", nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"not auto, beside dhcpcd's", dhcpEth0 + "iface eth1 inet dhcp\n\tdhcp-program udhcpc\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"auto names its first interface alone", "auto eth1 eth0\niface eth0 inet dhcp\n", nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
 		{"source", dhcpEth0 + "source /etc/network/interfaces.d/*\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
 		{"source-directory", "source-directory /etc/network/interfaces.d\n" + dhcpEth0, dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
 		{"a template", "template dhcpish\n\tuse dhcp\niface eth0 inherits dhcpish\n", nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
 		{"defaults (0.13.0)", "defaults\n\tdhcp-program udhcpc\n" + dhcpEth0, dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"auto defaults (0.13.0)", "auto defaults\n\tdhcp-program dhcpcd\n" + dhcpEth0, nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"iface defaults", "iface defaults\n\tdhcp-program dhcpcd\n" + dhcpEth0, nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"inherits", dhcpEth0 + "iface eth1 inet dhcp inherits eth0\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"auto without an interface", "auto\n" + dhcpEth0, dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"a property name with =", dhcpEth0 + "\tdhcp-program=dhcpcd\n", nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
+		{"a line longer than ifupdown-ng reads", dhcpEth0 + "\tdescription " + strings.Repeat("x", 4095) + "\n", dhcpcd,
+			detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
+		{"options run through eval", dhcpEth0 + "\tudhcpc-opts $(udhcpc -n -i eth1)\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
 		{"a continued line", "iface eth0 inet \\\n dhcp\n", nil, detect.Unknown, []string{"dns-udhcpc-unknown"}},
 		{"a program not evaluated", dhcpEth0 + "\tdhcp-program /sbin/udhcpc\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
 		{"two programs", dhcpEth0 + "\tdhcp-program udhcpc\n\tdhcp-program dhcpcd\n", dhcpcd, detect.Unknown, []string{"dns-udhcpc-unknown", "dns-dhcp-client"}},
@@ -402,6 +435,114 @@ func TestUDHCPCUnknownFinding(t *testing.T) {
 				!strings.HasPrefix(f[0].Detail, "whether udhcpc is the DHCP client ifupdown-ng runs is not established (dns: which DHCP client runs: ") ||
 				!strings.HasSuffix(f[0].Detail, tt.detail) {
 				t.Errorf("findings %+v", f)
+			}
+		})
+	}
+}
+
+// TestUDHCPCScript: where an interface runs udhcpc with another script
+// than its default, or options that may name one, udhcpc.conf's
+// RESOLV_CONF does not decide its rewrite: Rewrites is Unknown, its
+// finding says "may", and a plan stopping it is refused (dns.md §2.4).
+func TestUDHCPCScript(t *testing.T) {
+	for _, tt := range []struct {
+		name, ifaces string
+		want         detect.Tri
+	}{
+		{"options", dhcpEth0 + "\tudhcpc-opts -O search -x hostname:lab --syslog\n", detect.Yes},
+		{"dhcp-script", dhcpEth0 + "\tdhcp-script /etc/udhcpc/lab.script\n", detect.Unknown},
+		{"legacy script", dhcpEth0 + "\tscript /etc/udhcpc/lab.script\n", detect.Unknown},
+		{"dhcp_script", dhcpEth0 + "\tdhcp_script /etc/udhcpc/lab.script\n", detect.Unknown},
+		{"-s", dhcpEth0 + "\tudhcpc-opts -s /bin/true\n", detect.Unknown},
+		{"-s bundled", dhcpEth0 + "\tudhcpc-opts -qs/bin/true\n", detect.Unknown},
+		{"--script=", dhcpEth0 + "\tudhcpc-opts --script=/bin/true\n", detect.Unknown},
+		{"a prefix of --script", dhcpEth0 + "\tudhcpc-opts --scr /bin/true\n", detect.Unknown},
+		{"dhcp-opts (0.13.0)", dhcpEth0 + "\tdhcp-opts -s /bin/true\n", detect.Unknown},
+		{"an expansion", dhcpEth0 + "\tudhcpc-opts $(cat /etc/dhcp/opts)\n", detect.Unknown},
+		{"on an interface not auto", dhcpEth0 + "iface eth1 inet dhcp\n\tdhcp-script /etc/udhcpc/lab.script\n", detect.Unknown},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			w := newWorld(t, "alpine-3.24")
+			w.h.AddFile(dns.Interfaces, []byte(tt.ifaces), 0o644, 0, 0)
+			s := w.read(t)
+			if s.UDHCPC.InUse != detect.Yes || s.UDHCPC.Rewrites != tt.want || (s.UDHCPC.Err != nil) != (tt.want == detect.Unknown) {
+				t.Fatalf("in use %s, rewrites %s (%v)", s.UDHCPC.InUse, s.UDHCPC.Rewrites, s.UDHCPC.Err)
+			}
+			_, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{ns1}, UDHCPCNoResolv: true})
+			if (tt.want == detect.Unknown) != errors.Is(err, dns.ErrUnknown) {
+				t.Errorf("plan stopping udhcpc: %v", err)
+			}
+			if f := s.Findings(); tt.want == detect.Unknown && (len(f) != 1 || f[0].Kind != dns.FindingUDHCPC ||
+				!strings.HasPrefix(f[0].Detail, "whether udhcpc rewrites /etc/resolv.conf is not established: dns: /etc/network/interfaces: iface eth")) {
+				t.Errorf("findings %+v", f)
+			}
+		})
+	}
+}
+
+// TestUDHCPCStoppable: udhcpc's question is for a host where it is the
+// DHCP client and rewrites the file, both established, alone.
+func TestUDHCPCStoppable(t *testing.T) {
+	for _, tt := range []struct {
+		name, fixture string
+		edit          func(h *hostfake.System)
+		want          bool
+	}{
+		{"stock Alpine", "alpine-3.24", nil, true},
+		{"dhcpcd the client", "alpine-3.24", func(h *hostfake.System) { h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0) }, false},
+		{"the client not established", "alpine-3.24", func(h *hostfake.System) { _ = h.Remove(context.Background(), dns.DHCPExecutor) }, false},
+		{"stopped already", "alpine-3.24", func(h *hostfake.System) { h.AddFile(dns.UDHCPCConf, []byte(`RESOLV_CONF="no"`+"\n"), 0o644, 0, 0) }, false},
+		{"its script its own", "alpine-3.24", func(h *hostfake.System) {
+			h.AddFile(dns.Interfaces, []byte(dhcpEth0+"\tdhcp-script /etc/dhcp/lab.script\n"), 0o644, 0, 0)
+		}, false},
+		{"Debian", "debian-13", nil, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			w := newWorld(t, tt.fixture)
+			if tt.edit != nil {
+				tt.edit(w.h)
+			}
+			if got := w.read(t).UDHCPCStoppable(); got != tt.want {
+				t.Errorf("UDHCPCStoppable %t, want %t", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestUDHCPCUnknownSource: the finding where whether udhcpc is the DHCP
+// client is not established names the file that left it so.
+func TestUDHCPCUnknownSource(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		edit func(h *hostfake.System)
+		src  string
+	}{
+		{"no executor", func(h *hostfake.System) { _ = h.Remove(context.Background(), dns.DHCPExecutor) }, dns.DHCPExecutor},
+		{"the networking service's configuration", func(h *hostfake.System) { h.AddFile("/etc/conf.d/networking", nil, 0o644, 0, 0) }, "/etc/conf.d/networking"},
+		{"source", func(h *hostfake.System) {
+			h.AddFile(dns.Interfaces, []byte("source-directory /etc/network/interfaces.d\n"), 0o644, 0, 0)
+		}, dns.Interfaces},
+		{"dhcpcd a directory", func(h *hostfake.System) { h.AddDir("/sbin/dhcpcd", 0o755, 0, 0) }, "/sbin/dhcpcd"},
+		{"ifupdown-ng.conf", func(h *hostfake.System) {
+			h.AddFile(dns.Interfaces, []byte("auto eth0\niface eth0 inet static\n\tdhcp-program udhcpc\n"), 0o644, 0, 0)
+			h.AddFile("/etc/network/ifupdown-ng.conf", nil, 0o644, 0, 0)
+		}, "/etc/network/ifupdown-ng.conf"},
+		{"a udhcpc pid file", func(h *hostfake.System) {
+			h.AddFile("/sbin/dhcpcd", nil, 0o555, 0, 0)
+			h.AddFile("/var/run/udhcpc.eth0.pid", nil, 0o644, 0, 0)
+		}, "/var/run/udhcpc.eth0.pid"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			w := newWorld(t, "alpine-3.24")
+			tt.edit(w.h)
+			var srcs []string
+			for _, f := range w.read(t).Findings() {
+				if f.Kind == dns.FindingUDHCPCUnknown {
+					srcs = append(srcs, f.Path)
+				}
+			}
+			if !slices.Equal(srcs, []string{tt.src}) {
+				t.Errorf("sources %q, want %q", srcs, tt.src)
 			}
 		})
 	}
