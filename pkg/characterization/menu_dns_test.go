@@ -33,7 +33,7 @@ import (
 type menuDNSCase struct {
 	name    string   // golden stem
 	op      string   // the item and its handler, as the golden names them
-	fixture string   // the hardn.yml loaded, under testdata/fixtures/config
+	fixture string   // the hardn.yml loaded, under testdata/fixtures/config; "": none found
 	typed   []string // the item, then what is typed at its prompt
 	dryRun  bool     // cfg.DryRun, as -n sets it (cmd/hardn/main.go:159)
 	notes   []string
@@ -46,6 +46,7 @@ const (
 	menuRemove          = "Remove nameserver: removeNameserver (pkg/menu/dns_menu.go:168-178, 304-342), offered only with a list (:86-92)"
 	menuWiped           = "No confirmation. The message is wiped at once by m.Show()'s redraw (interaction.md §5, W1 for Add, W2 for Remove)."
 	menuPresetShown     = "No confirmation. The message stays until Enter; the host is not changed."
+	menuNoFile          = "No hardn.yml is loaded: config.LoadConfig found none and n was answered at its question, so the configuration is config.DefaultConfig(), its list empty. That load is from the code (pkg/config/config.go:271-287, 362; its question reads stdin); the save is the real config.SaveConfig."
 	menuDNSLoadedMarker = "<loaded>"
 	menuDNSWorkMarker   = "<work>"
 )
@@ -54,8 +55,14 @@ func menuDNSCases() []menuDNSCase {
 	preset := func(name, key, label, lines string) menuDNSCase {
 		return menuDNSCase{name: name, op: "Use " + label + ": dns_menu.go:" + lines, fixture: menuDNSFixture, typed: []string{key}, notes: []string{menuPresetShown}}
 	}
+	noFile := func(c menuDNSCase) menuDNSCase {
+		c.name, c.fixture, c.notes = c.name+"-no-file", "", append(slices.Clone(c.notes), menuNoFile)
+		return c
+	}
+	add := menuDNSCase{name: "add", op: menuAdd, fixture: menuDNSFixture, typed: []string{"2", "192.0.2.55"}, notes: []string{menuWiped}}
+	cloudflare, google, quad9 := preset("cloudflare", "4", "Cloudflare DNS", "180-197"), preset("google", "5", "Google DNS", "199-216"), preset("quad9", "6", "Quad9 DNS", "218-235")
 	return []menuDNSCase{
-		{name: "add", op: menuAdd, fixture: menuDNSFixture, typed: []string{"2", "192.0.2.55"}, notes: []string{menuWiped}},
+		add,
 		{name: "add-unusable", op: menuAdd, fixture: menuDNSFixture, typed: []string{"2", "999.1.1.1"}, notes: []string{menuWiped,
 			"The address check is four dot-separated parts (dns_menu.go:266-272): 999.1.1.1 passes (interaction.md §10)."}},
 		{name: "add-ipv6", op: menuAdd, fixture: menuDNSFixture, typed: []string{"2", "2001:db8::55"}, notes: []string{menuWiped,
@@ -63,11 +70,18 @@ func menuDNSCases() []menuDNSCase {
 		{name: "remove", op: menuRemove, fixture: menuDNSFixture, typed: []string{"3", "2"}, notes: []string{menuWiped}},
 		{name: "remove-last", op: menuRemove, fixture: menuDNSFixtureOne, typed: []string{"3", "1"}, notes: []string{menuWiped,
 			"The last nameserver is removed: hardn.yml is saved with none, which hardn -g and Run All then apply (ops/dns_empty_nameservers)."}},
-		preset("cloudflare", "4", "Cloudflare DNS", "180-197"),
-		preset("google", "5", "Google DNS", "199-216"),
-		preset("quad9", "6", "Quad9 DNS", "218-235"),
+		cloudflare,
+		google,
+		quad9,
 		{name: "add-dry-run", op: menuAdd, fixture: menuDNSFixture, typed: []string{"2", "192.0.2.55"}, dryRun: true, notes: []string{menuWiped,
 			"cfg.DryRun is set, as hardn -n sets it: Add, Remove and the presets do not read it (dns_menu.go:162-235), so the save runs and writes dryRun: true (side-effects.md row 29)."}},
+		// With no hardn.yml loaded the items save ./hardn.yml all the same.
+		// Remove is not offered with the empty list (dns_menu.go:86-92), and
+		// 3 prints "No nameservers to remove" (:168-172), saving nothing.
+		noFile(add),
+		noFile(cloudflare),
+		noFile(google),
+		noFile(quad9),
 	}
 }
 
@@ -119,9 +133,12 @@ func dnsMenuEdit(item, entry string, ns []string) (list []string, save bool, mes
 func TestMenuDNSGoldens(t *testing.T) {
 	for _, c := range menuDNSCases() {
 		t.Run(c.name, func(t *testing.T) {
-			src, err := os.ReadFile(filepath.Join("testdata", "fixtures", "config", c.fixture))
-			if err != nil {
-				t.Fatal(err)
+			var src []byte
+			if c.fixture != "" {
+				var err error
+				if src, err = os.ReadFile(filepath.Join("testdata", "fixtures", "config", c.fixture)); err != nil {
+					t.Fatal(err)
+				}
 			}
 			// The item runs in a subtest, whose t.Chdir is undone when it
 			// ends, so that the golden is read and written here.
@@ -134,8 +151,9 @@ func TestMenuDNSGoldens(t *testing.T) {
 	}
 }
 
-// menuDNSRun runs c's item on a scratch copy of src, its fixture, in a
-// scratch working directory, and returns the golden's text.
+// menuDNSRun runs c's item on a scratch copy of src, its fixture (none
+// loaded when c has none), in a scratch working directory, and returns the
+// golden's text.
 func menuDNSRun(t *testing.T, c menuDNSCase, src []byte) string {
 	dir := t.TempDir()
 	// DetectEnvVarLoss runs `su` when SUDO_UID is set (pkg/config/config.go:310-342).
@@ -151,14 +169,23 @@ func menuDNSRun(t *testing.T, c menuDNSCase, src []byte) string {
 	}
 	old := syscall.Umask(0o022) // os.WriteFile's mode is the umask's to cut
 	defer syscall.Umask(old)
-	if err := os.WriteFile(loaded, src, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	t.Chdir(work)
-
-	cfg, err := config.LoadConfig(loaded) // hardn -f <file> (cmd/hardn/main.go:151)
-	if err != nil {
-		t.Fatal(err)
+	var cfg *config.Config
+	if c.fixture == "" {
+		// LoadConfigWithEnvPriority with no file found and n answered
+		// (pkg/config/config.go:271-287), then LoadConfig's LogsConfig line
+		// (:362): from the code, as its question reads stdin.
+		cfg = config.DefaultConfig()
+		cfg.LogsConfig.LogFilePath = cfg.LogFile
+		t.Chdir(work)
+	} else {
+		if err := os.WriteFile(loaded, src, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		t.Chdir(work)
+		var err error
+		if cfg, err = config.LoadConfig(loaded); err != nil { // hardn -f <file> (cmd/hardn/main.go:151)
+			t.Fatal(err)
+		}
 	}
 	cfg.DryRun = c.dryRun
 	entry := ""
@@ -191,7 +218,11 @@ func menuDNSRun(t *testing.T, c menuDNSCase, src []byte) string {
 		fmt.Fprintf(&b, "# NOTE: %s\n", n)
 	}
 	b.WriteString("\n== fixture\n")
-	fmt.Fprintf(&b, "loaded: %s mode=0644, testdata/fixtures/config/%s, passed as -f (cmd/hardn/main.go:151)\n", menuDNSLoadedMarker, c.fixture)
+	if c.fixture == "" {
+		b.WriteString("loaded: none, config.DefaultConfig() (no hardn.yml found, n answered)\n")
+	} else {
+		fmt.Fprintf(&b, "loaded: %s mode=0644, testdata/fixtures/config/%s, passed as -f (cmd/hardn/main.go:151)\n", menuDNSLoadedMarker, c.fixture)
+	}
 	fmt.Fprintf(&b, "working directory: %s, empty; umask 022\n", menuDNSWorkMarker)
 	fmt.Fprintf(&b, "cfg.DryRun: %t\n", c.dryRun)
 	fmt.Fprintf(&b, "typed: %s\n", strings.Join(c.typed, ", "))
@@ -204,11 +235,13 @@ func menuDNSRun(t *testing.T, c menuDNSCase, src []byte) string {
 		fmt.Fprintf(&b, "list: %s\n", strings.Join(list, ", "))
 	}
 	fmt.Fprintf(&b, "config.SaveConfig: %s\n", saveResult)
-	after, err := os.ReadFile(loaded)
-	if err != nil {
-		t.Fatal(err)
+	if c.fixture != "" {
+		after, err := os.ReadFile(loaded)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprintf(&b, "loaded file unchanged: %t\n", bytes.Equal(after, src))
 	}
-	fmt.Fprintf(&b, "loaded file unchanged: %t\n", bytes.Equal(after, src))
 	entries, err := os.ReadDir(work)
 	if err != nil {
 		t.Fatal(err)
