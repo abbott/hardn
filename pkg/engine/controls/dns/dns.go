@@ -7,13 +7,14 @@
 // Not Configured otherwise; Not Applicable in a container, off the four
 // families, and where a manager hardn only reports owns the file
 // (resolvconf, NetworkManager, another program: P-37 (a)), and, on any
-// other host, when the configuration lists no nameserver, "none
-// configured", or no hardn.yml was read, "no hardn.yml" (the maintainer,
-// 2026-10-23); Unknown, "can't read", when it cannot be read. Plan is
-// dns.PlanDNS for in.Config's list through steps.DNS, then, when that list
-// is not the one hardn.yml holds, the save of hardn.yml after it
-// (steps.PlanSave); every refusal comes before any change, with a report
-// (steps.Refusal). The host's search domains are kept (decision 2).
+// other host, when the configuration lists no nameserver: "none
+// configured" where a hardn.yml was read, "no hardn.yml" where none was
+// (the maintainer, 2026-10-23); Unknown, "can't read", when it cannot be
+// read with a list configured. Plan is dns.PlanDNS for in.Config's list
+// through steps.DNS, then, when that list is not the one hardn.yml holds,
+// the save of hardn.yml after it (steps.PlanSave); every refusal comes
+// before any change, with a report (steps.Refusal). The host's search
+// domains are kept (decision 2).
 // docs/engine/control-dns.md has every status line, refusal and word, all
 // proposed but the two details the maintainer adopted on 2026-10-23.
 //
@@ -155,9 +156,11 @@ func list(cfg *config.Config) []string {
 // plan changes the host when the order differs. The host's own reasons not
 // to apply come first, as they hold whatever the list; then an empty list
 // (none), before Unknown: with nothing to compare, every reading of the
-// host is Not Applicable, so a fact not established changes nothing the
-// row could say. Each finding of the host (dns.State.Findings) explains
-// the line where the host was read; none sets it.
+// host is Not Applicable, so a fact not established changes nothing of
+// the row's state, only which reason it names (the host's own, once
+// established, or the empty list's). Each finding of the host
+// (dns.State.Findings) explains the line where the host was read; none
+// sets it.
 func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	s, err := hostdns.Read(ctx, sys, f)
 	switch {
@@ -209,8 +212,9 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 // none is the row where cfg lists no nameserver (the maintainer,
 // 2026-10-23): Not Applicable, "none configured" where a hardn.yml was
 // read, "no hardn.yml" where none was (cfg nil, or hardn on its defaults,
-// cfg.Path() empty); its evidence the host's, ev, and hardn.yml's list;
-// its findings the host's where read is true, none where the host was not
+// cfg.Path() empty); its evidence the host's, ev, and hardn.yml's list,
+// none at all where neither the host nor a hardn.yml was read; its
+// findings the host's where read is true, none where the host was not
 // read, as Unknown's.
 func none(cfg *config.Config, s hostdns.State, read bool, ev []string) engine.Status {
 	st := engine.Status{State: engine.NotApplicable, Detail: DetailNoFile, Evidence: append(ev, listEvidence(cfg)...)}

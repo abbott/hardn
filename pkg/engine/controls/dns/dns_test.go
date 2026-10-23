@@ -63,8 +63,9 @@ func configOf(conf int, file *config.Config) *config.Config {
 // exactly for Unknown; Check only reads. With no nameserver configured
 // (the maintainer, 2026-10-23): Not Applicable, "none configured" with a
 // hardn.yml, "no hardn.yml" without; the host's own Not Applicable detail
-// first; before Unknown, on a host not read, with no finding; and before
-// every Not Configured line.
+// first; before Unknown, on a host not read, with no finding (and no
+// evidence where no hardn.yml was read either); and before every Not
+// Configured line.
 func TestCheck(t *testing.T) {
 	type tc struct {
 		name, host string
@@ -74,6 +75,7 @@ func TestCheck(t *testing.T) {
 		detail     string
 		findings   []string // "CODE detail"
 		err        string   // the error's code, for Unknown
+		noEvidence bool     // nothing read: neither the host nor a hardn.yml
 		setup      func(h *fakeHost)
 	}
 	dhcp := "DNS_DHCP_CLIENT dhcpcd may rewrite /etc/resolv.conf on a lease"
@@ -103,6 +105,8 @@ func TestCheck(t *testing.T) {
 			}},
 		{name: "whether a container is not established, hardn.yml lists none", host: debian13, state: engine.NotApplicable, detail: dns.DetailNoneConfigured,
 			setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }},
+		{name: "whether a container is not established, no hardn.yml", host: debian13, conf: defaults, state: engine.NotApplicable, detail: dns.DetailNoFile,
+			noEvidence: true, setup: func(h *fakeHost) { h.facts.Container = detect.Container{Detected: detect.Unknown} }},
 		{name: "/etc/resolv.conf a directory, no hardn.yml", host: debian13, conf: defaults, state: engine.NotApplicable, detail: dns.DetailNoFile,
 			setup: func(h *fakeHost) {
 				h.AddDir(hostdns.ResolvConf, 0o755, 0, 0)
@@ -203,8 +207,15 @@ func TestCheck(t *testing.T) {
 			if w := writes(h); len(w) > 0 {
 				t.Errorf("Check wrote: %v", w)
 			}
-			if len(rep.Status.Evidence) == 0 && !errors.Is(rep.Err, hostdns.ErrUnknown) {
-				t.Error("no evidence") // only a host refused before anything is read has none
+			// Evidence is what the line was read from: only a row read from
+			// nothing has none, a host refused before anything is read
+			// (Unknown, ErrUnknown) and, with no hardn.yml either, the empty
+			// list's row there (control-dns.md §2.7).
+			switch none := len(rep.Status.Evidence) == 0; {
+			case tt.noEvidence && !none:
+				t.Errorf("evidence %q, want none: nothing was read", rep.Status.Evidence)
+			case none && !tt.noEvidence && !errors.Is(rep.Err, hostdns.ErrUnknown):
+				t.Error("no evidence")
 			}
 		})
 	}
