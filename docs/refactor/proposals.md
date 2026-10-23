@@ -111,7 +111,7 @@
 <a id="p-03"></a>
 ### P-03: Resolve the dry-run model
 
-- **Status:** decided (maintainer, 2026-10-23, slice 2b decision 1, "adopt all ten of the slice 2b recommendations"): one global "Plan only" mode, set as hardn starts by `-n` or hardn.yml's `dryRun` (§3.19's precedence, the source shown), every change's flow stopping at its plan; item 6 removed and its key left unused (neither (a) nor (b) below); the deprecation note in unit (b) (decision 10). [gallery-dryrun.md](../engine/gallery-dryrun.md) §4.
+- **Status:** decided (maintainer, 2026-10-23, slice 2b decision 1, "adopt all ten of the slice 2b recommendations"): one global "Plan only" mode, set as hardn starts by `-n` or hardn.yml's `dryRun` (§3.19's precedence, the source shown), every change's flow stopping at its plan; item 6 removed and its key left unused (neither (a) nor (b) below); the deprecation note in unit (b) (decision 10). [gallery-dryrun.md](../engine/gallery-dryrun.md) §4. Unit (b) built (`next/s2b-mode`): the mode set at start by §3.19's precedence, its source kept for the indicator, and the deprecation note ([dryrun-mode.md](../engine/dryrun-mode.md)); item 6's removal and the indicator's words wait on units (d) and (c).
 - **Source:** brief §7.3. Related: decision on flag/config precedence (plan §3.19).
 - **Problem:**
   - The banner says "Dry-run Mode Disabled", while item 6 says "Simulate changes".
