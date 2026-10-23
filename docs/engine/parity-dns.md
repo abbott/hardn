@@ -181,11 +181,11 @@ The new path does what origin/main did not: it reports what may undo the change 
 
 **What `-g` did on origin/main:** as root (`main.go:143`), after loading hardn.yml (`:151`), with no question and no TTY check, `DNSManager.ConfigureDNS(cfg.Nameservers, "lan")`: §4's (a) rows, the `lan` domain forced, an empty list applied, NetworkManager's link written through; a failure logged, exit status 0 (V25); `hardn -n -g` refused with exit status 2 before anything runs (V1's P0.8 gate, `dryRunFlagApplies`).
 
-**Open, for unit (d) to settle (not decided here):** what `-g` does on the new control. screen-dns.md §7 says "to the control without the screen (`dnsctl.Controls(cfg)` through the engine, `output.Human`)"; this table compared that, `Plan` then `Apply`. Still open:
-- whether `-g` asks before applying (a y/N on a TTY; without one, plan §3.11's proposed "operation flags require `--yes` without a TTY", which `next/p3-output` left unbuilt until §3.11 is approved), or applies as origin/main did;
-- on a host every plan refuses (resolvconf, NetworkManager, a container, an empty list): the report and the exit status (origin/main wrote, and exited 0);
-- under `-n`: refused as today (V1's gate), or the plan, which is the new path's dry run;
-- on Alpine, udhcpc's question (decision 6) has no form under `-g`: not asked (`StopUDHCPC` false, the finding reported, as this table ran it), or a flag (a surface change, plan §3.11's kind).
+**Decided (the maintainer, 2026-10-23: "apply without asking, -n -g shows the plan and writes nothing, and no udhcpc flag (the warning only)"):** what `-g` does on the new control. screen-dns.md §7 says "to the control without the screen (`dnsctl.Controls(cfg)` through the engine, `output.Human`)"; this table compared that, `Plan` then `Apply`.
+- **No question:** `-g` plans and applies without asking, as origin/main did; the flag is the request, a DNS change carries no lockout risk, and a failure rolls back. Whether operation flags need `--yes` without a TTY stays plan §3.11's, for every flag at once.
+- **A host every plan refuses** (resolvconf, NetworkManager, a container, an empty list): the refusal's report, and a non-zero exit status (V25's fix, decided: Phase 3's exit codes), where origin/main wrote and exited 0.
+- **`-n -g` shows the plan and writes nothing**, the new path's dry run, in place of V1's refusal (exit status 2) for this flag.
+- **Alpine:** no flag; udhcpc's question (decision 6) is not asked, `StopUDHCPC` is false and the finding is reported, as this table ran it.
 
 **What it may now delete:** `pkg/menu/dns_menu.go`, which has no goldens of its own (`pkg/menu/testdata/golden` holds `main_menu` and `run_all` only); screen-dns.md §7 lists the rest.
 
