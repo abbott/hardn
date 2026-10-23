@@ -77,7 +77,10 @@ import (
 // theme.StackBelow columns the compact form stacks its rows too, 34 lines
 // at 60 columns, so a 60-column terminal shows the full form from 57 rows
 // and the compact form below. Output that is not a terminal has no height
-// to fit, and gets the full form.
+// to fit, and gets the full form. StatusBlocks draws the blocks above the
+// heading alone, in the same forms, for a caller that draws its own menu
+// under them: hardn's live main menu, until its menu moves onto this
+// layout (slice 2b).
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
@@ -138,23 +141,40 @@ func (vm MainMenu) form(c component.Ctx, short bool) string {
 func (vm MainMenu) above(c component.Ctx, short bool) string {
 	mode := vm.Mode
 	heading := component.MenuHeading{Title: vm.Heading, Mode: &mode}.Render(c)
+	return join(append(vm.blocks(c, short), heading)...)
+}
+
+// blocks renders the blocks above the menu heading, which the status
+// model fills: the full form's Header, ContextBar, HostBlock,
+// RiskSummary, StatusList and Divider, or, when short is set, the compact
+// form's ContextBar, HostBlock, and the RiskSummary and StatusList as one
+// group.
+func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 	if short {
-		return join(
-			vm.Context.Render(c),
-			vm.Host.Render(c),
-			stack(vm.Risk.Render(c), vm.Status.Render(c)),
-			heading,
-		)
+		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c))}
 	}
-	return join(
-		vm.Header.Render(c),
-		vm.Context.Render(c),
-		vm.Host.Render(c),
-		vm.Risk.Render(c),
-		vm.Status.Render(c),
-		component.Divider{}.Render(c),
-		heading,
-	)
+	return []string{vm.Header.Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
+		component.Divider{}.Render(c)}
+}
+
+// StatusBlocks renders the blocks the status model fills, down to the full
+// form's Divider, for a caller that draws its own menu under them, its
+// heading and prompt included, in below lines, after theme.SectionGap
+// blank lines: hardn's live main menu, whose heading, mode indicator,
+// items and prompt are still pkg/menu's (refactor plan slice 2,
+// next/s2-menu-live; slice 2b). Their form is the one Render would choose
+// for the screen they make with that menu: the full form's blocks on
+// output that is not a terminal, and on a terminal from
+// theme.CompactBelow rows that holds them, the gap and below; else the
+// compact form's (see MainMenu). vm.Heading, Mode, Menu and Prompt are
+// not drawn.
+func (vm MainMenu) StatusBlocks(c component.Ctx, below int) string {
+	if !c.Env.TTY || height(c) >= theme.CompactBelow {
+		if full := join(vm.blocks(c, false)...); fullFits(c, lines(full)+theme.SectionGap+below) {
+			return full
+		}
+	}
+	return join(vm.blocks(c, true)...)
 }
 
 // compact reports whether the main menu takes its compact form in c.
@@ -164,23 +184,29 @@ func (vm MainMenu) compact(c component.Ctx) bool {
 }
 
 // full reports whether the main menu takes its full form in c, and if so
-// returns it: on output that is not a terminal, which has no height to
-// fit, and on a terminal from theme.CompactBelow rows whose height holds
-// the full form's lines, prompt included. Below theme.StackBelow columns
-// the rows stack, and the full form may not fit 40 rows (57 lines at 60
-// columns). An unknown height counts as term.DefaultHeight, as
-// term.Resolve counts it.
+// returns it: when it fits (fullFits), prompt included. Below
+// theme.StackBelow columns the rows stack, and the full form may not fit
+// 40 rows (57 lines at 60 columns).
 func (vm MainMenu) full(c component.Ctx) (string, bool) {
-	if !c.Env.TTY {
-		return vm.form(c, false), true
-	}
-	h := c.Env.Height
-	if h < 1 {
-		h = term.DefaultHeight
-	}
-	if h < theme.CompactBelow {
+	if c.Env.TTY && height(c) < theme.CompactBelow {
 		return "", false
 	}
 	out := vm.form(c, false)
-	return out, lines(out) <= h
+	return out, fullFits(c, lines(out))
+}
+
+// fullFits reports whether a full form of n lines is drawn in c: on
+// output that is not a terminal, which has no height to fit, and on a
+// terminal from theme.CompactBelow rows whose height holds the n lines.
+func fullFits(c component.Ctx, n int) bool {
+	return !c.Env.TTY || height(c) >= theme.CompactBelow && n <= height(c)
+}
+
+// height is c's terminal height; an unknown one counts as
+// term.DefaultHeight, as term.Resolve counts it.
+func height(c component.Ctx) int {
+	if c.Env.Height < 1 {
+		return term.DefaultHeight
+	}
+	return c.Env.Height
 }

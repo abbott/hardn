@@ -32,3 +32,19 @@ From the DNS control's `Check`, as every row is from its control's (`output.Stat
 | `status/container` | – DNS Not Applicable *container* (`[-]`) |
 
 `pkg/output`'s `human/status` golden gained the row too: its fixtures now carry a DNS report (Configured on Figma's, the hardened, reboot-pending and lockout hosts, Not Applicable in the container, Unknown "can't read" with nothing under it on the host with nothing read). **p4status prints it**: the DNS check's commands are on its allowlist, it reads `hardn.yml` where hardn looks for it, and its fixtures were exported again from the gallery (each gains the DNS reading's commands and files: [vmcheck.md](vmcheck.md), amended).
+
+## 6. The heights, with one row more
+
+Measured by `TestHeights` (`pkg/ui/screen`), on a terminal, Figma's fixture with no line under a row (each line under a row, and the host block's reboot line, adds one to every figure), Unicode and ASCII alike:
+
+| Rows | Terminal | Form drawn | Lines | hardn's live main menu (§5) |
+|---|---|---|---|---|
+| Figma's 7 | 80×24 | compact | 24, `CompactBudget` | 31 |
+| Figma's 7 | 80×40 | full | 35 | 36 |
+| 7 and DNS | 80×24 | compact | **25**, one over the budget | 32 |
+| 7 and DNS | 80×40 | full | 36, fits | 37, fits |
+| 7 and DNS | 60×24, 60×40 | compact (the rows stack, DEV-021) | 36 (59 in full) | 42 |
+
+**The compact form no longer fits 24 lines** with the DNS row: at 80×24 its first line, the distribution bar, scrolls off; the host, the risk level, every row, the mode and every item stay on screen (what DEV-052 keeps). With a line under a row it already took 25 (Figma's own host, [gallery-status.md](gallery-status.md) §5 (a)); now 26. **Nothing is changed here**: which line gives way is a layout decision the maintainer made before (DEV-052, 2026-10-17: the bar keeps its blank line, the heading gives up the one under it), and the cap on the lines under the rows was left to slice 2 (risk.md §8 (i)). Open for the maintainer (§11): (a) accept, the bar scrolling off at 24 rows; (b) the compact form drops the blank line between the host block and the risk group (24 lines, the uptime over the risk line); (c) it drops the blank line before the prompt; (d) a cap on the lines under the rows in the compact form, for the hosts that have them. The full form at 40 rows is unaffected while a host has at most four lines under its rows.
+
+**hardn's live main menu** draws the status blocks above its legacy menu, 17 lines from the heading to the prompt (§5), so it fits 24 rows in neither form, as origin/main's did not (37 lines, 38 with its "Sudo Not Installed" row: `pkg/menu`'s goldens; §7): at 80×24 the compact blocks (32 lines) leave its top 8 lines scrolled off, the risk level among them, where origin/main's left 13 or 14 off, the risk level among them too. From 40 rows its full blocks fit (37 lines) with up to three lines under the rows. `MainMenu.StatusBlocks` chooses the form by DEV-052's rule for that screen (`TestStatusBlocks`).
