@@ -1,7 +1,7 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **Not reachable from the command line yet:** refactor plan §3.11 (`--output json`, `--yes`) is not approved, so no flag selects JSON, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5. Nothing has run on Linux (gate 5).
+> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **Not reachable from the command line yet:** refactor plan §3.11 (`--output json`, `--yes`) is not approved, so no flag selects JSON, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5, `hardn confirm`'s clean-up report, and, since slice 2's unit (d) (`next/s2-replace`), `-g`'s report and exit status (§3). Nothing has run on Linux (gate 5).
 
 ## 1. The JSON document
 
@@ -419,7 +419,7 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 | `3` | a check found a control not as asked (`not-configured`, `partial`, or `unknown`: a state not established is not taken as hardened, brief §3), a plan has changes to make, or the user declined them at the confirmation or quit (`q`) or went back (`0`) before they were applied (`declined`): so a script can tell when a host has drifted from its hardened state |
 | `0` | success: nothing to change, or every change applied, a change waiting for confirmation included (it is rolled back at its deadline unless confirmed: `result.confirm`) |
 
-`pkg/cmd`'s `ExitUsage` and `pkg/ui/prompt`'s `ExitInterrupted` are the same 2 and 130 (`TestExitStatuses`). The legacy operation flags keep their own exits until their slices move them onto the engine (§3.11 is not approved).
+`pkg/cmd`'s `ExitUsage` and `pkg/ui/prompt`'s `ExitInterrupted` are the same 2 and 130 (`TestExitStatuses`). The legacy operation flags keep their own exits until their slices move them onto the engine (§3.11 is not approved). **`-g` is the first moved** (slice 2's unit (d), 2026-10-23; [cmd-engine.md](../engine/cmd-engine.md)): its run exits with this function's status, the human report on stdout, and `-n -g` is a plan (`mode` `plan`): 3 with changes to make, 0 with none, 1 refused. With other flags in one invocation, `-g`'s status when it is not 0 is hardn's once the flags after it have run; Ctrl-C during it is 130 at once.
 
 ## 4. The audit log
 

@@ -61,7 +61,7 @@
 ## 2. How side effects flow on origin/main
 
 - **Entry points:**
-  - CLI operation flags (`cmd/hardn/main.go`) call managers directly: `-c -d -w -g -r -e`. v0.3.2's `-l -i -a -s` are commented out (`main.go:89-94`).
+  - CLI operation flags (`cmd/hardn/main.go`) call managers directly: `-c -d -w -g -r -e`. v0.3.2's `-l -i -a -s` are commented out (`main.go:89-94`). *(2026-10-23, slice 2 unit (d), `next/s2-replace`: `-g` no longer calls a manager; it plans and applies the DNS control through the engine, and `-n -g` shows its plan: [cmd-engine.md](../../engine/cmd-engine.md).)*
   - `setup-sudo-env` is a subcommand (`main.go:420-450`).
   - The interactive menu (`pkg/menu`) → `application.MenuManager` → `*Manager` → domain service (pass-through) → adapter (`pkg/adapter/secondary`) → `interfaces.OSFileSystem` / `OSCommander`.
 - **Direct `os/exec` outside the adapters:**
@@ -263,7 +263,7 @@ The "Former label" column keeps the first pass's classification (Safety / Restor
 
 | ID | Defect | Severity | Evidence | Fix type (decision 6) | Former label | Plan hook |
 |---|---|---|---|---|---|---|
-| V1 | CLI `-n/--dry-run` ignored for `-r -c -d -w -g -e` | critical | [V] harness; `main.go:152`; 0 DryRun refs in core layers (A1) | **Fix: regression** (v0.3.2 honoured `-n`) + approach (§3.10: refuse operation flags under `-n`) | Restores | P0.8 item 1 |
+| V1 | CLI `-n/--dry-run` ignored for `-r -c -d -w -g -e` | critical | [V] harness; `main.go:152`; 0 DryRun refs in core layers (A1) | **Fix: regression** (v0.3.2 honoured `-n`) + approach (§3.10: refuse operation flags under `-n`) *(2026-10-23, slice 2 unit (d): for `-g`, the DNS control's plan in place of the refusal)* | Restores | P0.8 item 1 |
 | V2 | User-management menu ignores dry-run (create user, toggle sudo, add/remove key); only the success message is gated | high | [V] `user_options.go:397,487,538,744,831`; `ssh_keys_options.go:78` (A5) | **Fix: safety** (gate the mutation, not the message) | Restores / Safety | slice: user management |
 | V3 | `dryRun: true` in `hardn.yml` is overridden by the flag default `false` | high | [V] `main.go:152` (v0.3.2 `main.go:142` too) (C5) | **Fix + approach** (§3.19: an explicit flag wins, otherwise config). Not a regression: v0.3.2 behaves the same | Approval | §3.19 |
 | V4 | Disable-root rewrites the whole SSH config from a stub (`Port 22`, drops `ListenAddress`/`AllowUsers`, forces key-only); Alpine whole-file replace | critical | [V] harness; `file_ssh_repository.go:127-155` (A2) | **Fix: regression** (v0.3.2 edited `PermitRootLogin` in place, from a real parse) | Safety / Restores | P0.8 item 2 |
