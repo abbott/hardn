@@ -190,6 +190,14 @@ func ConfigFileSearchPath(explicitPath string) []string {
 	}
 
 	// If no explicit path or environment variable, use default search paths
+	return defaultSearchPath()
+}
+
+// defaultSearchPath is where hardn looks for its configuration when neither
+// -f nor HARDN_CONFIG names it, in order: system-wide, the two home files,
+// the working directory. FindConfigFile and FileDryRun (through
+// ConfigFileSearchPath) both walk it, so they find the same file.
+func defaultSearchPath() []string {
 	searchPaths := []string{
 		"/etc/hardn/hardn.yml", // System-wide config
 	}
@@ -199,9 +207,7 @@ func ConfigFileSearchPath(explicitPath string) []string {
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".config/hardn/hardn.yml"))
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
 	}
-	searchPaths = append(searchPaths, "./hardn.yml")
-
-	return searchPaths
+	return append(searchPaths, "./hardn.yml")
 }
 
 // Direct replacement for the FindConfigFile function in pkg/config/config.go
@@ -235,20 +241,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 	}
 
 	// Third priority: default search paths
-	searchPaths := []string{
-		"/etc/hardn/hardn.yml", // System-wide config
-	}
-
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		searchPaths = append(searchPaths, filepath.Join(homeDir, ".config/hardn/hardn.yml"))
-		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
-	}
-
-	searchPaths = append(searchPaths, "./hardn.yml")
-
-	// Search through default paths
-	for _, path := range searchPaths {
+	for _, path := range defaultSearchPath() {
 		if _, err := os.Stat(path); err == nil {
 			logging.LogInfo("Using configuration from: %s", path)
 			return path, true
