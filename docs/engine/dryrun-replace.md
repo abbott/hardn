@@ -36,9 +36,11 @@ Kept: `handled`, which still opens Run All's handler; `style.Menu.SetIndentation
 |---|---|---|---|
 | Main menu 1, User Management | opens, as before | refused before its screen is built | under the prompt as an invalid key: "⨳ Not available in plan only." (`(x)` in ASCII), `status.bad`, the prompt asked again, no clear, the main menu not read or drawn again |
 | Main menu 5, Backup | opens, as before (with backups on, it writes and removes `<path>/.write_test`) | the same | the same |
-| Firewall, Manage application profiles: 1 Add, 2 Remove | asks and saves `./hardn.yml`, as before | refused before any question or save; 2 with no profile still says "No profiles to remove" | the screen's own refusal of a choice it does not take: "✗ Not available in plan only." in red, then its "❯ Press Enter to continue..." pause, then the profiles screen again |
+| Firewall, Manage application profiles: 1 Add, 2 Remove | asks and saves `./hardn.yml`, as before | refused before any question or save; with no profile, 2 is not offered and goes on as before, its "No profiles to remove" cleared at once by the screen drawn again | the screen's own refusal of a choice it does not take: "✗ Not available in plan only." in red, then its "❯ Press Enter to continue..." pause, then the profiles screen again |
 
 The main menu's refusal is `nav.Option.Refusal` (new): asked as the item is chosen, before its action, a reason refuses the line under the prompt as a line no item takes is refused. An item disabled (`MenuItem.Disabled`) would have said "User Management is unavailable." and left its key out of the hint; an action that printed the words would have had the main menu drawn again under them. The keys stay in the hint, "[0-5, 7-10 or q]", as the retired mock `play dryrun/proposed` drew it.
+
+**Not as the adopted mock drew it.** `play dryrun/proposed` (7347cbe), decision 6's mock, refused 1 and 5 with a Warning notice, "Warning" in `status.warn` over the words in `text.muted`, beside an `accent.warn` bar, then drew the whole main menu again. The build refuses them inline under the prompt, ⨳ in `status.bad`, with no redraw, as the unit's brief asked ("as an invalid key"). The maintainer decided the words, not this placement and glyph: §9 puts it to the maintainer.
 
 Not refused, each keeping its own check as before: 2 (SSH Login), 3 (DNS, which stops at its plan), Firewall's install, enable, disable, Configure and apply-profiles lines, 7 (Run All's option 1 simulates), 8, 9; 10 reads only. With 1, 5 and the profiles refused and option 2 and item 6 gone, no legacy save runs under plan only (decision 8's premise).
 
@@ -56,11 +58,13 @@ origin/main (9d46866) has no golden files: every file here is the trunk's charac
 | `menu/dry_run_disable.golden` | the same | 1467f0d (2d2d617) | item 6 under dry run, 1 to disable: the Enabled menu never printed; `./hardn.yml` saved whole, `dryRun: false` |
 | `menu/dry_run_return.golden` | the same | 1467f0d (2d2d617) | item 6, live, 0 to keep it: nothing changed, `./hardn.yml` saved all the same |
 | `menu/dry_run_quit.golden` | the same | 1467f0d (2d2d617) | item 6, live, q at its menu: nothing saved, "is now DISABLED" and a second pause |
-| `main_menu/alpine-update-available.golden` | `pkg/menu` `TestMainMenuRenderGolden` | cc04c17 (f6fedaa) | origin/main's main menu on `pkg/style`, Alpine, live: the status block, "Dry-run Mode Disabled", items 1 to 10 with 6 Dry-Run, "[0-10 or q]"; the update notice off (V26's gate) |
+| `main_menu/alpine-update-available.golden` | `pkg/menu` `TestMainMenuRenderGolden` | cc04c17 (f6fedaa) | origin/main's main menu on `pkg/style`, Alpine, live: the status block, "Dry-run Mode Disabled", items 1 to 10 with 6 Dry-Run, "[0-10 or q]"; two trunk edits, the exit row's "q to quit" (DEV-030) and the update notice off (V26's gate) |
 | `main_menu/debian-figma.golden` | the same | cc04c17 (56f0d93) | the same on Debian 13 in dry run, "Dry-run Mode Enabled" |
 | `main_menu/debian-figma-no-color.golden` | the same | cc04c17 (56f0d93) | the same with `style.UseColors` off |
 | `main_menu/ubuntu-fresh.golden` | the same | cc04c17 (56f0d93) | the same on a fresh Ubuntu 24.04 host, live |
-| `run_all/option1-live-cancel.golden` | `pkg/menu` `TestRunAllConfirmationGolden` | cc04c17 (5cb0fd6) | Run All, live, option 1 declined at its typed yes (A4's gate), its menu with option 2, "[0-2 or q]" |
+| `run_all/option1-live-cancel.golden` | `pkg/menu` `TestRunAllConfirmationGolden` | cc04c17 (5cb0fd6) | Run All, live, option 1 declined at its typed yes, its menu with option 2, "[0-2 or q]"; two trunk edits, the typed yes (A4's gate) and "Press Enter" (DEV-050) |
+
+**Two trunk edits in `main_menu/*`:** frozen at the unit's base, cc04c17, as slice 2 copied `ops/dns_*` as at its base (parity-dns.md §7), they hold two edits the trunk made to origin/main's screen. All four say "q to quit" on the exit row (DEV-030, 56f0d93), where origin/main's `createMainMenu` said "Press 'q' to exit immediately" (9d46866 `main_menu.go:477`); `alpine-update-available` shows no update notice (V26's gate, 4f6bdd4; its header's FIXED line, f6fedaa), where origin/main drew "v0.4.1 available" and the URL on a second line. `git diff 8ddffc7 cc04c17 -- pkg/menu/testdata/golden/main_menu/` shows only these: 8ddffc7's bytes, the first recording, are origin/main's own lines. `TestMainMenuItems` compares the record's exit row with the layout's, both "q to quit". The other five hold trunk edits too, each named: the Dry-Run four's headers say "Press Enter" where origin/main said "Press any key" (DEV-050), and Run All's header names its typed yes (A4's gate), its "Press Enter" named in `legacyRecord`. Should the maintainer want origin/main's own lines, 8ddffc7's bytes replace these, proved with the same `cmp` (§9).
 
 **Why 1467f0d for the Dry-Run four:** unit (b) rewrote three of them (4d5732d, 4925c6a): `dry_run_enable`'s saved file now says `dryRun: false`, and the three headers mark decision 8 and V3 fixed. Those edits describe the trunk's save, which writes `dryRun` as loaded, not origin/main's, which wrote the session's mode; the record is origin/main's. 1467f0d is unit (a)'s last commit, after the maintainer's adoption, and holds unit (a)'s bytes (2d2d617's, `cmp` equal).
 
@@ -74,7 +78,7 @@ for f in alpine-update-available debian-figma debian-figma-no-color ubuntu-fresh
 git show cc04c17:pkg/menu/testdata/golden/run_all/option1-live-cancel.golden | cmp - pkg/menu/testdata/legacy/run_all/option1-live-cancel.golden
 ```
 
-`TestLegacyRecord` lists the nine with their SHA-256 and fails on a changed byte, a missing file or one not listed.
+`TestLegacyRecord` lists the nine with their SHA-256 and fails on a changed byte, a missing file or one not listed. Each file keeps its header, which names the test that wrote it and says "regenerate with -update. Do not edit.": nothing regenerates them now, but the header is part of the golden, kept as it was so that the record is provably unchanged, as parity-dns.md §7 kept its own.
 
 ## 5. Tests and goldens
 
@@ -89,12 +93,12 @@ git show cc04c17:pkg/menu/testdata/golden/run_all/option1-live-cancel.golden | c
 
 | Where | Words | Source |
 |---|---|---|
-| Main menu, 1 and 5 under plan only | "⨳ Not available in plan only." (`(x)` in ASCII) | **decided** (decision 6); the glyph DEV-062 |
+| Main menu, 1 and 5 under plan only | "⨳ Not available in plan only." (`(x)` in ASCII) | the words **decided** (decision 6); their place under the prompt, the glyph (DEV-062) and `status.bad` the unit's brief, where the adopted mock drew a Warning notice and the menu again (§3): **for the maintainer** |
 | Firewall profiles, 1 and 2 under plan only | "✗ Not available in plan only.", then "❯ Press Enter to continue..." | the decided words in the screen's own refusal style (`firewall_menu.go`'s invalid option) |
 | Main menu, 6 | "⨳ Invalid option. Please try again." | origin/main (P-25 (c)) |
 | Run All, 2 | "✗ Invalid option. Please try again.", "Press Enter to continue..." | Run All's own |
 | Hints | "[0-5, 7-10 or q]", Run All's "[0-1 or q]" | generated |
-| docs/configuration.md | "**Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them."; the note's "The main menu's Dry-Run item (6) is removed, and Run All no longer turns dry run on or off: for plan only, start with `-n` or set `dryRun: true`." | **proposed** (decision 10) |
+| docs/configuration.md | "**Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them."; the note's "Item 6 is now removed, and Run All no longer turns dry run on or off." | **proposed** (decision 10) |
 | docs/releases/unreleased.md | the header; "**Run All no longer turns dry run on or off.** …"; "**Under plan only, some menu areas are refused.** …" | **proposed** |
 
 ## 7. The VM steps (for the orchestrator)
@@ -105,7 +109,7 @@ On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), a
 2. **Live, the main menu:** `./hardn`: "Mode Live"; items 1 to 5, then 7 to 10, no "6) Dry-Run"; "❯ Enter selection [0-5, 7-10 or q]:"; 35 lines with no line under a row (36 on Ubuntu 26.04, whose User row has one). `6`: "⨳ Invalid option. Please try again." under the prompt, the prompt again, nothing cleared, no pause.
 3. **Live, 1 and 5 open as before:** `1`: User Management opens on a cleared screen; leave it with `0`: the main menu under it. `5`: Backup opens; `0`. With backups on and its directory present, opening Backup writes and removes `<backupPath>/.write_test`, as origin/main does (gallery-dryrun.md §2.4).
 4. **Live, Run All:** `7` (asked "Would you like to set a username now? (y/n)" when hardn.yml has none: `n`): "1) Run all hardening steps" and "0) Return to main menu", no option 2, "[0-1 or q]". `2`: "✗ Invalid option. Please try again.", "Press Enter to continue...", Enter: the screen again. `0`: "Operation cancelled. No changes were made.", the main menu, still "Mode Live". `q`.
-5. **`-n`:** `./hardn -n`: "Mode Plan only (-n)". `1`: "⨳ Not available in plan only." under the prompt, no screen, the prompt again; `5`: the same; `6`: "Invalid option". `4` (Firewall), `3` (Manage application profiles), `1`: "✗ Not available in plan only.", "❯ Press Enter to continue...", Enter: the profiles screen again, nothing asked; `2`: "No profiles to remove" where there are none, else the refusal again; `0`, `0`. `7`: "Dry-Run Mode Enabled", no option 2; `2`, Enter, `0`: still "Mode Plan only (-n)". `q`.
+5. **`-n`:** `./hardn -n`: "Mode Plan only (-n)". `1`: "⨳ Not available in plan only." under the prompt, no screen, the prompt again; `5`: the same; `6`: "Invalid option". `4` (Firewall), `3` (Manage application profiles), `1`: "✗ Not available in plan only.", "❯ Press Enter to continue...", Enter: the profiles screen again, nothing asked; `2`: the refusal again (a profile must be listed, as the default configuration's LabHTTPS is: with none, 2 is not offered); `0`, `0`. `7`: "Dry-Run Mode Enabled", no option 2; `2`, Enter, `0`: still "Mode Plan only (-n)". `q`.
 6. **hardn.yml:** set `dryRun: true` in `/etc/hardn/hardn.yml` (where none exists, create one with `nameservers: []` and `dryRun: true`, noting it). `./hardn`: "Mode Plan only (hardn.yml)"; `1` and `5` refused as in step 5; `4`, `3`, `1` refused; Enter, `0`, `0`, `q`. `./hardn --dry-run=false`: "Mode Live"; `5` opens Backup; `0`, `q`. Restore the file (`cp -p /root/hardn.yml.before /etc/hardn/hardn.yml`), or remove the one created.
 7. **ASCII:** `LANG=C ./hardn -n`, `1`: "(x) Not available in plan only."; `q`.
 8. **After:** `sha256sum -c /root/dryrun-replace-before`: every file OK, step 6 having restored hardn.yml; `ls -l /root/hardn.yml`: as in step 1, or still absent; `find /etc /var/lib /var/backups /root -newer /root/dryrun-replace-stamp` lists only `/root` itself, step 6's `/etc/hardn` where its edit or the file's creation changed the directory, and the backup directory of steps 3 and 6's live Backup (`.write_test`, written and removed); nothing from steps 5 to 7.
@@ -121,14 +125,22 @@ Record per VM: the main menu's line count and hint, each refusal's line as drawn
 5. **`config.Config.SetDryRun` deleted** with its last callers; the indicator's no-source state kept, unreachable (§3).
 6. **`TestMainMenuRenderGolden` kept** for the gated legacy status block, and its goldens copied to the record rather than moved: the block's code stays behind `legacySecurityStatus`, and this test is its only one.
 7. **The record in `pkg/menu/testdata/legacy`** (§4), the package that replaces the code, as slice 2 placed its own.
-8. **proposals.md:** P-03's status line and its row in the table both say implemented; they are the same status.
+8. **proposals.md:** P-03's status line alone says implemented, as the brief allowed; its row in the table still says "decided" (§9).
 
 ## 9. Open
 
 1. **Not verified on a host:** everything of §7; nothing has run on Linux.
-2. **The maintainer:** the proposed lines of §6; the main menu's hint still lists 1 and 5 under plan only (as the adopted mock did); `confirm` and `rollback` under the file's plan only ([dryrun-mode.md](dryrun-mode.md) §4.1 item 1), still open.
+2. **For the maintainer:**
+   - the proposed lines of §6;
+   - 1 and 5 refused inline under the prompt (⨳, `status.bad`, no redraw), where the adopted mock drew a Warning notice and the main menu again (§3);
+   - the main menu's hint still lists 1 and 5 under plan only, as the adopted mock did;
+   - `main_menu/*` frozen with the trunk's two edits, or 8ddffc7's bytes, origin/main's own lines (§4);
+   - P-03's row in proposals.md's table still says "decided": the brief allowed its status line alone;
+   - `confirm` and `rollback` under the file's plan only ([dryrun-mode.md](dryrun-mode.md) §4.1 item 1), still open.
 3. Slice 2b's sign-off: units (b) to (d) released together (the release notes' header).
 
 ## 10. Size
 
 Against `next/s2b-menu` (`git diff --numstat cc04c17`), the unit's eight commits: about 125 lines of non-test Go added and 950 removed (removed: the gallery's `dryrun.go` 509, item 6's two screens 201, `createMainMenu`, Run All's option 2 and their comments about 110, `pkg/style`'s indicator 45; added: `pkg/menu` 65, the refusals, `notInPlanOnly` and comments, `pkg/ui/nav` 20, comments elsewhere); about 465 lines of tests added and 360 removed (`TestPlanOnlyRefusals`, `TestRunAllInTheSessionsMode`, `TestLegacyRecord`, `TestRefusal`, the rewritten `TestMainMenuItems` and `TestMainMenuMode`; the gallery's `dryrun_test.go`, 185, removed); and about 200 lines of docs, this page 135 of them. **Over the guideline** of about 500 changed lines, deletions and testdata aside (about 790 added), because of the tests: each refusal under each source and live, Run All under each source, the record's own test; the code alone, 125 lines, is well within it. Testdata: 49 golden files added, moved, changed or deleted (about 360 lines added, 2,550 removed), §5.
+
+The review's fixes, three later commits: no non-test Go; `pkg/menu`'s record strings and a comment, about 10 lines of tests; about 55 lines of docs (this page, gallery-dryrun.md, menu-layout.md, the design system's README and deviations, configuration.md), and P-03's table row in proposals.md put back as it was; no golden changed.
