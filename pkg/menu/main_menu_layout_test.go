@@ -311,7 +311,8 @@ func TestMainMenuMode(t *testing.T) {
 // in content, as the parity record holds origin/main's main menu
 // (testdata/legacy/main_menu, createMainMenu's style.Menu until slice 2b's
 // unit (d)): its numbers, labels and descriptions, item 1's parenthesis
-// its aside, and its Exit row, but item 6, Dry-Run, removed with its key
+// its aside, and its Exit row (the trunk's "q to quit", DEV-030, as the
+// record holds it), but item 6, Dry-Run, removed with its key
 // (decision 1); and the same as the main-menu mock's
 // (screen.MainMenuFixture), which the gallery draws its main menus with.
 // The heading and prompt are origin/main's too, the hint generated from
