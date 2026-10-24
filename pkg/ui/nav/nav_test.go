@@ -307,6 +307,44 @@ func TestChoose(t *testing.T) {
 	})
 }
 
+// TestRefusal: an option the session rules out (Option.Refusal) is
+// refused as it is chosen, in its reason's words under the prompt, as a
+// line no item takes is refused, and the prompt asked again: its action
+// not run, the screen not drawn again, its key still in the hint. A
+// Refusal that gives no reason lets the action run.
+func TestRefusal(t *testing.T) {
+	const why = "Not available here."
+	for _, tt := range []struct {
+		name    string
+		reason  string
+		lines   []string
+		ran     string
+		mains   int
+		refused int
+	}{
+		{"refused", why, []string{"5", " 5 ", "0"}, "", 1, 2},
+		{"refused, then another item", why, []string{"5", "4", "0"}, "4", 2, 1},
+		{"no reason", "", []string{"5", "0"}, "5", 2, 0},
+	} {
+		var ran []string
+		mains := 0
+		out, err := play(tt.lines, func(p Prompter) error {
+			return p.Run(func() Screen {
+				mains++
+				m := mainMenu(&ran)
+				m.Options[4].Refusal = func() string { return tt.reason }
+				return Screen{Above: "Select an option", Menu: m, Label: choice}
+			})
+		})
+		asked := "  > Enter your choice [0-10 or q]: "
+		if err != nil || strings.Join(ran, " ") != tt.ran || mains != tt.mains ||
+			strings.Count(out, "\n  (x) "+why+"\n"+asked) != tt.refused {
+			t.Errorf("%s: Run() = %v, ran %q, drawn %d times; want nil, %q, %d, %d refusals under %q:\n%s",
+				tt.name, err, ran, mains, tt.ran, tt.mains, tt.refused, asked, out)
+		}
+	}
+}
+
 func TestConfirm(t *testing.T) {
 	tests := []struct {
 		lines      []string
