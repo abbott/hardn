@@ -37,12 +37,6 @@ func (f *MenuFactory) CreateRunAllMenu() *menu.RunAllMenu {
 	return menu.NewRunAllMenu(menuManager, f.config, f.osInfo)
 }
 
-// CreateDryRunMenu creates a DryRunMenu with all dependencies wired up
-func (f *MenuFactory) CreateDryRunMenu() *menu.DryRunMenu {
-	menuManager := f.serviceFactory.CreateMenuManager()
-	return menu.NewDryRunMenu(menuManager, f.config)
-}
-
 func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 	return menu.NewHelpMenu()
 }
