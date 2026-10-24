@@ -3,6 +3,7 @@
 # Screen: Run All (pkg/menu/run_all_menu.go), option 1 in live mode, confirmation answered "no"
 # Fixture: Debian 13, username alice, SSH port 2230, dry-run off, style.UseColors=false; stdin "1\nno\n\n" (not a terminal, so no echo)
 # FIXED (P0.8, gated by runAllWithoutConfirmation): A4 — option 1 asks for a typed 'yes' before a live run; origin/main ran every step on "1" with no question
+# FIXED (slice 2b, unit (d), decision 7): option 2, "Enable dry-run mode and run", which flipped the mode, saved ./hardn.yml and left it flipped when its yes was declined, is removed; origin/main's menu: testdata/legacy/run_all
 # Nothing reaches the mock file system or commander (checked).
 # ESC bytes are shown as the four characters \x1b, and each screen line ends with $ (as cat -e shows it)
 # so trailing spaces stay visible; <no-newline> marks text printed without a final newline.
@@ -29,13 +30,12 @@ This will run ALL hardening steps on your system.$
 Your system will be modified. This cannot be undone.$
 \x1b[4m\x1b[38;5;246mSelect an option\x1b[0m$
 $
-\x1b[1m 1)\x1b[0m Run all hardening steps         \x1b[2mExecute all configured hardening measures\x1b[0m$
-\x1b[1m 2)\x1b[0m Enable dry-run mode and run     \x1b[2mSimulate changes without applying them\x1b[0m$
+\x1b[1m 1)\x1b[0m Run all hardening steps     \x1b[2mExecute all configured hardening measures\x1b[0m$
 $
-\x1b[1m 0)\x1b[0m Return to main menu             \x1b[2mCancel operation\x1b[0m$
+\x1b[1m 0)\x1b[0m Return to main menu         \x1b[2mCancel operation\x1b[0m$
 $
 $
-\x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-2 or q]: $
+\x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-1 or q]: $
 $
 Type 'yes' to confirm you want to apply real changes: $
 $

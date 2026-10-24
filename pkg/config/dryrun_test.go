@@ -56,30 +56,25 @@ func TestResolveDryRun(t *testing.T) {
 	}
 }
 
-// TestDryRunSourceOnlyAsSet: a toggle inside the session (SetDryRun) sets
-// no source, and the source does not come back with the value it set; nor
-// does it outlive a write to DryRun.
+// TestDryRunSourceOnlyAsSet: the source does not outlive a write to
+// DryRun, the file's or the flag's.
 func TestDryRunSourceOnlyAsSet(t *testing.T) {
 	c := loadFile(t, "dryRun: true\n")
 	c.ResolveDryRun(false, false)
-	c.SetDryRun(false)
-	if c.DryRun || c.DryRunSource() != DryRunDefault {
-		t.Fatalf("toggled off: %v from %d", c.DryRun, c.DryRunSource())
-	}
-	c.SetDryRun(true)
-	if !c.DryRun || c.DryRunSource() != DryRunDefault {
-		t.Errorf("toggled on again: %v from %d, want no source", c.DryRun, c.DryRunSource())
+	c.DryRun = false
+	if c.DryRunSource() != DryRunDefault {
+		t.Errorf("a write to DryRun kept the file's source %d", c.DryRunSource())
 	}
 	c.ResolveDryRun(true, true)
 	c.DryRun = false
 	if c.DryRunSource() != DryRunDefault {
-		t.Errorf("a write to DryRun kept the source %d", c.DryRunSource())
+		t.Errorf("a write to DryRun kept the flag's source %d", c.DryRunSource())
 	}
 }
 
 // TestSaveConfigDryRunAsLoaded: decision 8. A legacy save writes dryRun as
 // the file gave it, never the session's mode: not -n's, not
-// --dry-run=false's, not a toggle's (item 6, Run All's option 2); the
+// --dry-run=false's, not one written to DryRun after the start; the
 // defaults' false when no file was loaded.
 func TestSaveConfigDryRunAsLoaded(t *testing.T) {
 	for _, tt := range []struct {
@@ -91,9 +86,9 @@ func TestSaveConfigDryRunAsLoaded(t *testing.T) {
 		{"-n, file false", "dryRun: false\n", func(c *Config) { c.ResolveDryRun(true, true) }, "dryRun: false\n"},
 		{"-n, no file", "-", func(c *Config) { c.ResolveDryRun(true, true) }, "dryRun: false\n"},
 		{"--dry-run=false, file true", "dryRun: true\n", func(c *Config) { c.ResolveDryRun(true, false) }, "dryRun: true\n"},
-		{"file true, toggled off", "dryRun: true\n", func(c *Config) { c.ResolveDryRun(false, false); c.SetDryRun(false) }, "dryRun: true\n"},
-		{"file false, toggled on", "dryRun: false\n", func(c *Config) { c.ResolveDryRun(false, false); c.SetDryRun(true) }, "dryRun: false\n"},
-		{"no file, toggled on", "-", func(c *Config) { c.ResolveDryRun(false, false); c.SetDryRun(true) }, "dryRun: false\n"},
+		{"file true, written off", "dryRun: true\n", func(c *Config) { c.ResolveDryRun(false, false); c.DryRun = false }, "dryRun: true\n"},
+		{"file false, written on", "dryRun: false\n", func(c *Config) { c.ResolveDryRun(false, false); c.DryRun = true }, "dryRun: false\n"},
+		{"no file, written on", "-", func(c *Config) { c.ResolveDryRun(false, false); c.DryRun = true }, "dryRun: false\n"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			c := DefaultConfig()

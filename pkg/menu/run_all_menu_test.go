@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"context"
 	"os"
 	"strings"
 	"testing"
@@ -12,6 +13,8 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/domain/service"
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
@@ -76,10 +79,9 @@ func TestRunAllConfirmation(t *testing.T) {
 		{name: "live, yes with spaces", script: "1\n  yes \n\n", prompt: true, applied: true},
 		{name: "live, YES", script: "1\nYES\n\n", prompt: true, applied: true},
 		{name: "dry-run simulates without asking", dryRun: true, script: "1\n\n"},
-		{name: "dry-run, option 2 to go live, no", dryRun: true, script: "2\nno\n\n", prompt: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			// Run All option 2 saves the config to ./hardn.yml once confirmed.
+			// A legacy save would write ./hardn.yml here: none may.
 			t.Chdir(t.TempDir())
 			m, fs, mc := newRunAllMenu(t, tc.dryRun)
 			scripted(t, tc.script+"next\n")
@@ -99,6 +101,65 @@ func TestRunAllConfirmation(t *testing.T) {
 			}
 			if tc.applied && !strings.Contains(out, "System hardening") {
 				t.Errorf("hardening did not run:\n%s", out)
+			}
+			if _, err := os.Stat("hardn.yml"); err == nil {
+				t.Errorf("the config was saved to ./hardn.yml")
+			}
+			var next string
+			if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
+				t.Errorf("the line after the screen's = %q (ended %v): the screen read too few or too many lines", next, ended)
+			}
+		})
+	}
+}
+
+// TestRunAllInTheSessionsMode: Run All's option 2, which turned dry run
+// on or off, ran, and saved ./hardn.yml, is removed (refactor plan slice
+// 2b, unit (d), decision 7): live and under plan only, from -n or from
+// hardn.yml, the menu lists option 1 and Return alone, "[0-1 or q]"; 2 is
+// refused as any other choice, "Invalid option. Please try again.", and
+// the menu drawn again; the mode, and what set it, stay as hardn started;
+// nothing is applied, asked or saved.
+func TestRunAllInTheSessionsMode(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		start  func(t *testing.T) *config.Config
+		dryRun bool
+		source config.DryRunSource
+	}{
+		{"live", func(*testing.T) *config.Config { c := config.DefaultConfig(); c.ResolveDryRun(false, false); return c }, false, config.DryRunDefault},
+		{"-n", func(*testing.T) *config.Config { c := config.DefaultConfig(); c.ResolveDryRun(true, true); return c }, true, config.DryRunFlag},
+		{"hardn.yml", func(t *testing.T) *config.Config {
+			f := hostfake.New(host.Options{})
+			f.AddFile(hardnYML, []byte("dryRun: true\n"), 0o644, 0, 0)
+			c, err := config.Read(context.Background(), f, hardnYML)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c.ResolveDryRun(false, false)
+			return c
+		}, true, config.DryRunFile},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+			m, fs, mc := newRunAllMenu(t, false)
+			m.config = tc.start(t)
+			m.config.Username, m.config.SshPort = "alice", 2230
+			scripted(t, "2\n\n0\nnext\n")
+			out, code, ended := session(t, m.Show)
+			if ended {
+				t.Fatalf("ended hardn with %d:\n%s", code, out)
+			}
+			plain := style.StripAnsi(out)
+			if strings.Contains(plain, "dry-run mode and run") || strings.Count(plain, "Enter selection [0-1 or q]:") != 2 ||
+				!strings.Contains(plain, "Invalid option. Please try again.") || strings.Contains(plain, confirmPrompt) {
+				t.Errorf("want the menu without option 2, 2 refused and the menu again, no question:\n%s", plain)
+			}
+			if m.config.DryRun != tc.dryRun || m.config.DryRunSource() != tc.source {
+				t.Errorf("the mode is %v from %d, want %v from %d, as hardn started", m.config.DryRun, m.config.DryRunSource(), tc.dryRun, tc.source)
+			}
+			if len(fs.Files) > 0 || len(mc.ExecutedCommands) > 0 {
+				t.Errorf("applied: files %d, commands %v", len(fs.Files), mc.ExecutedCommands)
 			}
 			if _, err := os.Stat("hardn.yml"); err == nil {
 				t.Errorf("the config was saved to ./hardn.yml")
@@ -140,6 +201,7 @@ func TestRunAllConfirmationGolden(t *testing.T) {
 	b.WriteString("# Screen: Run All (pkg/menu/run_all_menu.go), option 1 in live mode, confirmation answered \"no\"\n")
 	b.WriteString("# Fixture: Debian 13, username alice, SSH port 2230, dry-run off, style.UseColors=false; stdin \"1\\nno\\n\\n\" (not a terminal, so no echo)\n")
 	b.WriteString("# FIXED (P0.8, gated by runAllWithoutConfirmation): A4 — option 1 asks for a typed 'yes' before a live run; origin/main ran every step on \"1\" with no question\n")
+	b.WriteString("# FIXED (slice 2b, unit (d), decision 7): option 2, \"Enable dry-run mode and run\", which flipped the mode, saved ./hardn.yml and left it flipped when its yes was declined, is removed; origin/main's menu: testdata/legacy/run_all\n")
 	b.WriteString("# Nothing reaches the mock file system or commander (checked).\n")
 	b.WriteString("# ESC bytes are shown as the four characters \\x1b, and each screen line ends with $ (as cat -e shows it)\n")
 	b.WriteString("# so trailing spaces stay visible; <no-newline> marks text printed without a final newline.\n")
