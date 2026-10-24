@@ -12,9 +12,10 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | dryrun | dryrun/variant]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
+//	go run ./internal/tools/uigallery dryrun [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -140,6 +141,20 @@
 // colour; it has no ASCII form. None, or "all", is every set and the strip.
 // Its flags are -list, -theme, -profile, -ascii, -override, and -width and
 // -height sized as play's; it draws nothing by -height.
+//
+// "dryrun" lists the Dry-Run mocks (dryrun.go, refactor plan slice 2b,
+// docs/engine/gallery-dryrun.md), for the maintainer's review: the main
+// menu's items on its layout under a status host's block, live and in dry
+// run, in origin/main's words and the proposed ones; the mode indicator's
+// states; origin/main's Dry-Run item on the sub-menu layout and its toggle
+// saved through the canonical flow; and origin/main's Firewall screen
+// under dry run, as it prints. "play dryrun" plays that main menu, its 6
+// toggling dry run for the session, "play dryrun/saved" with the toggle
+// saved, "play dryrun/proposed" the proposed one; -sequence dry-run starts
+// in dry run, as hardn -n does. Its flags are -list, -theme, -profile,
+// -ascii, -override, and -width and -height sized as play's; -height picks
+// the main menus' form, the full one from 40 rows, the compact one below,
+// and plain mode, which is no terminal, the full one at any height.
 //
 // The flags of the other modes, whose environment is the flags' alone:
 //
@@ -530,14 +545,18 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == "glyphs" {
 		return glyphs(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == dryRunPrefix {
+		return dryRunList(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: go run ./internal/tools/uigallery [flags] [component | component/state | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...")
-		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host]")
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(playUsage, "usage: "))
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
+		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery dryrun [flags] [mock | all]...")
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

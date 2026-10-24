@@ -196,12 +196,12 @@ Built from `2eac16a` (hardn sha256 `8071a9a2…`, p4status `b38276ff…`), the s
 
 None blocks this unit; each is a decision this unit did not take.
 
-1. **The compact form's 25th line** (§6): accept the bar scrolling off at 80×24, or which blank line gives way, or a cap on the lines under the rows.
+1. **The compact form's 25th line** (§6): accept the bar scrolling off at 80×24, or which blank line gives way, or a cap on the lines under the rows. Slice 2b's mock draws the main menu's items on the layout at the same 25 lines ([gallery-dryrun.md](gallery-dryrun.md) §3.2).
 2. **"Sudo Method" and "Sudo Not Installed"** (§7; P-13, proposed): dropped with origin/main's block; the no-password fact is a line under User, "password required" is not said, and "no sudo" only where a non-root account exists.
 3. **The update notice in the version line** (§7; P-15): the `Header` draws none; unreachable while update checks are off (V26).
 4. **Resolved** (the maintainer, 2026-10-23, §8): the DNS row where no nameserver is configured, which read "⭘ Not Configured none in hardn.yml" on every host whose hardn.yml lists none, hardn's default, and on a host with no `hardn.yml` at all, is Not Applicable, "none configured" or "no hardn.yml"; built on this branch.
 5. **The cost** (§5): 13 to 31 commands a pass where origin/main ran about 6 to 10, `sshd -T` three or four times among them, and 77 to 122 file operations; up to 16 `systemctl` commands (none on Alpine) where origin/main ran one. Nothing bounds a pass: a command that blocks (a systemd or D-Bus that does not answer) keeps the cleared screen blank until it returns or Ctrl-C. Open: a bound on a pass, and what its rows show then; a memo per pass for `sshd -T` and `ss`; reading again only after an item that may have changed the host (a cache). None built; the time on a host, and with systemd busy, is step 8's.
-6. **The live main menu at 80×24** (§6): 32 lines, its risk level scrolled off, as origin/main's was, until slice 2b moves the menu onto the layout and its compact two-column form.
+6. **The live main menu at 80×24** (§6): 32 lines, its risk level scrolled off, as origin/main's was, until slice 2b moves the menu onto the layout and its compact two-column form; mocked for the maintainer's review in [gallery-dryrun.md](gallery-dryrun.md) (§3.2, decision 5): 25 lines, the risk level on screen.
 
 ## 12. API
 

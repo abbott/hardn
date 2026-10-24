@@ -1,0 +1,116 @@
+# Golden file of TestDryRunGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun toggle␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock (decision 4, alternative (a)). Enable dry-run mode saved␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough the canonical flow: hardn.yml's dryRun edited in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplace, then y.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mtoggle/1-confirm␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable dry-run mode␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDry-Run Mode Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDry-run Mode␛[m         ␛[38;2;112;212;127mEnabled␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,6 +1,6 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-dryRun: false␛[m$
+      ␛[38;2;112;212;127m+dryRun: true␛[m$
+      ␛[38;2;129;134;156m nameservers:␛[m$
+      ␛[38;2;129;134;156m   - "192.0.2.54"␛[m$
+      ␛[38;2;129;134;156m   - "2001:db8::54"␛[m$
+$
+  ␛[38;2;192;196;216mEnable dry-run mode?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mtoggle/2-applied␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# dryrun toggle ------------------------------------------------$
+$
+# Note$
+# Mock (decision 4, alternative (a)). Enable dry-run mode saved$
+# through the canonical flow: hardn.yml's dryRun edited in$
+# place, then y.$
+$
+# toggle/1-confirm ---------------------------------------------$
+$
+# Enable dry-run mode ##########################################$
+$
+# Dry-Run Mode Configuration -----------------------------------$
+$
+  [+] Dry-run Mode         Enabled$
+$
+   -  Save the configuration$
+      /etc/hardn/hardn.yml$
+      @@ -1,6 +1,6 @@$
+       # hardn's configuration (web-01.example.net)$
+       username: alice$
+      -dryRun: false$
+      +dryRun: true$
+       nameservers:$
+         - "192.0.2.54"$
+         - "2001:db8::54"$
+$
+  Enable dry-run mode? [y/N, 0 or q]: y$
+$
+# toggle/2-applied ---------------------------------------------$
+$
+  [+] Save the configuration  Done$
+$
+# Operation Successful$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun toggle␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock (decision 4, alternative (a)). Enable dry-run mode␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaved through the canonical flow: hardn.yml's dryRun␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156medited in place, then y.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mtoggle/1-confirm␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable dry-run mode␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDry-Run Mode Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDry-run Mode␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,6 +1,6 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-dryRun: false␛[m$
+      ␛[38;2;112;212;127m+dryRun: true␛[m$
+      ␛[38;2;129;134;156m nameservers:␛[m$
+      ␛[38;2;129;134;156m   - "192.0.2.54"␛[m$
+      ␛[38;2;129;134;156m   - "2001:db8::54"␛[m$
+$
+  ␛[38;2;192;196;216mEnable dry-run mode?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mtoggle/2-applied␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+$

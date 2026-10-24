@@ -1,0 +1,81 @@
+# Golden file of TestDryRunGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun screen-enabled␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock (decision 1, alternative (a)). The same in dry run, its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu printed, which origin/main's never is.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDry-Run Mode Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDry-Run Mode Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDry-run Mode␛[m         ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mIn this mode, the script will preview changes without␛[m$
+      ␛[38;2;129;134;156mapplying them.␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable dry-run mode␛[m ␛[38;2;129;134;156mApply changes to the system for real␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn to main menu␛[m  ␛[38;2;129;134;156mKeep dry-run mode enabled␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# dryrun screen-enabled ----------------------------------------$
+$
+# Note$
+# Mock (decision 1, alternative (a)). The same in dry run, its$
+# menu printed, which origin/main's never is.$
+$
+# Dry-Run Mode Settings ########################################$
+$
+# Dry-Run Mode Configuration -----------------------------------$
+$
+  [+] Dry-run Mode         Enabled$
+   -  In this mode, the script will preview changes without$
+      applying them.$
+$
+  Select an option$
+$
+   1) Disable dry-run mode Apply changes to the system for real$
+$
+   0) Return to main menu  Keep dry-run mode enabled$
+$
+  > Enter selection [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mdryrun screen-enabled␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock (decision 1, alternative (a)). The same in dry run,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits menu printed, which origin/main's never is.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDry-Run Mode Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDry-Run Mode Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDry-run Mode␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mIn this mode, the script will preview changes without␛[m$
+      ␛[38;2;129;134;156mapplying them.␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable dry-run mode␛[m$
+      ␛[38;2;129;134;156mApply changes to the system for real␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn to main menu␛[m$
+      ␛[38;2;129;134;156mKeep dry-run mode enabled␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

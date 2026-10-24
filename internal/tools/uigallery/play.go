@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | dryrun | dryrun/variant]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -97,6 +97,23 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{engineNote}, s.openDNS(name), stderr)
+		})
+	}
+	if name, ok, err := dryRunStart(fs.Args()); ok || err != nil {
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: %s plays normal or dry-run", *sequence, dryRunPrefix)
+		case *failAt < 0:
+			return usage("-fail %d is not a step", *failAt)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence, s.sim.failAt = *sequence, *failAt
+			for _, m := range mocks {
+				s.mocks[m.Name] = m
+			}
+			return s.play("play "+name, []string{dryRunNote}, s.openDryRun(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
