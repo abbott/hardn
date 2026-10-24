@@ -190,6 +190,14 @@ func ConfigFileSearchPath(explicitPath string) []string {
 	}
 
 	// If no explicit path or environment variable, use default search paths
+	return defaultSearchPath()
+}
+
+// defaultSearchPath is where hardn looks for its configuration when neither
+// -f nor HARDN_CONFIG names it, in order: system-wide, the two home files,
+// the working directory. FindConfigFile and FileDryRun (through
+// ConfigFileSearchPath) both walk it, so they find the same file.
+func defaultSearchPath() []string {
 	searchPaths := []string{
 		"/etc/hardn/hardn.yml", // System-wide config
 	}
@@ -199,9 +207,7 @@ func ConfigFileSearchPath(explicitPath string) []string {
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".config/hardn/hardn.yml"))
 		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
 	}
-	searchPaths = append(searchPaths, "./hardn.yml")
-
-	return searchPaths
+	return append(searchPaths, "./hardn.yml")
 }
 
 // Direct replacement for the FindConfigFile function in pkg/config/config.go
@@ -235,20 +241,7 @@ func FindConfigFile(explicitPath string) (string, bool) {
 	}
 
 	// Third priority: default search paths
-	searchPaths := []string{
-		"/etc/hardn/hardn.yml", // System-wide config
-	}
-
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		searchPaths = append(searchPaths, filepath.Join(homeDir, ".config/hardn/hardn.yml"))
-		searchPaths = append(searchPaths, filepath.Join(homeDir, ".hardn.yml"))
-	}
-
-	searchPaths = append(searchPaths, "./hardn.yml")
-
-	// Search through default paths
-	for _, path := range searchPaths {
+	for _, path := range defaultSearchPath() {
 		if _, err := os.Stat(path); err == nil {
 			logging.LogInfo("Using configuration from: %s", path)
 			return path, true
@@ -287,20 +280,29 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 		return config, nil
 	}
 
+	return readConfigFile(configPath)
+}
+
+// readConfigFile reads the configuration file at path as LoadConfig reads
+// the file it finds: the defaults, then the file's keys, and the path and
+// bytes read recorded (setLoaded).
+func readConfigFile(path string) (*Config, error) {
+	config := DefaultConfig()
+
 	// Read the found config file
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
 	}
 
 	// Parse YAML
 	if err := yaml.Unmarshal(data, config); err != nil {
-		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", path, err)
 	}
 	if err := checkLoaded(config); err != nil {
-		return nil, fmt.Errorf("config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("config file %s: %w", path, err)
 	}
-	config.setLoaded(configPath, data)
+	config.setLoaded(path, data)
 
 	return config, nil
 }
@@ -466,10 +468,16 @@ func CreateDefaultConfig(path string, config *Config) error {
 	return nil
 }
 
-// SaveConfig saves configuration to the specified file
+// SaveConfig saves configuration to the specified file: the whole
+// configuration, with dryRun as loaded, never the session's mode (slice 2b
+// decision 8), so that -n, --dry-run=false and a toggle inside the session
+// are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
+	saved := *config
+	saved.DryRun = config.loaded.dryRun
+
 	// Marshal YAML
-	data, err := yaml.Marshal(config)
+	data, err := yaml.Marshal(&saved)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

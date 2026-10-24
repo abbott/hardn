@@ -158,7 +158,7 @@ func (m *RunAllMenu) Show() {
 		m.runAllHardening()
 	case "2":
 		// Toggle dry-run mode and run
-		m.config.DryRun = !m.config.DryRun
+		m.config.SetDryRun(!m.config.DryRun) // the session's alone, with no source: never saved (decision 8)
 		if m.config.DryRun {
 			fmt.Printf("\n%s Dry-run mode has been %s\n",
 				style.Colored(style.Green, style.SymCheckMark),

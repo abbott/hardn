@@ -31,6 +31,7 @@ const menuChild = "HARDN_CHARACTERIZATION_MENU"
 type menuCase struct {
 	name, screen, script string
 	notes, defects       []string
+	fixed                []string // a defect fixed since, the screen and the file as they are now
 }
 
 // menuCases are the Dry-Run item (main menu 6) from each state, and the
@@ -39,17 +40,20 @@ type menuCase struct {
 func menuCases() []menuCase {
 	const (
 		pauses = "3 pauses for one toggle (dry_run_handler.go:52, dry_run_menu.go:124, dry_run_handler.go:73; interaction.md §4.3)"
-		saved  = "the whole configuration, the session's dryRun with it, saved to ./hardn.yml in the working directory, not to the file loaded (dry_run_menu.go:118; side-effects row 29)"
-		v3     = "V3: the next start sets dryRun from -n, false unless given, whatever the file says (cmd/hardn/main.go:159; config/full-flag.golden)"
+		saved  = "the whole configuration saved to ./hardn.yml in the working directory, not to the file loaded (dry_run_menu.go:118; side-effects row 29)"
+		// Fixed by refactor plan slice 2b, next/s2b-mode: origin/main saved
+		// the session's dryRun, which the next start ignored.
+		asLoaded = "decision 8 (slice 2b, next/s2b-mode): the save writes dryRun as loaded, here the defaults' false, never the session's mode (config.SaveConfig), so the toggle is the session's alone"
+		v3       = "V3 (slice 2b, next/s2b-mode): the next start takes the dryRun of the file it loads unless -n/--dry-run is given (§3.19; config/full-flag.golden)"
 	)
 	return []menuCase{
 		{name: "dry_run_enable", screen: "Dry-Run (main menu 6) in live mode, 1 to enable", script: "\n1\n\n\n",
-			defects: []string{pauses, saved, v3}},
+			defects: []string{pauses, saved}, fixed: []string{asLoaded, v3}},
 		{name: "dry_run_disable", screen: "Dry-Run (main menu 6) in dry-run mode, 1 to disable", script: "\n1\n\n\n",
 			defects: []string{
 				"the Enabled state builds its menu and never prints it: no item and no prompt, though a choice is read (dry_run_menu.go:44-59)",
-				pauses, saved, v3,
-			}},
+				pauses, saved,
+			}, fixed: []string{asLoaded, v3}},
 		{name: "dry_run_return", screen: "Dry-Run (main menu 6) in live mode, 0 to keep it", script: "\n0\n\n\n",
 			notes:   []string{"0 changes nothing and still saves."},
 			defects: []string{pauses, saved}},
@@ -113,6 +117,9 @@ func TestLegacyMenuDryRun(t *testing.T) {
 			fmt.Fprintf(&b, "# Pauses: %d (\"Press Enter to ...\"; origin/main says \"Press any key to ...\", DEV-050)\n", strings.Count(screen, "Press Enter to"))
 			for _, d := range tc.defects {
 				fmt.Fprintf(&b, "# KNOWN-DEFECT: %s\n", d)
+			}
+			for _, f := range tc.fixed {
+				fmt.Fprintf(&b, "# FIXED: %s\n", f)
 			}
 			for _, n := range tc.notes {
 				fmt.Fprintf(&b, "# NOTE: %s\n", n)

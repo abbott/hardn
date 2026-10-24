@@ -65,7 +65,7 @@ func (m *DryRunMenu) Show() {
 
 		switch choice {
 		case "1":
-			m.config.DryRun = false
+			m.config.SetDryRun(false) // the session's alone, with no source: never saved (decision 8)
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Disabled", style.Yellow, "", "bold"))
 			fmt.Println(style.Dimmed("\nChanges will now be applied to the system. Proceed with caution."))
 		case "0":
@@ -102,7 +102,7 @@ func (m *DryRunMenu) Show() {
 
 		switch choice {
 		case "1":
-			m.config.DryRun = true
+			m.config.SetDryRun(true) // the session's alone, with no source: never saved (decision 8)
 			fmt.Println("\n" + formatter.FormatLine(style.SymInfo, style.BrightCyan, "Dry-run Mode", "Enabled", style.Green, "", "bold"))
 			fmt.Println(style.Dimmed("\nChanges will be simulated without affecting the system."))
 		case "0":

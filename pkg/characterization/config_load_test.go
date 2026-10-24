@@ -17,14 +17,17 @@ type configCase struct {
 	viaEnv  bool   // pass the path in HARDN_CONFIG instead of as -f
 	notes   []string
 	defects []string // KNOWN-DEFECT lines (without the prefix)
+	fixed   []string // FIXED lines (without the prefix): a defect fixed since, the body as it is now
 }
 
 func configCases() []configCase {
 	return []configCase{
 		{
 			name: "full-flag", fixture: "full.yml",
+			fixed: []string{
+				"V3 (refactor plan slice 2b, next/s2b-mode): LoadConfig keeps dryRun from the file, and the session now runs in it unless -n/--dry-run is given, true or false (§3.19: cmd/hardn/main.go, config.Config.ResolveDryRun); origin/main overwrote it with the -n flag's value.",
+			},
 			notes: []string{
-				"LoadConfig keeps dryRun from the file; cmd/hardn/main.go:158 then overwrites it with the -n flag value (V3).",
 				"The unknown key notAConfigKey is ignored without a warning.",
 				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48, and sshdConfigFile for disable-root).",
 			},
@@ -85,6 +88,9 @@ func TestConfigLoadGoldens(t *testing.T) {
 			fmt.Fprintf(&b, "# Fixture: testdata/fixtures/config/%s, passed as %s\n", tc.fixture, how)
 			for _, d := range tc.defects {
 				fmt.Fprintf(&b, "# KNOWN-DEFECT: %s\n", d)
+			}
+			for _, f := range tc.fixed {
+				fmt.Fprintf(&b, "# FIXED: %s\n", f)
 			}
 			for _, n := range tc.notes {
 				fmt.Fprintf(&b, "# NOTE: %s\n", n)

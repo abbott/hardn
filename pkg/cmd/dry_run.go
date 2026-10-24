@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"strings"
+
+	"github.com/abbott/hardn/pkg/output"
 )
 
 // ExitUsage is the exit status for a usage error, bad flags or config: the
@@ -42,7 +44,9 @@ const (
 // With it false, -n keeps its documented meaning, preview only: an operation
 // flag under -n is a usage error, refused before the root check, the config
 // load and OS detection (exit status ExitUsage). -n with no operation flag
-// still opens the menus in dry-run mode, as before.
+// still opens the menus in dry-run mode, as before. It gates hardn.yml's
+// dryRun: true with an operation flag the same way
+// (RefuseConfigDryRunOperations; slice 2b, decision 9).
 const dryRunFlagApplies = false
 
 // RefuseDryRunOperations returns the usage error for -n (dryRun) combined
@@ -52,12 +56,41 @@ func RefuseDryRunOperations(dryRun bool, operations []string) error {
 	if dryRunFlagApplies || !dryRun || len(operations) == 0 {
 		return nil
 	}
-	verb := "applies"
-	if len(operations) > 1 {
-		verb = "apply"
+	return usageError(fmt.Sprintf("hardn: -n/--dry-run only previews changes, so it can't be combined with %s, which %s them. Nothing was changed.",
+		joinOperations(operations), applyVerb(operations)))
+}
+
+// RefuseConfigDryRunOperations returns the usage error for plan only set by
+// the dryRun of the hardn.yml at path (dryRun), no -n/--dry-run having been
+// given, combined with the named operation flags, as RefuseDryRunOperations
+// refuses -n with them (refactor plan slice 2b, decision 9): it names the
+// file, and --dry-run=false, which the precedence of §3.19 lets win over it.
+// nil when there is nothing to refuse, as there.
+func RefuseConfigDryRunOperations(dryRun bool, path string, operations []string) error {
+	if dryRunFlagApplies || !dryRun || len(operations) == 0 {
+		return nil
 	}
-	return fmt.Errorf("hardn: -n/--dry-run only previews changes, so it can't be combined with %s, which %s them. Nothing was changed.",
-		joinOperations(operations), verb)
+	return usageError(fmt.Sprintf("hardn: %s sets plan only (dryRun: true), so %s can't run. Nothing was changed. To apply, add --dry-run=false.",
+		path, joinOperations(operations)))
+}
+
+// usageError is a refusal of the command line: its words alone, and
+// output.ErrUsage to errors.Is (code USAGE, exit status ExitUsage). It does
+// not wrap ErrUsage with fmt.Errorf("%w: ...") as pkg/output suggests: that
+// would put "usage: " before words the user reads on stderr.
+type usageError string
+
+func (e usageError) Error() string { return string(e) }
+
+// Unwrap returns output.ErrUsage.
+func (e usageError) Unwrap() error { return output.ErrUsage }
+
+// applyVerb is "applies" for one operation, "apply" for several.
+func applyVerb(operations []string) string {
+	if len(operations) > 1 {
+		return "apply"
+	}
+	return "applies"
 }
 
 // joinOperations lists names as "a", "a and b" or "a, b and c".

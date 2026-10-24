@@ -123,6 +123,11 @@ var rootCmd = &cobra.Command{
 		if refuseDryRunOperations(operationFlags()) {
 			return
 		}
+		// hardn.yml's dryRun: true only previews too, -n/--dry-run not given
+		// (decision 9).
+		if refuseConfigDryRunOperations(cmd, operationFlags()) {
+			return
+		}
 
 		// Create version service
 		versionService := version.NewService(Version, BuildDate, GitCommit)
@@ -155,8 +160,15 @@ var rootCmd = &cobra.Command{
 		}
 		warnDeprecations(cfg)
 
-		// Set dry run mode from flag
-		cfg.DryRun = dryRun
+		// The session's mode: -n/--dry-run when given, true or false, else
+		// the dryRun of the file loaded, as loaded (§3.19; decision 2). The
+		// file is the one read above, so plan only from it is refused here
+		// too, should it say so now where it did not before the root check.
+		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+		if cfg.DryRunSource() == config.DryRunFile &&
+			refuse(hardncmd.RefuseConfigDryRunOperations(cfg.DryRun, cfg.Path(), operationFlags())) {
+			return
+		}
 
 		// If username is provided, override config
 		if username != "" {
@@ -437,8 +449,10 @@ This command must be run with sudo privileges.
 Example:
   sudo hardn setup-sudo-env`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// -n only previews: refuse before anything runs (V1).
-		if refuseDryRunOperations([]string{hardncmd.CommandSetupSudoEnv}) {
+		// -n only previews: refuse before anything runs (V1), and so does
+		// hardn.yml's dryRun: true, -n/--dry-run not given (decision 9).
+		operations := []string{hardncmd.CommandSetupSudoEnv}
+		if refuseDryRunOperations(operations) || refuseConfigDryRunOperations(cmd, operations) {
 			return
 		}
 
@@ -467,6 +481,7 @@ Example:
 var (
 	lookupCurrentUser           = osuser.Current
 	loadConfig                  = config.LoadConfig
+	fileDryRun                  = config.FileDryRun
 	detectOS                    = osdetect.DetectOS
 	exit                        = os.Exit
 	stderr            io.Writer = os.Stderr
@@ -503,7 +518,35 @@ func operationFlags() []string {
 // operations; if so it has printed why to stderr and ended hardn with exit
 // status 2 (pkg/cmd's dryRunFlagApplies gates this; V1).
 func refuseDryRunOperations(operations []string) bool {
-	err := hardncmd.RefuseDryRunOperations(dryRun, operations)
+	return refuse(hardncmd.RefuseDryRunOperations(dryRun, operations))
+}
+
+// refuseConfigDryRunOperations reports whether hardn.yml's dryRun: true,
+// -n/--dry-run not given, was combined with the named operations; if so it
+// has printed why, naming the file and --dry-run=false, and ended hardn
+// with exit status 2, as for -n (refactor plan slice 2b, decision 9). It
+// reads the file the loader finds, quietly (config.FileDryRun), so the
+// refusal comes before the root check, as -n's does; a file that does not
+// load is the loader's to report. The root command refuses again on the
+// file as loaded (its Run).
+func refuseConfigDryRunOperations(cmd *cobra.Command, operations []string) bool {
+	if len(operations) == 0 || dryRunGiven(cmd) {
+		return false
+	}
+	path, on, err := fileDryRun(configFile)
+	if err != nil {
+		return false
+	}
+	return refuse(hardncmd.RefuseConfigDryRunOperations(on, path, operations))
+}
+
+// dryRunGiven reports whether -n/--dry-run was given on cmd's command line,
+// true or false: the flag given wins over hardn.yml (§3.19).
+func dryRunGiven(cmd *cobra.Command) bool { return cmd.Flags().Changed("dry-run") }
+
+// refuse prints err, a refusal of the command line, to stderr and ends
+// hardn with exit status 2; nil refuses nothing (false).
+func refuse(err error) bool {
 	if err == nil {
 		return false
 	}
