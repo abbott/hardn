@@ -118,7 +118,7 @@ The indicator's are the maintainer's, adopted (decisions 2, 3); the main menu's 
 | docs/releases/unreleased.md | "**The main menu shows the mode** …"; "## Changed: the main menu", two bullets (§2's refusal and redraw) | **proposed** |
 | The gallery's `-height` help | "The main menu takes its full form at every height, its top scrolling off a shorter terminal (its compact form is gated: screen.CompactMainMenu)" | the gallery's, not hardn's |
 
-## 9. The VM steps (for the orchestrator; not run)
+## 9. The VM steps (run in part 2026-10-23, §9.1)
 
 On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), as root (Alpine through doas), hardn and p4status built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn` and `./internal/tools/p4status`, the VM's `GOARCH`), in tmux (`tmux new -x 80 -y 40`):
 
@@ -134,6 +134,31 @@ On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), a
 10. **After:** `sha256sum -c /root/menu-layout-before`: every file OK, steps 6 and 7 having restored what they changed; `find /etc /var/lib /root -newer /root/menu-layout-stamp` lists nothing the main menu wrote, only `/root` itself, the captures (`/root/layout-*.txt`) and, from step 7, `/etc/hardn` where its edit or the file's creation changed the directory; `/root/hardn.yml`, restored with `cp -p` or removed, is not listed (on Alpine, mind busybox find's whole seconds, menu-live.md §10.1).
 
 Record per VM: the line counts at 80×40 and 80×24, the heading line, each indicator state, and the time to the menu as menu-live.md §10.2 did.
+
+### 9.1 Run 2026-10-23: Debian 13, Ubuntu 26.04, Alpine 3.23
+
+Built from `57478fa` (hardn sha256 `811810f3…`), as root on the maintainer's three VMs, over a terminal sized 80×40 and 80×24 (expect, in place of tmux), each VM put back after, hardn's binary as it was.
+
+Passed on all three:
+- **The full form at both sizes:** header, bar, host block, risk level, rows, divider, "Select an option         Mode Live", the ten items and "0) Exit", one blank line, the prompt. 37 lines on Ubuntu 26.04, whose User row has one line under it (36 with none, §6); at 80×24 the same 37 lines, the top of them scrolled off.
+- **The indicator in each start:**
+  - "Mode Live" with no flag and no hardn.yml or a hardn.yml without `dryRun: true`;
+  - "Mode Plan only (-n)" with `-n`;
+  - "Mode Plan only (hardn.yml)" with `dryRun: true` written for the run (Debian 13: the maintainer's file edited, then put back byte for byte; Ubuntu and Alpine: a file created, then removed);
+  - "Mode Live" with `--dry-run=false` over it.
+- **Invalid input:**
+  - `x`, then an empty line: "⨳ Invalid option. Please try again." under the prompt each time, the prompt again under it, no clear, no pause, no redraw;
+  - under `LANG=C`: "(x) Invalid option. Please try again.".
+- **An item and back:** 3 (DNS), then 0: the main menu drawn again under the DNS screen, its indicator with it.
+- **Ends:** q, exit 0; Ctrl-D at the prompt, exit 130.
+- **Read only:** no file of the snapshot changed, and no file under `/etc`, `/var/lib` or `/root` newer than the run but Alpine's `/etc/hardn/hardn.yml.example`, written by start-up where no hardn.yml exists (menu-live.md §10.1); `/var/log/hardn.log` grew by start-up's lines and by the DNS screen's reads, which its run log records (slice 2).
+- **Time to the menu,** the first pass included: about 0.5 s on Debian 13 and Ubuntu 26.04, 0.13–0.19 s on Alpine 3.23.
+
+Not run:
+- step 5's item 9 (System Details);
+- step 6's in-session toggle through item 6 (the tests hold "Mode Plan only" with no source; unit (d) removes item 6);
+- Ctrl-C at the prompt;
+- step 2's line-for-line comparison with p4status (menu-live.md §10.2 ran it on the status block, which this unit leaves as it was).
 
 ## 10. Tests
 
