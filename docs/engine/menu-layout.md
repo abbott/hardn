@@ -1,7 +1,7 @@
 # The main menu on its layout (slice 2b, unit (c): `next/s2b-menu`)
 
 > **Unit:** refactor plan slice 2b, unit (c), `next/s2b-menu` ([gallery-dryrun.md](gallery-dryrun.md) §8 (c)). The maintainer's request (2026-10-23): "Start slice 2b unit (c): the main menu on its layout in the full form at every height, with the decided indicator (Mode Live / Plan only and its source), the compact form gated." Decisions built: 2, 3 and 5 of [gallery-dryrun.md](gallery-dryrun.md) §4, adopted by the maintainer on 2026-10-23, decision 5 with the clarification "i'd like to avoid using a compact menu. if we need to reduce row counts, we can explore that later, but a two-column menu is not a desired method" (the full form at every height). Plan §3.15's compact main menu is withdrawn. Proposals: [P-03](../refactor/proposals.md#p-03) (decided), [P-25](../refactor/proposals.md#p-25) (c), [P-29](../refactor/proposals.md#p-29) (a) (still open). Deviations: DEV-052 (gated), DEV-062, DEV-064 (ended), DEV-065 (new).
-> **Status:** built and tested on macOS, in process: `pkg/menu`'s main menu driven through scripted stdin with its screens recorded, its status Figma's fixture or `pkg/screens/mainmenu` over the gallery's hosts (`hostfake`). No hardn binary ran; nothing touched this machine's `/etc`; nothing has run on Linux. The VM steps are §9, for the orchestrator. Item 6 (Dry-Run) and Run All's option 2 are still there: unit (d) removes them.
+> **Status:** built and tested on macOS, in process: `pkg/menu`'s main menu driven through scripted stdin with its screens recorded, its status Figma's fixture or `pkg/screens/mainmenu` over the gallery's hosts (`hostfake`). No hardn binary ran; nothing touched this machine's `/etc`; nothing has run on Linux. The VM steps are §9, for the orchestrator. Item 6 (Dry-Run) and Run All's option 2 are still there: unit (d) removes them. *Removed by `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)).*
 
 ## 1. What is built
 
@@ -40,7 +40,7 @@
 | live (no flag, no file, `dryRun: false`, `--dry-run=false`) | Mode Live |
 | `-n` or `--dry-run` | Mode Plan only (-n) |
 | hardn.yml's `dryRun: true` | Mode Plan only (hardn.yml) |
-| plan only set inside the session (item 6, Run All's option 2, until unit (d)) | Mode Plan only |
+| plan only set inside the session (item 6, Run All's option 2, until unit (d); unreachable since) | Mode Plan only |
 | turned off inside the session, whatever started it | Mode Live |
 
 `pkg/menu` maps `DryRun` and `DryRunSource()` of the configuration every legacy screen reads (`m.config`) to the view-model on every pass (`MainMenu.mode`), so the indicator is never a pass behind a toggle. The component draws no source for live, whatever it is given, so "Live (-n)" cannot be drawn. On a narrow terminal the label gives way first, then the source, each whole or left out, and the word last: from col 6 the source stays down to 27 columns. The label was cut with the ellipsis before; it is now whole or gone, as the adopted mock drew it (DEV-065).
@@ -63,13 +63,13 @@ How each existing compact test keeps running: `TestCompact`, `TestStatusBlocks`,
 
 | Key | Opens (unchanged) |
 |---|---|
-| 1 | User Management (`NewUserMenu`) |
+| 1 | User Management (`NewUserMenu`); since unit (d), refused under plan only |
 | 2 | SSH Login (`NewDisableRootMenu`) |
 | 3 | DNS, the DNS screen (`SetDNS`), from a cleared screen |
 | 4 | Firewall (`NewFirewallMenu`) |
-| 5 | Backup (`NewBackupMenu`) |
-| 6 | Dry-Run (`NewDryRunHandler`), until unit (d) |
-| 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d) |
+| 5 | Backup (`NewBackupMenu`); since unit (d), refused under plan only |
+| 6 | Dry-Run (`NewDryRunHandler`), until unit (d); since, refused as a key no item has |
+| 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d), which removed it |
 | 8 | Environment (`NewEnvironmentSettingsMenu`) |
 | 9 | System Details (`NewSystemDetailsMenu`) |
 | 10 | Logs (`NewLogsMenu`) |
@@ -90,7 +90,7 @@ Measured on hardn's main menu (`TestMainMenuHeights`, `pkg/menu`, Unicode and AS
 | 60×24 (rows stacked, DEV-021) | 59 | the first 35: every status block, the heading, the mode and item 1's label |
 | 60×40 | 59 | the first 19: the header to SSH Auth's label |
 
-Today's live menu took 32 lines at 80×24, its top 8 off, the risk level among them, and 37 at 80×40 ([menu-live.md](menu-live.md) §6). Unit (d)'s removal of item 6 takes one line off, 35 at 80 columns, 57 at 60 (the gallery measured it, gallery-dryrun.md §3.2). Fewer rows are for later, by other means than a two-column menu (the maintainer, 2026-10-23).
+Today's live menu took 32 lines at 80×24, its top 8 off, the risk level among them, and 37 at 80×40 ([menu-live.md](menu-live.md) §6). Unit (d)'s removal of item 6 takes one line off, 35 at 80 columns, 57 at 60 (the gallery measured it, gallery-dryrun.md §3.2). *Built (`next/s2b-replace`): 35 lines at 80 columns, the first 11 off at 24 rows (the header to the Firewall row, the risk level among them); 57 at 60, 33 off at 24 rows and 17 at 40 (`TestMainMenuHeights`).* Fewer rows are for later, by other means than a two-column menu (the maintainer, 2026-10-23).
 
 ## 7. API
 
@@ -177,6 +177,8 @@ Not run:
 - No characterization golden changed.
 
 ## 12. Not in this unit: unit (d)
+
+> **Built** by `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)), as listed below. `createMainMenu` and `SetDryRunStatus` went with item 6 (the main-menu goldens' whole screen is the parity record, `pkg/menu/testdata/legacy/main_menu`); the gallery's `TestPlayDryRunGolden`, named in §4 among the tests a flipped gate fails, went with the gallery's Dry-Run mode.
 
 Item 6 removed, its key refused as any key no item has; `dry_run_handler.go` and `dry_run_menu.go` deleted, their characterization goldens frozen; Run All's option 2 removed; User Management, Backup and Firewall's profile add and remove refused under plan only, "Not available in plan only." (decision 6, proposed); `createMainMenu` and `style.Menu.SetDryRunStatus` with their last use; the gallery's remaining Dry-Run mocks (`screen`, `screen-enabled`, `toggle`, `legacy-firewall`, `play dryrun`, `play dryrun/saved`) retired; the release notes' item-6 line made current.
 

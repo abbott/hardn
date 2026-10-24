@@ -524,7 +524,7 @@ func TestFullAtEveryHeight(t *testing.T) {
 // by the menu it is given, the one nav.Run draws, rather than by vm.Menu: a
 // view-model with no menu, given the fixture's, gets the form the
 // fixture takes, at every width from 1 to 130 and at 0, 1 and 24 to 60
-// rows. At 60 columns from 40 to 56 rows the full form fits without the
+// rows. At 60 columns from 40 to 54 rows the full form fits without the
 // menu's lines and not with them.
 func TestScreenMenu(t *testing.T) {
 	vm := MainMenuFixture()

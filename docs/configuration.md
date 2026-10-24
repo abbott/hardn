@@ -131,16 +131,16 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 #### `dryRun`: plan only
 
-`dryRun: true` starts `hardn` in plan only: changes are shown, not applied, except in the three menu areas below. `-n` does the same for one run.
+`dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **Not yet in every menu.** User Management, Backup and Firewall's profile add and remove still apply their changes under plan only, as under `-n`.
+- **Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
 - **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c`, `-d`, `-w`, `-e` and `setup-sudo-env` exit with status 2 and change nothing. `-g` shows its plan instead, and exits 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
 
-> **Changed in the next release.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote is now plan only. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`.
+> **Changed in the next release.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote is now plan only. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. The main menu's Dry-Run item (6) is removed, and Run All no longer turns dry run on or off: for plan only, start with `-n` or set `dryRun: true`.
 
 ### Network Configuration
 
