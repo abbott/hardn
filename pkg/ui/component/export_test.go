@@ -15,8 +15,11 @@ var (
 // Unexported words.
 const (
 	Unknown        = unknown
+	ModeLabel      = modeLabel
 	ModeLive       = modeLive
-	ModeDryRun     = modeDryRun
+	ModePlanOnly   = modePlanOnly
+	ModeFromFlag   = modeFromFlag
+	ModeFromFile   = modeFromFile
 	LockoutRisk    = lockoutRisk
 	Unavailable    = unavailable
 	ConfirmReverts = confirmReverts

@@ -9,11 +9,11 @@
 //
 //   - MainMenu, after Figma's 00-TUI-MAIN: the Header, ContextBar,
 //     HostBlock, RiskSummary, StatusList and Divider, the MenuHeading with
-//     the ModeIndicator, the Menu and the PromptLine. On a terminal
-//     shorter than theme.CompactBelow, or too short for its full form, it
-//     renders its compact form, which fits theme.CompactBudget lines with
-//     Figma's seven rows; a host's eight, DNS among them, take one more
-//     (see MainMenu).
+//     the ModeIndicator, the Menu and the PromptLine, in that full form at
+//     every height: its compact form, which fits theme.CompactBudget lines
+//     with Figma's seven rows on a terminal shorter than
+//     theme.CompactBelow, is gated (CompactMainMenu, DISABLED 2026-10-23;
+//     see MainMenu).
 //   - SubMenu, after 01-USER: the TitleBar, a SubjectLine, the area's
 //     StatusList, its sections (Section: a SectionHeader, a Badge and a
 //     BulletList), a MenuHeading, the Menu and the PromptLine.

@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"math"
 	"slices"
 	"strings"
 
@@ -22,135 +21,42 @@ import (
 )
 
 // The Dry-Run mocks (refactor plan slice 2b, unit (a), next/s2b-gallery;
-// docs/engine/gallery-dryrun.md): the main menu's items on its layout,
-// with the live status block of a status host above them, in its full and
-// compact forms; its mode indicator in origin/main's words and in the
-// proposed ones; origin/main's Dry-Run item (6) on the sub-menu layout and
-// its toggle; and origin/main's Firewall screen under dry run, as pkg/menu
-// prints it. Each is a mock for the maintainer's review: nothing here is
-// wired into hardn. "dryrun" lists them with no input; "play dryrun"
-// plays the main menu with origin/main's items, its 6 toggling dry run
-// for the session, "play dryrun/saved" the same with the toggle saved to
-// hardn.yml through the canonical flow, and "play dryrun/proposed" the
-// main menu the page recommends; -sequence dry-run starts them in dry run,
-// as hardn -n does.
+// docs/engine/gallery-dryrun.md): origin/main's Dry-Run item (6) on the
+// sub-menu layout and its toggle, and origin/main's Firewall screen under
+// dry run, as pkg/menu prints it, each a mock for the maintainer's
+// review, nothing of it wired into hardn; and play of the main menu with
+// them. The main-menu and mode mocks, and play's proposed main menu, are
+// retired: hardn's main menu is on its layout with the decided indicator
+// since unit (c), next/s2b-menu, and play draws it as hardn does
+// (gallery-dryrun.md §10; docs/engine/menu-layout.md). "dryrun" lists the
+// mocks with no input; "play dryrun" plays the main menu with
+// origin/main's items, its 6 toggling dry run for the session, and "play
+// dryrun/saved" the same with the toggle saved to hardn.yml through the
+// canonical flow; -sequence dry-run starts them in dry run, as hardn -n
+// does. Unit (d) retires the rest with item 6.
 
 // dryRunPrefix names the mocks: "dryrun <mock>" in the listing, "dryrun"
 // and "dryrun/<variant>" in play.
 const dryRunPrefix = "dryrun"
 
-// dryRunHost is the status host whose main menu the mocks draw: Debian 13
-// as the engine's scenarios start from it, eight rows with no line under
+// dryRunHost is the status host whose main menu play draws: Debian 13 as
+// the engine's scenarios start from it, eight rows with no line under
 // any, as docs/engine/menu-live.md §6 measures the heights.
 const dryRunHost = "hardened"
 
 // dryRunKey is the key of origin/main's Dry-Run item on the main menu.
 const dryRunKey = "6"
 
-// origin/main's words for the mode, as style.Menu writes them beside the
-// menu heading (pkg/style style.go:787-825). They are pinned here, not
-// taken from component.ModeIndicator, so that the mocks labelled
-// origin/main's keep them once the component takes the decided words
-// (unit (c)).
-const (
-	originLabel  = "Dry-run Mode"
-	originLive   = "Disabled"
-	originDryRun = "Enabled"
-)
-
-// The indicator's proposed words (decisions 2 and 3): the label, the word
-// for each mode, and where plan only came from, after the word.
-const (
-	proposedLabel    = "Mode"
-	proposedLive     = "Live"
-	proposedPlanOnly = "Plan only"
-	fromFlag         = "-n"
-	fromConfig       = "hardn.yml"
-)
-
-// modeView is how a mock shows the mode beside the menu heading, in
-// origin/main's words or the proposed ones, with where plan only came
-// from, drawn here on the components' grid in the theme's mode slots.
-type modeView struct {
-	proposed bool
-	planOnly bool
-	// from is fromFlag or fromConfig, shown after a proposed plan only;
-	// empty shows none.
-	from string
-}
-
-// text is mv's whole text: the label, the word and the source.
-func (mv modeView) text(c component.Ctx) (label piece, word piece, from []piece) {
-	t := c.Theme
-	label, word = piece{originLabel, t.Mode.Label.Render}, piece{originLive, t.Mode.Live.Render}
-	if mv.planOnly {
-		word = piece{originDryRun, t.Mode.DryRun.Render}
-	}
-	if mv.proposed {
-		label.text, word.text = proposedLabel, proposedLive
-		if mv.planOnly {
-			word.text = proposedPlanOnly
-		}
-	}
-	if mv.from != "" {
-		from = []piece{pad(1), {"(" + mv.from + ")", t.Text.Faint.Render}}
-	}
-	return label, word, from
-}
-
-// fit is mv's text in at most room cells: whole where it fits; else the
-// label gives way first, as the component's does, then the source
-// (decision 3), and the word alone is cut only when it does not fit.
-func (mv modeView) fit(c component.Ctx, room int) []piece {
-	label, word, from := mv.text(c)
-	for _, l := range [][]piece{append([]piece{label, pad(1), word}, from...), append([]piece{word}, from...), {word}} {
-		if widthOf(l) <= room {
-			return l
-		}
-	}
-	return []piece{{cut(c, word.text, room), word.paint}}
-}
-
-// heading renders the menu heading titled title with the mode beside it,
-// as component.MenuHeading places it: at theme.ValueCol on the heading's
-// line, or under it at theme.StackCol below theme.StackBelow columns, or
-// when the line cannot hold the whole text (fit).
-func (mv modeView) heading(c component.Ctx, title string) string {
-	head := component.MenuHeading{Title: title}.Render(c)
-	w, whole := contentWidth(c.Env), mv.fit(c, math.MaxInt)
-	if termWidth(c.Env) >= theme.StackBelow && ansi.StringWidth(head) < theme.ValueCol && theme.ValueCol+widthOf(whole) <= w {
-		return head + draw(append([]piece{pad(theme.ValueCol - ansi.StringWidth(head))}, whole...)...)
-	}
-	return head + "\n" + draw(append([]piece{pad(theme.StackCol)}, mv.fit(c, w-theme.StackCol)...)...)
-}
-
-// drawMenu renders main menu vm as its layout draws it, its heading line
-// in mv's words: the layout's own heading, with the component's
-// indicator, is replaced, as it must appear once.
-func (mv modeView) drawMenu(c component.Ctx, vm screen.MainMenu) (string, error) {
-	return mv.swap(c, vm.Render(c), vm.Heading)
-}
-
-// swap replaces in out the menu heading titled title, with mv's mode as
-// component.ModeIndicator draws it, by mv's heading.
-func (mv modeView) swap(c component.Ctx, out, title string) (string, error) {
-	mode := component.ModeIndicator{DryRun: mv.planOnly}
-	old := component.MenuHeading{Title: title, Mode: &mode}.Render(c)
-	if n := strings.Count(out, old); n != 1 {
-		return "", fmt.Errorf("%s: the menu heading appears %d times, want once", dryRunPrefix, n)
-	}
-	return strings.Replace(out, old, mv.heading(c, title), 1), nil
-}
-
-// mainMenu is the main menu of st, as hardn's would be on the layout:
-// st's status above the main-menu mock's heading, items and prompt, the
-// mode plan only when planOnly is set; with proposed set, origin/main's
-// item 6 is left out, its key with it (decision 1).
-func mainMenu(st hostStatus, planOnly, proposed bool) screen.MainMenu {
+// mainMenu is the main menu of st as hardn draws it on its layout: st's
+// status above the main-menu mock's heading, items and prompt, which are
+// hardn's (pkg/menu's TestMainMenuItems), and the mode indicator, plan
+// only when planOnly is set, its source the flag's when fromFlag is set
+// (decision 2: a mode set inside the session names none).
+func mainMenu(st hostStatus, planOnly, fromFlag bool) screen.MainMenu {
 	vm := st.mainMenu()
 	vm.Mode = component.ModeIndicator{DryRun: planOnly}
-	if proposed {
-		vm.Menu.Items = slices.DeleteFunc(slices.Clone(vm.Menu.Items), func(it component.MenuItem) bool { return it.Key == dryRunKey })
+	if planOnly && fromFlag {
+		vm.Mode.Source = component.ModeSourceFlag
 	}
 	return vm
 }
@@ -287,72 +193,32 @@ func drawLegacy(c component.Ctx) string {
 }
 
 // dryMock is one mock the listing shows: its name, after dryRunPrefix,
-// its note, which names it a mock, and its drawing, of the status host st
-// where it draws a main menu (main: it draws the main menu or its mode,
-// and its goldens take the main menu's cells).
+// its note, which names it a mock, and its drawing.
 type dryMock struct {
 	name, note string
-	main       bool
-	draw       func(c component.Ctx, st hostStatus) (string, error)
+	draw       func(c component.Ctx) (string, error)
 }
 
-// dryMocks are the listing's mocks, in order.
+// dryMocks are the listing's mocks, in order. The main-menu and mode
+// mocks (menu, menu-dry-run, menu-proposed, menu-proposed-plan-only and
+// mode) are retired: gallery-dryrun.md §10 says what they showed and
+// where each is now.
 func dryMocks() []dryMock {
-	menu := func(planOnly, proposed bool, from string) func(component.Ctx, hostStatus) (string, error) {
-		return func(c component.Ctx, st hostStatus) (string, error) {
-			return modeView{proposed: proposed, planOnly: planOnly, from: from}.drawMenu(c, mainMenu(st, planOnly, proposed))
-		}
-	}
-	const host = "The main menu on its layout (00-TUI-MAIN), its status the gallery's hardened Debian 13 host's, as hardn's live menu reads it; "
 	return []dryMock{
-		{name: "menu", main: true, draw: menu(false, false, ""),
-			note: "Mock. " + host + "origin/main's items, numbering, prompt and indicator, live."},
-		{name: "menu-dry-run", main: true, draw: menu(true, false, ""),
-			note: "Mock. " + host + "origin/main's items and indicator in dry run, as hardn -n starts."},
-		{name: "menu-proposed", main: true, draw: menu(false, true, ""),
-			note: "Mock, proposed (decisions 1 to 3). " + host + "item 6 left out, its key unused; the indicator's proposed words, live."},
-		{name: "menu-proposed-plan-only", main: true, draw: menu(true, true, fromConfig),
-			note: "Mock, proposed (decisions 1 to 3). " + host + "item 6 left out; plan only, set by hardn.yml's dryRun."},
-		{name: "mode", main: true, draw: func(c component.Ctx, _ hostStatus) (string, error) { return drawModes(c), nil },
-			note: "Mock. The mode indicator beside the menu heading, in each state: origin/main's words, then the proposed ones."},
-		{name: "screen", draw: func(c component.Ctx, _ hostStatus) (string, error) { return dryRunScreen(false).Render(c), nil },
+		{name: "screen", draw: func(c component.Ctx) (string, error) { return dryRunScreen(false).Render(c), nil },
 			note: "Mock (decision 1, alternative (a)), inferred from origin/main: its Dry-Run item, 6, on the sub-menu layout, in its words; live."},
-		{name: "screen-enabled", draw: func(c component.Ctx, _ hostStatus) (string, error) { return dryRunScreen(true).Render(c), nil },
+		{name: "screen-enabled", draw: func(c component.Ctx) (string, error) { return dryRunScreen(true).Render(c), nil },
 			note: "Mock (decision 1, alternative (a)). The same in dry run, its menu printed, which origin/main's never is."},
 		{name: "toggle", draw: drawToggle,
 			note: "Mock (decision 4, alternative (a)). Enable dry-run mode saved through the canonical flow: hardn.yml's dryRun edited in place, then y."},
-		{name: "legacy-firewall", draw: func(c component.Ctx, _ hostStatus) (string, error) { return drawLegacy(c), nil },
+		{name: "legacy-firewall", draw: func(c component.Ctx) (string, error) { return drawLegacy(c), nil },
 			note: "Not a mock: " + legacyNote},
 	}
 }
 
-// modeStates are the indicator's states the mode mock shows, each under
-// its label.
-var modeStates = []struct {
-	label string
-	mv    modeView
-}{
-	{"origin/main and Figma: live", modeView{}},
-	{"origin/main: dry run, from -n", modeView{planOnly: true}},
-	{"origin/main: dryRun true in hardn.yml, ignored (V3)", modeView{}},
-	{"Proposed: live", modeView{proposed: true}},
-	{"Proposed: plan only, from -n", modeView{proposed: true, planOnly: true, from: fromFlag}},
-	{"Proposed: plan only, from hardn.yml", modeView{proposed: true, planOnly: true, from: fromConfig}},
-}
-
-// drawModes renders each state of modeStates: its label as prose, then
-// the heading line.
-func drawModes(c component.Ctx) string {
-	var blocks []string
-	for _, s := range modeStates {
-		blocks = append(blocks, prose(c, s.label)+"\n"+s.mv.heading(c, "Select an option"))
-	}
-	return apart(blocks...)
-}
-
 // drawToggle renders the saved toggle's sequence, step by step, each
 // under the gallery's header naming it, as -screens shows a workflow's.
-func drawToggle(c component.Ctx, _ hostStatus) (string, error) {
+func drawToggle(c component.Ctx) (string, error) {
 	step, f, err := toggleFlow(context.Background(), false, true)
 	if err != nil {
 		return "", err
@@ -380,9 +246,8 @@ const dryRunUsage = "usage: go run ./internal/tools/uigallery dryrun [flags] [mo
 // dryRunList is the listing: each mock args name (none, or "all", is
 // every mock) under the gallery's header, "dryrun <mock>", its note, then
 // its drawing, a write each; -list prints their names. It sizes itself as
-// play does (look.sizeTo), so the main menus take their full form on a
-// terminal of 40 rows or more and their compact form below; plain mode,
-// which is no terminal, takes the full form at any height.
+// play does (look.sizeTo); the main menus take their full form at every
+// height (screen.CompactMainMenu).
 func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("uigallery dryrun", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -421,7 +286,7 @@ func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 	}
 	rc, err := g.ctx(c.env)
 	if err == nil {
-		err = listDryRun(context.Background(), rc, c.env.Writer(stdout), mocks)
+		err = listDryRun(rc, c.env.Writer(stdout), mocks)
 	}
 	if err != nil {
 		fmt.Fprintf(stderr, "uigallery: %s: %v\n", dryRunPrefix, err)
@@ -431,19 +296,10 @@ func dryRunList(args []string, size sizer, stdout, stderr io.Writer) int {
 }
 
 // listDryRun writes each of mocks to w, rendered in rc, a write each: the
-// gallery's header, the mock's note, then its drawing. The status host is
-// read once, fresh.
-func listDryRun(ctx context.Context, rc component.Ctx, w io.Writer, mocks []dryMock) error {
-	sh, ok := findStatusHost(dryRunHost)
-	if !ok {
-		return fmt.Errorf("no status host %q", dryRunHost)
-	}
-	st, err := (&session{}).readStatus(ctx, sh.host())
-	if err != nil {
-		return err
-	}
+// gallery's header, the mock's note, then its drawing.
+func listDryRun(rc component.Ctx, w io.Writer, mocks []dryMock) error {
 	for _, m := range mocks {
-		out, err := m.draw(rc, st)
+		out, err := m.draw(rc)
 		if err == nil {
 			_, err = io.WriteString(w, apart(header(rc, dryRunPrefix+" "+m.name),
 				component.Callout{Kind: component.MessageInfo, Body: []string{m.note}}.Render(rc), out)+sectionBreak)
@@ -474,12 +330,10 @@ func selectDryMocks(args []string) ([]dryMock, error) {
 	return slices.DeleteFunc(all, func(m dryMock) bool { return !slices.Contains(args, m.name) }), nil
 }
 
-// The play variants: origin/main's main menu, its 6 toggling dry run for
-// the session or saved; and the proposed one.
-const (
-	variantSaved    = "saved"
-	variantProposed = "proposed"
-)
+// variantSaved is the play variant whose 6 saves its toggle to hardn.yml;
+// "dryrun" alone toggles for the session. The proposed one ("proposed")
+// is retired with the main-menu mocks.
+const variantSaved = "saved"
 
 // dryRunStart returns what args name for play, "dryrun" or
 // "dryrun/<variant>", and whether they name one; an error for a variant
@@ -489,14 +343,14 @@ func dryRunStart(args []string) (string, bool, error) {
 		return "", false, nil
 	}
 	switch v := strings.TrimPrefix(args[0], dryRunPrefix+"/"); {
-	case args[0] == dryRunPrefix, v == variantSaved, v == variantProposed:
+	case args[0] == dryRunPrefix, v == variantSaved:
 		return args[0], true, nil
 	}
-	return "", false, fmt.Errorf("no %s variant %q; play %s, %s/%s or %s/%s", dryRunPrefix, args[0], dryRunPrefix, dryRunPrefix, variantSaved, dryRunPrefix, variantProposed)
+	return "", false, fmt.Errorf("no %s variant %q; play %s or %s/%s", dryRunPrefix, args[0], dryRunPrefix, dryRunPrefix, variantSaved)
 }
 
 // dryRunNote is play's note for the Dry-Run mocks.
-const dryRunNote = "Play mode, mocks: the main menu on its layout, its status read from the gallery's hardened Debian 13 host; " +
+const dryRunNote = "Play mode, mocks: hardn's main menu on its layout, its status read from the gallery's hardened Debian 13 host; " +
 	"its 3 the real DNS screen, on another Debian 13 host; its 1, 2 and 5 Figma's screen mocks, under dry run after a note " +
 	"of what origin/main does there; its 4, under dry run, origin/main's Firewall screen as it prints. " +
 	"Nothing on this machine changes."
@@ -518,21 +372,19 @@ func (s *session) setPlanOnly(on bool) {
 // flag, -sequence dry-run, as hardn -n sets it; and file, the dryRun key
 // of the simulated host's hardn.yml, false until the saved toggle edits
 // it. The flag wins (plan §3.19): with it, plan only stays whatever the
-// file says.
+// file says. toggled is set once the session's toggle has set the mode,
+// which then names no source (decision 2).
 type dryRunMode struct {
-	flag, file bool
+	flag, file, toggled bool
 }
 
 // openDryRun returns the action that opens the main menu of the variant
 // name names, until the user goes back from it, the status host read
-// fresh. Its heading says the mode in origin/main's words, or in the
-// proposed ones, where plan only comes from -n, the one way the proposed
-// menu starts in it; it is swapped in each round (modeView.swap), which
-// TestPlayDryRunGolden holds, a failed swap leaving the component's
-// words.
+// fresh, drawn as hardn draws its main menu (mainMenu): its indicator in
+// the decided words, "Mode Plan only (-n)" while -n's plan only holds,
+// and no source once the session's toggle set the mode.
 func (s *session) openDryRun(name string) func() error {
 	variant := strings.TrimPrefix(strings.TrimPrefix(name, dryRunPrefix), "/")
-	proposed := variant == variantProposed
 	return func() error {
 		sh, ok := findStatusHost(dryRunHost)
 		if !ok {
@@ -544,28 +396,11 @@ func (s *session) openDryRun(name string) func() error {
 		}
 		mode := &dryRunMode{flag: s.planOnly()}
 		return s.p.Run(func() nav.Screen {
-			vm := mainMenu(st, s.planOnly(), proposed)
-			sc := vm.Screen(s.p.Ctx, s.dryRunMenu(vm, variant == variantSaved, proposed, mode))
-			mv := modeView{proposed: proposed, planOnly: s.planOnly()}
-			if proposed && mv.planOnly {
-				mv.from = fromFlag
-			}
-			if out, err := mv.swap(s.p.Ctx, sc.Above, vm.Heading); err == nil {
-				sc.Above = out
-			}
-			return sc
+			vm := mainMenu(st, s.planOnly(), mode.flag && !mode.toggled)
+			return vm.Screen(s.p.Ctx, s.dryRunMenu(vm, variant == variantSaved, mode))
 		})
 	}
 }
-
-// planOnlyRefused is what the proposed menu's 1 and 5 say under plan only
-// (decision 6): each writes to the host whatever the mode until its slice
-// puts it on the flow.
-const planOnlyRefused = "Not available in plan only."
-
-// refusedKeys are the items the proposed menu refuses under plan only:
-// User Management (V2) and Backup (side-effects rows 29 and 30).
-var refusedKeys = []string{"1", "5"}
 
 // legacyDryRun says, above the screen mock an item leads to under dry
 // run, what origin/main does there instead (gallery-dryrun.md §2.4), so
@@ -583,9 +418,8 @@ var legacyDryRun = map[string]string{
 // dryRunMenu binds the items of main menu vm: each where the main menu's
 // mock leads (session.menu), but 4, which under dry run shows origin/main's
 // Firewall screen, and 6, the Dry-Run screen, its toggle saved when saved
-// is set; under dry run, 1, 2 and 5 say first what origin/main does there,
-// and the proposed menu refuses 1 and 5.
-func (s *session) dryRunMenu(vm screen.MainMenu, saved, proposed bool, mode *dryRunMode) nav.Menu {
+// is set; under dry run, 1, 2 and 5 say first what origin/main does there.
+func (s *session) dryRunMenu(vm screen.MainMenu, saved bool, mode *dryRunMode) nav.Menu {
 	m := s.menu(screen.Mock{Name: mainMenuMock, Screen: vm})
 	for i, o := range m.Options {
 		switch key := o.Item.Key; {
@@ -593,8 +427,6 @@ func (s *session) dryRunMenu(vm screen.MainMenu, saved, proposed bool, mode *dry
 			m.Options[i].Action = s.legacy(o.Action)
 		case key == dryRunKey:
 			m.Options[i].Action = s.openDryRunScreen(saved, mode)
-		case proposed && slices.Contains(refusedKeys, key):
-			m.Options[i].Action = s.unlessPlanOnly(s.say(component.Message{Kind: component.MessageWarn, Text: planOnlyRefused}), o.Action)
 		case legacyDryRun[key] != "":
 			m.Options[i].Action = s.unlessPlanOnly(s.noted(legacyDryRun[key], o.Action), o.Action)
 		}
@@ -649,6 +481,7 @@ func (s *session) openDryRunScreen(saved bool, mode *dryRunMode) func() error {
 		on := !s.planOnly()
 		if !saved {
 			s.setPlanOnly(on)
+			mode.toggled = true
 			return s.say(component.Message{Text: nowWords(on)})()
 		}
 		step, f, err := toggleFlow(context.Background(), mode.file, on)

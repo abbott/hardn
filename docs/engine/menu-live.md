@@ -60,9 +60,11 @@ The file operations are `stat`, `lstat`, `read`, `readdir` and `readlink`. The r
 
 **Ctrl-C during the checks** ends hardn as the menu's Ctrl-C does today, by SIGINT. No handler is registered while they run (the prompt reader registers one only while it reads), so Go's default ends hardn at once, by the signal with which `prompt.Reraise` ends it at the menu's prompt, and the command a check is running, in hardn's process group, gets the terminal's SIGINT too; nothing is half done, since a check writes nothing. As during origin/main's checks; and no handler means nothing can keep a hung read from being interrupted. Ctrl-C does not reach the hook through its context: the main menu passes `context.Background()`, so the context parameter is for later (slice 2b may pass the reader's). A hook that returns a cancelled context's error, of a context of its own, ends hardn the same way (`endHardn`, `prompt.ErrInterrupted`), any other error as at a legacy prompt, printed, exit 1 (`TestLiveStatusEnds`).
 
-**The form**: the blocks' full or compact form for the screen they make with the legacy menu, 17 lines from its heading to its prompt (`StatusBlocks`, §6). The menu's items, numbering, prompt, dispatch and dry-run mode indicator are origin/main's, drawn as before (slice 2b's).
+**The form**: the blocks' full or compact form for the screen they make with the legacy menu, 17 lines from its heading to its prompt (`StatusBlocks`, §6). The menu's items, numbering, prompt, dispatch and dry-run mode indicator are origin/main's, drawn as before (slice 2b's). *Since `next/s2b-menu` ([menu-layout.md](menu-layout.md)) the hook returns the view-model, `SetStatus(func(ctx) (screen.MainMenu, error))`, `mainmenu.Status` filling the status blocks; `pkg/menu` fills the heading, the decided mode indicator, origin/main's items and the prompt, and draws the layout whole through `nav.Run`, its full form at every height, on the terminal `SetTerminal` gives it (`stdoutEnv`, each pass). The reading, its cost, its errors and Ctrl-C are as this section says.*
 
 ## 6. The heights, with one row more
+
+> *Since `next/s2b-menu` (slice 2b, unit (c); [menu-layout.md](menu-layout.md) §4, §6), the compact form is gated (`screen.CompactMainMenu`, DISABLED; the maintainer, 2026-10-23, decision 5 as adopted: the full form at every height), and hardn's main menu is the layout whole, its legacy menu gone from it: 36 lines at 80×24 and 80×40, its first 12 (the header to the SSH Login row, the risk level among them) scrolled off at 24 rows; 59 at 60 columns, where the rows stack, 35 off at 24 rows and 19 at 40. Every figure below for the compact form is what it drew, kept for the record and drawn again if the gate is flipped; the live column is hardn's main menu before that unit.*
 
 Measured by `TestHeights` (`pkg/ui/screen`), on a terminal, Figma's fixture with no line under a row (each line under a row, and the host block's reboot line, adds one to every figure), Unicode and ASCII alike:
 
@@ -135,6 +137,8 @@ No new code in `pkg/output`'s registry: the reading's one error is a cancelled c
 
 ## 9. Tests
 
+> *Since `next/s2b-menu`: `cmd/hardn`'s `TestDrawStatus` is `TestReadStatus` (the hook returns the view-model); `pkg/screens/mainmenu`'s `TestForm` is gone with `Status`'s drawing, the form being `screen.MainMenu`'s (`TestStatusBlocks`, `TestFullAtEveryHeight`); `pkg/menu`'s tests are [menu-layout.md](menu-layout.md) §10's.*
+
 - `pkg/engine/controls`: `TestStatus` (the list is `risk.Rows`, by ID and title, DNS last, the configuration given).
 - `pkg/engine/controls/dns` (§8's decision): `TestCheck` (the empty list with and without a `hardn.yml` and with no configuration, on hosts read, on hosts with a reason of their own and on hosts not read), `TestNoneStillPlanned` (Not Applicable with its evidence and no error, and the control still planned and refused, `DNS_NO_NAMESERVERS`), `TestCheckGolden` (`human/check`: the empty list's line, and a "no hardn.yml" line added).
 - `pkg/engine/risk`: `TestShownNotWeighed` (a DNS report in every state, failed or absent, before or after the others, changes no level on six kinds of host; DNS alone established leaves the band Unknown, with no factor under it; probed to fail without the rule), `TestRows` (eight rows, DNS weight 0, the seven 100).
@@ -146,6 +150,8 @@ No new code in `pkg/output`'s registry: the reading's one error is a cancelled c
 - The gallery and p4status: as before, over the one list (`TestStatusHosts`, the status goldens, `TestRunOverHosts`, `TestMainMenuAsGallery`, `TestStatusControls`, `TestRulesMatchTheCode`).
 
 ## 10. The VM steps (run 2026-10-23, §10.1)
+
+> *Since `next/s2b-menu`, steps 3 and 4 find the main menu on its layout in its full form at both heights, 36 lines with no line under a row; its own steps are [menu-layout.md](menu-layout.md) §9.*
 
 Nothing here has run on Linux. On the VMs of [vmtest.md](../safety/vmtest.md), Debian 13, Ubuntu 26.04 and Alpine 3.23 (no 3.24 VM), with hardn and p4status built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn` and `./internal/tools/p4status`, the VM's `GOARCH`), as root (Alpine through doas), in a terminal whose size is set (tmux: `tmux new -x 80 -y 40`):
 
@@ -196,12 +202,12 @@ Built from `2eac16a` (hardn sha256 `8071a9a2…`, p4status `b38276ff…`), the s
 
 None blocks this unit; each is a decision this unit did not take.
 
-1. **The compact form's 25th line** (§6): accept the bar scrolling off at 80×24, or which blank line gives way, or a cap on the lines under the rows. Slice 2b's mock draws the main menu's items on the layout at the same 25 lines ([gallery-dryrun.md](gallery-dryrun.md) §3.2).
+1. **The compact form's 25th line** (§6): accept the bar scrolling off at 80×24, or which blank line gives way, or a cap on the lines under the rows. Slice 2b's mock draws the main menu's items on the layout at the same 25 lines ([gallery-dryrun.md](gallery-dryrun.md) §3.2). *Closed by the maintainer, 2026-10-23: no compact form; gated in `next/s2b-menu` ([menu-layout.md](menu-layout.md) §4).*
 2. **"Sudo Method" and "Sudo Not Installed"** (§7; P-13, proposed): dropped with origin/main's block; the no-password fact is a line under User, "password required" is not said, and "no sudo" only where a non-root account exists.
 3. **The update notice in the version line** (§7; P-15): the `Header` draws none; unreachable while update checks are off (V26).
 4. **Resolved** (the maintainer, 2026-10-23, §8): the DNS row where no nameserver is configured, which read "⭘ Not Configured none in hardn.yml" on every host whose hardn.yml lists none, hardn's default, and on a host with no `hardn.yml` at all, is Not Applicable, "none configured" or "no hardn.yml"; built on this branch.
 5. **The cost** (§5): 13 to 31 commands a pass where origin/main ran about 6 to 10, `sshd -T` three or four times among them, and 77 to 122 file operations; up to 16 `systemctl` commands (none on Alpine) where origin/main ran one. Nothing bounds a pass: a command that blocks (a systemd or D-Bus that does not answer) keeps the cleared screen blank until it returns or Ctrl-C. Open: a bound on a pass, and what its rows show then; a memo per pass for `sshd -T` and `ss`; reading again only after an item that may have changed the host (a cache). None built; the time on a host, and with systemd busy, is step 8's.
-6. **The live main menu at 80×24** (§6): 32 lines, its risk level scrolled off, as origin/main's was, until slice 2b moves the menu onto the layout and its compact two-column form; mocked for the maintainer's review in [gallery-dryrun.md](gallery-dryrun.md) (§3.2, decision 5): 25 lines, the risk level on screen.
+6. **The live main menu at 80×24** (§6): 32 lines, its risk level scrolled off, as origin/main's was, until slice 2b moves the menu onto the layout and its compact two-column form; mocked for the maintainer's review in [gallery-dryrun.md](gallery-dryrun.md) (§3.2, decision 5): 25 lines, the risk level on screen. *Decided (the maintainer, 2026-10-23): the full form at every height; built in `next/s2b-menu`: 36 lines at 80×24, the risk level scrolled off; fewer rows are for later ([menu-layout.md](menu-layout.md) §6).*
 
 ## 12. API
 
@@ -218,15 +224,18 @@ func (vm MainMenu) StatusBlocks(c component.Ctx, below int) string // the status
 package mainmenu // pkg/screens/mainmenu (new)
 type Options struct { System host.System; Detect func(context.Context, host.System) (detect.Facts, error); Config *config.Config; Version string; Env term.Env }
 func Status(ctx context.Context, o Options, below int) (string, error) // the blocks and the gap before the menu, ready to print; error: ctx's alone
+// next/s2b-menu: Status(ctx, o) (screen.MainMenu, error), the view-model; Options.Env removed (menu-layout.md §7)
 
 package menu // pkg/menu
 func (m *MainMenu) SetStatus(draw func(ctx context.Context, below int) (string, error)) // a pass panics without it
+// next/s2b-menu: SetStatus(func(ctx) (screen.MainMenu, error)); SetTerminal(func() term.Env) (menu-layout.md §7)
 const legacySecurityStatus = false // DISABLED 2026-10-23
 
 package main // cmd/hardn
 var statusHost func() host.System // host.Real, no run log
 func withStatus(m *menu.MainMenu, c *config.Config, version string) *menu.MainMenu
 func drawStatus(ctx context.Context, c *config.Config, version string, below int) (string, error)
+// next/s2b-menu: readStatus(ctx, c, version) (screen.MainMenu, error); withStatus sets the terminal too
 ```
 
 The gallery: `statusControls` removed (`controls.Status`), `statusConfig` added, `harden` configures DNS (`dnsConfigured`). p4status: `statusControls` removed, `env.controls func(*config.Config) []engine.Control`, `env.configs`, `configPaths`, `loadConfig`, `partConfig`, the DNS check's commands in `rules`. No depguard change: `pkg/screens/mainmenu` is under `screens-through-host`, `pkg/engine/controls` under `controls-through-host`. `go.mod` and `go.sum` unchanged.

@@ -4,8 +4,10 @@ package main
 // model (refactor plan slice 2, next/s2-menu-live; the maintainer,
 // 2026-10-23: "Main menu goes live"): pkg/menu reaches them through the
 // hook set here, as it reaches the DNS screen (dns.go), so that pkg/menu
-// runs no check and builds no engine; pkg/screens/mainmenu reads and
-// draws them. docs/engine/menu-live.md says what goes live.
+// runs no check and builds no engine; pkg/screens/mainmenu reads them, and
+// pkg/menu draws the main menu on its layout with them, on the terminal
+// set here (slice 2b, next/s2b-menu). docs/engine/menu-live.md says what
+// goes live, docs/engine/menu-layout.md how the main menu is drawn.
 
 import (
 	"context"
@@ -14,6 +16,8 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
+	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // statusHost is the host the main menu's status reads, a seam for the
@@ -24,29 +28,41 @@ import (
 // changes the host (-g, the DNS screen).
 var statusHost = func() host.System { return host.NewReal(host.Options{}) }
 
-// withStatus returns m with its status drawn from the host hardn builds,
+// statusMenu is what withStatus sets the status and the terminal of:
+// pkg/menu's main menu, and the tests' record of what was set.
+type statusMenu interface {
+	SetStatus(read func(ctx context.Context) (screen.MainMenu, error))
+	SetTerminal(env func() term.Env)
+}
+
+// The main menu is a statusMenu.
+var _ statusMenu = (*menu.MainMenu)(nil)
+
+// withStatus returns m with its status read from the host hardn builds,
 // against c, the configuration m was given, and hardn's version
-// (menu.MainMenu.SetStatus).
-func withStatus(m *menu.MainMenu, c *config.Config, version string) *menu.MainMenu {
-	m.SetStatus(func(ctx context.Context, below int) (string, error) {
-		return drawStatus(ctx, c, version, below)
+// (menu.MainMenu.SetStatus), drawn on stdout's terminal, as stdoutEnv
+// detects it on each pass (menu.MainMenu.SetTerminal). A main menu drawn
+// without either panics, so both are set here, on the one main menu
+// hardn builds.
+func withStatus[M statusMenu](m M, c *config.Config, version string) M {
+	m.SetStatus(func(ctx context.Context) (screen.MainMenu, error) {
+		return readStatus(ctx, c, version)
 	})
+	m.SetTerminal(stdoutEnv)
 	return m
 }
 
-// drawStatus is one pass's status: read through statusHost, the facts
+// readStatus is one pass's status: read through statusHost, the facts
 // detected by engineDetect, against c's nameservers as they are now (the
-// DNS screen adopts each list it saves into c), drawn for stdout's
-// terminal (stdoutEnv), whose height picks the full or the compact form,
-// above a menu of below lines. Nothing is registered for Ctrl-C: it ends
-// hardn by Go's default for SIGINT, as during origin/main's checks
-// (pkg/menu).
-func drawStatus(ctx context.Context, c *config.Config, version string, below int) (string, error) {
+// DNS screen adopts each list it saves into c), the main menu's
+// view-model with its header, host block, risk level and rows filled.
+// Nothing is registered for Ctrl-C: it ends hardn by Go's default for
+// SIGINT, as during origin/main's checks (pkg/menu).
+func readStatus(ctx context.Context, c *config.Config, version string) (screen.MainMenu, error) {
 	return mainmenu.Status(ctx, mainmenu.Options{
 		System:  statusHost(),
 		Detect:  engineDetect,
 		Config:  c,
 		Version: "v" + version,
-		Env:     stdoutEnv(),
-	}, below)
+	})
 }
