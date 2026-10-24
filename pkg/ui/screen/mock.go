@@ -131,7 +131,8 @@ func frameMocks() []Mock {
 				"layout and ten items: the package screens and Help gone, User Management, SSH Login, Environment "+
 				"and System Details new.",
 			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a). "+
-				"The mode indicator says \"Mode Live\" where Figma's says \"Dry-run Mode Disabled\" (decisions 2 and 3, DEV-065).")},
+				"The mode indicator says \"Mode Live\" where Figma's says \"Dry-run Mode Disabled\" (decisions 2 and 3, DEV-065). "+
+				"Item 6, Dry-Run, is left out, its key unused, as hardn removed it (slice 2b, decision 1).")},
 		{Name: "sub-menu/01-user", Screen: UserFixture(), Source: figma("01-USER",
 			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
 				"asking only for a username when none is configured, with no confirmation (pkg/menu/menu.go:317-349). "+

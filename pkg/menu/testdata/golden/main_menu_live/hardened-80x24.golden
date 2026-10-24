@@ -31,7 +31,6 @@ $
    \x1b[1;38;5;251m3)\x1b[m \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;103mConfigure Nameservers\x1b[m$
    \x1b[1;38;5;251m4)\x1b[m \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;103mConfigure UFW rules\x1b[m$
    \x1b[1;38;5;251m5)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;103mConfigure Hardn backup settings\x1b[m$
-   \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mDry-Run\x1b[m              \x1b[38;5;103mSimulate changes\x1b[m$
    \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;103mExecute hardening operations\x1b[m$
    \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mEnvironment\x1b[m          \x1b[38;5;103mConfigure environment variable\x1b[m$
    \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;103mView system information\x1b[m$
@@ -39,4 +38,4 @@ $
 $
    \x1b[1;38;5;103m0)\x1b[m \x1b[38;5;103mExit\x1b[m                 \x1b[38;5;103mq to quit\x1b[m$
 $
-  \x1b[1;38;5;103m❯\x1b[m \x1b[1;38;5;103mEnter selection\x1b[m \x1b[38;5;103m[0-10 or q]:\x1b[m $
+  \x1b[1;38;5;103m❯\x1b[m \x1b[1;38;5;103mEnter selection\x1b[m \x1b[38;5;103m[0-5, 7-10 or q]:\x1b[m $

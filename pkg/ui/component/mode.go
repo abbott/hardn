@@ -10,8 +10,8 @@ import (
 // decisions 2 and 3, adopted 2026-10-23; docs/engine/gallery-dryrun.md
 // §4): the label, the word for each mode, and what set plan only, named
 // after the word. They replace origin/main's "Dry-run Mode" "Disabled" and
-// "Enabled" (pkg/style style.go:793-824), which pkg/style still writes for
-// its own menus.
+// "Enabled" (pkg/style style.go:793-824), which pkg/style wrote on the main
+// menu alone, until slice 2b's unit (d) removed them with it.
 const (
 	modeLabel    = "Mode"
 	modeLive     = "Live"
@@ -25,9 +25,10 @@ const (
 type ModeSource int
 
 const (
-	// ModeSourceNone names nothing: plan only set inside the session (the
-	// user has just set it on screen: item 6, Run All's option 2), and
-	// every live session.
+	// ModeSourceNone names nothing: every live session, and plan only set
+	// inside the session, where the user has just set it on screen. hardn
+	// had two such switches, item 6 and Run All's option 2, until slice
+	// 2b's unit (d) removed them: its plan only now always has a source.
 	ModeSourceNone ModeSource = iota
 	// ModeSourceFlag is -n or --dry-run on the command line: "(-n)".
 	ModeSourceFlag

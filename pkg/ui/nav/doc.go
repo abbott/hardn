@@ -80,7 +80,8 @@
 // (docs/refactor/phase0/interaction.md §1 item 4). The pairing follows
 // arch3's option ↔ action binding (refactor plan §6), as an idea; nothing
 // was copied. A disabled item is shown, not accepted, and its key is left
-// out of the hint (P-22).
+// out of the hint (P-22). An item the session rules out for now is shown
+// and in the hint, and refused as it is chosen, in its Refusal's words.
 //
 // # Writing and reading
 //

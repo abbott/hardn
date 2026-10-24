@@ -17,9 +17,9 @@ import (
 //
 // With it true, option 1 ("Run all hardening steps") runs every step live
 // as soon as it is chosen ("7", Enter, "1", Enter from the main menu), with
-// no confirmation; only option 2 asked for a typed 'yes' (A4; Phase 0
-// side-effects §9 D1). With it false, option 1 outside dry-run mode first
-// asks for the same typed 'yes' as option 2 (confirmRealChanges), and any
+// no confirmation; only option 2, since removed, asked for a typed 'yes'
+// (A4; Phase 0 side-effects §9 D1). With it false, option 1 outside
+// dry-run mode first asks for a typed 'yes' (confirmRealChanges), and any
 // other answer cancels with nothing applied. In dry-run mode option 1 only
 // simulates, so it does not ask.
 const runAllWithoutConfirmation = false
@@ -111,24 +111,12 @@ func (m *RunAllMenu) Show() {
 		fmt.Println(style.Colored(style.Green, "Dry-run mode is enabled. Changes will only be simulated."))
 	}
 
-	// Create menu options
+	// Create menu options. Option 2, which turned dry run on or off and
+	// ran, is removed and its key left unused (refactor plan slice 2b,
+	// unit (d), decision 7): Run All runs in the session's mode, set as
+	// hardn starts, and 2 is refused as any other choice is.
 	menuOptions := []style.MenuOption{
 		{Number: 1, Title: "Run all hardening steps", Description: "Execute all configured hardening measures"},
-	}
-
-	// Add dry-run toggle option
-	if m.config.DryRun {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      2,
-			Title:       "Disable dry-run mode and run",
-			Description: "Apply real changes to the system",
-		})
-	} else {
-		menuOptions = append(menuOptions, style.MenuOption{
-			Number:      2,
-			Title:       "Enable dry-run mode and run",
-			Description: "Simulate changes without applying them",
-		})
 	}
 
 	// Create menu
@@ -155,35 +143,6 @@ func (m *RunAllMenu) Show() {
 		if !m.config.DryRun && !runAllWithoutConfirmation && !confirmRealChanges() {
 			return
 		}
-		m.runAllHardening()
-	case "2":
-		// Toggle dry-run mode and run
-		m.config.SetDryRun(!m.config.DryRun) // the session's alone, with no source: never saved (decision 8)
-		if m.config.DryRun {
-			fmt.Printf("\n%s Dry-run mode has been %s\n",
-				style.Colored(style.Green, style.SymCheckMark),
-				style.Bolded("enabled", style.Green))
-		} else {
-			fmt.Printf("\n%s Dry-run mode has been %s\n",
-				style.Colored(style.Yellow, style.SymWarning),
-				style.Bolded("disabled", style.Yellow))
-			fmt.Println(style.Bolded("CAUTION: ", style.Red) +
-				style.Bolded("Your system will be modified!", style.Yellow))
-		}
-
-		// Confirm before proceeding with actual changes
-		if !m.config.DryRun && !confirmRealChanges() {
-			return
-		}
-
-		// Save config changes
-		configFile := "hardn.yml" // Default config file
-		if err := config.SaveConfig(m.config, configFile); err != nil {
-			fmt.Printf("\n%s Failed to save configuration: %v\n",
-				style.Colored(style.Red, style.SymCrossMark), err)
-		}
-
-		// Run with new dry-run setting
 		m.runAllHardening()
 	case "0":
 		fmt.Println("\nOperation cancelled. No changes were made.")

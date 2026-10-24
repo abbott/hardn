@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"slices"
@@ -65,14 +67,14 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // originScreens are the screens origin/main's handleMenuChoice built for
 // m's items, by name, transcribed from it as next/s2b-mode had it
 // (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
-// its arguments. The DNS item's screen is m's (SetDNS).
+// its arguments, but 6's, the Dry-Run handler, which slice 2b's unit (d)
+// removed with its item. The DNS item's screen is m's (SetDNS).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
 		"users":         NewUserMenu(m.menuManager, m.config, m.osInfo),
 		"sshLogin":      NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
 		"firewall":      NewFirewallMenu(m.menuManager, m.config, m.osInfo),
 		"backup":        NewBackupMenu(m.menuManager, m.config),
-		"dryRun":        handled{NewDryRunHandler(m.menuManager, m.config)},
 		"runAll":        handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
 		"environment":   NewEnvironmentSettingsMenu(m.menuManager, m.config),
 		"systemDetails": NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()),
@@ -131,17 +133,18 @@ func (r interrupted) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
-// exactly the screen origin/main's handleMenuChoice opened for them, of
-// the same constructor with the same arguments (recordScreens), and the
-// main menu is drawn again when it returns; 0 (Exit) and q, in either
-// case, clear the screen and return, opening nothing; spaces around a key
-// are ignored, as origin/main's read trimmed them; an empty line and a
-// key no item has are refused under the prompt, "Invalid option. Please
-// try again.", the main menu not drawn again and no screen opened; the
-// end of the input exits 130, and Ctrl-C at the prompt ends hardn by
-// SIGINT. Item 6, Dry-Run, is still there (slice 2b's unit (d) removes
-// it).
+// TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
+// to 10 open exactly the screen origin/main's handleMenuChoice opened for
+// them, of the same constructor with the same arguments (recordScreens),
+// and the main menu is drawn again when it returns; 6, whose item,
+// Dry-Run, slice 2b's unit (d) removed, its key left unused (decision 1),
+// is refused as any key no item has, opening nothing; 0 (Exit) and q, in
+// either case, clear the screen and return, opening nothing; spaces
+// around a key are ignored, as origin/main's read trimmed them; an empty
+// line and a key no item has are refused under the prompt, "Invalid
+// option. Please try again.", the main menu not drawn again and no screen
+// opened; the end of the input exits 130, and Ctrl-C at the prompt ends
+// hardn by SIGINT.
 func TestMainMenuKeys(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
@@ -156,13 +159,15 @@ func TestMainMenuKeys(t *testing.T) {
 		{"3 opens DNS", []string{"3", "q"}, false, []string{"dns"}, 0, 0},
 		{"4 opens Firewall", []string{"4", "q"}, false, []string{"firewall"}, 0, 0},
 		{"5 opens Backup", []string{"5", "q"}, false, []string{"backup"}, 0, 0},
-		{"6 opens Dry-Run", []string{"6", "q"}, false, []string{"dryRun"}, 0, 0},
+		{"6 is refused, its item removed", []string{"6", " 6 ", "q"}, false, nil, 2, 0},
 		{"7 opens Run All", []string{"7", "q"}, false, []string{"runAll"}, 0, 0},
 		{"8 opens Environment", []string{"8", "q"}, false, []string{"environment"}, 0, 0},
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
-		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "sshLogin", "dns", "firewall", "backup", "dryRun", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
+		{"every item in turn", []string{"1", "2", "3", "4", "5", "7", "8", "9", "10", "0"}, false,
+			[]string{"users", "sshLogin", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
+		{"every key in turn, 6 refused", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
+			[]string{"users", "sshLogin", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 1, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -217,7 +222,7 @@ func TestMainMenuKeys(t *testing.T) {
 // the main menu is not read or drawn again, where origin/main cleared the
 // screen, printed its header and paused (main_menu.go:538-544).
 func TestMainMenuInvalid(t *testing.T) {
-	const prompt = "  > Enter selection [0-10 or q]: "
+	const prompt = "  > Enter selection [0-5, 7-10 or q]: "
 	for _, tc := range []struct {
 		name string
 		env  term.Env
@@ -261,10 +266,10 @@ func TestMainMenuAgain(t *testing.T) {
 // pass, in the maintainer's words, from the configuration the legacy
 // screens read: "Mode Live"; "Mode Plan only (-n)" from the flag;
 // "Mode Plan only (hardn.yml)" from the file's dryRun; live again with
-// --dry-run=false over the file; and "Mode Plan only", no source, for
-// plan only set inside the session, by item 6 (Dry-Run) or Run All's
-// option 2, until unit (d); turned off there, "Mode Live", whatever
-// started it.
+// --dry-run=false over the file. Plan only with no source, which item 6
+// (Dry-Run) and Run All's option 2 set inside the session until slice
+// 2b's unit (d) removed them, is still drawn "Mode Plan only" for a
+// DryRun written after the start, which nothing in hardn now does.
 func TestMainMenuMode(t *testing.T) {
 	file := func(t *testing.T) *config.Config {
 		f, _ := loadStatusHost(t, "debian13")
@@ -275,61 +280,58 @@ func TestMainMenuMode(t *testing.T) {
 		}
 		return c
 	}
-	heading := func(mode string) string { return "  Select an option         " + mode + "\n" }
 	for _, tc := range []struct {
-		name   string
-		start  func(t *testing.T) *config.Config
-		toggle []bool // what item 6 sets on each choice of it, one pass each
-		want   []string
+		name  string
+		start func(t *testing.T) *config.Config
+		want  string
 	}{
-		{"live", func(*testing.T) *config.Config { return config.DefaultConfig() }, nil, []string{"Mode Live"}},
-		{"-n", func(*testing.T) *config.Config { c := config.DefaultConfig(); c.ResolveDryRun(true, true); return c }, nil, []string{"Mode Plan only (-n)"}},
-		{"hardn.yml", func(t *testing.T) *config.Config { c := file(t); c.ResolveDryRun(false, false); return c }, nil, []string{"Mode Plan only (hardn.yml)"}},
-		{"--dry-run=false over hardn.yml", func(t *testing.T) *config.Config { c := file(t); c.ResolveDryRun(true, false); return c }, nil, []string{"Mode Live"}},
-		{"set in the session", func(*testing.T) *config.Config { return config.DefaultConfig() }, []bool{true, false},
-			[]string{"Mode Live", "Mode Plan only", "Mode Live"}},
-		{"-n, then turned off and on in the session", func(*testing.T) *config.Config { c := config.DefaultConfig(); c.ResolveDryRun(true, true); return c }, []bool{false, true},
-			[]string{"Mode Plan only (-n)", "Mode Live", "Mode Plan only"}},
-		{"hardn.yml, then turned off in the session", func(t *testing.T) *config.Config { c := file(t); c.ResolveDryRun(false, false); return c }, []bool{false},
-			[]string{"Mode Plan only (hardn.yml)", "Mode Live"}},
+		{"live", func(*testing.T) *config.Config { return config.DefaultConfig() }, "Mode Live"},
+		{"-n", func(*testing.T) *config.Config { c := config.DefaultConfig(); c.ResolveDryRun(true, true); return c }, "Mode Plan only (-n)"},
+		{"hardn.yml", func(t *testing.T) *config.Config { c := file(t); c.ResolveDryRun(false, false); return c }, "Mode Plan only (hardn.yml)"},
+		{"--dry-run=false over hardn.yml", func(t *testing.T) *config.Config { c := file(t); c.ResolveDryRun(true, false); return c }, "Mode Live"},
+		{"DryRun written after the start", func(*testing.T) *config.Config {
+			c := config.DefaultConfig()
+			c.ResolveDryRun(false, false)
+			c.DryRun = true
+			return c
+		}, "Mode Plan only"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			lines := append(slices.Repeat([]string{"6"}, len(tc.toggle)), "q")
-			m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), lines...)
+			m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "q")
 			m.config = tc.start(t)
-			opened, toggles := recordScreens(t, m), tc.toggle
-			recorded := openScreen
-			openScreen = func(s legacyScreen) { recorded(s); m.config.SetDryRun(toggles[0]); toggles = toggles[1:] }
 			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
-			var got []string
-			for _, l := range strings.SplitAfter(out, "\n") {
-				if mode, ok := strings.CutPrefix(l, "  Select an option         "); ok {
-					got = append(got, strings.TrimSuffix(mode, "\n"))
-				}
-			}
-			if ended || !slices.Equal(got, tc.want) || !strings.Contains(out, heading(tc.want[0])) ||
-				!slices.Equal(*opened, slices.Repeat([]string{"dryRun"}, len(tc.toggle))) {
-				t.Errorf("ended %v, opened %q; the mode on each pass %q, want %q:\n%s", ended, *opened, got, tc.want, out)
+			if want := "  Select an option         " + tc.want + "\n"; ended || strings.Count(out, "Select an option") != 1 || !strings.Contains(out, want) {
+				t.Errorf("ended %v; want the heading %q:\n%s", ended, want, out)
 			}
 		})
 	}
 }
 
 // TestMainMenuItems: the items on the layout are origin/main's, unchanged
-// in content: createMainMenu's (style.Menu) numbers, labels and
-// descriptions, item 1's parenthesis its aside, and its Exit row; and the
-// same as the main-menu mock's (screen.MainMenuFixture), which the
-// gallery draws its main menus with. The heading and prompt are
-// origin/main's too, the hint "[0-10 or q]" generated from the items.
+// in content, as the parity record holds origin/main's main menu
+// (testdata/legacy/main_menu, createMainMenu's style.Menu until slice 2b's
+// unit (d)): its numbers, labels and descriptions, item 1's parenthesis
+// its aside, and its Exit row (the trunk's "q to quit", DEV-030, as the
+// record holds it), but item 6, Dry-Run, removed with its key
+// (decision 1); and the same as the main-menu mock's
+// (screen.MainMenuFixture), which the gallery draws its main menus with.
+// The heading and prompt are origin/main's too, the hint generated from
+// the items, "[0-5, 7-10 or q]" where origin/main's was "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
-	m := NewMainMenu(nil, config.DefaultConfig(), nil, nil)
-	row := regexp.MustCompile(`^\s*(\d+)\) (\S.*?)\s{2,}(.*?)\s*$`)
+	data, err := os.ReadFile(filepath.Join(legacyDir, "main_menu", "ubuntu-fresh.golden"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, record, _ := strings.Cut(string(data), "# ----\n")
+	record = regexp.MustCompile(`\\x1b\[[0-9;]*m`).ReplaceAllString(record, "")
+	row := regexp.MustCompile(`^\s*(\d+)\) (\S.*?)\s{2,}(.*?)\s*\$$`)
 	var legacy [][]string
-	for _, l := range strings.Split(style.StripAnsi(m.createMainMenu().Render()), "\n") {
-		if r := row.FindStringSubmatch(l); r != nil {
+	for _, l := range strings.Split(record, "\n") {
+		if r := row.FindStringSubmatch(l); r != nil && r[1] != "6" {
 			legacy = append(legacy, r[1:])
 		}
 	}
+	m := NewMainMenu(nil, config.DefaultConfig(), nil, nil)
 	view := m.mainMenu().View()
 	var layout [][]string
 	for _, it := range append(slices.Clone(view.Items), view.Exit) {
@@ -339,28 +341,29 @@ func TestMainMenuItems(t *testing.T) {
 		}
 		layout = append(layout, []string{it.Key, it.Label, desc})
 	}
-	if len(legacy) != 11 || !slices.EqualFunc(legacy, layout, slices.Equal[[]string]) {
-		t.Errorf("the layout's items\n%q\nare not origin/main's\n%q", layout, legacy)
+	if len(legacy) != 10 || !slices.EqualFunc(legacy, layout, slices.Equal[[]string]) {
+		t.Errorf("the layout's items\n%q\nare not origin/main's but 6\n%q", layout, legacy)
 	}
 	fixture := screen.MainMenuFixture()
 	if !slices.Equal(view.Items, fixture.Menu.Items) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
-	legacyText := style.StripAnsi(m.createMainMenu().Render())
-	if !strings.Contains(legacyText, mainHeading) || !strings.Contains(legacyText, mainPrompt+" [0-10 or q]:") ||
-		m.mainMenu().Accepts().Hint() != "0-10 or q" {
-		t.Errorf("the heading, prompt or hint differ from origin/main's:\n%s", legacyText)
+	if !strings.Contains(record, mainHeading) || !strings.Contains(record, mainPrompt+" [0-10 or q]:") ||
+		m.mainMenu().Accepts().Hint() != "0-5, 7-10 or q" {
+		t.Errorf("the heading, prompt or hint differ from origin/main's, or the hint is %q:\n%s", m.mainMenu().Accepts().Hint(), record)
 	}
 }
 
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
 // a terminal over the gallery's hardened Debian 13 host (eight rows, no
 // line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 36 lines at 80x24 and 80x40, 59 at 60 columns, where the
-// rows stack (DEV-021). The prompt is the terminal's last line, so on 24
-// rows the first 12 lines scroll off at 80 columns, the header down to
-// the SSH Login row, the risk level among them, and at 60 columns 35, all
-// the status and the heading; on 40 rows none at 80 columns and 19 at 60.
+// and ASCII (C): 35 lines at 80x24 and 80x40, 57 at 60 columns, where the
+// rows stack (DEV-021), one line less, and two at 60 columns, than with
+// item 6, which slice 2b's unit (d) removed. The prompt is the terminal's
+// last line, so on 24 rows the first 11 lines scroll off at 80 columns,
+// the header down to the Firewall row, the risk level among them, and at
+// 60 columns 33, all the status, the heading and the mode; on 40 rows none
+// at 80 columns and 17 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -371,10 +374,10 @@ func TestMainMenuHeights(t *testing.T) {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
 	}{
-		{80, 24, 36, "SSH Auth             Configured key-only auth"},
-		{80, 40, 36, "hardn  v0.4.0              https://github.com/abbott/hardn"},
-		{60, 24, 59, "Create, Configure (sudo, SSH keys)"},
-		{60, 40, 59, "Configured key-only auth"},
+		{80, 24, 35, "SSH Login            Configured root disallowed"},
+		{80, 40, 35, "hardn  v0.4.0              https://github.com/abbott/hardn"},
+		{60, 24, 57, ""},
+		{60, 40, 57, "Configured root disallowed"},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")

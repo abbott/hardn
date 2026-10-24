@@ -288,7 +288,7 @@ func TestDNSScreen(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newDNSHost(t, "debian13", dnsTestList)
 			s := useDNSHost(t, h, tc.lines...)
-			cfg.DryRun = tc.dryRun // as the Dry-Run item or -n leaves it before 3 is chosen
+			cfg.DryRun = tc.dryRun // as -n or hardn.yml leaves it before 3 is chosen
 			err := runDNSScreen(context.Background(), cfg)
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runDNSScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())

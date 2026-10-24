@@ -34,31 +34,14 @@ type menuCase struct {
 	fixed                []string // a defect fixed since, the screen and the file as they are now
 }
 
-// menuCases are the Dry-Run item (main menu 6) from each state, and the
-// Firewall screen's Configure under dry run: refactor plan slice 2b's
-// evidence (docs/engine/gallery-dryrun.md §1).
+// menuCases are the Firewall screen's Configure under dry run, refactor
+// plan slice 2b's evidence (docs/engine/gallery-dryrun.md §1). The
+// Dry-Run item's four cases (main menu 6) were retired with the item and
+// its screens (slice 2b, unit (d)): their goldens, as origin/main's
+// behaviour recorded them, are the parity record in
+// pkg/menu/testdata/legacy/menu (docs/engine/dryrun-replace.md §4).
 func menuCases() []menuCase {
-	const (
-		pauses = "3 pauses for one toggle (dry_run_handler.go:52, dry_run_menu.go:124, dry_run_handler.go:73; interaction.md §4.3)"
-		saved  = "the whole configuration saved to ./hardn.yml in the working directory, not to the file loaded (dry_run_menu.go:118; side-effects row 29)"
-		// Fixed by refactor plan slice 2b, next/s2b-mode: origin/main saved
-		// the session's dryRun, which the next start ignored.
-		asLoaded = "decision 8 (slice 2b, next/s2b-mode): the save writes dryRun as loaded, here the defaults' false, never the session's mode (config.SaveConfig), so the toggle is the session's alone"
-		v3       = "V3 (slice 2b, next/s2b-mode): the next start takes the dryRun of the file it loads unless -n/--dry-run is given (§3.19; config/full-flag.golden)"
-	)
 	return []menuCase{
-		{name: "dry_run_enable", screen: "Dry-Run (main menu 6) in live mode, 1 to enable", script: "\n1\n\n\n",
-			defects: []string{pauses, saved}, fixed: []string{asLoaded, v3}},
-		{name: "dry_run_disable", screen: "Dry-Run (main menu 6) in dry-run mode, 1 to disable", script: "\n1\n\n\n",
-			defects: []string{
-				"the Enabled state builds its menu and never prints it: no item and no prompt, though a choice is read (dry_run_menu.go:44-59)",
-				pauses, saved,
-			}, fixed: []string{asLoaded, v3}},
-		{name: "dry_run_return", screen: "Dry-Run (main menu 6) in live mode, 0 to keep it", script: "\n0\n\n\n",
-			notes:   []string{"0 changes nothing and still saves."},
-			defects: []string{pauses, saved}},
-		{name: "dry_run_quit", screen: "Dry-Run (main menu 6) in live mode, q at its menu", script: "\nq\n\n",
-			notes: []string{"q leaves the settings screen unsaved and returns to the handler's pause, not out of hardn."}},
 		{name: "firewall_configure_dry_run", screen: "Firewall (main menu 4) in dry-run mode, 2 (Configure firewall)",
 			script: "2\n\n",
 			notes: []string{
@@ -68,16 +51,15 @@ func menuCases() []menuCase {
 	}
 }
 
-// TestLegacyMenuDryRun records origin/main's Dry-Run item and a legacy
-// screen under dry run, each in a child process of this test binary
-// whose stdin is the script, not a terminal, and whose working directory
-// is a temp dir: the legacy menus read the one line reader over os.Stdin
-// (pkg/ui/prompt.Stdin) and print to os.Stdout, and the Dry-Run screen
-// saves ./hardn.yml. Each golden holds the screen as printed (ESC as
-// \x1b), then ./hardn.yml as the screen left it; the Firewall's, what
-// the mocks were asked and wrote. The pauses say "Press Enter", where
-// origin/main says "Press any key" (DEV-050); nothing else differs from
-// origin/main in these files.
+// TestLegacyMenuDryRun records a legacy screen under dry run, in a child
+// process of this test binary whose stdin is the script, not a terminal,
+// and whose working directory is a temp dir: the legacy menus read the
+// one line reader over os.Stdin (pkg/ui/prompt.Stdin) and print to
+// os.Stdout, and a legacy save writes ./hardn.yml. Each golden holds the
+// screen as printed (ESC as \x1b), then ./hardn.yml as the screen left
+// it, or what the mocks were asked and wrote. The pauses say "Press
+// Enter", where origin/main says "Press any key" (DEV-050); nothing else
+// differs from origin/main in these files.
 func TestLegacyMenuDryRun(t *testing.T) {
 	if name := os.Getenv(menuChild); name != "" {
 		runMenuChild(name)
@@ -156,11 +138,6 @@ func runMenuChild(name string) {
 	cfg.Username = "alice"
 	cfg.SshPort = 2230
 	switch name {
-	case "dry_run_enable", "dry_run_return", "dry_run_quit":
-		menu.NewDryRunHandler(nil, cfg).Handle()
-	case "dry_run_disable":
-		cfg.DryRun = true
-		menu.NewDryRunHandler(nil, cfg).Handle()
 	case "firewall_configure_dry_run":
 		cfg.DryRun = true
 		fsys, mc := interfaces.NewMockFileSystem(), interfaces.NewMockCommander()

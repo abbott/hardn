@@ -109,7 +109,7 @@ func TestMainMenuInterrupt(t *testing.T) {
 		}
 	}()
 	out, code, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
-	if !ended || exited(code) != sigint || !strings.HasSuffix(out, "Enter selection [0-10 or q]: \n") {
+	if !ended || exited(code) != sigint || !strings.HasSuffix(out, "Enter selection [0-5, 7-10 or q]: \n") {
 		t.Errorf("ended %v with %d, want hardn ended by SIGINT at the prompt, its line ended:\n%q", ended, code, out)
 	}
 }

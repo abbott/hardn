@@ -15,15 +15,13 @@ type MenuOption struct {
 }
 
 type Menu struct {
-	title          string
-	options        []MenuOption
-	exitOption     *MenuOption
-	prompt         string
-	maxNumLen      int
-	titleWidth     int
-	dryRunEnabled  bool
-	showDryRunInfo bool
-	indentation    string
+	title       string
+	options     []MenuOption
+	exitOption  *MenuOption
+	prompt      string
+	maxNumLen   int
+	titleWidth  int
+	indentation string
 }
 
 const (
@@ -693,12 +691,6 @@ func (m *Menu) SetPrompt(prompt string) {
 	m.prompt = prompt
 }
 
-// SetDryRunStatus sets whether to show dry run status and whether it's enabled
-func (m *Menu) SetDryRunStatus(show bool, enabled bool) {
-	m.showDryRunInfo = show
-	m.dryRunEnabled = enabled
-}
-
 // SetIndentation sets the indentation for menu options
 func (m *Menu) SetIndentation(spaces int) {
 	m.indentation = strings.Repeat(" ", spaces)
@@ -789,49 +781,12 @@ func (m *Menu) Render() string {
 
 	// sb.WriteString("\n")
 
-	// Format the title with dry-run status if needed
-	if m.showDryRunInfo {
-		dryRunSymbol := "" // SymAsterisk
-		dryRunLabel := "Dry-run Mode"
-		dryRunStatus := "Disabled"
-		dryRunColorFn := Yellow
-
-		if m.dryRunEnabled {
-			dryRunStatus = "Enabled"
-			dryRunColorFn = Green
-		}
-
-		spacing := 8
-
-		// Add indentation to the title if set
-		titlePrefix := ""
-		if m.indentation != "" {
-			titlePrefix = m.indentation
-		}
-
-		// titleText := Underline + Bold + m.title + Reset
-
-		titleText := MenuHeader(m.title)
-
-		// Create formatter for dry run status
-		formatter := NewStatusFormatter([]string{dryRunLabel}, 2)
-
-		dryRunLabel = Dimmed(dryRunLabel)
-
-		// Use FormatLine to format the dry run status
-		dryRunInfo := formatter.FormatLine(dryRunSymbol, dryRunColorFn, dryRunLabel, dryRunStatus, dryRunColorFn, "", "no-indent", "no-spacing")
-
-		// Write all on one line with appropriate indentation
-		sb.WriteString(titlePrefix + titleText + strings.Repeat(" ", spacing) + dryRunInfo + "\n")
-	} else {
-		// Add indentation to the title if set
-		if m.indentation != "" {
-			sb.WriteString(m.indentation)
-		}
-		// Just write the title without dry-run info, with indentation if set
-		sb.WriteString(MenuHeader(m.title) + "\n")
-		// sb.WriteString(SubHeader(m.title))
+	// Add indentation to the title if set
+	if m.indentation != "" {
+		sb.WriteString(m.indentation)
 	}
+	sb.WriteString(MenuHeader(m.title) + "\n")
+	// sb.WriteString(SubHeader(m.title))
 
 	// Options
 	for _, opt := range m.options {

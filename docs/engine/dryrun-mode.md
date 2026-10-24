@@ -2,6 +2,7 @@
 
 > **Unit:** refactor plan slice 2b, unit (b), `next/s2b-mode` ([gallery-dryrun.md](gallery-dryrun.md) §8 (b)). The maintainer's request (2026-10-23): "Start slice 2b unit (b): the mode, with §3.19's precedence and its source for the indicator, decisions 8 to 10 and the deprecation note." Plan §3.19 (approved 2026-10-17): "`dryRun` precedence: explicit flag wins, otherwise config". Decisions 1, 2, 8, 9 and 10 of [gallery-dryrun.md](gallery-dryrun.md) §4, adopted by the maintainer on 2026-10-23. V3 ([side-effects.md](../refactor/phase0/side-effects.md)); P-03 ([proposals.md](../refactor/proposals.md#p-03)).
 > **Status:** built and tested on macOS, in process: the root command driven as the binary runs it, through `cmd/hardn`'s seams, on hardn.yml files in each test's temporary directory and the recording mocks; `-g` on `hostfake`. No hardn binary ran; no test read or wrote a hardn.yml outside its temporary directory, or anything under this machine's `/etc`. Nothing has run on Linux or as root. **Every word new to origin/main is proposed** (§5).
+> **Unit (d) built** (`next/s2b-replace`, [dryrun-replace.md](dryrun-replace.md)): item 6 and Run All's option 2 removed, `SetDryRun` with them; User Management, Backup and Firewall's profile add and remove refused under plan only; docs/configuration.md and the release notes made current. §2 and §4.1 item 2 are resolved.
 
 ## 1. What is built
 
@@ -23,7 +24,7 @@ Live names no source, whatever made it live (decision 2: "live names nothing"), 
 
 ### 1.2 The source, for unit (c)
 
-`Config.DryRunSource()` names what set plan only: the flag (`DryRunFlag`) or the file (`DryRunFile`). It names nothing (`DryRunDefault`) for a live session and for plan only set inside the session. It is `ResolveDryRun`'s source only while `DryRun` still holds the value it set: `SetDryRun`, which item 6 and Run All's option 2 now call, sets no source, and any other write to `DryRun` drops it, so a mode the session set never shows "(-n)" or "(hardn.yml)" (decision 2). The main menu holds the configuration (`m.config`), so unit (c)'s indicator reads the source there. Its words are not changed here: `SetDryRunStatus(true, m.config.DryRun)` still draws "Dry-run Mode Disabled" or "Enabled". *Since unit (c), `next/s2b-menu`: "Mode Live", "Mode Plan only (-n)", "Mode Plan only (hardn.yml)", or "Mode Plan only" for a mode set inside the session, read from `DryRun` and `DryRunSource()` on every pass ([menu-layout.md](menu-layout.md) §3).*
+`Config.DryRunSource()` names what set plan only: the flag (`DryRunFlag`) or the file (`DryRunFile`). It names nothing (`DryRunDefault`) for a live session and for plan only set inside the session. It is `ResolveDryRun`'s source only while `DryRun` still holds the value it set: `SetDryRun`, which item 6 and Run All's option 2 now call, sets no source, and any other write to `DryRun` drops it, so a mode the session set never shows "(-n)" or "(hardn.yml)" (decision 2). *Since unit (d): `SetDryRun` is deleted with its two callers, and no in-session toggle remains, so "Mode Plan only" with no source no longer occurs in hardn. The no-source state stays in code, unreachable: the indicator's zero source, and `pkg/menu`'s mapping of `DryRunDefault`, should anything write `DryRun` after the start ([dryrun-replace.md](dryrun-replace.md) §3).* The main menu holds the configuration (`m.config`), so unit (c)'s indicator reads the source there. Its words are not changed here: `SetDryRunStatus(true, m.config.DryRun)` still draws "Dry-run Mode Disabled" or "Enabled". *Since unit (c), `next/s2b-menu`: "Mode Live", "Mode Plan only (-n)", "Mode Plan only (hardn.yml)", or "Mode Plan only" for a mode set inside the session, read from `DryRun` and `DryRunSource()` on every pass ([menu-layout.md](menu-layout.md) §3).*
 
 ### 1.3 Plan only from hardn.yml with an operation flag (decision 9)
 
@@ -52,6 +53,8 @@ Refused as `-n` with one is: exit status 2, nothing run, the message naming the 
 
 ## 2. Until unit (d): item 6 and Run All's option 2
 
+> *Resolved by unit (d), `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)): item 6 and option 2 are removed, and plan only's three gaps below are refused, "Not available in plan only.". The bullets are `next/s2b-mode`'s.*
+
 Both still work, on the session alone:
 
 - **Item 6** sets the session's mode with no source (`SetDryRun`) and still saves `./hardn.yml`, now with `dryRun` as loaded: turning plan only off in a session that hardn.yml or `-n` started applies changes for that session only, and the next start's mode is set again as it starts: plan only where the file says so or `-n` is given; turning it on in a live session lasts until hardn ends. Its three screens and pauses are as before.
@@ -62,10 +65,10 @@ Both still work, on the session alone:
 
 | Package | Added or changed |
 |---|---|
-| `pkg/config` | `type DryRunSource` (`DryRunDefault`, none, for live; `DryRunFlag`, `DryRunFile`); `(*Config).ResolveDryRun(given, flag bool)`, `SetDryRun(on bool)`, `DryRunSource() DryRunSource`; `FileDryRun(explicitPath string) (path string, dryRun bool, err error)`; `SaveConfig` writes `dryRun` as loaded. Unexported: the loaded `dryRun`, the source and the value it set (in `loaded`), recorded by `UnmarshalYAML`; `readConfigFile`, the loader's read, shared with `FileDryRun`; `defaultSearchPath`, the one default search order `FindConfigFile` and `ConfigFileSearchPath` (so `FileDryRun`) walk |
+| `pkg/config` | `type DryRunSource` (`DryRunDefault`, none, for live; `DryRunFlag`, `DryRunFile`); `(*Config).ResolveDryRun(given, flag bool)`, `SetDryRun(on bool)` (deleted by unit (d)), `DryRunSource() DryRunSource`; `FileDryRun(explicitPath string) (path string, dryRun bool, err error)`; `SaveConfig` writes `dryRun` as loaded. Unexported: the loaded `dryRun`, the source and the value it set (in `loaded`), recorded by `UnmarshalYAML`; `readConfigFile`, the loader's read, shared with `FileDryRun`; `defaultSearchPath`, the one default search order `FindConfigFile` and `ConfigFileSearchPath` (so `FileDryRun`) walk |
 | `pkg/cmd` | `RefuseConfigDryRunOperations(dryRun bool, path string, operations []string) error`, gated by `dryRunFlagApplies` as `RefuseDryRunOperations` is; both now return a usage error that is `output.ErrUsage` to `errors.Is` (code `USAGE`), `-n`'s words unchanged, the file's new (§5) |
 | `cmd/hardn` | the seam `fileDryRun`; `refuseConfigDryRunOperations`, `dryRunGiven`, `refuse`; `cfg.DryRun = dryRun` replaced by `ResolveDryRun` and the refusal as loaded. The `-n` refusal stays on line 123 |
-| `pkg/menu` | item 6 and Run All's option 2 call `SetDryRun` |
+| `pkg/menu` | item 6 and Run All's option 2 call `SetDryRun` (both removed by unit (d)) |
 
 No new flag, key or module.
 
@@ -80,7 +83,7 @@ No new flag, key or module.
 ### 4.1 For the maintainer
 
 1. **`confirm` and `rollback` under the file's plan only** (proposed). Not refused (§1.3): they read no hardn.yml, they keep or undo a change already made, and a key in the file must never stop the boot unit's `rollback --boot`. This sets what plan only covers beyond decision 9. *Alternative:* refused as `-n` refuses them, `rollback --boot` excepted.
-2. **Decision 10's "item 6 removed" is not yet in docs/configuration.md** (a deviation). The page describes the code at the tip, where item 6 is still in the menu, so the line would be false; unit (d) adds it. The release notes carry it, marked as waiting for unit (d), and ship with (d).
+2. **Decision 10's "item 6 removed" is not yet in docs/configuration.md** (a deviation). The page describes the code at the tip, where item 6 is still in the menu, so the line would be false; unit (d) adds it. The release notes carry it, marked as waiting for unit (d), and ship with (d). *Resolved by unit (d): both say item 6 is removed, the release notes no longer marked as waiting.*
 
 ## 5. Words
 
@@ -116,9 +119,9 @@ No other golden changed. The ops goldens' note "as cmd/hardn/main.go:158 does fo
 
 ## 8. Open items
 
-1. **Do not release this unit without unit (d)**: plan only from hardn.yml now reaches the legacy menus with `-n`'s gaps (§2), and the notes promise item 6's removal. The release notes' header says so; docs/configuration.md names the gaps.
+1. **Do not release this unit without unit (d)**: plan only from hardn.yml now reaches the legacy menus with `-n`'s gaps (§2), and the notes promise item 6's removal. The release notes' header says so; docs/configuration.md names the gaps. *Unit (d) built: the gaps are refused; (b) to (d) ship together.*
 2. Unit (c): the indicator's words and the source after them, from `DryRunSource`. *Built: `next/s2b-menu`.*
-3. Unit (d): the line "item 6 removed" in docs/configuration.md (§4.1), its "Not yet in every menu" line removed, and the release notes' last bullet and header made current.
+3. Unit (d): the line "item 6 removed" in docs/configuration.md (§4.1), its "Not yet in every menu" line removed, and the release notes' last bullet and header made current. *Done by `next/s2b-replace`.*
 4. `config.Save` and `config.Edit` with no setting named would write the session's mode; nothing calls them so (`steps.PlanSave` requires a setting). A later caller should name its settings, or this should write `dryRun` as loaded too.
 5. The release workflow does not read docs/releases/unreleased.md: its notes are copied by hand at the release until plan Phase 7's `next/p7-release` decides.
 6. README's "Dry run (mode)" row and its example still say what `-n` does alone: `next/p7-docs`'s.

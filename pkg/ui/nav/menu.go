@@ -20,6 +20,14 @@ type Option struct {
 	// Action runs when the item is chosen. A sub-menu's action runs its
 	// own screen (Run) and returns when the user goes back from it.
 	Action func() error
+	// Refusal, when set, is asked each time the item is chosen, before
+	// Action: a reason other than "" refuses the line under the prompt as
+	// a line no item takes is refused (Refuse), and the prompt is asked
+	// again, Action not run and the screen not drawn again. It is for an
+	// item that the session, not the item, rules out, such as the main
+	// menu's User Management under plan only (pkg/menu): the item stays
+	// shown and its key in the hint, where a disabled one is left out.
+	Refusal func() string
 }
 
 // Menu is a menu bound to its actions. Its one list of options gives the
@@ -106,9 +114,15 @@ func (m Menu) resolve(line string) (int, error) {
 	shown := func(it component.MenuItem) bool { return it.Shown() && it.Key == typed }
 	if _, ok := m.View().Bindings().Match(typed); ok {
 		for i, o := range m.Options {
-			if shown(o.Item) && !o.Item.Disabled {
-				return i, nil
+			if !shown(o.Item) || o.Item.Disabled {
+				continue
 			}
+			if o.Refusal != nil {
+				if why := o.Refusal(); why != "" {
+					return -1, Refuse(why)
+				}
+			}
+			return i, nil
 		}
 	}
 	for _, o := range m.Options {
@@ -123,8 +137,8 @@ func (m Menu) resolve(line string) (int, error) {
 // whose hint is generated from Accepts, and returns the option chosen;
 // the caller runs its Action, or Run does. It returns ErrBack for 0 and
 // ErrQuit for q, and asks again for any other line, b included: "Invalid
-// option", or that a disabled item is unavailable. A menu that fails
-// Check returns its error before anything is written.
+// option", that a disabled item is unavailable, or an item's Refusal. A
+// menu that fails Check returns its error before anything is written.
 func (p Prompter) Choose(m Menu, label string) (Option, error) {
 	if err := m.Check(); err != nil {
 		return Option{}, err

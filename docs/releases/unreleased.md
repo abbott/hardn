@@ -2,7 +2,7 @@
 
 > **What this is:** the hand-written notes for the next release, collected as each change lands; the release copies them above the commit list the release workflow writes (`.github/workflows/release.yml`, "Generate changelog", from `git log`). Started by refactor plan slice 2b, unit (b), `next/s2b-mode`, for P-03's deprecation note (decision 10, [gallery-dryrun.md](../engine/gallery-dryrun.md) §4). The repository kept no notes before: the workflow's changelog is the commit subjects alone, and plan Phase 7 (`next/p7-docs`) covers the README and contributing only. **Every line is proposed** ([dryrun-mode.md](../engine/dryrun-mode.md) §5).
 >
-> **Ship with slice 2b's unit (d), not before.** Until it, plan only from hardn.yml reaches the menus with `-n`'s gaps (User Management, Backup and Firewall's profile add and remove still apply changes), and item 6 is still there ([dryrun-mode.md](../engine/dryrun-mode.md) §2, §8).
+> **Ship slice 2b's units (b) to (d) together.** Unit (d) (`next/s2b-replace`, [dryrun-replace.md](../engine/dryrun-replace.md)) removed item 6 and Run All's option 2, and refuses under plan only the menu areas that still changed the host; without it, plan only from hardn.yml would reach the menus with `-n`'s gaps ([dryrun-mode.md](../engine/dryrun-mode.md) §2).
 
 ## Changed: dry run is "plan only", and `dryRun` is read
 
@@ -12,7 +12,9 @@
 - **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g` now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
-- **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only. *(Refactor plan slice 2b, unit (d): not built yet; this line waits for it.)*
+- **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
+- **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
+- **Under plan only, some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." They used to apply their changes even under `-n`.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 

@@ -18,8 +18,10 @@ type DryRunSource int
 
 const (
 	// DryRunDefault: no source. The session is live, whatever made it so
-	// (no file, a file's false, --dry-run=false); or plan only was set
-	// inside the session (SetDryRun: item 6, Run All's option 2).
+	// (no file, a file's false, --dry-run=false); or DryRun was written
+	// after ResolveDryRun set it, which nothing in hardn does since slice
+	// 2b's unit (d) removed the in-session toggles, item 6 and Run All's
+	// option 2.
 	DryRunDefault DryRunSource = iota
 	// DryRunFlag: plan only from -n/--dry-run given on the command line.
 	DryRunFlag
@@ -49,17 +51,9 @@ func (c *Config) ResolveDryRun(given, flag bool) {
 	c.loaded.source, c.loaded.resolved = source, c.DryRun
 }
 
-// SetDryRun sets the session's mode from inside the session (item 6, Run
-// All's option 2, until slice 2b's unit (d) removes them): DryRun on, with
-// no source (decision 2). No legacy save writes it: SaveConfig writes
-// dryRun as loaded.
-func (c *Config) SetDryRun(on bool) {
-	c.DryRun, c.loaded.source = on, DryRunDefault
-}
-
 // DryRunSource is what set plan only as the session is now: ResolveDryRun's
 // source while DryRun still holds the value it set, and DryRunDefault once
-// anything else has set it (SetDryRun, or a write to DryRun), or for live.
+// anything else has set it (a write to DryRun), or for live.
 func (c *Config) DryRunSource() DryRunSource {
 	if c.DryRun != c.loaded.resolved {
 		return DryRunDefault
