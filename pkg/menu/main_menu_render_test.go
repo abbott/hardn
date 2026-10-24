@@ -36,7 +36,6 @@ type mainScreenFixture struct {
 	about           string
 	osInfo          *osdetect.OSInfo
 	sshPort         int
-	dryRun          bool
 	noColor         bool
 	updateAvailable string // version offered through SetTestUpdateAvailable (--test-update), or ""
 	host            model.HostInfo
@@ -74,22 +73,22 @@ func mainScreenFixtures() []mainScreenFixture {
 	return []mainScreenFixture{
 		{
 			name:    "ubuntu-fresh",
-			about:   "a fresh host: nothing configured, port 22, sudo method unknown, dry-run off",
+			about:   "a fresh host: nothing configured, port 22, sudo method unknown",
 			osInfo:  &osdetect.OSInfo{OsType: "ubuntu", OsVersion: "24.04", OsCodename: "noble"},
 			sshPort: 22, host: exampleHost, sudoMethod: sudoUnknown,
 			status: security.SecurityStatus{RootLoginEnabled: true},
 		},
 		{
 			name:    "debian-figma",
-			about:   "the design export's state: all configured except AppArmor and Auto Updates, dry-run on",
+			about:   "the design export's state: all configured except AppArmor and Auto Updates",
 			osInfo:  &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"},
-			sshPort: 2230, dryRun: true, host: exampleHost, status: figmaStatus, sudoMethod: sudoPasswordRequired,
+			sshPort: 2230, host: exampleHost, status: figmaStatus, sudoMethod: sudoPasswordRequired,
 		},
 		{
 			name:    "debian-figma-no-color",
 			about:   "debian-figma with style.UseColors=false (what NO_COLOR or --no-color sets)",
 			osInfo:  &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"},
-			sshPort: 2230, dryRun: true, noColor: true, host: exampleHost, status: figmaStatus, sudoMethod: sudoPasswordRequired,
+			sshPort: 2230, noColor: true, host: exampleHost, status: figmaStatus, sudoMethod: sudoPasswordRequired,
 			notes: []string{"style.UseColors=false only affects style.Colored; Bolded, Dimmed and Underlined still emit escapes (pkg/style/style.go:189-241)."},
 		},
 		{
@@ -165,22 +164,24 @@ func renderStatusRows(cfg *config.Config, status *security.SecurityStatus, sudoM
 	}
 }
 
-// renderMainScreen produces what one pass of ShowMainMenu's loop prints
-// (main_menu.go:387-427) before it waits for input: the status block of
-// displayNormalSecurityStatus (main_menu.go:213-283) and menu.Print().
-// Since next/s2-menu-live that block is origin/main's alone, behind
+// renderMainScreen produces the status block one pass of origin/main's
+// ShowMainMenu printed (main_menu.go:387-427) above its menu:
+// displayNormalSecurityStatus's (main_menu.go:213-283). Since
+// next/s2-menu-live that block is origin/main's alone, behind
 // legacySecurityStatus (showLegacyStatus), DISABLED: these goldens keep
-// the legacy screen's record, the gate's other side (their line numbers
-// are origin/main's file's). The live block is main_menu_live_test.go's.
-// formatHardnVersionLine, formatHostInfoLines, formatOSTitle, createMainMenu,
-// style.Box, style.StatusFormatter and security.GetSecurityRiskLevel are the
-// real code; the composition and the status rows are mirrored, because
+// it, the gate's other side (their line numbers are origin/main's
+// file's). The menu origin/main printed under it, createMainMenu's
+// menu.Print(), went with item 6 in slice 2b's unit (d), and the whole
+// screen as these goldens held it until then is the parity record
+// (testdata/legacy/main_menu). The live block is main_menu_live_test.go's.
+// formatHardnVersionLine, formatHostInfoLines, formatOSTitle, style.Box,
+// style.StatusFormatter and security.GetSecurityRiskLevel are the real
+// code; the composition and the status rows are mirrored, because
 // displayNormalSecurityStatus reads the live host (GetHostInfo, status.go).
 func renderMainScreen(t *testing.T, f mainScreenFixture) string {
 	t.Helper()
 	cfg := config.DefaultConfig()
 	cfg.SshPort = f.sshPort
-	cfg.DryRun = f.dryRun
 
 	// FormatUptime is the only MenuManager method the render needs; it is pure.
 	menuManager := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
@@ -225,9 +226,6 @@ func renderMainScreen(t *testing.T, f mainScreenFixture) string {
 			indented("")
 			renderStatusRows(cfg, &f.status, f.sudoMethod, formatter, indented)
 		})
-
-		// ShowMainMenu, main_menu.go:426-427.
-		m.createMainMenu().Print()
 	})
 }
 
@@ -253,8 +251,9 @@ func captureStdout(t *testing.T, fn func()) string {
 	return <-done
 }
 
-// TestMainMenuRenderGolden records the origin/main main-menu screen for fixed
-// status input: no exec, no network, no terminal (stty) calls.
+// TestMainMenuRenderGolden records the origin/main main-menu screen's status
+// block for fixed status input: no exec, no network, no terminal (stty)
+// calls.
 func TestMainMenuRenderGolden(t *testing.T) {
 	// Ambiguous-width glyphs (for example ⛬ and ≈) count as one cell unless
 	// the locale is East Asian; pin that so the box padding is the same everywhere.
@@ -279,7 +278,8 @@ func TestMainMenuRenderGolden(t *testing.T) {
 				b.WriteString("# origin/main behaviour (baseline per maintainer decision 6)\n")
 			}
 			b.WriteString("# Generated by TestMainMenuRenderGolden (pkg/menu); regenerate with -update. Do not edit.\n")
-			b.WriteString("# Screen: main menu, one pass of ShowMainMenu before input (pkg/menu/main_menu.go:387-427)\n")
+			b.WriteString("# Screen: main menu, the status block of one pass of ShowMainMenu (pkg/menu/main_menu.go:213-283)\n")
+			b.WriteString("# The menu under it went with item 6 (slice 2b, unit (d)); the whole screen is frozen in testdata/legacy/main_menu.\n")
 			fmt.Fprintf(&b, "# Fixture: %s\n", f.about)
 			fmt.Fprintf(&b, "# Fixture status: %+v; Sudo Method row: %q\n", f.status, f.sudoMethod)
 			if fixed {

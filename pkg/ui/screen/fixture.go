@@ -32,11 +32,13 @@ func fixtureHeader() component.Header {
 // MainMenuFixture returns the main menu as Figma's 00-TUI-MAIN fills it,
 // with synthetic data: Figma's mock host BOS-SAN-L01 at 192.0.2.10, its
 // SSH port 2230, Figma's seven status rows and its Moderate risk, and the
-// live mode. The menu's items are origin/main's (pkg/menu main_menu.go),
-// the baseline: they differ from the PNG only in item 2, "Toggle SSH root
-// access" where Figma has "Toggle root SSH access" (P-07 (a), P-12). The
-// Exit item says "q to quit" (DEV-030), and the prompt is origin/main's
-// "Enter selection" where Figma's says "Enter your choice" (P-29 (a)).
+// live mode. The menu's items are hardn's (pkg/menu main_menu.go),
+// origin/main's but item 6: they differ from the PNG in item 2, "Toggle
+// SSH root access" where Figma has "Toggle root SSH access" (P-07 (a),
+// P-12), and in item 6, Dry-Run, which hardn removed, its key left unused
+// (refactor plan slice 2b, decision 1). The Exit item says "q to quit"
+// (DEV-030), and the prompt is origin/main's "Enter selection" where
+// Figma's says "Enter your choice" (P-29 (a)).
 func MainMenuFixture() MainMenu {
 	configured := func(label, detail string) component.StatusRow {
 		return component.StatusRow{Label: label, State: component.StatusConfigured, Detail: detail}
@@ -62,7 +64,6 @@ func MainMenuFixture() MainMenu {
 			{Key: "3", Label: "DNS", Description: "Configure Nameservers"},
 			{Key: "4", Label: "Firewall", Description: "Configure UFW rules"},
 			{Key: "5", Label: "Backup", Description: "Configure Hardn backup settings"},
-			{Key: "6", Label: "Dry-Run", Description: "Simulate changes"},
 			{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
 			{Key: "8", Label: "Environment", Description: "Configure environment variable"},
 			{Key: "9", Label: "System Details", Description: "View system information"},

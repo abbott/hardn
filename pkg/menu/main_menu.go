@@ -208,7 +208,7 @@ func (m *MainMenu) showLegacyStatus() {
 }
 
 // refresh any configuration values that might have been
-// changed by sub-menus like RunAllMenu or DryRunMenu
+// changed by sub-menus like RunAllMenu
 func (m *MainMenu) refreshConfig() {
 	// add ways for sub-menus to notify the main menu of changes,
 
@@ -615,8 +615,10 @@ func (m *MainMenu) pass(ctx context.Context) error {
 // mode is the mode indicator for the session as it is now (slice 2b,
 // decisions 2 and 3): plan only or live, from the configuration every
 // legacy screen reads (DryRun), and what set plan only (DryRunSource):
-// -n or hardn.yml as hardn started, and nothing for plan only set inside
-// the session (item 6, Run All's option 2) or for live.
+// -n or hardn.yml as hardn started, and nothing for live. Plan only with
+// no source, which item 6 and Run All's option 2 set inside the session
+// until unit (d) removed them, is still drawn so, "Mode Plan only", should
+// anything write DryRun again; nothing in hardn does.
 func (m *MainMenu) mode() component.ModeIndicator {
 	mode := component.ModeIndicator{DryRun: m.config.DryRun}
 	switch m.config.DryRunSource() {
@@ -634,8 +636,8 @@ func (m *MainMenu) mode() component.ModeIndicator {
 // (endHardn).
 type legacyScreen interface{ Show() }
 
-// handled is a legacy handler, Dry-Run's or Run All's, opened as a
-// screen: its Handle, as origin/main's handleMenuChoice called it.
+// handled is a legacy handler, Run All's, opened as a screen: its
+// Handle, as origin/main's handleMenuChoice called it.
 type handled struct{ handler interface{ Handle() } }
 
 // Show runs the handler.
@@ -644,7 +646,7 @@ func (h handled) Show() { h.handler.Handle() }
 // screens build what the main menu's items open: origin/main's screens,
 // but the DNS item's, which is the hook cmd/hardn sets (SetDNS).
 type screens struct {
-	users, sshLogin, firewall, backup, dryRun, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, backup, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
@@ -655,7 +657,6 @@ var legacyScreens = screens{
 	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
 	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
 	backup:      func(m *MainMenu) legacyScreen { return NewBackupMenu(m.menuManager, m.config) },
-	dryRun:      func(m *MainMenu) legacyScreen { return handled{NewDryRunHandler(m.menuManager, m.config)} },
 	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
 	systemDetails: func(m *MainMenu) legacyScreen {
@@ -669,14 +670,15 @@ var legacyScreens = screens{
 // in place of opening it.
 var openScreen = func(s legacyScreen) { s.Show() }
 
-// mainMenu is the main menu's items, origin/main's (createMainMenu's)
-// unchanged in content, labels, numbering 1 to 10 and 0, and
-// descriptions, item 1's parenthesis its aside, each bound to the screen
-// it opened (legacyScreens, and the DNS screen, showDNS); its Exit item
-// "0) Exit", "q to quit" (DEV-030). Each screen is built as its item is
-// chosen, as origin/main built it, and ends the pass when it returns
-// (errAgain). Item 6 and Run All's option 2 stay until slice 2b's unit
-// (d).
+// mainMenu is the main menu's items, origin/main's unchanged in content,
+// labels, keys and descriptions, item 1's parenthesis its aside, each
+// bound to the screen it opened (legacyScreens, and the DNS screen,
+// showDNS); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
+// Dry-Run, is removed and its key left unused (slice 2b, unit (d);
+// decision 1): 6 is refused as any key no item has, 7 to 10 keep their
+// keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
+// Each screen is built as its item is chosen, as origin/main built it,
+// and ends the pass when it returns (errAgain).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -695,7 +697,6 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: open(s.backup)},
-			{Item: item("6", "Dry-Run", "Simulate changes"), Action: open(s.dryRun)},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
 			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
@@ -703,46 +704,4 @@ func (m *MainMenu) mainMenu() nav.Menu {
 		},
 		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
 	}
-}
-
-// createMainMenu is origin/main's main menu on pkg/style (style.Menu),
-// with its "Dry-run Mode" indicator (SetDryRunStatus). hardn has not drawn
-// it since slice 2b's unit (c) put the main menu on its layout (mainMenu
-// holds the same items); it is kept, its code untouched, as the record
-// pkg/menu's main_menu goldens render (TestMainMenuRenderGolden) and as
-// style.Menu.SetDryRunStatus's last caller, both until unit (d).
-func (m *MainMenu) createMainMenu() *style.Menu {
-	// Create menu options
-	menuOptions := []style.MenuOption{
-		{Number: 1, Title: "User Management", Description: "Create, Configure (sudo, SSH keys)"},
-		{Number: 2, Title: "SSH Login", Description: "Toggle SSH root access"},
-		{Number: 3, Title: "DNS", Description: "Configure Nameservers"},
-		{Number: 4, Title: "Firewall", Description: "Configure UFW rules"},
-		{Number: 5, Title: "Backup", Description: "Configure Hardn backup settings"},
-		{Number: 6, Title: "Dry-Run", Description: "Simulate changes"},
-		{Number: 7, Title: "Run All", Description: "Execute hardening operations"},
-		// {Number: 7, Title: "Linux Packages", Description: "Install specified Linux packages"},
-		// {Number: 8, Title: "Package Sources", Description: "Configure package source"},
-		{Number: 8, Title: "Environment", Description: "Configure environment variable"},
-		{Number: 9, Title: "System Details", Description: "View system information"},
-		{Number: 10, Title: "Logs", Description: "View log file"},
-	}
-
-	// Create and customize menu
-	menu := style.NewMenu("Select an option", menuOptions)
-
-	// Set indentation for menu options (4 spaces)
-	menu.SetIndentation(2)
-
-	// Set dry-run status to display alongside the title
-	menu.SetDryRunStatus(true, m.config.DryRun)
-
-	// Set custom exit option
-	menu.SetExitOption(style.MenuOption{
-		Number:      0,
-		Title:       "Exit",
-		Description: "q to quit",
-	})
-
-	return menu
 }

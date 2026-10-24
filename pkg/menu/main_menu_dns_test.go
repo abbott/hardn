@@ -58,7 +58,7 @@ func TestDNSItem(t *testing.T) {
 			}
 			// The DNS screen opens on a cleared screen, after the main
 			// menu's prompt and the 3 typed.
-			if !strings.Contains(out, "[0-10 or q]: \n"+clearScreen+"DNS SCREEN\n") {
+			if !strings.Contains(out, "[0-5, 7-10 or q]: \n"+clearScreen+"DNS SCREEN\n") {
 				t.Errorf("the DNS screen does not open on a cleared screen:\n%q", out)
 			}
 			wantPasses := map[bool]int{false: 1, true: 2}[tc.again]
