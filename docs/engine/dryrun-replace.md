@@ -101,7 +101,7 @@ git show cc04c17:pkg/menu/testdata/golden/run_all/option1-live-cancel.golden | c
 | docs/configuration.md | "**Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them."; the note's "Item 6 is now removed, and Run All no longer turns dry run on or off." | **proposed** (decision 10) |
 | docs/releases/unreleased.md | the header; "**Run All no longer turns dry run on or off.** …"; "**Under plan only, some menu areas are refused.** …" | **proposed** |
 
-## 7. The VM steps (for the orchestrator)
+## 7. The VM steps (run 2026-10-23, §7.1)
 
 On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), as root (Alpine through doas), hardn built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn`, the VM's `GOARCH`), from `/root`, in tmux (`tmux new -x 80 -y 40`). Never choose Run All's 1 here: live it runs every step.
 
@@ -115,6 +115,25 @@ On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), a
 8. **After:** `sha256sum -c /root/dryrun-replace-before`: every file OK, step 6 having restored hardn.yml; `ls -l /root/hardn.yml`: as in step 1, or still absent; `find /etc /var/lib /var/backups /root -newer /root/dryrun-replace-stamp` lists only `/root` itself, step 6's `/etc/hardn` where its edit or the file's creation changed the directory, and the backup directory of steps 3 and 6's live Backup (`.write_test`, written and removed); nothing from steps 5 to 7.
 
 Record per VM: the main menu's line count and hint, each refusal's line as drawn, Run All's menu live and under `-n`, and the `find` output.
+
+### 7.1 Run 2026-10-23: Debian 13, Ubuntu 26.04, Alpine 3.23
+
+Built from `ff5b251` (hardn sha256 `260259f6…`), as root on the maintainer's three VMs, 80×40, driven with expect (in place of tmux), each VM put back after, hardn's binary as it was. Run All's 1 was never chosen.
+
+Passed on all three:
+- **Live (step 2):** "[0-5, 7-10 or q]", no "6) Dry-Run"; `6` refused, "⨳ Invalid option. Please try again.".
+- **Live, 1 and 5 (step 3):** each opened its screen, and `0` came back to the main menu.
+- **Live, Run All (step 4):** "1) Run all hardening steps" and "0) Return to main menu" under "[0-1 or q]", no option 2. `2` was refused and Enter showed the screen again; `0` gave "Operation cancelled. No changes were made.". On Ubuntu and Alpine, with no hardn.yml, Run All first asked "Would you like to set a username now? (y/n)" (answered n), as origin/main does.
+- **Plan only, from `-n` and from hardn.yml's `dryRun: true`** (steps 5, 6):
+  - `1` and `5` refused under the prompt, "⨳ Not available in plan only.", no screen;
+  - `6` refused as invalid;
+  - Firewall, profiles, `1` (add) refused in that screen's style, then its "Press Enter" pause;
+  - Run All's menu shown without option 2.
+  - The file was the maintainer's on Debian 13, edited and put back byte for byte; created and removed on Ubuntu and Alpine.
+- **ASCII (step 7):** `LANG=C`, `-n`, `1`: "(x) Not available in plan only.".
+- **After (step 8):** no file of the snapshot changed, and no file under `/etc`, `/var/lib`, `/var/backups`, `/root` or `/home` newer than the run, apart from two files: Alpine's `/etc/hardn/hardn.yml.example`, written by start-up where no hardn.yml exists (menu-live.md §10.1), and Debian 13's `/var/lib/systemd/timesync/clock` (systemd-timesyncd's, not hardn's). No `./hardn.yml` was written.
+
+Not run: step 6's `--dry-run=false` with Backup, and the Firewall profile's remove (2) (its add was refused on all three).
 
 ## 8. Decisions of this unit
 
