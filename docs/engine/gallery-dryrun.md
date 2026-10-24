@@ -5,6 +5,7 @@
 > **Unit (b) built** (`next/s2b-mode`, [dryrun-mode.md](dryrun-mode.md)): the mode as §2.1 says origin/main sets it is now §3.19's precedence, its source kept for the indicator; decisions 8, 9 and 10, the deprecation note with it. The mocks are unchanged: they still draw the mode's source from the mock (§7).
 > **Unit (c) built** (`next/s2b-menu`, [menu-layout.md](menu-layout.md)): hardn's main menu is on the layout in its full form at every height, the compact form gated, with the decided indicator (decisions 2, 3, 5 as adopted).
 > **Retired by `next/s2b-menu`** (unit (c)): the main-menu and mode mocks (`menu`, `menu-dry-run`, `menu-proposed`, `menu-proposed-plan-only`, `mode`) and `play dryrun/proposed`, replaced by hardn's own main menu and the component's indicator; their code, goldens and tests are gone from the tree (git keeps them: `next/s2b-mode`, 7347cbe), and this page is their design record (§10). The other mocks are unit (d)'s.
+> **Retired by `next/s2b-replace`** (unit (d)): the rest, `screen`, `screen-enabled`, `toggle`, `legacy-firewall`, `play dryrun` and `play dryrun/saved`, with the `dryrun` mode and `dryrun.go`, as item 6 and the legacy Dry-Run code go ([dryrun-replace.md](dryrun-replace.md)); git keeps them (`next/s2b-menu`, cc04c17), and §11 records what each showed and where it is now. The gallery has no Dry-Run mode left.
 
 ## 1. Review description
 
@@ -64,6 +65,8 @@ Each claim is **run** (a characterization golden or a gallery test) or **read** 
 ### 3.1 What to run
 
 > *Retired by unit (c), `next/s2b-menu` (§8): the mocks `menu`, `menu-dry-run`, `menu-proposed`, `menu-proposed-plan-only` and `mode`, and `play dryrun/proposed`, with their goldens and tests (`TestDryRunHeights`, `TestDryRunHeightsLine`, `TestModeHeading`, the proposed variant's cases); git keeps them (`next/s2b-mode`, 7347cbe), and the rows below record what they showed. hardn's main menu is now drawn on its layout with the decided indicator ([menu-layout.md](menu-layout.md)), and `play dryrun` and `play dryrun/saved` draw their main menu as hardn draws it, "Mode Live", "Mode Plan only (-n)" under `-sequence dry-run`, "Mode Plan only" once the session's toggle set it. The commands for them below are marked retired; §10 says where each is now.*
+
+> *Retired by unit (d), `next/s2b-replace` (§11): the rest of the mocks and play variants, and with them the `dryrun` mode: every command below is retired.*
 
 From the repository root, with `GOTOOLCHAIN=local GOWORK=off` (add `-width 60`, `-height 24` or `-theme light`; the listing and play take the terminal's size where `-width` and `-height` are not given; `-profile plain` is no terminal, so it draws the main menus' full form at any height):
 
@@ -189,3 +192,18 @@ Unit (c) built what the main-menu and mode mocks designed: hardn's main menu is 
 | `play dryrun/proposed` | Started as `hardn -n`: "Mode Plan only (-n)"; 6 refused; 1 and 5 refused (decision 6); DNS Add stopping at its plan | The indicator, `play -sequence dry-run dryrun`; DNS Add under plan only, `play dryrun` (3, 2, 192.0.2.53); the refusals of 6, 1 and 5 are unit (d)'s |
 
 **What differs from the mocks**, each hardn's main menu's: **the full form at every height** (decision 5 as adopted): the mocks drew the compact form at 80×24, 25 lines with the risk level on screen; hardn's main menu draws 36 there, its first 12 lines, the risk level among them, scrolled off (§3.2, menu-layout.md §6). Item 6 is still there, as `menu` and `menu-dry-run` had it, until unit (d). A line no item takes is refused under the prompt, as `play dryrun/proposed` refused 6. The indicator's words, colours and narrow-terminal order are as the mocks drew them (DEV-065), now the component's rather than the gallery's `modeView`.
+
+## 11. Retired by `next/s2b-replace`
+
+Unit (d) removed what the remaining mocks were drawn around: item 6 and its two screens (`dry_run_handler.go`, `dry_run_menu.go`), Run All's option 2, and the session's toggle with them ([dryrun-replace.md](dryrun-replace.md)). Decision 1 is adopted, so the mocks of its alternative (a) design nothing that will be built, and the Firewall transcript was the evidence for decision 6. **They are retired with the mode that lists and plays them**: `dryrun.go` and `dryrun_test.go`, their four listing goldens (`dryrun/screen`, `screen-enabled`, `toggle`, `legacy-firewall`) and two play transcripts (`play/dryrun`, `play/dryrun-saved`), and the `dryrun` and `play dryrun` dispatch in `main.go` and `play.go`. No helper of the gallery's had them as its last caller (`golangci-lint`'s `unused` reports none). git keeps all of them as of `next/s2b-menu` (cc04c17), and §3 records what they showed.
+
+| Mock | What it showed (§3.1) | Now |
+|---|---|---|
+| `screen` | Decision 1's alternative (a): the Dry-Run item on the sub-menu layout, origin/main's words, live | Not built (decision 1: item 6 removed, its key refused). origin/main's screens: the parity record, `pkg/menu/testdata/legacy/menu/dry_run_enable.golden` and `dry_run_return.golden` |
+| `screen-enabled` | The same in dry run, its menu printed, which origin/main's never is | Not built. origin/main's: `legacy/menu/dry_run_disable.golden` ("Enabled menu never printed") |
+| `toggle` | Decision 4's alternative (a): "Enable dry-run mode" saved through the canonical flow, `dryRun` alone in hardn.yml | Not built: with no toggle, decision 4 has nothing to decide. `dryRun` is set by editing hardn.yml (docs/configuration.md), and the legacy saves write it as loaded (decision 8, [dryrun-mode.md](dryrun-mode.md) §1.4) |
+| `legacy-firewall` | origin/main's Firewall screen, Configure under dry run, as pkg/menu prints it | `pkg/characterization`'s `menu/firewall_configure_dry_run.golden`, which `TestLegacyMenuDryRun` keeps recording (Configure is unchanged); the profiles' add and remove are refused under plan only (decision 6, `pkg/menu`'s `TestPlanOnlyRefusals`) |
+| `play dryrun` | 6 toggling plan only for the session; 3, DNS Add stopping at its plan; 4, the Firewall transcript; 1, the note of what origin/main does there (V2) | 6 refused as any key no item has (`pkg/menu`'s `TestMainMenuKeys`); DNS under plan only, `play -sequence dry-run dns/debian13` (`play/dns-dry-run`); 1 and 5 refused before their screens under plan only (`TestPlanOnlyRefusals`) |
+| `play dryrun/saved` | The saved toggle played; under `-n`, "Nothing needs changing." and plan only staying, the flag winning | Not built (decision 4's alternative (a)). The flag winning over hardn.yml: `cmd/hardn`'s `TestDryRunPrecedence` (unit (b)) |
+
+The notes play wrote above items 1, 2 and 5 under dry run, what origin/main does there, go with it: 1 and 5 are now refused under plan only, and 2's own check is unchanged (§2.4).
