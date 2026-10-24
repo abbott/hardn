@@ -366,17 +366,20 @@ func (m *FirewallMenu) manageAppProfiles() {
 
 	switch choice {
 	case "1":
-		// Add application profile
-		m.addAppProfile()
+		// Add application profile, refused under plan only
+		if !m.refusedInPlanOnly() {
+			m.addAppProfile()
+		}
 		m.manageAppProfiles()
 		return
 
 	case "2":
-		// Remove application profile (only if profiles exist)
+		// Remove application profile (only if profiles exist), refused
+		// under plan only
 		if len(m.config.UfwAppProfiles) == 0 {
 			fmt.Printf("\n%s No profiles to remove\n",
 				style.Colored(style.Yellow, style.SymWarning))
-		} else {
+		} else if !m.refusedInPlanOnly() {
 			m.removeAppProfile()
 		}
 
@@ -409,6 +412,22 @@ func (m *FirewallMenu) manageAppProfiles() {
 		m.manageAppProfiles()
 		return
 	}
+}
+
+// refusedInPlanOnly refuses, under plan only, adding or removing an
+// application profile, which saves ./hardn.yml whatever the mode (refactor
+// plan slice 2b, unit (d), decision 6), before anything is asked or saved:
+// it says so as this screen refuses a choice it does not take, then waits
+// for Enter, and reports true. Live it says nothing and reports false.
+// The screen's other actions keep their own dry-run checks.
+func (m *FirewallMenu) refusedInPlanOnly() bool {
+	if !m.config.DryRun {
+		return false
+	}
+	fmt.Printf("\n%s %s\n", style.Colored(style.Red, style.SymCrossMark), notInPlanOnly)
+	fmt.Printf("\n%s Press Enter to continue...", style.Dimmed(style.SymRightCarrot))
+	ReadKey()
+	return true
 }
 
 // handle adding a new application profile

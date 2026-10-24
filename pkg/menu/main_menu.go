@@ -59,6 +59,13 @@ const (
 	mainPrompt  = "Enter selection"
 )
 
+// notInPlanOnly refuses, under plan only, a legacy screen that changes the
+// host or saves ./hardn.yml whatever the mode (refactor plan slice 2b,
+// unit (d), decision 6, adopted 2026-10-23): the main menu's User
+// Management and Backup, before their screens, and Firewall's profile add
+// and remove, until their slices put them on the flow.
+const notInPlanOnly = "Not available in plan only."
+
 // errAgain ends a pass of the main menu once an item's screen has
 // returned, so that the next pass reads the status again and draws the
 // main menu under what the screen printed.
@@ -678,7 +685,11 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
-// and ends the pass when it returns (errAgain).
+// and ends the pass when it returns (errAgain). Under plan only, whatever
+// set it, User Management (1) and Backup (5), which change the host and
+// save ./hardn.yml whatever the mode, are refused under the prompt before
+// their screens are built, "Not available in plan only.", as a key no
+// item has is refused (decision 6); live, they open as before.
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -687,16 +698,22 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			return errAgain
 		}
 	}
+	planOnly := func() string {
+		if m.config.DryRun {
+			return notInPlanOnly
+		}
+		return ""
+	}
 	item := func(key, label, description string) component.MenuItem {
 		return component.MenuItem{Key: key, Label: label, Description: description}
 	}
 	return nav.Menu{
 		Options: []nav.Option{
-			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: open(s.users)},
+			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: open(s.users), Refusal: planOnly},
 			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
-			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: open(s.backup)},
+			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: open(s.backup), Refusal: planOnly},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
 			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
