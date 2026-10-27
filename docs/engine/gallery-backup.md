@@ -79,6 +79,8 @@ go run ./internal/tools/uigallery play backup/default            # the screen on
 go run ./internal/tools/uigallery play -sequence dry-run backup/default   # plan only
 ```
 
+*Since `next/s3-screen` ([screen-backup.md](screen-backup.md) §10): the first two lines no longer run, the listing retired (run: "no component or state "backup"", exit 2); the `play` lines play the real screen.*
+
 The hosts are Debian 13 (`web-01.example.net`), hardn.yml as `hardn.yml.example` writes the two keys:
 
 | Host | hardn.yml / host | Path row |
