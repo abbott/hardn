@@ -395,8 +395,6 @@ func (r *Run) prepare(ctx context.Context, path string) (err error) {
 	return nil
 }
 
-// save writes the manifest, after a backup of path; a write that fails is
-// a WriteError.
 // deepest is the deepest entry of dir's path that exists, top, and the
 // missing ones under it, dir first. A component that is not a directory
 // (syscall.ENOTDIR, a file on the way) is walked past, as one missing, so
@@ -416,6 +414,8 @@ func deepest(ctx context.Context, sys host.System, dir string) (top string, miss
 	}
 }
 
+// save writes the manifest, after a backup of path; a write that fails is
+// a WriteError.
 func (r *Run) save(ctx context.Context, path string) error {
 	b, err := json.MarshalIndent(r.m, "", "  ")
 	if err != nil {
