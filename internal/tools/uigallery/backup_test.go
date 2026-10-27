@@ -18,12 +18,14 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -252,13 +254,15 @@ func planOn(t *testing.T, h *fakeHost, settings backup.Settings, cfg *config.Con
 // the screen's own saves, a path change to a safe path among them (its
 // own backup goes to the path refused), and the DNS control's Configure
 // DNS (the relative path is what origin/main's Backup screen saves, so
-// the DNS screen's next change in that session is refused). The mock's
-// path change, planned under the path it saves (decision 7 (a)), is not.
+// the DNS screen's next change in that session is refused), with Check's
+// error as it is and its code, no words of its own. The mock's path
+// change, planned under the path it saves (decision 7 (a)), is not.
 func TestBackupRefusesEveryChange(t *testing.T) {
 	for _, tt := range []struct {
 		host string
 		want error
-	}{{"unsafe", backup.ErrUnsafeDir}, {"relative", backup.ErrSettings}} {
+		code string
+	}{{"unsafe", backup.ErrUnsafeDir, "UNSAFE_DIRECTORY"}, {"relative", backup.ErrSettings, "BACKUP_SETTINGS_INVALID"}} {
 		_, h, cfg := readHost(t, tt.host)
 		h.withHardnYML(backupYML(true, cfg.BackupPath) + "nameservers:\n  - \"192.0.2.54\"\n")
 		loaded, err := config.Read(context.Background(), h.f, hardnYML)
@@ -276,8 +280,15 @@ func TestBackupRefusesEveryChange(t *testing.T) {
 			{"a path change", &moved, backupSave("backupPath")},
 			{"Configure DNS", loaded, dnsctl.Nameservers{Config: loaded}},
 		} {
-			if _, p := planOn(t, h, loaded.BackupSettings(), c.cfg, c.control); !errors.Is(p.Err(), tt.want) {
+			_, p := planOn(t, h, loaded.BackupSettings(), c.cfg, c.control)
+			if !errors.Is(p.Err(), tt.want) {
 				t.Errorf("%s, %s: plan refused with %v, want %v", tt.host, c.what, p.Err(), tt.want)
+			}
+			// The refusal is Check's error as it is, with no Why or Fix
+			// (gallery-backup.md §7, defect 12), and its code.
+			var words *steps.Refusal
+			if errors.As(p.Err(), &words) || output.CodeOf(p.Err()) != tt.code {
+				t.Errorf("%s, %s: refused with words %+v, code %s, want none and %s", tt.host, c.what, words, output.CodeOf(p.Err()), tt.code)
 			}
 		}
 		if _, p := planOn(t, h, moved.BackupSettings(), &moved, backupSave("backupPath")); p.Err() != nil {
