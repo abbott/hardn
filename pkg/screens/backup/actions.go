@@ -22,9 +22,10 @@ import (
 )
 
 // The items' words (docs/engine/screen-backup.md §5): the path field's
-// question, origin/main's without its colon; the rest the adopted mock's,
-// proposed (gallery-backup.md §6), but the refused path's first sentence,
-// the control's Why, decided (control-backup.md §6).
+// question, origin/main's without its colon; runsNotRead and someNotRead,
+// new in this unit, proposed; the rest the adopted mock's, proposed
+// (gallery-backup.md §6), but the refused path's first sentence, the
+// control's Why, decided (control-backup.md §6).
 const (
 	pathTitle = "Enter new backup path"
 	// The questions.
@@ -52,7 +53,8 @@ const (
 // action returns what choosing the item keyed key does with the reading
 // h: with no hardn.yml read, items 1 and 2 say that nothing can be saved;
 // item 1, where Check refuses the path, says why (decision 7 (a)); else
-// each item's change, Verify's report or the runs.
+// each item's change, Verify's report, made only once item 3 is chosen,
+// or the runs.
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.BackupStateItem:
@@ -69,7 +71,7 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		}
 		return func() error { return r.changePath(ctx, h) }
 	case screen.BackupVerifyItem:
-		return r.s.Say(verify(ctx, r.o.System, h.Reading))
+		return func() error { return r.s.Say(verify(ctx, r.o.System, h.Reading))() }
 	case screen.BackupRunsItem:
 		return r.openRuns(h)
 	}
