@@ -18,6 +18,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -42,17 +43,18 @@ import (
 // simulated host (fakehost.go): the backup settings as config.Read loads
 // hardn.yml (Config.BackupSettings), what pkg/host/backup's Check refuses
 // of them, the runs under backupPath as backup.Load reads their
-// manifests. Each change is the canonical flow on the real engine, as the
-// DNS screen runs it (output.FlowEngine): its plan the save of the one
-// setting it changes (steps.PlanSave, config.Edit in place), the engine's
-// backups taken as the settings it saves say (gallery-backup.md decision
-// 7 (a): cmd/hardn's engineOptions takes hardn.yml as loaded); hardn.yml
+// manifests (backup.Runs). Each change is the canonical flow on the real
+// engine, as the DNS screen runs it (output.FlowEngine): its plan Backup's
+// control's, the save of the setting it changes (steps.PlanSave,
+// config.Edit in place), the engine's backups taken under the settings it
+// saves (gallery-backup.md decision 7 (a), on the engine since
+// next/s3-control); the reading, the path field's check and the
+// directory a refusal names, the control's (backupctl); hardn.yml
 // adopted as saved and the results set apart with the glue the screens
-// share (pkg/screens/screenkit: Adopt, Apart). The mock's
-// own, labelled so in the page: the screen's words, the path field's
-// check that a path is clean, and the restore's control (P-19), whose
-// apply is backup.Restore inside an engine change. The lines saying what
-// a change backed up (§3.16) are pkg/output's since next/s3-control.
+// share (pkg/screens/screenkit: Adopt, Apart). The mock's own, labelled
+// so in the page: the screen's words, and the restore's control (P-19),
+// whose apply is backup.Restore inside an engine change. The lines saying
+// what a change backed up (§3.16) are pkg/output's since next/s3-control.
 // "backup" lists the mocks with no input; "play backup" is the menu of
 // the hosts and "play backup/<host>" the screen on one.
 
@@ -265,83 +267,23 @@ func runFiles(r earlierRun) map[string][]byte {
 
 // backupReading is one reading of a host's backups: the settings
 // hardn.yml gives, what Check makes of them, whether the directory is
-// there, and the runs in it.
+// there (Backup's control's reading, backupctl.Read), and the runs in it.
 type backupReading struct {
-	settings backup.Settings
-	// check is backup.Check's error for the settings, with no path: what
-	// every change's plan refuses before anything else.
-	check error
-	// made: backupPath is a directory; when not, Check passed on the
-	// directory above it, and the first change makes it.
-	made bool
-	// runs are the runs under backupPath whose manifests backup.Load
-	// reads, newest first.
+	backupctl.Reading
+	// runs are the runs under backupPath, newest first (backup.Runs).
 	runs []backup.Manifest
 }
 
-// readBackups reads the backups of sys as cfg sets them.
+// readBackups reads the backups of sys as cfg sets them, as Backup's
+// control reads them (backupctl.Read), and the runs under the path when
+// Check takes it and it is there (backup.Runs; a run it cannot read is
+// left out, as before).
 func readBackups(ctx context.Context, sys host.System, cfg *config.Config) backupReading {
-	r := backupReading{settings: cfg.BackupSettings()}
-	r.check = backup.Check(ctx, sys, r.settings, backup.NewRunID(clock()), nil)
-	if r.check != nil {
-		return r
-	}
-	dir := path.Clean(r.settings.Path)
-	if fi, err := sys.Lstat(ctx, dir); err == nil && fi.IsDir() {
-		r.made = true
-		r.runs = readRuns(ctx, sys, dir)
+	r := backupReading{Reading: backupctl.Read(ctx, sys, cfg)}
+	if r.Err == nil && r.Made {
+		r.runs, _ = backup.Runs(ctx, sys, r.Settings.Path)
 	}
 	return r
-}
-
-// readRuns returns the runs under dir whose manifests backup.Load reads,
-// newest first: a run id starts with its time, so its name sorts them.
-func readRuns(ctx context.Context, sys host.System, dir string) []backup.Manifest {
-	entries, err := sys.ReadDir(ctx, dir)
-	if err != nil {
-		return nil
-	}
-	var runs []backup.Manifest
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
-		}
-		if m, err := backup.Load(ctx, sys, path.Join(dir, e.Name())); err == nil {
-			runs = append(runs, m)
-		}
-	}
-	slices.SortFunc(runs, func(a, b backup.Manifest) int { return strings.Compare(b.RunID, a.RunID) })
-	return runs
-}
-
-// refusalWord is the path row's note for err, Check's refusal: a word or
-// two, Verify saying the rest (verifyWords).
-func refusalWord(err error) string {
-	switch {
-	case errors.Is(err, backup.ErrSettings):
-		return "Not absolute"
-	case errors.Is(err, backup.ErrUnsafeDir):
-		return "Unsafe"
-	case errors.Is(err, syscall.ENOTDIR):
-		return "Not a directory"
-	}
-	return "Can't tell"
-}
-
-// unsafeDir is the directory Check names in an ErrUnsafeDir, "backup:
-// <dir>: directory another user can change"; "" when err names none.
-// Read from the error's text: pkg/host/backup has no typed error that
-// carries it (gallery-backup.md §8).
-func unsafeDir(err error) string {
-	s, ok := strings.CutPrefix(err.Error(), "backup: ")
-	if !ok {
-		return ""
-	}
-	dir, ok := strings.CutSuffix(s, ": "+backup.ErrUnsafeDir.Error())
-	if !ok || !path.IsAbs(dir) {
-		return ""
-	}
-	return dir
 }
 
 // subMenu is the screen of r: the title bar; the section, its state row,
@@ -352,21 +294,18 @@ func unsafeDir(err error) string {
 func (r backupReading) subMenu() screen.SubMenu {
 	state := component.KeyValue{Key: stateKey, Value: "Enabled", State: component.ValueOK}
 	turn := "Turn backups off"
-	if !r.settings.Enabled {
+	if !r.Settings.Enabled {
 		state.Value, state.State, turn = "Disabled", component.ValueWarn, "Turn backups on"
 	}
-	where := component.KeyValue{Key: pathKey, Value: r.settings.Path, State: component.ValueOK, Note: "Root only"}
+	where := component.KeyValue{Key: pathKey, Value: r.Settings.Path, State: component.ValueOK, Note: r.Note()}
 	switch {
-	case r.check != nil:
-		where.State, where.Note = component.ValueBad, refusalWord(r.check)
-		if where.Note == "Can't tell" {
-			where.State = component.ValueUnknown
-		}
-	case !r.made:
-		where.Note = "Not created yet"
+	case r.Note() == backupctl.DetailCantTell:
+		where.State = component.ValueUnknown
+	case r.Err != nil:
+		where.State = component.ValueBad
 	}
 	rows := []component.KeyValue{state, where}
-	if !r.settings.Enabled {
+	if !r.Settings.Enabled {
 		rows = []component.KeyValue{state, {Key: rollbackOnly, State: component.ValueNone}, where}
 	}
 	runs := "None yet"
@@ -400,9 +339,9 @@ func (r backupReading) statusRowScreen() screen.SubMenu {
 	vm := r.subMenu()
 	row := component.StatusRow{Label: "Backups", State: component.StatusConfigured, Word: "Enabled"}
 	switch {
-	case r.check != nil:
-		row.State, row.Word, row.Detail = component.StatusNotConfigured, "", strings.ToLower(refusalWord(r.check))
-	case !r.settings.Enabled:
+	case r.Err != nil:
+		row.State, row.Word, row.Detail = component.StatusNotConfigured, "", strings.ToLower(r.Note())
+	case !r.Settings.Enabled:
 		row.State, row.Word, row.Detail = component.StatusPartial, "", "rollback backups only"
 	}
 	vm.Status = component.StatusList{Rows: []component.StatusRow{row}}
@@ -434,9 +373,9 @@ func refusal(err error, p string) component.Message {
 	case errors.Is(err, backup.ErrSettings):
 		text = fmt.Sprintf("%q is not an absolute path. Start it with /.", p)
 	case errors.Is(err, backup.ErrUnsafeDir):
-		dir := unsafeDir(err)
-		if dir == "" {
-			dir = p
+		dir := p
+		if de := (*backup.DirError)(nil); errors.As(err, &de) {
+			dir = de.Dir
 		}
 		text = "Others can change " + dir + ", so backups can't go in " + p + ". Choose a directory only root can change."
 	case errors.Is(err, syscall.ENOTDIR):
@@ -451,11 +390,11 @@ func refusal(err error, p string) component.Message {
 // nothing was written, as prose; when Check refuses, the refusal, then
 // the prose.
 func verifyWords(r backupReading) component.Messages {
-	p := r.settings.Path
+	p := r.Settings.Path
 	switch {
-	case r.check != nil:
-		return component.Messages{refusal(r.check, p), {Text: nothingWritten}}
-	case r.made:
+	case r.Err != nil:
+		return component.Messages{refusal(r.Err, p), {Text: nothingWritten}}
+	case r.Made:
 		return component.Messages{{Text: "Only root can change " + p + ". " + nothingWritten}}
 	}
 	return component.Messages{{Text: "Only root can change " + path.Dir(path.Clean(p)) + ", where the first backup makes " + p + ". " + nothingWritten}}
@@ -527,43 +466,18 @@ func runScreen(m backup.Manifest) screen.SubMenu {
 	}
 }
 
-// backupSave is the control a change of the screen plans with: the save
-// of the one hardn.yml setting it changes, setting, through
-// steps.PlanSave (config.Edit in place, §3.19 as amended). No control of
-// hardn has it: unit (b)'s.
-func backupSave(setting string) engine.Control {
-	return galleryControl{id: "backup.settings", title: "Backups", plan: func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-		return steps.PlanSave(ctx, sys, "backup.settings/save", in.Config, []string{setting})
-	}}
-}
-
 // pathCheck is the path field's check of the entry typed, with current
-// the path in use: none; Check's refusals of it, as Open and the plan
-// refuse them (backup.Check, real); not clean, which Open would clean
-// unsaid (the mock's own); the path in use, a warning, as the DNS
-// screen's "already configured".
+// the path in use: Backup's control's (backupctl.Field: Check's refusals,
+// a path not written clean, decision 5), the path in use a warning, as
+// the DNS screen's "already configured" (decision 6).
 func pathCheck(ctx context.Context, sys host.System, current string) func(string) error {
 	return func(entry string) error {
-		if entry == "" {
-			return errors.New("Backup path cannot be empty")
-		}
-		err := backup.Check(ctx, sys, backup.Settings{Path: entry, Enabled: true}, backup.NewRunID(clock()), nil)
-		switch {
-		case errors.Is(err, backup.ErrSettings):
-			return errors.New("Not an absolute path")
-		case path.Clean(entry) != entry:
-			return errors.New("Write it as " + path.Clean(entry))
-		case entry == current:
-			return nav.Warn(entry + " is the backup path already")
-		case errors.Is(err, backup.ErrUnsafeDir):
-			if dir := unsafeDir(err); dir != "" {
-				return errors.New("Others can change " + dir)
+		var fe *backupctl.FieldError
+		if err := backupctl.Field(ctx, sys, current, entry); errors.As(err, &fe) {
+			if fe.Warn {
+				return nav.Warn(fe.Words)
 			}
-			return errors.New("Others can change it")
-		case errors.Is(err, syscall.ENOTDIR):
-			return errors.New("Not a directory")
-		case err != nil:
-			return errors.New("Can't check it: " + err.Error())
+			return errors.New(fe.Words)
 		}
 		return nil
 	}
@@ -628,12 +542,12 @@ func (b *backupScreen) draw(ctx context.Context) nav.Screen {
 	r := readBackups(ctx, b.h.system(), b.cfg)
 	vm := r.subMenu()
 	toggle := b.toggle(ctx, r)
-	if r.check != nil {
+	if r.Err != nil {
 		// Every plan is refused while Check refuses the path: say so
 		// before asking anything, as the DNS screen does where every plan
 		// is refused. A new path (2) is planned under itself, the way out
 		// (decision 7 (a)).
-		toggle = b.say(component.Messages{refusal(r.check, r.settings.Path)})
+		toggle = b.say(component.Messages{refusal(r.Err, r.Settings.Path)})
 	}
 	actions := map[string]func() error{
 		keyState:  toggle,
@@ -669,7 +583,7 @@ func review(rows ...component.KeyValue) func() flow.Review {
 
 // toggle is item 1: backups turned the other way, through the flow.
 func (b *backupScreen) toggle(ctx context.Context, r backupReading) func() error {
-	on := !r.settings.Enabled
+	on := !r.Settings.Enabled
 	title, question := "Turn Backups Off", "Turn backups off?"
 	rows := []component.KeyValue{{Key: stateKey, Value: "Disabled", State: component.ValueWarn}, {Key: rollbackOnly, State: component.ValueNone}}
 	if on {
@@ -677,7 +591,7 @@ func (b *backupScreen) toggle(ctx context.Context, r backupReading) func() error
 		rows = []component.KeyValue{{Key: stateKey, Value: "Enabled", State: component.ValueOK}}
 	}
 	return func() error {
-		return b.change(ctx, title, nil, review(rows...), "enableBackups", func(c *config.Config) { c.EnableBackups = on },
+		return b.change(ctx, title, nil, review(rows...), func(c *config.Config) { c.EnableBackups = on },
 			func() string { return question })
 	}
 }
@@ -687,7 +601,7 @@ func (b *backupScreen) toggle(ctx context.Context, r backupReading) func() error
 func (b *backupScreen) changePath(ctx context.Context, r backupReading) func() error {
 	return func() error {
 		var entry string
-		field := &form.Text{Title: pathTitle, Validate: pathCheck(ctx, b.h.system(), r.settings.Path), Value: &entry}
+		field := &form.Text{Title: pathTitle, Validate: pathCheck(ctx, b.h.system(), r.Settings.Path), Value: &entry}
 		rows := func() flow.Review {
 			kv := component.KeyValue{Key: pathKey, Value: entry, State: component.ValueOK, Note: "Root only"}
 			if fi, err := b.h.system().Lstat(ctx, entry); err != nil || !fi.IsDir() {
@@ -695,15 +609,16 @@ func (b *backupScreen) changePath(ctx context.Context, r backupReading) func() e
 			}
 			return flow.Review{Title: backupSection, Items: []component.KeyValue{kv}}
 		}
-		return b.change(ctx, "Change Backup Path", []form.Field{field}, rows, "backupPath", func(c *config.Config) { c.BackupPath = entry },
+		return b.change(ctx, "Change Backup Path", []form.Field{field}, rows, func(c *config.Config) { c.BackupPath = entry },
 			func() string { return "Use " + entry + "?" })
 	}
 }
 
 // newEngine is the engine of one change of the screen, over the host as
-// the engine reaches it, as the DNS screen's is: its backups taken as
-// settings say, the gallery's hold, its events recorded by rec and drawn
-// by fe.
+// the engine reaches it, as the DNS screen's is: its backups as settings
+// say, hardn.yml's as loaded (a plan of Backup's control takes the
+// settings it saves), the gallery's hold, its events recorded by rec and
+// drawn by fe.
 func (b *backupScreen) newEngine(settings backup.Settings, rec *recorder, fe *output.FlowEngine) *engine.Engine {
 	return engine.New(b.h.system(), engine.Options{
 		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
@@ -716,14 +631,16 @@ func (b *backupScreen) newEngine(settings backup.Settings, rec *recorder, fe *ou
 }
 
 // change runs one change of the screen under its title bar: the form;
-// the review; the plan, the engine's, of the save of setting from a copy
-// of hardn.yml that edit changes, the engine taking its backups as the
-// settings saved say (decision 7 (a)), so that a new path takes the
-// change's own backup, and turning backups off takes it with them off;
-// question, y/N; the apply. Then what the flow does not draw
-// (output.AfterFlow, which says what the run backed up since
-// next/s3-control), and hardn.yml adopted as saved.
-func (b *backupScreen) change(ctx context.Context, title string, fields []form.Field, rv func() flow.Review, setting string,
+// the review; the plan, the engine's, of Backup's control, the save of
+// what edit changes in a copy of hardn.yml, the engine built as cmd/hardn
+// builds it, its backups as hardn.yml was loaded, and taking the
+// change's backups under the settings it saves (decision 7 (a), the
+// control a BackupsSaver), so that a new path takes the change's own
+// backup, and turning backups off takes it with them off; question, y/N;
+// the apply. Then what the flow does not draw (output.AfterFlow, which
+// says what the run backed up since next/s3-control), and hardn.yml
+// adopted as saved.
+func (b *backupScreen) change(ctx context.Context, title string, fields []form.Field, rv func() flow.Review,
 	edit func(*config.Config), question func() string) error {
 	s, sys := b.s, b.h.system()
 	dryRun := s.sequence == "dry-run"
@@ -736,8 +653,8 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	plans := func() ([]engine.Control, *config.Config) {
 		edited = *b.cfg
 		edit(&edited)
-		fe.Engine = b.newEngine(edited.BackupSettings(), rec, fe)
-		return []engine.Control{backupSave(setting)}, &edited
+		fe.Engine = b.newEngine(b.cfg.BackupSettings(), rec, fe)
+		return backupctl.Controls(b.cfg), &edited
 	}
 	f := flow.Flow{
 		Form:    form.Form{Fields: fields},
