@@ -279,8 +279,8 @@ func TestAdopt(t *testing.T) {
 	}
 }
 
-// TestNotLoaded: with no hardn.yml read, the save's refusal in its words;
-// none with one read.
+// TestNotLoaded: with no hardn.yml read, the save's refusal in its words,
+// for a save of one setting or two; none with one read.
 func TestNotLoaded(t *testing.T) {
 	h, cfg := newHost(t)
 	ctx := context.Background()
@@ -290,6 +290,9 @@ func TestNotLoaded(t *testing.T) {
 	want := []string{"No hardn.yml was read, so there is none to save to. Create /etc/hardn/hardn.yml, then try again."}
 	if got := screenkit.NotLoaded(ctx, h, config.DefaultConfig(), "kit/save", "nameservers"); !slices.Equal(got, want) {
 		t.Errorf("no hardn.yml read: %q, want %q", got, want)
+	}
+	if got := screenkit.NotLoaded(ctx, h, config.DefaultConfig(), "kit/save", "enableBackups", "backupPath"); !slices.Equal(got, want) {
+		t.Errorf("no hardn.yml read, two settings: %q, want %q", got, want)
 	}
 }
 

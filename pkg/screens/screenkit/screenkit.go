@@ -230,14 +230,15 @@ func Adopt(ctx context.Context, sys host.System, c, edited *config.Config) {
 // NotLoaded are the words of the save's refusal of cfg when it was not read
 // from a file (steps.PlanSave's, CONFIG_NOT_LOADED), which every item of a
 // screen that saves hardn.yml says before asking; nil when it was. id and
-// settings are the save's change and the settings it writes, as the
-// screen's control plans them. PlanSave refuses such a configuration before
-// it reads anything: with no path there is no file.
-func NotLoaded(ctx context.Context, sys host.System, cfg *config.Config, id string, settings ...string) []string {
+// setting, then more, are the save's change and the settings it writes, as
+// the screen's control plans them: at least one, as PlanSave refuses a save
+// of none first, in words of its own. PlanSave refuses such a configuration
+// before it reads anything: with no path there is no file.
+func NotLoaded(ctx context.Context, sys host.System, cfg *config.Config, id, setting string, more ...string) []string {
 	if cfg.Path() != "" {
 		return nil
 	}
-	_, err := steps.PlanSave(ctx, sys, id, cfg, settings)
+	_, err := steps.PlanSave(ctx, sys, id, cfg, append([]string{setting}, more...))
 	if err == nil {
 		return nil // not reached: PlanSave refuses a configuration with no path
 	}
