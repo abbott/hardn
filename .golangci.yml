@@ -144,7 +144,7 @@ linters:
         # dev tools only. internal/parity, the parity harness every slice's
         # unit (b2) shares (next/s3-shared; docs/engine/screen-kit.md), is
         # test support itself: its files take the golden harness and the
-        # recording fake, and only tests take it.
+        # recording fake (here), and only tests take it (parity-tests-only).
         test-only:
           files:
             - "$all"
@@ -154,12 +154,19 @@ linters:
           deny:
             - pkg: github.com/abbott/hardn/pkg/ui/uitest
               desc: the golden harness is for tests only (design-system README §8)
-            - pkg: github.com/abbott/hardn/internal/parity
-              desc: the parity harness is for tests only (docs/engine/screen-kit.md)
             - pkg: github.com/abbott/hardn/pkg/ui/component/fixture
               desc: the component states are for tests and the gallery only (design-system README §9.14)
             - pkg: github.com/abbott/hardn/pkg/host/hostfake
               desc: the recording fake System is for tests and the dev tools only (docs/safety/system.md)
+        # The parity harness takes a test's *testing.T: only tests take it,
+        # the dev tools' files included.
+        parity-tests-only:
+          files:
+            - "$all"
+            - "!$test"
+          deny:
+            - pkg: github.com/abbott/hardn/internal/parity
+              desc: the parity harness is for tests only (docs/engine/screen-kit.md)
         # The dev tools import anything; nothing imports them.
         dev-tools:
           files:
