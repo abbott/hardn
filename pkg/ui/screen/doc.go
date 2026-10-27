@@ -58,6 +58,14 @@
 // pkg/screens/dns makes, which also runs its items; Review and Step give
 // its workflows' review and title bar (docs/engine/screen-dns.md).
 //
+// Backup is the Backup screen (slice 3, next/s3-screen): Figma's 05-BACKUP
+// as the maintainer adopted its mock, with no status row, filled from a
+// reading of the backup settings that pkg/screens/backup makes, which also
+// runs its items; TurnStep, TurnReview, PathStep and PathReview give its
+// workflows, BackupRunsMenu and BackupRun the runs, read only
+// (docs/engine/screen-backup.md). Figma's frame stays among the mocks as
+// its record (sub-menu/05-backup).
+//
 // # Fixtures and mocks
 //
 // MainMenuFixture, UserFixture and ManageSudoFixture fill the three
