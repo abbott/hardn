@@ -335,7 +335,7 @@ func refusalWord(err error) string {
 // unsafeDir is the directory Check names in an ErrUnsafeDir, "backup:
 // <dir>: directory another user can change"; "" when err names none.
 // Read from the error's text: pkg/host/backup has no typed error that
-// carries it (gallery-backup.md §7).
+// carries it (gallery-backup.md §8).
 func unsafeDir(err error) string {
 	s, ok := strings.CutPrefix(err.Error(), "backup: ")
 	if !ok {
