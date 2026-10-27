@@ -1,8 +1,12 @@
 package backup_test
 
 import (
+	"bytes"
 	"context"
+	"flag"
 	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/output"
 )
 
 // The hosts Backup's control reads and plans on, on hostfake, as the
@@ -119,4 +124,39 @@ func content(h *hostfake.System, name string) string {
 		return "<absent>"
 	}
 	return string(e.Data)
+}
+
+// run is a run of the output contract on h's facts.
+func run(mode output.Mode) output.Run {
+	f := debian13
+	return output.Run{Mode: mode, HardnVersion: "0.4.0", Hostname: hostname, Facts: &f}
+}
+
+// updating reports whether the test runs with -update (pkg/ui/uitest's
+// flag, which make golden-update passes).
+func updating() bool {
+	f := flag.Lookup("update")
+	return f != nil && f.Value.String() == "true"
+}
+
+// golden compares got with testdata/<name>, or rewrites it under -update.
+func golden(t *testing.T, name string, got []byte) {
+	t.Helper()
+	path := filepath.Join("testdata", name)
+	if updating() {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, got, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("%v (run make golden-update to create it)", err)
+	}
+	if !bytes.Equal(want, got) {
+		t.Errorf("%s does not match.\n--- want\n%s\n--- got\n%s\nIf the change is intended, run make golden-update and give the reason in the review description.", path, want, got)
+	}
 }

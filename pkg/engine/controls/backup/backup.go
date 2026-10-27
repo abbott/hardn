@@ -324,3 +324,24 @@ func Field(ctx context.Context, sys host.System, current, entry string) error {
 	}
 	return nil
 }
+
+// NotWritten is err, a backup that could not be written (a
+// hostbackup.WriteError: a read-only file system, a full disk), with its
+// report (proposed words, control-backup.md §6): which file could not be
+// backed up where, and why, as the failure's Why; how to go on, its Fix.
+// nil for any other error. pkg/output words the apply that failed at its
+// backup with it, and adds that nothing was changed once the rollback
+// finished.
+func NotWritten(err error) *steps.Refusal {
+	var we *hostbackup.WriteError
+	if !errors.As(err, &we) {
+		return nil
+	}
+	cause := we.Err.Error()
+	var pe *fs.PathError
+	if errors.As(we.Err, &pe) {
+		cause = pe.Err.Error()
+	}
+	return &steps.Refusal{Code: "BACKUP_WRITE_FAILED", Why: "Can't back up " + we.Path + " in " + we.BackupPath + ": " + cause,
+		Fix: "choose a backup path hardn can write, with Backup's item 2", Err: err}
+}

@@ -299,9 +299,9 @@ func TestBackupRefusesEveryChange(t *testing.T) {
 
 // TestBackupTakenAnyway: item 1, planned under the settings it saves,
 // takes its rollback backup either way; turning backups off takes it with
-// them off, and its manifest says so (§3.16), which the screen says under
-// what it kept (kept); turning them on takes it with them on, and says
-// only what it kept.
+// them off, and its manifest says so (§3.16), which pkg/output says
+// under what it kept (AfterFlow, since next/s3-control); turning them on
+// takes it with them on, and says only what it kept.
 func TestBackupTakenAnyway(t *testing.T) {
 	ctx := context.Background()
 	for _, tt := range []struct {
@@ -315,7 +315,8 @@ func TestBackupTakenAnyway(t *testing.T) {
 		if p.Err() != nil {
 			t.Fatalf("%s: plan: %v", tt.host, p.Err())
 		}
-		if _, err := e.Apply(ctx, p); err != nil {
+		res, err := e.Apply(ctx, p)
+		if err != nil {
 			t.Fatalf("%s: apply: %v", tt.host, err)
 		}
 		dir := path.Join(backup.DefaultPath, p.ID)
@@ -326,12 +327,13 @@ func TestBackupTakenAnyway(t *testing.T) {
 		if len(m.Entries) != 1 || m.Entries[0].Path != hardnYML || m.Entries[0].TakenAnyway != tt.anyway || m.BackupsEnabled == tt.anyway {
 			t.Errorf("%s: manifest %+v", tt.host, m)
 		}
-		want := component.Messages{{Text: "Backup of " + hardnYML + " kept in"}, {Text: dir}}
+		after := flatText(output.AfterFlow(uitest.Core()[1].Env, output.Run{Mode: output.ModeApply, Plan: p, Result: &res}, galleryNow))
+		want := "Backup of " + hardnYML + " kept in " + dir
 		if tt.anyway {
-			want = append(want, component.Message{Text: takenAnyway})
+			want += " Backed up anyway: the rollback needs it."
 		}
-		if got := kept(ctx, h.system(), edited.BackupSettings(), p); !slices.Equal(got, want) {
-			t.Errorf("%s: kept %+v, want %+v", tt.host, got, want)
+		if !strings.Contains(after, want) || !tt.anyway && strings.Contains(after, "anyway") {
+			t.Errorf("%s: after the change %q, want %q", tt.host, after, want)
 		}
 	}
 }

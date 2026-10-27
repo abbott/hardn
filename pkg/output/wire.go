@@ -105,6 +105,22 @@ type Result struct {
 	// before the change was journalled, whether it finished (Installed) or
 	// not: it is never rolled back.
 	Boot *Boot `json:"boot,omitempty"`
+	// Backup is set when an apply applied every change and kept a copy of
+	// a file first: what it kept, and where (§3.16; slice 3 decision 8,
+	// added by next/s3-control).
+	Backup *Kept `json:"backup,omitempty"`
+}
+
+// Kept is what an applied change kept a copy of, and where.
+type Kept struct {
+	// Dir is the backup run's directory, <backupPath>/<id>.
+	Dir string `json:"dir"`
+	// Files are the files whose content was kept, each once, in the order
+	// backed up; a path that was not there before is not one.
+	Files []string `json:"files"`
+	// TakenAnyway: a copy was taken with enableBackups false, as the
+	// rollback needs it (§3.16).
+	TakenAnyway bool `json:"takenAnyway"`
 }
 
 // Outcome is a run's result in one word.

@@ -49,6 +49,13 @@
     "boot": {
       "installed": true,
       "detail": "wrote /etc/systemd/system/hardn-boot.service; enabled it"
+    },
+    "backup": {
+      "dir": "/var/backups/hardn/20261019T120000Z-1a2b3c4d",
+      "files": [
+        "/etc/ssh/sshd_config.d/00-hardn.conf"
+      ],
+      "takenAnyway": false
     }
   },
   "changes": [

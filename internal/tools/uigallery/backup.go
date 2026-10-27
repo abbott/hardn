@@ -50,9 +50,9 @@ import (
 // adopted as saved and the results set apart with the glue the screens
 // share (pkg/screens/screenkit: Adopt, Apart). The mock's
 // own, labelled so in the page: the screen's words, the path field's
-// check that a path is clean, the lines saying what a change backed up
-// (§3.16), and the restore's control (P-19), whose apply is
-// backup.Restore inside an engine change.
+// check that a path is clean, and the restore's control (P-19), whose
+// apply is backup.Restore inside an engine change. The lines saying what
+// a change backed up (§3.16) are pkg/output's since next/s3-control.
 // "backup" lists the mocks with no input; "play backup" is the menu of
 // the hosts and "play backup/<host>" the screen on one.
 
@@ -76,13 +76,6 @@ const (
 	// pathTitle is the path field's question (origin/main's, without its
 	// colon).
 	pathTitle = "Enter new backup path"
-	// takenAnyway is said under keptIn after a change applied with
-	// backups off whose rollback backup was taken (§3.16: "and says so");
-	// never after turning them on, which is planned with them on.
-	takenAnyway = "Backed up anyway: the rollback needs it."
-	// keptIn is said after a change applied: "Backup of <files> kept in",
-	// then the run's directory.
-	keptIn = "Backup of %s kept in"
 	// nothingWritten closes Verify's report.
 	nothingWritten = "Nothing was written."
 )
@@ -728,8 +721,8 @@ func (b *backupScreen) newEngine(settings backup.Settings, rec *recorder, fe *ou
 // settings saved say (decision 7 (a)), so that a new path takes the
 // change's own backup, and turning backups off takes it with them off;
 // question, y/N; the apply. Then what the flow does not draw
-// (output.AfterFlow), what the run backed up (kept), and hardn.yml
-// adopted as saved.
+// (output.AfterFlow, which says what the run backed up since
+// next/s3-control), and hardn.yml adopted as saved.
 func (b *backupScreen) change(ctx context.Context, title string, fields []form.Field, rv func() flow.Review, setting string,
 	edit func(*config.Config), question func() string) error {
 	s, sys := b.s, b.h.system()
@@ -761,45 +754,12 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	run := fe.Run(out, err)
 	after := output.AfterFlow(s.p.Ctx.Env, run, galleryNow)
 	if out == flow.Applied && !dryRun {
-		if msgs := kept(ctx, sys, edited.BackupSettings(), run.Plan); len(msgs) > 0 {
-			after += screenkit.Apart(s.p.Ctx, msgs)
-		}
 		screenkit.Adopt(ctx, sys, b.cfg, &edited)
 	}
 	if after != "" {
 		return b.write(after)
 	}
 	return nil
-}
-
-// kept says what the run of plan p, under settings, backed up, read back
-// as a restore reads it (backup.Load): "Backup of <files> kept in" and the
-// run's directory, <backupPath>/<run-id>; then, where its manifest says a
-// copy was taken with backups off, that (§3.16). Nothing for a run that
-// backed up nothing.
-func kept(ctx context.Context, sys host.System, settings backup.Settings, p *engine.Plan) component.Messages {
-	if p == nil {
-		return nil
-	}
-	dir := path.Join(path.Clean(settings.Path), p.ID)
-	m, err := backup.Load(ctx, sys, dir)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return nil
-	case err != nil:
-		return component.Messages{{Kind: component.MessageWarn, Text: "Can't read the backup in " + dir + ": " + err.Error()}}
-	case len(m.Entries) == 0:
-		return nil
-	}
-	var files []string
-	for _, e := range m.Entries {
-		files = append(files, e.Path)
-	}
-	msgs := component.Messages{{Text: fmt.Sprintf(keptIn, strings.Join(files, ", "))}, {Text: dir}}
-	if slices.ContainsFunc(m.Entries, func(e backup.Entry) bool { return e.TakenAnyway }) {
-		msgs = append(msgs, component.Message{Text: takenAnyway})
-	}
-	return msgs
 }
 
 // openRuns is item 4 (P-19): the runs under backupPath, each leading to
@@ -854,10 +814,10 @@ func (b *backupScreen) openRun(ctx context.Context, m backup.Manifest) error {
 // differs from its copy, last taken first, as backup.Restore goes;
 // "Restore this run?"; the apply, on the engine, which backs up and
 // journals each file first, so that the restore is itself a change
-// hardn rollback can undo. Then what it kept, and hardn.yml read again,
+// hardn rollback can undo. Then what the flow does not draw
+// (output.AfterFlow: what it kept, and where), and hardn.yml read again,
 // which the restore may have put back.
 func (b *backupScreen) restore(ctx context.Context, m backup.Manifest) error {
-	sys := b.h.system()
 	dryRun := b.s.sequence == "dry-run"
 	rec := &recorder{host: b.h, f: b.h.f, title: b.title + ", restore " + m.RunID}
 	b.s.mu.Lock()
@@ -885,9 +845,6 @@ func (b *backupScreen) restore(ctx context.Context, m backup.Manifest) error {
 	run := fe.Run(out, err)
 	after := output.AfterFlow(b.s.p.Ctx.Env, run, galleryNow)
 	if out == flow.Applied && !dryRun {
-		if msgs := kept(ctx, sys, settings, run.Plan); len(msgs) > 0 {
-			after += screenkit.Apart(b.s.p.Ctx, msgs)
-		}
 		if cfg, err := config.Read(ctx, b.h.f, hardnYML); err == nil {
 			b.cfg = cfg
 		}

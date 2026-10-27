@@ -35,6 +35,9 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-pve9␛[m$
@@ -78,6 +81,9 @@ $
   [+] Set the nameservers  Done$
 $
 # Operation Successful$
+$
+  Backup of /etc/resolv.conf kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
 $
 # simulated system ---------------------------------------------$
 $
@@ -125,6 +131,9 @@ $
       ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

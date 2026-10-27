@@ -129,6 +129,9 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
+  ␛[38;2;129;134;156mBackup of /etc/ssh/sshd_config.d/00-hardn.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx held during␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mits confirm window, is dropped from /etc/ssh/sshd_config.d/00-␛[m$
@@ -310,6 +313,9 @@ $
   [+] sshd -T shows port 2230    Done$
 $
 # Operation Successful$
+$
+  Backup of /etc/ssh/sshd_config.d/00-hardn.conf kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
 $
 # Operation Successful$
 # Port 22, which change 20261020T120000Z-xxxxxxxx held during$
@@ -504,6 +510,9 @@ $
       ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/ssh/sshd_config.d/00-hardn.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx held␛[m$

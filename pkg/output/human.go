@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/engine"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -160,10 +161,34 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	case res.Confirm != nil:
 		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c))
 		blocks = append(blocks, countdown(c, *res.Confirm, res.ID, now)...)
+		blocks = append(blocks, keptBlock(c, res.Backup))
 	case len(d.Errors) == 0:
-		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c))
+		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c), keptBlock(c, res.Backup))
 	}
 	return blocks
+}
+
+// The words after a change applied (slice 3 decision 8, decided
+// 2026-10-27; gallery-backup.md §6): what it backed up, and where.
+const (
+	keptIn      = "Backup of %s kept in"
+	takenAnyway = "Backed up anyway: the rollback needs it."
+)
+
+// keptBlock is what an applied change kept a copy of (Result.Backup):
+// "Backup of <files> kept in" and the run's directory, then, where a copy
+// was taken with backups off, that the rollback needs it (§3.16: "and
+// says so"), which a change that turns backups on never says, as it is
+// applied with them on (decision 7 (a)); "" when it kept none.
+func keptBlock(c component.Ctx, k *Kept) string {
+	if k == nil {
+		return ""
+	}
+	msgs := component.Messages{{Text: fmt.Sprintf(keptIn, strings.Join(k.Files, ", "))}, {Text: k.Dir}}
+	if k.TakenAnyway {
+		msgs = append(msgs, component.Message{Text: takenAnyway})
+	}
+	return msgs.Render(c)
 }
 
 // failedErr is the error that stopped the apply at change id, the one
@@ -226,6 +251,9 @@ func AfterFlow(env term.Env, r Run, now time.Time) string {
 	var blocks []string
 	if cf := d.Result.Confirm; cf != nil && r.Mode == ModeApply {
 		blocks = append(blocks, countdown(c, *cf, d.Result.ID, now)...)
+	}
+	if r.Mode == ModeApply {
+		blocks = append(blocks, keptBlock(c, d.Result.Backup))
 	}
 	found := d.Findings
 	if r.Reviewed {
@@ -317,7 +345,7 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 		return ""
 	}
 	first, text := es[0], errorText(d, es[0])
-	if t, n, ok := failureWords(first, failed); ok {
+	if t, n, ok := failureWords(d, first, failed); ok {
 		text, next = t, strings.TrimSpace(n+" "+next)
 	} else if first.Fix != "" {
 		next = strings.TrimSpace(toGoOn(first.Fix) + " " + next)
@@ -344,14 +372,31 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 // failureWords are a failed step's words, when first is its error and the
 // step said what happened in the user's words (steps.Failure): that line
 // alone, as the step's line gives the code, and the next step
-// (next/s2-control; gallery-dns.md's failure-proposed sequence).
-func failureWords(first Error, failed error) (text, next string, ok bool) {
+// (next/s2-control; gallery-dns.md's failure-proposed sequence). A backup
+// that could not be written is worded so too (next/s3-control; proposed):
+// its Why, then, once the rollback finished or with nothing to roll back,
+// that nothing was changed, then "To go on: " and its Fix.
+func failureWords(d Document, first Error, failed error) (text, next string, ok bool) {
+	if failed == nil || first.Message != failed.Error() {
+		return "", "", false
+	}
+	if nw := backupctl.NotWritten(failed); nw != nil {
+		next = toGoOn(nw.Fix)
+		if rb := d.Result.Rollback; rb == nil || rb.Finished {
+			next = nothingChanged + " " + next
+		}
+		return nw.Why, next, true
+	}
 	var f *steps.Failure
-	if failed == nil || !errors.As(failed, &f) || first.Message != failed.Error() {
+	if !errors.As(failed, &f) {
 		return "", "", false
 	}
 	return f.Text, f.Next, true
 }
+
+// nothingChanged follows a failure that left the host as it was
+// (gallery-backup.md §6, proposed).
+const nothingChanged = "Nothing was changed."
 
 // toGoOn is a refusal's Fix as a sentence, in steps.Refusal's words.
 func toGoOn(fix string) string { return "To go on: " + strings.TrimSuffix(fix, ".") + "." }

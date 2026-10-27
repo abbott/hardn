@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "configured",
+      "detail": "Not created yet",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups true, backupPath /var/backups/hardn",
+        "/var/backups/hardn: absent"
+      ]
+    },
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "configured",
+      "detail": "Not created yet",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups false, backupPath /var/backups/hardn",
+        "/var/backups/hardn: absent"
+      ]
+    },
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "configured",
+      "detail": "Root only",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups true, backupPath /srv/backups/hardn",
+        "/srv/backups/hardn: a directory"
+      ]
+    },
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "not-configured",
+      "detail": "Unsafe",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups true, backupPath /tmp/hardn-backups",
+        "backup: /tmp: directory another user can change"
+      ]
+    },
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "not-configured",
+      "detail": "Not absolute",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups true, backupPath backups",
+        "backup: backupPath \"backups\" is not an absolute directory (the default is /var/backups/hardn): invalid backup settings"
+      ]
+    },
+    {
+      "control": "backup.settings",
+      "title": "Backups",
+      "state": "not-configured",
+      "detail": "Not a directory",
+      "evidence": [
+        "/etc/hardn/hardn.yml: enableBackups true, backupPath /etc/os-release",
+        "backup: /etc/os-release: not a directory"
+      ]
+    }
+  ],
+  "findings": [],
+  "errors": []
+}

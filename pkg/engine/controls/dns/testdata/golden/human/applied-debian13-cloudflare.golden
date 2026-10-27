@@ -8,6 +8,9 @@
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf, /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261022T120000Z-1a2b3c4d␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_DHCP_CLIENT, /usr/sbin/dhcpcd)␛[m$
@@ -18,6 +21,9 @@ $
   [+] Save the configuration  Done$
 $
 # Operation Successful$
+$
+  Backup of /etc/resolv.conf, /etc/hardn/hardn.yml kept in$
+  /var/backups/hardn/20261022T120000Z-1a2b3c4d$
 $
 # Warning$
 # dhcpcd may rewrite /etc/resolv.conf on a lease$
@@ -31,6 +37,9 @@ $
       ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf, /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261022T120000Z-1a2b3c4d␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$

@@ -52,6 +52,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 | `confirm` | only while a lockout-risk change waits for confirmation: `deadline` (RFC 3339, UTC: when the revert timer fires), `approximate` (true when the timer's own trigger time could not be read and the deadline is the journal's: the timer fires a few seconds after it, 1 to 2 s on Ubuntu 26.04, [vmtest.md](../safety/vmtest.md) §4.9), `via` (the listeners a confirming connection must reach, `address:port`), `command` (`sudo hardn confirm`, `doas hardn confirm` on a host with doas and no sudo), `undo` (`sudo hardn rollback <id>`, doas likewise) |
 | `rollback` | only when an apply stopped once its change was journalled, whatever the plan's risk: `finished` (the rollback in this run finished and undid every change started), `byAnotherProcess` (another process had taken the change: the timer's rollback, a `hardn rollback <id>`, a rollback given up, a confirmation; this run undid nothing, and its `ROLLBACK_RUNNING` error says which), `step` (`start`, `window`, `backup`, `journal`, `apply`, `journal-after`, `mark-applied`, `done`), `change` (the change that failed, or at `start` and `window` the one that was next and never started; `""` for the apply's last write), `changeUndone` (true when nothing of the change that failed is left either: it undid its own steps before the rollback, as DNS's does, or left the rest to its journalled undo and this rollback finished; added by `next/s2-control`), `restored` (files put back), `undone` (the inverse steps run, in words), `unjournalled` (§1.4.1; left out when none), `command` (`sudo hardn rollback <id>`, `doas` on a host with doas and no sudo, which finishes a rollback that did not finish; `""` otherwise) |
 | `boot` | only when the apply ran the install of hardn's boot unit, before the change was journalled ([engine-boot.md](../engine/engine-boot.md) §2.1): `installed` (false when the install failed, and nothing was armed), `detail`. It is never rolled back; it removes itself at a boot that finds nothing journalled |
+| `backup` | only when an apply applied every change (`applied`, `awaiting-confirmation`) and kept a copy of a file first: `dir` (the backup run's directory, `<backupPath>/<id>`), `files` (each file whose content was kept, once, in the order backed up; a path that was not there before is not one), `takenAnyway` (true when a copy was taken with `enableBackups: false`, as the rollback needs it, §3.16). Added by `next/s3-control` ([control-backup.md](../engine/control-backup.md)); the human report says the same after "Operation Successful": "Backup of <files> kept in", the directory, and "Backed up anyway: the rollback needs it." when `takenAnyway` |
 
 #### 1.4.1 `result.rollback.unjournalled`
 
@@ -111,7 +112,12 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
     "command": "sudo hardn confirm",
     "undo": "sudo hardn rollback 20261019T120000Z-1a2b3c4d"
   },
-  "boot": { "installed": true, "detail": "wrote /etc/systemd/system/hardn-boot.service; enabled it" }
+  "boot": { "installed": true, "detail": "wrote /etc/systemd/system/hardn-boot.service; enabled it" },
+  "backup": {
+    "dir": "/var/backups/hardn/20261019T120000Z-1a2b3c4d",
+    "files": ["/etc/ssh/sshd_config.d/00-hardn.conf"],
+    "takenAnyway": false
+  }
 }
 ```
 

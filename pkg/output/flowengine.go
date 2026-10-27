@@ -196,7 +196,7 @@ func (a *FlowEngine) failure(err error) *flow.Failure {
 		if a.result != nil && a.result.Failed != nil {
 			failed = a.result.Failed.Err
 		}
-		if text, next, ok := failureWords(first, failed); ok {
+		if text, next, ok := failureWords(d, first, failed); ok {
 			f.Err, f.Next = &codedError{text: text, err: err}, next
 		} else {
 			f.Err = &codedError{text: errorText(d, first), err: err}
