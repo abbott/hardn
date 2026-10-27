@@ -6,7 +6,7 @@
 # Pauses: 1 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: Verify makes the directory and writes and removes <backupPath>/.write_test in dry run too.
 # NOTE: The screen and its layers read no mode: nothing in backup_menu.go, backup_manager.go, backup_service.go or file_backup_repository.go reads cfg.DryRun.
-# NOTE: The repository's calls are on the legacy mock file system; on a host they are real (infrastructure.ServiceFactory gives it the OS file system).
+# NOTE: Since next/s2b-replace the main menu refuses 5 under plan only (pkg/menu TestPlanOnlyRefusals), so hardn no longer opens this screen in that mode.
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$
@@ -50,11 +50,12 @@ $
 $
 \x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-3 or q]: $
 # ----
-# The repository's file system calls (the legacy mock):
+# The repository's file system calls:
   1 mkdir  $TMP/var/backups/hardn mode=0755 -> ok
   2 write  $TMP/var/backups/hardn/.write_test mode=0644 -> ok
         | test
         \ no newline at end of content
   3 remove $TMP/var/backups/hardn/.write_test -> ok
-# $TMP/var/backups/hardn on disk after: a directory, empty
+# $TMP/var/backups/hardn after: a directory, empty
+# The temp dir afterwards: var/ var/backups/ var/backups/hardn/
 # ./hardn.yml: not written

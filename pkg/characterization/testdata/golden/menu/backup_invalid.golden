@@ -45,7 +45,8 @@ $
 $
 \x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-3 or q]: $
 # ----
-# The repository's file system calls (the legacy mock):
+# The repository's file system calls:
     (no calls)
-# $TMP/var/backups/hardn on disk after: a directory, empty
+# $TMP/var/backups/hardn after: a directory, empty
+# The temp dir afterwards: var/ var/backups/ var/backups/hardn/
 # ./hardn.yml: not written

@@ -5,7 +5,7 @@
 # Start: enableBackups true, backupPath $TMP/var/backups/hardn (an empty directory), dryRun false
 # Pauses: 1 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: The whole configuration is saved to ./hardn.yml, not to the file loaded (side-effects.md row 29).
-# NOTE: Nothing takes a backup: utils.BackupFile and the repository's BackupFile have no caller (side-effects.md item 9, V18).
+# NOTE: Nothing takes a backup: utils.BackupFile and the repository's BackupFile have no caller (side-effects.md item 9, V18; run: backups/legacy_operations.golden).
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$
@@ -46,9 +46,10 @@ $
 $
 \x1b[2m❯\x1b[0m \x1b[1mEnter selection\x1b[0m [0-2 or q]: $
 # ----
-# The repository's file system calls (the legacy mock):
+# The repository's file system calls:
     (no calls)
-# $TMP/var/backups/hardn on disk after: a directory, empty
+# $TMP/var/backups/hardn after: a directory, empty
+# The temp dir afterwards: hardn.yml var/ var/backups/ var/backups/hardn/
 # ./hardn.yml as written:
 username: alice
 logFile: /var/log/hardn.log
