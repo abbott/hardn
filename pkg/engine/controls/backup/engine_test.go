@@ -164,3 +164,34 @@ func TestTakenAnyway(t *testing.T) {
 		}
 	}
 }
+
+// TestReadAsTheEngine: Read refuses the backup settings where the engine,
+// built as cmd/hardn builds it, refuses another control's change for
+// them, and nowhere else, since unit (c) refuses item 1 from Read's error
+// before it asks (decision 7 (a)): an empty backupPath is the default to
+// both, and a symlink to a directory only root can change is taken by
+// both, and is made.
+func TestReadAsTheEngine(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		path string
+		link bool // path is a symlink to elsewhere
+		made bool
+	}{
+		{hostbackup.DefaultPath, false, false}, {"", false, false}, {elsewhere, false, true},
+		{"/var/backups/link", true, true}, {unsafePath, false, false}, {"backups", false, false},
+	} {
+		h, loaded := newHost(t, true, tt.path)
+		if tt.link {
+			h.AddSymlink(tt.path, elsewhere)
+		}
+		r := backup.Read(ctx, h, loaded)
+		p, err := engineOn(h, loaded.BackupSettings(), nil).Plan(ctx, []engine.Control{dnsctl.Nameservers{Config: loaded}}, loaded)
+		if err != nil || p.Empty() {
+			t.Fatalf("%q: %v, changes %d; want the DNS change planned", tt.path, err, len(p.Changes))
+		}
+		if (r.Err == nil) != (p.Err() == nil) || r.Made != tt.made || r.Settings.Path != p.Backups.Path {
+			t.Errorf("%q: Read %v, made %v, path %q; the engine %v, path %q", tt.path, r.Err, r.Made, r.Settings.Path, p.Err(), p.Backups.Path)
+		}
+	}
+}

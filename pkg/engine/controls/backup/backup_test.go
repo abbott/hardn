@@ -45,6 +45,7 @@ func TestCheck(t *testing.T) {
 		path    string
 		lstat   string // a path whose Lstat fails: permission denied
 		nilCfg  bool
+		setup   func(h *hostfake.System)
 		state   engine.State
 		detail  string
 		dir     string // the directory a DirError names
@@ -54,6 +55,11 @@ func TestCheck(t *testing.T) {
 		{name: "backups off", path: hostbackup.DefaultPath, state: engine.Configured, detail: "Not created yet"},
 		{name: "no hardn.yml: the defaults", nilCfg: true, state: engine.Configured, detail: "Not created yet"},
 		{name: "elsewhere, root's", enabled: true, path: elsewhere, state: engine.Configured, detail: "Root only"},
+		{name: "empty: the default, as the engine takes it", enabled: true, path: "", state: engine.Configured, detail: "Not created yet"},
+		{name: "empty: the default, made", enabled: true, path: "", setup: func(h *hostfake.System) { h.AddDir(hostbackup.DefaultPath, 0o700, 0, 0) },
+			state: engine.Configured, detail: "Root only"},
+		{name: "a symlink to a directory, root's", enabled: true, path: "/var/backups/link", setup: func(h *hostfake.System) { h.AddSymlink("/var/backups/link", elsewhere) },
+			state: engine.Configured, detail: "Root only"},
 		{name: "under /tmp", enabled: true, path: unsafePath, state: engine.NotConfigured, detail: "Unsafe", dir: "/tmp"},
 		{name: "relative", enabled: true, path: "backups", state: engine.NotConfigured, detail: "Not absolute"},
 		{name: "a file", enabled: true, path: "/etc/os-release", state: engine.NotConfigured, detail: "Not a directory", dir: "/etc/os-release"},
@@ -62,6 +68,9 @@ func TestCheck(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, cfg := newHost(t, tt.enabled, tt.path)
+			if tt.setup != nil {
+				tt.setup(f)
+			}
 			var sys host.System = f
 			if tt.lstat != "" {
 				sys = lstatFails{f, tt.lstat, fs.ErrPermission}

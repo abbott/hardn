@@ -95,28 +95,35 @@ func (Settings) Applies(detect.Facts) (bool, string) { return true, "" }
 // State and Backup Path rows (decision 1 (a)), Verify's report and item
 // 1's refusal before it asks (decision 7 (a)).
 type Reading struct {
-	// Settings are backupPath and enableBackups, as Config gives them.
+	// Settings are backupPath and enableBackups, as Config gives them, an
+	// empty path the default, as the engine takes it (engine.New).
 	Settings hostbackup.Settings
 	// Err is backup.Check's refusal of them, with no file to back up:
 	// what every change's plan refuses, but one that saves another path
 	// (decision 7 (a)); nil when it passes.
 	Err error
-	// Made: backupPath is a directory; when not, Check passed on the
-	// directory above it, and the first backup makes it.
+	// Made: backupPath is a directory, or a symlink to one, as Check and
+	// the backups follow it; when not, Check passed on the directory
+	// above it, and the first backup makes it.
 	Made bool
 }
 
 // Read reads the backup settings of cfg on sys, changing nothing
 // (decision 3: backup.Check, no write test): Check's verdict on the path,
-// and whether it is there yet. A nil cfg is hardn's defaults.
+// and whether it is there yet. A nil cfg is hardn's defaults; an empty
+// backupPath is the default, as the engine takes it, so that Read refuses
+// what the engine's plans refuse, and no more.
 func Read(ctx context.Context, sys host.System, cfg *config.Config) Reading {
 	if cfg == nil {
 		cfg = config.DefaultConfig()
 	}
 	r := Reading{Settings: cfg.BackupSettings()}
+	if r.Settings.Path == "" {
+		r.Settings.Path = hostbackup.DefaultPath
+	}
 	r.Err = hostbackup.Check(ctx, sys, r.Settings, hostbackup.NewRunID(time.Now()), nil)
 	if r.Err == nil {
-		fi, err := sys.Lstat(ctx, filepath.Clean(r.Settings.Path))
+		fi, err := sys.Stat(ctx, filepath.Clean(r.Settings.Path))
 		r.Made = err == nil && fi.IsDir()
 	}
 	return r
@@ -167,13 +174,17 @@ func (s Settings) Check(ctx context.Context, sys host.System, _ detect.Facts) (e
 	return st, nil
 }
 
-// evidence is what r was read from: hardn.yml's two keys, with its path
-// (none when no hardn.yml was read), and what backup.Check found of the
-// path.
+// evidence is what r was read from: hardn.yml's two keys as the file
+// gives them, with its path (none when no hardn.yml was read), and what
+// backup.Check found of the path in use.
 func evidence(cfg *config.Config, r Reading) []string {
 	var ev []string
 	if cfg != nil && cfg.Path() != "" {
-		ev = append(ev, cfg.Path()+": "+SettingEnabled+" "+strconv.FormatBool(r.Settings.Enabled)+", "+SettingPath+" "+r.Settings.Path)
+		p := cfg.BackupPath
+		if p == "" {
+			p = `""`
+		}
+		ev = append(ev, cfg.Path()+": "+SettingEnabled+" "+strconv.FormatBool(r.Settings.Enabled)+", "+SettingPath+" "+p)
 	}
 	switch {
 	case r.Err != nil:
