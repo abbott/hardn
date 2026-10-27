@@ -278,3 +278,47 @@ func TestRollbackFromSavedPath(t *testing.T) {
 		t.Errorf("journal: %v", err)
 	}
 }
+
+// TestBootUnitUnderSavedBackups: the boot unit's change in a saver's
+// lockout-risk plan says what its install does under the settings the
+// plan saves, which Apply opens the run with, not Options.Backups: a
+// file it replaces not backed up when they turn backups off, backed up
+// when they turn them on.
+func TestBootUnitUnderSavedBackups(t *testing.T) {
+	ctx := context.Background()
+	u, err := revert.PlanBootUnit(debian13.Init, testHardn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := revert.PlanBootUnit(debian13.Init, "/opt/hardn/bin/hardn")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, on := range []bool{false, true} {
+		h := newBareHost(t)
+		h.AddFile(u.Path, other.Data, u.Mode, 0, 0)
+		h.AddSymlink(u.Link, u.Path)
+		o := testOptions(h, nil, nil, debian13)
+		o.Backups = backup.Settings{Path: backup.DefaultPath, Enabled: !on}
+		port := portControl().(*stub)
+		e := New(h, o)
+		p, err := e.Plan(ctx, []Control{stubSaver{port, backup.Settings{Path: backup.DefaultPath, Enabled: on}}}, nil)
+		if err != nil || p.Err() != nil || p.Changes[0].ID != BootChangeID {
+			t.Fatalf("saved on %v: %v, %v, changes %q", on, err, p.Err(), changeIDs(p))
+		}
+		before, detail := "(replaced, not backed up: enableBackups is false)", "the file it replaced not backed up (enableBackups is false), written"
+		if on {
+			before, detail = "(backed up, then replaced)", "the file it replaced backed up (entry 1 in "+backup.DefaultPath+"/"+p.ID+"), written"
+		}
+		if got := p.Changes[0].StateBefore; !strings.HasSuffix(got, before) {
+			t.Errorf("saved on %v: the boot unit's change says %q, want %q", on, got, before)
+		}
+		res, err := e.Apply(ctx, p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if res.Boot == nil || res.Boot.Detail != detail {
+			t.Errorf("saved on %v: boot %+v, want %q", on, res.Boot, detail)
+		}
+	}
+}
