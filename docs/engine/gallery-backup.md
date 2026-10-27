@@ -39,7 +39,7 @@ Each claim is **run** (a golden of `TestLegacyMenuBackup`, `menu/backup_<case>.g
 - **Either way** it saves the whole configuration to `./hardn.yml` (`backup_menu.go:153-161`; row 29), pauses, and draws the screen again by calling itself (`:165-167`).
 - **A failed enable** (a regular file at the path: "✗ Error toggling backups: failed to create backup directory …: not a directory") saves nothing, yet the screen drawn again says Enabled and shows item 3: the repository set `Enabled` before its check (`:250-256`), and nothing undoes it.
 
-### 2.4 Option 2, the path (run: `backup_path_relative`, `backup_path_empty`, `backup_path_unsafe`, `backup_path_tilde`, `backup_path_fails`, `backup_path_dry_run`)
+### 2.4 Option 2, the path (run: `backup_path_relative`, `backup_path_empty`, `backup_path_unsafe`, `backup_path_tilde`, `backup_path_fails`, `backup_path_dry_run`; `backup_path`, a new path taken live, added in `next/s3-parity`)
 
 - "- Current backup path: <path>", "- Enter new backup path: " (`ReadInput`).
 - Nothing typed: "- Backup path unchanged".
