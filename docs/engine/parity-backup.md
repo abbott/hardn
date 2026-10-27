@@ -64,13 +64,12 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 | directories | 68 | 0 |
 | commands | 68 | 0 |
 | backupPath dirs | 32 | 36 |
-| backupPath files | 32 | 36 |
 | findings | 68 | 0 |
 | hardn.yml | 40 | 28 |
+| backupPath files | 16 | 52 |
 | backupPath after | 48 | 20 |
 | hardn.yml enableBackups | 8 | 0 |
 | hardn.yml settings | 8 | 0 |
-| hardn.yml mode | 8 | 0 |
 | write | 0 | 8 |
 | backup | 0 | 8 |
 | journal | 0 | 8 |
@@ -80,10 +79,11 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 
 | Scenarios | On | Aspect | origin/main | New path | Source |
 |---|---|---|---|---|---|
+| open | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decision 3; side-effects row 30: the screen's write test on opening; now Check, nothing written |
 | open | all | backupPath after | `/var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone` | `/var/backups/hardn: a directory holding .write_test; .write_test as it was` | decision 3; side-effects row 30: the screen's write test overwrote, then deleted, the user's .write_test; now Check, nothing written |
 | open-file | all | refusal | `none` | `BACKUP_PATH_NOT_DIRECTORY (Not a directory)` | decision 3; control-backup.md §6: a file at the path read as one to be made when needed; now Check's note, Not a directory |
 | toggle-off | all | backupPath dirs | `none` | `/var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3: nothing made; now the change's run directory, 0700 |
-| toggle-off | all | backupPath files | `none` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | plan §3.16; control-backup.md §2.3: nothing written; now the copy of hardn.yml and the run's manifest, 0600 |
+| toggle-off | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; control-backup.md §2.3; side-effects row 30: the screen's write test on its first draw; now the copy of hardn.yml and the run's manifest, 0600 |
 | toggle-off, toggle-on | all | backupPath after | `/var/backups/hardn: a directory, empty` | `/var/backups/hardn: a directory holding <run id>` | plan §3.16: left empty; now holding the change's backup run |
 | toggle-off | all | write | `in place` | `atomic` | plan §3.19: written in place; now replaced whole by a rename |
 | toggle-off | all | backup | `none` | `/etc/hardn/hardn.yml (taken anyway: backups off)` | plan §3.16; decisions 7 (a), 8: nothing backed up; now hardn.yml first, taken anyway with backups off, and said |
@@ -91,33 +91,36 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 | toggle-off, toggle-on | all | hardn.yml | `./hardn.yml, in the working directory` | `/etc/hardn/hardn.yml, the file loaded` | side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded |
 | toggle-off, toggle-on | all | hardn.yml rest | `48 settings, written whole; no file was loaded` | `the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)` | side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone |
 | toggle-on | all | backupPath dirs | `/var/backups/hardn 0755` | `/var/backups/hardn 0700, /var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3; side-effects row 30: made 0755 for the write test; now 0700 by the first backup, the change's run in it |
-| toggle-on | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; side-effects row 30: the write test's .write_test; now the copy of hardn.yml and the run's manifest, 0600 |
+| toggle-on | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test, write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; side-effects row 30: the repository's write test, then the screen's on its next draw; now the copy of hardn.yml and the run's manifest, 0600 |
 | toggle-on | all | write | `in place` | `atomic` | V18; plan §3.19: written in place; now replaced whole by a rename |
 | toggle-on | all | backup | `none` | `/etc/hardn/hardn.yml` | V18; plan §3.16; decision 7 (a): nothing backed up; now hardn.yml first, with backups on |
 | toggle-on | all | journal | `none` | `journalled first` | V18; control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
 | toggle-on-file | all | refusal | `failed: mkdir /var/backups/hardn: not a directory` | `BACKUP_PATH_NOT_DIRECTORY, before asking` | decision 7 (a); control-backup.md §6, §11: the enable failed at its MkdirAll; now refused before asking, in Check's words |
 | path-relative | all | refusal | `none` | `BACKUP_SETTINGS_INVALID, inline: Not an absolute path` | decision 6: taken, made under the working directory; now refused inline, not absolute |
 | path-relative | all | backupPath dirs | `backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
-| path-relative | all | backupPath files | `write backups/.write_test 0644, remove backups/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-relative | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write backups/.write_test 0644, remove backups/.write_test, write backups/.write_test 0644 (screen), remove backups/.write_test (screen)` | `none` | decisions 3, 6; side-effects row 30: the write tests, the screen's on each draw and the repository's; now nothing written |
 | path-relative, path-unsafe, path-tilde | all | hardn.yml | `./hardn.yml, in the working directory` | `not saved` | decision 6; side-effects row 29: saved to ./hardn.yml; now nothing saved |
 | path-empty | all | refusal | `none` | `inline: Backup path cannot be empty` | control-backup.md §7: nothing typed left the path as it was; now the field refuses it, in words decided 2026-10-27, and asks again |
+| path-empty | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decision 3; side-effects row 30: the screen's write test on each draw; now nothing written |
 | path-unsafe | all | refusal | `none` | `UNSAFE_DIRECTORY, inline: Others can change /shared` | decision 6: taken under a directory anyone can write to; now refused inline, naming it |
 | path-unsafe | all | backupPath dirs | `/shared/hardn 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
-| path-unsafe | all | backupPath files | `write /shared/hardn/.write_test 0644, remove /shared/hardn/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-unsafe | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /shared/hardn/.write_test 0644, remove /shared/hardn/.write_test, write /shared/hardn/.write_test 0644 (screen), remove /shared/hardn/.write_test (screen)` | `none` | decisions 3, 6; side-effects row 30: the write tests, the screen's on each draw and the repository's; now nothing written |
 | path-tilde | all | refusal | `none` | `BACKUP_SETTINGS_INVALID, inline: Not an absolute path` | decision 6: ~ read as the home of the user hardn runs as, then taken; now refused inline, not absolute |
-| path-tilde | all | backupPath dirs | `/home/alice/backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
-| path-tilde | all | backupPath files | `write /home/alice/backups/.write_test 0644, remove /home/alice/backups/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-tilde | all | backupPath dirs | `$HOME/alice/backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
+| path-tilde | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write $HOME/alice/backups/.write_test 0644, remove $HOME/alice/backups/.write_test, write $HOME/alice/backups/.write_test 0644 (screen), remove $HOME/alice/backups/.write_test (screen)` | `none` | decisions 3, 6; side-effects row 30: the write tests, the screen's on each draw and the repository's; now nothing written |
 | path-under-file | all | refusal | `failed: mkdir /afile: not a directory` | `BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory` | decision 6; control-backup.md §6: failed at its MkdirAll; now refused inline, Not a directory |
+| path-under-file | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decision 3; side-effects row 30: the screen's write test on its first draw; now nothing written |
 | verify, verify-dry-run | all | backupPath dirs | `/var/backups/hardn 0755` | `none` | decisions 3, 10; side-effects row 30: Verify's MkdirAll 0755, the directory there already; now Check, nothing made |
-| verify, verify-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `none` | decisions 3, 10; side-effects row 30: Verify wrote and removed .write_test; now Check, nothing written |
+| verify, verify-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test, write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decisions 3, 10; side-effects row 30: Verify's write test, and the screen's on each draw; now Check, nothing written |
 | verify-file | all | refusal | `failed: mkdir /var/backups/hardn: not a directory` | `BACKUP_PATH_NOT_DIRECTORY (Not a directory)` | decision 3; control-backup.md §6: Verify failed at its MkdirAll; now Check's refusal, Not a directory, nothing tried |
+| open-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decisions 3, 10; side-effects row 30: the same under -n; now Check under plan only, nothing written |
 | open-dry-run | all | backupPath after | `/var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone` | `/var/backups/hardn: a directory holding .write_test; .write_test as it was` | decisions 3, 10; side-effects row 30: the same under -n; now the screen opens under plan only, writing nothing |
 | toggle-on-dry-run | all | backupPath dirs | `/var/backups/hardn 0755` | `none` | decision 10; side-effects row 30: made under -n for the write test; now the plan alone |
-| toggle-on-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `none` | decision 10; side-effects row 30: the write test under -n; now the plan alone |
+| toggle-on-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test, write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `none` | decisions 3, 10; side-effects row 30: the write tests under -n, the repository's and the screen's; now the plan alone |
 | toggle-on-dry-run | all | backupPath after | `/var/backups/hardn: a directory, empty` | `/var/backups/hardn: not there` | decision 10; side-effects row 30: made under -n; now not made |
 | toggle-on-dry-run, path-dry-run | all | hardn.yml | `./hardn.yml, in the working directory` | `not saved` | decision 10; side-effects row 29: saved under -n; now a dry run saves nothing |
 | path-dry-run | all | backupPath dirs | `/other 0755` | `none` | decision 10; side-effects row 30: made under -n for the write test; now the plan alone |
-| path-dry-run | all | backupPath files | `write /other/.write_test 0644, remove /other/.write_test` | `none` | decision 10; side-effects row 30: the write test under -n; now the plan alone |
+| path-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen)` | `none` | decisions 3, 10; side-effects row 30: the write tests under -n, the repository's and the screen's; now the plan alone |
 
 **v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md) §3, §4.13, §5.1.
 
