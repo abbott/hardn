@@ -149,8 +149,9 @@ func TestReadRepository(t *testing.T) {
 // TestParseLegacyRefuses: what the parser does not compare is an error,
 // not dropped: a golden whose run is in no section it reads, and a
 // removal, in pkg/characterization's ops layout; in the repository's, an
-// operation, a header line and a trailer line it does not know, and a
-// golden without its after line.
+// operation, a header line and a trailer line it does not know, a golden
+// without its after line or with two, an operation it does not know that
+// failed, a remove that failed, and a second call that failed.
 func TestParseLegacyRefuses(t *testing.T) {
 	for _, tc := range []struct{ name, golden, want string }{
 		{"another layout", `# origin/main behaviour
@@ -171,6 +172,15 @@ trace:
 			`menu/example.golden: a line the reader does not know: "# The home dir afterwards: hardn.yml var/ var/backups/ var/backups/example/"`},
 		{"no after line", strings.Replace(repoGolden, "# $TMP/var/backups/example after: a directory, empty\n", "", 1),
 			`menu/example.golden: no after section in the repository's layout`},
+		{"a rename that failed", strings.Replace(repoGolden, "  3 remove $TMP/var/backups/example/.write_test -> ok", "  3 rename $TMP/var/backups/example/.write_test -> error: denied", 1),
+			`menu/example.golden: an operation the harness does not compare (rename): "  3 rename $TMP/var/backups/example/.write_test -> error: denied"`},
+		{"a remove that failed", strings.Replace(repoGolden, "  3 remove $TMP/var/backups/example/.write_test -> ok", "  3 remove $TMP/var/backups/example/.write_test -> error: denied", 1),
+			`menu/example.golden: a remove that failed, which the harness does not compare: "  3 remove $TMP/var/backups/example/.write_test -> error: denied"`},
+		{"two calls that failed", strings.Replace(strings.Replace(repoGolden, "/example mode=0755 -> ok", "/example mode=0755 -> error: denied", 1),
+			".write_test mode=0644 -> ok", ".write_test mode=0644 -> error: denied", 1),
+			`menu/example.golden: a second call that failed, which the harness does not compare: "  2 write  $TMP/var/backups/example/.write_test mode=0644 -> error: denied"`},
+		{"a second after line", strings.Replace(repoGolden, "# The temp dir afterwards:", "# $TMP/var/backups/example after: not there\n# The temp dir afterwards:", 1),
+			`menu/example.golden: a second after section: "# $TMP/var/backups/example after: not there"`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if _, err := parseLegacy([]byte(tc.golden), nil, "menu/example.golden", "$TMP"); err == nil || err.Error() != tc.want {
@@ -303,6 +313,23 @@ func TestCompareUnder(t *testing.T) {
 	}
 	if diffs, agree := compare(t, Slice{}, "enableBackups", l, n); slices.ContainsFunc(append(diffs, agree...), func(a aspect) bool { return strings.HasPrefix(a.Name, "backupPath") }) {
 		t.Error("compared under the backup path without UnderBackupPath")
+	}
+}
+
+// TestUnnamedSetting: a cell whose paths both saved hardn.yml must name
+// the setting its item saves; one where either did not save need not.
+func TestUnnamedSetting(t *testing.T) {
+	saved := EndState{YML: &FileWrite{Path: "/etc/hardn/hardn.yml"}}
+	if err := unnamedSetting("", saved, saved); err == nil {
+		t.Error("both saved, no setting named: no error")
+	}
+	for _, tc := range []struct {
+		key  string
+		l, n EndState
+	}{{"enableBackups", saved, saved}, {"", saved, EndState{}}, {"", EndState{}, saved}} {
+		if err := unnamedSetting(tc.key, tc.l, tc.n); err != nil {
+			t.Errorf("key %q, saved %t and %t: %v", tc.key, tc.l.YML != nil, tc.n.YML != nil, err)
+		}
 	}
 }
 

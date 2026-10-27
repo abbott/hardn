@@ -16,6 +16,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -390,14 +391,17 @@ var afterLine = regexp.MustCompile(`^# (\S+) after: (.*)$`)
 // parseRepository parses data, the characterization golden rel in the
 // repository's layout, its paths under root read as absolute: the
 // V-numbers of its KNOWN-DEFECT and FIXED lines; Start; the repository's
-// calls under the backup path (mkdir, write, remove) as Under, a call that
-// failed as the run's refusal, "failed: <error>"; the after line as After;
+// calls under the backup path (mkdir, write, remove) as Under, a mkdir or
+// write that failed as the run's refusal, "failed: <error>" (a second
+// failure, a failed remove or another operation is an error); the after
+// line as After;
 // ./hardn.yml as written, whole (its mode is not in the layout:
 // config.SaveConfig's os.WriteFile(…, 0644), read: pkg/config/config.go:494);
 // the configuration made in memory (Memory), as TestLegacyMenuBackup makes
 // it. The screen is skipped, and the temp dir recorded, not compared. A
 // line or an operation it does not know is an error, and so is a golden
-// without the calls, the after line or the hardn.yml line.
+// without the calls, the after line or the hardn.yml line, or with one of
+// the trailer's sections twice.
 func parseRepository(data []byte, rel, root string) (legacyRun, error) {
 	r := legacyRun{Golden: rel, Live: EndState{Memory: true}}
 	abs := func(s string) string {
@@ -449,18 +453,24 @@ func parseRepository(data []byte, rel, root string) (legacyRun, error) {
 			}
 			if m := traceLine.FindStringSubmatch(l); m != nil {
 				op, arg, res := m[1], abs(m[2]), m[3]
-				if e, ok := strings.CutPrefix(res, "error: "); ok {
-					r.Live.Refusal = "failed: " + abs(e)
-					continue
-				}
 				switch op {
 				case "mkdir", "write":
 					w := writeTarget.FindStringSubmatch(arg)
 					if w == nil {
 						return fail("a %s the parser does not know: %q", op, l)
 					}
+					if e, ok := strings.CutPrefix(res, "error: "); ok {
+						if r.Live.Refusal != "" {
+							return fail("a second call that failed, which the harness does not compare: %q", l)
+						}
+						r.Live.Refusal = "failed: " + abs(e)
+						continue
+					}
 					r.Live.Under = append(r.Live.Under, op+" "+w[1]+" "+w[2])
 				case "remove":
+					if res != "ok" {
+						return fail("a remove that failed, which the harness does not compare: %q", l)
+					}
 					r.Live.Under = append(r.Live.Under, op+" "+arg)
 				default:
 					return fail("an operation the harness does not compare (%s): %q", op, l)
@@ -469,22 +479,28 @@ func parseRepository(data []byte, rel, root string) (legacyRun, error) {
 			}
 			part = trailer
 		}
-		// trailer
-		switch m := afterLine.FindStringSubmatch(l); {
+		// trailer: each section once
+		var section string
+		m := afterLine.FindStringSubmatch(l)
+		switch {
 		case l == repoCalls:
-			part, seen["calls"] = calls, true
+			section, part = "calls", calls
 		case m != nil:
-			r.Live.After, seen["after"] = abs(m[1])+": "+m[2], true
+			section, r.Live.After = "after", abs(m[1])+": "+m[2]
 		case strings.HasPrefix(l, repoTree):
-			r.Tree = strings.TrimSpace(strings.TrimPrefix(l, repoTree))
+			section, r.Tree = "temp dir", strings.TrimSpace(strings.TrimPrefix(l, repoTree))
 		case l == repoYMLNone:
-			seen["hardn.yml"] = true
+			section = "hardn.yml"
 		case l == repoYMLWritten:
-			part, seen["hardn.yml"] = yml, true
+			section, part = "hardn.yml", yml
 			r.Live.YML = &FileWrite{Path: "./hardn.yml", Mode: 0o644}
 		default:
 			return fail("a line the reader does not know: %q", l)
 		}
+		if seen[section] {
+			return fail("a second %s section: %q", section, l)
+		}
+		seen[section] = true
 	}
 	if err := sc.Err(); err != nil {
 		return fail("%w", err)
@@ -719,11 +735,24 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 	if key == "" {
 		key = sl.Setting
 	}
+	if err := unnamedSetting(key, c.legacy.Live, c.ran.Live); err != nil {
+		t.Fatal(err)
+	}
 	c.diffs, c.agree = compare(t, sl, key, c.legacy.Live, c.ran.Live)
 	if sc.Lines == nil {
 		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.ran.Dry})
 	}
 	return c
+}
+
+// unnamedSetting is an error when both paths saved hardn.yml and key, the
+// setting the scenario's item saves (Scenario.Setting, else
+// Slice.Setting), is empty: its aspect would compare no key.
+func unnamedSetting(key string, l, n EndState) error {
+	if key == "" && l.YML != nil && n.YML != nil {
+		return errors.New("both paths saved hardn.yml, and the scenario names no setting (Scenario.Setting or Slice.Setting)")
+	}
+	return nil
 }
 
 // legacyDry is what origin/main's cfg.DryRun=true section did, and whether
