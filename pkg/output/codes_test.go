@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -444,6 +445,7 @@ func TestPrecedence(t *testing.T) {
 		{"not bound", &reload.ListenerError{Err: reload.ErrNotBound}, "RELOAD_NOT_BOUND"},
 		{"one code for an unsafe run directory", sudoers.ErrUnsafeRunDir, "UNSAFE_DIRECTORY"},
 		{"an unsafe backup directory, named", &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir}, "UNSAFE_DIRECTORY"},
+		{"a file on a backup path, named", &backup.DirError{Dir: "/etc/os-release", Err: syscall.ENOTDIR}, "BACKUP_PATH_NOT_DIRECTORY"},
 		{"a backup not written: a read-only file system", &backup.WriteError{Err: &fs.PathError{Op: "mkdir", Path: "/var/backups/hardn", Err: syscall.EROFS}}, "BACKUP_WRITE_FAILED"},
 		{"a backup not written, not the permission's", &backup.WriteError{Err: &fs.PathError{Op: "mkdir", Path: "/var/backups/hardn", Err: fs.ErrPermission}}, "BACKUP_WRITE_FAILED"},
 		{"a backup not written, not the seam's", &backup.WriteError{Err: fmt.Errorf("write: %w", host.ErrNotDurable)}, "BACKUP_WRITE_FAILED"},
@@ -497,6 +499,7 @@ func TestTypedErrors(t *testing.T) {
 		"steps.Refusal":          &steps.Refusal{Code: steps.CodeNoRunDir},
 		"backup.DirError":        &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir},
 		"backup.WriteError":      &backup.WriteError{Err: syscall.EROFS},
+		"backup.FieldError":      &backupctl.FieldError{Words: "Others can change /tmp", Err: &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir}},
 	}
 	found := map[string]bool{}
 	for _, dir := range []string{filepath.Join("..", "host"), filepath.Join("..", "engine")} {

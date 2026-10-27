@@ -284,6 +284,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `BACKUP_MANIFEST_INVALID` | 1 | invalid backup manifest |
 | `BACKUP_CORRUPT` | 1 | backup copy does not match its manifest |
 | `BACKUP_CHANGED` | 1 | a file changed since its backup in a way restore does not undo |
+| `BACKUP_PATH_NOT_DIRECTORY` | 1 | a backup path, or a path above it, is a file, not a directory; it was `UNCLASSIFIED_ERROR` until `next/s3-control` |
 | `BACKUP_WRITE_FAILED` | 1 | a backup could not be written (its directory, its copy or its manifest), so the change did not go ahead; it was `UNCLASSIFIED_ERROR` for a read-only file system, and the seam's or the standard library's code otherwise (`PERMISSION_DENIED`, `WRITE_NOT_DURABLE`), until `next/s3-control` ([control-backup.md](../engine/control-backup.md)) |
 | `DETECT_SIGNALS_DISAGREE` | 1 | detection: two signals for one fact disagree, so it is Unknown |
 | `DETECT_UNRECOGNISED` | 1 | detection: a file or a command's output is not in a form hardn knows |
