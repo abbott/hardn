@@ -2,7 +2,6 @@ package backup
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -19,8 +18,9 @@ import (
 //   - the settings Open refuses (ErrSettings);
 //   - a run directory that exists already (ErrRunExists);
 //   - the deepest directory of the run directory's path that exists, which
-//     prepare would create the rest under, refused by checkTrusted
-//     (ErrUnsafeDir);
+//     prepare would create the rest under, refused by checkTrusted: another
+//     user can change it (ErrUnsafeDir), or it is a file (syscall.ENOTDIR),
+//     each a DirError naming it;
 //   - a path that is not absolute and clean (fs.ErrInvalid), or that
 //     Backup's inspection refuses: a directory or a special file
 //     (ErrNotRegular), a symlink in a directory another user can change
@@ -33,16 +33,9 @@ func Check(ctx context.Context, sys host.System, s Settings, runID string, paths
 	if err != nil {
 		return err
 	}
-	top := r.m.Dir
-	for {
-		_, err := sys.Lstat(ctx, top)
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, fs.ErrNotExist) || top == "/" {
-			return fmt.Errorf("backup: %w", err)
-		}
-		top = filepath.Dir(top)
+	top, _, err := deepest(ctx, sys, r.m.Dir)
+	if err != nil {
+		return err
 	}
 	if top == r.m.Dir {
 		return fmt.Errorf("backup: %s: %w", r.m.Dir, ErrRunExists)

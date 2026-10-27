@@ -17,6 +17,7 @@ backup.ErrNotRegular BACKUP_NOT_REGULAR
 backup.ErrRunExists BACKUP_RUN_EXISTS
 backup.ErrSettings BACKUP_SETTINGS_INVALID
 backup.ErrUnsafeDir UNSAFE_DIRECTORY
+backup.ErrWrite BACKUP_WRITE_FAILED
 config.ErrChanged CONFIG_CHANGED
 config.ErrEditUnsafe CONFIG_EDIT_UNSAFE
 config.ErrInvalidFile CONFIG_FILE_INVALID
