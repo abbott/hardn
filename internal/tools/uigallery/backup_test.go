@@ -497,22 +497,25 @@ func writesAfter(h *fakeHost, n int) []string {
 }
 
 // TestBackupDrawAndVerifyWriteNothing: drawing the screen on every host,
-// and Verify on it, change nothing there, where origin/main's make the
-// directory and write and remove a test file; no engine is built and no
-// hold taken, and Verify says that nothing was written.
+// and Verify on it, live and under plan only, change nothing there, where
+// origin/main's make the directory and write and remove a test file in
+// either mode; no engine is built and no hold taken, and Verify says
+// that nothing was written.
 func TestBackupDrawAndVerifyWriteNothing(t *testing.T) {
-	for _, bh := range backupHosts() {
-		h := bh.host()
-		n := len(h.f.Calls())
-		s, out, code := playBackup(t, bh, h, false, "3", "0")
-		if code != exitOK || len(s.engineRuns) != 0 || s.holds != 0 {
-			t.Errorf("%s: exit %d, %d engines, the hold taken %d times:\n%s", bh.name, code, len(s.engineRuns), s.holds, out)
-		}
-		if !strings.Contains(flatText(out), nothingWritten) {
-			t.Errorf("%s: Verify does not say that nothing was written:\n%s", bh.name, out)
-		}
-		if got := writesAfter(h, n); len(got) > 0 {
-			t.Errorf("%s: drawing the screen and Verify changed the host: %q", bh.name, got)
+	for _, dryRun := range []bool{false, true} {
+		for _, bh := range backupHosts() {
+			h := bh.host()
+			n := len(h.f.Calls())
+			s, out, code := playBackup(t, bh, h, dryRun, "3", "0")
+			if code != exitOK || len(s.engineRuns) != 0 || s.holds != 0 {
+				t.Errorf("%s, plan only %v: exit %d, %d engines, the hold taken %d times:\n%s", bh.name, dryRun, code, len(s.engineRuns), s.holds, out)
+			}
+			if !strings.Contains(flatText(out), nothingWritten) {
+				t.Errorf("%s, plan only %v: Verify does not say that nothing was written:\n%s", bh.name, dryRun, out)
+			}
+			if got := writesAfter(h, n); len(got) > 0 {
+				t.Errorf("%s, plan only %v: drawing the screen and Verify changed the host: %q", bh.name, dryRun, got)
+			}
 		}
 	}
 }
