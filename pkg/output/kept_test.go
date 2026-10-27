@@ -175,8 +175,9 @@ func TestBackupsRefusalWords(t *testing.T) {
 // TestBackupWriteWords: an apply that failed at a backup it could not
 // write (a read-only file system) is reported in a few words, its code on
 // the step's line, the report naming the file and the backupPath and the
-// cause, then that nothing was changed once the rollback finished, then
-// how to go on; the document has the code, and the words as why. (The
+// cause, then that nothing was changed once the rollback finished and no
+// boot unit was installed first (it is never rolled back), then how to
+// go on; the document has the code, and the words as why. (The
 // flow's failure, the same words through FlowEngine, is the gallery's
 // play/backup-readonly.)
 func TestBackupWriteWords(t *testing.T) {
@@ -184,28 +185,34 @@ func TestBackupWriteWords(t *testing.T) {
 	we := &backup.WriteError{Path: fixtureConfig, BackupPath: backup.DefaultPath, Err: &fs.PathError{Op: "mkdir", Path: backup.DefaultPath, Err: syscall.EROFS}}
 	why := "Can't back up " + fixtureConfig + " in " + backup.DefaultPath + ": read-only file system"
 	fix := "To go on: choose a backup path hardn can write, with Backup's item 2."
-	for _, finished := range []bool{true, false} {
+	for _, tc := range []struct {
+		finished bool
+		boot     bool // the boot unit's install ran first, never rolled back
+	}{{true, false}, {false, false}, {true, true}} {
 		r := saveRun(nil)
 		r.Result.Applied = nil
 		ae := &engine.ApplyError{ID: fixtureID, Change: "backup.settings/save", Step: engine.StepBackup, Err: we}
-		if !finished {
+		if !tc.finished {
 			ae.RollbackErr = fmt.Errorf("fixture: %w", errors.New("not finished"))
+		}
+		if tc.boot {
+			r.Result.Boot = &engine.BootInstall{Detail: "written, enabled"}
 		}
 		r.Result.Failed, r.Err = ae, ae
 		d := output.Build(r)
 		if d.Errors[0].Code != "BACKUP_WRITE_FAILED" || d.Errors[0].Why != why {
-			t.Errorf("finished %v: errors %+v", finished, d.Errors)
+			t.Errorf("%+v: errors %+v", tc, d.Errors)
 		}
 		human := words(output.Human(plain, r, fixtureNow))
 		next := fix
-		if finished {
+		if tc.finished && !tc.boot {
 			next = "Nothing was changed. " + fix
 		}
 		if !strings.Contains(human, "Failed BACKUP_WRITE_FAILED") || !strings.Contains(human, "Operation Failed "+why+" "+next) {
-			t.Errorf("finished %v: %s", finished, human)
+			t.Errorf("%+v: %s", tc, human)
 		}
-		if !finished && strings.Contains(human, "Nothing was changed") {
-			t.Errorf("a rollback that did not finish, said to have changed nothing: %s", human)
+		if (!tc.finished || tc.boot) && strings.Contains(human, "Nothing was changed") {
+			t.Errorf("%+v: said to have changed nothing: %s", tc, human)
 		}
 	}
 }

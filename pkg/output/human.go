@@ -375,14 +375,16 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 // (next/s2-control; gallery-dns.md's failure-proposed sequence). A backup
 // that could not be written is worded so too (next/s3-control; proposed):
 // its Why, then, once the rollback finished or with nothing to roll back,
-// that nothing was changed, then "To go on: " and its Fix.
+// that nothing was changed, then "To go on: " and its Fix. Nothing was
+// changed is not said when the boot unit's install ran (Result.Boot): it
+// comes before the change is journalled, and is never rolled back.
 func failureWords(d Document, first Error, failed error) (text, next string, ok bool) {
 	if failed == nil || first.Message != failed.Error() {
 		return "", "", false
 	}
 	if nw := backupctl.NotWritten(failed); nw != nil {
 		next = toGoOn(nw.Fix)
-		if rb := d.Result.Rollback; rb == nil || rb.Finished {
+		if rb := d.Result.Rollback; (rb == nil || rb.Finished) && d.Result.Boot == nil {
 			next = nothingChanged + " " + next
 		}
 		return nw.Why, next, true
