@@ -35,8 +35,8 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
-  ␛[38;2;129;134;156m/var/backups/hardn is made at the first change; only root can␛[m$
-  ␛[38;2;129;134;156mchange /var/backups. Nothing was written.␛[m$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -141,8 +141,8 @@ $
 $
   > Enter selection [0-4 or q]: 3$
 $
-  /var/backups/hardn is made at the first change; only root can$
-  change /var/backups. Nothing was written.$
+  Only root can change /var/backups, where the first backup$
+  makes /var/backups/hardn. Nothing was written.$
 $
 # Backup Settings ##############################################$
 $
@@ -254,8 +254,8 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
-  ␛[38;2;129;134;156m/var/backups/hardn is made at the first change; only root␛[m$
-  ␛[38;2;129;134;156mcan change /var/backups. Nothing was written.␛[m$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

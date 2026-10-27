@@ -12,8 +12,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
-  ␛[38;2;129;134;156m/var/backups/hardn is made at the first change; only root can␛[m$
-  ␛[38;2;129;134;156mchange /var/backups. Nothing was written.␛[m$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
@@ -22,16 +22,16 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can change /tmp, so every change is refused. Set␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so every change is refused.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -47,8 +47,8 @@ $
 $
 # verify on default --------------------------------------------$
 $
-  /var/backups/hardn is made at the first change; only root can$
-  change /var/backups. Nothing was written.$
+  Only root can change /var/backups, where the first backup$
+  makes /var/backups/hardn. Nothing was written.$
 $
 # verify on elsewhere ------------------------------------------$
 $
@@ -57,16 +57,16 @@ $
 # verify on unsafe ---------------------------------------------$
 $
 # Warning$
-# Other users can change /tmp, so every change is refused. Set$
-# backupPath in /etc/hardn/hardn.yml by hand.$
+# Other users can write to /tmp, so hardn refuses every change.$
+# Set backupPath in /etc/hardn/hardn.yml by hand.$
 $
   Nothing was written.$
 $
 # verify on relative -------------------------------------------$
 $
 # Warning$
-# "backups" is not an absolute path, so every change is refused.$
-# Set backupPath in /etc/hardn/hardn.yml by hand.$
+# "backups" is not an absolute path, so hardn refuses every$
+# change. Set backupPath in /etc/hardn/hardn.yml by hand.$
 $
   Nothing was written.$
 $
@@ -82,8 +82,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
-  ␛[38;2;129;134;156m/var/backups/hardn is made at the first change; only root␛[m$
-  ␛[38;2;129;134;156mcan change /var/backups. Nothing was written.␛[m$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
 $
@@ -93,16 +93,16 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can change /tmp, so every change is refused.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so every change is␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mrefused. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -118,8 +118,8 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
 $
-  ␛[38;2;129;134;156m/var/backups/hardn is made at the first change; only root can␛[m$
-  ␛[38;2;129;134;156mchange /var/backups. Nothing was written.␛[m$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
 $
@@ -128,16 +128,16 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can change /tmp, so every change is refused. Set␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so every change is refused.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $

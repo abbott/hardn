@@ -43,7 +43,7 @@ $
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups//hardn/$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mWrite it as /var/backups/hardn␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /tmp/hardn$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mOther users can change /tmp␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mOther users can write to /tmp␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /etc/os-release$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mNot a directory␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups/hardn$
@@ -140,7 +140,7 @@ $
   Enter new backup path [0 or q]: /var/backups//hardn/$
   (x) Write it as /var/backups/hardn$
   Enter new backup path [0 or q]: /tmp/hardn$
-  (x) Other users can change /tmp$
+  (x) Other users can write to /tmp$
   Enter new backup path [0 or q]: /etc/os-release$
   (x) Not a directory$
   Enter new backup path [0 or q]: /var/backups/hardn$
@@ -244,7 +244,7 @@ $
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups//hardn/$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mWrite it as /var/backups/hardn␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /tmp/hardn$
-   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mOther users can change /tmp␛[m$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mOther users can write to /tmp␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /etc/os-release$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mNot a directory␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups/hardn$
@@ -351,7 +351,7 @@ $
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups//hardn/$
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mWrite it as /var/backups/hardn␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /tmp/hardn$
-  ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mOther users can change /tmp␛[m$
+  ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mOther users can write to /tmp␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /etc/os-release$
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mNot a directory␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /var/backups/hardn$

@@ -72,9 +72,12 @@ const (
 	pathTitle = "Enter new backup path"
 	// takenAnyway is said after a change applied with backups off whose
 	// rollback backup was taken (§3.16: "and says so").
-	takenAnyway = "Backups were off; this change's backup was taken anyway, for its rollback."
+	takenAnyway = "Backed up anyway: the rollback needs it."
 	// nothingWritten closes Verify's report.
 	nothingWritten = "Nothing was written."
+	// byHand is how to go on where Check refuses the path in use: the
+	// screen's path change is refused too (gallery-backup.md decision 7).
+	byHand = "Set backupPath in " + hardnYML + " by hand."
 )
 
 // The menu's keys.
@@ -388,21 +391,21 @@ func verifyWords(r backupReading) component.Messages {
 	kind := component.MessageInfo
 	switch {
 	case errors.Is(r.check, backup.ErrSettings):
-		kind, says = component.MessageWarn, fmt.Sprintf("%q is not an absolute path, so every change is refused. Set backupPath in %s by hand.", p, hardnYML)
+		kind, says = component.MessageWarn, fmt.Sprintf("%q is not an absolute path, so hardn refuses every change. %s", p, byHand)
 	case errors.Is(r.check, backup.ErrUnsafeDir):
 		dir := unsafeDir(r.check)
 		if dir == "" {
 			dir = p
 		}
-		kind, says = component.MessageWarn, fmt.Sprintf("Other users can change %s, so every change is refused. Set backupPath in %s by hand.", dir, hardnYML)
+		kind, says = component.MessageWarn, fmt.Sprintf("Other users can write to %s, so hardn refuses every change. %s", dir, byHand)
 	case errors.Is(r.check, syscall.ENOTDIR):
-		kind, says = component.MessageWarn, fmt.Sprintf("%s is not a directory, so every change is refused.", p)
+		kind, says = component.MessageWarn, fmt.Sprintf("%s is not a directory, so hardn refuses every change. %s", p, byHand)
 	case r.check != nil:
 		kind, says = component.MessageWarn, "Can't check "+p+": "+r.check.Error()+"."
 	case r.made:
 		says = "Only root can change " + p + "."
 	default:
-		says = p + " is made at the first change; only root can change " + path.Dir(path.Clean(p)) + "."
+		says = "Only root can change " + path.Dir(path.Clean(p)) + ", where the first backup makes " + p + "."
 	}
 	if kind == component.MessageInfo {
 		return component.Messages{{Text: says + " " + nothingWritten}}
@@ -506,9 +509,9 @@ func pathCheck(ctx context.Context, sys host.System, current string) func(string
 			return nav.Warn(entry + " is the backup path already")
 		case errors.Is(err, backup.ErrUnsafeDir):
 			if dir := unsafeDir(err); dir != "" {
-				return errors.New("Other users can change " + dir)
+				return errors.New("Other users can write to " + dir)
 			}
-			return errors.New("Other users can change it")
+			return errors.New("Other users can write to it")
 		case errors.Is(err, syscall.ENOTDIR):
 			return errors.New("Not a directory")
 		case err != nil:

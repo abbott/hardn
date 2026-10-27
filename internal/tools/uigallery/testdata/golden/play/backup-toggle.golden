@@ -102,8 +102,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-  ␛[38;2;129;134;156mBackups were off; this change's backup was taken anyway, for␛[m$
-  ␛[38;2;129;134;156mits rollback.␛[m$
+  ␛[38;2;129;134;156mBacked up anyway: the rollback needs it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -242,8 +241,7 @@ $
 $
 # Operation Successful$
 $
-  Backups were off; this change's backup was taken anyway, for$
-  its rollback.$
+  Backed up anyway: the rollback needs it.$
 $
 # Backup Settings ##############################################$
 $
@@ -401,8 +399,7 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
-  ␛[38;2;129;134;156mBackups were off; this change's backup was taken anyway,␛[m$
-  ␛[38;2;129;134;156mfor its rollback.␛[m$
+  ␛[38;2;129;134;156mBacked up anyway: the rollback needs it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

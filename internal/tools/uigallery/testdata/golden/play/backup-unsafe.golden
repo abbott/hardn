@@ -36,8 +36,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can change /tmp, so every change is refused. Set␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -162,8 +162,8 @@ $
   > Enter selection [0-4 or q]: 3$
 $
 # Warning$
-# Other users can change /tmp, so every change is refused. Set$
-# backupPath in /etc/hardn/hardn.yml by hand.$
+# Other users can write to /tmp, so hardn refuses every change.$
+# Set backupPath in /etc/hardn/hardn.yml by hand.$
 $
   Nothing was written.$
 $
@@ -294,8 +294,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can change /tmp, so every change is refused.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
