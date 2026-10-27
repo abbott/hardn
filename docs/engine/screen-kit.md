@@ -68,6 +68,7 @@ type Slice struct {
 	Scenarios []Scenario; Distros []Distro; Table []Tie
 	Header, Golden, Page, Pkg, Setting string
 	Legacy, Fixtures string // origin/main's goldens and their fixtures, from the package
+	V032Sections     string // v032-reference.md's sections the page cites
 	Shipped, Exists func(state HostState, d Distro) string
 	Probes  []string
 	Run     func(t *testing.T, c Cell) NewRun
@@ -87,13 +88,13 @@ func OrElse(s, none string) string
 ## 3. What stays per screen
 
 - **DNS screen:** `Options` and `Run`, unchanged; the reading (`dns.Read`, the control's `Check`); the items and their words; `hostWords`, which says what failed for `DNS_UNKNOWN`; Add's check. Its change is a `screenkit.Change`: Alpine's udhcpc question added to the form, the review, the question, and `Controls` setting the copy's list and returning the DNS control, which reads the session's configuration, not the copy, as before.
-- **DNS parity:** `parity_test.go`: the scenarios, distributions and table, the header, the run of the new path (`configure`, `menuItem`, `beforeAsking`), the file aspects (`servers`, `search`, `others`) and the record's directories. Its table keeps its rows through a local positional `tie`, converted by `ties`, because go vet takes unkeyed fields only for a package's own types.
+- **DNS parity:** `parity_test.go`: the scenarios, distributions and table, the header, the run of the new path (`configure`, `menuItem`, `beforeAsking`), the file aspects (`servers`, `search`, `others`), the record's directories and the v0.3.2 sections the page cites (`V032Sections`; the moved harness had DNS's built in). Its table keeps its rows through a local positional `tie`, converted by `ties`, because go vet takes unkeyed fields only for a package's own types.
 - **Backup** (unit (c), and its (b2)): its reading, items, words and view-model; its control and refusals (unit (b)'s second part); its scenarios and table.
 
 ## 4. Tests
 
 - `pkg/screens/screenkit`: `TestChange` (applied and adopted, the next change's save then not refused; declined, a dry run and a quit at the question planned, given to `Ran`, nothing written or adopted; back from the form, nothing planned, no engine), `TestApplyContext`, `TestAdopt` (moved), `TestNotLoaded`, `TestRefusalWords`, `TestSay`.
-- `internal/parity`: `TestReadLegacy` (a synthetic golden), `TestParseLegacyRefuses` (a golden in another layout, a removal), `TestNewState`, `TestTableProblems` (listed, unlisted, stale, a V-number not named, twice), `TestWhere`.
+- `internal/parity`: `TestReadLegacy` (a synthetic golden), `TestParseLegacyRefuses` (a golden in another layout, a removal), `TestNewState`, `TestTableProblems` (listed, unlisted, stale, a V-number not named, twice), `TestWhere`, `TestPageCites`.
 - Unchanged and passing: every DNS screen test, `TestParity` (108 subtests), the gallery's.
 - Mutation-checked (run, with `go test -overlay`): with the adoption removed from `Session.Change`, DNS's `TestAdd`, `TestRemove` and `TestPresets` fail, and `TestChange`; with it removed from the Backup mocks, `TestPlayBackupGolden` fails; through the moved harness, a DNS table entry removed fails UNEXPLAINED, and a stale entry and one tied to V12 fail.
 

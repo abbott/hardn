@@ -209,3 +209,16 @@ func TestWhere(t *testing.T) {
 		}
 	}
 }
+
+// TestPageCites: the page's v0.3.2 line names the sections the slice
+// gives, or none.
+func TestPageCites(t *testing.T) {
+	for sections, want := range map[string]string{
+		"§3": "from [v032-reference.md](../refactor/phase0/v032-reference.md) §3.\n",
+		"":   "from [v032-reference.md](../refactor/phase0/v032-reference.md).\n",
+	} {
+		if got := renderPage(Slice{Pkg: "pkg/screens/example", Golden: "parity.golden", V032Sections: sections}, nil); !strings.Contains(got, want) {
+			t.Errorf("V032Sections %q: the page has no %q:\n%s", sections, want, got)
+		}
+	}
+}

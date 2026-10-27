@@ -51,6 +51,9 @@ type Slice struct {
 	Page      string // the page whose region the test writes, from the package
 	Pkg       string // the package of the slice's TestParity, from the module root
 	Setting   string // the hardn.yml key the slice's items save
+	// V032Sections are the sections of v032-reference.md its scenarios'
+	// V032 cite, which the page names: DNS's "§4.5, §4.13, §5.1, §6".
+	V032Sections string
 	// Legacy is the directory of origin/main's goldens, in
 	// pkg/characterization's layout under its testdata/golden, from the
 	// package; Fixtures is the directory of the hardn.yml fixtures they
@@ -956,7 +959,11 @@ func renderPage(sl Slice, cells []Cell) string {
 		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.Name, cell(g.a.Legacy), cell(g.a.New), g.e.Source, g.e.Why)
 	}
 
-	b.WriteString("\n**v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md) §4.5, §4.13, §5.1, §6.\n\n")
+	cites := ""
+	if sl.V032Sections != "" {
+		cites = " " + sl.V032Sections
+	}
+	fmt.Fprintf(&b, "\n**v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md)%s.\n\n", cites)
 	b.WriteString("| Scenarios | v0.3.2 |\n|---|---|\n")
 	var done []string
 	for _, sc := range sl.Scenarios {

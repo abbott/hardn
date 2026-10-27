@@ -55,6 +55,8 @@ var dnsParity = parity.Slice{
 	Probes:  []string{"systemctl is-active systemd-resolved", "which resolvconf"},
 	Run:     dnsRun,
 	Content: dnsContent,
+	// The v0.3.2 column's sources (v032Head and the rest, below).
+	V032Sections: "§4.5, §4.13, §5.1, §6",
 }
 
 // legacyGoldens and fixtures are origin/main's record: pkg/characterization's
