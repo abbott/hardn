@@ -695,14 +695,25 @@ func outside(lines []string, key string) []string {
 	return out
 }
 
-// checkTable holds every difference to sl.Table: none unlisted, every
-// entry occurring, each V-number of a source one origin/main's golden for
-// the cell names.
+// checkTable holds every difference to sl.Table (tableProblems), each
+// problem an error of the test.
 func checkTable(t *testing.T, sl Slice, cells []Cell) {
 	t.Helper()
-	want, twice := expand(sl.Table)
+	for _, p := range tableProblems(sl.Table, cells) {
+		t.Error(p)
+	}
+}
+
+// tableProblems are where cells' differences and table disagree: an entry
+// listed twice, a difference unlisted (UNEXPLAINED), a V-number of a
+// source that origin/main's golden for the cell does not name, an entry
+// whose difference no longer occurs.
+func tableProblems(table []Tie, cells []Cell) []string {
+	var out []string
+	add := func(format string, args ...any) { out = append(out, fmt.Sprintf(format, args...)) }
+	want, twice := expand(table)
 	for _, k := range twice {
-		t.Errorf("the table lists %s on %s, %s twice", k.Scenario, k.Distro, k.Aspect)
+		add("the table lists %s on %s, %s twice", k.Scenario, k.Distro, k.Aspect)
 	}
 	seen := map[key]bool{}
 	for _, c := range cells {
@@ -711,21 +722,22 @@ func checkTable(t *testing.T, sl Slice, cells []Cell) {
 			seen[k] = true
 			e, ok := want[k]
 			if !ok {
-				t.Errorf("UNEXPLAINED %s on %s, %s: origin/main %q, new %q", c.Scenario.Name, c.Distro.Name, d.Name, d.Legacy, d.New)
+				add("UNEXPLAINED %s on %s, %s: origin/main %q, new %q", c.Scenario.Name, c.Distro.Name, d.Name, d.Legacy, d.New)
 				continue
 			}
 			for _, v := range vNumber.FindAllString(e.Source, -1) {
 				if !slices.Contains(c.legacy.Vs, v) {
-					t.Errorf("%s on %s, %s: tied to %s, which %s does not name (it names %v)", c.Scenario.Name, c.Distro.Name, d.Name, v, c.legacy.Golden, c.legacy.Vs)
+					add("%s on %s, %s: tied to %s, which %s does not name (it names %v)", c.Scenario.Name, c.Distro.Name, d.Name, v, c.legacy.Golden, c.legacy.Vs)
 				}
 			}
 		}
 	}
 	for k := range want {
 		if !seen[k] {
-			t.Errorf("the table lists %s on %s, %s, which no longer differs", k.Scenario, k.Distro, k.Aspect)
+			add("the table lists %s on %s, %s, which no longer differs", k.Scenario, k.Distro, k.Aspect)
 		}
 	}
+	return out
 }
 
 var vNumber = regexp.MustCompile(`\bV\d+\b`)
