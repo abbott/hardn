@@ -85,7 +85,7 @@ var _ engine.BackupsSaver = Settings{}
 func (Settings) ID() string { return ID }
 
 // Title is the control's name in a plan of several controls and the JSON
-// document's status (proposed).
+// document's status (decided, control-backup.md §7).
 func (Settings) Title() string { return "Backups" }
 
 // Applies is true on every host: backups are hardn's own, wherever it runs.
@@ -265,7 +265,7 @@ const (
 )
 
 // Refusal is err, backup.Check's refusal of the backup path p, with its
-// report (proposed words, control-backup.md §6; gallery-backup.md §6):
+// report (decided words, control-backup.md §6):
 // why backups cannot go there, and how to go on, with Backup's item 2,
 // which changes the path. It is the engine's refusal of any change while
 // backupPath is refused, as pkg/output reports it, and of a new path the
@@ -338,7 +338,7 @@ func Field(ctx context.Context, sys host.System, current, entry string) error {
 
 // NotWritten is err, a backup that could not be written (a
 // hostbackup.WriteError: a read-only file system, a full disk), with its
-// report (proposed words, control-backup.md §6): which file could not be
+// report (decided words, control-backup.md §6): which file could not be
 // backed up where, and why, as the failure's Why; how to go on, its Fix.
 // nil for any other error. pkg/output words the apply that failed at its
 // backup with it, and adds that nothing was changed once the rollback

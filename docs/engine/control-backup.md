@@ -1,7 +1,7 @@
 # Backup on the engine: Backup's control (`pkg/engine/controls/backup`)
 
 > **Unit:** refactor plan slice 3 (Backup), unit (b), its second part, `next/s3-control`, from `next/s3-shared` at 555ffef (the first part: [screen-kit.md](screen-kit.md)). It builds on unit (a) ([gallery-backup.md](gallery-backup.md)), whose ten decisions the maintainer adopted on 2026-10-27 ("Adopt all ten slice 3 Backup recommendations in gallery-backup.md §5"). Decisions implemented: §3.16 (approved 2026-10-17: per-run `<backupPath>/<id>/` with a manifest; `enableBackups=false` still takes rollback-required backups, "and says so"); §3.19 as amended (2026-10-22: a save edits only the keys that changed); slice 3's decisions 3 (Check, writing nothing; the path's notes), 5 (a path not written clean refused, "Write it as <path>"), 6 (Check's refusals inline, the path in use a warning), 7 (a) (a change of Backup's settings planned under the settings it saves: the engine side) and 8 (what a change kept, and "taken anyway", in `pkg/output`: the engine side), and the run listing decision 9's read-only Backup Runs needs. V-numbers: V18 (no backup), on the engine's path. It fixes gallery-backup.md §7's defects 12, 13 and 14 (§8).
-> **Status:** built and tested on macOS, in process, on `hostfake`, and `pkg/host/backup`'s helpers also on real files in `t.TempDir()` (run). Nothing has run on Linux or as root: every host claim is "written, not run (gate 5)" (§4). Nothing is wired into `cmd/hardn`, the main menu or the legacy Backup screen (units (c) and (d)); legacy and characterization goldens are unchanged (run: `git diff --stat 555ffef -- pkg/menu/testdata pkg/characterization` is empty). The words decision 2 to 9 name are **decided** and used exactly; every other new word is **proposed** (§7).
+> **Status:** built and tested on macOS, in process, on `hostfake`, and `pkg/host/backup`'s helpers also on real files in `t.TempDir()` (run). Nothing has run on Linux or as root: every host claim is "written, not run (gate 5)" (§4). Nothing is wired into `cmd/hardn`, the main menu or the legacy Backup screen (units (c) and (d)); legacy and characterization goldens are unchanged (run: `git diff --stat 555ffef -- pkg/menu/testdata pkg/characterization` is empty). Every new word is **decided** and used exactly (§7): those decisions 2 to 9 name, and the rest of §6 and §7's, adopted on 2026-10-27 with `BACKUP_WRITE_FAILED`.
 
 Backup's control is the second control that both checks and plans, and the first whose change moves where the engine keeps its backups. `Check` gives a screen what the section of the Backup screen says: the state and the path, the path's note from `backup.Check`, writing nothing. `Plan` gives the engine the save of `enableBackups` and `backupPath`. The engine plans and applies that save under the settings it saves, and every change of hardn now says what it kept, and where.
 
@@ -89,7 +89,7 @@ The path's notes, decided (decision 3), as `Status.Detail`:
 
 ## 6. The refusals
 
-Each is a `steps.Refusal`; `pkg/output` shows the Why with the code, then "To go on: " and the Fix. All **proposed** (gallery-backup.md §6's, cut into Why and Fix; "with Backup's item 2" names the item that changes the path, in both the legacy screen and the adopted one).
+Each is a `steps.Refusal`; `pkg/output` shows the Why with the code, then "To go on: " and the Fix. All **decided**, with their codes (the maintainer, 2026-10-27: "Adopt the proposed words and BACKUP_WRITE_FAILED in control-backup.md §6–7"). They are gallery-backup.md §6's, cut into Why and Fix; "with Backup's item 2" names the item that changes the path, in both the legacy screen and the adopted one.
 
 | Code | When | Why | Fix |
 |---|---|---|---|
@@ -109,10 +109,10 @@ The first four are the control's (`Refusal`, `checkPath`) and the engine's refus
 | After a change applied | "Backup of <files> kept in", the run's directory; "Backed up anyway: the rollback needs it." | **decided** (decision 8) |
 | The path's notes | "Root only", "Not created yet", "Unsafe", "Not absolute", "Not a directory", "Can't tell" | **decided** (decision 3) |
 | The path field (`Field`) | "Not an absolute path", "Write it as <path>", "Others can change <dir>", "Not a directory", "<path> is the backup path already" (a warning) | **decided** (decisions 5, 6) |
-| The path field | "Backup path cannot be empty", "Can't check it: <error>" | **proposed** (gallery-backup.md §6) |
-| The refusals and the write's failure | §6's Why and Fix; "Nothing was changed." | **proposed** |
-| The control's title | "Backups" | **proposed** (the gallery's) |
-| Evidence | `<hardn.yml>: enableBackups <bool>, backupPath <path>`; `<path>: a directory`, `<path>: absent`, or Check's error | **proposed** |
+| The path field | "Backup path cannot be empty", "Can't check it: <error>" | **decided** (2026-10-27; gallery-backup.md §6's) |
+| The refusals and the write's failure | §6's Why and Fix; "Nothing was changed." | **decided** (2026-10-27) |
+| The control's title | "Backups" | **decided** (2026-10-27; the gallery's) |
+| Evidence | `<hardn.yml>: enableBackups <bool>, backupPath <path>`; `<path>: a directory`, `<path>: absent`, or Check's error | **decided** (2026-10-27) |
 | The save | "Save the configuration", "Save the configuration to <path>" | `steps.PlanSave`'s, as before |
 
 The goldens (`pkg/engine/controls/backup/testdata/golden/human/`, the core cells, and `testdata/json/`), from the real engine on `hostfake`, show them as `pkg/output` renders them: `check` (six hosts' rows), `plan-off`, `applied-off` (kept, taken anyway), `applied-on` (kept alone), `applied-path-from-unsafe` (kept under the new path), `refused-dns-unsafe` (the DNS change refused in the refused path's words), `refused-path` (a new path refused by the control), `failed-readonly` (the write's failure). The plan's id, random in its last part, is fixed in them (`stable`), the run's directory with it.
@@ -183,8 +183,8 @@ package output // added
 4. **The lines go after "Operation Successful" and any countdown, before the findings**, in `Human` and `AfterFlow`; the gallery's mock put them after everything, which is the same where a change has no countdown or finding left to say.
 5. **`Result.Backup` only once every change applied**: after a failed apply the rollback restored the files, and the report says what was rolled back.
 6. **The refusal words are applied in `pkg/output`**, for the plan's refusals no control owns (the engine's), from `Plan.Backups`' path: the engine cannot build a `steps.Refusal` (`steps` imports `engine`), and the words live in the control, which a screen uses too.
-7. **`BACKUP_WRITE_FAILED` comes before the seam's and the standard library's codes**, which its errors also match, as the registry's rule puts the more specific first: a backup write that failed with a permission denied, or not synced, now reads `BACKUP_WRITE_FAILED` where it read `PERMISSION_DENIED` or `WRITE_NOT_DURABLE` (unreleased: v0.4 is not out).
-8. **`BACKUP_PATH_NOT_DIRECTORY`, new**, so that each of the control's refusals has a code; a `DirError` of `ENOTDIR` was `UNCLASSIFIED_ERROR`.
+7. **`BACKUP_WRITE_FAILED` comes before the seam's and the standard library's codes**, which its errors also match, as the registry's rule puts the more specific first: a backup write that failed with a permission denied, or not synced, now reads `BACKUP_WRITE_FAILED` where it read `PERMISSION_DENIED` or `WRITE_NOT_DURABLE` (unreleased: v0.4 is not out). Adopted by the maintainer, 2026-10-27.
+8. **`BACKUP_PATH_NOT_DIRECTORY`, new**, so that each of the control's refusals has a code; a `DirError` of `ENOTDIR` was `UNCLASSIFIED_ERROR`. Adopted with §6, 2026-10-27.
 9. **Check walks past a file on the path to name it** (§2.12), so that the note and the refusal say which file.
 10. **With no `hardn.yml` read, `Plan` is refused** (`CONFIG_NOT_LOADED`) even when the settings are the defaults: there is no file to compare with, and the screen says so before asking (`screenkit.NotLoaded`). The DNS control plans nothing for a host already as asked; Backup's has no host state to be as asked.
 11. **`Check`'s state does not depend on `enableBackups`**: the engine's backups are taken either way; the screen's Backup State row says on or off, with the muted line (decision 8).

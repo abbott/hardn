@@ -373,11 +373,12 @@ func errorsBlock(c component.Ctx, d Document, failed error, undone []string, ste
 // step said what happened in the user's words (steps.Failure): that line
 // alone, as the step's line gives the code, and the next step
 // (next/s2-control; gallery-dns.md's failure-proposed sequence). A backup
-// that could not be written is worded so too (next/s3-control; proposed):
-// its Why, then, once the rollback finished or with nothing to roll back,
-// that nothing was changed, then "To go on: " and its Fix. Nothing was
-// changed is not said when the boot unit's install ran (Result.Boot): it
-// comes before the change is journalled, and is never rolled back.
+// that could not be written is worded so too (next/s3-control; decided,
+// control-backup.md §6): its Why, then, once the rollback finished or
+// with nothing to roll back, that nothing was changed, then "To go on: "
+// and its Fix. Nothing was changed is not said when the boot unit's
+// install ran (Result.Boot): it comes before the change is journalled,
+// and is never rolled back.
 func failureWords(d Document, first Error, failed error) (text, next string, ok bool) {
 	if failed == nil || first.Message != failed.Error() {
 		return "", "", false
@@ -397,7 +398,7 @@ func failureWords(d Document, first Error, failed error) (text, next string, ok 
 }
 
 // nothingChanged follows a failure that left the host as it was
-// (gallery-backup.md §6, proposed).
+// (control-backup.md §7, decided).
 const nothingChanged = "Nothing was changed."
 
 // toGoOn is a refusal's Fix as a sentence, in steps.Refusal's words.
