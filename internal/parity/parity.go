@@ -50,7 +50,17 @@ type Slice struct {
 	Golden    string // the golden, under testdata/golden
 	Page      string // the page whose region the test writes, from the package
 	Pkg       string // the package of the slice's TestParity, from the module root
-	Setting   string // the hardn.yml key the slice's items save
+	Setting   string // the hardn.yml key the slice's items save; a scenario may name its own
+	// LegacyRoot stands for the root in origin/main's goldens where the
+	// characterization ran under a temp dir (Backup's, "$TMP"): a path
+	// under it reads as the new path's absolute one, "$TMP/x" as "/x",
+	// in the golden's trace, its after line and its saved hardn.yml. ""
+	// for none: DNS's goldens name the host's own paths.
+	LegacyRoot string
+	// UnderBackupPath compares what each path wrote under the backup path
+	// (EndState.Under and After), Backup's subject. DNS's leaves the new
+	// path's backups out of the end state (NewState), as their own aspect.
+	UnderBackupPath bool
 	// V032Sections are the sections of v032-reference.md its scenarios'
 	// V032 cite, which the page names: DNS's "§4.5, §4.13, §5.1, §6".
 	V032Sections string
@@ -86,6 +96,11 @@ type Scenario struct {
 	DryRun bool
 	Note   string // how origin/main's golden stands for this host, when it was not run on it
 	V032   string // v0.3.2 where it differs, from v032-reference.md
+	// Setting is the hardn.yml key this scenario's item saves, compared as
+	// an aspect of its own and left out of the other settings and the rest
+	// of the file; "" is Slice.Setting. Backup's toggle saves enableBackups,
+	// its path item backupPath.
+	Setting string
 }
 
 // HostState is a host the new path runs on, in words and in a word or two.
@@ -150,6 +165,17 @@ type EndState struct {
 	Findings []string    // the plan's findings, by code
 	YML      *FileWrite  // hardn.yml as saved; nil when not saved
 	Loaded   []string    // hardn.yml as loaded, the fixture's lines; nil for none
+	// Memory: the run's configuration was made in memory with Loaded's
+	// settings, no file loaded (Backup's characterization), so a save
+	// whole drops no comment.
+	Memory bool
+	// Under is what the run wrote under the backup path (UnderBackupPath):
+	// "mkdir <dir> <mode>", "write <file> <mode>", "remove <file>", in
+	// order, a backup run's directory named <run id>; content not compared.
+	Under []string
+	// After is what is at the backup path the run started with once it
+	// ended: "<path>: <words>", in pkg/characterization's words.
+	After string
 }
 
 // FileWrite is one file as a run left it.
@@ -172,23 +198,48 @@ type legacyRun struct {
 	Live   EndState // cfg.DryRun=false, or the menu item's result
 	Dry    EndState // cfg.DryRun=true (ops goldens only)
 	CLI    string   // hardn -n with the flag: what pkg/cmd's refusal says
+	Start  string   // what the run started from, its "Start:" line (the repository's layout)
+	Tree   string   // the temp dir afterwards (the repository's layout): recorded, not compared
 }
+
+// LegacyStart is what origin/main's run of c started from, as its golden
+// says it ("Start:", in the repository's layout), its paths read as the
+// new path's (Slice.LegacyRoot); "" for a golden that does not say. A
+// slice holds its new path's host to it.
+func (c Cell) LegacyStart() string { return c.legacy.Start }
 
 var (
 	traceLine   = regexp.MustCompile(`^\s+\d+ ([a-z]+)\s+(.*?)(?: -> (ok|error: .*))?$`)
 	writeTarget = regexp.MustCompile(`^(\S+) mode=(\d{4})$`)
-	defectLine  = regexp.MustCompile(`^# (?:KNOWN-DEFECT|FIXED [^:]*): (V\d+) `)
+	defectLine  = regexp.MustCompile(`^# (?:KNOWN-DEFECT|FIXED [^:]*): `)
 )
 
+// named adds to vs every V-number l names, once each, when l is a
+// KNOWN-DEFECT or FIXED line: DNS's goldens put it first ("KNOWN-DEFECT:
+// V18 — …"), Backup's within the line ("… (side-effects.md item 9, V18;
+// …)").
+func named(vs []string, l string) []string {
+	if !defectLine.MatchString(l) {
+		return vs
+	}
+	for _, v := range vNumber.FindAllString(l, -1) {
+		if !slices.Contains(vs, v) {
+			vs = append(vs, v)
+		}
+	}
+	return vs
+}
+
 // readLegacy is the characterization golden rel under dir, parsed
-// (parseLegacy); a golden it cannot read or parse fails the test.
-func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun {
+// (parseLegacy), its paths under root read as absolute; a golden it
+// cannot read or parse fails the test.
+func readLegacy(t *testing.T, dir string, probes []string, rel, root string) legacyRun {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
 	if err != nil {
 		t.Fatalf("origin/main's golden: %v", err)
 	}
-	r, err := parseLegacy(data, probes, rel)
+	r, err := parseLegacy(data, probes, rel, root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,10 +252,15 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 // whose message is its refusal when it saved nothing. What the parser does
 // not compare (a removal, a failed command or write, a run that failed) is
 // an error rather than being dropped, and so is a golden with neither
-// cfg.DryRun=false nor a result, the run compared: one in another layout,
-// as the Backup screen's (pkg/characterization's menu/backup_*), would
-// otherwise read as a run that did nothing.
-func parseLegacy(data []byte, probes []string, rel string) (legacyRun, error) {
+// cfg.DryRun=false nor a result, the run compared: one in a layout it does
+// not know would otherwise read as a run that did nothing. A golden in the
+// repository's layout (the Backup screen's, pkg/characterization's
+// menu/backup_*) is read by parseRepository, its paths under root read as
+// absolute.
+func parseLegacy(data []byte, probes []string, rel, root string) (legacyRun, error) {
+	if bytes.Contains(data, []byte("\n"+repoCalls+"\n")) {
+		return parseRepository(data, rel, root)
+	}
 	r := legacyRun{Golden: rel}
 	live := false
 	var cur, result *EndState
@@ -212,9 +268,7 @@ func parseLegacy(data []byte, probes []string, rel string) (legacyRun, error) {
 	sc := bufio.NewScanner(bytes.NewReader(data))
 	for sc.Scan() {
 		l := sc.Text()
-		if m := defectLine.FindStringSubmatch(l); m != nil && !slices.Contains(r.Vs, m[1]) {
-			r.Vs = append(r.Vs, m[1])
-		}
+		r.Vs = named(r.Vs, l)
 		switch {
 		case l == "== cfg.DryRun=false":
 			cur, last, live = &r.Live, nil, true
@@ -309,6 +363,140 @@ func parseLegacy(data []byte, probes []string, rel string) (legacyRun, error) {
 	return r, nil
 }
 
+// The repository's layout (pkg/characterization's TestLegacyMenuBackup:
+// menu/backup_*): a header of "# " lines, the screen as printed between
+// two "# ----" lines, then the repository's file system calls, what is at
+// the backup path after, the temp dir afterwards, and ./hardn.yml as
+// written whole, or not.
+const (
+	repoCalls      = "# The repository's file system calls:"
+	repoNoCalls    = "    (no calls)"
+	repoNoNewline  = `        \ no newline at end of content`
+	repoTree       = "# The temp dir afterwards:"
+	repoYMLNone    = "# ./hardn.yml: not written"
+	repoYMLWritten = "# ./hardn.yml as written:"
+	repoRule       = "# ----"
+)
+
+// repoHeader are the header lines the repository's layout has, each the
+// start of a line: the screen, its script, its pauses and notes are what
+// was shown, not an end state; KNOWN-DEFECT names V-numbers; Start is
+// kept.
+var repoHeader = []string{"# origin/main behaviour", "# Generated by ", "# Screen: ", "# Script: ", "# Start: ", "# Pauses: ",
+	"# KNOWN-DEFECT: ", "# FIXED ", "# NOTE: ", "# The screen as printed"}
+
+var afterLine = regexp.MustCompile(`^# (\S+) after: (.*)$`)
+
+// parseRepository parses data, the characterization golden rel in the
+// repository's layout, its paths under root read as absolute: the
+// V-numbers of its KNOWN-DEFECT and FIXED lines; Start; the repository's
+// calls under the backup path (mkdir, write, remove) as Under, a call that
+// failed as the run's refusal, "failed: <error>"; the after line as After;
+// ./hardn.yml as written, whole (its mode is not in the layout:
+// config.SaveConfig's os.WriteFile(…, 0644), read: pkg/config/config.go:494);
+// the configuration made in memory (Memory), as TestLegacyMenuBackup makes
+// it. The screen is skipped, and the temp dir recorded, not compared. A
+// line or an operation it does not know is an error, and so is a golden
+// without the calls, the after line or the hardn.yml line.
+func parseRepository(data []byte, rel, root string) (legacyRun, error) {
+	r := legacyRun{Golden: rel, Live: EndState{Memory: true}}
+	abs := func(s string) string {
+		if root == "" {
+			return s
+		}
+		return strings.ReplaceAll(s, root, "")
+	}
+	fail := func(format string, args ...any) (legacyRun, error) {
+		return r, fmt.Errorf("%s: "+format, append([]any{rel}, args...)...)
+	}
+	const (
+		header = iota
+		screen
+		trailer
+		calls
+		yml
+	)
+	part, seen := header, map[string]bool{}
+	sc := bufio.NewScanner(bytes.NewReader(data))
+	for sc.Scan() {
+		l := sc.Text()
+		switch part {
+		case header:
+			switch {
+			case l == repoRule:
+				part = screen
+			case !slices.ContainsFunc(repoHeader, func(p string) bool { return strings.HasPrefix(l, p) }):
+				return fail("a header line the reader does not know: %q", l)
+			case strings.HasPrefix(l, "# Start: "):
+				r.Start = abs(strings.TrimPrefix(l, "# Start: "))
+			}
+			r.Vs = named(r.Vs, l)
+			continue
+		case screen:
+			if l == repoRule {
+				part = trailer
+			}
+			continue
+		case yml:
+			r.Live.YML.Lines = append(r.Live.YML.Lines, abs(l))
+			continue
+		case calls:
+			if c, ok := strings.CutPrefix(l, "        "); ok && (c == "|" || strings.HasPrefix(c, "| ") || l == repoNoNewline) {
+				continue // a write's content, not compared
+			}
+			if l == repoNoCalls {
+				continue
+			}
+			if m := traceLine.FindStringSubmatch(l); m != nil {
+				op, arg, res := m[1], abs(m[2]), m[3]
+				if e, ok := strings.CutPrefix(res, "error: "); ok {
+					r.Live.Refusal = "failed: " + abs(e)
+					continue
+				}
+				switch op {
+				case "mkdir", "write":
+					w := writeTarget.FindStringSubmatch(arg)
+					if w == nil {
+						return fail("a %s the parser does not know: %q", op, l)
+					}
+					r.Live.Under = append(r.Live.Under, op+" "+w[1]+" "+w[2])
+				case "remove":
+					r.Live.Under = append(r.Live.Under, op+" "+arg)
+				default:
+					return fail("an operation the harness does not compare (%s): %q", op, l)
+				}
+				continue
+			}
+			part = trailer
+		}
+		// trailer
+		switch m := afterLine.FindStringSubmatch(l); {
+		case l == repoCalls:
+			part, seen["calls"] = calls, true
+		case m != nil:
+			r.Live.After, seen["after"] = abs(m[1])+": "+m[2], true
+		case strings.HasPrefix(l, repoTree):
+			r.Tree = strings.TrimSpace(strings.TrimPrefix(l, repoTree))
+		case l == repoYMLNone:
+			seen["hardn.yml"] = true
+		case l == repoYMLWritten:
+			part, seen["hardn.yml"] = yml, true
+			r.Live.YML = &FileWrite{Path: "./hardn.yml", Mode: 0o644}
+		default:
+			return fail("a line the reader does not know: %q", l)
+		}
+	}
+	if err := sc.Err(); err != nil {
+		return fail("%w", err)
+	}
+	for _, s := range []string{"calls", "after", "hardn.yml"} {
+		if !seen[s] {
+			return fail("no %s section in the repository's layout", s)
+		}
+	}
+	return r, nil
+}
+
 // The new path's own directories: its run directory, the journal and the
 // backups (engine.md), which are not the host's end state; the journal and
 // the backups are recorded as such.
@@ -323,8 +511,34 @@ func under(p, dir string) bool { return p == dir || strings.HasPrefix(p, dir+"/"
 // files and hardn.yml (at yml) as they are now, the directories, the
 // commands (those in readOnly only read), the backups (the last
 // manifest's entries) and whether the journal was written; refusal and
-// findings are the caller's. A change it does not compare fails the test.
+// findings are the caller's. What was written under backup.DefaultPath is
+// the backups', left out. A change it does not compare fails the test.
 func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml string) EndState {
+	t.Helper()
+	return newState(t, h, n, readOnly, yml, backup.DefaultPath, false)
+}
+
+// NewStateUnder is NewState with the backups under dir, the backup path
+// a slice gives (Backup's: the one the plan's backups were taken under,
+// engine.Plan.Backups, decision 7 (a)): what was written there is
+// recorded in Under, for Slice.UnderBackupPath, each backup run's
+// directory as <run id>.
+func NewStateUnder(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, dir string) EndState {
+	t.Helper()
+	s := newState(t, h, n, readOnly, yml, dir, true)
+	if s.Under == nil {
+		s.Under = []string{}
+	}
+	return s
+}
+
+// runID is a backup run's directory name (backup.NewRunID): its time and
+// a random part.
+var runID = regexp.MustCompile(`\b\d{8}T\d{6}Z-[0-9a-f]{8}\b`)
+
+// newState is NewState with the backups under dir, recorded in Under when
+// record is set.
+func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, dir string, record bool) EndState {
 	t.Helper()
 	var s EndState
 	var order []string
@@ -334,9 +548,12 @@ func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 		switch {
 		case under(c.Path, runDir):
 			continue
-		case under(c.Path, backup.DefaultPath):
-			if c.Op == "write-atomic" && path.Base(c.Path) == "manifest.json" {
+		case under(c.Path, dir):
+			if c.Op == "write-atomic" && path.Base(c.Path) == backup.ManifestName {
 				manifest = c.Data
+			}
+			if record {
+				s.Under = append(s.Under, underOp(t, c)...)
 			}
 			continue
 		case under(c.Path, journalDir):
@@ -381,22 +598,51 @@ func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 		s.Files = append(s.Files, f)
 	}
 	if manifest != nil {
-		var m struct{ Entries []struct{ Path, Kind string } }
+		var m struct {
+			Entries []struct {
+				Path, Kind  string
+				TakenAnyway bool
+			}
+		}
 		if err := json.Unmarshal(manifest, &m); err != nil {
 			t.Fatal(err)
 		}
 		for _, e := range m.Entries {
+			b := e.Path
 			switch e.Kind {
 			case string(backup.KindFile):
-				s.Backups = append(s.Backups, e.Path)
 			case string(backup.KindAbsent):
-				s.Backups = append(s.Backups, e.Path+" (absent before: the rollback removes it)")
+				b += " (absent before: the rollback removes it)"
 			default:
-				s.Backups = append(s.Backups, e.Path+" ("+e.Kind+")")
+				b += " (" + e.Kind + ")"
 			}
+			if e.TakenAnyway {
+				b += " (taken anyway: backups off)"
+			}
+			s.Backups = append(s.Backups, b)
 		}
 	}
 	return s
+}
+
+// underOp is c, a call under the backup path, as Under records it: a
+// directory made, a file written, a file removed, with their modes; a
+// read is nothing. Another change fails the test.
+func underOp(t *testing.T, c hostfake.Call) []string {
+	t.Helper()
+	p := runID.ReplaceAllString(c.Path, "<run id>")
+	switch c.Op {
+	case "read", "read-nofollow", "lstat", "stat", "readdir", "readlink", "resolve-symlink":
+		return nil
+	case "mkdir":
+		return []string{fmt.Sprintf("mkdir %s %04o", p, uint32(c.Mode.Perm()))}
+	case "write-atomic", "write-in-place":
+		return []string{fmt.Sprintf("write %s %04o", p, uint32(c.Mode.Perm()))}
+	case "remove":
+		return []string{"remove " + p}
+	}
+	t.Fatalf("a change under the backup path the harness does not compare: %s", c)
+	return nil
 }
 
 // Planned sets s's refusal and findings from p: the refusal's code, and
@@ -455,7 +701,7 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 		c.State = d.Stock
 	}
 	c.Shipped = sl.Shipped(c.State, d)
-	c.legacy = readLegacy(t, sl.Legacy, sl.Probes, strings.ReplaceAll(sc.Golden, "{d}", d.Name))
+	c.legacy = readLegacy(t, sl.Legacy, sl.Probes, strings.ReplaceAll(sc.Golden, "{d}", d.Name), sl.LegacyRoot)
 	if c.Why = sl.Exists(c.State, d); c.Why != "" {
 		return c
 	}
@@ -469,7 +715,11 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 	}
 	c.ran = sl.Run(t, c)
 	c.legacy.Live.Loaded, c.ran.Live.Loaded = loaded, loaded
-	c.diffs, c.agree = compare(t, sl, c.legacy.Live, c.ran.Live)
+	key := sc.Setting
+	if key == "" {
+		key = sl.Setting
+	}
+	c.diffs, c.agree = compare(t, sl, key, c.legacy.Live, c.ran.Live)
 	if sc.Lines == nil {
 		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.ran.Dry})
 	}
@@ -512,8 +762,10 @@ func ymlOf(s EndState) []FileWrite {
 // aspect: the aspects that differ and those that agree, each with both
 // values. An aspect of what was written is compared only when both wrote:
 // the files' content (sl.Content) when both wrote a host file, whatever
-// its path; hardn.yml's when both saved it.
-func compare(t *testing.T, sl Slice, l, n EndState) (diffs, agree []aspect) {
+// its path; hardn.yml's when both saved it, key, the setting the item
+// saves, apart. With sl.UnderBackupPath, what each wrote under the backup
+// path, its directories and its files, and what is there after.
+func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []aspect) {
 	t.Helper()
 	add := func(name, lv, nv string) {
 		if lv == nv {
@@ -534,6 +786,13 @@ func compare(t *testing.T, sl Slice, l, n EndState) (diffs, agree []aspect) {
 	}
 	add("directories", Joined(l.Dirs), Joined(n.Dirs))
 	add("commands", Joined(l.Actions), Joined(n.Actions))
+	if sl.UnderBackupPath {
+		ld, lf := dirsAndFiles(l.Under)
+		nd, nf := dirsAndFiles(n.Under)
+		add("backupPath dirs", Joined(ld), Joined(nd))
+		add("backupPath files", Joined(lf), Joined(nf))
+		add("backupPath after", OrElse(l.After, "not read"), OrElse(n.After, "not read"))
+	}
 	if l.Wrote() && n.Wrote() {
 		add("write", method(l), method(n))
 		add("backup", Joined(l.Backups), Joined(n.Backups))
@@ -542,12 +801,25 @@ func compare(t *testing.T, sl Slice, l, n EndState) (diffs, agree []aspect) {
 	add("findings", Joined(l.Findings), Joined(n.Findings))
 	add("hardn.yml", saved(l), saved(n))
 	if l.YML != nil && n.YML != nil {
-		add("hardn.yml "+sl.Setting, settingOf(t, l.YML.Lines, sl.Setting), settingOf(t, n.YML.Lines, sl.Setting))
-		add("hardn.yml settings", settingsVs(t, l.YML.Lines, l.Loaded, sl.Setting), settingsVs(t, n.YML.Lines, n.Loaded, sl.Setting))
-		add("hardn.yml rest", rest(*l.YML, l.Loaded, sl.Setting), rest(*n.YML, n.Loaded, sl.Setting))
+		add("hardn.yml "+key, settingOf(t, l.YML.Lines, key), settingOf(t, n.YML.Lines, key))
+		add("hardn.yml settings", settingsVs(t, l.YML.Lines, l.Loaded, key), settingsVs(t, n.YML.Lines, n.Loaded, key))
+		add("hardn.yml rest", rest(*l.YML, l.Loaded, key, l.Memory), rest(*n.YML, n.Loaded, key, n.Memory))
 		add("hardn.yml mode", fmt.Sprintf("%04o", uint32(l.YML.Mode)), fmt.Sprintf("%04o", uint32(n.YML.Mode)))
 	}
 	return diffs, agree
+}
+
+// dirsAndFiles are under's directories made, and its files written and
+// removed.
+func dirsAndFiles(under []string) (dirs, files []string) {
+	for _, u := range under {
+		if d, ok := strings.CutPrefix(u, "mkdir "); ok {
+			dirs = append(dirs, d)
+		} else {
+			files = append(files, u)
+		}
+	}
+	return dirs, files
 }
 
 // OrElse is s, or none when s is empty.
@@ -669,13 +941,17 @@ var topLevelKey = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]*:`)
 
 // rest is the form of a saved hardn.yml besides key's lines, against
 // loaded, the file loaded: its other lines kept as they were, or its
-// settings and how many of the file's comment lines it kept.
-func rest(f FileWrite, loaded []string, key string) string {
+// settings and how many of the file's comment lines it kept; with memory,
+// its settings, no file having been loaded.
+func rest(f FileWrite, loaded []string, key string, memory bool) string {
 	keys, kept, comments := 0, 0, 0
 	for _, l := range f.Lines {
 		if topLevelKey.MatchString(l) {
 			keys++
 		}
+	}
+	if memory {
+		return fmt.Sprintf("%d settings, written whole; no file was loaded", keys)
 	}
 	for _, l := range loaded {
 		if strings.HasPrefix(l, "#") {
@@ -796,7 +1072,13 @@ func renderCells(sl Slice, cells []Cell) string {
 		if c.Scenario.Note != "" {
 			fmt.Fprintf(&b, "  %s\n", c.Scenario.Note)
 		}
+		if c.legacy.Start != "" {
+			fmt.Fprintf(&b, "  start: %s\n", c.legacy.Start)
+		}
 		writeState(&b, c.legacy.Live)
+		if c.legacy.Tree != "" {
+			fmt.Fprintf(&b, "  the temp dir afterwards (recorded, not compared): %s\n", c.legacy.Tree)
+		}
 		if c.legacy.CLI != "" {
 			fmt.Fprintf(&b, "  hardn -n: refused, %s\n", c.legacy.CLI)
 		}
@@ -833,6 +1115,9 @@ func writeState(b *strings.Builder, s EndState) {
 	if s.Refusal != "" {
 		fmt.Fprintf(b, "  refused: %s\n", s.Refusal)
 	}
+	if s.Memory {
+		b.WriteString("  hardn.yml: none loaded; the configuration made in memory, the fixture's settings\n")
+	}
 	for _, f := range s.Files {
 		fmt.Fprintf(b, "  write %s, %s\n", f, method(EndState{Files: []FileWrite{f}}))
 		for _, l := range f.Lines {
@@ -846,6 +1131,12 @@ func writeState(b *strings.Builder, s EndState) {
 				fmt.Fprintf(b, "    %s\n", l)
 			}
 		}
+	}
+	for _, u := range s.Under {
+		fmt.Fprintf(b, "  under the backup path: %s\n", u)
+	}
+	if s.After != "" {
+		fmt.Fprintf(b, "  after: %s\n", s.After)
 	}
 	for _, d := range s.Dirs {
 		if strings.HasPrefix(d, "chmod ") {
