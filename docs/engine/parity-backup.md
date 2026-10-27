@@ -51,7 +51,7 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 | open, open-dry-run | the user's .write_test (forced) | the user's .write_test (forced) | the user's .write_test (forced) | the user's .write_test (forced) |
 | open-missing, toggle-on, toggle-on-dry-run | not there (forced) | not there (forced) | not there (forced) | not there (forced) |
 | open-file, toggle-on-file, verify-file | a file (forced) | a file (forced) | a file (forced) | a file (forced) |
-| toggle-off, path-relative, path-empty, path-tilde, verify, path-dry-run, verify-dry-run | a directory (forced) | a directory (forced) | a directory (forced) | a directory (forced) |
+| toggle-off, path, path-relative, path-empty, path-tilde, verify, path-dry-run, verify-dry-run | a directory (forced) | a directory (forced) | a directory (forced) | a directory (forced) |
 | path-unsafe | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) |
 | path-under-file | a directory, /afile a file (forced) | a directory, /afile a file (forced) | a directory, /afile a file (forced) | a directory, /afile a file (forced) |
 
@@ -59,21 +59,22 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 
 | Aspect | Agrees in | Differs in |
 |---|---|---|
-| refusal | 36 | 32 |
-| files | 68 | 0 |
-| directories | 68 | 0 |
-| commands | 68 | 0 |
-| backupPath dirs | 32 | 36 |
-| findings | 68 | 0 |
-| hardn.yml | 40 | 28 |
-| backupPath files | 16 | 52 |
-| backupPath after | 48 | 20 |
+| refusal | 40 | 32 |
+| files | 72 | 0 |
+| directories | 72 | 0 |
+| commands | 72 | 0 |
+| backupPath dirs | 32 | 40 |
+| findings | 72 | 0 |
+| hardn.yml | 40 | 32 |
+| backupPath files | 16 | 56 |
+| backupPath after | 52 | 20 |
 | hardn.yml enableBackups | 8 | 0 |
-| hardn.yml settings | 8 | 0 |
-| write | 0 | 8 |
-| backup | 0 | 8 |
-| journal | 0 | 8 |
-| hardn.yml rest | 0 | 8 |
+| hardn.yml settings | 12 | 0 |
+| write | 0 | 12 |
+| backup | 0 | 12 |
+| journal | 0 | 12 |
+| hardn.yml rest | 0 | 12 |
+| hardn.yml backupPath | 4 | 0 |
 
 **Differences** (§4): each with its source; every cell, both end states whole, is in [parity.golden](../../pkg/screens/backup/testdata/golden/parity.golden).
 
@@ -85,17 +86,21 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 | toggle-off | all | backupPath dirs | `none` | `/var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3: nothing made; now the change's run directory, 0700 |
 | toggle-off | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; control-backup.md §2.3; side-effects row 30: the screen's write test on its first draw; now the copy of hardn.yml and the run's manifest, 0600 |
 | toggle-off, toggle-on | all | backupPath after | `/var/backups/hardn: a directory, empty` | `/var/backups/hardn: a directory holding <run id>` | plan §3.16: left empty; now holding the change's backup run |
-| toggle-off | all | write | `in place` | `atomic` | plan §3.19: written in place; now replaced whole by a rename |
+| toggle-off, path | all | write | `in place` | `atomic` | plan §3.19: written in place; now replaced whole by a rename |
 | toggle-off | all | backup | `none` | `/etc/hardn/hardn.yml (taken anyway: backups off)` | plan §3.16; decisions 7 (a), 8: nothing backed up; now hardn.yml first, taken anyway with backups off, and said |
-| toggle-off | all | journal | `none` | `journalled first` | control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
-| toggle-off, toggle-on | all | hardn.yml | `./hardn.yml, in the working directory` | `/etc/hardn/hardn.yml, the file loaded` | side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded |
-| toggle-off, toggle-on | all | hardn.yml rest | `48 settings, written whole; no file was loaded` | `the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)` | side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone |
+| toggle-off, path | all | journal | `none` | `journalled first` | control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
+| toggle-off, toggle-on, path | all | hardn.yml | `./hardn.yml, in the working directory` | `/etc/hardn/hardn.yml, the file loaded` | side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded |
+| toggle-off, toggle-on | all | hardn.yml rest | `48 settings, written whole; no file was loaded` | `the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)` | side-effects row 29; plan §3.19: every setting written whole; now the item's line alone |
 | toggle-on | all | backupPath dirs | `/var/backups/hardn 0755` | `/var/backups/hardn 0700, /var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3; side-effects row 30: made 0755 for the write test; now 0700 by the first backup, the change's run in it |
 | toggle-on | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test, write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen)` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; side-effects row 30: the repository's write test, then the screen's on its next draw; now the copy of hardn.yml and the run's manifest, 0600 |
 | toggle-on | all | write | `in place` | `atomic` | V18; plan §3.19: written in place; now replaced whole by a rename |
 | toggle-on | all | backup | `none` | `/etc/hardn/hardn.yml` | V18; plan §3.16; decision 7 (a): nothing backed up; now hardn.yml first, with backups on |
 | toggle-on | all | journal | `none` | `journalled first` | V18; control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
 | toggle-on-file | all | refusal | `failed: mkdir /var/backups/hardn: not a directory` | `BACKUP_PATH_NOT_DIRECTORY, before asking` | decision 7 (a); control-backup.md §6, §11: the enable failed at its MkdirAll; now refused before asking, in Check's words |
+| path | all | backupPath dirs | `/other 0755` | `/other 0700, /other/<run id> 0700` | decisions 6, 7 (a); plan §3.16; side-effects row 30: made 0755 for the write test; now 0700 by the change's backup, its run in it |
+| path | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen)` | `write /other/<run id>/0001-hardn.yml 0600, write /other/<run id>/manifest.json 0600` | decisions 3, 7 (a); plan §3.16; side-effects row 30: the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600 |
+| path | all | backup | `none` | `/etc/hardn/hardn.yml` | plan §3.16; decision 7 (a); control-backup.md §2.8: nothing backed up; now hardn.yml first, under the new path |
+| path | all | hardn.yml rest | `48 settings, written whole; no file was loaded` | `the backupPath lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)` | side-effects row 29; plan §3.19: every setting written whole; now the item's line alone |
 | path-relative | all | refusal | `none` | `BACKUP_SETTINGS_INVALID, inline: Not an absolute path` | decision 6: taken, made under the working directory; now refused inline, not absolute |
 | path-relative | all | backupPath dirs | `backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
 | path-relative | all | backupPath files | `write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write backups/.write_test 0644, remove backups/.write_test, write backups/.write_test 0644 (screen), remove backups/.write_test (screen)` | `none` | decisions 3, 6; side-effects row 30: the write tests, the screen's on each draw and the repository's; now nothing written |
@@ -128,7 +133,7 @@ Every cell's host is the harness's, as origin/main's run was the characterizatio
 |---|---|
 | open, open-missing, open-file, open-dry-run | the settings printed, nothing written: no write test (read: v0.3.2 menu.go:710-725) |
 | toggle-off, toggle-on, toggle-on-file | ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed) |
-| path-relative, path-unsafe, path-tilde, path-under-file | the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761) |
+| path, path-relative, path-unsafe, path-tilde, path-under-file | the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761) |
 | path-empty | "Backup path unchanged.", nothing saved (read: menu.go:756-757) |
 | verify, verify-file, verify-dry-run | no item 3: 3 is an invalid option (read: menu.go:719-727, 764-768) |
 | toggle-on-dry-run, path-dry-run | saved under -n too, nothing checked or made (§4.13: menus 6, 8, 10; read: menu.go:728-761) |

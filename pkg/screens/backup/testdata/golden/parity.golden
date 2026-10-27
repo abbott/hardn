@@ -313,7 +313,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-off on Ubuntu 24.04
@@ -357,7 +357,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-off on Alpine 3.23
@@ -401,7 +401,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-off on Proxmox VE 9
@@ -445,7 +445,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-on on Debian 13
@@ -493,7 +493,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-on on Ubuntu 24.04
@@ -541,7 +541,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-on on Alpine 3.23
@@ -589,7 +589,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-on on Proxmox VE 9
@@ -637,7 +637,7 @@ differ journal: none | journalled first
 differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
        side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
 differ hardn.yml rest: 48 settings, written whole; no file was loaded | the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
-       side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
 == toggle-on-file on Debian 13
@@ -732,6 +732,202 @@ differ refusal: failed: mkdir /var/backups/hardn: not a directory | BACKUP_PATH_
        decision 7 (a); control-backup.md §6, §11: the enable failed at its MkdirAll; now refused before asking, in Check's words
 v0.3.2: ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed)
 
+== path on Debian 13
+host: backupPath an empty directory, root's, 0755 (forced: the harness's, not read from Debian 13's stock install)
+origin/main: menu/backup_path.golden ()
+  start: enableBackups true, backupPath /var/backups/hardn (an empty directory), dryRun false
+  hardn.yml: none loaded; the configuration made in memory, the fixture's settings
+  write ./hardn.yml (mode not recorded), in place
+  under the backup path: write /var/backups/hardn/.write_test 0644 (screen)
+  under the backup path: remove /var/backups/hardn/.write_test (screen)
+  under the backup path: mkdir /other 0755
+  under the backup path: write /other/.write_test 0644
+  under the backup path: remove /other/.write_test
+  under the backup path: write /other/.write_test 0644 (screen)
+  under the backup path: remove /other/.write_test (screen)
+  after: /var/backups/hardn: a directory, empty
+  the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
+new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+  write /etc/hardn/hardn.yml 0644, atomic
+    - backupPath: "/var/backups/hardn"  # Path to store backups
+    + backupPath: "/other"  # Path to store backups
+  under the backup path: mkdir /other 0700
+  under the backup path: mkdir /other/<run id> 0700
+  under the backup path: write /other/<run id>/0001-hardn.yml 0600
+  under the backup path: write /other/<run id>/manifest.json 0600
+  after: /var/backups/hardn: a directory, empty
+  backup: /etc/hardn/hardn.yml; journal: journalled first; findings: none
+agree  refusal: none
+agree  files: none
+agree  directories: none
+agree  commands: none
+agree  backupPath after: /var/backups/hardn: a directory, empty
+agree  findings: none
+agree  hardn.yml backupPath: /other
+agree  hardn.yml settings: as loaded
+differ backupPath dirs: /other 0755 | /other 0700, /other/<run id> 0700
+       decisions 6, 7 (a); plan §3.16; side-effects row 30: made 0755 for the write test; now 0700 by the change's backup, its run in it
+differ backupPath files: write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen) | write /other/<run id>/0001-hardn.yml 0600, write /other/<run id>/manifest.json 0600
+       decisions 3, 7 (a); plan §3.16; side-effects row 30: the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600
+differ write: in place | atomic
+       plan §3.19: written in place; now replaced whole by a rename
+differ backup: none | /etc/hardn/hardn.yml
+       plan §3.16; decision 7 (a); control-backup.md §2.8: nothing backed up; now hardn.yml first, under the new path
+differ journal: none | journalled first
+       control-backup.md §2.8: no rollback; now journalled first, naming the backup run
+differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
+       side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
+differ hardn.yml rest: 48 settings, written whole; no file was loaded | the backupPath lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
+v0.3.2: the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761)
+
+== path on Ubuntu 24.04
+host: backupPath an empty directory, root's, 0755 (forced: the harness's, not read from Ubuntu 24.04's stock install)
+origin/main: menu/backup_path.golden ()
+  start: enableBackups true, backupPath /var/backups/hardn (an empty directory), dryRun false
+  hardn.yml: none loaded; the configuration made in memory, the fixture's settings
+  write ./hardn.yml (mode not recorded), in place
+  under the backup path: write /var/backups/hardn/.write_test 0644 (screen)
+  under the backup path: remove /var/backups/hardn/.write_test (screen)
+  under the backup path: mkdir /other 0755
+  under the backup path: write /other/.write_test 0644
+  under the backup path: remove /other/.write_test
+  under the backup path: write /other/.write_test 0644 (screen)
+  under the backup path: remove /other/.write_test (screen)
+  after: /var/backups/hardn: a directory, empty
+  the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
+new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+  write /etc/hardn/hardn.yml 0644, atomic
+    - backupPath: "/var/backups/hardn"  # Path to store backups
+    + backupPath: "/other"  # Path to store backups
+  under the backup path: mkdir /other 0700
+  under the backup path: mkdir /other/<run id> 0700
+  under the backup path: write /other/<run id>/0001-hardn.yml 0600
+  under the backup path: write /other/<run id>/manifest.json 0600
+  after: /var/backups/hardn: a directory, empty
+  backup: /etc/hardn/hardn.yml; journal: journalled first; findings: none
+agree  refusal: none
+agree  files: none
+agree  directories: none
+agree  commands: none
+agree  backupPath after: /var/backups/hardn: a directory, empty
+agree  findings: none
+agree  hardn.yml backupPath: /other
+agree  hardn.yml settings: as loaded
+differ backupPath dirs: /other 0755 | /other 0700, /other/<run id> 0700
+       decisions 6, 7 (a); plan §3.16; side-effects row 30: made 0755 for the write test; now 0700 by the change's backup, its run in it
+differ backupPath files: write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen) | write /other/<run id>/0001-hardn.yml 0600, write /other/<run id>/manifest.json 0600
+       decisions 3, 7 (a); plan §3.16; side-effects row 30: the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600
+differ write: in place | atomic
+       plan §3.19: written in place; now replaced whole by a rename
+differ backup: none | /etc/hardn/hardn.yml
+       plan §3.16; decision 7 (a); control-backup.md §2.8: nothing backed up; now hardn.yml first, under the new path
+differ journal: none | journalled first
+       control-backup.md §2.8: no rollback; now journalled first, naming the backup run
+differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
+       side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
+differ hardn.yml rest: 48 settings, written whole; no file was loaded | the backupPath lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
+v0.3.2: the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761)
+
+== path on Alpine 3.23
+host: backupPath an empty directory, root's, 0755 (forced: the harness's, not read from Alpine 3.23's stock install)
+origin/main: menu/backup_path.golden ()
+  start: enableBackups true, backupPath /var/backups/hardn (an empty directory), dryRun false
+  hardn.yml: none loaded; the configuration made in memory, the fixture's settings
+  write ./hardn.yml (mode not recorded), in place
+  under the backup path: write /var/backups/hardn/.write_test 0644 (screen)
+  under the backup path: remove /var/backups/hardn/.write_test (screen)
+  under the backup path: mkdir /other 0755
+  under the backup path: write /other/.write_test 0644
+  under the backup path: remove /other/.write_test
+  under the backup path: write /other/.write_test 0644 (screen)
+  under the backup path: remove /other/.write_test (screen)
+  after: /var/backups/hardn: a directory, empty
+  the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
+new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+  write /etc/hardn/hardn.yml 0644, atomic
+    - backupPath: "/var/backups/hardn"  # Path to store backups
+    + backupPath: "/other"  # Path to store backups
+  under the backup path: mkdir /other 0700
+  under the backup path: mkdir /other/<run id> 0700
+  under the backup path: write /other/<run id>/0001-hardn.yml 0600
+  under the backup path: write /other/<run id>/manifest.json 0600
+  after: /var/backups/hardn: a directory, empty
+  backup: /etc/hardn/hardn.yml; journal: journalled first; findings: none
+agree  refusal: none
+agree  files: none
+agree  directories: none
+agree  commands: none
+agree  backupPath after: /var/backups/hardn: a directory, empty
+agree  findings: none
+agree  hardn.yml backupPath: /other
+agree  hardn.yml settings: as loaded
+differ backupPath dirs: /other 0755 | /other 0700, /other/<run id> 0700
+       decisions 6, 7 (a); plan §3.16; side-effects row 30: made 0755 for the write test; now 0700 by the change's backup, its run in it
+differ backupPath files: write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen) | write /other/<run id>/0001-hardn.yml 0600, write /other/<run id>/manifest.json 0600
+       decisions 3, 7 (a); plan §3.16; side-effects row 30: the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600
+differ write: in place | atomic
+       plan §3.19: written in place; now replaced whole by a rename
+differ backup: none | /etc/hardn/hardn.yml
+       plan §3.16; decision 7 (a); control-backup.md §2.8: nothing backed up; now hardn.yml first, under the new path
+differ journal: none | journalled first
+       control-backup.md §2.8: no rollback; now journalled first, naming the backup run
+differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
+       side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
+differ hardn.yml rest: 48 settings, written whole; no file was loaded | the backupPath lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
+v0.3.2: the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761)
+
+== path on Proxmox VE 9
+host: backupPath an empty directory, root's, 0755 (forced: the harness's, not read from Proxmox VE 9's stock install)
+origin/main: menu/backup_path.golden ()
+  start: enableBackups true, backupPath /var/backups/hardn (an empty directory), dryRun false
+  hardn.yml: none loaded; the configuration made in memory, the fixture's settings
+  write ./hardn.yml (mode not recorded), in place
+  under the backup path: write /var/backups/hardn/.write_test 0644 (screen)
+  under the backup path: remove /var/backups/hardn/.write_test (screen)
+  under the backup path: mkdir /other 0755
+  under the backup path: write /other/.write_test 0644
+  under the backup path: remove /other/.write_test
+  under the backup path: write /other/.write_test 0644 (screen)
+  under the backup path: remove /other/.write_test (screen)
+  after: /var/backups/hardn: a directory, empty
+  the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
+new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+  write /etc/hardn/hardn.yml 0644, atomic
+    - backupPath: "/var/backups/hardn"  # Path to store backups
+    + backupPath: "/other"  # Path to store backups
+  under the backup path: mkdir /other 0700
+  under the backup path: mkdir /other/<run id> 0700
+  under the backup path: write /other/<run id>/0001-hardn.yml 0600
+  under the backup path: write /other/<run id>/manifest.json 0600
+  after: /var/backups/hardn: a directory, empty
+  backup: /etc/hardn/hardn.yml; journal: journalled first; findings: none
+agree  refusal: none
+agree  files: none
+agree  directories: none
+agree  commands: none
+agree  backupPath after: /var/backups/hardn: a directory, empty
+agree  findings: none
+agree  hardn.yml backupPath: /other
+agree  hardn.yml settings: as loaded
+differ backupPath dirs: /other 0755 | /other 0700, /other/<run id> 0700
+       decisions 6, 7 (a); plan §3.16; side-effects row 30: made 0755 for the write test; now 0700 by the change's backup, its run in it
+differ backupPath files: write /var/backups/hardn/.write_test 0644 (screen), remove /var/backups/hardn/.write_test (screen), write /other/.write_test 0644, remove /other/.write_test, write /other/.write_test 0644 (screen), remove /other/.write_test (screen) | write /other/<run id>/0001-hardn.yml 0600, write /other/<run id>/manifest.json 0600
+       decisions 3, 7 (a); plan §3.16; side-effects row 30: the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600
+differ write: in place | atomic
+       plan §3.19: written in place; now replaced whole by a rename
+differ backup: none | /etc/hardn/hardn.yml
+       plan §3.16; decision 7 (a); control-backup.md §2.8: nothing backed up; now hardn.yml first, under the new path
+differ journal: none | journalled first
+       control-backup.md §2.8: no rollback; now journalled first, naming the backup run
+differ hardn.yml: ./hardn.yml, in the working directory | /etc/hardn/hardn.yml, the file loaded
+       side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded
+differ hardn.yml rest: 48 settings, written whole; no file was loaded | the backupPath lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)
+       side-effects row 29; plan §3.19: every setting written whole; now the item's line alone
+v0.3.2: the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761)
+
 == path-relative on Debian 13
 host: backupPath an empty directory, root's, 0755 (forced: the harness's, not read from Debian 13's stock install)
 origin/main: menu/backup_path_relative.golden ()
@@ -747,7 +943,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -780,7 +976,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -813,7 +1009,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -846,7 +1042,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -875,7 +1071,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -902,7 +1098,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -929,7 +1125,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -956,7 +1152,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -987,7 +1183,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1020,7 +1216,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1053,7 +1249,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1086,7 +1282,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1119,7 +1315,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1152,7 +1348,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1185,7 +1381,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1218,7 +1414,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1246,7 +1442,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1272,7 +1468,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1298,7 +1494,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1324,7 +1520,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, refused inline, nothing planned on the engine as cmd/hardn builds it
+new path: item 2, its field the control's Field: refused inline, nothing planned
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1657,7 +1853,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1687,7 +1883,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1717,7 +1913,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1747,7 +1943,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1779,7 +1975,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1810,7 +2006,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1841,7 +2037,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1872,7 +2068,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it; plan only: the plan alone
+new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none

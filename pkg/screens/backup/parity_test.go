@@ -207,7 +207,8 @@ const (
 )
 
 // backupScenarios are origin/main's Backup screen goldens that have an end
-// state, each from its start (start), with the new path's lines: the
+// state, each from its start (start), which gives its fixture (backups on
+// or off) and its mode (plan only or not), with the new path's lines: the
 // item's key, then its answers; none for the screen opened and left. The
 // Return, an invalid key, and item 3 hidden while backups are off have
 // none of their own (parity-backup.md §2), and Backup Runs (decision 9)
@@ -217,42 +218,46 @@ var backupScenarios, starts = func() ([]parity.Scenario, map[string]start) {
 		sc parity.Scenario
 		st start
 	}
-	on, off := "backups-on.yml", "backups-off.yml"
 	rows := []row{
-		{parity.Scenario{Name: "open", Golden: "menu/backup_open.golden", Fixture: on, Lines: []string{}, V032: v032Open}, start{enabled: true, at: atSentinel}},
-		{parity.Scenario{Name: "open-missing", Golden: "menu/backup_open_missing.golden", Fixture: on, Lines: []string{}, V032: v032Open}, start{enabled: true}},
-		{parity.Scenario{Name: "open-file", Golden: "menu/backup_open_file.golden", Fixture: on, Lines: []string{}, V032: v032Open}, start{enabled: true, at: atFile}},
-		{parity.Scenario{Name: "toggle-off", Golden: "menu/backup_toggle_off.golden", Fixture: on, Lines: []string{"1", "y"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
+		{parity.Scenario{Name: "open", Golden: "menu/backup_open.golden", Lines: []string{}, V032: v032Open}, start{enabled: true, at: atSentinel}},
+		{parity.Scenario{Name: "open-missing", Golden: "menu/backup_open_missing.golden", Lines: []string{}, V032: v032Open}, start{enabled: true}},
+		{parity.Scenario{Name: "open-file", Golden: "menu/backup_open_file.golden", Lines: []string{}, V032: v032Open}, start{enabled: true, at: atFile}},
+		{parity.Scenario{Name: "toggle-off", Golden: "menu/backup_toggle_off.golden", Lines: []string{"1", "y"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
 			start{enabled: true, at: atDir}},
-		{parity.Scenario{Name: "toggle-on", Golden: "menu/backup_toggle_on.golden", Fixture: off, Lines: []string{"1", "y"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
+		{parity.Scenario{Name: "toggle-on", Golden: "menu/backup_toggle_on.golden", Lines: []string{"1", "y"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
 			start{}},
-		{parity.Scenario{Name: "toggle-on-file", Golden: "menu/backup_toggle_on_fails.golden", Fixture: off, Lines: []string{"1"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
+		{parity.Scenario{Name: "toggle-on-file", Golden: "menu/backup_toggle_on_fails.golden", Lines: []string{"1"}, Setting: backupctl.SettingEnabled, V032: v032Toggle},
 			start{at: atFile}},
-		{parity.Scenario{Name: "path-relative", Golden: "menu/backup_path_relative.golden", Fixture: on, Lines: []string{"2", "backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
+		{parity.Scenario{Name: "path", Golden: "menu/backup_path.golden", Lines: []string{"2", "/other", "y"}, Setting: backupctl.SettingPath, V032: v032Path},
 			start{enabled: true, at: atDir}},
-		{parity.Scenario{Name: "path-empty", Golden: "menu/backup_path_empty.golden", Fixture: on, Lines: []string{"2", "", "0"}, Setting: backupctl.SettingPath, V032: v032Empty},
+		{parity.Scenario{Name: "path-relative", Golden: "menu/backup_path_relative.golden", Lines: []string{"2", "backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
 			start{enabled: true, at: atDir}},
-		{parity.Scenario{Name: "path-unsafe", Golden: "menu/backup_path_unsafe.golden", Fixture: on, Lines: []string{"2", shared + "/hardn", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
+		{parity.Scenario{Name: "path-empty", Golden: "menu/backup_path_empty.golden", Lines: []string{"2", "", "0"}, Setting: backupctl.SettingPath, V032: v032Empty},
+			start{enabled: true, at: atDir}},
+		{parity.Scenario{Name: "path-unsafe", Golden: "menu/backup_path_unsafe.golden", Lines: []string{"2", shared + "/hardn", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
 			start{enabled: true, at: atDir, shared: true}},
-		{parity.Scenario{Name: "path-tilde", Golden: "menu/backup_path_tilde.golden", Fixture: on, Lines: []string{"2", "~alice/backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
+		{parity.Scenario{Name: "path-tilde", Golden: "menu/backup_path_tilde.golden", Lines: []string{"2", "~alice/backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
 			start{enabled: true, at: atDir}},
-		{parity.Scenario{Name: "path-under-file", Golden: "menu/backup_path_fails.golden", Fixture: on, Lines: []string{"2", afile + "/backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
+		{parity.Scenario{Name: "path-under-file", Golden: "menu/backup_path_fails.golden", Lines: []string{"2", afile + "/backups", "0"}, Setting: backupctl.SettingPath, V032: v032Path},
 			start{enabled: true, at: atDir, afile: true}},
-		{parity.Scenario{Name: "verify", Golden: "menu/backup_verify.golden", Fixture: on, Lines: []string{"3"}, V032: v032Verify}, start{enabled: true, at: atDir}},
-		{parity.Scenario{Name: "verify-file", Golden: "menu/backup_verify_fails.golden", Fixture: on, Lines: []string{"3"}, V032: v032Verify}, start{enabled: true, at: atFile}},
-		{parity.Scenario{Name: "open-dry-run", Golden: "menu/backup_open_dry_run.golden", Fixture: on, Lines: []string{}, DryRun: true, V032: v032Open},
+		{parity.Scenario{Name: "verify", Golden: "menu/backup_verify.golden", Lines: []string{"3"}, V032: v032Verify}, start{enabled: true, at: atDir}},
+		{parity.Scenario{Name: "verify-file", Golden: "menu/backup_verify_fails.golden", Lines: []string{"3"}, V032: v032Verify}, start{enabled: true, at: atFile}},
+		{parity.Scenario{Name: "open-dry-run", Golden: "menu/backup_open_dry_run.golden", Lines: []string{}, V032: v032Open},
 			start{enabled: true, at: atSentinel, dryRun: true}},
-		{parity.Scenario{Name: "toggle-on-dry-run", Golden: "menu/backup_toggle_on_dry_run.golden", Fixture: off, Lines: []string{"1"}, DryRun: true, Setting: backupctl.SettingEnabled, V032: v032DryRun},
+		{parity.Scenario{Name: "toggle-on-dry-run", Golden: "menu/backup_toggle_on_dry_run.golden", Lines: []string{"1"}, Setting: backupctl.SettingEnabled, V032: v032DryRun},
 			start{dryRun: true}},
-		{parity.Scenario{Name: "path-dry-run", Golden: "menu/backup_path_dry_run.golden", Fixture: on, Lines: []string{"2", "/other"}, DryRun: true, Setting: backupctl.SettingPath, V032: v032DryRun},
+		{parity.Scenario{Name: "path-dry-run", Golden: "menu/backup_path_dry_run.golden", Lines: []string{"2", "/other"}, Setting: backupctl.SettingPath, V032: v032DryRun},
 			start{enabled: true, at: atDir, dryRun: true}},
-		{parity.Scenario{Name: "verify-dry-run", Golden: "menu/backup_verify_dry_run.golden", Fixture: on, Lines: []string{"3"}, DryRun: true, V032: v032Verify},
+		{parity.Scenario{Name: "verify-dry-run", Golden: "menu/backup_verify_dry_run.golden", Lines: []string{"3"}, V032: v032Verify},
 			start{enabled: true, at: atDir, dryRun: true}},
 	}
 	var out []parity.Scenario
 	sts := map[string]start{}
 	for _, r := range rows {
-		r.sc.State = r.st.state()
+		r.sc.State, r.sc.Fixture, r.sc.DryRun = r.st.state(), "backups-off.yml", r.st.dryRun
+		if r.st.enabled {
+			r.sc.Fixture = "backups-on.yml"
+		}
 		out = append(out, r.sc)
 		sts[r.sc.Name] = r.st
 	}
@@ -287,6 +292,8 @@ var every = func() []string {
 // The scenarios the table names together.
 var (
 	toggles   = []string{"toggle-off", "toggle-on"}
+	saved     = []string{"toggle-off", "toggle-on", "path"} // a change applied: hardn.yml saved
+	offOrPath = []string{"toggle-off", "path"}
 	taken     = []string{"path-relative", "path-tilde", "path-unsafe"} // saved by origin/main, refused inline now
 	dryRuns   = []string{"toggle-on-dry-run", "path-dry-run"}          // a change under plan only
 	verifies  = []string{"verify", "verify-dry-run"}
@@ -312,13 +319,13 @@ var backupTable = []tie{
 
 	// Item 1, the toggle: a change on the engine, under the settings it
 	// saves (decision 7 (a)).
-	{toggles, every, "hardn.yml", "side-effects row 29; plan §3.19", "./hardn.yml, last in hardn's search order; now the file loaded"},
-	{toggles, every, "hardn.yml rest", "side-effects row 29; plan §3.19", "every setting written whole; now the enableBackups line alone"},
-	{[]string{"toggle-off"}, every, "write", "plan §3.19", "written in place; now replaced whole by a rename"},
+	{saved, every, "hardn.yml", "side-effects row 29; plan §3.19", "./hardn.yml, last in hardn's search order; now the file loaded"},
+	{saved, every, "hardn.yml rest", "side-effects row 29; plan §3.19", "every setting written whole; now the item's line alone"},
+	{offOrPath, every, "write", "plan §3.19", "written in place; now replaced whole by a rename"},
 	{[]string{"toggle-on"}, every, "write", "V18; plan §3.19", "written in place; now replaced whole by a rename"},
 	{[]string{"toggle-off"}, every, "backup", "plan §3.16; decisions 7 (a), 8", "nothing backed up; now hardn.yml first, taken anyway with backups off, and said"},
 	{[]string{"toggle-on"}, every, "backup", "V18; plan §3.16; decision 7 (a)", "nothing backed up; now hardn.yml first, with backups on"},
-	{[]string{"toggle-off"}, every, "journal", "control-backup.md §2.8", "no rollback; now journalled first, naming the backup run"},
+	{offOrPath, every, "journal", "control-backup.md §2.8", "no rollback; now journalled first, naming the backup run"},
 	{[]string{"toggle-on"}, every, "journal", "V18; control-backup.md §2.8", "no rollback; now journalled first, naming the backup run"},
 	{[]string{"toggle-off"}, every, "backupPath dirs", "plan §3.16; control-backup.md §2.3", "nothing made; now the change's run directory, 0700"},
 	{[]string{"toggle-on"}, every, "backupPath dirs", "plan §3.16; control-backup.md §2.3; side-effects row 30", "made 0755 for the write test; now 0700 by the first backup, the change's run in it"},
@@ -327,7 +334,12 @@ var backupTable = []tie{
 	{toggles, every, "backupPath after", "plan §3.16", "left empty; now holding the change's backup run"},
 	{[]string{"toggle-on-file"}, every, "refusal", "decision 7 (a); control-backup.md §6, §11", "the enable failed at its MkdirAll; now refused before asking, in Check's words"},
 
-	// Item 2, the path: the field checks it (decisions 5, 6).
+	// Item 2, the path: the field checks it (decisions 5, 6); a path taken
+	// is a change on the engine, its backup under the path it saves
+	// (decision 7 (a)).
+	{[]string{"path"}, every, "backup", "plan §3.16; decision 7 (a); control-backup.md §2.8", "nothing backed up; now hardn.yml first, under the new path"},
+	{[]string{"path"}, every, "backupPath dirs", "decisions 6, 7 (a); plan §3.16; side-effects row 30", "made 0755 for the write test; now 0700 by the change's backup, its run in it"},
+	{[]string{"path"}, every, "backupPath files", "decisions 3, 7 (a); plan §3.16; side-effects row 30", "the write tests, the screen's on each draw and the repository's; now the copy of hardn.yml and the run's manifest under the new path, 0600"},
 	{[]string{"path-relative"}, every, "refusal", "decision 6", "taken, made under the working directory; now refused inline, not absolute"},
 	{[]string{"path-tilde"}, every, "refusal", "decision 6", "~ read as the home of the user hardn runs as, then taken; now refused inline, not absolute"},
 	{[]string{"path-unsafe"}, every, "refusal", "decision 6", "taken under a directory anyone can write to; now refused inline, naming it"},
@@ -347,8 +359,8 @@ var backupTable = []tie{
 }
 
 // backupRun is the new path on c: from the start origin/main's golden
-// names (held to it), Backup's screen opened (no lines), its item 1, 2 or
-// 3 (backupItem), on c's host.
+// names (held to it: the host, hardn.yml as loaded and plan only), Backup's
+// screen opened (no lines), its item 1, 2 or 3 (backupItem), on c's host.
 func backupRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
 	st := starts[c.Scenario.Name]
@@ -356,6 +368,10 @@ func backupRun(t *testing.T, c parity.Cell) parity.NewRun {
 		t.Fatalf("origin/main's run started from %q; the new path's host is %q", got, want)
 	}
 	h, cfg := backupHost(t, c.Distro, st, c.Scenario.Fixture)
+	if cfg.EnableBackups != st.enabled || cfg.BackupPath != backupPath || c.Scenario.DryRun != st.dryRun {
+		t.Fatalf("hardn.yml as loaded, enableBackups %t, backupPath %s, and plan only %t; origin/main's start: %s",
+			cfg.EnableBackups, cfg.BackupPath, c.Scenario.DryRun, st.words())
+	}
 	n := len(h.Calls())
 	var key string
 	lines := c.Scenario.Lines
@@ -395,7 +411,8 @@ func newEngine(h *hostfake.System, d parity.Distro, loaded *config.Config) func(
 // the same with the path field checked by the control's Field (decisions
 // 5, 6), an entry it refuses refused inline, by its code and words. The
 // end state is what h's calls from the nth on left, under the backup path
-// the plan's backups went under (Plan.Backups), else hardn.yml's.
+// the change saves, where decision 7 (a) puts its backup, else hardn.yml's
+// as loaded: a backup elsewhere is a host file and directory written.
 func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.Cell, key string, lines []string, n int) (parity.EndState, string) {
 	t.Helper()
 	ctx := context.Background()
@@ -449,7 +466,8 @@ func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.C
 	// proposed): unit (c) decides them; no golden here shows them.
 	ch := screenkit.Change{Flow: flow.Flow{Review: func() flow.Review { return flow.Review{Title: "Backup Configuration"} }}}
 	var said *backupctl.FieldError
-	via := "item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it"
+	var saves string // the backup path the change saves
+	item := "item 1"
 	switch key {
 	case "1":
 		on := !cfg.EnableBackups
@@ -460,7 +478,7 @@ func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.C
 		ch.Step = screen.WorkflowStep{Title: component.TitleBar{Title: title}}
 		ch.Flow.Confirm = func(flow.Plan) flow.Confirm { return flow.Confirm{Question: question} }
 		ch.Controls = func(edited *config.Config) []engine.Control {
-			edited.EnableBackups = on
+			edited.EnableBackups, saves = on, edited.BackupPath
 			return backupctl.Controls(cfg)
 		}
 	case "2":
@@ -480,15 +498,16 @@ func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.C
 		ch.Flow.Form = form.Form{Fields: []form.Field{&form.Text{Title: "Enter new backup path", Validate: check, Value: &entry}}}
 		ch.Flow.Confirm = func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Use " + entry + "?"} }
 		ch.Controls = func(edited *config.Config) []engine.Control {
-			edited.BackupPath = entry
+			edited.BackupPath, saves = entry, entry
 			return backupctl.Controls(cfg)
 		}
-		via = "item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it"
+		item = "item 2, its field the control's Field"
 	default:
 		t.Fatalf("no item %q", key)
 	}
+	via := item + ", through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it"
 	if c.Scenario.DryRun {
-		via += "; plan only: the plan alone"
+		via = item + ", through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it"
 	}
 	err := s.Change(ctx, ch)
 	if ty.Unread() != 0 || len(runs) > 1 {
@@ -503,7 +522,7 @@ func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.C
 		if said.Err != nil {
 			st.Refusal = output.CodeOf(said.Err) + ", " + st.Refusal
 		}
-		return st, strings.Replace(via, "through screenkit.Session.Change: the control's plan, then its apply,", "refused inline, nothing planned", 1)
+		return st, item + ": refused inline, nothing planned"
 	}
 	if err != nil {
 		t.Fatalf("the change: %v:\n%s", err, out.String())
@@ -512,7 +531,7 @@ func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.C
 	if run.Err != nil && run.Plan.Err() == nil {
 		t.Fatalf("the apply failed: %v:\n%s", run.Err, out.String())
 	}
-	st := parity.Planned(stateOf(run.Plan.Backups.Path), run.Plan)
+	st := parity.Planned(stateOf(saves), run.Plan)
 	// §3.16's "and says so" (decision 8): a backup taken with backups off
 	// is said after the change, and only then.
 	anyway := slices.ContainsFunc(st.Backups, func(b string) bool { return strings.Contains(b, "taken anyway") })
