@@ -288,10 +288,12 @@ func TestPlayFail(t *testing.T) {
 }
 
 // TestPlayReaches checks the playable mode's links: each leads from an
-// item of a menu mock to a mock, or to the DNS screen on a host
-// (dnsLinks), every menu mock's screen is one whose menu play binds, an
-// item it refuses is one of its menu's and has no link, and every mock
-// can be reached from the main menu.
+// item of a menu mock to a mock, or to the DNS or Backup screen on a host
+// (dnsLinks, backupLinks), every menu mock's screen is one whose menu play
+// binds, an item it refuses is one of its menu's and has no link, and
+// every mock can be reached from the main menu, but Figma's records of
+// screens hardn now draws itself (figmaRecords), each of whose items
+// leads to hardn's screen, and which play starts at by name.
 func TestPlayReaches(t *testing.T) {
 	mocks := map[string]screen.Mock{}
 	roots := []string{"main-menu/00-tui-main"}
@@ -317,6 +319,23 @@ func TestPlayReaches(t *testing.T) {
 			t.Errorf("DNS link %s to %s: no menu mock with the item, a mock link from it too, or no such host", from, to)
 		}
 	}
+	for from, to := range backupLinks {
+		i := strings.LastIndex(from, "/")
+		menu, ok := menuOf(mocks[from[:i]].Screen)
+		_, linked := links[from]
+		_, dns := dnsLinks[from]
+		if _, host := findBackupHost(strings.TrimPrefix(to, backupPrefix+"/")); !ok || linked || dns || !host ||
+			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
+			t.Errorf("Backup link %s to %s: no menu mock with the item, another link from it too, or no such host", from, to)
+		}
+	}
+	for name, item := range figmaRecords {
+		_, mock := mocks[name]
+		_, real := backupLinks[item]
+		if !mock || !real || !strings.HasPrefix(mocks[name].Source.Label, "Figma ") {
+			t.Errorf("record %s: no such mock, not Figma's, or its item %s leads to no screen of hardn's", name, item)
+		}
+	}
 	for from, to := range links {
 		i := strings.LastIndex(from, "/")
 		menu, ok := menuOf(mocks[from[:i]].Screen)
@@ -326,6 +345,9 @@ func TestPlayReaches(t *testing.T) {
 		if _, ok := mocks[to]; !ok {
 			t.Errorf("link %s: no mock %s", from, to)
 		}
+	}
+	for name := range figmaRecords {
+		roots = append(roots, name)
 	}
 	reached, next := map[string]bool{}, roots
 	for len(next) > 0 {
@@ -729,7 +751,8 @@ func TestPlayTouchesNothing(t *testing.T) {
 		}
 	}
 	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff", "pkg/engine", "pkg/engine/steps",
-		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake", "pkg/screens/dns", "pkg/screens/screenkit"} {
+		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake", "pkg/screens/dns", "pkg/screens/screenkit",
+		"pkg/screens/backup", "pkg/engine/controls/backup", "pkg/host/backup"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}
