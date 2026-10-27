@@ -73,10 +73,14 @@ type Slice struct {
 	Probes  []string
 	Run     func(t *testing.T, c Cell) NewRun
 	Content func(add func(name, legacy, new string), l, n []FileWrite)
+	LegacyRoot      string // since next/s3-parity: "$TMP" in origin/main's goldens read as the root
+	UnderBackupPath bool   // since next/s3-parity: compare what is written under the backup path
 }
 func Run(t *testing.T, sl Slice) // a slice's TestParity
-type Scenario, Distro, HostState, Tie, Cell, NewRun, EndState, FileWrite
+type Scenario, Distro, HostState, Tie, Cell, NewRun, EndState, FileWrite // Scenario.Setting since next/s3-parity
 func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml string) EndState
+func NewStateUnder(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, dir string) EndState // since next/s3-parity
+func (Cell) LegacyStart() string                                                                    // since next/s3-parity
 func Planned(s EndState, p *engine.Plan) EndState
 func HostText(s EndState) string
 func Joined(l []string) string
@@ -110,9 +114,9 @@ None changed.
 
 - **The Backup mocks' change** keeps the gallery's own flow engine (`recording`, which marks the fake's record around the apply) rather than `Session.Change`: it is no copy of the DNS screen's, and unit (c) retires the mocks.
 - **Decision 7 (a)** (a change of Backup's settings planned under the settings it saves) goes through the engine, not `Session`. A control that saves them implements `engine.BackupsSaver`, and the engine plans, checks, backs up and journals that plan under the settings it saves (`Plan.Backups`; `pkg/engine/plan.go:263`, `apply.go:303`). A plan that mixes it with another control's change is refused (`ErrConflict`). `Session`, `Planning` and `NewEngine` are unchanged: `NewEngine` is still called before `Change.Controls` edits the copy, with no configuration ([control-backup.md](control-backup.md) §10, decision 1).
-- **`Slice.Setting` is one hardn.yml key per slice** (read): the `hardn.yml <setting>`, `settings` and `rest` aspects key on it (`settingOf`, `settingsVs`, `rest`, `outside`). Backup's toggle saves `enableBackups` and its path item `backupPath` (gallery-backup.md §9: "hardn.yml's two keys"), so its (b2) needs a key per scenario; not built here. The page's own section numbers (§3, §4) assume a page laid out as parity-dns.md.
-- **Backup's goldens are in a layout the parser does not read** (run): `pkg/characterization`'s `menu/backup_*` record the run under "The repository's file system calls" and the saved file whole under "./hardn.yml as written", with no `== result` section. Read through the harness, `backup_toggle_on`, `backup_toggle_off` and `backup_path_relative` came back as runs that did nothing; they now fail. Backup's (b2) needs a reader for that layout, comparing its `remove` (the write test's `.write_test`) too.
-- **`NewState` leaves out every write under `/var/backups/hardn`** as the new path's own. Backup's (b2) compares what is written under `backupPath`, so it will need that directory as a slice's parameter; not built here.
+- **`Slice.Setting` is one hardn.yml key per slice** (read): the `hardn.yml <setting>`, `settings` and `rest` aspects key on it (`settingOf`, `settingsVs`, `rest`, `outside`). Backup's toggle saves `enableBackups` and its path item `backupPath` (gallery-backup.md §9: "hardn.yml's two keys"), so its (b2) needs a key per scenario; not built here. The page's own section numbers (§3, §4) assume a page laid out as parity-dns.md. *Built in `next/s3-parity` ([parity-backup.md](parity-backup.md)): `Scenario.Setting`, a scenario's own key, `Slice.Setting` when empty (DNS's); parity-backup.md is laid out as parity-dns.md.*
+- **Backup's goldens are in a layout the parser does not read** (run): `pkg/characterization`'s `menu/backup_*` record the run under "The repository's file system calls" and the saved file whole under "./hardn.yml as written", with no `== result` section. Read through the harness, `backup_toggle_on`, `backup_toggle_off` and `backup_path_relative` came back as runs that did nothing; they now fail. Backup's (b2) needs a reader for that layout, comparing its `remove` (the write test's `.write_test`) too. *Built in `next/s3-parity`: `parseLegacy` hands that layout to `parseRepository`, which reads `Start:`, the calls (`mkdir`, `write`, `remove`; one that failed is the run's refusal), the after line and `./hardn.yml` whole, with `$TMP` read as the root (`Slice.LegacyRoot`), and fails on any other line or call; a V-number anywhere in a `KNOWN-DEFECT` or `FIXED` line is named (DNS's goldens put it first, and read as before).*
+- **`NewState` leaves out every write under `/var/backups/hardn`** as the new path's own. Backup's (b2) compares what is written under `backupPath`, so it will need that directory as a slice's parameter; not built here. *Built in `next/s3-parity`: `NewStateUnder` takes the backup path from the slice, Backup's the plan's (`Plan.Backups`), and records what was written there (`EndState.Under`, each run as `<run id>`), compared with `Slice.UnderBackupPath` as `backupPath dirs`, `backupPath files` and `backupPath after`; `NewState`, DNS's, leaves `/var/backups/hardn` out as before. A backup taken anyway reads so.*
 - **`golden` and `updating`** are still copied in `pkg/output`'s and `pkg/engine/controls/dns`'s tests ([parity-dns.md](parity-dns.md) §8); not touched.
 
 ## 8. Size

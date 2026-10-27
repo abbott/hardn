@@ -234,7 +234,7 @@ Others found:
 ## 9. Not in this unit
 
 - **(b) The control**, on the engine, with its own goldens (*built in `next/s3-control`, [control-backup.md](control-backup.md)*): Backup's settings as a control (`Check`; `Plan` the save of `enableBackups` and `backupPath`), the refusals' words, and decisions 7 and 8's engine side. **It begins by extracting the DNS screen's shared glue out of `pkg/screens/dns`** (the planning adapter around `output.FlowEngine`, `adopt`, the refusal words) **and the parity harness out of `pkg/screens/dns`'s tests into shared packages**, slice 3 being their second user ([parity-dns.md](parity-dns.md)). *Done in `next/s3-shared`: `pkg/screens/screenkit` and `internal/parity` ([screen-kit.md](screen-kit.md)); these mocks use `screenkit.Adopt` and `screenkit.Apart`.*
-- **(b2) Parity**: origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision; the characterization goldens of §2 are its legacy side.
+- **(b2) Parity**: origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision; the characterization goldens of §2 are its legacy side. *Built in `next/s3-parity`* ([parity-backup.md](parity-backup.md)).
 - **(c) The screen** on the design system and prompt kit, `pkg/screens/backup`, retiring these mocks.
 - **(d) The legacy path replaced**: main menu 5 to the new screen, 2b's plan-only refusal lifted (decision 10, adopted), `backup_menu.go` and the legacy backup layers deleted after (b2), their goldens frozen as the parity record.
 

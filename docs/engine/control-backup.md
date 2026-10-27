@@ -195,7 +195,7 @@ package output // added
 
 - **Unit (c), the screen** (`pkg/screens/backup`), retiring the mocks: the section from `Read`, Verify's words, item 1 refused before it asks from `Read().Err` (decision 7 (a)), item 2's field `Field`, the change through `screenkit.Session.Change` with `backup.Controls` (its engine `cmd/hardn`'s, as loaded: the control's change takes the settings it saves, so `Session` needs no change), Backup Runs from `backup.Runs` (decision 9, read only); the decided item words.
 - **Run All (slice 8)**: a plan of Backup's change with another control's is refused (§10, decision 2); slice 8 plans it alone, or the maintainer decides otherwise.
-- **Unit (b2), parity**, and **unit (d)**: main menu 5 to the new screen, 2b's plan-only refusal lifted (decision 10), the legacy screen deleted after (b2).
+- **Unit (b2), parity**, and **unit (d)**: main menu 5 to the new screen, 2b's plan-only refusal lifted (decision 10), the legacy screen deleted after (b2). *(b2) built in `next/s3-parity`* ([parity-backup.md](parity-backup.md)): origin/main's screen against this control through `screenkit.Session.Change` and its `Check`; every difference tied, none unexplained.
 - **The restore** (decision 9): a later unit, a change kind with confirm-or-revert for SSH and firewall files; the gallery keeps its mock.
 - **The "Can't read the backup in <dir>" warning** (gallery-backup.md §6, proposed) is gone: the lines come from the manifest the engine wrote, with nothing read back.
 - **Open, as before:** a path change leaves earlier runs under the old path, and Backup Runs lists the new path's; nothing prunes runs.
