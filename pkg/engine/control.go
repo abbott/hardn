@@ -7,6 +7,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 )
@@ -109,6 +110,24 @@ type Control interface {
 	// a candidate configuration sshd refuses, a port change on Proxmox
 	// VE.
 	Plan(ctx context.Context, sys host.System, in Input) ([]Change, error)
+}
+
+// BackupsSaver is a Control whose plan saves the backup settings,
+// backupPath and enableBackups (refactor plan slice 3, decision 7 (a),
+// adopted 2026-10-27; next/s3-control). When it plans a change, the
+// engine takes that plan's backups under the settings the change saves,
+// not Options.Backups: a new path takes the change's own backup, and
+// turning backups off takes it with them off. The engine checks them at
+// plan time (backup.Check), backs up into <its path>/<id>, and journals
+// that directory, so that a rollback finds the backups where the change
+// put them. A plan with no such change takes Options.Backups, hardn.yml as
+// loaded; two that save other settings conflict (ErrConflict).
+type BackupsSaver interface {
+	Control
+	// SavedBackups returns the backup settings the control's plan saves,
+	// from in.Config; an empty Path is backup.DefaultPath, as for
+	// Options.Backups.
+	SavedBackups(in Input) backup.Settings
 }
 
 // Report is one control's Check, as Engine.Check returns it.

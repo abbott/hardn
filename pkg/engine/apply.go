@@ -197,6 +197,12 @@ type Result struct {
 	// Failed is set when the apply stopped and was rolled back; Apply
 	// returns it as its error too.
 	Failed *ApplyError
+	// Backup is what the apply backed up, and where: its backup run's
+	// manifest as written, its Dir <Plan.Backups.Path>/<ID>, an entry
+	// TakenAnyway where enableBackups was false (§3.16). Set once every
+	// change applied (Failed nil), when the run took a backup; nil
+	// otherwise (decision 8, next/s3-control: pkg/output says it).
+	Backup *backup.Manifest
 }
 
 // Apply carries plan p out, p being Engine.Plan's. It refuses a plan with
@@ -216,7 +222,8 @@ type Result struct {
 //     timer, before any change (brief 2.4);
 //  5. each change in the plan's order: ctx checked, and for a lockout-risk
 //     plan the time left of the window (ErrWindow, StepWindow); its files
-//     backed up (RollbackRequired); its undo journalled with the backups
+//     backed up (RollbackRequired), under the plan's backup settings
+//     (Plan.Backups); its undo journalled with the backups
 //     (revert.Record, write-ahead); Apply, under a context that ends
 //     Options.Margin before the window does; what the step that ran needs
 //     undone journalled under a context without the cancellation, with a
@@ -293,7 +300,7 @@ type applier struct {
 
 func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 	a := &applier{e: e, p: p, ro: e.opts.Revert, current: -1, res: Result{ID: p.ID, Risk: p.Risk}}
-	run, err := backup.Open(e.sys, e.opts.Backups, p.ID)
+	run, err := backup.Open(e.sys, p.Backups, p.ID)
 	if err != nil {
 		return Result{Risk: p.Risk}, fmt.Errorf("engine: not applied: %w", err)
 	}
@@ -324,6 +331,7 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 			return a.fail(ctx, "", StepDone, err)
 		}
 		e.logf("change %s applied and done", p.ID)
+		a.res.Backup = a.kept()
 		return a.res, nil
 	}
 	if err := a.window(); err != nil {
@@ -334,6 +342,7 @@ func (e *Engine) apply(ctx context.Context, p *Plan) (Result, error) {
 	}
 	c := e.confirm(ctx, a.j)
 	a.res.Confirm = &c
+	a.res.Backup = a.kept()
 	e.logf("change %s applied; it is rolled back at %s%s unless confirmed", p.ID, c.Deadline.Format(time.RFC3339), approx(c.Approximate))
 	return a.res, nil
 }
@@ -456,6 +465,16 @@ func (a *applier) change(ctx context.Context, i int, c Change) (string, error) {
 	a.progress(Event{Index: i, Change: c.ID, State: EventDone, Detail: ran.Detail})
 	a.done, a.current = append(a.done, i), -1
 	return "", nil
+}
+
+// kept is the backup run's manifest as written, for Result.Backup; nil
+// when the run took no backup.
+func (a *applier) kept() *backup.Manifest {
+	m := a.run.Manifest()
+	if len(m.Entries) == 0 {
+		return nil
+	}
+	return &m
 }
 
 // progress sends ev to Options.Progress, when set.
