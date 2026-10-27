@@ -1,4 +1,16 @@
-package dns_test
+// Package parity is the parity harness (refactor plan §2: every slice's
+// unit (b2)), shared since slice 3 (next/s3-shared; docs/engine/screen-kit.md
+// §3): origin/main's end state, read from pkg/characterization's goldens
+// (or a slice's frozen copy of them), against the new path's on hostfake,
+// aspect by aspect, every difference held to a table of ties
+// (docs/engine/parity-dns.md §2). Nothing in it is an area's own: a slice
+// supplies a Slice (DNS's is pkg/screens/dns's parity_test.go) and runs it
+// from its TestParity with Run.
+//
+// It is test support: import it only from _test.go files (depguard rule
+// test-only). It links pkg/ui/uitest, which defines -update, so that make
+// golden-update passes -update to every package whose tests use it.
+package parity
 
 import (
 	"bufio"
@@ -25,154 +37,139 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
+	_ "github.com/abbott/hardn/pkg/ui/uitest" // defines -update (updating)
 )
 
-// The parity harness (refactor plan §2: every slice's unit (b2)):
-// origin/main's end state, read from pkg/characterization's goldens (a
-// frozen copy, legacyGoldens), against the new path's on hostfake,
-// aspect by aspect, every difference held to a table of ties
-// (docs/engine/parity-dns.md §2). Nothing in this
-// file is an area's own: a slice supplies a paritySlice (DNS's is
-// parity_test.go), and the next slice copies this file whole, renaming
-// its package clause, until a shared package holds it (parity-dns.md §8,
-// "For the next slice").
-
-// paritySlice is what a slice supplies: its rows, its distributions, its
+// Slice is what a slice supplies: its rows, its distributions, its
 // table of differences and the parts of the comparison that are its own.
-type paritySlice struct {
-	scenarios []parityScenario
-	distros   []parityDistro
-	table     []tie
-	header    string // the golden's first lines
-	golden    string // the golden, under testdata/golden
-	page      string // the page whose region the test writes, from the package
-	pkg       string // the package of the slice's TestParity, from the module root
-	setting   string // the hardn.yml key the slice's items save
-	// shipped says whether d's stock install has state; exists is why
+type Slice struct {
+	Scenarios []Scenario
+	Distros   []Distro
+	Table     []Tie
+	Header    string // the golden's first lines
+	Golden    string // the golden, under testdata/golden
+	Page      string // the page whose region the test writes, from the package
+	Pkg       string // the package of the slice's TestParity, from the module root
+	Setting   string // the hardn.yml key the slice's items save
+	// Legacy is the directory of origin/main's goldens, in
+	// pkg/characterization's layout under its testdata/golden, from the
+	// package; Fixtures is the directory of the hardn.yml fixtures they
+	// loaded.
+	Legacy, Fixtures string
+	// Shipped says whether d's stock install has state; Exists is why
 	// state cannot be on d, "" when it can (the cell is then compared).
-	shipped func(state hostState, d parityDistro) string
-	exists  func(state hostState, d parityDistro) string
-	// probes are origin/main's commands that only read: recorded, not
+	Shipped func(state HostState, d Distro) string
+	Exists  func(state HostState, d Distro) string
+	// Probes are origin/main's commands that only read: recorded, not
 	// compared.
-	probes []string
-	// run is the new path on c.
-	run func(t *testing.T, c parityCell) newRun
-	// content adds the slice's aspects of the host's files both paths
+	Probes []string
+	// Run is the new path on c.
+	Run func(t *testing.T, c Cell) NewRun
+	// Content adds the slice's aspects of the host's files both paths
 	// wrote (what they set, line by line).
-	content func(add func(name, legacy, new string), l, n []fileWrite)
+	Content func(add func(name, legacy, new string), l, n []FileWrite)
 }
 
-// parityScenario is a row of the table, run on every distribution.
-type parityScenario struct {
-	name    string
-	golden  string    // origin/main's, under legacyGoldens; {d} is the distribution
-	state   hostState // the new path's host; zero: the stock install's
-	fixture string    // hardn.yml, under fixtures; "": none loaded
-	// lines are a screen item's answers; nil for the control's plan and
+// Scenario is a row of the table, run on every distribution.
+type Scenario struct {
+	Name    string
+	Golden  string    // origin/main's, under Slice.Legacy; {d} is the distribution
+	State   HostState // the new path's host; zero: the stock install's
+	Fixture string    // hardn.yml, under Slice.Fixtures; "": none loaded
+	// Lines are a screen item's answers; nil for the control's plan and
 	// apply (a CLI flag), which the screen's item that applies the
 	// configuration as it is must match.
-	lines  []string
-	dryRun bool
-	note   string // how origin/main's golden stands for this host, when it was not run on it
-	v032   string // v0.3.2 where it differs, from v032-reference.md
+	Lines  []string
+	DryRun bool
+	Note   string // how origin/main's golden stands for this host, when it was not run on it
+	V032   string // v0.3.2 where it differs, from v032-reference.md
 }
 
-// hostState is a host the new path runs on, in words and in a word or two.
-type hostState struct{ long, short string }
+// HostState is a host the new path runs on, in words and in a word or two.
+type HostState struct{ Long, Short string }
 
-// parityDistro is one column of origin/main's matrix (pkg/characterization's
+// Distro is one column of origin/main's matrix (pkg/characterization's
 // osCells): the facts the new path's host takes, and its stock install's
 // host state.
-type parityDistro struct {
-	name, label string
-	facts       detect.Facts
-	stock       hostState
+type Distro struct {
+	Name, Label string
+	Facts       detect.Facts
+	Stock       HostState
 }
 
-// newRun is the new path's run of a cell: its end state, how it was
+// NewRun is the new path's run of a cell: its end state, how it was
 // reached, and for a scenario with no lines what its dry run left.
-type newRun struct {
-	live endState
-	via  string
-	dry  string
+type NewRun struct {
+	Live EndState
+	Via  string
+	Dry  string
 }
 
-// parityCell is a scenario on a distribution, as both paths left it.
-type parityCell struct {
-	sc      parityScenario
-	d       parityDistro
-	state   hostState
-	shipped string // whether the stock install has state
-	why     string // why state cannot exist on d; "" when compared
-	legacy  legacyRun
-	run     newRun
-	diffs   []aspect
-	agree   []aspect
+// Cell is a scenario on a distribution, as both paths left it.
+type Cell struct {
+	Scenario Scenario
+	Distro   Distro
+	State    HostState
+	Shipped  string // whether the stock install has state
+	Why      string // why state cannot exist on d; "" when compared
+	legacy   legacyRun
+	ran      NewRun
+	diffs    []aspect
+	agree    []aspect
 }
 
 // aspect is one compared aspect: origin/main's value and the new path's.
-type aspect struct{ name, legacy, new string }
+type aspect struct{ Name, Legacy, New string }
 
-// tie is an expected difference: every (scenario, distribution) it names
+// Tie is an expected difference: every (scenario, distribution) it names
 // differs in aspect, for the reason its source gives. No entry may name a
 // difference that does not occur.
-type tie struct {
-	scenarios []string
-	distros   []string
-	aspect    string
-	source    string // V-numbers, decisions, proposals, plan rows, pages
-	why       string // one short line
+type Tie struct {
+	Scenarios []string
+	Distros   []string
+	Aspect    string
+	Source    string // V-numbers, decisions, proposals, plan rows, pages
+	Why       string // one short line
 }
 
 // key names one difference.
-type key struct{ scenario, distro, aspect string }
+type key struct{ Scenario, Distro, Aspect string }
 
-// endState is what a run left and said.
-type endState struct {
-	refusal  string      // what stopped it before any change; "" for nothing
-	files    []fileWrite // the host's files written, in order
-	dirs     []string    // directories made ("path mode"), modes set ("chmod path mode")
-	actions  []string    // commands that change something
-	probes   []string    // commands that only read: recorded, not compared
-	backups  []string    // files backed up before the change
-	journal  bool        // the change journalled before it ran
-	findings []string    // the plan's findings, by code
-	yml      *fileWrite  // hardn.yml as saved; nil when not saved
-	loaded   []string    // hardn.yml as loaded, the fixture's lines; nil for none
+// EndState is what a run left and said.
+type EndState struct {
+	Refusal  string      // what stopped it before any change; "" for nothing
+	Files    []FileWrite // the host's files written, in order
+	Dirs     []string    // directories made ("path mode"), modes set ("chmod path mode")
+	Actions  []string    // commands that change something
+	Probes   []string    // commands that only read: recorded, not compared
+	Backups  []string    // files backed up before the change
+	Journal  bool        // the change journalled before it ran
+	Findings []string    // the plan's findings, by code
+	YML      *FileWrite  // hardn.yml as saved; nil when not saved
+	Loaded   []string    // hardn.yml as loaded, the fixture's lines; nil for none
 }
 
-// fileWrite is one file as a run left it.
-type fileWrite struct {
-	path   string
-	mode   fs.FileMode
-	lines  []string
-	atomic bool // replaced whole by a rename; false: written in place
+// FileWrite is one file as a run left it.
+type FileWrite struct {
+	Path   string
+	Mode   fs.FileMode
+	Lines  []string
+	Atomic bool // replaced whole by a rename; false: written in place
 }
 
-func (f fileWrite) String() string { return fmt.Sprintf("%s %04o", f.path, uint32(f.mode.Perm())) }
+func (f FileWrite) String() string { return fmt.Sprintf("%s %04o", f.Path, uint32(f.Mode.Perm())) }
 
-// wrote reports whether the run wrote a file, the host's or hardn.yml.
-func (s endState) wrote() bool { return len(s.files) > 0 || s.yml != nil }
+// Wrote reports whether the run wrote a file, the host's or hardn.yml.
+func (s EndState) Wrote() bool { return len(s.Files) > 0 || s.YML != nil }
 
 // legacyRun is origin/main's run, read from its characterization golden.
 type legacyRun struct {
-	golden string   // relative to legacyGoldens
-	vs     []string // the V-numbers its KNOWN-DEFECT and FIXED lines name
-	live   endState // cfg.DryRun=false, or the menu item's result
-	dry    endState // cfg.DryRun=true (ops goldens only)
-	cli    string   // hardn -n with the flag: what pkg/cmd's refusal says
+	Golden string   // relative to Slice.Legacy
+	Vs     []string // the V-numbers its KNOWN-DEFECT and FIXED lines name
+	Live   EndState // cfg.DryRun=false, or the menu item's result
+	Dry    EndState // cfg.DryRun=true (ops goldens only)
+	CLI    string   // hardn -n with the flag: what pkg/cmd's refusal says
 }
-
-// legacyGoldens and fixtures are origin/main's record: pkg/characterization's
-// goldens and the hardn.yml fixtures they loaded, frozen as they were at
-// e666243 (slice 2 unit (d), next/s2-replace, which deleted the DNS menu
-// and moved -g off the legacy service), in their layout there. Nothing
-// regenerates them: no test writes under testdata/legacy, and
-// pkg/characterization's -update writes its own copies of ops/dns_*.
-var (
-	legacyGoldens = filepath.Join("testdata", "legacy")
-	fixtures      = filepath.Join("testdata", "legacy", "fixtures", "config")
-)
 
 var (
 	traceLine   = regexp.MustCompile(`^\s+\d+ ([a-z]+)\s+(.*?)(?: -> (ok|error: .*))?$`)
@@ -186,38 +183,38 @@ var (
 // its refusal when it saved nothing. What the parser does not compare (a
 // removal, a failed command or write, a run that failed) fails the test
 // rather than being dropped.
-func readLegacy(t *testing.T, probes []string, rel string) legacyRun {
+func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun {
 	t.Helper()
-	data, err := os.ReadFile(filepath.Join(legacyGoldens, filepath.FromSlash(rel)))
+	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
 	if err != nil {
 		t.Fatalf("origin/main's golden: %v", err)
 	}
-	r := legacyRun{golden: rel}
-	var cur, result *endState
-	var last *fileWrite
+	r := legacyRun{Golden: rel}
+	var cur, result *EndState
+	var last *FileWrite
 	sc := bufio.NewScanner(bytes.NewReader(data))
 	for sc.Scan() {
 		l := sc.Text()
-		if m := defectLine.FindStringSubmatch(l); m != nil && !slices.Contains(r.vs, m[1]) {
-			r.vs = append(r.vs, m[1])
+		if m := defectLine.FindStringSubmatch(l); m != nil && !slices.Contains(r.Vs, m[1]) {
+			r.Vs = append(r.Vs, m[1])
 		}
 		switch {
 		case l == "== cfg.DryRun=false":
-			cur, last = &r.live, nil
+			cur, last = &r.Live, nil
 			continue
 		case l == "== result":
-			cur, result, last = &r.live, &r.live, nil
+			cur, result, last = &r.Live, &r.Live, nil
 			continue
 		case l == "== cfg.DryRun=true":
-			cur, last = &r.dry, nil
+			cur, last = &r.Dry, nil
 			continue
 		case strings.HasPrefix(l, "== "):
 			cur, last = nil, nil
 			continue
 		case strings.HasPrefix(l, "refused: "):
-			r.cli = strings.TrimPrefix(l, "refused: ")
-		case strings.HasPrefix(l, "stderr: ") && r.cli != "":
-			r.cli += ": " + strings.TrimPrefix(l, "stderr: ")
+			r.CLI = strings.TrimPrefix(l, "refused: ")
+		case strings.HasPrefix(l, "stderr: ") && r.CLI != "":
+			r.CLI += ": " + strings.TrimPrefix(l, "stderr: ")
 		}
 		if cur == nil {
 			continue
@@ -225,14 +222,14 @@ func readLegacy(t *testing.T, probes []string, rel string) legacyRun {
 		if c, ok := strings.CutPrefix(l, "        "); ok && last != nil {
 			switch {
 			case c == "|":
-				last.lines = append(last.lines, "")
+				last.Lines = append(last.Lines, "")
 			case strings.HasPrefix(c, "| "):
-				last.lines = append(last.lines, c[2:])
+				last.Lines = append(last.Lines, c[2:])
 			}
 			continue
 		}
 		if v, ok := strings.CutPrefix(l, "message: "); ok {
-			cur.refusal = v // kept only when nothing was saved, below
+			cur.Refusal = v // kept only when nothing was saved, below
 		}
 		if v, ok := strings.CutPrefix(l, "result "); ok && !strings.HasSuffix(v, ": ok") {
 			t.Fatalf("%s: a run that failed, which the harness does not compare: %q", rel, l)
@@ -252,13 +249,13 @@ func readLegacy(t *testing.T, probes []string, rel string) legacyRun {
 		case "read", "stat": // reads leave no end state
 		case "exec":
 			if slices.Contains(probes, arg) {
-				cur.probes = append(cur.probes, arg+" -> "+res)
+				cur.Probes = append(cur.Probes, arg+" -> "+res)
 			} else {
-				cur.actions = append(cur.actions, arg)
+				cur.Actions = append(cur.Actions, arg)
 			}
 		case "mkdir":
 			p, mode, _ := strings.Cut(arg, " mode=")
-			cur.dirs = append(cur.dirs, p+" "+mode)
+			cur.Dirs = append(cur.Dirs, p+" "+mode)
 		case "write":
 			w := writeTarget.FindStringSubmatch(arg)
 			if w == nil {
@@ -271,13 +268,13 @@ func readLegacy(t *testing.T, probes []string, rel string) legacyRun {
 			// In place: interfaces.OSFileSystem.WriteFile and SaveConfig are
 			// os.WriteFile (side-effects.md §1 item 10), whichever the trace's
 			// seam recorded.
-			f := fileWrite{path: w[1], mode: fs.FileMode(mode)}
-			if f.path == "./hardn.yml" {
-				cur.yml = &f
-				last = cur.yml
+			f := FileWrite{Path: w[1], Mode: fs.FileMode(mode)}
+			if f.Path == "./hardn.yml" {
+				cur.YML = &f
+				last = cur.YML
 			} else {
-				cur.files = append(cur.files, f)
-				last = &cur.files[len(cur.files)-1]
+				cur.Files = append(cur.Files, f)
+				last = &cur.Files[len(cur.Files)-1]
 			}
 		default:
 			t.Fatalf("%s: an operation the harness does not compare (%s): %q", rel, op, l)
@@ -286,8 +283,8 @@ func readLegacy(t *testing.T, probes []string, rel string) legacyRun {
 	if err := sc.Err(); err != nil {
 		t.Fatal(err)
 	}
-	if result == nil || r.live.yml != nil {
-		r.live.refusal = "" // an item's message is its refusal only when it saved nothing
+	if result == nil || r.Live.YML != nil {
+		r.Live.Refusal = "" // an item's message is its refusal only when it saved nothing
 	}
 	return r
 }
@@ -302,14 +299,14 @@ const (
 
 func under(p, dir string) bool { return p == dir || strings.HasPrefix(p, dir+"/") }
 
-// newState is the end state h's calls from the nth on left: the host's
+// NewState is the end state h's calls from the nth on left: the host's
 // files and hardn.yml (at yml) as they are now, the directories, the
 // commands (those in readOnly only read), the backups (the last
 // manifest's entries) and whether the journal was written; refusal and
 // findings are the caller's. A change it does not compare fails the test.
-func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml string) endState {
+func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml string) EndState {
 	t.Helper()
-	var s endState
+	var s EndState
 	var order []string
 	modes := map[string]hostfake.Call{}
 	var manifest []byte
@@ -323,7 +320,7 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 			}
 			continue
 		case under(c.Path, journalDir):
-			s.journal = s.journal || c.Op == "write-atomic"
+			s.Journal = s.Journal || c.Op == "write-atomic"
 			continue
 		}
 		switch c.Op {
@@ -335,16 +332,16 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 			}
 			modes[c.Path] = c
 		case "mkdir":
-			s.dirs = append(s.dirs, fmt.Sprintf("%s %04o", c.Path, uint32(c.Mode.Perm())))
+			s.Dirs = append(s.Dirs, fmt.Sprintf("%s %04o", c.Path, uint32(c.Mode.Perm())))
 		case "chmod":
-			s.dirs = append(s.dirs, fmt.Sprintf("chmod %s %04o", c.Path, uint32(c.Mode.Perm())))
+			s.Dirs = append(s.Dirs, fmt.Sprintf("chmod %s %04o", c.Path, uint32(c.Mode.Perm())))
 		case "run":
 			argv := host.FormatArgv(c.Argv)
 			switch {
 			case !slices.Contains(readOnly, argv):
-				s.actions = append(s.actions, argv)
-			case !slices.Contains(s.probes, argv):
-				s.probes = append(s.probes, argv)
+				s.Actions = append(s.Actions, argv)
+			case !slices.Contains(s.Probes, argv):
+				s.Probes = append(s.Probes, argv)
 			}
 		default: // remove, removeall, rename, chown, append, start-detached, ...
 			t.Fatalf("a change the harness does not compare: %s", c)
@@ -356,12 +353,12 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 		if !ok {
 			t.Fatalf("%s written, then gone", p)
 		}
-		f := fileWrite{path: p, mode: c.Mode.Perm(), lines: strings.Split(strings.TrimSuffix(string(e.Data), "\n"), "\n"), atomic: c.Op == "write-atomic"}
+		f := FileWrite{Path: p, Mode: c.Mode.Perm(), Lines: strings.Split(strings.TrimSuffix(string(e.Data), "\n"), "\n"), Atomic: c.Op == "write-atomic"}
 		if p == yml {
-			s.yml = &f
+			s.YML = &f
 			continue
 		}
-		s.files = append(s.files, f)
+		s.Files = append(s.Files, f)
 	}
 	if manifest != nil {
 		var m struct{ Entries []struct{ Path, Kind string } }
@@ -371,90 +368,90 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 		for _, e := range m.Entries {
 			switch e.Kind {
 			case string(backup.KindFile):
-				s.backups = append(s.backups, e.Path)
+				s.Backups = append(s.Backups, e.Path)
 			case string(backup.KindAbsent):
-				s.backups = append(s.backups, e.Path+" (absent before: the rollback removes it)")
+				s.Backups = append(s.Backups, e.Path+" (absent before: the rollback removes it)")
 			default:
-				s.backups = append(s.backups, e.Path+" ("+e.Kind+")")
+				s.Backups = append(s.Backups, e.Path+" ("+e.Kind+")")
 			}
 		}
 	}
 	return s
 }
 
-// planned sets s's refusal and findings from p: the refusal's code, and
+// Planned sets s's refusal and findings from p: the refusal's code, and
 // the codes of its changes' findings.
-func planned(s endState, p *engine.Plan) endState {
+func Planned(s EndState, p *engine.Plan) EndState {
 	if err := p.Err(); err != nil {
-		s.refusal = output.CodeOf(err)
+		s.Refusal = output.CodeOf(err)
 	}
 	for _, c := range p.Changes {
 		for _, f := range c.Findings {
-			if !slices.Contains(s.findings, f.Code) {
-				s.findings = append(s.findings, f.Code)
+			if !slices.Contains(s.Findings, f.Code) {
+				s.Findings = append(s.Findings, f.Code)
 			}
 		}
 	}
 	return s
 }
 
-// TestParity's body: each scenario on each distribution, origin/main's end
-// state read from its golden and the new path's run, compared aspect by
-// aspect. It fails on a difference sl.table does not list (UNEXPLAINED),
-// on an entry whose difference no longer occurs, and on an entry tied to a
-// V-number origin/main's golden for the cell does not name; then holds
-// the whole table to sl.golden and its summary to sl.page's region. The
-// table, the golden and the page are checked only when every cell ran:
-// a -run filter checks the cells it runs and no more.
-func runParity(t *testing.T, sl paritySlice) {
+// Run is a slice's TestParity: each scenario on each distribution,
+// origin/main's end state read from its golden and the new path's run,
+// compared aspect by aspect. It fails on a difference sl.Table does not
+// list (UNEXPLAINED), on an entry whose difference no longer occurs, and
+// on an entry tied to a V-number origin/main's golden for the cell does
+// not name; then holds the whole table to sl.Golden and its summary to
+// sl.Page's region. The table, the golden and the page are checked only
+// when every cell ran: a -run filter checks the cells it runs and no more.
+func Run(t *testing.T, sl Slice) {
 	t.Helper()
-	var cells []parityCell
-	for _, sc := range sl.scenarios {
-		for _, d := range sl.distros {
-			t.Run(sc.name+"/"+d.name, func(t *testing.T) { cells = append(cells, runCell(t, sl, sc, d)) })
+	var cells []Cell
+	for _, sc := range sl.Scenarios {
+		for _, d := range sl.Distros {
+			t.Run(sc.Name+"/"+d.Name, func(t *testing.T) { cells = append(cells, runCell(t, sl, sc, d)) })
 		}
 	}
 	if t.Failed() {
 		return
 	}
-	if all := len(sl.scenarios) * len(sl.distros); len(cells) != all {
-		t.Logf("%d of %d cells ran: the table, %s and the page are checked only when every cell runs", len(cells), all, sl.golden)
+	if all := len(sl.Scenarios) * len(sl.Distros); len(cells) != all {
+		t.Logf("%d of %d cells ran: the table, %s and the page are checked only when every cell runs", len(cells), all, sl.Golden)
 		return
 	}
 	checkTable(t, sl, cells)
 	if t.Failed() {
 		return // neither rendering is written while the table fails
 	}
-	golden(t, sl.golden, []byte(renderCells(sl, cells)))
-	page(t, sl.page, renderPage(sl, cells))
+	golden(t, sl.Golden, []byte(renderCells(sl, cells)))
+	page(t, sl.Page, renderPage(sl, cells))
 }
 
 // runCell runs sc on d: origin/main's end state from its golden, the new
 // path's, and their comparison.
-func runCell(t *testing.T, sl paritySlice, sc parityScenario, d parityDistro) parityCell {
+func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 	t.Helper()
-	c := parityCell{sc: sc, d: d, state: sc.state}
-	if c.state == (hostState{}) {
-		c.state = d.stock
+	c := Cell{Scenario: sc, Distro: d, State: sc.State}
+	if c.State == (HostState{}) {
+		c.State = d.Stock
 	}
-	c.shipped = sl.shipped(c.state, d)
-	c.legacy = readLegacy(t, sl.probes, strings.ReplaceAll(sc.golden, "{d}", d.name))
-	if c.why = sl.exists(c.state, d); c.why != "" {
+	c.Shipped = sl.Shipped(c.State, d)
+	c.legacy = readLegacy(t, sl.Legacy, sl.Probes, strings.ReplaceAll(sc.Golden, "{d}", d.Name))
+	if c.Why = sl.Exists(c.State, d); c.Why != "" {
 		return c
 	}
 	var loaded []string
-	if sc.fixture != "" {
-		src, err := os.ReadFile(filepath.Join(fixtures, sc.fixture))
+	if sc.Fixture != "" {
+		src, err := os.ReadFile(filepath.Join(sl.Fixtures, sc.Fixture))
 		if err != nil {
 			t.Fatal(err)
 		}
 		loaded = strings.Split(strings.TrimSuffix(string(src), "\n"), "\n")
 	}
-	c.run = sl.run(t, c)
-	c.legacy.live.loaded, c.run.live.loaded = loaded, loaded
-	c.diffs, c.agree = compare(t, sl, c.legacy.live, c.run.live)
-	if sc.lines == nil {
-		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.run.dry})
+	c.ran = sl.Run(t, c)
+	c.legacy.Live.Loaded, c.ran.Live.Loaded = loaded, loaded
+	c.diffs, c.agree = compare(t, sl, c.legacy.Live, c.ran.Live)
+	if sc.Lines == nil {
+		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.ran.Dry})
 	}
 	return c
 }
@@ -462,41 +459,41 @@ func runCell(t *testing.T, sl paritySlice, sc parityScenario, d parityDistro) pa
 // legacyDry is what origin/main's cfg.DryRun=true section did, and whether
 // any path reaches it.
 func legacyDry(r legacyRun) string {
-	did := "the service writes " + joined(names(r.dry.files)) + " and runs " + joined(r.dry.actions)
-	if hostText(r.dry) == hostText(r.live) {
+	did := "the service writes " + Joined(names(r.Dry.Files)) + " and runs " + Joined(r.Dry.Actions)
+	if HostText(r.Dry) == HostText(r.Live) {
 		did = "the service writes and runs as live (cfg.DryRun unread below the menus)"
 	}
-	if r.cli == "" {
+	if r.CLI == "" {
 		return did
 	}
-	status, _, _ := strings.Cut(r.cli, ":")
+	status, _, _ := strings.Cut(r.CLI, ":")
 	return did + "; no path reaches it: hardn -n refused (" + status + ")"
 }
 
-// hostText is what s changed: the files with their content, the
+// HostText is what s changed: the files with their content, the
 // directories, the commands and hardn.yml.
-func hostText(s endState) string {
+func HostText(s EndState) string {
 	var b strings.Builder
-	for _, f := range append(slices.Clone(s.files), ymlOf(s)...) {
-		fmt.Fprintf(&b, "%s\n%s\n", f, strings.Join(f.lines, "\n"))
+	for _, f := range append(slices.Clone(s.Files), ymlOf(s)...) {
+		fmt.Fprintf(&b, "%s\n%s\n", f, strings.Join(f.Lines, "\n"))
 	}
-	fmt.Fprintf(&b, "dirs %q\nactions %q\n", s.dirs, s.actions)
+	fmt.Fprintf(&b, "dirs %q\nactions %q\n", s.Dirs, s.Actions)
 	return b.String()
 }
 
-func ymlOf(s endState) []fileWrite {
-	if s.yml == nil {
+func ymlOf(s EndState) []FileWrite {
+	if s.YML == nil {
 		return nil
 	}
-	return []fileWrite{*s.yml}
+	return []FileWrite{*s.YML}
 }
 
 // compare is l and n, origin/main's end state and the new path's, aspect by
 // aspect: the aspects that differ and those that agree, each with both
 // values. An aspect of what was written is compared only when both wrote:
-// the files' content (sl.content) when both wrote a host file, whatever
+// the files' content (sl.Content) when both wrote a host file, whatever
 // its path; hardn.yml's when both saved it.
-func compare(t *testing.T, sl paritySlice, l, n endState) (diffs, agree []aspect) {
+func compare(t *testing.T, sl Slice, l, n EndState) (diffs, agree []aspect) {
 	t.Helper()
 	add := func(name, lv, nv string) {
 		if lv == nv {
@@ -505,44 +502,47 @@ func compare(t *testing.T, sl paritySlice, l, n endState) (diffs, agree []aspect
 			diffs = append(diffs, aspect{name, lv, nv})
 		}
 	}
-	add("refusal", orElse(l.refusal, "none"), orElse(n.refusal, "none"))
-	add("files", joined(names(l.files)), joined(names(n.files)))
-	if len(l.files) > 0 && len(n.files) > 0 {
-		sl.content(add, l.files, n.files)
-		for _, lf := range l.files {
-			if i := slices.IndexFunc(n.files, func(f fileWrite) bool { return f.path == lf.path }); i >= 0 {
-				add("mode", fmt.Sprintf("%04o", uint32(lf.mode)), fmt.Sprintf("%04o", uint32(n.files[i].mode)))
+	add("refusal", OrElse(l.Refusal, "none"), OrElse(n.Refusal, "none"))
+	add("files", Joined(names(l.Files)), Joined(names(n.Files)))
+	if len(l.Files) > 0 && len(n.Files) > 0 {
+		sl.Content(add, l.Files, n.Files)
+		for _, lf := range l.Files {
+			if i := slices.IndexFunc(n.Files, func(f FileWrite) bool { return f.Path == lf.Path }); i >= 0 {
+				add("mode", fmt.Sprintf("%04o", uint32(lf.Mode)), fmt.Sprintf("%04o", uint32(n.Files[i].Mode)))
 			}
 		}
 	}
-	add("directories", joined(l.dirs), joined(n.dirs))
-	add("commands", joined(l.actions), joined(n.actions))
-	if l.wrote() && n.wrote() {
+	add("directories", Joined(l.Dirs), Joined(n.Dirs))
+	add("commands", Joined(l.Actions), Joined(n.Actions))
+	if l.Wrote() && n.Wrote() {
 		add("write", method(l), method(n))
-		add("backup", joined(l.backups), joined(n.backups))
+		add("backup", Joined(l.Backups), Joined(n.Backups))
 		add("journal", journal(l), journal(n))
 	}
-	add("findings", joined(l.findings), joined(n.findings))
+	add("findings", Joined(l.Findings), Joined(n.Findings))
 	add("hardn.yml", saved(l), saved(n))
-	if l.yml != nil && n.yml != nil {
-		add("hardn.yml "+sl.setting, settingOf(t, l.yml.lines, sl.setting), settingOf(t, n.yml.lines, sl.setting))
-		add("hardn.yml settings", settingsVs(t, l.yml.lines, l.loaded, sl.setting), settingsVs(t, n.yml.lines, n.loaded, sl.setting))
-		add("hardn.yml rest", rest(*l.yml, l.loaded, sl.setting), rest(*n.yml, n.loaded, sl.setting))
-		add("hardn.yml mode", fmt.Sprintf("%04o", uint32(l.yml.mode)), fmt.Sprintf("%04o", uint32(n.yml.mode)))
+	if l.YML != nil && n.YML != nil {
+		add("hardn.yml "+sl.Setting, settingOf(t, l.YML.Lines, sl.Setting), settingOf(t, n.YML.Lines, sl.Setting))
+		add("hardn.yml settings", settingsVs(t, l.YML.Lines, l.Loaded, sl.Setting), settingsVs(t, n.YML.Lines, n.Loaded, sl.Setting))
+		add("hardn.yml rest", rest(*l.YML, l.Loaded, sl.Setting), rest(*n.YML, n.Loaded, sl.Setting))
+		add("hardn.yml mode", fmt.Sprintf("%04o", uint32(l.YML.Mode)), fmt.Sprintf("%04o", uint32(n.YML.Mode)))
 	}
 	return diffs, agree
 }
 
-func orElse(s, none string) string {
+// OrElse is s, or none when s is empty.
+func OrElse(s, none string) string {
 	if s == "" {
 		return none
 	}
 	return s
 }
 
-func joined(l []string) string { return orElse(strings.Join(l, ", "), "none") }
+// Joined is l joined by commas, or "none" when it is empty: a value of
+// the table.
+func Joined(l []string) string { return OrElse(strings.Join(l, ", "), "none") }
 
-func names(fs []fileWrite) []string {
+func names(fs []FileWrite) []string {
 	var out []string
 	for _, f := range fs {
 		out = append(out, f.String())
@@ -550,30 +550,30 @@ func names(fs []fileWrite) []string {
 	return out
 }
 
-func method(s endState) string {
-	for _, f := range append(slices.Clone(s.files), ymlOf(s)...) {
-		if !f.atomic {
+func method(s EndState) string {
+	for _, f := range append(slices.Clone(s.Files), ymlOf(s)...) {
+		if !f.Atomic {
 			return "in place"
 		}
 	}
 	return "atomic"
 }
 
-func journal(s endState) string {
-	if s.journal {
+func journal(s EndState) string {
+	if s.Journal {
 		return "journalled first"
 	}
 	return "none"
 }
 
-func saved(s endState) string {
+func saved(s EndState) string {
 	switch {
-	case s.yml == nil:
+	case s.YML == nil:
 		return "not saved"
-	case s.yml.path == "./hardn.yml":
+	case s.YML.Path == "./hardn.yml":
 		return "./hardn.yml, in the working directory"
 	}
-	return s.yml.path + ", the file loaded"
+	return s.YML.Path + ", the file loaded"
 }
 
 // settingOf is the value hardn.yml's lines give key, as hardn decodes it.
@@ -588,7 +588,7 @@ func settingOf(t *testing.T, lines []string, key string) string {
 		for _, e := range l {
 			out = append(out, fmt.Sprint(e))
 		}
-		return joined(out)
+		return Joined(out)
 	}
 	return fmt.Sprint(v)
 }
@@ -650,9 +650,9 @@ var topLevelKey = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]*:`)
 // rest is the form of a saved hardn.yml besides key's lines, against
 // loaded, the file loaded: its other lines kept as they were, or its
 // settings and how many of the file's comment lines it kept.
-func rest(f fileWrite, loaded []string, key string) string {
+func rest(f FileWrite, loaded []string, key string) string {
 	keys, kept, comments := 0, 0, 0
-	for _, l := range f.lines {
+	for _, l := range f.Lines {
 		if topLevelKey.MatchString(l) {
 			keys++
 		}
@@ -660,12 +660,12 @@ func rest(f fileWrite, loaded []string, key string) string {
 	for _, l := range loaded {
 		if strings.HasPrefix(l, "#") {
 			comments++
-			if slices.Contains(f.lines, l) {
+			if slices.Contains(f.Lines, l) {
 				kept++
 			}
 		}
 	}
-	if others := outside(f.lines, key); loaded != nil && slices.Equal(others, outside(loaded, key)) {
+	if others := outside(f.Lines, key); loaded != nil && slices.Equal(others, outside(loaded, key)) {
 		return fmt.Sprintf("the %s lines alone changed; the file's other %d lines kept (%d settings, %d comment lines)", key, len(others), keys, comments)
 	}
 	switch kept {
@@ -695,35 +695,35 @@ func outside(lines []string, key string) []string {
 	return out
 }
 
-// checkTable holds every difference to sl.table: none unlisted, every
+// checkTable holds every difference to sl.Table: none unlisted, every
 // entry occurring, each V-number of a source one origin/main's golden for
 // the cell names.
-func checkTable(t *testing.T, sl paritySlice, cells []parityCell) {
+func checkTable(t *testing.T, sl Slice, cells []Cell) {
 	t.Helper()
-	want, twice := expand(sl.table)
+	want, twice := expand(sl.Table)
 	for _, k := range twice {
-		t.Errorf("the table lists %s on %s, %s twice", k.scenario, k.distro, k.aspect)
+		t.Errorf("the table lists %s on %s, %s twice", k.Scenario, k.Distro, k.Aspect)
 	}
 	seen := map[key]bool{}
 	for _, c := range cells {
 		for _, d := range c.diffs {
-			k := key{c.sc.name, c.d.name, d.name}
+			k := key{c.Scenario.Name, c.Distro.Name, d.Name}
 			seen[k] = true
 			e, ok := want[k]
 			if !ok {
-				t.Errorf("UNEXPLAINED %s on %s, %s: origin/main %q, new %q", c.sc.name, c.d.name, d.name, d.legacy, d.new)
+				t.Errorf("UNEXPLAINED %s on %s, %s: origin/main %q, new %q", c.Scenario.Name, c.Distro.Name, d.Name, d.Legacy, d.New)
 				continue
 			}
-			for _, v := range vNumber.FindAllString(e.source, -1) {
-				if !slices.Contains(c.legacy.vs, v) {
-					t.Errorf("%s on %s, %s: tied to %s, which %s does not name (it names %v)", c.sc.name, c.d.name, d.name, v, c.legacy.golden, c.legacy.vs)
+			for _, v := range vNumber.FindAllString(e.Source, -1) {
+				if !slices.Contains(c.legacy.Vs, v) {
+					t.Errorf("%s on %s, %s: tied to %s, which %s does not name (it names %v)", c.Scenario.Name, c.Distro.Name, d.Name, v, c.legacy.Golden, c.legacy.Vs)
 				}
 			}
 		}
 	}
 	for k := range want {
 		if !seen[k] {
-			t.Errorf("the table lists %s on %s, %s, which no longer differs", k.scenario, k.distro, k.aspect)
+			t.Errorf("the table lists %s on %s, %s, which no longer differs", k.Scenario, k.Distro, k.Aspect)
 		}
 	}
 }
@@ -731,13 +731,13 @@ func checkTable(t *testing.T, sl paritySlice, cells []parityCell) {
 var vNumber = regexp.MustCompile(`\bV\d+\b`)
 
 // expand is table by key, and the keys it lists more than once.
-func expand(table []tie) (map[key]tie, []key) {
-	out := map[key]tie{}
+func expand(table []Tie) (map[key]Tie, []key) {
+	out := map[key]Tie{}
 	var twice []key
 	for _, e := range table {
-		for _, s := range e.scenarios {
-			for _, d := range e.distros {
-				k := key{s, d, e.aspect}
+		for _, s := range e.Scenarios {
+			for _, d := range e.Distros {
+				k := key{s, d, e.Aspect}
 				if _, dup := out[k]; dup {
 					twice = append(twice, k)
 				}
@@ -750,42 +750,42 @@ func expand(table []tie) (map[key]tie, []key) {
 
 // renderCells is the golden: every cell, both paths' end states, what
 // agrees and what differs, each difference with its source.
-func renderCells(sl paritySlice, cells []parityCell) string {
-	want, _ := expand(sl.table)
+func renderCells(sl Slice, cells []Cell) string {
+	want, _ := expand(sl.Table)
 	var b strings.Builder
-	b.WriteString(sl.header)
+	b.WriteString(sl.Header)
 	for _, c := range cells {
-		fmt.Fprintf(&b, "\n== %s on %s\n", c.sc.name, c.d.label)
-		fmt.Fprintf(&b, "host: %s (%s)\n", c.state.long, c.shipped)
-		if c.sc.fixture == "" {
+		fmt.Fprintf(&b, "\n== %s on %s\n", c.Scenario.Name, c.Distro.Label)
+		fmt.Fprintf(&b, "host: %s (%s)\n", c.State.Long, c.Shipped)
+		if c.Scenario.Fixture == "" {
 			b.WriteString("hardn.yml: none loaded\n")
 		}
-		fmt.Fprintf(&b, "origin/main: %s (%s)\n", c.legacy.golden, strings.Join(c.legacy.vs, ", "))
-		if c.sc.note != "" {
-			fmt.Fprintf(&b, "  %s\n", c.sc.note)
+		fmt.Fprintf(&b, "origin/main: %s (%s)\n", c.legacy.Golden, strings.Join(c.legacy.Vs, ", "))
+		if c.Scenario.Note != "" {
+			fmt.Fprintf(&b, "  %s\n", c.Scenario.Note)
 		}
-		writeState(&b, c.legacy.live)
-		if c.legacy.cli != "" {
-			fmt.Fprintf(&b, "  hardn -n: refused, %s\n", c.legacy.cli)
+		writeState(&b, c.legacy.Live)
+		if c.legacy.CLI != "" {
+			fmt.Fprintf(&b, "  hardn -n: refused, %s\n", c.legacy.CLI)
 		}
-		if c.why != "" {
-			fmt.Fprintf(&b, "not compared: %s\n", c.why)
+		if c.Why != "" {
+			fmt.Fprintf(&b, "not compared: %s\n", c.Why)
 			continue
 		}
-		fmt.Fprintf(&b, "new path: %s\n", c.run.via)
-		writeState(&b, c.run.live)
+		fmt.Fprintf(&b, "new path: %s\n", c.ran.Via)
+		writeState(&b, c.ran.Live)
 		for _, a := range c.agree {
-			fmt.Fprintf(&b, "agree  %s: %s\n", a.name, a.legacy)
+			fmt.Fprintf(&b, "agree  %s: %s\n", a.Name, a.Legacy)
 		}
 		for _, d := range c.diffs {
-			fmt.Fprintf(&b, "differ %s: %s | %s\n", d.name, d.legacy, d.new)
-			if e, ok := want[key{c.sc.name, c.d.name, d.name}]; ok {
-				fmt.Fprintf(&b, "       %s: %s\n", e.source, e.why)
+			fmt.Fprintf(&b, "differ %s: %s | %s\n", d.Name, d.Legacy, d.New)
+			if e, ok := want[key{c.Scenario.Name, c.Distro.Name, d.Name}]; ok {
+				fmt.Fprintf(&b, "       %s: %s\n", e.Source, e.Why)
 			} else {
 				b.WriteString("       UNEXPLAINED\n")
 			}
 		}
-		fmt.Fprintf(&b, "v0.3.2: %s\n", c.sc.v032)
+		fmt.Fprintf(&b, "v0.3.2: %s\n", c.Scenario.V032)
 	}
 	return b.String()
 }
@@ -794,39 +794,39 @@ func renderCells(sl paritySlice, cells []parityCell) string {
 // content (hardn.yml as its lines changed against the file loaded, or its
 // size when written whole), the directories, the commands, and what the
 // new path adds.
-func writeState(b *strings.Builder, s endState) {
-	if len(s.probes) > 0 {
-		fmt.Fprintf(b, "  probes: %s\n", strings.Join(s.probes, "; "))
+func writeState(b *strings.Builder, s EndState) {
+	if len(s.Probes) > 0 {
+		fmt.Fprintf(b, "  probes: %s\n", strings.Join(s.Probes, "; "))
 	}
-	if s.refusal != "" {
-		fmt.Fprintf(b, "  refused: %s\n", s.refusal)
+	if s.Refusal != "" {
+		fmt.Fprintf(b, "  refused: %s\n", s.Refusal)
 	}
-	for _, f := range s.files {
-		fmt.Fprintf(b, "  write %s, %s\n", f, method(endState{files: []fileWrite{f}}))
-		for _, l := range f.lines {
+	for _, f := range s.Files {
+		fmt.Fprintf(b, "  write %s, %s\n", f, method(EndState{Files: []FileWrite{f}}))
+		for _, l := range f.Lines {
 			b.WriteString(strings.TrimRight("    | "+l, " ") + "\n")
 		}
 	}
-	if s.yml != nil {
-		fmt.Fprintf(b, "  write %s %04o, %s\n", s.yml.path, uint32(s.yml.mode), method(endState{yml: s.yml}))
-		if s.yml.path != "./hardn.yml" { // origin/main's whole file is in its own golden
-			for _, l := range lineDiff(s.loaded, s.yml.lines) {
+	if s.YML != nil {
+		fmt.Fprintf(b, "  write %s %04o, %s\n", s.YML.Path, uint32(s.YML.Mode), method(EndState{YML: s.YML}))
+		if s.YML.Path != "./hardn.yml" { // origin/main's whole file is in its own golden
+			for _, l := range lineDiff(s.Loaded, s.YML.Lines) {
 				fmt.Fprintf(b, "    %s\n", l)
 			}
 		}
 	}
-	for _, d := range s.dirs {
+	for _, d := range s.Dirs {
 		if strings.HasPrefix(d, "chmod ") {
 			fmt.Fprintf(b, "  %s\n", d)
 		} else {
 			fmt.Fprintf(b, "  mkdir %s\n", d)
 		}
 	}
-	for _, a := range s.actions {
+	for _, a := range s.Actions {
 		fmt.Fprintf(b, "  run %s\n", a)
 	}
-	if s.journal || len(s.backups) > 0 || len(s.findings) > 0 {
-		fmt.Fprintf(b, "  backup: %s; journal: %s; findings: %s\n", joined(s.backups), journal(s), joined(s.findings))
+	if s.Journal || len(s.Backups) > 0 || len(s.Findings) > 0 {
+		fmt.Fprintf(b, "  backup: %s; journal: %s; findings: %s\n", Joined(s.Backups), journal(s), Joined(s.Findings))
 	}
 }
 
@@ -851,29 +851,29 @@ func lineDiff(was, now []string) []string {
 // renderPage is the page's summary: the host states, the aspects, every
 // difference grouped where both paths' values and the source agree, and
 // v0.3.2.
-func renderPage(sl paritySlice, cells []parityCell) string {
+func renderPage(sl Slice, cells []Cell) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "<!-- TestParity: begin. Generated by TestParity (%s); make golden-update rewrites it. Do not edit. -->\n\n", sl.pkg)
+	fmt.Fprintf(&b, "<!-- TestParity: begin. Generated by TestParity (%s); make golden-update rewrites it. Do not edit. -->\n\n", sl.Pkg)
 	b.WriteString("**Host states** (§3): what the new path ran on, and whether the distribution's stock install has it (real), the harness forced it, or it cannot exist.\n\n")
 	b.WriteString("| Scenarios |")
-	for _, d := range sl.distros {
-		b.WriteString(" " + d.label + " |")
+	for _, d := range sl.Distros {
+		b.WriteString(" " + d.Label + " |")
 	}
-	b.WriteString("\n|---|" + strings.Repeat("---|", len(sl.distros)) + "\n")
+	b.WriteString("\n|---|" + strings.Repeat("---|", len(sl.Distros)) + "\n")
 	var rows, labels []string
 	by := map[string][]string{}
-	for _, sc := range sl.scenarios {
+	for _, sc := range sl.Scenarios {
 		var r strings.Builder
 		for _, c := range cells {
-			if c.sc.name == sc.name {
-				word, _, _ := strings.Cut(c.shipped, ":")
-				fmt.Fprintf(&r, " %s (%s) |", c.state.short, word)
+			if c.Scenario.Name == sc.Name {
+				word, _, _ := strings.Cut(c.Shipped, ":")
+				fmt.Fprintf(&r, " %s (%s) |", c.State.Short, word)
 			}
 		}
 		if _, ok := by[r.String()]; !ok {
 			rows = append(rows, r.String())
 		}
-		by[r.String()] = append(by[r.String()], sc.name)
+		by[r.String()] = append(by[r.String()], sc.Name)
 	}
 	for _, r := range rows {
 		labels = append(labels, "| "+strings.Join(by[r], ", ")+" |"+r)
@@ -887,61 +887,61 @@ func renderPage(sl paritySlice, cells []parityCell) string {
 	for _, c := range cells {
 		for i, as := range [][]aspect{c.agree, c.diffs} {
 			for _, a := range as {
-				if _, ok := count[a.name]; !ok {
-					aspects = append(aspects, a.name)
+				if _, ok := count[a.Name]; !ok {
+					aspects = append(aspects, a.Name)
 				}
-				n := count[a.name]
+				n := count[a.Name]
 				n[i]++
-				count[a.name] = n
+				count[a.Name] = n
 			}
 		}
 	}
 	for _, a := range aspects {
 		fmt.Fprintf(&b, "| %s | %d | %d |\n", a, count[a][0], count[a][1])
 	}
-	fmt.Fprintf(&b, "\n**Differences** (§4): each with its source; every cell, both end states whole, is in [%s](../../%s/testdata/golden/%s).\n\n", sl.golden, sl.pkg, sl.golden)
+	fmt.Fprintf(&b, "\n**Differences** (§4): each with its source; every cell, both end states whole, is in [%s](../../%s/testdata/golden/%s).\n\n", sl.Golden, sl.Pkg, sl.Golden)
 	b.WriteString("| Scenarios | On | Aspect | origin/main | New path | Source |\n|---|---|---|---|---|---|\n")
 	type group struct {
 		a     aspect
-		e     tie
+		e     Tie
 		cells [][2]string // scenario, distribution
 	}
 	var groups []*group
-	want, _ := expand(sl.table)
+	want, _ := expand(sl.Table)
 	for _, c := range cells {
 		for _, d := range c.diffs {
-			e, ok := want[key{c.sc.name, c.d.name, d.name}]
+			e, ok := want[key{c.Scenario.Name, c.Distro.Name, d.Name}]
 			if !ok {
-				e = tie{source: "UNEXPLAINED"}
+				e = Tie{Source: "UNEXPLAINED"}
 			}
-			i := slices.IndexFunc(groups, func(g *group) bool { return g.a == d && g.e.source == e.source && g.e.why == e.why })
+			i := slices.IndexFunc(groups, func(g *group) bool { return g.a == d && g.e.Source == e.Source && g.e.Why == e.Why })
 			if i < 0 {
 				groups = append(groups, &group{a: d, e: e})
 				i = len(groups) - 1
 			}
-			groups[i].cells = append(groups[i].cells, [2]string{c.sc.name, c.d.label})
+			groups[i].cells = append(groups[i].cells, [2]string{c.Scenario.Name, c.Distro.Label})
 		}
 	}
 	for _, g := range groups {
-		scenarios, on := where(g.cells, len(sl.distros))
-		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.name, cell(g.a.legacy), cell(g.a.new), g.e.source, g.e.why)
+		scenarios, on := where(g.cells, len(sl.Distros))
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.Name, cell(g.a.Legacy), cell(g.a.New), g.e.Source, g.e.Why)
 	}
 
 	b.WriteString("\n**v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md) §4.5, §4.13, §5.1, §6.\n\n")
 	b.WriteString("| Scenarios | v0.3.2 |\n|---|---|\n")
 	var done []string
-	for _, sc := range sl.scenarios {
-		if slices.Contains(done, sc.v032) {
+	for _, sc := range sl.Scenarios {
+		if slices.Contains(done, sc.V032) {
 			continue
 		}
-		done = append(done, sc.v032)
+		done = append(done, sc.V032)
 		var names []string
-		for _, o := range sl.scenarios {
-			if o.v032 == sc.v032 {
-				names = append(names, o.name)
+		for _, o := range sl.Scenarios {
+			if o.V032 == sc.V032 {
+				names = append(names, o.Name)
 			}
 		}
-		fmt.Fprintf(&b, "| %s | %s |\n", strings.Join(names, ", "), sc.v032)
+		fmt.Fprintf(&b, "| %s | %s |\n", strings.Join(names, ", "), sc.V032)
 	}
 	b.WriteString("\n<!-- TestParity: end -->\n")
 	return b.String()

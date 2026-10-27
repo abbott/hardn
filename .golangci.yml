@@ -141,15 +141,21 @@ linters:
             - pkg: github.com/mattn/go-colorable
               desc: output goes through term.Env's writer alone (design-system README §9.15)
         # The golden harness and the component states are for tests and the
-        # dev tools only.
+        # dev tools only. internal/parity, the parity harness every slice's
+        # unit (b2) shares (next/s3-shared; docs/engine/screen-kit.md), is
+        # test support itself: its files take the golden harness and the
+        # recording fake, and only tests take it.
         test-only:
           files:
             - "$all"
             - "!$test"
             - "!${base-path}/internal/tools/**"
+            - "!${base-path}/internal/parity/**"
           deny:
             - pkg: github.com/abbott/hardn/pkg/ui/uitest
               desc: the golden harness is for tests only (design-system README §8)
+            - pkg: github.com/abbott/hardn/internal/parity
+              desc: the parity harness is for tests only (docs/engine/screen-kit.md)
             - pkg: github.com/abbott/hardn/pkg/ui/component/fixture
               desc: the component states are for tests and the gallery only (design-system README §9.14)
             - pkg: github.com/abbott/hardn/pkg/host/hostfake
