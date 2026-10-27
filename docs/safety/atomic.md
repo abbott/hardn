@@ -143,6 +143,9 @@ func (r *Run) Dir() string
 func (r *Run) Manifest() Manifest
 func Load(ctx context.Context, sys host.System, dir string) (Manifest, error)
 func Restore(ctx context.Context, sys host.System, m Manifest) ([]Restored, error)
+// next/s3-control (control-backup.md §2.12 to §2.14): ErrWrite; type DirError struct{ Dir string; Err error }
+//   (ErrUnsafeDir or ENOTDIR, the directory named); type WriteError struct{ Path, BackupPath string; Err error };
+//   func Runs(ctx context.Context, sys host.System, dir string) ([]Manifest, error)
 
 package config
 
