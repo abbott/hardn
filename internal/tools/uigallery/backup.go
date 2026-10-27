@@ -396,15 +396,37 @@ func (r backupReading) subMenu() screen.SubMenu {
 
 // statusRowScreen is decision 1's alternative (b): the screen with one
 // status row of its own, Backups, in place of the frame's two copied
-// rows.
+// rows, saying the state: Enabled; Partial, rollback backups only, with
+// backups off (§3.16); Not Configured, in Check's word, where the path is
+// refused. The section keeps the path alone, so that nothing is said
+// twice.
 func (r backupReading) statusRowScreen() screen.SubMenu {
 	vm := r.subMenu()
-	row := component.StatusRow{Label: "Backups", State: component.StatusConfigured, Word: "Enabled", Detail: r.settings.Path}
-	if !r.settings.Enabled {
+	row := component.StatusRow{Label: "Backups", State: component.StatusConfigured, Word: "Enabled"}
+	switch {
+	case r.check != nil:
+		row.State, row.Word, row.Detail = component.StatusNotConfigured, "", strings.ToLower(refusalWord(r.check))
+	case !r.settings.Enabled:
 		row.State, row.Word, row.Detail = component.StatusPartial, "", "rollback backups only"
 	}
 	vm.Status = component.StatusList{Rows: []component.StatusRow{row}}
+	rows := &vm.Sections[0].Rows.Items
+	*rows = slices.DeleteFunc(*rows, func(kv component.KeyValue) bool { return kv.Key != pathKey })
 	return vm
+}
+
+// figmaMock is the gallery's mock of the 05-BACKUP frame as Figma draws
+// it (pkg/ui/screen's sub-menu/05-backup): its two status rows, copied
+// from other frames, among them.
+func figmaMock() (screen.SubMenu, error) {
+	for _, m := range screen.Mocks() {
+		if m.Name == "sub-menu/05-backup" {
+			if vm, ok := m.Screen.(screen.SubMenu); ok {
+				return vm, nil
+			}
+		}
+	}
+	return screen.SubMenu{}, errors.New("no mock sub-menu/05-backup")
 }
 
 // refusal is Check's refusal err of the backup path p in words: what is
@@ -981,7 +1003,15 @@ func backupMocks() []backupMock {
 			}})
 	}
 	return append(mocks,
-		backupMock{name: "status-row", note: "Mock (decision 1, alternative (b)): one status row of the screen's own in place of the frame's two copied rows; on the default host.",
+		backupMock{name: "figma", note: "05-BACKUP as Figma draws it (sub-menu/05-backup), decision 1's alternative (c): \"Backups Enabled UFW installed, deny policy\", a Firewall detail, and \"SSH Port 2230/tcp non-default\", 02-SSH_LOGIN's row whole, copied from other frames. screen-default is (a), none.",
+			draw: func(_ context.Context, c component.Ctx) (string, error) {
+				vm, err := figmaMock()
+				if err != nil {
+					return "", err
+				}
+				return vm.Render(c), nil
+			}},
+		backupMock{name: "status-row", note: "Mock (decision 1, alternative (b)): one status row of the screen's own, the state, in place of the frame's two copied rows, the section keeping the path; on the default host.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				return onHost("default", func(r backupReading, _ *fakeHost) (string, error) { return r.statusRowScreen().Render(c), nil })(ctx, c)
 			}},

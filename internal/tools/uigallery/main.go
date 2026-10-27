@@ -146,9 +146,9 @@
 // "backup" lists the Backup mocks of refactor plan slice 3, unit (a)
 // (backup.go, docs/engine/gallery-backup.md), each under a note: the
 // proposed Backup screen on seven simulated hosts, read by real code
-// (config.Read, pkg/host/backup's Check and Load), the alternative with a
-// status row of its own, Verify's reports, and a run and its directory
-// (P-19). "play backup" is the menu of the hosts and "play backup/<host>"
+// (config.Read, pkg/host/backup's Check and Load), Figma's frame as drawn
+// and the alternative with a status row of its own, Verify's reports, and
+// the runs, a run and its directory (P-19). "play backup" is the menu of the hosts and "play backup/<host>"
 // the screen on one, each change on the real engine, the save of the one
 // setting it changes (steps.PlanSave); -sequence dry-run stops each at
 // its plan, as plan only would; -fail is refused there. Its flags are

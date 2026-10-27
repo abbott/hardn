@@ -434,7 +434,7 @@ func TestBackupRestore(t *testing.T) {
 // their one form (a sub-menu has no compact form), fit 80x24 down to the
 // prompt, in Unicode and ASCII; the counts are gallery-backup.md §4's.
 func TestBackupHeights(t *testing.T) {
-	want := map[string]int{"default": 17, "off": 18, "runs": 17, "status-row": 19}
+	want := map[string]int{"default": 17, "off": 18, "runs": 17, "status-row": 18}
 	for _, unicode := range []bool{true, false} {
 		c := component.NewCtx(term.Fixed(80, colorprofile.TrueColor, unicode, true))
 		for _, bh := range backupHosts() {
@@ -451,6 +451,44 @@ func TestBackupHeights(t *testing.T) {
 		if n := strings.Count(ansi.Strip(r.statusRowScreen().Render(c)), "\n") + 1; n != want["status-row"] {
 			t.Errorf("status-row, unicode %v: %d lines", unicode, n)
 		}
+	}
+}
+
+// TestBackupFigmaDrift: the three treatments of the frame's two copied
+// status rows (decision 1). Figma's draws them as the frame has them; the
+// screen proposed (screen-default) draws none, and says the state and
+// the path once each in its section; the alternative (status-row) draws
+// one of its own, the state, the section keeping the path, so that
+// nothing is said twice. The two proposed differ above the menu alone.
+func TestBackupFigmaDrift(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.TrueColor, false, true))
+	vm, err := figmaMock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	figma := ansi.Strip(vm.Render(c))
+	for _, want := range []string{"Backups              Enabled UFW installed, deny policy", "SSH Port             2230/tcp non-default"} {
+		if !strings.Contains(figma, want) {
+			t.Errorf("Figma's frame lacks %q:\n%s", want, figma)
+		}
+	}
+	r, _, _ := readHost(t, "default")
+	bare, own := ansi.Strip(r.subMenu().Render(c)), ansi.Strip(r.statusRowScreen().Render(c))
+	for name, text := range map[string]string{"screen-default": bare, "status-row": own} {
+		if strings.Contains(text, "UFW") || strings.Contains(text, "SSH Port") {
+			t.Errorf("%s keeps a copied row:\n%s", name, text)
+		}
+		if strings.Count(text, "Enabled") != 1 || strings.Count(text, backup.DefaultPath) != 1 {
+			t.Errorf("%s says the state or the path more than once:\n%s", name, text)
+		}
+	}
+	if strings.Contains(bare, "Backups ") || !strings.Contains(own, "Backups              Enabled") {
+		t.Errorf("screen-default has a status row, or status-row none:\n%s\n%s", bare, own)
+	}
+	_, bareMenu, _ := strings.Cut(bare, backupHeading)
+	_, ownMenu, _ := strings.Cut(own, backupHeading)
+	if bareMenu == "" || bareMenu != ownMenu {
+		t.Errorf("the two proposed differ below their section:\n%s\n%s", bare, own)
 	}
 }
 
