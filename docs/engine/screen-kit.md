@@ -82,7 +82,7 @@ func Joined(l []string) string
 func OrElse(s, none string) string
 ```
 
-`Slice.Legacy` and `Slice.Fixtures` are new: the harness read DNS's frozen record at a fixed path, and Backup's (b2) reads `pkg/characterization`'s goldens in place until its unit (d) freezes them. `checkTable` now reports what `tableProblems` returns, in the same words, so that the checks can be tested.
+`Slice.Legacy` and `Slice.Fixtures` are new: the harness read DNS's frozen record at a fixed path, and Backup's (b2) is to read `pkg/characterization`'s goldens in place until its unit (d) freezes them, once the harness reads their layout (§7). `checkTable` now reports what `tableProblems` returns, and `readLegacy` parses through `parseLegacy`, which returns its failures, each in the same words, so that they can be tested. `parseLegacy` also fails on a golden with no `== cfg.DryRun=false` or `== result` section, the run it compares, which before read as a run that did nothing.
 
 ## 3. What stays per screen
 
@@ -93,7 +93,7 @@ func OrElse(s, none string) string
 ## 4. Tests
 
 - `pkg/screens/screenkit`: `TestChange` (applied and adopted, the next change's save then not refused; declined, a dry run and a quit at the question planned, given to `Ran`, nothing written or adopted; back from the form, nothing planned, no engine), `TestApplyContext`, `TestAdopt` (moved), `TestNotLoaded`, `TestRefusalWords`, `TestSay`.
-- `internal/parity`: `TestReadLegacy` (a synthetic golden), `TestNewState`, `TestTableProblems` (listed, unlisted, stale, a V-number not named, twice), `TestWhere`.
+- `internal/parity`: `TestReadLegacy` (a synthetic golden), `TestParseLegacyRefuses` (a golden in another layout, a removal), `TestNewState`, `TestTableProblems` (listed, unlisted, stale, a V-number not named, twice), `TestWhere`.
 - Unchanged and passing: every DNS screen test, `TestParity` (108 subtests), the gallery's.
 - Mutation-checked (run, with `go test -overlay`): with the adoption removed from `Session.Change`, DNS's `TestAdd`, `TestRemove` and `TestPresets` fail, and `TestChange`; with it removed from the Backup mocks, `TestPlayBackupGolden` fails; through the moved harness, a DNS table entry removed fails UNEXPLAINED, and a stale entry and one tied to V12 fail.
 
@@ -109,6 +109,7 @@ None changed.
 
 - **The Backup mocks' change** keeps the gallery's own flow engine (`recording`, which marks the fake's record around the apply) rather than `Session.Change`: it is no copy of the DNS screen's, and unit (c) retires the mocks.
 - **Decision 7 (a)** (a change of Backup's settings planned under the settings it saves): `Session.NewEngine` takes no settings, and `Change.Controls` edits the configuration the engine plans with. Whether that is enough depends on how unit (b)'s second part gives the engine its per-plan input; not decided here.
+- **Backup's goldens are in a layout the parser does not read** (run): `pkg/characterization`'s `menu/backup_*` record the run under "The repository's file system calls" and the saved file whole under "./hardn.yml as written", with no `== result` section. Read through the harness, `backup_toggle_on`, `backup_toggle_off` and `backup_path_relative` came back as runs that did nothing; they now fail. Backup's (b2) needs a reader for that layout, comparing its `remove` (the write test's `.write_test`) too.
 - **`NewState` leaves out every write under `/var/backups/hardn`** as the new path's own. Backup's (b2) compares what is written under `backupPath`, so it will need that directory as a slice's parameter; not built here.
 - **`golden` and `updating`** are still copied in `pkg/output`'s and `pkg/engine/controls/dns`'s tests ([parity-dns.md](parity-dns.md) §8); not touched.
 

@@ -82,6 +82,36 @@ func TestReadLegacy(t *testing.T) {
 	}
 }
 
+// TestParseLegacyRefuses: what the parser does not compare is an error,
+// not dropped: a golden whose run is in no section it reads (the Backup
+// screen's layout, its trace under "The repository's file system calls"),
+// and a removal.
+func TestParseLegacyRefuses(t *testing.T) {
+	for _, tc := range []struct{ name, golden, want string }{
+		{"another layout", `# origin/main behaviour
+# ----
+# The repository's file system calls:
+  1 mkdir  $TMP/var/backups/example mode=0755 -> ok
+  2 write  $TMP/var/backups/example/.write_test mode=0644 -> ok
+        | test
+  3 remove $TMP/var/backups/example/.write_test -> ok
+# ./hardn.yml as written:
+enableBackups: true
+`, `menu/example.golden: no "== cfg.DryRun=false" or "== result" section, the run the harness compares: a layout it does not read`},
+		{"a removal", `== cfg.DryRun=false
+result Manager.Configure: ok
+trace:
+  1 remove /etc/example/example.conf -> ok
+`, `menu/example.golden: an operation the harness does not compare (remove): "  1 remove /etc/example/example.conf -> ok"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := parseLegacy([]byte(tc.golden), nil, "menu/example.golden"); err == nil || err.Error() != tc.want {
+				t.Errorf("parseLegacy: %v, want %s", err, tc.want)
+			}
+		})
+	}
+}
+
 // TestNewState: the new path's end state from the fake's calls after the
 // nth: the host's files as they are now, in the order first written, the
 // directories, the commands apart from those that only read, hardn.yml

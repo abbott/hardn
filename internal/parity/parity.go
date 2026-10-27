@@ -177,19 +177,33 @@ var (
 	defectLine  = regexp.MustCompile(`^# (?:KNOWN-DEFECT|FIXED [^:]*): (V\d+) `)
 )
 
-// readLegacy parses the characterization golden rel: its V-numbers, each
-// trace section into an end state, and its -n refusal. An ops golden has
-// both cfg.DryRun sections; a menu item's has its result, whose message is
-// its refusal when it saved nothing. What the parser does not compare (a
-// removal, a failed command or write, a run that failed) fails the test
-// rather than being dropped.
+// readLegacy is the characterization golden rel under dir, parsed
+// (parseLegacy); a golden it cannot read or parse fails the test.
 func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
 	if err != nil {
 		t.Fatalf("origin/main's golden: %v", err)
 	}
+	r, err := parseLegacy(data, probes, rel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r
+}
+
+// parseLegacy parses data, the characterization golden rel: its
+// V-numbers, each trace section into an end state, and its -n refusal. An
+// ops golden has both cfg.DryRun sections; a menu item's has its result,
+// whose message is its refusal when it saved nothing. What the parser does
+// not compare (a removal, a failed command or write, a run that failed) is
+// an error rather than being dropped, and so is a golden with neither
+// cfg.DryRun=false nor a result, the run compared: one in another layout,
+// as the Backup screen's (pkg/characterization's menu/backup_*), would
+// otherwise read as a run that did nothing.
+func parseLegacy(data []byte, probes []string, rel string) (legacyRun, error) {
 	r := legacyRun{Golden: rel}
+	live := false
 	var cur, result *EndState
 	var last *FileWrite
 	sc := bufio.NewScanner(bytes.NewReader(data))
@@ -200,10 +214,10 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 		}
 		switch {
 		case l == "== cfg.DryRun=false":
-			cur, last = &r.Live, nil
+			cur, last, live = &r.Live, nil, true
 			continue
 		case l == "== result":
-			cur, result, last = &r.Live, &r.Live, nil
+			cur, result, last, live = &r.Live, &r.Live, nil, true
 			continue
 		case l == "== cfg.DryRun=true":
 			cur, last = &r.Dry, nil
@@ -232,10 +246,10 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 			cur.Refusal = v // kept only when nothing was saved, below
 		}
 		if v, ok := strings.CutPrefix(l, "result "); ok && !strings.HasSuffix(v, ": ok") {
-			t.Fatalf("%s: a run that failed, which the harness does not compare: %q", rel, l)
+			return r, fmt.Errorf("%s: a run that failed, which the harness does not compare: %q", rel, l)
 		}
 		if v, ok := strings.CutPrefix(l, "config.SaveConfig: "); ok && v != "ok" && v != "not called" {
-			t.Fatalf("%s: a save that failed, which the harness does not compare: %q", rel, l)
+			return r, fmt.Errorf("%s: a save that failed, which the harness does not compare: %q", rel, l)
 		}
 		m := traceLine.FindStringSubmatch(l)
 		if m == nil {
@@ -243,7 +257,7 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 		}
 		op, arg, res := m[1], m[2], m[3]
 		if strings.HasPrefix(res, "error") && !(op == "exec" && slices.Contains(probes, arg)) && op != "read" && op != "stat" {
-			t.Fatalf("%s: a change that failed, which the harness does not compare: %q", rel, l)
+			return r, fmt.Errorf("%s: a change that failed, which the harness does not compare: %q", rel, l)
 		}
 		switch op {
 		case "read", "stat": // reads leave no end state
@@ -259,11 +273,11 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 		case "write":
 			w := writeTarget.FindStringSubmatch(arg)
 			if w == nil {
-				t.Fatalf("%s: a write the parser does not know: %q", rel, l)
+				return r, fmt.Errorf("%s: a write the parser does not know: %q", rel, l)
 			}
 			var mode uint32
 			if _, err := fmt.Sscanf(w[2], "%o", &mode); err != nil {
-				t.Fatal(err)
+				return r, fmt.Errorf("%s: %q: %w", rel, l, err)
 			}
 			// In place: interfaces.OSFileSystem.WriteFile and SaveConfig are
 			// os.WriteFile (side-effects.md §1 item 10), whichever the trace's
@@ -277,16 +291,19 @@ func readLegacy(t *testing.T, dir string, probes []string, rel string) legacyRun
 				last = &cur.Files[len(cur.Files)-1]
 			}
 		default:
-			t.Fatalf("%s: an operation the harness does not compare (%s): %q", rel, op, l)
+			return r, fmt.Errorf("%s: an operation the harness does not compare (%s): %q", rel, op, l)
 		}
 	}
 	if err := sc.Err(); err != nil {
-		t.Fatal(err)
+		return r, fmt.Errorf("%s: %w", rel, err)
+	}
+	if !live {
+		return r, fmt.Errorf("%s: no \"== cfg.DryRun=false\" or \"== result\" section, the run the harness compares: a layout it does not read", rel)
 	}
 	if result == nil || r.Live.YML != nil {
 		r.Live.Refusal = "" // an item's message is its refusal only when it saved nothing
 	}
-	return r
+	return r, nil
 }
 
 // The new path's own directories: its run directory, the journal and the
