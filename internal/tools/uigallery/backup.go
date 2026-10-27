@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
@@ -45,7 +46,9 @@ import (
 // DNS screen runs it (output.FlowEngine): its plan the save of the one
 // setting it changes (steps.PlanSave, config.Edit in place), the engine's
 // backups taken as the settings it saves say (gallery-backup.md decision
-// 7 (a): cmd/hardn's engineOptions takes hardn.yml as loaded). The mock's
+// 7 (a): cmd/hardn's engineOptions takes hardn.yml as loaded); hardn.yml
+// adopted as saved and the results set apart with the glue the screens
+// share (pkg/screens/screenkit: Adopt, Apart). The mock's
 // own, labelled so in the page: the screen's words, the path field's
 // check that a path is clean, the lines saying what a change backed up
 // (§3.16), and the restore's control (P-19), whose apply is
@@ -578,7 +581,7 @@ type backupScreen struct {
 	s     *session
 	h     *fakeHost
 	title string
-	// cfg is hardn.yml as loaded, which adopts each save (adopt).
+	// cfg is hardn.yml as loaded, which adopts each save (screenkit.Adopt).
 	cfg *config.Config
 }
 
@@ -659,11 +662,9 @@ func (b *backupScreen) write(s string) error {
 }
 
 // say returns an action that writes msgs, set apart as an action's result
-// is (nav.Prompter.Run), and goes back to the screen.
+// is (screenkit.Apart), and goes back to the screen.
 func (b *backupScreen) say(msgs component.Messages) func() error {
-	return func() error {
-		return b.write(strings.Repeat("\n", theme.SectionGap) + msgs.Render(b.s.p.Ctx) + "\n")
-	}
+	return func() error { return b.write(screenkit.Apart(b.s.p.Ctx, msgs)) }
 }
 
 // review is a change's review: the section, with the rows the change
@@ -761,9 +762,9 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	after := output.AfterFlow(s.p.Ctx.Env, run, galleryNow)
 	if out == flow.Applied && !dryRun {
 		if msgs := kept(ctx, sys, edited.BackupSettings(), run.Plan); len(msgs) > 0 {
-			after += strings.Repeat("\n", theme.SectionGap) + msgs.Render(s.p.Ctx) + "\n"
+			after += screenkit.Apart(s.p.Ctx, msgs)
 		}
-		b.adopt(ctx, &edited)
+		screenkit.Adopt(ctx, sys, b.cfg, &edited)
 	}
 	if after != "" {
 		return b.write(after)
@@ -799,17 +800,6 @@ func kept(ctx context.Context, sys host.System, settings backup.Settings, p *eng
 		msgs = append(msgs, component.Message{Text: takenAnyway})
 	}
 	return msgs
-}
-
-// adopt makes the screen's configuration edited once hardn.yml holds the
-// bytes edited saved, as the DNS screen adopts a save
-// (pkg/screens/dns adopt).
-func (b *backupScreen) adopt(ctx context.Context, edited *config.Config) {
-	data, _, err := b.h.system().ReadFileNoFollow(ctx, hardnYML)
-	if err != nil || b.cfg.LoadedFrom(data) || !edited.LoadedFrom(data) {
-		return
-	}
-	*b.cfg = *edited
 }
 
 // openRuns is item 4 (P-19): the runs under backupPath, each leading to
@@ -896,7 +886,7 @@ func (b *backupScreen) restore(ctx context.Context, m backup.Manifest) error {
 	after := output.AfterFlow(b.s.p.Ctx.Env, run, galleryNow)
 	if out == flow.Applied && !dryRun {
 		if msgs := kept(ctx, sys, settings, run.Plan); len(msgs) > 0 {
-			after += strings.Repeat("\n", theme.SectionGap) + msgs.Render(b.s.p.Ctx) + "\n"
+			after += screenkit.Apart(b.s.p.Ctx, msgs)
 		}
 		if cfg, err := config.Read(ctx, b.h.f, hardnYML); err == nil {
 			b.cfg = cfg
