@@ -247,13 +247,17 @@ func playWith(sys host.System, cfg *config.Config, dryRun bool, set func(*backup
 	return p
 }
 
-// writes are the calls on f that changed something outside /run/hardn,
-// the engine's run directory, from the nth on.
+// writes are the calls on f, from the nth on, that could change the host
+// outside /run/hardn, the engine's run directory: every call but a read
+// or a lookup, a command run or started whatever it does, a lock taken.
 func writes(f *hostfake.System, n int) []string {
 	var out []string
 	for _, c := range f.Calls()[n:] {
 		switch c.Op {
-		case "write-atomic", "write-in-place", "remove", "removeall", "rename", "mkdir", "chmod", "chown", "append":
+		case "read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
+		case "run", "start-detached":
+			out = append(out, c.Op+" "+strings.Join(c.Argv, " "))
+		default:
 			if !strings.HasPrefix(c.Path, "/run/hardn") {
 				out = append(out, c.Op+" "+c.Path)
 			}

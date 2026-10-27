@@ -256,23 +256,37 @@ func TestRefusedBeforeAsking(t *testing.T) {
 
 // TestNotLoaded: with no hardn.yml read, items 1 and 2 say so before
 // asking, in the save's words (CONFIG_NOT_LOADED; control-backup.md §10
-// decision 10); Verify and Backup Runs read as ever. Nothing is planned,
-// written or adopted.
+// decision 10), and on a path Check refuses, before the path's refusal
+// (screen-backup.md §8, decision 2); Verify and Backup Runs read as ever.
+// Nothing is planned, written or adopted.
 func TestNotLoaded(t *testing.T) {
-	h, _ := newHost(t, hostDefault)
-	cfg := config.DefaultConfig()
-	p := play(h, cfg, false, "1", "2", "3", "4", "0")
-	if p.err != nil || p.unread != 0 || p.engines != 0 || len(p.runs) != 0 {
-		t.Fatalf("Run = %v, %d unread, %d engines, runs %+v:\n%s", p.err, p.unread, p.engines, p.runs, p.out)
-	}
-	if n := strings.Count(flat(p.out), " Warning "+notLoaded); n != 2 {
-		t.Errorf("said %d times, want 2:\n%s", n, p.out)
-	}
-	if w := inOrder(p.out, "Only root can change /var/backups", "No change has been backed up yet."); w != "" || strings.Contains(p.out, "Enter new backup path") {
-		t.Errorf("Verify and the runs, or a field asked (%q):\n%s", w, p.out)
-	}
-	if w := writes(h.System, 0); len(w) > 0 || cfg.Path() != "" {
-		t.Errorf("wrote %v; the configuration at %q", w, cfg.Path())
+	for _, tt := range []struct {
+		host, path string
+		read       []string // Verify's and Backup Runs' words
+		refused    int      // how many times the path's refusal is said
+	}{
+		{hostDefault, "", []string{"Only root can change /var/backups", "No change has been backed up yet."}, 0},
+		{hostUnsafe, unsafePath, []string{"Warning " + unsafeWords + " " + written, "Warning " + unsafeWords}, 2},
+	} {
+		h, _ := newHost(t, tt.host)
+		cfg := config.DefaultConfig()
+		cfg.BackupPath = tt.path
+		p := play(h, cfg, false, "1", "2", "3", "4", "0")
+		if p.err != nil || p.unread != 0 || p.engines != 0 || len(p.runs) != 0 {
+			t.Fatalf("%s: Run = %v, %d unread, %d engines, runs %+v:\n%s", tt.host, p.err, p.unread, p.engines, p.runs, p.out)
+		}
+		if w := inOrder(p.out, append([]string{"Warning " + notLoaded, "Warning " + notLoaded}, tt.read...)...); w != "" {
+			t.Errorf("%s: %q not shown after what came before it:\n%s", tt.host, w, p.out)
+		}
+		if n := strings.Count(flat(p.out), " Warning "+notLoaded); n != 2 {
+			t.Errorf("%s: said %d times, want 2:\n%s", tt.host, n, p.out)
+		}
+		if n := strings.Count(flat(p.out), " Warning "+unsafeWords); n != tt.refused || strings.Contains(p.out, "Enter new backup path") {
+			t.Errorf("%s: the path's refusal said %d times, want %d, or a field asked:\n%s", tt.host, n, tt.refused, p.out)
+		}
+		if w := writes(h.System, 0); len(w) > 0 || cfg.Path() != "" {
+			t.Errorf("%s: wrote %v; the configuration at %q", tt.host, w, cfg.Path())
+		}
 	}
 }
 
