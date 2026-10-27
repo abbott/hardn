@@ -120,7 +120,7 @@ func backupCases() []backupCase {
 			defects: []string{"A path under a directory anyone can change is taken, made and saved; pkg/host/backup refuses it (ErrUnsafeDir), and so every engine change after.", whole}},
 		{name: "backup_path_tilde", screen: "Backup (main menu 5), backups on, 2 (path) \"~alice/backups\", then q", script: "2\n~alice/backups\n\nq\n", enabled: true, at: atDir,
 			defects: []string{"~alice is read as ~ then alice: the path is $HOME/alice/backups, the home of the user hardn runs as, root's under sudo (backup_manager.go:47-53).", whole},
-			notes: []string{"HOME is $TMP/home here."}},
+			notes:   []string{"HOME is $TMP/home here."}},
 		{name: "backup_path_fails", screen: "Backup (main menu 5), backups on, 2 (path) under a regular file, then q", script: "2\n$TMP/afile/backups\n\nq\n", enabled: true, at: atDir, afile: true,
 			defects: []string{"The change fails, yet the screen drawn again shows the new path: the repository set it before its check (file_backup_repository.go:248-256), and nothing undoes it. ./hardn.yml is not saved."}},
 		{name: "backup_path_dry_run", screen: "Backup (main menu 5) in dry-run mode, backups on, 2 (path) to a new directory, then q", script: "2\n$TMP/other\n\nq\n", enabled: true, dryRun: true, at: atDir,
@@ -358,4 +358,3 @@ func onDisk(path string, withSentinel bool) string {
 	}
 	return s
 }
-
