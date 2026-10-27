@@ -300,7 +300,10 @@ func TestBootUnitUnderSavedBackups(t *testing.T) {
 		h.AddSymlink(u.Link, u.Path)
 		o := testOptions(h, nil, nil, debian13)
 		o.Backups = backup.Settings{Path: backup.DefaultPath, Enabled: !on}
-		port := portControl().(*stub)
+		port, ok := portControl().(*stub)
+		if !ok {
+			t.Fatal("portControl is not a *stub")
+		}
 		e := New(h, o)
 		p, err := e.Plan(ctx, []Control{stubSaver{port, backup.Settings{Path: backup.DefaultPath, Enabled: on}}}, nil)
 		if err != nil || p.Err() != nil || p.Changes[0].ID != BootChangeID {
