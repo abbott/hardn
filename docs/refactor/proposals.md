@@ -455,6 +455,7 @@
   - The Backup screen gains "Restore a previous run": list the runs, show the plan, confirm, apply.
 - **Effort:** L.
 - **Risk:** Medium. A restore writes `/etc` files, so it goes through plan/apply, and through confirm-or-revert for SSH and firewall files.
+- **Mocked** (slice 3, unit (a), `next/s3-gallery`; [gallery-backup.md](../engine/gallery-backup.md) decision 9): item 4, "Backup Runs", lists the runs under `backupPath`, newest first, each run's files, and a restore through the flow (`play backup/runs`), its apply `backup.Restore` outside the engine. Recommended there: the list in slice 3, the restore its own later unit on the engine.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `05-BACKUP.png` (reference only).
   - After: `docs/refactor/img/p-19-after.png` (placeholder).
