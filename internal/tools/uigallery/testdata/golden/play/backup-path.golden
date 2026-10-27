@@ -99,7 +99,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
-      ␛[38;2;129;134;156m/srv, /srv/backups, /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -199,7 +199,7 @@ $
 # own journal, run directory and backups left out.$
 $
    -  Applied: Save the configuration$
-      /srv, /srv/backups, /etc/hardn/hardn.yml$
+      /etc/hardn/hardn.yml$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -316,7 +316,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
-      ␛[38;2;129;134;156m/srv, /srv/backups, /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -416,5 +416,5 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
-      ␛[38;2;129;134;156m/srv, /srv/backups, /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $

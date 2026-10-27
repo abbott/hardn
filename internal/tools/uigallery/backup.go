@@ -151,7 +151,7 @@ func backupHosts() []backupHost {
 			note: deb + "hardn.yml says backupPath: backups, as origin/main's Backup screen saves a relative path; pkg/host/backup refuses it, and with it every change but a new path (decision 7)."},
 		{name: "readonly", label: "Read-only", about: "/var/backups read-only", host: readOnlyHost,
 			note: deb + "/var/backups is on a read-only file system. Check cannot see that without writing, so a change fails at its backup, and nothing changes."},
-		{name: "runs", label: "Earlier runs", about: "Two changes backed up", host: runsHost,
+		{name: "runs", label: "Earlier runs", about: "Three changes backed up", host: runsHost,
 			note: deb + "Three earlier changes were backed up to /var/backups/hardn: an SSH port, a DNS change, then a save with backups off; hardn.yml and resolv.conf have changed since." + each},
 	}
 }
@@ -819,13 +819,18 @@ func (b *backupScreen) openRuns(ctx context.Context, r backupReading) func() err
 		return b.say(component.Messages{{Text: "No change has been backed up yet."}})
 	}
 	return func() error {
-		vm := runsScreen(r.runs)
-		menu := nav.Menu{Exit: vm.Menu.Exit}
-		for i, it := range vm.Menu.Items {
-			m := r.runs[i]
-			menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return b.openRun(ctx, m) }})
-		}
-		return b.s.p.Run(func() nav.Screen { return vm.Screen(b.s.p.Ctx, menu) })
+		return b.s.p.Run(func() nav.Screen {
+			// Read again at each draw: a restore is a change, its own
+			// backups a run of their own.
+			runs := readBackups(ctx, b.h.system(), b.cfg).runs
+			vm := runsScreen(runs)
+			menu := nav.Menu{Exit: vm.Menu.Exit}
+			for i, it := range vm.Menu.Items {
+				m := runs[i]
+				menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return b.openRun(ctx, m) }})
+			}
+			return vm.Screen(b.s.p.Ctx, menu)
+		})
 	}
 }
 

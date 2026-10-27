@@ -679,13 +679,20 @@ func changed(calls []hostfake.Call) (commands, files []string) {
 				commands = append(commands, host.FormatArgv(c.Argv))
 			}
 		case "write-atomic", "write-in-place", "append", "remove", "removeall", "rename", "mkdir", "chmod", "chown":
-			if c.Err == nil && !slices.ContainsFunc(stateDirs, func(d string) bool { return c.Path == d || strings.HasPrefix(c.Path, d+"/") }) &&
+			if c.Err == nil && !slices.ContainsFunc(stateDirs, func(d string) bool { return ownState(c, d) }) &&
 				!slices.Contains(files, c.Path) {
 				files = append(files, c.Path)
 			}
 		}
 	}
 	return commands, files
+}
+
+// ownState reports whether call c is in state directory d: a path under
+// it, or a directory made on the way to it (a backup path's parents,
+// made by the first backup).
+func ownState(c hostfake.Call, d string) bool {
+	return c.Path == d || strings.HasPrefix(c.Path, d+"/") || c.Op == "mkdir" && strings.HasPrefix(d, c.Path+"/")
 }
 
 // arms reports whether calls start the revert timer: systemd-run, or

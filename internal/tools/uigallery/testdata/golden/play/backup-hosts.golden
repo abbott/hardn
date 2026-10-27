@@ -22,7 +22,7 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUnsafe path␛[m          ␛[38;2;129;134;156m/tmp/hardn-backups␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mRelative path␛[m        ␛[38;2;129;134;156mbackupPath: backups␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRead-only␛[m            ␛[38;2;129;134;156m/var/backups read-only␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m         ␛[38;2;129;134;156mTwo changes backed up␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m         ␛[38;2;129;134;156mThree changes backed up␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -93,7 +93,7 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mUnsafe path␛[m          ␛[38;2;129;134;156m/tmp/hardn-backups␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mRelative path␛[m        ␛[38;2;129;134;156mbackupPath: backups␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRead-only␛[m            ␛[38;2;129;134;156m/var/backups read-only␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m         ␛[38;2;129;134;156mTwo changes backed up␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m         ␛[38;2;129;134;156mThree changes backed up␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -125,7 +125,7 @@ $
    4) Unsafe path          /tmp/hardn-backups$
    5) Relative path        backupPath: backups$
    6) Read-only            /var/backups read-only$
-   7) Earlier runs         Two changes backed up$
+   7) Earlier runs         Three changes backed up$
 $
    0) Return$
 $
@@ -196,7 +196,7 @@ $
    4) Unsafe path          /tmp/hardn-backups$
    5) Relative path        backupPath: backups$
    6) Read-only            /var/backups read-only$
-   7) Earlier runs         Two changes backed up$
+   7) Earlier runs         Three changes backed up$
 $
    0) Return$
 $
@@ -235,7 +235,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRead-only␛[m$
       ␛[38;2;129;134;156m/var/backups read-only␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m$
-      ␛[38;2;129;134;156mTwo changes backed up␛[m$
+      ␛[38;2;129;134;156mThree changes backed up␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -329,7 +329,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRead-only␛[m$
       ␛[38;2;129;134;156m/var/backups read-only␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mEarlier runs␛[m$
-      ␛[38;2;129;134;156mTwo changes backed up␛[m$
+      ␛[38;2;129;134;156mThree changes backed up␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
