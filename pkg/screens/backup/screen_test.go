@@ -368,6 +368,27 @@ func TestFailedBackup(t *testing.T) {
 	}
 }
 
+// TestRefusedByThePlan: a refusal of the plan's own is the flow's report,
+// with its code and how to go on, and nothing is written: hardn.yml
+// edited elsewhere after it was read (CONFIG_CHANGED), which the screen
+// does not show, its settings being the configuration's.
+func TestRefusedByThePlan(t *testing.T) {
+	h, cfg := newHost(t, hostDefault)
+	h.AddFile(hardnYML, append(ymlOf(true, backupPath), "# edited elsewhere\n"...), 0o600, 0, 0)
+	n := len(h.Calls())
+	p := play(h, cfg, false, "1", "0")
+	if p.err != nil || len(p.runs) != 1 || p.runs[0].Plan == nil || output.CodeOf(p.runs[0].Plan.Err()) != "CONFIG_CHANGED" {
+		t.Fatalf("Run = %v, runs %+v:\n%s", p.err, p.runs, p.out)
+	}
+	if w := inOrder(p.out, "/etc/hardn/hardn.yml changed since it was read (CONFIG_CHANGED)", "To go on: start again, so that the file is read as it is now.",
+		"Backup Settings #", "Backup State Enabled"); w != "" || strings.Contains(p.out, "[y/N") {
+		t.Errorf("%q not shown, or asked:\n%s", w, p.out)
+	}
+	if w := writes(h.System, n); len(w) > 0 || !cfg.EnableBackups {
+		t.Errorf("wrote %v; the configuration %t", w, cfg.EnableBackups)
+	}
+}
+
 // TestApplyContext: a change's apply, and nothing else, runs under the
 // context Options.ApplyContext makes, stopped once the apply returned: a
 // declined change, a dry run, Verify and the runs make none.
