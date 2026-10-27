@@ -9,7 +9,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml says backupPath: backups, as origin/main's Backup␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen saves a relative path; pkg/host/backup refuses it, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith it every change but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -38,7 +38,7 @@ $
 # Mock: the Backup screen. web-01.example.net runs Debian 13.$
 # hardn.yml says backupPath: backups, as origin/main's Backup$
 # screen saves a relative path; pkg/host/backup refuses it, and$
-# every change with it.$
+# with it every change but a new path (decision 7).$
 $
 # Backup Settings ##############################################$
 $
@@ -67,7 +67,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13. hardn.yml says backupPath: backups, as origin/main's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBackup screen saves a relative path; pkg/host/backup␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, and every change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, and with it every change but a new path␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -102,7 +103,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml says backupPath: backups, as origin/main's Backup␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen saves a relative path; pkg/host/backup refuses it, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith it every change but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
 $

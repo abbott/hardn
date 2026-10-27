@@ -8,8 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml says backupPath: /tmp/hardn-backups; /tmp is world-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritable, so pkg/host/backup refuses it, and every change with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritable, so pkg/host/backup refuses it, and with it every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -37,8 +37,8 @@ $
 # Note$
 # Mock: the Backup screen. web-01.example.net runs Debian 13.$
 # hardn.yml says backupPath: /tmp/hardn-backups; /tmp is world-$
-# writable, so pkg/host/backup refuses it, and every change with$
-# it.$
+# writable, so pkg/host/backup refuses it, and with it every$
+# change but a new path (decision 7).$
 $
 # Backup Settings ##############################################$
 $
@@ -66,8 +66,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13. hardn.yml says backupPath: /tmp/hardn-backups; /tmp is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mworld-writable, so pkg/host/backup refuses it, and every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mworld-writable, so pkg/host/backup refuses it, and with it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery change but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -101,8 +101,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Backup screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml says backupPath: /tmp/hardn-backups; /tmp is world-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritable, so pkg/host/backup refuses it, and every change with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritable, so pkg/host/backup refuses it, and with it every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
 $

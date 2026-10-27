@@ -15,7 +15,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says backupPath:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/tmp/hardn-backups; /tmp is world-writable, so pkg/host/backup␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, and every change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, and with it every change but a new path (decision␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -36,8 +37,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -59,18 +60,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
-$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
-$
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: /tmp: directory another user can␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchange (UNSAFE_DIRECTORY)␛[m$
-$
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -98,25 +90,85 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: /tmp: directory another user can␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mchange (UNSAFE_DIRECTORY)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;129;134;156m enableBackups: true               # Backup files before␛[m$
+      ␛[38;2;129;134;156m↪ modifying them␛[m$
+      ␛[38;2;231;70;105m-backupPath: "/tmp/hardn-backups"  # Path to store backups␛[m$
+      ␛[38;2;112;212;127m+backupPath: "/var/backups/hardn"  # Path to store backups␛[m$
 $
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;192;196;216mUse /var/backups/hardn?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/tmp/hardn-backups␛[m ␛[38;2;231;70;105mUnsafe␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups off␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156mNone yet␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m1 run␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-enableBackups: true               # Backup files before␛[m$
+      ␛[38;2;231;70;105m↪ modifying them␛[m$
+      ␛[38;2;112;212;127m+enableBackups: false               # Backup files before␛[m$
+      ␛[38;2;112;212;127m↪ modifying them␛[m$
+      ␛[38;2;129;134;156m backupPath: "/var/backups/hardn"  # Path to store backups␛[m$
+$
+  ␛[38;2;192;196;216mTurn backups off?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+  ␛[38;2;129;134;156mBacked up anyway: the rollback needs it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m2 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -124,8 +176,21 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -141,7 +206,8 @@ $
 # Info: backup/unsafe$
 # web-01.example.net runs Debian 13. hardn.yml says backupPath:$
 # /tmp/hardn-backups; /tmp is world-writable, so pkg/host/backup$
-# refuses it, and every change with it.$
+# refuses it, and with it every change but a new path (decision$
+# 7).$
 $
 # Backup Settings ##############################################$
 $
@@ -162,8 +228,8 @@ $
   > Enter selection [0-4 or q]: 3$
 $
 # Warning$
-# Other users can write to /tmp, so hardn refuses every change.$
-# Set backupPath in /etc/hardn/hardn.yml by hand.$
+# Others can change /tmp, so backups can't go in /tmp/hardn-$
+# backups. Choose a directory only root can change.$
 $
   Nothing was written.$
 $
@@ -185,18 +251,9 @@ $
 $
   > Enter selection [0-4 or q]: 1$
 $
-# Turn Backups Off #############################################$
-$
-# Backup Configuration -----------------------------------------$
-$
-  [ ] Backup State         Disabled$
-   -  Rollback backups are still taken$
-$
-# Operation Failed$
-# engine: the backups: backup: /tmp: directory another user can$
-# change (UNSAFE_DIRECTORY)$
-$
-  Check the log file at /var/log/hardn.log for details$
+# Warning$
+# Others can change /tmp, so backups can't go in /tmp/hardn-$
+# backups. Choose a directory only root can change.$
 $
 # Backup Settings ##############################################$
 $
@@ -224,25 +281,85 @@ $
 $
   [+] Backup Path          /var/backups/hardn Not created yet$
 $
-# Operation Failed$
-# engine: the backups: backup: /tmp: directory another user can$
-# change (UNSAFE_DIRECTORY)$
+   -  Save the configuration$
+      /etc/hardn/hardn.yml$
+      @@ -1,4 +1,4 @@$
+       # hardn's configuration (web-01.example.net)$
+       username: alice$
+       enableBackups: true               # Backup files before$
+      | modifying them$
+      -backupPath: "/tmp/hardn-backups"  # Path to store backups$
+      +backupPath: "/var/backups/hardn"  # Path to store backups$
 $
-  Check the log file at /var/log/hardn.log for details$
+  Use /var/backups/hardn? [y/N, 0 or q]: y$
+$
+  [+] Save the configuration  Done$
+$
+# Operation Successful$
+$
+  Backup of /etc/hardn/hardn.yml kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
 $
 # Backup Settings ##############################################$
 $
 # Backup Configuration -----------------------------------------$
 $
   [+] Backup State         Enabled$
-  [ ] Backup Path          /tmp/hardn-backups Unsafe$
+  [+] Backup Path          /var/backups/hardn Root only$
 $
   Select an option$
 $
    1) Backup State         Turn backups off$
    2) Backup Path          Change backup path$
    3) Verify Directory     Check the path, writing nothing$
-   4) Backup Runs          None yet$
+   4) Backup Runs          1 run$
+$
+   0) Return$
+$
+  > Enter selection [0-4 or q]: 1$
+$
+# Turn Backups Off #############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [ ] Backup State         Disabled$
+   -  Rollback backups are still taken$
+$
+   -  Save the configuration$
+      /etc/hardn/hardn.yml$
+      @@ -1,4 +1,4 @@$
+       # hardn's configuration (web-01.example.net)$
+       username: alice$
+      -enableBackups: true               # Backup files before$
+      | modifying them$
+      +enableBackups: false               # Backup files before$
+      | modifying them$
+       backupPath: "/var/backups/hardn"  # Path to store backups$
+$
+  Turn backups off? [y/N, 0 or q]: y$
+$
+  [+] Save the configuration  Done$
+$
+# Operation Successful$
+$
+  Backup of /etc/hardn/hardn.yml kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
+  Backed up anyway: the rollback needs it.$
+$
+# Backup Settings ##############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [ ] Backup State         Disabled$
+   -  Rollback backups are still taken$
+  [+] Backup Path          /var/backups/hardn Root only$
+$
+  Select an option$
+$
+   1) Backup State         Turn backups on$
+   2) Backup Path          Change backup path$
+   3) Verify Directory     Check the path, writing nothing$
+   4) Backup Runs          2 runs$
 $
    0) Return$
 $
@@ -250,8 +367,21 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# Note$
-# Nothing was applied.$
+# Info: backup/unsafe$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Save the configuration$
+      /etc/hardn/hardn.yml$
+$
+# Info: backup/unsafe$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Save the configuration$
+      /etc/hardn/hardn.yml$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -267,7 +397,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackupPath: /tmp/hardn-backups; /tmp is world-writable, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup refuses it, and every change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup refuses it, and with it every change but a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnew path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -294,8 +425,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -323,19 +454,9 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
-$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
-      ␛[38;2;219;184;83mDisabled␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
-$
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: /tmp: directory another user␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mcan change (UNSAFE_DIRECTORY)␛[m$
-$
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -370,11 +491,27 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
       ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
 $
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: /tmp: directory another user␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mcan change (UNSAFE_DIRECTORY)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;129;134;156m enableBackups: true               # Backup files␛[m$
+      ␛[38;2;129;134;156m↪ before modifying them␛[m$
+      ␛[38;2;231;70;105m-backupPath: "/tmp/hardn-backups"  # Path to store␛[m$
+      ␛[38;2;231;70;105m↪ backups␛[m$
+      ␛[38;2;112;212;127m+backupPath: "/var/backups/hardn"  # Path to store␛[m$
+      ␛[38;2;112;212;127m↪ backups␛[m$
 $
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;2;192;196;216mUse /var/backups/hardn?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -382,8 +519,8 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m$
       ␛[38;2;112;212;127mEnabled␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
-      ␛[38;2;129;134;156m/tmp/hardn-backups␛[m ␛[38;2;231;70;105mUnsafe␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -394,7 +531,63 @@ $
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
       ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
-      ␛[38;2;129;134;156mNone yet␛[m$
+      ␛[38;2;129;134;156m1 run␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-enableBackups: true               # Backup files␛[m$
+      ␛[38;2;231;70;105m↪ before modifying them␛[m$
+      ␛[38;2;112;212;127m+enableBackups: false               # Backup files␛[m$
+      ␛[38;2;112;212;127m↪ before modifying them␛[m$
+      ␛[38;2;129;134;156m backupPath: "/var/backups/hardn"  # Path to store␛[m$
+      ␛[38;2;129;134;156m↪ backups␛[m$
+$
+  ␛[38;2;192;196;216mTurn backups off?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/hardn/hardn.yml kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+  ␛[38;2;129;134;156mBacked up anyway: the rollback needs it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
+      ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
+      ␛[38;2;129;134;156m2 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -402,6 +595,19 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $

@@ -15,7 +15,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/relative␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says backupPath:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups, as origin/main's Backup screen saves a relative path;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup refuses it, and every change with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup refuses it, and with it every change but a new␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpath (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -36,8 +37,7 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -59,19 +59,8 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
-$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
-$
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: backupPath "backups" is not an␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mabsolute directory (the default is /var/backups/hardn):␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minvalid backup settings (BACKUP_SETTINGS_INVALID)␛[m$
-$
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -110,7 +99,8 @@ $
 # Info: backup/relative$
 # web-01.example.net runs Debian 13. hardn.yml says backupPath:$
 # backups, as origin/main's Backup screen saves a relative path;$
-# pkg/host/backup refuses it, and every change with it.$
+# pkg/host/backup refuses it, and with it every change but a new$
+# path (decision 7).$
 $
 # Backup Settings ##############################################$
 $
@@ -131,8 +121,7 @@ $
   > Enter selection [0-4 or q]: 3$
 $
 # Warning$
-# "backups" is not an absolute path, so hardn refuses every$
-# change. Set backupPath in /etc/hardn/hardn.yml by hand.$
+# "backups" is not an absolute path. Start it with /.$
 $
   Nothing was written.$
 $
@@ -154,19 +143,8 @@ $
 $
   > Enter selection [0-4 or q]: 1$
 $
-# Turn Backups Off #############################################$
-$
-# Backup Configuration -----------------------------------------$
-$
-  [ ] Backup State         Disabled$
-   -  Rollback backups are still taken$
-$
-# Operation Failed$
-# engine: the backups: backup: backupPath "backups" is not an$
-# absolute directory (the default is /var/backups/hardn):$
-# invalid backup settings (BACKUP_SETTINGS_INVALID)$
-$
-  Check the log file at /var/log/hardn.log for details$
+# Warning$
+# "backups" is not an absolute path. Start it with /.$
 $
 # Backup Settings ##############################################$
 $
@@ -205,8 +183,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/relative␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackupPath: backups, as origin/main's Backup screen saves␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma relative path; pkg/host/backup refuses it, and every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange with it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma relative path; pkg/host/backup refuses it, and with it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery change but a new path (decision 7).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -233,8 +211,7 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -262,20 +239,8 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups Off␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
-$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
-      ␛[38;2;219;184;83mDisabled␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
-$
-␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mengine: the backups: backup: backupPath "backups" is not␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156man absolute directory (the default is /var/backups/hardn):␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minvalid backup settings (BACKUP_SETTINGS_INVALID)␛[m$
-$
-  ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

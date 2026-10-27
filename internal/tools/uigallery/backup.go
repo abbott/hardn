@@ -42,11 +42,11 @@ import (
 // manifests. Each change is the canonical flow on the real engine, as the
 // DNS screen runs it (output.FlowEngine): its plan the save of the one
 // setting it changes (steps.PlanSave, config.Edit in place), the engine's
-// backups taken as engine.Options.Backups says, from hardn.yml as loaded,
-// as cmd/hardn's engineOptions takes them. The mock's own, labelled so in
-// the page: the screen's words, the path field's check that a path is
-// clean, the line saying a backup was taken anyway (§3.16), and the
-// restore (P-19), whose apply is backup.Restore outside the engine.
+// backups taken as the settings it saves say (gallery-backup.md decision
+// 7 (a): cmd/hardn's engineOptions takes hardn.yml as loaded). The mock's
+// own, labelled so in the page: the screen's words, the path field's
+// check that a path is clean, the lines saying what a change backed up
+// (§3.16), and the restore (P-19).
 // "backup" lists the mocks with no input; "play backup" is the menu of
 // the hosts and "play backup/<host>" the screen on one.
 
@@ -70,15 +70,26 @@ const (
 	// pathTitle is the path field's question (origin/main's, without its
 	// colon).
 	pathTitle = "Enter new backup path"
-	// takenAnyway is said after a change applied with backups off whose
-	// rollback backup was taken (§3.16: "and says so").
+	// takenAnyway is said under keptIn after a change applied with
+	// backups off whose rollback backup was taken (§3.16: "and says so");
+	// never after turning them on, which is planned with them on.
 	takenAnyway = "Backed up anyway: the rollback needs it."
+	// keptIn is said after a change applied: "Backup of <files> kept in",
+	// then the run's directory.
+	keptIn = "Backup of %s kept in"
 	// nothingWritten closes Verify's report.
 	nothingWritten = "Nothing was written."
-	// byHand is how to go on where Check refuses the path in use: the
-	// screen's path change is refused too (gallery-backup.md decision 7).
-	byHand = "Set backupPath in " + hardnYML + " by hand."
 )
+
+func init() {
+	// The elsewhere host's backup path, and the path the sequences move
+	// to, is hardn's own state, as /var/backups/hardn is: the record play
+	// ends with leaves its writes out (stateDirs).
+	stateDirs = append(stateDirs, elsewherePath)
+}
+
+// elsewherePath is the elsewhere host's backup path.
+const elsewherePath = "/srv/backups/hardn"
 
 // The menu's keys.
 const (
@@ -129,12 +140,12 @@ func backupHosts() []backupHost {
 			note: deb + "hardn.yml keeps the defaults: backups on, in /var/backups/hardn, which no change has made yet." + each},
 		{name: "off", label: "Backups off", about: "enableBackups: false", host: backupOn(false, backup.DefaultPath),
 			note: deb + "hardn.yml says enableBackups: false. A change still backs up what its rollback needs (plan §3.16)." + each},
-		{name: "elsewhere", label: "Another path", about: "/srv/backups/hardn", host: elsewhereHost,
+		{name: "elsewhere", label: "Another path", about: elsewherePath, host: elsewhereHost,
 			note: deb + "hardn.yml says backupPath: /srv/backups/hardn, a directory root made 0700." + each},
 		{name: "unsafe", label: "Unsafe path", about: "/tmp/hardn-backups", host: backupOn(true, "/tmp/hardn-backups"),
-			note: deb + "hardn.yml says backupPath: /tmp/hardn-backups; /tmp is world-writable, so pkg/host/backup refuses it, and every change with it."},
+			note: deb + "hardn.yml says backupPath: /tmp/hardn-backups; /tmp is world-writable, so pkg/host/backup refuses it, and with it every change but a new path (decision 7)."},
 		{name: "relative", label: "Relative path", about: "backupPath: backups", host: backupOn(true, "backups"),
-			note: deb + "hardn.yml says backupPath: backups, as origin/main's Backup screen saves a relative path; pkg/host/backup refuses it, and every change with it."},
+			note: deb + "hardn.yml says backupPath: backups, as origin/main's Backup screen saves a relative path; pkg/host/backup refuses it, and with it every change but a new path (decision 7)."},
 		{name: "readonly", label: "Read-only", about: "/var/backups read-only", host: readOnlyHost,
 			note: deb + "/var/backups is on a read-only file system. Check cannot see that without writing, so a change fails at its backup, and nothing changes."},
 		{name: "runs", label: "Earlier runs", about: "Two changes backed up", host: runsHost,
@@ -154,8 +165,8 @@ func findBackupHost(name string) (backupHost, bool) {
 // elsewhereHost is Debian 13 backing up to /srv/backups/hardn, made 0700
 // by root.
 func elsewhereHost() *fakeHost {
-	h := backupOn(true, "/srv/backups/hardn")()
-	h.f.AddDir("/srv/backups/hardn", 0o700, 0, 0)
+	h := backupOn(true, elsewherePath)()
+	h.f.AddDir(elsewherePath, 0o700, 0, 0)
 	return h
 }
 
@@ -323,11 +334,11 @@ func unsafeDir(err error) string {
 	return dir
 }
 
-// subMenu is the screen of r: the title bar; the section, its state and
-// path rows, the path's note from Check, and with backups off the line
-// saying rollback backups are still taken; the items, item 1 naming the
-// way it turns, item 4 the runs (P-19); "Return"; no status rows (the
-// frame's two are another screen's: gallery-backup.md decision 1).
+// subMenu is the screen of r: the title bar; the section, its state row,
+// with backups off the line under it saying rollback backups are still
+// taken, and the path row, the path's note from Check; the items, item 1
+// naming the way it turns, item 4 the runs (P-19); "Return"; no status
+// rows (the frame's two are other screens': gallery-backup.md decision 1).
 func (r backupReading) subMenu() screen.SubMenu {
 	state := component.KeyValue{Key: stateKey, Value: "Enabled", State: component.ValueOK}
 	turn := "Turn backups off"
@@ -346,7 +357,7 @@ func (r backupReading) subMenu() screen.SubMenu {
 	}
 	rows := []component.KeyValue{state, where}
 	if !r.settings.Enabled {
-		rows = append(rows, component.KeyValue{Key: rollbackOnly, State: component.ValueNone})
+		rows = []component.KeyValue{state, {Key: rollbackOnly, State: component.ValueNone}, where}
 	}
 	runs := "None yet"
 	switch n := len(r.runs); {
@@ -382,35 +393,40 @@ func (r backupReading) statusRowScreen() screen.SubMenu {
 	return vm
 }
 
-// verifyWords are Verify's report of r: what Check found and that
-// nothing was written, as prose; when Check refuses, a warning saying
-// why, then the prose.
-func verifyWords(r backupReading) component.Messages {
-	p := r.settings.Path
-	var says string
-	kind := component.MessageInfo
+// refusal is Check's refusal err of the backup path p in words: what is
+// wrong, then what to do, as one warning. Verify says it, and item 1
+// before it asks anything, on a host whose path Check refuses.
+func refusal(err error, p string) component.Message {
+	var text string
 	switch {
-	case errors.Is(r.check, backup.ErrSettings):
-		kind, says = component.MessageWarn, fmt.Sprintf("%q is not an absolute path, so hardn refuses every change. %s", p, byHand)
-	case errors.Is(r.check, backup.ErrUnsafeDir):
-		dir := unsafeDir(r.check)
+	case errors.Is(err, backup.ErrSettings):
+		text = fmt.Sprintf("%q is not an absolute path. Start it with /.", p)
+	case errors.Is(err, backup.ErrUnsafeDir):
+		dir := unsafeDir(err)
 		if dir == "" {
 			dir = p
 		}
-		kind, says = component.MessageWarn, fmt.Sprintf("Other users can write to %s, so hardn refuses every change. %s", dir, byHand)
-	case errors.Is(r.check, syscall.ENOTDIR):
-		kind, says = component.MessageWarn, fmt.Sprintf("%s is not a directory, so hardn refuses every change. %s", p, byHand)
-	case r.check != nil:
-		kind, says = component.MessageWarn, "Can't check "+p+": "+r.check.Error()+"."
-	case r.made:
-		says = "Only root can change " + p + "."
+		text = "Others can change " + dir + ", so backups can't go in " + p + ". Choose a directory only root can change."
+	case errors.Is(err, syscall.ENOTDIR):
+		text = p + " is not a directory. Choose another path."
 	default:
-		says = "Only root can change " + path.Dir(path.Clean(p)) + ", where the first backup makes " + p + "."
+		text = "Can't check " + p + ": " + err.Error() + "."
 	}
-	if kind == component.MessageInfo {
-		return component.Messages{{Text: says + " " + nothingWritten}}
+	return component.Message{Kind: component.MessageWarn, Text: text}
+}
+
+// verifyWords are Verify's report of r: what Check found and that
+// nothing was written, as prose; when Check refuses, the refusal, then
+// the prose.
+func verifyWords(r backupReading) component.Messages {
+	p := r.settings.Path
+	switch {
+	case r.check != nil:
+		return component.Messages{refusal(r.check, p), {Text: nothingWritten}}
+	case r.made:
+		return component.Messages{{Text: "Only root can change " + p + ". " + nothingWritten}}
 	}
-	return component.Messages{{Kind: kind, Text: says}, {Text: nothingWritten}}
+	return component.Messages{{Text: "Only root can change " + path.Dir(path.Clean(p)) + ", where the first backup makes " + p + ". " + nothingWritten}}
 }
 
 // runTime is when run id was taken, to the minute, UTC, from the time it
@@ -509,9 +525,9 @@ func pathCheck(ctx context.Context, sys host.System, current string) func(string
 			return nav.Warn(entry + " is the backup path already")
 		case errors.Is(err, backup.ErrUnsafeDir):
 			if dir := unsafeDir(err); dir != "" {
-				return errors.New("Other users can write to " + dir)
+				return errors.New("Others can change " + dir)
 			}
-			return errors.New("Other users can write to it")
+			return errors.New("Others can change it")
 		case errors.Is(err, syscall.ENOTDIR):
 			return errors.New("Not a directory")
 		case err != nil:
@@ -575,8 +591,16 @@ func (s *session) runBackup(ctx context.Context, bh backupHost) error {
 func (b *backupScreen) draw(ctx context.Context) nav.Screen {
 	r := readBackups(ctx, b.h.system(), b.cfg)
 	vm := r.subMenu()
+	toggle := b.toggle(ctx, r)
+	if r.check != nil {
+		// Every plan is refused while Check refuses the path: say so
+		// before asking anything, as the DNS screen does where every plan
+		// is refused. A new path (2) is planned under itself, the way out
+		// (decision 7 (a)).
+		toggle = b.say(component.Messages{refusal(r.check, r.settings.Path)})
+	}
 	actions := map[string]func() error{
-		keyState:  b.toggle(ctx, r),
+		keyState:  toggle,
 		keyPath:   b.changePath(ctx, r),
 		keyVerify: b.say(verifyWords(r)),
 		keyRuns:   b.openRuns(ctx, r),
@@ -642,27 +666,35 @@ func (b *backupScreen) changePath(ctx context.Context, r backupReading) func() e
 	}
 }
 
+// newEngine is the engine of one change of the screen, over the host as
+// the engine reaches it, as the DNS screen's is: its backups taken as
+// settings say, the gallery's hold, its events recorded by rec and drawn
+// by fe.
+func (b *backupScreen) newEngine(settings backup.Settings, rec *recorder, fe *output.FlowEngine) *engine.Engine {
+	return engine.New(b.h.system(), engine.Options{
+		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
+		Session:  applySession,
+		Backups:  settings,
+		Hold:     b.s.hold,
+		PID:      applyPID,
+		Progress: func(ev engine.Event) { rec.event(ev); fe.Progress(ev) },
+	})
+}
+
 // change runs one change of the screen under its title bar: the form;
 // the review; the plan, the engine's, of the save of setting from a copy
-// of hardn.yml that edit changes, the engine taking its backups as
-// hardn.yml as loaded says (cmd/hardn's engineOptions); question, y/N;
-// the apply. Then what the flow does not draw (output.AfterFlow), the
-// line saying a backup was taken anyway, and hardn.yml adopted as saved.
+// of hardn.yml that edit changes, the engine taking its backups as the
+// settings saved say (decision 7 (a)), so that a new path takes the
+// change's own backup, and turning backups off takes it with them off;
+// question, y/N; the apply. Then what the flow does not draw
+// (output.AfterFlow), what the run backed up (kept), and hardn.yml
+// adopted as saved.
 func (b *backupScreen) change(ctx context.Context, title string, fields []form.Field, rv func() flow.Review, setting string,
 	edit func(*config.Config), question func() string) error {
 	s, sys := b.s, b.h.system()
 	dryRun := s.sequence == "dry-run"
 	rec := &recorder{host: b.h, f: b.h.f, title: b.title}
 	fe := &output.FlowEngine{DryRun: dryRun, LogPath: output.LegacyLogPath}
-	settings := b.cfg.BackupSettings()
-	fe.Engine = engine.New(sys, engine.Options{
-		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
-		Session:  applySession,
-		Backups:  settings,
-		Hold:     s.hold,
-		PID:      applyPID,
-		Progress: func(ev engine.Event) { rec.event(ev); fe.Progress(ev) },
-	})
 	s.mu.Lock()
 	s.engineRuns = append(s.engineRuns, rec)
 	s.mu.Unlock()
@@ -670,6 +702,7 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	plans := func() ([]engine.Control, *config.Config) {
 		edited = *b.cfg
 		edit(&edited)
+		fe.Engine = b.newEngine(edited.BackupSettings(), rec, fe)
 		return []engine.Control{backupSave(setting)}, &edited
 	}
 	f := flow.Flow{
@@ -687,8 +720,8 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	run := fe.Run(out, err)
 	after := output.AfterFlow(s.p.Ctx.Env, run, galleryNow)
 	if out == flow.Applied && !dryRun {
-		if anyway(ctx, sys, settings, run.Plan) {
-			after += strings.Repeat("\n", theme.SectionGap) + component.Message{Text: takenAnyway}.Render(s.p.Ctx) + "\n"
+		if msgs := kept(ctx, sys, edited.BackupSettings(), run.Plan); len(msgs) > 0 {
+			after += strings.Repeat("\n", theme.SectionGap) + msgs.Render(s.p.Ctx) + "\n"
 		}
 		b.adopt(ctx, &edited)
 	}
@@ -698,14 +731,34 @@ func (b *backupScreen) change(ctx context.Context, title string, fields []form.F
 	return nil
 }
 
-// anyway reports whether the run of plan p, under settings, took a
-// backup with backups off: its manifest (backup.Load) says so.
-func anyway(ctx context.Context, sys host.System, settings backup.Settings, p *engine.Plan) bool {
-	if p == nil || settings.Enabled {
-		return false
+// kept says what the run of plan p, under settings, backed up, read back
+// as a restore reads it (backup.Load): "Backup of <files> kept in" and the
+// run's directory, <backupPath>/<run-id>; then, where its manifest says a
+// copy was taken with backups off, that (§3.16). Nothing for a run that
+// backed up nothing.
+func kept(ctx context.Context, sys host.System, settings backup.Settings, p *engine.Plan) component.Messages {
+	if p == nil {
+		return nil
 	}
-	m, err := backup.Load(ctx, sys, path.Join(path.Clean(settings.Path), p.ID))
-	return err == nil && slices.ContainsFunc(m.Entries, func(e backup.Entry) bool { return e.TakenAnyway })
+	dir := path.Join(path.Clean(settings.Path), p.ID)
+	m, err := backup.Load(ctx, sys, dir)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return nil
+	case err != nil:
+		return component.Messages{{Kind: component.MessageWarn, Text: "Can't read the backup in " + dir + ": " + err.Error()}}
+	case len(m.Entries) == 0:
+		return nil
+	}
+	var files []string
+	for _, e := range m.Entries {
+		files = append(files, e.Path)
+	}
+	msgs := component.Messages{{Text: fmt.Sprintf(keptIn, strings.Join(files, ", "))}, {Text: dir}}
+	if slices.ContainsFunc(m.Entries, func(e backup.Entry) bool { return e.TakenAnyway }) {
+		msgs = append(msgs, component.Message{Text: takenAnyway})
+	}
+	return msgs
 }
 
 // adopt makes the screen's configuration edited once hardn.yml holds the

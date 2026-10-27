@@ -22,16 +22,15 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -57,16 +56,15 @@ $
 # verify on unsafe ---------------------------------------------$
 $
 # Warning$
-# Other users can write to /tmp, so hardn refuses every change.$
-# Set backupPath in /etc/hardn/hardn.yml by hand.$
+# Others can change /tmp, so backups can't go in /tmp/hardn-$
+# backups. Choose a directory only root can change.$
 $
   Nothing was written.$
 $
 # verify on relative -------------------------------------------$
 $
 # Warning$
-# "backups" is not an absolute path, so hardn refuses every$
-# change. Set backupPath in /etc/hardn/hardn.yml by hand.$
+# "backups" is not an absolute path. Start it with /.$
 $
   Nothing was written.$
 $
@@ -93,16 +91,15 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
@@ -128,16 +125,15 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOther users can write to /tmp, so hardn refuses every change.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSet backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path, so hardn refuses every␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange. Set backupPath in /etc/hardn/hardn.yml by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
 $
   ␛[38;2;129;134;156mNothing was written.␛[m$
 $
