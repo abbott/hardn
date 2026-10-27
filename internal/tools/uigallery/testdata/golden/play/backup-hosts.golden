@@ -29,11 +29,11 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-7 or q]:␛[m 7$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Two earlier changes were␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbacked up to /var/backups/hardn, the second with backups off;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml and resolv.conf have changed since. Each change is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanned, reviewed, confirmed y/N and applied on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine; then the screen is read again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Three earlier changes were␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbacked up to /var/backups/hardn: an SSH port, a DNS change,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen a save with backups off; hardn.yml and resolv.conf have␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanged since. Each change is planned, reviewed, confirmed y/N␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand applied on the real engine; then the screen is read again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -47,7 +47,7 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups off␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m2 runs␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m3 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -59,10 +59,11 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216m2026-10-19 14:30␛[m     ␛[38;2;129;134;156m1 file, taken anyway␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216m2026-10-18 09:15␛[m     ␛[38;2;129;134;156m2 files␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216m2026-10-17 08:30␛[m     ␛[38;2;129;134;156m1 file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -76,7 +77,7 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups off␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m2 runs␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156m3 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -131,11 +132,11 @@ $
   > Enter your choice [0-7 or q]: 7$
 $
 # Info: backup/runs$
-# web-01.example.net runs Debian 13. Two earlier changes were$
-# backed up to /var/backups/hardn, the second with backups off;$
-# hardn.yml and resolv.conf have changed since. Each change is$
-# planned, reviewed, confirmed y/N and applied on the real$
-# engine; then the screen is read again.$
+# web-01.example.net runs Debian 13. Three earlier changes were$
+# backed up to /var/backups/hardn: an SSH port, a DNS change,$
+# then a save with backups off; hardn.yml and resolv.conf have$
+# changed since. Each change is planned, reviewed, confirmed y/N$
+# and applied on the real engine; then the screen is read again.$
 $
 # Backup Settings ##############################################$
 $
@@ -149,7 +150,7 @@ $
    1) Backup State         Turn backups off$
    2) Backup Path          Change backup path$
    3) Verify Directory     Check the path, writing nothing$
-   4) Backup Runs          2 runs$
+   4) Backup Runs          3 runs$
 $
    0) Return$
 $
@@ -161,10 +162,11 @@ $
 $
    1) 2026-10-19 14:30     1 file, taken anyway$
    2) 2026-10-18 09:15     2 files$
+   3) 2026-10-17 08:30     1 file$
 $
    0) Return$
 $
-  > Enter selection [0-2 or q]: 0$
+  > Enter selection [0-3 or q]: 0$
 $
 # Backup Settings ##############################################$
 $
@@ -178,7 +180,7 @@ $
    1) Backup State         Turn backups off$
    2) Backup Path          Change backup path$
    3) Verify Directory     Check the path, writing nothing$
-   4) Backup Runs          2 runs$
+   4) Backup Runs          3 runs$
 $
    0) Return$
 $
@@ -240,11 +242,12 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-7 or q]:␛[m 7$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Two earlier changes␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwere backed up to /var/backups/hardn, the second with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups off; hardn.yml and resolv.conf have changed since.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach change is planned, reviewed, confirmed y/N and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapplied on the real engine; then the screen is read again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Three earlier changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwere backed up to /var/backups/hardn: an SSH port, a DNS␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange, then a save with backups off; hardn.yml and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mresolv.conf have changed since. Each change is planned,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreviewed, confirmed y/N and applied on the real engine;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen the screen is read again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -264,7 +267,7 @@ $
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
       ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
-      ␛[38;2;129;134;156m2 runs␛[m$
+      ␛[38;2;129;134;156m3 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -278,10 +281,12 @@ $
       ␛[38;2;129;134;156m1 file, taken anyway␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216m2026-10-18 09:15␛[m$
       ␛[38;2;129;134;156m2 files␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216m2026-10-17 08:30␛[m$
+      ␛[38;2;129;134;156m1 file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -301,7 +306,7 @@ $
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
       ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
-      ␛[38;2;129;134;156m2 runs␛[m$
+      ␛[38;2;129;134;156m3 runs␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $

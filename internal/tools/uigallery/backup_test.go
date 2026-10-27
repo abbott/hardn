@@ -20,8 +20,10 @@ import (
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
+	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -61,8 +63,9 @@ func TestBackupGolden(t *testing.T) {
 // them on declined; the unsafe path: Verify and item 1 refused, then a new
 // path, planned under itself, and item 1 again (decision 7 (a)); the
 // relative path, Verify and item 1 refused; the read-only host, Verify
-// passing and the change failing at its backup; the runs and a restore
-// (P-19); plan only, stopping at the plan; and the hosts' menu. Each
+// passing and the change failing at its backup; the runs, the SSH run's
+// restore refused, and a restore through the engine (P-19); plan only,
+// stopping at the plan; and the hosts' menu. Each
 // change id's random suffix is written xxxxxxxx (sameIDs).
 func TestPlayBackupGolden(t *testing.T) {
 	tests := []struct {
@@ -78,7 +81,7 @@ func TestPlayBackupGolden(t *testing.T) {
 		{"backup-path-from-unsafe", []string{"backup/unsafe"}, []string{"3", "1", "2", "/var/backups/hardn", "y", "1", "y", "0"}, nil},
 		{"backup-relative", []string{"backup/relative"}, []string{"3", "1", "0"}, nil},
 		{"backup-readonly", []string{"backup/readonly"}, []string{"3", "1", "y", "0"}, nil},
-		{"backup-runs", []string{"backup/runs"}, []string{"4", "2", "1", "y", "0", "0", "0"}, nil},
+		{"backup-runs", []string{"backup/runs"}, []string{"4", "3", "1", "0", "2", "1", "y", "0", "0", "0"}, nil},
 		{"backup-dry-run", []string{"-sequence", "dry-run", "backup/default"}, []string{"1", "2", "/srv/backups/hardn", "3", "0"}, nil},
 		{"backup-hosts", []string{"backup"}, []string{"7", "4", "0", "0", "0"}, nil},
 	}
@@ -162,7 +165,7 @@ func TestBackupReadings(t *testing.T) {
 		{"unsafe", true, "/tmp/hardn-backups", backup.ErrUnsafeDir, false, 0, "Unsafe"},
 		{"relative", true, "backups", backup.ErrSettings, false, 0, "Not absolute"},
 		{"readonly", true, backup.DefaultPath, nil, false, 0, "Not created yet"},
-		{"runs", true, backup.DefaultPath, nil, true, 2, "Root only"},
+		{"runs", true, backup.DefaultPath, nil, true, 3, "Root only"},
 	}
 	if len(tests) != len(backupHosts()) {
 		t.Fatalf("%d hosts tested, %d hosts", len(tests), len(backupHosts()))
@@ -330,8 +333,11 @@ func TestRunFilesAreBackups(t *testing.T) {
 	for _, r := range earlierRuns() {
 		f := hostfake.New(host.Options{})
 		f.AddDir("/var/backups", 0o755, 0, 0)
+		f.AddDir(sshd.DropInDir, 0o755, 0, 0)
 		for _, file := range r.files {
-			f.AddFile(file.path, []byte(file.data), file.mode.FileMode(), 0, 0)
+			if !file.absent {
+				f.AddFile(file.path, []byte(file.data), file.mode.FileMode(), 0, 0)
+			}
 		}
 		run, err := backup.Open(f, backup.Settings{Path: backup.DefaultPath, Enabled: r.enabled}, r.id)
 		if err != nil {
@@ -360,11 +366,67 @@ func TestRunFilesAreBackups(t *testing.T) {
 			t.Errorf("%s: manifest.json\n%s\nwant\n%s", r.id, got, want)
 		}
 		for _, e := range m.Entries {
+			if e.File == nil {
+				continue
+			}
 			copied, _, err := f.ReadFileNoFollow(ctx, path.Join(run.Dir(), e.File.Backup))
 			if err != nil || !bytes.Equal(copied, seeded[e.File.Backup]) {
 				t.Errorf("%s: %s: %v, %q", r.id, e.File.Backup, err, seeded[e.File.Backup])
 			}
 		}
+	}
+}
+
+// playBackup plays the Backup screen on h, bh's host, plain, the user
+// typing lines, a dry run with dryRun, and returns the session, the
+// transcript and the exit status.
+func playBackup(t *testing.T, bh backupHost, h *fakeHost, dryRun bool, lines ...string) (*session, string, int) {
+	t.Helper()
+	return playWith(t, backupPrefix+"/"+bh.name, func(s *session) func() error {
+		if dryRun {
+			s.sequence = "dry-run"
+		}
+		return func() error { return s.runBackupOn(context.Background(), bh, h) }
+	}, lines...)
+}
+
+// TestBackupRestore: the restore (P-19) is an engine change: it puts the
+// DNS run's files back as backup.Restore does, the engine backing up what
+// it replaces first, in a run of its own, so that the restore can be
+// undone as any change is; the SSH run's restore is refused before
+// anything is planned; a dry run stops at the plan and writes nothing.
+func TestBackupRestore(t *testing.T) {
+	ctx := context.Background()
+	bh, _ := findBackupHost("runs")
+	h := bh.host()
+	s, out, code := playBackup(t, bh, h, false, "4", "3", "1", "0", "2", "1", "y", "0", "0", "0")
+	if code != exitOK || len(s.engineRuns) != 1 {
+		t.Fatalf("exit %d, %d engines:\n%s", code, len(s.engineRuns), out)
+	}
+	if got := h.content(dns.ResolvConf); got != runOldDNS {
+		t.Errorf("resolv.conf after the restore:\n%s", got)
+	}
+	if got := h.content(sshRunPath); got != runDropIn {
+		t.Errorf("the drop-in, whose run's restore is refused:\n%s", got)
+	}
+	if !strings.Contains(flatText(out), lockoutRestore) {
+		t.Errorf("the SSH run's restore is not refused:\n%s", out)
+	}
+	runs := readRuns(ctx, h.system(), backup.DefaultPath)
+	if len(runs) != 4 || !strings.HasPrefix(runs[0].RunID, galleryNow.Format("20060102T150405Z")) {
+		t.Fatalf("%d runs; the newest %+v", len(runs), runs[0])
+	}
+	var backedUp []string
+	for _, e := range runs[0].Entries {
+		backedUp = append(backedUp, e.Path)
+	}
+	if want := []string{hardnYML, dns.ResolvConf}; !slices.Equal(backedUp, want) {
+		t.Errorf("the restore's own run backed up %q, want %q", backedUp, want)
+	}
+	h2 := bh.host()
+	_, out2, _ := playBackup(t, bh, h2, true, "4", "2", "1", "0", "0", "0")
+	if h2.content(dns.ResolvConf) != runNewDNS || !strings.Contains(flatText(out2), "No actual changes were made") {
+		t.Errorf("the dry run:\n%s", out2)
 	}
 }
 
