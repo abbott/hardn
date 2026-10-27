@@ -430,26 +430,78 @@ func TestBackupRestore(t *testing.T) {
 	}
 }
 
-// TestBackupHeights: the screen on every host, the runs and a run, in
-// their one form (a sub-menu has no compact form), fit 80x24 down to the
-// prompt, in Unicode and ASCII; the counts are gallery-backup.md §4's.
+// TestBackupHeights: the screen on every host, Figma's frame, the
+// alternative with a status row, the runs and a run, in their one form (a
+// sub-menu has no compact form, and none is proposed), rendered at 80x24
+// and at 80x40, in Unicode and ASCII: each is as many lines at either
+// height, the prompt on its last, and fits 24 rows; the counts are
+// gallery-backup.md §4's.
 func TestBackupHeights(t *testing.T) {
-	want := map[string]int{"default": 17, "off": 18, "runs": 17, "status-row": 18}
-	for _, unicode := range []bool{true, false} {
-		c := component.NewCtx(term.Fixed(80, colorprofile.TrueColor, unicode, true))
-		for _, bh := range backupHosts() {
-			r, _, _ := readHost(t, bh.name)
-			lines := strings.Count(ansi.Strip(r.subMenu().Render(c)), "\n") + 1
-			if lines > 24 {
-				t.Errorf("%s, unicode %v: %d lines", bh.name, unicode, lines)
-			}
-			if n, ok := want[bh.name]; ok && lines != n {
-				t.Errorf("%s, unicode %v: %d lines, want %d", bh.name, unicode, lines, n)
+	want := map[string]int{"default": 17, "off": 18, "elsewhere": 17, "unsafe": 17, "relative": 17, "readonly": 17, "runs": 17,
+		"figma": 19, "status-row": 18, "runs list": 11, "run": 13}
+	draws := map[string]func(component.Ctx) string{}
+	for _, bh := range backupHosts() {
+		r, _, _ := readHost(t, bh.name)
+		draws[bh.name] = func(c component.Ctx) string { return r.subMenu().Render(c) }
+	}
+	figma, err := figmaMock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	draws["figma"] = func(c component.Ctx) string { return figma.Render(c) }
+	r, _, _ := readHost(t, "default")
+	draws["status-row"] = func(c component.Ctx) string { return r.statusRowScreen().Render(c) }
+	runs, _, _ := readHost(t, "runs")
+	draws["runs list"] = func(c component.Ctx) string { return runsScreen(runs.runs).Render(c) }
+	draws["run"] = func(c component.Ctx) string { return runScreen(runs.runs[0]).Render(c) }
+	if len(draws) != len(want) {
+		t.Fatalf("%d drawings, %d heights", len(draws), len(want))
+	}
+	for name, draw := range draws {
+		for _, rows := range []int{24, 40} {
+			for _, unicode := range []bool{true, false} {
+				env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
+				env.Height = rows
+				text := ansi.Strip(draw(component.NewCtx(env)))
+				lines := strings.Split(text, "\n")
+				if len(lines) != want[name] || len(lines) > 24 || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
+					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q; want %d, the prompt", name, rows, unicode, len(lines), lines[len(lines)-1], want[name])
+				}
 			}
 		}
-		r, _, _ := readHost(t, "default")
-		if n := strings.Count(ansi.Strip(r.statusRowScreen().Render(c)), "\n") + 1; n != want["status-row"] {
-			t.Errorf("status-row, unicode %v: %d lines", unicode, n)
+	}
+}
+
+// writesAfter are the calls h took after its first n that change
+// something, each as the fake records it.
+func writesAfter(h *fakeHost, n int) []string {
+	var out []string
+	for _, c := range h.f.Calls()[n:] {
+		switch c.Op {
+		case "write-atomic", "write-in-place", "append", "remove", "removeall", "rename", "mkdir", "chmod", "chown":
+			out = append(out, c.String())
+		}
+	}
+	return out
+}
+
+// TestBackupDrawAndVerifyWriteNothing: drawing the screen on every host,
+// and Verify on it, change nothing there, where origin/main's make the
+// directory and write and remove a test file; no engine is built and no
+// hold taken, and Verify says that nothing was written.
+func TestBackupDrawAndVerifyWriteNothing(t *testing.T) {
+	for _, bh := range backupHosts() {
+		h := bh.host()
+		n := len(h.f.Calls())
+		s, out, code := playBackup(t, bh, h, false, "3", "0")
+		if code != exitOK || len(s.engineRuns) != 0 || s.holds != 0 {
+			t.Errorf("%s: exit %d, %d engines, the hold taken %d times:\n%s", bh.name, code, len(s.engineRuns), s.holds, out)
+		}
+		if !strings.Contains(flatText(out), nothingWritten) {
+			t.Errorf("%s: Verify does not say that nothing was written:\n%s", bh.name, out)
+		}
+		if got := writesAfter(h, n); len(got) > 0 {
+			t.Errorf("%s: drawing the screen and Verify changed the host: %q", bh.name, got)
 		}
 	}
 }
