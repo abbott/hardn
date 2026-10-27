@@ -1,0 +1,166 @@
+# Golden file of TestBackupGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mbackup run-dir␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat run's directory, <backupPath>/<run-id>/, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup lays one out: each copy, then manifest.json.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery seeds it, the manifest a backup.Manifest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmarshalled as Run writes one; backup.Load reads it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156m/var/backups/hardn/20261019T143000Z-5e6f7a8b␛[m ␛[38;2;48;52;64m─────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0001-hardn.yml␛[m       ␛[38;2;129;134;156m0600, 91 bytes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mmanifest.json␛[m        ␛[38;2;129;134;156m0600, 521 bytes␛[m$
+$
+  ␛[38;2;129;134;156m{␛[m$
+  ␛[38;2;129;134;156m  "schemaVersion": 1,␛[m$
+  ␛[38;2;129;134;156m  "runId": "20261019T143000Z-5e6f7a8b",␛[m$
+  ␛[38;2;129;134;156m  "created": "2026-10-19T14:30:00Z",␛[m$
+  ␛[38;2;129;134;156m  "backupsEnabled": false,␛[m$
+  ␛[38;2;129;134;156m  "entries": [␛[m$
+  ␛[38;2;129;134;156m    {␛[m$
+  ␛[38;2;129;134;156m      "seq": 1,␛[m$
+  ␛[38;2;129;134;156m      "path": "/etc/hardn/hardn.yml",␛[m$
+  ␛[38;2;129;134;156m      "kind": "file",␛[m$
+  ␛[38;2;129;134;156m      "file": {␛[m$
+  ␛[38;2;129;134;156m        "backup": "0001-hardn.yml",␛[m$
+  ␛[38;2;129;134;156m        "mode": "0600",␛[m$
+  ␛[38;2;129;134;156m        "uid": 0,␛[m$
+  ␛[38;2;129;134;156m        "gid": 0,␛[m$
+  ␛[38;2;129;134;156m        "size": 91,␛[m$
+  ␛[38;2;129;134;156m        "sha256": "1ea845ecb35b5f23d9e6dab3c24eabda87dc015f98…␛[m$
+  ␛[38;2;129;134;156m      },␛[m$
+  ␛[38;2;129;134;156m      "rollbackRequired": true,␛[m$
+  ␛[38;2;129;134;156m      "takenAnyway": true␛[m$
+  ␛[38;2;129;134;156m    }␛[m$
+  ␛[38;2;129;134;156m  ]␛[m$
+  ␛[38;2;129;134;156m}␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# backup run-dir -----------------------------------------------$
+$
+# Note$
+# That run's directory, <backupPath>/<run-id>/, as$
+# pkg/host/backup lays one out: each copy, then manifest.json.$
+# The gallery seeds it, the manifest a backup.Manifest$
+# marshalled as Run writes one; backup.Load reads it.$
+$
+# /var/backups/hardn/20261019T143000Z-5e6f7a8b -----------------$
+$
+   -  0001-hardn.yml       0600, 91 bytes$
+   -  manifest.json        0600, 521 bytes$
+$
+  {$
+    "schemaVersion": 1,$
+    "runId": "20261019T143000Z-5e6f7a8b",$
+    "created": "2026-10-19T14:30:00Z",$
+    "backupsEnabled": false,$
+    "entries": [$
+      {$
+        "seq": 1,$
+        "path": "/etc/hardn/hardn.yml",$
+        "kind": "file",$
+        "file": {$
+          "backup": "0001-hardn.yml",$
+          "mode": "0600",$
+          "uid": 0,$
+          "gid": 0,$
+          "size": 91,$
+          "sha256": "1ea845ecb35b5f23d9e6dab3c24eabda87dc015f...$
+        },$
+        "rollbackRequired": true,$
+        "takenAnyway": true$
+      }$
+    ]$
+  }$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mbackup run-dir␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat run's directory, <backupPath>/<run-id>/, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup lays one out: each copy, then␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmanifest.json. The gallery seeds it, the manifest a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackup.Manifest marshalled as Run writes one; backup.Load␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156m/var/backups/hardn/20261019T143000Z-5e6f7a8b␛[m ␛[38;2;48;52;64m─────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0001-hardn.yml␛[m$
+      ␛[38;2;129;134;156m0600, 91 bytes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mmanifest.json␛[m$
+      ␛[38;2;129;134;156m0600, 521 bytes␛[m$
+$
+  ␛[38;2;129;134;156m{␛[m$
+  ␛[38;2;129;134;156m  "schemaVersion": 1,␛[m$
+  ␛[38;2;129;134;156m  "runId": "20261019T143000Z-5e6f7a8b",␛[m$
+  ␛[38;2;129;134;156m  "created": "2026-10-19T14:30:00Z",␛[m$
+  ␛[38;2;129;134;156m  "backupsEnabled": false,␛[m$
+  ␛[38;2;129;134;156m  "entries": [␛[m$
+  ␛[38;2;129;134;156m    {␛[m$
+  ␛[38;2;129;134;156m      "seq": 1,␛[m$
+  ␛[38;2;129;134;156m      "path": "/etc/hardn/hardn.yml",␛[m$
+  ␛[38;2;129;134;156m      "kind": "file",␛[m$
+  ␛[38;2;129;134;156m      "file": {␛[m$
+  ␛[38;2;129;134;156m        "backup": "0001-hardn.yml",␛[m$
+  ␛[38;2;129;134;156m        "mode": "0600",␛[m$
+  ␛[38;2;129;134;156m        "uid": 0,␛[m$
+  ␛[38;2;129;134;156m        "gid": 0,␛[m$
+  ␛[38;2;129;134;156m        "size": 91,␛[m$
+  ␛[38;2;129;134;156m        "sha256": "1ea845ecb35b5f23d9e6dab3c24eabda87dc01…␛[m$
+  ␛[38;2;129;134;156m      },␛[m$
+  ␛[38;2;129;134;156m      "rollbackRequired": true,␛[m$
+  ␛[38;2;129;134;156m      "takenAnyway": true␛[m$
+  ␛[38;2;129;134;156m    }␛[m$
+  ␛[38;2;129;134;156m  ]␛[m$
+  ␛[38;2;129;134;156m}␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mbackup run-dir␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat run's directory, <backupPath>/<run-id>/, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/host/backup lays one out: each copy, then manifest.json.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery seeds it, the manifest a backup.Manifest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmarshalled as Run writes one; backup.Load reads it.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156m/var/backups/hardn/20261019T143000Z-5e6f7a8b␛[m ␛[38;2;48;52;64m-----------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0001-hardn.yml␛[m       ␛[38;2;129;134;156m0600, 91 bytes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mmanifest.json␛[m        ␛[38;2;129;134;156m0600, 521 bytes␛[m$
+$
+  ␛[38;2;129;134;156m{␛[m$
+  ␛[38;2;129;134;156m  "schemaVersion": 1,␛[m$
+  ␛[38;2;129;134;156m  "runId": "20261019T143000Z-5e6f7a8b",␛[m$
+  ␛[38;2;129;134;156m  "created": "2026-10-19T14:30:00Z",␛[m$
+  ␛[38;2;129;134;156m  "backupsEnabled": false,␛[m$
+  ␛[38;2;129;134;156m  "entries": [␛[m$
+  ␛[38;2;129;134;156m    {␛[m$
+  ␛[38;2;129;134;156m      "seq": 1,␛[m$
+  ␛[38;2;129;134;156m      "path": "/etc/hardn/hardn.yml",␛[m$
+  ␛[38;2;129;134;156m      "kind": "file",␛[m$
+  ␛[38;2;129;134;156m      "file": {␛[m$
+  ␛[38;2;129;134;156m        "backup": "0001-hardn.yml",␛[m$
+  ␛[38;2;129;134;156m        "mode": "0600",␛[m$
+  ␛[38;2;129;134;156m        "uid": 0,␛[m$
+  ␛[38;2;129;134;156m        "gid": 0,␛[m$
+  ␛[38;2;129;134;156m        "size": 91,␛[m$
+  ␛[38;2;129;134;156m        "sha256": "1ea845ecb35b5f23d9e6dab3c24eabda87dc015f...␛[m$
+  ␛[38;2;129;134;156m      },␛[m$
+  ␛[38;2;129;134;156m      "rollbackRequired": true,␛[m$
+  ␛[38;2;129;134;156m      "takenAnyway": true␛[m$
+  ␛[38;2;129;134;156m    }␛[m$
+  ␛[38;2;129;134;156m  ]␛[m$
+  ␛[38;2;129;134;156m}␛[m$
+$
+$

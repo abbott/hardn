@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -97,6 +97,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{engineNote}, s.openDNS(name), stderr)
+		})
+	}
+	if name, ok, err := backupStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the Backup mocks fail where their host does (backup/readonly)")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the Backup mocks play normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{backupNote}, s.openBackup(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())

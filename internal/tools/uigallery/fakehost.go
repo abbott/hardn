@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
@@ -84,6 +85,10 @@ type fakeHost struct {
 	// saved (config.Save); the file's other changes (removed, renamed,
 	// chmodded, chowned, appended to) are not modelled.
 	immutable []string
+	// readOnly are directories on a read-only file system: making a
+	// directory or writing a file under one fails, as EROFS makes it fail
+	// (engineSys); the rest of the fake's calls are not modelled.
+	readOnly []string
 	// What the status checks and the header probe ask beyond the
 	// scenarios' commands (statushost.go): nil on the scenarios' hosts,
 	// where those commands stay unanswered.
@@ -648,7 +653,9 @@ func (h *fakeHost) unanswered() []string {
 
 // engineSys is the simulated host as the engine reaches it: the fake, but
 // an atomic write of one of the files the model holds immutable fails, as
-// chattr +i makes the rename over it fail (fakeHost.immutable).
+// chattr +i makes the rename over it fail (fakeHost.immutable), and making
+// a directory or writing a file on a read-only file system fails
+// (fakeHost.readOnly).
 type engineSys struct {
 	*hostfake.System
 	h *fakeHost
@@ -657,12 +664,30 @@ type engineSys struct {
 // system returns the simulated host as the engine reaches it.
 func (h *fakeHost) system() engineSys { return engineSys{h.f, h} }
 
-// WriteFileAtomic is the fake's, but for an immutable file.
+// WriteFileAtomic is the fake's, but for an immutable file and one on a
+// read-only file system.
 func (s engineSys) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
 	if slices.Contains(s.h.immutable, name) {
 		return &fs.PathError{Op: "rename", Path: name, Err: fs.ErrPermission}
 	}
+	if s.h.onReadOnly(name) {
+		return &fs.PathError{Op: "open", Path: name, Err: syscall.EROFS}
+	}
 	return s.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+// MkdirAll is the fake's, but on a read-only file system.
+func (s engineSys) MkdirAll(ctx context.Context, name string, perm fs.FileMode) error {
+	if s.h.onReadOnly(name) {
+		return &fs.PathError{Op: "mkdir", Path: name, Err: syscall.EROFS}
+	}
+	return s.System.MkdirAll(ctx, name, perm)
+}
+
+// onReadOnly reports whether name is under one of the model's read-only
+// directories.
+func (h *fakeHost) onReadOnly(name string) bool {
+	return slices.ContainsFunc(h.readOnly, func(d string) bool { return strings.HasPrefix(name, d+"/") })
 }
 
 // arm records the timer systemd-run starts (--on-active=<N>s
