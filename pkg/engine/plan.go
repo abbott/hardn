@@ -46,7 +46,8 @@ type Plan struct {
 	// Backups are the settings the plan's backups are taken under:
 	// Options.Backups, hardn.yml as loaded, or, when a control that saves
 	// them (BackupsSaver) plans a change, the settings it saves (decision
-	// 7 (a), next/s3-control). backup.Check refuses them at plan time, and
+	// 7 (a), next/s3-control), a plan with another control's change then
+	// refused (ErrConflict). backup.Check refuses them at plan time, and
 	// Apply backs up into <Backups.Path>/<ID>.
 	Backups backup.Settings
 	// Findings are what the engine found about the plan as a whole, which
@@ -131,7 +132,8 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg, Session: e.opts.Session}
 	var all []Change
 	seen := map[string]bool{}
-	saver := "" // the control whose change saves the backup settings
+	saver := ""         // the control whose change saves the backup settings
+	var others []string // the controls with changes that do not save them
 	for _, c := range controls {
 		it := Item{Control: c.ID(), Title: c.Title()}
 		switch ok, why := c.Applies(facts); {
@@ -165,6 +167,8 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 				case s != p.Backups:
 					it.Err = errors.Join(it.Err, fmt.Errorf("engine: %s and %s save other backup settings: %w", saver, it.Control, ErrConflict))
 				}
+			} else if len(cs) > 0 {
+				others = append(others, it.Control)
 			}
 		}
 		seen[it.Control] = true
@@ -172,6 +176,19 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 			refuse(it.Err)
 		}
 		p.Items = append(p.Items, it)
+	}
+	// A change of the backup settings is planned alone (decision 7 (a)):
+	// a plan's changes all back up into its one run, under the settings
+	// it saves, and every other change takes hardn.yml's as loaded.
+	if saver != "" && len(others) > 0 {
+		err := fmt.Errorf("engine: %s saves the backup settings, which every change of its plan is backed up under: plan %s in another plan: %w",
+			saver, strings.Join(others, " and "), ErrConflict)
+		for k := range p.Items {
+			if p.Items[k].Control == saver {
+				p.Items[k].Err = errors.Join(p.Items[k].Err, err)
+			}
+		}
+		refuse(err)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("engine: plan: %w", err)

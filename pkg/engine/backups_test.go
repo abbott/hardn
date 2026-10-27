@@ -45,11 +45,10 @@ func backupsHost(t *testing.T) *testHost {
 
 // TestPlanBackups: a plan's backups are taken under Options.Backups,
 // hardn.yml as loaded, unless a control that saves the backup settings
-// plans a change: then under the settings it saves, checked at plan time,
-// for every change of that plan; a saver that plans nothing changes
-// nothing of it; an empty path is the default; two savers that disagree
-// conflict, two that agree do not; the plan made again under the lock
-// must have the same settings.
+// plans a change: then under the settings it saves, checked at plan time;
+// a saver that plans nothing changes nothing of it; an empty path is the
+// default; two savers that disagree conflict, two that agree do not. A
+// saver's change with another control's is TestPlanBackupsAlone's.
 func TestPlanBackups(t *testing.T) {
 	ctx := context.Background()
 	refused := backup.Settings{Path: unsafePath, Enabled: true}
@@ -67,7 +66,6 @@ func TestPlanBackups(t *testing.T) {
 	}{
 		{"hardn.yml's, refused", refused, []Control{other}, refused, backup.ErrUnsafeDir},
 		{"the saver's, on a host whose own are refused", refused, []Control{save("example.saver", moved)}, moved, nil},
-		{"the saver's, for every change of its plan", refused, []Control{save("example.saver", moved), other}, moved, nil},
 		{"the saver's, refused", moved, []Control{save("example.saver", refused)}, refused, backup.ErrUnsafeDir},
 		{"an empty path is the default", refused, []Control{save("example.saver", backup.Settings{})}, backup.Settings{Path: backup.DefaultPath}, nil},
 		{"a saver that plans nothing", moved, []Control{saverControl{fileControl{id: "example.saver", path: confPath, want: "old\n"}, refused}, other}, moved, nil},
@@ -109,6 +107,45 @@ func TestPlanBackups(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestPlanBackupsAlone (decision 7 (a)): a saver's change planned with
+// another control's is refused, ErrConflict, in either order, the
+// refusal in the saver's item: every change of a plan is backed up into
+// its one run, and another control's change takes hardn.yml's settings as
+// loaded, never the ones saved. So on a host whose own are refused, the
+// other control's change is not applied by planning it with the saver's.
+// Nothing is applied.
+func TestPlanBackupsAlone(t *testing.T) {
+	ctx := context.Background()
+	saver := saverControl{fileControl{id: "example.saver", path: confPath, want: "new\n"}, backup.Settings{Path: newPath, Enabled: true}}
+	other := fileControl{id: "example.other", path: otherConf, want: "new\n"}
+	for _, controls := range [][]Control{{saver, other}, {other, saver}} {
+		h := backupsHost(t)
+		o := testOptions(h, &holds{}, nil, debian13)
+		o.Backups = backup.Settings{Path: unsafePath, Enabled: true}
+		e := New(h, o)
+		p, err := e.Plan(ctx, controls, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !errors.Is(p.Err(), ErrConflict) || len(p.Refused) != 1 {
+			t.Errorf("%s first: refused %v, want ErrConflict alone", controls[0].ID(), p.Err())
+		}
+		for _, it := range p.Items {
+			if (it.Control == saver.id) != errors.Is(it.Err, ErrConflict) {
+				t.Errorf("%s first: item %s refused %v; want the saver's alone", controls[0].ID(), it.Control, it.Err)
+			}
+		}
+		if _, err := e.Apply(ctx, p); !errors.Is(err, ErrRefused) {
+			t.Errorf("%s first: Apply %v, want ErrRefused", controls[0].ID(), err)
+		}
+		for _, f := range []string{confPath, otherConf} {
+			if got, _ := h.content(t, f); got != "old\n" {
+				t.Errorf("%s first: %s %q, want it unchanged", controls[0].ID(), f, got)
+			}
+		}
 	}
 }
 
@@ -190,6 +227,14 @@ func TestResultBackup(t *testing.T) {
 	}
 }
 
+// stubSaver is stub whose plan saves settings.
+type stubSaver struct {
+	*stub
+	settings backup.Settings
+}
+
+func (c stubSaver) SavedBackups(Input) backup.Settings { return c.settings }
+
 // TestRollbackFromSavedPath: a change that saves a new backup path, then
 // fails, is rolled back from the backups it took under that path: the
 // journal names that run directory, and the rollback reads its manifest
@@ -200,10 +245,13 @@ func TestRollbackFromSavedPath(t *testing.T) {
 	o := testOptions(h, &holds{}, nil, debian13)
 	o.Backups = backup.Settings{Path: unsafePath, Enabled: true}
 	h.failOn("example-check")
-	saver := saverControl{fileControl{id: "example.saver", path: confPath, want: "new\n"}, backup.Settings{Path: newPath, Enabled: true}}
-	check := &stub{id: "example.check", title: "Example check", changes: []Change{command("example.check/run", StageVerify, RiskPlain, []string{"example-check"}, nil)}}
+	before := "old\n"
+	saver := stubSaver{&stub{id: "example.saver", title: "Example saver", changes: []Change{
+		writeChange("example.saver/write", confPath, &before, "new\n", RiskPlain),
+		command("example.saver/check", StageVerify, RiskPlain, []string{"example-check"}, nil),
+	}}, backup.Settings{Path: newPath, Enabled: true}}
 	e := New(h, o)
-	p, err := e.Plan(ctx, []Control{saver, check}, nil)
+	p, err := e.Plan(ctx, []Control{saver}, nil)
 	if err != nil || p.Err() != nil {
 		t.Fatalf("Plan: %v, %v", err, p.Err())
 	}

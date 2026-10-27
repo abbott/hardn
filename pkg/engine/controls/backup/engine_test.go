@@ -12,7 +12,6 @@ import (
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/host"
 	hostbackup "github.com/abbott/hardn/pkg/host/backup"
-	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 )
 
@@ -87,34 +86,39 @@ func TestRefusedPathMoved(t *testing.T) {
 	}
 }
 
-// failing is a control whose change fails after the save, so that the
-// apply is rolled back.
-type failing struct{}
+// failingSave is Backup's control with a change after the save that
+// fails, so that the apply is rolled back: one control, as a change of
+// the backup settings is planned alone (ErrConflict otherwise).
+type failingSave struct{ backup.Settings }
 
-func (failing) ID() string                          { return "example.check" }
-func (failing) Title() string                       { return "Example check" }
-func (failing) Applies(detect.Facts) (bool, string) { return true, "" }
-func (failing) Check(context.Context, host.System, detect.Facts) (engine.Status, error) {
-	return engine.Status{}, nil
-}
-func (failing) Plan(context.Context, host.System, engine.Input) ([]engine.Change, error) {
-	return []engine.Change{{ID: "example.check/run", Summary: "Check the example", Stage: engine.StageVerify,
+func (f failingSave) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+	cs, err := f.Settings.Plan(ctx, sys, in)
+	if err != nil {
+		return nil, err
+	}
+	return append(cs, engine.Change{ID: backup.ID + "/check", Summary: "Check the example", Stage: engine.StageVerify,
 		Apply: func(context.Context, host.System, engine.Run) (engine.Ran, error) {
 			return engine.Ran{}, errors.New("fixture: the check failed")
-		}}}, nil
+		}}), nil
 }
 
 // TestRollbackFromNewPath (decision 7 (a)): a path change from a refused
 // path, rolled back when a later change of its plan fails, puts hardn.yml
 // back from the change's own backup, read under the new path, the one
 // the journal names; nothing is read or written under the path refused.
+// Planned with another control's change, it is refused (ErrConflict).
 func TestRollbackFromNewPath(t *testing.T) {
 	ctx := context.Background()
 	h, loaded := newHost(t, true, unsafePath)
 	before := content(h, hardnYML)
-	e, p := planOn(t, h, loaded, edited(loaded, func(c *config.Config) { c.BackupPath = hostbackup.DefaultPath }), failing{})
-	if p.Err() != nil {
-		t.Fatal(p.Err())
+	moved := edited(loaded, func(c *config.Config) { c.BackupPath = hostbackup.DefaultPath })
+	e := engineOn(h, loaded.BackupSettings(), nil)
+	if _, p := planOn(t, h, loaded, moved, dnsctl.Nameservers{Config: loaded}); !errors.Is(p.Err(), engine.ErrConflict) {
+		t.Errorf("planned with the DNS change: %v, want ErrConflict", p.Err())
+	}
+	p, err := e.Plan(ctx, []engine.Control{failingSave{backup.Settings{Config: loaded}}}, moved)
+	if err != nil || p.Err() != nil {
+		t.Fatal(err, p.Err())
 	}
 	n := len(h.Calls())
 	res, err := e.Apply(ctx, p)

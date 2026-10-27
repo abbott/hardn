@@ -121,7 +121,9 @@ type Control interface {
 // plan time (backup.Check), backs up into <its path>/<id>, and journals
 // that directory, so that a rollback finds the backups where the change
 // put them. A plan with no such change takes Options.Backups, hardn.yml as
-// loaded; two that save other settings conflict (ErrConflict).
+// loaded. A plan with such a change and another control's is refused
+// (ErrConflict), so that no other change is backed up under the settings
+// saved; so are two that save other settings.
 type BackupsSaver interface {
 	Control
 	// SavedBackups returns the backup settings the control's plan saves,
