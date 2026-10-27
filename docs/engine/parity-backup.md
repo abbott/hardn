@@ -1,0 +1,183 @@
+# The Backup parity table: origin/main's Backup screen against Backup's control (`TestParity`)
+
+> **Unit:** refactor plan slice 3 (Backup), unit (b2), `next/s3-parity`, from `next/s3-control` at f8c7e52: "Parity table: end state (file contents, …) of legacy vs new path, per fixture distro, with each difference tied to a V-number or an approved proposal. The baseline is the legacy (origin/main) path; the P0.7b v0.3.2 reference shows where origin/main regressed" (plan §2, "Phases 3-5 together", §3.22); [gallery-backup.md](gallery-backup.md) §9: "origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision". Sources the table ties to: V18 ([side-effects.md](../refactor/phase0/side-effects.md) §8), where the cell's golden names it; side-effects rows 29 and 30 (§3); decisions 3, 6, 7 (a), 8 and 10 of [gallery-backup.md](gallery-backup.md) §5 (adopted 2026-10-27); [control-backup.md](control-backup.md) §2.3, §2.8, §6, §7 and §11 (§6-7's words and codes adopted 2026-10-27); plan §3.16, and §3.19 as amended 2026-10-22.
+> **Status:** built and tested on macOS, in process: origin/main from `pkg/characterization`'s Backup goldens, read in place; the new path on the recording fake (`hostfake`). Nothing ran on Linux or as root: every host claim is **written, not run (gate 5)** (§9). No existing golden or testdata file changed; DNS's `TestParity`, `parity.golden` and [parity-dns.md](parity-dns.md)'s region are byte for byte as at f8c7e52, `-update` included (run). **No difference is unexplained** (§6).
+
+## 1. Why
+
+Unit (d) replaces origin/main's Backup screen: main menu 5 goes to the new screen, and `pkg/menu/backup_menu.go` and the legacy backup layers are deleted after this unit (gallery-backup.md §9). This page and its test are the record of what that screen did, kept after its code is gone: every difference between its end state and the new path's, from the same start, with the source that explains it.
+
+## 2. Method
+
+- **origin/main:** `TestLegacyMenuBackup`'s goldens (`pkg/characterization/testdata/golden/menu/backup_*.golden`, 20), read in place: the screen run in a child process on scripted stdin, in a temp dir that is also its working directory and `HOME`, its repository on the real file system there with each call recorded (gallery-backup.md §2). The harness reads their layout (`parseRepository` in `internal/parity`; [screen-kit.md](screen-kit.md) §7): the `Start:` line; the repository's calls, `mkdir`, `write` (its content skipped) and `remove`, a call that failed being the run's refusal, `failed: <error>`; what is at `backupPath` after; `./hardn.yml` as written, whole, or not; the V-numbers of the `KNOWN-DEFECT` and `FIXED` lines. The screen as printed is skipped (what was shown, not an end state); the temp dir afterwards is recorded, not compared. Any other line or call fails the test.
+- **`$TMP` is the root.** The goldens write the temp dir as `$TMP`; the reader drops it from every path, in the calls, the after line and the saved `hardn.yml` (`Slice.LegacyRoot`), so: `$TMP/var/backups/hardn` (hardn's default, which the characterization moved under its temp dir) is `/var/backups/hardn`; `$TMP/shared` (0777) is `/shared`; `$TMP/afile` is `/afile`; `$TMP/other` is `/other`; `HOME`, `$TMP/home`, is `/home`, so `~alice/backups` is `/home/alice/backups` (under sudo it is root's home: read, `backup_manager.go:47-53`). `backups`, relative, stays relative: the working directory. The new path's host has the same entries at those paths, as `prepareBackup` made them: `/var/backups/hardn` absent, an empty directory 0755, one holding the same 25-byte `.write_test`, or a regular file; `/shared` 0777, not sticky; `/afile` a file. Each cell holds its host to the golden's `Start:` line, read as above (`Cell.LegacyStart`).
+- **The same configuration.** origin/main's run made its configuration in memory (`runBackupChild`: `config.DefaultConfig()`, `alice`, `sshPort` 2230, `enableBackups` and `backupPath` as its start says, `dryRun` the session's), no file loaded. The new path loads `testdata/fixtures/backups-on.yml` or `backups-off.yml` from `/etc/hardn/hardn.yml` (0644): those four settings as `hardn.yml.example` writes them, under one comment line. Where both saved, the `hardn.yml settings` aspect agrees, "as loaded", in all 8 cells: origin/main's saved file holds the fixture's settings, by value.
+- **The new path** (`TestParity`, `pkg/screens/backup/parity_test.go`, through `internal/parity`), each scenario on hostfake, as unit (c)'s screen is to run it (control-backup.md §11):
+  - **The screen opened, and Verify (3):** the control's `Check` through the engine (`Engine.Check`), which reads the path as the screen's section and Verify do (`Read`; decision 3); where `Check` refuses the path, its refusal is `Read`'s error's code and the note.
+  - **Item 1:** refused before it asks where `Read` refuses the path (decision 7 (a)); else `screenkit.Session.Change`, the copy's `enableBackups` turned over, `backup.Controls`, the engine as `cmd/hardn` builds it (`engineOptions`: backups as `hardn.yml` was loaded; the control's change planned under the settings it saves, decision 7 (a)), answered y.
+  - **Item 2:** the same, its form one text field checked by the control's `Field` (decisions 5, 6), answered as typed. An entry `Field` refuses is refused inline, and the form left with 0: nothing planned; the refusal is its words, with the code of `Check`'s error where it has one.
+  - **Plan only:** `Session.DryRun`: each change stops at its plan (decision 10).
+  - **`Session.Change`, not the engine directly:** it is what unit (c)'s screen calls for each change (control-backup.md §11), and it fits: the control plans from the edited copy, the engine takes hardn.yml as loaded, and `Session` needs no change. It also runs `output.AfterFlow`: the test checks that "Backed up anyway: the rollback needs it." is said exactly where a backup was taken anyway (§3.16's "and says so", decision 8). The flows' title bars and questions are the gallery mock's, **proposed** (gallery-backup.md §6), for unit (c) to decide; no golden here shows them.
+  - **The end state** (`NewStateUnder`): what was written under the backup path the plan's backups went under (`Plan.Backups`; else hardn.yml's), each run's directory as `<run id>`; `hardn.yml`; the backups, from the run's manifest, with "taken anyway" where it says so; the journal; and what is at `/var/backups/hardn` after, in the characterization's words (`onDisk`'s).
+- **Rows:** 17 of the 20 goldens. **Not rows:** `backup_return` (0) and `backup_invalid` (7, then the screen again): the screen opened with backups on over an empty directory, as `open` does, then a key that changes nothing; each ends as it started (after: "a directory, empty"). `backup_disabled_3`: backups off, so no write test; 3, hidden, then taken: a pause, no call (after: "not there", as it started). **Backup Runs** (decision 9, item 4, read only) has no origin/main counterpart: nothing lists runs there (`ListBackups` has no caller: gallery-backup.md §2.7). **A backup write that fails** (a read-only file system, `BACKUP_WRITE_FAILED`) has no origin/main golden, which ran on a writable temp dir; it is control-backup.md §2.11's (`failed-readonly`). The writes that fail here are origin/main's `MkdirAll` under a file: `toggle-on-file`, `path-under-file`, `verify-file`.
+- **Distributions:** DNS's four cells, Debian 13, Ubuntu 24.04, Alpine 3.23 and Proxmox VE 9. Neither path reads the distribution: origin/main's screen and its layers read no host fact (read: `backup_menu.go`, `backup_manager.go`, `backup_service.go` and `file_backup_repository.go` read only the backup path, through `os` and the repository's file system), so one golden per scenario stands for every host; the new path ran on each distribution's facts over the same host, and every difference of §4 is on all four (run).
+- **The aspects compared:** the refusal (refused or not, and its code); the host's files, directories and commands (none on either path, in every cell: both write only under the backup path and `hardn.yml`); **under the backup path**, its directories made (each an `MkdirAll` call as recorded, with its mode; one of a directory there already changes nothing) and its files written and removed, with their modes (their content not compared: the write test's `test`, the run's copy and manifest, which the control's and `pkg/host/backup`'s tests hold), and what is at `/var/backups/hardn` after (origin/main's write test on opening the screen uses `os`, outside the repository, so it shows only there); where both wrote, the write (in place or atomic), the backup and the journal; the findings; `hardn.yml`: where it is saved, the scenario's key apart (`enableBackups` for item 1, `backupPath` for item 2; `Scenario.Setting`), every other setting by value, as hardn loads the file, the rest of its lines, and its mode (origin/main's is not in the layout: `os.WriteFile`'s 0644, read: `pkg/config/config.go:494`). **Commands that only read:** none on either path (no `exec` in origin/main's calls; the new path ran none: the fake refuses any, and none was asked), so there are none to record. The dry run is its own rows (`*-dry-run`), as DNS's `add-dry-run`.
+- **The table is a test:** `backupTable` (`parity_test.go`) holds every difference, keyed by scenario, distribution and aspect, with its source and one line. `TestParity` fails on a difference not in it (reported UNEXPLAINED), on an entry whose difference no longer occurs, and on an entry tied to a V-number that origin/main's golden for the cell does not name in a `KNOWN-DEFECT` or `FIXED` line: of the 17, only `backup_toggle_on` names one, V18 (`backup_toggle_off` names it in a `NOTE`, which does not count).
+- **Mutation-checked** (run, each through `go test -overlay` with copies outside the repository): (1) the `path-empty` refusal entry removed: UNEXPLAINED; (2) an entry for `open-missing`'s refusal added: stale; (3) `toggle-off`'s write tied to V18: "does not name"; (4) origin/main's saved `sshPort: 2230` made 22 in `backup_toggle_off`: UNEXPLAINED, `hardn.yml settings`; (5) a write under the backup path added to `backup_path_empty`'s calls: UNEXPLAINED, and to `backup_toggle_off`'s, where that aspect was tied already: only `parity.golden` and the page fail (limit 1 below); (6) a `rename` in `backup_verify`'s calls, and (7) an unknown trailer line in `backup_open`: the reader fails; (8) the control's `Read` writing `.write_test`: UNEXPLAINED, `backupPath files`; (9) the two dry-run changes applied live: UNEXPLAINED, write, backup, journal, rest; (10) `open`'s host built from another start: the test fails on the `Start:` line.
+- **Its limits:** (1) a difference already tied whose values change fails only on `parity.golden` and the page, which `make golden-update` accepts: the review of that diff is the guard; (2) a `-run` filter checks only the cells it runs, and the table, the golden and the page only when every cell ran; (3) origin/main's whole saved `hardn.yml` is in its own golden, not in `parity.golden`; (4) origin/main's end states are its run's in a temp dir, as the test's user, not root on a host: its `MkdirAll` also made `$TMP/var` and `$TMP/var/backups`, which a host has (the temp dir line); (5) the goldens record the trunk's `config.SaveConfig`, which writes `dryRun` as loaded (slice 2b decision 8), where origin/main's wrote the session's (their `NOTE`); (6) the content of what is written under the backup path is not compared; (7) until unit (c), the new path's items are this test's driver (`backupItem`), not a screen.
+- **Its renderings:** [`parity.golden`](../../pkg/screens/backup/testdata/golden/parity.golden), every cell with both end states whole, what agrees and what differs; and the region of §4 below. `make golden-update` rewrites both; without `-update` the test fails when either is not what it makes.
+
+## 3. Host states
+
+Every cell's host is the harness's, as origin/main's run was the characterization's: `/etc/hardn/hardn.yml` the fixture, `/var/backups` root's 0755, and at `backupPath` what the golden's `Start:` line says. None is read from a stock install, so §4 marks them "forced". Whether a stock Alpine 3.23 has `/var/backups` is not established (not read); where it has none, the first backup makes it 0700, as it makes `/var/backups/hardn` in `toggle-on` (atomic.md §2.10, which control-backup.md §2.3 cites).
+
+| Scenario | origin/main's golden | Start | The new path's run |
+|---|---|---|---|
+| `open`, `open-missing`, `open-file` | `backup_open`, `_open_missing`, `_open_file` | backups on; the user's `.write_test`, nothing, a file | the screen opened: `Check` |
+| `toggle-off`, `toggle-on` | `backup_toggle_off`, `_toggle_on` | on, a directory; off, nothing | item 1, y |
+| `toggle-on-file` | `backup_toggle_on_fails` | off, a file | item 1, refused before it asks |
+| `path-relative`, `path-tilde`, `path-unsafe`, `path-under-file`, `path-empty` | `backup_path_relative`, `_tilde`, `_unsafe`, `_fails`, `_empty` | on, a directory (`/shared` 0777; `/afile` a file) | item 2: `backups`, `~alice/backups`, `/shared/hardn`, `/afile/backups`, nothing; each refused inline, then 0 |
+| `verify`, `verify-file` | `backup_verify`, `_verify_fails` | on, a directory; on, a file | item 3: `Check` |
+| `open-dry-run`, `toggle-on-dry-run`, `path-dry-run`, `verify-dry-run` | the four `*_dry_run` | as their live rows, under `-n` | under plan only: `Check`; item 1; item 2, `/other`; item 3 |
+
+## 4. The table
+
+<!-- TestParity: begin. Generated by TestParity (pkg/screens/backup); make golden-update rewrites it. Do not edit. -->
+
+**Host states** (§3): what the new path ran on, and whether the distribution's stock install has it (real), the harness forced it, or it cannot exist.
+
+| Scenarios | Debian 13 | Ubuntu 24.04 | Alpine 3.23 | Proxmox VE 9 |
+|---|---|---|---|---|
+| open, open-dry-run | the user's .write_test (forced) | the user's .write_test (forced) | the user's .write_test (forced) | the user's .write_test (forced) |
+| open-missing, toggle-on, toggle-on-dry-run | not there (forced) | not there (forced) | not there (forced) | not there (forced) |
+| open-file, toggle-on-file, verify-file | a file (forced) | a file (forced) | a file (forced) | a file (forced) |
+| toggle-off, path-relative, path-empty, path-tilde, verify, path-dry-run, verify-dry-run | a directory (forced) | a directory (forced) | a directory (forced) | a directory (forced) |
+| path-unsafe | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) | a directory, /shared 0777 (forced) |
+| path-under-file | a directory, /afile a file (forced) | a directory, /afile a file (forced) | a directory, /afile a file (forced) | a directory, /afile a file (forced) |
+
+**Agreeing and differing aspects** (§4): in how many compared cells each aspect agrees and differs.
+
+| Aspect | Agrees in | Differs in |
+|---|---|---|
+| refusal | 36 | 32 |
+| files | 68 | 0 |
+| directories | 68 | 0 |
+| commands | 68 | 0 |
+| backupPath dirs | 32 | 36 |
+| backupPath files | 32 | 36 |
+| findings | 68 | 0 |
+| hardn.yml | 40 | 28 |
+| backupPath after | 48 | 20 |
+| hardn.yml enableBackups | 8 | 0 |
+| hardn.yml settings | 8 | 0 |
+| hardn.yml mode | 8 | 0 |
+| write | 0 | 8 |
+| backup | 0 | 8 |
+| journal | 0 | 8 |
+| hardn.yml rest | 0 | 8 |
+
+**Differences** (§4): each with its source; every cell, both end states whole, is in [parity.golden](../../pkg/screens/backup/testdata/golden/parity.golden).
+
+| Scenarios | On | Aspect | origin/main | New path | Source |
+|---|---|---|---|---|---|
+| open | all | backupPath after | `/var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone` | `/var/backups/hardn: a directory holding .write_test; .write_test as it was` | decision 3; side-effects row 30: the screen's write test overwrote, then deleted, the user's .write_test; now Check, nothing written |
+| open-file | all | refusal | `none` | `BACKUP_PATH_NOT_DIRECTORY (Not a directory)` | decision 3; control-backup.md §6: a file at the path read as one to be made when needed; now Check's note, Not a directory |
+| toggle-off | all | backupPath dirs | `none` | `/var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3: nothing made; now the change's run directory, 0700 |
+| toggle-off | all | backupPath files | `none` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | plan §3.16; control-backup.md §2.3: nothing written; now the copy of hardn.yml and the run's manifest, 0600 |
+| toggle-off, toggle-on | all | backupPath after | `/var/backups/hardn: a directory, empty` | `/var/backups/hardn: a directory holding <run id>` | plan §3.16: left empty; now holding the change's backup run |
+| toggle-off | all | write | `in place` | `atomic` | plan §3.19: written in place; now replaced whole by a rename |
+| toggle-off | all | backup | `none` | `/etc/hardn/hardn.yml (taken anyway: backups off)` | plan §3.16; decisions 7 (a), 8: nothing backed up; now hardn.yml first, taken anyway with backups off, and said |
+| toggle-off | all | journal | `none` | `journalled first` | control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
+| toggle-off, toggle-on | all | hardn.yml | `./hardn.yml, in the working directory` | `/etc/hardn/hardn.yml, the file loaded` | side-effects row 29; plan §3.19: ./hardn.yml, last in hardn's search order; now the file loaded |
+| toggle-off, toggle-on | all | hardn.yml rest | `48 settings, written whole; no file was loaded` | `the enableBackups lines alone changed; the file's other 4 lines kept (4 settings, 1 comment lines)` | side-effects row 29; plan §3.19: every setting written whole; now the enableBackups line alone |
+| toggle-on | all | backupPath dirs | `/var/backups/hardn 0755` | `/var/backups/hardn 0700, /var/backups/hardn/<run id> 0700` | plan §3.16; control-backup.md §2.3; side-effects row 30: made 0755 for the write test; now 0700 by the first backup, the change's run in it |
+| toggle-on | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `write /var/backups/hardn/<run id>/0001-hardn.yml 0600, write /var/backups/hardn/<run id>/manifest.json 0600` | decision 3; plan §3.16; side-effects row 30: the write test's .write_test; now the copy of hardn.yml and the run's manifest, 0600 |
+| toggle-on | all | write | `in place` | `atomic` | V18; plan §3.19: written in place; now replaced whole by a rename |
+| toggle-on | all | backup | `none` | `/etc/hardn/hardn.yml` | V18; plan §3.16; decision 7 (a): nothing backed up; now hardn.yml first, with backups on |
+| toggle-on | all | journal | `none` | `journalled first` | V18; control-backup.md §2.8: no rollback; now journalled first, naming the backup run |
+| toggle-on-file | all | refusal | `failed: mkdir /var/backups/hardn: not a directory` | `BACKUP_PATH_NOT_DIRECTORY, before asking` | decision 7 (a); control-backup.md §6, §11: the enable failed at its MkdirAll; now refused before asking, in Check's words |
+| path-relative | all | refusal | `none` | `BACKUP_SETTINGS_INVALID, inline: Not an absolute path` | decision 6: taken, made under the working directory; now refused inline, not absolute |
+| path-relative | all | backupPath dirs | `backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
+| path-relative | all | backupPath files | `write backups/.write_test 0644, remove backups/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-relative, path-unsafe, path-tilde | all | hardn.yml | `./hardn.yml, in the working directory` | `not saved` | decision 6; side-effects row 29: saved to ./hardn.yml; now nothing saved |
+| path-empty | all | refusal | `none` | `inline: Backup path cannot be empty` | control-backup.md §7: nothing typed left the path as it was; now the field refuses it, in words decided 2026-10-27, and asks again |
+| path-unsafe | all | refusal | `none` | `UNSAFE_DIRECTORY, inline: Others can change /shared` | decision 6: taken under a directory anyone can write to; now refused inline, naming it |
+| path-unsafe | all | backupPath dirs | `/shared/hardn 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
+| path-unsafe | all | backupPath files | `write /shared/hardn/.write_test 0644, remove /shared/hardn/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-tilde | all | refusal | `none` | `BACKUP_SETTINGS_INVALID, inline: Not an absolute path` | decision 6: ~ read as the home of the user hardn runs as, then taken; now refused inline, not absolute |
+| path-tilde | all | backupPath dirs | `/home/alice/backups 0755` | `none` | decision 6; side-effects row 30: made 0755; now nothing made |
+| path-tilde | all | backupPath files | `write /home/alice/backups/.write_test 0644, remove /home/alice/backups/.write_test` | `none` | decision 6; side-effects row 30: the write test; now nothing written |
+| path-under-file | all | refusal | `failed: mkdir /afile: not a directory` | `BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory` | decision 6; control-backup.md §6: failed at its MkdirAll; now refused inline, Not a directory |
+| verify, verify-dry-run | all | backupPath dirs | `/var/backups/hardn 0755` | `none` | decisions 3, 10; side-effects row 30: Verify's MkdirAll 0755, the directory there already; now Check, nothing made |
+| verify, verify-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `none` | decisions 3, 10; side-effects row 30: Verify wrote and removed .write_test; now Check, nothing written |
+| verify-file | all | refusal | `failed: mkdir /var/backups/hardn: not a directory` | `BACKUP_PATH_NOT_DIRECTORY (Not a directory)` | decision 3; control-backup.md §6: Verify failed at its MkdirAll; now Check's refusal, Not a directory, nothing tried |
+| open-dry-run | all | backupPath after | `/var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone` | `/var/backups/hardn: a directory holding .write_test; .write_test as it was` | decisions 3, 10; side-effects row 30: the same under -n; now the screen opens under plan only, writing nothing |
+| toggle-on-dry-run | all | backupPath dirs | `/var/backups/hardn 0755` | `none` | decision 10; side-effects row 30: made under -n for the write test; now the plan alone |
+| toggle-on-dry-run | all | backupPath files | `write /var/backups/hardn/.write_test 0644, remove /var/backups/hardn/.write_test` | `none` | decision 10; side-effects row 30: the write test under -n; now the plan alone |
+| toggle-on-dry-run | all | backupPath after | `/var/backups/hardn: a directory, empty` | `/var/backups/hardn: not there` | decision 10; side-effects row 30: made under -n; now not made |
+| toggle-on-dry-run, path-dry-run | all | hardn.yml | `./hardn.yml, in the working directory` | `not saved` | decision 10; side-effects row 29: saved under -n; now a dry run saves nothing |
+| path-dry-run | all | backupPath dirs | `/other 0755` | `none` | decision 10; side-effects row 30: made under -n for the write test; now the plan alone |
+| path-dry-run | all | backupPath files | `write /other/.write_test 0644, remove /other/.write_test` | `none` | decision 10; side-effects row 30: the write test under -n; now the plan alone |
+
+**v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md) §3, §4.13, §5.1.
+
+| Scenarios | v0.3.2 |
+|---|---|
+| open, open-missing, open-file, open-dry-run | the settings printed, nothing written: no write test (read: v0.3.2 menu.go:710-725) |
+| toggle-off, toggle-on, toggle-on-file | ./hardn.yml saved whole, dryRun included (§4.13, menu 10), nothing checked or made (read: menu.go:728-743); BackupFile then backed up before its 15 writes, unless enableBackups was false (§3; §5.1, V18: regressed) |
+| path-relative, path-unsafe, path-tilde, path-under-file | the path saved as typed to ./hardn.yml (§4.13, menu 10), nothing checked or made, ~ not expanded (read: menu.go:744-761) |
+| path-empty | "Backup path unchanged.", nothing saved (read: menu.go:756-757) |
+| verify, verify-file, verify-dry-run | no item 3: 3 is an invalid option (read: menu.go:719-727, 764-768) |
+| toggle-on-dry-run, path-dry-run | saved under -n too, nothing checked or made (§4.13: menus 6, 8, 10; read: menu.go:728-761) |
+
+<!-- TestParity: end -->
+
+## 5. What origin/main's path did that the new one does not
+
+From the table, and, where marked, from the code (no golden shows it):
+
+1. **Opening the screen with backups on wrote `<backupPath>/.write_test` and removed it**, with `os`, outside the repository (`backup_manager.go:91-99`): a user's file of that name overwritten, then deleted (`open`, and under `-n`, `open-dry-run`; side-effects row 30). *From the code*, on every draw: each item re-enters the screen (`backup_menu.go:165-167`, `:206-208`, `:231-233`, `:243-245`), so `backup_return` and `backup_invalid` ran it too. The new screen reads `Check`, writing nothing (decision 3).
+2. **Verify made the directory (`MkdirAll` 0755) and wrote and removed `.write_test`** (`verify`); on a file it failed at the `MkdirAll` (`verify-file`). Verify is now `Check`, and a file reads "Not a directory" (decision 3).
+3. **Turning backups on made the directory 0755 and ran the write test; nothing took a backup** (V18: "Modified files will be backed up" was false). Now turning them on or off is a change on the engine: its own backup of `hardn.yml` into `<backupPath>/<run id>/` (0700, the copy and the manifest 0600), journalled, under the settings it saves; turning them off takes it anyway, and says so (§3.16; decisions 7 (a), 8). The first backup makes a missing `backupPath` 0700.
+4. **Each change saved the whole configuration to `./hardn.yml`** in the working directory, in place: 48 settings, the file loaded left as it was (row 29). *From the code* (`backup_menu.go:157`, `:195`; `config.SaveConfig`): run in the loaded file's own directory, it overwrote that file whole. Now the file loaded, the key's line alone, atomically (§3.19 as amended).
+5. **It took any path:** relative, made under the working directory (`path-relative`); `~` read as the home of the user hardn runs as (`path-tilde`); under a directory anyone can write to (`path-unsafe`); each made, write-tested and saved, after which the engine refuses every change (gallery-backup.md §7, defect 6). The field now refuses each inline, with `Check`'s words, and nothing is saved (decision 6).
+6. **A file at or above the path made the change fail at its `MkdirAll`** (`toggle-on-file`, `path-under-file`), the screen drawn again then showing Enabled or the new path, unsaved (gallery-backup.md §7, defects 5 and 17; the golden's screen, not compared). Item 1 is now refused before it asks (decision 7 (a)), and the field refuses the path (decision 6).
+7. **Under `-n`, as origin/main reached the screen, every option did as live:** the directory made, the write test, `./hardn.yml` saved (`*-dry-run`). Since `next/s2b-replace` hardn refuses item 5 under plan only; unit (d) lifts that refusal (decision 10), and the screen then writes nothing: `Check`, and each change its plan alone.
+8. **Nothing typed was "Backup path unchanged"**; the field now refuses it, "Backup path cannot be empty", and asks again (control-backup.md §7). The end state is the same.
+
+The new path does what origin/main did not: Backup Runs, read only (decision 9); a refused `backupPath` corrected by the path change, planned under the path it saves (decision 7 (a); control-backup.md §2.8, `TestRefusedPathMoved`), which no origin/main golden starts from.
+
+## 6. UNEXPLAINED differences
+
+**None.** Every difference `TestParity` finds has an entry in `backupTable` with a source that says it; a difference with no entry fails the test and is marked UNEXPLAINED in the golden and in §4.
+
+## 7. For unit (c)
+
+- **Keep the test, and drive the screen.** `TestParity` lives in `pkg/screens/backup`, the package unit (c) fills, so that unit (c) replaces its driver, `backupItem`, with the screen's own items (its `Run`, typed as `Scenario.Lines` say: no key for the screen opened, then 1, 2 or 3 and the answers), as `pkg/screens/dns`'s `TestParity` drives the DNS screen. The table, `parity.golden` and §4 must not change: a screen that leaves a cell otherwise shows as UNEXPLAINED or a failed golden.
+- **What the screen must leave as the control's apply leaves it:**
+  - opening the screen and Verify: nothing written, under plan only too; `Check`'s note on a refused path;
+  - item 1: refused before it asks where `Read` refuses the path; else `Session.Change` with `backup.Controls`, the engine as loaded: `hardn.yml`'s `enableBackups` line alone, atomic, its backup under the plan's backup path, journalled, and "Backed up anyway: the rollback needs it." after turning backups off;
+  - item 2: the field `Field`, refusing inline what it refuses, an empty entry included; a path taken saved the same way;
+  - under plan only: the plan alone.
+- **The words:** the flows' title bars and questions in `backupItem` are the gallery mock's, proposed (gallery-backup.md §6); unit (c) decides its own, which no aspect here compares.
+
+## 8. For unit (d)
+
+**What origin/main's screen did:** main menu 5, `NewBackupMenu` (`pkg/menu/main_menu.go:666`): §4's rows, and §5.
+
+**The record to freeze first,** before `backup_menu.go` and the legacy backup layers go, as parity-dns.md §7 did for DNS:
+
+- `TestParity` reads `pkg/characterization/testdata/golden/menu/backup_*.golden` in place (17 of them; all 20 are origin/main's record). `TestLegacyMenuBackup` runs `backup_menu.go` and its layers, so it goes with them. First move the 20 goldens unchanged (`git mv`) to `pkg/screens/backup/testdata/legacy/menu/`, in the characterization's layout, retire `TestLegacyMenuBackup` in the same commit, and point `backupParity.Legacy` there. `parity.golden` and §4 then stay byte for byte; the golden's header still says "read in place", kept as it is, as parity-dns.md §7 kept DNS's.
+- `backups/legacy_backupfile.golden` (`TestLegacyBackupFile`) runs `utils.BackupFile` and the repository's `BackupFile`, neither called by hardn (V18): it goes, or is moved, with whichever of them unit (d) deletes. `backups/legacy_operations.golden` runs the legacy operations, which the other areas' legacy screens and Run All still call, and `backups/engine_run.golden` the engine: neither is this screen's. `TestParity` reads none of the three.
+
+**What it may then delete** (read, `git grep` at this unit's tip): `pkg/menu/backup_menu.go`; `MenuManager`'s backup methods (`pkg/application/menu_manager.go:133-156`) and its `backupManager`; `application.BackupManager`, `service.BackupServiceImpl` and `secondary.FileBackupRepository`, built only by `ServiceFactory.CreateBackupManager` (`pkg/infrastructure/service_factory.go:198`, `:220-235`) and `MenuFactory.CreateMainMenu` (`menu_factory.go:59`); `utils.BackupFile`, with no caller. Each with its grep, as slice 2b's unit (d) did. Then main menu 5 opens the new screen, and 2b's plan-only refusal of 5 is lifted (decision 10).
+
+## 9. Written, not run (gate 5)
+
+Nothing here ran on Linux or as root. origin/main's end states are its run's on macOS, as the test's user, in a temp dir; the new path's are hostfake's. What a host would show is control-backup.md §4's list: turning backups off and on, the run under `/var/backups/hardn/<run id>/`, 0700, its manifest `takenAnyway` with backups off, `hardn.yml`'s one line changed, its mode and owner kept. The modes origin/main's run made are `os.MkdirAll`'s 0755 and `os.WriteFile`'s 0644 as it asked for them, less the umask, which the goldens do not record.
+
+## 10. Files and size
+
+- **Added:** `pkg/screens/backup/parity_test.go`; `pkg/screens/backup/testdata/fixtures/backups-on.yml`, `backups-off.yml`; `pkg/screens/backup/testdata/golden/parity.golden`; this page.
+- **Changed:** `internal/parity` (its reader of the repository's layout, `Scenario.Setting`, `Slice.LegacyRoot` and `UnderBackupPath`, `NewStateUnder`, and their tests); [screen-kit.md](screen-kit.md) §7, [parity-dns.md](parity-dns.md) §8, control-backup.md §11, gallery-backup.md §9, the design-system README's "Running and regenerating" and the makefile's comment on `golden-update`. No non-test Go outside `internal/parity`, no legacy code, no existing golden or testdata file.
+- **Size** (`git diff --numstat f8c7e52` and `wc -l`, run): `internal/parity` 319 lines added and 28 removed, its tests 152 and 9; Backup's part, `parity_test.go`, 606 lines of test Go, its table 32 entries; testdata 3 new files, 1,844 lines (`parity.golden` 1,834, the fixtures 5 each); this page about 185 lines; the other pages, the README and the makefile 18 lines added and 10 removed. Over the guideline of about 500 changed lines because the table is a test, as DNS's: a reader of a second golden layout, the backup path as an aspect, the driver of the new path, the table and its golden. No non-test Go outside `internal/parity`; `go.mod` and `go.sum` unchanged.
