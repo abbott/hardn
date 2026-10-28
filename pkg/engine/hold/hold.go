@@ -43,14 +43,16 @@ func signals(ss []syscall.Signal) []os.Signal {
 // Signals ignores SIGINT and catches SIGHUP and SIGTERM, logging each to
 // log (nil discards), until release is called; meanwhile the commands
 // host.Real starts run in sessions of their own (host.OwnSessions). The
-// terminal's Ctrl-C and hangup, which a shell, sudo or the kernel send to
-// hardn's whole process group, so stop neither hardn nor the ufw or
-// systemctl the rollback is running: the commands are outside the group,
-// and inherit SIGINT ignored besides ("signals set to be ignored (SIG_IGN)
-// by the calling process image shall be set to be ignored by the new
-// process image", POSIX exec), but not SIGHUP caught (a caught signal goes
-// back to the default action). A command started otherwise than through
-// host.Real during the hold has SIGINT ignored and SIGHUP's default.
+// terminal's Ctrl-C and hangup, which a shell, classic sudo (its
+// monitor's killpg) or the kernel send to hardn's whole process group
+// (sudo-rs 0.2.13 sends the hangup to hardn alone), so stop neither
+// hardn nor the ufw or systemctl the rollback is running: the commands
+// are outside the group, and inherit SIGINT ignored besides ("signals
+// set to be ignored (SIG_IGN) by the calling process image shall be set
+// to be ignored by the new process image", POSIX exec), but not SIGHUP
+// caught (a caught signal goes back to the default action). A command
+// started otherwise than through host.Real during the hold has SIGINT
+// ignored and SIGHUP's default.
 // SIGKILL cannot be held off; the revert timer, or the next `hardn
 // rollback <id>`, takes the rollback up.
 //
