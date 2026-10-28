@@ -37,8 +37,9 @@ import (
 // drawn from each host's hardn.yml and backup directory through Backup's
 // control, every change on the real engine, on the hosts the Backup mocks
 // were drawn for, which it replaces (docs/engine/screen-backup.md). The
-// main menu's 5 leads to it on the default host; "play backup" is the
-// menu of the hosts and "play backup/<host>" one.
+// main menu's 5 leads to it on the default host, as hardn's main menu 5
+// runs it since next/s3-replace, under plan only too (-sequence dry-run);
+// "play backup" is the menu of the hosts and "play backup/<host>" one.
 //
 // "play backup-restore" is the one mock kept: the restore of a backup run
 // (P-19, decision 9), a later unit's, whose control is the gallery's
