@@ -55,18 +55,24 @@ const hangupWait = 500 * time.Millisecond
 
 // screenApplyContext is the screens' ApplyContext: engineSignals around
 // the apply, and after a hangup during it hardn ends once the apply has
-// returned, the change rolled back (the maintainer, 2026-10-28: "Yes, end
-// on hangup"), rather than at the screen's next prompt, which under
-// sudo-rs never ends, its input kept open (screen-backup.md §4.2).
-// Ctrl-C and SIGTERM during the apply are unchanged: rolled back, the
-// screen goes on.
+// returned, the change rolled back, or finished when the hangup came as
+// it finished (the maintainer, 2026-10-28: "Yes, end on hangup"), rather
+// than at the screen's next prompt, which under sudo-rs never ends, its
+// input kept open (screen-backup.md §4.2). Ctrl-C and SIGTERM during the
+// apply are unchanged: rolled back, the screen goes on.
 //
 // The hangup is caught on a channel of its own, buffered and registered
-// before the apply. The engine's hold around a rollback (hold.Signals)
-// ignores SIGHUP, which ends this registration as it ends engineSignals',
-// but the SIGHUP that cancelled the apply came before the hold, and
-// os/signal sent it to every channel then registered for it: it waits in
-// this one until stop reads it.
+// before engineSignals' registration: a hangup between the two reaches
+// this channel alone, so the apply, not cancelled, finishes and hardn
+// then ends; registered after, such a hangup would cancel the apply
+// unseen here, and the screen would go on. The engine's hold around a
+// rollback (hold.Signals) ignores SIGHUP, which ends this registration as
+// it ends engineSignals', but the SIGHUP that cancelled the apply came
+// before the hold, and os/signal sent it to every channel then registered
+// for it: it waits in this one until stop reads it. Not seen: a hangup
+// during the rollback, which the hold ignores (SIG_IGN, so that the
+// commands it runs ignore it too), and the screen goes on; one after the
+// hold's release, before stop, ends hardn at once (Go's default).
 func screenApplyContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	hup := make(chan os.Signal, 1)
 	signal.Notify(hup, syscall.SIGHUP)
@@ -85,10 +91,11 @@ func screenApplyContext(ctx context.Context) (context.Context, context.CancelFun
 
 // endByHangup ends hardn as a hangup ends a program that does not catch
 // SIGHUP, as prompt.Reraise ends it for Ctrl-C: SIGHUP's default action
-// back (signal.Reset), then SIGHUP sent to hardn, which dies of it, so
-// that a waiting parent sees a process killed by SIGHUP. If hardn still
-// runs hangupWait later, SIGHUP being ignored (SIG_IGN inherited, as
-// under nohup, which signal.Reset leaves), it exits with
+// back (signal.Reset, which drops any registration of SIGHUP still live,
+// none today), then SIGHUP sent to hardn, which dies of it, so that a
+// waiting parent sees a process killed by SIGHUP. If hardn still runs
+// hangupWait later, SIGHUP being ignored (SIG_IGN inherited, as under
+// nohup, which signal.Reset leaves), it exits with
 // prompt.ExitInterrupted (130). It never returns.
 func endByHangup() {
 	signal.Reset(syscall.SIGHUP)

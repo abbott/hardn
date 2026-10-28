@@ -154,35 +154,105 @@ func TestEngineSignals(t *testing.T) {
 // the rollback (hold.Signals), taken and released, as the engine does
 // after a cancelled apply; then its stop. After the hangup the stop ends
 // hardn (endHangup, recorded here), once, though the hold ended every
-// registration of SIGHUP; after the others, and with no signal, it does
-// not. A second stop ends nothing more.
+// registration of SIGHUP; so it does after a Ctrl-C then a hangup (which
+// a context's cause, naming the first, would miss), and after a hangup
+// as engineSignals registers, before or after its registration: the
+// screens' own channel is registered first. A hangup before it does not
+// cancel the apply, which finishes. After Ctrl-C and SIGTERM alone, with
+// no signal, and after a hangup during the hold, which ignores it, the
+// stop does not end hardn. A second stop ends nothing more.
 func TestScreenApplyContext(t *testing.T) {
-	hangupWas := endHangup
-	defer func() { endHangup = hangupWas }()
-	for _, sig := range []syscall.Signal{0, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
-		ended := 0
-		endHangup = func() { ended++ }
-		ctx, stop := screenApplyContext(context.Background())
-		if sig != 0 {
-			if err := syscall.Kill(os.Getpid(), sig); err != nil {
-				stop()
-				t.Fatal(err)
+	hangupWas, signalsWas := endHangup, engineSignals
+	defer func() { endHangup, engineSignals = hangupWas, signalsWas }()
+	// hangup sends SIGHUP to this process and waits until os/signal has
+	// relayed it (to probe, registered for it meanwhile), which it does to
+	// every channel then registered, under the lock the next registration
+	// or hold waits for.
+	hangup := func(t *testing.T) {
+		t.Helper()
+		probe := make(chan os.Signal, 1)
+		signal.Notify(probe, syscall.SIGHUP)
+		defer signal.Stop(probe)
+		if err := syscall.Kill(os.Getpid(), syscall.SIGHUP); err != nil {
+			t.Fatal(err)
+		}
+		select {
+		case <-probe:
+		case <-time.After(5 * time.Second):
+			t.Error("the hangup was not relayed")
+		}
+	}
+	for _, tc := range []struct {
+		name   string
+		during []syscall.Signal // sent during the apply, before the hold
+		made   string           // a hangup as engineSignals registers: "before" or "after" its registration
+		inHold bool             // a hangup during the hold
+		end    bool             // hardn ended, once
+		cancel bool             // the apply's context cancelled before the stop
+	}{
+		{name: "no signal"},
+		{name: "SIGINT", during: []syscall.Signal{syscall.SIGINT}, cancel: true},
+		{name: "SIGTERM", during: []syscall.Signal{syscall.SIGTERM}, cancel: true},
+		{name: "SIGHUP", during: []syscall.Signal{syscall.SIGHUP}, end: true, cancel: true},
+		{name: "SIGINT then SIGHUP", during: []syscall.Signal{syscall.SIGINT, syscall.SIGHUP}, end: true, cancel: true},
+		{name: "SIGHUP after engineSignals registers", made: "after", end: true, cancel: true},
+		{name: "SIGHUP before engineSignals registers", made: "before", end: true},
+		{name: "SIGHUP during the hold", inHold: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ended := 0
+			endHangup = func() { ended++ }
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				if tc.made == "before" {
+					hangup(t)
+				}
+				c, stop := signalsWas(ctx)
+				if tc.made == "after" {
+					hangup(t)
+				}
+				return c, stop
 			}
-			select {
-			case <-ctx.Done():
-			case <-time.After(5 * time.Second):
-				t.Errorf("%v did not cancel the context", sig)
+			ctx, stop := screenApplyContext(context.Background())
+			defer stop()
+			for _, sig := range tc.during {
+				if sig == syscall.SIGHUP {
+					hangup(t)
+					continue
+				}
+				if err := syscall.Kill(os.Getpid(), sig); err != nil {
+					t.Fatal(err)
+				}
+				select {
+				case <-ctx.Done():
+				case <-time.After(5 * time.Second):
+					t.Errorf("%v did not cancel the context", sig)
+				}
 			}
-			hold.Signals(nil)()
-		}
-		stop()
-		stop()
-		if want := map[bool]int{true: 1}[sig == syscall.SIGHUP]; ended != want {
-			t.Errorf("after %v hardn ended %d times, want %d", sig, ended, want)
-		}
-		if ctx.Err() == nil {
-			t.Errorf("after %v the stop did not end the context", sig)
-		}
+			if tc.cancel {
+				select {
+				case <-ctx.Done():
+				case <-time.After(5 * time.Second):
+				}
+			}
+			if cancelled := ctx.Err() != nil; cancelled != tc.cancel {
+				t.Errorf("the apply's context cancelled %t, want %t", cancelled, tc.cancel)
+			}
+			release := hold.Signals(nil)
+			if tc.inHold {
+				if err := syscall.Kill(os.Getpid(), syscall.SIGHUP); err != nil {
+					t.Fatal(err)
+				}
+			}
+			release()
+			stop()
+			stop()
+			if want := map[bool]int{true: 1}[tc.end]; ended != want {
+				t.Errorf("hardn ended %d times, want %d", ended, want)
+			}
+			if ctx.Err() == nil {
+				t.Error("the stop did not end the context")
+			}
+		})
 	}
 }
 
@@ -198,9 +268,13 @@ const (
 // screens' ApplyContext, SIGHUP sent to itself, the context cancelled,
 // the engine's hold taken and released, the stop. The child dies of
 // SIGHUP, the wait status a waiting parent (sudo, a shell) sees, its log
-// file holding the line written first; where SIGHUP is ignored (as from
-// nohup, which the child sets itself), and no hold restored it, it exits
-// 130 (prompt.ExitInterrupted). The child sends signals only to itself.
+// file holding the line written first; so it does with another channel
+// registered for SIGHUP as it ends (signal.Reset drops it). Where SIGHUP
+// is ignored (as from nohup, which the child sets itself), and no hold
+// restored it, it exits 130 (prompt.ExitInterrupted). After an apply
+// with no hangup, the stop drops the screens' channel: a hangup then
+// kills the child by Go's default, nothing logged. The child sends
+// signals only to itself.
 func TestEndByHangup(t *testing.T) {
 	if mode := os.Getenv(hangupChildEnv); mode != "" {
 		logging.InitLogging(os.Getenv(hangupLogEnv))
@@ -208,14 +282,23 @@ func TestEndByHangup(t *testing.T) {
 			signal.Ignore(syscall.SIGHUP)
 		}
 		ctx, stop := screenApplyContext(context.Background())
+		if mode == "after" {
+			stop() // no hangup during the apply: it returns
+			_ = syscall.Kill(os.Getpid(), syscall.SIGHUP)
+			time.Sleep(hangupWait)
+			os.Exit(5)
+		}
 		_ = syscall.Kill(os.Getpid(), syscall.SIGHUP)
 		select {
 		case <-ctx.Done():
 		case <-time.After(5 * time.Second):
 			os.Exit(3)
 		}
-		if mode == "hangup" {
+		if mode != "ignored" {
 			hold.Signals(nil)()
+		}
+		if mode == "registered" {
+			signal.Notify(make(chan os.Signal, 1), syscall.SIGHUP)
 		}
 		stop() // never returns
 		os.Exit(4)
@@ -223,9 +306,12 @@ func TestEndByHangup(t *testing.T) {
 	for _, tc := range []struct {
 		mode     string
 		signaled bool // killed by SIGHUP; else the exit status 130
+		logged   bool // the log's line written
 	}{
-		{"hangup", true},
-		{"ignored", false},
+		{"hangup", true, true},
+		{"registered", true, true},
+		{"ignored", false, true},
+		{"after", true, false},
 	} {
 		t.Run(tc.mode, func(t *testing.T) {
 			log := filepath.Join(t.TempDir(), "hardn.log")
@@ -241,8 +327,8 @@ func TestEndByHangup(t *testing.T) {
 				t.Errorf("the child: %v; want killed by SIGHUP %t, else exit status 130; output:\n%s", err, tc.signaled, out)
 			}
 			data, err := os.ReadFile(log)
-			if err != nil || strings.Count(string(data), "INFO: hangup during the apply: hardn ends\n") != 1 {
-				t.Errorf("the child's log (%v):\n%s", err, data)
+			if want := map[bool]int{true: 1}[tc.logged]; err != nil || strings.Count(string(data), "INFO: hangup during the apply: hardn ends\n") != want {
+				t.Errorf("the child's log (%v), want the line %d times:\n%s", err, want, data)
 			}
 		})
 	}
