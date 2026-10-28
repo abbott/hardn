@@ -1,7 +1,7 @@
 # The Backup screen on Backup's control (`pkg/screens/backup`, `screen.Backup`)
 
 > **Unit:** refactor plan slice 3 (Backup), unit (c), `next/s3-screen`, from `next/s3-parity` at 3904fef: "Screen on the design system and prompt kit" (plan §2, "Phases 3–5 together", §3.22); [gallery-backup.md](gallery-backup.md) §9: "the screen on the design system and prompt kit, `pkg/screens/backup`, retiring these mocks". It builds the screen the maintainer adopted as the gallery's mock on 2026-10-27 (gallery-backup.md §5, decisions 1 (a), 2, 3, 4, 8, 9 and 10, with the words they name), drawn through Backup's control ([control-backup.md](control-backup.md)) and acting through the engine and the flow, and makes `TestParity` drive it ([parity-backup.md](parity-backup.md) §7). Decisions implemented: 1 (a) (no status row), 2 (the words of 05-BACKUP, P-31), 3 (Verify is Check, writing nothing; the path's notes), 4 (the item descriptions), 5 and 6 (the path field, through the control's `Field`), 7 (a) (item 1 refused before it asks where the path is refused; a new path taken there), 8 ("Rollback backups are still taken"; the lines after a change, `pkg/output`'s), 9 (Backup Runs, read only, P-19), 10's screen side (a dry run stops each change at its plan). V-numbers: V18; side-effects rows 29 and 30.
-> **Status:** built and tested on macOS, in process: the screen through its entry point on the recording fake (`hostfake`), every host state, item, refusal, failure, redraw, dry run, decline and navigation; `TestParity` through the screen; the gallery's playable mode on its simulated hosts, its transcripts pinned on the core set. No real terminal, no hardn binary and no host were used; nothing ran on Linux or as root: every host claim is **written, not run (gate 5)** (§4). Nothing is wired into `cmd/hardn` or the live main menu (unit (d)); the legacy Backup screen (`pkg/menu/backup_menu.go`) and its characterization goldens are untouched. Words: the decided ones used exactly; every other word is **proposed** (§5).
+> **Status:** built and tested on macOS, in process: the screen through its entry point on the recording fake (`hostfake`), every host state, item, refusal, failure, redraw, dry run, decline and navigation; `TestParity` through the screen; the gallery's playable mode on its simulated hosts, its transcripts pinned on the core set. No real terminal, no hardn binary and no host were used; nothing ran on Linux or as root: every host claim is **written, not run (gate 5)** (§4). Nothing is wired into `cmd/hardn` or the live main menu (unit (d)); the legacy Backup screen (`pkg/menu/backup_menu.go`) and its characterization goldens are untouched. Words: the decided ones used exactly; every other word is **proposed** (§5). *Since 2026-10-27, all decided (the maintainer, 2026-10-27: "Adopt the proposed words in screen-backup.md §5, then start slice 3 unit (d)."), but the save's with no hardn.yml read (DNS's, proposed in control-dns.md §6) and the gallery's own.*
 
 ## 1. Why
 
@@ -53,7 +53,7 @@ Nothing here has run on Linux or as root, and nothing calls `Run` but the tests 
 
 ## 5. Words
 
-The decided words used exactly; **every other word is proposed**.
+The decided words used exactly; **every other word is proposed**. *Since 2026-10-27, every row below is **decided** (the maintainer, 2026-10-27: "Adopt the proposed words in screen-backup.md §5, then start slice 3 unit (d)."), but two: the save's sentence with no hardn.yml read, which is `steps.PlanSave`'s for every change and stays proposed in control-dns.md §6 with DNS's; and the gallery's own, dev-only, with the restore's mock, whose words its unit decides.*
 
 | Where | Words | Source |
 |---|---|---|
@@ -62,15 +62,15 @@ The decided words used exactly; **every other word is proposed**.
 | Path notes | "Root only", "Not created yet", "Unsafe", "Not absolute", "Not a directory", "Can't tell" | **decided** (decision 3) |
 | Backups off | "Rollback backups are still taken" (muted; also in item 1's review when turning off) | **decided** (decision 8) |
 | Items | "Backup State" "Turn backups off" / "Turn backups on"; "Backup Path" "Change backup path"; "Verify Directory" "Check the path, writing nothing"; "Backup Runs"; "Return"; "Select an option"; "Enter selection" | **decided** (decisions 2, 4, 9) |
-| Item 4's descriptions | "None yet", "1 run", "<n> runs" | gallery-backup.md §6, **proposed**; none where the runs were not read, this unit's (§8, decision 3) |
-| Flows' title bars | "Turn Backups Off", "Turn Backups On", "Change Backup Path", "Backup Runs", "Backup Run" | gallery-backup.md §6, **proposed** |
-| Path field | "Enter new backup path" | origin/main's question without its colon |
+| Item 4's descriptions | "None yet", "1 run", "<n> runs" | gallery-backup.md §6, **decided** (2026-10-27); none where the runs were not read, this unit's (§8, decision 3) |
+| Flows' title bars | "Turn Backups Off", "Turn Backups On", "Change Backup Path", "Backup Runs", "Backup Run" | gallery-backup.md §6, **decided** (2026-10-27) |
+| Path field | "Enter new backup path" | origin/main's question without its colon, **decided** (2026-10-27) |
 | Path field's results | "Backup path cannot be empty", "Not an absolute path", "Write it as <path>", "Others can change <dir>", "Not a directory", "Can't check it: <error>"; "<path> is the backup path already" (a warning) | **decided** (decisions 5, 6; control-backup.md §7) |
-| Questions | "Turn backups off?", "Turn backups on?", "Use <path>?" | gallery-backup.md §6, **proposed** |
-| A refused path (Verify's warning; items 1 and 4 before asking) | the control's Why, **decided** (control-backup.md §6): "Others can change <dir>, so backups can't go in <path>", "\"<path>\" is not an absolute path", "<file> is not a directory"; then "Choose a directory only root can change.", "Start it with /.", "Choose another path."; Check failing otherwise, "Can't check <path>: <error>." | the second sentences and "Can't check", gallery-backup.md §6, **proposed** |
-| Verify | "Only root can change <path>. Nothing was written."; "Only root can change <dir>, where the first backup makes <path>. Nothing was written."; after a refusal, "Nothing was written." | gallery-backup.md §6, **proposed** |
-| Runs | "Select a run"; "2026-10-19 14:30" "1 file" / "2 files" / ", taken anyway"; "No change has been backed up yet."; "Run <id>"; "<n> bytes", "Not there before", "Link to <target>", "taken anyway" | gallery-backup.md §6, **proposed** |
-| Runs not read, new | "Can't read the runs in <path>: <error>."; "Some runs can't be read: <error>." | this unit, **proposed** |
+| Questions | "Turn backups off?", "Turn backups on?", "Use <path>?" | gallery-backup.md §6, **decided** (2026-10-27) |
+| A refused path (Verify's warning; items 1 and 4 before asking) | the control's Why, **decided** (control-backup.md §6): "Others can change <dir>, so backups can't go in <path>", "\"<path>\" is not an absolute path", "<file> is not a directory"; then "Choose a directory only root can change.", "Start it with /.", "Choose another path."; Check failing otherwise, "Can't check <path>: <error>." | the second sentences and "Can't check", gallery-backup.md §6, **decided** (2026-10-27) |
+| Verify | "Only root can change <path>. Nothing was written."; "Only root can change <dir>, where the first backup makes <path>. Nothing was written."; after a refusal, "Nothing was written." | gallery-backup.md §6, **decided** (2026-10-27) |
+| Runs | "Select a run"; "2026-10-19 14:30" "1 file" / "2 files" / ", taken anyway"; "No change has been backed up yet."; "Run <id>"; "<n> bytes", "Not there before", "Link to <target>", "taken anyway" | gallery-backup.md §6, **decided** (2026-10-27) |
+| Runs not read, new | "Can't read the runs in <path>: <error>."; "Some runs can't be read: <error>." | this unit, **decided** (2026-10-27) |
 | After a change applied | "Backup of <files> kept in" and the run's directory; "Backed up anyway: the rollback needs it." | **decided** (decision 8); `pkg/output`'s |
 | A backup write that fails | "Can't back up <file> in <backupPath>: <cause>"; "Nothing was changed."; "To go on: choose a backup path hardn can write, with Backup's item 2." | **decided** (control-backup.md §6, §7) |
 | No hardn.yml read | "No hardn.yml was read, so there is none to save to. Create /etc/hardn/hardn.yml, then try again." | `steps.PlanSave`'s `CONFIG_NOT_LOADED`, control-dns.md §6, **proposed** there |
@@ -160,7 +160,7 @@ None is the maintainer's; each is for review.
 - **Unit (d)**: §7. **The restore**: its own later unit (decision 9), on the engine with confirm-or-revert for SSH and firewall files; the gallery's mock stays until then.
 - **For the maintainer:**
   - **Item 4 on a refused path** has no description and is refused before it asks (§8, decision 3), where the adopted mock drew "None yet".
-  - **The proposed words** (§5): the flows' title bars, the questions, Verify's, the runs', the refused path's second sentences, and this unit's two for runs not read.
+  - ~~**The proposed words** (§5)~~ *Decided 2026-10-27 (the maintainer, 2026-10-27: "Adopt the proposed words in screen-backup.md §5, then start slice 3 unit (d)."): the flows' title bars, the questions, Verify's, the runs', the refused path's second sentences, and this unit's two for runs not read.*
   - **A long runs list** is one item per run, with no paging: nothing prunes runs (gallery-backup.md §5, still open), so the list grows with every change and is taller than 24 rows past 16 runs (counted from the layout, eight lines and one per run: `TestBackupHeights` has three in 11; not run).
   - **Earlier runs under an old path** are not listed after a path change (gallery-backup.md §5, still open).
   - **A long backup path cuts its note** (§2.4): the Backup Path row stops at 64 columns, so a path of 22 characters or more loses some of "Not created yet" or "Not a directory", 28 or more some of "Root only" (run). Built as the adopted mock draws the row, which was never shown with such a path. *Alternatives:* the note on a line of its own; the path cut in its middle, the note kept whole.

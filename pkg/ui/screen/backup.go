@@ -22,7 +22,8 @@ import (
 // The Backup screen's words: decided (decisions 2, 4, 8 and 9: the title,
 // the section, its rows and their values, the muted line, the item
 // labels and descriptions but item 4's); item 4's descriptions, the
-// flows' title bars and the runs' words proposed (gallery-backup.md §6).
+// flows' title bars and the runs' words decided 2026-10-27
+// (screen-backup.md §5).
 const (
 	backupTitle       = "Backup Settings"
 	backupSection     = "Backup Configuration"
@@ -128,7 +129,7 @@ func (Backup) pathRow(path, note string, s BackupPathState) component.KeyValue {
 }
 
 // TurnStep returns the screen above item 1's workflow: its title bar,
-// "Turn Backups Off" or "Turn Backups On" (proposed), the Backup screen's
+// "Turn Backups Off" or "Turn Backups On" (decided), the Backup screen's
 // as its parent (shown only with TitleTrail).
 func (b Backup) TurnStep() WorkflowStep {
 	if b.Enabled {
@@ -150,7 +151,7 @@ func (b Backup) TurnReview() flow.Review {
 }
 
 // PathStep returns the screen above item 2's workflow: its title bar,
-// "Change Backup Path" (proposed).
+// "Change Backup Path" (decided).
 func (Backup) PathStep() WorkflowStep {
 	return WorkflowStep{Title: trail(backupTitle, "Change Backup Path")}
 }

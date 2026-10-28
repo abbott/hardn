@@ -21,11 +21,11 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The items' words (docs/engine/screen-backup.md §5): the path field's
-// question, origin/main's without its colon; runsNotRead and someNotRead,
-// new in this unit, proposed; the rest the adopted mock's, proposed
-// (gallery-backup.md §6), but the refused path's first sentence, the
-// control's Why, decided (control-backup.md §6).
+// The items' words (docs/engine/screen-backup.md §5), all decided
+// (2026-10-27): the path field's question, origin/main's without its colon;
+// runsNotRead and someNotRead, new in this unit; the rest the adopted
+// mock's (gallery-backup.md §6), the refused path's first sentence the
+// control's Why (control-backup.md §6).
 const (
 	pathTitle = "Enter new backup path"
 	// The questions.
@@ -160,8 +160,8 @@ func pathCheck(ctx context.Context, sys host.System, current string) func(string
 
 // refused are the words of err, Check's refusal of the backup path p, as
 // Verify and item 1 say them: the control's Why (control-backup.md §6,
-// decided), then the screen's own second sentence (gallery-backup.md §6,
-// proposed), where the control's Fix names the item that changes the
+// decided), then the screen's own second sentence (screen-backup.md §5,
+// decided), where the control's Fix names the item that changes the
 // path; Check failing otherwise, "Can't check <path>: <error>.".
 func refused(p string, err error) string {
 	rf := backupctl.Refusal(p, err)
