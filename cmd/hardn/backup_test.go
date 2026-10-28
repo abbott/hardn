@@ -110,50 +110,63 @@ func TestBackupScreen(t *testing.T) {
 	}
 }
 
-// hookSet records the Backup item's hook as withBackupScreen sets it.
-type hookSet struct{ backup func() error }
+// hookSet records the DNS and Backup items' hooks as withDNSScreen and
+// withBackupScreen set them.
+type hookSet struct{ dns, backup func() error }
 
+func (h *hookSet) SetDNS(run func() error)    { h.dns = run }
 func (h *hookSet) SetBackup(run func() error) { h.backup = run }
 
-// TestBackupThenDNS: a path change through the Backup item, as
-// withBackupScreen sets it, leaves the main menu's configuration holding
-// the new path, and the DNS screen's next change backs up under it: each
-// visit assembles engineOptions from the configuration as it then is
-// (runDNSScreen, runBackupScreen), so nothing of that change goes under
-// the old path. Both screens on one host, the user typing on through
-// both, as from the main menu.
+// TestBackupThenDNS: a path change through the Backup item leaves the main
+// menu's configuration holding the new path, and the DNS item's next
+// change backs up under it, nothing under the old: each visit assembles
+// engineOptions from the configuration as it then is (runDNSScreen,
+// runBackupScreen), and each hook runs on the configuration main gives
+// it, not a copy. DNS is visited, with a change, before the path change,
+// so that options assembled once, when the hook is set, at the first
+// visit or at the first change, back the last change up under the old
+// path; and a hook that copied the configuration would have the Backup
+// item's save refused CONFIG_CHANGED. Both hooks as main sets them, on
+// one host, the user typing on through the three visits, as from the
+// main menu.
 func TestBackupThenDNS(t *testing.T) {
 	h, cfg := newDNSHost(t, "debian13", dnsTestList)
 	h.AddDir("/srv", 0o755, 0, 0)
-	s := useDNSHost(t, h, "2", backupTestPath, "y", "0", "2", "192.0.2.55", "y", "0")
+	s := useDNSHost(t, h, "3", "2", "y", "0", "2", backupTestPath, "y", "0", "2", "192.0.2.55", "y", "0")
 	set := &hookSet{}
-	if got := withBackupScreen(set, cfg); got != set || set.backup == nil {
-		t.Fatal("withBackupScreen did not set the Backup item's screen on the menu given")
+	if got := withBackupScreen(withDNSScreen(set, cfg), cfg); got != set || set.dns == nil || set.backup == nil {
+		t.Fatal("withDNSScreen and withBackupScreen did not set the DNS and Backup items' screens on the menu given")
+	}
+	if err := set.dns(); err != nil {
+		t.Fatalf("the DNS item, first = %v; screen:\n%s", err, s.out.String())
+	}
+	if got := under(h.writes(), backup.DefaultPath); len(got) == 0 {
+		t.Fatalf("the first DNS change wrote %q: want its backup under %s", h.writes(), backup.DefaultPath)
 	}
 	if err := set.backup(); err != nil {
 		t.Fatalf("the Backup item = %v; screen:\n%s", err, s.out.String())
 	}
 	if cfg.BackupPath != backupTestPath {
-		t.Fatalf("the main menu's configuration says backupPath %q after the path change, want %q", cfg.BackupPath, backupTestPath)
+		t.Fatalf("the main menu's configuration says backupPath %q after the path change, want %q; screen:\n%s", cfg.BackupPath, backupTestPath, s.out.String())
 	}
 	if o := engineOptions(context.Background(), h, cfg); o.Backups != (backup.Settings{Path: backupTestPath, Enabled: true}) {
 		t.Errorf("engineOptions' Backups = %+v after the path change", o.Backups)
 	}
 	before := len(h.writes())
-	if err := runDNSScreen(context.Background(), cfg); err != nil {
-		t.Fatalf("the DNS item = %v; screen:\n%s", err, s.out.String())
+	if err := set.dns(); err != nil {
+		t.Fatalf("the DNS item, again = %v; screen:\n%s", err, s.out.String())
 	}
 	dnsWrites := h.writes()[before:]
 	if !slices.Contains(dnsWrites, "write-atomic "+hostdns.ResolvConf) || len(under(dnsWrites, backupTestPath)) == 0 {
-		t.Errorf("the DNS change wrote %q: want /etc/resolv.conf and its backup under %s", dnsWrites, backupTestPath)
+		t.Errorf("the DNS change wrote %q: want /etc/resolv.conf and its backup under %s; screen:\n%s", dnsWrites, backupTestPath, s.out.String())
 	}
-	if got := under(h.writes(), backup.DefaultPath); len(got) > 0 {
-		t.Errorf("wrote under the old path: %q", got)
+	if got := under(dnsWrites, backup.DefaultPath); len(got) > 0 {
+		t.Errorf("the DNS change wrote under the old path: %q", got)
 	}
-	if !slices.Equal(cfg.Nameservers, append(slices.Clone(dnsTestList), "192.0.2.55")) || cfg.BackupPath != backupTestPath {
-		t.Errorf("the configuration lists %q, backupPath %q", cfg.Nameservers, cfg.BackupPath)
+	if want := []string{dnsTestList[0], "192.0.2.55"}; !slices.Equal(cfg.Nameservers, want) || cfg.BackupPath != backupTestPath {
+		t.Errorf("the configuration lists %q, backupPath %q; want %q, %q", cfg.Nameservers, cfg.BackupPath, want, backupTestPath)
 	}
-	if s.applies != 2 || s.live != 0 || s.atPrompt != 0 {
-		t.Errorf("signals registered %d times (want 2), %d left, %d prompts read under them", s.applies, s.live, s.atPrompt)
+	if s.applies != 3 || s.live != 0 || s.atPrompt != 0 {
+		t.Errorf("signals registered %d times (want 3), %d left, %d prompts read under them", s.applies, s.live, s.atPrompt)
 	}
 }
