@@ -65,8 +65,10 @@ const (
 // notInPlanOnly refuses, under plan only, a legacy screen that changes the
 // host or saves ./hardn.yml whatever the mode (refactor plan slice 2b,
 // unit (d), decision 6, adopted 2026-10-23): the main menu's User
-// Management and Backup, before their screens, and Firewall's profile add
-// and remove, until their slices put them on the flow.
+// Management, before its screen, and Firewall's profile add and remove,
+// until their slices put them on the flow. Backup's was lifted when its
+// screen went on the flow (slice 3, unit (d), decision 10): under plan
+// only it opens, and each change stops at its plan.
 const notInPlanOnly = "Not available in plan only."
 
 // errAgain ends a pass of the main menu once an item's screen has
@@ -713,10 +715,12 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
 // and ends the pass when it returns (errAgain). Under plan only, whatever
-// set it, User Management (1) and Backup (5), which change the host and
-// save ./hardn.yml whatever the mode, are refused under the prompt before
-// their screens are built, "Not available in plan only.", as a key no
-// item has is refused (decision 6); live, they open as before.
+// set it, User Management (1), which changes the host and saves
+// ./hardn.yml whatever the mode, is refused under the prompt before its
+// screen is built, "Not available in plan only.", as a key no item has is
+// refused (decision 6); live, it opens as before. Backup (5) opens either
+// way: its screen stops each change at its plan under plan only (slice 3,
+// decision 10).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -740,7 +744,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
-			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup, Refusal: planOnly},
+			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
 			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},

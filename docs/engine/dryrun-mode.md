@@ -2,7 +2,7 @@
 
 > **Unit:** refactor plan slice 2b, unit (b), `next/s2b-mode` ([gallery-dryrun.md](gallery-dryrun.md) §8 (b)). The maintainer's request (2026-10-23): "Start slice 2b unit (b): the mode, with §3.19's precedence and its source for the indicator, decisions 8 to 10 and the deprecation note." Plan §3.19 (approved 2026-10-17): "`dryRun` precedence: explicit flag wins, otherwise config". Decisions 1, 2, 8, 9 and 10 of [gallery-dryrun.md](gallery-dryrun.md) §4, adopted by the maintainer on 2026-10-23. V3 ([side-effects.md](../refactor/phase0/side-effects.md)); P-03 ([proposals.md](../refactor/proposals.md#p-03)).
 > **Status:** built and tested on macOS, in process: the root command driven as the binary runs it, through `cmd/hardn`'s seams, on hardn.yml files in each test's temporary directory and the recording mocks; `-g` on `hostfake`. No hardn binary ran; no test read or wrote a hardn.yml outside its temporary directory, or anything under this machine's `/etc`. Nothing has run on Linux or as root. **Every word new to origin/main is proposed** (§5).
-> **Unit (d) built** (`next/s2b-replace`, [dryrun-replace.md](dryrun-replace.md)): item 6 and Run All's option 2 removed, `SetDryRun` with them; User Management, Backup and Firewall's profile add and remove refused under plan only; docs/configuration.md and the release notes made current. §2 and §4.1 item 2 are resolved.
+> **Unit (d) built** (`next/s2b-replace`, [dryrun-replace.md](dryrun-replace.md)): item 6 and Run All's option 2 removed, `SetDryRun` with them; User Management, Backup and Firewall's profile add and remove refused under plan only; docs/configuration.md and the release notes made current. §2 and §4.1 item 2 are resolved. *Since `next/s3-replace` (slice 3, unit (d), decision 10): Backup is no longer refused; its screen, on the engine, opens under plan only and stops each change at its plan ([cmd-engine.md](cmd-engine.md)).*
 
 ## 1. What is built
 
@@ -53,7 +53,7 @@ Refused as `-n` with one is: exit status 2, nothing run, the message naming the 
 
 ## 2. Until unit (d): item 6 and Run All's option 2
 
-> *Resolved by unit (d), `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)): item 6 and option 2 are removed, and plan only's three gaps below are refused, "Not available in plan only.". The bullets are `next/s2b-mode`'s.*
+> *Resolved by unit (d), `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)): item 6 and option 2 are removed, and plan only's three gaps below are refused, "Not available in plan only.". The bullets are `next/s2b-mode`'s. Since `next/s3-replace`, Backup's gap is closed by its screen on the engine, which writes nothing under plan only, and its refusal is lifted.*
 
 Both still work, on the session alone:
 

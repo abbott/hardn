@@ -37,14 +37,16 @@ var planOnlySources = []struct {
 }
 
 // TestPlanOnlyRefusals: under plan only, from -n or hardn.yml, the main
-// menu's User Management (1) and Backup (5) are refused under the prompt,
-// "Not available in plan only.", as a key no item has is refused: no
-// screen built or opened, so nothing they write is written, the main menu
-// not read or drawn again, its hint unchanged; and in Firewall's profiles,
-// adding and removing one are refused in that screen's words for a choice
-// it does not take, before anything is asked or ./hardn.yml saved, the
-// list unchanged. Live, all three run as before: the screens open, and a
-// profile added or removed is saved.
+// menu's User Management (1) is refused under the prompt, "Not available
+// in plan only.", as a key no item has is refused: no screen built or
+// opened, so nothing it writes is written, the main menu not read or
+// drawn again, its hint unchanged; and in Firewall's profiles, adding and
+// removing one are refused in that screen's words for a choice it does
+// not take, before anything is asked or ./hardn.yml saved, the list
+// unchanged. Live, all three run as before: the screens open, and a
+// profile added or removed is saved. Backup (5) opens under plan only as
+// live (slice 3, unit (d), decision 10: its screen stops each change at
+// its plan), given the configuration in plan only as the item is chosen.
 func TestPlanOnlyRefusals(t *testing.T) {
 	for _, src := range planOnlySources {
 		t.Run("main menu, "+src.name, func(t *testing.T) {
@@ -53,14 +55,23 @@ func TestPlanOnlyRefusals(t *testing.T) {
 			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "5", "q")
 			m.config = src.start(t)
 			opened := recordScreens(t, m)
+			backupInPlanOnly := false
+			m.SetBackup(func() error {
+				backupInPlanOnly = m.config.DryRun
+				*opened = append(*opened, "backup")
+				return nil
+			})
 			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 			const asked = "  > Enter selection [0-5, 7-10 or q]: \n"
-			refused, want, reads := strings.Count(out, "  (x) Not available in plan only.\n"+asked), []string(nil), 1
+			refused, want, reads := strings.Count(out, "  (x) Not available in plan only.\n"+asked), []string{"backup"}, 2
 			if !src.planOnly {
 				want, reads = []string{"users", "backup"}, 3
 			}
-			if ended || !slices.Equal(*opened, want) || refused != map[bool]int{true: 2}[src.planOnly] || passes != reads {
+			if ended || !slices.Equal(*opened, want) || refused != map[bool]int{true: 1}[src.planOnly] || passes != reads {
 				t.Errorf("ended %v, opened %q, %d refused, read %d times; want %q, read %d times:\n%s", ended, *opened, refused, passes, want, reads, out)
+			}
+			if backupInPlanOnly != src.planOnly {
+				t.Errorf("the Backup screen ran with the configuration's DryRun %t, want %t", backupInPlanOnly, src.planOnly)
 			}
 			if _, err := os.Stat("hardn.yml"); err == nil {
 				t.Error("./hardn.yml was written")
@@ -70,7 +81,7 @@ func TestPlanOnlyRefusals(t *testing.T) {
 	t.Run("main menu, Unicode", func(t *testing.T) {
 		env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80,
 			Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8", "NO_COLOR=1"}})
-		m := liveMenu(t, env, fixtureStatus(new(int)), "5", "q")
+		m := liveMenu(t, env, fixtureStatus(new(int)), "1", "q")
 		m.config = planOnlySources[1].start(t)
 		recordScreens(t, m)
 		out, _, _ := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })

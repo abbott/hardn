@@ -180,7 +180,7 @@ Not run:
 
 > **Built** by `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)), as listed below. `createMainMenu` and `SetDryRunStatus` went with item 6 (the main-menu goldens' whole screen is the parity record, `pkg/menu/testdata/legacy/main_menu`); the gallery's `TestPlayDryRunGolden`, named in §4 among the tests a flipped gate fails, went with the gallery's Dry-Run mode.
 
-Item 6 removed, its key refused as any key no item has; `dry_run_handler.go` and `dry_run_menu.go` deleted, their characterization goldens frozen; Run All's option 2 removed; User Management, Backup and Firewall's profile add and remove refused under plan only, "Not available in plan only." (decision 6, adopted); `createMainMenu` and `style.Menu.SetDryRunStatus` with their last use; the gallery's remaining Dry-Run mocks (`screen`, `screen-enabled`, `toggle`, `legacy-firewall`, `play dryrun`, `play dryrun/saved`) retired; the release notes' item-6 line made current.
+Item 6 removed, its key refused as any key no item has; `dry_run_handler.go` and `dry_run_menu.go` deleted, their characterization goldens frozen; Run All's option 2 removed; User Management, Backup and Firewall's profile add and remove refused under plan only, "Not available in plan only." (decision 6, adopted; *since `next/s3-replace`, Backup no longer: its screen on the engine opens under plan only, [cmd-engine.md](cmd-engine.md)*); `createMainMenu` and `style.Menu.SetDryRunStatus` with their last use; the gallery's remaining Dry-Run mocks (`screen`, `screen-enabled`, `toggle`, `legacy-firewall`, `play dryrun`, `play dryrun/saved`) retired; the release notes' item-6 line made current.
 
 ## 13. Open
 

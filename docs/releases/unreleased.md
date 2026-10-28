@@ -14,7 +14,8 @@
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
-- **Under plan only, some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." They used to apply their changes even under `-n`.
+- **Under plan only, some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." They used to apply their changes even under `-n`.
+- **Under plan only, Backup opens.** Each of its changes stops at its plan, and it writes nothing.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
