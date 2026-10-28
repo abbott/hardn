@@ -66,13 +66,13 @@ const hangupWait = 500 * time.Millisecond
 // this channel alone, so the apply, not cancelled, finishes and hardn
 // then ends; registered after, such a hangup would cancel the apply
 // unseen here, and the screen would go on. The engine's hold around a
-// rollback (hold.Signals) ignores SIGHUP, which ends this registration as
-// it ends engineSignals', but the SIGHUP that cancelled the apply came
-// before the hold, and os/signal sent it to every channel then registered
-// for it: it waits in this one until stop reads it. Not seen: a hangup
-// during the rollback, which the hold ignores (SIG_IGN, so that the
-// commands it runs ignore it too), and the screen goes on; one after the
-// hold's release, before stop, ends hardn at once (Go's default).
+// rollback (hold.Signals) catches SIGHUP and leaves this registration be
+// (since next/s3-hangup; the maintainer, 2026-10-28: "Yes, catch it"), so
+// a hangup during the rollback, or after it while the engine finishes,
+// reaches this channel too, and hardn ends once the apply has returned;
+// the commands the rollback runs are in sessions of their own
+// (host.OwnSessions), out of the hangup's reach. A hangup after stop, at
+// the screen's prompt, ends hardn by Go's default, as before.
 func screenApplyContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	hup := make(chan os.Signal, 1)
 	signal.Notify(hup, syscall.SIGHUP)

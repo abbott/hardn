@@ -571,10 +571,10 @@ func systemDetailsCmdForTest() *cobra.Command {
 	panic("no system-details subcommand")
 }
 
-// holdSignals keeps SIGINT and SIGHUP ignored, and SIGTERM caught, until it
-// is released: this process survives each, sent to itself. The SIGTERM is
-// logged as a warning, in the words `hardn rollback` has always used
-// (revertWarnLog, pkg/engine/hold's SignalsAs).
+// holdSignals keeps SIGINT ignored, and SIGHUP and SIGTERM caught, until
+// it is released: this process survives each, sent to itself. SIGTERM and
+// SIGHUP are each logged as a warning, in the words `hardn rollback` has
+// always used for SIGTERM (revertWarnLog, pkg/engine/hold's SignalsAs).
 func TestHoldSignals(t *testing.T) {
 	var out syncBuffer
 	outWas := color.Output
@@ -582,9 +582,9 @@ func TestHoldSignals(t *testing.T) {
 	logging.SetSilentMode(false)
 	defer func() { color.Output = outWas; logging.SetSilentMode(false) }()
 	release := holdSignals()
-	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+	if !signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		release()
-		t.Fatal("SIGINT and SIGHUP are not ignored")
+		t.Fatal("SIGINT is not ignored, or SIGHUP is")
 	}
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
 		if err := syscall.Kill(os.Getpid(), sig); err != nil {
@@ -592,14 +592,20 @@ func TestHoldSignals(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	const warning = "[WARNING] hardn rollback: SIGTERM received; the rollback finishes first"
+	warnings := []string{
+		"[WARNING] hardn rollback: SIGHUP received; the rollback finishes first",
+		"[WARNING] hardn rollback: SIGTERM received; the rollback finishes first",
+	}
 	deadline := time.Now().Add(2 * time.Second) // the process is still here
-	for !strings.Contains(out.String(), warning) && time.Now().Before(deadline) {
+	for !(strings.Contains(out.String(), warnings[0]) && strings.Contains(out.String(), warnings[1])) && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	release()
-	if got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), ""); strings.Count(got, warning) != 1 {
-		t.Errorf("output %q; want one %q", got, warning)
+	got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), "")
+	for _, warning := range warnings {
+		if strings.Count(got, warning) != 1 {
+			t.Errorf("output %q; want one %q", got, warning)
+		}
 	}
 	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		t.Error("release left SIGINT or SIGHUP ignored")

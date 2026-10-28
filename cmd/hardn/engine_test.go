@@ -148,47 +148,55 @@ func TestEngineSignals(t *testing.T) {
 	}
 }
 
+// sendHangup sends SIGHUP to this test process and waits until os/signal
+// has relayed it (sendSignal).
+func sendHangup(t *testing.T) { t.Helper(); sendSignal(t, syscall.SIGHUP) }
+
+// sendSignal sends sig to this test process and waits until os/signal
+// has relayed it (to a probe, registered for it meanwhile), which it does
+// to every channel then registered, under the lock the next registration
+// or hold waits for.
+func sendSignal(t *testing.T, sig syscall.Signal) {
+	t.Helper()
+	probe := make(chan os.Signal, 1)
+	signal.Notify(probe, sig)
+	defer signal.Stop(probe)
+	if err := syscall.Kill(os.Getpid(), sig); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-probe:
+	case <-time.After(5 * time.Second):
+		t.Errorf("%v was not relayed", sig)
+	}
+}
+
 // TestScreenApplyContext: the screens' ApplyContext is cancelled by
 // Ctrl-C, SIGTERM and a hangup, each sent to this test process as the
 // kernel delivers it, as engineSignals' is; then the engine's hold around
 // the rollback (hold.Signals), taken and released, as the engine does
 // after a cancelled apply; then its stop. After the hangup the stop ends
-// hardn (endHangup, recorded here), once, though the hold ended every
-// registration of SIGHUP; so it does after a Ctrl-C then a hangup (which
-// a context's cause, naming the first, would miss), and after a hangup
-// as engineSignals registers, before or after its registration: the
-// screens' own channel is registered first. A hangup before it does not
-// cancel the apply, which finishes. After Ctrl-C and SIGTERM alone, with
-// no signal, and after a hangup during the hold, which ignores it, the
-// stop does not end hardn. A second stop ends nothing more.
+// hardn (endHangup, recorded here), once; so it does after a Ctrl-C then
+// a hangup (which a context's cause, naming the first, would miss), after
+// a hangup as engineSignals registers, before or after its registration
+// (the screens' own channel is registered first; a hangup before it does
+// not cancel the apply, which finishes), and, since next/s3-hangup's
+// "Yes, catch it", after a hangup during the hold, which catches it,
+// after the hold's release, or as engineSignals' registration stops (the
+// screens' channel is stopped after it). After Ctrl-C and SIGTERM alone, and with no
+// signal, the stop does not end hardn. A second stop ends nothing more.
 func TestScreenApplyContext(t *testing.T) {
 	hangupWas, signalsWas := endHangup, engineSignals
 	defer func() { endHangup, engineSignals = hangupWas, signalsWas }()
-	// hangup sends SIGHUP to this process and waits until os/signal has
-	// relayed it (to probe, registered for it meanwhile), which it does to
-	// every channel then registered, under the lock the next registration
-	// or hold waits for.
-	hangup := func(t *testing.T) {
-		t.Helper()
-		probe := make(chan os.Signal, 1)
-		signal.Notify(probe, syscall.SIGHUP)
-		defer signal.Stop(probe)
-		if err := syscall.Kill(os.Getpid(), syscall.SIGHUP); err != nil {
-			t.Fatal(err)
-		}
-		select {
-		case <-probe:
-		case <-time.After(5 * time.Second):
-			t.Error("the hangup was not relayed")
-		}
-	}
+	hangup := sendHangup
 	for _, tc := range []struct {
-		name   string
-		during []syscall.Signal // sent during the apply, before the hold
-		made   string           // a hangup as engineSignals registers: "before" or "after" its registration
-		inHold bool             // a hangup during the hold
-		end    bool             // hardn ended, once
-		cancel bool             // the apply's context cancelled before the stop
+		name      string
+		during    []syscall.Signal // sent during the apply, before the hold
+		made      string           // a hangup as engineSignals registers, "before" or "after" its registration, or "as it stops"
+		inHold    bool             // a hangup during the hold
+		afterHold bool             // a hangup after the hold's release, before the stop
+		end       bool             // hardn ended, once
+		cancel    bool             // the apply's context cancelled before the stop
 	}{
 		{name: "no signal"},
 		{name: "SIGINT", during: []syscall.Signal{syscall.SIGINT}, cancel: true},
@@ -197,7 +205,9 @@ func TestScreenApplyContext(t *testing.T) {
 		{name: "SIGINT then SIGHUP", during: []syscall.Signal{syscall.SIGINT, syscall.SIGHUP}, end: true, cancel: true},
 		{name: "SIGHUP after engineSignals registers", made: "after", end: true, cancel: true},
 		{name: "SIGHUP before engineSignals registers", made: "before", end: true},
-		{name: "SIGHUP during the hold", inHold: true},
+		{name: "SIGHUP during the hold", inHold: true, end: true},
+		{name: "SIGHUP after the hold", afterHold: true, end: true},
+		{name: "SIGHUP as engineSignals stops", made: "as it stops", end: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ended := 0
@@ -209,6 +219,9 @@ func TestScreenApplyContext(t *testing.T) {
 				c, stop := signalsWas(ctx)
 				if tc.made == "after" {
 					hangup(t)
+				}
+				if tc.made == "as it stops" {
+					return c, func() { hangup(t); stop() }
 				}
 				return c, stop
 			}
@@ -239,11 +252,12 @@ func TestScreenApplyContext(t *testing.T) {
 			}
 			release := hold.Signals(nil)
 			if tc.inHold {
-				if err := syscall.Kill(os.Getpid(), syscall.SIGHUP); err != nil {
-					t.Fatal(err)
-				}
+				hangup(t)
 			}
 			release()
+			if tc.afterHold {
+				hangup(t)
+			}
 			stop()
 			stop()
 			if want := map[bool]int{true: 1}[tc.end]; ended != want {
@@ -270,8 +284,9 @@ const (
 // SIGHUP, the wait status a waiting parent (sudo, a shell) sees, its log
 // file holding the line written first; so it does with another channel
 // registered for SIGHUP as it ends (signal.Reset drops it). Where SIGHUP
-// is ignored (as from nohup, which the child sets itself), and no hold
-// restored it, it exits 130 (prompt.ExitInterrupted). After an apply
+// is ignored (as from nohup, which the child sets itself), the hold taken
+// and released as well, it exits 130 (prompt.ExitInterrupted): the hold
+// leaves SIGHUP ignored (since next/s3-hangup). After an apply
 // with no hangup, the stop drops the screens' channel: a hangup then
 // kills the child by Go's default, nothing logged. The child sends
 // signals only to itself.
@@ -294,9 +309,7 @@ func TestEndByHangup(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			os.Exit(3)
 		}
-		if mode != "ignored" {
-			hold.Signals(nil)()
-		}
+		hold.Signals(nil)()
 		if mode == "registered" {
 			signal.Notify(make(chan os.Signal, 1), syscall.SIGHUP)
 		}
