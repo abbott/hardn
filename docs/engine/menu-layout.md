@@ -67,7 +67,7 @@ How each existing compact test keeps running: `TestCompact`, `TestStatusBlocks`,
 | 2 | SSH Login (`NewDisableRootMenu`) |
 | 3 | DNS, the DNS screen (`SetDNS`), from a cleared screen |
 | 4 | Firewall (`NewFirewallMenu`) |
-| 5 | Backup (`NewBackupMenu`); since unit (d), refused under plan only |
+| 5 | Backup, the Backup screen (`SetBackup`), from a cleared screen; *since `next/s3-replace`, under plan only too* |
 | 6 | Dry-Run (`NewDryRunHandler`), until unit (d); since, refused as a key no item has |
 | 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d), which removed it |
 | 8 | Environment (`NewEnvironmentSettingsMenu`) |
