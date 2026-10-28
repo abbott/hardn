@@ -3,12 +3,18 @@ package main
 import (
 	"context"
 	"errors"
+	"io/fs"
+	"os"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -168,5 +174,87 @@ func TestBackupThenDNS(t *testing.T) {
 	}
 	if s.applies != 3 || s.live != 0 || s.atPrompt != 0 {
 		t.Errorf("signals registered %d times (want 3), %d left, %d prompts read under them", s.applies, s.live, s.atPrompt)
+	}
+}
+
+// signalHost is a DNS host whose writes of hardn.yml turning backups off
+// call at first, and are made even if a signal at sent has cancelled ctx
+// since, as a write the kernel has begun completes; at's error is then
+// the write's, the file written, as a failed sync's would be.
+type signalHost struct {
+	*dnsHost
+	at func() error
+}
+
+func (h signalHost) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if name != dnsTestYML || !strings.Contains(string(data), "enableBackups: false") {
+		return h.dnsHost.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+	}
+	err := h.at()
+	if werr := h.dnsHost.WriteFileAtomic(context.WithoutCancel(ctx), name, data, perm, uid, gid); werr != nil {
+		return werr
+	}
+	return err
+}
+
+// TestBackupScreenSignals: Ctrl-C, SIGTERM and a hangup, each sent to this
+// test process as a change's save writes hardn.yml on the Backup screen,
+// as the kernel delivers it, cancel that apply: the change is rolled back
+// here, hardn.yml as it was, the report naming hardn's log, and the screen
+// goes on; the user then goes back (nil), the configuration as it was.
+// The change before it in the same visit, its save failing, was rolled
+// back under the engine's own hold (hold.Signals), whose release ends a
+// registration made before it: each apply registers its own
+// (engineSignals), or the signal would end hardn half applied, as Go's
+// default would end this test process.
+func TestBackupScreenSignals(t *testing.T) {
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		t.Run(sig.String(), func(t *testing.T) {
+			signals := engineSignals // the real one: useDNSHost replaces it
+			h, cfg := newDNSHost(t, "debian13", dnsTestList)
+			yml := h.content(dnsTestYML)
+			s := useDNSHost(t, h, "1", "y", "1", "y", "0")
+			engineHold = nil // the engine's own
+			var applying context.Context
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				c, stop := signals(ctx)
+				applying = c
+				return c, stop
+			}
+			saves := 0
+			engineHost = func() host.System {
+				return signalHost{h, func() error {
+					if saves++; saves == 1 {
+						return &fs.PathError{Op: "sync", Path: dnsTestYML, Err: syscall.EIO} // the first change fails and is rolled back
+					}
+					if err := syscall.Kill(os.Getpid(), sig); err != nil {
+						t.Error(err)
+					}
+					select {
+					case <-applying.Done():
+					case <-time.After(5 * time.Second):
+						t.Errorf("%v did not cancel the apply", sig)
+					}
+					return nil
+				}}
+			}
+			if err := runBackupScreen(context.Background(), cfg); err != nil {
+				t.Fatalf("runBackupScreen = %v; screen:\n%s", err, s.out.String())
+			}
+			out := s.out.String()
+			if s.applies != 2 || saves != 2 || strings.Count(out, "# Operation Failed") != 2 || !strings.Contains(out, "(CANCELLED)\n\n  [ ] Save the configuration  Rolled back") {
+				t.Errorf("%d applies, %d saves; screen:\n%s", s.applies, saves, out)
+			}
+			if !strings.Contains(out, "Check the log file at "+output.LegacyLogPath) {
+				t.Errorf("the failure's report does not name %s:\n%s", output.LegacyLogPath, out)
+			}
+			if last := out[strings.LastIndex(out, "# Backup Settings #"):]; !strings.Contains(last, "Backup State         Enabled") || !strings.HasSuffix(strings.TrimRight(last, " \n"), "Enter selection [0-4 or q]: 0") {
+				t.Errorf("the screen did not go on after the signal, backups on:\n%s", last)
+			}
+			if got := h.content(dnsTestYML); got != yml || !cfg.EnableBackups {
+				t.Errorf("hardn.yml after the signal (enableBackups %t):\n%s", cfg.EnableBackups, got)
+			}
+		})
 	}
 }
