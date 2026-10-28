@@ -47,7 +47,10 @@ func signals(ss []syscall.Signal) []os.Signal {
 // Release gives SIGHUP and SIGINT back the disposition they had when the
 // hold began: the default action (Go's handler, so a Ctrl-C ends the
 // program and a command started afterwards gets the default too), or, for
-// a signal hardn was started with ignored (nohup), ignored. signal.Ignore
+// a signal hardn was started with ignored (nohup), ignored. Not so after a
+// signal.Notify of it before the hold (a caller's signal.NotifyContext,
+// as cmd/hardn's around an apply): os/signal then reports it not ignored
+// (signal.Ignored), and release gives it the default action. signal.Ignore
 // sets the operating system's handler to SIG_IGN, and os/signal cannot
 // undo that: a signal.Notify after it records SIG_IGN as the handler to go
 // back to, which signal.Stop then puts back (Go 1.27 runtime/signal_unix.go,
