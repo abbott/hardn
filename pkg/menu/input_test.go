@@ -276,7 +276,7 @@ func newEnvironmentMenu(t *testing.T) *EnvironmentSettingsMenu {
 	t.Setenv("USER", "alice")
 	repo := secondary.NewFileEnvironmentRepository(interfaces.NewMockFileSystem(), interfaces.NewMockCommander())
 	env := application.NewEnvironmentManager(service.NewEnvironmentServiceImpl(repo))
-	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, env, nil, nil)
+	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, env, nil, nil)
 	return NewEnvironmentSettingsMenu(mm, config.DefaultConfig())
 }
 

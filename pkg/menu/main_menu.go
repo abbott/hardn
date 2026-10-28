@@ -678,10 +678,9 @@ func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
 // but the DNS and Backup items', which are the hooks cmd/hardn sets
-// (SetDNS, SetBackup). No item opens backup since item 5 runs the Backup
-// screen; it goes with backup_menu.go.
+// (SetDNS, SetBackup).
 type screens struct {
-	users, sshLogin, firewall, backup, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
@@ -691,7 +690,6 @@ var legacyScreens = screens{
 	users:       func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
 	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
 	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
-	backup:      func(m *MainMenu) legacyScreen { return NewBackupMenu(m.menuManager, m.config) },
 	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
 	systemDetails: func(m *MainMenu) legacyScreen {

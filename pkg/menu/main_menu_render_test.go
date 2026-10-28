@@ -184,7 +184,7 @@ func renderMainScreen(t *testing.T, f mainScreenFixture) string {
 	cfg.SshPort = f.sshPort
 
 	// FormatUptime is the only MenuManager method the render needs; it is pure.
-	menuManager := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
+	menuManager := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
 	m := NewMainMenu(menuManager, cfg, f.osInfo, version.NewService("0.4.0", "", ""))
 	if f.updateAvailable != "" {
 		m.SetTestUpdateAvailable(f.updateAvailable)

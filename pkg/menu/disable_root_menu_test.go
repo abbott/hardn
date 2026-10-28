@@ -36,7 +36,7 @@ func newDisableRootMenu(t *testing.T, pve, dryRun bool, seed string) (*DisableRo
 	host := secondary.NewProxmoxHost(fs, mc, "debian", false)
 	osInfo := model.OSInfo{Type: "debian", Version: "13", Codename: "trixie"}
 	ssh := application.NewSSHManager(service.NewSSHServiceImpl(secondary.NewFileSSHRepository(fs, mc, "debian", host), osInfo))
-	mm := application.NewMenuManager(nil, ssh, nil, nil, nil, nil, nil, nil, nil, nil)
+	mm := application.NewMenuManager(nil, ssh, nil, nil, nil, nil, nil, nil, nil)
 	mm.SetProxmoxCheck(host.IsProxmox)
 
 	cfg := config.DefaultConfig()

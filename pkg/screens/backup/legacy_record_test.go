@@ -18,12 +18,17 @@ import (
 // a2cf7bd:pkg/characterization/testdata/golden/<path> equals it). Nothing
 // regenerates them: the tests that wrote them are retired, and this
 // package's -update writes testdata/golden/parity.golden and
-// parity-backup.md's region alone.
+// parity-backup.md's region alone. backups/legacy_backupfile.golden is
+// TestLegacyBackupFile's run of origin/main's two BackupFile functions,
+// retired with them: kept because gallery-backup.md (§2.7, §7) cites it
+// as run evidence and pkg/characterization's backups/engine_run.golden
+// names it in its header.
 
 // legacyRecord is each frozen file, by its path under legacyDir, with its
 // SHA-256; read is the TestParity scenario that reads it, or why none
-// does (parity-backup.md §2's "Not rows").
+// does (parity-backup.md §2's "Not rows", and the BackupFile record).
 var legacyRecord = []struct{ path, sum, read string }{
+	{"backups/legacy_backupfile.golden", "c567eb924dc5cd895357ff9ca73e41b8e1fe473e0fa62c44266f38606c1cb7f7", "not a row: utils.BackupFile and the repository's, which nothing called"},
 	{"menu/backup_disabled_3.golden", "9874a6337a833fb91754d9de8034f667d2e70456cdd9e5a9ebd3b14580df8466", "not a row: a pause, no call"},
 	{"menu/backup_invalid.golden", "e6b9a6ab085374b01160ee07315626a39ff1250fd83514fe5c4f1592fd20e511", "not a row: a key that changes nothing"},
 	{"menu/backup_open.golden", "3d7181350aa523d67f8d24be54f0f03be2638c587664bc74e06086cb1fcfc86d", "open"},
