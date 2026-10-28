@@ -29,6 +29,7 @@ See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 - **A path change backs up under the new path**, as does every change after it.
 - **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path, and say so.
 - **Backup Runs lists the backups in the path in use**, newest first, and only reads. There is no restore yet.
+- **A dropped SSH session during a change rolls the change back**, and `hardn` ends.
 
 See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
 
