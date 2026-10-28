@@ -3,6 +3,7 @@
 > **Unit:** refactor plan slice 2 (DNS, the pilot), unit (d), `next/s2-replace`: "Legacy path replaced" (plan §2, "Phases 3-5 together", §3.22). The maintainer, 2026-10-22: "Replace in unit (d): withdraw HARDN_UI=classic from §3.14, route menu item 3 and -g to the new control, and delete the legacy DNS screen after (b2), with the shared service going in slice 8"; and for `-g`, 2026-10-23: "apply without asking, -n -g shows the plan and writes nothing, and no udhcpc flag (the warning only)", a host every plan refuses exiting non-zero (V25's fix, decided: Phase 3's exit codes). Inputs: [screen-dns.md](screen-dns.md) §7, [parity-dns.md](parity-dns.md) §7, [engine.md](engine.md) §7's wiring item.
 > **Status:** built and tested on macOS, in process: `cmd/hardn` through its seams on the recording fake (`hostfake`) with a model of systemd-resolved, the root command driven as the binary runs it; `pkg/menu`'s item with the screen stubbed. No hardn binary was run and nothing real was read, run or written. Nothing has run on Linux or as root: every host claim is **written, not run (gate 5)** (§4).
 > **Amended by `next/s2-menu-live`** ([menu-live.md](menu-live.md)): the main menu has a second hook, `MainMenu.SetStatus`, set by `withStatus` on the same line 190 of `main.go` (its line count kept, decision 7), which draws the host block, risk level and status rows through `pkg/screens/mainmenu` on `statusHost`, a `host.Real` with no run log (the status only reads, on every pass), with `engineDetect`'s facts and `stdoutEnv()`. `engineHost`, its run log and `engineOptions` are unchanged; `pkg/menu` still builds no engine (§7: a second hook, not a map, since the status is no menu item).
+> **Amended by `next/s3-replace`** (slice 3, Backup, unit (d); [screen-backup.md](screen-backup.md) §7): the main menu's 5 runs the Backup screen through a third hook, `MainMenu.SetBackup`, set by `withBackupScreen` on the same line of `main.go` (now 202), with the options of §2.1 assembled at each visit (§2.8). No flag routes to Backup. `engineOptions`, `newEngine`, the seams and `-g` are unchanged.
 
 ## 1. Why
 
@@ -65,6 +66,16 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 - **Kept** until slice 8, for `hardn -r` (`main.go:254`) and Run All's live run (`pkg/menu/run_all_menu.go:268`), both through `SecurityManager.HardenSystem`: the legacy DNS service of [screen-dns.md](screen-dns.md) §7's list, byte for byte, with `pkg/characterization`'s `ops/dns_*`.
 - **Moved:** the record `TestParity` reads, frozen under `pkg/screens/dns/testdata/legacy` before its sources changed ([parity-dns.md](parity-dns.md) §7).
 
+### 2.8 The main menu's 5 (`runBackupScreen`, `cmd/hardn/backup.go`; slice 3, unit (d), `next/s3-replace`)
+
+- **How `pkg/menu` reaches it:** a hook `cmd/hardn` sets, `MainMenu.SetBackup(func() error)`, from `withBackupScreen` on `main.go:202`, beside `withDNSScreen` and `withStatus` (the line count kept, §8 decision 7). The DNS and Backup items share one action in `pkg/menu`, `showScreen`: the screen from a cleared screen, its return mapped, a panic with no screen set ("menu: the Backup item has no screen (SetBackup)", internal, as DNS's).
+- **What it runs:** `pkg/screens/backup.Run` with what §2.3 gives the DNS screen but `Facts` (the screen reads none): `engineInput()` and `stdoutEnv()`; `engineHost()`; the `*config.Config` the main menu holds, which the screen adopts each save into; `NewEngine` over `engineOptions(ctx, sys, c)`; `ApplyContext` `engineSignals`; `DryRun` read from that configuration as the item is chosen; `LogPath` the legacy log; `Now` revert's clock; `Ran` nil.
+- **The options per visit:** both hooks call `engineOptions` on each visit, from the configuration as it then is, so `Backups` is `backupPath` and `enableBackups` as the last save left them: a path change through Backup reaches the DNS screen's next change (`TestBackupThenDNS`). DNS's hook already did (read: `runDNSScreen`); nothing there changed. Within one visit of the Backup screen the engine's `Backups` are as the visit began, and Backup's own changes are planned under the settings they save (decision 7 (a)), so a path change then a turn backs up under the new path.
+- **What it returns:** as §2.3: nil back to the main menu; `nav.ErrQuit` ends hardn as the main menu's q; the end of the input 130, Ctrl-C at a prompt SIGINT, any other error printed and 1 (`endHardn`).
+- **Under plan only** (decision 10, gallery-backup.md §5): 5 is not refused; the screen opens with `DryRun` true, Verify and Backup Runs read, each change stops at its plan. `nav.Option.Refusal` stays on User Management (1), and Firewall's profile add and remove keep theirs.
+- **Signals:** as §2.6, each change's apply under `engineSignals` through `backupscreen.Options.ApplyContext`.
+- **Deleted, kept, moved:** [parity-backup.md](parity-backup.md) §8: the legacy Backup screen and its layers, each with its grep; `TestLegacyMenuBackup` and `TestLegacyBackupFile` retired; their 22 goldens frozen under `pkg/screens/backup/testdata/legacy`.
+
 ## 3. Facts relied on
 
 | Fact | Source | Used for |
@@ -91,6 +102,7 @@ Run in part on 2026-10-23 (§4.1); the rest has not run. For the maintainer's VM
 - The main menu's 3 as [screen-dns.md](screen-dns.md) §4 lists, then Return: the main menu again, and 3 again showing the list as saved; q in the screen ends hardn (0); Ctrl-D at its prompt ends it with 130; `sudo hardn -n` then 3, a dry run.
 - Signals on the screen (§2.6), on Ubuntu 26.04: a change whose reload is made to fail, rolled back, then in the same visit Ctrl-C during the next change's reload, and again with the SSH session dropped: rolled back each time, the drop-in as before; after Ctrl-C the screen goes on, after the hangup hardn ends at its next prompt (its input gone); `kill -TERM` and `kill -HUP` of hardn while the screen waits at a prompt: hardn ends at once, nothing changed, as at the legacy menu.
 - `sudo hardn -r` and Run All's live run on Debian 13: DNS as origin/main configures it (the legacy service, unchanged).
+- *Since `next/s3-replace`:* the main menu's 5 as [screen-backup.md](screen-backup.md) §4.1 lists, plan only included; written, not run.
 
 ### 4.1 Run 2026-10-23: Debian 13, Ubuntu 26.04, Alpine 3.23
 
@@ -135,6 +147,8 @@ No new words in the report or the screens: `-g`'s report is `output.Human`'s, th
 | The DNS item with no screen set (a programming error: `cmd/hardn` sets it on the one main menu it builds) | a panic, "menu: the DNS item has no screen (SetDNS)"; no code, as it is no outcome of a run | internal |
 | `-g` or a screen's change interrupted during its apply | `output.Human`'s and the flow's report of `CANCELLED`, the error's own text ("… resolvectl --no-pager dns: context canceled (CANCELLED)"), then the change rolled back | Phase 3's rendering, unchanged; **proposed** in its place, for every report: "Interrupted: the change was rolled back." (§11). A plan is no longer reported interrupted: before the apply, the signals end hardn (§2.6) |
 | hardn's log, a session not read | revert's own error ("revert: session: …") | revert's |
+| The Backup item with no screen set (`next/s3-replace`) | a panic, "menu: the Backup item has no screen (SetBackup)" | internal, as DNS's |
+| docs/configuration.md, docs/releases/unreleased.md (`next/s3-replace`) | the Backup screen's section and notes; plan only's "**Backup opens.** Each of its changes stops at its plan." | **proposed**; no word of the screen changed (screen-backup.md §5) |
 
 ## 6. API
 
@@ -146,11 +160,14 @@ func runControls(c *config.Config, controls []engine.Control) int // a flag's co
 func configureDNS(c *config.Config) int                            // -g: runControls(c, dnsctl.Controls(c))
 func withDNSScreen(m *menu.MainMenu, c *config.Config) *menu.MainMenu
 func runDNSScreen(ctx context.Context, c *config.Config) error // the DNS item
+func withBackupScreen[M backupMenu](m M, c *config.Config) M    // next/s3-replace; backupMenu: SetBackup
+func runBackupScreen(ctx context.Context, c *config.Config) error // the Backup item, next/s3-replace
 var engineSignalSet = []os.Signal{os.Interrupt, syscall.SIGTERM, syscall.SIGHUP}
 var engineHost, engineDetect, engineHold, engineSignals, engineInput, engineStdout // seams
 
 package menu // pkg/menu, added
 func (m *MainMenu) SetDNS(run func() error) // the DNS item panics without it
+func (m *MainMenu) SetBackup(run func() error) // the Backup item, next/s3-replace; panics without it
 
 package dns // pkg/screens/dns, added to Options
 ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc) // each change's apply's context and its stop; nil: Run's
@@ -163,10 +180,11 @@ No new flag, environment variable, configuration key, error code or module. `pkg
 - **A flag:** `runControls(cfg, controls)`, as `configureDNS` calls it: the options, the plan, the apply without a question unless `-n` or a refusal, the report, the exit status, the signals around the apply. A flag that should ask first is not this function (§3.11's `--yes` is not approved).
 - **A screen:** call `engineOptions(ctx, sys, cfg)` with `engineHost()` and take `newEngine(sys, o)` as its `NewEngine`. A lockout-risk change needs `Hardn` and `Session`, which are there; `--confirm-timeout` (§3.14) would set `Timeout`.
 - **Signals:** `engineSignals` around each apply alone, never a visit (§2.6): a flag has it from `runControls`; a screen takes it as its apply's context, as the DNS screen's `ApplyContext` (a screen on `output.FlowEngine` applies under it as `pkg/screens/dns`'s `planning.Apply` does).
-- **The menu item:** a hook as `SetDNS`. When a second item needs one, generalise it (a map of item to screen, or one `SetScreens`), rather than adding a setter per item.
+- **The menu item:** a hook as `SetDNS`. When a second item needs one, generalise it (a map of item to screen, or one `SetScreens`), rather than adding a setter per item. *Since `next/s3-replace`, Backup's is a second setter, `SetBackup`, the two items sharing `showScreen` (§8, decision 12); the next slices' items (Firewall, User Management) may generalise it then, three setters being where a map pays.*
 - **`-n` with the slice's flag:** decided per flag by the maintainer; to show the plan, take the flag out of `operationFlags`.
 - **`main.go`'s lines:** the characterization goldens cite them to 462 (§3). Keep them (as here), or regenerate those goldens deliberately in a commit of their own, each changed line explained.
-- **The legacy goldens `TestParity` reads:** freeze them before their sources change, as [parity-dns.md](parity-dns.md) §7 and §8 say.
+- **The legacy goldens `TestParity` reads:** freeze them before their sources change, as [parity-dns.md](parity-dns.md) §7 and §8 say. *Backup's (`next/s3-replace`) add `TestLegacyRecord` in the screen's package, each frozen file's SHA-256, as slice 2b's `pkg/menu` record has it ([parity-backup.md](parity-backup.md) §8).*
+- *Since `next/s3-replace`, what they have:* `withBackupScreen`/`runBackupScreen` as the model of a screen's hook (`backup.go`, 62 lines); `engineOptions` assembled per visit, which a screen that changes the backup settings needs; `showScreen` in `pkg/menu`; a lifted plan-only refusal (`nav.Option.Refusal` removed from the item) for when User Management (slice 5) and Firewall's profiles (slice 4) go on the flow.
 
 ## 8. Decisions of this unit
 
@@ -184,10 +202,17 @@ None is the maintainer's beyond those quoted above; each is for review.
 10. **A DNS item chosen with no screen set panics** (a programming error), rather than an error that would need a code no run reports.
 11. **The legacy completion line kept after `-g` with another legacy flag** (§2.5).
 
+From `next/s3-replace` (slice 3, unit (d)):
+
+12. **`SetBackup`, a second setter, not a generalised hook** (§7 advised generalising at the second item): the unit's brief named `SetBackup`, as `SetDNS`; the two items share their action (`showScreen`), so a third item, or a map, changes one place. *Alternative:* `SetScreen(key, run)` now, changing `SetDNS`'s callers and `TestDNSItem`.
+13. **`withBackupScreen` generic over a menu with `SetBackup`**, as `withStatus` is over its two setters, so that `cmd/hardn`'s tests take the hook as `main` sets it and run it (`TestBackupThenDNS`); `withDNSScreen` is left as it was.
+14. **No `Facts`** for the Backup screen: its `Options` have none (screen-backup.md §8, decision 1), so `runBackupScreen` detects nothing.
+
 ## 9. Tests
 
 - `cmd/hardn`: `TestEngineOptions` (each field to its source; no path, no session), `TestEngineSeamsAreReal`, `TestEngineSignals` (the set; SIGINT, SIGTERM and SIGHUP each sent to the test process, as the kernel delivers it, cancelling `engineSignals`' context: one left out ends the process), `TestDNSScreen` (Add on Debian 13 applied and saved, the configuration adopted and recording the saved bytes, no audit record; a dry run and a decline writing nothing; q; the end of the input; the signals registered once per apply, never while a prompt reads), `TestDNSScreenSignals` (per signal, sent to the test process: a first change rolled back under the engine's own hold, then the signal during the next change's apply in the same visit, rolled back, the screen going on and reading the host), `TestConfigureDNSFlag` (through the root command: Debian 13, Ubuntu 26.04, Alpine 3.24, a host as asked; resolvconf, NetworkManager, a container, no nameservers and a fact not established refused with nothing written, 1; a reload with no effect rolled back, 1; `-n -g` 3, 0 and 1 with nothing written; hardn.yml never saved; no question; nothing through the legacy provider; the signals registered once with an apply, never for a plan alone or refused), `TestConfigureDNSFlagWithOthers` (`-g` then `-e`, refused and applied; Ctrl-C mid-apply, 130, `-e` not run, the plan's commands run with no signal registered; `-n -g -d`), and `TestDryRunRefusesOperations`, `TestDryRunAloneIsNotRefused` (`-n -g` reaches the root check), `TestDeprecationWarning` (now with `-d`). Every test that does not give the engine a host fails if a run reaches it (`runHardn`).
 - `pkg/menu`: `TestDNSItem` (each return mapped; the screen cleared first; the configuration the screen changed is the menu's; no screen set, a panic).
+- *Since `next/s3-replace`:* `cmd/hardn` `TestBackupScreen` (turning backups off applied, hardn.yml's one line saved, its backup under `/var/backups/hardn`, the configuration adopted; a path change backing up under the new path, nothing under the old; dry runs, a decline and Verify writing nothing; 0, q and the end of the input; the signals registered once per apply, never at a prompt; no audit record) and `TestBackupThenDNS` (a path change through the hook `withBackupScreen` sets, then the DNS screen's change backing up under the new path; mutation-checked with `-overlay`: DNS's options assembled once fail it); `pkg/menu` `TestBackupItem` (`TestDNSItem`'s cases for 5, one helper), `TestMainMenuKeys` (3 and 5 through their hooks, each from a cleared screen), `TestPlanOnlyRefusals` (5 opening under plan only with `DryRun` true; 1 still refused).
 - `pkg/screens/dns`: `TestApplyContext` (a change's apply, and nothing else, under `ApplyContext`'s context, stopped after it; none for a decline or a dry run; cancelled, rolled back, the screen drawn again from a fresh reading, the next change applied).
 - `pkg/cmd`: `TestRefuseDryRunOperations`' three-flag case names `-d` in place of `-g`.
 - Mutation-checked (`go test -overlay`): without the signals' context, `TestDNSScreenSignals` and the `-g` Ctrl-C case fail; the registration made for the screen's visit, as the first build's fix had it, fails `TestDNSScreen` and ends `TestDNSScreenSignals`' process ("signal: interrupt"); SIGHUP left out of `engineSignals` ends `TestEngineSignals`' ("signal: hangup"); `-g` registering before its plan fails the plan's check; the screen's apply not under `ApplyContext` fails `TestApplyContext`; `-n` applying fails `-n -g`; no deferred exit fails every refusal and failure.
@@ -196,15 +221,20 @@ None is the maintainer's beyond those quoted above; each is for review.
 
 `pkg/characterization`'s `ops/dns_{systemd_resolved,resolvconf,direct,empty_nameservers}/*` (16) change in two places, where `-g` leaving the service changes what they say: "Reached by" (`-r` and Run All's live run through `HardenSystem`'s DNS step; `-g` and the DNS screen on the control), and the modelled section, now `hardn -n -r`, still refused (exit status 2), so V1's FIXED line and the header stay. Every other characterization golden, `pkg/menu`'s `main_menu` and `run_all`, `parity.golden` and parity-dns.md §4 are byte for byte as at e666243 (`git diff e666243 --stat`).
 
+*Since `next/s3-replace`:* no golden of this package's; `pkg/menu`'s testdata unchanged; one gallery golden added, `play/backup-plan-only` ([screen-backup.md](screen-backup.md) §10); the Backup record moved ([parity-backup.md](parity-backup.md) §8).
+
 ## 11. Open items
 
 - **An interrupted apply's words** (§5): `CANCELLED` is reported in the error's own text, as Phase 3's renderer reports every cancelled run; "Interrupted: the change was rolled back." is **proposed** for `output.Human` and the flow, a change to every report, so the maintainer's.
 - **The audit log** stays unwritten until `next/p3-startup` (§2.3): then `-g`'s run and `Options.Ran` take `output.Append`.
 - **The `parity.golden` header** still says origin/main's goldens are "read in place"; kept byte for byte (parity-dns.md §7).
 - **The main menu's DNS row** (P-01) is a later unit's.
+- *From `next/s3-replace`:* **a setter per item** (`SetBackup` beside `SetDNS`, decision 12) or one generalised hook, for the maintainer; **the gallery's main menu** is Figma's mock, its indicator "Mode Live" under `-sequence dry-run` too, so the gallery shows the Backup screen under plan only but not hardn's plan-only main menu above it; **Backup's `parity.golden` header** also still says "read in place", kept byte for byte; **the Backup screen through hardn's main menu** has not run on a host ([screen-backup.md](screen-backup.md) §4.1).
 
 ## 12. Size
 
 About 280 lines of non-test Go added and 425 removed (`git diff --numstat e666243`): `engine.go` 95, `dns.go` 107 (about half of both doc comments), `main.go` 14 changed in place, `pkg/menu` 50, the deleted `dns_menu.go` 397 and `MenuManager.ConfigureDNS` 5; about 765 lines of tests added and 305 removed (`menu_dns_test.go`, 277), `dns_test.go` 500 of them (its host model about 150, `-g`'s table about 200). Over the guideline of about 500 changed lines because of the tests: the root command driven end to end on each host kind, refusal and failure, and the menu's returns; the code alone is within it. Testdata: 16 goldens copied (about 735 lines), 16 changed (3 lines each), 13 goldens and 3 fixtures moved. `go.mod` and `go.sum` unchanged. `git status --short --ignored` before each commit listed only the unit's paths, none ignored.
 
 **The review fixes** (four commits after `5037bf5`): about 85 lines of non-test Go added and 50 removed (`git diff --numstat 5037bf5`): `cmd/hardn/dns.go` (`runControls`, the signals per apply) 43 and 34, `engine.go` 9 and 4, `pkg/screens/dns` (`ApplyContext`, `planning.Apply`) 25 and 4, `pkg/menu` 6 and 8, `pkg/output/doc.go` 3 and 1; about 255 lines of tests added and 65 removed (`dns_test.go` 129 and 44). No golden changed.
+
+**`next/s3-replace`** (slice 3, unit (d); `git diff --numstat a2cf7bd`, run, the docs aside): non-test Go about 125 lines added and 890 removed (`cmd/hardn/backup.go` 62 new; `pkg/menu` about 50 changed; the legacy Backup screen and its layers about 860 removed: `file_backup_repository.go` 259, `backup_menu.go` 247, `backup_service.go` 106, `backup_manager.go` 102, `utils.BackupFile` 46, the port 31, `MenuManager`'s methods 28, the factories 21, the model 18); tests about 380 added and 1,200 removed (`backup_test.go` 159 new, `legacy_record_test.go` 95, `TestBackupItem`'s helper; `menu_backup_test.go`, `backup_service_test.go` and `TestLegacyBackupFile` removed). Testdata: 22 goldens moved unchanged, 1 added.

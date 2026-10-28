@@ -103,6 +103,8 @@ git show cc04c17:pkg/menu/testdata/golden/run_all/option1-live-cancel.golden | c
 
 ## 7. The VM steps (run 2026-10-23, §7.1)
 
+*Since `next/s3-replace`, steps 3, 5 and 6's `5` opens the Backup screen on the engine, under plan only too, and writes nothing to draw; [screen-backup.md](screen-backup.md) §4.1 has its checks. The steps below are as they were run.*
+
 On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), as root (Alpine through doas), hardn built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn`, the VM's `GOARCH`), from `/root`, in tmux (`tmux new -x 80 -y 40`). Never choose Run All's 1 here: live it runs every step.
 
 1. **Before:** `cp -p /etc/hardn/hardn.yml /root/hardn.yml.before 2>/dev/null`; `ls -l /root/hardn.yml 2>/dev/null` (note it; no step may write it); `sha256sum /etc/hardn/hardn.yml /etc/resolv.conf /etc/ssh/sshd_config.d/* /etc/ufw/applications.d/* /root/hardn.yml 2>/dev/null > /root/dryrun-replace-before`; `touch /root/dryrun-replace-stamp`; `sleep 2` (busybox find compares whole seconds, menu-live.md §10.1).
@@ -152,7 +154,7 @@ Not run: step 6's `--dry-run=false` with Backup, and the Firewall profile's remo
 2. **For the maintainer:**
    - the proposed lines of §6;
    - 1 and 5 refused inline under the prompt (⨳, `status.bad`, no redraw), where the adopted mock drew a Warning notice and the main menu again (§3);
-   - the main menu's hint still lists 1 and 5 under plan only, as the adopted mock did;
+   - the main menu's hint still lists 1 and 5 under plan only, as the adopted mock did (*since `next/s3-replace`, 1 alone is refused there*);
    - `main_menu/*` frozen with the trunk's two edits, or 8ddffc7's bytes, origin/main's own lines (§4);
    - P-03's row in proposals.md's table still says "decided": the brief allowed its status line alone;
    - `confirm` and `rollback` under the file's plan only ([dryrun-mode.md](dryrun-mode.md) §4.1 item 1), still open.

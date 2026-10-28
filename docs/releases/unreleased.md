@@ -19,6 +19,17 @@
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
+## Changed: the Backup screen
+
+- **Opening Backup writes nothing.** It used to write and remove `.write_test` in the backup path each time it was shown, deleting a file of that name.
+- **Verify Directory writes nothing.** It used to create the directory and write a test file.
+- **Relative paths, and paths under a directory others can change, are refused**, such as `backups` or `/tmp/hardn-backups`. They used to be saved.
+- **Turning backups on or off, and changing the path, show the change first.** Only that setting is saved, in the file `hardn` loaded. They used to save the whole configuration to `./hardn.yml`.
+- **A path change backs up under the new path**, as does every change after it.
+- **Backup Runs lists the backups in the path in use**, newest first, and only reads. There is no restore yet.
+
+See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
+
 ## Changed: the main menu
 
 - **An invalid choice is answered under the prompt**, which asks again. The screen is no longer cleared, and there is no "Press Enter" to go on.
