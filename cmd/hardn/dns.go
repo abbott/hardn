@@ -95,9 +95,10 @@ func withDNSScreen[M dnsMenu](m M, c *config.Config) M {
 // audit log's first writer is next/p3-startup's (Options.Ran left nil).
 //
 // Each change's apply, and nothing else, runs under engineSignals
-// (dnsscreen.Options.ApplyContext; engine.md §2.14): Ctrl-C, SIGTERM and
-// a hangup during it cancel it, and the change is rolled back here
-// rather than left half applied; the screen then goes on. They are
+// (dnsscreen.Options.ApplyContext, screenApplyContext; engine.md §2.14):
+// Ctrl-C, SIGTERM and a hangup during it cancel it, and the change is
+// rolled back here rather than left half applied; the screen then goes
+// on, but after a hangup hardn ends once the apply has returned. They are
 // registered again for each apply, since the hold around a rollback ends
 // a registration made before it. Elsewhere, at a prompt among them, they
 // end hardn as they always have: Ctrl-C at a prompt as the prompt reports
@@ -115,7 +116,7 @@ func runDNSScreen(ctx context.Context, c *config.Config) error {
 		Facts:        facts,
 		Config:       c,
 		NewEngine:    newEngine(sys, engineOptions(ctx, sys, c)),
-		ApplyContext: engineSignals,
+		ApplyContext: screenApplyContext,
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,

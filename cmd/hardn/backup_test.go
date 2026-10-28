@@ -5,12 +5,14 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"os/signal"
 	"slices"
 	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
@@ -202,11 +204,13 @@ func (h signalHost) WriteFileAtomic(ctx context.Context, name string, data []byt
 // as the kernel delivers it, cancel that apply: the change is rolled back
 // here, hardn.yml as it was, the report naming hardn's log, and the screen
 // goes on; the user then goes back (nil), the configuration as it was.
-// The change before it in the same visit, its save failing, was rolled
-// back under the engine's own hold (hold.Signals), whose release ends a
-// registration made before it: each apply registers its own
-// (engineSignals), or the signal would end hardn half applied, as Go's
-// default would end this test process.
+// After the hangup hardn ends (endHangup, recorded here), once, as the
+// apply returns, hardn.yml as it was; never after the others. The change
+// before it in the same visit, its save failing, was rolled back under
+// the engine's own hold (hold.Signals), whose release ends a registration
+// made before it: each apply registers its own (engineSignals), or the
+// signal would end hardn half applied, as Go's default would end this
+// test process.
 func TestBackupScreenSignals(t *testing.T) {
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
 		t.Run(sig.String(), func(t *testing.T) {
@@ -214,13 +218,18 @@ func TestBackupScreenSignals(t *testing.T) {
 			h, cfg := newDNSHost(t, "debian13", dnsTestList)
 			yml := h.content(dnsTestYML)
 			s := useDNSHost(t, h, "1", "y", "1", "y", "0")
-			engineHold = nil // the engine's own
+			engineHold = func() func() { s.held++; return hold.Signals(nil) } // the engine's own, counted
 			var applying context.Context
+			stopped := 0
 			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
 				s.applies++
 				c, stop := signals(ctx)
 				applying = c
-				return c, stop
+				return c, func() { stopped++; stop() }
+			}
+			var ended []hangupEnd
+			endHangup = func() {
+				ended = append(ended, hangupEnd{stopped, s.held, signal.Ignored(syscall.SIGHUP), h.content(dnsTestYML), s.out.String()})
 			}
 			saves := 0
 			engineHost = func() host.System {
@@ -255,6 +264,7 @@ func TestBackupScreenSignals(t *testing.T) {
 			if got := h.content(dnsTestYML); got != yml || !cfg.EnableBackups {
 				t.Errorf("hardn.yml after the signal (enableBackups %t):\n%s", cfg.EnableBackups, got)
 			}
+			wantHangupEnd(t, sig, ended, yml, "[+] Save the configuration  Done")
 		})
 	}
 }

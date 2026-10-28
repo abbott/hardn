@@ -175,8 +175,9 @@ type Planning struct {
 	// made from the flow's, and its stop, called once the apply has
 	// returned; one per apply. cmd/hardn's is cancelled by Ctrl-C, SIGTERM
 	// and a hangup during the apply alone (engine.md §2.14), so that a
-	// change they interrupt is rolled back and the screen goes on. Nil
-	// applies under the flow's context.
+	// change they interrupt is rolled back and the screen goes on; after a
+	// hangup its stop ends hardn instead (cmd-engine.md §2.6). Nil applies
+	// under the flow's context.
 	ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc)
 	planned      bool
 }

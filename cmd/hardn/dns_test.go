@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"os/signal"
 	"slices"
 	"strings"
 	"sync"
@@ -15,6 +16,7 @@ import (
 
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
@@ -230,17 +232,19 @@ func (w watched) Read(p []byte) (int, error) {
 // useDNSHost points the engine's and the screens' seams at h until the
 // test ends: its facts, a hold that counts, the user typing lines, plain
 // output at 80 columns into the returned buffer, and revert's clock,
-// pid, environment and hardn's path fixed; and signals that never come
-// (a context only the test cancels), counted.
+// pid, environment and hardn's path fixed; signals that never come (a
+// context only the test cancels), counted; and a hangup's end of hardn
+// (endHangup) a failure of the test, which a test expecting one replaces.
 func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 	t.Helper()
 	s := &dnsSeams{}
 	hostWas, detectWas, holdWas, inputWas, stdoutWas, envWas := engineHost, engineDetect, engineHold, engineInput, engineStdout, stdoutEnv
-	signalsWas, nowWas, pidWas, getenvWas, executableWas := engineSignals, revertNow, revertPID, revertGetenv, revertExecutable
+	signalsWas, nowWas, pidWas, getenvWas, executableWas, hangupWas := engineSignals, revertNow, revertPID, revertGetenv, revertExecutable, endHangup
 	t.Cleanup(func() {
 		engineHost, engineDetect, engineHold, engineInput, engineStdout, stdoutEnv = hostWas, detectWas, holdWas, inputWas, stdoutWas, envWas
-		engineSignals, revertNow, revertPID, revertGetenv, revertExecutable = signalsWas, nowWas, pidWas, getenvWas, executableWas
+		engineSignals, revertNow, revertPID, revertGetenv, revertExecutable, endHangup = signalsWas, nowWas, pidWas, getenvWas, executableWas, hangupWas
 	})
+	endHangup = func() { t.Error("hardn ended by a hangup") }
 	in := prompt.New(watched{uitest.NewTypist(&s.out, lines...), s}, false)
 	engineHost = func() host.System { return h }
 	engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
@@ -337,25 +341,33 @@ func TestDNSScreen(t *testing.T) {
 // test process during a change's apply on the DNS screen, as the kernel
 // delivers it, cancel that apply: the change is rolled back here, each
 // report naming hardn's log, the screen goes on, reading the host again,
-// and the user goes back (nil), the configuration as it was. The change
+// and the user goes back (nil), the configuration as it was. After the
+// hangup hardn ends (endHangup, recorded here), once, as the apply
+// returns, the drop-in as before; never after the others. The change
 // before it in the same visit failed and was rolled back under the
 // engine's own hold (hold.Signals), whose release ends a registration
 // made before it: each apply registers its own (engineSignals), or the
 // signal would end hardn half applied, as Go's default would end this
-// test process.
+// test process; the hangup, sent before the second hold, is still seen
+// after it (screenApplyContext).
 func TestDNSScreenSignals(t *testing.T) {
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
 		t.Run(sig.String(), func(t *testing.T) {
 			signals := engineSignals // the real one: useDNSHost replaces it
 			h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
 			s := useDNSHost(t, h, "1", "y", "1", "y", "0")
-			engineHold = nil // the engine's own
+			engineHold = func() func() { s.held++; return hold.Signals(nil) } // the engine's own, counted
 			var applying context.Context
+			stopped := 0
 			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
 				s.applies++
 				c, stop := signals(ctx)
 				applying = c
-				return c, stop
+				return c, func() { stopped++; stop() }
+			}
+			var ended []hangupEnd
+			endHangup = func() {
+				ended = append(ended, hangupEnd{stopped, s.held, signal.Ignored(syscall.SIGHUP), h.content(hostdns.DropIn), s.out.String()})
 			}
 			reloads := 0
 			answer := h.Handler
@@ -395,7 +407,45 @@ func TestDNSScreenSignals(t *testing.T) {
 			if !slices.Equal(cfg.Nameservers, dnsTestList) {
 				t.Errorf("the configuration lists %q", cfg.Nameservers)
 			}
+			wantHangupEnd(t, sig, ended, "<absent>", "[ ] Set the nameservers  Failed CANCELLED")
 		})
+	}
+}
+
+// hangupEnd is what a signal test saw as hardn would have ended after a
+// hangup (endHangup): the applies' signal contexts stopped so far
+// (engineSignals'), the holds taken, whether SIGHUP was still ignored,
+// the file the change wrote, and the screen so far.
+type hangupEnd struct {
+	stopped, held int
+	ignored       bool
+	file, out     string
+}
+
+// wantHangupEnd checks what endHangup saw in a screen's signal test,
+// whose second apply sig interrupted: after a hangup, hardn ended once,
+// both applies' signal contexts stopped and both rollbacks' holds taken
+// and released, the file as before (want), the screen ending with the
+// cancelled step's line (step), which the apply wrote (the flow's report
+// after it is not: hardn ends as the apply returns); after Ctrl-C and
+// SIGTERM, never.
+func wantHangupEnd(t *testing.T, sig syscall.Signal, ended []hangupEnd, want, step string) {
+	t.Helper()
+	if sig != syscall.SIGHUP {
+		if len(ended) != 0 {
+			t.Errorf("%v ended hardn (%d)", sig, len(ended))
+		}
+		return
+	}
+	if len(ended) != 1 {
+		t.Fatalf("hardn ended %d times after the hangup, want once", len(ended))
+	}
+	e := ended[0]
+	if e.stopped != 2 || e.held != 2 || e.ignored || e.file != want {
+		t.Errorf("hardn ended with %d of 2 applies' signals stopped, %d of 2 holds, SIGHUP ignored %t; the file:\n%s", e.stopped, e.held, e.ignored, e.file)
+	}
+	if got := strings.TrimRight(e.out, " \n"); !strings.HasSuffix(got, step) {
+		t.Errorf("the screen as hardn ended, want it to end with %q:\n%s", step, got)
 	}
 }
 
@@ -534,7 +584,9 @@ func TestConfigureDNSFlag(t *testing.T) {
 // status once the flags after it have run (here -e, which writes its
 // drop-in through the provider); Ctrl-C during -g's apply rolls it back
 // and ends hardn at once with 130, the flags after it not run, the
-// signals registered for the apply alone, after the plan; -n with another
+// signals registered for the apply alone, after the plan; so does a
+// hangup, sent to this test process, through runControls, never through
+// the screens' end of hardn (endHangup); -n with another
 // operation flag is still refused, naming that flag alone, before
 // anything runs.
 func TestConfigureDNSFlagWithOthers(t *testing.T) {
@@ -590,6 +642,42 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 		// with one, stopped as hardn ended.
 		if s.applies != 1 || s.live != 0 || len(live) == 0 || live[0] != 0 || live[len(live)-1] != 1 {
 			t.Errorf("signals registered %d times, %d left; live as each command ran: %v", s.applies, s.live, live)
+		}
+	})
+	t.Run("a hangup during the apply", func(t *testing.T) {
+		signals := engineSignals // the real one: useDNSHost replaces it
+		h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
+		ended := 0
+		r, s := runG(t, h, cfg, func(s *dnsSeams) {
+			var applying context.Context
+			engineSignals = func(c context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				ctx, stop := signals(c)
+				applying = ctx
+				return ctx, stop
+			}
+			endHangup = func() { ended++ } // a screen's end of hardn, not -g's
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
+					if err := syscall.Kill(os.Getpid(), syscall.SIGHUP); err != nil {
+						t.Error(err)
+					}
+					select {
+					case <-applying.Done():
+					case <-time.After(5 * time.Second):
+						t.Error("the hangup did not cancel the apply")
+					}
+				}
+				return answer(argv, in)
+			}
+		}, "-g", "-e")
+		report := s.out.String()
+		if !r.ended || r.code != 130 || sudoersWrite(r) || ended != 0 || s.applies != 1 {
+			t.Errorf("ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies; report:\n%s", r.ended, r.code, sudoersWrite(r), ended, s.applies, report)
+		}
+		if got := h.content(hostdns.DropIn); got != "<absent>" || !strings.Contains(report, "Rolled back") {
+			t.Errorf("the drop-in after the hangup:\n%s\nreport:\n%s", got, report)
 		}
 	})
 	t.Run("-n -g -d", func(t *testing.T) {

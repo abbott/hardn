@@ -45,7 +45,8 @@ func withBackupScreen[M backupMenu](m M, c *config.Config) M {
 // configuration the main menu, and the DNS screen, hold. No Facts: the
 // screen reads none. No audit record is written: the audit log's first
 // writer is next/p3-startup's (Options.Ran left nil). Each change's apply,
-// and nothing else, runs under engineSignals (runDNSScreen says why).
+// and nothing else, runs under engineSignals, hardn ending after a hangup
+// (screenApplyContext; runDNSScreen says why).
 func runBackupScreen(ctx context.Context, c *config.Config) error {
 	sys := engineHost()
 	env := stdoutEnv()
@@ -54,7 +55,7 @@ func runBackupScreen(ctx context.Context, c *config.Config) error {
 		System:       sys,
 		Config:       c,
 		NewEngine:    newEngine(sys, engineOptions(ctx, sys, c)),
-		ApplyContext: engineSignals,
+		ApplyContext: screenApplyContext,
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,

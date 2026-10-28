@@ -4,16 +4,22 @@ import (
 	"context"
 	"errors"
 	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
 	"reflect"
 	"slices"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -86,8 +92,9 @@ func TestEngineOptions(t *testing.T) {
 
 // TestEngineSeamsAreReal: in production the engine's host is host.Real,
 // detection is detect.Detect, the hold is the engine's own (nil), the
-// signals' context is a live one its stop ends, and the screens read the
-// one line reader every prompt shares and write to stdout.
+// signals' context is a live one its stop ends, the screens read the one
+// line reader every prompt shares and write to stdout, and a hangup
+// during a screen's apply ends hardn by endByHangup.
 // TestEngineSignals holds the signals.
 func TestEngineSeamsAreReal(t *testing.T) {
 	if _, ok := engineHost().(*host.Real); !ok {
@@ -104,6 +111,9 @@ func TestEngineSeamsAreReal(t *testing.T) {
 	}
 	if engineStdout != os.Stdout {
 		t.Error("engineStdout is not os.Stdout")
+	}
+	if !samePointer(endHangup, endByHangup) {
+		t.Error("endHangup is not endByHangup")
 	}
 	ctx, stop := engineSignals(context.Background())
 	if ctx.Err() != nil {
@@ -135,5 +145,105 @@ func TestEngineSignals(t *testing.T) {
 			t.Errorf("%v did not cancel engineSignals' context", sig)
 		}
 		stop()
+	}
+}
+
+// TestScreenApplyContext: the screens' ApplyContext is cancelled by
+// Ctrl-C, SIGTERM and a hangup, each sent to this test process as the
+// kernel delivers it, as engineSignals' is; then the engine's hold around
+// the rollback (hold.Signals), taken and released, as the engine does
+// after a cancelled apply; then its stop. After the hangup the stop ends
+// hardn (endHangup, recorded here), once, though the hold ended every
+// registration of SIGHUP; after the others, and with no signal, it does
+// not. A second stop ends nothing more.
+func TestScreenApplyContext(t *testing.T) {
+	hangupWas := endHangup
+	defer func() { endHangup = hangupWas }()
+	for _, sig := range []syscall.Signal{0, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		ended := 0
+		endHangup = func() { ended++ }
+		ctx, stop := screenApplyContext(context.Background())
+		if sig != 0 {
+			if err := syscall.Kill(os.Getpid(), sig); err != nil {
+				stop()
+				t.Fatal(err)
+			}
+			select {
+			case <-ctx.Done():
+			case <-time.After(5 * time.Second):
+				t.Errorf("%v did not cancel the context", sig)
+			}
+			hold.Signals(nil)()
+		}
+		stop()
+		stop()
+		if want := map[bool]int{true: 1}[sig == syscall.SIGHUP]; ended != want {
+			t.Errorf("after %v hardn ended %d times, want %d", sig, ended, want)
+		}
+		if ctx.Err() == nil {
+			t.Errorf("after %v the stop did not end the context", sig)
+		}
+	}
+}
+
+// hangupChildEnv names what TestEndByHangup's child does, and
+// hangupLogEnv the log file it writes.
+const (
+	hangupChildEnv = "HARDN_TEST_HANGUP_CHILD"
+	hangupLogEnv   = "HARDN_TEST_HANGUP_LOG"
+)
+
+// TestEndByHangup runs this test binary again as a child that does what
+// a screen's apply does after a hangup, with the real endHangup: the
+// screens' ApplyContext, SIGHUP sent to itself, the context cancelled,
+// the engine's hold taken and released, the stop. The child dies of
+// SIGHUP, the wait status a waiting parent (sudo, a shell) sees, its log
+// file holding the line written first; where SIGHUP is ignored (as from
+// nohup, which the child sets itself), and no hold restored it, it exits
+// 130 (prompt.ExitInterrupted). The child sends signals only to itself.
+func TestEndByHangup(t *testing.T) {
+	if mode := os.Getenv(hangupChildEnv); mode != "" {
+		logging.InitLogging(os.Getenv(hangupLogEnv))
+		if mode == "ignored" {
+			signal.Ignore(syscall.SIGHUP)
+		}
+		ctx, stop := screenApplyContext(context.Background())
+		_ = syscall.Kill(os.Getpid(), syscall.SIGHUP)
+		select {
+		case <-ctx.Done():
+		case <-time.After(5 * time.Second):
+			os.Exit(3)
+		}
+		if mode == "hangup" {
+			hold.Signals(nil)()
+		}
+		stop() // never returns
+		os.Exit(4)
+	}
+	for _, tc := range []struct {
+		mode     string
+		signaled bool // killed by SIGHUP; else the exit status 130
+	}{
+		{"hangup", true},
+		{"ignored", false},
+	} {
+		t.Run(tc.mode, func(t *testing.T) {
+			log := filepath.Join(t.TempDir(), "hardn.log")
+			cmd := exec.Command(os.Args[0], "-test.run=^TestEndByHangup$", "-test.count=1")
+			cmd.Env = append(os.Environ(), hangupChildEnv+"="+tc.mode, hangupLogEnv+"="+log)
+			out, err := cmd.CombinedOutput()
+			var ee *exec.ExitError
+			if !errors.As(err, &ee) {
+				t.Fatalf("the child: %v, want it ended by SIGHUP or 130; output:\n%s", err, out)
+			}
+			ws, _ := ee.Sys().(syscall.WaitStatus)
+			if signaled := ws.Signaled() && ws.Signal() == syscall.SIGHUP; signaled != tc.signaled || !signaled && ws.ExitStatus() != prompt.ExitInterrupted {
+				t.Errorf("the child: %v; want killed by SIGHUP %t, else exit status 130; output:\n%s", err, tc.signaled, out)
+			}
+			data, err := os.ReadFile(log)
+			if err != nil || strings.Count(string(data), "INFO: hangup during the apply: hardn ends\n") != 1 {
+				t.Errorf("the child's log (%v):\n%s", err, data)
+			}
+		})
 	}
 }
