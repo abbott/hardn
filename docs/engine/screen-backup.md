@@ -49,11 +49,11 @@ origin/main's Backup screen writes `<backupPath>/.write_test` on every draw and 
 
 ## 4. Written, not run (gate 5)
 
-*Since `next/s3-replace`, hardn's main menu 5 calls `Run` (§7), so the checks below are reachable on a host; none has run. §4.1 lists them as unit (d) leaves them.*
+*Since `next/s3-replace`, hardn's main menu 5 calls `Run` (§7), so the checks below are reachable on a host. §4.1 lists them as unit (d) leaves them; §4.2 records their run on 2026-10-28.*
 
 Nothing here has run on Linux or as root, and nothing calls `Run` but the tests and the gallery. On the VMs of [vmtest.md](../safety/vmtest.md) (Debian 13, Ubuntu 26.04, Alpine 3.24), once unit (d) wires it: the screen on each stock host, `/var/backups/hardn` made and not; Verify there, nothing written (`find /var/backups -newer`); turning backups off and on, `/etc/hardn/hardn.yml`'s one line changed, its mode and owner kept, the run under `/var/backups/hardn/<id>/` 0700, its manifest `takenAnyway` with backups off, the screen drawn again; a path change on a host with `backupPath: /tmp/hardn-backups`, its backup under the new path, nothing under `/tmp`, then item 1 planned; Backup Runs after DNS changes, each run's files; `/var/backups` on a read-only mount, `BACKUP_WRITE_FAILED`, nothing changed; under plan only once decision 10's refusal is lifted. control-backup.md §4 covers the control's own claims.
 
-### 4.1 Through hardn's main menu (`next/s3-replace`): written, not run
+### 4.1 Through hardn's main menu (`next/s3-replace`): written; run 2026-10-28 (§4.2)
 
 For the maintainer's VM runs, as root, on Debian 13, Ubuntu 26.04 and Alpine 3.24 (3.23 where there is no 3.24 VM), from `sudo hardn`, after `touch` of a stamp and `sleep 2` (busybox's `find -newer` compares whole seconds), each host put back after:
 
@@ -66,6 +66,23 @@ For the maintainer's VM runs, as root, on Debian 13, Ubuntu 26.04 and Alpine 3.2
 7. **Plan only**: `sudo hardn -n`, and hardn.yml's `dryRun: true` with no flag: "Mode Plan only (-n)" or "(hardn.yml)"; 5 opens; Verify and Backup Runs read; 1 and 2 stop at their plans, "No actual changes were made to your system."; nothing written; 1 (User Management) still "Not available in plan only.".
 8. **Leaving**: q in the screen ends hardn (0); Ctrl-D at its prompt 130; Ctrl-C at its prompt ends hardn by SIGINT; Ctrl-C and a hangup during a change's apply roll it back, the screen going on after Ctrl-C (cmd-engine.md §2.6; cmd/hardn's `TestBackupScreenSignals` on hostfake, 29f7e51).
 9. **No hardn.yml read**: whether the main menu can be reached with none read is not established (start-up's legacy question stands in front of it, [cmd-engine.md](cmd-engine.md) §4.1); where it can, 1 and 2 are refused before asking, "No hardn.yml was read, …", and 3 and 4 read (`TestNotLoaded`, on hostfake).
+
+### 4.2 Run 2026-10-28: Debian 13, Ubuntu 26.04, Alpine 3.23
+
+As root on the maintainer's three VMs, hardn built from `5cfe34d` (sha256 `b0668857…`), driven over a terminal (80×40, expect) through main menu 5. Debian kept its own hardn.yml; Ubuntu and Alpine, which had none, were given a commented one, mode 0640, group `adm`. "Nothing written" is `find` over `/etc`, `/var/backups`, `/var/lib/hardn`, `/srv`, `/root`, `/tmp`, `/run/hardn` and hardn's working directory, newer than a stamp by mtime or ctime (by mtime alone on Alpine, whose busybox `find` has no `-cnewer`). Each host was put back afterwards and checked against copies taken first: Debian's hardn.yml and hardn.yml.example byte for byte, with their mode, owner and mtime; the binaries; the resolver; no mount or hardn left.
+
+Passed:
+- **1, 2** on all three, `/var/backups/hardn` absent and then there: 5 opened, Verify said "Only root can change …. Nothing was written.", 0 drew the main menu again; nothing written.
+- **3** on all three: the `enableBackups` line alone changed at each turn; the file's mode and owner kept (Debian 0644 `root:root`, its file without comments; Ubuntu and Alpine 0640 `root:adm`, their comments kept); the runs 0700, copy and manifest 0600; the run with backups off `backupsEnabled: false`, its entry `takenAnyway`; "Backed up anyway: the rollback needs it." after off only; Backup Runs listing both, each run's file, Return its only item.
+- **4** on Ubuntu and Alpine: the path change's backup under `/srv/backups/hardn`, then DNS's Add 9.9.9.9 applied and backed up there too (Alpine: `resolv.conf` and hardn.yml), nothing new under `/var/backups/hardn`. On Debian the path change passed and DNS refused before asking: its `/etc/resolv.conf` is a plain file beside systemd-resolved (`DNS_MANAGED`, as in cmd-engine.md §4.1), so no DNS change could be shown there.
+- **5** on all three: the row "Unsafe"; Verify and 1 refused, 1 before asking; 2 moved the path to `/var/backups/hardn`, backed up there, then 1 applied; nothing under `/tmp`.
+- **6** on all three: `/var/backups` bound read-only, 1 failed `BACKUP_WRITE_FAILED`, "Nothing was changed", hardn.yml's sha256 the same after.
+- **7** on all three, with `-n` and with `dryRun: true`: "Mode Plan only (-n)" and "(hardn.yml)"; 5 opened; Verify and Backup Runs read; 1 and 2 stopped at their plans; main menu 1 "Not available in plan only."; nothing written but `/run/hardn`, the plan's own run directory, made and removed.
+- **8** at the screen's prompt on all three: q 0, Ctrl-D 130. Ctrl-C ended hardn by SIGINT on Debian and Ubuntu (the wait status read through perl); on Alpine, which has no perl, the shell's 130 alone. During a save, on Debian and Ubuntu (hardn.yml on a loop file system, through `HARDN_CONFIG`, frozen with `fsfreeze` after the question and thawed after the signal): Ctrl-C rolled the save back ("Rolled back"), the screen went on, hardn.yml as before; a hangup rolled it back too ("rollback …: restore …: rewritten" in the log), hardn.yml as before. Not run on Alpine, which has no `fsfreeze`.
+- **9** on Ubuntu and Alpine, as found with no hardn.yml: start-up's question answered n, the main menu reached; 1 and 2 refused before asking, "No hardn.yml was read"; Verify and Backup Runs ("No change has been backed up yet.") read. The screen wrote nothing; on Alpine, start-up wrote `/etc/hardn/hardn.yml.example` before the main menu (`config.EnsureExampleConfigExists`, `cmd/hardn/main.go:60`, origin/main's, as [dryrun-replace.md](dryrun-replace.md) §7 found). Not on Debian, which has its file.
+
+Found:
+- **After a hangup, hardn did not end on Ubuntu 26.04.** There `sudo` is sudo-rs 0.2.13 (hardn's log). After the session dropped and the save was rolled back, hardn sat at the screen's prompt, 41 s later still, until the run sent it SIGTERM, which ended it at once. Its input was sudo-rs's own pty (`/dev/pts/1`), which sudo-rs, still running and reparented to init, kept open: the input was never gone, so the next prompt never ended it. On Debian, through sudo, hardn ended within 5 s. cmd-engine.md §2.6 and §4 expect hardn to end at its next prompt after a hangup, its input gone; under sudo-rs it does not.
 
 ## 5. Words
 
@@ -184,7 +201,8 @@ None is the maintainer's; each is for review.
 ## 11. Not in this unit; inputs to later units; open items
 
 - **Unit (d)**: §7. *Built in `next/s3-replace`.* **The restore**: its own later unit (decision 9), on the engine with confirm-or-revert for SSH and firewall files; the gallery's mock stays until then.
-- **Not run (unit (d))**: §4.1's checks, through hardn's main menu, on no host yet.
+- **Run (unit (d))**: §4.1's checks on 2026-10-28, §4.2: all passed where they could run; check 4's DNS change not shown on Debian (refused there as found), check 8 during a save not run on Alpine (no `fsfreeze`).
+  - **After a hangup under sudo-rs, hardn stays at its prompt** (§4.2, Found): Ubuntu 26.04's sudo keeps hardn's input open, so hardn, its change rolled back, waits until killed. For the maintainer: accept it as the host's, or have hardn end after rolling back on SIGHUP rather than at its next prompt (cmd-engine.md §2.6).
 - **For the maintainer:**
   - **Item 4 on a refused path** has no description and is refused before it asks (§8, decision 3), where the adopted mock drew "None yet".
   - ~~**The proposed words** (§5)~~ *Decided 2026-10-27 (the maintainer, 2026-10-27: "Adopt the proposed words in screen-backup.md §5, then start slice 3 unit (d)."): the flows' title bars, the questions, Verify's, the runs', the refused path's second sentences, and this unit's two for runs not read.*
