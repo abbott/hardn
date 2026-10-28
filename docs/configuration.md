@@ -152,7 +152,7 @@ The main menu's Backup (5) shows and changes these two settings.
 - **Some paths are refused** as you type them: a relative path, or one under a directory others can change, such as `/tmp`.
 - **Each change is shown first.** Confirm it, and only that setting is saved, in the file `hardn` loaded. Without a loaded file, nothing can be saved.
 - **A path change backs up under the new path**, as does every change after it.
-- **Backups off still keeps what a rollback needs.** Each change still copies the files it changes to the backup path.
+- **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path.
 - **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
 
 ### Network Configuration

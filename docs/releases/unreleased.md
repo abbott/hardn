@@ -27,7 +27,7 @@ See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 - **Check `backupPath` in older files.** While it holds such a path, changes from the DNS and Backup screens and `-g` are refused. Change it with Backup's item 2.
 - **Turning backups on or off, and changing the path, show the change first.** Only that setting is saved, in the file `hardn` loaded. They used to save the whole configuration to `./hardn.yml`.
 - **A path change backs up under the new path**, as does every change after it.
-- **Backups off still keeps what a rollback needs.** Each change still copies the files it changes to the backup path, and says so.
+- **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path, and say so.
 - **Backup Runs lists the backups in the path in use**, newest first, and only reads. There is no restore yet.
 
 See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
