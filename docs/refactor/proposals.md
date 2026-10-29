@@ -43,7 +43,7 @@
 | [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen |
 | [P-17](#p-17) | System Details content | plan §5.10 | System Details; slice 1 | M | Low | proposed |
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
-| [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | proposed |
+| [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | decided (2026-10-27): Backup Runs, read only, in slice 3; the restore a later unit |
 | [P-20](#p-20) | Proxmox: manage pve-firewall rules for SSH and 8006 | plan §5.13 (brief §2.5) | Firewall on Proxmox; after slice 4 | L | High | proposed |
 | [P-21](#p-21) | Pending-reboot wording and place in the HostBlock | `next/p1b-header` | HostBlock; Phase 4 | S | Low | decided (2026-10-21): under the uptime, "- Reboot pending"; implemented, `next/p4-risk-lines` |
 | [P-22](#p-22) | Menu item markers: lockout risk and unavailable | `next/p1b-menu` | Menu; slices 4–8 | S | Low | proposed |
@@ -55,7 +55,7 @@
 | [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | proposed |
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed |
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | decided for DNS (2026-10-22): (b); implemented for DNS, `next/s2-screen`; Firewall's proposed |
-| [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed |
+| [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed; 05-BACKUP decided (2026-10-27) |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
 | [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
@@ -444,7 +444,7 @@
 <a id="p-19"></a>
 ### P-19: Backups: a restore UI
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-27, slice 3 decision 9, "Adopt all ten slice 3 Backup recommendations in gallery-backup.md §5"): item 4, "Backup Runs", in slice 3, read only (the runs under the path in use, newest first, and each run's files); the restore its own later unit, a change kind on the engine with its journal, and confirm-or-revert for SSH and firewall files. [gallery-backup.md](../engine/gallery-backup.md) §5.
 - **Source:** plan §5.12.
 - **Problem:**
   - origin/main backs up nothing (`enableBackups` is a no-op).
@@ -455,6 +455,7 @@
   - The Backup screen gains "Restore a previous run": list the runs, show the plan, confirm, apply.
 - **Effort:** L.
 - **Risk:** Medium. A restore writes `/etc` files, so it goes through plan/apply, and through confirm-or-revert for SSH and firewall files.
+- **Mocked** (slice 3, unit (a), `next/s3-gallery`; [gallery-backup.md](../engine/gallery-backup.md) decision 9): item 4, "Backup Runs", lists the runs under `backupPath`, newest first, each run's files, and a restore through the flow (`play backup/runs`), an engine change whose apply is `backup.Restore`, each file backed up and journalled first; a run of SSH or firewall files is refused where it is chosen. Recommended there: the list in slice 3, the restore its own later unit on the engine.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: Figma `05-BACKUP.png` (reference only).
   - After: `docs/refactor/img/p-19-after.png` (placeholder).
@@ -688,7 +689,7 @@
 <a id="p-31"></a>
 ### P-31: Figma's words or origin/main's on the other Figma frames
 
-- **Status:** proposed (each frame is decided separately)
+- **Status:** proposed (each frame is decided separately); **05-BACKUP decided** (maintainer, 2026-10-27, slice 3 decisions 2 and 4): origin/main's title, "Backup Settings", and prompt, "Enter selection"; Figma's section, rows and item labels; item 1 "Turn backups off" / "Turn backups on", item 3 "Check the path, writing nothing", item 2 Figma's "Change backup path". [gallery-backup.md](../engine/gallery-backup.md) §5.
 - **Source:** `next/p1d-gallery-screens`, whose mocks draw each Figma frame as Figma fills it, while origin/main is the baseline for wording (refactor plan, decision 6). It asks of the other frames what [P-29](#p-29) (b) asks of 01-USER. Related: [P-07](#p-07), [P-11](#p-11), [P-12](#p-12), [P-28](#p-28), [P-29](#p-29).
 - **Problem:** the frames' words differ from origin/main's (origin/main pkg/menu; [interaction.md](phase0/interaction.md) §4.3, §9.1):
   - **02-SSH_LOGIN, SSH_LOGIN-TOGGLE_CONFIRMATION:** the title "Manage Root SSH Login" against "Disable Root SSH Access"; the items "Root SSH Login" (Toggle root SSH access) and "View SSH Settings" (Show SSH configuration) against "Disable root SSH access" (Modify SSH config to prevent root login) and "View current SSH configuration" (Show details of SSH security settings); "0) Return" with no description against "Keep current settings"; the question "Disable SSH login for 'root'?" against "Are you sure you want to disable root SSH access?"; the warning "Before disabling root SSH login, ensure:" against "Before disabling root SSH access, ensure that:", and its checklist, "Non-root user has sudo privileges", "Non-root user SSH access has been tested" and "If SSH fails, a fallback access method is available", against "You have created at least one non-root user with sudo privileges", "You have tested SSH access with this non-root user" and "You have a backup method to access this system if SSH fails" (origin/main shows them on the SSH Login screen, above its menu); the section "SSH Configuration" and its rows "Root SSH Login", "SSH Port" and "Allowed Users" against "Current SSH Configuration:" and "Root SSH login", "SSH port" and "Allowed users", which origin/main shows only under item 2, its view of the configuration ([P-28](#p-28)) (disable_root_menu.go). Item 1's words are also [P-12](#p-12)'s.

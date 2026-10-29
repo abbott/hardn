@@ -1,0 +1,140 @@
+# Golden file of TestBackupGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mbackup verify␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Verify Directory (3) on the default, elsewhere, unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand relative hosts, each report under the screen's prompt;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /srv/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# backup verify ------------------------------------------------$
+$
+# Note$
+# Mock: Verify Directory (3) on the default, elsewhere, unsafe$
+# and relative hosts, each report under the screen's prompt;$
+# nothing written.$
+$
+# verify on default --------------------------------------------$
+$
+  Only root can change /var/backups, where the first backup$
+  makes /var/backups/hardn. Nothing was written.$
+$
+# verify on elsewhere ------------------------------------------$
+$
+  Only root can change /srv/backups/hardn. Nothing was written.$
+$
+# verify on unsafe ---------------------------------------------$
+$
+# Warning$
+# Others can change /tmp, so backups can't go in /tmp/hardn-$
+# backups. Choose a directory only root can change.$
+$
+  Nothing was written.$
+$
+# verify on relative -------------------------------------------$
+$
+# Warning$
+# "backups" is not an absolute path. Start it with /.$
+$
+  Nothing was written.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mbackup verify␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Verify Directory (3) on the default, elsewhere,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munsafe and relative hosts, each report under the screen's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt; nothing written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /srv/backups/hardn. Nothing was␛[m$
+  ␛[38;2;129;134;156mwritten.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mbackup verify␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Verify Directory (3) on the default, elsewhere, unsafe␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand relative hosts, each report under the screen's prompt;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing written.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on default␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on elsewhere␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+  ␛[38;2;129;134;156mOnly root can change /srv/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on unsafe␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbackups. Choose a directory only root can change.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mverify on relative␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m"backups" is not an absolute path. Start it with /.␛[m$
+$
+  ␛[38;2;129;134;156mNothing was written.␛[m$
+$
+$

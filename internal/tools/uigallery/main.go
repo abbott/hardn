@@ -15,6 +15,7 @@
 //	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
+//	go run ./internal/tools/uigallery backup [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -141,6 +142,18 @@
 // colour; it has no ASCII form. None, or "all", is every set and the strip.
 // Its flags are -list, -theme, -profile, -ascii, -override, and -width and
 // -height sized as play's; it draws nothing by -height.
+//
+// "backup" lists the Backup mocks of refactor plan slice 3, unit (a)
+// (backup.go, docs/engine/gallery-backup.md), each under a note: the
+// proposed Backup screen on seven simulated hosts, read by real code
+// (config.Read, pkg/host/backup's Check and Load), Figma's frame as drawn
+// and the alternative with a status row of its own, Verify's reports, and
+// the runs, a run and its directory (P-19). "play backup" is the menu of the hosts and "play backup/<host>"
+// the screen on one, each change on the real engine, the save of the one
+// setting it changes (steps.PlanSave); -sequence dry-run stops each at
+// its plan, as plan only would; -fail is refused there. Its flags are
+// -list, -theme, -profile, -ascii, -override, and -width and -height
+// sized as play's.
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the
@@ -530,10 +543,10 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns and sizes itself with size; with "status" or
-// "glyphs" first, the status listing (statusList) or the glyphs mode
-// (glyphs), which size themselves with size too and read no input. No
-// other mode calls either.
+// line reader stdin returns and sizes itself with size; with "status",
+// "glyphs" or "backup" first, the status listing (statusList), the glyphs
+// mode (glyphs) or the Backup listing (backupList), which size themselves
+// with size too and read no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -544,6 +557,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == "glyphs" {
 		return glyphs(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == backupPrefix {
+		return backupList(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -552,6 +568,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(playUsage, "usage: "))
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(backupUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

@@ -1,0 +1,335 @@
+# Golden file of TestPlayBackupGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/off␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Backup screen proposed for slice 3,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host, each␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the real plan/apply engine. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false. A change still backs up what its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrollback needs (plan §3.16). Each change is planned, reviewed,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfirmed y/N and applied on the real engine; then the screen␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis read again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
+$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups On␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-enableBackups: false               # Backup files before␛[m$
+      ␛[38;2;231;70;105m↪ modifying them␛[m$
+      ␛[38;2;112;212;127m+enableBackups: true               # Backup files before␛[m$
+      ␛[38;2;112;212;127m↪ modifying them␛[m$
+      ␛[38;2;129;134;156m backupPath: "/var/backups/hardn"  # Path to store backups␛[m$
+$
+  ␛[38;2;192;196;216mTurn backups on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m     ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m          ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play backup/off ----------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Backup screen proposed for slice 3,$
+# drawn from what real code reads of a simulated host, each$
+# change on the real plan/apply engine. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Info: backup/off$
+# web-01.example.net runs Debian 13. hardn.yml says$
+# enableBackups: false. A change still backs up what its$
+# rollback needs (plan §3.16). Each change is planned, reviewed,$
+# confirmed y/N and applied on the real engine; then the screen$
+# is read again.$
+$
+# Backup Settings ##############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [ ] Backup State         Disabled$
+   -  Rollback backups are still taken$
+  [+] Backup Path          /var/backups/hardn Not created yet$
+$
+  Select an option$
+$
+   1) Backup State         Turn backups on$
+   2) Backup Path          Change backup path$
+   3) Verify Directory     Check the path, writing nothing$
+   4) Backup Runs          None yet$
+$
+   0) Return$
+$
+  > Enter selection [0-4 or q]: 3$
+$
+  Only root can change /var/backups, where the first backup$
+  makes /var/backups/hardn. Nothing was written.$
+$
+# Backup Settings ##############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [ ] Backup State         Disabled$
+   -  Rollback backups are still taken$
+  [+] Backup Path          /var/backups/hardn Not created yet$
+$
+  Select an option$
+$
+   1) Backup State         Turn backups on$
+   2) Backup Path          Change backup path$
+   3) Verify Directory     Check the path, writing nothing$
+   4) Backup Runs          None yet$
+$
+   0) Return$
+$
+  > Enter selection [0-4 or q]: 1$
+$
+# Turn Backups On ##############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [+] Backup State         Enabled$
+$
+   -  Save the configuration$
+      /etc/hardn/hardn.yml$
+      @@ -1,4 +1,4 @@$
+       # hardn's configuration (web-01.example.net)$
+       username: alice$
+      -enableBackups: false               # Backup files before$
+      | modifying them$
+      +enableBackups: true               # Backup files before$
+      | modifying them$
+       backupPath: "/var/backups/hardn"  # Path to store backups$
+$
+  Turn backups on? [y/N, 0 or q]: n$
+$
+# Operation Cancelled$
+$
+# Backup Settings ##############################################$
+$
+# Backup Configuration -----------------------------------------$
+$
+  [ ] Backup State         Disabled$
+   -  Rollback backups are still taken$
+  [+] Backup Path          /var/backups/hardn Not created yet$
+$
+  Select an option$
+$
+   1) Backup State         Turn backups on$
+   2) Backup Path          Change backup path$
+   3) Verify Directory     Check the path, writing nothing$
+   4) Backup Runs          None yet$
+$
+   0) Return$
+$
+  > Enter selection [0-4 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/off␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Backup screen proposed for slice 3,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host, each␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the real plan/apply engine. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false. A change still backs up what its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrollback needs (plan §3.16). Each change is planned,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreviewed, confirmed y/N and applied on the real engine;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen the screen is read again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
+      ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
+      ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 3$
+$
+  ␛[38;2;129;134;156mOnly root can change /var/backups, where the first backup␛[m$
+  ␛[38;2;129;134;156mmakes /var/backups/hardn. Nothing was written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
+      ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
+      ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mTurn Backups On␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
+      ␛[38;2;86;91;107m@@ -1,4 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # hardn's configuration (web-01.example.net)␛[m$
+      ␛[38;2;129;134;156m username: alice␛[m$
+      ␛[38;2;231;70;105m-enableBackups: false               # Backup files␛[m$
+      ␛[38;2;231;70;105m↪ before modifying them␛[m$
+      ␛[38;2;112;212;127m+enableBackups: true               # Backup files␛[m$
+      ␛[38;2;112;212;127m↪ before modifying them␛[m$
+      ␛[38;2;129;134;156m backupPath: "/var/backups/hardn"  # Path to store␛[m$
+      ␛[38;2;129;134;156m↪ backups␛[m$
+$
+  ␛[38;2;192;196;216mTurn backups on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;219;184;83mDisabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mRollback backups are still taken␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mBackup State␛[m$
+      ␛[38;2;129;134;156mTurn backups on␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mBackup Path␛[m$
+      ␛[38;2;129;134;156mChange backup path␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mVerify Directory␛[m$
+      ␛[38;2;129;134;156mCheck the path, writing nothing␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mBackup Runs␛[m$
+      ␛[38;2;129;134;156mNone yet␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
