@@ -57,7 +57,7 @@ var (
 	revertPID                   = os.Getpid
 	revertExit                  = os.Exit
 	revertNow                   = time.Now
-	revertStderr      io.Writer = os.Stderr
+	revertStderr      io.Writer = termStderr
 	revertNoticeSeen            = stderrIsTerminal
 	revertHoldSignals           = holdSignals
 	revertExecutable            = executable
@@ -208,6 +208,7 @@ func runRollback(_ *cobra.Command, args []string) {
 	if !revertPreflight("rollback") {
 		return
 	}
+	defer watchHangup().stop() // a hangup's mark, whatever the hold is busy logging
 	defer revertHoldSignals()()
 	ctx := context.Background()
 	sys := revertHost()
@@ -297,6 +298,7 @@ func runBoot() {
 	if !revertPreflight("rollback --boot") {
 		return
 	}
+	defer watchHangup().stop() // a hangup's mark, whatever the hold is busy logging
 	defer revertHoldSignals()()
 	ctx := context.Background()
 	sys := revertHost()
@@ -345,15 +347,16 @@ func orNothing(lines []string) []string {
 // rollback` (and its --boot) part-way, until the returned function is
 // called: Go's default is to exit on each (os/signal), and a rollback half
 // done is worse than one finished (RollbackTimeout bounds it). It is
-// pkg/engine/hold's (next/p3-engine-boot), the engine's own: SIGHUP and
-// SIGINT are ignored, which the commands the rollback runs inherit, so the
-// terminal's Ctrl-C and hangup, sent to the whole foreground process group,
-// stop neither hardn nor the ufw or systemctl it is running; SIGTERM is
-// caught and logged as a warning, "hardn rollback: SIGTERM received; the
-// rollback finishes first", as before; and the release gives SIGHUP and
-// SIGINT back their disposition before the hold. SIGKILL cannot be held
-// off: the timer, or the next `hardn rollback <id>`, takes the rollback up
-// after it.
+// pkg/engine/hold's (next/p3-engine-boot), the engine's own: SIGINT is
+// ignored, which the commands the rollback runs inherit, and they run in
+// sessions of their own (host.OwnSessions), so the terminal's Ctrl-C and
+// hangup, sent to the whole foreground process group, stop neither hardn
+// nor the ufw or systemctl it is running; SIGTERM and SIGHUP are caught
+// and logged as warnings, "hardn rollback: SIGTERM received; the rollback
+// finishes first", as before, and the same for SIGHUP (since
+// next/s3-hangup); and the release gives the three back their disposition
+// before the hold. SIGKILL cannot be held off: the timer, or the next
+// `hardn rollback <id>`, takes the rollback up after it.
 func holdSignals() (release func()) { return hold.SignalsAs("hardn rollback", revertWarnLog{}) }
 
 // revertWarnLog writes each line as a warning to hardn's log and the

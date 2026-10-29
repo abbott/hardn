@@ -20,6 +20,8 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/host/hangup"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
@@ -30,6 +32,38 @@ var (
 	stderrEnv    = func() term.Env { return streamEnv(os.Stderr) }
 	revertColour = func() bool { return streamEnv(os.Stdout).HasColor() && streamEnv(os.Stderr).HasColor() }
 )
+
+// termStdout and termStderr are hardn's stdout and stderr as cmd/hardn
+// writes to them, the legacy logger's console lines (fatih/color's Output
+// and Error) and its fallback when hardn's log cannot be opened
+// (logging.FallbackOutput) among them, set by init before main opens the
+// log: through hangup.Writer (terminalWriter), one each, so that once a
+// hangup is caught (hangup.Seen) what hardn writes there is dropped, and
+// a write blocked on a terminal nothing reads any more is given up on
+// (since next/s3-hangup; the maintainer, 2026-10-28: "Make hardn stop
+// writing to its terminal once a hangup is caught"; cmd-engine.md §2.6).
+// The legacy menus' own fmt.Print calls write to os.Stdout itself; no
+// hangup is caught while they run.
+var (
+	termStdout = terminalWriter(os.Stdout)
+	termStderr = terminalWriter(os.Stderr)
+)
+
+func init() {
+	color.Output, color.Error = termStdout, termStderr
+	logging.FallbackOutput = termStderr
+}
+
+// terminalWriter is f through hangup.Writer, unless f is a regular file
+// (hardn -g > report.txt): a write to a file never waits on a reader, and
+// what hardn writes there after a hangup is still read, so it is kept. A
+// pipe, a terminal or the null device goes through it.
+func terminalWriter(f *os.File) io.Writer {
+	if fi, err := f.Stat(); err == nil && fi.Mode().IsRegular() {
+		return f
+	}
+	return hangup.Writer(f)
+}
 
 // streamEnv is pkg/ui/term's detection for the stream f, as it detects
 // stdout: f a terminal, TERM, NO_COLOR, HARDN_PLAIN, and --no-color as

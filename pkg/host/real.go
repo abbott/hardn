@@ -89,8 +89,9 @@ func runCmd(cmd *exec.Cmd) (int, error) {
 //   - A non-zero exit returns *ExitError; ctx done kills the process Run
 //     started (os/exec's default Cancel, Process.Kill) and returns an error
 //     wrapping ctx.Err(). Processes that one started are not killed: the
-//     command stays in hardn's process group, and a pipeline's or a
-//     wrapper's children can outlive the cancellation.
+//     command stays in hardn's process group, or in a session of its own
+//     while OwnSessions holds, and a pipeline's or a wrapper's children
+//     can outlive the cancellation.
 //   - Once the command has exited or been killed, Run waits at most 10 s for
 //     output pipes a child it started still holds open, so a daemon cannot
 //     hang it; then the pipes are closed under the child (pipeWaitDelay). A
@@ -136,6 +137,9 @@ func (r *Real) start(ctx context.Context, res *Result, stdin []byte, name string
 	cmd.Env = append([]string(nil), commandEnv...)
 	cmd.Dir = "/"
 	cmd.WaitDelay = pipeWaitDelay
+	if inOwnSession() {
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	}
 	if stdin != nil {
 		cmd.Stdin = bytes.NewReader(stdin)
 	}

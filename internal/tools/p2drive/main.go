@@ -132,12 +132,13 @@ func production() env {
 // in-process rollback part-way, until release is called: pkg/engine/hold,
 // as the engine and cmd/hardn's `hardn rollback` hold them
 // (docs/safety/revert.md §2.17; next/p3-engine-boot moved p2drive's own
-// copy there), with its line "p2drive: SIGTERM received; the rollback
-// finishes first" to log. SIGHUP and SIGINT are ignored, which the
-// commands the rollback runs inherit: host.Real's children stay in
-// p2drive's process group, so the terminal's Ctrl-C would otherwise reach
-// the ufw or systemctl the rollback is running. Release gives them back
-// their disposition before the hold.
+// copy there), with its lines "p2drive: SIGTERM received; the rollback
+// finishes first" and "p2drive: SIGHUP received; ..." to log. SIGINT is
+// ignored, which the commands the rollback runs inherit, and they run in
+// sessions of their own (host.OwnSessions), outside p2drive's process
+// group, so the terminal's Ctrl-C and hangup do not reach the ufw or
+// systemctl the rollback is running. Release gives the signals back their
+// disposition before the hold.
 func holdSignals(log io.Writer) (release func()) { return hold.SignalsAs("p2drive", log) }
 
 func main() {

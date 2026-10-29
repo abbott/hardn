@@ -71,8 +71,9 @@ type Options struct {
 	// has returned; one per apply. cmd/hardn's is cancelled by Ctrl-C,
 	// SIGTERM and a hangup during the apply alone (engine.md §2.14), so
 	// that a change they interrupt is rolled back and the screen goes
-	// on, while at a prompt they act as they always have. Nil applies
-	// under the screen's context.
+	// on, or, after a hangup, hardn ends (cmd-engine.md §2.6), while at a
+	// prompt they act as they always have. Nil applies under the screen's
+	// context.
 	ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc)
 	// DryRun stops each change at its plan: nothing applied or saved.
 	DryRun bool

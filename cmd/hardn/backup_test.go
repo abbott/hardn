@@ -5,15 +5,19 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"os/signal"
 	"slices"
 	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -202,11 +206,13 @@ func (h signalHost) WriteFileAtomic(ctx context.Context, name string, data []byt
 // as the kernel delivers it, cancel that apply: the change is rolled back
 // here, hardn.yml as it was, the report naming hardn's log, and the screen
 // goes on; the user then goes back (nil), the configuration as it was.
-// The change before it in the same visit, its save failing, was rolled
-// back under the engine's own hold (hold.Signals), whose release ends a
-// registration made before it: each apply registers its own
-// (engineSignals), or the signal would end hardn half applied, as Go's
-// default would end this test process.
+// After the hangup hardn ends (endHangup, recorded here), once, as the
+// apply returns, hardn.yml as it was; never after the others. The change
+// before it in the same visit, its save failing, was rolled back under
+// the engine's own hold (hold.Signals), whose release ends a registration
+// made before it: each apply registers its own (engineSignals), or the
+// signal would end hardn half applied, as Go's default would end this
+// test process.
 func TestBackupScreenSignals(t *testing.T) {
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
 		t.Run(sig.String(), func(t *testing.T) {
@@ -214,13 +220,18 @@ func TestBackupScreenSignals(t *testing.T) {
 			h, cfg := newDNSHost(t, "debian13", dnsTestList)
 			yml := h.content(dnsTestYML)
 			s := useDNSHost(t, h, "1", "y", "1", "y", "0")
-			engineHold = nil // the engine's own
+			engineHold = func() func() { s.held++; return hold.Signals(nil) } // the engine's own, counted
 			var applying context.Context
+			stopped := 0
 			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
 				s.applies++
 				c, stop := signals(ctx)
 				applying = c
-				return c, stop
+				return c, func() { stopped++; stop() }
+			}
+			var ended []hangupEnd
+			endHangup = func() {
+				ended = append(ended, hangupEnd{stopped, s.held, signal.Ignored(syscall.SIGHUP), h.content(dnsTestYML), s.out.String()})
 			}
 			saves := 0
 			engineHost = func() host.System {
@@ -254,6 +265,157 @@ func TestBackupScreenSignals(t *testing.T) {
 			}
 			if got := h.content(dnsTestYML); got != yml || !cfg.EnableBackups {
 				t.Errorf("hardn.yml after the signal (enableBackups %t):\n%s", cfg.EnableBackups, got)
+			}
+			wantHangupEnd(t, sig, ended, yml, "[+] Save the configuration  Done")
+		})
+	}
+}
+
+// TestScreenHangupTerminalUnread: on the DNS and Backup screens, the SSH
+// session drops during a change's step, as under sudo-rs: the terminal no
+// longer read (unreadTerminal), every write to it blocking from then on,
+// and a hangup sent to this test process. The apply is cancelled and
+// rolled back all the same, the file as before, and hardn ends
+// (endHangup, recorded here), once, after that apply has returned, its
+// signal context stopped: the hangup marked hardn's terminal gone as it
+// came, so the steps' lines and the report after it were dropped rather
+// than left blocking the apply (since next/s3-hangup; the maintainer,
+// 2026-10-28: "Make hardn stop writing to its terminal once a hangup is
+// caught"). The test's endHangup returns, so the screen goes on, writing
+// nothing, and the user goes back.
+func TestScreenHangupTerminalUnread(t *testing.T) {
+	for _, tc := range []struct {
+		screen string
+		host   string
+		file   string
+		drop   func(h *dnsHost, at func())
+		run    func(context.Context, *config.Config) error
+	}{
+		{"DNS", "ubuntu2604", hostdns.DropIn, func(h *dnsHost, at func()) {
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
+					at()
+				}
+				return answer(argv, in)
+			}
+		}, runDNSScreen},
+		{"Backup", "debian13", dnsTestYML, func(h *dnsHost, at func()) {
+			engineHost = func() host.System { return signalHost{h, func() error { at(); return nil }} }
+		}, runBackupScreen},
+	} {
+		t.Run(tc.screen, func(t *testing.T) {
+			signals := engineSignals // the real one: useDNSHost replaces it
+			h, cfg := newDNSHost(t, tc.host, dnsTestList)
+			was := h.content(tc.file)
+			s := useDNSHost(t, h, "1", "y", "0")
+			unread := newUnreadTerminal(t)
+			unread.use(&s.out)
+			engineHold = func() func() { s.held++; return hold.Signals(nil) } // the engine's own, counted
+			var applying context.Context
+			stopped := 0
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				c, stop := signals(ctx)
+				applying = c
+				return c, func() { stopped++; stop() }
+			}
+			tc.drop(h, func() {
+				unread.hangUp()
+				select {
+				case <-applying.Done():
+				case <-time.After(5 * time.Second):
+					t.Error("the hangup did not cancel the apply")
+				}
+			})
+			type end struct {
+				stopped int
+				file    string
+			}
+			var ended []end
+			endHangup = func() { ended = append(ended, end{stopped, h.content(tc.file)}) }
+			var err error
+			done := make(chan struct{})
+			go func() { defer close(done); err = tc.run(context.Background(), cfg) }()
+			unread.within(done)
+			if err != nil {
+				t.Fatalf("the %s screen = %v", tc.screen, err)
+			}
+			if want := []end{{1, was}}; !slices.Equal(ended, want) {
+				t.Errorf("hardn ended %+v, want %+v", ended, want)
+			}
+			if got := h.content(tc.file); s.applies != 1 || got != was || unread.marks() == 0 {
+				t.Errorf("%d applies, want 1; the terminal marked gone %d times; the file after:\n%s\nwant:\n%s", s.applies, unread.marks(), got, was)
+			}
+		})
+	}
+}
+
+// TestScreenHangupDuringRollback: on the DNS and Backup screens, a change
+// fails (DNS's reload has no effect; Backup's save of hardn.yml fails),
+// and a hangup comes during its rollback, sent to this test process as
+// the engine's own hold (hold.Signals) holds: hardn ends (endHangup,
+// recorded here), once, after that apply has returned, its one signal
+// context stopped and its hold released, the file as before (since
+// next/s3-hangup's "Yes, catch it": before it the hold ignored the
+// hangup, and the screen went on to its next prompt). The test's
+// endHangup returns, so the screen goes on, and the user goes back.
+func TestScreenHangupDuringRollback(t *testing.T) {
+	for _, tc := range []struct {
+		screen string
+		host   string
+		file   string
+		fail   func(h *dnsHost)
+		run    func(context.Context, *config.Config) error
+	}{
+		{"DNS", "ubuntu2604", hostdns.DropIn, func(h *dnsHost) {
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				if strings.Join(argv, " ") == "systemctl try-reload-or-restart "+hostdns.ResolvedUnit {
+					return hostfake.Response{} // no effect: the change fails and is rolled back
+				}
+				return answer(argv, in)
+			}
+		}, runDNSScreen},
+		{"Backup", "debian13", dnsTestYML, func(h *dnsHost) {
+			engineHost = func() host.System {
+				return signalHost{h, func() error { return &fs.PathError{Op: "sync", Path: dnsTestYML, Err: syscall.EIO} }}
+			}
+		}, runBackupScreen},
+	} {
+		t.Run(tc.screen, func(t *testing.T) {
+			signals := engineSignals // the real one: useDNSHost replaces it
+			h, cfg := newDNSHost(t, tc.host, dnsTestList)
+			was := h.content(tc.file)
+			s := useDNSHost(t, h, "1", "y", "0")
+			tc.fail(h)
+			released := 0
+			engineHold = func() func() {
+				s.held++
+				release := hold.Signals(nil) // the engine's own
+				sendHangup(t)
+				return func() { release(); released++ }
+			}
+			stopped := 0
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				c, stop := signals(ctx)
+				return c, func() { stopped++; stop() }
+			}
+			type end struct {
+				stopped, held, released int
+				file                    string
+			}
+			var ended []end
+			endHangup = func() { ended = append(ended, end{stopped, s.held, released, h.content(tc.file)}) }
+			if err := tc.run(context.Background(), cfg); err != nil {
+				t.Fatalf("the %s screen = %v; screen:\n%s", tc.screen, err, s.out.String())
+			}
+			if want := []end{{1, 1, 1, was}}; !slices.Equal(ended, want) {
+				t.Errorf("hardn ended %+v, want %+v; screen:\n%s", ended, want, s.out.String())
+			}
+			if got := h.content(tc.file); s.applies != 1 || got != was {
+				t.Errorf("%d applies, want 1; the file after:\n%s\nwant:\n%s", s.applies, got, was)
 			}
 		})
 	}

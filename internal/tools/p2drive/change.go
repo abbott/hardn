@@ -440,8 +440,8 @@ func (d *driver) revertOptions(hardn string) revert.Options {
 
 // rollBack rolls change id back at once, after step failed with err, while
 // this session is open (revert.ReasonFailed): without the command's
-// cancellation, with SIGHUP and SIGINT ignored and SIGTERM caught until it
-// returns (d.hold).
+// cancellation, with SIGINT ignored and SIGHUP and SIGTERM caught until
+// it returns (d.hold).
 func (d *driver) rollBack(ctx context.Context, id string, opts revert.Options, step string, err error) error {
 	d.say("%s failed: %v", step, err)
 	d.say("rolling change %s back while this session is open", id)

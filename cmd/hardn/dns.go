@@ -41,9 +41,22 @@ func configureDNS(c *config.Config) int {
 // is rolled back. The apply alone runs under engineSignals: Ctrl-C,
 // SIGTERM and a hangup during it cancel it, rolled back, and end hardn
 // at once with 130, once reported; before it they end hardn as they
-// always have, a plan having written nothing. It returns the exit status
-// (output.ExitCode, Phase 3's): 0 for applied or nothing to change, 3 for
-// a dry run with changes to make, 1 for a refusal or a failure.
+// always have, a plan having written nothing. One that reaches the apply
+// without cancelling it, SIGTERM or a hangup during the rollback of a
+// failure (the engine's hold ignores Ctrl-C), or any of the three after
+// the apply's last step or while the report is written, ends hardn too,
+// once reported, the next flags not run: with the failure's status, or
+// 130 for a change applied, so that a script never reads 0 for a run
+// whose later flags did not run (since next/s3-hangup; the maintainer,
+// 2026-10-28: "Yes, catch it"). A hangup's watch (watchHangup), registered
+// first, around the same window, marks hardn's terminal gone as the
+// hangup comes, so that the report is dropped rather than left blocking
+// on a terminal nothing reads (sudo-rs's, once the session has dropped);
+// a hangup it alone catches, before engineSignals' registration, ends
+// hardn as one that reached the apply does.
+// It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
+// or nothing to change, 3 for a dry run with changes to make, 1 for a
+// refusal or a failure.
 func runControls(c *config.Config, controls []engine.Control) int {
 	ctx := context.Background()
 	sys := engineHost()
@@ -53,8 +66,14 @@ func runControls(c *config.Config, controls []engine.Control) int {
 		run.Mode = output.ModePlan
 	}
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
+	actx := ctx // a signal's, around the apply and its report alone
+	hungUp := func() bool { return false }
 	if run.Mode == output.ModeApply && run.Err == nil && run.Plan.Err() == nil {
-		actx, stop := engineSignals(ctx)
+		hup := watchHangup() // first: no hangup engineSignals catches goes unmarked
+		defer hup.stop()
+		hungUp = hup.seen
+		var stop context.CancelFunc
+		actx, stop = engineSignals(ctx)
 		defer stop()
 		res, err := e.Apply(actx, run.Plan)
 		run.Result, run.Err = &res, err
@@ -63,7 +82,11 @@ func runControls(c *config.Config, controls []engine.Control) int {
 		logging.LogError("%v", err)
 	}
 	code := output.ExitCode(run)
-	if code == output.ExitInterrupted {
+	signalled := actx.Err() != nil || hungUp()
+	if signalled && code == output.ExitOK {
+		code = output.ExitInterrupted // applied, but the flags after it are not run
+	}
+	if code == output.ExitInterrupted || signalled {
 		exit(code)
 	}
 	return code
@@ -95,11 +118,13 @@ func withDNSScreen[M dnsMenu](m M, c *config.Config) M {
 // audit log's first writer is next/p3-startup's (Options.Ran left nil).
 //
 // Each change's apply, and nothing else, runs under engineSignals
-// (dnsscreen.Options.ApplyContext; engine.md §2.14): Ctrl-C, SIGTERM and
-// a hangup during it cancel it, and the change is rolled back here
-// rather than left half applied; the screen then goes on. They are
-// registered again for each apply, since the hold around a rollback ends
-// a registration made before it. Elsewhere, at a prompt among them, they
+// (dnsscreen.Options.ApplyContext, screenApplyContext; engine.md §2.14):
+// Ctrl-C, SIGTERM and a hangup during it cancel it, and the change is
+// rolled back here rather than left half applied; the screen then goes
+// on, but after a hangup, during the apply or its rollback, hardn ends
+// once the apply has returned. They are registered again for each apply,
+// since the hold around a rollback ends a registration of Ctrl-C made
+// before it. Elsewhere, at a prompt among them, they
 // end hardn as they always have: Ctrl-C at a prompt as the prompt reports
 // it (prompt.ErrInterrupted), SIGTERM and a hangup by Go's default.
 func runDNSScreen(ctx context.Context, c *config.Config) error {
@@ -115,7 +140,7 @@ func runDNSScreen(ctx context.Context, c *config.Config) error {
 		Facts:        facts,
 		Config:       c,
 		NewEngine:    newEngine(sys, engineOptions(ctx, sys, c)),
-		ApplyContext: engineSignals,
+		ApplyContext: screenApplyContext,
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,

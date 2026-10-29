@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -196,6 +197,39 @@ func TestRevertRollbackCommand(t *testing.T) {
 	executeHardn(t, "rollback", "../etc")
 	if s.exit != 2 {
 		t.Errorf("rollback of a path: exit %d, want 2", s.exit)
+	}
+}
+
+// TestRevertRollbackHangup: hardn rollback and hardn rollback --boot
+// watch for a hangup from before their hold until after it (watchHangup),
+// so that one comes marked whatever the hold's own goroutine is busy
+// with, as its console line for an earlier SIGTERM blocked on a terminal
+// nothing reads: here the hold is the test's, which catches nothing, and a
+// hangup sent as it is taken is marked once; one after the command marks
+// nothing (this test's probe keeps it alive).
+func TestRevertRollbackHangup(t *testing.T) {
+	for _, args := range [][]string{{"rollback", revertTestID}, {"rollback", "--boot"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			s := newRevertSeams(t, 0)
+			goneWas := terminalGone
+			t.Cleanup(func() { terminalGone = goneWas })
+			var marks atomic.Int32
+			terminalGone = func() { marks.Add(1) }
+			revertHoldSignals = func() func() {
+				s.held++
+				sendHangup(t)
+				return func() { s.released++ }
+			}
+			executeHardn(t, args...)
+			if n := marks.Load(); n != 1 || s.held != 1 || s.released != 1 {
+				t.Errorf("a hangup as the hold was taken marked the terminal gone %d times, want once; held %d, released %d", n, s.held, s.released)
+			}
+			sendHangup(t)
+			time.Sleep(50 * time.Millisecond)
+			if n := marks.Load(); n != 1 {
+				t.Errorf("a hangup after hardn %v marked the terminal gone: %d marks", args, n)
+			}
+		})
 	}
 }
 
@@ -571,10 +605,10 @@ func systemDetailsCmdForTest() *cobra.Command {
 	panic("no system-details subcommand")
 }
 
-// holdSignals keeps SIGINT and SIGHUP ignored, and SIGTERM caught, until it
-// is released: this process survives each, sent to itself. The SIGTERM is
-// logged as a warning, in the words `hardn rollback` has always used
-// (revertWarnLog, pkg/engine/hold's SignalsAs).
+// holdSignals keeps SIGINT ignored, and SIGHUP and SIGTERM caught, until
+// it is released: this process survives each, sent to itself. SIGTERM and
+// SIGHUP are each logged as a warning, in the words `hardn rollback` has
+// always used for SIGTERM (revertWarnLog, pkg/engine/hold's SignalsAs).
 func TestHoldSignals(t *testing.T) {
 	var out syncBuffer
 	outWas := color.Output
@@ -582,9 +616,9 @@ func TestHoldSignals(t *testing.T) {
 	logging.SetSilentMode(false)
 	defer func() { color.Output = outWas; logging.SetSilentMode(false) }()
 	release := holdSignals()
-	if !signal.Ignored(syscall.SIGINT) || !signal.Ignored(syscall.SIGHUP) {
+	if !signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		release()
-		t.Fatal("SIGINT and SIGHUP are not ignored")
+		t.Fatal("SIGINT is not ignored, or SIGHUP is")
 	}
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM} {
 		if err := syscall.Kill(os.Getpid(), sig); err != nil {
@@ -592,14 +626,20 @@ func TestHoldSignals(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	const warning = "[WARNING] hardn rollback: SIGTERM received; the rollback finishes first"
+	warnings := []string{
+		"[WARNING] hardn rollback: SIGHUP received; the rollback finishes first",
+		"[WARNING] hardn rollback: SIGTERM received; the rollback finishes first",
+	}
 	deadline := time.Now().Add(2 * time.Second) // the process is still here
-	for !strings.Contains(out.String(), warning) && time.Now().Before(deadline) {
+	for !(strings.Contains(out.String(), warnings[0]) && strings.Contains(out.String(), warnings[1])) && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	release()
-	if got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), ""); strings.Count(got, warning) != 1 {
-		t.Errorf("output %q; want one %q", got, warning)
+	got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), "")
+	for _, warning := range warnings {
+		if strings.Count(got, warning) != 1 {
+			t.Errorf("output %q; want one %q", got, warning)
+		}
 	}
 	if signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		t.Error("release left SIGINT or SIGHUP ignored")

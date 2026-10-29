@@ -36,7 +36,7 @@ var (
 	confirmClaim             = confirm.Claim
 	confirmCleanup           = confirm.Cleanup
 	confirmHost              = func() host.System { return host.NewReal(host.Options{RunLog: revertFileLog{}}) }
-	confirmStdout  io.Writer = os.Stdout
+	confirmStdout  io.Writer = termStdout
 	stdoutEnv                = func() term.Env { return streamEnv(os.Stdout) }
 	confirmSignals           = func(ctx context.Context) (context.Context, context.CancelFunc) {
 		return signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
@@ -82,10 +82,12 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		logging.LogInfo("Change %s (%s), %s, still has port %s in %s, which it held during its confirm window: its clean-up, from this connection.",
 			h.Change.ID, h.Change.Summary, which, portWords(h.Cleanup.Drop), sshd.HardnDropIn)
 	}
+	hup := watchHangup() // a hangup during the clean-up drops what is written after it
 	cctx, stop := confirmSignals(ctx)
 	o := confirmCleanup(cctx, confirmHost(), h, s, confirm.Options{
 		Revert: revert.Options{Log: revertFileLog{}, Now: revertNow}, Hold: confirmHold, PID: revertPID()})
 	stop()
+	hup.stop()
 	run := output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}
 	reported := !o.Done() || !o.Result.Nothing
 	if reported {

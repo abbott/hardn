@@ -7,6 +7,7 @@ import (
 	"net/netip"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -192,6 +193,80 @@ func TestConfirmCleanupCommand(t *testing.T) {
 				t.Errorf("the clean-up's run is not one blank line after the report:\n%s", out)
 			}
 		})
+	}
+}
+
+// TestConfirmCleanupHangup: a hangup sent to this test process during
+// hardn confirm's clean-up, as the real signals catch it, marks hardn's
+// terminal gone as it comes (terminalGone, counted here), so that the
+// clean-up's report and what is left of it are dropped rather than left
+// blocking on a terminal nothing reads (since next/s3-hangup; the
+// maintainer, 2026-10-28: "Make hardn stop writing to its terminal once
+// a hangup is caught"); the clean-up's context is cancelled, and it
+// exits 130.
+func TestConfirmCleanupHangup(t *testing.T) {
+	interrupted := func(confirm.Held) confirm.Outcome {
+		ae := &engine.ApplyError{ID: cleanupTestID, Change: confirm.ControlID + "/reload", Step: engine.StepStart, Err: context.Canceled}
+		return confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()[:2], Failed: ae}, Err: ae}
+	}
+	marks := 0
+	var cancelled bool
+	signals := confirmSignals // the real one: newCleanupSeams replaces it
+	s := newCleanupSeams(t, nil)
+	signalsWas, cleanupWas, goneWas := confirmSignals, confirmCleanup, terminalGone
+	t.Cleanup(func() { confirmSignals, confirmCleanup, terminalGone = signalsWas, cleanupWas, goneWas })
+	confirmSignals = signals
+	marked := make(chan struct{}, 4)
+	terminalGone = func() { marked <- struct{}{} }
+	confirmCleanup = func(ctx context.Context, sys host.System, h confirm.Held, se revert.Session, o confirm.Options) confirm.Outcome {
+		s.calls++
+		sendHangup(t)
+		select {
+		case <-marked:
+			marks++
+		case <-time.After(5 * time.Second):
+			t.Error("the hangup did not mark the terminal gone as it came")
+		}
+		select {
+		case <-ctx.Done():
+			cancelled = true
+		case <-time.After(5 * time.Second):
+		}
+		return interrupted(h)
+	}
+	executeHardn(t, "confirm")
+	marks += len(marked)
+	if s.exit != 130 || s.calls != 1 || marks != 1 || !cancelled {
+		t.Errorf("exit %d, want 130; clean-up called %d times; the terminal marked gone %d times, want once; the clean-up's context cancelled %t:\n%s", s.exit, s.calls, marks, cancelled, s.out.String())
+	}
+}
+
+// TestConfirmCleanupHangupOrder: hardn confirm's watch is registered
+// before the clean-up's signals and stopped after them: a hangup between
+// the two registrations is caught and marked by the watch alone, once;
+// one after the command marks nothing (this test's probe keeps it alive).
+func TestConfirmCleanupHangupOrder(t *testing.T) {
+	signals := confirmSignals // the real one: newCleanupSeams replaces it
+	s := newCleanupSeams(t, func(h confirm.Held) confirm.Outcome {
+		return confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}
+	})
+	goneWas := terminalGone
+	t.Cleanup(func() { terminalGone = goneWas })
+	var marks atomic.Int32
+	terminalGone = func() { marks.Add(1) }
+	confirmSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+		s.signals++
+		sendHangup(t)
+		return signals(ctx)
+	}
+	executeHardn(t, "confirm")
+	if n := marks.Load(); n != 1 || s.calls != 1 {
+		t.Errorf("a hangup as the signals registered marked the terminal gone %d times, want once; clean-up called %d times", n, s.calls)
+	}
+	sendHangup(t)
+	time.Sleep(50 * time.Millisecond)
+	if n := marks.Load(); n != 1 {
+		t.Errorf("a hangup after hardn confirm marked the terminal gone: %d marks", n)
 	}
 }
 
