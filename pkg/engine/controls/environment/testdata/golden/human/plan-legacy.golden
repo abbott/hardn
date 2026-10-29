@@ -12,7 +12,7 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may still let alice use sudo␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may also let alice use sudo␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
 $
 
@@ -26,7 +26,7 @@ $
   No actual changes were made to your system.$
 $
 # Warning$
-# /etc/sudoers.d/alice may still let alice use sudo$
+# /etc/sudoers.d/alice may also let alice use sudo$
 # (SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)$
 $
 
@@ -40,6 +40,6 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may still let alice use sudo␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may also let alice use sudo␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
 $

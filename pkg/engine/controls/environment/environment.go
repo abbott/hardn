@@ -60,9 +60,9 @@ const (
 )
 
 // The state's words, as the screen's state row, the review and Check's
-// detail say them (Words): Kept, Not kept (decided, decision 7); on doas
-// each with the note NoteHardn, as the row reads hardn's rules alone
-// (decision 1 (a)'s open item, settled by words on 2026-10-29; proposed).
+// detail say them (Words): Kept, Not kept (decided, decision 7), each
+// with the note NoteHardn, as the row reads hardn's rules alone (decision
+// 1 (a)'s open item, settled by words; on sudo too; adopted 2026-10-29).
 const (
 	WordKept    = "Kept"
 	WordNotKept = "Not kept"
@@ -207,19 +207,17 @@ func (r Reading) ToolName() string {
 // and Check's detail there.
 func (r Reading) NotRun() string { return "Not run with " + r.ToolName() }
 
-// Words is the state of tool t's rules for the user, kept or not, as the
+// Words is the state of hardn's rules for the user, kept or not, as the
 // state row and the review say it: Kept or Not kept, with the note
-// NoteHardn on doas, where the row reads hardn's rules alone and the rule
-// doas applies may be another's (the settlement of 2026-10-29; proposed).
-func Words(t sudoers.Tool, kept bool) (value, note string) {
+// NoteHardn, as the row reads hardn's rules alone, and the rule sudo or
+// doas applies may be another's (decision 1 (a)'s settlement, on sudo
+// too; adopted 2026-10-29).
+func Words(kept bool) (value, note string) {
 	value = WordNotKept
 	if kept {
 		value = WordKept
 	}
-	if t == sudoers.ToolDoas {
-		note = NoteHardn
-	}
-	return value, note
+	return value, NoteHardn
 }
 
 // Words is r's state row (Words) where State is Configured or Not
@@ -230,7 +228,7 @@ func (r Reading) Words() (value, note string) {
 	if !r.Kept && r.Legacy.Keeps {
 		return WordKept, "by " + r.Legacy.Path
 	}
-	return Words(r.Choice.Tool, r.Kept)
+	return Words(r.Kept)
 }
 
 // State is r's state, as Check says it and a screen draws its rows: Not
@@ -525,14 +523,14 @@ func (r Reading) noRule(err error) error {
 // has no rule for the user (sudoers.ErrEnvNeedsGrant): that its state row
 // will not change once the user does what the refusal says, as it reads
 // hardn's rules alone, "Under doas stays Not kept by hardn" (the
-// settlement of 2026-10-29; proposed). "" for any other reading. It is
+// settlement of 2026-10-29; adopted). "" for any other reading. It is
 // not the refusal's: there is no row where -e and setup-sudo-env say a
 // refusal, or in the JSON document.
 func (r Reading) Stays() string {
 	if r.Err != nil || !errors.Is(r.Refused, sudoers.ErrEnvNeedsGrant) {
 		return ""
 	}
-	value, note := Words(sudoers.ToolDoas, false)
+	value, note := Words(false)
 	return "Under doas stays " + value + " " + note
 }
 

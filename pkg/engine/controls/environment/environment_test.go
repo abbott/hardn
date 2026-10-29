@@ -51,8 +51,8 @@ func reads(t *testing.T, h *testHost, n int) {
 // TestRead holds Read to each host the gallery draws: the tool, who ran
 // hardn, HARDN_CONFIG as hardn sees it, whether hardn's files keep it and
 // origin/main's line does (a comment does not count: gallery-environment.md
-// §7 item 4), the state row's words (on doas as hardn's own state, the
-// settlement), the files read after hardn's rule, why item 1 is refused,
+// §7 item 4), the state row's words (as hardn's own state, the
+// settlement, on sudo too), the files read after hardn's rule, why item 1 is refused,
 // and whether its plan is lockout-risk. Read writes and runs nothing.
 func TestRead(t *testing.T) {
 	ctx := context.Background()
@@ -70,28 +70,28 @@ func TestRead(t *testing.T) {
 		risk        bool
 	}{
 		{name: "debian13", host: func(t *testing.T) *testHost { return newHost(t, debian13) }, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice",
-			value2: "Not kept"},
+			value2: "Not kept by hardn"},
 		{name: "ubuntu2604", host: func(t *testing.T) *testHost { return newHost(t, ubuntu2604) }, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice",
-			value2: "Not kept"},
+			value2: "Not kept by hardn"},
 		{name: "kept", host: func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "HARDN_CONFIG"))
 		},
-			env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, value2: "Kept"},
+			env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, value2: "Kept by hardn"},
 		{name: "grant", host: func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)) },
-			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
+			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept by hardn"},
 		{name: "EDITOR only", host: func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "EDITOR")) },
-			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
+			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept by hardn"},
 		{name: "grant at 0640", host: func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o640, 0, 0)
-		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
+		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept by hardn"},
 		{name: "legacy", host: func(t *testing.T) *testHost { return legacyHost(t, legacyLines) }, env: sudoKept, tool: sudoers.ToolSudo, user: "alice",
 			value: keptValue, legacy: "/etc/sudoers.d/alice", value2: "Kept by /etc/sudoers.d/alice"},
 		{name: "legacy, commented", host: func(t *testing.T) *testHost {
 			return legacyHost(t, "alice ALL=(ALL) NOPASSWD: ALL\n# Defaults:alice env_keep += \"HARDN_CONFIG\"\n")
-		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", legacy: "/etc/sudoers.d/alice", value2: "Not kept"},
+		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", legacy: "/etc/sudoers.d/alice", value2: "Not kept by hardn"},
 		{name: "legacy and hardn's", host: func(t *testing.T) *testHost {
 			return legacyHost(t, legacyLines).with(t, grant(sudoers.GrantNone, "HARDN_CONFIG"))
-		}, env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, legacy: "/etc/sudoers.d/alice", value2: "Kept"},
+		}, env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, legacy: "/etc/sudoers.d/alice", value2: "Kept by hardn"},
 		{name: "alpine324", host: func(t *testing.T) *testHost { return newHost(t, alpine324) }, env: doasAlice, tool: sudoers.ToolDoas, user: "alice",
 			value2: "Not kept by hardn", code: "SUDOERS_ENV_NEEDS_GRANT"},
 		{name: "doas, hardn's password rule", host: func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantPassword)) },
@@ -314,7 +314,7 @@ func TestRefusals(t *testing.T) {
 
 // TestCheck is the state on each host, with its detail and evidence:
 // Configured where hardn's files keep HARDN_CONFIG, or origin/main's line
-// does; Not Configured where neither does; on doas each as hardn's own
+// does; Not Configured where neither does; each as hardn's own
 // state; Not Applicable where no tool is installed or no user ran hardn
 // through it; Unknown, with the error, where the tool or a file of
 // hardn's cannot be read. Check writes and runs nothing.
@@ -330,21 +330,21 @@ func TestCheck(t *testing.T) {
 		findings []string
 		err      error
 	}{
-		{"debian13", func(t *testing.T) *testHost { return newHost(t, debian13) }, sudoAlice, engine.NotConfigured, "Not kept",
+		{"debian13", func(t *testing.T) *testHost { return newHost(t, debian13) }, sudoAlice, engine.NotConfigured, "Not kept by hardn",
 			[]string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: absent"}, nil, nil},
 		{"kept, two variables", func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "HARDN_CONFIG", "EDITOR"))
-		}, sudoKept, engine.Configured, "Kept", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG EDITOR"}, nil, nil},
+		}, sudoKept, engine.Configured, "Kept by hardn", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG EDITOR"}, nil, nil},
 		{"EDITOR only", func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "EDITOR")) }, sudoAlice,
-			engine.NotConfigured, "Not kept", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps EDITOR"}, nil, nil},
+			engine.NotConfigured, "Not kept by hardn", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps EDITOR"}, nil, nil},
 		{"legacy", func(t *testing.T) *testHost { return legacyHost(t, legacyLines) }, sudoKept, engine.Configured, "Kept by /etc/sudoers.d/alice",
 			[]string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: absent", "/etc/sudoers.d/alice: keeps HARDN_CONFIG"},
-			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may still let alice use sudo"}, nil},
+			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may also let alice use sudo"}, nil},
 		{"legacy, commented", func(t *testing.T) *testHost {
 			return legacyHost(t, "# Defaults:alice env_keep += \"HARDN_CONFIG\"\n")
-		}, sudoAlice, engine.NotConfigured, "Not kept",
+		}, sudoAlice, engine.NotConfigured, "Not kept by hardn",
 			[]string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: absent", "/etc/sudoers.d/alice: does not keep HARDN_CONFIG"},
-			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may still let alice use sudo"}, nil},
+			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may also let alice use sudo"}, nil},
 		{"alpine324", func(t *testing.T) *testHost { return newHost(t, alpine324) }, doasAlice, engine.NotConfigured, "Not kept by hardn",
 			[]string{"DOAS_USER: alice", "/etc/doas.d/hardn-alice.conf: absent"}, nil, nil},
 		{"doas, hardn's rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantPassword)) }, doasAlice,
@@ -461,7 +461,7 @@ func TestPlan(t *testing.T) {
 		}, sudoAlice, false, "/etc/sudoers.d/hardn-env-alice", env("EDITOR HARDN_CONFIG"), engine.RiskPlain, nil},
 		{"keep, legacy", func(t *testing.T) *testHost { return legacyHost(t, legacyLines) }, sudoKept, false,
 			"/etc/sudoers.d/hardn-env-alice", env("HARDN_CONFIG"), engine.RiskPlain,
-			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may still let alice use sudo"}},
+			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may also let alice use sudo"}},
 		{"keep, doas, hardn's password rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantPassword)) },
 			doasAlice, false, "/etc/doas.d/hardn-alice.conf", sudoers.Header + "permit persist setenv { HARDN_CONFIG } alice\n", engine.RiskLockout, nil},
 		{"keep, doas, hardn's nopass rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantNoPassword)) },
@@ -533,15 +533,13 @@ func TestControl(t *testing.T) {
 		t.Errorf("nil getenv: %v", r.Err)
 	}
 	for _, tt := range []struct {
-		tool        sudoers.Tool
 		kept        bool
 		value, note string
 	}{
-		{sudoers.ToolSudo, true, "Kept", ""}, {sudoers.ToolSudo, false, "Not kept", ""},
-		{sudoers.ToolDoas, true, "Kept", "by hardn"}, {sudoers.ToolDoas, false, "Not kept", "by hardn"},
+		{true, "Kept", "by hardn"}, {false, "Not kept", "by hardn"},
 	} {
-		if v, n := environment.Words(tt.tool, tt.kept); v != tt.value || n != tt.note {
-			t.Errorf("Words(%v, %v) = %q %q", tt.tool, tt.kept, v, n)
+		if v, n := environment.Words(tt.kept); v != tt.value || n != tt.note {
+			t.Errorf("Words(%v) = %q %q", tt.kept, v, n)
 		}
 	}
 	for title, max := range map[string]int{environment.SummaryKeep: engine.TitleMax, environment.SummaryStop: engine.TitleMax} {

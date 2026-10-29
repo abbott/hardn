@@ -126,8 +126,8 @@ func findings(p sudoers.Plan) []string {
 // reported against the first of hardn's files that will hold a rule for
 // the user (the environment file sorts before the grant); a policy that
 // removes hardn's files has no rule for a later file to override, but a
-// legacy file's grant outlives it, as it does any policy that grants
-// nothing; a legacy file read after hardn's rule may override it. The
+// legacy file's grant still applies, and also applies with any policy
+// that grants nothing; a legacy file read after hardn's rule may override it. The
 // legacy file's detail is in the user's words (next/s9-control). doas's
 // later files are its *.conf names, hardn's own decoded as on sudo.
 func TestPlanFindingsPolicies(t *testing.T) {
@@ -139,11 +139,14 @@ func TestPlanFindingsPolicies(t *testing.T) {
 		pol     sudoers.Policy
 		want    []string
 	}{
-		{"removal: the legacy grant still applies", sudoChoice, []string{"alice", "zz-local"}, sudoers.Policy{User: "alice"}, []string{
+		{"no grant: the legacy grant applies too", sudoChoice, []string{"alice", "zz-local"}, sudoers.Policy{User: "alice"}, []string{
+			"sudoers-legacy-file /etc/sudoers.d/alice /etc/sudoers.d/alice may also let alice use sudo",
+		}},
+		{"removal: the legacy grant still applies", sudoChoice, []string{"alice", "hardn-grant-alice"}, sudoers.Policy{User: "alice"}, []string{
 			"sudoers-legacy-file /etc/sudoers.d/alice /etc/sudoers.d/alice may still let alice use sudo",
 		}},
 		{"environment only", sudoChoice, []string{"alice", "zz-local"}, sudoers.Policy{User: "alice", Env: keep}, []string{
-			"sudoers-legacy-file /etc/sudoers.d/alice /etc/sudoers.d/alice may still let alice use sudo",
+			"sudoers-legacy-file /etc/sudoers.d/alice /etc/sudoers.d/alice may also let alice use sudo",
 			"sudoers-later-file /etc/sudoers.d/zz-local" + laterAlice,
 		}},
 		{"grant and environment: from the environment file", sudoChoice, []string{"hardn-f"}, alicePolicy, []string{
@@ -154,7 +157,7 @@ func TestPlanFindingsPolicies(t *testing.T) {
 			"sudoers-legacy-file /etc/sudoers.d/svc-alice /etc/sudoers.d/svc-alice may override hardn's rule",
 		}},
 		{"legacy file read after hardn's, no grant", sudoChoice, []string{"svc-alice"}, sudoers.Policy{User: "svc-alice", Env: keep}, []string{
-			"sudoers-legacy-file /etc/sudoers.d/svc-alice /etc/sudoers.d/svc-alice may override hardn's rule and still let svc-alice use sudo",
+			"sudoers-legacy-file /etc/sudoers.d/svc-alice /etc/sudoers.d/svc-alice may override hardn's rule and also let svc-alice use sudo",
 		}},
 		{"doas", doasChoice, []string{"10-local.conf", "hardn-bob.conf", "hardn-x_zz.conf", "zz-local.conf", "zz-local"}, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, []string{
 			"sudoers-later-file /etc/doas.d/hardn-x_zz.conf" + laterAlice,

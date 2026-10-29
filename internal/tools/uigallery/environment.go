@@ -311,7 +311,7 @@ func (r envReading) underKey() string { return "Under " + r.ToolName() }
 // screen lists each such file under it (rows), the review the plan's
 // finding of it (review).
 func (r envReading) stateRow(kept bool) component.KeyValue {
-	value, note := environment.Words(r.Choice.Tool, kept)
+	value, note := environment.Words(kept)
 	row := component.KeyValue{Key: r.underKey(), Value: value, Note: note, State: component.ValueOK}
 	if !kept || len(r.Later()) > 0 {
 		row.State = component.ValueWarn

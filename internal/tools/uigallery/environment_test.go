@@ -146,15 +146,15 @@ func TestEnvHosts(t *testing.T) {
 		refused, risk bool
 		row           string // the state row: its value and note
 	}{
-		{host: "debian13", tool: sudoers.ToolSudo, user: "alice", row: "Not kept"},
-		{host: "ubuntu2604", tool: sudoers.ToolSudo, user: "alice", row: "Not kept"},
+		{host: "debian13", tool: sudoers.ToolSudo, user: "alice", row: "Not kept by hardn"},
+		{host: "ubuntu2604", tool: sudoers.ToolSudo, user: "alice", row: "Not kept by hardn"},
 		{host: "alpine324", tool: sudoers.ToolDoas, user: "alice", refused: true, row: "Not kept by hardn"},
 		{host: "alpine324-setenv", tool: sudoers.ToolDoas, user: "alice", refused: true, row: "Not kept by hardn"},
 		{host: "doas-overridden", tool: sudoers.ToolDoas, user: "alice", kept: true, later: []string{"/etc/doas.d/wheel.conf"}, risk: true, row: "Kept by hardn"},
 		{host: "pve9", tool: sudoers.ToolNone, refused: true},
-		{host: "kept", tool: sudoers.ToolSudo, user: "alice", kept: true, row: "Kept"},
+		{host: "kept", tool: sudoers.ToolSudo, user: "alice", kept: true, row: "Kept by hardn"},
 		{host: "root-login", tool: sudoers.ToolSudo, refused: true},
-		{host: "grant", tool: sudoers.ToolSudo, user: "alice", row: "Not kept"},
+		{host: "grant", tool: sudoers.ToolSudo, user: "alice", row: "Not kept by hardn"},
 		{host: "legacy", tool: sudoers.ToolSudo, user: "alice", legacy: true, row: "Kept by /etc/sudoers.d/alice"},
 	}
 	if len(tests) != len(envHosts()) {

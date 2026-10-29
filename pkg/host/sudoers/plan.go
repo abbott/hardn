@@ -352,7 +352,8 @@ func PlanFor(st State, policies []Policy) (Plan, error) {
 		for _, e := range st.Entries {
 			switch {
 			case t == ToolSudo && e == pol.User:
-				p.Findings = append(p.Findings, Finding{FindingLegacy, DropInDir + "/" + e, 0, legacy(pol, e, first)})
+				removed := slices.ContainsFunc(cs, func(c Change) bool { return c.Path == n.Grant && c.Remove })
+				p.Findings = append(p.Findings, Finding{FindingLegacy, DropInDir + "/" + e, 0, legacy(pol, e, first, removed)})
 			case first != "" && e > first && !owned(t, e):
 				later[e] = append(later[e], pol.User)
 			}
@@ -376,18 +377,23 @@ func PlanFor(st State, policies []Policy) (Plan, error) {
 // (next/s9-control; gallery-environment.md §7 item 22; proposed): read
 // after first, hardn's first rule for the user, it may override that
 // rule, as any later file may (FindingLater); where the policy grants
-// nothing, a grant in it still applies; otherwise sudo reads hardn's rule
-// after it, so hardn's wins.
-func legacy(pol Policy, e, first string) string {
+// nothing, a grant in it applies too: "also", or "still" where the plan
+// removes hardn's grant (removed; adopted 2026-10-29); otherwise sudo
+// reads hardn's rule after it, so hardn's wins.
+func legacy(pol Policy, e, first string, removed bool) string {
 	file := DropInDir + "/" + e
 	after, none := first != "" && e > first, pol.Grant == GrantNone
+	let := " also let "
+	if removed {
+		let = " still let "
+	}
 	switch {
 	case after && none:
-		return file + " may override hardn's rule and still let " + pol.User + " use sudo"
+		return file + " may override hardn's rule and" + let + pol.User + " use sudo"
 	case after:
 		return file + " may override hardn's rule"
 	case none:
-		return file + " may still let " + pol.User + " use sudo"
+		return file + " may" + let + pol.User + " use sudo"
 	}
 	return file + " is from an earlier hardn; hardn's rule wins"
 }

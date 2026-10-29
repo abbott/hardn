@@ -448,7 +448,7 @@ func TestSudoersFindings(t *testing.T) {
 	}
 	want := []engine.Finding{
 		{Code: "SUDOERS_AFTER_INCLUDE", Detail: "Line 3 of /etc/sudoers may override hardn's rule", Source: "/etc/sudoers:3"},
-		{Code: "SUDOERS_LEGACY_FILE", Detail: "/etc/sudoers.d/alice may still let alice use sudo", Source: "/etc/sudoers.d/alice"},
+		{Code: "SUDOERS_LEGACY_FILE", Detail: "/etc/sudoers.d/alice may also let alice use sudo", Source: "/etc/sudoers.d/alice"},
 		{Code: "SUDOERS_LATER_FILE", Detail: "/etc/sudoers.d/zz-local may override hardn's rule", Source: "/etc/sudoers.d/zz-local"},
 	}
 	if !slices.Equal(c.Findings, want) {

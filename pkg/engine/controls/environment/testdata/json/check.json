@@ -43,7 +43,7 @@
       "control": "environment.keep",
       "title": "Environment",
       "state": "not-configured",
-      "detail": "Not kept",
+      "detail": "Not kept by hardn",
       "evidence": [
         "SUDO_USER: alice",
         "/etc/sudoers.d/hardn-env-alice: absent"
@@ -53,7 +53,7 @@
       "control": "environment.keep",
       "title": "Environment",
       "state": "configured",
-      "detail": "Kept",
+      "detail": "Kept by hardn",
       "evidence": [
         "SUDO_USER: alice",
         "/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG"
@@ -112,7 +112,7 @@
   "findings": [
     {
       "code": "SUDOERS_LEGACY_FILE",
-      "detail": "/etc/sudoers.d/alice may still let alice use sudo",
+      "detail": "/etc/sudoers.d/alice may also let alice use sudo",
       "source": "/etc/sudoers.d/alice",
       "control": "environment.keep",
       "change": ""
