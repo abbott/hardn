@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -28,12 +28,14 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // its sub-menus, User Management's Manage User to the user list and on to
 // george's menu, its Sudo Method to the sudo change, and SSH Login's first
 // item to the root-login toggle. The main menu's 3 leads to the real DNS
-// screen (dnsLinks, dnsscreen.go). An item with no link, and no refusal
-// (screen.Mock.Refusals), says that the gallery has no screen for it.
+// screen (dnsLinks, dnsscreen.go) and its 5 to the real Backup screen
+// (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
+// kept among the mocks as Figma's record (figmaRecords). An item with no
+// link, and no refusal (screen.Mock.Refusals), says that the gallery has
+// no screen for it.
 var links = map[string]string{
 	"main-menu/00-tui-main/1":                 "sub-menu/01-user",
 	"main-menu/00-tui-main/2":                 "sub-menu/02-ssh-login",
-	"main-menu/00-tui-main/5":                 "sub-menu/05-backup",
 	"sub-menu/01-user/1":                      "sub-menu/user-manage-user-select-user",
 	"sub-menu/01-user/2":                      "workflow-step/user-create-user",
 	"sub-menu/02-ssh-login/1":                 "workflow-step/ssh-login-toggle-confirmation",
@@ -106,13 +108,17 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Backup mocks fail where their host does (backup/readonly)")
+			return usage("-fail is for the fixture plans of the screen mocks; the Backup screen fails where its host does (backup/readonly)")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Backup mocks play normal or dry-run", *sequence)
+			return usage("-sequence %s: the Backup screen plays normal or dry-run", *sequence)
+		}
+		note := engineNote
+		if name == restoreMock {
+			note = restoreNote
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
-			return s.play("play "+name, []string{backupNote}, s.openBackup(name), stderr)
+			return s.play("play "+name, []string{note}, s.openBackup(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
@@ -401,9 +407,9 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, or the DNS screen on the host
-// dnsLinks name, an item m refuses says why, and an item with none of
-// these says that the gallery has no screen for it.
+// opens the mock links name for it, or the DNS or Backup screen on the
+// host dnsLinks or backupLinks name, an item m refuses says why, and an
+// item with none of these says that the gallery has no screen for it.
 func (s *session) menu(m screen.Mock) nav.Menu {
 	view, _ := menuOf(m.Screen)
 	out := nav.Menu{Exit: view.Exit}
@@ -417,6 +423,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := dnsLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openDNS(to)
+		}
+		if to, ok := backupLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openBackup(to)
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}

@@ -1,7 +1,6 @@
 package backup_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -22,15 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/screens/screenkit"
-	"github.com/abbott/hardn/pkg/ui/component"
-	"github.com/abbott/hardn/pkg/ui/flow"
-	"github.com/abbott/hardn/pkg/ui/form"
-	"github.com/abbott/hardn/pkg/ui/nav"
-	"github.com/abbott/hardn/pkg/ui/prompt"
-	"github.com/abbott/hardn/pkg/ui/screen"
-	"github.com/abbott/hardn/pkg/ui/term"
-	"github.com/abbott/hardn/pkg/ui/uitest"
+	backupscreen "github.com/abbott/hardn/pkg/screens/backup"
 )
 
 // The Backup parity table (refactor plan §2, slice 3's unit (b2),
@@ -40,9 +31,10 @@ import (
 // states, through the parity harness (internal/parity). This file is what
 // Backup supplies to it.
 //
-// It lives here, in the package unit (c) fills with the Backup screen,
-// so that unit (c) keeps it and drives the screen's own items in place of
-// backupItem, as pkg/screens/dns's TestParity drives the DNS screen.
+// It lives beside the Backup screen (pkg/screens/backup), whose Run it
+// drives since unit (c), next/s3-screen, as pkg/screens/dns's TestParity
+// drives the DNS screen: its driver until then, backupItem, ran the
+// control through screenkit.Session.Change and its Check.
 // depguard's screens-through-host covers this directory's non-test files
 // alone, so the test may read goldens and fixtures with os, as the
 // harness does.
@@ -359,8 +351,9 @@ var backupTable = []tie{
 }
 
 // backupRun is the new path on c: from the start origin/main's golden
-// names (held to it: the host, hardn.yml as loaded and plan only), Backup's
-// screen opened (no lines), its item 1, 2 or 3 (backupItem), on c's host.
+// names (held to it: the host, hardn.yml as loaded and plan only), the
+// Backup screen itself (pkg/screens/backup's Run), typed as c's lines say,
+// then 0 (screenRun), on c's host.
 func backupRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
 	st := starts[c.Scenario.Name]
@@ -372,13 +365,7 @@ func backupRun(t *testing.T, c parity.Cell) parity.NewRun {
 		t.Fatalf("hardn.yml as loaded, enableBackups %t, backupPath %s, and plan only %t; origin/main's start: %s",
 			cfg.EnableBackups, cfg.BackupPath, c.Scenario.DryRun, st.words())
 	}
-	n := len(h.Calls())
-	var key string
-	lines := c.Scenario.Lines
-	if len(lines) > 0 {
-		key, lines = lines[0], lines[1:]
-	}
-	s, via := backupItem(t, h, cfg, c, key, lines, n)
+	s, via := screenRun(t, h, cfg, c)
 	s.After = after(t, h, st.at == atSentinel)
 	return parity.NewRun{Live: s, Via: via}
 }
@@ -389,156 +376,122 @@ var backupReadOnly []string
 // newEngine is a change's engine on h, as cmd/hardn builds it
 // (engineOptions): its backups hardn.yml's as loaded, d's facts.
 func newEngine(h *hostfake.System, d parity.Distro, loaded *config.Config) func(progress func(engine.Event)) *engine.Engine {
+	settings := loaded.BackupSettings()
 	return func(progress func(engine.Event)) *engine.Engine {
 		return engine.New(h, engine.Options{
 			Revert:   revert.Options{Now: func() time.Time { return now }, Hardn: "/usr/local/bin/hardn"},
 			Detect:   func(context.Context, host.System) (detect.Facts, error) { return d.Facts, nil },
 			Hold:     func() func() { return func() {} },
 			PID:      5000,
-			Backups:  loaded.BackupSettings(),
+			Backups:  settings,
 			Progress: progress,
 		})
 	}
 }
 
-// backupItem is the new path's run of key on h with cfg, the user typing
-// lines, as unit (c)'s screen is to run it (control-backup.md §11): with
-// no key, the screen opened, and with 3, Verify: the control's Check
-// through the engine, writing nothing (decision 3), refused by its code
-// and note where Check refuses the path; 1, the toggle, refused before it
-// asks where Check refuses the path (decision 7 (a)), else
-// screenkit.Session.Change with enableBackups turned over; 2, the path,
-// the same with the path field checked by the control's Field (decisions
-// 5, 6), an entry it refuses refused inline, by its code and words. The
-// end state is what h's calls from the nth on left, under the backup path
-// the change saves, where decision 7 (a) puts its backup, else hardn.yml's
-// as loaded: a backup elsewhere is a host file and directory written.
-func backupItem(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.Cell, key string, lines []string, n int) (parity.EndState, string) {
+// screenRun runs the Backup screen on h with cfg, the user typing c's
+// lines, then 0 (the screen's Return), each change's engine as cmd/hardn
+// builds it, and returns the end state, with how it was reached:
+//   - no key, or 3 (Verify): nothing planned, the screen drawn from
+//     backupctl.Read, writing nothing (decision 3); where Read refuses the
+//     path, the refusal is its code and note, which the screen's path row
+//     shows;
+//   - 1, refused before it asks where Read refuses the path (decision 7
+//     (a)), the screen saying the control's Why;
+//   - 2, an entry the control's Field refuses, refused inline (decisions
+//     5, 6), by its code and words, which the screen shows under the field;
+//   - else the change the screen planned (Options.Ran), its end state under
+//     the backup path it saves, where decision 7 (a) puts its backup (item
+//     2's entry, else hardn.yml's as loaded): a backup the engine took
+//     elsewhere is a host file and directory written.
+func screenRun(t *testing.T, h *hostfake.System, cfg *config.Config, c parity.Cell) (parity.EndState, string) {
 	t.Helper()
 	ctx := context.Background()
+	lines := c.Scenario.Lines
 	r := backupctl.Read(ctx, h, cfg)
+	var key, entry string
+	if len(lines) > 0 {
+		key = lines[0]
+	}
+	var field *backupctl.FieldError
+	if key == "2" && len(lines) > 1 {
+		entry = lines[1]
+		errors.As(backupctl.Field(ctx, h, r.Settings.Path, entry), &field)
+	}
+	n := len(h.Calls())
+	p := playWith(h, cfg, c.Scenario.DryRun, func(o *backupscreen.Options) { o.NewEngine = newEngine(h, c.Distro, cfg) }, append(slices.Clone(lines), "0")...)
+	if p.err != nil || p.unread != 0 || len(p.runs) > 1 {
+		t.Fatalf("the screen: %v, %d unread, %d runs:\n%s", p.err, p.unread, len(p.runs), p.out)
+	}
+	via := typed(lines, c.Scenario.DryRun)
 	stateOf := func(dir string) parity.EndState {
 		return parity.NewStateUnder(t, h, n, backupReadOnly, hardnYML, dir)
 	}
-	if key == "" || key == "3" {
-		if len(lines) > 0 {
-			t.Fatalf("lines %q after %q: nothing asks", lines, key)
+	if len(p.runs) == 1 {
+		run := p.runs[0]
+		if run.Err != nil && run.Plan.Err() == nil {
+			t.Fatalf("the apply failed: %v:\n%s", run.Err, p.out)
 		}
-		reps, err := newEngine(h, c.Distro, cfg)(nil).Check(ctx, backupctl.Controls(cfg))
-		if err != nil || len(reps) != 1 {
-			t.Fatalf("Check: %v, %d reports", err, len(reps))
+		saves := r.Settings.Path
+		if key == "2" {
+			saves = entry
 		}
-		s := stateOf(r.Settings.Path)
-		if st := reps[0].Status; st.State != engine.Configured {
-			s.Refusal = output.CodeOf(r.Err) + " (" + st.Detail + ")"
+		st := parity.Planned(stateOf(saves), run.Plan)
+		// §3.16's "and says so" (decision 8): a backup taken with backups
+		// off is said after the change, and only then.
+		anyway := slices.ContainsFunc(st.Backups, func(b string) bool { return strings.Contains(b, "taken anyway") })
+		if told := strings.Contains(p.out, "Backed up anyway: the rollback needs it."); told != anyway {
+			t.Errorf("taken anyway %t, said %t:\n%s", anyway, told, p.out)
 		}
-		via := "the screen opened: its section from the control's Check through the engine, writing nothing"
-		if key == "3" {
-			via = "item 3, Verify: the control's Check through the engine, writing nothing"
-		}
-		return s, via
+		return st, via
 	}
-	if key == "1" && r.Err != nil {
-		if len(lines) > 0 {
-			t.Fatalf("lines %q after 1: refused before it asks", lines)
-		}
-		s := stateOf(r.Settings.Path)
-		s.Refusal = output.CodeOf(r.Err) + ", before asking"
-		return s, "item 1, refused before it asks: Check refuses backupPath (decision 7 (a))"
-	}
-
-	var out bytes.Buffer
-	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
-	ty := uitest.NewTypist(&out, lines...)
-	var runs []output.Run
-	s := screenkit.Session{
-		Name:      "backup parity",
-		Prompter:  nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)},
-		System:    h,
-		Config:    cfg,
-		NewEngine: newEngine(h, c.Distro, cfg),
-		DryRun:    c.Scenario.DryRun,
-		LogPath:   output.LegacyLogPath,
-		Now:       func() time.Time { return now },
-		Ran:       func(run output.Run) { runs = append(runs, run) },
-	}
-	// The flows' words are the gallery mock's (gallery-backup.md §6,
-	// proposed): unit (c) decides them; no golden here shows them.
-	ch := screenkit.Change{Flow: flow.Flow{Review: func() flow.Review { return flow.Review{Title: "Backup Configuration"} }}}
-	var said *backupctl.FieldError
-	var saves string // the backup path the change saves
-	item := "item 1"
-	switch key {
-	case "1":
-		on := !cfg.EnableBackups
-		title, question := "Turn Backups Off", "Turn backups off?"
-		if on {
-			title, question = "Turn Backups On", "Turn backups on?"
-		}
-		ch.Step = screen.WorkflowStep{Title: component.TitleBar{Title: title}}
-		ch.Flow.Confirm = func(flow.Plan) flow.Confirm { return flow.Confirm{Question: question} }
-		ch.Controls = func(edited *config.Config) []engine.Control {
-			edited.EnableBackups, saves = on, edited.BackupPath
-			return backupctl.Controls(cfg)
-		}
-	case "2":
-		var entry string
-		check := func(e string) error {
-			var fe *backupctl.FieldError
-			if err := backupctl.Field(ctx, h, r.Settings.Path, e); errors.As(err, &fe) {
-				said = fe
-				if fe.Warn {
-					return nav.Warn(fe.Words)
-				}
-				return errors.New(fe.Words)
+	st := stateOf(r.Settings.Path)
+	switch {
+	case key == "" || key == "3":
+		if r.Err != nil {
+			if pr := screens(p.out); len(pr) == 0 || !strings.Contains(row(pr[0], "Backup Path"), r.Note()) {
+				t.Fatalf("Check refuses the path (%s), and the screen's row does not say so:\n%s", r.Note(), p.out)
 			}
-			return nil
+			st.Refusal = output.CodeOf(r.Err) + " (" + r.Note() + ")"
 		}
-		ch.Step = screen.WorkflowStep{Title: component.TitleBar{Title: "Change Backup Path"}}
-		ch.Flow.Form = form.Form{Fields: []form.Field{&form.Text{Title: "Enter new backup path", Validate: check, Value: &entry}}}
-		ch.Flow.Confirm = func(flow.Plan) flow.Confirm { return flow.Confirm{Question: "Use " + entry + "?"} }
-		ch.Controls = func(edited *config.Config) []engine.Control {
-			edited.BackupPath, saves = entry, entry
-			return backupctl.Controls(cfg)
+	case key == "1" && r.Err != nil:
+		if rf := backupctl.Refusal(r.Settings.Path, r.Err); rf == nil || !strings.Contains(flat(p.out), "Warning "+rf.Why) || strings.Contains(p.out, "[y/N") {
+			t.Fatalf("item 1 refused before it asks (%v), not in the control's words, or asked:\n%s", r.Err, p.out)
 		}
-		item = "item 2, its field the control's Field"
+		st.Refusal = output.CodeOf(r.Err) + ", before asking"
+	case key == "2" && field != nil && !field.Warn:
+		if !strings.Contains(p.out, "(x) "+field.Words) {
+			t.Fatalf("item 2's field refuses %q, and the screen does not say %q:\n%s", entry, field.Words, p.out)
+		}
+		st.Refusal = "inline: " + field.Words
+		if field.Err != nil {
+			st.Refusal = output.CodeOf(field.Err) + ", " + st.Refusal
+		}
 	default:
-		t.Fatalf("no item %q", key)
-	}
-	via := item + ", through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it"
-	if c.Scenario.DryRun {
-		via = item + ", through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it"
-	}
-	err := s.Change(ctx, ch)
-	if ty.Unread() != 0 || len(runs) > 1 {
-		t.Fatalf("the change: %v, %d unread, %d runs:\n%s", err, ty.Unread(), len(runs), out.String())
-	}
-	if len(runs) == 0 {
-		if !errors.Is(err, nav.ErrBack) || said == nil || !strings.Contains(out.String(), said.Words) {
-			t.Fatalf("nothing planned: %v, field %v:\n%s", err, said, out.String())
-		}
-		st := stateOf(r.Settings.Path)
-		st.Refusal = "inline: " + said.Words
-		if said.Err != nil {
-			st.Refusal = output.CodeOf(said.Err) + ", " + st.Refusal
-		}
-		return st, item + ": refused inline, nothing planned"
-	}
-	if err != nil {
-		t.Fatalf("the change: %v:\n%s", err, out.String())
-	}
-	run := runs[0]
-	if run.Err != nil && run.Plan.Err() == nil {
-		t.Fatalf("the apply failed: %v:\n%s", run.Err, out.String())
-	}
-	st := parity.Planned(stateOf(saves), run.Plan)
-	// §3.16's "and says so" (decision 8): a backup taken with backups off
-	// is said after the change, and only then.
-	anyway := slices.ContainsFunc(st.Backups, func(b string) bool { return strings.Contains(b, "taken anyway") })
-	if told := strings.Contains(out.String(), "Backed up anyway: the rollback needs it."); told != anyway {
-		t.Errorf("taken anyway %t, said %t:\n%s", anyway, told, out.String())
+		t.Fatalf("nothing planned, and no refusal the table knows:\n%s", p.out)
 	}
 	return st, via
+}
+
+// typed is how the new path ran: the Backup screen, under plan only with
+// dryRun, the lines typed (an empty line as ""), its closing 0 left out,
+// as DNS's says it.
+func typed(lines []string, dryRun bool) string {
+	screen := "the Backup screen"
+	if dryRun {
+		screen += " under plan only"
+	}
+	if len(lines) == 0 {
+		return screen + ", opened, then 0"
+	}
+	q := make([]string, len(lines))
+	for i, l := range lines {
+		q[i] = l
+		if l == "" {
+			q[i] = `""`
+		}
+	}
+	return screen + ", typed " + strings.Join(q, ", ")
 }
 
 // backupHost is d with st at backupPath and fixture at hardnYML (0644, as

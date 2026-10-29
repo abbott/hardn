@@ -90,6 +90,9 @@ type Answer struct{ Step, Line string }
 // eight hosts by next/s2-gallery, is retired from them: the real screen
 // (DNS, drawn from the host by pkg/screens/dns) replaced it, and the
 // gallery plays it on the same hosts (docs/engine/gallery-dns.md §11).
+// Figma's 05-BACKUP stays, the record of the frame, beside the real
+// Backup screen (Backup, drawn by pkg/screens/backup), which the gallery
+// plays in its place (docs/engine/screen-backup.md).
 // The workflows' sequences run on fixture plans (flow.Fixture).
 func Mocks() []Mock {
 	out := frameMocks()

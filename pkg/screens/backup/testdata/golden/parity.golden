@@ -21,7 +21,7 @@ origin/main: menu/backup_open.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -45,7 +45,7 @@ origin/main: menu/backup_open.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -69,7 +69,7 @@ origin/main: menu/backup_open.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -93,7 +93,7 @@ origin/main: menu/backup_open.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -114,7 +114,7 @@ origin/main: menu/backup_open_missing.golden ()
   start: enableBackups true, backupPath /var/backups/hardn (nothing there), dryRun false
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: not there
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -133,7 +133,7 @@ origin/main: menu/backup_open_missing.golden ()
   start: enableBackups true, backupPath /var/backups/hardn (nothing there), dryRun false
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: not there
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -152,7 +152,7 @@ origin/main: menu/backup_open_missing.golden ()
   start: enableBackups true, backupPath /var/backups/hardn (nothing there), dryRun false
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: not there
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -171,7 +171,7 @@ origin/main: menu/backup_open_missing.golden ()
   start: enableBackups true, backupPath /var/backups/hardn (nothing there), dryRun false
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: not there
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -191,7 +191,7 @@ origin/main: menu/backup_open_file.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -213,7 +213,7 @@ origin/main: menu/backup_open_file.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -235,7 +235,7 @@ origin/main: menu/backup_open_file.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -257,7 +257,7 @@ origin/main: menu/backup_open_file.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen, opened, then 0
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -282,7 +282,7 @@ origin/main: menu/backup_toggle_off.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: true               # Backup files before modifying them
     + enableBackups: false               # Backup files before modifying them
@@ -326,7 +326,7 @@ origin/main: menu/backup_toggle_off.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: true               # Backup files before modifying them
     + enableBackups: false               # Backup files before modifying them
@@ -370,7 +370,7 @@ origin/main: menu/backup_toggle_off.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: true               # Backup files before modifying them
     + enableBackups: false               # Backup files before modifying them
@@ -414,7 +414,7 @@ origin/main: menu/backup_toggle_off.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: true               # Backup files before modifying them
     + enableBackups: false               # Backup files before modifying them
@@ -461,7 +461,7 @@ origin/main: menu/backup_toggle_on.golden (V18)
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: false              # Backup files before modifying them
     + enableBackups: true              # Backup files before modifying them
@@ -509,7 +509,7 @@ origin/main: menu/backup_toggle_on.golden (V18)
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: false              # Backup files before modifying them
     + enableBackups: true              # Backup files before modifying them
@@ -557,7 +557,7 @@ origin/main: menu/backup_toggle_on.golden (V18)
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: false              # Backup files before modifying them
     + enableBackups: true              # Backup files before modifying them
@@ -605,7 +605,7 @@ origin/main: menu/backup_toggle_on.golden (V18)
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 1, y
   write /etc/hardn/hardn.yml 0644, atomic
     - enableBackups: false              # Backup files before modifying them
     + enableBackups: true              # Backup files before modifying them
@@ -648,7 +648,7 @@ origin/main: menu/backup_toggle_on_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 1, refused before it asks: Check refuses backupPath (decision 7 (a))
+new path: the Backup screen, typed 1
   refused: BACKUP_PATH_NOT_DIRECTORY, before asking
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -671,7 +671,7 @@ origin/main: menu/backup_toggle_on_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 1, refused before it asks: Check refuses backupPath (decision 7 (a))
+new path: the Backup screen, typed 1
   refused: BACKUP_PATH_NOT_DIRECTORY, before asking
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -694,7 +694,7 @@ origin/main: menu/backup_toggle_on_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 1, refused before it asks: Check refuses backupPath (decision 7 (a))
+new path: the Backup screen, typed 1
   refused: BACKUP_PATH_NOT_DIRECTORY, before asking
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -717,7 +717,7 @@ origin/main: menu/backup_toggle_on_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 1, refused before it asks: Check refuses backupPath (decision 7 (a))
+new path: the Backup screen, typed 1
   refused: BACKUP_PATH_NOT_DIRECTORY, before asking
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -747,7 +747,7 @@ origin/main: menu/backup_path.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 2, /other, y
   write /etc/hardn/hardn.yml 0644, atomic
     - backupPath: "/var/backups/hardn"  # Path to store backups
     + backupPath: "/other"  # Path to store backups
@@ -796,7 +796,7 @@ origin/main: menu/backup_path.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 2, /other, y
   write /etc/hardn/hardn.yml 0644, atomic
     - backupPath: "/var/backups/hardn"  # Path to store backups
     + backupPath: "/other"  # Path to store backups
@@ -845,7 +845,7 @@ origin/main: menu/backup_path.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 2, /other, y
   write /etc/hardn/hardn.yml 0644, atomic
     - backupPath: "/var/backups/hardn"  # Path to store backups
     + backupPath: "/other"  # Path to store backups
@@ -894,7 +894,7 @@ origin/main: menu/backup_path.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change: the control's plan, then its apply, on the engine as cmd/hardn builds it
+new path: the Backup screen, typed 2, /other, y
   write /etc/hardn/hardn.yml 0644, atomic
     - backupPath: "/var/backups/hardn"  # Path to store backups
     + backupPath: "/other"  # Path to store backups
@@ -943,7 +943,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -976,7 +976,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1009,7 +1009,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1042,7 +1042,7 @@ origin/main: menu/backup_path_relative.golden ()
   under the backup path: remove backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): backups/ hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1071,7 +1071,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, "", 0
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1098,7 +1098,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, "", 0
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1125,7 +1125,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, "", 0
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1152,7 +1152,7 @@ origin/main: menu/backup_path_empty.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, "", 0
   refused: inline: Backup path cannot be empty
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1183,7 +1183,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /shared/hardn, 0
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1216,7 +1216,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /shared/hardn, 0
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1249,7 +1249,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /shared/hardn, 0
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1282,7 +1282,7 @@ origin/main: menu/backup_path_unsafe.golden ()
   under the backup path: remove /shared/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml shared/ shared/hardn/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /shared/hardn, 0
   refused: UNSAFE_DIRECTORY, inline: Others can change /shared
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1315,7 +1315,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, ~alice/backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1348,7 +1348,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, ~alice/backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1381,7 +1381,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, ~alice/backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1414,7 +1414,7 @@ origin/main: menu/backup_path_tilde.golden ()
   under the backup path: remove $HOME/alice/backups/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml home/ home/alice/ home/alice/backups/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, ~alice/backups, 0
   refused: BACKUP_SETTINGS_INVALID, inline: Not an absolute path
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1442,7 +1442,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /afile/backups, 0
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1468,7 +1468,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /afile/backups, 0
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1494,7 +1494,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /afile/backups, 0
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1520,7 +1520,7 @@ origin/main: menu/backup_path_fails.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): afile var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field: refused inline, nothing planned
+new path: the Backup screen, typed 2, /afile/backups, 0
   refused: BACKUP_PATH_NOT_DIRECTORY, inline: Not a directory
   after: /var/backups/hardn: a directory, empty
 agree  files: none
@@ -1550,7 +1550,7 @@ origin/main: menu/backup_verify.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1579,7 +1579,7 @@ origin/main: menu/backup_verify.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1608,7 +1608,7 @@ origin/main: menu/backup_verify.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1637,7 +1637,7 @@ origin/main: menu/backup_verify.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -1660,7 +1660,7 @@ origin/main: menu/backup_verify_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -1683,7 +1683,7 @@ origin/main: menu/backup_verify_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -1706,7 +1706,7 @@ origin/main: menu/backup_verify_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -1729,7 +1729,7 @@ origin/main: menu/backup_verify_fails.golden ()
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   after: /var/backups/hardn: a regular file
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen, typed 3
   refused: BACKUP_PATH_NOT_DIRECTORY (Not a directory)
   after: /var/backups/hardn: a regular file
 agree  files: none
@@ -1753,7 +1753,7 @@ origin/main: menu/backup_open_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -1777,7 +1777,7 @@ origin/main: menu/backup_open_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -1801,7 +1801,7 @@ origin/main: menu/backup_open_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -1825,7 +1825,7 @@ origin/main: menu/backup_open_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty; the user's .write_test (25 bytes) is gone
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: the screen opened: its section from the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, opened, then 0
   after: /var/backups/hardn: a directory holding .write_test; .write_test as it was
 agree  refusal: none
 agree  files: none
@@ -1853,7 +1853,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 1
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1883,7 +1883,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 1
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1913,7 +1913,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 1
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1943,7 +1943,7 @@ origin/main: menu/backup_toggle_on_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml var/ var/backups/ var/backups/hardn/
-new path: item 1, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 1
   after: /var/backups/hardn: not there
 agree  refusal: none
 agree  files: none
@@ -1975,7 +1975,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 2, /other
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2006,7 +2006,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 2, /other
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2037,7 +2037,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 2, /other
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2068,7 +2068,7 @@ origin/main: menu/backup_path_dry_run.golden ()
   under the backup path: remove /other/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): hardn.yml other/ var/ var/backups/ var/backups/hardn/
-new path: item 2, its field the control's Field, through screenkit.Session.Change under plan only: the control's plan alone, on the engine as cmd/hardn builds it
+new path: the Backup screen under plan only, typed 2, /other
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2098,7 +2098,7 @@ origin/main: menu/backup_verify_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2127,7 +2127,7 @@ origin/main: menu/backup_verify_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2156,7 +2156,7 @@ origin/main: menu/backup_verify_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none
@@ -2185,7 +2185,7 @@ origin/main: menu/backup_verify_dry_run.golden ()
   under the backup path: remove /var/backups/hardn/.write_test (screen)
   after: /var/backups/hardn: a directory, empty
   the temp dir afterwards (recorded, not compared): var/ var/backups/ var/backups/hardn/
-new path: item 3, Verify: the control's Check through the engine, writing nothing
+new path: the Backup screen under plan only, typed 3
   after: /var/backups/hardn: a directory, empty
 agree  refusal: none
 agree  files: none

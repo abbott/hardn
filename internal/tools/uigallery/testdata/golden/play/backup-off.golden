@@ -6,18 +6,15 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/off␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Backup screen proposed for slice 3,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host, each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the real plan/apply engine. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/off␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false. A change still backs up what its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrollback needs (plan §3.16). Each change is planned, reviewed,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfirmed y/N and applied on the real engine; then the screen␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis read again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -110,18 +107,15 @@ $
 # play backup/off ----------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Backup screen proposed for slice 3,$
-# drawn from what real code reads of a simulated host, each$
-# change on the real plan/apply engine. Nothing on this machine$
-# changes: every command and file is the fake's, and its record$
-# is shown when play ends.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: backup/off$
 # web-01.example.net runs Debian 13. hardn.yml says$
-# enableBackups: false. A change still backs up what its$
-# rollback needs (plan §3.16). Each change is planned, reviewed,$
-# confirmed y/N and applied on the real engine; then the screen$
-# is read again.$
+# enableBackups: false.$
 $
 # Backup Settings ##############################################$
 $
@@ -214,18 +208,16 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/off␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Backup screen proposed for slice 3,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host, each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the real plan/apply engine. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/off␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. hardn.yml says␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false. A change still backs up what its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrollback needs (plan §3.16). Each change is planned,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreviewed, confirmed y/N and applied on the real engine;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen the screen is read again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableBackups: false.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
