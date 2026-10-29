@@ -73,6 +73,7 @@ var envParity = parity.Slice{
 	Check:        isCheck,
 	Temps:        true,
 	Either:       true,
+	CellNote:     cellNote,
 	V032Sections: "§5",
 }
 
@@ -94,8 +95,9 @@ const envHeader = `# The Environment parity table: origin/main's SetupSudoPreser
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
-# control-environment.md by section; plan §3.17; side-effects row <n> (§3). UNEXPLAINED (pending):
-# no such source says it, and the tie is proposed, not approved (parity-environment.md §6).
+# control-environment.md by section; plan §3.17 and §3.21; side-effects row <n> (§3). UNEXPLAINED
+# (pending): no such source says it, and the tie is proposed, not approved (parity-environment.md §6).
+# A cell's second note says where origin/main's golden, a sudo run, stands for it in part.
 `
 
 // The sudoers lines of the starts: alice's grant as ConfigureSudo writes it
@@ -313,13 +315,35 @@ var envScenarios, starts = func() ([]parity.Scenario, map[string]start) {
 		r.sc.V032 = v032
 		r.sc.Note = "origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)"
 		if r.st.ops {
-			r.sc.Note = "origin/main's run on this distribution's fixture, which nothing on its path reads: the four differ in its host line alone (parity-environment.md §2)"
+			r.sc.Note = "origin/main's run on this distribution's fixture, which nothing on its path reads: the four differ in their host line and failing commands alone (parity-environment.md §2)"
 		}
 		out = append(out, r.sc)
 		sts[r.sc.Name] = r.st
 	}
 	return out, sts
 }()
+
+// cellNote is where origin/main's golden, a sudo run as SUDO_USER, stands
+// for c in part (parity.Slice.CellNote): doas sets DOAS_USER and a host
+// with neither tool nothing, so there origin/main would read USER root, as
+// keep_root (gallery-environment.md §7 defect 5; keep_root's KNOWN-DEFECT);
+// Debian and Ubuntu refuse root's open of another user's link in /tmp
+// (keep_tmp_symlink's KNOWN-DEFECT); Ubuntu's ops fixture is 24.04.
+func cellNote(c parity.Cell) string {
+	st := starts[c.Scenario.Name]
+	switch {
+	case toolOf(c.Distro) == sudoers.ToolDoas && st.sudoUser != "":
+		return "doas sets DOAS_USER, not SUDO_USER [I]: the new path ran with DOAS_USER " + st.sudoUser +
+			"; under doas origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]"
+	case toolOf(c.Distro) == sudoers.ToolNone && st.sudoUser != "":
+		return "with neither tool nothing sets SUDO_USER [I]: at a root login origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]"
+	case c.Scenario.Name == "tmp-symlink":
+		return "origin/main's run followed a link its own user planted; on Debian and Ubuntu fs.protected_symlinks refuses root's open of another user's link in /tmp, and the write fails instead (keep_tmp_symlink's KNOWN-DEFECT) [I]"
+	case st.ops && c.Distro.Name == "ubuntu":
+		return "its fixture's host line says Ubuntu 24.04 (noble); the new path runs 26.04 with sudo-rs, the control's tests' host"
+	}
+	return ""
+}
 
 // tie is a parity.Tie written positionally, so that envTable reads as a
 // table (go vet's composites check takes unkeyed fields only for the
@@ -366,7 +390,7 @@ var envTable = []tie{
 	{[]string{"dotted"}, sudo, "files", "V16; plan §3.17", "/etc/sudoers.d/alice.smith, a name sudo skips; now hardn-env-alice_2esmith, which it reads", false},
 	{[]string{"grant"}, sudo, "files", "plan §3.17; decision 3 (a); side-effects rows 17, 18", "the line appended to the grant's file, which the next grant overwrites; now hardn-env-alice, the grant's file left as it was", false},
 	{[]string{"grant"}, sudo, "rules", "plan §3.17; decision 3 (a); side-effects row 17", "the grant carried in the file written; now the line alone, the grant left in alice's file", false},
-	{[]string{"tmp-symlink"}, sudo, "files", "V20; plan §3.17", "/etc/hosts overwritten through the planted link, then alice's file; now hardn-env-alice alone", false},
+	{[]string{"tmp-symlink"}, sudo, "files", "V20; plan §3.17", "/etc/hosts overwritten through the planted link (as its owner; fs.protected_symlinks refuses root here [I]), then alice's file; now hardn-env-alice alone", false},
 	{[]string{"already"}, sudo, "files", "decision 3 (a); control-environment.md §2.2", "origin/main's line found, nothing written; now Kept by /etc/sudoers.d/alice, and item 1 still writes hardn-env-alice", false},
 	{[]string{"commented"}, sudo, "files", "defect 4; decision 3 (a)", "a commented line read as kept, nothing written; now Not kept, and item 1 writes hardn-env-alice", false},
 	{[]string{"tmp-dir"}, sudo, "files", "V20; control-environment.md §2.11", "the planted directory stopped it before any write; now hardn-env-alice, nothing under /tmp", false},
@@ -420,13 +444,13 @@ var envTable = []tie{
 	{[]string{"no-sudoers-d"}, sudo, "refusal", "control-environment.md §2.3, §6; its §10 decisions 3, 17 (unit (b)'s, not adopted)", "failed in its own words, before any write; now SUDOERS_NOT_INCLUDED, refused before asking", false},
 
 	// Alpine: doas, and hardn has no doas rule for alice (decision 1 (a)).
-	{asks, doas, "refusal", "plan §3.21; decision 1 (a); control-environment.md §6", "a sudoers file written on a doas host, or nothing; now refused before asking: hardn has no doas rule for alice", false},
-	{[]string{"grant"}, doas, "refusal", "plan §3.21; decision 1 (a); control-environment.md §6", "a sudoers file written on a doas host; now -e's plan refused: hardn has no doas rule for alice", false},
+	{asks, doas, "refusal", "plan §3.21; decision 1 (a); control-environment.md §6; defect 5", "success on a doas host (under doas, root's file written [I]); now refused before asking: hardn has no doas rule for alice", false},
+	{[]string{"grant"}, doas, "refusal", "plan §3.21; decision 1 (a); control-environment.md §6; defect 5", "a sudoers file written on a doas host (root's under doas [I]); now -e's plan refused: hardn has no doas rule for alice", false},
 	{[]string{"no-sudoers-d", "visudo-fails", "tmp-dir"}, doas, "refusal", "plan §3.21; decision 1 (a); defect 7", "failed, doas never looked for; now refused before asking: hardn has no doas rule for alice", false},
-	{[]string{"new", "grant", "dotted"}, doas, "files", "plan §3.21; decision 1 (a); defect 7", "/etc/sudoers.d/<user> written on a doas host; now nothing written", false},
-	{[]string{"tmp-symlink"}, doas, "files", "V20; plan §3.21; decision 1 (a); defect 7", "/etc/hosts overwritten through the planted link, and a sudoers file on a doas host; now nothing written", false},
-	{[]string{"new", "grant", "dotted", "tmp-symlink"}, doas, "keep lines", "plan §3.21; decision 1 (a); defect 7", "the line written to a sudoers file on a doas host; now nothing written", false},
-	{[]string{"grant"}, doas, "rules", "plan §3.21; decision 1 (a); defect 7", "the grant carried into a sudoers file on a doas host; now nothing written", false},
+	{[]string{"new", "grant", "dotted"}, doas, "files", "plan §3.21; decision 1 (a); defects 5, 7", "/etc/sudoers.d/<user> written on a doas host (root's under doas [I]); now nothing written", false},
+	{[]string{"tmp-symlink"}, doas, "files", "V20; plan §3.21; decision 1 (a); defects 5, 7", "/etc/hosts overwritten through the planted link, and a sudoers file on a doas host (root's under doas [I]); now nothing written", false},
+	{[]string{"new", "grant", "dotted", "tmp-symlink"}, doas, "keep lines", "plan §3.21; decision 1 (a); defects 5, 7", "the line written to a sudoers file on a doas host (Defaults:root under doas [I]); now nothing written", false},
+	{[]string{"grant"}, doas, "rules", "plan §3.21; decision 1 (a); defects 5, 7", "the grant carried into a sudoers file on a doas host (under doas, root's, the line alone [I]); now nothing written", false},
 	{checked, doas, "checks", "plan §3.21; decision 1 (a)", "visudo run on a doas host; now refused, nothing checked", false},
 	{[]string{"new", "dotted", "tmp-symlink"}, doas, "temp files", "V20; decision 1 (a)", "the temp file in /tmp; now refused, nothing written", false},
 	{[]string{"grant"}, doas, "temp files", "V20; decision 1 (a)", "the temp file in /tmp; now refused, nothing written", false},
@@ -436,10 +460,10 @@ var envTable = []tie{
 	{[]string{"new", "already", "commented", "dotted", "no-sudoers-d", "root", "no-user", "visudo-fails", "tmp-symlink", "tmp-dir"}, noTool, "refusal",
 		"decision 7; control-environment.md §6", "whatever the host, a sudoers file written, a failure, or nothing; now refused before asking: sudo isn't installed here", false},
 	{[]string{"grant"}, noTool, "refusal", "decision 7; control-environment.md §6", "a sudoers file written on a host without sudo; now -e's plan refused: sudo isn't installed here", false},
-	{[]string{"new", "grant", "dotted", "root"}, noTool, "files", "decision 7; control-environment.md §6", "/etc/sudoers.d/<user> written on a host without sudo; now nothing written", false},
-	{[]string{"tmp-symlink"}, noTool, "files", "V20; decision 7; control-environment.md §6", "/etc/hosts overwritten through the planted link, and a sudoers file on a host without sudo; now nothing written", false},
-	{[]string{"new", "grant", "dotted", "root", "tmp-symlink"}, noTool, "keep lines", "decision 7; control-environment.md §6", "the line written to a sudoers file on a host without sudo; now nothing written", false},
-	{[]string{"grant"}, noTool, "rules", "decision 7; control-environment.md §6", "the grant carried into a sudoers file on a host without sudo; now nothing written", false},
+	{[]string{"new", "grant", "dotted", "root"}, noTool, "files", "decision 7; control-environment.md §6; defect 5", "/etc/sudoers.d/<user> written on a host without sudo (root's at a root login [I]); now nothing written", false},
+	{[]string{"tmp-symlink"}, noTool, "files", "V20; decision 7; control-environment.md §6; defect 5", "/etc/hosts overwritten through the planted link, and a sudoers file on a host without sudo (root's at a root login [I]); now nothing written", false},
+	{[]string{"new", "grant", "dotted", "root", "tmp-symlink"}, noTool, "keep lines", "decision 7; control-environment.md §6; defect 5", "the line written to a sudoers file on a host without sudo (Defaults:root at a root login [I]); now nothing written", false},
+	{[]string{"grant"}, noTool, "rules", "decision 7; control-environment.md §6; defect 5", "the grant carried into a sudoers file on a host without sudo (at a root login, root's, the line alone [I]); now nothing written", false},
 	{append(slices.Clone(checked), "root"), noTool, "checks", "decision 7; control-environment.md §6", "visudo run on a host without sudo; now refused, nothing checked", false},
 	{[]string{"new", "grant", "dotted", "root", "tmp-symlink"}, noTool, "temp files", "V20; decision 7", "the temp file in /tmp; now refused, nothing written", false},
 	{[]string{"visudo-fails"}, noTool, "temp files", "decision 7", "the temp file in /tmp; now refused, nothing written", false},
