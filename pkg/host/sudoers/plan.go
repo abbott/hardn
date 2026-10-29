@@ -372,21 +372,24 @@ func PlanFor(st State, policies []Policy) (Plan, error) {
 }
 
 // legacy is the detail of a sudoers-legacy-file finding for origin/main's
-// file e: where sudo reads it against first, hardn's first rule for the
-// user, and that a grant there outlives a policy that grants nothing.
+// file e, in the user's words, since the plan's review shows it as it is
+// (next/s9-control; gallery-environment.md §7 item 22; proposed): read
+// after first, hardn's first rule for the user, it may override that
+// rule, as any later file may (FindingLater); where the policy grants
+// nothing, a grant in it still applies; otherwise sudo reads hardn's rule
+// after it, so hardn's wins.
 func legacy(pol Policy, e, first string) string {
-	d := "origin/main's file for " + pol.User + " (V16)"
+	file := DropInDir + "/" + e
+	after, none := first != "" && e > first, pol.Grant == GrantNone
 	switch {
-	case first == "":
-	case e > first:
-		d += "; hardn's rule is in " + first + "; sudo reads it after hardn's: a rule for the user there wins"
-	default:
-		d += "; hardn's rule is in " + first + "; sudo reads it before hardn's: hardn's rule wins"
+	case after && none:
+		return file + " may override hardn's rule and still let " + pol.User + " use sudo"
+	case after:
+		return file + " may override hardn's rule"
+	case none:
+		return file + " may still let " + pol.User + " use sudo"
 	}
-	if pol.Grant == GrantNone {
-		d += "; hardn grants " + pol.User + " nothing, yet a grant in this file still applies"
-	}
-	return d
+	return file + " is from an earlier hardn; hardn's rule wins"
 }
 
 // risk is the risk of a change to the file that carries a user's grant.

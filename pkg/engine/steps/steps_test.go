@@ -422,6 +422,43 @@ func TestDNSChange(t *testing.T) {
 	}
 }
 
+// TestSudoersFindings: a sudoers plan's findings ride on its change
+// (gallery-environment.md §7 item 21), each with its registered code and
+// its source, in words that name the file, as the review shows a detail
+// alone: a file read after hardn's rule, a line of /etc/sudoers after its
+// includedir, and origin/main's /etc/sudoers.d/alice, in sudoers' own
+// words (item 22).
+func TestSudoersFindings(t *testing.T) {
+	h := hostfake.New(host.Options{})
+	h.AddFile(sudoers.MainConfig, []byte("Defaults env_reset\n@includedir /etc/sudoers.d\nalice ALL=(ALL) !ALL\n"), 0o440, 0, 0)
+	h.AddDir(sudoers.DropInDir, 0o755, 0, 0)
+	h.AddFile(sudoers.DropInDir+"/alice", []byte("alice ALL=(ALL) NOPASSWD: ALL\nDefaults:alice env_keep += \"HARDN_CONFIG\"\n"), 0o440, 0, 0)
+	h.AddFile(sudoers.DropInDir+"/zz-local", []byte("alice ALL=(ALL) ALL\n"), 0o440, 0, 0)
+	st, err := sudoers.Read(context.Background(), h, sudoers.Choice{Tool: sudoers.ToolSudo, Flavor: detect.SudoOriginal}, []string{"alice"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := sudoers.PlanFor(st, []sudoers.Policy{{User: "alice", Env: []string{"HARDN_CONFIG"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := Sudoers("environment/alice", p, "Keep HARDN_CONFIG")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []engine.Finding{
+		{Code: "SUDOERS_AFTER_INCLUDE", Detail: "Line 3 of /etc/sudoers may override hardn's rule", Source: "/etc/sudoers:3"},
+		{Code: "SUDOERS_LEGACY_FILE", Detail: "/etc/sudoers.d/alice may still let alice use sudo", Source: "/etc/sudoers.d/alice"},
+		{Code: "SUDOERS_LATER_FILE", Detail: "/etc/sudoers.d/zz-local may override hardn's rule", Source: "/etc/sudoers.d/zz-local"},
+	}
+	if !slices.Equal(c.Findings, want) {
+		t.Errorf("findings:\n%+v\nwant:\n%+v", c.Findings, want)
+	}
+	if c, err := Sudoers("sudoers", sudoers.Plan{Tool: sudoers.ToolSudo}, "x"); err != nil || c.Findings != nil {
+		t.Errorf("a plan with no findings: %+v, %v", c.Findings, err)
+	}
+}
+
 func TestRefusal(t *testing.T) {
 	r := &Refusal{Code: "EXAMPLE_CODE", Why: "why", Fix: "fix", Err: reload.ErrNotInEffect}
 	if got := r.Error(); got != "why. To go on: fix (EXAMPLE_CODE): "+reload.ErrNotInEffect.Error() || !errors.Is(r, reload.ErrNotInEffect) {

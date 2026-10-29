@@ -11,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -140,6 +141,35 @@ func DNSFinding(s dns.State, f dns.Finding) engine.Finding {
 		}
 	case dns.FindingProxmox:
 		out.Detail, out.Source = "Saving Proxmox VE's DNS settings rewrites "+dns.ResolvConf, ""
+	}
+	return out
+}
+
+// SudoersFinding is one of sudoers' findings as an engine.Finding
+// (SUDOERS_...), in a few words that name the file, as the review shows a
+// finding's detail alone, for a plan and a check alike (next/s9-control;
+// gallery-environment.md §7 item 21): a file read after hardn's rule as
+// "<file> may override hardn's rule" (decided, slice 9's decision 7), a
+// line of the main file after its includedir as "Line <n> of <file> may
+// override hardn's rule" (proposed). origin/main's file keeps sudoers'
+// detail, which is in the user's words already (proposed), as they depend
+// on the policy, which a finding does not carry. sudoers' own details are
+// in its documentation (sudoers.md §2 item 5).
+func SudoersFinding(f sudoers.Finding) engine.Finding {
+	out := engine.Finding{Code: findingCode("SUDOERS", f.Kind.String()), Detail: f.Detail, Source: at(f.File, f.Line)}
+	switch f.Kind {
+	case sudoers.FindingLater:
+		out.Detail = f.File + " may override hardn's rule"
+	case sudoers.FindingAfterInclude:
+		out.Detail = fmt.Sprintf("Line %d of %s may override hardn's rule", f.Line, f.File)
+	}
+	return out
+}
+
+func sudoersFindings(fs []sudoers.Finding) []engine.Finding {
+	var out []engine.Finding
+	for _, f := range fs {
+		out = append(out, SudoersFinding(f))
 	}
 	return out
 }
