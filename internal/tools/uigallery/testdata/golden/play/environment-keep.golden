@@ -39,7 +39,7 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
   ␛[38;2;129;134;156mshell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -65,7 +65,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
@@ -73,7 +73,7 @@ $
 $
   ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m    ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -89,7 +89,7 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mStop keeping HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -103,7 +103,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
 $
 
@@ -144,7 +144,7 @@ $
   HARDN_CONFIG names the hardn.yml hardn reads. Set it in your$
   shell profile:$
   export HARDN_CONFIG=/path/to/hardn.yml$
-  Then keep it under sudo with item 1.$
+  Then keep it with item 1.$
 $
 # Environment Variable Settings ################################$
 $
@@ -170,7 +170,7 @@ $
    -  User                 alice$
   [+] Under sudo           Kept$
 $
-   -  Keep HARDN_CONFIG under sudo for alice$
+   -  Keep HARDN_CONFIG$
       /etc/sudoers.d/hardn-env-alice$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
@@ -178,7 +178,7 @@ $
 $
   Keep HARDN_CONFIG under sudo? [y/N, 0 or q]: y$
 $
-  [+] Keep HARDN_CONFIG under sudo for alice  Done$
+  [+] Keep HARDN_CONFIG    Done$
 $
 # Operation Successful$
 $
@@ -194,7 +194,7 @@ $
 $
   Select an option$
 $
-   1) Under sudo           Keep HARDN_CONFIG$
+   1) Under sudo           Stop keeping HARDN_CONFIG$
    2) Guide                How to set HARDN_CONFIG$
 $
    0) Return$
@@ -208,7 +208,7 @@ $
 # 01.example.net, and the files it changed, in order; hardn's$
 # own journal, run directory and backups left out.$
 $
-   -  Applied: Keep HARDN_CONFIG under sudo for alice$
+   -  Applied: Keep HARDN_CONFIG$
       /etc/sudoers.d/hardn-env-alice$
 $
 
@@ -254,7 +254,7 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in␛[m$
   ␛[38;2;129;134;156myour shell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -287,7 +287,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
       ␛[38;2;112;212;127mKept␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
@@ -295,7 +295,7 @@ $
 $
   ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
@@ -316,7 +316,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
-      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+      ␛[38;2;129;134;156mStop keeping HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
       ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
@@ -331,7 +331,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
 $
 
@@ -372,7 +372,7 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
   ␛[38;2;129;134;156mshell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $
@@ -398,7 +398,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
@@ -406,7 +406,7 @@ $
 $
   ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m  ␛[38;2;112;212;127mDone␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m    ␛[38;2;112;212;127mDone␛[m$
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 $
@@ -422,7 +422,7 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mStop keeping HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -436,6 +436,6 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
 $

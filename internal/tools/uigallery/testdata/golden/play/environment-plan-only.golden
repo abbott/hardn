@@ -43,7 +43,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
@@ -115,7 +115,7 @@ $
    -  User                 alice$
   [+] Under sudo           Kept$
 $
-   -  Keep HARDN_CONFIG under sudo for alice$
+   -  Keep HARDN_CONFIG$
       /etc/sudoers.d/hardn-env-alice$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
@@ -194,7 +194,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
       ␛[38;2;112;212;127mKept␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$

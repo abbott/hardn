@@ -156,7 +156,7 @@
 //
 // "environment" lists the Environment mocks of refactor plan slice 9,
 // unit (a) (environment.go, docs/engine/gallery-environment.md), each
-// under a note: the proposed Environment screen on fourteen simulated
+// under a note: the proposed Environment screen on fifteen simulated
 // hosts, read by real code (sudoers.Choose, Read and PlanFor), origin/main's
 // screen in its words, item 1 under each doas treatment, the guide and
 // the refusals. "play environment" is the menu of the hosts and "play

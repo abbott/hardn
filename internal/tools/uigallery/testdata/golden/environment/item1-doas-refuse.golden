@@ -6,9 +6,9 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment item1-doas-refuse␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-refuse: item 1 on alpine323 refuses before␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masking, as sudoers.PlanFor refuses an env-only Policy on doas␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ErrEnvNeedsGrant).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (a), recommended: item 1 on alpine324 refuses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore asking, as sudoers.PlanFor refuses an env-only Policy␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon doas (ErrEnvNeedsGrant).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -28,9 +28,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdoas keeps HARDN_CONFIG only on a rule for alice alone, and␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has none. Add setenv { HARDN_CONFIG } to the rule that␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
 $
 $
 
@@ -38,9 +37,9 @@ $
 # environment item1-doas-refuse --------------------------------$
 $
 # Note$
-# Treatment doas-refuse: item 1 on alpine323 refuses before$
-# asking, as sudoers.PlanFor refuses an env-only Policy on doas$
-# (ErrEnvNeedsGrant).$
+# Decision 1 (a), recommended: item 1 on alpine324 refuses$
+# before asking, as sudoers.PlanFor refuses an env-only Policy$
+# on doas (ErrEnvNeedsGrant).$
 $
 # Environment Variable Settings ################################$
 $
@@ -60,9 +59,8 @@ $
   > Enter selection [0-2 or q]:$
 $
 # Warning$
-# doas keeps HARDN_CONFIG only on a rule for alice alone, and$
-# hardn has none. Add setenv { HARDN_CONFIG } to the rule that$
-# lets alice use doas.$
+# hardn has no doas rule for alice to keep HARDN_CONFIG on. Add$
+# setenv { HARDN_CONFIG } to the rule that lets alice use doas.$
 $
 $
 
@@ -70,9 +68,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment item1-doas-refuse␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-refuse: item 1 on alpine323 refuses before␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masking, as sudoers.PlanFor refuses an env-only Policy on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas (ErrEnvNeedsGrant).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (a), recommended: item 1 on alpine324 refuses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore asking, as sudoers.PlanFor refuses an env-only␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPolicy on doas (ErrEnvNeedsGrant).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -97,9 +95,9 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdoas keeps HARDN_CONFIG only on a rule for alice alone,␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mand hardn has none. Add setenv { HARDN_CONFIG } to the␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mrule that lets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd setenv { HARDN_CONFIG } to the rule that lets alice␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156muse doas.␛[m$
 $
 $
 
@@ -107,9 +105,9 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment item1-doas-refuse␛[m ␛[38;2;48;52;64m--------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-refuse: item 1 on alpine323 refuses before␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masking, as sudoers.PlanFor refuses an env-only Policy on doas␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ErrEnvNeedsGrant).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (a), recommended: item 1 on alpine324 refuses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore asking, as sudoers.PlanFor refuses an env-only Policy␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon doas (ErrEnvNeedsGrant).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $
@@ -129,8 +127,7 @@ $
   ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdoas keeps HARDN_CONFIG only on a rule for alice alone, and␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has none. Add setenv { HARDN_CONFIG } to the rule that␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
 $
 $

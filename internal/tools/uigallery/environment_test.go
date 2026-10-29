@@ -53,14 +53,15 @@ func TestEnvironmentGolden(t *testing.T) {
 // TestPlayEnvironmentGolden plays the Environment mocks end to end and
 // pins each transcript: on Debian 13 the guide, then HARDN_CONFIG kept
 // (plan, y/N, apply, the screen after), also under LANG=C; the same under
-// sudo-rs; already kept, an empty plan; the toggle stopping it; a root
-// login and Proxmox VE refused before asking; plan only, stopping at the
-// plan; hardn's grant carried by the reader, and planned without it, its
-// removal lockout-risk, declined at the typed confirmation; doas's
-// per-user rule, its notice and the typed confirmation; doas-refuse; the
-// cloud image's wheel.conf reported; origin/main's file; and the hosts'
-// menu, to the overridden doas host. Each change id's random suffix is
-// written xxxxxxxx (sessionIDs).
+// sudo-rs; already kept, item 1 stopping it, and under keep only an empty
+// plan; a root login and Proxmox VE refused before asking; plan only,
+// stopping at the plan; hardn's grant carried by the reader, and planned
+// without it, its removal lockout-risk, declined at the typed
+// confirmation; on doas the refusal, and again once the user followed it;
+// doas's per-user rule, its notice and the typed confirmation; the cloud
+// image's wheel.conf reported; stopping on doas, lockout-risk;
+// origin/main's file; and the hosts' menu, to the overridden doas host.
+// Each change id's random suffix is written xxxxxxxx (sessionIDs).
 func TestPlayEnvironmentGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -70,18 +71,20 @@ func TestPlayEnvironmentGolden(t *testing.T) {
 	}{
 		{"environment-keep", []string{"environment/debian13"}, []string{"2", "1", "y", "0"}, envCells()},
 		{"environment-sudo-rs", []string{"environment/ubuntu2604"}, []string{"1", "y", "0"}, nil},
-		{"environment-kept", []string{"environment/kept"}, []string{"1", "0"}, nil},
-		{"environment-kept-toggle", []string{"environment/kept-toggle"}, []string{"1", "y", "0"}, nil},
+		{"environment-kept", []string{"environment/kept"}, []string{"1", "y", "0"}, nil},
+		{"environment-kept-only", []string{"environment/kept-only"}, []string{"1", "0"}, nil},
 		{"environment-root-login", []string{"environment/root-login"}, []string{"1", "0"}, nil},
 		{"environment-pve9", []string{"environment/pve9"}, []string{"1", "0"}, nil},
 		{"environment-plan-only", []string{"-sequence", "dry-run", "environment/debian13"}, []string{"1", "0"}, nil},
 		{"environment-grant", []string{"environment/grant"}, []string{"1", "y", "0"}, nil},
 		{"environment-grant-no-reader", []string{"environment/grant-no-reader"}, []string{"1", "0", "0"}, nil},
-		{"environment-doas", []string{"environment/alpine323"}, []string{"1", hostName, "0"}, nil},
-		{"environment-doas-refuse", []string{"environment/alpine323-refuse"}, []string{"1", "0"}, nil},
+		{"environment-doas-refuse", []string{"environment/alpine324"}, []string{"1", "0"}, nil},
+		{"environment-doas-setenv", []string{"environment/alpine324-setenv"}, []string{"1", "0"}, nil},
+		{"environment-doas-rule", []string{"environment/alpine324-rule"}, []string{"1", hostName, "0"}, nil},
 		{"environment-wheel", []string{"environment/alpine323-cloud"}, []string{"1", hostName, "0"}, nil},
+		{"environment-doas-stop", []string{"environment/doas-overridden"}, []string{"1", hostName, "0"}, nil},
 		{"environment-legacy", []string{"environment/legacy"}, []string{"1", "y", "0"}, nil},
-		{"environment-hosts", []string{"environment"}, []string{"6", "0", "0"}, nil},
+		{"environment-hosts", []string{"environment"}, []string{"7", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
 		cells := tt.cells
@@ -148,13 +151,14 @@ func TestEnvHosts(t *testing.T) {
 	}{
 		{host: "debian13", tool: sudoers.ToolSudo, user: "alice"},
 		{host: "ubuntu2604", tool: sudoers.ToolSudo, user: "alice"},
-		{host: "alpine323", tool: sudoers.ToolDoas, user: "alice", risky: true},
-		{host: "alpine323-refuse", tool: sudoers.ToolDoas, user: "alice", refused: true},
+		{host: "alpine324", tool: sudoers.ToolDoas, user: "alice", refused: true},
+		{host: "alpine324-rule", tool: sudoers.ToolDoas, user: "alice", risky: true},
+		{host: "alpine324-setenv", tool: sudoers.ToolDoas, user: "alice", refused: true},
 		{host: "alpine323-cloud", tool: sudoers.ToolDoas, user: "alice", later: []string{"/etc/doas.d/wheel.conf"}, risky: true},
-		{host: "doas-overridden", tool: sudoers.ToolDoas, user: "alice", kept: true, later: []string{"/etc/doas.d/wheel.conf"}, row: true},
+		{host: "doas-overridden", tool: sudoers.ToolDoas, user: "alice", kept: true, later: []string{"/etc/doas.d/wheel.conf"}, risky: true, row: true},
 		{host: "pve9", tool: sudoers.ToolNone, refused: true},
 		{host: "kept", tool: sudoers.ToolSudo, user: "alice", kept: true, row: true},
-		{host: "kept-toggle", tool: sudoers.ToolSudo, user: "alice", kept: true, row: true},
+		{host: "kept-only", tool: sudoers.ToolSudo, user: "alice", kept: true, row: true},
 		{host: "root-login", tool: sudoers.ToolSudo, refused: true},
 		{host: "grant", tool: sudoers.ToolSudo, user: "alice"},
 		{host: "grant-no-reader", tool: sudoers.ToolSudo, user: "alice", risky: true},
@@ -191,27 +195,56 @@ func TestEnvHosts(t *testing.T) {
 
 // TestEnvironmentReader holds the gallery's reader (currentPolicy, unit
 // (b)'s) to what sudoers.PlanFor writes: on each host hardn's files read
-// back as the Policy that wrote them, which plans nothing again; a file
-// edited by hand is no Policy, and named.
+// back as the Policy that wrote them, whatever its variables, which plans
+// nothing again; item 1's Policy either way carries the grant and the
+// other variables, adding or taking out HARDN_CONFIG alone; a file edited
+// by hand is no Policy, and named.
 func TestEnvironmentReader(t *testing.T) {
-	for host, want := range map[string]sudoers.Policy{
-		"debian13":        {User: "alice"},
-		"alpine323":       {User: "alice"},
-		"kept":            {User: "alice", Env: []string{hardnConfig}},
-		"grant":           {User: "alice", Grant: sudoers.GrantNoPassword},
-		"doas-overridden": {User: "alice", Grant: doasGrant, Env: []string{hardnConfig}},
-		"legacy":          {User: "alice"},
-	} {
-		r, _ := readEnvHost(t, host)
-		if r.err != nil || r.cur.User != want.User || r.cur.Grant != want.Grant || !slices.Equal(r.cur.Env, want.Env) {
-			t.Errorf("%s: read %+v (%v), want %+v", host, r.cur, r.err, want)
+	two := []string{hardnConfig, "EDITOR"}
+	tests := []struct {
+		name       string
+		host       func() *fakeHost
+		env        map[string]string
+		want       sudoers.Policy
+		keep, stop []string // the variables of item 1's Policy, keeping and stopping
+	}{
+		{"debian13", newHost, sudoAlice, sudoers.Policy{User: "alice"}, []string{hardnConfig}, nil},
+		{"alpine324", alpineWheel, doasAlice, sudoers.Policy{User: "alice"}, []string{hardnConfig}, nil},
+		{"kept", keptHost, keptAlice, sudoers.Policy{User: "alice", Env: []string{hardnConfig}}, []string{hardnConfig}, nil},
+		{"grant", grantHost, sudoAlice, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword}, []string{hardnConfig}, nil},
+		{"doas-overridden", doasOverridden, doasAlice, sudoers.Policy{User: "alice", Grant: doasGrant, Env: []string{hardnConfig}}, []string{hardnConfig}, nil},
+		{"legacy", legacyHost, keptAlice, sudoers.Policy{User: "alice"}, []string{hardnConfig}, nil},
+		{"two variables, sudo", func() *fakeHost { return withHardnFiles(newHost(), sudoers.Policy{User: "alice", Env: two}) }, keptAlice,
+			sudoers.Policy{User: "alice", Env: two}, two, []string{"EDITOR"}},
+		{"another variable, sudo", func() *fakeHost {
+			return withHardnFiles(grantHost(), sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword, Env: []string{"EDITOR"}})
+		}, sudoAlice, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword, Env: []string{"EDITOR"}}, []string{"EDITOR", hardnConfig}, []string{"EDITOR"}},
+		{"another variable, doas", func() *fakeHost {
+			return withHardnFiles(alpineWheel(), sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword, Env: []string{"EDITOR"}})
+		}, doasAlice, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword, Env: []string{"EDITOR"}}, []string{"EDITOR", hardnConfig}, []string{"EDITOR"}},
+	}
+	for _, tt := range tests {
+		r := readEnv(context.Background(), tt.host().system(), tt.env, envTreatment{})
+		if r.err != nil || r.cur.User != tt.want.User || r.cur.Grant != tt.want.Grant || !slices.Equal(r.cur.Env, tt.want.Env) {
+			t.Errorf("%s: read %+v (%v), want %+v", tt.name, r.cur, r.err, tt.want)
 			continue
 		}
 		if p, err := sudoers.PlanFor(r.st, []sudoers.Policy{r.cur}); err != nil || len(p.Changes) > 0 {
-			t.Errorf("%s: the Policy read plans %d changes (%v)", host, len(p.Changes), err)
+			t.Errorf("%s: the Policy read plans %d changes (%v)", tt.name, len(p.Changes), err)
+		}
+		for keep, want := range map[bool][]string{true: tt.keep, false: tt.stop} {
+			if pol := (envTreatment{}).target(r.cur, r.choice.Tool, keep); pol.Grant != tt.want.Grant || !slices.Equal(pol.Env, want) {
+				t.Errorf("%s, keep %v: item 1 plans %+v, want grant %v, variables %q", tt.name, keep, pol, tt.want.Grant, want)
+			}
 		}
 	}
-	r := readEnv(context.Background(), editedHost().system(), sudoAlice, envTreatment{})
+	h := withHardnFiles(newHost(), sudoers.Policy{User: "alice", Env: two})
+	r := readEnv(context.Background(), h.system(), keptAlice, envTreatment{})
+	if p, err := sudoers.PlanFor(r.st, []sudoers.Policy{(envTreatment{}).target(r.cur, r.choice.Tool, false)}); err != nil || len(p.Changes) != 1 ||
+		p.Changes[0].Remove || string(p.Changes[0].Data) != sudoers.Header+"Defaults:alice env_keep += \"EDITOR\"\n" {
+		t.Errorf("two variables, stopping: %v, %+v", err, p.Changes)
+	}
+	r = readEnv(context.Background(), editedHost().system(), sudoAlice, envTreatment{})
 	if !errors.Is(r.err, errEdited) || !strings.Contains(flatText(r.refusal().Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true)))),
 		"/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't write.") {
 		t.Errorf("edited: %v, %q", r.err, r.refusal())
@@ -255,34 +288,52 @@ func TestEnvironmentGrantCarried(t *testing.T) {
 	}
 }
 
-// TestEnvironmentDoas: on alpine323, item 1's per-user rule (doas-rule) is
-// lockout-risk, confirmed by typing the hostname, and says first that it
-// grants doas; doas-refuse refuses before asking, building no engine, as
-// PlanFor refuses an env-only Policy on doas; on the cloud image the
-// change carries the plan's finding of wheel.conf, read after hardn's
-// rule, its code registered; and nothing is planned on a host already
-// kept.
+// TestEnvironmentDoas: on alpine324 item 1 refuses before asking
+// (decision 1 (a)), building no engine, as PlanFor refuses an env-only
+// Policy on doas; once the user puts setenv on 20-wheel.conf's group rule,
+// as the refusal says, the screen still says Not kept, beside a Value doas
+// kept, and item 1 refuses again, as it reads hardn's files alone; under
+// doas-rule (1 (b)) the per-user rule is lockout-risk, confirmed by typing
+// the hostname, and says first that it grants doas; on the cloud image
+// the change carries the plan's finding of wheel.conf, read after hardn's
+// rule, its code registered, in the screen's words; on a host already
+// kept, keeping plans nothing and stopping rewrites hardn's rule without
+// setenv, lockout-risk for a password rule; and adding setenv to a rule of
+// hardn's is lockout-risk for a password rule, plain for nopass.
 func TestEnvironmentDoas(t *testing.T) {
-	_, p := envEngine(t, envHostNamed(t, "alpine323").host(), envControl{user: "alice", keep: true})
-	if p.Err() != nil || p.Risk != engine.RiskLockout || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, "+permit persist setenv { HARDN_CONFIG } alice") {
-		t.Errorf("doas-rule: %v, risk %v", p.Err(), p.Risk)
-	}
-	eh := envHostNamed(t, "alpine323-refuse")
+	eh := envHostNamed(t, "alpine324")
 	h := eh.host()
 	r := readEnv(context.Background(), h.system(), eh.env, eh.t)
 	if !errors.Is(r.planErr, sudoers.ErrEnvNeedsGrant) {
 		t.Errorf("doas-refuse: %v", r.planErr)
 	}
+	refusal := "hardn has no doas rule for alice to keep HARDN_CONFIG on. Add setenv { HARDN_CONFIG } to the rule that lets alice use doas."
 	s, out, code := playEnv(t, eh, h, false, "1", "0")
-	if code != exitOK || len(s.engineRuns) != 0 || !strings.Contains(flatText(out), "doas keeps HARDN_CONFIG only on a rule for alice alone") {
+	if code != exitOK || len(s.engineRuns) != 0 || !strings.Contains(flatText(out), refusal) {
 		t.Errorf("doas-refuse: exit %d, %d engines:\n%s", code, len(s.engineRuns), out)
 	}
-	s, out, code = playEnv(t, envHostNamed(t, "alpine323"), envHostNamed(t, "alpine323").host(), false, "1", hostName, "0")
+
+	r, _ = readEnvHost(t, "alpine324-setenv")
+	rows := map[string]string{}
+	for _, kv := range r.rows() {
+		rows[kv.Key] = kv.Value
+	}
+	if r.kept || rows["Under doas"] != notKept || rows[valueKey] != "/home/alice/hardn.yml" ||
+		!strings.Contains(flatText(r.refusal().Render(component.NewCtx(term.Fixed(200, colorprofile.NoTTY, false, true)))), refusal) {
+		t.Errorf("setenv on wheel: kept %v, rows %q, refusal %q", r.kept, rows, r.refusal())
+	}
+
+	_, p := envEngine(t, alpineWheel(), envControl{user: "alice", t: envTreatment{doasRule: true}, keep: true})
+	if p.Err() != nil || p.Risk != engine.RiskLockout || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, "+permit persist setenv { HARDN_CONFIG } alice") {
+		t.Errorf("doas-rule: %v, risk %v", p.Err(), p.Risk)
+	}
+	s, out, code = playEnv(t, envHostNamed(t, "alpine324-rule"), alpineWheel(), false, "1", hostName, "0")
 	if code != exitOK || len(s.engineRuns) != 1 || !strings.Contains(flatText(out), "The rule also lets alice use doas, in wheel or not.") ||
 		!strings.Contains(flatText(out), "Type the hostname") {
 		t.Errorf("doas-rule: exit %d:\n%s", code, out)
 	}
-	_, p = envEngine(t, envHostNamed(t, "alpine323-cloud").host(), envControl{user: "alice", keep: true})
+
+	_, p = envEngine(t, alpineCloud(), envControl{user: "alice", t: envTreatment{doasRule: true}, keep: true})
 	var later []engine.Finding
 	for _, c := range p.Changes {
 		for _, f := range c.Findings {
@@ -294,11 +345,24 @@ func TestEnvironmentDoas(t *testing.T) {
 			}
 		}
 	}
-	if len(later) != 1 || later[0].Source != "/etc/doas.d/wheel.conf" {
+	if len(later) != 1 || later[0].Source != "/etc/doas.d/wheel.conf" || later[0].Detail != "/etc/doas.d/wheel.conf may override hardn's rule" {
 		t.Errorf("wheel.conf: findings %+v", later)
 	}
-	if _, p = envEngine(t, envHostNamed(t, "doas-overridden").host(), envControl{user: "alice", keep: true}); p.Err() != nil || len(p.Changes) != 0 {
+
+	if _, p = envEngine(t, doasOverridden(), envControl{user: "alice", keep: true}); p.Err() != nil || len(p.Changes) != 0 {
 		t.Errorf("kept: %v, %d changes", p.Err(), len(p.Changes))
+	}
+	_, p = envEngine(t, doasOverridden(), envControl{user: "alice"})
+	if p.Err() != nil || p.Risk != engine.RiskLockout || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, "+permit persist alice\n") {
+		t.Errorf("stopping: %v, risk %v, %+v", p.Err(), p.Risk, p.Changes)
+	}
+
+	for g, risk := range map[sudoers.Grant]engine.RiskClass{sudoers.GrantPassword: engine.RiskLockout, sudoers.GrantNoPassword: engine.RiskPlain} {
+		h := withHardnFiles(alpineCloud(), sudoers.Policy{User: "alice", Grant: g})
+		_, p = envEngine(t, h, envControl{user: "alice", keep: true})
+		if p.Err() != nil || p.Risk != risk || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, " setenv { HARDN_CONFIG } alice") {
+			t.Errorf("hardn's %v rule: %v, risk %v, %+v", g, p.Err(), p.Risk, p.Changes)
+		}
 	}
 }
 
@@ -367,9 +431,9 @@ func TestEnvironmentPlanOnlyWritesNothing(t *testing.T) {
 // Unicode and ASCII: each is as many lines at either height, the prompt
 // on its last, and fits 24 rows.
 func TestEnvironmentHeights(t *testing.T) {
-	want := map[string]int{"debian13": 16, "ubuntu2604": 16, "alpine323": 17, "alpine323-refuse": 16, "alpine323-cloud": 17,
-		"doas-overridden": 17, "pve9": 15, "kept": 16, "kept-toggle": 16, "root-login": 15, "grant": 16, "grant-no-reader": 17,
-		"legacy": 16, "legacy-hardn-only": 16, "origin": 17}
+	want := map[string]int{"debian13": 16, "ubuntu2604": 16, "alpine324": 16, "alpine324-rule": 17, "alpine324-setenv": 16,
+		"alpine323-cloud": 17, "doas-overridden": 18, "pve9": 15, "kept": 16, "kept-only": 16, "root-login": 15, "grant": 16,
+		"grant-no-reader": 17, "legacy": 16, "legacy-hardn-only": 16, "origin": 17}
 	draws := map[string]func(component.Ctx) string{}
 	for _, eh := range envHosts() {
 		r, _ := readEnvHost(t, eh.name)

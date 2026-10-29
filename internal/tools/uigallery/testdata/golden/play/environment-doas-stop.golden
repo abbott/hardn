@@ -1,0 +1,484 @@
+# Golden file of TestPlayEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/doas-overridden␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe maintainer's VM; alice is in wheel, and the image's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice ran␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. hardn's rule for her keeps HARDN_CONFIG, but␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf's wins, so doas dropped it. Stopping rewrites a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule that asks her password.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mKept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mStop keeping HARDN_CONFIG␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mStop Keeping HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its window, or␛[m$
+      ␛[38;2;112;212;127m↪ roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only: sshd␛[m$
+      ␛[38;2;112;212;127m↪ starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m$
+$
+      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,2 @@␛[m$
+      ␛[38;2;129;134;156m # Managed by hardn␛[m$
+      ␛[38;2;231;70;105m-permit persist setenv { HARDN_CONFIG } alice␛[m$
+      ␛[38;2;112;212;127m+permit persist alice␛[m$
+$
+  ␛[38;2;192;196;216mStop keeping HARDN_CONFIG under doas?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run doas hardn␛[m$
+  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/doas.d/hardn-alice.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+  ␛[38;2;129;134;156mTakes effect at the next doas hardn.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop keeping HARDN_CONFIG␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play environment/doas-overridden -----------------------------$
+$
+# Note$
+# Play mode, mocks: the Environment screen proposed for slice 9,$
+# drawn from what real code reads of a simulated host$
+# (sudoers.Choose, Read, PlanFor), each change on the real$
+# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
+# of hardn's files and the plan's findings on the change are the$
+# gallery's, unit (b)'s to build. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Info: environment/doas-overridden$
+# web-01.example.net runs Alpine 3.23's cloud image, doas, as$
+# the maintainer's VM; alice is in wheel, and the image's$
+# /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran$
+# doas hardn. hardn's rule for her keeps HARDN_CONFIG, but$
+# wheel.conf's wins, so doas dropped it. Stopping rewrites a$
+# rule that asks her password.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under doas           Kept$
+   -  /etc/doas.d/wheel.conf may override hardn's rule$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under doas           Stop keeping HARDN_CONFIG$
+                           [ ] Lockout risk$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 1$
+$
+# Stop Keeping HARDN_CONFIG ####################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under doas           Not kept$
+   -  /etc/doas.d/wheel.conf may override hardn's rule$
+$
+   -  Install hardn's boot unit$
+      /etc/init.d/hardn-boot$
+      @@ -0,0 +1,23 @@$
+      +#!/sbin/openrc-run$
+      +# hardn's boot service (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd starts: re-arm the revert timer of$
+      | a change waiting$
+      +# for "hardn confirm", for what remains of its window, or$
+      | roll the change$
+      +# back when its deadline has passed. Ordering only: sshd$
+      | starts whatever$
+      +# this service does.$
+      +$
+      +description="hardn: re-arm or run the revert timer of an$
+      | unconfirmed change"$
+      +$
+      +depend() {$
+      +    need localmount$
+      +    after bootmisc firewall$
+      +    before sshd$
+      +}$
+      +$
+      +start() {$
+      +    ebegin "hardn: checking the change journal"$
+      +    /usr/local/bin/hardn rollback --boot$
+      +    eend $?$
+      +}$
+      -not installed$
+      +installed and enabled$
+      $ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+  [ ] Lockout risk$
+      Stop keeping HARDN_CONFIG$
+$
+      /etc/doas.d/hardn-alice.conf$
+      @@ -1,2 +1,2 @@$
+       # Managed by hardn$
+      -permit persist setenv { HARDN_CONFIG } alice$
+      +permit persist alice$
+$
+  Stop keeping HARDN_CONFIG under doas?$
+$
+  Type the hostname [web-01, 0 or q]: web-01$
+$
+  [+] Install hardn's boot unit  Done$
+  [+] Stop keeping HARDN_CONFIG  Done$
+$
+# Operation Successful$
+$
+# Warning$
+# This change reverts automatically in 3:00$
+# To keep it, open a new SSH session and run:$
+$
+      $ doas hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at about 12:03:00 UTC. To undo it now, run doas hardn$
+  rollback 20261020T120000Z-xxxxxxxx.$
+$
+  Backup of /etc/doas.d/hardn-alice.conf kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
+$
+  Takes effect at the next doas hardn.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under doas           Not kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under doas           Keep HARDN_CONFIG$
+                           [ ] Lockout risk$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: environment/doas-overridden$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Install hardn's boot unit$
+      /etc/init.d/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+   -  Armed the revert timer$
+      $ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""$
+      | /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx$
+$
+   -  Applied: Stop keeping HARDN_CONFIG$
+      /etc/doas.d/hardn-alice.conf$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/doas-overridden␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas the maintainer's VM; alice is in wheel, and the image's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. hardn's rule for her keeps HARDN_CONFIG,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbut wheel.conf's wins, so doas dropped it. Stopping␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrewrites a rule that asks her password.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;219;184;83mKept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;129;134;156mStop keeping HARDN_CONFIG␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mStop Keeping HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only:␛[m$
+      ␛[38;2;112;212;127m↪ sshd starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m$
+$
+      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1,2 @@␛[m$
+      ␛[38;2;129;134;156m # Managed by hardn␛[m$
+      ␛[38;2;231;70;105m-permit persist setenv { HARDN_CONFIG } alice␛[m$
+      ␛[38;2;112;212;127m+permit persist alice␛[m$
+$
+  ␛[38;2;192;196;216mStop keeping HARDN_CONFIG under doas?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/doas.d/hardn-alice.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+  ␛[38;2;129;134;156mTakes effect at the next doas hardn.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop keeping HARDN_CONFIG␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+$

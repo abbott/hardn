@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/alpine323-refuse␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/alpine324␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
@@ -15,10 +15,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/alpine323-refuse␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, doas; alice is in wheel.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran doas hardn. As alpine323, drawn with the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malternative: no per-user rule, refused before asking.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.24 after setup-alpine, doas;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice is in wheel. alice ran doas hardn. /etc/doas.d/20-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf says permit persist :wheel. hardn has no rule for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mher, so item 1 refuses before asking.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -38,9 +39,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdoas keeps HARDN_CONFIG only on a rule for alice alone, and␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has none. Add setenv { HARDN_CONFIG } to the rule that␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -66,7 +66,7 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play environment/alpine323-refuse ----------------------------$
+# play environment/alpine324 -----------------------------------$
 $
 # Note$
 # Play mode, mocks: the Environment screen proposed for slice 9,$
@@ -78,10 +78,11 @@ $
 # changes: every command and file is the fake's, and its record$
 # is shown when play ends.$
 $
-# Info: environment/alpine323-refuse$
-# web-01.example.net runs Alpine 3.23, doas; alice is in wheel.$
-# alice ran doas hardn. As alpine323, drawn with the$
-# alternative: no per-user rule, refused before asking.$
+# Info: environment/alpine324$
+# web-01.example.net runs Alpine 3.24 after setup-alpine, doas;$
+# alice is in wheel. alice ran doas hardn. /etc/doas.d/20-$
+# wheel.conf says permit persist :wheel. hardn has no rule for$
+# her, so item 1 refuses before asking.$
 $
 # Environment Variable Settings ################################$
 $
@@ -101,9 +102,8 @@ $
   > Enter selection [0-2 or q]: 1$
 $
 # Warning$
-# doas keeps HARDN_CONFIG only on a rule for alice alone, and$
-# hardn has none. Add setenv { HARDN_CONFIG } to the rule that$
-# lets alice use doas.$
+# hardn has no doas rule for alice to keep HARDN_CONFIG on. Add$
+# setenv { HARDN_CONFIG } to the rule that lets alice use doas.$
 $
 # Environment Variable Settings ################################$
 $
@@ -129,7 +129,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/alpine323-refuse␛[m ␛[38;2;48;52;64m────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/alpine324␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
@@ -141,10 +141,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/alpine323-refuse␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, doas; alice is in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel. alice ran doas hardn. As alpine323, drawn with the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malternative: no per-user rule, refused before asking.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/alpine324␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.24 after setup-alpine,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas; alice is in wheel. alice ran doas hardn.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/20-wheel.conf says permit persist :wheel.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn has no rule for her, so item 1 refuses before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masking.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -169,9 +171,9 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdoas keeps HARDN_CONFIG only on a rule for alice alone,␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mand hardn has none. Add setenv { HARDN_CONFIG } to the␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mrule that lets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd setenv { HARDN_CONFIG } to the rule that lets alice␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156muse doas.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

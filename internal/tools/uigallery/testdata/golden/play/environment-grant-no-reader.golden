@@ -84,7 +84,7 @@ $
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
    ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice,␛[m$
       ␛[38;2;129;134;156m↪ /etc/sudoers.d/hardn-env-alice␛[m$
@@ -211,7 +211,7 @@ $
       $ systemctl --no-reload enable hardn-boot.service$
 $
   [ ] Lockout risk$
-      Keep HARDN_CONFIG under sudo for alice$
+      Keep HARDN_CONFIG$
 $
       /etc/sudoers.d/hardn-grant-alice,$
       | /etc/sudoers.d/hardn-env-alice$
@@ -347,7 +347,7 @@ $
       ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
 $
    ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;192;196;216mKeep HARDN_CONFIG␛[m$
 $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice,␛[m$
       ␛[38;2;129;134;156m↪ /etc/sudoers.d/hardn-env-alice␛[m$

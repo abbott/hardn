@@ -3,26 +3,24 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment screen-alpine323␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment screen-kept-only␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Alpine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.23, doas; alice is in wheel. alice ran doas hardn. setup-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine's /etc/doas.d/20-wheel.conf says permit persist :wheel;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn has no rule for her.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As kept, drawn with decision 5 (b), not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecommended: item 1 keeps alone.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
-                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -32,26 +30,24 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# environment screen-alpine323 ---------------------------------$
+# environment screen-kept-only ---------------------------------$
 $
 # Note$
-# Mock: the Environment screen. web-01.example.net runs Alpine$
-# 3.23, doas; alice is in wheel. alice ran doas hardn. setup-$
-# alpine's /etc/doas.d/20-wheel.conf says permit persist :wheel;$
-# hardn has no rule for her.$
+# Mock: the Environment screen. web-01.example.net runs Debian$
+# 13, sudo 1.9.16p2. As kept, drawn with decision 5 (b), not$
+# recommended: item 1 keeps alone.$
 $
 # Environment Variable Settings ################################$
 $
 # HARDN_CONFIG -------------------------------------------------$
 $
    -  User                 alice$
-  [ ] Under doas           Not kept$
-   -  Value                Not set$
+  [+] Under sudo           Kept$
+   -  Value                /home/alice/hardn.yml$
 $
   Select an option$
 $
-   1) Under doas           Keep HARDN_CONFIG$
-                           [ ] Lockout risk$
+   1) Under sudo           Keep HARDN_CONFIG$
    2) Guide                How to set HARDN_CONFIG$
 $
    0) Return$
@@ -61,13 +57,12 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment screen-alpine323␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment screen-kept-only␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine 3.23, doas; alice is in wheel. alice ran doas␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn. setup-alpine's /etc/doas.d/20-wheel.conf says␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpermit persist :wheel; hardn has no rule for her.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, sudo 1.9.16p2. As kept, drawn with decision 5␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(b), not recommended: item 1 keeps alone.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -75,16 +70,15 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156malice␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
-      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;112;212;127mKept␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
-      ␛[38;2;129;134;156mNot set␛[m$
+      ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
       ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
-      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
       ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
@@ -95,26 +89,24 @@ $
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment screen-alpine323␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment screen-kept-only␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Alpine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.23, doas; alice is in wheel. alice ran doas hardn. setup-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine's /etc/doas.d/20-wheel.conf says permit persist :wheel;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn has no rule for her.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As kept, drawn with decision 5 (b), not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecommended: item 1 keeps alone.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
-                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$

@@ -12,7 +12,7 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
   ␛[38;2;129;134;156mshell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 $
 
@@ -26,7 +26,7 @@ $
   HARDN_CONFIG names the hardn.yml hardn reads. Set it in your$
   shell profile:$
   export HARDN_CONFIG=/path/to/hardn.yml$
-  Then keep it under sudo with item 1.$
+  Then keep it with item 1.$
 $
 $
 
@@ -40,7 +40,7 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in␛[m$
   ␛[38;2;129;134;156myour shell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 $
 
@@ -54,6 +54,6 @@ $
   ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
   ␛[38;2;129;134;156mshell profile:␛[m$
   ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
-  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+  ␛[38;2;129;134;156mThen keep it with item 1.␛[m$
 $
 $

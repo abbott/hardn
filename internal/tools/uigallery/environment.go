@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -73,15 +74,16 @@ const (
 	// legacyNote is the Kept row's note where origin/main's file keeps it
 	// (treatment legacy-kept): the file, in the user's terms.
 	legacyNote = "by %s"
-	// noUserWord and noUserNote are the user row of a host where hardn was
-	// not run through the tool.
-	noUserWord = "None"
-	noUserNote = "not run with %s"
+	// noUserValue is the user row of a host where hardn was not run
+	// through the tool, in status.warn.
+	noUserValue = "Not run with %s"
 	// mayOverride is the warning line under a Kept row, for a file the
-	// tool reads after hardn's (sudoers' sudoers-later-file).
-	mayOverride = "%s may override it"
+	// tool reads after hardn's, and the words of the plan's finding of
+	// that file (sudoers' sudoers-later-file; sudoersFindings), so that
+	// the review says it as the screen does, either way item 1 turns.
+	mayOverride = "%s may override hardn's rule"
 	keepIt      = "Keep HARDN_CONFIG"
-	stopIt      = "Stop keeping it"
+	stopIt      = "Stop keeping HARDN_CONFIG"
 	guideLabel  = "Guide"
 	guideAbout  = "How to set HARDN_CONFIG"
 	// The flows' title bars and questions.
@@ -89,11 +91,11 @@ const (
 	stopTitle = "Stop Keeping HARDN_CONFIG"
 	askKeep   = "Keep HARDN_CONFIG under %s?"
 	askStop   = "Stop keeping HARDN_CONFIG under %s?"
-	// The change's summary, the plan's line.
-	keepSummary = "Keep HARDN_CONFIG under %s for %s"
-	stopSummary = "Stop keeping HARDN_CONFIG under %s for %s"
-	keepShort   = "Keep HARDN_CONFIG for %s"
-	stopShort   = "Stop keeping HARDN_CONFIG for %s"
+	// The change's summary, the plan's heading and the step's line: the
+	// same at every length of the user's name, which the review's User
+	// row says, within engine.TitleMax.
+	keepSummary = keepIt
+	stopSummary = stopIt
 	// takesEffect is said after a change applied: this hardn was started
 	// without it, so its Value row does not change.
 	takesEffect = "Takes effect at the next %s hardn."
@@ -101,18 +103,23 @@ const (
 	// user's first doas rule (sudoers.md §6: "the screen must say so").
 	doasNotice = "The rule also lets %s use doas, in wheel or not."
 	// The refusals, said before asking anything.
-	noToolWords   = "sudo isn't installed here."
-	noUserWords   = "hardn wasn't run with %s, so there's no user to keep it for. Run %s hardn as that user."
-	editedWords   = "%s holds a rule hardn didn't write. Put hardn's back, or remove it."
-	doasRuleWords = "doas keeps HARDN_CONFIG only on a rule for %s alone, and hardn has none. Add setenv { HARDN_CONFIG } to the rule that lets %s use doas."
+	noToolWords = "sudo isn't installed here."
+	noUserWords = "hardn wasn't run with %s, so there's no user to keep it for. Run %s hardn as that user."
+	editedWords = "%s holds a rule hardn didn't write. Put hardn's back, or remove it."
+	// doasRuleWords: doas keeps a variable only through the rule that
+	// permits the user, any rule, a group's too, and hardn writes only a
+	// rule of the user's own (sudoers.ErrEnvNeedsGrant; docs/safety/
+	// sudoers.md:54, :94).
+	doasRuleWords = "hardn has no doas rule for %s to keep HARDN_CONFIG on. Add setenv { HARDN_CONFIG } to the rule that lets %s use doas."
 )
 
 // guideWords are item 2's (origin/main's guide, environment_settings_menu.go:
-// 120-139, shortened, its "sudo hardn setup-sudo-env" now item 1): proposed.
+// 120-139, shortened, its "sudo hardn setup-sudo-env" now item 1, whose
+// label names the tool): proposed.
 var guideWords = []string{
 	"HARDN_CONFIG names the hardn.yml hardn reads. Set it in your shell profile:",
 	"export HARDN_CONFIG=/path/to/hardn.yml",
-	"Then keep it under sudo with item 1.",
+	"Then keep it with item 1.",
 }
 
 // The menu's keys.
@@ -122,25 +129,29 @@ const (
 )
 
 // envTreatment is what the screen does where the maintainer must choose
-// (docs/engine/gallery-environment.md): each host draws the proposed
-// treatment unless it names the alternative.
+// (docs/engine/gallery-environment.md §5): its zero value is each
+// decision's recommended option, and a host draws that unless it names
+// another, not recommended.
 type envTreatment struct {
-	// toggle: item 1 names the way it turns, "Stop keeping it" once kept,
-	// as Backup's item 1 does (decision 4). False: item 1 keeps alone,
-	// origin/main's one direction, and on a kept host its plan is empty.
-	toggle bool
-	// doasRefuse: on doas, a user with no rule of hardn's is refused
+	// keepOnly: item 1 keeps alone, origin/main's one direction, and on a
+	// kept host its plan is empty (decision 5 (b), treatment item1-keep).
+	// False: item 1 names the way it turns, "Stop keeping HARDN_CONFIG"
+	// once kept, as Backup's item 1 does (5 (a), item1-toggle).
+	keepOnly bool
+	// doasRule: on doas, item 1 writes a per-user rule (doasGrant) for a
+	// user with no rule of hardn's, which also grants the user doas, and
+	// says so (decision 1 (b), doas-rule). False: that user is refused
 	// before asking, as sudoers.PlanFor refuses an env-only Policy
-	// (ErrEnvNeedsGrant). False: item 1 writes a per-user rule (doasGrant),
-	// which also grants the user doas, and says so.
-	doasRefuse bool
+	// (ErrEnvNeedsGrant) (1 (a), doas-refuse).
+	doasRule bool
 	// noReader: the change plans an env-only Policy (GrantNone), all that
-	// real code can plan today, which removes hardn's grant. False: the
-	// gallery's reader (currentPolicy) carries the user's grant.
+	// real code can plan today, which removes hardn's grant (§3.2). False:
+	// the gallery's reader (currentPolicy) carries the user's whole Policy.
 	noReader bool
 	// hardnOnly: origin/main's /etc/sudoers.d/<user> is not read, so its
-	// env_keep line does not count as kept. False: it is read with
-	// origin/main's own check (legacyKeeps) and counts.
+	// env_keep line does not count as kept (decision 3 (b),
+	// legacy-hardn-only). False: it is read with origin/main's own check
+	// (legacyKeeps) and counts (3 (a), legacy-kept).
 	hardnOnly bool
 }
 
@@ -173,39 +184,45 @@ var (
 	sudoAlice = map[string]string{"SUDO_USER": "alice", "USER": "root"}
 	doasAlice = map[string]string{"DOAS_USER": "alice", "USER": "root"}
 	keptAlice = map[string]string{"SUDO_USER": "alice", "USER": "root", hardnConfig: "/home/alice/hardn.yml"}
+	doasKept  = map[string]string{"DOAS_USER": "alice", "USER": "root", hardnConfig: "/home/alice/hardn.yml"}
 	rootLogin = map[string]string{"USER": "root"}
 )
 
-// envHosts are the hosts, in the menu's order.
+// envHosts are the hosts, in the menu's order. Each draws every
+// decision's recommended option unless its note names another.
 func envHosts() []envHost {
 	const (
 		deb    = hostFQDN + " runs Debian 13, sudo 1.9.16p2. "
 		viaSud = "alice ran sudo hardn; "
 		drop   = "sudo dropped her HARDN_CONFIG."
-		wheel  = hostFQDN + " runs Alpine 3.23, doas; alice is in wheel. alice ran doas hardn. "
-		cloud  = hostFQDN + " runs Alpine 3.23's cloud image, doas; alice is in wheel, and cloud-init's /etc/doas.d/wheel.conf says permit nopass :wheel (the maintainer's VM). alice ran doas hardn. "
+		setup  = hostFQDN + " runs Alpine 3.24 after setup-alpine, doas; alice is in wheel. alice ran doas hardn. "
+		wheel  = setup + "/etc/doas.d/20-wheel.conf says permit persist :wheel. "
+		cloud  = hostFQDN + " runs Alpine 3.23's cloud image, doas, as the maintainer's VM; alice is in wheel, and the image's /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran doas hardn. "
 	)
 	return []envHost{
 		{name: "debian13", label: "Debian 13", about: "sudo, not kept", host: newHost, env: sudoAlice,
 			note: deb + viaSud + drop},
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "sudo-rs, not kept", host: socketHost, env: sudoAlice,
 			note: hostFQDN + " runs Ubuntu 26.04, sudo-rs 0.2.13. " + viaSud + drop},
-		{name: "alpine323", label: "Alpine 3.23", about: "doas through wheel", host: alpineWheel, env: doasAlice,
-			note: wheel + "setup-alpine's /etc/doas.d/20-wheel.conf says permit persist :wheel; hardn has no rule for her."},
-		{name: "alpine323-refuse", label: "Alpine, refused", about: "doas: treatment doas-refuse", host: alpineWheel, env: doasAlice,
-			t:    envTreatment{doasRefuse: true},
-			note: wheel + "As alpine323, drawn with the alternative: no per-user rule, refused before asking."},
+		{name: "alpine324", label: "Alpine 3.24", about: "doas through wheel", host: alpineWheel, env: doasAlice,
+			note: wheel + "hardn has no rule for her, so item 1 refuses before asking."},
+		{name: "alpine324-rule", label: "Alpine, rule", about: "Treatment doas-rule", host: alpineWheel, env: doasAlice,
+			t:    envTreatment{doasRule: true},
+			note: wheel + "Drawn with decision 1 (b), not recommended: item 1 writes a rule for her."},
+		{name: "alpine324-setenv", label: "Alpine, setenv on wheel", about: "The refusal followed", host: wheelSetenv, env: doasKept,
+			note: setup + "She did what item 1's refusal says: 20-wheel.conf says permit persist setenv { HARDN_CONFIG } :wheel, and doas kept /home/alice/hardn.yml. hardn has no rule for her, so the screen says Not kept and item 1 refuses again."},
 		{name: "alpine323-cloud", label: "Alpine cloud image", about: "wheel.conf read after", host: alpineCloud, env: doasAlice,
-			note: cloud + "wheel.conf sorts after hardn's rule, so its rule wins for alice."},
+			t:    envTreatment{doasRule: true},
+			note: cloud + "Drawn with decision 1 (b), not recommended: wheel.conf sorts after the rule item 1 writes, so its rule wins for her."},
 		{name: "doas-overridden", label: "doas, overridden", about: "hardn's rule, wheel.conf after", host: doasOverridden, env: doasAlice,
-			note: cloud + "hardn's rule for alice keeps HARDN_CONFIG, but wheel.conf's wins, so doas dropped it."},
+			note: cloud + "hardn's rule for her keeps HARDN_CONFIG, but wheel.conf's wins, so doas dropped it. Stopping rewrites a rule that asks her password."},
 		{name: "pve9", label: "Proxmox VE 9", about: "no sudo", host: func() *fakeHost { return simulate(pve9Platform) }, env: rootLogin,
 			note: hostFQDN + " is a Proxmox VE 9 node: no sudo, no doas. root logged in."},
 		{name: "kept", label: "Kept", about: "hardn-env-alice there", host: keptHost, env: keptAlice,
 			note: deb + "hardn's /etc/sudoers.d/hardn-env-alice keeps HARDN_CONFIG; " + viaSud + "it kept /home/alice/hardn.yml."},
-		{name: "kept-toggle", label: "Kept, toggle", about: "Treatment item1-toggle", host: keptHost, env: keptAlice,
-			t:    envTreatment{toggle: true},
-			note: deb + "As kept, drawn with the alternative: item 1 names the way it turns."},
+		{name: "kept-only", label: "Kept, keep only", about: "Treatment item1-keep", host: keptHost, env: keptAlice,
+			t:    envTreatment{keepOnly: true},
+			note: deb + "As kept, drawn with decision 5 (b), not recommended: item 1 keeps alone."},
 		{name: "root-login", label: "Root login", about: "Not run with sudo", host: newHost, env: rootLogin,
 			note: deb + "root logged in and ran hardn: no SUDO_USER."},
 		{name: "grant", label: "hardn's grant", about: "hardn-grant-alice there", host: grantHost, env: sudoAlice,
@@ -217,7 +234,7 @@ func envHosts() []envHost {
 			note: deb + "origin/main's /etc/sudoers.d/alice holds alice's grant and its env_keep line; " + viaSud + "it kept /home/alice/hardn.yml."},
 		{name: "legacy-hardn-only", label: "Legacy, unread", about: "Treatment legacy-hardn-only", host: legacyHost, env: keptAlice,
 			t:    envTreatment{hardnOnly: true},
-			note: deb + "As legacy, drawn with the alternative: hardn's own files alone count."},
+			note: deb + "As legacy, drawn with decision 3 (b), not recommended: hardn's own files alone count."},
 	}
 }
 
@@ -232,8 +249,9 @@ func findEnvHost(name string) (envHost, bool) {
 
 // withDoasFiles gives h doas's configuration as Alpine's package installs
 // it, /etc/doas.conf 0640 with its rule commented out and /etc/doas.d 0750
-// (sudoers.md §3, aports' APKBUILD and doas.conf), and the drop-in name
-// holding rule (the model's mode, 0640).
+// (sudoers.md §3: aports 3.24-stable's APKBUILD and doas.conf; on the 3.23
+// cloud image, /etc/doas.conf's content was not read [I]), and the
+// drop-in name holding rule (the model's mode, 0640 [I]).
 func withDoasFiles(h *fakeHost, name, rule string) *fakeHost {
 	h.f.AddFile(sudoers.DoasConfig, []byte("# Uncomment to allow group \"wheel\" to become root.\n# permit persist :wheel\n"), 0o640, 0, 0)
 	h.f.AddDir(sudoers.DoasDir, 0o750, 0, 0)
@@ -241,15 +259,24 @@ func withDoasFiles(h *fakeHost, name, rule string) *fakeHost {
 	return h
 }
 
-// alpineWheel is Alpine 3.23 after setup-alpine: 20-wheel.conf, "permit
-// persist :wheel" (setup-user, sudoers.md §3).
+// alpineWheel is Alpine 3.24 after setup-alpine: 20-wheel.conf, "permit
+// persist :wheel" (setup-user, sudoers.md §3; the release aports'
+// 3.24-stable sources cover).
 func alpineWheel() *fakeHost {
-	return withDoasFiles(simulate(alpine323Platform), "20-wheel.conf", "permit persist :wheel\n")
+	return withDoasFiles(simulate(alpine324Platform), "20-wheel.conf", "permit persist :wheel\n")
+}
+
+// wheelSetenv is alpineWheel after its user did what item 1's refusal
+// says (doasRuleWords): setenv on 20-wheel.conf's rule, a group's, which
+// keeps the variable for every member (doas.conf(5), sudoers.md:94 [I]:
+// doas's setenv has run on no host).
+func wheelSetenv() *fakeHost {
+	return withDoasFiles(simulate(alpine324Platform), "20-wheel.conf", "permit persist setenv { HARDN_CONFIG } :wheel\n")
 }
 
 // alpineCloud is Alpine 3.23's cloud image as the maintainer's VM: only
-// wheel.conf, "permit nopass :wheel" (docs/safety/vmtest.md:562), which
-// sorts after hardn-<stem>.conf.
+// wheel.conf, "permit nopass :wheel" (docs/safety/vmtest.md:562, :570),
+// which ships in the image (:580) and sorts after hardn-<stem>.conf.
 func alpineCloud() *fakeHost {
 	return withDoasFiles(simulate(alpine323CloudPlatform), "wheel.conf", "permit nopass :wheel\n")
 }
@@ -287,7 +314,7 @@ func grantHost() *fakeHost {
 }
 
 // doasOverridden is the cloud image with hardn's rule for alice keeping
-// HARDN_CONFIG, as item 1 writes it (doasGrant).
+// HARDN_CONFIG, as item 1 writes it under decision 1 (b) (doasGrant).
 func doasOverridden() *fakeHost {
 	return withHardnFiles(alpineCloud(), sudoers.Policy{User: "alice", Grant: doasGrant, Env: []string{hardnConfig}})
 }
@@ -337,31 +364,48 @@ func toolWord(t sudoers.Tool) string {
 // errEdited: hardn's file for the user holds what no Policy plans.
 var errEdited = errors.New("hardn's file holds a rule hardn did not write")
 
+// envKeepVars and setenvVars find the variables of hardn's env_keep line
+// (sudo, sudoers.go's sudoEnv) and of the setenv on its doas rule
+// (doasRule): candidates only, which currentPolicy confirms by planning
+// them again.
+var (
+	envKeepVars = regexp.MustCompile(`(?m)^Defaults:\S+ env_keep \+= "([^"\n]*)"$`)
+	setenvVars  = regexp.MustCompile(`(?m)^permit .*\bsetenv \{ ([^}\n]*) \}`)
+)
+
 // currentPolicy is the gallery's reader of hardn's files: the user's whole
-// Policy, grant and variables, as st holds it. It tries every Policy hardn
-// writes and returns the one whose files hold exactly the content
-// sudoers.PlanFor would write (a mode or owner may differ, which the next
-// plan puts right); errEdited, naming the file, when none does. Pure. No
-// reader is in pkg/host/sudoers (PlanFor takes the user's whole state):
-// unit (b)'s.
+// Policy, grant and variables, as st holds it. It takes the variables of
+// hardn's env_keep line, or of its doas rule's setenv, whatever they are,
+// tries them with each grant, and returns the Policy whose files hold
+// exactly the content sudoers.PlanFor writes for it, PlanFor checking each
+// variable's name as it does any Policy's (a mode or owner may differ,
+// which the next plan puts right); errEdited, naming the file, when none
+// does. Pure. No reader is in pkg/host/sudoers (PlanFor takes the user's
+// whole state): unit (b)'s.
 func currentPolicy(st sudoers.State, user string) (sudoers.Policy, error) {
-	for _, g := range []sudoers.Grant{sudoers.GrantNone, sudoers.GrantPassword, sudoers.GrantNoPassword} {
-		for _, vars := range [][]string{nil, {hardnConfig}} {
-			pol := sudoers.Policy{User: user, Grant: g, Env: vars}
-			p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
-			if err == nil && !slices.ContainsFunc(p.Changes, func(c sudoers.Change) bool {
-				return c.Remove || !c.Old.Exists || !bytes.Equal(c.Old.Data, c.Data)
-			}) {
-				return pol, nil
-			}
-		}
-	}
 	n, err := sudoers.FileNames(st.Choice.Tool, user)
 	if err != nil {
 		return sudoers.Policy{}, err
 	}
+	file, vars := n.Env, envKeepVars
+	if st.Choice.Tool == sudoers.ToolDoas {
+		file, vars = n.Grant, setenvVars
+	}
+	var env []string
+	if m := vars.FindSubmatch(st.Files[file].Data); m != nil {
+		env = strings.Fields(string(m[1]))
+	}
+	for _, g := range []sudoers.Grant{sudoers.GrantNone, sudoers.GrantPassword, sudoers.GrantNoPassword} {
+		pol := sudoers.Policy{User: user, Grant: g, Env: env}
+		p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
+		if err == nil && !slices.ContainsFunc(p.Changes, func(c sudoers.Change) bool {
+			return c.Remove || !c.Old.Exists || !bytes.Equal(c.Old.Data, c.Data)
+		}) {
+			return pol, nil
+		}
+	}
 	for _, name := range []string{n.Env, n.Grant} {
-		if f := st.Files[name]; f.Exists {
+		if f := st.Files[name]; name != "" && f.Exists {
 			return sudoers.Policy{}, fmt.Errorf("%s: %w", name, errEdited)
 		}
 	}
@@ -369,21 +413,25 @@ func currentPolicy(st sudoers.State, user string) (sudoers.Policy, error) {
 }
 
 // target is the Policy item 1 plans from cur, the user's as read: cur with
-// HARDN_CONFIG kept (keep), or not (stop). Under noReader, an env-only
-// Policy, as real code can plan today. On doas, a user with no rule of
-// hardn's gets doasGrant, unless doasRefuse, which leaves GrantNone for
-// PlanFor to refuse (ErrEnvNeedsGrant).
+// HARDN_CONFIG added to its variables (keep) or taken out of them (stop),
+// the others carried as they are. Under noReader, an env-only Policy, as
+// real code can plan today. On doas, a user with no rule of hardn's gets
+// doasGrant under doasRule; otherwise GrantNone stays, for PlanFor to
+// refuse (ErrEnvNeedsGrant).
 func (t envTreatment) target(cur sudoers.Policy, tool sudoers.Tool, keep bool) sudoers.Policy {
 	pol := cur
 	if t.noReader {
 		pol = sudoers.Policy{User: cur.User}
 	}
-	pol.Env = nil
-	if keep {
-		pol.Env = []string{hardnConfig}
-		if tool == sudoers.ToolDoas && pol.Grant == sudoers.GrantNone && !t.doasRefuse {
-			pol.Grant = doasGrant
-		}
+	pol.Env = slices.Clone(pol.Env)
+	switch {
+	case !keep:
+		pol.Env = slices.DeleteFunc(pol.Env, func(v string) bool { return v == hardnConfig })
+	case !slices.Contains(pol.Env, hardnConfig):
+		pol.Env = append(pol.Env, hardnConfig)
+	}
+	if keep && tool == sudoers.ToolDoas && pol.Grant == sudoers.GrantNone && t.doasRule {
+		pol.Grant = doasGrant
 	}
 	return pol
 }
@@ -464,9 +512,9 @@ func legacyKeeps(ctx context.Context, sys host.System, name string) bool {
 	return err == nil && strings.Contains(string(data), "env_keep += \"HARDN_CONFIG\"")
 }
 
-// keeps is the way item 1 turns: keep, unless the toggle is drawn and
-// hardn's files keep it already.
-func (r envReading) keeps() bool { return !(r.t.toggle && r.kept) }
+// keeps is the way item 1 turns: keep, unless hardn's files keep it
+// already and item 1 turns both ways (not keepOnly).
+func (r envReading) keeps() bool { return r.t.keepOnly || !r.kept }
 
 // keptHere is whether HARDN_CONFIG is kept: by hardn's files, or by
 // origin/main's line, unless only hardn's count (hardnOnly).
@@ -513,6 +561,18 @@ func (r envReading) refusal() component.Messages {
 // underKey is the state row's key: "Under sudo", "Under doas".
 func (r envReading) underKey() string { return "Under " + toolWord(r.choice.Tool) }
 
+// keptRow is the state row where hardn's files keep HARDN_CONFIG: Kept,
+// in status.warn where a file the tool reads after hardn's may override
+// it, as what wins is not read (sudoers.md §6). The screen lists each such
+// file under it (rows), the review the plan's finding of it (review).
+func (r envReading) keptRow() component.KeyValue {
+	row := component.KeyValue{Key: r.underKey(), Value: keptWord, State: component.ValueOK}
+	if len(r.later) > 0 {
+		row.State = component.ValueWarn
+	}
+	return row
+}
+
 // rows are the section's rows: the user who ran hardn through the tool,
 // whether HARDN_CONFIG is kept for them, with a line for each file read
 // after hardn's, and its value as hardn sees it.
@@ -525,19 +585,15 @@ func (r envReading) rows() []component.KeyValue {
 	case r.choice.Err != nil:
 		rows = append(rows, component.KeyValue{Key: r.underKey(), State: component.ValueUnknown})
 	case r.user == "":
-		rows = append(rows, component.KeyValue{Key: userKey, Value: noUserWord, State: component.ValueWarn, Note: fmt.Sprintf(noUserNote, tool)})
+		rows = append(rows, component.KeyValue{Key: userKey, Value: fmt.Sprintf(noUserValue, tool), State: component.ValueWarn})
 	default:
 		rows = append(rows, component.KeyValue{Key: userKey, Value: r.user})
 		under := component.KeyValue{Key: r.underKey(), Value: notKept, State: component.ValueWarn}
 		switch {
 		case r.err != nil:
 			under = component.KeyValue{Key: r.underKey(), State: component.ValueUnknown}
-		case r.kept && len(r.later) > 0:
-			// hardn's files keep it, and a file read after them may
-			// not: what wins is not read (sudoers.md §6).
-			under.Value = keptWord
 		case r.kept:
-			under.Value, under.State = keptWord, component.ValueOK
+			under = r.keptRow()
 		case r.keptHere():
 			under.Value, under.State, under.Note = keptWord, component.ValueOK, fmt.Sprintf(legacyNote, r.legacy)
 		}
@@ -557,7 +613,7 @@ func (r envReading) rows() []component.KeyValue {
 
 // subMenu is the screen of r: the title bar; the section HARDN_CONFIG and
 // its rows; item 1, labelled with the state row's key, as Backup's item 1
-// is, keeping HARDN_CONFIG, or with the toggle drawn and kept, stopping,
+// is, keeping HARDN_CONFIG, or once kept stopping (not under keepOnly),
 // marked Lockout risk where its plan is; item 2, the guide; Return; no
 // status row.
 func (r envReading) subMenu() screen.SubMenu {
@@ -606,12 +662,17 @@ func (r envReading) originScreen() screen.SubMenu {
 
 // sudoersFindings are a sudoers plan's findings as the change's, coded as
 // the registry has them (SUDOERS_LATER_FILE, SUDOERS_LEGACY_FILE,
-// SUDOERS_AFTER_INCLUDE). steps.Sudoers drops them: the gallery's, unit
-// (b)'s to carry.
+// SUDOERS_AFTER_INCLUDE), the later file's in the screen's words
+// (mayOverride), the others' details as sudoers has them. steps.Sudoers
+// drops them: the gallery's, unit (b)'s to carry, with their words.
 func sudoersFindings(fs []sudoers.Finding) []engine.Finding {
 	var out []engine.Finding
 	for _, f := range fs {
-		out = append(out, engine.Finding{Code: steps.FindingCode("SUDOERS", f.Kind.String()), Detail: f.Detail, Source: steps.SourceAt(f.File, f.Line)})
+		detail := f.Detail
+		if f.Kind == sudoers.FindingLater {
+			detail = fmt.Sprintf(mayOverride, f.File)
+		}
+		out = append(out, engine.Finding{Code: steps.FindingCode("SUDOERS", f.Kind.String()), Detail: detail, Source: steps.SourceAt(f.File, f.Line)})
 	}
 	return out
 }
@@ -655,18 +716,11 @@ func (c envControl) Plan(ctx context.Context, sys host.System, in engine.Input) 
 	if err != nil || len(p.Changes) == 0 {
 		return nil, err
 	}
-	summary := fmt.Sprintf(keepSummary, toolWord(choice.Tool), c.user)
+	summary := keepSummary
 	if !c.keep {
-		summary = fmt.Sprintf(stopSummary, toolWord(choice.Tool), c.user)
+		summary = stopSummary
 	}
 	ch, err := steps.Sudoers("environment/"+c.user, p, summary)
-	// The step's line whole (engine.TitleMax): the tool left out where
-	// the summary is too long.
-	short := fmt.Sprintf(keepShort, c.user)
-	if !c.keep {
-		short = fmt.Sprintf(stopShort, c.user)
-	}
-	ch.Title = engine.FitTitle(summary, short)
 	ch.Findings = sudoersFindings(p.Findings)
 	return []engine.Change{ch}, err
 }
@@ -773,23 +827,34 @@ func (e *envRunner) kit() screenkit.Session {
 	}
 }
 
-// change is item 1 through the flow, under its title bar: on doas, where
-// it writes the user's first rule, the notice that the rule grants doas
-// too; the review, the user and the state the change makes; the plan,
-// the engine's, of envControl, its findings listed; the question, y/N, or
-// the hostname typed for a lockout-risk plan; the apply. Then, once
-// applied, that it takes effect at the next sudo: this hardn was started
-// without it.
+// review is item 1's review: on doas, where it writes the user's first
+// rule, the notice that the rule grants doas too; the section HARDN_CONFIG,
+// the user and the state the change makes, in the screen's words (keptRow,
+// or Not kept), the plan's findings listed under them by the flow.
+func (r envReading) review() flow.Review {
+	state := r.keptRow()
+	if !r.keeps() {
+		state = component.KeyValue{Key: r.underKey(), Value: notKept, State: component.ValueWarn}
+	}
+	rv := flow.Review{Title: envSection, Items: []component.KeyValue{{Key: userKey, Value: r.user}, state}}
+	if r.newRule() {
+		rv.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fmt.Sprintf(doasNotice, r.user)}}}
+	}
+	return rv
+}
+
+// change is item 1 through the flow, under its title bar: the review
+// (review); the plan, the engine's, of envControl, its findings listed;
+// the question, y/N, or the hostname typed for a lockout-risk plan; the
+// apply. Then, once applied, that it takes effect at the next sudo: this
+// hardn was started without it.
 func (e *envRunner) change(ctx context.Context, r envReading) error {
 	keep, tool := r.keeps(), toolWord(r.choice.Tool)
-	title, question, state := keepTitle, fmt.Sprintf(askKeep, tool), component.KeyValue{Key: r.underKey(), Value: keptWord, State: component.ValueOK}
+	title, question := keepTitle, fmt.Sprintf(askKeep, tool)
 	if !keep {
-		title, question, state = stopTitle, fmt.Sprintf(askStop, tool), component.KeyValue{Key: r.underKey(), Value: notKept, State: component.ValueWarn}
+		title, question = stopTitle, fmt.Sprintf(askStop, tool)
 	}
-	review := flow.Review{Title: envSection, Items: []component.KeyValue{{Key: userKey, Value: r.user}, state}}
-	if r.newRule() {
-		review.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fmt.Sprintf(doasNotice, r.user)}}}
-	}
+	review := r.review()
 	ks := e.kit()
 	ran := ks.Ran
 	ks.Ran = func(run output.Run) {
@@ -843,7 +908,7 @@ func onEnvHost(name string, view func(envReading, component.Ctx) string) func(co
 }
 
 // envMocks are the listing's mocks, in order: the screen on each host,
-// origin/main's screen on the design system, item 1 on alpine323 under
+// origin/main's screen on the design system, item 1 on alpine324 under
 // each doas treatment, the guide, and the refusals.
 func envMocks() []envMock {
 	var mocks []envMock
@@ -854,43 +919,43 @@ func envMocks() []envMock {
 	return append(mocks,
 		envMock{name: "origin", note: "origin/main's Environment screen, its words as they are (environment_settings_menu.go:34-64), on the design system, on the debian13 host: its two lines, under the proposed section's header (origin/main has none), and its two items, whose labels push the menu's descriptions under them.",
 			draw: onEnvHost("debian13", func(r envReading, c component.Ctx) string { return r.originScreen().Render(c) })},
-		envMock{name: "item1-doas-rule", note: "Treatment doas-rule (proposed): item 1 on alpine323 writes a rule for alice, permit persist setenv { HARDN_CONFIG } alice, and says first that it grants her doas. Its plan is lockout-risk (sudoers.RiskLockout: a grant that asks a password), so it is confirmed by typing the hostname.",
-			draw: onEnvHost("alpine323", itemOne)},
-		envMock{name: "item1-doas-refuse", note: "Treatment doas-refuse: item 1 on alpine323 refuses before asking, as sudoers.PlanFor refuses an env-only Policy on doas (ErrEnvNeedsGrant).",
-			draw: onEnvHost("alpine323-refuse", itemOne)},
+		envMock{name: "item1-doas-refuse", note: "Decision 1 (a), recommended: item 1 on alpine324 refuses before asking, as sudoers.PlanFor refuses an env-only Policy on doas (ErrEnvNeedsGrant).",
+			draw: onEnvHost("alpine324", itemOne)},
+		envMock{name: "item1-doas-rule", note: "Decision 1 (b), not recommended: item 1 on alpine324-rule writes a rule for alice, permit persist setenv { HARDN_CONFIG } alice, and says first that it grants her doas. Its plan is lockout-risk (sudoers.RiskLockout: a grant that asks a password), so it is confirmed by typing the hostname.",
+			draw: onEnvHost("alpine324-rule", itemOne)},
 		envMock{name: "guide", note: "Mock: Guide (2), origin/main's guide shortened, under the screen's prompt.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return guide().Render(c), nil }},
-		envMock{name: "refusals", note: "Mock: item 1's refusals before asking, on the root-login, pve9 and alpine323-refuse hosts, and on a host whose hardn file was edited by hand.",
+		envMock{name: "refusals", note: "Mock: item 1's refusals before asking, on the root-login, pve9 and alpine324 hosts, and on a host whose hardn file was edited by hand.",
 			draw: refusalsMock},
 	)
 }
 
 // itemOne draws what item 1 does first on r's host: its refusal, or the
-// notice and the review the flow shows above its plan.
+// notice and the review the flow shows above its plan (review).
 func itemOne(r envReading, c component.Ctx) string {
 	if msgs := r.refusal(); msgs != nil {
 		return apart(r.subMenu().Render(c), msgs.Render(c))
 	}
+	rv := r.review()
 	blocks := []string{r.subMenu().Render(c)}
-	if r.newRule() {
-		blocks = append(blocks, component.Callout{Kind: component.MessageWarn, Body: []string{fmt.Sprintf(doasNotice, r.user)}}.Render(c))
+	if rv.Notice != nil {
+		blocks = append(blocks, rv.Notice.Callout.Render(c))
 	}
-	rows := []component.KeyValue{{Key: userKey, Value: r.user}, {Key: r.underKey(), Value: keptWord, State: component.ValueOK}}
-	return apart(append(blocks, component.SectionHeader{Title: envSection}.Render(c), component.BulletList{Items: rows}.Render(c))...)
+	return apart(append(blocks, component.SectionHeader{Title: rv.Title}.Render(c), component.BulletList{Items: rv.Items}.Render(c))...)
 }
 
 // editedHost is Debian 13 whose hardn-env-alice was edited by hand to
-// keep a second variable.
+// grant alice sudo as well: a file sudoers.PlanFor writes for no Policy.
 func editedHost() *fakeHost {
 	h := keptHost()
-	h.f.AddFile(sudoers.DropInDir+"/hardn-env-alice", []byte(sudoers.Header+"Defaults:alice env_keep += \"HARDN_CONFIG EDITOR\"\n"), 0o440, 0, 0)
+	h.f.AddFile(sudoers.DropInDir+"/hardn-env-alice", []byte(sudoers.Header+"Defaults:alice env_keep += \"HARDN_CONFIG\"\nalice ALL=(ALL) NOPASSWD: ALL\n"), 0o440, 0, 0)
 	return h
 }
 
 // refusalsMock draws each refusal under a header naming its host.
 func refusalsMock(ctx context.Context, c component.Ctx) (string, error) {
 	var out []string
-	for _, name := range []string{"root-login", "pve9", "alpine323-refuse"} {
+	for _, name := range []string{"root-login", "pve9", "alpine324"} {
 		r, err := readHostNamed(ctx, name)
 		if err != nil {
 			return "", err

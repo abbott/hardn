@@ -7,8 +7,8 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As legacy, drawn with the alternative:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own files alone count.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As legacy, drawn with decision 3 (b), not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecommended: hardn's own files alone count.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -34,8 +34,8 @@ $
 $
 # Note$
 # Mock: the Environment screen. web-01.example.net runs Debian$
-# 13, sudo 1.9.16p2. As legacy, drawn with the alternative:$
-# hardn's own files alone count.$
+# 13, sudo 1.9.16p2. As legacy, drawn with decision 3 (b), not$
+# recommended: hardn's own files alone count.$
 $
 # Environment Variable Settings ################################$
 $
@@ -61,8 +61,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, sudo 1.9.16p2. As legacy, drawn with the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malternative: hardn's own files alone count.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, sudo 1.9.16p2. As legacy, drawn with decision 3␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(b), not recommended: hardn's own files alone count.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -93,8 +93,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As legacy, drawn with the alternative:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own files alone count.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. As legacy, drawn with decision 3 (b), not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecommended: hardn's own files alone count.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $

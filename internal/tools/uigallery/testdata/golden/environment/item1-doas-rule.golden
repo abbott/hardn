@@ -6,11 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment item1-doas-rule␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-rule (proposed): item 1 on alpine323 writes a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule for alice, permit persist setenv { HARDN_CONFIG } alice,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand says first that it grants her doas. Its plan is lockout-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrisk (sudoers.RiskLockout: a grant that asks a password), so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit is confirmed by typing the hostname.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (b), not recommended: item 1 on alpine324-rule␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites a rule for alice, permit persist setenv { HARDN_CONFIG␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m} alice, and says first that it grants her doas. Its plan is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlockout-risk (sudoers.RiskLockout: a grant that asks a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword), so it is confirmed by typing the hostname.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -44,11 +44,11 @@ $
 # environment item1-doas-rule ----------------------------------$
 $
 # Note$
-# Treatment doas-rule (proposed): item 1 on alpine323 writes a$
-# rule for alice, permit persist setenv { HARDN_CONFIG } alice,$
-# and says first that it grants her doas. Its plan is lockout-$
-# risk (sudoers.RiskLockout: a grant that asks a password), so$
-# it is confirmed by typing the hostname.$
+# Decision 1 (b), not recommended: item 1 on alpine324-rule$
+# writes a rule for alice, permit persist setenv { HARDN_CONFIG$
+# } alice, and says first that it grants her doas. Its plan is$
+# lockout-risk (sudoers.RiskLockout: a grant that asks a$
+# password), so it is confirmed by typing the hostname.$
 $
 # Environment Variable Settings ################################$
 $
@@ -82,11 +82,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment item1-doas-rule␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-rule (proposed): item 1 on alpine323 writes␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma rule for alice, permit persist setenv { HARDN_CONFIG }␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, and says first that it grants her doas. Its plan is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlockout-risk (sudoers.RiskLockout: a grant that asks a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword), so it is confirmed by typing the hostname.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (b), not recommended: item 1 on alpine324-rule␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites a rule for alice, permit persist setenv {␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG } alice, and says first that it grants her␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas. Its plan is lockout-risk (sudoers.RiskLockout: a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgrant that asks a password), so it is confirmed by typing␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe hostname.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -127,11 +128,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment item1-doas-rule␛[m ␛[38;2;48;52;64m----------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment doas-rule (proposed): item 1 on alpine323 writes a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule for alice, permit persist setenv { HARDN_CONFIG } alice,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand says first that it grants her doas. Its plan is lockout-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrisk (sudoers.RiskLockout: a grant that asks a password), so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit is confirmed by typing the hostname.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecision 1 (b), not recommended: item 1 on alpine324-rule␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites a rule for alice, permit persist setenv { HARDN_CONFIG␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m} alice, and says first that it grants her doas. Its plan is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlockout-risk (sudoers.RiskLockout: a grant that asks a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword), so it is confirmed by typing the hostname.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $
