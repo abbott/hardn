@@ -64,7 +64,44 @@ var (
 	ErrManifest   = errors.New("invalid backup manifest")
 	ErrCorrupt    = errors.New("backup copy does not match its manifest")
 	ErrChanged    = errors.New("changed since the backup in a way restore does not undo")
+	// ErrWrite: a backup could not be written: the run directory, the
+	// copy or the manifest (WriteError). No backup was recorded, so the
+	// change must not go ahead (refactor plan slice 3, unit (b)).
+	ErrWrite = errors.New("backup not written")
 )
+
+// DirError is the refusal of a directory on the way to a run directory,
+// or of the run directory itself, which it names (Dir): another user can
+// change it (ErrUnsafeDir), or it is not a directory (syscall.ENOTDIR).
+// Check, Backup, Load and Restore return it, so that a caller can say
+// which directory without reading the error's text (refactor plan slice 3,
+// unit (b)). Its text is "backup: <dir>: <Err>".
+type DirError struct {
+	Dir string
+	Err error
+}
+
+func (e *DirError) Error() string { return "backup: " + e.Dir + ": " + e.Err.Error() }
+
+// Unwrap returns ErrUnsafeDir or syscall.ENOTDIR.
+func (e *DirError) Unwrap() error { return e.Err }
+
+// WriteError is a backup of Path that could not be written under
+// BackupPath, the backupPath of the run (ErrWrite): making the run
+// directory, writing the copy, or writing the manifest failed with Err (a
+// read-only file system, a full disk, a directory not synced:
+// host.ErrNotDurable). Its text is "backup: <Err>", as before it had a
+// type (refactor plan slice 3, unit (b)).
+type WriteError struct {
+	Path       string
+	BackupPath string
+	Err        error
+}
+
+func (e *WriteError) Error() string { return "backup: " + e.Err.Error() }
+
+// Unwrap returns ErrWrite and the write's own error.
+func (e *WriteError) Unwrap() []error { return []error{ErrWrite, e.Err} }
 
 // Seams for the tests in this package.
 var (
@@ -294,7 +331,7 @@ func (r *Run) Backup(ctx context.Context, path string, need Need) (Result, error
 		}
 		outcome = TakenAnyway
 	}
-	if err := r.prepare(ctx); err != nil {
+	if err := r.prepare(ctx, path); err != nil {
 		return Result{}, err
 	}
 	e, data, err := inspect(ctx, r.sys, path)
@@ -306,13 +343,13 @@ func (r *Run) Backup(ctx context.Context, path string, need Need) (Result, error
 	if e.File != nil {
 		e.File.Backup = fmt.Sprintf("%04d-%s", e.Seq, filepath.Base(path))
 		if err := r.sys.WriteFileAtomic(ctx, filepath.Join(r.m.Dir, e.File.Backup), data, 0o600, -1, -1); err != nil {
-			return Result{}, fmt.Errorf("backup: %w", err)
+			return Result{}, r.writeError(path, err)
 		}
 	}
 	r.m.Entries = append(r.m.Entries, e)
-	if err := r.save(ctx); err != nil {
+	if err := r.save(ctx, path); err != nil {
 		r.m.Entries = r.m.Entries[:len(r.m.Entries)-1]
-		return Result{}, fmt.Errorf("backup: %w", err)
+		return Result{}, err
 	}
 	return Result{Outcome: outcome, Entry: e}, nil
 }
@@ -323,23 +360,15 @@ func (r *Run) Backup(ctx context.Context, path string, need Need) (Result, error
 // no other user can win a race to the name. The missing directories are then
 // created one at a time, 0700, each checked in turn; if a creation or a
 // check fails, the ones this call created are removed, so a later Backup of
-// the run tries again rather than finding ErrRunExists.
-func (r *Run) prepare(ctx context.Context) (err error) {
+// the run tries again rather than finding ErrRunExists. A creation that
+// fails is a WriteError for path, the file to back up.
+func (r *Run) prepare(ctx context.Context, path string) (err error) {
 	if r.ready {
 		return nil
 	}
-	var missing []string // r.m.Dir first, then its missing parents
-	top := r.m.Dir
-	for {
-		_, err := r.sys.Lstat(ctx, top)
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, fs.ErrNotExist) || top == "/" {
-			return fmt.Errorf("backup: %w", err)
-		}
-		missing = append(missing, top)
-		top = filepath.Dir(top)
+	top, missing, err := deepest(ctx, r.sys, r.m.Dir)
+	if err != nil {
+		return err
 	}
 	if len(missing) == 0 {
 		return fmt.Errorf("backup: %s: %w", r.m.Dir, ErrRunExists)
@@ -355,7 +384,7 @@ func (r *Run) prepare(ctx context.Context) (err error) {
 	}()
 	for i := len(missing) - 1; i >= 0; i-- {
 		if err := r.sys.MkdirAll(ctx, missing[i], 0o700); err != nil {
-			return fmt.Errorf("backup: %w", err)
+			return r.writeError(path, err)
 		}
 		created = append(created, missing[i])
 		if err := checkTrusted(ctx, r.sys, missing[i]); err != nil {
@@ -366,12 +395,41 @@ func (r *Run) prepare(ctx context.Context) (err error) {
 	return nil
 }
 
-func (r *Run) save(ctx context.Context) error {
+// deepest is the deepest entry of dir's path that exists, top, and the
+// missing ones under it, dir first. A component that is not a directory
+// (syscall.ENOTDIR, a file on the way) is walked past, as one missing, so
+// that top is that file, and checkTrusted refuses it by name (DirError).
+func deepest(ctx context.Context, sys host.System, dir string) (top string, missing []string, err error) {
+	top = dir
+	for {
+		_, err := sys.Lstat(ctx, top)
+		if err == nil {
+			return top, missing, nil
+		}
+		if !errors.Is(err, fs.ErrNotExist) && !errors.Is(err, syscall.ENOTDIR) || top == "/" {
+			return "", nil, fmt.Errorf("backup: %w", err)
+		}
+		missing = append(missing, top)
+		top = filepath.Dir(top)
+	}
+}
+
+// save writes the manifest, after a backup of path; a write that fails is
+// a WriteError.
+func (r *Run) save(ctx context.Context, path string) error {
 	b, err := json.MarshalIndent(r.m, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("backup: %w", err)
 	}
-	return r.sys.WriteFileAtomic(ctx, filepath.Join(r.m.Dir, ManifestName), append(b, '\n'), 0o600, -1, -1)
+	if err := r.sys.WriteFileAtomic(ctx, filepath.Join(r.m.Dir, ManifestName), append(b, '\n'), 0o600, -1, -1); err != nil {
+		return r.writeError(path, err)
+	}
+	return nil
+}
+
+// writeError is err, a write of the backup of path that failed.
+func (r *Run) writeError(path string, err error) error {
+	return &WriteError{Path: path, BackupPath: r.s.Path, Err: err}
 }
 
 // inspect describes path as Backup records it, with the content to copy. It
@@ -487,9 +545,9 @@ func trustedDir(name string, fi fs.FileInfo, euid int) error {
 	uid, _, ok := host.Owner(fi)
 	switch {
 	case !fi.IsDir():
-		return fmt.Errorf("backup: %s: %w", name, syscall.ENOTDIR)
+		return &DirError{Dir: name, Err: syscall.ENOTDIR}
 	case !ok || uid != 0 && uid != euid || fi.Mode().Perm()&0o022 != 0:
-		return fmt.Errorf("backup: %s: %w", name, ErrUnsafeDir)
+		return &DirError{Dir: name, Err: ErrUnsafeDir}
 	}
 	return nil
 }

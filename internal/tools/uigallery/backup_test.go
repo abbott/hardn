@@ -17,8 +17,8 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
-	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/dns"
@@ -149,8 +149,9 @@ func readHost(t *testing.T, name string) (backupReading, *fakeHost, *config.Conf
 
 // TestBackupReadings holds each host's screen to what real code reads of
 // it: hardn.yml's settings as config.Read loads them, Check's refusal
-// (none, ErrUnsafeDir naming /tmp, ErrSettings), whether the directory is
-// there, and the runs backup.Load reads; and the path row's note to them.
+// (none, ErrUnsafeDir, its DirError naming /tmp, ErrSettings), whether the
+// directory is there (backupctl.Read), and the runs backup.Runs lists; and
+// the path row's note to them.
 func TestBackupReadings(t *testing.T) {
 	tests := []struct {
 		host    string
@@ -175,26 +176,28 @@ func TestBackupReadings(t *testing.T) {
 	for _, tt := range tests {
 		r, _, _ := readHost(t, tt.host)
 		switch {
-		case r.settings != (backup.Settings{Path: tt.dir, Enabled: tt.enabled}):
-			t.Errorf("%s: settings %+v", tt.host, r.settings)
-		case tt.refused == nil && r.check != nil, tt.refused != nil && !errors.Is(r.check, tt.refused):
-			t.Errorf("%s: Check %v, want %v", tt.host, r.check, tt.refused)
-		case r.made != tt.made || len(r.runs) != tt.runs:
-			t.Errorf("%s: made %v, %d runs", tt.host, r.made, len(r.runs))
+		case r.Settings != (backup.Settings{Path: tt.dir, Enabled: tt.enabled}):
+			t.Errorf("%s: settings %+v", tt.host, r.Settings)
+		case tt.refused == nil && r.Err != nil, tt.refused != nil && !errors.Is(r.Err, tt.refused):
+			t.Errorf("%s: Check %v, want %v", tt.host, r.Err, tt.refused)
+		case r.Made != tt.made || len(r.runs) != tt.runs:
+			t.Errorf("%s: made %v, %d runs", tt.host, r.Made, len(r.runs))
 		}
 		if got := pathRow(t, r).Note; got != tt.note {
 			t.Errorf("%s: the path's note %q, want %q", tt.host, got, tt.note)
 		}
 	}
-	if r, _, _ := readHost(t, "unsafe"); unsafeDir(r.check) != "/tmp" {
-		t.Errorf("unsafe: Check names %q, want /tmp: %v", unsafeDir(r.check), r.check)
+	var de *backup.DirError
+	if r, _, _ := readHost(t, "unsafe"); !errors.As(r.Err, &de) || de.Dir != "/tmp" {
+		t.Errorf("unsafe: Check names %+v, want /tmp: %v", de, r.Err)
 	}
 }
 
-// TestPathCheckIsCheck holds the path field's check to backup.Check on
-// the default host: it refuses what Check refuses, in the words of its
-// kind, and takes what Check takes, but a path not clean (the mock's own
-// rule, which Open would clean unsaid) and the path in use (a warning).
+// TestPathCheckIsCheck holds the path field's check, Backup's control's
+// (backupctl.Field), to backup.Check on the default host: it refuses what
+// Check refuses, in the words of its kind, and takes what Check takes,
+// but a path not clean (decision 5, which Open would clean unsaid) and
+// the path in use (a warning).
 func TestPathCheckIsCheck(t *testing.T) {
 	_, h, _ := readHost(t, "default")
 	ctx, sys := context.Background(), h.system()
@@ -233,10 +236,10 @@ func TestPathCheckIsCheck(t *testing.T) {
 	}
 }
 
-// planOn plans controls on h with cfg on the real engine, its backups
-// taken as settings say: hardn.yml's as loaded, as cmd/hardn's
-// engineOptions takes them, or the edited configuration's, as the
-// screen's changes take them (decision 7 (a)).
+// planOn plans controls on h with cfg on the real engine, as cmd/hardn's
+// engineOptions builds it: its backups as hardn.yml was loaded (settings).
+// A plan of Backup's control takes the settings it saves (decision 7
+// (a)).
 func planOn(t *testing.T, h *fakeHost, settings backup.Settings, cfg *config.Config, controls ...engine.Control) (*engine.Engine, *engine.Plan) {
 	t.Helper()
 	e := engine.New(h.system(), engine.Options{Revert: revert.Options{Now: clock, Hardn: galleryHardn}, Session: applySession,
@@ -250,19 +253,23 @@ func planOn(t *testing.T, h *fakeHost, settings backup.Settings, cfg *config.Con
 
 // TestBackupRefusesEveryChange: on the unsafe and relative hosts, the
 // engine as cmd/hardn builds it, its backups as hardn.yml was loaded,
-// refuses every change at its plan, Check's refusal, whatever the change:
-// the screen's own saves, a path change to a safe path among them (its
-// own backup goes to the path refused), and the DNS control's Configure
-// DNS (the relative path is what origin/main's Backup screen saves, so
-// the DNS screen's next change in that session is refused), with Check's
-// error as it is and its code, no words of its own. The mock's path
-// change, planned under the path it saves (decision 7 (a)), is not.
+// refuses every change at its plan, Check's refusal, but one: turning
+// backups off, and the DNS control's Configure DNS (the relative path is
+// what origin/main's Backup screen saves, so the DNS screen's next change
+// in that session is refused), each with its code, and, since
+// next/s3-control, a refused path's words, as pkg/output reports a
+// refusal (gallery-backup.md §7, defect 12). A path change to a safe path
+// is planned under the path it saves (decision 7 (a), on the engine since
+// next/s3-control), where it was refused with the rest.
 func TestBackupRefusesEveryChange(t *testing.T) {
 	for _, tt := range []struct {
-		host string
-		want error
-		code string
-	}{{"unsafe", backup.ErrUnsafeDir, "UNSAFE_DIRECTORY"}, {"relative", backup.ErrSettings, "BACKUP_SETTINGS_INVALID"}} {
+		host, why string
+		want      error
+		code      string
+	}{
+		{"unsafe", "Others can change /tmp, so backups can't go in /tmp/hardn-backups", backup.ErrUnsafeDir, "UNSAFE_DIRECTORY"},
+		{"relative", `"backups" is not an absolute path`, backup.ErrSettings, "BACKUP_SETTINGS_INVALID"},
+	} {
 		_, h, cfg := readHost(t, tt.host)
 		h.withHardnYML(backupYML(true, cfg.BackupPath) + "nameservers:\n  - \"192.0.2.54\"\n")
 		loaded, err := config.Read(context.Background(), h.f, hardnYML)
@@ -276,32 +283,30 @@ func TestBackupRefusesEveryChange(t *testing.T) {
 			cfg     *config.Config
 			control engine.Control
 		}{
-			{"turn backups off", &off, backupSave("enableBackups")},
-			{"a path change", &moved, backupSave("backupPath")},
+			{"turn backups off", &off, backupctl.Settings{Config: loaded}},
 			{"Configure DNS", loaded, dnsctl.Nameservers{Config: loaded}},
 		} {
 			_, p := planOn(t, h, loaded.BackupSettings(), c.cfg, c.control)
-			if !errors.Is(p.Err(), tt.want) {
-				t.Errorf("%s, %s: plan refused with %v, want %v", tt.host, c.what, p.Err(), tt.want)
+			if !errors.Is(p.Err(), tt.want) || output.CodeOf(p.Err()) != tt.code {
+				t.Errorf("%s, %s: plan refused with %v (%s), want %v, %s", tt.host, c.what, p.Err(), output.CodeOf(p.Err()), tt.want, tt.code)
 			}
-			// The refusal is Check's error as it is, with no Why or Fix
-			// (gallery-backup.md §7, defect 12), and its code.
-			var words *steps.Refusal
-			if errors.As(p.Err(), &words) || output.CodeOf(p.Err()) != tt.code {
-				t.Errorf("%s, %s: refused with words %+v, code %s, want none and %s", tt.host, c.what, words, output.CodeOf(p.Err()), tt.code)
+			d := output.Build(output.Run{Mode: output.ModePlan, Plan: p, Err: p.Err()})
+			if len(d.Errors) != 1 || d.Errors[0].Why != tt.why || !strings.HasSuffix(d.Errors[0].Fix, "with Backup's item 2") {
+				t.Errorf("%s, %s: reported as %+v, want %q", tt.host, c.what, d.Errors, tt.why)
 			}
 		}
-		if _, p := planOn(t, h, moved.BackupSettings(), &moved, backupSave("backupPath")); p.Err() != nil {
-			t.Errorf("%s: the path change planned under its path: %v", tt.host, p.Err())
+		if _, p := planOn(t, h, loaded.BackupSettings(), &moved, backupctl.Settings{Config: loaded}); p.Err() != nil || p.Backups != moved.BackupSettings() {
+			t.Errorf("%s: the path change, planned under its path: %v, %+v", tt.host, p.Err(), p.Backups)
 		}
 	}
 }
 
-// TestBackupTakenAnyway: item 1, planned under the settings it saves,
+// TestBackupTakenAnyway: item 1, Backup's control on the engine as
+// cmd/hardn builds it, planned under the settings it saves,
 // takes its rollback backup either way; turning backups off takes it with
-// them off, and its manifest says so (§3.16), which the screen says under
-// what it kept (kept); turning them on takes it with them on, and says
-// only what it kept.
+// them off, and its manifest says so (§3.16), which pkg/output says
+// under what it kept (AfterFlow, since next/s3-control); turning them on
+// takes it with them on, and says only what it kept.
 func TestBackupTakenAnyway(t *testing.T) {
 	ctx := context.Background()
 	for _, tt := range []struct {
@@ -311,11 +316,12 @@ func TestBackupTakenAnyway(t *testing.T) {
 		_, h, cfg := readHost(t, tt.host)
 		edited := *cfg
 		edited.EnableBackups = !cfg.EnableBackups
-		e, p := planOn(t, h, edited.BackupSettings(), &edited, backupSave("enableBackups"))
+		e, p := planOn(t, h, cfg.BackupSettings(), &edited, backupctl.Settings{Config: cfg})
 		if p.Err() != nil {
 			t.Fatalf("%s: plan: %v", tt.host, p.Err())
 		}
-		if _, err := e.Apply(ctx, p); err != nil {
+		res, err := e.Apply(ctx, p)
+		if err != nil {
 			t.Fatalf("%s: apply: %v", tt.host, err)
 		}
 		dir := path.Join(backup.DefaultPath, p.ID)
@@ -326,12 +332,13 @@ func TestBackupTakenAnyway(t *testing.T) {
 		if len(m.Entries) != 1 || m.Entries[0].Path != hardnYML || m.Entries[0].TakenAnyway != tt.anyway || m.BackupsEnabled == tt.anyway {
 			t.Errorf("%s: manifest %+v", tt.host, m)
 		}
-		want := component.Messages{{Text: "Backup of " + hardnYML + " kept in"}, {Text: dir}}
+		after := flatText(output.AfterFlow(uitest.Core()[1].Env, output.Run{Mode: output.ModeApply, Plan: p, Result: &res}, galleryNow))
+		want := "Backup of " + hardnYML + " kept in " + dir
 		if tt.anyway {
-			want = append(want, component.Message{Text: takenAnyway})
+			want += " Backed up anyway: the rollback needs it."
 		}
-		if got := kept(ctx, h.system(), edited.BackupSettings(), p); !slices.Equal(got, want) {
-			t.Errorf("%s: kept %+v, want %+v", tt.host, got, want)
+		if !strings.Contains(after, want) || !tt.anyway && strings.Contains(after, "anyway") {
+			t.Errorf("%s: after the change %q, want %q", tt.host, after, want)
 		}
 	}
 }
@@ -423,7 +430,10 @@ func TestBackupRestore(t *testing.T) {
 	if !strings.Contains(flatText(out), lockoutRestore) {
 		t.Errorf("the SSH run's restore is not refused:\n%s", out)
 	}
-	runs := readRuns(ctx, h.system(), backup.DefaultPath)
+	runs, err := backup.Runs(ctx, h.system(), backup.DefaultPath)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(runs) != 4 || !strings.HasPrefix(runs[0].RunID, galleryNow.Format("20060102T150405Z")) {
 		t.Fatalf("%d runs; the newest %+v", len(runs), runs[0])
 	}

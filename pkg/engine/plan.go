@@ -43,6 +43,13 @@ type Plan struct {
 	// planned and no Item lists.
 	Changes []Change
 	Risk    RiskClass
+	// Backups are the settings the plan's backups are taken under:
+	// Options.Backups, hardn.yml as loaded, or, when a control that saves
+	// them (BackupsSaver) plans a change, the settings it saves (decision
+	// 7 (a), next/s3-control), a plan with another control's change then
+	// refused (ErrConflict). backup.Check refuses them at plan time, and
+	// Apply backs up into <Backups.Path>/<ID>.
+	Backups backup.Settings
 	// Findings are what the engine found about the plan as a whole, which
 	// refuse nothing: on a best-effort release, CodeBestEffort (P-41,
 	// next/p3-confirm-cleanup). A change's own are on the change
@@ -112,7 +119,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	if err != nil {
 		return nil, fmt.Errorf("engine: detect: %w", err)
 	}
-	p := &Plan{ID: id, Facts: facts, Findings: platformFindings(facts.Platform), controls: controls, cfg: cfg}
+	p := &Plan{ID: id, Facts: facts, Findings: platformFindings(facts.Platform), Backups: e.opts.Backups, controls: controls, cfg: cfg}
 	refuse := func(err error) { p.Refused = append(p.Refused, err) }
 	runDir := filepath.Join(e.runRoot(), id)
 	if err := e.sys.MkdirAll(ctx, runDir, 0o700); err != nil {
@@ -125,6 +132,8 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	in := Input{ID: id, RunDir: runDir, Facts: facts, Config: cfg, Session: e.opts.Session}
 	var all []Change
 	seen := map[string]bool{}
+	saver := ""         // the control whose change saves the backup settings
+	var others []string // the controls with changes that do not save them
 	for _, c := range controls {
 		it := Item{Control: c.ID(), Title: c.Title()}
 		switch ok, why := c.Applies(facts); {
@@ -147,12 +156,39 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 				all = append(all, ch)
 				p.Risk = max(p.Risk, ch.Risk)
 			}
+			if bs, ok := c.(BackupsSaver); ok && len(cs) > 0 {
+				s := bs.SavedBackups(in)
+				if s.Path == "" {
+					s.Path = backup.DefaultPath
+				}
+				switch {
+				case saver == "":
+					saver, p.Backups = it.Control, s
+				case s != p.Backups:
+					it.Err = errors.Join(it.Err, fmt.Errorf("engine: %s and %s save other backup settings: %w", saver, it.Control, ErrConflict))
+				}
+			} else if len(cs) > 0 {
+				others = append(others, it.Control)
+			}
 		}
 		seen[it.Control] = true
 		if it.Err != nil {
 			refuse(it.Err)
 		}
 		p.Items = append(p.Items, it)
+	}
+	// A change of the backup settings is planned alone (decision 7 (a)):
+	// a plan's changes all back up into its one run, under the settings
+	// it saves, and every other change takes hardn.yml's as loaded.
+	if saver != "" && len(others) > 0 {
+		err := fmt.Errorf("engine: %s saves the backup settings, which every change of its plan is backed up under: plan %s in another plan: %w",
+			saver, strings.Join(others, " and "), ErrConflict)
+		for k := range p.Items {
+			if p.Items[k].Control == saver {
+				p.Items[k].Err = errors.Join(p.Items[k].Err, err)
+			}
+		}
+		refuse(err)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("engine: plan: %w", err)
@@ -224,7 +260,7 @@ func (e *Engine) refuseApply(ctx context.Context, p *Plan, st revert.State, stEr
 	for _, c := range p.Changes {
 		paths = append(paths, c.Backups...)
 	}
-	if err := backup.Check(ctx, e.sys, e.opts.Backups, p.ID, paths); err != nil {
+	if err := backup.Check(ctx, e.sys, p.Backups, p.ID, paths); err != nil {
 		refuseN(fmt.Errorf("engine: the backups: %w", err))
 	}
 	j := e.journal(p)
@@ -279,9 +315,10 @@ func (e *Engine) removeRunDir(ctx context.Context, id string) {
 
 // samePlan reports whether fresh, made under the run lock, is the plan p
 // that was shown: the same changes in the same order, field by field (Apply
-// aside, a function), and the same risk.
+// aside, a function), the same risk, and its backups under the same
+// settings.
 func samePlan(p, fresh *Plan) bool {
-	if len(p.Changes) != len(fresh.Changes) || p.Risk != fresh.Risk {
+	if len(p.Changes) != len(fresh.Changes) || p.Risk != fresh.Risk || p.Backups != fresh.Backups {
 		return false
 	}
 	for i := range p.Changes {

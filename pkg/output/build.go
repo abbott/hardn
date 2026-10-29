@@ -10,9 +10,11 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -158,8 +160,31 @@ func Build(r Run) Document {
 		if b := res.Boot; b != nil {
 			d.Result.Boot = &Boot{Installed: b.Err == nil, Detail: b.Detail}
 		}
+		if res.Failed == nil && res.Backup != nil {
+			d.Result.Backup = keptOf(*res.Backup)
+		}
 	}
 	return d
+}
+
+// keptOf is what the backup run m kept a copy of: each file with content,
+// once, in the order taken, and whether any was taken with backups off;
+// nil when it kept none (every path it recorded was not there before).
+func keptOf(m backup.Manifest) *Kept {
+	k := &Kept{Dir: m.Dir, Files: []string{}}
+	for _, e := range m.Entries {
+		if e.File == nil {
+			continue
+		}
+		if !slices.Contains(k.Files, e.Path) {
+			k.Files = append(k.Files, e.Path)
+		}
+		k.TakenAnyway = k.TakenAnyway || e.TakenAnyway
+	}
+	if len(k.Files) == 0 {
+		return nil
+	}
+	return k
 }
 
 // changeStatus returns each change's status by its id, from the run's
@@ -333,7 +358,15 @@ func errorsOf(r Run) []Error {
 			}
 		}
 		for _, err := range p.Refused {
-			add(errorOf(err, owner[err.Error()], ""), err)
+			e := errorOf(err, owner[err.Error()], "")
+			if e.Why == "" && e.Control == "" {
+				// The engine's refusal of the plan's backup settings, as
+				// a refused path's report (next/s3-control).
+				if rf := backupctl.Refusal(p.Backups.Path, err); rf != nil {
+					e.Why, e.Fix = rf.Why, rf.Fix
+				}
+			}
+			add(e, err)
 		}
 	}
 	if res := r.Result; res != nil {
@@ -436,6 +469,8 @@ func errorOf(err error, control, change string) Error {
 	var ref *steps.Refusal
 	if errors.As(err, &ref) {
 		e.Why, e.Fix = ref.Why, ref.Fix
+	} else if nw := backupctl.NotWritten(err); nw != nil {
+		e.Why, e.Fix = nw.Why, nw.Fix
 	}
 	return e
 }

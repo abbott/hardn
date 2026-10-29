@@ -58,12 +58,14 @@ func events(evs []engine.Event) []string {
 const stableID = "20261022T120000Z-1a2b3c4d"
 
 // stable is r with stableID for its change's id, wherever the document
-// takes it from (the plan, the result, the apply's error), so that the
+// takes it from (the plan, the result, its backup run, the apply's
+// error), so that the
 // goldens do not change from one run to the next, as pkg/output's own
 // real-engine goldens do it.
 func stable(r output.Run) output.Run {
 	if p := r.Plan; p != nil {
-		r.Plan = &engine.Plan{ID: stableID, Facts: p.Facts, Items: p.Items, Changes: p.Changes, Risk: p.Risk, Findings: p.Findings, Refused: p.Refused}
+		r.Plan = &engine.Plan{ID: stableID, Facts: p.Facts, Items: p.Items, Changes: p.Changes, Risk: p.Risk, Findings: p.Findings, Refused: p.Refused,
+			Backups: p.Backups}
 	}
 	if r.Result == nil {
 		return r
@@ -71,6 +73,11 @@ func stable(r output.Run) output.Run {
 	res := *r.Result
 	if res.ID != "" {
 		res.ID = stableID
+	}
+	if m := res.Backup; m != nil { // its run directory, <backupPath>/<id> (next/s3-control)
+		mc := *m
+		mc.RunID, mc.Dir = stableID, strings.TrimSuffix(m.Dir, m.RunID)+stableID
+		res.Backup = &mc
 	}
 	if f := res.Failed; f != nil {
 		fc := *f

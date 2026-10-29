@@ -3,6 +3,7 @@ package output_test
 import (
 	"fmt"
 	"net/netip"
+	"strings"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -157,6 +158,10 @@ func fixtures() []struct {
 	boot := &engine.BootInstall{Detail: "wrote /etc/systemd/system/hardn-boot.service; enabled it"}
 	confirm := &engine.Confirm{ID: fixtureID, Deadline: time.Date(2026, 10, 19, 12, 3, 0, 0, time.UTC), Approximate: true,
 		Via: portChanges()[3].ConfirmVia}
+	kept := &backup.Manifest{SchemaVersion: backup.SchemaVersion, RunID: fixtureID, Created: time.Date(2026, 10, 19, 12, 0, 0, 0, time.UTC),
+		BackupsEnabled: true, Dir: backup.DefaultPath + "/" + fixtureID,
+		Entries: []backup.Entry{{Seq: 1, Path: fixtureDropIn, Kind: backup.KindFile, RollbackRequired: true,
+			File: &backup.Content{Backup: "0001-00-hardn.conf", Mode: 0o644, Size: 27, SHA256: strings.Repeat("ab", 32)}}}}
 	return []struct {
 		name string
 		run  output.Run
@@ -168,7 +173,7 @@ func fixtures() []struct {
 		{"refused", output.Run{Mode: output.ModePlan, HardnVersion: fixtureVersion, Hostname: fixtureHost, Plan: refusedPlan,
 			Err: refusedPlan.Err()}, output.ExitError},
 		{"awaiting-confirmation", output.Run{Mode: output.ModeApply, HardnVersion: fixtureVersion, Hostname: fixtureHost, Plan: portPlan(),
-			Result: &engine.Result{ID: fixtureID, Risk: engine.RiskLockout, Boot: boot, Applied: applied(), Confirm: confirm}}, output.ExitOK},
+			Result: &engine.Result{ID: fixtureID, Risk: engine.RiskLockout, Boot: boot, Applied: applied(), Confirm: confirm, Backup: kept}}, output.ExitOK},
 		{"rolled-back", output.Run{Mode: output.ModeApply, HardnVersion: fixtureVersion, Hostname: fixtureHost, Plan: portPlan(),
 			Result: &engine.Result{ID: fixtureID, Risk: engine.RiskLockout, Boot: boot, Applied: applied()[:2], Failed: failed},
 			Err:    failed}, output.ExitError},

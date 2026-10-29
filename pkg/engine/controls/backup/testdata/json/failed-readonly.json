@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "apply",
+  "result": {
+    "outcome": "rolled-back",
+    "exitCode": 1,
+    "id": "20261027T120000Z-1a2b3c4d",
+    "risk": "plain",
+    "rollback": {
+      "finished": true,
+      "byAnotherProcess": false,
+      "step": "backup",
+      "change": "backup.settings/save",
+      "changeUndone": false,
+      "restored": [],
+      "undone": [],
+      "command": ""
+    }
+  },
+  "changes": [
+    {
+      "id": "backup.settings/save",
+      "control": "backup.settings",
+      "summary": "Save the configuration to /etc/hardn/hardn.yml",
+      "target": "/etc/hardn/hardn.yml",
+      "risk": "plain",
+      "stage": "files",
+      "after": [],
+      "diff": "--- /etc/hardn/hardn.yml\n+++ /etc/hardn/hardn.yml\n@@ -1,6 +1,6 @@\n # hardn's configuration (web-01.example.net)\n username: alice\n-enableBackups: true               # Backup files before modifying them\n+enableBackups: false               # Backup files before modifying them\n backupPath: \"/var/backups/hardn\"  # Path to store backups\n nameservers:\n   - \"192.0.2.54\"\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [
+        "/etc/hardn/hardn.yml"
+      ],
+      "status": "failed",
+      "detail": "backup: mkdir /var/backups/hardn: read-only file system"
+    }
+  ],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "BACKUP_WRITE_FAILED",
+      "message": "backup: mkdir /var/backups/hardn: read-only file system",
+      "control": "backup.settings",
+      "change": "backup.settings/save",
+      "step": "backup",
+      "why": "Can't back up /etc/hardn/hardn.yml in /var/backups/hardn: read-only file system",
+      "fix": "choose a backup path hardn can write, with Backup's item 2"
+    }
+  ]
+}

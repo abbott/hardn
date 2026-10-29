@@ -60,7 +60,7 @@ func (e *Engine) bootChange(ctx context.Context, p *Plan, refuse func(error)) (C
 		return Change{}, false
 	}
 	c := Change{ID: BootChangeID, Target: u.Path, Risk: RiskPlain, Stage: StageBoot,
-		StateBefore: bootState(u, st, e.opts.Backups.Enabled), StateAfter: "installed and enabled"}
+		StateBefore: bootState(u, st, p.Backups.Enabled), StateAfter: "installed and enabled"}
 	switch {
 	case !st.File:
 		c.Title = "Install hardn's boot unit"
@@ -95,7 +95,8 @@ func (e *Engine) bootChange(ctx context.Context, p *Plan, refuse func(error)) (C
 }
 
 // bootState is what the plan shows the host has of boot unit u. A file
-// that is replaced is backed up first when backups are enabled
+// that is replaced is backed up first when backups are enabled, under
+// the plan's settings (Plan.Backups, which Apply opens the run with)
 // (EnsureBootUnit's backup is backup.Optional: nothing restores it).
 func bootState(u revert.BootUnit, st revert.BootUnitState, backups bool) string {
 	kept := "backed up, then replaced"

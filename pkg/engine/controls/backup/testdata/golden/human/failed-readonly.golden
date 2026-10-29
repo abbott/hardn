@@ -1,0 +1,37 @@
+# Golden file of TestGoldens/failed-readonly, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSave the configuration␛[m  ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mBACKUP_WRITE_FAILED␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mCan't back up /etc/hardn/hardn.yml in /var/backups/hardn:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mread-only file system␛[m$
+$
+  ␛[38;2;129;134;156mNothing was changed. To go on: choose a backup path hardn can␛[m$
+  ␛[38;2;129;134;156mwrite, with Backup's item 2.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [ ] Save the configuration  Failed BACKUP_WRITE_FAILED$
+$
+# Operation Failed$
+# Can't back up /etc/hardn/hardn.yml in /var/backups/hardn:$
+# read-only file system$
+$
+  Nothing was changed. To go on: choose a backup path hardn can$
+  write, with Backup's item 2.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSave the configuration␛[m$
+      ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mBACKUP_WRITE_FAILED␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mCan't back up /etc/hardn/hardn.yml in /var/backups/hardn:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mread-only file system␛[m$
+$
+  ␛[38;2;129;134;156mNothing was changed. To go on: choose a backup path hardn␛[m$
+  ␛[38;2;129;134;156mcan write, with Backup's item 2.␛[m$
+$

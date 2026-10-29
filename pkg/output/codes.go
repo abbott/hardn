@@ -329,6 +329,14 @@ var errorCodes = []Entry{
 	is("BACKUP_MANIFEST_INVALID", backup.ErrManifest),
 	is("BACKUP_CORRUPT", backup.ErrCorrupt),
 	is("BACKUP_CHANGED", backup.ErrChanged).what("a file changed since its backup in a way restore does not undo"),
+	// A backup write that failed (a read-only file system), whatever the
+	// write's own error: before the seam's and the standard library's,
+	// which it wraps (refactor plan slice 3, unit (b)).
+	is("BACKUP_WRITE_FAILED", backup.ErrWrite).what("a backup could not be written (its directory, its copy or its manifest), so the change did not go ahead"),
+	// A file on a backup path, which a DirError names: ENOTDIR, the other
+	// of its two errors, UNSAFE_DIRECTORY's above (next/s3-control).
+	typed("BACKUP_PATH_NOT_DIRECTORY", "a backup path, or a path above it, is a file, not a directory",
+		as(func(e *backup.DirError) bool { return !errors.Is(e.Err, backup.ErrUnsafeDir) })),
 
 	// Detection (pkg/host/detect).
 	is("DETECT_SIGNALS_DISAGREE", detect.ErrConflict).what("detection: two signals for one fact disagree, so it is Unknown"),

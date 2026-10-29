@@ -35,7 +35,15 @@
     "outcome": "applied",
     "exitCode": 0,
     "id": "20261022T120000Z-1a2b3c4d",
-    "risk": "plain"
+    "risk": "plain",
+    "backup": {
+      "dir": "/var/backups/hardn/20261022T120000Z-1a2b3c4d",
+      "files": [
+        "/etc/resolv.conf",
+        "/etc/hardn/hardn.yml"
+      ],
+      "takenAnyway": false
+    }
   },
   "changes": [
     {
