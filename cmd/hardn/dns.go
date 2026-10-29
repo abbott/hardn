@@ -48,7 +48,12 @@ func configureDNS(c *config.Config) int {
 // once reported, the next flags not run: with the failure's status, or
 // 130 for a change applied, so that a script never reads 0 for a run
 // whose later flags did not run (since next/s3-hangup; the maintainer,
-// 2026-10-28: "Yes, catch it").
+// 2026-10-28: "Yes, catch it"). A hangup's watch (watchHangup), registered
+// first, around the same window, marks hardn's terminal gone as the
+// hangup comes, so that the report is dropped rather than left blocking
+// on a terminal nothing reads (sudo-rs's, once the session has dropped);
+// a hangup it alone catches, before engineSignals' registration, ends
+// hardn as one that reached the apply does.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make, 1 for a
 // refusal or a failure.
@@ -62,7 +67,11 @@ func runControls(c *config.Config, controls []engine.Control) int {
 	}
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
 	actx := ctx // a signal's, around the apply and its report alone
+	hungUp := func() bool { return false }
 	if run.Mode == output.ModeApply && run.Err == nil && run.Plan.Err() == nil {
+		hup := watchHangup() // first: no hangup engineSignals catches goes unmarked
+		defer hup.stop()
+		hungUp = hup.seen
 		var stop context.CancelFunc
 		actx, stop = engineSignals(ctx)
 		defer stop()
@@ -73,7 +82,7 @@ func runControls(c *config.Config, controls []engine.Control) int {
 		logging.LogError("%v", err)
 	}
 	code := output.ExitCode(run)
-	signalled := actx.Err() != nil
+	signalled := actx.Err() != nil || hungUp()
 	if signalled && code == output.ExitOK {
 		code = output.ExitInterrupted // applied, but the flags after it are not run
 	}

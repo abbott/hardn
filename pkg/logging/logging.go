@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,6 +16,12 @@ var (
 	// Add silent mode flag
 	silentMode bool
 )
+
+// FallbackOutput is where the log goes when InitLogging cannot open its
+// file: stderr, unless the program sets it before InitLogging, as
+// cmd/hardn does to its own stderr writer, which drops what it is given
+// once hardn's terminal has hung up (next/s3-hangup).
+var FallbackOutput io.Writer = os.Stderr
 
 // InitLogging initializes the logger for the application
 func InitLogging(logPath string) {
@@ -38,7 +45,7 @@ func InitLogging(logPath string) {
 	if logFile != nil {
 		logger = log.New(logFile, "", log.LstdFlags)
 	} else {
-		logger = log.New(os.Stderr, "", log.LstdFlags)
+		logger = log.New(FallbackOutput, "", log.LstdFlags)
 	}
 }
 

@@ -484,7 +484,7 @@ var (
 	fileDryRun                  = config.FileDryRun
 	detectOS                    = osdetect.DetectOS
 	exit                        = os.Exit
-	stderr            io.Writer = os.Stderr
+	stderr            io.Writer = termStderr
 )
 
 // operationFlags names the operation flags set on the command line that

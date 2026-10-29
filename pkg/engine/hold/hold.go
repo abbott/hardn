@@ -20,6 +20,7 @@ import (
 	"syscall"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/hangup"
 )
 
 // sigIgn is SIG_IGN's handler value, on Linux and macOS alike.
@@ -31,6 +32,11 @@ var (
 	held   = []syscall.Signal{syscall.SIGINT}
 	caught = map[os.Signal]string{syscall.SIGHUP: "SIGHUP", syscall.SIGTERM: "SIGTERM"}
 )
+
+// terminalGone records a hangup: hardn's terminal is gone, and its
+// writes to it are dropped from then on (hangup.Seen); a seam for the
+// tests.
+var terminalGone = hangup.Seen
 
 func signals(ss []syscall.Signal) []os.Signal {
 	out := make([]os.Signal, len(ss))
@@ -55,6 +61,14 @@ func signals(ss []syscall.Signal) []os.Signal {
 // ignored and SIGHUP's default.
 // SIGKILL cannot be held off; the revert timer, or the next `hardn
 // rollback <id>`, takes the rollback up.
+//
+// A hangup caught marks hardn's terminal gone (hangup.Seen) before its
+// line is logged (since next/s3-hangup; the maintainer, 2026-10-28: "Make
+// hardn stop writing to its terminal once a hangup is caught"): under
+// sudo-rs a write to it would block for good once its buffer is full,
+// and the rollback with it; hardn's writers to the terminal drop what
+// they are given from then on, the log's console lines among them. It
+// cannot be undone: the release leaves it.
 //
 // SIGHUP is caught, not ignored (since next/s3-hangup; the maintainer,
 // 2026-10-28: "Yes, catch it"), so that a channel a caller registered for
@@ -112,6 +126,9 @@ func SignalsAs(name string, log io.Writer) (release func()) {
 		for {
 			select {
 			case s := <-c:
+				if s == syscall.SIGHUP {
+					terminalGone()
+				}
 				logf(log, "%s: %s received; the rollback finishes first", name, caught[s])
 			case <-done:
 				return

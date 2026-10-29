@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -196,6 +197,39 @@ func TestRevertRollbackCommand(t *testing.T) {
 	executeHardn(t, "rollback", "../etc")
 	if s.exit != 2 {
 		t.Errorf("rollback of a path: exit %d, want 2", s.exit)
+	}
+}
+
+// TestRevertRollbackHangup: hardn rollback and hardn rollback --boot
+// watch for a hangup from before their hold until after it (watchHangup),
+// so that one comes marked whatever the hold's own goroutine is busy
+// with, as its console line for an earlier SIGTERM blocked on a terminal
+// nothing reads: here the hold is the test's, which catches nothing, and a
+// hangup sent as it is taken is marked once; one after the command marks
+// nothing (this test's probe keeps it alive).
+func TestRevertRollbackHangup(t *testing.T) {
+	for _, args := range [][]string{{"rollback", revertTestID}, {"rollback", "--boot"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			s := newRevertSeams(t, 0)
+			goneWas := terminalGone
+			t.Cleanup(func() { terminalGone = goneWas })
+			var marks atomic.Int32
+			terminalGone = func() { marks.Add(1) }
+			revertHoldSignals = func() func() {
+				s.held++
+				sendHangup(t)
+				return func() { s.released++ }
+			}
+			executeHardn(t, args...)
+			if n := marks.Load(); n != 1 || s.held != 1 || s.released != 1 {
+				t.Errorf("a hangup as the hold was taken marked the terminal gone %d times, want once; held %d, released %d", n, s.held, s.released)
+			}
+			sendHangup(t)
+			time.Sleep(50 * time.Millisecond)
+			if n := marks.Load(); n != 1 {
+				t.Errorf("a hangup after hardn %v marked the terminal gone: %d marks", args, n)
+			}
+		})
 	}
 }
 

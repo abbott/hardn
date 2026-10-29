@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -10,14 +11,18 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/fatih/color"
 
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hangup"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -109,11 +114,14 @@ func TestEngineSeamsAreReal(t *testing.T) {
 	if !samePointer(engineInput, prompt.Stdin) {
 		t.Error("engineInput is not prompt.Stdin")
 	}
-	if engineStdout != os.Stdout {
-		t.Error("engineStdout is not os.Stdout")
+	if engineStdout != termStdout {
+		t.Error("engineStdout is not termStdout")
 	}
 	if !samePointer(endHangup, endByHangup) {
 		t.Error("endHangup is not endByHangup")
+	}
+	if !samePointer(terminalGone, hangup.Seen) {
+		t.Error("terminalGone is not hangup.Seen")
 	}
 	ctx, stop := engineSignals(context.Background())
 	if ctx.Err() != nil {
@@ -122,6 +130,162 @@ func TestEngineSeamsAreReal(t *testing.T) {
 	stop()
 	if ctx.Err() == nil {
 		t.Error("engineSignals' stop does not end its context")
+	}
+}
+
+// TestTerminalWriters: what cmd/hardn writes to stdout and stderr goes
+// through one writer each (termStdout and termStderr, which
+// TestTerminalWritersDropAfterHangup holds to hardn's terminal): the
+// screens' and -g's (engineStdout), hardn confirm's (confirmStdout), the
+// command line's refusals (stderr), the next-run notices (revertStderr),
+// the legacy logger's console lines (fatih/color's Output and Error) and
+// its fallback when hardn's log cannot be opened (logging.FallbackOutput).
+func TestTerminalWriters(t *testing.T) {
+	if termStdout == termStderr {
+		t.Fatal("stdout and stderr share one writer")
+	}
+	for _, w := range []struct {
+		name      string
+		got, want any
+	}{
+		{"engineStdout", engineStdout, termStdout},
+		{"confirmStdout", confirmStdout, termStdout},
+		{"color.Output", color.Output, termStdout},
+		{"stderr", stderr, termStderr},
+		{"revertStderr", revertStderr, termStderr},
+		{"color.Error", color.Error, termStderr},
+		{"logging.FallbackOutput", logging.FallbackOutput, termStderr},
+	} {
+		if w.got != w.want {
+			t.Errorf("%s is %T, not hardn's terminal", w.name, w.got)
+		}
+	}
+}
+
+// termChildEnv names what TestTerminalWritersDropAfterHangup's child
+// writes.
+const termChildEnv = "HARDN_TEST_TERM_CHILD"
+
+// TestTerminalWritersDropAfterHangup runs this test binary again as a
+// child that writes to termStdout and termStderr, marks hardn's terminal
+// gone (hangup.Seen, which the hold and terminalGone call), and writes
+// again: through a pipe, as a terminal is, what came after is dropped, on
+// each stream; to a regular file, stdout redirected (hardn -g >
+// report.txt), it is kept, a file read after the session is gone.
+func TestTerminalWritersDropAfterHangup(t *testing.T) {
+	if os.Getenv(termChildEnv) != "" {
+		_, _ = io.WriteString(termStdout, "out-before\n")
+		_, _ = io.WriteString(termStderr, "err-before\n")
+		hangup.Seen()
+		_, _ = io.WriteString(termStdout, "out-after\n")
+		_, _ = io.WriteString(termStderr, "err-after\n")
+		os.Exit(0)
+	}
+	for _, toFile := range []bool{false, true} {
+		var stdout, stderr strings.Builder
+		cmd := exec.Command(os.Args[0], "-test.run=^TestTerminalWritersDropAfterHangup$", "-test.count=1")
+		cmd.Env = append(os.Environ(), termChildEnv+"=1")
+		cmd.Stdout, cmd.Stderr = &stdout, &stderr
+		var file string
+		if toFile {
+			file = filepath.Join(t.TempDir(), "report.txt")
+			f, err := os.Create(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			cmd.Stdout = f
+			defer f.Close()
+		}
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("the child: %v; stderr:\n%s", err, stderr.String())
+		}
+		out := stdout.String()
+		wantOut := "out-before\n"
+		if toFile {
+			data, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			out, wantOut = string(data), "out-before\nout-after\n"
+		}
+		if out != wantOut || stderr.String() != "err-before\n" {
+			t.Errorf("stdout a file %t: the child wrote %q to stdout, %q to stderr; want %q, %q", toFile, out, stderr.String(), wantOut, "err-before\n")
+		}
+	}
+}
+
+// TestWatchHangup: a hangup sent to this test process during a watch
+// marks hardn's terminal gone at once, before the stop (terminalGone,
+// counted here), and the stop reports it; Ctrl-C and SIGTERM, caught
+// meanwhile as an apply's context catches them, mark nothing and are not
+// reported. A second stop reports the same and marks nothing more.
+func TestWatchHangup(t *testing.T) {
+	was := terminalGone
+	defer func() { terminalGone = was }()
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		t.Run(sig.String(), func(t *testing.T) {
+			marked := make(chan struct{}, 8)
+			terminalGone = func() { marked <- struct{}{} }
+			w := watchHangup()
+			_, stop := signal.NotifyContext(context.Background(), engineSignalSet...)
+			sendSignal(t, sig)
+			hup := sig == syscall.SIGHUP
+			if hup {
+				select {
+				case <-marked:
+				case <-time.After(5 * time.Second):
+					t.Error("the hangup was not marked as it came")
+				}
+				if !w.seen() {
+					t.Error("seen is false after the hangup")
+				}
+			}
+			stop()
+			if got := w.stop(); got != hup {
+				t.Errorf("stop = %t, want %t", got, hup)
+			}
+			if got := w.stop(); got != hup {
+				t.Errorf("a second stop = %t, want %t", got, hup)
+			}
+			if n := len(marked); n != 0 {
+				t.Errorf("marked %d times more", n)
+			}
+		})
+	}
+}
+
+// TestWatchStopWaits: stop returns only once the watch has read every
+// hangup that reached it: one held in the watch's channel while the watch
+// marks the one before is read, and marked, before stop returns.
+func TestWatchStopWaits(t *testing.T) {
+	was := terminalGone
+	defer func() { terminalGone = was }()
+	entered, open := make(chan struct{}, 4), make(chan struct{})
+	var marks atomic.Int32
+	terminalGone = func() { marks.Add(1); entered <- struct{}{}; <-open }
+	w := watchHangup()
+	sendHangup(t)
+	<-entered
+	sendHangup(t) // held in the channel, the watch busy marking the first
+	returned := make(chan bool, 1)
+	go func() { returned <- w.stop() }()
+	select {
+	case <-returned:
+		close(open)
+		t.Fatal("stop returned while the watch was marking a hangup")
+	case <-time.After(200 * time.Millisecond):
+	}
+	close(open)
+	select {
+	case got := <-returned:
+		if !got {
+			t.Error("stop = false after two hangups")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("stop did not return")
+	}
+	if n := marks.Load(); n != 2 {
+		t.Errorf("marked %d times, want 2: the hangup held in the channel too", n)
 	}
 }
 
@@ -185,9 +349,14 @@ func sendSignal(t *testing.T, sig syscall.Signal) {
 // after the hold's release, or as engineSignals' registration stops (the
 // screens' channel is stopped after it). After Ctrl-C and SIGTERM alone, and with no
 // signal, the stop does not end hardn. A second stop ends nothing more.
+// Each hangup marks hardn's terminal gone as it comes, before the stop
+// (terminalGone, recorded here; one as engineSignals stops, by the stop):
+// what the screen writes after it is dropped (since next/s3-hangup's "Make
+// hardn stop writing to its terminal once a hangup is caught"); no other
+// signal marks it.
 func TestScreenApplyContext(t *testing.T) {
-	hangupWas, signalsWas := endHangup, engineSignals
-	defer func() { endHangup, engineSignals = hangupWas, signalsWas }()
+	hangupWas, signalsWas, goneWas := endHangup, engineSignals, terminalGone
+	defer func() { endHangup, engineSignals, terminalGone = hangupWas, signalsWas, goneWas }()
 	hangup := sendHangup
 	for _, tc := range []struct {
 		name      string
@@ -212,6 +381,20 @@ func TestScreenApplyContext(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ended := 0
 			endHangup = func() { ended++ }
+			marked := make(chan struct{}, 8)
+			terminalGone = func() { marked <- struct{}{} }
+			// marks waits for the terminal to be marked gone, as a
+			// hangup comes and before the stop.
+			marks := 0
+			markedNow := func(when string) {
+				t.Helper()
+				select {
+				case <-marked:
+					marks++
+				case <-time.After(5 * time.Second):
+					t.Errorf("a hangup %s did not mark the terminal gone as it came", when)
+				}
+			}
 			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
 				if tc.made == "before" {
 					hangup(t)
@@ -227,9 +410,13 @@ func TestScreenApplyContext(t *testing.T) {
 			}
 			ctx, stop := screenApplyContext(context.Background())
 			defer stop()
+			if tc.made == "before" || tc.made == "after" {
+				markedNow("as engineSignals registered")
+			}
 			for _, sig := range tc.during {
 				if sig == syscall.SIGHUP {
 					hangup(t)
+					markedNow("during the apply")
 					continue
 				}
 				if err := syscall.Kill(os.Getpid(), sig); err != nil {
@@ -253,15 +440,21 @@ func TestScreenApplyContext(t *testing.T) {
 			release := hold.Signals(nil)
 			if tc.inHold {
 				hangup(t)
+				markedNow("during the hold")
 			}
 			release()
 			if tc.afterHold {
 				hangup(t)
+				markedNow("after the hold")
 			}
 			stop()
 			stop()
+			marks += len(marked)
 			if want := map[bool]int{true: 1}[tc.end]; ended != want {
 				t.Errorf("hardn ended %d times, want %d", ended, want)
+			}
+			if tc.end != (marks > 0) {
+				t.Errorf("the terminal marked gone %d times, a hangup %t", marks, tc.end)
 			}
 			if ctx.Err() == nil {
 				t.Error("the stop did not end the context")

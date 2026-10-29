@@ -57,7 +57,7 @@ var (
 	revertPID                   = os.Getpid
 	revertExit                  = os.Exit
 	revertNow                   = time.Now
-	revertStderr      io.Writer = os.Stderr
+	revertStderr      io.Writer = termStderr
 	revertNoticeSeen            = stderrIsTerminal
 	revertHoldSignals           = holdSignals
 	revertExecutable            = executable
@@ -208,6 +208,7 @@ func runRollback(_ *cobra.Command, args []string) {
 	if !revertPreflight("rollback") {
 		return
 	}
+	defer watchHangup().stop() // a hangup's mark, whatever the hold is busy logging
 	defer revertHoldSignals()()
 	ctx := context.Background()
 	sys := revertHost()
@@ -297,6 +298,7 @@ func runBoot() {
 	if !revertPreflight("rollback --boot") {
 		return
 	}
+	defer watchHangup().stop() // a hangup's mark, whatever the hold is busy logging
 	defer revertHoldSignals()()
 	ctx := context.Background()
 	sys := revertHost()

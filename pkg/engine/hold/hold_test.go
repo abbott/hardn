@@ -9,15 +9,18 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/hangup"
 )
 
 // syncBuffer is a log the hold's goroutine writes while the test reads it.
@@ -81,6 +84,51 @@ func TestSignals(t *testing.T) {
 				t.Error("release left SIGINT or SIGHUP ignored, as os/signal records it")
 			}
 		})
+	}
+}
+
+// markLog records each line with how many times the terminal had been
+// marked gone (marks) as it was written.
+type markLog struct {
+	syncBuffer
+	marks *atomic.Int32
+}
+
+func (m *markLog) Write(p []byte) (int, error) {
+	return m.syncBuffer.Write([]byte(fmt.Sprintf("%d %s", m.marks.Load(), p)))
+}
+
+// TestHangupMarksTerminalGone: a hangup during the hold marks hardn's
+// terminal gone (terminalGone, hangup.Seen, counted here) before its line
+// is logged, so that the line, where the log writes to the console, is
+// dropped rather than blocked on; a SIGTERM marks nothing.
+func TestHangupMarksTerminalGone(t *testing.T) {
+	if reflect.ValueOf(terminalGone).Pointer() != reflect.ValueOf(hangup.Seen).Pointer() {
+		t.Error("terminalGone is not hangup.Seen")
+	}
+	was := terminalGone
+	defer func() { terminalGone = was }()
+	var marks atomic.Int32
+	terminalGone = func() { marks.Add(1) }
+	log := &markLog{marks: &marks}
+	release := Signals(log)
+	lines := func(n int) {
+		t.Helper()
+		deadline := time.Now().Add(5 * time.Second)
+		for strings.Count(log.String(), "\n") < n && time.Now().Before(deadline) {
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+	relayed(t, syscall.SIGTERM)
+	lines(1)
+	relayed(t, syscall.SIGHUP)
+	lines(2)
+	release()
+	if want := "0 hardn: SIGTERM received; the rollback finishes first\n1 hardn: SIGHUP received; the rollback finishes first\n"; log.String() != want {
+		t.Errorf("log, each line after the marks so far:\n%s\nwant:\n%s", log.String(), want)
+	}
+	if n := marks.Load(); n != 1 {
+		t.Errorf("marked gone %d times, want once", n)
 	}
 }
 
