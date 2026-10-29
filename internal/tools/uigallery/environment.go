@@ -319,35 +319,39 @@ func (r envReading) stateRow(kept bool) component.KeyValue {
 	return row
 }
 
-// rows are the section's rows: the user who ran hardn through the tool,
-// whether HARDN_CONFIG is kept for them, with a line for each file read
-// after hardn's, and its value as hardn sees it.
+// rows are the section's rows, by the control's state (Reading.State):
+// the user who ran hardn through the tool, whether HARDN_CONFIG is kept
+// for them, with a line for each file read after hardn's, and its value
+// as hardn sees it.
 func (r envReading) rows() []component.KeyValue {
 	var rows []component.KeyValue
-	switch {
-	case r.Choice.Tool == sudoers.ToolNone:
-		rows = append(rows, component.KeyValue{Key: r.underKey(), State: component.ValueNotApplicable})
-	case r.Choice.Err != nil, r.User == "" && !errors.Is(r.Err, environment.ErrNoUser):
+	switch r.State() {
+	case engine.NotApplicable:
+		if errors.Is(r.Err, environment.ErrNoUser) {
+			// No user ran hardn through the tool: the User row says so,
+			// and there is no state row.
+			rows = append(rows, component.KeyValue{Key: userKey, Value: r.NotRun(), State: component.ValueWarn})
+		} else { // no tool
+			rows = append(rows, component.KeyValue{Key: r.underKey(), State: component.ValueNotApplicable})
+		}
+	case engine.Unknown:
+		if r.User != "" {
+			rows = append(rows, component.KeyValue{Key: userKey, Value: r.User})
+		}
 		rows = append(rows, component.KeyValue{Key: r.underKey(), State: component.ValueUnknown})
-	case r.User == "":
-		rows = append(rows, component.KeyValue{Key: userKey, Value: r.NotRun(), State: component.ValueWarn})
 	default:
+		// The control's words (Reading.Words): kept by hardn's files, by
+		// origin/main's line, "Kept by /etc/sudoers.d/alice" (decision 3
+		// (a)), which no later file's finding concerns, or not kept.
 		rows = append(rows, component.KeyValue{Key: userKey, Value: r.User})
-		under := component.KeyValue{Key: r.underKey(), State: component.ValueUnknown}
-		if r.Err == nil {
-			// The control's words (Reading.Words): kept by hardn's files,
-			// by origin/main's line, "Kept by /etc/sudoers.d/alice"
-			// (decision 3 (a)), which no later file's finding concerns, or
-			// not kept.
-			value, note := r.Words()
-			under = r.stateRow(value == environment.WordKept)
-			under.Value, under.Note = value, note
-			if !r.Kept && r.Legacy.Keeps {
-				under.State = component.ValueOK
-			}
+		value, note := r.Words()
+		under := r.stateRow(r.State() == engine.Configured)
+		under.Value, under.Note = value, note
+		if !r.Kept && r.Legacy.Keeps {
+			under.State = component.ValueOK
 		}
 		rows = append(rows, under)
-		if r.Kept && r.Err == nil {
+		if r.Kept {
 			for _, f := range r.Later() {
 				rows = append(rows, component.KeyValue{Key: f.Detail, State: component.ValueWarn})
 			}

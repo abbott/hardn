@@ -79,6 +79,8 @@ func TestRead(t *testing.T) {
 			env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, value2: "Kept"},
 		{name: "grant", host: func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)) },
 			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
+		{name: "EDITOR only", host: func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "EDITOR")) },
+			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
 		{name: "grant at 0640", host: func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o640, 0, 0)
 		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
@@ -142,6 +144,14 @@ func TestRead(t *testing.T) {
 	h := newHost(t, ubuntu2604)
 	if r := environment.Read(ctx, h, h.facts, lookup(sudoAlice)); r.Choice.Flavor != detect.SudoRS {
 		t.Errorf("ubuntu2604: flavour %v, want sudo-rs", r.Choice.Flavor)
+	}
+	// The Policy Read gives is hardn's files' as they are, after item 1's
+	// change was built from it (stopping, here, takes HARDN_CONFIG out of
+	// a copy of its variables).
+	h = newHost(t, debian13).with(t, grant(sudoers.GrantPassword, "HARDN_CONFIG", "EDITOR"))
+	if r := environment.Read(ctx, h, h.facts, lookup(sudoKept)); r.Policy.User != "alice" || r.Policy.Grant != sudoers.GrantPassword ||
+		!slices.Equal(r.Policy.Env, []string{"HARDN_CONFIG", "EDITOR"}) || !r.Kept {
+		t.Errorf("Policy %+v, kept %v", r.Policy, r.Kept)
 	}
 }
 
@@ -299,6 +309,8 @@ func TestCheck(t *testing.T) {
 		{"kept, two variables", func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "HARDN_CONFIG", "EDITOR"))
 		}, sudoKept, engine.Configured, "Kept", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG EDITOR"}, nil, nil},
+		{"EDITOR only", func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantNone, "EDITOR")) }, sudoAlice,
+			engine.NotConfigured, "Not kept", []string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: keeps EDITOR"}, nil, nil},
 		{"legacy", func(t *testing.T) *testHost { return legacyHost(t, legacyLines) }, sudoKept, engine.Configured, "Kept by /etc/sudoers.d/alice",
 			[]string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: absent", "/etc/sudoers.d/alice: keeps HARDN_CONFIG"},
 			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may still let alice use sudo"}, nil},
@@ -354,6 +366,9 @@ func TestCheck(t *testing.T) {
 				t.Error("no evidence")
 			case !slices.Equal(fds, tt.findings):
 				t.Errorf("findings %q", fds)
+			}
+			if r := environment.Read(ctx, h, h.facts, lookup(tt.env)); r.State() != st.State {
+				t.Errorf("Reading.State %v, Check's %v", r.State(), st.State)
 			}
 			reads(t, h, n)
 		})

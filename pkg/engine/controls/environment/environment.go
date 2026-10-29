@@ -220,14 +220,33 @@ func Words(t sudoers.Tool, kept bool) (value, note string) {
 	return value, note
 }
 
-// Words is r's state row (Words): where hardn's files do not keep
-// HARDN_CONFIG and origin/main's file does, Kept with the note "by
-// <file>" (decision 3 (a), decided).
+// Words is r's state row (Words) where State is Configured or Not
+// Configured: where hardn's files do not keep HARDN_CONFIG and
+// origin/main's file does, Kept with the note "by <file>" (decision 3
+// (a), decided). For another State it says nothing of the host.
 func (r Reading) Words() (value, note string) {
 	if !r.Kept && r.Legacy.Keeps {
 		return WordKept, "by " + r.Legacy.Path
 	}
 	return Words(r.Choice.Tool, r.Kept)
+}
+
+// State is r's state, as Check says it and a screen draws its rows: Not
+// Applicable where neither tool is installed, or no user ran hardn
+// through it (ErrNoUser); Unknown where the state was not read (Err);
+// Configured where Words says Kept, by hardn's files or origin/main's
+// line; Not Configured otherwise.
+func (r Reading) State() engine.State {
+	switch {
+	case r.Choice.Tool == sudoers.ToolNone, errors.Is(r.Err, ErrNoUser):
+		return engine.NotApplicable
+	case r.Err != nil:
+		return engine.Unknown
+	}
+	if value, _ := r.Words(); value == WordKept {
+		return engine.Configured
+	}
+	return engine.NotConfigured
 }
 
 // Read reads the Environment of sys, changing nothing: the tool f gives,
@@ -375,20 +394,19 @@ func change(r Reading, st sudoers.State, stop bool) (*engine.Change, error) {
 // the control, for a caller that asks for it.
 func (k Keep) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, _ := read(ctx, sys, f, k.Getenv)
-	ev := evidence(r, k.Getenv)
+	st := engine.Status{State: r.State(), Evidence: evidence(r, k.Getenv)}
 	switch {
-	case r.Choice.Tool == sudoers.ToolNone:
-		return engine.Status{State: engine.NotApplicable, Detail: noToolWhy, Evidence: ev}, nil
-	case errors.Is(r.Err, ErrNoUser):
-		return engine.Status{State: engine.NotApplicable, Detail: r.NotRun(), Evidence: ev}, nil
-	case r.Err != nil:
-		return engine.Status{State: engine.Unknown, Evidence: ev}, r.Err
+	case st.State == engine.NotApplicable && errors.Is(r.Err, ErrNoUser):
+		st.Detail = r.NotRun()
+		return st, nil
+	case st.State == engine.NotApplicable:
+		st.Detail = noToolWhy
+		return st, nil
+	case st.State == engine.Unknown:
+		return st, r.Err
 	}
 	value, note := r.Words()
-	st := engine.Status{State: engine.NotConfigured, Detail: strings.TrimSpace(value + " " + note), Evidence: ev, Findings: r.Findings}
-	if value == WordKept {
-		st.State = engine.Configured
-	}
+	st.Detail, st.Findings = strings.TrimSpace(value+" "+note), r.Findings
 	return st, nil
 }
 
