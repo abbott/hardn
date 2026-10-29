@@ -118,7 +118,9 @@ The goldens (`pkg/engine/controls/environment/testdata/golden/human/`, the core 
 
 | Golden | Commit | Why |
 |---|---|---|
+| `pkg/output/testdata/codes.golden`, `sentinels.golden` | ea8b909 | list `SUDOERS_FILE_EDITED` and `sudoers.ErrEdited` (part 1) |
 | `pkg/output/testdata/codes.golden`, `sentinels.golden` | 95f8c86 | list `ENVIRONMENT_NO_USER` and `environment.ErrNoUser` |
+| `internal/tools/uigallery/testdata/golden/play/environment-legacy` | 300bf6b | the review's legacy-file finding, four lines for developers, now "/etc/sudoers.d/alice may still let alice use sudo" (part 1; §7 item 22, proposed) |
 | `internal/tools/uigallery/testdata/golden/environment/screen-alpine324`, `screen-alpine324-setenv`, `screen-doas-overridden`, `item1-doas-refuse`; `play/environment-doas-refuse`, `environment-doas-setenv`, `environment-doas-stop`, `environment-hosts` | 49860e8 | the doas state row, "Not kept by hardn", "Kept by hardn" (the settlement); **and its colour:** `status.warn` moves from the value ("Not kept", and on `doas-overridden` "Kept") to the note "by hardn", the value now muted, the marker still warn (decision 14), against the Made here call's "Kept in `status.warn`" and §6's "Not kept" (warn) |
 | `environment/item1-doas-refuse`, `refusals`; `play/environment-doas-refuse`, `environment-doas-setenv` | 49860e8 | the doas refusal's added sentence, "Under doas stays Not kept by hardn."; since 39960f0 the screen's after the refusal (`Reading.Stays`), the text unchanged |
 | `pkg/engine/controls/environment/testdata/golden/human/refused-doas`, `testdata/json/refused-doas.json` (this unit's own, from 2694316) | 39960f0 | the sentence gone from the refusal's Fix, "To go on:" and the JSON's `fix` and `message` (§10, decision 18) |
