@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/internal/parity"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
@@ -28,30 +29,46 @@ import (
 // next/s2-parity; docs/engine/parity-dns.md): origin/main's DNS path, read
 // from its characterization goldens, against the DNS control and screen on
 // the same distributions with the same hardn.yml, through the parity
-// harness (parity_harness_test.go). This file is what DNS supplies to it.
+// harness (internal/parity, shared since next/s3-shared). This file is
+// what DNS supplies to it.
 
-// TestParity is the DNS parity table (runParity). The whole table is
+// TestParity is the DNS parity table (parity.Run). The whole table is
 // testdata/golden/parity.golden; its summary is docs/engine/parity-dns.md's
 // region.
-func TestParity(t *testing.T) { runParity(t, dnsParity) }
+func TestParity(t *testing.T) { parity.Run(t, dnsParity) }
 
-var dnsParity = paritySlice{
-	scenarios: dnsScenarios,
-	distros:   dnsDistros,
-	table:     dnsTable,
-	header:    dnsHeader,
-	golden:    "parity.golden",
-	page:      filepath.Join("..", "..", "..", "docs", "engine", "parity-dns.md"),
-	pkg:       "pkg/screens/dns",
-	setting:   dnsctl.Setting,
-	shipped:   shipped,
-	exists:    exists,
+var dnsParity = parity.Slice{
+	Scenarios: dnsScenarios,
+	Distros:   dnsDistros,
+	Table:     ties(dnsTable),
+	Header:    dnsHeader,
+	Golden:    "parity.golden",
+	Page:      filepath.Join("..", "..", "..", "docs", "engine", "parity-dns.md"),
+	Pkg:       "pkg/screens/dns",
+	Setting:   dnsctl.Setting,
+	Legacy:    legacyGoldens,
+	Fixtures:  fixtures,
+	Shipped:   shipped,
+	Exists:    exists,
 	// origin/main's DNS repository runs them only to choose a strategy
 	// (pkg/adapter/secondary/file_dns_repository.go:38, 44).
-	probes:  []string{"systemctl is-active systemd-resolved", "which resolvconf"},
-	run:     dnsRun,
-	content: dnsContent,
+	Probes:  []string{"systemctl is-active systemd-resolved", "which resolvconf"},
+	Run:     dnsRun,
+	Content: dnsContent,
+	// The v0.3.2 column's sources (v032Head and the rest, below).
+	V032Sections: "§4.5, §4.13, §5.1, §6",
 }
+
+// legacyGoldens and fixtures are origin/main's record: pkg/characterization's
+// goldens and the hardn.yml fixtures they loaded, frozen as they were at
+// e666243 (slice 2 unit (d), next/s2-replace, which deleted the DNS menu
+// and moved -g off the legacy service), in their layout there. Nothing
+// regenerates them: no test writes under testdata/legacy, and
+// pkg/characterization's -update writes its own copies of ops/dns_*.
+var (
+	legacyGoldens = filepath.Join("testdata", "legacy")
+	fixtures      = filepath.Join("testdata", "legacy", "fixtures", "config")
+)
 
 const dnsHeader = `# The DNS parity table: origin/main's DNS path against the DNS control and screen
 # (refactor plan §2, slice 2's unit (b2), next/s2-parity; docs/engine/parity-dns.md).
@@ -67,18 +84,18 @@ const dnsHeader = `# The DNS parity table: origin/main's DNS path against the DN
 
 // Host states the legacy strategies stand for (docs/engine/parity-dns.md §3).
 var (
-	stateFile       = hostState{"a regular /etc/resolv.conf, systemd-resolved not running", "a file"}
-	stateResolved   = hostState{"/etc/resolv.conf linked to resolved's stub, systemd-resolved running", "resolved's stub"}
-	stateResolvconf = hostState{"/etc/resolv.conf linked to resolvconf's file", "resolvconf's link"}
-	stateNMLink     = hostState{"/etc/resolv.conf linked to NetworkManager's file, systemd-resolved not running", "NetworkManager's link"}
+	stateFile       = parity.HostState{Long: "a regular /etc/resolv.conf, systemd-resolved not running", Short: "a file"}
+	stateResolved   = parity.HostState{Long: "/etc/resolv.conf linked to resolved's stub, systemd-resolved running", Short: "resolved's stub"}
+	stateResolvconf = parity.HostState{Long: "/etc/resolv.conf linked to resolvconf's file", Short: "resolvconf's link"}
+	stateNMLink     = parity.HostState{Long: "/etc/resolv.conf linked to NetworkManager's file, systemd-resolved not running", Short: "NetworkManager's link"}
 )
 
 // dnsDistros are the characterization's cells.
-var dnsDistros = []parityDistro{
-	{"debian", "Debian 13", facts(detect.DistroDebian, "13", detect.Systemd), stateFile},
-	{"ubuntu", "Ubuntu 24.04", facts(detect.DistroUbuntu, "24.04", detect.Systemd), stateResolved},
-	{"alpine", "Alpine 3.23", facts(detect.DistroAlpine, "3.23", detect.OpenRC), stateFile},
-	{"proxmox", "Proxmox VE 9", facts(detect.DistroProxmox, "9", detect.Systemd), stateFile},
+var dnsDistros = []parity.Distro{
+	{Name: "debian", Label: "Debian 13", Facts: facts(detect.DistroDebian, "13", detect.Systemd), Stock: stateFile},
+	{Name: "ubuntu", Label: "Ubuntu 24.04", Facts: facts(detect.DistroUbuntu, "24.04", detect.Systemd), Stock: stateResolved},
+	{Name: "alpine", Label: "Alpine 3.23", Facts: facts(detect.DistroAlpine, "3.23", detect.OpenRC), Stock: stateFile},
+	{Name: "proxmox", Label: "Proxmox VE 9", Facts: facts(detect.DistroProxmox, "9", detect.Systemd), Stock: stateFile},
 }
 
 // stockResolvConf is each stock install's /etc/resolv.conf where it is a
@@ -110,48 +127,48 @@ const (
 	noteMenu = "the menu's items read no host (menu_dns's goldens stand for every one)"
 )
 
-var dnsScenarios = func() []parityScenario {
+var dnsScenarios = func() []parity.Scenario {
 	// (a) DNSManager.ConfigureDNS(cfg.Nameservers, "lan"): hardn -g, the
 	// menu's Configure DNS, Run All. The strategy is the legacy harness's
 	// forced probes (setDNSStrategy); the empty list its stock ones.
-	out := []parityScenario{
-		{name: "resolved", golden: "ops/dns_systemd_resolved/{d}.golden", state: stateResolved, fixture: "dns-menu.yml", v032: v032Resolved},
-		{name: "resolvconf", golden: "ops/dns_resolvconf/{d}.golden", state: stateResolvconf, fixture: "dns-menu.yml", v032: v032Head},
-		{name: "direct", golden: "ops/dns_direct/{d}.golden", state: stateFile, fixture: "dns-menu.yml", v032: v032File},
-		{name: "nm-link", golden: "ops/dns_direct/{d}.golden", state: stateNMLink, fixture: "dns-menu.yml", note: noteLink, v032: v032Link},
-		{name: "empty", golden: "ops/dns_empty_nameservers/{d}.golden", fixture: "dns-menu-empty.yml", v032: v032Empty},
+	out := []parity.Scenario{
+		{Name: "resolved", Golden: "ops/dns_systemd_resolved/{d}.golden", State: stateResolved, Fixture: "dns-menu.yml", V032: v032Resolved},
+		{Name: "resolvconf", Golden: "ops/dns_resolvconf/{d}.golden", State: stateResolvconf, Fixture: "dns-menu.yml", V032: v032Head},
+		{Name: "direct", Golden: "ops/dns_direct/{d}.golden", State: stateFile, Fixture: "dns-menu.yml", V032: v032File},
+		{Name: "nm-link", Golden: "ops/dns_direct/{d}.golden", State: stateNMLink, Fixture: "dns-menu.yml", Note: noteLink, V032: v032Link},
+		{Name: "empty", Golden: "ops/dns_empty_nameservers/{d}.golden", Fixture: "dns-menu-empty.yml", V032: v032Empty},
 	}
 	// (b) The menu's items (pkg/characterization's TestMenuDNSGoldens,
 	// retired with the menu by unit (d): its goldens are frozen under
 	// testdata/legacy/menu_dns), on each distribution's stock install, then on a host the new path
 	// refuses (resolvconf's), then with no hardn.yml loaded.
-	items := []parityScenario{
-		{name: "add", golden: "menu_dns/add.golden", fixture: "dns-menu.yml", lines: []string{"2", "192.0.2.55", "{u}", "y"}},
-		{name: "add-unusable", golden: "menu_dns/add-unusable.golden", fixture: "dns-menu.yml", lines: []string{"2", "999.1.1.1", "0"}},
-		{name: "add-ipv6", golden: "menu_dns/add-ipv6.golden", fixture: "dns-menu.yml", lines: []string{"2", "2001:db8::55", "{u}", "y"}},
-		{name: "remove", golden: "menu_dns/remove.golden", fixture: "dns-menu.yml", lines: []string{"3", "2", "{u}", "y"}},
-		{name: "remove-last", golden: "menu_dns/remove-last.golden", fixture: "dns-menu-one.yml", lines: []string{"3"}},
-		{name: "cloudflare", golden: "menu_dns/cloudflare.golden", fixture: "dns-menu.yml", lines: []string{"4", "{u}", "y"}},
-		{name: "google", golden: "menu_dns/google.golden", fixture: "dns-menu.yml", lines: []string{"5", "{u}", "y"}},
-		{name: "quad9", golden: "menu_dns/quad9.golden", fixture: "dns-menu.yml", lines: []string{"6", "{u}", "y"}},
-		{name: "add-dry-run", golden: "menu_dns/add-dry-run.golden", fixture: "dns-menu.yml", lines: []string{"2", "192.0.2.55", "{u}"}, dryRun: true},
+	items := []parity.Scenario{
+		{Name: "add", Golden: "menu_dns/add.golden", Fixture: "dns-menu.yml", Lines: []string{"2", "192.0.2.55", "{u}", "y"}},
+		{Name: "add-unusable", Golden: "menu_dns/add-unusable.golden", Fixture: "dns-menu.yml", Lines: []string{"2", "999.1.1.1", "0"}},
+		{Name: "add-ipv6", Golden: "menu_dns/add-ipv6.golden", Fixture: "dns-menu.yml", Lines: []string{"2", "2001:db8::55", "{u}", "y"}},
+		{Name: "remove", Golden: "menu_dns/remove.golden", Fixture: "dns-menu.yml", Lines: []string{"3", "2", "{u}", "y"}},
+		{Name: "remove-last", Golden: "menu_dns/remove-last.golden", Fixture: "dns-menu-one.yml", Lines: []string{"3"}},
+		{Name: "cloudflare", Golden: "menu_dns/cloudflare.golden", Fixture: "dns-menu.yml", Lines: []string{"4", "{u}", "y"}},
+		{Name: "google", Golden: "menu_dns/google.golden", Fixture: "dns-menu.yml", Lines: []string{"5", "{u}", "y"}},
+		{Name: "quad9", Golden: "menu_dns/quad9.golden", Fixture: "dns-menu.yml", Lines: []string{"6", "{u}", "y"}},
+		{Name: "add-dry-run", Golden: "menu_dns/add-dry-run.golden", Fixture: "dns-menu.yml", Lines: []string{"2", "192.0.2.55", "{u}"}, DryRun: true},
 	}
 	for _, sc := range items {
-		sc.v032 = v032Menu
+		sc.V032 = v032Menu
 		out = append(out, sc)
 	}
 	// There the screen refuses each item before it asks (screen-dns.md
 	// §2.9): the item's key is all that is typed.
 	for _, sc := range items {
-		sc.name, sc.state, sc.lines, sc.note, sc.v032 = sc.name+"@resolvconf", stateResolvconf, sc.lines[:1], noteMenu, v032Menu
+		sc.Name, sc.State, sc.Lines, sc.Note, sc.V032 = sc.Name+"@resolvconf", stateResolvconf, sc.Lines[:1], noteMenu, v032Menu
 		out = append(out, sc)
 	}
 	for _, sc := range items {
-		if !slices.Contains(menuSaves, sc.name) || sc.name == "remove" { // Remove is not offered with no list
+		if !slices.Contains(menuSaves, sc.Name) || sc.Name == "remove" { // Remove is not offered with no list
 			continue
 		}
-		stem := strings.TrimSuffix(sc.golden, ".golden")
-		sc.name, sc.golden, sc.fixture, sc.lines, sc.v032 = sc.name+"@no-file", stem+"-no-file.golden", "", sc.lines[:1], v032Menu
+		stem := strings.TrimSuffix(sc.Golden, ".golden")
+		sc.Name, sc.Golden, sc.Fixture, sc.Lines, sc.V032 = sc.Name+"@no-file", stem+"-no-file.golden", "", sc.Lines[:1], v032Menu
 		out = append(out, sc)
 	}
 	return out
@@ -165,7 +182,7 @@ var (
 	everyDistro   = func() []string {
 		var out []string
 		for _, d := range dnsDistros {
-			out = append(out, d.name)
+			out = append(out, d.Name)
 		}
 		return out
 	}()
@@ -178,6 +195,23 @@ func suffixed(suffix string, names ...string) []string {
 	var out []string
 	for _, n := range names {
 		out = append(out, n+suffix)
+	}
+	return out
+}
+
+// tie is a parity.Tie written positionally, so that dnsTable reads as a
+// table: go vet's composites check takes unkeyed fields only for the
+// package's own types.
+type tie struct {
+	scenarios, distros  []string
+	aspect, source, why string
+}
+
+// ties is table as the harness takes it.
+func ties(table []tie) []parity.Tie {
+	out := make([]parity.Tie, len(table))
+	for i, e := range table {
+		out[i] = parity.Tie{Scenarios: e.scenarios, Distros: e.distros, Aspect: e.aspect, Source: e.source, Why: e.why}
 	}
 	return out
 }
@@ -262,28 +296,28 @@ const dryWhy = "no path reaches the service's dry run (the menu's Configure only
 
 // shipped says whether d's stock install has state (docs/safety/dns.md
 // §3), separating the hosts that exist from those the harness forced.
-func shipped(state hostState, d parityDistro) string {
+func shipped(state parity.HostState, d parity.Distro) string {
 	switch {
-	case state == d.stock:
-		return "real: " + d.label + "'s stock install"
-	case state == stateResolved && d.name == "alpine":
+	case state == d.Stock:
+		return "real: " + d.Label + "'s stock install"
+	case state == stateResolved && d.Name == "alpine":
 		return "cannot exist: Alpine has no systemd"
-	case state == stateResolved && d.name == "debian":
+	case state == stateResolved && d.Name == "debian":
 		return "forced: a stock Debian 13 keeps a regular file; Debian 12's cloud image links resolved's file"
-	case state == stateResolvconf && d.name == "debian":
+	case state == stateResolvconf && d.Name == "debian":
 		return "forced: real only with Debian's resolvconf package installed"
 	}
-	return "forced: not " + d.label + "'s stock install"
+	return "forced: not " + d.Label + "'s stock install"
 }
 
 // exists is why state cannot be on d: systemd-resolved where systemd does
 // not run.
-func exists(state hostState, d parityDistro) string {
+func exists(state parity.HostState, d parity.Distro) string {
 	if state != stateResolved {
 		return ""
 	}
-	if hd, err := hostdns.HostOf(d.facts); err != nil || hd.Systemd != detect.Yes {
-		return fmt.Sprintf("systemd-resolved cannot run on %s, whose init is %s (dns.HostOf: Systemd %v; docs/safety/dns.md §2.1); there origin/main takes the direct strategy (direct on %s)", d.label, d.facts.Init.Kind, hd.Systemd, d.label)
+	if hd, err := hostdns.HostOf(d.Facts); err != nil || hd.Systemd != detect.Yes {
+		return fmt.Sprintf("systemd-resolved cannot run on %s, whose init is %s (dns.HostOf: Systemd %v; docs/safety/dns.md §2.1); there origin/main takes the direct strategy (direct on %s)", d.Label, d.Facts.Init.Kind, hd.Systemd, d.Label)
 	}
 	return ""
 }
@@ -294,31 +328,31 @@ var dnsReadOnly = []string{"systemctl is-active " + hostdns.ResolvedUnit, "resol
 
 // dnsRun is the new path on c: (a) the control's plan and apply, (b) the
 // screen's item.
-func dnsRun(t *testing.T, c parityCell) newRun {
+func dnsRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
-	if c.sc.lines == nil {
+	if c.Scenario.Lines == nil {
 		live, dry := configure(t, c)
-		return newRun{live: live, dry: dry, via: "hardn -g's plan and apply; the screen's Configure DNS leaves the same"}
+		return parity.NewRun{Live: live, Dry: dry, Via: "hardn -g's plan and apply; the screen's Configure DNS leaves the same"}
 	}
 	live, typed := menuItem(t, c)
-	return newRun{live: live, via: "the DNS screen, typed " + strings.Join(typed, ", ")}
+	return parity.NewRun{Live: live, Via: "the DNS screen, typed " + strings.Join(typed, ", ")}
 }
 
 // dnsContent are what the files both paths wrote set: the nameservers in
 // order, the search domains, and every other line, across each path's
 // files whatever their paths.
-func dnsContent(add func(name, legacy, new string), l, n []fileWrite) {
-	add("nameservers", joined(servers(l)), joined(servers(n)))
-	add("search", orElse(strings.Join(search(l), ", "), "none set"), orElse(strings.Join(search(n), ", "), "none set"))
-	add("other lines", joined(others(l)), joined(others(n)))
+func dnsContent(add func(name, legacy, new string), l, n []parity.FileWrite) {
+	add("nameservers", parity.Joined(servers(l)), parity.Joined(servers(n)))
+	add("search", parity.OrElse(strings.Join(search(l), ", "), "none set"), parity.OrElse(strings.Join(search(n), ", "), "none set"))
+	add("other lines", parity.Joined(others(l)), parity.Joined(others(n)))
 }
 
 // servers are the nameservers fs set: a file's nameserver lines, or the
 // DNS= lists of a resolved configuration, an empty one resetting them.
-func servers(fs []fileWrite) []string {
+func servers(fs []parity.FileWrite) []string {
 	var out []string
 	for _, f := range fs {
-		for _, l := range f.lines {
+		for _, l := range f.Lines {
 			if v, ok := strings.CutPrefix(l, "nameserver "); ok {
 				out = append(out, v)
 			}
@@ -335,10 +369,10 @@ func servers(fs []fileWrite) []string {
 
 // search are the search domain lines fs hold: domain and search, or
 // Domains=.
-func search(fs []fileWrite) []string {
+func search(fs []parity.FileWrite) []string {
 	var out []string
 	for _, f := range fs {
-		for _, l := range f.lines {
+		for _, l := range f.Lines {
 			if strings.HasPrefix(l, "domain ") || strings.HasPrefix(l, "search ") || strings.HasPrefix(l, "Domains=") {
 				out = append(out, l)
 			}
@@ -348,11 +382,11 @@ func search(fs []fileWrite) []string {
 }
 
 // others are fs's lines that set neither nameservers nor search domains.
-func others(fs []fileWrite) []string {
+func others(fs []parity.FileWrite) []string {
 	var out []string
 	for _, f := range fs {
-		for _, l := range f.lines {
-			one := []fileWrite{{lines: []string{l}}}
+		for _, l := range f.Lines {
+			one := []parity.FileWrite{{Lines: []string{l}}}
 			if len(servers(one)) == 0 && len(search(one)) == 0 && l != "DNS=" {
 				out = append(out, l)
 			}
@@ -373,34 +407,34 @@ func parityEngine(h *fakeHost) *engine.Engine {
 }
 
 // stateOf is the end state h's calls from the nth on left.
-func stateOf(t *testing.T, h *fakeHost, n int) endState {
+func stateOf(t *testing.T, h *fakeHost, n int) parity.EndState {
 	t.Helper()
-	return newState(t, h.System, n, dnsReadOnly, hardnYML)
+	return parity.NewState(t, h.System, n, dnsReadOnly, hardnYML)
 }
 
 // configure is (a) on the new path: the DNS control's plan, then its apply,
 // as hardn -g will run it (screen-dns.md §7), and its dry run, the plan
 // alone. The screen's Configure DNS must leave the host as the apply does,
 // and its dry run nothing.
-func configure(t *testing.T, c parityCell) (live endState, dry string) {
+func configure(t *testing.T, c parity.Cell) (live parity.EndState, dry string) {
 	t.Helper()
 	ctx := context.Background()
-	h, cfg := parityHost(t, c.d, c.state, c.sc.fixture)
+	h, cfg := parityHost(t, c.Distro, c.State, c.Scenario.Fixture)
 	n := len(h.Calls())
 	p, err := parityEngine(h).Plan(ctx, dnsctl.Controls(cfg), cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	ds := planned(stateOf(t, h, n), p)
-	if ds.wrote() || len(ds.actions) > 0 || len(ds.dirs) > 0 {
+	ds := parity.Planned(stateOf(t, h, n), p)
+	if ds.Wrote() || len(ds.Actions) > 0 || len(ds.Dirs) > 0 {
 		t.Errorf("the dry run changed the host: %+v", ds)
 	}
 	dry = "the plan alone: nothing written"
-	if ds.refusal != "" {
-		dry = "refused (" + ds.refusal + "): nothing written"
+	if ds.Refusal != "" {
+		dry = "refused (" + ds.Refusal + "): nothing written"
 	}
 
-	h, cfg = parityHost(t, c.d, c.state, c.sc.fixture)
+	h, cfg = parityHost(t, c.Distro, c.State, c.Scenario.Fixture)
 	n = len(h.Calls())
 	e := parityEngine(h)
 	p, err = e.Plan(ctx, dnsctl.Controls(cfg), cfg)
@@ -412,16 +446,16 @@ func configure(t *testing.T, c parityCell) (live endState, dry string) {
 			t.Fatalf("Apply: %v", err)
 		}
 	}
-	live = planned(stateOf(t, h, n), p)
-	if ds.refusal != live.refusal || !slices.Equal(ds.findings, live.findings) {
-		t.Errorf("the dry run's refusal and findings %q %q, the apply's %q %q", ds.refusal, ds.findings, live.refusal, live.findings)
+	live = parity.Planned(stateOf(t, h, n), p)
+	if ds.Refusal != live.Refusal || !slices.Equal(ds.Findings, live.Findings) {
+		t.Errorf("the dry run's refusal and findings %q %q, the apply's %q %q", ds.Refusal, ds.Findings, live.Refusal, live.Findings)
 	}
 
 	for _, dryRun := range []bool{false, true} {
-		h, cfg = parityHost(t, c.d, c.state, c.sc.fixture)
+		h, cfg = parityHost(t, c.Distro, c.State, c.Scenario.Fixture)
 		n = len(h.Calls())
 		lines := answers(c, []string{"1", "{u}", "y"})
-		if live.refusal != "" { // refused before asking, or by the plan: nothing to answer
+		if live.Refusal != "" { // refused before asking, or by the plan: nothing to answer
 			lines = []string{"1"}
 		} else if dryRun {
 			lines = lines[:len(lines)-1]
@@ -430,9 +464,9 @@ func configure(t *testing.T, c parityCell) (live endState, dry string) {
 		if pl.err != nil || pl.unread != 0 {
 			t.Fatalf("the screen's Configure DNS: %v, %d unread:\n%s", pl.err, pl.unread, pl.out)
 		}
-		got, want := hostText(stateOf(t, h, n)), hostText(live)
+		got, want := parity.HostText(stateOf(t, h, n)), parity.HostText(live)
 		if dryRun {
-			want = hostText(endState{})
+			want = parity.HostText(parity.EndState{})
 		}
 		if got != want {
 			t.Errorf("the screen's Configure DNS (dry run %t) left\n%s\nhardn -g's plan and apply\n%s", dryRun, got, want)
@@ -442,30 +476,30 @@ func configure(t *testing.T, c parityCell) (live endState, dry string) {
 }
 
 // menuItem is (b) on the new path: the DNS screen's item, answered as
-// sc.lines, then 0, on c's host; and what was typed.
-func menuItem(t *testing.T, c parityCell) (endState, []string) {
+// sc.Lines, then 0, on c's host; and what was typed.
+func menuItem(t *testing.T, c parity.Cell) (parity.EndState, []string) {
 	t.Helper()
-	h, cfg := parityHost(t, c.d, c.state, c.sc.fixture)
+	h, cfg := parityHost(t, c.Distro, c.State, c.Scenario.Fixture)
 	n := len(h.Calls())
-	typed := answers(c, c.sc.lines)
-	pl := play(h, cfg, wide, c.sc.dryRun, append(typed, "0")...)
+	typed := answers(c, c.Scenario.Lines)
+	pl := play(h, cfg, wide, c.Scenario.DryRun, append(typed, "0")...)
 	if pl.err != nil || pl.unread != 0 || len(pl.runs) > 1 {
 		t.Fatalf("the screen: %v, %d unread, %d runs:\n%s", pl.err, pl.unread, len(pl.runs), pl.out)
 	}
 	s := stateOf(t, h, n)
 	if len(pl.runs) == 1 {
-		return planned(s, pl.runs[0].Plan), typed
+		return parity.Planned(s, pl.runs[0].Plan), typed
 	}
 	if code, why := beforeAsking(t, h, cfg); code != "" {
 		if !strings.Contains(flat(pl.out), why) {
 			t.Fatalf("refused before asking (%s), without saying %q:\n%s", code, why, pl.out)
 		}
-		s.refusal = code
+		s.Refusal = code
 		return s, typed
 	}
 	for _, w := range screenRefusals {
 		if strings.Contains(pl.out, w) {
-			s.refusal = w
+			s.Refusal = w
 			return s, typed
 		}
 	}
@@ -499,13 +533,13 @@ var screenRefusals = []string{"Invalid IP address format", "Not a usable nameser
 
 // answers is lines for c's host: udhcpc's question answered n where the
 // screen asks it (Alpine's file: screen-dns.md §2.8), dropped elsewhere.
-func answers(c parityCell, lines []string) []string {
+func answers(c parity.Cell, lines []string) []string {
 	var out []string
 	for _, l := range lines {
 		switch {
 		case l != "{u}":
 			out = append(out, l)
-		case c.d.name == "alpine" && c.state == stateFile:
+		case c.Distro.Name == "alpine" && c.State == stateFile:
 			out = append(out, "n")
 		}
 	}
@@ -517,21 +551,21 @@ func answers(c parityCell, lines []string) []string {
 // config.Read loads it; with no fixture, none, and the configuration
 // config.LoadConfig gives when it finds none and n is answered
 // (config.DefaultConfig, then its LogsConfig line).
-func parityHost(t *testing.T, d parityDistro, state hostState, fixture string) (*fakeHost, *config.Config) {
+func parityHost(t *testing.T, d parity.Distro, state parity.HostState, fixture string) (*fakeHost, *config.Config) {
 	t.Helper()
-	h := &fakeHost{System: hostfake.New(host.Options{}), facts: d.facts, active: "inactive", fail: map[string]error{}, lstat: map[string]error{},
+	h := &fakeHost{System: hostfake.New(host.Options{}), facts: d.Facts, active: "inactive", fail: map[string]error{}, lstat: map[string]error{},
 		links: "Link 2 (eth0): " + dhcpNS + "\n", domains: "Link 2 (eth0): example.net\n"}
 	for _, dir := range []string{"/etc", "/etc/hardn", "/var/lib", "/var/backups", "/run", "/var/log"} {
 		h.AddDir(dir, 0o755, 0, 0)
 	}
 	switch state {
 	case stateFile:
-		file, ok := stockResolvConf[d.name]
+		file, ok := stockResolvConf[d.Name]
 		if !ok {
 			file = "search example.net\nnameserver " + dhcpNS + "\n"
 		}
 		h.AddFile(hostdns.ResolvConf, []byte(file), 0o644, 0, 0)
-		switch d.name {
+		switch d.Name {
 		case "debian":
 			h.AddFile("/usr/sbin/dhcpcd", nil, 0o755, 0, 0)
 		case "alpine":
@@ -547,7 +581,7 @@ func parityHost(t *testing.T, d parityDistro, state hostState, fixture string) (
 	case stateNMLink:
 		h.AddSymlink(hostdns.ResolvConf, "/run/NetworkManager/resolv.conf")
 	default:
-		t.Fatalf("no host state %q", state.long)
+		t.Fatalf("no host state %q", state.Long)
 	}
 	h.Handler = h.answer
 	if fixture == "" {

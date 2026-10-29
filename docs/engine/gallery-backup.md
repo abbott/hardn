@@ -217,7 +217,7 @@ Others found:
 
 ## 8. What the mocks take from real code, and what not
 
-**Real:** hardn.yml read by `config.Read`, its settings `Config.BackupSettings`; the path's state, Verify and the path field's refusals, `backup.Check` (`TestBackupReadings`, `TestPathCheckIsCheck`); each change's plan, review, y/N and apply, `output.FlowEngine` on `engine.New`, and the plan the save of one setting, `steps.PlanSave` (`config.Edit` in place); the engine's refusals and failures, as reported; the configuration adopting each save, as the DNS screen does (`adopt`); what a change kept and "taken anyway", read from the run's manifest with `backup.Load` (`TestBackupTakenAnyway`); the runs, `backup.Load` over each directory; the restore's apply, `backup.Restore` inside an engine change; the layout, `screen.SubMenu`, and every component.
+**Real:** hardn.yml read by `config.Read`, its settings `Config.BackupSettings`; the path's state, Verify and the path field's refusals, `backup.Check` (`TestBackupReadings`, `TestPathCheckIsCheck`); each change's plan, review, y/N and apply, `output.FlowEngine` on `engine.New`, and the plan the save of one setting, `steps.PlanSave` (`config.Edit` in place); the engine's refusals and failures, as reported; the configuration adopting each save, as the DNS screen does (`adopt`; *`screenkit.Adopt` since `next/s3-shared`*); what a change kept and "taken anyway", read from the run's manifest with `backup.Load` (`TestBackupTakenAnyway`); the runs, `backup.Load` over each directory; the restore's apply, `backup.Restore` inside an engine change; the layout, `screen.SubMenu`, and every component.
 
 **Not, the mock's own:**
 - the words of §6;
@@ -233,7 +233,7 @@ Others found:
 
 ## 9. Not in this unit
 
-- **(b) The control**, on the engine, with its own goldens: Backup's settings as a control (`Check`; `Plan` the save of `enableBackups` and `backupPath`), the refusals' words, and decisions 7 and 8's engine side. **It begins by extracting the DNS screen's shared glue out of `pkg/screens/dns`** (the planning adapter around `output.FlowEngine`, `adopt`, the refusal words) **and the parity harness out of `pkg/screens/dns`'s tests into shared packages**, slice 3 being their second user ([parity-dns.md](parity-dns.md)).
+- **(b) The control**, on the engine, with its own goldens: Backup's settings as a control (`Check`; `Plan` the save of `enableBackups` and `backupPath`), the refusals' words, and decisions 7 and 8's engine side. **It begins by extracting the DNS screen's shared glue out of `pkg/screens/dns`** (the planning adapter around `output.FlowEngine`, `adopt`, the refusal words) **and the parity harness out of `pkg/screens/dns`'s tests into shared packages**, slice 3 being their second user ([parity-dns.md](parity-dns.md)). *Done in `next/s3-shared`: `pkg/screens/screenkit` and `internal/parity` ([screen-kit.md](screen-kit.md)); these mocks use `screenkit.Adopt` and `screenkit.Apart`.*
 - **(b2) Parity**: origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision; the characterization goldens of §2 are its legacy side.
 - **(c) The screen** on the design system and prompt kit, `pkg/screens/backup`, retiring these mocks.
 - **(d) The legacy path replaced**: main menu 5 to the new screen, 2b's plan-only refusal lifted (decision 10, adopted), `backup_menu.go` and the legacy backup layers deleted after (b2), their goldens frozen as the parity record.

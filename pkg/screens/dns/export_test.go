@@ -3,7 +3,6 @@ package dns
 import (
 	"context"
 
-	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
@@ -15,10 +14,4 @@ func View(ctx context.Context, o Options) screen.DNS { return (&runner{o: o}).re
 // AddCheck is Add nameserver's check, for the tests.
 func AddCheck(configured []string, m hostdns.Manager) func(string) error {
 	return addCheck(configured, m)
-}
-
-// Adopt is the adoption of edited, a change's copy of o.Config, after its
-// apply, for the tests.
-func Adopt(ctx context.Context, o Options, edited *config.Config) {
-	(&runner{o: o}).adopt(ctx, edited)
 }

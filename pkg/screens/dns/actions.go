@@ -7,20 +7,17 @@ import (
 	"net/netip"
 	"slices"
 	"strings"
-	"unicode"
-	"unicode/utf8"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
-	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
-	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // The items' words: origin/main's where it has them (pkg/menu
@@ -114,103 +111,44 @@ func (r *runner) action(ctx context.Context, h reading, key, label string) func(
 }
 
 // change runs the change of the item labelled label on the host h read,
-// under its title bar: the form, fields then, where udhcpc is the DHCP
-// client and rewrites the file, Alpine's question; the review of the list list returns and the
-// plan's findings; the plan, the DNS control's on the engine
-// (output.FlowEngine), from a copy of hardn.yml with that list, built
-// once the form is answered; question, y/N; the apply. Then what the flow
-// does not draw (output.AfterFlow), what the change did given to Ran,
-// and, once it applied, hardn.yml adopted as saved (adopt). It returns
-// the flow's error: nav.ErrBack from the form's first field, which goes
-// back to the screen, nav.ErrQuit, an abort, or a write that failed.
+// under its title bar, as every screen's change runs (screenkit's
+// Session.Change): the form, fields then, where udhcpc is the DHCP client
+// and rewrites the file, Alpine's question; the review of the list list
+// returns and the plan's findings; the plan, the DNS control's, from a copy
+// of hardn.yml with that list, built once the form is answered; question,
+// y/N; the apply. Then what the flow does not draw, what the change did
+// given to Ran, and, once it applied, hardn.yml adopted as saved. It
+// returns the flow's error: nav.ErrBack from the form's first field, which
+// goes back to the screen, nav.ErrQuit, an abort, or a write that failed.
 func (r *runner) change(ctx context.Context, h reading, label string, fields []form.Field, list func() []string, question func() string) error {
-	o := r.o
 	stop := new(bool)
 	if h.udhcpc {
 		fields = append(fields, &form.YesNo{Title: stopUDHCPC, Value: stop})
 	}
-	edited := *o.Config
-	fe := &output.FlowEngine{DryRun: o.DryRun, LogPath: o.LogPath}
-	e := &planning{FlowEngine: fe, applyContext: o.ApplyContext, build: func() {
-		if fe.Engine == nil {
-			fe.Engine = o.NewEngine(fe.Progress)
-		}
-		edited.Nameservers = list()
-		fe.Controls, fe.Config = []engine.Control{dnsctl.Nameservers{Config: o.Config, StopUDHCPC: *stop}}, &edited
-	}}
-	f := flow.Flow{
-		Form:    form.Form{Fields: fields},
-		Review:  func() flow.Review { return h.view.Review(canonicalList(list(), h.manager)) },
-		Engine:  e,
-		Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: question()} },
-		DryRun:  o.DryRun,
-	}
-	out, err := h.view.Step(label).Run(ctx, o.Prompter, f)
-	if !e.planned {
-		return err
-	}
-	run := fe.Run(out, err)
-	if after := output.AfterFlow(o.Prompter.Ctx.Env, run, o.Now()); after != "" {
-		if werr := r.write(after); err == nil {
-			err = werr
-		}
-	}
-	if o.Ran != nil {
-		o.Ran(run)
-	}
-	if out == flow.Applied && !o.DryRun {
-		r.adopt(ctx, &edited)
-	}
-	return err
-}
-
-// planning is a change's flow.Engine: output.FlowEngine, its engine,
-// controls and configuration built when the flow plans, once the form is
-// answered (build), as FlowEngine reads them then, and its apply under
-// Options.ApplyContext's context.
-type planning struct {
-	*output.FlowEngine
-	build        func()
-	applyContext func(context.Context) (context.Context, context.CancelFunc)
-	planned      bool
-}
-
-// Plan builds the engine's inputs from the answers, then plans as
-// FlowEngine does.
-func (p *planning) Plan(ctx context.Context) (flow.Plan, error) {
-	p.build()
-	p.planned = true
-	return p.FlowEngine.Plan(ctx)
-}
-
-// Apply applies as FlowEngine does, under the context applyContext makes
-// for the apply alone, when set.
-func (p *planning) Apply(ctx context.Context, report flow.Report) error {
-	if p.applyContext != nil {
-		var stop context.CancelFunc
-		ctx, stop = p.applyContext(ctx)
-		defer stop()
-	}
-	return p.FlowEngine.Apply(ctx, report)
+	return r.s.Change(ctx, screenkit.Change{
+		Step: h.view.Step(label),
+		Flow: flow.Flow{
+			Form:    form.Form{Fields: fields},
+			Review:  func() flow.Review { return h.view.Review(canonicalList(list(), h.manager)) },
+			Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: question()} },
+		},
+		Controls: func(edited *config.Config) []engine.Control {
+			edited.Nameservers = list()
+			return []engine.Control{dnsctl.Nameservers{Config: r.o.Config, StopUDHCPC: *stop}}
+		},
+	})
 }
 
 // say returns an action that writes paragraphs as one warning, set apart
-// as an action's result is (nav.Prompter.Run), and goes back to the
-// screen.
+// as an action's result is, and goes back to the screen.
 func (r *runner) say(paragraphs ...string) func() error {
-	msgs := make(component.Messages, len(paragraphs))
-	for i, p := range paragraphs {
-		msgs[i] = component.Message{Kind: component.MessageWarn, Text: p}
-	}
-	return func() error {
-		return r.write(strings.Repeat("\n", theme.SectionGap) + msgs.Render(r.o.Prompter.Ctx) + "\n")
-	}
+	return r.s.Say(screenkit.Warnings(paragraphs...))
 }
 
 // hostWords are the words every item says before asking on the host
 // dns.Read read as s, with readErr, when every plan there refuses
 // whatever its list (dnsctl.HostRefusal); nil when none does. They are
-// the refusal's (refusalWords), but for a fact not established
+// the refusal's (screenkit.RefusalWords), but for a fact not established
 // (DNS_UNKNOWN): its Why, then the screen's Fix, and what failed, as the
 // host's error says it (readErr, else s.Err, else the refusal's own),
 // where the control's Fix points at a log that holds nothing before a
@@ -222,7 +160,7 @@ func hostWords(s hostdns.State, readErr error) []string {
 	case err == nil:
 		return nil
 	case !errors.As(err, &rf) || !errors.Is(err, hostdns.ErrUnknown):
-		return []string{refusalWords(err)}
+		return []string{screenkit.RefusalWords(err)}
 	}
 	cause := readErr
 	if cause == nil {
@@ -231,46 +169,7 @@ func hostWords(s hostdns.State, readErr error) []string {
 	if cause == nil {
 		cause = rf.Err
 	}
-	return []string{fullStop(rf.Why) + " " + unreadFix, fullStop(whatFailed + strings.ReplaceAll(cause.Error(), "\n", "; "))}
-}
-
-// notLoaded are the words of the save's refusal of o.Config when it was
-// not read from a file (steps.PlanSave's, CONFIG_NOT_LOADED), which every
-// item that saves the list says before asking; nil when it was. PlanSave
-// refuses it before it reads anything: with no path there is no file.
-func notLoaded(ctx context.Context, o Options) []string {
-	if o.Config.Path() != "" {
-		return nil
-	}
-	_, err := steps.PlanSave(ctx, o.System, dnsctl.ChangeSave, o.Config, []string{dnsctl.Setting})
-	if err == nil {
-		return nil // not reached: PlanSave refuses a configuration with no path
-	}
-	return []string{refusalWords(err)}
-}
-
-// refusalWords are a refusal's words on the screen: its Why, then its
-// Fix, each a sentence ("NetworkManager manages DNS here. Set the
-// nameservers with nmcli."), as the adopted mock words NetworkManager's
-// (decision 4); its code is left to what shows a run in full. The Why is
-// written as it starts, a program's name in its own case ("resolvconf
-// manages DNS here."); the Fix, written to follow "To go on: ", starts
-// with a capital. An error that is no refusal says itself.
-func refusalWords(err error) string {
-	var rf *steps.Refusal
-	if !errors.As(err, &rf) || rf.Why == "" {
-		return fullStop(err.Error())
-	}
-	if rf.Fix == "" {
-		return fullStop(rf.Why)
-	}
-	first, n := utf8.DecodeRuneInString(rf.Fix)
-	return fullStop(rf.Why) + " " + fullStop(string(unicode.ToUpper(first))+rf.Fix[n:])
-}
-
-// fullStop is s ending with one full stop.
-func fullStop(s string) string {
-	return strings.TrimSuffix(strings.TrimSpace(s), ".") + "."
+	return []string{screenkit.FullStop(rf.Why) + " " + unreadFix, screenkit.FullStop(whatFailed + strings.ReplaceAll(cause.Error(), "\n", "; "))}
 }
 
 // addCheck is Add nameserver's check of the entry typed, after the

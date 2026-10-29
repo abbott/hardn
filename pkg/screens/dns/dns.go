@@ -12,8 +12,11 @@
 // the one entry point, which cmd/hardn's DNS menu item calls (unit (d));
 // docs/engine/screen-dns.md has its states, its words and its API.
 //
-// It reaches the host only through host.System, the control, pkg/host/dns
-// and the engine (depguard rules screens-dns-through-host and
+// Each change runs through the glue every area's screen shares
+// (pkg/screens/screenkit, docs/engine/screen-kit.md): the flow on the
+// engine, the configuration adopting what a change saved, a refusal's
+// words. It reaches the host only through host.System, the control,
+// pkg/host/dns and the engine (depguard rules screens-dns-through-host and
 // screens-through-host), and renders only through pkg/ui and pkg/output.
 package dns
 
@@ -21,7 +24,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"slices"
 	"strings"
@@ -34,6 +36,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
@@ -111,13 +114,16 @@ func Run(ctx context.Context, o Options) error {
 	if o.Now == nil {
 		o.Now = time.Now
 	}
-	r := &runner{o: o}
+	r := &runner{o: o, s: screenkit.Session{Name: "dns screen", Prompter: o.Prompter, System: o.System, Config: o.Config,
+		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: o.Ran}}
 	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
 }
 
-// runner is one run of the DNS screen.
+// runner is one run of the DNS screen: its options, and the session its
+// changes run with.
 type runner struct {
 	o Options
+	s screenkit.Session
 }
 
 // draw reads the host and returns the screen, with hardn.yml's list as
@@ -174,8 +180,9 @@ func (r *runner) read(ctx context.Context) reading {
 	o := r.o
 	s, err := hostdns.Read(ctx, o.System, o.Facts)
 	st, cerr := dnsctl.Nameservers{Config: o.Config}.Check(ctx, o.System, o.Facts)
-	h := reading{manager: s.Manager, refused: hostWords(s, err), notLoaded: notLoaded(ctx, o),
-		udhcpc: err == nil && s.UDHCPCStoppable()}
+	h := reading{manager: s.Manager, refused: hostWords(s, err),
+		notLoaded: screenkit.NotLoaded(ctx, o.System, o.Config, dnsctl.ChangeSave, dnsctl.Setting),
+		udhcpc:    err == nil && s.UDHCPCStoppable()}
 	h.view = screen.DNS{Manager: managers[s.Manager], Configured: slices.Clone(o.Config.Nameservers)}
 	switch {
 	case errors.Is(err, hostdns.ErrContainer):
@@ -223,31 +230,4 @@ func linked(l hostdns.Link, values []string) []screen.DNSEntry {
 // ("~example.net", "~."), which route queries and are no search domain.
 func searchOnly(domains []string) []string {
 	return slices.DeleteFunc(slices.Clone(domains), func(d string) bool { return strings.HasPrefix(d, "~") })
-}
-
-// write writes s to the screen's writer.
-func (r *runner) write(s string) error {
-	if _, err := io.WriteString(r.o.Prompter.Out, s); err != nil {
-		return fmt.Errorf("dns screen: write: %w", err)
-	}
-	return nil
-}
-
-// adopt makes the screen's configuration edited, the copy a change
-// planned, once hardn.yml at its path holds the bytes edited saved there
-// and not the ones the configuration records: the change saved it, and
-// the engine did not roll the save back. A configuration not loaded from
-// a file, or a file that cannot be read, adopts nothing; the next change
-// is then planned from the configuration as it was, and its save refused
-// if the file changed (CONFIG_CHANGED).
-func (r *runner) adopt(ctx context.Context, edited *config.Config) {
-	c := r.o.Config
-	if c.Path() == "" {
-		return
-	}
-	data, _, err := r.o.System.ReadFileNoFollow(ctx, c.Path())
-	if err != nil || c.LoadedFrom(data) || !edited.LoadedFrom(data) {
-		return
-	}
-	*c = *edited
 }

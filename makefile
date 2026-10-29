@@ -495,6 +495,8 @@ check-cross:
 # be rewriting while those tests read them. One golden writes outside
 # testdata/golden: pkg/screens/dns's TestParity (slice 2, unit (b2)) also
 # rewrites the marked region of docs/engine/parity-dns.md; review that diff too.
+# Its harness, internal/parity, links uitest, so every package whose tests
+# use it is among those listed.
 UI_PKG = github.com/abbott/hardn/pkg/ui
 UITEST_PKG = $(UI_PKG)/uitest
 
