@@ -7,6 +7,11 @@
 // supplies a Slice (DNS's is pkg/screens/dns's parity_test.go) and runs it
 // from its TestParity with Run.
 //
+// Its users are pkg/screens/dns, pkg/screens/backup (since next/s3-parity)
+// and pkg/screens/environment (since next/s9-parity), each in a layout of
+// its goldens' own: the ops and menu traces, the repository's
+// (parseRepository) and the root's (parseRoot).
+//
 // It is test support: import it only from _test.go files (depguard rule
 // test-only). It links pkg/ui/uitest, which defines -update, so that make
 // golden-update passes -update to every package whose tests use it.
@@ -84,6 +89,34 @@ type Slice struct {
 	// Content adds the slice's aspects of the host's files both paths
 	// wrote (what they set, line by line).
 	Content func(add func(name, legacy, new string), l, n []FileWrite)
+	// Check names the commands that check what a run writes before it
+	// takes effect (Environment's visudo and doas -C): each path's are
+	// recorded as EndState.Checks, apart from the commands that change
+	// something, and compared as the aspect "checks". nil (DNS, Backup):
+	// none, and every command reads as before.
+	Check func(argv string) bool
+	// Temps compares the temp files each path wrote and removed
+	// (EndState.Temps, the aspect "temp files"): origin/main's, a file its
+	// run wrote and then removed (any other remove still fails the
+	// reader); the new path's, what it wrote under the engine's run
+	// directory (NewStateChecked). False (DNS, Backup): a remove fails
+	// origin/main's reader, as before.
+	Temps bool
+}
+
+// reader is how a slice's goldens are read (Slice): origin/main's commands
+// that only read (Probes), its paths as the new path's (LegacyPaths), the
+// commands that check (Check), and whether a file the run wrote and
+// removed is a temp file (Temps).
+type reader struct {
+	probes []string
+	paths  []string
+	check  func(string) bool
+	temps  bool
+}
+
+func (sl Slice) reader() reader {
+	return reader{probes: sl.Probes, paths: sl.LegacyPaths, check: sl.Check, temps: sl.Temps}
 }
 
 // Scenario is a row of the table, run on every distribution.
@@ -151,6 +184,21 @@ type Tie struct {
 	Aspect    string
 	Source    string // V-numbers, decisions, proposals, plan rows, pages
 	Why       string // one short line
+	// Pending: no source the slice may cite explains the difference, so it
+	// is carried, never explained: Source is a tie proposed, not approved,
+	// and the golden and the page mark the difference UNEXPLAINED
+	// (pending) with it, until a source is approved or the difference
+	// goes. A slice's page lists each in its UNEXPLAINED section.
+	Pending bool
+}
+
+// label is how the golden and the page give e's source: as it is, or,
+// for a pending entry, UNEXPLAINED with the tie proposed.
+func (e Tie) label() string {
+	if e.Pending {
+		return "UNEXPLAINED (pending; proposed, not approved: " + e.Source + ")"
+	}
+	return e.Source
 }
 
 // key names one difference.
@@ -179,6 +227,13 @@ type EndState struct {
 	// After is what is at the backup path the run started with once it
 	// ended: "<path>: <words>", in pkg/characterization's words.
 	After string
+	// Checks are the commands that checked what the run wrote
+	// (Slice.Check), in order, one that failed with " -> " and its error;
+	// the new path's run id as <run id>.
+	Checks []string
+	// Temps are the files the run wrote and then removed (Slice.Temps):
+	// "<path> <mode>, removed", the new path's run id as <run id>.
+	Temps []string
 }
 
 // FileWrite is one file as a run left it.
@@ -209,14 +264,18 @@ type legacyRun struct {
 	Live   EndState // cfg.DryRun=false, or the menu item's result
 	Dry    EndState // cfg.DryRun=true (ops goldens only)
 	CLI    string   // hardn -n with the flag: what pkg/cmd's refusal says
-	Start  string   // what the run started from, its "Start:" line (the repository's layout)
-	Tree   string   // the temp dir afterwards (the repository's layout): recorded, not compared
+	// Start is what the run started from: the repository's layout's
+	// "Start:" line; the root layout's environment and "== / before"
+	// section; the ops layout's "seed dir:" and "seed file:" lines (DNS's
+	// have none), each line of it apart, joined by "; ".
+	Start string
+	Tree  string // the temp dir afterwards (the repository's layout): recorded, not compared
 }
 
 // LegacyStart is what origin/main's run of c started from, as its golden
-// says it ("Start:", in the repository's layout), its paths read as the
-// new path's (Slice.LegacyPaths); "" for a golden that does not say. A
-// slice holds its new path's host to it.
+// says it (legacyRun.Start), its paths read as the new path's
+// (Slice.LegacyPaths); "" for a golden that does not say. A slice holds
+// its new path's host to it.
 func (c Cell) LegacyStart() string { return c.legacy.Start }
 
 var (
@@ -242,62 +301,88 @@ func named(vs []string, l string) []string {
 }
 
 // readLegacy is the characterization golden rel under dir, parsed
-// (parseLegacy), its paths read as paths says (Slice.LegacyPaths); a
-// golden it cannot read or parse fails the test.
-func readLegacy(t *testing.T, dir string, probes []string, rel string, paths []string) legacyRun {
+// (parseLegacy) as rd says; a golden it cannot read or parse fails the
+// test.
+func readLegacy(t *testing.T, dir, rel string, rd reader) legacyRun {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
 	if err != nil {
 		t.Fatalf("origin/main's golden: %v", err)
 	}
-	r, err := parseLegacy(data, probes, rel, paths)
+	r, err := parseLegacy(data, rel, rd)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return r
 }
 
-// parseLegacy parses data, the characterization golden rel: its
-// V-numbers, each trace section into an end state, and its -n refusal. An
-// ops golden has both cfg.DryRun sections; a menu item's has its result,
-// whose message is its refusal when it saved nothing. What the parser does
-// not compare (a removal, a failed command or write, a run that failed) is
-// an error rather than being dropped, and so is a golden with neither
-// cfg.DryRun=false nor a result, the run compared: one in a layout it does
-// not know would otherwise read as a run that did nothing. A golden in the
+// parseLegacy parses data, the characterization golden rel, as rd says:
+// its V-numbers, each trace section into an end state, and its -n
+// refusal. An ops golden has both cfg.DryRun sections; a menu item's has
+// its result, whose message is its refusal when it saved nothing. What the
+// parser does not compare (a removal, a failed command or write, a run
+// that failed) is an error rather than being dropped, and so is a golden
+// with neither cfg.DryRun=false nor a result, the run compared: one in a
+// layout it does not know would otherwise read as a run that did nothing.
+// With rd.check, a command it names is a check (EndState.Checks); with
+// rd.temps, the removal of a file the section wrote makes that file a temp
+// file (EndState.Temps), any other removal still an error. The "seed dir:"
+// and "seed file:" lines of its fixture are its Start. A golden in the
 // repository's layout (the Backup screen's, pkg/characterization's
 // menu/backup_*, frozen in pkg/screens/backup/testdata/legacy since
-// next/s3-replace) is read by parseRepository, its paths read as paths
-// says.
-func parseLegacy(data []byte, probes []string, rel string, paths []string) (legacyRun, error) {
+// next/s3-replace) is read by parseRepository, its paths read as
+// rd.paths says; one in the root layout (the Environment area's,
+// pkg/characterization's environment/keep_*) by parseRoot.
+func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 	if bytes.Contains(data, []byte("\n"+repoCalls+"\n")) {
-		return parseRepository(data, rel, paths)
+		return parseRepository(data, rel, rd.paths)
 	}
+	if bytes.Contains(data, []byte("\n"+rootAfter+"\n")) {
+		return parseRoot(data, rel, rd)
+	}
+	probes := rd.probes
 	r := legacyRun{Golden: rel}
-	live := false
+	live, fixture, seeding := false, false, false
 	var cur, result *EndState
 	var last *FileWrite
+	var seed []string
 	sc := bufio.NewScanner(bytes.NewReader(data))
 	for sc.Scan() {
 		l := sc.Text()
 		r.Vs = named(r.Vs, l)
 		switch {
 		case l == "== cfg.DryRun=false":
-			cur, last, live = &r.Live, nil, true
+			cur, last, live, fixture = &r.Live, nil, true, false
 			continue
 		case l == "== result":
-			cur, result, last, live = &r.Live, &r.Live, nil, true
+			cur, result, last, live, fixture = &r.Live, &r.Live, nil, true, false
 			continue
 		case l == "== cfg.DryRun=true":
-			cur, last = &r.Dry, nil
+			cur, last, fixture = &r.Dry, nil, false
+			continue
+		case l == "== fixture":
+			cur, last, fixture = nil, nil, true
 			continue
 		case strings.HasPrefix(l, "== "):
-			cur, last = nil, nil
+			cur, last, fixture = nil, nil, false
 			continue
 		case strings.HasPrefix(l, "refused: "):
 			r.CLI = strings.TrimPrefix(l, "refused: ")
 		case strings.HasPrefix(l, "stderr: ") && r.CLI != "":
 			r.CLI += ": " + strings.TrimPrefix(l, "stderr: ")
+		}
+		if fixture {
+			// The seed lines, and a seed file's content, are the start.
+			c, content := strings.CutPrefix(l, "        ")
+			switch {
+			case content && seeding:
+				seed = append(seed, c)
+			case strings.HasPrefix(l, "seed dir: "), strings.HasPrefix(l, "seed file: "):
+				seed, seeding = append(seed, l), strings.HasPrefix(l, "seed file: ")
+			default:
+				seeding = false
+			}
+			continue
 		}
 		if cur == nil {
 			continue
@@ -331,11 +416,22 @@ func parseLegacy(data []byte, probes []string, rel string, paths []string) (lega
 		switch op {
 		case "read", "stat": // reads leave no end state
 		case "exec":
-			if slices.Contains(probes, arg) {
+			switch {
+			case rd.check != nil && rd.check(arg):
+				cur.Checks = append(cur.Checks, arg)
+			case slices.Contains(probes, arg):
 				cur.Probes = append(cur.Probes, arg+" -> "+res)
-			} else {
+			default:
 				cur.Actions = append(cur.Actions, arg)
 			}
+		case "remove":
+			i := slices.IndexFunc(cur.Files, func(f FileWrite) bool { return f.Path == arg })
+			if !rd.temps || i < 0 {
+				return r, fmt.Errorf("%s: an operation the harness does not compare (%s): %q", rel, op, l)
+			}
+			cur.Temps = append(cur.Temps, cur.Files[i].String()+", removed")
+			cur.Files = slices.Delete(cur.Files, i, i+1)
+			last = nil
 		case "mkdir":
 			p, mode, _ := strings.Cut(arg, " mode=")
 			cur.Dirs = append(cur.Dirs, p+" "+mode)
@@ -372,6 +468,7 @@ func parseLegacy(data []byte, probes []string, rel string, paths []string) (lega
 	if result == nil || r.Live.YML != nil {
 		r.Live.Refusal = "" // an item's message is its refusal only when it saved nothing
 	}
+	r.Start = strings.Join(seed, "; ")
 	return r, nil
 }
 
@@ -594,6 +691,307 @@ func parseRepository(data []byte, rel string, paths []string) (legacyRun, error)
 	return r, nil
 }
 
+// The root layout (pkg/characterization's TestLegacyEnvironmentKeep,
+// environment/keep_*): a header of "# " lines; "== / before", the root's
+// entries with their modes and a file's content, then the commands the
+// mock commander fails; "== result", the call's outcome, then each
+// caller's words for it, read from the code; "== calls", the file system
+// and command calls in order, a write with its content; "== / afterwards",
+// how the root changed. The case's temp dir stands for /, and every path
+// is hardn's own (rootedFS cuts the temp dir from it; the test fails if
+// the temp dir is in a golden), read then as reader.paths says.
+const (
+	rootBefore  = "== / before"
+	rootResult  = "== result"
+	rootCalls   = "== calls"
+	rootAfter   = "== / afterwards"
+	rootNoCalls = "    (no calls)"
+	rootFails   = "commands that fail (every other command succeeds with empty output):"
+)
+
+// rootHeader are the header lines the root layout has, each the start of
+// a line: the operation, its notes and its start in words are what was
+// run, not an end state; KNOWN-DEFECT and FIXED name V-numbers;
+// Environment is kept with the start.
+var rootHeader = []string{"# origin/main behaviour", "# Generated by ", "# Operation: ", "# Environment: ", "# Start: ",
+	"# KNOWN-DEFECT: ", "# FIXED ", "# NOTE: ", "# The file system is "}
+
+// rootCallers start the result section's lines after the outcome: what
+// each caller prints for it, read from the code, not run (what was shown,
+// not an end state).
+var rootCallers = []string{"screen, item 1 as root (read, not run: ", "hardn -e and setup-sudo-env (read, not run: "}
+
+var (
+	rootEntry   = regexp.MustCompile(`^(/\S*): (?:a directory|a symlink to (\S+)|a file, \d+ bytes)(?:, mode \d{4})?$`)
+	rootFixture = regexp.MustCompile(`^  \S.* -> fixture: .+$`)
+	rootOutcome = regexp.MustCompile(`^\w+: (?:ok|error: (.+))$`)
+	rootNew     = regexp.MustCompile(`^(/\S*): new, a file, \d+ bytes$`)
+	rootChanged = regexp.MustCompile(`^(/\S*): changed, a file, \d+ bytes, mode (\d{4}) \(was .+\)$`)
+	rootGone    = regexp.MustCompile(`^(/\S*): gone \(was .+\)$`)
+)
+
+// rootWrite is one write the calls record, its content, and whether its
+// file was then removed (a temp file).
+type rootWrite struct {
+	path    string
+	mode    fs.FileMode
+	lines   []string
+	removed bool
+}
+
+// rootFile is a file the afterwards section shows new or changed, with
+// its content; mode is its mode there, when it says it (a changed file).
+type rootFile struct {
+	path  string
+	mode  fs.FileMode
+	moded bool
+	lines []string
+}
+
+// parseRoot parses data, the characterization golden rel in the root
+// layout, as rd says: the V-numbers of its KNOWN-DEFECT and FIXED lines;
+// Start, its environment and its "/ before" section; the end state of the
+// call:
+//   - its refusal, "failed: <error>" when the outcome is an error, after at
+//     most one call that failed (a write or a check), or none;
+//   - the files, each new or changed file the afterwards section shows,
+//     with its content there, its mode the write's (a new file's; the
+//     umask's is not recorded) or the afterwards section's (a changed
+//     file's: os.WriteFile keeps a file's mode), written in place
+//     (os.WriteFile); each must be explained by a write of the same
+//     content to its path, or to a temp file whose path held a symlink to
+//     it before (written through the link), and each write not removed
+//     must be shown;
+//   - the temp files (rd.temps): each file written, then removed, and
+//     whether its write followed a symlink there, which the removal took;
+//     each file gone afterwards must be one removed;
+//   - the checks (rd.check), a failed one with its error; the other
+//     commands, which must not fail.
+//
+// A line, section, operation or afterwards entry it does not know is an
+// error, and so is a section twice or out of order, a missing section or
+// outcome, a removal of a file the run did not write or without
+// rd.temps, a second call that failed, or one that failed with the
+// outcome ok.
+func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
+	r := legacyRun{Golden: rel}
+	abs := strings.NewReplacer(rd.paths...).Replace
+	fail := func(format string, args ...any) (legacyRun, error) {
+		return r, fmt.Errorf("%s: "+format, append([]any{rel}, args...)...)
+	}
+	sections := []string{rootBefore, rootResult, rootCalls, rootAfter}
+	part := -1 // the header
+	var start []string
+	env, outcome, failed := "", "", ""
+	seenOutcome, fixtures := false, false
+	links := map[string]string{} // a symlink before, by its path: its target, resolved
+	var writes []*rootWrite
+	var files []*rootFile
+	var gone []string
+	var content func(line string) // where a content line goes; nil: none may come
+	into := func(lines *[]string) func(string) {
+		return func(line string) { *lines = append(*lines, line) }
+	}
+	sc := bufio.NewScanner(bytes.NewReader(data))
+	for sc.Scan() {
+		l := sc.Text()
+		if strings.HasPrefix(l, "== ") {
+			i := slices.Index(sections, l)
+			if i != part+1 {
+				return fail("a section the reader does not know, or out of its order (%s): %q", strings.Join(sections, ", "), l)
+			}
+			part, content = i, nil
+			continue
+		}
+		if part == -1 {
+			if l == "" {
+				continue
+			}
+			if !slices.ContainsFunc(rootHeader, func(p string) bool { return strings.HasPrefix(l, p) }) {
+				return fail("a header line the reader does not know: %q", l)
+			}
+			if v, ok := strings.CutPrefix(l, "# Environment: "); ok {
+				env = v
+			}
+			r.Vs = named(r.Vs, l)
+			continue
+		}
+		if c, ok := strings.CutPrefix(l, "        "); ok && (c == "|" || strings.HasPrefix(c, "| ")) {
+			if content == nil {
+				return fail("content with no file before it: %q", l)
+			}
+			content(strings.TrimPrefix(strings.TrimPrefix(c, "|"), " "))
+			continue
+		}
+		if l == "" {
+			content = nil
+			continue
+		}
+		switch sections[part] {
+		case rootBefore:
+			m := rootEntry.FindStringSubmatch(l)
+			switch {
+			case l == rootFails:
+				fixtures, content = true, nil
+				start = append(start, l)
+			case fixtures && rootFixture.MatchString(l):
+				start = append(start, strings.TrimSpace(l))
+			case m != nil && !fixtures:
+				start, content = append(start, l), nil
+				if strings.Contains(l, ": a file, ") {
+					content = func(line string) { start = append(start, strings.TrimSpace("| "+line)) }
+				}
+				if m[2] != "" {
+					t := m[2]
+					if !path.IsAbs(t) {
+						t = path.Join(path.Dir(m[1]), t)
+					}
+					links[m[1]] = t
+				}
+			default:
+				return fail("a line of / before the reader does not know: %q", l)
+			}
+		case rootResult:
+			switch {
+			case !seenOutcome:
+				m := rootOutcome.FindStringSubmatch(l)
+				if m == nil {
+					return fail("an outcome the reader does not know: %q", l)
+				}
+				seenOutcome, outcome = true, m[1] // "" for ok
+			case !slices.ContainsFunc(rootCallers, func(p string) bool { return strings.HasPrefix(l, p) }):
+				return fail("a result line the reader does not know: %q", l)
+			}
+		case rootCalls:
+			if l == rootNoCalls {
+				continue
+			}
+			m := traceLine.FindStringSubmatch(l)
+			if m == nil {
+				return fail("a call the reader does not know: %q", l)
+			}
+			op, arg, res := m[1], m[2], m[3]
+			e, failedCall := strings.CutPrefix(res, "error: ")
+			if failedCall && op != "stat" && op != "read" {
+				if failed != "" {
+					return fail("a second call that failed, which the harness does not compare: %q", l)
+				}
+				failed = l
+			}
+			content = nil
+			switch op {
+			case "stat", "read": // reads leave no end state
+			case "write":
+				w := writeTarget.FindStringSubmatch(arg)
+				if w == nil {
+					return fail("a write the parser does not know: %q", l)
+				}
+				var mode uint32
+				if _, err := fmt.Sscanf(w[2], "%o", &mode); err != nil {
+					return fail("%q: %w", l, err)
+				}
+				rw := &rootWrite{path: w[1], mode: fs.FileMode(mode)}
+				if !failedCall {
+					writes = append(writes, rw)
+				}
+				content = into(&rw.lines)
+			case "exec":
+				switch {
+				case rd.check != nil && rd.check(arg) && failedCall:
+					r.Live.Checks = append(r.Live.Checks, arg+" -> "+e)
+				case rd.check != nil && rd.check(arg):
+					r.Live.Checks = append(r.Live.Checks, arg)
+				case failedCall:
+					return fail("a command that failed, which the harness does not compare: %q", l)
+				case slices.Contains(rd.probes, arg):
+					r.Live.Probes = append(r.Live.Probes, arg+" -> "+res)
+				default:
+					r.Live.Actions = append(r.Live.Actions, arg)
+				}
+			case "remove":
+				i := slices.IndexFunc(writes, func(w *rootWrite) bool { return w.path == arg && !w.removed })
+				if failedCall || !rd.temps || i < 0 {
+					return fail("an operation the harness does not compare (remove): %q", l)
+				}
+				writes[i].removed = true
+			default:
+				return fail("an operation the harness does not compare (%s): %q", op, l)
+			}
+		case rootAfter:
+			content = nil
+			switch {
+			case l == "unchanged", strings.HasPrefix(l, "unchanged: "):
+			case rootNew.MatchString(l):
+				f := &rootFile{path: rootNew.FindStringSubmatch(l)[1]}
+				files, content = append(files, f), into(&f.lines)
+			case rootChanged.MatchString(l):
+				m := rootChanged.FindStringSubmatch(l)
+				var mode uint32
+				if _, err := fmt.Sscanf(m[2], "%o", &mode); err != nil {
+					return fail("%q: %w", l, err)
+				}
+				f := &rootFile{path: m[1], mode: fs.FileMode(mode), moded: true}
+				files, content = append(files, f), into(&f.lines)
+			case rootGone.MatchString(l):
+				gone = append(gone, rootGone.FindStringSubmatch(l)[1])
+			default:
+				return fail("an afterwards line the reader does not know: %q", l)
+			}
+		}
+	}
+	if err := sc.Err(); err != nil {
+		return fail("%w", err)
+	}
+	switch {
+	case part != len(sections)-1:
+		return fail("no %q section in the root layout", sections[part+1])
+	case !seenOutcome:
+		return fail("no outcome in the result section")
+	case failed != "" && outcome == "":
+		return fail("a call that failed, and the outcome ok: %q", failed)
+	case outcome != "":
+		r.Live.Refusal = "failed: " + abs(outcome)
+	}
+	for _, w := range writes {
+		if !w.removed {
+			continue
+		}
+		t := abs(w.path) + fmt.Sprintf(" %04o", uint32(w.mode)) + ", removed"
+		if to, ok := links[w.path]; ok {
+			t = abs(w.path) + fmt.Sprintf(" %04o", uint32(w.mode)) + ", written through the symlink there to " + abs(to) + ", the symlink removed"
+		}
+		r.Live.Temps = append(r.Live.Temps, t)
+	}
+	for _, g := range gone {
+		if !slices.ContainsFunc(writes, func(w *rootWrite) bool { return w.path == g && w.removed }) {
+			return fail("%s gone afterwards, which no removal of the calls explains", g)
+		}
+	}
+	for _, f := range files {
+		i := slices.IndexFunc(writes, func(w *rootWrite) bool {
+			return slices.Equal(w.lines, f.lines) && (w.path == f.path && !w.removed || w.removed && links[w.path] == f.path)
+		})
+		if i < 0 {
+			return fail("%s changed afterwards, which no write of the calls explains", f.path)
+		}
+		mode := writes[i].mode
+		if f.moded {
+			mode = f.mode
+		}
+		r.Live.Files = append(r.Live.Files, FileWrite{Path: abs(f.path), Mode: mode, Lines: f.lines})
+	}
+	for _, w := range writes {
+		if !w.removed && !slices.ContainsFunc(files, func(f *rootFile) bool { return f.path == w.path && slices.Equal(f.lines, w.lines) }) {
+			return fail("a write of %s that the afterwards section does not show", w.path)
+		}
+	}
+	for i, s := range start {
+		start[i] = abs(s)
+	}
+	r.Start = strings.Join(append([]string{"Environment: " + env}, start...), "; ")
+	return r, nil
+}
+
 // The new path's own directories: its run directory, the journal and the
 // backups (engine.md), which are not the host's end state; the journal and
 // the backups are recorded as such.
@@ -612,7 +1010,7 @@ func under(p, dir string) bool { return p == dir || strings.HasPrefix(p, dir+"/"
 // the backups', left out. A change it does not compare fails the test.
 func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml string) EndState {
 	t.Helper()
-	return newState(t, h, n, readOnly, yml, backup.DefaultPath, false)
+	return newState(t, h, n, stateOptions{readOnly: readOnly, yml: yml, dir: backup.DefaultPath})
 }
 
 // NewStateUnder is NewState with the backups under dir, the backup path
@@ -622,34 +1020,75 @@ func NewState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml st
 // directory as <run id>.
 func NewStateUnder(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, dir string) EndState {
 	t.Helper()
-	s := newState(t, h, n, readOnly, yml, dir, true)
+	s := newState(t, h, n, stateOptions{readOnly: readOnly, yml: yml, dir: dir, under: true})
 	if s.Under == nil {
 		s.Under = []string{}
 	}
 	return s
 }
 
+// NewStateChecked is NewState for a slice that compares checks and temp
+// files (Slice.Check, Slice.Temps; Environment's): the commands check
+// names are Checks, in order, a failed one with its exit status, each run
+// id as <run id>; every other command is one that changes something; the
+// files written under the engine's run directory are Temps, "<path>
+// <mode>, removed" once a removal there took them, else ", left".
+func NewStateChecked(t *testing.T, h *hostfake.System, n int, check func(argv string) bool, yml string) EndState {
+	t.Helper()
+	return newState(t, h, n, stateOptions{yml: yml, dir: backup.DefaultPath, check: check, temps: true})
+}
+
+// stateOptions are how newState reads the calls: the commands that only
+// read, hardn.yml's path, the backup path, and whether to record what was
+// written under it (Under), the checks, and the temp files.
+type stateOptions struct {
+	readOnly []string
+	yml, dir string
+	under    bool
+	check    func(string) bool
+	temps    bool
+}
+
 // runID is a backup run's directory name (backup.NewRunID): its time and
 // a random part.
 var runID = regexp.MustCompile(`\b\d{8}T\d{6}Z-[0-9a-f]{8}\b`)
 
-// newState is NewState with the backups under dir, recorded in Under when
-// record is set.
-func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, dir string, record bool) EndState {
+// newState is NewState as o says: the backups under o.dir, recorded in
+// Under with o.under; the checks and the temp files with o.check and
+// o.temps.
+func newState(t *testing.T, h *hostfake.System, n int, o stateOptions) EndState {
 	t.Helper()
+	readOnly, yml, dir := o.readOnly, o.yml, o.dir
 	var s EndState
 	var order []string
 	modes := map[string]hostfake.Call{}
 	var manifest []byte
+	var temps []string               // written under the run directory, in order
+	tempModes := map[string]string{} // and their modes
+	removed := map[string]bool{}
 	for _, c := range h.Calls()[n:] {
 		switch {
 		case under(c.Path, runDir):
+			switch {
+			case !o.temps:
+			case c.Op == "write-atomic" || c.Op == "write-in-place":
+				if _, ok := tempModes[c.Path]; !ok {
+					temps = append(temps, c.Path)
+				}
+				tempModes[c.Path], removed[c.Path] = fmt.Sprintf("%04o", uint32(c.Mode.Perm())), false
+			case (c.Op == "remove" || c.Op == "removeall") && c.Err == nil:
+				for _, p := range temps {
+					if under(p, c.Path) {
+						removed[p] = true
+					}
+				}
+			}
 			continue
 		case under(c.Path, dir):
 			if c.Op == "write-atomic" && path.Base(c.Path) == backup.ManifestName {
 				manifest = c.Data
 			}
-			if record {
+			if o.under {
 				s.Under = append(s.Under, underOp(t, c)...)
 			}
 			continue
@@ -672,6 +1111,15 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, d
 		case "run":
 			argv := host.FormatArgv(c.Argv)
 			switch {
+			case o.check != nil && o.check(argv):
+				argv = runID.ReplaceAllString(argv, "<run id>")
+				switch {
+				case c.ExitCode > 0:
+					argv += fmt.Sprintf(" -> exit status %d", c.ExitCode)
+				case c.Err != nil:
+					argv += " -> " + c.Err.Error()
+				}
+				s.Checks = append(s.Checks, argv)
 			case !slices.Contains(readOnly, argv):
 				s.Actions = append(s.Actions, argv)
 			case !slices.Contains(s.Probes, argv):
@@ -680,6 +1128,13 @@ func newState(t *testing.T, h *hostfake.System, n int, readOnly []string, yml, d
 		default: // remove, removeall, rename, chown, append, start-detached, ...
 			t.Fatalf("a change the harness does not compare: %s", c)
 		}
+	}
+	for _, p := range temps {
+		state := ", left"
+		if removed[p] {
+			state = ", removed"
+		}
+		s.Temps = append(s.Temps, runID.ReplaceAllString(p, "<run id>")+" "+tempModes[p]+state)
 	}
 	for _, p := range order {
 		c := modes[p]
@@ -798,7 +1253,7 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 		c.State = d.Stock
 	}
 	c.Shipped = sl.Shipped(c.State, d)
-	c.legacy = readLegacy(t, sl.Legacy, sl.Probes, strings.ReplaceAll(sc.Golden, "{d}", d.Name), sl.LegacyPaths)
+	c.legacy = readLegacy(t, sl.Legacy, strings.ReplaceAll(sc.Golden, "{d}", d.Name), sl.reader())
 	if c.Why = sl.Exists(c.State, d); c.Why != "" {
 		return c
 	}
@@ -897,6 +1352,12 @@ func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []
 	}
 	add("directories", Joined(l.Dirs), Joined(n.Dirs))
 	add("commands", Joined(l.Actions), Joined(n.Actions))
+	if sl.Check != nil {
+		add("checks", Joined(l.Checks), Joined(n.Checks))
+	}
+	if sl.Temps {
+		add("temp files", Joined(l.Temps), Joined(n.Temps))
+	}
 	if sl.UnderBackupPath {
 		ld, lf := dirsAndFiles(l.Under)
 		nd, nf := dirsAndFiles(n.Under)
@@ -1207,7 +1668,7 @@ func renderCells(sl Slice, cells []Cell) string {
 		for _, d := range c.diffs {
 			fmt.Fprintf(&b, "differ %s: %s | %s\n", d.Name, d.Legacy, d.New)
 			if e, ok := want[key{c.Scenario.Name, c.Distro.Name, d.Name}]; ok {
-				fmt.Fprintf(&b, "       %s: %s\n", e.Source, e.Why)
+				fmt.Fprintf(&b, "       %s: %s\n", e.label(), e.Why)
 			} else {
 				b.WriteString("       UNEXPLAINED\n")
 			}
@@ -1260,6 +1721,12 @@ func writeState(b *strings.Builder, s EndState) {
 	}
 	for _, a := range s.Actions {
 		fmt.Fprintf(b, "  run %s\n", a)
+	}
+	for _, c := range s.Checks {
+		fmt.Fprintf(b, "  check %s\n", c)
+	}
+	for _, f := range s.Temps {
+		fmt.Fprintf(b, "  temp %s\n", f)
 	}
 	if s.Journal || len(s.Backups) > 0 || len(s.Findings) > 0 {
 		fmt.Fprintf(b, "  backup: %s; journal: %s; findings: %s\n", Joined(s.Backups), journal(s), Joined(s.Findings))
@@ -1350,7 +1817,9 @@ func renderPage(sl Slice, cells []Cell) string {
 			if !ok {
 				e = Tie{Source: "UNEXPLAINED"}
 			}
-			i := slices.IndexFunc(groups, func(g *group) bool { return g.a == d && g.e.Source == e.Source && g.e.Why == e.Why })
+			i := slices.IndexFunc(groups, func(g *group) bool {
+				return g.a == d && g.e.Source == e.Source && g.e.Why == e.Why && g.e.Pending == e.Pending
+			})
 			if i < 0 {
 				groups = append(groups, &group{a: d, e: e})
 				i = len(groups) - 1
@@ -1360,7 +1829,7 @@ func renderPage(sl Slice, cells []Cell) string {
 	}
 	for _, g := range groups {
 		scenarios, on := where(g.cells, len(sl.Distros))
-		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.Name, cell(g.a.Legacy), cell(g.a.New), g.e.Source, g.e.Why)
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.Name, cell(g.a.Legacy), cell(g.a.New), g.e.label(), g.e.Why)
 	}
 
 	cites := ""
