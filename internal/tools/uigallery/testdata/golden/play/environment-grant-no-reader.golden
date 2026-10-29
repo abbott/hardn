@@ -1,0 +1,398 @@
+# Golden file of TestPlayEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/grant-no-reader␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/grant-no-reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. As grant,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanned as real code can today: an env-only Policy, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mremoves hardn's grant.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKeep HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice,␛[m$
+      ␛[38;2;129;134;156m↪ /etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m--- /etc/sudoers.d/hardn-grant-alice␛[m$
+      ␛[38;2;86;91;107m+++ /dev/null␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +0,0 @@␛[m$
+      ␛[38;2;231;70;105m-# Managed by hardn␛[m$
+      ␛[38;2;231;70;105m-alice ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;86;91;107m--- /dev/null␛[m$
+      ␛[38;2;86;91;107m+++ /etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn␛[m$
+      ␛[38;2;112;212;127m+Defaults:alice env_keep += "HARDN_CONFIG"␛[m$
+$
+  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m 0$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play environment/grant-no-reader -----------------------------$
+$
+# Note$
+# Play mode, mocks: the Environment screen proposed for slice 9,$
+# drawn from what real code reads of a simulated host$
+# (sudoers.Choose, Read, PlanFor), each change on the real$
+# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
+# of hardn's files and the plan's findings on the change are the$
+# gallery's, unit (b)'s to build. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Info: environment/grant-no-reader$
+# web-01.example.net runs Debian 13, sudo 1.9.16p2. As grant,$
+# planned as real code can today: an env-only Policy, which$
+# removes hardn's grant.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under sudo           Not kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+                           [ ] Lockout risk$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 1$
+$
+# Keep HARDN_CONFIG ############################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [+] Under sudo           Kept$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      Keep HARDN_CONFIG under sudo for alice$
+$
+      /etc/sudoers.d/hardn-grant-alice,$
+      | /etc/sudoers.d/hardn-env-alice$
+      --- /etc/sudoers.d/hardn-grant-alice$
+      +++ /dev/null$
+      @@ -1,2 +0,0 @@$
+      -# Managed by hardn$
+      -alice ALL=(ALL) NOPASSWD: ALL$
+      --- /dev/null$
+      +++ /etc/sudoers.d/hardn-env-alice$
+      @@ -0,0 +1,2 @@$
+      +# Managed by hardn$
+      +Defaults:alice env_keep += "HARDN_CONFIG"$
+$
+  Keep HARDN_CONFIG under sudo?$
+$
+  Type the hostname [web-01, 0 or q]: 0$
+$
+# Operation Cancelled$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under sudo           Not kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+                           [ ] Lockout risk$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/grant-no-reader␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/grant-no-reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. As␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgrant, planned as real code can today: an env-only Policy,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhich removes hardn's grant.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKeep HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;112;212;127mKept␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice,␛[m$
+      ␛[38;2;129;134;156m↪ /etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m--- /etc/sudoers.d/hardn-grant-alice␛[m$
+      ␛[38;2;86;91;107m+++ /dev/null␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +0,0 @@␛[m$
+      ␛[38;2;231;70;105m-# Managed by hardn␛[m$
+      ␛[38;2;231;70;105m-alice ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;86;91;107m--- /dev/null␛[m$
+      ␛[38;2;86;91;107m+++ /etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn␛[m$
+      ␛[38;2;112;212;127m+Defaults:alice env_keep += "HARDN_CONFIG"␛[m$
+$
+  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m 0$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

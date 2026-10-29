@@ -647,7 +647,7 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 // reads are the commands that only read the host or check a file: sshd
 // -T and sshd -t, ss, ufw's status, systemctl's queries, resolvectl's
 // lists as pkg/host/dns asks them (dns and domain with nothing after:
-// given a link and values they set the link's), visudo's checks, the
+// given a link and values they set the link's), visudo's and doas -C's checks, the
 // boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
 // detect's questions (sudo --version, dpkg-query).
 func reads(argv []string) bool {
@@ -658,6 +658,8 @@ func reads(argv []string) bool {
 		return len(argv) == 3 && argv[1] == "--no-pager" && (argv[2] == "dns" || argv[2] == "domain")
 	case "sudo":
 		return len(argv) == 2 && argv[1] == "--version"
+	case "doas":
+		return len(argv) == 3 && argv[1] == "-C"
 	case "systemctl":
 		return slices.Contains([]string{"is-active", "is-enabled", "show", "list-timers"}, argv[1])
 	case "sh":

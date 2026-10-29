@@ -10,8 +10,13 @@ import (
 
 	"github.com/charmbracelet/colorprofile"
 
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -44,10 +49,13 @@ func TestEnvironmentGolden(t *testing.T) {
 // pins each transcript: on Debian 13 the guide, then HARDN_CONFIG kept
 // (plan, y/N, apply, the screen after), also under LANG=C; the same under
 // sudo-rs; already kept, an empty plan; the toggle stopping it; a root
-// login, Proxmox VE and doas-refuse refused before asking; plan only,
-// stopping at the plan; origin/main's file; and the hosts' menu, to the
-// overridden doas host. Each change id's random suffix is written
-// xxxxxxxx (sessionIDs).
+// login and Proxmox VE refused before asking; plan only, stopping at the
+// plan; hardn's grant carried by the reader, and planned without it, its
+// removal lockout-risk, declined at the typed confirmation; doas's
+// per-user rule, its notice and the typed confirmation; doas-refuse; the
+// cloud image's wheel.conf reported; origin/main's file; and the hosts'
+// menu, to the overridden doas host. Each change id's random suffix is
+// written xxxxxxxx (sessionIDs).
 func TestPlayEnvironmentGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -62,7 +70,11 @@ func TestPlayEnvironmentGolden(t *testing.T) {
 		{"environment-root-login", []string{"environment/root-login"}, []string{"1", "0"}, nil},
 		{"environment-pve9", []string{"environment/pve9"}, []string{"1", "0"}, nil},
 		{"environment-plan-only", []string{"-sequence", "dry-run", "environment/debian13"}, []string{"1", "0"}, nil},
+		{"environment-grant", []string{"environment/grant"}, []string{"1", "y", "0"}, nil},
+		{"environment-grant-no-reader", []string{"environment/grant-no-reader"}, []string{"1", "0", "0"}, nil},
+		{"environment-doas", []string{"environment/alpine323"}, []string{"1", hostName, "0"}, nil},
 		{"environment-doas-refuse", []string{"environment/alpine323-refuse"}, []string{"1", "0"}, nil},
+		{"environment-wheel", []string{"environment/alpine323-cloud"}, []string{"1", hostName, "0"}, nil},
 		{"environment-legacy", []string{"environment/legacy"}, []string{"1", "y", "0"}, nil},
 		{"environment-hosts", []string{"environment"}, []string{"6", "0", "0"}, nil},
 	}
@@ -103,6 +115,17 @@ func readEnvHost(t *testing.T, name string) (envReading, *fakeHost) {
 
 // playEnv plays the Environment screen on h, eh's host, plain, the user
 // typing lines, a dry run with dryRun, and returns the session, the
+// transcript and the exit status.
+func playEnv(t *testing.T, eh envHost, h *fakeHost, dryRun bool, lines ...string) (*session, string, int) {
+	t.Helper()
+	return playWith(t, envPrefix+"/"+eh.name, func(s *session) func() error {
+		if dryRun {
+			s.sequence = "dry-run"
+		}
+		return func() error { return s.envScreen(context.Background(), eh, h) }
+	}, lines...)
+}
+
 // TestEnvHosts holds each host's screen to what real code reads of it:
 // the tool sudoers.Choose picks from detect's facts (sudo, sudo-rs's
 // flavour, doas, none), who ran hardn, whether hardn's files keep
@@ -191,16 +214,89 @@ func TestEnvironmentReader(t *testing.T) {
 }
 
 // envEngine plans controls on h on the real engine, as the screen's
+// changes are planned, and returns the engine and the plan.
+func envEngine(t *testing.T, h *fakeHost, controls ...engine.Control) (*engine.Engine, *engine.Plan) {
+	t.Helper()
+	e := engine.New(h.system(), engine.Options{Revert: revert.Options{Now: clock, Hardn: galleryHardn}, Session: applySession,
+		Backups: backup.Settings{Path: backup.DefaultPath, Enabled: true}, Hold: (&session{}).hold, PID: applyPID})
+	p, err := e.Plan(context.Background(), controls, &config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return e, p
+}
+
 // TestEnvironmentGrantCarried: on the grant host, the change planned with
 // the gallery's reader writes hardn-env-alice alone, no lockout risk, and
 // once applied hardn-grant-alice is as it was, the two in separate files
 // (V16); planned as real code can today, an env-only Policy, it removes
+// hardn's grant as well, a lockout-risk change.
+func TestEnvironmentGrantCarried(t *testing.T) {
+	h := envHostNamed(t, "grant").host()
+	grant := h.content("/etc/sudoers.d/hardn-grant-alice")
+	e, p := envEngine(t, h, envControl{user: "alice", keep: true})
+	if p.Err() != nil || len(p.Changes) != 1 || p.Changes[0].Target != "/etc/sudoers.d/hardn-env-alice" || p.Risk == engine.RiskLockout {
+		t.Fatalf("with the reader: %v, %+v", p.Err(), p.Changes)
+	}
+	if _, err := e.Apply(context.Background(), p); err != nil {
+		t.Fatal(err)
+	}
+	if got := h.content("/etc/sudoers.d/hardn-grant-alice"); got != grant || !strings.Contains(h.content("/etc/sudoers.d/hardn-env-alice"), `Defaults:alice env_keep += "HARDN_CONFIG"`) {
+		t.Errorf("after the apply: grant %q, env %q", got, h.content("/etc/sudoers.d/hardn-env-alice"))
+	}
+	_, p = envEngine(t, envHostNamed(t, "grant").host(), envControl{user: "alice", t: envTreatment{noReader: true}, keep: true})
+	if p.Err() != nil || p.Risk != engine.RiskLockout || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, "--- /etc/sudoers.d/hardn-grant-alice\n+++ /dev/null") {
+		t.Errorf("without the reader: %v, risk %v, %+v", p.Err(), p.Risk, p.Changes)
+	}
+}
+
 // TestEnvironmentDoas: on alpine323, item 1's per-user rule (doas-rule) is
 // lockout-risk, confirmed by typing the hostname, and says first that it
 // grants doas; doas-refuse refuses before asking, building no engine, as
 // PlanFor refuses an env-only Policy on doas; on the cloud image the
 // change carries the plan's finding of wheel.conf, read after hardn's
 // rule, its code registered; and nothing is planned on a host already
+// kept.
+func TestEnvironmentDoas(t *testing.T) {
+	_, p := envEngine(t, envHostNamed(t, "alpine323").host(), envControl{user: "alice", keep: true})
+	if p.Err() != nil || p.Risk != engine.RiskLockout || !strings.Contains(p.Changes[len(p.Changes)-1].Diff, "+permit persist setenv { HARDN_CONFIG } alice") {
+		t.Errorf("doas-rule: %v, risk %v", p.Err(), p.Risk)
+	}
+	eh := envHostNamed(t, "alpine323-refuse")
+	h := eh.host()
+	r := readEnv(context.Background(), h.system(), eh.env, eh.t)
+	if !errors.Is(r.planErr, sudoers.ErrEnvNeedsGrant) {
+		t.Errorf("doas-refuse: %v", r.planErr)
+	}
+	s, out, code := playEnv(t, eh, h, false, "1", "0")
+	if code != exitOK || len(s.engineRuns) != 0 || !strings.Contains(flatText(out), "doas keeps HARDN_CONFIG only on a rule for alice alone") {
+		t.Errorf("doas-refuse: exit %d, %d engines:\n%s", code, len(s.engineRuns), out)
+	}
+	s, out, code = playEnv(t, envHostNamed(t, "alpine323"), envHostNamed(t, "alpine323").host(), false, "1", hostName, "0")
+	if code != exitOK || len(s.engineRuns) != 1 || !strings.Contains(flatText(out), "The rule also lets alice use doas, in wheel or not.") ||
+		!strings.Contains(flatText(out), "Type the hostname") {
+		t.Errorf("doas-rule: exit %d:\n%s", code, out)
+	}
+	_, p = envEngine(t, envHostNamed(t, "alpine323-cloud").host(), envControl{user: "alice", keep: true})
+	var later []engine.Finding
+	for _, c := range p.Changes {
+		for _, f := range c.Findings {
+			if f.Code == "SUDOERS_LATER_FILE" {
+				later = append(later, f)
+			}
+			if e, ok := output.Lookup(f.Code); !ok || e.Kind != output.KindFinding {
+				t.Errorf("finding %s: not a registered finding", f.Code)
+			}
+		}
+	}
+	if len(later) != 1 || later[0].Source != "/etc/doas.d/wheel.conf" {
+		t.Errorf("wheel.conf: findings %+v", later)
+	}
+	if _, p = envEngine(t, envHostNamed(t, "doas-overridden").host(), envControl{user: "alice", keep: true}); p.Err() != nil || len(p.Changes) != 0 {
+		t.Errorf("kept: %v, %d changes", p.Err(), len(p.Changes))
+	}
+}
+
 // TestEnvironmentNoTmpNoProbe: keeping HARDN_CONFIG on Debian 13 writes
 // hardn-env-alice alone outside hardn's state, its copies checked in the
 // run directory, nothing under /tmp (V20); and nothing the screen does
