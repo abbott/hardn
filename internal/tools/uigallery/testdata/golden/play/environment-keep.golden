@@ -1,0 +1,441 @@
+# Golden file of TestPlayEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. alice ran␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 2$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
+  ␛[38;2;129;134;156mshell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKeep HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn␛[m$
+      ␛[38;2;112;212;127m+Defaults:alice env_keep += "HARDN_CONFIG"␛[m$
+$
+  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mTakes effect at the next sudo hardn.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play environment/debian13 ------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Environment screen proposed for slice 9,$
+# drawn from what real code reads of a simulated host$
+# (sudoers.Choose, Read, PlanFor), each change on the real$
+# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
+# of hardn's files and the plan's findings on the change are the$
+# gallery's, unit (b)'s to build. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Info: environment/debian13$
+# web-01.example.net runs Debian 13, sudo 1.9.16p2. alice ran$
+# sudo hardn; sudo dropped her HARDN_CONFIG.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under sudo           Not kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 2$
+$
+  HARDN_CONFIG names the hardn.yml hardn reads. Set it in your$
+  shell profile:$
+  export HARDN_CONFIG=/path/to/hardn.yml$
+  Then keep it under sudo with item 1.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under sudo           Not kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 1$
+$
+# Keep HARDN_CONFIG ############################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [+] Under sudo           Kept$
+$
+   -  Keep HARDN_CONFIG under sudo for alice$
+      /etc/sudoers.d/hardn-env-alice$
+      @@ -0,0 +1,2 @@$
+      +# Managed by hardn$
+      +Defaults:alice env_keep += "HARDN_CONFIG"$
+$
+  Keep HARDN_CONFIG under sudo? [y/N, 0 or q]: y$
+$
+  [+] Keep HARDN_CONFIG under sudo for alice  Done$
+$
+# Operation Successful$
+$
+  Takes effect at the next sudo hardn.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [+] Under sudo           Kept$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: environment/debian13$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Keep HARDN_CONFIG under sudo for alice$
+      /etc/sudoers.d/hardn-env-alice$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/debian13␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran sudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 2$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in␛[m$
+  ␛[38;2;129;134;156myour shell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKeep HARDN_CONFIG␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;112;212;127mKept␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn␛[m$
+      ␛[38;2;112;212;127m+Defaults:alice env_keep += "HARDN_CONFIG"␛[m$
+$
+  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mTakes effect at the next sudo hardn.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;112;212;127mKept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay environment/debian13␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. alice ran␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 2$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
+  ␛[38;2;129;134;156mshell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mKeep HARDN_CONFIG␛[m ␛[38;2;43;47;59m############################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn␛[m$
+      ␛[38;2;112;212;127m+Defaults:alice env_keep += "HARDN_CONFIG"␛[m$
+$
+  ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKeep HARDN_CONFIG under sudo for alice␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mTakes effect at the next sudo hardn.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;112;212;127mKept␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Keep HARDN_CONFIG under sudo for alice␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice␛[m$
+$

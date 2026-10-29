@@ -1,0 +1,185 @@
+# Golden file of TestPlayEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/pve9␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: no sudo, no doas.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot logged in.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mNot Applicable␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mNot Applicable␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play environment/pve9 ----------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Environment screen proposed for slice 9,$
+# drawn from what real code reads of a simulated host$
+# (sudoers.Choose, Read, PlanFor), each change on the real$
+# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
+# of hardn's files and the plan's findings on the change are the$
+# gallery's, unit (b)'s to build. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Info: environment/pve9$
+# web-01.example.net is a Proxmox VE 9 node: no sudo, no doas.$
+# root logged in.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+  [-] Under sudo           Not Applicable$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 1$
+$
+# Warning$
+# sudo isn't installed here.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+  [-] Under sudo           Not Applicable$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under sudo           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/pve9␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: no sudo, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas. root logged in.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder sudo␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

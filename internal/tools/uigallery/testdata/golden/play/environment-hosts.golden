@@ -1,0 +1,306 @@
+# Golden file of TestPlayEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156msudo, not kept␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156msudo-rs, not kept␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mdoas through wheel␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mAlpine, refused␛[m      ␛[38;2;129;134;156mdoas: treatment doas-refuse␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAlpine cloud image␛[m   ␛[38;2;129;134;156mwheel.conf read after␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mdoas, overridden␛[m     ␛[38;2;129;134;156mhardn's rule, wheel.conf after␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mno sudo␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mKept␛[m                 ␛[38;2;129;134;156mhardn-env-alice there␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mKept, toggle␛[m         ␛[38;2;129;134;156mTreatment item1-toggle␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mRoot login␛[m           ␛[38;2;129;134;156mNot run with sudo␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mhardn's grant␛[m        ␛[38;2;129;134;156mhardn-grant-alice there␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mGrant, no reader␛[m     ␛[38;2;129;134;156mAn env-only Policy␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mLegacy file␛[m          ␛[38;2;129;134;156m/etc/sudoers.d/alice␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mLegacy, unread␛[m       ␛[38;2;129;134;156mTreatment legacy-hardn-only␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 6$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas; alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis in wheel, and cloud-init's /etc/doas.d/wheel.conf says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpermit nopass :wheel (the maintainer's VM). alice ran doas␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn. hardn's rule for alice keeps HARDN_CONFIG, but␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf's wins, so doas dropped it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mKept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m                ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156msudo, not kept␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156msudo-rs, not kept␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mdoas through wheel␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mAlpine, refused␛[m      ␛[38;2;129;134;156mdoas: treatment doas-refuse␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAlpine cloud image␛[m   ␛[38;2;129;134;156mwheel.conf read after␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mdoas, overridden␛[m     ␛[38;2;129;134;156mhardn's rule, wheel.conf after␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mno sudo␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mKept␛[m                 ␛[38;2;129;134;156mhardn-env-alice there␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mKept, toggle␛[m         ␛[38;2;129;134;156mTreatment item1-toggle␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mRoot login␛[m           ␛[38;2;129;134;156mNot run with sudo␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mhardn's grant␛[m        ␛[38;2;129;134;156mhardn-grant-alice there␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mGrant, no reader␛[m     ␛[38;2;129;134;156mAn env-only Policy␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mLegacy file␛[m          ␛[38;2;129;134;156m/etc/sudoers.d/alice␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mLegacy, unread␛[m       ␛[38;2;129;134;156mTreatment legacy-hardn-only␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play environment ---------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Environment screen proposed for slice 9,$
+# drawn from what real code reads of a simulated host$
+# (sudoers.Choose, Read, PlanFor), each change on the real$
+# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
+# of hardn's files and the plan's findings on the change are the$
+# gallery's, unit (b)'s to build. Nothing on this machine$
+# changes: every command and file is the fake's, and its record$
+# is shown when play ends.$
+$
+# Environment hosts ############################################$
+$
+  Select a host$
+$
+   1) Debian 13            sudo, not kept$
+   2) Ubuntu 26.04         sudo-rs, not kept$
+   3) Alpine 3.23          doas through wheel$
+   4) Alpine, refused      doas: treatment doas-refuse$
+   5) Alpine cloud image   wheel.conf read after$
+   6) doas, overridden     hardn's rule, wheel.conf after$
+   7) Proxmox VE 9         no sudo$
+   8) Kept                 hardn-env-alice there$
+   9) Kept, toggle         Treatment item1-toggle$
+  10) Root login           Not run with sudo$
+  11) hardn's grant        hardn-grant-alice there$
+  12) Grant, no reader     An env-only Policy$
+  13) Legacy file          /etc/sudoers.d/alice$
+  14) Legacy, unread       Treatment legacy-hardn-only$
+$
+   0) Return$
+$
+  > Enter your choice [0-14 or q]: 6$
+$
+# Info: environment/doas-overridden$
+# web-01.example.net runs Alpine 3.23's cloud image, doas; alice$
+# is in wheel, and cloud-init's /etc/doas.d/wheel.conf says$
+# permit nopass :wheel (the maintainer's VM). alice ran doas$
+# hardn. hardn's rule for alice keeps HARDN_CONFIG, but$
+# wheel.conf's wins, so doas dropped it.$
+$
+# Environment Variable Settings ################################$
+$
+# HARDN_CONFIG -------------------------------------------------$
+$
+   -  User                 alice$
+  [ ] Under doas           Kept$
+   -  /etc/doas.d/wheel.conf may override it$
+   -  Value                Not set$
+$
+  Select an option$
+$
+   1) Under doas           Keep HARDN_CONFIG$
+   2) Guide                How to set HARDN_CONFIG$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# Environment hosts ############################################$
+$
+  Select a host$
+$
+   1) Debian 13            sudo, not kept$
+   2) Ubuntu 26.04         sudo-rs, not kept$
+   3) Alpine 3.23          doas through wheel$
+   4) Alpine, refused      doas: treatment doas-refuse$
+   5) Alpine cloud image   wheel.conf read after$
+   6) doas, overridden     hardn's rule, wheel.conf after$
+   7) Proxmox VE 9         no sudo$
+   8) Kept                 hardn-env-alice there$
+   9) Kept, toggle         Treatment item1-toggle$
+  10) Root login           Not run with sudo$
+  11) hardn's grant        hardn-grant-alice there$
+  12) Grant, no reader     An env-only Policy$
+  13) Legacy file          /etc/sudoers.d/alice$
+  14) Legacy, unread       Treatment legacy-hardn-only$
+$
+   0) Return$
+$
+  > Enter your choice [0-14 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156msudo, not kept␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156msudo-rs, not kept␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mdoas through wheel␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mAlpine, refused␛[m$
+      ␛[38;2;129;134;156mdoas: treatment doas-refuse␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAlpine cloud image␛[m$
+      ␛[38;2;129;134;156mwheel.conf read after␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mdoas, overridden␛[m$
+      ␛[38;2;129;134;156mhardn's rule, wheel.conf after␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mno sudo␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mKept␛[m$
+      ␛[38;2;129;134;156mhardn-env-alice there␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mKept, toggle␛[m$
+      ␛[38;2;129;134;156mTreatment item1-toggle␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mRoot login␛[m$
+      ␛[38;2;129;134;156mNot run with sudo␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mhardn's grant␛[m$
+      ␛[38;2;129;134;156mhardn-grant-alice there␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mGrant, no reader␛[m$
+      ␛[38;2;129;134;156mAn env-only Policy␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mLegacy file␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/alice␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mLegacy, unread␛[m$
+      ␛[38;2;129;134;156mTreatment legacy-hardn-only␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 6$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice is in wheel, and cloud-init's /etc/doas.d/wheel.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays permit nopass :wheel (the maintainer's VM). alice ran␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. hardn's rule for alice keeps HARDN_CONFIG, but␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf's wins, so doas dropped it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156malice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;219;184;83mKept␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
+      ␛[38;2;129;134;156mNot set␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUnder doas␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mGuide␛[m$
+      ␛[38;2;129;134;156mHow to set HARDN_CONFIG␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156msudo, not kept␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156msudo-rs, not kept␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mdoas through wheel␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mAlpine, refused␛[m$
+      ␛[38;2;129;134;156mdoas: treatment doas-refuse␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAlpine cloud image␛[m$
+      ␛[38;2;129;134;156mwheel.conf read after␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mdoas, overridden␛[m$
+      ␛[38;2;129;134;156mhardn's rule, wheel.conf after␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mno sudo␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mKept␛[m$
+      ␛[38;2;129;134;156mhardn-env-alice there␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mKept, toggle␛[m$
+      ␛[38;2;129;134;156mTreatment item1-toggle␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mRoot login␛[m$
+      ␛[38;2;129;134;156mNot run with sudo␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mhardn's grant␛[m$
+      ␛[38;2;129;134;156mhardn-grant-alice there␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mGrant, no reader␛[m$
+      ␛[38;2;129;134;156mAn env-only Policy␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mLegacy file␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/alice␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mLegacy, unread␛[m$
+      ␛[38;2;129;134;156mTreatment legacy-hardn-only␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

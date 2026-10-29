@@ -1,0 +1,59 @@
+# Golden file of TestEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment guide␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Guide (2), origin/main's guide shortened, under the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen's prompt.␛[m$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
+  ␛[38;2;129;134;156mshell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# environment guide --------------------------------------------$
+$
+# Note$
+# Mock: Guide (2), origin/main's guide shortened, under the$
+# screen's prompt.$
+$
+  HARDN_CONFIG names the hardn.yml hardn reads. Set it in your$
+  shell profile:$
+  export HARDN_CONFIG=/path/to/hardn.yml$
+  Then keep it under sudo with item 1.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment guide␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Guide (2), origin/main's guide shortened, under the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen's prompt.␛[m$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in␛[m$
+  ␛[38;2;129;134;156myour shell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment guide␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Guide (2), origin/main's guide shortened, under the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen's prompt.␛[m$
+$
+  ␛[38;2;129;134;156mHARDN_CONFIG names the hardn.yml hardn reads. Set it in your␛[m$
+  ␛[38;2;129;134;156mshell profile:␛[m$
+  ␛[38;2;129;134;156mexport HARDN_CONFIG=/path/to/hardn.yml␛[m$
+  ␛[38;2;129;134;156mThen keep it under sudo with item 1.␛[m$
+$
+$
