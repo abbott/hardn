@@ -7,11 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sudoers.Choose, Read, PlanFor), each change on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). Who ran hardn, the reader␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof hardn's files and the plan's findings on the change are the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from the Environment control's reading of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (environment.Read), each change the control's on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). The screen is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (c)'s to build. Nothing on this machine␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
 $
@@ -93,11 +92,10 @@ $
 $
 # Note$
 # Play mode, mocks: the Environment screen proposed for slice 9,$
-# drawn from what real code reads of a simulated host$
-# (sudoers.Choose, Read, PlanFor), each change on the real$
-# plan/apply engine (steps.Sudoers). Who ran hardn, the reader$
-# of hardn's files and the plan's findings on the change are the$
-# gallery's, unit (b)'s to build. Nothing on this machine$
+# drawn from the Environment control's reading of a simulated$
+# host (environment.Read), each change the control's on the real$
+# plan/apply engine (steps.Sudoers). The screen is the$
+# gallery's, unit (c)'s to build. Nothing on this machine$
 # changes: every command and file is the fake's, and its record$
 # is shown when play ends.$
 $
@@ -179,12 +177,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (sudoers.Choose, Read, PlanFor), each change on the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal plan/apply engine (steps.Sudoers). Who ran hardn, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader of hardn's files and the plan's findings on the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange are the gallery's, unit (b)'s to build. Nothing on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from the Environment control's reading of a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host (environment.Read), each change the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontrol's on the real plan/apply engine (steps.Sudoers).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe screen is the gallery's, unit (c)'s to build. Nothing␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes: every command and file is the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/legacy␛[m$

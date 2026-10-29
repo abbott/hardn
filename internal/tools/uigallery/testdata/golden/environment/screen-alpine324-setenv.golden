@@ -11,14 +11,15 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. alice did what item 1's refusal says: 20-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf says permit persist setenv { HARDN_CONFIG } :wheel,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand doas kept /home/alice/hardn.yml. hardn has no rule for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, so the screen says Not kept and item 1 refuses again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, so the screen says Not kept by hardn and item 1 refuses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156magain, as its refusal said.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mNot kept␛[m ␛[38;2;219;184;83mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
@@ -41,14 +42,15 @@ $
 # doas hardn. alice did what item 1's refusal says: 20-$
 # wheel.conf says permit persist setenv { HARDN_CONFIG } :wheel,$
 # and doas kept /home/alice/hardn.yml. hardn has no rule for$
-# alice, so the screen says Not kept and item 1 refuses again.$
+# alice, so the screen says Not kept by hardn and item 1 refuses$
+# again, as its refusal said.$
 $
 # Environment Variable Settings ################################$
 $
 # HARDN_CONFIG -------------------------------------------------$
 $
    -  User                 alice$
-  [ ] Under doas           Not kept$
+  [ ] Under doas           Not kept by hardn$
    -  Value                /home/alice/hardn.yml$
 $
   Select an option$
@@ -72,7 +74,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays: 20-wheel.conf says permit persist setenv {␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG } :wheel, and doas kept␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/home/alice/hardn.yml. hardn has no rule for alice, so the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen says Not kept and item 1 refuses again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen says Not kept by hardn and item 1 refuses again, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits refusal said.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -81,7 +84,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
-      ␛[38;2;219;184;83mNot kept␛[m$
+      ␛[38;2;129;134;156mNot kept␛[m ␛[38;2;219;184;83mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
       ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
@@ -107,14 +110,15 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. alice did what item 1's refusal says: 20-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf says permit persist setenv { HARDN_CONFIG } :wheel,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand doas kept /home/alice/hardn.yml. hardn has no rule for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, so the screen says Not kept and item 1 refuses again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, so the screen says Not kept by hardn and item 1 refuses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156magain, as its refusal said.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHARDN_CONFIG␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;219;184;83mNot kept␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mNot kept␛[m ␛[38;2;219;184;83mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156m/home/alice/hardn.yml␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
