@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), the line commented out, q (pkg/menu), run in a child process
 # Script: stdin "q\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant and the line commented out; dryRun false
+# Start: alice's file holds the grant and the line commented out; dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: A commented-out line reads Enabled: the check is a substring (file_environment_repository.go:124), and sudo reads the line as a comment [I, sudoers(5)], so the variable is not kept.
 # KNOWN-DEFECT: The status reads one file, /etc/sudoers.d/<SUDO_USER, else USER>, for the text `env_keep += "HARDN_CONFIG"` (file_environment_repository.go:110-124, :134-139): not the rules sudo applies.

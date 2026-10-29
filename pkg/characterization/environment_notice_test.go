@@ -99,7 +99,7 @@ func noticeCases() []noticeCase {
 			notes: []string{"With HARDN_CONFIG in hardn's environment the probe returns before su (config.go:321-324)."}},
 		{name: "notice_lost", start: sudo + ", HARDN_CONFIG not kept; alice's login shell sets it", env: lost, suOut: "/home/alice/hardn.yml\n",
 			defects: []string{asRoot, flag, everyRun},
-			notes:   []string{"The notice says to run sudo hardn setup-sudo-env, which writes for SUDO_USER, alice, into the file that holds her grant (ops/setup_sudo_preservation/*.golden; environment/keep_*.golden)."}},
+			notes:   []string{"The notice says to run sudo hardn setup-sudo-env, which writes for SUDO_USER, alice, into the file that holds the grant (ops/setup_sudo_preservation/*.golden; environment/keep_*.golden)."}},
 		{name: "notice_lost_unset", start: sudo + ", HARDN_CONFIG not kept; alice's login shell does not set it", env: lost, suOut: "\n",
 			defects: []string{asRoot + " It runs although the answer changes nothing.", everyRun}},
 		{name: "notice_profile_prints", start: sudo + ", HARDN_CONFIG not kept; alice's profile prints a line, the variable unset", env: lost, suOut: "Welcome to web-01\n\n",

@@ -67,7 +67,7 @@ func envCases() []envCase {
 		dryRoot   = "Under dry run, as root, item 1 prints \"[DRY-RUN] Would configure sudo to preserve HARDN_CONFIG environment variable\" and calls nothing (environment_settings_menu.go:86-87, read, not run): the dry-run check is inside the root branch, after the euid check."
 		planOnly  = "Under plan only the trunk's main menu opens 8 as live: its item has no refusal (main_menu.go:747), where 1 has (pkg/menu TestPlanOnlyRefusals). hardn -n -e and -n setup-sudo-env are refused before anything runs (ops/setup_sudo_preservation/*.golden; cmd/hardn TestDryRunRefusesOperations)."
 		redraw    = "Each option but 0 and q draws the screen again by calling itself (environment_settings_menu.go:101, :106, :115), one call deeper each time."
-		grantKeep = "alice's file holds her grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden)"
+		grantKeep = "alice's file holds the grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden)"
 	)
 	sudoAlice := envVars{sudoUser: "alice", user: "root"}
 	kept := withFile("/etc/sudoers.d/alice", grantLine+keepLine, 0o440)
@@ -77,7 +77,7 @@ func envCases() []envCase {
 			vars: envVars{sudoUser: "alice", user: "root", hardnConfig: "/home/alice/hardn.yml"}, seeds: kept, start: grantKeep,
 			notes: []string{ownEnv, twice}},
 		{name: "environment_open_unset", screen: "Environment (main menu 8), HARDN_CONFIG unset, the line not there, q", script: "q\n",
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone",
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone",
 			notes: []string{ownEnv}},
 		{name: "environment_open_user", screen: "Environment (main menu 8), SUDO_USER unset, USER alice, q", script: "q\n",
 			vars: envVars{user: "alice"}, seeds: kept, start: grantKeep,
@@ -89,29 +89,29 @@ func envCases() []envCase {
 			vars: envVars{}, seeds: kept, start: grantKeep,
 			notes: []string{"With no user the service reads nothing and the screen says Disabled (environment_service.go:60-62)."}},
 		{name: "environment_open_commented", screen: "Environment (main menu 8), the line commented out, q", script: "q\n",
-			vars: sudoAlice, seeds: withFile("/etc/sudoers.d/alice", grantLine+"# "+keepLine, 0o440), start: "alice's file holds her grant and the line commented out",
+			vars: sudoAlice, seeds: withFile("/etc/sudoers.d/alice", grantLine+"# "+keepLine, 0o440), start: "alice's file holds the grant and the line commented out",
 			defects: []string{"A commented-out line reads Enabled: the check is a substring (file_environment_repository.go:124), and sudo reads the line as a comment [I, sudoers(5)], so the variable is not kept.", oneFile}},
 		{name: "environment_open_elsewhere", screen: "Environment (main menu 8), the line in /etc/sudoers.d/hardn-env-alice, q", script: "q\n",
-			vars: sudoAlice, start: "alice's file holds her grant alone; /etc/sudoers.d/hardn-env-alice holds the line, as pkg/host/sudoers writes it (sudoers.go:343-346)",
+			vars: sudoAlice, start: "alice's file holds the grant alone; /etc/sudoers.d/hardn-env-alice holds the line, as pkg/host/sudoers writes it (sudoers.go:343-346)",
 			seeds: append(withFile("/etc/sudoers.d/alice", grantLine, 0o440),
 				envSeed{path: "/etc/sudoers.d/hardn-env-alice", content: "# Managed by hardn\n" + keepLine, mode: 0o440}),
 			defects: []string{"The variable kept by another file reads Disabled: here the file the trunk's pkg/host/sudoers writes for it (docs/safety/sudoers.md §2); a line in /etc/sudoers or any other drop-in reads the same.", oneFile}},
 		{name: "environment_keep_not_root", screen: "Environment (main menu 8), 1 (Setup sudo environment preservation), then q", script: "1\n\nq\n", item1: true,
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone",
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone",
 			defects: []string{notReach},
 			notes:   []string{rootPath, redraw}},
 		{name: "environment_keep_dry_run", screen: "Environment (main menu 8) in dry-run mode, 1, then q", script: "1\n\nq\n", item1: true, dryRun: true,
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone",
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone",
 			defects: []string{notReach},
 			notes:   []string{dryRoot, planOnly}},
 		{name: "environment_guide", screen: "Environment (main menu 8), 2 (Show environment variables guide), then q", script: "2\n\nq\n",
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone",
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone",
 			defects: []string{"The guide's three headings print an empty bold span, then their words unstyled: style.Bolded(\"\", style.Blue) is the argument, the heading the format (environment_settings_menu.go:124, :129, :134)."},
 			notes:   []string{"The guide's last step appends the export to ~/.bashrc (environment_settings_menu.go:135); the probe asks alice's login shell (su -, config.go:336), and Debian's and Ubuntu's stock ~/.bashrc returns early when not interactive [I, /etc/skel/.bashrc], so the line would not reach it [I, not run].", redraw}},
 		{name: "environment_invalid", screen: "Environment (main menu 8), 7 (no such option), then q", script: "7\n\nq\n",
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone"},
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone"},
 		{name: "environment_return", screen: "Environment (main menu 8), 0", script: "0\n",
-			vars: sudoAlice, seeds: grant, start: "alice's file holds her grant alone"},
+			vars: sudoAlice, seeds: grant, start: "alice's file holds the grant alone"},
 	}
 }
 

@@ -7,7 +7,7 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Ubuntu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped her␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -34,7 +34,7 @@ $
 $
 # Note$
 # Mock: the Environment screen. web-01.example.net runs Ubuntu$
-# 26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped her$
+# 26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped$
 # HARDN_CONFIG.$
 $
 # Environment Variable Settings ################################$
@@ -62,7 +62,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUbuntu 26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -93,7 +93,7 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Ubuntu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped her␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m26.04, sudo-rs 0.2.13. alice ran sudo hardn; sudo dropped␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$

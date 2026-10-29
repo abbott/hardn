@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), 0 (pkg/menu), run in a child process
 # Script: stdin "0\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant alone; dryRun false
+# Start: alice's file holds the grant alone; dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----

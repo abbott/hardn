@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8) in dry-run mode, 1, then q (pkg/menu), run in a child process
 # Script: stdin "1\n\nq\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant alone; dryRun true
+# Start: alice's file holds the grant alone; dryRun true
 # Pauses: 1 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: This branch is unreachable in hardn: cmd/hardn refuses a user other than root before the menu (cmd/hardn/main.go:147-152), so "This operation requires sudo privileges." and "Please run: sudo hardn setup-sudo-env" (environment_settings_menu.go:82-84) show only here, where the test is not root.
 # NOTE: Under dry run, as root, item 1 prints "[DRY-RUN] Would configure sudo to preserve HARDN_CONFIG environment variable" and calls nothing (environment_settings_menu.go:86-87, read, not run): the dry-run check is inside the root branch, after the euid check.

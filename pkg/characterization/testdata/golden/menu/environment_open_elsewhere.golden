@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), the line in /etc/sudoers.d/hardn-env-alice, q (pkg/menu), run in a child process
 # Script: stdin "q\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant alone; /etc/sudoers.d/hardn-env-alice holds the line, as pkg/host/sudoers writes it (sudoers.go:343-346); dryRun false
+# Start: alice's file holds the grant alone; /etc/sudoers.d/hardn-env-alice holds the line, as pkg/host/sudoers writes it (sudoers.go:343-346); dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: The variable kept by another file reads Disabled: here the file the trunk's pkg/host/sudoers writes for it (docs/safety/sudoers.md §2); a line in /etc/sudoers or any other drop-in reads the same.
 # KNOWN-DEFECT: The status reads one file, /etc/sudoers.d/<SUDO_USER, else USER>, for the text `env_keep += "HARDN_CONFIG"` (file_environment_repository.go:110-124, :134-139): not the rules sudo applies.

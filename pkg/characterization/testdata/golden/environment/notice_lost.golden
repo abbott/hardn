@@ -8,7 +8,7 @@
 # KNOWN-DEFECT: `su - alice` from root runs alice's login shell and its profile, as root's child, without a password (side-effects.md row 5) [I]; here su is a stand-in that prints the case's answer.
 # KNOWN-DEFECT: The notice prints before the file is looked for (config.go:350-356): here hardn was given -f, and the file loads.
 # KNOWN-DEFECT: The probe runs on every LoadConfig: at start (cmd/hardn/main.go:156, after the root check) and each time the User Management screens read a user (getConfigForSSHKeyPath, os_user_repository.go:20-35, from user_menu.go:68, :155, :208 and user_options.go:329, :417), so the notice can print mid-session there (read).
-# NOTE: The notice says to run sudo hardn setup-sudo-env, which writes for SUDO_USER, alice, into the file that holds her grant (ops/setup_sudo_preservation/*.golden; environment/keep_*.golden).
+# NOTE: The notice says to run sudo hardn setup-sudo-env, which writes for SUDO_USER, alice, into the file that holds the grant (ops/setup_sudo_preservation/*.golden; environment/keep_*.golden).
 # The output as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 $

@@ -194,7 +194,7 @@ func envHosts() []envHost {
 	const (
 		deb    = hostFQDN + " runs Debian 13, sudo 1.9.16p2. "
 		viaSud = "alice ran sudo hardn; "
-		drop   = "sudo dropped her HARDN_CONFIG."
+		drop   = "sudo dropped HARDN_CONFIG."
 		setup  = hostFQDN + " runs Alpine 3.24 after setup-alpine, doas; alice is in wheel. alice ran doas hardn. "
 		wheel  = setup + "/etc/doas.d/20-wheel.conf says permit persist :wheel. "
 		cloud  = hostFQDN + " runs Alpine 3.23's cloud image, doas, as the maintainer's VM; alice is in wheel, and the image's /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran doas hardn. "
@@ -205,17 +205,17 @@ func envHosts() []envHost {
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "sudo-rs, not kept", host: socketHost, env: sudoAlice,
 			note: hostFQDN + " runs Ubuntu 26.04, sudo-rs 0.2.13. " + viaSud + drop},
 		{name: "alpine324", label: "Alpine 3.24", about: "doas through wheel", host: alpineWheel, env: doasAlice,
-			note: wheel + "hardn has no rule for her, so item 1 refuses before asking."},
+			note: wheel + "hardn has no rule for alice, so item 1 refuses before asking."},
 		{name: "alpine324-rule", label: "Alpine, rule", about: "Treatment doas-rule", host: alpineWheel, env: doasAlice,
 			t:    envTreatment{doasRule: true},
-			note: wheel + "Drawn with decision 1 (b), not recommended: item 1 writes a rule for her."},
+			note: wheel + "Drawn with decision 1 (b), not recommended: item 1 writes a rule for alice."},
 		{name: "alpine324-setenv", label: "Alpine, setenv on wheel", about: "The refusal followed", host: wheelSetenv, env: doasKept,
-			note: setup + "She did what item 1's refusal says: 20-wheel.conf says permit persist setenv { HARDN_CONFIG } :wheel, and doas kept /home/alice/hardn.yml. hardn has no rule for her, so the screen says Not kept and item 1 refuses again."},
+			note: setup + "alice did what item 1's refusal says: 20-wheel.conf says permit persist setenv { HARDN_CONFIG } :wheel, and doas kept /home/alice/hardn.yml. hardn has no rule for alice, so the screen says Not kept and item 1 refuses again."},
 		{name: "alpine323-cloud", label: "Alpine cloud image", about: "wheel.conf read after", host: alpineCloud, env: doasAlice,
 			t:    envTreatment{doasRule: true},
-			note: cloud + "Drawn with decision 1 (b), not recommended: wheel.conf sorts after the rule item 1 writes, so its rule wins for her."},
+			note: cloud + "Drawn with decision 1 (b), not recommended: wheel.conf sorts after the rule item 1 writes, so its rule wins for alice."},
 		{name: "doas-overridden", label: "doas, overridden", about: "hardn's rule, wheel.conf after", host: doasOverridden, env: doasAlice,
-			note: cloud + "hardn's rule for her keeps HARDN_CONFIG, but wheel.conf's wins, so doas dropped it. Stopping rewrites a rule that asks her password."},
+			note: cloud + "hardn's rule for alice keeps HARDN_CONFIG, but wheel.conf's wins, so doas dropped it. Stopping rewrites a rule that asks for alice's password."},
 		{name: "pve9", label: "Proxmox VE 9", about: "no sudo", host: func() *fakeHost { return simulate(pve9Platform) }, env: rootLogin,
 			note: hostFQDN + " is a Proxmox VE 9 node: no sudo, no doas. root logged in."},
 		{name: "kept", label: "Kept", about: "hardn-env-alice there", host: keptHost, env: keptAlice,
@@ -921,7 +921,7 @@ func envMocks() []envMock {
 			draw: onEnvHost("debian13", func(r envReading, c component.Ctx) string { return r.originScreen().Render(c) })},
 		envMock{name: "item1-doas-refuse", note: "Decision 1 (a), recommended: item 1 on alpine324 refuses before asking, as sudoers.PlanFor refuses an env-only Policy on doas (ErrEnvNeedsGrant).",
 			draw: onEnvHost("alpine324", itemOne)},
-		envMock{name: "item1-doas-rule", note: "Decision 1 (b), not recommended: item 1 on alpine324-rule writes a rule for alice, permit persist setenv { HARDN_CONFIG } alice, and says first that it grants her doas. Its plan is lockout-risk (sudoers.RiskLockout: a grant that asks a password), so it is confirmed by typing the hostname.",
+		envMock{name: "item1-doas-rule", note: "Decision 1 (b), not recommended: item 1 on alpine324-rule writes a rule for alice, permit persist setenv { HARDN_CONFIG } alice, and says first that it grants alice doas. Its plan is lockout-risk (sudoers.RiskLockout: a grant that asks a password), so it is confirmed by typing the hostname.",
 			draw: onEnvHost("alpine324-rule", itemOne)},
 		envMock{name: "guide", note: "Mock: Guide (2), origin/main's guide shortened, under the screen's prompt.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return guide().Render(c), nil }},

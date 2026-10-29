@@ -17,7 +17,7 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, sudo-rs 0.2.13. alice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran sudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran sudo hardn; sudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -100,7 +100,7 @@ $
 $
 # Info: environment/ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04, sudo-rs 0.2.13. alice$
-# ran sudo hardn; sudo dropped her HARDN_CONFIG.$
+# ran sudo hardn; sudo dropped HARDN_CONFIG.$
 $
 # Environment Variable Settings ################################$
 $
@@ -183,7 +183,7 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, sudo-rs 0.2.13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran sudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran sudo hardn; sudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

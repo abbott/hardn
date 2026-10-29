@@ -9,7 +9,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. hardn's /etc/sudoers.d/hardn-grant-alice␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets alice use sudo without a password; alice ran sudo hardn;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -37,7 +37,7 @@ $
 # Mock: the Environment screen. web-01.example.net runs Debian$
 # 13, sudo 1.9.16p2. hardn's /etc/sudoers.d/hardn-grant-alice$
 # lets alice use sudo without a password; alice ran sudo hardn;$
-# sudo dropped her HARDN_CONFIG.$
+# sudo dropped HARDN_CONFIG.$
 $
 # Environment Variable Settings ################################$
 $
@@ -65,7 +65,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, sudo 1.9.16p2. hardn's /etc/sudoers.d/hardn-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgrant-alice lets alice use sudo without a password; alice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran sudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran sudo hardn; sudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -98,7 +98,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Environment screen. web-01.example.net runs Debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13, sudo 1.9.16p2. hardn's /etc/sudoers.d/hardn-grant-alice␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets alice use sudo without a password; alice ran sudo hardn;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m################################␛[m$
 $

@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), HARDN_CONFIG set and kept, q (pkg/menu), run in a child process
 # Script: stdin "q\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG /home/alice/hardn.yml, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden); dryRun false
+# Start: alice's file holds the grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden); dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # NOTE: "Current HARDN_CONFIG" is hardn's own environment (environment_settings_menu.go:37): under sudo, what env_keep let through, not what the user set; nothing on the screen says which file hardn loaded.
 # NOTE: Each draw reads the file twice: GetEnvironmentConfig checks it for its own PreserveSudo (file_environment_repository.go:141-147), which the service does not use, then checks it again (environment_service.go:53-65).

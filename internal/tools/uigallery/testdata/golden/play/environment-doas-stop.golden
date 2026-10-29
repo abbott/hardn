@@ -19,9 +19,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas, as␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe maintainer's VM; alice is in wheel, and the image's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice ran␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. hardn's rule for her keeps HARDN_CONFIG, but␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. hardn's rule for alice keeps HARDN_CONFIG, but␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf's wins, so doas dropped it. Stopping rewrites a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule that asks her password.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule that asks for alice's password.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -174,9 +174,9 @@ $
 # web-01.example.net runs Alpine 3.23's cloud image, doas, as$
 # the maintainer's VM; alice is in wheel, and the image's$
 # /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran$
-# doas hardn. hardn's rule for her keeps HARDN_CONFIG, but$
+# doas hardn. hardn's rule for alice keeps HARDN_CONFIG, but$
 # wheel.conf's wins, so doas dropped it. Stopping rewrites a$
-# rule that asks her password.$
+# rule that asks for alice's password.$
 $
 # Environment Variable Settings ################################$
 $
@@ -329,9 +329,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas the maintainer's VM; alice is in wheel, and the image's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. hardn's rule for her keeps HARDN_CONFIG,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. hardn's rule for alice keeps HARDN_CONFIG,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbut wheel.conf's wins, so doas dropped it. Stopping␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrewrites a rule that asks her password.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrewrites a rule that asks for alice's password.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

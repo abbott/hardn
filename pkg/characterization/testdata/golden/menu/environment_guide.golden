@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), 2 (Show environment variables guide), then q (pkg/menu), run in a child process
 # Script: stdin "2\n\nq\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant alone; dryRun false
+# Start: alice's file holds the grant alone; dryRun false
 # Pauses: 1 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # KNOWN-DEFECT: The guide's three headings print an empty bold span, then their words unstyled: style.Bolded("", style.Blue) is the argument, the heading the format (environment_settings_menu.go:124, :129, :134).
 # NOTE: The guide's last step appends the export to ~/.bashrc (environment_settings_menu.go:135); the probe asks alice's login shell (su -, config.go:336), and Debian's and Ubuntu's stock ~/.bashrc returns early when not interactive [I, /etc/skel/.bashrc], so the line would not reach it [I, not run].

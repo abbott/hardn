@@ -21,7 +21,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice ran␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. Drawn with decision 1 (b), not recommended:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf sorts after the rule item 1 writes, so its rule␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwins for her.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwins for alice.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -175,7 +175,7 @@ $
 # /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran$
 # doas hardn. Drawn with decision 1 (b), not recommended:$
 # wheel.conf sorts after the rule item 1 writes, so its rule$
-# wins for her.$
+# wins for alice.$
 $
 # Environment Variable Settings ################################$
 $
@@ -329,7 +329,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. Drawn with decision 1 (b), not␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecommended: wheel.conf sorts after the rule item 1␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites, so its rule wins for her.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites, so its rule wins for alice.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -3,7 +3,7 @@
 # Screen: Environment (main menu 8), HARDN_CONFIG unset, the line not there, q (pkg/menu), run in a child process
 # Script: stdin "q\n", not a terminal, so nothing typed is echoed
 # Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
-# Start: alice's file holds her grant alone; dryRun false
+# Start: alice's file holds the grant alone; dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # NOTE: "Current HARDN_CONFIG" is hardn's own environment (environment_settings_menu.go:37): under sudo, what env_keep let through, not what the user set; nothing on the screen says which file hardn loaded.
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.

@@ -18,7 +18,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/grant␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. hardn's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice lets alice use sudo without a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword; alice ran sudo hardn; sudo dropped her HARDN_CONFIG.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword; alice ran sudo hardn; sudo dropped HARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -102,7 +102,7 @@ $
 # Info: environment/grant$
 # web-01.example.net runs Debian 13, sudo 1.9.16p2. hardn's$
 # /etc/sudoers.d/hardn-grant-alice lets alice use sudo without a$
-# password; alice ran sudo hardn; sudo dropped her HARDN_CONFIG.$
+# password; alice ran sudo hardn; sudo dropped HARDN_CONFIG.$
 $
 # Environment Variable Settings ################################$
 $
@@ -186,7 +186,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/grant␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, sudo 1.9.16p2. hardn's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-alice lets alice use sudo␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout a password; alice ran sudo hardn; sudo dropped her␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout a password; alice ran sudo hardn; sudo dropped␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
