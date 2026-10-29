@@ -1,0 +1,5 @@
+# hardn's configuration (web-01.example.net)
+username: "alice"                 # Default username to create. (See: `sshAllowedUsers`)
+sshPort: 2230                     # SSH port (this is the authoritative SSH port used throughout the configuration)
+enableBackups: false              # Backup files before modifying them
+backupPath: "/var/backups/hardn"  # Path to store backups

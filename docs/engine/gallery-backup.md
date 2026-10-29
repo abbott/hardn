@@ -39,7 +39,7 @@ Each claim is **run** (a golden of `TestLegacyMenuBackup`, `menu/backup_<case>.g
 - **Either way** it saves the whole configuration to `./hardn.yml` (`backup_menu.go:153-161`; row 29), pauses, and draws the screen again by calling itself (`:165-167`).
 - **A failed enable** (a regular file at the path: "✗ Error toggling backups: failed to create backup directory …: not a directory") saves nothing, yet the screen drawn again says Enabled and shows item 3: the repository set `Enabled` before its check (`:250-256`), and nothing undoes it.
 
-### 2.4 Option 2, the path (run: `backup_path_relative`, `backup_path_empty`, `backup_path_unsafe`, `backup_path_tilde`, `backup_path_fails`, `backup_path_dry_run`)
+### 2.4 Option 2, the path (run: `backup_path_relative`, `backup_path_empty`, `backup_path_unsafe`, `backup_path_tilde`, `backup_path_fails`, `backup_path_dry_run`; `backup_path`, a new path taken live, added in `next/s3-parity`)
 
 - "- Current backup path: <path>", "- Enter new backup path: " (`ReadInput`).
 - Nothing typed: "- Backup path unchanged".
@@ -234,7 +234,7 @@ Others found:
 ## 9. Not in this unit
 
 - **(b) The control**, on the engine, with its own goldens (*built in `next/s3-control`, [control-backup.md](control-backup.md)*): Backup's settings as a control (`Check`; `Plan` the save of `enableBackups` and `backupPath`), the refusals' words, and decisions 7 and 8's engine side. **It begins by extracting the DNS screen's shared glue out of `pkg/screens/dns`** (the planning adapter around `output.FlowEngine`, `adopt`, the refusal words) **and the parity harness out of `pkg/screens/dns`'s tests into shared packages**, slice 3 being their second user ([parity-dns.md](parity-dns.md)). *Done in `next/s3-shared`: `pkg/screens/screenkit` and `internal/parity` ([screen-kit.md](screen-kit.md)); these mocks use `screenkit.Adopt` and `screenkit.Apart`.*
-- **(b2) Parity**: origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision; the characterization goldens of §2 are its legacy side.
+- **(b2) Parity**: origin/main's end state against the new path's (hardn.yml's two keys; what is written under `backupPath`), each difference tied to a V-number or a decision; the characterization goldens of §2 are its legacy side. *Built in `next/s3-parity`* ([parity-backup.md](parity-backup.md)).
 - **(c) The screen** on the design system and prompt kit, `pkg/screens/backup`, retiring these mocks.
 - **(d) The legacy path replaced**: main menu 5 to the new screen, 2b's plan-only refusal lifted (decision 10, adopted), `backup_menu.go` and the legacy backup layers deleted after (b2), their goldens frozen as the parity record.
 

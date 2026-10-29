@@ -79,7 +79,8 @@ type backupCase struct {
 // backupCases are the Backup screen's options: open and leave, live and
 // in dry run, with the directory there, not there or a file; 1 each way,
 // failing, and in dry run; 2 relative, empty, under a directory anyone
-// can change, with ~, under a file, and in dry run; 3 (Verify), live, in
+// can change, with ~, under a file, and to a new directory, live and in
+// dry run; 3 (Verify), live, in
 // dry run, and failing; 3 while hidden; an invalid key; 0.
 func backupCases() []backupCase {
 	const (
@@ -123,6 +124,9 @@ func backupCases() []backupCase {
 			notes:   []string{"HOME is $TMP/home here."}},
 		{name: "backup_path_fails", screen: "Backup (main menu 5), backups on, 2 (path) under a regular file, then q", script: "2\n$TMP/afile/backups\n\nq\n", enabled: true, at: atDir, afile: true,
 			defects: []string{"The change fails, yet the screen drawn again shows the new path: the repository set it before its check (file_backup_repository.go:248-256), and nothing undoes it. ./hardn.yml is not saved."}},
+		{name: "backup_path", screen: "Backup (main menu 5), backups on, 2 (path) to a new directory, then q", script: "2\n$TMP/other\n\nq\n", enabled: true, at: atDir,
+			defects: []string{"The repository makes the new path 0755 and writes and removes its .write_test (file_backup_repository.go:248-256, :220-238).", whole},
+			notes:   []string{nothing}},
 		{name: "backup_path_dry_run", screen: "Backup (main menu 5) in dry-run mode, backups on, 2 (path) to a new directory, then q", script: "2\n$TMP/other\n\nq\n", enabled: true, dryRun: true, at: atDir,
 			defects: []string{"In dry run too, a new path is made, its .write_test written and removed, and ./hardn.yml saved."},
 			notes:   []string{readsNo, refused, asLoad}},
