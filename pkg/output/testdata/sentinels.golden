@@ -55,6 +55,7 @@ engine.ErrRolledBack ROLLED_BACK
 engine.ErrUnjournalled CHANGE_UNJOURNALLED
 engine.ErrUnsupported PLATFORM_UNSUPPORTED
 engine.ErrWindow CONFIRM_WINDOW_CLOSING
+environment.ErrNoUser ENVIRONMENT_NO_USER
 fs.ErrNotExist FILE_NOT_FOUND
 fs.ErrPermission PERMISSION_DENIED
 host.ErrHardLink HARD_LINK_REFUSED

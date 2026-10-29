@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -294,6 +295,10 @@ var errorCodes = []Entry{
 	// A file of hardn's that PolicyOf cannot read back as a Policy, named
 	// (sudoers.EditedError; refactor plan slice 9, unit (b)).
 	is("SUDOERS_FILE_EDITED", sudoers.ErrEdited),
+	// The Environment control's refusal where no user ran hardn through the
+	// tool, a root login (environment.ErrNoUser; refactor plan slice 9,
+	// unit (b), decision 2 (a)).
+	is("ENVIRONMENT_NO_USER", environment.ErrNoUser).what("no user ran hardn through sudo or doas (a root login), so there is no user to keep HARDN_CONFIG for"),
 
 	// Alpine's updates (pkg/host/alpine).
 	is("ALPINE_NOT_ALPINE", alpine.ErrNotAlpine),

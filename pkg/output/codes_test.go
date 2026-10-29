@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
+	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -202,6 +203,7 @@ var sentinels = map[string]error{
 	"ufw.ErrStateUnknown":            ufw.ErrStateUnknown,
 	"ufw.ErrVerify":                  ufw.ErrVerify,
 	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
+	"environment.ErrNoUser":          environment.ErrNoUser,
 }
 
 // otherSentinels are the sentinels of other packages that have codes of
