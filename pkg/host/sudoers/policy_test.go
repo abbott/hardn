@@ -248,19 +248,31 @@ func TestPolicyOfEdited(t *testing.T) {
 	}
 }
 
-// TestPolicyOfMode: the content is read, not the mode or owner, which the
-// next plan rewrites, as for any Policy (TestPlanIdempotent).
+// TestPolicyOfMode: the content is read, not the mode or owner. PlanFor
+// plans the same bytes rewritten 0440 root:root, as for any Policy
+// (TestPlanIdempotent); the plan's check (Plan.Check), which the journal
+// runs before the engine applies it (pkg/host/revert/plans), takes that
+// only where the old file is root's alone: 0644 root:root, not 0644
+// owned by 1000:1000, which the engine refuses rather than rewrites.
 func TestPolicyOfMode(t *testing.T) {
 	const env = "/etc/sudoers.d/hardn-env-alice"
-	h := sudoHost(t)
-	h.AddFile(env, []byte(sudoers.Header+"Defaults:alice env_keep += \"HARDN_CONFIG\"\n"), 0o644, 1000, 1000)
-	st, pol, err := readBack(t, h, sudoChoice, "alice")
-	if err != nil || !samePolicy(pol, sudoers.Policy{User: "alice", Env: keep}) {
-		t.Fatalf("PolicyOf = %+v, %v", pol, err)
-	}
-	p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
-	if err != nil || len(p.Changes) != 1 || p.Changes[0].Path != env || string(p.Changes[0].Data) != string(st.Files[env].Data) || p.Changes[0].Mode != sudoers.SudoMode {
-		t.Errorf("plan = %+v, %v; want the same bytes written 0440 root:root", p.Changes, err)
+	for _, tc := range []struct {
+		uid, gid int
+		checks   bool
+	}{{0, 0, true}, {1000, 1000, false}} {
+		h := sudoHost(t)
+		h.AddFile(env, []byte(sudoers.Header+"Defaults:alice env_keep += \"HARDN_CONFIG\"\n"), 0o644, tc.uid, tc.gid)
+		st, pol, err := readBack(t, h, sudoChoice, "alice")
+		if err != nil || !samePolicy(pol, sudoers.Policy{User: "alice", Env: keep}) {
+			t.Fatalf("%d:%d: PolicyOf = %+v, %v", tc.uid, tc.gid, pol, err)
+		}
+		p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
+		if err != nil || len(p.Changes) != 1 || p.Changes[0].Path != env || string(p.Changes[0].Data) != string(st.Files[env].Data) || p.Changes[0].Mode != sudoers.SudoMode {
+			t.Errorf("%d:%d: plan = %+v, %v; want the same bytes written 0440 root:root", tc.uid, tc.gid, p.Changes, err)
+		}
+		if err := p.Check(); (err == nil) != tc.checks || err != nil && !errors.Is(err, fs.ErrInvalid) {
+			t.Errorf("%d:%d: Check = %v, want it to pass %v", tc.uid, tc.gid, err, tc.checks)
+		}
 	}
 }
 

@@ -35,8 +35,9 @@ func (e *EditedError) Unwrap() error { return ErrEdited }
 // sudoEnv, doasRule): any other content, a comment or a rule added, the
 // list empty, a name repeated or not a variable's, is an *EditedError
 // naming the file, one per file, joined when there are two; never a
-// guess. The mode and owner are not read here: a wrong one is rewritten by
-// the next plan, as PlanFor rewrites it for any Policy. A file that is not
+// guess. The mode and owner are not read here: PlanFor plans a wrong one
+// rewritten, as for any Policy, and Plan.Check, which the journal runs,
+// refuses that where the old file is not root's alone. A file that is not
 // there contributes nothing: no grant, no variables.
 //
 // Errors besides: ErrUserName, and fs.ErrInvalid for a tool that is not

@@ -2,6 +2,7 @@ package environment_test
 
 import (
 	"context"
+	"io/fs"
 	"strings"
 	"testing"
 	"time"
@@ -146,6 +147,19 @@ func (h *testHost) with(t *testing.T, pol sudoers.Policy) *testHost {
 	for _, c := range p.Changes {
 		h.AddFile(c.Path, c.Data, c.Mode, 0, 0)
 	}
+	return h
+}
+
+// moded gives name on h, a file of hardn's that with wrote, mode perm and
+// owner uid:gid, its bytes as they are: hardn's content, another mode or
+// owner.
+func (h *testHost) moded(t *testing.T, name string, perm fs.FileMode, uid, gid int) *testHost {
+	t.Helper()
+	e, ok := h.Entry(name)
+	if !ok {
+		t.Fatalf("%s: not there", name)
+	}
+	h.AddFile(name, e.Data, perm, uid, gid)
 	return h
 }
 

@@ -152,12 +152,16 @@ type Reading struct {
 	// steps.SudoersFinding: the files read after hardn's rule (Later),
 	// lines of the main file after its includedir, origin/main's file.
 	Findings []engine.Finding
-	// Refused is why item 1's change is refused, the state read: on doas,
-	// keeping HARDN_CONFIG where hardn has no rule for User (decision 1
-	// (a); a *steps.Refusal). nil when item 1 asks.
+	// Refused is why item 1's change is refused, the state read, as Plan
+	// refuses it: on doas, keeping HARDN_CONFIG where hardn has no rule
+	// for User (decision 1 (a); a *steps.Refusal); a file of hardn's that
+	// the change rewrites or removes and that is not root's alone, which
+	// the journal does not accept (plans.ErrPlan, as it is). nil when
+	// item 1 asks.
 	Refused error
 	// Risk: item 1's change is lockout-risk (sudoers.RiskLockout: on doas,
-	// a rule of hardn's that asks the user's password, rewritten).
+	// a rule of hardn's that asks the user's password, rewritten; never
+	// on sudo, where the change is to hardn-env-<stem> alone).
 	Risk bool
 }
 
@@ -228,18 +232,19 @@ func (r Reading) Words() (value, note string) {
 
 // Read reads the Environment of sys, changing nothing: the tool f gives,
 // the user getenv names for it and HARDN_CONFIG there, hardn's files for
-// that user, origin/main's line, and item 1's plan, keeping HARDN_CONFIG,
-// or stopping once hardn's files keep it (decision 5 (a)): whether it is
-// refused (Refused) and whether it is lockout-risk (Risk). A screen draws
-// its rows from it and refuses item 1 before it asks with Refusal.
+// that user, origin/main's line, and item 1's change, keeping
+// HARDN_CONFIG, or stopping once hardn's files keep it (decision 5 (a)),
+// built as Plan builds it (change): whether it is refused (Refused) and
+// whether it is lockout-risk (Risk). A screen draws its rows from it and
+// refuses item 1 before it asks with Refusal.
 func Read(ctx context.Context, sys host.System, f detect.Facts, getenv func(string) string) Reading {
 	r, st := read(ctx, sys, f, getenv)
 	if r.Err != nil {
 		return r
 	}
-	p, err := planFor(r, st, r.Kept)
+	c, err := change(r, st, r.Kept)
 	r.Refused = err
-	r.Risk = slices.ContainsFunc(p.Changes, func(c sudoers.Change) bool { return c.Risk == sudoers.RiskLockout })
+	r.Risk = c != nil && c.Risk == engine.RiskLockout
 	return r
 }
 
@@ -294,12 +299,15 @@ func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(stri
 
 // planFor is sudoers' plan of item 1's change on r's host, read as st:
 // r.Policy with HARDN_CONFIG taken out of its variables (stop) or added
-// after them, its grant and every other variable carried as read, so that
-// on sudo the grant's file is not planned for its content and the change
-// is to hardn-env-<stem> alone, with no lockout risk. An empty plan when
-// the variables would not change. On doas, keeping it where hardn has no
-// rule for the user is refused (decision 1 (a): the rule that lets the
-// user use doas is not hardn's to write). Pure.
+// after them, its grant and every other variable carried as read. An
+// empty plan when the variables would not change. On sudo the change is
+// to hardn-env-<stem> alone, with no lockout risk: the grant is carried,
+// so PlanFor plans its file only where its mode or owner is not hardn's
+// (sudoers.md §2 item 7), which is the grant's to repair (slice 5), not
+// this change's, and that change is left out of the plan. On doas, where
+// one rule holds both, the rule is the change; keeping HARDN_CONFIG where
+// hardn has no rule for the user is refused (decision 1 (a): the rule
+// that lets the user use doas is not hardn's to write). Pure.
 func planFor(r Reading, st sudoers.State, stop bool) (sudoers.Plan, error) {
 	pol := r.Policy
 	pol.Env = slices.Clone(pol.Env)
@@ -313,10 +321,41 @@ func planFor(r Reading, st sudoers.State, stop bool) (sudoers.Plan, error) {
 		return sudoers.Plan{Tool: st.Choice.Tool, Main: st.Main}, nil
 	}
 	p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
-	if errors.Is(err, sudoers.ErrEnvNeedsGrant) {
+	switch {
+	case errors.Is(err, sudoers.ErrEnvNeedsGrant):
 		return p, r.noRule(err)
+	case err != nil:
+		return p, err
 	}
-	return p, err
+	if st.Choice.Tool == sudoers.ToolSudo {
+		n, err := sudoers.FileNames(sudoers.ToolSudo, r.User)
+		if err != nil {
+			return sudoers.Plan{Tool: st.Choice.Tool}, err // not reached: PlanFor took the name
+		}
+		p.Changes = slices.DeleteFunc(p.Changes, func(c sudoers.Change) bool { return c.Path != n.Env })
+	}
+	return p, nil
+}
+
+// change is item 1's change on r's host, read as st, keeping
+// HARDN_CONFIG or stopping (stop): planFor's plan as the engine's change,
+// steps.Sudoers, which refuses a plan its journal does not accept (a file
+// of hardn's not root's alone: sudoers.Plan.Check), so that Read refuses
+// what Plan would. nil when nothing changes. Pure.
+func change(r Reading, st sudoers.State, stop bool) (*engine.Change, error) {
+	p, err := planFor(r, st, stop)
+	if err != nil || len(p.Changes) == 0 {
+		return nil, err
+	}
+	id, summary := ChangeKeep, SummaryKeep
+	if stop {
+		id, summary = ChangeStop, SummaryStop
+	}
+	c, err := steps.Sudoers(id, p, summary)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 // Check reads the Environment of sys (Read, without item 1's plan):
@@ -406,32 +445,26 @@ func evidence(r Reading, getenv func(string) string) []string {
 // HARDN_CONFIG" (decided), sudoers' findings on it. The user's Policy is
 // read from hardn's files and changed in its variables alone, the grant
 // and every other variable carried as read (planFor), so on sudo the
-// change writes or removes hardn-env-<stem>, or rewrites its list, and is
-// never lockout-risk for that; on doas it rewrites hardn's rule for the
-// user, lockout-risk for a rule that asks a password (steps.Sudoers'
-// risk), and never writes the user's first rule (decision 1 (a)). Nothing
-// to change plans nothing. Every refusal comes before any change, with a
-// report where it has words: no tool, no user, a file of hardn's edited
-// by hand, doas with no rule of hardn's for the user (Reading.Refusal);
-// the others as they are.
+// change writes or removes hardn-env-<stem>, or rewrites its list, and
+// nothing else, never lockout-risk, whatever the grant's file's mode or
+// owner; on doas it rewrites hardn's rule for the user, lockout-risk for
+// a rule that asks a password (steps.Sudoers' risk), and never writes the
+// user's first rule (decision 1 (a)). Nothing to change plans nothing.
+// Every refusal comes before any change, the same as Read's
+// (Reading.Refusal), with a report where it has words: no tool, no user,
+// a file of hardn's edited by hand, doas with no rule of hardn's for the
+// user; the others as they are, a file of hardn's not root's alone among
+// them.
 func (k Keep) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	r, st := read(ctx, sys, in.Facts, k.Getenv)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	p, err := planFor(r, st, k.Stop)
-	if err != nil || len(p.Changes) == 0 {
+	c, err := change(r, st, k.Stop)
+	if err != nil || c == nil {
 		return nil, err
 	}
-	id, summary := ChangeKeep, SummaryKeep
-	if k.Stop {
-		id, summary = ChangeStop, SummaryStop
-	}
-	c, err := steps.Sudoers(id, p, summary)
-	if err != nil {
-		return nil, err
-	}
-	return []engine.Change{c}, nil
+	return []engine.Change{*c}, nil
 }
 
 // noToolWhy is the refusal where neither tool is installed (decided,

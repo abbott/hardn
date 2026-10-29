@@ -79,6 +79,9 @@ func TestRead(t *testing.T) {
 			env: sudoKept, tool: sudoers.ToolSudo, user: "alice", value: keptValue, kept: true, value2: "Kept"},
 		{name: "grant", host: func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)) },
 			env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
+		{name: "grant at 0640", host: func(t *testing.T) *testHost {
+			return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o640, 0, 0)
+		}, env: sudoAlice, tool: sudoers.ToolSudo, user: "alice", value2: "Not kept"},
 		{name: "legacy", host: func(t *testing.T) *testHost { return legacyHost(t, legacyLines) }, env: sudoKept, tool: sudoers.ToolSudo, user: "alice",
 			value: keptValue, legacy: "/etc/sudoers.d/alice", value2: "Kept by /etc/sudoers.d/alice"},
 		{name: "legacy, commented", host: func(t *testing.T) *testHost {
@@ -240,6 +243,32 @@ func TestRefusals(t *testing.T) {
 			}
 		})
 	}
+	// hardn-env-alice with hardn's bytes, but not a file only root can
+	// write: the state read, Kept, and item 1's change refused before it
+	// asks, as Plan refuses it (the journal's check of the plan,
+	// sudoers.Plan.Check through steps.Sudoers), the error as it is.
+	for _, tt := range []struct {
+		name     string
+		perm     fs.FileMode
+		uid, gid int
+	}{
+		{"another owner", 0o440, 1000, 1000},
+		{"group-writable", 0o660, 0, 0},
+	} {
+		t.Run("hardn-env-alice, "+tt.name, func(t *testing.T) {
+			h := newHost(t, debian13).with(t, grant(sudoers.GrantNone, "HARDN_CONFIG")).moded(t, "/etc/sudoers.d/hardn-env-alice", tt.perm, tt.uid, tt.gid)
+			n := len(h.Calls())
+			r := environment.Read(ctx, h, h.facts, lookup(sudoKept))
+			var rf *steps.Refusal
+			if r.Err != nil || !r.Kept || r.Refused == nil || errors.As(r.Refused, &rf) || output.CodeOf(r.Refused) != "PLAN_INVALID" {
+				t.Fatalf("err %v, kept %v, refused %v (%s)", r.Err, r.Kept, r.Refused, output.CodeOf(r.Refused))
+			}
+			if _, err := (environment.Keep{Getenv: lookup(sudoKept), Stop: true}).Plan(ctx, h, engine.Input{Facts: h.facts}); err == nil || err.Error() != r.Refused.Error() {
+				t.Errorf("Plan: %v, Read: %v", err, r.Refused)
+			}
+			reads(t, h, n)
+		})
+	}
 }
 
 // TestCheck is the state on each host, with its detail and evidence:
@@ -367,6 +396,17 @@ func TestPlan(t *testing.T) {
 		}, sudoKept, false, "", "", engine.RiskPlain, nil},
 		{"keep, a password grant carried", func(t *testing.T) *testHost { return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)) }, sudoAlice, false,
 			"/etc/sudoers.d/hardn-env-alice", env("HARDN_CONFIG"), engine.RiskPlain, nil},
+		// The grant's file at another mode or owner, its bytes hardn's: the
+		// grant is carried, so its file is not the change's (slice 5's).
+		{"keep, a password grant at 0640: hardn-env-alice alone", func(t *testing.T) *testHost {
+			return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o640, 0, 0)
+		}, sudoAlice, false, "/etc/sudoers.d/hardn-env-alice", env("HARDN_CONFIG"), engine.RiskPlain, nil},
+		{"stop, a NOPASSWD grant at 0644: hardn-env-alice alone", func(t *testing.T) *testHost {
+			return newHost(t, debian13).with(t, grant(sudoers.GrantNoPassword, "HARDN_CONFIG")).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o644, 0, 0)
+		}, sudoKept, true, "/etc/sudoers.d/hardn-env-alice", "", engine.RiskPlain, nil},
+		{"keep, a password grant owned by another: hardn-env-alice alone", func(t *testing.T) *testHost {
+			return newHost(t, debian13).with(t, grant(sudoers.GrantPassword)).moded(t, "/etc/sudoers.d/hardn-grant-alice", 0o440, 1000, 0)
+		}, sudoAlice, false, "/etc/sudoers.d/hardn-env-alice", env("HARDN_CONFIG"), engine.RiskPlain, nil},
 		{"stop, a NOPASSWD grant carried", func(t *testing.T) *testHost {
 			return newHost(t, debian13).with(t, grant(sudoers.GrantNoPassword, "HARDN_CONFIG"))
 		}, sudoKept, true, "/etc/sudoers.d/hardn-env-alice", "", engine.RiskPlain, nil},

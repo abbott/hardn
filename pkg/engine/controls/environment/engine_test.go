@@ -2,6 +2,8 @@ package environment_test
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
 	"regexp"
 	"slices"
 	"strings"
@@ -97,11 +99,18 @@ func TestApply(t *testing.T) {
 // hardn-env-alice alone, no lockout risk, and hardn-grant-alice is byte
 // for byte as it was, its mode and owner too (V16: the grant and the line
 // in separate files; gallery-environment.md §7 item 20, which an env-only
-// Policy would have removed).
+// Policy would have removed), at hardn's mode and at another, which the
+// grant's own change would repair, not this one.
 func TestGrantCarried(t *testing.T) {
-	for _, g := range []sudoers.Grant{sudoers.GrantPassword, sudoers.GrantNoPassword} {
-		t.Run(g.String(), func(t *testing.T) {
-			h := newHost(t, debian13).with(t, grant(g))
+	for _, tt := range []struct {
+		g    sudoers.Grant
+		mode fs.FileMode
+	}{
+		{sudoers.GrantPassword, sudoers.SudoMode}, {sudoers.GrantNoPassword, sudoers.SudoMode},
+		{sudoers.GrantPassword, 0o640}, {sudoers.GrantNoPassword, 0o400},
+	} {
+		t.Run(fmt.Sprintf("%v, %v", tt.g, tt.mode), func(t *testing.T) {
+			h := newHost(t, debian13).with(t, grant(tt.g)).moded(t, "/etc/sudoers.d/hardn-grant-alice", tt.mode, 0, 0)
 			before, _ := h.Entry("/etc/sudoers.d/hardn-grant-alice")
 			for _, stop := range []bool{false, true} {
 				if _, p := planOn(t, h, sudoAlice, stop); p.Risk == engine.RiskLockout {
