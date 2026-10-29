@@ -406,7 +406,7 @@ func keepCases() []keepCase {
 		{name: "keep_root", start: "alice's file holds her grant", vars: envVars{user: "root"}, seeds: withFile("/etc/sudoers.d/alice", grantLine, 0o440),
 			defects: []string{"With SUDO_USER unset the user is USER (file_environment_repository.go:135-138), root under doas, which names its caller in DOAS_USER [I, doas(1)], or at a root login: the line is written for root, to /etc/sudoers.d/root, and alice's sudo still drops the variable. Under doas no sudoers line keeps it at all [I].", "V20: " + tmpName}},
 		{name: "keep_no_user", start: "alice's file holds her grant", vars: envVars{}, seeds: withFile("/etc/sudoers.d/alice", grantLine, 0o440),
-			defects: []string{"With neither SUDO_USER nor USER set the call succeeds with nothing read or written (environment_service.go:107-109), and each caller says it is done (below)."}},
+			defects: []string{"With neither SUDO_USER nor USER set the call succeeds with nothing read or written (environment_service.go:45-47), and each caller says it is done (below)."}},
 		{name: "keep_dotted", start: "alice.smith has no file in /etc/sudoers.d", vars: envVars{sudoUser: "alice.smith", user: "root"}, seeds: hostDirs(),
 			defects: []string{"V16: the file name is the raw user name (file_environment_repository.go:46): /etc/sudoers.d/alice.smith, a name sudo skips because it holds a dot [I, sudoers(5) \"#includedir\"], so the line is written and never read.", "V20: " + tmpName}},
 	}
@@ -426,9 +426,9 @@ func keepCases() []keepCase {
 // prints for the result is read from the code, not run: the screen's
 // root branch cannot run here (the test is not root; the screen checks
 // os.Geteuid, environment_settings_menu.go:82), and cmd/hardn is not
-// importable. The test runs as a user other than root, so a seeded file
-// it cannot write to as root could would fail where root's would not:
-// the cases write only to files that are new or the test's to write.
+// importable. The test runs as a user other than root, so a write to a
+// seeded file it cannot write would fail where root's would not: the
+// cases write only to files that are new or the test's to write.
 func TestLegacyEnvironmentKeep(t *testing.T) {
 	for _, tc := range keepCases() {
 		t.Run(tc.name, func(t *testing.T) {

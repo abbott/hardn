@@ -5,7 +5,7 @@
 # Environment: SUDO_USER unset, USER unset, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); run as a user other than root
 # Start: alice's file holds her grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden); dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
-# NOTE: With no user the service reads nothing and the screen says Disabled (environment_service.go:122-124).
+# NOTE: With no user the service reads nothing and the screen says Disabled (environment_service.go:60-62).
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$

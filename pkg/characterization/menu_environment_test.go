@@ -60,7 +60,7 @@ type envCase struct {
 func envCases() []envCase {
 	const (
 		oneFile   = "The status reads one file, /etc/sudoers.d/<SUDO_USER, else USER>, for the text `env_keep += \"HARDN_CONFIG\"` (file_environment_repository.go:110-124, :134-139): not the rules sudo applies."
-		twice     = "Each draw reads the file twice: GetEnvironmentConfig checks it for its own PreserveSudo (file_environment_repository.go:141-147), which the service does not use, then checks it again (environment_service.go:115-127)."
+		twice     = "Each draw reads the file twice: GetEnvironmentConfig checks it for its own PreserveSudo (file_environment_repository.go:141-147), which the service does not use, then checks it again (environment_service.go:53-65)."
 		ownEnv    = "\"Current HARDN_CONFIG\" is hardn's own environment (environment_settings_menu.go:37): under sudo, what env_keep let through, not what the user set; nothing on the screen says which file hardn loaded."
 		notReach  = "This branch is unreachable in hardn: cmd/hardn refuses a user other than root before the menu (cmd/hardn/main.go:147-152), so \"This operation requires sudo privileges.\" and \"Please run: sudo hardn setup-sudo-env\" (environment_settings_menu.go:82-84) show only here, where the test is not root."
 		rootPath  = "As root item 1 calls MenuManager.SetupSudoPreservation (environment_settings_menu.go:90), recorded at that call by TestLegacyEnvironmentKeep (environment/keep_*.golden); the screen's words for its result are read (environment_settings_menu.go:91-95)."
@@ -87,7 +87,7 @@ func envCases() []envCase {
 			defects: []string{"With SUDO_USER unset and USER root the screen reads /etc/sudoers.d/root, and says Disabled while alice's file keeps the variable: as under doas, which sets USER to root and names its caller in DOAS_USER [I, doas(1)], or at a root login. Nothing in origin/main reads DOAS_USER.", oneFile}},
 		{name: "environment_open_no_user", screen: "Environment (main menu 8), SUDO_USER and USER unset, q", script: "q\n",
 			vars: envVars{}, seeds: kept, start: grantKeep,
-			notes: []string{"With no user the service reads nothing and the screen says Disabled (environment_service.go:122-124)."}},
+			notes: []string{"With no user the service reads nothing and the screen says Disabled (environment_service.go:60-62)."}},
 		{name: "environment_open_commented", screen: "Environment (main menu 8), the line commented out, q", script: "q\n",
 			vars: sudoAlice, seeds: withFile("/etc/sudoers.d/alice", grantLine+"# "+keepLine, 0o440), start: "alice's file holds her grant and the line commented out",
 			defects: []string{"A commented-out line reads Enabled: the check is a substring (file_environment_repository.go:124), and sudo reads the line as a comment [I, sudoers(5)], so the variable is not kept.", oneFile}},

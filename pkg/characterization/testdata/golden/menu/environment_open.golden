@@ -6,7 +6,7 @@
 # Start: alice's file holds her grant and the line, as setup_sudo_preservation leaves it (ops/setup_sudo_preservation/debian.golden); dryRun false
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
 # NOTE: "Current HARDN_CONFIG" is hardn's own environment (environment_settings_menu.go:37): under sudo, what env_keep let through, not what the user set; nothing on the screen says which file hardn loaded.
-# NOTE: Each draw reads the file twice: GetEnvironmentConfig checks it for its own PreserveSudo (file_environment_repository.go:141-147), which the service does not use, then checks it again (environment_service.go:115-127).
+# NOTE: Each draw reads the file twice: GetEnvironmentConfig checks it for its own PreserveSudo (file_environment_repository.go:141-147), which the service does not use, then checks it again (environment_service.go:53-65).
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$
