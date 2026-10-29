@@ -51,7 +51,7 @@ stderr: hardn: -n/--dry-run only previews changes. Nothing was changed.
 `
 
 // TestReadLegacy: the parser reads each section's end state, the
-// V-numbers once each, and the -n refusal; the probes are recorded apart
+// V-numbers once each, and each -n refusal; the probes are recorded apart
 // from the commands that change something.
 func TestReadLegacy(t *testing.T) {
 	dir := t.TempDir()
@@ -65,8 +65,13 @@ func TestReadLegacy(t *testing.T) {
 	if r.Golden != "ops/example/debian.golden" || !slices.Equal(r.Vs, []string{"V1", "V18"}) {
 		t.Errorf("golden %q, V-numbers %q", r.Golden, r.Vs)
 	}
-	if want := "exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed."; r.CLI != want {
+	if want := []string{"exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed."}; !slices.Equal(r.CLI, want) {
 		t.Errorf("the -n refusal %q, want %q", r.CLI, want)
+	}
+	two := legacyGolden + "\n== hardn -n -y (modelled)\nrefused: exit status 2\nstderr: hardn: -y too. Nothing was changed.\n"
+	if r, err := parseLegacy([]byte(two), "ops/example/debian.golden", reader{probes: []string{"which resolvconf"}}); err != nil ||
+		!slices.Equal(r.CLI, []string{"exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed.", "exit status 2: hardn: -y too. Nothing was changed."}) {
+		t.Errorf("two -n refusals: %v, %q", err, r.CLI)
 	}
 	l := r.Live
 	if len(l.Files) != 1 || l.Files[0].String() != "/etc/example/example.conf 0644" || l.Files[0].Atomic ||
@@ -705,6 +710,28 @@ func TestCompareChecked(t *testing.T) {
 	diffs, agree := compare(t, Slice{}, "", l, n)
 	if slices.ContainsFunc(append(diffs, agree...), func(a aspect) bool { return a.Name == "checks" || a.Name == "temp files" }) {
 		t.Error("compared checks or temp files a slice does not compare")
+	}
+}
+
+// TestLegacyDry: a dry-run section that differs from the live one only in
+// its checks or temp files is not "as live", and says them; one that
+// does the same is; a slice with neither (DNS's) reads as before; each
+// refusal's status is said once.
+func TestLegacyDry(t *testing.T) {
+	live := EndState{Checks: []string{"visudo -c -f /tmp/x"}, Temps: []string{"/tmp/x 0440, removed"}}
+	for _, tc := range []struct {
+		name string
+		r    legacyRun
+		want string
+	}{
+		{"checks and temps differ", legacyRun{Live: live}, "the service writes none and runs none, checks none, temp files none"},
+		{"as live", legacyRun{Live: live, Dry: live, CLI: []string{"exit status 2: a", "exit status 2: b"}},
+			"the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)"},
+		{"neither", legacyRun{Dry: EndState{Actions: []string{"systemctl restart example"}}}, "the service writes none and runs systemctl restart example"},
+	} {
+		if got := legacyDry(tc.r); got != tc.want {
+			t.Errorf("%s: %q, want %q", tc.name, got, tc.want)
+		}
 	}
 }
 

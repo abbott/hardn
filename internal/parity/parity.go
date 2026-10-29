@@ -263,7 +263,7 @@ type legacyRun struct {
 	Vs     []string // the V-numbers its KNOWN-DEFECT and FIXED lines name
 	Live   EndState // cfg.DryRun=false, or the menu item's result
 	Dry    EndState // cfg.DryRun=true (ops goldens only)
-	CLI    string   // hardn -n with the flag: what pkg/cmd's refusal says
+	CLI    []string // hardn -n with each flag: what pkg/cmd's refusal says, each section's
 	// Start is what the run started from: the repository's layout's
 	// "Start:" line; the root layout's environment and "== / before"
 	// section; the ops layout's "seed dir:" and "seed file:" lines (DNS's
@@ -318,7 +318,7 @@ func readLegacy(t *testing.T, dir, rel string, rd reader) legacyRun {
 
 // parseLegacy parses data, the characterization golden rel, as rd says:
 // its V-numbers, each trace section into an end state, and its -n
-// refusal. An ops golden has both cfg.DryRun sections; a menu item's has
+// refusals, each section's. An ops golden has both cfg.DryRun sections; a menu item's has
 // its result, whose message is its refusal when it saved nothing. What the
 // parser does not compare (a removal, a failed command or write, a run
 // that failed) is an error rather than being dropped, and so is a golden
@@ -369,9 +369,9 @@ func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 			cur, last, fixture = nil, nil, false
 			continue
 		case strings.HasPrefix(l, "refused: "):
-			r.CLI = strings.TrimPrefix(l, "refused: ")
-		case strings.HasPrefix(l, "stderr: ") && r.CLI != "":
-			r.CLI += ": " + strings.TrimPrefix(l, "stderr: ")
+			r.CLI = append(r.CLI, strings.TrimPrefix(l, "refused: "))
+		case strings.HasPrefix(l, "stderr: ") && len(r.CLI) > 0:
+			r.CLI[len(r.CLI)-1] += ": " + strings.TrimPrefix(l, "stderr: ")
 		}
 		if fixture {
 			// The seed lines, and a seed file's content, are the start.
@@ -1317,17 +1317,27 @@ func unnamedSetting(key string, l, n EndState) error {
 }
 
 // legacyDry is what origin/main's cfg.DryRun=true section did, and whether
-// any path reaches it.
+// any path reaches it: "as live" when it did what the live section did,
+// its checks and temp files too (Slice.Check, Slice.Temps; none for DNS
+// and Backup), which it names where either section has any.
 func legacyDry(r legacyRun) string {
 	did := "the service writes " + Joined(names(r.Dry.Files)) + " and runs " + Joined(r.Dry.Actions)
-	if HostText(r.Dry) == HostText(r.Live) {
+	if len(r.Live.Checks)+len(r.Live.Temps)+len(r.Dry.Checks)+len(r.Dry.Temps) > 0 {
+		did += ", checks " + Joined(r.Dry.Checks) + ", temp files " + Joined(r.Dry.Temps)
+	}
+	if HostText(r.Dry) == HostText(r.Live) && slices.Equal(r.Dry.Checks, r.Live.Checks) && slices.Equal(r.Dry.Temps, r.Live.Temps) {
 		did = "the service writes and runs as live (cfg.DryRun unread below the menus)"
 	}
-	if r.CLI == "" {
+	if len(r.CLI) == 0 {
 		return did
 	}
-	status, _, _ := strings.Cut(r.CLI, ":")
-	return did + "; no path reaches it: hardn -n refused (" + status + ")"
+	var statuses []string
+	for _, c := range r.CLI {
+		if status, _, _ := strings.Cut(c, ":"); !slices.Contains(statuses, status) {
+			statuses = append(statuses, status)
+		}
+	}
+	return did + "; no path reaches it: hardn -n refused (" + strings.Join(statuses, ", ") + ")"
 }
 
 // HostText is what s changed: the files with their content, the
@@ -1678,8 +1688,8 @@ func renderCells(sl Slice, cells []Cell) string {
 		if c.legacy.Tree != "" {
 			fmt.Fprintf(&b, "  the temp dir afterwards (recorded, not compared): %s\n", c.legacy.Tree)
 		}
-		if c.legacy.CLI != "" {
-			fmt.Fprintf(&b, "  hardn -n: refused, %s\n", c.legacy.CLI)
+		for _, cli := range c.legacy.CLI {
+			fmt.Fprintf(&b, "  hardn -n: refused, %s\n", cli)
 		}
 		if c.Why != "" {
 			fmt.Fprintf(&b, "not compared: %s\n", c.Why)

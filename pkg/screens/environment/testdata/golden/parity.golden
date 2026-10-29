@@ -159,6 +159,7 @@ origin/main: ops/setup_sudo_preservation/debian.golden (V1, V18, V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
+  hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, answered y, leaves the same
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
@@ -207,6 +208,7 @@ origin/main: ops/setup_sudo_preservation/ubuntu.golden (V1, V18, V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
+  hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, answered y, leaves the same
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
@@ -255,6 +257,7 @@ origin/main: ops/setup_sudo_preservation/alpine.golden (V1, V18, V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
+  hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
   refused: SUDOERS_ENV_NEEDS_GRANT
@@ -285,6 +288,7 @@ origin/main: ops/setup_sudo_preservation/proxmox.golden (V1, V18, V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
+  hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
   refused: SUDOERS_NO_TOOL
