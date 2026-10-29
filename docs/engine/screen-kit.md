@@ -77,6 +77,8 @@ type Slice struct {
 	UnderBackupPath bool   // since next/s3-parity: compare what is written under the backup path
 	Check func(argv string) bool // since next/s9-parity: the commands that check a write, compared as "checks"
 	Temps bool                   // since next/s9-parity: compare the temp files each path wrote and removed
+	Either bool                  // since next/s9-parity: compare content, backup and journal where either path wrote
+	CellNote func(c Cell) string // since next/s9-parity: a cell's own note
 }
 func Run(t *testing.T, sl Slice) // a slice's TestParity
 type Scenario, Distro, HostState, Tie, Cell, NewRun, EndState, FileWrite // Scenario.Setting since next/s3-parity; Tie.Pending, EndState.Checks and .Temps since next/s9-parity
