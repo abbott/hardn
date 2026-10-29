@@ -33,6 +33,8 @@ The engine returns `Plan`, `Report` and `Result` as data, and the Phase 2 primit
 
 *Since `next/s3-control`* ([control-backup.md](control-backup.md)): `BACKUP_WRITE_FAILED` (`backup.ErrWrite`, a backup that could not be written), before the seam's and the standard library's codes its errors also match, so a backup write that failed with a permission denied or not synced reads it too; `BACKUP_PATH_NOT_DIRECTORY` (a `backup.DirError` of `ENOTDIR`, a file on a backup path), which was `UNCLASSIFIED_ERROR`; `TestTypedErrors` samples `backup.DirError`, `backup.WriteError` and the Backup control's `FieldError`.
 
+*Since `next/s9-control`* ([sudoers.md](../safety/sudoers.md) §2.13; [control-environment.md](control-environment.md) §6): `SUDOERS_FILE_EDITED` (`sudoers.ErrEdited`, a file of hardn's that `PolicyOf` cannot read back, `sudoers.EditedError` naming it) and `ENVIRONMENT_NO_USER` (`environment.ErrNoUser`, the Environment control's refusal where no user ran hardn through sudo or doas), after the other `SUDOERS_` codes; the scan of `pkg/engine` finds the control's sentinel, and `sentinels.golden` lists both.
+
 ### The exit statuses (`ExitCode`)
 
 8. **One function over a run's results and errors**, `ExitCode(Run) int`, the same that writes `result.exitCode`: 130 when anything was interrupted; else 2 for a usage error (a code whose `Exit` is 2); else 1 for any other error (an apply that failed, a refusal, an error before anything was armed, a failed check); else 3 when a check found a control not as asked, a plan has changes, or the user declined them; else 0. `ExitOK` … `ExitInterrupted` are constants, equal to `pkg/cmd`'s `ExitUsage` and `pkg/ui/prompt`'s `ExitInterrupted` (`TestExitStatuses`). **Decisions of this unit**, none the maintainer's:
