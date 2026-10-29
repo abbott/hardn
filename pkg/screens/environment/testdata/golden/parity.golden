@@ -108,14 +108,20 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_ENV_NEEDS_GRANT, before asking
        plan §3.21; decision 1 (a); control-environment.md §6: a sudoers file written on a doas host, or nothing; now refused before asking: hardn has no doas rule for alice
 differ files: /etc/sudoers.d/alice 0440 | none
        plan §3.21; decision 1 (a); defect 7: /etc/sudoers.d/<user> written on a doas host; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       plan §3.21; decision 1 (a); defect 7: the line written to a sudoers file on a doas host; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        plan §3.21; decision 1 (a): visudo run on a doas host; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -134,14 +140,20 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_NO_TOOL, before asking
        decision 7; control-environment.md §6: whatever the host, a sudoers file written, a failure, or nothing; now refused before asking: sudo isn't installed here
 differ files: /etc/sudoers.d/alice 0440 | none
        decision 7; control-environment.md §6: /etc/sudoers.d/<user> written on a host without sudo; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       decision 7; control-environment.md §6: the line written to a sudoers file on a host without sudo; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 7; control-environment.md §6: visudo run on a host without sudo; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -261,14 +273,21 @@ origin/main: ops/setup_sudo_preservation/alpine.golden (V1, V18, V20)
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
   refused: SUDOERS_ENV_NEEDS_GRANT
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_ENV_NEEDS_GRANT
        plan §3.21; decision 1 (a); control-environment.md §6: a sudoers file written on a doas host; now -e's plan refused: hardn has no doas rule for alice
 differ files: /etc/sudoers.d/alice 0440 | none
        plan §3.21; decision 1 (a); defect 7: /etc/sudoers.d/<user> written on a doas host; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       plan §3.21; decision 1 (a); defect 7: the line written to a sudoers file on a doas host; now nothing written
+differ rules: alice ALL=(ALL) NOPASSWD: ALL | none
+       plan §3.21; decision 1 (a); defect 7: the grant carried into a sudoers file on a doas host; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        plan §3.21; decision 1 (a): visudo run on a doas host; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -292,14 +311,21 @@ origin/main: ops/setup_sudo_preservation/proxmox.golden (V1, V18, V20)
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
 new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
   refused: SUDOERS_NO_TOOL
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_NO_TOOL
        decision 7; control-environment.md §6: a sudoers file written on a host without sudo; now -e's plan refused: sudo isn't installed here
 differ files: /etc/sudoers.d/alice 0440 | none
        decision 7; control-environment.md §6: /etc/sudoers.d/<user> written on a host without sudo; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       decision 7; control-environment.md §6: the line written to a sudoers file on a host without sudo; now nothing written
+differ rules: alice ALL=(ALL) NOPASSWD: ALL | none
+       decision 7; control-environment.md §6: the grant carried into a sudoers file on a host without sudo; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 7; control-environment.md §6: visudo run on a host without sudo; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -324,15 +350,24 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
 agree  refusal: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        decision 3 (a); control-environment.md §2.2: origin/main's line found, nothing written; now Kept by /etc/sudoers.d/alice, and item 1 still writes hardn-env-alice
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       decision 3 (a); control-environment.md §2.2: origin/main's line found in alice's file, nothing written; now the line in hardn-env-alice too
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        decision 3 (a); control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        decision 3 (a); control-environment.md §2.11: nothing written; now hardn-env-alice's copy in hardn's run directory
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       decision 3 (a); control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       decision 3 (a); control-environment.md §2.6: nothing written; now journalled first
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -353,15 +388,24 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
 agree  refusal: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        decision 3 (a); control-environment.md §2.2: origin/main's line found, nothing written; now Kept by /etc/sudoers.d/alice, and item 1 still writes hardn-env-alice
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       decision 3 (a); control-environment.md §2.2: origin/main's line found in alice's file, nothing written; now the line in hardn-env-alice too
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        decision 3 (a); control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        decision 3 (a); control-environment.md §2.11: nothing written; now hardn-env-alice's copy in hardn's run directory
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       decision 3 (a); control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       decision 3 (a); control-environment.md §2.6: nothing written; now journalled first
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -420,15 +464,24 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
 agree  refusal: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        defect 4; decision 3 (a): a commented line read as kept, nothing written; now Not kept, and item 1 writes hardn-env-alice
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       defect 4; decision 3 (a): a commented line read as kept, nothing written; now the line in hardn-env-alice
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        defect 4; control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        defect 4; control-environment.md §2.11: nothing written; now hardn-env-alice's copy in hardn's run directory
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       defect 4; control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       defect 4; control-environment.md §2.6: nothing written; now journalled first
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -449,15 +502,24 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
 agree  refusal: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        defect 4; decision 3 (a): a commented line read as kept, nothing written; now Not kept, and item 1 writes hardn-env-alice
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       defect 4; decision 3 (a): a commented line read as kept, nothing written; now the line in hardn-env-alice
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        defect 4; control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        defect 4; control-environment.md §2.11: nothing written; now hardn-env-alice's copy in hardn's run directory
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       defect 4; control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       defect 4; control-environment.md §2.6: nothing written; now journalled first
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -596,14 +658,20 @@ origin/main: environment/keep_dotted.golden (V16, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_ENV_NEEDS_GRANT, before asking
        plan §3.21; decision 1 (a); control-environment.md §6: a sudoers file written on a doas host, or nothing; now refused before asking: hardn has no doas rule for alice
 differ files: /etc/sudoers.d/alice.smith 0440 | none
        plan §3.21; decision 1 (a); defect 7: /etc/sudoers.d/<user> written on a doas host; now nothing written
+differ keep lines: Defaults:alice.smith env_keep += "HARDN_CONFIG" | none
+       plan §3.21; decision 1 (a); defect 7: the line written to a sudoers file on a doas host; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        plan §3.21; decision 1 (a): visudo run on a doas host; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -622,14 +690,20 @@ origin/main: environment/keep_dotted.golden (V16, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_NO_TOOL, before asking
        decision 7; control-environment.md §6: whatever the host, a sudoers file written, a failure, or nothing; now refused before asking: sudo isn't installed here
 differ files: /etc/sudoers.d/alice.smith 0440 | none
        decision 7; control-environment.md §6: /etc/sudoers.d/<user> written on a host without sudo; now nothing written
+differ keep lines: Defaults:alice.smith env_keep += "HARDN_CONFIG" | none
+       decision 7; control-environment.md §6: the line written to a sudoers file on a host without sudo; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 7; control-environment.md §6: visudo run on a host without sudo; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -728,14 +802,20 @@ origin/main: environment/keep_root.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | ENVIRONMENT_NO_USER, before asking
        decision 2 (a); defect 5: the line written for root, USER standing in for SUDO_USER; now refused before asking: no user to keep it for
 differ files: /etc/sudoers.d/root 0440 | none
        decision 2 (a); defect 5: /etc/sudoers.d/root, Defaults:root; now nothing written
+differ keep lines: Defaults:root env_keep += "HARDN_CONFIG" | none
+       decision 2 (a); defect 5: Defaults:root, USER standing in for SUDO_USER; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 2 (a): the temp file checked; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -754,14 +834,20 @@ origin/main: environment/keep_root.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | ENVIRONMENT_NO_USER, before asking
        decision 2 (a); defect 5: the line written for root, USER standing in for SUDO_USER; now refused before asking: no user to keep it for
 differ files: /etc/sudoers.d/root 0440 | none
        decision 2 (a); defect 5: /etc/sudoers.d/root, Defaults:root; now nothing written
+differ keep lines: Defaults:root env_keep += "HARDN_CONFIG" | none
+       decision 2 (a); defect 5: Defaults:root, USER standing in for SUDO_USER; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 2 (a): the temp file checked; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -780,14 +866,20 @@ origin/main: environment/keep_root.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | ENVIRONMENT_NO_USER, before asking
        decision 2 (a); defect 5: the line written for root, USER standing in for SUDO_USER; now refused before asking: no user to keep it for
 differ files: /etc/sudoers.d/root 0440 | none
        decision 2 (a); defect 5: /etc/sudoers.d/root, Defaults:root; now nothing written
+differ keep lines: Defaults:root env_keep += "HARDN_CONFIG" | none
+       decision 2 (a); defect 5: Defaults:root, USER standing in for SUDO_USER; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 2 (a): the temp file checked; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -806,14 +898,20 @@ origin/main: environment/keep_root.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_NO_TOOL, before asking
        decision 7; control-environment.md §6: whatever the host, a sudoers file written, a failure, or nothing; now refused before asking: sudo isn't installed here
 differ files: /etc/sudoers.d/root 0440 | none
        decision 7; control-environment.md §6: /etc/sudoers.d/<user> written on a host without sudo; now nothing written
+differ keep lines: Defaults:root env_keep += "HARDN_CONFIG" | none
+       decision 7; control-environment.md §6: the line written to a sudoers file on a host without sudo; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 7; control-environment.md §6: visudo run on a host without sudo; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
@@ -914,11 +1012,15 @@ agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ refusal: failed: invalid sudoers configuration: exit status 1 | failed: SUDOERS_INVALID_BEFORE
-       control-environment.md §2.11; defect 12: visudo refused the temp file, its output dropped; now the configuration, checked first, refused before anything is written
+       control-environment.md §2.11; defect 12: visudo refused the temp file, its output dropped; now the configuration, checked first, refused before hardn-env-alice is written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1 | visudo -c -> exit status 1
        control-environment.md §2.11: the temp file checked, and refused; now the configuration, checked first, refused
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
        control-environment.md §2.11: the temp file written, then refused; now refused before any copy is written
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       control-environment.md §2.11: nothing backed up; now hardn-env-alice recorded absent before visudo -c refused, the apply rolled back
+differ journal: none | journalled first
+       control-environment.md §2.6, §2.11: no rollback; now journalled before visudo -c refused, and rolled back from the journal
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -941,11 +1043,15 @@ agree  directories: none
 agree  commands: none
 agree  hardn.yml: not saved
 differ refusal: failed: invalid sudoers configuration: exit status 1 | failed: SUDOERS_INVALID_BEFORE
-       control-environment.md §2.11; defect 12: visudo refused the temp file, its output dropped; now the configuration, checked first, refused before anything is written
+       control-environment.md §2.11; defect 12: visudo refused the temp file, its output dropped; now the configuration, checked first, refused before hardn-env-alice is written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1 | visudo -c -> exit status 1
        control-environment.md §2.11: the temp file checked, and refused; now the configuration, checked first, refused
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | none
        control-environment.md §2.11: the temp file written, then refused; now refused before any copy is written
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       control-environment.md §2.11: nothing backed up; now hardn-env-alice recorded absent before visudo -c refused, the apply rolled back
+differ journal: none | journalled first
+       control-environment.md §2.6, §2.11: no rollback; now journalled before visudo -c refused, and rolled back from the journal
 differ findings: none | SUDOERS_LEGACY_FILE
        decision 3 (a); control-environment.md §2.2, §7: alice's file not reported; now in the review: it may also let alice use sudo
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
@@ -1100,14 +1206,20 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_ENV_NEEDS_GRANT, before asking
        plan §3.21; decision 1 (a); control-environment.md §6: a sudoers file written on a doas host, or nothing; now refused before asking: hardn has no doas rule for alice
 differ files: /etc/hosts 0644, /etc/sudoers.d/alice 0440 | none
        V20; plan §3.21; decision 1 (a); defect 7: /etc/hosts overwritten through the planted link, and a sudoers file on a doas host; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       plan §3.21; decision 1 (a); defect 7: the line written to a sudoers file on a doas host; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        plan §3.21; decision 1 (a): visudo run on a doas host; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed | none
@@ -1128,14 +1240,20 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
 new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
+agree  rules: none
+agree  comments: none
 agree  directories: none
 agree  commands: none
+agree  backup: none
+agree  journal: none
 agree  findings: none
 agree  hardn.yml: not saved
 differ refusal: none | SUDOERS_NO_TOOL, before asking
        decision 7; control-environment.md §6: whatever the host, a sudoers file written, a failure, or nothing; now refused before asking: sudo isn't installed here
 differ files: /etc/hosts 0644, /etc/sudoers.d/alice 0440 | none
        V20; decision 7; control-environment.md §6: /etc/hosts overwritten through the planted link, and a sudoers file on a host without sudo; now nothing written
+differ keep lines: Defaults:alice env_keep += "HARDN_CONFIG" | none
+       decision 7; control-environment.md §6: the line written to a sudoers file on a host without sudo; now nothing written
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | none
        decision 7; control-environment.md §6: visudo run on a host without sudo; now refused, nothing checked
 differ temp files: /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed | none
@@ -1158,6 +1276,7 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   check visudo -c
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  findings: none
@@ -1166,10 +1285,18 @@ differ refusal: failed: failed to create temporary sudoers file at /tmp/hardn_su
        V20; control-environment.md §2.11: a planted directory at the temp name stopped it; now nothing under /tmp
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        V20; control-environment.md §2.11: the planted directory stopped it before any write; now hardn-env-alice, nothing under /tmp
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       V20; control-environment.md §2.11: the planted directory stopped it before any write; now the line in hardn-env-alice
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        V20; control-environment.md §2.11: stopped before its check; now the configuration before and after, and a copy of the file
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        V20; control-environment.md §2.11: stopped at the temp file; now a copy in hardn's run directory, removed with it
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       V20; control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       V20; control-environment.md §2.6: nothing written; now journalled first
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
 
 == tmp-dir on Ubuntu 26.04 (sudo-rs)
@@ -1188,6 +1315,7 @@ new path: item 1 through screenkit.Session.Change, answered y; -e's plan and app
   check visudo -c
   temp /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: none
+agree  rules: none
 agree  directories: none
 agree  commands: none
 agree  findings: none
@@ -1196,10 +1324,18 @@ differ refusal: failed: failed to create temporary sudoers file at /tmp/hardn_su
        V20; control-environment.md §2.11: a planted directory at the temp name stopped it; now nothing under /tmp
 differ files: none | /etc/sudoers.d/hardn-env-alice 0440
        V20; control-environment.md §2.11: the planted directory stopped it before any write; now hardn-env-alice, nothing under /tmp
+differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
+       V20; control-environment.md §2.11: the planted directory stopped it before any write; now the line in hardn-env-alice
+differ comments: none | # Managed by hardn
+       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        V20; control-environment.md §2.11: stopped before its check; now the configuration before and after, and a copy of the file
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
        V20; control-environment.md §2.11: stopped at the temp file; now a copy in hardn's run directory, removed with it
+differ backup: none | /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it)
+       V20; control-environment.md §2.11: nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it
+differ journal: none | journalled first
+       V20; control-environment.md §2.6: nothing written; now journalled first
 v0.3.2: no such path: v0.3.2 had no Environment screen, -e or setup-sudo-env, and wrote no env_keep line (§5, V20: origin/main only; run: git grep v0.3.2)
 
 == tmp-dir on Alpine 3.23 (doas)

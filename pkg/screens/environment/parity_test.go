@@ -72,6 +72,7 @@ var envParity = parity.Slice{
 	Content:      envContent,
 	Check:        isCheck,
 	Temps:        true,
+	Either:       true,
 	V032Sections: "§5",
 }
 
@@ -344,6 +345,7 @@ var (
 	doas    = []string{"alpine"}
 	noTool  = []string{"proxmox"}
 	wrote   = []string{"new", "grant", "dotted", "tmp-symlink"} // both paths wrote the user's file, on sudo
+	newOnly = []string{"already", "commented", "tmp-dir"}       // the new path alone wrote, on sudo
 	wroteV  = []string{"new", "grant"}                          // their goldens name V18
 	wroteNV = []string{"dotted", "tmp-symlink"}                 // theirs do not: defect 11 says it
 	asks    = []string{"new", "already", "commented", "dotted", "tmp-symlink"}
@@ -368,13 +370,28 @@ var envTable = []tie{
 	{[]string{"already"}, sudo, "files", "decision 3 (a); control-environment.md §2.2", "origin/main's line found, nothing written; now Kept by /etc/sudoers.d/alice, and item 1 still writes hardn-env-alice", false},
 	{[]string{"commented"}, sudo, "files", "defect 4; decision 3 (a)", "a commented line read as kept, nothing written; now Not kept, and item 1 writes hardn-env-alice", false},
 	{[]string{"tmp-dir"}, sudo, "files", "V20; control-environment.md §2.11", "the planted directory stopped it before any write; now hardn-env-alice, nothing under /tmp", false},
-	{wrote, sudo, "comments", "sudoers.md §2 item 6 (next/p2-sudoers)", "no comment; now hardn's header line, # Managed by hardn", true},
+	{append(slices.Clone(wrote), newOnly...), sudo, "comments", "sudoers.md §2 item 6 (next/p2-sudoers)", "no comment; now hardn's header line, # Managed by hardn", true},
 	{wroteV, sudo, "write", "V18", "written in place; now replaced whole by a rename", false},
 	{wroteNV, sudo, "write", "defect 11", "written in place; now replaced whole by a rename", false},
 	{wroteV, sudo, "backup", "V18; control-environment.md §2.11", "nothing backed up; now recorded absent first, so a rollback removes it", false},
 	{wroteNV, sudo, "backup", "defect 11; control-environment.md §2.11", "nothing backed up; now recorded absent first, so a rollback removes it", false},
 	{wroteV, sudo, "journal", "V18; control-environment.md §2.6", "no rollback; now journalled first", false},
 	{wroteNV, sudo, "journal", "defect 11; control-environment.md §2.6", "no rollback; now journalled first", false},
+
+	// Where the new path alone writes on sudo (Slice.Either): the line, the
+	// backup and the journal; and where it backs up and journals before
+	// visudo -c refuses.
+	{[]string{"already"}, sudo, "keep lines", "decision 3 (a); control-environment.md §2.2", "origin/main's line found in alice's file, nothing written; now the line in hardn-env-alice too", false},
+	{[]string{"commented"}, sudo, "keep lines", "defect 4; decision 3 (a)", "a commented line read as kept, nothing written; now the line in hardn-env-alice", false},
+	{[]string{"tmp-dir"}, sudo, "keep lines", "V20; control-environment.md §2.11", "the planted directory stopped it before any write; now the line in hardn-env-alice", false},
+	{[]string{"already"}, sudo, "backup", "decision 3 (a); control-environment.md §2.11", "nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it", false},
+	{[]string{"commented"}, sudo, "backup", "defect 4; control-environment.md §2.11", "nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it", false},
+	{[]string{"tmp-dir"}, sudo, "backup", "V20; control-environment.md §2.11", "nothing written or backed up; now hardn-env-alice recorded absent first, so a rollback removes it", false},
+	{[]string{"already"}, sudo, "journal", "decision 3 (a); control-environment.md §2.6", "nothing written; now journalled first", false},
+	{[]string{"commented"}, sudo, "journal", "defect 4; control-environment.md §2.6", "nothing written; now journalled first", false},
+	{[]string{"tmp-dir"}, sudo, "journal", "V20; control-environment.md §2.6", "nothing written; now journalled first", false},
+	{[]string{"visudo-fails"}, sudo, "backup", "control-environment.md §2.11", "nothing backed up; now hardn-env-alice recorded absent before visudo -c refused, the apply rolled back", false},
+	{[]string{"visudo-fails"}, sudo, "journal", "control-environment.md §2.6, §2.11", "no rollback; now journalled before visudo -c refused, and rolled back from the journal", false},
 
 	// The checks, and the temp files (V20).
 	{wrote, sudo, "checks", "control-environment.md §2.11; side-effects row 18", "the temp file alone checked; now the configuration before and after, and a copy of the file", false},
@@ -386,7 +403,7 @@ var envTable = []tie{
 	{[]string{"already"}, sudo, "temp files", "decision 3 (a); control-environment.md §2.11", "nothing written; now hardn-env-alice's copy in hardn's run directory", false},
 	{[]string{"commented"}, sudo, "checks", "defect 4; control-environment.md §2.11", "nothing written or checked; now hardn-env-alice's checks", false},
 	{[]string{"commented"}, sudo, "temp files", "defect 4; control-environment.md §2.11", "nothing written; now hardn-env-alice's copy in hardn's run directory", false},
-	{[]string{"visudo-fails"}, sudo, "refusal", "control-environment.md §2.11; defect 12", "visudo refused the temp file, its output dropped; now the configuration, checked first, refused before anything is written", false},
+	{[]string{"visudo-fails"}, sudo, "refusal", "control-environment.md §2.11; defect 12", "visudo refused the temp file, its output dropped; now the configuration, checked first, refused before hardn-env-alice is written", false},
 	{[]string{"visudo-fails"}, sudo, "checks", "control-environment.md §2.11", "the temp file checked, and refused; now the configuration, checked first, refused", false},
 	{[]string{"visudo-fails"}, sudo, "temp files", "control-environment.md §2.11", "the temp file written, then refused; now refused before any copy is written", false},
 
@@ -396,6 +413,7 @@ var envTable = []tie{
 	// No user, sudoers.d not included.
 	{[]string{"root"}, []string{"debian", "ubuntu", "alpine"}, "refusal", "decision 2 (a); defect 5", "the line written for root, USER standing in for SUDO_USER; now refused before asking: no user to keep it for", false},
 	{[]string{"root"}, []string{"debian", "ubuntu", "alpine"}, "files", "decision 2 (a); defect 5", "/etc/sudoers.d/root, Defaults:root; now nothing written", false},
+	{[]string{"root"}, []string{"debian", "ubuntu", "alpine"}, "keep lines", "decision 2 (a); defect 5", "Defaults:root, USER standing in for SUDO_USER; now nothing written", false},
 	{[]string{"root"}, []string{"debian", "ubuntu", "alpine"}, "checks", "decision 2 (a)", "the temp file checked; now refused, nothing checked", false},
 	{[]string{"root"}, []string{"debian", "ubuntu", "alpine"}, "temp files", "V20; decision 2 (a)", "the temp file in /tmp; now refused, nothing written", false},
 	{[]string{"no-user"}, []string{"debian", "ubuntu", "alpine"}, "refusal", "decision 2 (a); defect 6", "success, with nothing read or written; now refused before asking: no user to keep it for", false},
@@ -407,6 +425,8 @@ var envTable = []tie{
 	{[]string{"no-sudoers-d", "visudo-fails", "tmp-dir"}, doas, "refusal", "plan §3.21; decision 1 (a); defect 7", "failed, doas never looked for; now refused before asking: hardn has no doas rule for alice", false},
 	{[]string{"new", "grant", "dotted"}, doas, "files", "plan §3.21; decision 1 (a); defect 7", "/etc/sudoers.d/<user> written on a doas host; now nothing written", false},
 	{[]string{"tmp-symlink"}, doas, "files", "V20; plan §3.21; decision 1 (a); defect 7", "/etc/hosts overwritten through the planted link, and a sudoers file on a doas host; now nothing written", false},
+	{[]string{"new", "grant", "dotted", "tmp-symlink"}, doas, "keep lines", "plan §3.21; decision 1 (a); defect 7", "the line written to a sudoers file on a doas host; now nothing written", false},
+	{[]string{"grant"}, doas, "rules", "plan §3.21; decision 1 (a); defect 7", "the grant carried into a sudoers file on a doas host; now nothing written", false},
 	{checked, doas, "checks", "plan §3.21; decision 1 (a)", "visudo run on a doas host; now refused, nothing checked", false},
 	{[]string{"new", "dotted", "tmp-symlink"}, doas, "temp files", "V20; decision 1 (a)", "the temp file in /tmp; now refused, nothing written", false},
 	{[]string{"grant"}, doas, "temp files", "V20; decision 1 (a)", "the temp file in /tmp; now refused, nothing written", false},
@@ -418,6 +438,8 @@ var envTable = []tie{
 	{[]string{"grant"}, noTool, "refusal", "decision 7; control-environment.md §6", "a sudoers file written on a host without sudo; now -e's plan refused: sudo isn't installed here", false},
 	{[]string{"new", "grant", "dotted", "root"}, noTool, "files", "decision 7; control-environment.md §6", "/etc/sudoers.d/<user> written on a host without sudo; now nothing written", false},
 	{[]string{"tmp-symlink"}, noTool, "files", "V20; decision 7; control-environment.md §6", "/etc/hosts overwritten through the planted link, and a sudoers file on a host without sudo; now nothing written", false},
+	{[]string{"new", "grant", "dotted", "root", "tmp-symlink"}, noTool, "keep lines", "decision 7; control-environment.md §6", "the line written to a sudoers file on a host without sudo; now nothing written", false},
+	{[]string{"grant"}, noTool, "rules", "decision 7; control-environment.md §6", "the grant carried into a sudoers file on a host without sudo; now nothing written", false},
 	{append(slices.Clone(checked), "root"), noTool, "checks", "decision 7; control-environment.md §6", "visudo run on a host without sudo; now refused, nothing checked", false},
 	{[]string{"new", "grant", "dotted", "root", "tmp-symlink"}, noTool, "temp files", "V20; decision 7", "the temp file in /tmp; now refused, nothing written", false},
 	{[]string{"visudo-fails"}, noTool, "temp files", "decision 7", "the temp file in /tmp; now refused, nothing written", false},
@@ -434,11 +456,11 @@ func isCheck(argv string) bool {
 	return strings.HasPrefix(argv, "visudo ") || strings.HasPrefix(argv, "doas -C ")
 }
 
-// envContent are what the elevation tool's files both paths wrote hold
+// envContent are what the elevation tool's files either path wrote hold
 // (those under /etc/sudoers.d and /etc/doas.d; another file written is in
-// the files aspect, its content in parity.golden), line by line: the lines
-// that keep a variable (sudo's env_keep, doas's setenv), the other rules,
-// and the comments.
+// the files aspect, its content in parity.golden), line by line, none
+// where one alone wrote (Slice.Either): the lines that keep a variable
+// (sudo's env_keep, doas's setenv), the other rules, and the comments.
 func envContent(add func(name, legacy, new string), l, n []parity.FileWrite) {
 	lk, lr, lc := elevationLines(l)
 	nk, nr, nc := elevationLines(n)
