@@ -325,7 +325,11 @@ func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(stri
 // to hardn-env-<stem> alone, with no lockout risk: the grant is carried,
 // so PlanFor plans its file only where its mode or owner is not hardn's
 // (sudoers.md §2 item 7), which is the grant's to repair (slice 5), not
-// this change's, and that change is left out of the plan. On doas, where
+// this change's, and that change is left out of the plan, but not out of
+// the journal's check: a grant's file only root can write is all it may
+// leave as it is, so a file another user or a group can write is refused
+// as the journal refuses it (steps.Sudoers on the whole plan, PLAN_INVALID;
+// decision 16). On doas, where
 // one rule holds both, the rule is the change; keeping HARDN_CONFIG where
 // hardn has no rule for the user is refused (decision 1 (a): the rule
 // that lets the user use doas is not hardn's to write). Pure.
@@ -349,6 +353,9 @@ func planFor(r Reading, st sudoers.State, stop bool) (sudoers.Plan, error) {
 		return p, err
 	}
 	if st.Choice.Tool == sudoers.ToolSudo {
+		if _, err := steps.Sudoers(ChangeKeep, p, SummaryKeep); err != nil {
+			return sudoers.Plan{Tool: st.Choice.Tool}, err
+		}
 		n, err := sudoers.FileNames(sudoers.ToolSudo, r.User)
 		if err != nil {
 			return sudoers.Plan{Tool: st.Choice.Tool}, err // not reached: PlanFor took the name
