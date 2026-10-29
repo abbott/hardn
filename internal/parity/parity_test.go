@@ -526,7 +526,10 @@ func TestReadRoot(t *testing.T) {
 // the run did not write, or with temp files not compared; a change no
 // write explains, a write not shown, a file gone that nothing removed;
 // a second call that failed, one that failed with the outcome ok, and a
-// command that failed; content with no file before it.
+// command that failed; content with no file before it; a removal of a
+// file "/ before" holds, which the run did not make; a write through a
+// planted link whose target the afterwards section does not show changed,
+// or the link not gone.
 func TestParseRootRefuses(t *testing.T) {
 	const rel = "environment/example.golden: "
 	for _, tc := range []struct {
@@ -563,6 +566,13 @@ func TestParseRootRefuses(t *testing.T) {
 			`a command that failed, which the harness does not compare: "  6 exec   systemctl reload example -> error: y"`},
 		{"content with no file", strings.Replace(rootGolden, "  6 exec   systemctl reload example -> ok", "  6 exec   systemctl reload example -> ok\n        | stray", 1), rootReader,
 			`content with no file before it: "        | stray"`},
+		{"a removal of a file / before holds", strings.NewReplacer("/tmp/example_temp: a symlink", "/etc/example.d/alice: a file, 6 bytes, mode 0440\n        | grant\n/tmp/example_temp: a symlink",
+			"  6 exec   systemctl reload example -> ok", "  6 exec   systemctl reload example -> ok\n  7 remove /etc/example.d/alice -> ok").Replace(rootGolden), rootReader,
+			`a removal of /etc/example.d/alice, which / before holds: not a temp file the run made: "  7 remove /etc/example.d/alice -> ok"`},
+		{"a write through a link not shown", strings.Replace(rootGolden, "/etc/hosts: changed, a file, 18 bytes, mode 0644 (was a file, 20 bytes, mode 0644)\n        | keep HARDN_CONFIG\n", "", 1), rootReader,
+			`a write through the symlink at /tmp/example_temp that the afterwards section does not show at /etc/hosts`},
+		{"a link removed, not shown gone", strings.Replace(rootGolden, "/tmp/example_temp: gone (was a symlink to ../etc/hosts)\n", "", 1), rootReader,
+			`a removal of the symlink at /tmp/example_temp that the afterwards section does not show gone`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if _, err := parseLegacy([]byte(tc.golden), "environment/example.golden", tc.rd); err == nil || err.Error() != rel+tc.want {
@@ -600,7 +610,8 @@ trace:
 // compared, a file written then removed is a temp file and visudo a check;
 // the seed lines are the start. Without them, the removal fails the reader
 // as before and visudo is a command that changes something; a golden with
-// no seed has no start (DNS's).
+// no seed has no start (DNS's). The removal of a file the fixture seeded,
+// written first, fails the reader: it is no temp file.
 func TestReadOpsTemps(t *testing.T) {
 	r, err := parseLegacy([]byte(opsTempGolden), "ops/example/debian.golden", rootReader)
 	if err != nil {
@@ -613,6 +624,11 @@ func TestReadOpsTemps(t *testing.T) {
 	}
 	if _, err := parseLegacy([]byte(opsTempGolden), "ops/example/debian.golden", reader{}); err == nil || !strings.Contains(err.Error(), "(remove)") {
 		t.Errorf("a removal without temp files compared: %v", err)
+	}
+	seededGone := opsTempGolden + "  5 remove /etc/example.d/alice -> ok\n"
+	if _, err := parseLegacy([]byte(seededGone), "ops/example/debian.golden", rootReader); err == nil ||
+		err.Error() != `ops/example/debian.golden: a removal of /etc/example.d/alice, which the fixture seeded: not a temp file the run made: "  5 remove /etc/example.d/alice -> ok"` {
+		t.Errorf("a removal of a seeded file: %v", err)
 	}
 	noRemove := strings.Replace(opsTempGolden, "  3 remove /tmp/example_temp -> ok\n", "", 1)
 	if r, err := parseLegacy([]byte(noRemove), "ops/example/debian.golden", reader{}); err != nil || !slices.Equal(r.Live.Actions, []string{"visudo -c -f /tmp/example_temp"}) || r.Live.Checks != nil {

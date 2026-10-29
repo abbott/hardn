@@ -325,9 +325,10 @@ func readLegacy(t *testing.T, dir, rel string, rd reader) legacyRun {
 // with neither cfg.DryRun=false nor a result, the run compared: one in a
 // layout it does not know would otherwise read as a run that did nothing.
 // With rd.check, a command it names is a check (EndState.Checks); with
-// rd.temps, the removal of a file the section wrote makes that file a temp
-// file (EndState.Temps), any other removal still an error. The "seed dir:"
-// and "seed file:" lines of its fixture are its Start. A golden in the
+// rd.temps, the removal of a file the section wrote and the fixture did
+// not seed makes that file a temp file (EndState.Temps), any other removal
+// still an error. The "seed dir:" and "seed file:" lines of its fixture
+// are its Start. A golden in the
 // repository's layout (the Backup screen's, pkg/characterization's
 // menu/backup_*, frozen in pkg/screens/backup/testdata/legacy since
 // next/s3-replace) is read by parseRepository, its paths read as
@@ -346,6 +347,7 @@ func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 	var cur, result *EndState
 	var last *FileWrite
 	var seed []string
+	seeded := map[string]bool{} // the paths the fixture seeded
 	sc := bufio.NewScanner(bytes.NewReader(data))
 	for sc.Scan() {
 		l := sc.Text()
@@ -379,6 +381,8 @@ func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 				seed = append(seed, c)
 			case strings.HasPrefix(l, "seed dir: "), strings.HasPrefix(l, "seed file: "):
 				seed, seeding = append(seed, l), strings.HasPrefix(l, "seed file: ")
+				_, p, _ := strings.Cut(l, ": ")
+				seeded[p] = true
 			default:
 				seeding = false
 			}
@@ -428,6 +432,9 @@ func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 			i := slices.IndexFunc(cur.Files, func(f FileWrite) bool { return f.Path == arg })
 			if !rd.temps || i < 0 {
 				return r, fmt.Errorf("%s: an operation the harness does not compare (%s): %q", rel, op, l)
+			}
+			if seeded[arg] {
+				return r, fmt.Errorf("%s: a removal of %s, which the fixture seeded: not a temp file the run made: %q", rel, arg, l)
 			}
 			cur.Temps = append(cur.Temps, cur.Files[i].String()+", removed")
 			cur.Files = slices.Delete(cur.Files, i, i+1)
@@ -762,17 +769,20 @@ type rootFile struct {
 //     content to its path, or to a temp file whose path held a symlink to
 //     it before (written through the link), and each write not removed
 //     must be shown;
-//   - the temp files (rd.temps): each file written, then removed, and
-//     whether its write followed a symlink there, which the removal took;
-//     each file gone afterwards must be one removed;
+//   - the temp files (rd.temps): each file the run made, written, then
+//     removed (a path "/ before" does not hold as a file or a directory),
+//     and whether its write followed a symlink there, which the removal
+//     took: the link's target must be shown changed with the write's
+//     content, and the link gone; each file gone afterwards must be one
+//     removed;
 //   - the checks (rd.check), a failed one with its error; the other
 //     commands, which must not fail.
 //
 // A line, section, operation or afterwards entry it does not know is an
 // error, and so is a section twice or out of order, a missing section or
-// outcome, a removal of a file the run did not write or without
-// rd.temps, a second call that failed, or one that failed with the
-// outcome ok.
+// outcome, a removal of a file the run did not write, of one "/ before"
+// holds, or without rd.temps, a second call that failed, or one that
+// failed with the outcome ok.
 func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
 	r := legacyRun{Golden: rel}
 	abs := strings.NewReplacer(rd.paths...).Replace
@@ -785,6 +795,7 @@ func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
 	env, outcome, failed := "", "", ""
 	seenOutcome, fixtures := false, false
 	links := map[string]string{} // a symlink before, by its path: its target, resolved
+	held := map[string]bool{}    // a file or a directory before, by its path
 	var writes []*rootWrite
 	var files []*rootFile
 	var gone []string
@@ -847,6 +858,8 @@ func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
 						t = path.Join(path.Dir(m[1]), t)
 					}
 					links[m[1]] = t
+				} else {
+					held[m[1]] = true
 				}
 			default:
 				return fail("a line of / before the reader does not know: %q", l)
@@ -912,6 +925,9 @@ func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
 				i := slices.IndexFunc(writes, func(w *rootWrite) bool { return w.path == arg && !w.removed })
 				if failedCall || !rd.temps || i < 0 {
 					return fail("an operation the harness does not compare (remove): %q", l)
+				}
+				if held[arg] {
+					return fail("a removal of %s, which / before holds: not a temp file the run made: %q", arg, l)
 				}
 				writes[i].removed = true
 			default:
@@ -981,8 +997,17 @@ func parseRoot(data []byte, rel string, rd reader) (legacyRun, error) {
 		r.Live.Files = append(r.Live.Files, FileWrite{Path: abs(f.path), Mode: mode, Lines: f.lines})
 	}
 	for _, w := range writes {
-		if !w.removed && !slices.ContainsFunc(files, func(f *rootFile) bool { return f.path == w.path && slices.Equal(f.lines, w.lines) }) {
+		shown := func(p string) bool {
+			return slices.ContainsFunc(files, func(f *rootFile) bool { return f.path == p && slices.Equal(f.lines, w.lines) })
+		}
+		to, linked := links[w.path]
+		switch {
+		case !w.removed && !shown(w.path):
 			return fail("a write of %s that the afterwards section does not show", w.path)
+		case w.removed && linked && !shown(to):
+			return fail("a write through the symlink at %s that the afterwards section does not show at %s", w.path, to)
+		case w.removed && linked && !slices.Contains(gone, w.path):
+			return fail("a removal of the symlink at %s that the afterwards section does not show gone", w.path)
 		}
 	}
 	for i, s := range start {
