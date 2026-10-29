@@ -153,6 +153,11 @@ type start struct {
 	// ops: the start is the ops layout's seed (ops/setup_sudo_preservation),
 	// whose environment is in a note, not compared.
 	ops bool
+	// rootToo: the new path runs from SUDO_USER (DOAS_USER on doas) root
+	// too, held equal: a root login is SUDO_USER unset or root, and
+	// origin/main reads root from either as keep_root's user
+	// (file_environment_repository.go:135-138, read).
+	rootToo bool
 }
 
 // words is st as origin/main's golden says it (parity.Cell.LegacyStart):
@@ -200,17 +205,22 @@ func (st start) words() string {
 // TMPDIR unset.
 func (st start) env(d parity.Distro) map[string]string {
 	m := map[string]string{}
-	name := "SUDO_USER"
-	if toolOf(d) == sudoers.ToolDoas {
-		name = "DOAS_USER"
-	}
 	if st.sudoUser != "" {
-		m[name] = st.sudoUser
+		m[invokerVar(d)] = st.sudoUser
 	}
 	if st.user != "" {
 		m["USER"] = st.user
 	}
 	return m
+}
+
+// invokerVar is the variable that names who ran hardn on d: DOAS_USER on
+// doas, else SUDO_USER.
+func invokerVar(d parity.Distro) string {
+	if toolOf(d) == sudoers.ToolDoas {
+		return "DOAS_USER"
+	}
+	return "SUDO_USER"
 }
 
 // lookup is getenv over vars.
@@ -295,7 +305,7 @@ var envScenarios, starts = func() ([]parity.Scenario, map[string]start) {
 			alice([]seed{{path: "/etc", dir: true, mode: 0o755}, {path: "/tmp", dir: true, mode: 0o777 | fs.ModeSticky}})},
 		{parity.Scenario{Name: "root", Golden: "environment/keep_root.golden", Lines: item1Lines,
 			State: parity.HostState{Long: "a root login (SUDO_USER unset, USER root); alice's file holds the grant", Short: "a root login"}},
-			start{user: "root", seeds: withFile("/etc/sudoers.d/alice", grantLine, 0o440)}},
+			start{user: "root", seeds: withFile("/etc/sudoers.d/alice", grantLine, 0o440), rootToo: true}},
 		{parity.Scenario{Name: "no-user", Golden: "environment/keep_no_user.golden", Lines: item1Lines,
 			State: parity.HostState{Long: "no user (SUDO_USER and USER unset); alice's file holds the grant", Short: "no user"}},
 			start{seeds: withFile("/etc/sudoers.d/alice", grantLine, 0o440)}},
@@ -675,6 +685,7 @@ func item1(t *testing.T, c parity.Cell, env map[string]string, dryRun bool) (par
 		st.Refusal = "failed: " + output.CodeOf(run.Err)
 	}
 	untouched(t, h, c)
+	rootOwned(t, h, st)
 	return st, answered
 }
 
@@ -702,7 +713,20 @@ func flagRun(t *testing.T, c parity.Cell, env map[string]string, dryRun bool) pa
 		st.Refusal = "failed: " + output.CodeOf(applyErr)
 	}
 	untouched(t, h, c)
+	rootOwned(t, h, st)
 	return st
+}
+
+// rootOwned fails t unless every file s says the run wrote is root's,
+// 0:0, on h: the owner, which origin/main's goldens do not record (its
+// os.WriteFile as root, read), is checked here rather than compared.
+func rootOwned(t *testing.T, h *hostfake.System, s parity.EndState) {
+	t.Helper()
+	for _, f := range s.Files {
+		if e, ok := h.Entry(f.Path); !ok || e.UID != 0 || e.GID != 0 {
+			t.Errorf("%s: owned %d:%d, not root's", f.Path, e.UID, e.GID)
+		}
+	}
 }
 
 // untouched fails t unless every file and symlink of c's start is as it
@@ -739,9 +763,11 @@ func same(s parity.EndState) string {
 }
 
 // envRun is the new path on c: from the start origin/main's golden names
-// (held to it), item 1 (item1), -e (flagRun), the two held equal; and plan
-// only, which writes nothing on either. A row with lines is item 1's; the
-// grant row, -e's, with its dry run, the plan alone.
+// (held to it), item 1 (item1), -e (flagRun), the two held equal, each
+// file either wrote root's (rootOwned); for the root row, from SUDO_USER
+// root too, held equal to unset; and plan only, which writes nothing on
+// either. A row with lines is item 1's; the grant row, -e's, with its dry
+// run, the plan alone.
 func envRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
 	st := starts[c.Scenario.Name]
@@ -753,6 +779,16 @@ func envRun(t *testing.T, c parity.Cell) parity.NewRun {
 	flagLive := flagRun(t, c, env, false)
 	if a, b := same(screenLive), same(flagLive); a != b {
 		t.Errorf("item 1 left\n%s\n-e left\n%s", a, b)
+	}
+	also := ""
+	if st.rootToo {
+		root := start{sudoUser: "root", user: "root"}.env(c.Distro)
+		s, _ := item1(t, c, root, false)
+		f := flagRun(t, c, root, false)
+		if same(s) != same(screenLive) || same(f) != same(flagLive) {
+			t.Errorf("%s root: item 1 left\n%s\n-e left\n%s\nwhere unset, item 1 left\n%s", invokerVar(c.Distro), same(s), same(f), same(screenLive))
+		}
+		also = "; " + invokerVar(c.Distro) + " root leaves the same"
 	}
 	screenDry, _ := item1(t, c, env, true)
 	flagDry := flagRun(t, c, env, true)
@@ -770,7 +806,7 @@ func envRun(t *testing.T, c parity.Cell) parity.NewRun {
 			Via: "-e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, " + answered + ", leaves the same"}
 	}
 	return parity.NewRun{Live: screenLive,
-		Via: "item 1 through screenkit.Session.Change, " + answered + "; -e's plan and apply leave the same; under plan only, " + dry}
+		Via: "item 1 through screenkit.Session.Change, " + answered + "; -e's plan and apply leave the same; under plan only, " + dry + also}
 }
 
 // TestParityGoldens: every golden of origin/main's Environment is a row of
@@ -784,7 +820,7 @@ func TestParityGoldens(t *testing.T) {
 		}
 	}
 	var all []string
-	for _, pattern := range []string{"environment/*.golden", "menu/environment_*.golden", "ops/setup_sudo_preservation/*.golden"} {
+	for _, pattern := range []string{"environment/*.golden", "menu/environment_*.golden", "ops/setup_sudo_preservation/*.golden", "ops/configure_sudo/*.golden"} {
 		m, err := filepath.Glob(filepath.Join(legacyDir, filepath.FromSlash(pattern)))
 		if err != nil {
 			t.Fatal(err)
@@ -820,20 +856,22 @@ func TestParityGoldens(t *testing.T) {
 // notRows are origin/main's Environment goldens with no row, each with why
 // (parity-environment.md §2). Each records no end state of item 1, -e or
 // setup-sudo-env: the menu's draw nothing ("/ afterwards: unchanged",
-// "./hardn.yml: not written", run), and the notices are the su - probe's.
+// "./hardn.yml: not written", run), the notices are the su - probe's, and
+// ops/configure_sudo is the grant's write.
 var notRows = func() map[string]string {
 	const (
 		draw     = "the screen drawn, its reading alone, nothing written: unit (c)'s screen reads with the control (defects 4, 5, 17)"
 		notRoot  = "item 1's branch for a user other than root, which hardn never reaches (defect 8): words, nothing called"
 		probe    = "the su - probe at config load and its notice (side-effects row 5): not the Environment's item; unit (d) removes it (decision 4)"
 		nothingW = "words alone, nothing written"
+		grant    = "ConfigureSudo's grant write (slice 5; side-effects row 17), not the Environment's operation: V16's evidence that the next grant overwrites origin/main's line"
 	)
 	m := map[string]string{
 		"menu/environment_guide.golden":            "item 2, the guide: " + nothingW,
 		"menu/environment_invalid.golden":          "an invalid key: " + nothingW,
 		"menu/environment_return.golden":           "0, back: " + nothingW,
 		"menu/environment_keep_not_root.golden":    notRoot,
-		"menu/environment_keep_dry_run.golden":     notRoot + "; as root under dry run it prints and calls nothing (read, not run): plan only is the grant row's dry run",
+		"menu/environment_keep_dry_run.golden":     notRoot + "; item 1's plan only as root: origin/main calls nothing (environment_settings_menu.go:86-87, read, not run), the new path writes nothing (checked in every cell); -e's plan only is the grant row's dry run",
 		"environment/notice_setup_sudo_env.golden": probe + "; setup-sudo-env's read, which runs no probe",
 	}
 	for _, o := range []string{"open", "open_commented", "open_elsewhere", "open_no_user", "open_root", "open_unset", "open_user"} {
@@ -841,6 +879,9 @@ var notRows = func() map[string]string {
 	}
 	for _, n := range []string{"doas", "kept", "lost", "lost_unset", "no_sudo_user", "not_sudo", "profile_prints", "su_fails"} {
 		m["environment/notice_"+n+".golden"] = probe
+	}
+	for _, d := range []string{"alpine", "debian", "proxmox", "ubuntu"} {
+		m["ops/configure_sudo/"+d+".golden"] = grant
 	}
 	return m
 }()

@@ -814,7 +814,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -846,7 +846,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -878,7 +878,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; DOAS_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -910,7 +910,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written; SUDO_USER root leaves the same
   refused: SUDOERS_NO_TOOL, before asking
 agree  rules: none
 agree  comments: none
