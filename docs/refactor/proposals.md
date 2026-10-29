@@ -191,6 +191,7 @@
   - **(c) Item 8:** "Configure environment variable" should name the variable. The screen manages only sudo preservation of `HARDN_CONFIG` [V]. Proposed wording: "Keep HARDN_CONFIG under sudo".
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
+- **Mocked** (slice 9, unit (a), `next/s9-gallery`; [gallery-environment.md](../engine/gallery-environment.md) decision 7): (c)'s "Keep HARDN_CONFIG" names the Environment screen's item 1 and its flow. "Under sudo" is wrong on doas hosts, so item 8's description recommended there is "Keep HARDN_CONFIG". Item 8 itself is not drawn.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-07-before.png` (placeholder). After: `docs/refactor/img/p-07-after.png` (placeholder).
 
 ---
