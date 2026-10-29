@@ -713,6 +713,80 @@ func TestCompareChecked(t *testing.T) {
 	}
 }
 
+// TestCompareEither: with Slice.Either the content is compared where one
+// path alone wrote, against none, and the backup and the journal where
+// one alone wrote, backed up or journalled, a run that backed up and
+// journalled and then wrote nothing too; the write is still compared only
+// where both wrote. Without it, none of them is compared there.
+func TestCompareEither(t *testing.T) {
+	content := func(add func(name, legacy, new string), l, n []FileWrite) {
+		var ll, nl []string
+		for _, f := range l {
+			ll = append(ll, f.Lines...)
+		}
+		for _, f := range n {
+			nl = append(nl, f.Lines...)
+		}
+		add("lines", Joined(ll), Joined(nl))
+	}
+	wrote := EndState{Files: []FileWrite{{Path: "/etc/example.d/hardn-alice", Mode: 0o440, Lines: []string{"# a header", "keep"}, Atomic: true}},
+		Backups: []string{"/etc/example.d/hardn-alice (absent before: the rollback removes it)"}, Journal: true}
+	refused := EndState{Backups: wrote.Backups, Journal: true}
+	names := func(as []aspect) []string {
+		var out []string
+		for _, a := range as {
+			out = append(out, a.Name)
+		}
+		return out
+	}
+	for _, tc := range []struct {
+		name   string
+		either bool
+		n      EndState
+		want   []string
+	}{
+		{"wrote, either", true, wrote, []string{"lines", "backup", "journal"}},
+		{"backed up and journalled, either", true, refused, []string{"backup", "journal"}},
+		{"wrote, both only", false, wrote, nil},
+		{"backed up and journalled, both only", false, refused, nil},
+	} {
+		diffs, agree := compare(t, Slice{Content: content, Either: tc.either}, "", EndState{}, tc.n)
+		var got []string
+		for _, a := range names(diffs) {
+			if a != "files" {
+				got = append(got, a)
+			}
+		}
+		if !slices.Equal(got, tc.want) || slices.Contains(names(append(diffs, agree...)), "write") {
+			t.Errorf("%s: differences %q (want %q besides files), agreeing %q", tc.name, names(diffs), tc.want, names(agree))
+		}
+	}
+	diffs, _ := compare(t, Slice{Content: content, Either: true}, "", EndState{}, wrote)
+	if i := slices.IndexFunc(diffs, func(a aspect) bool { return a.Name == "lines" }); i < 0 || diffs[i].Legacy != "none" || diffs[i].New != "# a header, keep" {
+		t.Errorf("the content against none: %+v", diffs)
+	}
+}
+
+// TestCellNote: a slice's cell note follows the scenario's in the golden,
+// for the cells it names alone.
+func TestCellNote(t *testing.T) {
+	sc := Scenario{Name: "new", Note: "the scenario's note"}
+	cells := []Cell{{Scenario: sc, Distro: Distro{Name: "debian", Label: "Debian 13"}}, {Scenario: sc, Distro: Distro{Name: "alpine", Label: "Alpine 3.23"}}}
+	sl := Slice{CellNote: func(c Cell) string {
+		if c.Distro.Name == "alpine" {
+			return "alpine's note"
+		}
+		return ""
+	}}
+	g := renderCells(sl, cells)
+	if strings.Count(g, "  alpine's note\n") != 1 || !strings.Contains(g, "  the scenario's note\n  alpine's note\n") || !strings.Contains(g, "== new on Debian 13\nhost:") {
+		t.Errorf("cell notes:\n%s", g)
+	}
+	if strings.Contains(renderCells(Slice{}, cells), "alpine's note") {
+		t.Error("a note without CellNote")
+	}
+}
+
 // TestLegacyDry: a dry-run section that differs from the live one only in
 // its checks or temp files is not "as live", and says them; one that
 // does the same is; a slice with neither (DNS's) reads as before; each

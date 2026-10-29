@@ -102,6 +102,19 @@ type Slice struct {
 	// directory (NewStateChecked). False (DNS, Backup): a remove fails
 	// origin/main's reader, as before.
 	Temps bool
+	// Either compares wherever either path did what both did elsewhere,
+	// not only where both wrote: the files' content (Content) where either
+	// wrote a host file, the other's "none"; the backup and the journal
+	// where either wrote, backed up or journalled (Environment's: its new
+	// path writes where origin/main did not, and backs up and journals
+	// before a check refuses). The write, in place or atomic, is still a
+	// write's against a write, compared where both wrote. False (DNS,
+	// Backup): each where both wrote, as before.
+	Either bool
+	// CellNote is a cell's own note, after its scenario's: where
+	// origin/main's golden stands for the cell in part (Environment's doas
+	// cells, a sudo run); "" none. nil (DNS, Backup): none.
+	CellNote func(c Cell) string
 }
 
 // reader is how a slice's goldens are read (Slice): origin/main's commands
@@ -1362,10 +1375,13 @@ func ymlOf(s EndState) []FileWrite {
 // aspect: the aspects that differ and those that agree, each with both
 // values. An aspect of what was written is compared only when both wrote:
 // the files' content (sl.Content) when both wrote a host file, whatever
-// its path; hardn.yml's when both saved it, key, the setting the item
-// saves, apart, and its mode where both record it. With
-// sl.UnderBackupPath, what each wrote under the backup path, its
-// directories and its files, and what is there after.
+// its path; the write, the backup and the journal when both wrote;
+// hardn.yml's when both saved it, key, the setting the item saves, apart,
+// and its mode where both record it. With sl.Either, the content where
+// either wrote a host file, and the backup and the journal where either
+// wrote, backed up or journalled. With sl.UnderBackupPath, what each wrote
+// under the backup path, its directories and its files, and what is there
+// after.
 func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []aspect) {
 	t.Helper()
 	add := func(name, lv, nv string) {
@@ -1377,7 +1393,7 @@ func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []
 	}
 	add("refusal", OrElse(l.Refusal, "none"), OrElse(n.Refusal, "none"))
 	add("files", Joined(names(l.Files)), Joined(names(n.Files)))
-	if len(l.Files) > 0 && len(n.Files) > 0 {
+	if len(l.Files) > 0 && len(n.Files) > 0 || sl.Either && len(l.Files)+len(n.Files) > 0 {
 		sl.Content(add, l.Files, n.Files)
 		for _, lf := range l.Files {
 			if i := slices.IndexFunc(n.Files, func(f FileWrite) bool { return f.Path == lf.Path }); i >= 0 {
@@ -1402,6 +1418,8 @@ func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []
 	}
 	if l.Wrote() && n.Wrote() {
 		add("write", method(l), method(n))
+	}
+	if l.Wrote() && n.Wrote() || sl.Either && (undone(l) || undone(n)) {
 		add("backup", Joined(l.Backups), Joined(n.Backups))
 		add("journal", journal(l), journal(n))
 	}
@@ -1459,6 +1477,10 @@ func method(s EndState) string {
 	}
 	return "atomic"
 }
+
+// undone reports whether s wrote, backed up or journalled: what the
+// backup and the journal are there to undo.
+func undone(s EndState) bool { return s.Wrote() || len(s.Backups) > 0 || s.Journal }
 
 func journal(s EndState) string {
 	if s.Journal {
@@ -1680,6 +1702,11 @@ func renderCells(sl Slice, cells []Cell) string {
 		fmt.Fprintf(&b, "origin/main: %s (%s)\n", c.legacy.Golden, strings.Join(c.legacy.Vs, ", "))
 		if c.Scenario.Note != "" {
 			fmt.Fprintf(&b, "  %s\n", c.Scenario.Note)
+		}
+		if sl.CellNote != nil {
+			if n := sl.CellNote(c); n != "" {
+				fmt.Fprintf(&b, "  %s\n", n)
+			}
 		}
 		if c.legacy.Start != "" {
 			fmt.Fprintf(&b, "  start: %s\n", c.legacy.Start)
