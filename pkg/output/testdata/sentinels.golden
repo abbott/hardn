@@ -144,6 +144,7 @@ steps.ErrProxmoxRoot PVE_ROOT_LOGIN_NOT_KEPT
 steps.ErrSessionNotKept SSH_CLEANUP_SESSION_NOT_KEPT
 sudoers.ErrAmbiguous SUDOERS_TOOL_AMBIGUOUS
 sudoers.ErrChanged SUDOERS_CHANGED
+sudoers.ErrEdited SUDOERS_FILE_EDITED
 sudoers.ErrEnvNeedsGrant SUDOERS_ENV_NEEDS_GRANT
 sudoers.ErrNoTool SUDOERS_NO_TOOL
 sudoers.ErrNotIncluded SUDOERS_NOT_INCLUDED
