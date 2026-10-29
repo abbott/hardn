@@ -15,7 +15,6 @@ type MenuManager struct {
 	firewallManager    *FirewallManager
 	dnsManager         *DNSManager
 	packageManager     *PackageManager
-	backupManager      *BackupManager
 	securityManager    *SecurityManager
 	environmentManager *EnvironmentManager
 	logsManager        *LogsManager
@@ -31,7 +30,6 @@ func NewMenuManager(
 	firewallManager *FirewallManager,
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
-	backupManager *BackupManager,
 	securityManager *SecurityManager,
 	environmentManager *EnvironmentManager,
 	logsManager *LogsManager,
@@ -43,7 +41,6 @@ func NewMenuManager(
 		firewallManager:    firewallManager,
 		dnsManager:         dnsManager,
 		packageManager:     packageManager,
-		backupManager:      backupManager,
 		securityManager:    securityManager,
 		environmentManager: environmentManager,
 		logsManager:        logsManager,
@@ -128,31 +125,6 @@ func (m *MenuManager) UpdateProxmoxSources() error {
 // retrieve the current status of the firewall
 func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
 	return m.firewallManager.GetFirewallStatus()
-}
-
-// return the backup status and directory
-func (m *MenuManager) GetBackupStatus() (bool, string, error) {
-	return m.backupManager.GetBackupStatus()
-}
-
-// check if the backup path exists and is writable
-func (m *MenuManager) VerifyBackupPath() (bool, error) {
-	return m.backupManager.VerifyBackupPath()
-}
-
-// enable or disables backups
-func (m *MenuManager) ToggleBackups() error {
-	return m.backupManager.ToggleBackups()
-}
-
-// change the backup directory
-func (m *MenuManager) SetBackupDirectory(directory string) error {
-	return m.backupManager.SetBackupDirectory(directory)
-}
-
-// ensure the backup directory exists and is writable
-func (m *MenuManager) VerifyBackupDirectory() error {
-	return m.backupManager.VerifyBackupDirectory()
 }
 
 // configure sudo to preserve the HARDN_CONFIG environment variable

@@ -69,9 +69,16 @@ func runControls(c *config.Config, controls []engine.Control) int {
 	return code
 }
 
+// dnsMenu is what withDNSScreen sets the DNS item of: pkg/menu's main
+// menu, and the tests' record of what was set.
+type dnsMenu interface{ SetDNS(run func() error) }
+
+// The main menu is a dnsMenu.
+var _ dnsMenu = (*menu.MainMenu)(nil)
+
 // withDNSScreen returns m with its DNS item set to the DNS screen on c,
 // the configuration m was given (menu.MainMenu.SetDNS).
-func withDNSScreen(m *menu.MainMenu, c *config.Config) *menu.MainMenu {
+func withDNSScreen[M dnsMenu](m M, c *config.Config) M {
 	m.SetDNS(func() error { return runDNSScreen(context.Background(), c) })
 	return m
 }

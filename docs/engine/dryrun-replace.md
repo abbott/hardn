@@ -7,7 +7,7 @@
 
 1. **Item 6 removed, its key left unused** (decision 1). The main menu lists 1 to 5, then 7 to 10, and 0; 6 is refused under the prompt as any key no item has, "⨳ Invalid option. Please try again." (`(x)` in ASCII); the hint, generated from the items, is "[0-5, 7-10 or q]". The menu is 35 lines at 80 columns, 57 at 60 (one and two fewer).
 2. **Run All runs in the session's mode** (decision 7). Its option 2, "Enable dry-run mode and run" or "Disable dry-run mode and run", is removed. Option 1 and its typed yes are unchanged. Key 2 is left unused by item 6's rule; it was the last option, so no key would have been renumbered either way. 2 is refused as any other choice, in Run All's own words and pause; the hint is "[0-1 or q]".
-3. **Plan only refuses what would still change the host** (decision 6), whatever set it (`-n` or hardn.yml's `dryRun: true`), in the maintainer's words, "Not available in plan only." (§3).
+3. **Plan only refuses what would still change the host** (decision 6), whatever set it (`-n` or hardn.yml's `dryRun: true`), in the maintainer's words, "Not available in plan only." (§3). *Since `next/s3-replace` (slice 3, unit (d), decision 10), Backup (5) is no longer refused: the legacy screen is replaced by one on the engine, which opens under plan only and stops each change at its plan ([cmd-engine.md](cmd-engine.md)). User Management and Firewall's profile add and remove still are.*
 4. **The parity record**, frozen first and byte for byte (§4).
 5. **The gallery's Dry-Run mode retired**, with its last mocks and play variants ([gallery-dryrun.md](gallery-dryrun.md) §11).
 6. **The deprecation note made current** (decision 10): docs/configuration.md says item 6 is removed and which menu areas plan only refuses; docs/releases/unreleased.md's item-6 line no longer waits, with Run All's option 2 and the refusals beside it.
@@ -35,7 +35,7 @@ Kept: `handled`, which still opens Run All's handler; `style.Menu.SetIndentation
 | Where | Live | Under plan only (`-n` or hardn.yml) | Style |
 |---|---|---|---|
 | Main menu 1, User Management | opens, as before | refused before its screen is built | under the prompt as an invalid key: "⨳ Not available in plan only." (`(x)` in ASCII), `status.bad`, the prompt asked again, no clear, the main menu not read or drawn again |
-| Main menu 5, Backup | opens, as before (with backups on, it writes and removes `<path>/.write_test`) | the same | the same |
+| Main menu 5, Backup | opens, as before (with backups on, it writes and removes `<path>/.write_test`) | the same | the same. *Since `next/s3-replace`: the Backup screen on the engine, live and under plan only, writing nothing to draw; under plan only each change stops at its plan* |
 | Firewall, Manage application profiles: 1 Add, 2 Remove | asks and saves `./hardn.yml`, as before | refused before any question or save; with no profile, 2 is not offered and goes on as before, its "No profiles to remove" cleared at once by the screen drawn again | the screen's own refusal of a choice it does not take: "✗ Not available in plan only." in red, then its "❯ Press Enter to continue..." pause, then the profiles screen again |
 
 The main menu's refusal is `nav.Option.Refusal` (new): asked as the item is chosen, before its action, a reason refuses the line under the prompt as a line no item takes is refused. An item disabled (`MenuItem.Disabled`) would have said "User Management is unavailable." and left its key out of the hint; an action that printed the words would have had the main menu drawn again under them. The keys stay in the hint, "[0-5, 7-10 or q]", as the retired mock `play dryrun/proposed` drew it.
@@ -98,10 +98,12 @@ git show cc04c17:pkg/menu/testdata/golden/run_all/option1-live-cancel.golden | c
 | Main menu, 6 | "⨳ Invalid option. Please try again." | origin/main (P-25 (c)) |
 | Run All, 2 | "✗ Invalid option. Please try again.", "Press Enter to continue..." | Run All's own |
 | Hints | "[0-5, 7-10 or q]", Run All's "[0-1 or q]" | generated |
-| docs/configuration.md | "**Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them."; the note's "Item 6 is now removed, and Run All no longer turns dry run on or off." | **proposed** (decision 10) |
+| docs/configuration.md | "**Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them."; the note's "Item 6 is now removed, and Run All no longer turns dry run on or off." *Since `next/s3-replace`, Backup is out of the refused list, with "**Backup opens.** Each of its changes stops at its plan." (proposed)* | **proposed** (decision 10) |
 | docs/releases/unreleased.md | the header; "**Run All no longer turns dry run on or off.** …"; "**Under plan only, some menu areas are refused.** …" | **proposed** |
 
 ## 7. The VM steps (run 2026-10-23, §7.1)
+
+*Since `next/s3-replace`, steps 3, 5 and 6's `5` opens the Backup screen on the engine, under plan only too, and writes nothing to draw; [screen-backup.md](screen-backup.md) §4.1 has its checks. The steps below are as they were run.*
 
 On Debian 13, Ubuntu 26.04 and Alpine 3.23 ([vmtest.md](../safety/vmtest.md)), as root (Alpine through doas), hardn built from this branch (`CGO_ENABLED=0 GOOS=linux go build -trimpath -tags=netgo ./cmd/hardn`, the VM's `GOARCH`), from `/root`, in tmux (`tmux new -x 80 -y 40`). Never choose Run All's 1 here: live it runs every step.
 
@@ -152,7 +154,7 @@ Not run: step 6's `--dry-run=false` with Backup, and the Firewall profile's remo
 2. **For the maintainer:**
    - the proposed lines of §6;
    - 1 and 5 refused inline under the prompt (⨳, `status.bad`, no redraw), where the adopted mock drew a Warning notice and the main menu again (§3);
-   - the main menu's hint still lists 1 and 5 under plan only, as the adopted mock did;
+   - the main menu's hint still lists 1 and 5 under plan only, as the adopted mock did (*since `next/s3-replace`, 1 alone is refused there*);
    - `main_menu/*` frozen with the trunk's two edits, or 8ddffc7's bytes, origin/main's own lines (§4);
    - P-03's row in proposals.md's table still says "decided": the brief allowed its status line alone;
    - `confirm` and `rollback` under the file's plan only ([dryrun-mode.md](dryrun-mode.md) §4.1 item 1), still open.

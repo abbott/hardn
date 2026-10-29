@@ -49,7 +49,10 @@ var asciiColour = uitest.Cell{Name: "truecolor-dark-ascii-80", Env: term.Fixed(8
 // itself, and item 1 again (decision 7 (a)); the relative path, Verify
 // and item 1 refused; the read-only host, Verify passing and the change
 // failing at its backup; the runs, read only; plan only, stopping at the
-// plan; the hosts' menu; the main menu's 5; and the restore's mock. Each
+// plan; the hosts' menu; the main menu's 5, live and under plan only (as
+// hardn's main menu opens it since next/s3-replace, decision 10: the
+// gallery's main menu is Figma's mock, its indicator "Mode Live" either
+// way), a change stopping at its plan; and the restore's mock. Each
 // change id's random suffix is written xxxxxxxx (sessionIDs).
 func TestPlayBackupGolden(t *testing.T) {
 	tests := []struct {
@@ -59,6 +62,7 @@ func TestPlayBackupGolden(t *testing.T) {
 		cells []uitest.Cell
 	}{
 		{"backup", nil, []string{"5", "3", "0", "0"}, nil},
+		{"backup-plan-only", []string{"-sequence", "dry-run"}, []string{"5", "1", "0", "0"}, nil},
 		{"backup-toggle", []string{"backup/default"}, []string{"1", "y", "1", "y", "0"}, nil},
 		{"backup-path", []string{"backup/default"}, []string{"2", "backups", "/var/backups//hardn/", "/tmp/hardn", "/etc/os-release",
 			"/var/backups/hardn", "/srv/backups/hardn", "y", "0"}, append(uitest.Core(), asciiColour)},

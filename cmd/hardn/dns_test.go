@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -334,13 +335,14 @@ func TestDNSScreen(t *testing.T) {
 
 // TestDNSScreenSignals: Ctrl-C, SIGTERM and a hangup, each sent to this
 // test process during a change's apply on the DNS screen, as the kernel
-// delivers it, cancel that apply: the change is rolled back here, the
-// screen goes on, reading the host again, and the user goes back (nil),
-// the configuration as it was. The change before it in the same visit
-// failed and was rolled back under the engine's own hold (hold.Signals),
-// whose release ends a registration made before it: each apply registers
-// its own (engineSignals), or the signal would end hardn half applied, as
-// Go's default would end this test process.
+// delivers it, cancel that apply: the change is rolled back here, each
+// report naming hardn's log, the screen goes on, reading the host again,
+// and the user goes back (nil), the configuration as it was. The change
+// before it in the same visit failed and was rolled back under the
+// engine's own hold (hold.Signals), whose release ends a registration
+// made before it: each apply registers its own (engineSignals), or the
+// signal would end hardn half applied, as Go's default would end this
+// test process.
 func TestDNSScreenSignals(t *testing.T) {
 	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
 		t.Run(sig.String(), func(t *testing.T) {
@@ -380,6 +382,9 @@ func TestDNSScreenSignals(t *testing.T) {
 			out := s.out.String()
 			if s.applies != 2 || reloads != 2 || strings.Count(out, "Set the nameservers  Rolled back") != 2 || !strings.Contains(out, "Failed CANCELLED") {
 				t.Errorf("%d applies, %d reloads; screen:\n%s", s.applies, reloads, out)
+			}
+			if strings.Count(out, "Check the log file at "+output.LegacyLogPath) != 2 {
+				t.Errorf("the failures' reports do not both name %s:\n%s", output.LegacyLogPath, out)
 			}
 			if last := out[strings.LastIndex(out, "# DNS Configuration #"):]; strings.Contains(last, "Unknown") {
 				t.Errorf("the screen after the signal did not read the host:\n%s", last)

@@ -56,7 +56,6 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 	firewallManager := f.serviceFactory.CreateFirewallManager()
 	dnsManager := f.serviceFactory.CreateDNSManager()
 	packageManager := f.serviceFactory.CreatePackageManager()
-	backupManager := f.serviceFactory.CreateBackupManager()
 	environmentManager := f.serviceFactory.CreateEnvironmentManager()
 	logsManager := f.serviceFactory.CreateLogsManager()
 	securityManager := application.NewSecurityManager(
@@ -70,7 +69,6 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 		firewallManager,
 		dnsManager,
 		packageManager,
-		backupManager,
 		securityManager,
 		environmentManager,
 		logsManager,

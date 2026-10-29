@@ -133,7 +133,8 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **Some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." Start without plan only to use them.
+- **Some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." Start without plan only to use them.
+- **Backup opens.** Each of its changes stops at its plan.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
 - **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c`, `-d`, `-w`, `-e` and `setup-sudo-env` exit with status 2 and change nothing. `-g` shows its plan instead, and exits 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
@@ -141,6 +142,18 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
 
 > **Changed in the next release.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote is now plan only. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. Item 6 is now removed, and Run All no longer turns dry run on or off.
+
+#### `enableBackups` and `backupPath`: the Backup screen
+
+The main menu's Backup (5) shows and changes these two settings.
+
+- **Showing it writes nothing.** With backups on, it used to write a test file to the backup path each time.
+- **Verify Directory writes nothing.** It checks that only root can change the path.
+- **Some paths are refused** as you type them: a relative path, or one under a directory others can change, such as `/tmp`.
+- **Each change is shown first.** Confirm it, and only that setting is saved, in the file `hardn` loaded. Without a loaded file, nothing can be saved.
+- **A path change backs up under the new path**, as does every change after it.
+- **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path.
+- **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
 
 ### Network Configuration
 

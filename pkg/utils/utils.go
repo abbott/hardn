@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/interfaces"
@@ -72,51 +71,6 @@ func PrintLogo() {
 // `)
 // 	fmt.Println()
 // }
-
-// BackupFile backs up a file
-func BackupFile(filePath string, cfg *config.Config) error {
-	if !cfg.EnableBackups {
-		logging.LogInfo("Backups disabled. Skipping backup of %s", filePath)
-		return nil
-	}
-
-	if cfg.DryRun {
-		logging.LogInfo("[DRY-RUN] Backup %s to %s", filePath, cfg.BackupPath)
-		return nil
-	}
-
-	// Create backup directory if it doesn't exist
-	backupDir := filepath.Join(cfg.BackupPath, time.Now().Format("2006-01-02"))
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
-		return fmt.Errorf("failed to create backup directory %s: %w", backupDir, err)
-	}
-
-	// Check if file exists
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		logging.LogInfo("File %s does not exist, no backup needed", filePath)
-		return nil
-	}
-
-	// Get filename without path
-	filename := filepath.Base(filePath)
-
-	// Create backup with timestamp
-	backupFile := filepath.Join(backupDir, fmt.Sprintf("%s.%s.bak", filename, time.Now().Format("150405")))
-
-	// Read original file
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read file %s for backup: %w", filePath, err)
-	}
-
-	// Write backup file
-	if err := os.WriteFile(backupFile, data, 0644); err != nil {
-		return fmt.Errorf("failed to write backup file to %s: %w", backupFile, err)
-	}
-
-	logging.LogInfo("Backed up %s to %s", filePath, backupFile)
-	return nil
-}
 
 // run a command and returns its output
 func RunCommand(name string, args ...string) (string, error) {

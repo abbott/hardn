@@ -14,9 +14,23 @@
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
-- **Under plan only, some menu areas are refused.** User Management, Backup, and adding or removing a Firewall profile say "Not available in plan only." They used to apply their changes even under `-n`.
+- **Under plan only, some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." They used to apply their changes even under `-n`.
+- **Under plan only, Backup opens.** Each of its changes stops at its plan, and it writes nothing.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
+
+## Changed: the Backup screen
+
+- **Opening Backup writes nothing.** With backups on, it used to write and remove `.write_test` in the backup path each time it was shown, deleting a file of that name.
+- **Verify Directory writes nothing.** With backups on, it used to create the directory and write a test file.
+- **Relative paths, and paths under a directory others can change, are refused**, such as `backups` or `/tmp/hardn-backups`. They used to be saved.
+- **Check `backupPath` in older files.** While it holds such a path, changes from the DNS and Backup screens and `-g` are refused. Change it with Backup's item 2.
+- **Turning backups on or off, and changing the path, show the change first.** Only that setting is saved, in the file `hardn` loaded. They used to save the whole configuration to `./hardn.yml`.
+- **A path change backs up under the new path**, as does every change after it.
+- **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path, and say so.
+- **Backup Runs lists the backups in the path in use**, newest first, and only reads. There is no restore yet.
+
+See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
 
 ## Changed: the main menu
 

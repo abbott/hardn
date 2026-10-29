@@ -40,8 +40,8 @@ const invalid = "  (x) Invalid option. Please try again."
 // them (openScreen), until the test ends: each is named by the screen of
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
-// and printed, as a screen prints over the main menu. The DNS item's
-// screen, m's, does the same as "dns".
+// and printed, as a screen prints over the main menu. The DNS and Backup
+// items' screens, m's, do the same as "dns" and "backup".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -61,6 +61,7 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 		t.Errorf("an item built %#v, none of origin/main's screens", s)
 	}
 	m.SetDNS(func() error { record("dns"); return nil })
+	m.SetBackup(func() error { record("backup"); return nil })
 	return &opened
 }
 
@@ -68,13 +69,14 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // m's items, by name, transcribed from it as next/s2b-mode had it
 // (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
 // its arguments, but 6's, the Dry-Run handler, which slice 2b's unit (d)
-// removed with its item. The DNS item's screen is m's (SetDNS).
+// removed with its item, and 5's, the Backup menu, which slice 3's unit
+// (d) replaced. The DNS and Backup items' screens are m's (SetDNS,
+// SetBackup).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
 		"users":         NewUserMenu(m.menuManager, m.config, m.osInfo),
 		"sshLogin":      NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
 		"firewall":      NewFirewallMenu(m.menuManager, m.config, m.osInfo),
-		"backup":        NewBackupMenu(m.menuManager, m.config),
 		"runAll":        handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
 		"environment":   NewEnvironmentSettingsMenu(m.menuManager, m.config),
 		"systemDetails": NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()),
@@ -136,7 +138,8 @@ func (r interrupted) Read(p []byte) (int, error) {
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
 // to 10 open exactly the screen origin/main's handleMenuChoice opened for
 // them, of the same constructor with the same arguments (recordScreens),
-// and the main menu is drawn again when it returns; 6, whose item,
+// but 3 and 5, which open the DNS and Backup screens cmd/hardn sets, and
+// the main menu is drawn again when it returns; 6, whose item,
 // Dry-Run, slice 2b's unit (d) removed, its key left unused (decision 1),
 // is refused as any key no item has, opening nothing; 0 (Exit) and q, in
 // either case, clear the screen and return, opening nothing; spaces
@@ -205,8 +208,10 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			if slices.Contains(tc.opened, "dns") {
-				want++ // the DNS item opens its screen on a cleared screen, as every legacy screen does
+			for _, hooked := range []string{"dns", "backup"} {
+				if slices.Contains(tc.opened, hooked) {
+					want++ // the DNS and Backup items open their screens on a cleared screen, as every legacy screen does
+				}
 			}
 			if !strings.HasPrefix(out, clearScreen) || clears != want || strings.Contains(out, "Press Enter") {
 				t.Errorf("%d clears, want %d, the first as hardn starts; or a pause:\n%q", clears, want, out)

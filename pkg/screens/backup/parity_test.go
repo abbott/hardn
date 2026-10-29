@@ -26,10 +26,11 @@ import (
 
 // The Backup parity table (refactor plan §2, slice 3's unit (b2),
 // next/s3-parity; docs/engine/parity-backup.md): origin/main's Backup
-// screen, read from pkg/characterization's goldens (menu/backup_*) in
-// place, against Backup's control on the engine from the same start
-// states, through the parity harness (internal/parity). This file is what
-// Backup supplies to it.
+// screen, read from its record (testdata/legacy: pkg/characterization's
+// goldens, menu/backup_*, moved there unchanged by unit (d),
+// next/s3-replace), against Backup's control on the engine from the same
+// start states, through the parity harness (internal/parity). This file
+// is what Backup supplies to it.
 //
 // It lives beside the Backup screen (pkg/screens/backup), whose Run it
 // drives since unit (c), next/s3-screen, as pkg/screens/dns's TestParity
@@ -52,10 +53,10 @@ var backupParity = parity.Slice{
 	Golden:    "parity.golden",
 	Page:      filepath.Join("..", "..", "..", "docs", "engine", "parity-backup.md"),
 	Pkg:       "pkg/screens/backup",
-	// origin/main's record, read in place until unit (d) freezes it
-	// (parity-dns.md §7); the fixtures are the new path's hardn.yml, the
-	// settings origin/main's run made in memory (runBackupChild).
-	Legacy:          filepath.Join("..", "..", "characterization", "testdata", "golden"),
+	// origin/main's record, frozen (legacyDir); the fixtures are the new
+	// path's hardn.yml, the settings origin/main's run made in memory
+	// (runBackupChild, which unit (d) retired with TestLegacyMenuBackup).
+	Legacy:          legacyDir,
 	Fixtures:        fixtures,
 	LegacyPaths:     []string{"$TMP/home", "$HOME", "$TMP", ""},
 	UnderBackupPath: true,
@@ -70,6 +71,14 @@ var backupParity = parity.Slice{
 
 // fixtures are the new path's hardn.yml, one with backups on, one off.
 var fixtures = filepath.Join("testdata", "fixtures")
+
+// legacyDir is origin/main's record: pkg/characterization's Backup
+// goldens, moved here unchanged (git mv) in unit (d)'s first commit, in
+// their layout there (menu/backup_*), before the code they recorded was
+// deleted, as parity-dns.md §7 froze DNS's. Nothing regenerates them:
+// TestLegacyMenuBackup, which wrote them, is retired, and no test writes
+// under testdata/legacy (TestLegacyRecord holds each file's bytes).
+var legacyDir = filepath.Join("testdata", "legacy")
 
 const backupHeader = `# The Backup parity table: origin/main's Backup screen against Backup's control on the engine
 # (refactor plan §2, slice 3's unit (b2), next/s3-parity; docs/engine/parity-backup.md).
@@ -93,8 +102,8 @@ const (
 	backupPath = hostbackup.DefaultPath // every run's start: $TMP/var/backups/hardn
 	shared     = "/shared"              // $TMP/shared, 0777: a directory anyone can write to
 	afile      = "/afile"               // $TMP/afile, a regular file
-	// sentinel is what pkg/characterization writes to
-	// <backupPath>/.write_test beforehand (menu_backup_test.go).
+	// sentinel is what pkg/characterization wrote to
+	// <backupPath>/.write_test beforehand (menu_backup_test.go, retired).
 	sentinel = "a file of the user's own\n"
 )
 
@@ -102,7 +111,7 @@ const (
 var now = time.Date(2026, 10, 27, 12, 0, 0, 0, time.UTC)
 
 // at is what is at backupPath when a run starts: pkg/characterization's
-// start (menu_backup_test.go), in its words.
+// start (menu_backup_test.go, retired), in its words.
 type at int
 
 const (

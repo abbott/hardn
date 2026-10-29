@@ -44,6 +44,9 @@ type MainMenu struct {
 	// dns runs the DNS item (SetDNS).
 	dns func() error
 
+	// backup runs the Backup item (SetBackup).
+	backup func() error
+
 	// status reads the host block, risk level and status rows (SetStatus).
 	status func(ctx context.Context) (screen.MainMenu, error)
 
@@ -62,8 +65,10 @@ const (
 // notInPlanOnly refuses, under plan only, a legacy screen that changes the
 // host or saves ./hardn.yml whatever the mode (refactor plan slice 2b,
 // unit (d), decision 6, adopted 2026-10-23): the main menu's User
-// Management and Backup, before their screens, and Firewall's profile add
-// and remove, until their slices put them on the flow.
+// Management, before its screen, and Firewall's profile add and remove,
+// until their slices put them on the flow. Backup's was lifted when its
+// screen went on the flow (slice 3, unit (d), decision 10): under plan
+// only it opens, and each change stops at its plan.
 const notInPlanOnly = "Not available in plan only."
 
 // errAgain ends a pass of the main menu once an item's screen has
@@ -119,17 +124,38 @@ func NewMainMenu(
 // set panics: cmd/hardn sets it on the one main menu it builds.
 func (m *MainMenu) SetDNS(run func() error) { m.dns = run }
 
-// showDNS is the DNS item's action: the DNS screen from a cleared screen,
-// as every item's screen starts. Return, or a back from it, comes back
-// here (errAgain); q quits from the DNS screen as from this menu
-// (nav.ErrQuit); the end of the input, Ctrl-C and any other error end
-// hardn as at a legacy prompt (ShowMainMenu, endHardn).
+// showDNS is the DNS item's action: the DNS screen (showScreen).
 func (m *MainMenu) showDNS() error {
-	if m.dns == nil {
-		panic("menu: the DNS item has no screen (SetDNS)")
+	return showScreen(m.dns, "menu: the DNS item has no screen (SetDNS)")
+}
+
+// SetBackup sets what the Backup item (5) runs: the Backup screen
+// (pkg/screens/backup) on the plan/apply engine, which cmd/hardn
+// assembles, as SetDNS sets the DNS item's (refactor plan slice 3, unit
+// (d)). It returns as SetDNS's does. The screen adopts hardn.yml as each
+// change saved it into the configuration this menu was given, so the main
+// menu, and the DNS screen's next changes, take the backup settings as
+// saved. A main menu whose Backup item is chosen without one set panics:
+// cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetBackup(run func() error) { m.backup = run }
+
+// showBackup is the Backup item's action: the Backup screen (showScreen).
+func (m *MainMenu) showBackup() error {
+	return showScreen(m.backup, "menu: the Backup item has no screen (SetBackup)")
+}
+
+// showScreen runs an item's screen that cmd/hardn sets (SetDNS,
+// SetBackup) from a cleared screen, as every item's screen starts, and
+// panics with unset, a programming error, when none is set. Return, or a
+// back from it, comes back here (errAgain); q quits from the screen as
+// from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
+// other error end hardn as at a legacy prompt (ShowMainMenu, endHardn).
+func showScreen(run func() error, unset string) error {
+	if run == nil {
+		panic(unset)
 	}
 	utils.ClearScreen()
-	err := m.dns()
+	err := run()
 	if err == nil || errors.Is(err, nav.ErrBack) {
 		return errAgain
 	}
@@ -651,9 +677,10 @@ type handled struct{ handler interface{ Handle() } }
 func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
-// but the DNS item's, which is the hook cmd/hardn sets (SetDNS).
+// but the DNS and Backup items', which are the hooks cmd/hardn sets
+// (SetDNS, SetBackup).
 type screens struct {
-	users, sshLogin, firewall, backup, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
@@ -663,7 +690,6 @@ var legacyScreens = screens{
 	users:       func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
 	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
 	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
-	backup:      func(m *MainMenu) legacyScreen { return NewBackupMenu(m.menuManager, m.config) },
 	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
 	systemDetails: func(m *MainMenu) legacyScreen {
@@ -679,17 +705,20 @@ var openScreen = func(s legacyScreen) { s.Show() }
 
 // mainMenu is the main menu's items, origin/main's unchanged in content,
 // labels, keys and descriptions, item 1's parenthesis its aside, each
-// bound to the screen it opened (legacyScreens, and the DNS screen,
-// showDNS); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
+// bound to the screen it opened (legacyScreens, and the DNS and Backup
+// screens, showDNS and showBackup); its Exit item "0) Exit", "q to
+// quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
 // and ends the pass when it returns (errAgain). Under plan only, whatever
-// set it, User Management (1) and Backup (5), which change the host and
-// save ./hardn.yml whatever the mode, are refused under the prompt before
-// their screens are built, "Not available in plan only.", as a key no
-// item has is refused (decision 6); live, they open as before.
+// set it, User Management (1), which changes the host and saves
+// ./hardn.yml whatever the mode, is refused under the prompt before its
+// screen is built, "Not available in plan only.", as a key no item has is
+// refused (decision 6); live, it opens as before. Backup (5) opens either
+// way: its screen stops each change at its plan under plan only (slice 3,
+// decision 10).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -713,7 +742,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
-			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: open(s.backup), Refusal: planOnly},
+			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
 			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
