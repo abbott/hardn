@@ -4,11 +4,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"os"
+	"path"
+	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
@@ -300,14 +305,95 @@ func TestEnvironmentDoas(t *testing.T) {
 // TestEnvironmentNoTmpNoProbe: keeping HARDN_CONFIG on Debian 13 writes
 // hardn-env-alice alone outside hardn's state, its copies checked in the
 // run directory, nothing under /tmp (V20); and nothing the screen does
+// runs su, origin/main's probe of the user's environment
+// (config.go:336).
+func TestEnvironmentNoTmpNoProbe(t *testing.T) {
+	eh := envHostNamed(t, "debian13")
+	h := eh.host()
+	n := len(h.f.Calls())
+	_, out, code := playEnv(t, eh, h, false, "2", "1", "y", "0")
+	if code != exitOK {
+		t.Fatalf("exit %d:\n%s", code, out)
+	}
+	for _, c := range h.f.Calls()[n:] {
+		switch {
+		case c.Op == "run" && path.Base(c.Argv[0]) == "su":
+			t.Errorf("su ran: %s", c)
+		case strings.HasPrefix(c.Path, "/tmp/"):
+			t.Errorf("a call under /tmp: %s", c)
+		}
+	}
+	if _, written := changed(h.f.Calls()[n:]); !slices.Equal(written, []string{"/etc/sudoers.d/hardn-env-alice"}) {
+		t.Errorf("changed %q, want hardn-env-alice alone", written)
+	}
+}
+
 // TestEnvironmentPlanOnlyWritesNothing: on every host, drawing the
 // screen, the guide, and item 1 under plan only change nothing outside
 // hardn's own state (the engine makes the plan's run directory,
 // /run/hardn/<id>, and removes it: stateDirs) and run no su and no other
 // command that changes the host: a change stops at its plan, an empty
+// one saying there is nothing to change, and a refusal builds no engine.
+func TestEnvironmentPlanOnlyWritesNothing(t *testing.T) {
+	for _, eh := range envHosts() {
+		h := eh.host()
+		n := len(h.f.Calls())
+		_, out, code := playEnv(t, eh, h, true, "2", "1", "0")
+		if code != exitOK {
+			t.Errorf("%s: exit %d:\n%s", eh.name, code, out)
+		}
+		if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
+			t.Errorf("%s: plan only changed the host: %q, %q", eh.name, cmds, files)
+		}
+		for _, w := range writesAfter(h, n) {
+			if !strings.Contains(w, " /run/hardn/") {
+				t.Errorf("%s: plan only wrote %s", eh.name, w)
+			}
+		}
+		for _, c := range h.f.Calls()[n:] {
+			if c.Op == "run" && path.Base(c.Argv[0]) == "su" {
+				t.Errorf("%s: su ran", eh.name)
+			}
+		}
+		stopped := strings.Contains(flatText(out), "No actual changes were made") || strings.Contains(flatText(out), "Nothing needs changing.")
+		if r, _ := readEnvHost(t, eh.name); r.refusal() == nil && !stopped {
+			t.Errorf("%s: plan only did not stop at the plan:\n%s", eh.name, out)
+		}
+	}
+}
+
 // TestEnvironmentHeights: the screen on every host and origin/main's, in
 // their one form (a sub-menu has none other), at 80x24 and at 80x40, in
 // Unicode and ASCII: each is as many lines at either height, the prompt
+// on its last, and fits 24 rows.
+func TestEnvironmentHeights(t *testing.T) {
+	want := map[string]int{"debian13": 16, "ubuntu2604": 16, "alpine323": 17, "alpine323-refuse": 16, "alpine323-cloud": 17,
+		"doas-overridden": 17, "pve9": 15, "kept": 16, "kept-toggle": 16, "root-login": 15, "grant": 16, "grant-no-reader": 17,
+		"legacy": 16, "legacy-hardn-only": 16, "origin": 17}
+	draws := map[string]func(component.Ctx) string{}
+	for _, eh := range envHosts() {
+		r, _ := readEnvHost(t, eh.name)
+		draws[eh.name] = func(c component.Ctx) string { return r.subMenu().Render(c) }
+	}
+	r, _ := readEnvHost(t, "debian13")
+	draws["origin"] = func(c component.Ctx) string { return r.originScreen().Render(c) }
+	if len(draws) != len(want) {
+		t.Fatalf("%d drawings, %d heights", len(draws), len(want))
+	}
+	for name, draw := range draws {
+		for _, rows := range []int{24, 40} {
+			for _, unicode := range []bool{true, false} {
+				env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
+				env.Height = rows
+				lines := strings.Split(ansi.Strip(draw(component.NewCtx(env))), "\n")
+				if len(lines) != want[name] || len(lines) > 24 || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
+					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q; want %d, the prompt", name, rows, unicode, len(lines), lines[len(lines)-1], want[name])
+				}
+			}
+		}
+	}
+}
+
 // TestEnvironmentUsage: the listing and play refuse what they do not
 // take, with status 2 and nothing on stdout.
 func TestEnvironmentUsage(t *testing.T) {
@@ -326,5 +412,29 @@ func TestEnvironmentUsage(t *testing.T) {
 	var out bytes.Buffer
 	if code := run([]string{envPrefix, "-list"}, nil, offTerminal, &out, &bytes.Buffer{}); code != exitOK || len(strings.Fields(out.String())) != len(envMocks()) {
 		t.Errorf("-list: exit %d, %q", code, out.String())
+	}
+}
+
+// TestPlayEnvironmentStepsNotCut: no step line of an Environment sequence
+// is cut (engine.TitleMax): a summary too long for it is shortened
+// (envControl's Title).
+func TestPlayEnvironmentStepsNotCut(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join("testdata", "golden", "play", "environment-*.golden"))
+	if err != nil || len(files) == 0 {
+		t.Fatalf("goldens: %v, %d files", err, len(files))
+	}
+	escape := regexp.MustCompile(`␛\[[0-9;]*m`)
+	step := regexp.MustCompile(`(Pending|Running|Done|Failed|Rolled back|Skipped)$`)
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i, line := range strings.Split(string(data), "\n") {
+			l := strings.TrimSuffix(escape.ReplaceAllString(line, ""), "$")
+			if step.MatchString(l) && (strings.Contains(l, "...") || strings.Contains(l, "…")) {
+				t.Errorf("%s:%d: a step line is cut: %q", filepath.Base(f), i+1, l)
+			}
+		}
 	}
 }
