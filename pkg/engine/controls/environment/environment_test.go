@@ -499,7 +499,7 @@ func TestPlan(t *testing.T) {
 func TestControl(t *testing.T) {
 	cs := environment.Controls(lookup(sudoAlice))
 	k, ok := cs[0].(environment.Keep)
-	if len(cs) != 1 || !ok || k.Stop || k.ID() != "environment" || k.Title() != "Environment" {
+	if len(cs) != 1 || !ok || k.Stop || k.ID() != "environment.keep" || environment.ChangeKeep != "environment.keep/keep" || environment.ChangeStop != "environment.keep/stop" || k.Title() != "Environment" {
 		t.Fatalf("%+v", cs)
 	}
 	if ok, why := k.Applies(detect.Facts{}); !ok || why != "" {

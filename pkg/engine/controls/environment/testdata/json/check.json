@@ -40,7 +40,7 @@
   "changes": [],
   "status": [
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "not-configured",
       "detail": "Not kept",
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "configured",
       "detail": "Kept",
@@ -60,7 +60,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "configured",
       "detail": "Kept by /etc/sudoers.d/alice",
@@ -71,7 +71,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "not-configured",
       "detail": "Not kept by hardn",
@@ -81,7 +81,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "configured",
       "detail": "Kept by hardn",
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "not-applicable",
       "detail": "sudo isn't installed here",
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "control": "environment",
+      "control": "environment.keep",
       "title": "Environment",
       "state": "not-applicable",
       "detail": "Not run with sudo",
@@ -114,14 +114,14 @@
       "code": "SUDOERS_LEGACY_FILE",
       "detail": "/etc/sudoers.d/alice may still let alice use sudo",
       "source": "/etc/sudoers.d/alice",
-      "control": "environment",
+      "control": "environment.keep",
       "change": ""
     },
     {
       "code": "SUDOERS_LATER_FILE",
       "detail": "/etc/doas.d/wheel.conf may override hardn's rule",
       "source": "/etc/doas.d/wheel.conf",
-      "control": "environment",
+      "control": "environment.keep",
       "change": ""
     }
   ],

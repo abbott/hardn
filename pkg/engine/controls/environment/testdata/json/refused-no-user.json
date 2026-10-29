@@ -43,8 +43,8 @@
   "errors": [
     {
       "code": "ENVIRONMENT_NO_USER",
-      "message": "environment: hardn wasn't run with sudo, so there's no user to keep it for. To go on: run sudo hardn as that user (ENVIRONMENT_NO_USER): no user ran hardn through the elevation tool",
-      "control": "environment",
+      "message": "environment.keep: hardn wasn't run with sudo, so there's no user to keep it for. To go on: run sudo hardn as that user (ENVIRONMENT_NO_USER): no user ran hardn through the elevation tool",
+      "control": "environment.keep",
       "change": "",
       "step": "",
       "why": "hardn wasn't run with sudo, so there's no user to keep it for",

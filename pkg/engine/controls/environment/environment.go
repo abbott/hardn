@@ -37,8 +37,10 @@ import (
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
-// ID is the control's ID, stable once released.
-const ID = "environment"
+// ID is the control's ID, <area>.<row> as every control's
+// (docs/engine/checks.md §1.2), the row the type's name, stable once
+// released.
+const ID = "environment.keep"
 
 // Variable is the variable the control keeps (P-07 (c)).
 const Variable = "HARDN_CONFIG"

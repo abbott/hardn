@@ -46,8 +46,8 @@
   },
   "changes": [
     {
-      "id": "environment/stop",
-      "control": "environment",
+      "id": "environment.keep/stop",
+      "control": "environment.keep",
       "summary": "Stop keeping HARDN_CONFIG",
       "target": "/etc/sudoers.d/hardn-env-alice",
       "risk": "plain",

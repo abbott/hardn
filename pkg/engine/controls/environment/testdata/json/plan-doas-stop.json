@@ -58,8 +58,8 @@
       "detail": ""
     },
     {
-      "id": "environment/stop",
-      "control": "environment",
+      "id": "environment.keep/stop",
+      "control": "environment.keep",
       "summary": "Stop keeping HARDN_CONFIG",
       "target": "/etc/doas.d/hardn-alice.conf",
       "risk": "lockout",
@@ -80,8 +80,8 @@
       "code": "SUDOERS_LATER_FILE",
       "detail": "/etc/doas.d/wheel.conf may override hardn's rule",
       "source": "/etc/doas.d/wheel.conf",
-      "control": "environment",
-      "change": "environment/stop"
+      "control": "environment.keep",
+      "change": "environment.keep/stop"
     }
   ],
   "errors": []
