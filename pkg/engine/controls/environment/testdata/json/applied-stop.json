@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "apply",
+  "result": {
+    "outcome": "applied",
+    "exitCode": 0,
+    "id": "20261029T120000Z-1a2b3c4d",
+    "risk": "plain",
+    "backup": {
+      "dir": "/var/backups/hardn/20261029T120000Z-1a2b3c4d",
+      "files": [
+        "/etc/sudoers.d/hardn-env-alice"
+      ],
+      "takenAnyway": false
+    }
+  },
+  "changes": [
+    {
+      "id": "environment/stop",
+      "control": "environment",
+      "summary": "Stop keeping HARDN_CONFIG",
+      "target": "/etc/sudoers.d/hardn-env-alice",
+      "risk": "plain",
+      "stage": "accounts",
+      "after": [],
+      "diff": "--- /etc/sudoers.d/hardn-env-alice\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-# Managed by hardn\n-Defaults:alice env_keep += \"HARDN_CONFIG\"\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [],
+      "status": "applied",
+      "detail": "sudoers: installed [/etc/sudoers.d/hardn-env-alice]"
+    }
+  ],
+  "status": [],
+  "findings": [],
+  "errors": []
+}

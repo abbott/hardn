@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "plan",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "20261029T120000Z-1a2b3c4d",
+    "risk": "plain"
+  },
+  "changes": [
+    {
+      "id": "environment/keep",
+      "control": "environment",
+      "summary": "Keep HARDN_CONFIG",
+      "target": "/etc/sudoers.d/hardn-env-alice",
+      "risk": "plain",
+      "stage": "accounts",
+      "after": [],
+      "diff": "--- /dev/null\n+++ /etc/sudoers.d/hardn-env-alice\n@@ -0,0 +1,2 @@\n+# Managed by hardn\n+Defaults:alice env_keep += \"HARDN_CONFIG\"\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [],
+      "status": "planned",
+      "detail": ""
+    }
+  ],
+  "status": [],
+  "findings": [],
+  "errors": []
+}

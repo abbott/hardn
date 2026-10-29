@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "alpine",
+      "version": "3.23",
+      "support": "supported"
+    },
+    "init": "openrc",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "no",
+      "sudoFlavor": "unknown",
+      "doas": "yes"
+    }
+  },
+  "mode": "plan",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "20261029T120000Z-1a2b3c4d",
+    "risk": "lockout"
+  },
+  "changes": [
+    {
+      "id": "hardn.boot-unit",
+      "control": "",
+      "summary": "Install hardn's boot unit, /etc/init.d/hardn-boot: after a reboot inside the confirm window it re-arms the revert timer or rolls the change back",
+      "target": "/etc/init.d/hardn-boot",
+      "risk": "plain",
+      "stage": "boot",
+      "after": [],
+      "diff": "--- /dev/null\n+++ /etc/init.d/hardn-boot\n@@ -0,0 +1,23 @@\n+#!/sbin/openrc-run\n+# hardn's boot service (P-34 (c); docs/safety/revert-boot.md). hardn installs\n+# it before it arms the revert timer of a change that could lock you out, and\n+# removes it at a boot that finds no change journalled.\n+#\n+# At boot, before sshd starts: re-arm the revert timer of a change waiting\n+# for \"hardn confirm\", for what remains of its window, or roll the change\n+# back when its deadline has passed. Ordering only: sshd starts whatever\n+# this service does.\n+\n+description=\"hardn: re-arm or run the revert timer of an unconfirmed change\"\n+\n+depend() {\n+\tneed localmount\n+\tafter bootmisc firewall\n+\tbefore sshd\n+}\n+\n+start() {\n+\tebegin \"hardn: checking the change journal\"\n+\t/usr/local/bin/hardn rollback --boot\n+\teend $?\n+}\n",
+      "stateBefore": "not installed",
+      "stateAfter": "installed and enabled",
+      "commands": [
+        "sh -n /run/hardn/20261029T120000Z-1a2b3c4d/hardn-boot",
+        "rc-update add hardn-boot default"
+      ],
+      "backups": [],
+      "status": "planned",
+      "detail": ""
+    },
+    {
+      "id": "environment/stop",
+      "control": "environment",
+      "summary": "Stop keeping HARDN_CONFIG",
+      "target": "/etc/doas.d/hardn-alice.conf",
+      "risk": "lockout",
+      "stage": "accounts",
+      "after": [],
+      "diff": "--- /etc/doas.d/hardn-alice.conf\n+++ /etc/doas.d/hardn-alice.conf\n@@ -1,2 +1,2 @@\n # Managed by hardn\n-permit persist setenv { HARDN_CONFIG } alice\n+permit persist alice\n",
+      "stateBefore": "",
+      "stateAfter": "",
+      "commands": [],
+      "backups": [],
+      "status": "planned",
+      "detail": ""
+    }
+  ],
+  "status": [],
+  "findings": [
+    {
+      "code": "SUDOERS_LATER_FILE",
+      "detail": "/etc/doas.d/wheel.conf may override hardn's rule",
+      "source": "/etc/doas.d/wheel.conf",
+      "control": "environment",
+      "change": "environment/stop"
+    }
+  ],
+  "errors": []
+}

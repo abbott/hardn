@@ -1,0 +1,58 @@
+# Golden file of TestGoldens/check, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNot kept␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept by /etc/sudoers.d/al…␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNot kept by hardn␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept by hardn␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107msudo isn't installed…␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNot run with sudo␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may still let alice use sudo␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  [ ] Environment          Not Configured Not kept$
+  [+] Environment          Configured Kept$
+  [+] Environment          Configured Kept by /etc/sudoers.d/...$
+  [ ] Environment          Not Configured Not kept by hardn$
+  [+] Environment          Configured Kept by hardn$
+  [-] Environment          Not Applicable sudo isn't installe...$
+  [-] Environment          Not Applicable Not run with sudo$
+$
+# Warning$
+# /etc/sudoers.d/alice may still let alice use sudo$
+# (SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)$
+# /etc/doas.d/wheel.conf may override hardn's rule$
+# (SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNot kept␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept by /etc/sudoers.d/alice␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNot kept by hardn␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mKept by hardn␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107msudo isn't installed here␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNot run with sudo␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may still let alice use sudo␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)␛[m$
+$
