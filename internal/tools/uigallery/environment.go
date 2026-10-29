@@ -236,7 +236,7 @@ func grantHost() *fakeHost {
 }
 
 // doasOverridden is the cloud image with hardn's rule for alice keeping
-// HARDN_CONFIG, a rule that asks her password, persist, as Alpine's own
+// HARDN_CONFIG, a rule that asks alice's password, persist, as Alpine's own
 // 20-wheel.conf (sudoers.md §3): nothing in hardn writes a first rule
 // for a user today (decision 1 (a)); a later unit may.
 func doasOverridden() *fakeHost {
@@ -382,8 +382,9 @@ func (r envReading) subMenu() screen.SubMenu {
 // sudo line reads origin/main's file alone
 // (file_environment_repository.go:104-125), here as the control reads its
 // line (sudoers.ReadLegacy), which differs from origin/main's substring
-// check for a line commented out alone (§7 item 4); the mock is drawn on
-// debian13, which has no such file, so the two agree.
+// check for a line commented out, indented, continued, or another user's
+// (§7 item 4); the mock is drawn on debian13, which has no such file, so
+// the two agree.
 func (r envReading) originScreen() screen.SubMenu {
 	cfg := component.KeyValue{Key: "HARDN_CONFIG environment variable is not set"}
 	if r.Value != "" {

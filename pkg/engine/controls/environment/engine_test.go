@@ -154,8 +154,8 @@ func TestPlanOnlyWritesNothing(t *testing.T) {
 }
 
 // TestDoasLockout: on the cloud image, where hardn's rule for alice asks
-// her password and keeps HARDN_CONFIG, stopping is a lockout-risk plan on
-// the engine (the rule rewritten without setenv: sudoers.RiskLockout),
+// alice's password and keeps HARDN_CONFIG, stopping is a lockout-risk
+// plan on the engine (the rule rewritten without setenv: sudoers.RiskLockout),
 // hardn's boot unit planned before it, the plan's finding of wheel.conf
 // on the change; with a nopass rule, keeping is plain. Units (c) and (d)
 // read p.Risk: the screen confirms by the hostname typed, and -e and

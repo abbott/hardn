@@ -228,7 +228,7 @@ func TestEnvironmentGrantCarried(t *testing.T) {
 // once the user puts setenv on 20-wheel.conf's group rule, as the refusal
 // says, the screen still says Not kept by hardn, beside a Value doas
 // kept, and item 1 refuses again, its words having said so (the
-// settlement of 2026-10-29); where hardn's rule for alice asks her
+// settlement of 2026-10-29); where hardn's rule for alice asks alice's
 // password and keeps HARDN_CONFIG, keeping plans nothing and stopping
 // rewrites the rule without setenv, lockout-risk, the plan's finding of
 // wheel.conf, read after hardn's rule, on the change, its code
