@@ -147,10 +147,12 @@ func TestRead(t *testing.T) {
 
 // TestRefusals is every refusal's words, as a screen says them
 // (screenkit.RefusalWords: the Why, then the Fix): each decided word for
-// word but the settlement's doas refusal and the plural of the edited
-// files (proposed), each a *steps.Refusal whose code is the registry's
-// for the error it wraps; the errors with no words of the control's as
-// they are.
+// word but the plural of the edited files (proposed), each a
+// *steps.Refusal whose code is the registry's for the error it wraps; on
+// doas with no rule of hardn's, what a screen says after it, that the row
+// will not change (Reading.Stays: the settlement's, proposed), which no
+// other refusal has; the errors with no words of the control's as they
+// are.
 func TestRefusals(t *testing.T) {
 	ctx := context.Background()
 	both := func(t *testing.T) *testHost {
@@ -165,22 +167,23 @@ func TestRefusals(t *testing.T) {
 		env   map[string]string
 		words string
 		is    error
+		stays string
 	}{
-		{"no tool", func(t *testing.T) *testHost { return newHost(t, pve9) }, rootLogin, "sudo isn't installed here.", sudoers.ErrNoTool},
+		{"no tool", func(t *testing.T) *testHost { return newHost(t, pve9) }, rootLogin, "sudo isn't installed here.", sudoers.ErrNoTool, ""},
 		{"no user, sudo", func(t *testing.T) *testHost { return newHost(t, debian13) }, rootLogin,
-			"hardn wasn't run with sudo, so there's no user to keep it for. Run sudo hardn as that user.", environment.ErrNoUser},
+			"hardn wasn't run with sudo, so there's no user to keep it for. Run sudo hardn as that user.", environment.ErrNoUser, ""},
 		{"no user, doas", func(t *testing.T) *testHost { return newHost(t, alpine324) }, rootLogin,
-			"hardn wasn't run with doas, so there's no user to keep it for. Run doas hardn as that user.", environment.ErrNoUser},
+			"hardn wasn't run with doas, so there's no user to keep it for. Run doas hardn as that user.", environment.ErrNoUser, ""},
 		{"edited", func(t *testing.T) *testHost {
 			h := newHost(t, debian13)
 			h.AddFile(sudoers.DropInDir+"/hardn-env-alice", []byte(editedEnv), 0o440, 0, 0)
 			return h
-		}, sudoAlice, "/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't write. Put hardn's back, or remove it.", sudoers.ErrEdited},
+		}, sudoAlice, "/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't write. Put hardn's back, or remove it.", sudoers.ErrEdited, ""},
 		{"both edited", both, sudoAlice,
-			"/etc/sudoers.d/hardn-grant-alice and /etc/sudoers.d/hardn-env-alice hold rules hardn didn't write. Put hardn's back, or remove them.", sudoers.ErrEdited},
+			"/etc/sudoers.d/hardn-grant-alice and /etc/sudoers.d/hardn-env-alice hold rules hardn didn't write. Put hardn's back, or remove them.", sudoers.ErrEdited, ""},
 		{"doas, no rule of hardn's", func(t *testing.T) *testHost { return newHost(t, alpine324) }, doasAlice,
-			"hardn has no doas rule for alice to keep HARDN_CONFIG on. Add setenv { HARDN_CONFIG } to the rule that lets alice use doas. Under doas stays Not kept by hardn.",
-			sudoers.ErrEnvNeedsGrant},
+			"hardn has no doas rule for alice to keep HARDN_CONFIG on. Add setenv { HARDN_CONFIG } to the rule that lets alice use doas.",
+			sudoers.ErrEnvNeedsGrant, "Under doas stays Not kept by hardn"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			h := tt.host(t)
@@ -193,6 +196,8 @@ func TestRefusals(t *testing.T) {
 				t.Errorf("code %s, the registry's %s", rf.Code, output.CodeOf(err))
 			case screenkit.RefusalWords(err) != tt.words:
 				t.Errorf("words %q\nwant  %q", screenkit.RefusalWords(err), tt.words)
+			case r.Stays() != tt.stays:
+				t.Errorf("Stays %q, want %q", r.Stays(), tt.stays)
 			}
 			// Plan refuses it alike, before anything changes: the keep, and
 			// the stop but where the state was read.

@@ -286,12 +286,19 @@ func (r envReading) keeps() bool { return !r.Kept }
 
 // refusal is what item 1 says before asking, nil when it asks: the
 // control's refusal (Reading.Refusal), in a screen's words
-// (screenkit.RefusalWords: its Why, then its Fix).
+// (screenkit.RefusalWords: its Why, then its Fix), and on doas where
+// hardn has no rule for the user, that the state row will not change
+// (Reading.Stays: the settlement's, proposed).
 func (r envReading) refusal() component.Messages {
-	if err := r.Refusal(); err != nil {
-		return screenkit.Warnings(screenkit.RefusalWords(err))
+	err := r.Refusal()
+	if err == nil {
+		return nil
 	}
-	return nil
+	words := screenkit.RefusalWords(err)
+	if s := r.Stays(); s != "" {
+		words += " " + screenkit.FullStop(s)
+	}
+	return screenkit.Warnings(words)
 }
 
 // underKey is the state row's key: "Under sudo", "Under doas".

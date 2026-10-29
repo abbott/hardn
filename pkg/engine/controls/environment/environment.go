@@ -487,13 +487,26 @@ func (r Reading) noUser() error {
 
 // noRule is err, PlanFor's refusal of variables on doas with no rule of
 // hardn's for the user (sudoers.ErrEnvNeedsGrant), with its report: the
-// decided words, and that the row stays as it is once the user follows
-// them, as it reads hardn's rules alone (the settlement of 2026-10-29;
-// proposed).
+// decided words, the Fix the step to take. That the screen's row will not
+// change is the screen's to say after it (Reading.Stays).
 func (r Reading) noRule(err error) error {
-	value, note := Words(sudoers.ToolDoas, false)
 	return &steps.Refusal{Code: codeNoRule, Why: "hardn has no doas rule for " + r.User + " to keep HARDN_CONFIG on",
-		Fix: "add setenv { HARDN_CONFIG } to the rule that lets " + r.User + " use doas. Under doas stays " + value + " " + note, Err: err}
+		Fix: "add setenv { HARDN_CONFIG } to the rule that lets " + r.User + " use doas", Err: err}
+}
+
+// Stays is what a screen says after item 1's refusal on doas where hardn
+// has no rule for the user (sudoers.ErrEnvNeedsGrant): that its state row
+// will not change once the user does what the refusal says, as it reads
+// hardn's rules alone, "Under doas stays Not kept by hardn" (the
+// settlement of 2026-10-29; proposed). "" for any other reading. It is
+// not the refusal's: there is no row where -e and setup-sudo-env say a
+// refusal, or in the JSON document.
+func (r Reading) Stays() string {
+	if r.Err != nil || !errors.Is(r.Refused, sudoers.ErrEnvNeedsGrant) {
+		return ""
+	}
+	value, note := Words(sudoers.ToolDoas, false)
+	return "Under doas stays " + value + " " + note
 }
 
 // edited is err, PolicyOf's, with its report where it names a file of

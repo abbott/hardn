@@ -43,12 +43,12 @@
   "errors": [
     {
       "code": "SUDOERS_ENV_NEEDS_GRANT",
-      "message": "environment: hardn has no doas rule for alice to keep HARDN_CONFIG on. To go on: add setenv { HARDN_CONFIG } to the rule that lets alice use doas. Under doas stays Not kept by hardn (SUDOERS_ENV_NEEDS_GRANT): sudoers: \"alice\": doas keeps variables only on the rule that permits the user",
+      "message": "environment: hardn has no doas rule for alice to keep HARDN_CONFIG on. To go on: add setenv { HARDN_CONFIG } to the rule that lets alice use doas (SUDOERS_ENV_NEEDS_GRANT): sudoers: \"alice\": doas keeps variables only on the rule that permits the user",
       "control": "environment",
       "change": "",
       "step": "",
       "why": "hardn has no doas rule for alice to keep HARDN_CONFIG on",
-      "fix": "add setenv { HARDN_CONFIG } to the rule that lets alice use doas. Under doas stays Not kept by hardn"
+      "fix": "add setenv { HARDN_CONFIG } to the rule that lets alice use doas"
     }
   ]
 }

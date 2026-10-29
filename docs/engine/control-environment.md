@@ -90,7 +90,7 @@ Each is a `steps.Refusal`; a screen says its Why, then its Fix (`screenkit.Refus
 | `ENVIRONMENT_NO_USER` (new) | no user ran hardn through the tool (`ErrNoUser`) | hardn wasn't run with sudo, so there's no user to keep it for | run sudo hardn as that user | **decided** ("doas" on doas); the code **proposed** |
 | `SUDOERS_FILE_EDITED` | a file of hardn's edited by hand (`sudoers.EditedError`) | `<file>` holds a rule hardn didn't write | put hardn's back, or remove it | **decided** |
 | `SUDOERS_FILE_EDITED` | both of sudo's files edited | `<grant file>` and `<env file>` hold rules hardn didn't write | put hardn's back, or remove them | **proposed** |
-| `SUDOERS_ENV_NEEDS_GRANT` | doas, keeping, no rule of hardn's for the user (decision 1 (a)) | hardn has no doas rule for alice to keep HARDN_CONFIG on | add setenv { HARDN_CONFIG } to the rule that lets alice use doas. Under doas stays Not kept by hardn | the first sentence of the Fix **decided**; "Under doas stays Not kept by hardn." **proposed** (the settlement) |
+| `SUDOERS_ENV_NEEDS_GRANT` | doas, keeping, no rule of hardn's for the user (decision 1 (a)) | hardn has no doas rule for alice to keep HARDN_CONFIG on | add setenv { HARDN_CONFIG } to the rule that lets alice use doas | **decided**; a screen says after it "Under doas stays Not kept by hardn." (`Reading.Stays`), **proposed** (the settlement), on the screen alone (§10, decision 18) |
 
 The tool not established, both tools on Alpine (`ErrAmbiguous`), a user name hardn does not write (`ErrUserName`), `ErrNotIncluded`, a symlink at a file read, and a file of hardn's that item 1's change rewrites or removes and that is not root's alone (`PLAN_INVALID`, the journal's check: §2.10): the error as it is, a screen saying it with `screenkit.RefusalWords` (its text with a full stop), as the gallery did (run: `TestRefusals`, six cases).
 
@@ -104,6 +104,7 @@ The tool not established, both tools on Alpine (`ErrAmbiguous`), a user name har
 | The User row, `Check`'s detail | "Not run with sudo", "Not run with doas" | **decided** |
 | A file read after hardn's rule | "`<file>` may override hardn's rule" | **decided** (`steps.SudoersFinding`, part 1) |
 | The refusals | §6 | §6 |
+| After the doas refusal, on the screen alone (`Reading.Stays`) | "Under doas stays Not kept by hardn." | **proposed** (the settlement of 2026-10-29: "the refusal says the row will not change"); not in the refusal's Fix, so `-e`, `setup-sudo-env` and the JSON document do not print it (§10, decision 18) |
 | `Check`'s detail with no tool | "sudo isn't installed here" | the refusal's, **decided** |
 | `Check`'s evidence | §5 | **proposed** |
 | The code | `ENVIRONMENT_NO_USER`, "no user ran hardn through sudo or doas (a root login), so there is no user to keep HARDN_CONFIG for"; the sentinel's text "no user ran hardn through the elevation tool" | **proposed** (developer-facing) |
@@ -173,6 +174,7 @@ func (Reading) Later() []engine.Finding
 func (Reading) ToolName() string // "sudo" or "doas"
 func (Reading) NotRun() string   // "Not run with sudo"
 func (Reading) Words() (value, note string)
+func (Reading) Stays() string    // "Under doas stays Not kept by hardn", or ""
 func Words(t sudoers.Tool, kept bool) (value, note string)
 
 package output // added
@@ -200,10 +202,11 @@ Engineering; say if you'd rather otherwise.
 15. **Nothing for `-e`'s lockout refusal is added here**: `engine.Plan.Risk` is lockout for exactly the plans unit (d) refuses (`TestDoasLockout`), never on sudo (decision 16), and its words are unit (d)'s to propose with the wiring.
 16. **On sudo the change leaves the grant's file out, whatever its mode or owner** (`planFor`), rather than rewriting it with the change: its bytes are the grant's as read (`PolicyOf`), so `PlanFor`'s change to it is a mode or owner alone, the grant's to repair (slice 5); in this change it would make item 1 lockout-risk for a password grant, and `-e` refuse it (unit (d)). No `pkg/host/sudoers` API changes: the control keeps the plan's change to `FileNames(...).Env` alone.
 17. **`Read` builds item 1's change as `Plan` does** (`change`: `planFor`, then `steps.Sudoers`), so a plan the journal refuses, a file of hardn's not root's alone, is refused before item 1 asks, not after (`Refused`); the error as it is, as for the other errors with no words of the control's (§6).
+18. **The settlement's sentence is the screen's, not the refusal's** (`Reading.Stays`, said after `screenkit.RefusalWords`), rather than the doas refusal's `Fix`: `pkg/output` prints a `Fix` after "To go on:" and in the JSON document's `fix`, where the sentence is no step and there is no row to stay anything (`-e`, `setup-sudo-env`: unit (d)). The refusal keeps the decided words; the gallery says the sentence after them, its goldens unchanged.
 
 ## 11. Not in this unit
 
-- **Unit (c), the screen** (`pkg/screens/environment`), retiring the mocks: the section from `Read` (the User row, `NotRun` with no user; the state row from `Words`, Unknown on `Err`, Not Applicable with no tool; each `Later()` finding's detail under a Kept row; Value), item 1 labelled by the tool (`ToolName`), "Keep HARDN_CONFIG" or "Stop keeping HARDN_CONFIG" from `Kept`, refused before it asks from `Refusal()` in `screenkit.RefusalWords`, marked Lockout risk from `Risk`; the change through `screenkit.Session.Change` with `environment.Keep{Getenv: os.Getenv, Stop: Kept}`; the review's state row from `Words(tool, !Kept)`; the typed hostname for a lockout-risk plan; "Takes effect at the next sudo hardn."; item 2, the guide; plan only, stopping at the plan.
+- **Unit (c), the screen** (`pkg/screens/environment`), retiring the mocks: the section from `Read` (the User row, `NotRun` with no user; the state row from `Words`, Unknown on `Err`, Not Applicable with no tool; each `Later()` finding's detail under a Kept row; Value), item 1 labelled by the tool (`ToolName`), "Keep HARDN_CONFIG" or "Stop keeping HARDN_CONFIG" from `Kept`, refused before it asks from `Refusal()` in `screenkit.RefusalWords`, then `Stays()` where it is not empty, marked Lockout risk from `Risk`; the change through `screenkit.Session.Change` with `environment.Keep{Getenv: os.Getenv, Stop: Kept}`; the review's state row from `Words(tool, !Kept)`; the typed hostname for a lockout-risk plan; "Takes effect at the next sudo hardn."; item 2, the guide; plan only, stopping at the plan.
 - **Unit (b2), parity**: origin/main's end state against the control's (gallery-environment.md §9).
 - **Unit (d)**: main menu 8 to the screen; `-e` and `setup-sudo-env` on `environment.Controls(os.Getenv)`, applied without asking; **refusing, non-zero, naming main menu 8, a plan with `Risk == engine.RiskLockout` before `Apply`**, so the revert timer is never armed unasked (Made here, adopted), with words proposed then; `-n` showing the plan; `setup-sudo-env`'s root check and `hardn.yml` load; the `su -` probe and its notice removed (decision 4); the legacy code deleted after (b2).
 - **Slice 5**: origin/main's `/etc/sudoers.d/<user>`, read here for its line, migrated there (decision 3 (a)).
