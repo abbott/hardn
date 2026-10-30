@@ -243,3 +243,41 @@ func TestDetailsNotKnown(t *testing.T) {
 		})
 	}
 }
+
+// TestJSONEscapesWhatATerminalActsOn: a value from the host, the hypervisor's CPU
+// model or a name in /etc/passwd, reaches stdout with nothing a terminal would
+// act on, encoding/json leaving C1 and bidi raw, and a script still reads the
+// value as it was. Typography and HTML stay as they are.
+func TestJSONEscapesWhatATerminalActsOn(t *testing.T) {
+	r := wholeReport()
+	r.OS.Kernel = "6.1\u009b31m\u202e\x1b[0m\x7f\U000e0001"
+	r.CPU.Model = "don\u2019t \u2265 5 \u2192 \u2026 <x>"
+	var out bytes.Buffer
+	if err := output.WriteJSON(&out, output.Build(output.Run{Mode: output.ModeCheck, Details: &r})); err != nil {
+		t.Fatal(err)
+	}
+	for _, raw := range []string{"\u009b", "\u202e", "\x1b", "\x7f", "\U000e0001"} {
+		if strings.Contains(out.String(), raw) {
+			t.Errorf("%q reached stdout raw", raw)
+		}
+	}
+	for _, kept := range []string{"\u2019", "\u2265", "\u2192", "\u2026", "<x>"} {
+		if !strings.Contains(out.String(), kept) {
+			t.Errorf("%q was changed", kept)
+		}
+	}
+	var got struct {
+		Details struct {
+			Kernel string `json:"kernel"`
+			CPU    struct {
+				Model string `json:"model"`
+			} `json:"cpu"`
+		} `json:"details"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Details.Kernel != r.OS.Kernel || got.Details.CPU.Model != r.CPU.Model {
+		t.Errorf("read back %q, %q", got.Details.Kernel, got.Details.CPU.Model)
+	}
+}
