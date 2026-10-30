@@ -155,7 +155,7 @@ func sdCases() []sdCase {
 		noExportAs = "The export is its own text, built apart from the screen's (system_details_menu.go:142-222; display.go:42-125), so the two differ: the export has headings, the root partition and the free sizes; the screen has the bars."
 		reads      = "Everything the screen reads is read again on each draw, four GetHostInfo's among them: collectOSInfo, collectCPUInfo, collectMemoryInfo, collectDiskInfo each call it (collectors.go:35, :198, :324, :380), counted below."
 		zfsDefault = "The dataset is the hard-coded default zroot/ROOT/os (details.go:85), asked of zfs below; nothing reads the host's root dataset or a setting."
-		zfsHealthy = "zpool status -x with no pool says \"all pools are healthy\" on a healthy host [I, zpool(8), not run here]: the check looks for \"is healthy\" (collectors.go:386), which that text does not hold, so a healthy ZFS host reads as no ZFS, as this golden holds."
+		zfsHealthy = "zpool status -x with no pool named says \"all pools are healthy\" on a healthy host [I, zpool(8), not run here]: the check looks for \"is healthy\" (collectors.go:386), which that text does not hold, so a healthy ZFS host reads as no ZFS, as this golden holds."
 		zfsReach   = "The stand-in answers \"pool 'zroot' is healthy\", words zpool prints for a pool named on its command line [I, zpool(8), not run here], not for this one's, to reach the branch: by zfsHealthy it may never run on a real host (system_details_zfs_all_healthy)."
 		errOne     = "One collector's error loses the report: GenerateSystemStatus returns nil at the first (details.go:91-117), so everything already read is dropped, here all of OS, network, users and CPU for want of memory. collectOSInfo and collectCPUInfo never return one, what they fail to read left blank (collectors.go:26, :48, :66, :279); the network, user, memory, disk and login collectors can (collectors.go:99, :340, :451, :500; user_info.go:24)."
 		errReach   = "/proc/meminfo unreadable and free not on PATH give the error (collectors.go:337-341). The same run with free there has it answer."
@@ -354,7 +354,13 @@ func TestLegacyMenuSystemDetails(t *testing.T) {
 				}
 			}
 			for name, content := range tc.seeds {
-				if err := os.WriteFile(filepath.Join(cwd, name), []byte(content), 0o644); err != nil {
+				seed := filepath.Join(cwd, name)
+				if err := os.WriteFile(seed, []byte(content), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				// The golden records the seed's mode, which the runner's umask
+				// would otherwise decide.
+				if err := os.Chmod(seed, 0o644); err != nil {
 					t.Fatal(err)
 				}
 			}

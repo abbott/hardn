@@ -6,7 +6,7 @@
 # dryRun false; TZ=UTC
 # Masked, read from the machine the test runs on, no seam: the OS, Hostname, User and Load lines, the addresses (one line for however many), and Domain, dropped. Their padding goes with them.
 # Pauses: 0 ("Press Enter to ..."; origin/main says "Press any key to ...", DEV-050)
-# KNOWN-DEFECT: zpool status -x with no pool says "all pools are healthy" on a healthy host [I, zpool(8), not run here]: the check looks for "is healthy" (collectors.go:386), which that text does not hold, so a healthy ZFS host reads as no ZFS, as this golden holds.
+# KNOWN-DEFECT: zpool status -x with no pool named says "all pools are healthy" on a healthy host [I, zpool(8), not run here]: the check looks for "is healthy" (collectors.go:386), which that text does not hold, so a healthy ZFS host reads as no ZFS, as this golden holds.
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[2m\x1b[38;5;234m\x1b[0m\x1b[2m\x1b[1m\x1b[1mSystem Details\x1b[0m\x1b[0m \x1b[2m\x1b[38;5;234m───────────────────────────────────╮\x1b[0m$

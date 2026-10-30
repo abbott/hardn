@@ -5,6 +5,7 @@
 # logFile: /tmp-root/var/log/hardn.log; hardn writes /tmp-root/var/log/hardn.log (/tmp-root stands for /)
 # $PAGER: less, on PATH, a stand-in that records being run; not run.
 # NOTE: An empty log prints its heading and nothing else: no words say it is empty.
+# NOTE: Start-up has already logged by the time the screen can read the file (cmd/hardn/main.go:57, :155, :185; config.go:246; osdetect.go:93-95; read), so an empty log needs hardn's open to have failed or the file truncated while hardn runs.
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$

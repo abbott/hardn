@@ -70,7 +70,7 @@ type logCase struct {
 
 // logLines are the lines of a log as pkg/logging writes them (TestLegacyLogsParser
 // records that it does), through LogInfo and LogError, and the run log's,
-// through revertFileLog.
+// through revertFileLog: those are the trunk's, not origin/main's (trunkRun).
 const logLines = "2026/10/29 08:12:44 INFO: Configuring DNS\n" +
 	"2026/10/29 08:12:44 INFO: run 1: $ resolvectl status\n" +
 	"2026/10/29 08:12:44 INFO: run 1: | Global\n" +
@@ -86,21 +86,24 @@ func logCases() []logCase {
 		fixedPath = "main() always opens /var/log/hardn.log (cmd/hardn/main.go:57); the screen and -p read cfg.LogFile (service_factory.go:219-222; main.go:417), so with logFile set otherwise the two part."
 		created   = "At the default path start-up has already created the file, as root (cmd/hardn/main.go:57; logging.go:38), so missing needs logFile elsewhere (logs_other_path) or the open at start-up failing (logging.go:39-42): read."
 		noExit    = "logging.PrintLogs returns nothing (logging.go:138-143), and the caller goes on (cmd/hardn/main.go:417), so -p on a log it cannot read exits 0 (read: cmd/hardn is not run here). V25's class, CLI exits 0 after failure; no V-number names -p."
+		trunkRun  = "The \"run <n>:\" lines are the trunk's (next/v0.4), not origin/main's: pkg/host/runlog.go came with 6a04b467, LogFileOnly and revertFileLog with e264b8bb (next/p3-confirm-cleanup), none of them on origin/main. What prints them is origin/main's, on whatever the file holds."
+		wholeP    = "This golden holds logging.PrintLogs alone, not all of -p. On the root command's path (read, not run) stdout first gets the config line, \"[INFO] Using configuration from: <path>\" or the no-config lines (config.go:246, :252, :279), then the clear sequence and the ~~~ line even in a pipe (osdetect.go:50; utils.go:24-37), then \"[SUCCESS] <os> detected\" (osdetect.go:93-95), and those LogInfo and LogSuccess lines are also appended to the log on each -p (logging.go:99-100)."
+		emptyOnly = "Start-up has already logged by the time the screen can read the file (cmd/hardn/main.go:57, :155, :185; config.go:246; osdetect.go:93-95; read), so an empty log needs hardn's open to have failed or the file truncated while hardn runs."
 		rootOnly  = "-p is on the root command's Run, after the root check, the config load and DetectOS (cmd/hardn/main.go:148-152, :155, :184-188; read): a file of mode 0644 hardn refuses to print to another user, and a missing hardn.yml gets its offer first. TestDryRunAloneIsNotRefused holds -n -p reaching the root check."
 	)
 	withLog := map[string]string{writtenPath: logLines}
 	return []logCase{
 		{name: "logs_open", screen: "Logs (main menu 10), a log with lines, Enter", script: "\n", seeds: withLog,
 			defects: []string{whole},
-			notes:   []string{twoHeads, extraLine, reads, "One prompt: Enter returns to the main menu (logs_menu.go:62-63). No refresh, search or follow."}},
+			notes:   []string{trunkRun, twoHeads, extraLine, reads, "One prompt: Enter returns to the main menu (logs_menu.go:62-63). No refresh, search or follow."}},
 		{name: "logs_large", screen: "Logs (main menu 10), a large log, Enter", script: "\n", large: 20000,
-			defects: []string{whole}},
+			defects: []string{whole}, notes: []string{trunkRun}},
 		{name: "logs_missing", screen: "Logs (main menu 10), no log at logFile, Enter", script: "\n",
 			notes: []string{created, "The words are Stat's: the path, shown above as Log file, is named twice more in the one line (logs_menu.go:58-59; file_logs_repository.go:85)."}},
 		{name: "logs_unreadable", screen: "Logs (main menu 10), a log the user cannot read, Enter", script: "\n", seeds: withLog, unreadable: true,
 			notes: []string{"Mode 0000, as a user other than root: hardn is root by here (cmd/hardn/main.go:148-152), so this needs a read that fails as root, such as an NFS root squash [I, not run]."}},
 		{name: "logs_empty", screen: "Logs (main menu 10), an empty log, Enter", script: "\n", seeds: map[string]string{writtenPath: ""},
-			notes: []string{"An empty log prints its heading and nothing else: no words say it is empty."}},
+			notes: []string{"An empty log prints its heading and nothing else: no words say it is empty.", emptyOnly}},
 		{name: "logs_other_path", screen: "Logs (main menu 10), logFile another path with no file there, hardn writing where it writes, Enter", script: "\n",
 			logFile: "/srv/log/custom.log", startup: true,
 			defects: []string{fixedPath + " The line just written is not shown; the screen says the log is not there."}},
@@ -109,10 +112,11 @@ func logCases() []logCase {
 			defects: []string{fixedPath + " The screen shows the other file's lines as hardn's, nothing saying the two part."}},
 		{name: "logs_escape", screen: "Logs (main menu 10), a line holding a terminal escape, Enter", script: "\n",
 			seeds:   map[string]string{writtenPath: "2026/10/29 08:12:44 INFO: run 1: | \x1b]0;a title a command set\x07\x1b[31mred\n"},
-			defects: []string{"The file's bytes go to the terminal as they are (file_logs_repository.go:96; logging.go:146). The run log holds commands' output (runlog.go:58-62), which pkg/logging does not clean (logging.go:131-135), so a command's output can move hardn's terminal when the log is read, here its title and colour; as root, on an admin's terminal. No V-number holds this."}},
+			defects: []string{"The file's bytes go to the terminal as they are (file_logs_repository.go:96; logging.go:146): origin/main's defect, on any bytes the file holds. No V-number holds this."},
+			notes:   []string{trunkRun, "Where such bytes come from is the trunk's: the run log holds commands' output (runlog.go:58-62), which pkg/logging does not clean (logging.go:131-135), so on the trunk a command's output can move hardn's terminal when the log is read, here its title and colour; as root, on an admin's terminal. On origin/main a narrow search found no line logging a command's output ([unverified] as complete)."}},
 		{name: "logs_print_flag", screen: "logging.PrintLogs, -p/--print-logs, a log with lines", flag: true, seeds: withLog,
 			defects: []string{whole},
-			notes:   []string{rootOnly, extraLine, "A second copy of this function, pkg/utils.PrintLogs (utils.go:117), and a third in FileLogsRepository.PrintLogs (file_logs_repository.go:81), which the screen uses; see logs_parser.golden for the callers."}},
+			notes:   []string{wholeP, trunkRun, rootOnly, extraLine, "A second copy of this function, pkg/utils.PrintLogs (utils.go:117), and a third in FileLogsRepository.PrintLogs (file_logs_repository.go:81), which the screen uses; see logs_parser.golden for the callers."}},
 		{name: "logs_print_flag_missing", screen: "logging.PrintLogs, -p/--print-logs, no log at logFile, start-up's log open", flag: true,
 			logFile: "/srv/log/custom.log", startup: true,
 			defects: []string{noExit, "Failing to read the log writes an ERROR line to the log (logging.go:141; :78)."},
@@ -364,7 +368,7 @@ func TestLegacyLogsParser(t *testing.T) {
 	b.WriteString(baselineHeader + "\n")
 	b.WriteString("# Generated by TestLegacyLogsParser (pkg/characterization); regenerate with -update. Do not edit.\n")
 	b.WriteString("# Operation: FileLogsRepository.GetLogs (pkg/adapter/secondary/file_logs_repository.go:32-71), on lines written by pkg/logging and host.RunLog, run in a child process\n")
-	b.WriteString("# Writers: every line in hardn's log comes through pkg/logging's logger, log.LstdFlags, so \"DATE TIME LEVEL: message\" (logging.go:46, :78-133). The run log (runlog.go:47-69) has no writer of its own: revertFileLog sends each of its lines to LogFileOnly, so they are INFO lines (confirm.go:158-163). LogFileOnly's lines say INFO whatever they report.\n")
+	b.WriteString("# Writers: every line in hardn's log comes through pkg/logging's logger, log.LstdFlags, so \"DATE TIME LEVEL: message\" (logging.go:46, :78-133). origin/main itself writes through LogInfo, LogWarning, LogError, LogSuccess and LogInstall. The trunk's alone, not on origin/main: LogFileOnly (e264b8bb), whose lines say INFO whatever they report, and the run log (runlog.go:47-69, 6a04b467), which has no writer of its own: revertFileLog sends each of its lines to LogFileOnly (confirm.go:158-163). The format defect below holds on origin/main's lines and the trunk's alike.\n")
 	b.WriteString("# KNOWN-DEFECT: GetLogs splits on the first two spaces, for \"TIME LEVEL: MESSAGE\" (file_logs_repository.go:51-57), a format hardn does not write: Time holds the date, Level the time, and Message the level and the message. No entry has a level.\n")
 	b.WriteString("# KNOWN-DEFECT: A line that is not one of the logger's, the second line of a message with a line break, is taken as an entry if it has three words and dropped if it has fewer (:53).\n")
 	b.WriteString("# KNOWN-DEFECT: A line over bufio.Scanner's 64 KiB limit ends the read with no error: scanner.Err is not checked (:47-70), so it and everything after it are lost.\n")

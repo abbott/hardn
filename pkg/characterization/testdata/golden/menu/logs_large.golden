@@ -6,6 +6,7 @@
 # $PAGER: less, on PATH, a stand-in that records being run; not run.
 # Log: 20000 lines, 868894 bytes; every line printed, in order, checked by the test; the golden keeps the first three and the last three.
 # KNOWN-DEFECT: The whole file is printed at once, no pager, no tail and no count (file_logs_repository.go:89-96; logging.go:139-146): only the end stays on a terminal's screen, and what scrolled off is whatever the terminal keeps.
+# NOTE: The "run <n>:" lines are the trunk's (next/v0.4), not origin/main's: pkg/host/runlog.go came with 6a04b467, LogFileOnly and revertFileLog with e264b8bb (next/p3-confirm-cleanup), none of them on origin/main. What prints them is origin/main's, on whatever the file holds.
 # The screen as printed, ESC as the four characters \x1b, each line ending in $; <no-newline> marks text with no final newline.
 # ----
 \x1b[H\x1b[2J\x1b[32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[0m$
