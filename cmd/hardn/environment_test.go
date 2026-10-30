@@ -608,6 +608,32 @@ func TestKeepEnvironmentNotRoot(t *testing.T) {
 	}
 }
 
+// TestSetupSudoEnvOffersNoConfig: setup-sudo-env loads hardn.yml with
+// loadExisting (config.LoadExisting), never the root command's loadConfig,
+// which offers to create a file where none is found and, answered yes or
+// at the end of input, writes one, under -n too: the command keeps
+// HARDN_CONFIG, so root finding no file is its usual case, and -n writes
+// nothing (gallery-environment.md §5, Made here, adopted 2026-10-29).
+func TestSetupSudoEnvOffersNoConfig(t *testing.T) {
+	for _, args := range [][]string{{"setup-sudo-env"}, {"-n", "setup-sudo-env"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			h := newEnvHost(t, "debian13")
+			var existing bool
+			r, _ := runE(t, h, func(*dnsSeams) {
+				load := loadExisting
+				loadConfig = func(string) (*config.Config, error) {
+					t.Error("setup-sudo-env took the root command's load, which offers to create hardn.yml")
+					return config.DefaultConfig(), nil
+				}
+				loadExisting = func(p string) (*config.Config, error) { existing = true; return load(p) }
+			}, args...)
+			if !existing || strings.Contains(r.stdout, "Would you like to create one") {
+				t.Errorf("loadExisting reached %v; stdout:\n%s", existing, r.stdout)
+			}
+		})
+	}
+}
+
 // TestKeepEnvironmentPlanOnlyFromFile: as -g, -e and setup-sudo-env show
 // the plan under hardn.yml's dryRun: true, write nothing and exit 3 where
 // there are changes; --dry-run=false applies; -e with another operation

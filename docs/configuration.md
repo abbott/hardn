@@ -56,7 +56,7 @@ You can set the `HARDN_CONFIG` environment variable to specify a configuration f
 - **doas needs a rule of hardn's for you**, which this release does not write. Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
 - **A root login is refused.** Run `sudo hardn` as the user to keep it for.
 - **`-e` and `setup-sudo-env` apply without asking you to confirm.** A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
-- **With no hardn.yml found, hardn first asks to create one**, as at any start, with `-n` too. Answer `n` to go on without one.
+- **With no hardn.yml found,** `setup-sudo-env` goes on with the defaults and asks nothing. `-e` first asks to create one, as `hardn` does at any start, with `-n` too; answer `n` to go on without one.
 - **It takes effect at the next `sudo hardn`.**
 
 #### Workflow example
@@ -239,7 +239,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused and `-g` only shows its plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-g`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml

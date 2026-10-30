@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -322,6 +323,33 @@ func LoadConfig(filePath string) (*Config, error) {
 	// Initialize LogsConfig
 	cfg.LogsConfig.LogFilePath = cfg.LogFile
 
+	return cfg, nil
+}
+
+// LoadExisting loads hardn's configuration as LoadConfig does where a file
+// is found (-f, HARDN_CONFIG, then the search path), and is the defaults
+// where none is: it never offers to create one, and so writes nothing. A
+// file -f or HARDN_CONFIG names that is not there is an error wrapping
+// fs.ErrNotExist, as FindConfigFile does not look elsewhere for it.
+// setup-sudo-env's (refactor plan slice 9, unit (d)): the command keeps
+// HARDN_CONFIG, so root finding no file is its usual case, and under -n it
+// writes nothing (gallery-environment.md §5, Made here, adopted
+// 2026-10-29).
+func LoadExisting(filePath string) (*Config, error) {
+	cfg := DefaultConfig()
+	path, found := FindConfigFile(filePath)
+	switch {
+	case found:
+		var err error
+		if cfg, err = readConfigFile(path); err != nil {
+			return nil, err
+		}
+	case filePath != "":
+		return nil, fmt.Errorf("config: %s (-f): %w", filePath, fs.ErrNotExist)
+	case os.Getenv("HARDN_CONFIG") != "":
+		return nil, fmt.Errorf("config: %s (HARDN_CONFIG): %w", os.Getenv("HARDN_CONFIG"), fs.ErrNotExist)
+	}
+	cfg.LogsConfig.LogFilePath = cfg.LogFile
 	return cfg, nil
 }
 

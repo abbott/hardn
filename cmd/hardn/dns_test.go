@@ -474,6 +474,7 @@ func runG(t *testing.T, h *dnsHost, cfg *config.Config, setup func(*dnsSeams), a
 			}
 			return cfg, nil
 		}
+		loadExisting = loadConfig // setup-sudo-env's
 		if setup != nil {
 			setup(s)
 		}

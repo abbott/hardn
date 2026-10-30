@@ -450,15 +450,17 @@ This command must be run with sudo privileges.
 Example:
   sudo hardn setup-sudo-env`,
 	// What -e does (keepEnvironment), after the root command's root check
-	// and hardn.yml's load, whose backup settings the engine takes and
-	// whose dryRun, or -n, makes it the plan alone (refactor plan slice 9,
+	// and hardn.yml's load (loadExisting: none found is the defaults, with
+	// no offer to create one, which -n would let write), whose backup
+	// settings the engine takes and whose dryRun, or -n, makes it the plan
+	// alone (refactor plan slice 9,
 	// unit (d); gallery-environment.md §5, Made here, adopted 2026-10-29).
 	Run: func(cmd *cobra.Command, args []string) {
 		if checkRoot() != nil {
 			return
 		}
 		var err error
-		if cfg, err = loadConfig(configFile); err != nil {
+		if cfg, err = loadExisting(configFile); err != nil {
 			logging.LogError("Failed to load configuration: %v", err)
 			exit(1)
 			return
@@ -474,9 +476,13 @@ Example:
 // The steps of the commands' Run functions that reach the host outside the
 // provider, and the process exit. cmd/hardn's tests replace them, so that a
 // test never reads this machine's user, config or OS, and never exits.
+// loadExisting is setup-sudo-env's load: hardn.yml where one is found, the
+// defaults where none is, never the offer to create one (config.LoadExisting;
+// refactor plan slice 9, unit (d)).
 var (
 	lookupCurrentUser           = osuser.Current
 	loadConfig                  = config.LoadConfig
+	loadExisting                = config.LoadExisting
 	fileDryRun                  = config.FileDryRun
 	detectOS                    = osdetect.DetectOS
 	exit                        = os.Exit
