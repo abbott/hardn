@@ -404,12 +404,12 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Configure DNS: the DNS control through the engine, with no
-		// question (dns.go). A refusal or a failure is hardn's exit
-		// status, once the flags after it have run (V25).
+		// Configure DNS: the DNS control through the engine, with no question (dns.go).
+		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).
+		dnsStatus := 0 // what -e's status yields to (runStatus)
 		if configureDns {
-			if code := configureDNS(cfg); code != 0 {
-				defer exit(code)
+			if dnsStatus = configureDNS(cfg); dnsStatus != 0 {
+				defer exit(dnsStatus)
 			}
 		}
 
@@ -420,10 +420,11 @@ var rootCmd = &cobra.Command{
 
 		// Keep HARDN_CONFIG: the Environment control through the engine,
 		// with no question (environment.go). A refusal, a lockout-risk
-		// plan's among them, or a failure is hardn's exit status at once.
+		// plan's among them, or a failure is hardn's exit status at once;
+		// a plan with changes to make (3) yields to -g's refusal or failure.
 		if setupSudoEnv {
 			if code := keepEnvironment(cfg); code != 0 {
-				exit(code)
+				exit(runStatus(dnsStatus, code))
 			}
 			return
 		}

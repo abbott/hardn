@@ -620,6 +620,45 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, ran(), report)
 		}
 	})
+	// Under plan only, -e's status can be 3, a plan with changes to make:
+	// it never hides -g's refusal, and -e's refusal is hardn's over -g's
+	// plan (runStatus). The exits are recorded as os.Exit takes them, the
+	// first ending hardn: the harness's own keeps the last, -g's deferred
+	// exit running as the first one's panic unwinds.
+	for _, tc := range []struct {
+		name, host string
+		atRoot     bool // -e at a root login: refused, ENVIRONMENT_NO_USER
+		code       int  // the first exit
+		said       []string
+	}{
+		{"-n: -g refused, then -e's plan", "resolvconf", false, 1, []string{"DNS_MANAGED", "+Defaults:alice env_keep += \"HARDN_CONFIG\""}},
+		{"-n: -g refused, then -e refused", "resolvconf", true, 1, []string{"DNS_MANAGED", "ENVIRONMENT_NO_USER"}},
+		{"-n: -g's plan, then -e's", "debian13", false, 3, []string{"192.0.2.53", "+Defaults:alice env_keep += \"HARDN_CONFIG\""}},
+		{"-n: -g's plan, then -e refused", "debian13", true, 1, []string{"192.0.2.53", "ENVIRONMENT_NO_USER"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newDNSHost(t, tc.host, dnsTestList)
+			withSudo(h) // -e keeps HARDN_CONFIG for alice there
+			var exits []int
+			r, s := runG(t, h, cfg, func(*dnsSeams) {
+				if tc.atRoot {
+					environmentGetenv = func(k string) string { return envAtRoot[k] }
+				}
+				ends := exit // the harness's, which panics
+				exit = func(code int) { exits = append(exits, code); ends(code) }
+			}, "-n", "-g", "-e")
+			report := s.out.String()
+			if !r.ended || len(exits) == 0 || exits[0] != tc.code {
+				t.Errorf("exits %v (ended %v), want %d first; report:\n%s", exits, r.ended, tc.code, report)
+			}
+			if w := inOrder(report, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, report)
+			}
+			if got := h.writes(); len(got) > 0 {
+				t.Errorf("wrote %q", got)
+			}
+		})
+	}
 	t.Run("Ctrl-C during the apply", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
 		ran := withSudo(h) // -e keeps HARDN_CONFIG for alice there

@@ -52,6 +52,29 @@ func keepEnvironment(c *config.Config) int {
 	return runControls(c, envctl.Controls(environmentGetenv), refuseLockoutRisk)
 }
 
+// runStatus is hardn's exit status once -e has run after -g in one
+// invocation, given -g's status (0 when -g was not given) and -e's, each
+// output.ExitCode's: a refusal or a failure (1) over a plan with changes
+// to make (3), over 0. So that under plan only -e's 3 never hides -g's
+// refusal, which -g's deferred exit cannot report once -e has exited
+// (cmd-engine.md §2.5). 130 never reaches it: an interrupted flag ends
+// hardn at once (runControls).
+func runStatus(dns, env int) int {
+	rank := func(code int) int {
+		switch code {
+		case output.ExitOK:
+			return 0
+		case output.ExitChanges:
+			return 1
+		}
+		return 2 // a refusal or a failure
+	}
+	if rank(dns) > rank(env) {
+		return dns
+	}
+	return env
+}
+
 // errLockoutRisk is -e's and setup-sudo-env's refusal of a lockout-risk
 // plan (proposed words, refactor plan slice 9, unit (d)): its code is the
 // registry's PLAN_REFUSED (engine.ErrRefused, a refusal with no code of
