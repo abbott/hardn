@@ -19,7 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
-// The kernel's files the report reads beside the header probe's
+// The kernel's files the report reads beside the header's
 // (proc_cpuinfo(5), proc_loadavg(5), proc_meminfo(5), proc_pid_status(5)).
 const (
 	CPUInfoFile    = "/proc/cpuinfo"
@@ -30,15 +30,15 @@ const (
 
 // OSKernel is the OS and Kernel section.
 type OSKernel struct {
-	OS     header.OS     // the header probe's: Name "" when not read
+	OS     header.OS     // as the header shows it: Name "" when not read
 	Kernel string        // "" when not read
-	Uptime header.Uptime // the header probe's: Known false when not read
+	Uptime header.Uptime // as the header shows it: Known false when not read
 	Unread []Unread
 }
 
-func readOS(ctx context.Context, sys host.System, hd header.Header) OSKernel {
-	s := OSKernel{OS: hd.OS, Uptime: hd.Uptime}
-	if err := hd.OS.Err; err != nil {
+func readOS(ctx context.Context, sys host.System, f detect.Facts) OSKernel {
+	s := OSKernel{OS: header.OSOf(f), Uptime: header.ReadUptime(ctx, sys)}
+	if err := s.OS.Err; err != nil {
 		s.Unread = append(s.Unread, Unread{detect.EtcOSRelease, err})
 	}
 	data, err := sys.ReadFile(ctx, header.KernelReleaseFile)
@@ -50,7 +50,7 @@ func readOS(ctx context.Context, sys host.System, hd header.Header) OSKernel {
 	if err != nil {
 		s.Unread = append(s.Unread, Unread{header.KernelReleaseFile, err})
 	}
-	if err := hd.Uptime.Err; err != nil {
+	if err := s.Uptime.Err; err != nil {
 		s.Unread = append(s.Unread, Unread{header.UptimeFile, err})
 	}
 	return s
@@ -59,7 +59,7 @@ func readOS(ctx context.Context, sys host.System, hd header.Header) OSKernel {
 // HostIPs is the Host and IPs section. Addresses is nil when ip was not read,
 // and empty, not nil, when it answered none.
 type HostIPs struct {
-	Hostname  string // the header probe's: "" when not read
+	Hostname  string // as the header shows it: "" when not read
 	Addresses []Address
 	Unread    []Unread
 }
@@ -71,9 +71,10 @@ type Address struct {
 	Address   string // with its prefix length: 192.0.2.20/24
 }
 
-func readHost(ctx context.Context, sys host.System, hd header.Header) HostIPs {
-	s := HostIPs{Hostname: hd.Hostname.Name}
-	if err := hd.Hostname.Err; err != nil {
+func readHost(ctx context.Context, sys host.System) HostIPs {
+	name := header.ReadHostname(ctx, sys)
+	s := HostIPs{Hostname: name.Name}
+	if err := name.Err; err != nil {
 		s.Unread = append(s.Unread, Unread{header.HostnameFile, err})
 	}
 	res, err := sys.Run(ctx, "ip", "-o", "addr", "show", "scope", "global")

@@ -3,10 +3,10 @@
 // host.System and returned as data, with nothing rendered. Read takes detect's
 // facts, so the platform is not detected again, and gives:
 //
-//   - OS and Kernel: the distribution and the uptime, the header probe's
-//     (pkg/engine/header), and /proc/sys/kernel/osrelease;
-//   - Host and IPs: the hostname, the header probe's, and every global address
-//     in both families, `ip -o addr show scope global`;
+//   - OS and Kernel: the distribution and the uptime, read as the header probe
+//     reads them (pkg/engine/header), and /proc/sys/kernel/osrelease;
+//   - Host and IPs: the hostname, likewise, and every global address in both
+//     families, `ip -o addr show scope global`;
 //   - Users: uid 1000 and up, but nobody and nfsnobody, each with what lets
 //     them administer, as the users check reads it (users.Elevation);
 //   - CPU and Load: /proc/cpuinfo and /proc/loadavg;
@@ -30,7 +30,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 )
@@ -87,11 +86,10 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Report {
 
 func read(ctx context.Context, sys host.System, f detect.Facts, b bounds) Report {
 	sys = boundedSystem{System: sys, bounds: b}
-	hd := header.Read(ctx, sys, f)
 	users := readUsers(ctx, sys, f)
 	return Report{
-		OS:     readOS(ctx, sys, hd),
-		Host:   readHost(ctx, sys, hd),
+		OS:     readOS(ctx, sys, f),
+		Host:   readHost(ctx, sys),
 		Users:  users,
 		CPU:    readCPU(ctx, sys),
 		Disk:   readDisk(ctx, sys),
@@ -106,7 +104,7 @@ func read(ctx context.Context, sys host.System, f detect.Facts, b bounds) Report
 func Bounded(sys host.System) host.System { return boundedSystem{System: sys, bounds: defaultBounds} }
 
 // boundedSystem is sys with every command Read runs bounded, those of the
-// packages it reads through too (header.Read's, the elevation tools' checks).
+// packages it reads through too (the elevation tools' checks).
 type boundedSystem struct {
 	host.System
 	bounds bounds

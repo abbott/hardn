@@ -1210,24 +1210,22 @@ func TestBoundOnARealChild(t *testing.T) {
 func TestReadWritesNothing(t *testing.T) {
 	reads := []string{"read", "read-nofollow", "scan-lines", "stat", "lstat", "readdir"}
 	lists := map[string]bool{
-		"ip":         true, // -o addr show scope global; the header probe's -4 addr show dev
-		"df":         true, // -kP /
-		"zpool":      true, // list -H -o health
-		"zfs":        true, // get -Hp -o value
-		"visudo":     true, // -c
-		"doas":       true, // -C
-		"lslogins":   true,
-		"dpkg-query": true, // the header probe's, --show
+		"ip":       true, // -o addr show scope global
+		"df":       true, // -kP /
+		"zpool":    true, // list -H -o health
+		"zfs":      true, // get -Hp -o value
+		"visudo":   true, // -c
+		"doas":     true, // -C
+		"lslogins": true,
 	}
 	wantArgs := map[string]func([]string) bool{
-		"ip":         func(a []string) bool { return a[0] == "-o" && a[1] == "addr" || a[0] == "-4" && a[1] == "addr" },
-		"df":         func(a []string) bool { return slices.Equal(a, []string{"-kP", "/"}) },
-		"zpool":      func(a []string) bool { return a[0] == "list" },
-		"zfs":        func(a []string) bool { return a[0] == "get" },
-		"visudo":     func(a []string) bool { return slices.Equal(a, []string{"-c"}) },
-		"doas":       func(a []string) bool { return a[0] == "-C" },
-		"lslogins":   func(a []string) bool { return strings.HasPrefix(a[0], "--time-format") },
-		"dpkg-query": func(a []string) bool { return a[0] == "--show" },
+		"ip":       func(a []string) bool { return a[0] == "-o" && a[1] == "addr" },
+		"df":       func(a []string) bool { return slices.Equal(a, []string{"-kP", "/"}) },
+		"zpool":    func(a []string) bool { return a[0] == "list" },
+		"zfs":      func(a []string) bool { return a[0] == "get" },
+		"visudo":   func(a []string) bool { return slices.Equal(a, []string{"-c"}) },
+		"doas":     func(a []string) bool { return a[0] == "-C" },
+		"lslogins": func(a []string) bool { return strings.HasPrefix(a[0], "--time-format") },
 	}
 	for _, zfs := range []bool{false, true} {
 		var runLog bytes.Buffer
@@ -1241,7 +1239,8 @@ func TestReadWritesNothing(t *testing.T) {
 		h.AddDir(sudoersDir, 0o750, 0, 0)
 		h.add(wtmpFile, "\x07")
 		h.add(lastlogFile, "\x01")
-		// A default route, so that the header probe runs its ip.
+		// A default route, which the header probe would run its ip for: the report
+		// has no use for it, nor for the reboot facts' dpkg-query.
 		h.add("/proc/net/route", "Iface\tDestination\tGateway\tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\tWindow\tIRTT\neth0\t00000000\t010200C0\t0003\t0\t0\t100\t00000000\t0\t0\t0\n")
 		f.Handler = func(argv []string, _ []byte) hostfake.Response {
 			if r, ok := h.cmd[strings.Join(argv, " ")]; ok {
@@ -1253,12 +1252,11 @@ func TestReadWritesNothing(t *testing.T) {
 			h.add(mountsFile, "rpool/ROOT/os / zfs rw 0 0\n")
 		}
 		ctx := context.Background()
-		before, ranIP := len(f.Calls()), false
+		before := len(f.Calls())
 		details.Read(ctx, h, debianFacts())
 		for _, c := range f.Calls()[before:] {
 			switch {
 			case c.Op == "run":
-				ranIP = ranIP || c.Argv[0] == "ip" && c.Argv[1] == "-4"
 				if !lists[c.Argv[0]] || !wantArgs[c.Argv[0]](c.Argv[1:]) {
 					t.Errorf("ran %v", c.Argv)
 				}
@@ -1266,8 +1264,13 @@ func TestReadWritesNothing(t *testing.T) {
 				t.Errorf("did %s", c)
 			}
 		}
-		if !ranIP {
-			t.Error("the header probe's ip did not run: this test no longer takes that branch")
+		for _, c := range f.Calls()[before:] {
+			if slices.Contains([]string{"/proc/net/route", "/proc/net/ipv6_route", "/var/run/reboot-required", "/proc/sys/kernel/version", "/boot"}, c.Path) {
+				t.Errorf("read %s, which the report does not show", c.Path)
+			}
+		}
+		if got := countReads(f.Calls()[before:], releaseFile); got != 1 {
+			t.Errorf("read the kernel release %d times", got)
 		}
 		for _, line := range strings.Split(strings.TrimSpace(runLog.String()), "\n") {
 			if !strings.HasPrefix(line, "run ") {
@@ -1275,6 +1278,17 @@ func TestReadWritesNothing(t *testing.T) {
 			}
 		}
 	}
+}
+
+// countReads is how many calls read path.
+func countReads(calls []hostfake.Call, path string) int {
+	n := 0
+	for _, c := range calls {
+		if c.Path == path {
+			n++
+		}
+	}
+	return n
 }
 
 // TestReadNoRunLog: on a host with no run log, as a draw's, nothing is written
