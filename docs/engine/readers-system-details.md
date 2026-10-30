@@ -1,7 +1,7 @@
 # The readers of System Details and Logs (`pkg/engine/details`, `pkg/engine/logview`, `host.System`'s `ScanLines` and `RunInteractive`, `pkg/output`'s `details`)
 
-> **Unit:** refactor plan slice 1 (System Details + Logs, both read only), unit (b), `next/s1-readers`, from `next/s1-gallery` at 7bc756c7. It builds on unit (a) ([gallery-system-details.md](gallery-system-details.md)), whose eleven decisions the maintainer adopted on 2026-10-30 ("Adopt all eleven"). Decisions implemented here: 1 (a)'s document (the `details` field, no flag), 2 (a) (the seven sections), 3 (a) (Last Login, its blank guard), 6 (a) (the log's file), 7 (a) (GNU `less` alone), and 8 (a)'s and 10 (a)'s needs (the last lines, the pipe form). The gallery moves onto both readers in this unit's last part. No V-number holds the defects it fixes (gallery-system-details.md §7: the slice's "Logs dump" and "Broken log parser", the reader's side of rows 21, 22 and 26, and rows 7 to 16 of the report).
-> **Status:** built and tested on macOS, in process, on `hostfake` and on real files, real children and pseudo-terminals in `t.TempDir()` (run). Each form the report parses is typed from a VM's log with synthetic values, or labelled. **Nothing has run on Linux or as root**, and hardn itself has not run: §4. There is no control on the engine, no `Check`, no plan and no flow, as neither screen has a main-menu row or a change. Nothing is wired into `cmd/hardn`, `pkg/menu`, `pkg/system`, `pkg/cmd`, `pkg/logging`, `pkg/adapter` or `pkg/config`; no `--output` flag and no screen package here (units (c) and (d)). Goldens: `pkg/output/testdata/codes.golden` gains `DETAILS_UNREADABLE`'s line, as a registered code does; `json/details.json` and `details-unreadable.json` are new; nothing else (`git diff --name-only 7bc756c7 -- '*testdata*'`).
+> **Unit:** refactor plan slice 1 (System Details + Logs, both read only), unit (b), `next/s1-readers`, from `next/s1-gallery` at 7bc756c7. It builds on unit (a) ([gallery-system-details.md](gallery-system-details.md)), whose eleven decisions the maintainer adopted on 2026-10-30 ("Adopt all eleven"). Decisions implemented here: 1 (a)'s document (the `details` field, no flag), 2 (a) (the seven sections), 3 (a) (Last Login, its blank guard), 6 (a) (the log's file), 7 (a) (GNU `less` alone), and 8 (a)'s and 10 (a)'s needs (the last lines, the pipe form). The gallery runs on both readers (§2, items 27 to 30), and the mocks of the options not adopted are gone (git keeps them at 701449ae). No V-number holds the defects it fixes (gallery-system-details.md §7: the slice's "Logs dump" and "Broken log parser", the reader's side of rows 21, 22 and 26, and rows 7 to 16 of the report).
+> **Status:** built and tested on macOS, in process, on `hostfake` and on real files, real children and pseudo-terminals in `t.TempDir()` (run). Each form the report parses is typed from a VM's log with synthetic values, or labelled. The gallery's mocks run those readers on simulated hosts. **Nothing has run on Linux or as root**, and hardn itself has not run: §4. There is no control on the engine, no `Check`, no plan and no flow, as neither screen has a main-menu row or a change. Nothing is wired into `cmd/hardn`, `pkg/menu`, `pkg/system`, `pkg/cmd`, `pkg/logging`, `pkg/adapter` or `pkg/config`; no `--output` flag and no screen package here (units (c) and (d)). Goldens: `pkg/output/testdata/codes.golden` gains `DETAILS_UNREADABLE`'s line, as a registered code does; `json/details.json` and `details-unreadable.json` are new; 20 of the gallery's retired go and 32 change, each named (item 30); `pkg/characterization` and `pkg/menu` unchanged (`git diff --name-status 7bc756c7 -- '*testdata*'`).
 
 The screens of unit (c) and the wiring of unit (d) should only draw and wire. So the host gains two seams, `ScanLines` and `RunInteractive`; `pkg/engine/logview` reads hardn's log through them, and `pkg/engine/details` the report's seven sections, both as data, with nothing rendered, as `pkg/engine/header` reads the header's facts; and `pkg/output` gains the report's JSON form.
 
@@ -65,6 +65,27 @@ origin/main's report stops at its first collector's error and loses all it read 
 25. **`details`, on the document, not beside it** ([output.md](../reference/output.md) §1.10): `Run.Details`, `Document.Details`, omitted otherwise. Every other document holds the nine, and an audit line ten with `time` (run: `TestDetailsOnThisFormAlone`, `TestStdoutIsOneDocument`, the old goldens unchanged). `Build` stays pure (run: `TestDetailsPure`). No flag reaches it until unit (d).
 26. **A null is a fact here:** a section or a fact not read or not known is null, `[]` read and none. One finding per section with anything not read, `DETAILS_UNREADABLE`, registered, `detail` `<section> not read`, `source` what was not read; exit 0 (run: `TestDetailsUnread`, 14 cases; `TestDetailsNotKnown`; goldens `json/details.json`, `json/details-unreadable.json`). `logins` as `cli-json` draws them, `unknown: true` on an account with no line, or on a blank the guard cannot back (run: `TestDetailsRead`).
 
+### The gallery on the readers
+
+27. **The mocks read with the readers**, where the stand-ins stood (gallery-system-details.md §8): `readDetails` is `detect.Detect` and `details.Read`; `detailsDocument` and `detailsJSON` are `output.Build`'s document, printed by `output.WriteJSON`; `readLog` is `logview.Read`, `logview.Elsewhere` and, only where there are lines to open, `logview.Pager`; `safeLine` is `logview.Safe`; `parseLogLine` is `logview.ParseLine`; `pagerFor` and `pagerChoice` are `logview.Pager` and `logview.Command`; `cli-pipe`'s lines are `ScanLines` and `logview.Show` (`pipeLines`). **Stand-ins left behind: none.** The sections, rows, layout and words stay in the gallery until unit (c): `sectionRows`, `fileSection`, `logRows`, `codeRows`, `logScreen`, `report`, `offTerminalCtx`. Each host is held to the reader's reading (run: `TestSDHosts`, `TestSDRows`, `TestSDLastLogin`, `TestSDNotRootNamesTheRules`, `TestLogHosts`, `TestPagerOnTheHosts`, `TestPipeIsEveryLine`, `TestControlHostIsSafe`). Nothing is written and nothing runs but reads, `less --version` the one new command, `run-interactive` never (run: `TestSystemDetailsWritesNothing`, `TestLogsWriteNothing`).
+28. **The simulated hosts answer what the readers ask,** and nothing else changed in them: `/proc/self/status`, root's on every host; wtmp holding a record where `lslogins` is there (`01-tools.log`:30, :96), so a blank is backed; `less --version` as each VM printed it (`01-tools.log`:22, :88, :153; the exit of BusyBox's and the less package's line are [I]); and for `cli-not-root`, `asUserSys`, the rules refused as on the VMs. `detailsModel` is still the gallery's: what a fake host answers.
+29. **Retired, with their goldens, tables and words; git keeps them at 701449ae:** `screen-report-sections`, `report-sections-open`, `screen-report-pager`, `report-pager-open`, `report-wide` and its drawing, `screen-export-command`, `export-command-open`, `screen-export-file`, `export-file-open`, `plan-only-indicator`, `screen-read-pager`, `screen-read-pager-none`, `cli-terminal-pager`, the plays `system-details-sections`, `-pager`, `-export-command`, `-export-file`, `-export-file-plan-only`, `logs-read-pager` and `-none`, the "pager-env" half of `pager-commands`, "Until 3.11 is decided" in `cli-flags`, and the fields and constants only they used. `origin*`, `plan-only` and the adopted forms stay: 19 System Details and 21 Logs listing mocks, 8 and 12 plays. The retirement is its own commit, so each golden's diff has one cause.
+30. **Every surviving golden that changed, and why** (run: `TestSystemDetailsGolden`, `TestPlaySystemDetailsGolden`, `TestLogsGolden`, `TestPlayLogsGolden`; `pkg/characterization` and `pkg/menu` testdata unchanged):
+
+    | Golden | Why |
+    |---|---|
+    | `system-details/cli-not-root` | **The one drawn screen line that differs from what unit (a) drew.** "alice  Not known" for "alice  sudo", and "Not root: /etc/sudoers, /etc/sudoers.d not read" for "Not root: /etc/sudoers.d not read": the reader does not guess from a group, and the report carries both files. It is what the gallery page's §6 state and form say, and the note above it now says so too (decision 23, and 38 below). Stated as a finding: the adopted mock's row was the stand-in's guess |
+    | `logs/pager-commands` | The "pager-env" half gone; each row the argv, `less -- /var/log/hardn.log`, under "pager-less, adopted"; a section "Its environment" holds `Pager`'s four variables, as the whole command would be cut at the row |
+    | `logs/open`, `play/logs-open` | The command in the gallery's note: `LESSSECURE=1 LESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less -- /var/log/hardn.log`, `Pager`'s, for the stand-in's `LESSSECURE=1 less <path>` |
+    | `logs/parser` | The heading "logview.ParseLine" for "parseLogLine, the stand-in", and its note |
+    | `system-details/cli-flags` | "Until 3.11 is decided" gone; the note says decision 1 (a) |
+    | `play/system-details-hosts`, `play/logs-hosts` | The hosts' menus, nine each; play's note |
+    | `system-details/cli-json`, `cli-json-unreadable` | Notes alone: decision 1 (a), the code registered. The JSON is byte for byte what the stand-in printed on these two hosts, where every section it holds is read |
+    | `system-details/screen-debian13`; `logs/screen-lines`, `screen-long`, `screen-alpine323`, `cli-terminal-tail` | Notes alone: the retired treatment's name out; on Alpine, `less --version` |
+    | `play/system-details`, `-plan-only`, `-refresh`, `-alpine`, `-sudo-rs`, `-unreadable`, `-zfs`; `play/logs`, `-plan-only`, `-refresh`, `-alpine`, `-control`, `-elsewhere`, `-empty`, `-missing`, `-no-pager`, `-unreadable` | Notes alone: play's note, and each host's, the stand-ins and the treatment's name out |
+
+    Every other adopted screen draws what it drew, line for line. `cli-pipe` and `cli-pipe-control` did not change: `logview.Show` prints what `safeLine` did on those lines.
+
 ## 3. Facts relied on
 
 | Fact | Source |
@@ -83,6 +104,7 @@ origin/main's report stops at its first collector's error and loses all it read 
 | The raw form escapes a blank, `\`, what does not print: so a field holds no space, and a control character in a host name reaches hardn as `\x1b` | read: `libsmartcols/src/print.c` v2.41:620, `include/carefulputc.h`:109 |
 | lastlog2's database is `/var/lib/lastlog/lastlog2.db`, and its table is made in the call that writes a row | read: `liblastlog2/src/lastlog2.h`:35, `lastlog2.c`:239 |
 | `Cmd.Wait` waits on the process before anything else, whatever `WaitDelay` says | read: Go's `os/exec/exec.go`, `(*Cmd).Wait` |
+| `/var/log/wtmp` holds records on Debian 13 and Ubuntu 26.04, as the simulated hosts' does | run: `vm-runs/s1/01-tools.log`:30, :96; `05-wtmp-*.tail` |
 
 ## 4. Written, not run (gate 5)
 
@@ -95,11 +117,91 @@ Nothing here has run on Linux or as root. For the log side, on a VM, read only:
 
 **The report:** nothing has run on a host, `pkg/engine/details` being on `hostfake` but for `TestReadSourceRealFiles` and `TestBoundOnARealChild`. On a VM, read only: `/proc/self/status`'s form, as root and as a user; `/proc/loadavg`'s; `df`'s header; `visudo -c` and `doas -C` under the bound; `lslogins` as root for more than one account, on a usual host, with the password lock held, and through a real rotation; `ScanLines` on `/var/log/wtmp` and `/var/log/lastlog`, and the `lastlog` slot size; a global IPv6 address; a real hung process. **No VM exists for:** `zpool` and `zfs` on a ZFS root, in an LXC guest; arm64's `/proc/cpuinfo`; a lastlog2 database that exists.
 
+**The gallery:** on `hostfake` alone, on macOS, as ever: `asUserSys` models a refusal, it does not exercise one. `play system-details` and `play logs` were run by their tests, not by a person at a terminal.
+
 **Not closed, known:** `Read` refuses a link at the path, but `less` opens the path itself, as root, so a link planted after the screen's read is followed by `less` [I, not run]; that needs write access in `/var/log`. `less`'s handling of bidi characters is its own: `Safe` does not reach it [I, not run]. Ctrl-Z and a SIGTERM to hardn alone: system.md, "Known limits".
 
-## 5. Words
+## 5. The `host.System` additions, and why
 
-gallery-system-details.md §6 is used as it stands; the words themselves are unit (c)'s and (d)'s to draw, and this unit draws none. New here, **proposed**:
+| Method | Why `System` did not have it | Who calls it | Who else changed |
+|---|---|---|---|
+| `ScanLines(ctx, name, yield)` | `ReadFile` reads a file whole, and the log is never rotated (`pkg/output/audit.go:22`); `TailLines` needs the file in memory. One call serves the last lines and total, `-p`'s pipe form, and the blank guard's "does it hold anything". Items 1, 2 | `logview.Read`, `details`' `readSource`; unit (d)'s `-p` | `host.Real`, `hostfake`; `p4status`' guard passes it, as a read |
+| `RunInteractive(ctx, env, name, args...)` | `Run` pipes output, gives no terminal, and its environment is exactly `PATH` and `LC_ALL=C` (`pkg/host/real.go`). A pager needs the terminal and a chosen environment. Items 3 to 5 | `logview.Command.Run`; unit (c)'s Open | `host.Real`, `hostfake` (runs nothing); `p4status`' guard refuses it |
+
+No other method is new: `/proc/self/status` tells root from another user through `ReadFile` (decision 22). [system.md](../safety/system.md) has each in full.
+
+## 6. The pager's exact command, and its safety
+
+The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESSHISTFILE=- TERM=<checked> LC_ALL=C.UTF-8 PATH=/usr/sbin:/usr/bin:/sbin:/bin`. Decision 7 (a) accepts an interactive root program on this screen, asked for by a key. What is closed, and how far it has run:
+
+| Risk, as root | Closed by | Evidence |
+|---|---|---|
+| A shell, another file or an editor from inside it | `LESSSECURE=1`: `!`, `\|`, `E`, `:e`, `v` say "Command not available" | run as a user: `vm-runs/s1/04-less2-deb13-vm.log`, `04-less2-ubuntu26-vm.log`; as root not run |
+| A log written over any file | `s` says "Input is not a pipe" on a file, with or without `LESSSECURE`, and hardn passes a file | run as a user: `04-less2-*.log` |
+| BusyBox's `less`, whose `s` writes and `E` opens any path, `LESSSECURE` changing nothing | Not run at all: `less --version` must print `less <digits>`, and BusyBox's refuses it; any other answer, any error, is no pager | run: `TestPager`, 21 host shapes; `01-tools.log`:153; `04-less2-alpine323-vm.log`; the write itself read, not run |
+| A program named by the environment | `$PAGER` is not read: `Pager` takes no environment | run: `TestPager`; the type |
+| `LESS`, `LESSOPEN`, `LESSKEY`, `EDITOR`, `SHELL`, `HOME` reaching it | `RunInteractive` passes `env` and `PATH` alone | run: `TestRunInteractiveExactEnvironment`, each set in the parent |
+| A `TERM` that names a path | `safeTerm`, else `vt100` | run: `TestSafeTerm` |
+| The path taken for an option | `--` | run: this Mac's less 581.2 (`TestRunInteractiveLess`); written, not run on GNU 668 |
+| What is typed left in root's home | `LESSHISTFILE=-` | [I]: less(1), not run |
+| A log's escapes reaching the terminal | no `-r`, so `less` shows them | run: 581.2; [I] on GNU 668 |
+| Ctrl-C ending hardn under the pager | SIGINT and SIGQUIT caught for the call | run on pseudo-terminals, macOS: item 4 |
+| The terminal left raw | modes put back after the child | run: `TestRunInteractiveTerminalModes` |
+
+**What stays open** is §4's "Not closed": a link planted after the read, which needs write access in `/var/log`; `less` as root and under sudo, sudo-rs and doas, not run. No run of a draw reaches `less` itself but `less --version`, and it is logged, argv and exit, where a host has a run log (item 12).
+
+## 7. Each row's source
+
+`details.Report` is the source of the System Details rows and `logview.Reading` of the Logs rows; the words map them in the gallery until unit (c). "Form" is where the form was seen: a log under `vm-runs/s1/`, or [I] where none printed it.
+
+| Row | Reader's fact | Read from | Form |
+|---|---|---|---|
+| OS | `OS.OS` | detect's `/etc/os-release`, by `header.Read` | [header.md](header.md) |
+| Kernel | `OS.Kernel` | `/proc/sys/kernel/osrelease` | [header.md](header.md) |
+| Uptime | `OS.Uptime` | `/proc/uptime`, by `header.Read` | [header.md](header.md) |
+| Hostname | `Host.Hostname` | `/proc/sys/kernel/hostname`, by `header.Read` | [header.md](header.md) |
+| `<interface>` | `Host.Addresses` | `ip -o addr show scope global` | `01-tools.log`:50, :115, :178; `inet6` [I] |
+| `<user>` | `Users.List`, `User.Admin()` | `/etc/passwd`, `/etc/group`; `users.Elevation`: `/etc/sudoers`, `/etc/sudoers.d`, `visudo -c`, or `/etc/doas.conf`, `/etc/doas.d`, `doas -C` | [check-users.md](check-users.md); modes `01-tools.log`:65, :130, :191-193 |
+| "Not root: ..." | `Users.Root`, `Users.NotRead()` | `/proc/self/status`'s `Uid:`, the refusals | [I]; the refusals as above |
+| Model, CPUs | `CPU.Model`, `CPUs`, `Sockets` | `/proc/cpuinfo` | `01-tools.log`:53-56, :118-121, :181-182; arm64 [I] |
+| Load | `CPU.Load` | `/proc/loadavg` | [I]: proc(5) |
+| `/` | `Disk.Source`, `Type` | `/proc/self/mounts` | `01-tools.log`:52, :117, :180 |
+| Used (Disk) | `Disk.Used`, `Total` | `df -kP /`; on ZFS `zfs get -Hp -o value used,available <dataset>` | `01-tools.log`:51, :116, :179; header [I]; ZFS [unverified] |
+| Pool `<name>` | `Disk.Pool`, `Health` | the mount; `zpool list -H -o health <pool>` | [unverified], no ZFS VM |
+| Used (Memory) | `Memory.Used()` | `/proc/meminfo`: `MemTotal`, `MemAvailable` | `01-tools.log`:57, :59, :122, :124 |
+| `<account>`, Logins | `Logins.List`, `State` | `lslogins`, one call; the guard: `/var/log/wtmp`, `/var/lib/lastlog/lastlog2.db`, `/var/log/lastlog` | `02-login.log`, `08-lslogins.log`, `09-lslogins-blank.log` |
+| Path | `Reading.Path` | `logview.File` | `pkg/logging`'s open, `cmd/hardn/main.go:57` |
+| Size | `Reading.Size` | the file at its open, `ScanLines` | `s3/57-log-ubuntu26-vm.log` for the lines |
+| Last N of M lines, All N lines, 1 line | `Reading.Total`, `Last` | `ScanLines` | as above |
+| Each line, and its colour | `Line.Text`, `Line.Level` | `logview.Safe`, `Show`, `ParseLine` | `s3/57-log-ubuntu26-vm.log` |
+| "hardn.yml's logFile, ..." | `logview.Elsewhere` | the caller's `cfg.LogFile` | `pkg/config` |
+| Open | `logview.Pager`'s `ok` | `Stat` on `host.SearchPath`, `less --version` | `01-tools.log`:22, :88, :153 |
+
+## 8. States
+
+| Where | State | Drawn | Mock or test | JSON |
+|---|---|---|---|---|
+| Any section | A thing not read (`Unread`) | "Can't read <source>", after the facts read; the rest stays | `screen-unreadable`, `TestSDRows` | null, and one `DETAILS_UNREADABLE` |
+| Host and IPs | `ip` answered none (`Addresses` empty) | "No addresses" | `TestSDRows` | `[]` |
+| Users | No user listed | "None but root" | `screen-pve9` | `[]` |
+| Users | A tool grants it; none does; not established | "sudo" or "doas"; "No sudo" or "No doas"; "Not known" | `screen-debian13`, `screen-alpine323`, `screen-many`, `cli-not-root` | `tool` the tool, `""`, `"unknown"` |
+| Users | Not root, rules refused | "Not root: <file>, <file> not read" | `cli-not-root` | one finding |
+| CPU | No `model name`, no `physical id` | Model "Not known"; CPUs alone | `TestSDBlankCPU` | null |
+| Disk | Not read, or no sizes | "/" alone, and "Can't read df" | `TestSDRows` | null where not read |
+| Disk | A pool ONLINE; other; no `zpool` | its health; in the warning's state; "Not known" | `screen-pve9`, `screen-zfs-degraded`, `TestSDRows` | `health` as it says, or `"unknown"` |
+| Memory | No `MemAvailable` | Used "Not known" | `TestSDRows` | `usedBytes` null |
+| Last Login | `LoginsNoTool` | "Logins  Not known: lslogins isn't installed" | `screen-alpine323` | null, a finding |
+| Last Login | `LoginsUnread` | "Can't read lslogins" | `TestSDLastLogin` | null, a finding |
+| Last Login | `LoginAt`, a host; none | "Oct 20 11:42 from <host>"; "Oct 20 11:42 on <tty>" | `screen-debian13`, `screen-login-console` | `when`, `tty`, `from` |
+| Last Login | `LoginNone`: a blank, a source holding records | "None recorded" | `screen-no-logins` | blanks |
+| Last Login | `LoginUnknown`: no line, or a blank no source backs | "Not known" | `TestSDLastLogin` | `unknown: true` |
+| Logs | `Lines`, with a pager; with none | the last lines, Open and Refresh; Refresh alone | `screen-long`, `screen-alpine323`, `screen-no-pager` | none |
+| Logs | `NoLog`, `Empty`, `Unreadable` | "No log yet", "Empty", "Can't read it: <reason>"; Refresh alone | `screen-missing`, `screen-empty`, `screen-unreadable` | none |
+| `-p`, off a terminal | Every line, `Show`n | no heading, no style | `cli-pipe`, `cli-pipe-control` | none |
+
+## 9. Words
+
+gallery-system-details.md §6 is used as it stands, and "§6" in this section and the next is that page's; the words themselves are unit (c)'s and (d)'s to draw, and the gallery still draws them. New here, **proposed**:
 
 | Where | Words | Why |
 |---|---|---|
@@ -109,47 +211,46 @@ gallery-system-details.md §6 is used as it stands; the words themselves are uni
 | `DETAILS_UNREADABLE`'s `<section>`, §6 giving the form and "memory" alone | "os and kernel", "host and ips", "users", "cpu and load", "disk", "memory", "last login" | P-17's words in lower case, as the stand-in has them |
 | `DETAILS_UNREADABLE`'s `source` | each source, joined by ", "; "ip addr", "df", "zpool list", "zfs get", "lslogins" | The stand-in's sources, and "Can't read <source>" uses them alike |
 | JSON: `users[].tool`, `disk.health` | "unknown" | §6's word, as `host`'s facts use it, where the rules are not read and where no `zpool` answers |
+| Users, as a user other than root, two files refused | "Not root: /etc/sudoers, /etc/sudoers.d not read"; "Not root: /etc/doas.conf, /etc/doas.d not read" | §6's form has one `<file>`, the report carries both, and the finding's source joins by ", " too |
+| The gallery's, dev-only | "pager-less, adopted", "Its environment", "logview.ParseLine" | Headings of `pager-commands` and `parser`; retire with them |
 
-**For unit (c):** "Not root: <file> not read" has one `<file>`, and the report can carry two; a user's row where the rules are not read is "Not known" (§6's state), since the report no longer says what a group says (`cli-not-root` draws `alice  sudo`, the stand-in's guess).
+**For unit (c):** a user's row where the rules are not read is "Not known" (§6's state), since the report no longer says what a group says (`cli-not-root`). `cli-flags` keeps §6's heading "Proposed, if 3.11 is approved", though §3.11's change is approved, narrowed: the words are decided, and unit (d) writes the warnings. "Until 3.11 is decided" and "Parsed and ignored, as today" are retired from §6.
 
-## 6. Decisions of this unit (engineering, stated; say if you'd rather otherwise)
+## 10. Defects fixed (gallery-system-details.md §7)
 
-1. `pkg/engine/logview` keeps the name: depguard's `engine-through-host` already fits a reader beside `header`, and a block of its own names the rule, as `header-through-host` does.
-2. `yield` returns a bool, not an error: no sentinel joins `pkg/output`'s registry, and a caller's write error stays the caller's.
-3. `host.MaxLine` is 64 KiB, origin/main's own limit: `MaxLast` such lines bound `Read` at 16 MiB, and a line that long is not read in a log.
-4. A cut line reaches `yield` when its first `MaxLine` bytes are known, with no count of what went: a count would need the whole line first, which costs a binary file's whole length for one look.
-5. `Line.Cut` is a field and the mark is `logview`'s, so the host says no words and no text can pass as the mark to `host`'s callers.
-6. A cut inside a character shows that character's bytes: true, and rare.
-7. It reads no further than the size at the open, so a writer that keeps appending cannot keep `-p` reading; so a `/proc` file reads as empty, and `ReadFile` is for those.
-8. `RunInteractive` returns an error alone: its output went to the terminal, so a `Result` would hold nothing.
-9. It logs the argv and the exit where a host has a run log, as every command is logged, and not `env`.
-10. SIGQUIT is caught with SIGINT, as Go's default ends hardn with a stack dump on Ctrl-\ too; `less` ignores it [I].
-11. ctx done sends SIGTERM first, as SIGKILL leaves the terminal raw; no caller today holds a context that fires.
-12. The terminal's modes are put back after the child, which the brief did not ask: the seam's own SIGKILL can leave them raw, and the next prompt would then read blind.
-13. `Read` does not call `Pager`: `-p` needs no `less --version`, and `TERM` is the caller's at the time.
-14. `Pager` reads `Result.Combined`, as the VMs' log merged the streams, so the check holds to what ran; BusyBox's words match on neither.
-15. `less 581.2`, macOS's, is refused: the digits end at a space or the line. It is no release target, and fails closed.
-16. `less --version` is bounded at 5 s, as a draw waits for it; a timeout is no pager.
-17. `Safe` also marks noncharacters, which the stand-in kept; no mock holds one.
-18. `Elsewhere` returns the path `Safe`, as hardn.yml may be `./hardn.yml` (`pkg/config/config.go:210`) and both its callers show it.
-19. `pkg/engine/details` is the name, beside `header`: depguard's `engine-through-host` fits, and a block names its own rule, `details-through-host`, which keeps it off `pkg/ui` and `pkg/output`.
-20. `users.Elevation` is exposed, not `tool` and `decide`: three methods, and the row's shells, locks and findings stay private.
-21. Facts keep their section's others, as the header's do, past the stand-in's whole-section rule: decision 2 (a) has "each row reads a fact or says it could not".
-22. `/proc/self/status` tells root from another user, not a new `System` method: a method means p4status' guard, the fake and every other implementer, for one read of a file `ReadFile` reaches.
-23. A user's grant with rules unread is Unknown, not a group's guess: a group names nothing a rule does not, and the stand-in's "sudo" there would be the guess decision 2's rows avoid.
-24. A rule file is reported only where a tool that matters read it: on Alpine, whose `/etc/sudoers.d` also refuses (`01-tools.log`:193), sudo is not installed, so it is not named.
-25. The guard's "a source" is any one, as adopted: wtmp holding records with `lastlog` unreadable reads None. `Logins.Sources` keeps what each said, should that tighten.
-26. A lastlog2 database with any bytes counts as holding records: hardn has no SQLite reader, and the table is made by the write of a row (`lastlog2.c`:239), so empty after a removal is the false None left [I]. No VM has the file.
-27. A blank's guard costs one look per source, only where there is a blank: a host where all have logged in reads nothing more.
-28. A name not askable is not asked, so one odd account in `/etc/passwd` does not turn the whole section unread.
-29. A failed `zfs get` or `zpool list` stays a finding though `df` answered, as the pool's figures were not what was asked; not installed is no finding, only "unknown".
-30. `lslogins`' 20 s is the section's, not per account: a held lock past one wait reads "Can't read lslogins", and the next Refresh tries again.
-31. Commands run one after another: running them at once would save time on a hung host alone.
-32. Report values are as the host gave them, not `logview.Safe`d: the rows clean what they draw (`pkg/ui/component/ctx.go`, `clean`), JSON escapes it, and `lslogins`' raw form has already escaped `From` and `TTY`. Unit (c)'s uncapped off-terminal path must clean too.
-33. `DETAILS_UNREADABLE`'s code is `pkg/output`'s, beside `CONFIG_DEPRECATED_VALUE`: `Build` makes the finding.
-34. `hostname` and `os` stay in `host`, as the gallery has them, and `Run.Hostname` stays the caller's to set from `Report.Host.Hostname`.
+On the new path. origin/main's code keeps them until unit (d) replaces it, as that page's §7 says of 4 to 27.
 
-## 7. API
+| # | Defect | Here | Evidence now |
+|---|---|---|---|
+| Slice | No-op `system-details` flags | **Not here:** unit (d), decision 1 (a). The document it prints is built | `TestDetailsRead`, `json/details.json`, `cli-flags` |
+| Slice | Logs dump | The reader's side: the last lines, bounded; every line to a pipe; the whole log in GNU `less`. Unit (c) draws, unit (d) wires | `TestReadLong`, `TestEveryLineAsItReads`, `TestPipeIsEveryLine`, `TestPager` |
+| Slice | Broken log parser | `ParseLine`, for the colour alone; a line past 64 KiB is cut and the read goes on | `TestParseLine`, `TestContract`, `parser` |
+| 4 | Box fixed at 50 columns | Not here: the screen's. The gallery's layout has no box | `screen-debian13` |
+| 5 | The renderer does I/O | `Read` returns data and draws nothing; depguard holds it off `pkg/ui` | `TestRead` in both packages; `.golangci.yml`, `details-through-host`, `logview-through-host` |
+| 6 | The screen clears itself; `-p` and the command clear in a pipe | Not here: the readers print nothing. Unit (c) and (d) | `cli-pipe`, drawn |
+| 7 | One error loses the report | A section keeps going, and a fact its section's others; "Can't read <source>" says which | `TestOneSectionLeavesTheRest`, `TestSDRows`, `screen-unreadable` |
+| 8 | Hard-coded ZFS dataset | The mount's dataset | `TestZFS`, `TestSDZFSDatasetIsRead`; [unverified] |
+| 9 | The ZFS branch may never run | Avoided: `zpool status -x` is not asked; the mount's type says ZFS | `TestZFS`; [unverified] |
+| 10 | ZFS "Volume" is used/available | Total is used plus available | `TestZFS`, `screen-pve9`; [unverified] |
+| 11 | "CPU Freq: 0.00 GHz" | The row is gone (decision 2 (a)) | `screen-debian13` |
+| 12 | Memory counts page cache | `MemAvailable`; not known where absent | `TestMemory` |
+| 13 | Disk says GB, dividing by 1024³ | Bytes from the reader; GiB in the gallery's words, unit (c)'s | `TestDF`, `screen-debian13` |
+| 14 | Last Login root's under sudo; blank with no `lastlog` or a dotless From | `lslogins` for root and each user; a dotless host read; a blank guarded | `TestLogins`, `TestBlankGuard`, `TestSDLastLogin` |
+| 15 | No `lscpu`: "Bare Metal", 1 socket | `lscpu` not asked, Hypervisor gone; Model "Not known", no socket count made up | `TestCPU`, `TestSDBlankCPU` |
+| 16 | IPv4 alone | Both families | `TestAddresses`; `inet6` [I] |
+| 17, 18, 19 | Export's write, its overwrite, its own text | No item (decision 5 (a)); the old code goes with unit (d) | `screen-debian13` |
+| 20 | Each draw reads everything again, four times, and recurses | One read a draw, one `lslogins` call; the loop is unit (c)'s | `TestSDLsloginsCall`, `TestLogins` |
+| 21 | `logFile` diverges from the file hardn writes | `logview.File` always; `Elsewhere` says so. "Check the log file" and the warning are unit (d)'s | `TestFile`, `TestElsewhere`, `screen-elsewhere` |
+| 22 | An escape reaches the terminal raw | `Safe`, on and off the screen | `TestSafe`, `TestSafeWhole`, `TestControlHostIsSafe`, `screen-control`, `cli-pipe-control` |
+| 23 | `-p` exits 0 on a read failure | Not here: unit (d). `Reading.State` and `Err` give it what it needs | `TestRead`, `TestReadRealFiles`, `cli-unreadable` |
+| 24 | A failed read writes an ERROR line | `Read` writes nothing, no run-log line; `-p`'s path is unit (d)'s | `TestReadWritesNothing` |
+| 25 | `-p` needs root and `DetectOS` | Not here: unit (d), decision 9 (a). `Read` needs neither | `TestRead` |
+| 26 | Empty log no words; missing, the path three times | `NoLog`, `Empty`, and §6's words | `TestRead`, `screen-missing`, `screen-empty` |
+| 27 | Three copies of the print | Not here: unit (d) deletes them | none yet |
+| 28 | `main()`'s two lines on stdout | Not here: unit (d) | `cli-not-root`, which draws them |
+| 29 | The log is 0644 and holds commands' output | **Not corrected by this slice**, as that page's §7 says | none |
+
+## 11. API
 
 ```go
 package host
@@ -222,8 +323,61 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 // Run gains Details *details.Report; Document gains Details *Details, omitted when nil.
 ```
 
-## 8. Not in these parts
+## 12. Decisions of this unit (engineering, stated; say if you'd rather otherwise)
 
-- **The gallery:** its `readLog`, `safeLine`, `parseLogLine`, `pagerFor`, `readDetails`, `parseLogins` and `detailsDocument` stay until the gallery moves onto these packages (this unit's last part). It will then differ from what it draws today where the stand-in guessed: a user's row with the rules unread, `details.addresses` and `details.users` null where not read (the stand-in has `[]`), `cpu.model` and `cpu.sockets` null where not known (the stand-in has `""` and `0`). `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
-- **Unit (c):** the screen, its "Last N of M lines" and the size's words, Open, what it does with a pager's error, `Flush`; the report's rows, each fact's or its "Can't read <source>" from `Unread`, and its sizes' GiB and percentages.
-- **Unit (d):** `-p`'s forms and exit statuses, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log.
+1. `pkg/engine/logview` keeps the name: depguard's `engine-through-host` already fits a reader beside `header`, and a block of its own names the rule, as `header-through-host` does.
+2. `yield` returns a bool, not an error: no sentinel joins `pkg/output`'s registry, and a caller's write error stays the caller's.
+3. `host.MaxLine` is 64 KiB, origin/main's own limit: `MaxLast` such lines bound `Read` at 16 MiB, and a line that long is not read in a log.
+4. A cut line reaches `yield` when its first `MaxLine` bytes are known, with no count of what went: a count would need the whole line first, which costs a binary file's whole length for one look.
+5. `Line.Cut` is a field and the mark is `logview`'s, so the host says no words and no text can pass as the mark to `host`'s callers.
+6. A cut inside a character shows that character's bytes: true, and rare.
+7. It reads no further than the size at the open, so a writer that keeps appending cannot keep `-p` reading; so a `/proc` file reads as empty, and `ReadFile` is for those.
+8. `RunInteractive` returns an error alone: its output went to the terminal, so a `Result` would hold nothing.
+9. It logs the argv and the exit where a host has a run log, as every command is logged, and not `env`.
+10. SIGQUIT is caught with SIGINT, as Go's default ends hardn with a stack dump on Ctrl-\ too; `less` ignores it [I].
+11. ctx done sends SIGTERM first, as SIGKILL leaves the terminal raw; no caller today holds a context that fires.
+12. The terminal's modes are put back after the child, which the brief did not ask: the seam's own SIGKILL can leave them raw, and the next prompt would then read blind.
+13. `Read` does not call `Pager`: `-p` needs no `less --version`, and `TERM` is the caller's at the time.
+14. `Pager` reads `Result.Combined`, as the VMs' log merged the streams, so the check holds to what ran; BusyBox's words match on neither.
+15. `less 581.2`, macOS's, is refused: the digits end at a space or the line. It is no release target, and fails closed.
+16. `less --version` is bounded at 5 s, as a draw waits for it; a timeout is no pager.
+17. `Safe` also marks noncharacters, which the stand-in kept; no mock holds one.
+18. `Elsewhere` returns the path `Safe`, as hardn.yml may be `./hardn.yml` (`pkg/config/config.go:210`) and both its callers show it.
+19. `pkg/engine/details` is the name, beside `header`: depguard's `engine-through-host` fits, and a block names its own rule, `details-through-host`, which keeps it off `pkg/ui` and `pkg/output`.
+20. `users.Elevation` is exposed, not `tool` and `decide`: three methods, and the row's shells, locks and findings stay private.
+21. Facts keep their section's others, as the header's do, past the stand-in's whole-section rule: decision 2 (a) has "each row reads a fact or says it could not".
+22. `/proc/self/status` tells root from another user, not a new `System` method: a method means p4status' guard, the fake and every other implementer, for one read of a file `ReadFile` reaches.
+23. A user's grant with rules unread is Unknown, not a group's guess: a group names nothing a rule does not, and the stand-in's "sudo" there would be the guess decision 2's rows avoid.
+24. A rule file is reported only where a tool that matters read it: on Alpine, whose `/etc/sudoers.d` also refuses (`01-tools.log`:193), sudo is not installed, so it is not named.
+25. The guard's "a source" is any one, as adopted: wtmp holding records with `lastlog` unreadable reads None. `Logins.Sources` keeps what each said, should that tighten.
+26. A lastlog2 database with any bytes counts as holding records: hardn has no SQLite reader, and the table is made by the write of a row (`lastlog2.c`:239), so empty after a removal is the false None left [I]. No VM has the file.
+27. A blank's guard costs one look per source, only where there is a blank: a host where all have logged in reads nothing more.
+28. A name not askable is not asked, so one odd account in `/etc/passwd` does not turn the whole section unread.
+29. A failed `zfs get` or `zpool list` stays a finding though `df` answered, as the pool's figures were not what was asked; not installed is no finding, only "unknown".
+30. `lslogins`' 20 s is the section's, not per account: a held lock past one wait reads "Can't read lslogins", and the next Refresh tries again.
+31. Commands run one after another: running them at once would save time on a hung host alone.
+32. Report values are as the host gave them, not `logview.Safe`d: the rows clean what they draw (`pkg/ui/component/ctx.go`, `clean`), JSON escapes it, and `lslogins`' raw form has already escaped `From` and `TTY`. Unit (c)'s uncapped off-terminal path must clean too.
+33. `DETAILS_UNREADABLE`'s code is `pkg/output`'s, beside `CONFIG_DEPRECATED_VALUE`: `Build` makes the finding.
+34. `hostname` and `os` stay in `host`, as the gallery has them, and `Run.Hostname` stays the caller's to set from `Report.Host.Hostname`.
+35. The retirement comes before the moves, each its own commit, so that a golden's diff has one cause.
+36. The gallery's rows put each fact first and `Can't read <source>` after, so a fact keeps its place in the section and unit (c) can move the rest; the row is the source's, not one row per section as the stand-in had.
+37. `Pager` is asked only where there are lines: a draw with nothing to open runs no `less --version`.
+38. Two refused files are one row, joined by ", " (§9, proposed): the row names what a user cannot read, and two rows would repeat "Not root".
+39. The gallery's `TERM` is a constant, `xterm-256color`, as a golden's must be; unit (d) passes hardn's.
+40. `asUserSys` refuses in the gallery: `hostfake` has no user to refuse, and the reader's own tests refuse the same way.
+41. `pager-commands` draws the argv in its rows and `Env` in its own section, as the whole command would be cut at a row; a Callout, which wraps, draws it whole in `open`.
+42. The blank no source backs has a test, not a mock (`TestSDLastLogin`): no adopted host has one, and unit (c) retires the mocks.
+43. No new command is taught to `reads` (`engine.go`) for `less --version`: `assertOnlyReads` allows that one argv, and `run-interactive` fails it, so a pager that ran would fail the test.
+
+## 13. Not in this unit
+
+- **Unit (c):** the screens on `screenkit`: the rows and words now in the gallery; "Last N of M lines" and the size's words; Open, what it does with a pager's error, `Flush`; a section that holds code; the uncapped off-terminal path, which must clean what it draws (decision 32).
+- **Unit (d):** main menu 9 and 10; `-p`'s forms and exit statuses, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log; the legacy code's deletion.
+- **(b2) Parity,** gallery-system-details.md §9.
+- **On a Linux VM:** §4's lists. `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
+
+## 14. Size
+
+`git diff --numstat 7bc756c7` (run): non-test Go outside the gallery 1,970 lines added and 19 removed: `pkg/engine/details` 933 (189 of them whole-line comments), `pkg/engine/logview` 393 (128), `pkg/host` 316, `pkg/host/hostfake` 48, `pkg/output` 212, `pkg/engine/controls/users` 52, `internal/tools/p4status` 16. The gallery 469 added and 1,103 removed (`systemdetails.go` 1,598 to 1,112 lines, `logs.go` 895 to 747). Tests 3,146 lines added outside the gallery (`details_test.go` 1,274, `interactive_test.go` 441, `logview`'s 647), the gallery's 211 added and 180 removed. Testdata: 2 new JSON goldens and one line in `codes.golden`; 20 of the gallery's deleted, 32 changed (item 30).
+
+**Against Backup's unit (b)** (lines added, a proxy, not time or cost): its control unit added 705 non-test lines outside the gallery after its review's fixes ([control-backup.md](control-backup.md) §12), 776 in gallery-environment.md §10's count from the merges, and about 1,600 of tests. So this unit is about **2.79** of the first and **2.54** of the second, and about **1.97** of its tests. Far over the guideline of about 500 changed lines, and larger than gallery-system-details.md §10 expected of units (b) to (d) together, which it called smaller than Backup's: that section measured the stand-ins, 431 lines, and named the seams and the login source as unmeasured. What the stand-ins did not hold is the size: two seams on every `System`, a blank guard, bounds on hung commands, the rules as Check reads them, and the JSON form. The commits split it so.

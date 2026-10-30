@@ -441,7 +441,7 @@
   - Read the file hardn actually writes.
 - **Effort:** S.
 - **Risk:** Low.
-- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 6 to 10): the last lines the terminal holds, from the file hardn writes, with an item that opens GNU `less`, none on BusyBox's. This proposal as written is drawn too, for comparison (`read-pager`, `pager-env`). A pager needs a new seam on `host.System`, more than Effort S suggests [I].
+- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 6 to 10): the last lines the terminal holds, from the file hardn writes, with an item that opens GNU `less`, none on BusyBox's. This proposal as written is drawn too, for comparison (`read-pager`, `pager-env`). *Since `next/s1-readers` those mocks are retired; git keeps them at 701449ae.* A pager needs a new seam on `host.System`, more than Effort S suggests [I].
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-18-before.png` (placeholder). After: `docs/refactor/img/p-18-after.png` (placeholder).
 
 <a id="p-19"></a>
