@@ -5,17 +5,21 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	osuser "os/user"
+	"slices"
 	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -153,8 +157,6 @@ func (h *envTestHost) with(t *testing.T, pol sudoers.Policy) {
 func useEnvHost(t *testing.T, h *envTestHost, lines ...string) *dnsSeams {
 	t.Helper()
 	s := useDNSHost(t, h.dnsHost, lines...)
-	was := environmentGetenv
-	t.Cleanup(func() { environmentGetenv = was })
 	environmentGetenv = func(k string) string { return h.env[k] }
 	return s
 }
@@ -356,5 +358,247 @@ func TestEnvironmentScreenFailure(t *testing.T) {
 	}
 	if h.content(envTestFile) != "<absent>" || strings.Contains(out, "Takes effect") {
 		t.Errorf("%s:\n%s\nscreen:\n%s", envTestFile, h.content(envTestFile), out)
+	}
+}
+
+// withSudo gives the DNS host h sudo as Debian 13 has it (/etc/sudoers,
+// /etc/sudoers.d, visudo passing every file), so that -e, in a test of -g
+// with it, keeps HARDN_CONFIG for alice there; and returns whether -e
+// ran: any call on /etc/sudoers.d, which -g never makes.
+func withSudo(h *dnsHost) (ran func() bool) {
+	h.AddFile(sudoers.MainConfig, []byte(envTestSudoers), 0o440, 0, 0)
+	h.AddDir(sudoers.DropInDir, 0o755, 0, 0)
+	h.facts.Elevation = detect.Elevation{Sudo: detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}, SudoFlavor: detect.SudoOriginal, Doas: detect.Tool{Present: detect.No}}
+	answer := h.Handler
+	h.Handler = func(argv []string, in []byte) hostfake.Response {
+		switch {
+		case strings.Join(argv, " ") == "visudo -c":
+			return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
+		case len(argv) == 3 && argv[0] == "visudo" && argv[1] == "-cf":
+			return hostfake.Response{Stdout: argv[2] + ": parsed OK\n"}
+		}
+		return answer(argv, in)
+	}
+	return func() bool {
+		for _, c := range h.Calls() {
+			if c.Path == sudoers.DropInDir || strings.HasPrefix(c.Path, sudoers.DropInDir+"/") {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// runE runs hardn with args as root (runG) on the Environment host h, its
+// configuration hardn's defaults, hardn's environment h's, setup, when
+// set, run once the seams are in place; the session SSH's, as a
+// lockout-risk plan's journal needs it (revert.ReadSession).
+func runE(t *testing.T, h *envTestHost, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
+	t.Helper()
+	return runG(t, h.dnsHost, config.DefaultConfig(), func(s *dnsSeams) {
+		environmentGetenv = func(k string) string { return h.env[k] }
+		revertGetenv = func(k string) string {
+			return map[string]string{"SSH_CONNECTION": "192.0.2.10 50022 192.0.2.20 22"}[k]
+		}
+		if setup != nil {
+			setup(s)
+		}
+	}, args...)
+}
+
+// inOrder returns the first of want that out does not show after what
+// came before it, each compared with its white space, a callout's bar
+// at a wrapped line's start among it, as single spaces; "" when it shows
+// them all, in order.
+func inOrder(out string, want ...string) string {
+	f := strings.Join(strings.Fields(strings.ReplaceAll(out, "\n# ", " ")), " ")
+	at := 0
+	for _, w := range want {
+		i := strings.Index(f[at:], strings.Join(strings.Fields(w), " "))
+		if i < 0 {
+			return w
+		}
+		at += i + 1
+	}
+	return ""
+}
+
+// lockoutWords are -e's and setup-sudo-env's refusal of a lockout-risk
+// plan (proposed, refactor plan slice 9, unit (d)), as output.Human says
+// it.
+const lockoutWords = "Keeping HARDN_CONFIG here risks a lockout (PLAN_REFUSED)"
+
+// TestKeepEnvironmentFlag: -e and setup-sudo-env plan and apply the
+// Environment control through the engine, without a question (refactor
+// plan slice 9, unit (d); gallery-environment.md §5, Made here, adopted
+// 2026-10-29), after the root check and hardn.yml's load, the report
+// output.Human's, the exit status Phase 3's: hardn-env-alice written on
+// Debian 13, nothing else; a host already as asked unchanged; every host
+// the control refuses reported with its code and how to go on, nothing
+// written, exit status 1 (V25's fix, as -g's); a lockout-risk plan (doas,
+// hardn's password rule) refused naming main menu 8, nothing written, the
+// revert timer never armed and hardn's boot unit not installed, exit
+// status 1; visudo refusing the configuration failed, nothing left
+// written, 1; -n the plan alone, nothing written, 3 with changes to make,
+// 0 without, 1 refused, the lockout-risk plan's refusal said there too.
+// hardn.yml is never written, nothing goes through the legacy provider,
+// and the signals are registered for an apply alone.
+func TestKeepEnvironmentFlag(t *testing.T) {
+	for _, spelling := range [][]string{{"-e"}, {"setup-sudo-env"}} {
+		for _, tc := range []struct {
+			name, host string
+			dryRun     bool
+			code       int      // the exit status; 0: hardn did not exit
+			said       []string // in the report, in order
+			written    bool     // hardn-env-alice written
+		}{
+			{name: "debian13", host: "debian13", said: []string{"Keep HARDN_CONFIG", "Done", "Operation Successful"}, written: true},
+			{name: "already kept", host: "kept", said: []string{"Nothing needs changing."}},
+			{name: "doas, no rule of hardn's", host: "alpine324", code: 1,
+				said: []string{"Operation Failed", "hardn has no doas rule for alice to keep HARDN_CONFIG on (SUDOERS_ENV_NEEDS_GRANT)", "To go on: add setenv { HARDN_CONFIG } to the rule that lets alice use doas."}},
+			{name: "no tool", host: "pve9", code: 1, said: []string{"Operation Failed", "sudo isn't installed here (SUDOERS_NO_TOOL)"}},
+			{name: "a root login", host: "root-login", code: 1,
+				said: []string{"hardn wasn't run with sudo, so there's no user to keep it for (ENVIRONMENT_NO_USER)", "To go on: run sudo hardn as that user."}},
+			{name: "a file edited by hand", host: "edited", code: 1,
+				said: []string{envTestFile + " holds a rule hardn didn't write (SUDOERS_FILE_EDITED)", "To go on: put hardn's back, or remove it."}},
+			{name: "lockout risk", host: "doas-password", code: 1,
+				said: []string{"Lockout risk", "No actual changes were made to your system.", lockoutWords, "To go on: keep it from main menu 8, Environment, which asks you to confirm."}},
+			{name: "visudo refuses", host: "visudo-fails", code: 1, said: []string{"Keep HARDN_CONFIG", "SUDOERS_INVALID_BEFORE"}},
+			{name: "-n", host: "debian13", dryRun: true, code: 3,
+				said: []string{"Keep HARDN_CONFIG", "+Defaults:alice env_keep += \"HARDN_CONFIG\"", "No actual changes were made to your system."}},
+			{name: "-n, already kept", host: "kept", dryRun: true, said: []string{"Nothing needs changing."}},
+			{name: "-n, refused", host: "pve9", dryRun: true, code: 1, said: []string{"SUDOERS_NO_TOOL"}},
+			{name: "-n, lockout risk", host: "doas-password", dryRun: true, code: 1,
+				said: []string{"Lockout risk", "No actual changes were made to your system.", lockoutWords}},
+		} {
+			args := append([]string{}, spelling...)
+			if tc.dryRun {
+				args = append([]string{"-n"}, args...)
+			}
+			t.Run(strings.Join(args, " ")+", "+tc.name, func(t *testing.T) {
+				h := newEnvHost(t, tc.host)
+				before := map[string]string{}
+				for _, f := range []string{envTestFile, sudoers.DoasDir + "/hardn-alice.conf"} {
+					before[f] = h.content(f)
+				}
+				r, s := runE(t, h, nil, args...)
+				report := s.out.String()
+				if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+					t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
+				}
+				want := []string{"root check", "config load", "OS detection"}
+				if spelling[0] == "setup-sudo-env" {
+					want = want[:2] // it detects no OS: the engine does
+				}
+				if strings.Join(r.reached, ",") != strings.Join(want, ",") {
+					t.Errorf("reached %v, want %v: after the root check and the configuration's load", r.reached, want)
+				}
+				if w := inOrder(report, tc.said...); w != "" {
+					t.Fatalf("the report lacks %q after the text before it:\n%s", w, report)
+				}
+				for _, w := range []string{"y/N", "Type the hostname", "[SUCCESS]", "[ERROR]", "Script completed", "Takes effect"} {
+					if strings.Contains(report+r.stdout, w) {
+						t.Errorf("printed %q:\n%s%s", w, report, r.stdout)
+					}
+				}
+				got := h.writes()
+				if !tc.written {
+					// visudo refusing the configuration fails the change
+					// once it is journalled and backed up, rolled back:
+					// nothing is left under /etc
+					if len(got) > 0 && tc.host != "visudo-fails" || slices.ContainsFunc(got, func(w string) bool { return strings.Contains(w, " /etc/") }) {
+						t.Errorf("wrote %q", got)
+					}
+					for f, was := range before {
+						if h.content(f) != was {
+							t.Errorf("%s changed:\n%s", f, h.content(f))
+						}
+					}
+				} else if h.content(envTestFile) != sudoers.Header+"Defaults:alice env_keep += \"HARDN_CONFIG\"\n" {
+					t.Errorf("%s:\n%s\nwrites %q", envTestFile, h.content(envTestFile), got)
+				}
+				for _, c := range h.Calls() {
+					if c.Op == "start-detached" || c.Op == "run" && (strings.HasPrefix(strings.Join(c.Argv, " "), "rc-update") || strings.Contains(strings.Join(c.Argv, " "), revert.BootUnitName)) {
+						t.Errorf("the revert timer or hardn's boot unit was reached: %v", c)
+					}
+					if strings.HasPrefix(c.Path, "/etc/hardn") && c.Op != "read" && c.Op != "stat" && c.Op != "lstat" {
+						t.Errorf("hardn.yml's directory written: %v", c)
+					}
+				}
+				if len(r.calls) != 0 {
+					t.Errorf("%s went through the legacy provider: %v", spelling[0], r.calls)
+				}
+				applied := !tc.dryRun && (tc.code == 0 || tc.host == "visudo-fails") // nothing to change is applied too, as -g's
+				if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
+					t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
+				}
+			})
+		}
+	}
+}
+
+// TestKeepEnvironmentNotRoot: setup-sudo-env now has the root command's
+// root check (gallery-environment.md §5, Made here, adopted 2026-10-29;
+// defect 9): a user other than root is refused in its words, exit status
+// 1, before hardn.yml is loaded or the host reached; -e had it already.
+func TestKeepEnvironmentNotRoot(t *testing.T) {
+	for _, args := range [][]string{{"setup-sudo-env"}, {"-e"}, {"-n", "setup-sudo-env"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			h := newEnvHost(t, "debian13")
+			r, _ := runE(t, h, func(*dnsSeams) {
+				lookupCurrentUser = func() (*osuser.User, error) { return &osuser.User{Uid: "1000", Username: "alice"}, nil }
+			}, args...)
+			if !r.ended || r.code != 1 || !strings.Contains(r.stdout, "This script needs to be run as root.") || len(r.reached) != 0 || len(h.Calls()) != 0 {
+				t.Errorf("ended %v with %d after %v, %d host calls; stdout:\n%s", r.ended, r.code, r.reached, len(h.Calls()), r.stdout)
+			}
+		})
+	}
+}
+
+// TestKeepEnvironmentPlanOnlyFromFile: as -g, -e and setup-sudo-env show
+// the plan under hardn.yml's dryRun: true, write nothing and exit 3 where
+// there are changes; --dry-run=false applies; -e with another operation
+// flag is refused, the refusal naming that flag alone.
+func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		code int
+	}{
+		{[]string{"-e"}, 3},
+		{[]string{"setup-sudo-env"}, 3},
+		{[]string{"--dry-run=false", "-e"}, 0},
+		{[]string{"--dry-run=false", "setup-sudo-env"}, 0},
+		{[]string{"-e", "-d"}, hardncmd.ExitUsage},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			h := newEnvHost(t, "debian13")
+			h.AddFile(dnsTestYML, []byte("username: alice\ndryRun: true\n"), 0o644, 0, 0)
+			cfg, err := config.Read(context.Background(), h, dnsTestYML)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, s := runG(t, h.dnsHost, cfg, func(*dnsSeams) {
+				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
+			}, tc.args...)
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, s.out.String(), r.stderr)
+			}
+			written := h.writes()
+			switch tc.code {
+			case 3:
+				if len(written) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") {
+					t.Errorf("wrote %q; report:\n%s", written, s.out.String())
+				}
+			case 0:
+				if h.content(envTestFile) == "<absent>" {
+					t.Errorf("not applied; report:\n%s", s.out.String())
+				}
+			default:
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagDisableRoot) ||
+					strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
+					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
+				}
+			}
+		})
 	}
 }

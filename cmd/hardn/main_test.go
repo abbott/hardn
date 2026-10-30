@@ -258,7 +258,9 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 
 // operationRuns are the CLI operations that -n refuses, each with the
 // arguments that run it and the name the refusal gives it: every one but
-// -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag).
+// -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag), and
+// -e and setup-sudo-env, whose dry run is the Environment control's
+// (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)).
 var operationRuns = []struct {
 	args []string
 	name string
@@ -267,8 +269,6 @@ var operationRuns = []struct {
 	{[]string{"-c", "-u", "alice"}, hardncmd.FlagCreateUser},
 	{[]string{"-d"}, hardncmd.FlagDisableRoot},
 	{[]string{"-w"}, hardncmd.FlagConfigureUFW},
-	{[]string{"-e"}, hardncmd.FlagSetupSudoEnv},
-	{[]string{"setup-sudo-env"}, hardncmd.CommandSetupSudoEnv},
 }
 
 // TestDryRunRefusesOperations checks V1's gate: -n with any operation is
@@ -298,7 +298,7 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		}
 	}
 	t.Run("several operations are all named", func(t *testing.T) {
-		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-w", "-g")
+		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-w", "-g", "-e")
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
@@ -309,18 +309,19 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		if strings.Contains(r.stderr, "print-logs") {
 			t.Errorf("-p only reads, but the refusal names it:\n%s", r.stderr)
 		}
-		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) {
-			t.Errorf("-n -g shows the plan, but the refusal names -g:\n%s", r.stderr)
+		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
+			t.Errorf("-n -g and -n -e show the plan, but the refusal names -g or -e:\n%s", r.stderr)
 		}
 	})
 }
 
 // TestDryRunAloneIsNotRefused checks that -n without an operation, with
-// only -p, or with -g, whose dry run is its plan, still reaches the root
-// check (and then the menus in dry-run mode, or -g's plan); the stubbed
-// root check fails, so the run ends there with status 1.
+// only -p, or with -g, -e or setup-sudo-env, whose dry runs are their
+// plans, still reaches the root check (and then the menus in dry-run
+// mode, or the plan); the stubbed root check fails, so the run ends
+// there with status 1.
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-p"}, {"-n", "-g"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-p"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "setup-sudo-env"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {

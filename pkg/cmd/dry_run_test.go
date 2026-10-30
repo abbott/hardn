@@ -23,8 +23,8 @@ func TestRefuseDryRunOperations(t *testing.T) {
 		{"-n alone", true, nil, ""},
 		{"one", true, []string{FlagDisableRoot},
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -d/--disable-root, which applies them. Nothing was changed."},
-		{"two", true, []string{FlagCreateUser, CommandSetupSudoEnv},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -c/--create-user and setup-sudo-env, which apply them. Nothing was changed."},
+		{"two", true, []string{FlagCreateUser, FlagConfigureUFW},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -c/--create-user and -w/--configure-ufw, which apply them. Nothing was changed."},
 		{"three", true, []string{FlagRunAll, FlagConfigureUFW, FlagDisableRoot},
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -w/--configure-ufw and -d/--disable-root, which apply them. Nothing was changed."},
 	} {
@@ -55,8 +55,8 @@ func TestRefuseConfigDryRunOperations(t *testing.T) {
 		{"file true alone", true, nil, ""},
 		{"one", true, []string{FlagDisableRoot},
 			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false."},
-		{"two", true, []string{FlagRunAll, CommandSetupSudoEnv},
-			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all and setup-sudo-env can't run. Nothing was changed. To apply, add --dry-run=false."},
+		{"two", true, []string{FlagRunAll, FlagDisableRoot},
+			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all and -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			err := RefuseConfigDryRunOperations(tc.dryRun, path, tc.ops)

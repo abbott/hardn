@@ -237,7 +237,7 @@ var rootCmd = &cobra.Command{
 		packageManager := serviceFactory.CreatePackageManager()
 		userManager := serviceFactory.CreateUserManager()
 		menuManager := serviceFactory.CreateMenuManager()
-		environmentManager := serviceFactory.CreateEnvironmentManager()
+		// (-e needs no manager: it plans and applies the Environment control, environment.go)
 
 		// Handle a complete system hardening request
 		if runAll {
@@ -418,13 +418,13 @@ var rootCmd = &cobra.Command{
 			logging.PrintLogs(cfg.LogFile)
 		}
 
-		// Setting up sudo environment preservation
+		// Keep HARDN_CONFIG: the Environment control through the engine,
+		// with no question (environment.go). A refusal, a lockout-risk
+		// plan's among them, or a failure is hardn's exit status at once.
 		if setupSudoEnv {
-			if err := environmentManager.SetupSudoPreservation(); err != nil {
-				logging.LogError("Failed to configure sudoers: %v", err)
-				exit(1)
+			if code := keepEnvironment(cfg); code != 0 {
+				exit(code)
 			}
-			logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 			return
 		}
 
@@ -448,30 +448,25 @@ This command must be run with sudo privileges.
 
 Example:
   sudo hardn setup-sudo-env`,
+	// What -e does (keepEnvironment), after the root command's root check
+	// and hardn.yml's load, whose backup settings the engine takes and
+	// whose dryRun, or -n, makes it the plan alone (refactor plan slice 9,
+	// unit (d); gallery-environment.md §5, Made here, adopted 2026-10-29).
 	Run: func(cmd *cobra.Command, args []string) {
-		// -n only previews: refuse before anything runs (V1), and so does
-		// hardn.yml's dryRun: true, -n/--dry-run not given (decision 9).
-		operations := []string{hardncmd.CommandSetupSudoEnv}
-		if refuseDryRunOperations(operations) || refuseConfigDryRunOperations(cmd, operations) {
+		if checkRoot() != nil {
 			return
 		}
-
-		// Detect OS
-		osInfo, err := detectOS()
-		if err != nil {
-			logging.LogError("Failed to detect OS: %v", err)
+		var err error
+		if cfg, err = loadConfig(configFile); err != nil {
+			logging.LogError("Failed to load configuration: %v", err)
 			exit(1)
+			return
 		}
-
-		// Create service factory
-		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
-		environmentManager := serviceFactory.CreateEnvironmentManager()
-
-		if err := environmentManager.SetupSudoPreservation(); err != nil {
-			logging.LogError("Failed to configure sudoers: %v", err)
-			exit(1)
+		warnDeprecations(cfg)
+		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+		if code := keepEnvironment(cfg); code != 0 {
+			exit(code)
 		}
-		logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 	},
 }
 
@@ -488,9 +483,11 @@ var (
 )
 
 // operationFlags names the operation flags set on the command line that
-// -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// whose dry run is the DNS control's plan, shown with nothing written
-// (refactor plan slice 2, unit (d); the maintainer, 2026-10-23).
+// -n refuses: the flags that change the host (pkg/cmd lists them), but -g
+// and -e, whose dry runs are the DNS and Environment controls' plans,
+// shown with nothing written (refactor plan slice 2, unit (d); the
+// maintainer, 2026-10-23; slice 9, unit (d), gallery-environment.md §5,
+// Made here, adopted 2026-10-29).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -501,7 +498,6 @@ func operationFlags() []string {
 		{createUser, hardncmd.FlagCreateUser},
 		{disableRootSSH, hardncmd.FlagDisableRoot},
 		{configureUfw, hardncmd.FlagConfigureUFW},
-		{setupSudoEnv, hardncmd.FlagSetupSudoEnv},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
 		{installAll, hardncmd.FlagInstallAll},
