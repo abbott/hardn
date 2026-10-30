@@ -35,7 +35,8 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less --␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log, then draw this screen again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -97,7 +98,8 @@ $
   > Enter selection [0-2 or q]:$
 $
 # Note$
-# The gallery runs no pager. hardn would run LESSSECURE=1 less$
+# The gallery runs no pager. hardn would run LESSSECURE=1$
+# LESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less --$
 # /var/log/hardn.log, then draw this screen again.$
 $
 # Logs #########################################################$
@@ -161,7 +163,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless /var/log/hardn.log, then draw this screen again.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less --␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log, then draw this screen again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -222,7 +225,8 @@ $
   ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less --␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log, then draw this screen again.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$

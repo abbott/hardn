@@ -510,10 +510,14 @@ func assertOnlyReads(t *testing.T, name string, h *fakeHost) {
 		t.Errorf("%s: changed the host: %q", name, got)
 	}
 	for _, c := range h.f.Calls() {
+		lessCheck := c.Op == "run" && slices.Equal(c.Argv, []string{"less", "--version"}) // logview.Pager's check, which shows nothing
+		if lessCheck {
+			continue
+		}
 		if (c.Op == "run" || c.Op == "start-detached") && !reads(c.Argv) && !slices.Contains(readOnly, path.Base(c.Argv[0])) {
 			t.Errorf("%s: ran %s", name, c)
 		}
-		if c.Op == "start-detached" || (c.Op == "run" && slices.Contains([]string{"less", "more", "most", "sh"}, path.Base(c.Argv[0]))) {
+		if c.Op == "start-detached" || c.Op == "run-interactive" || (c.Op == "run" && slices.Contains([]string{"less", "more", "most", "sh"}, path.Base(c.Argv[0]))) {
 			t.Errorf("%s: ran a pager or started a process: %s", name, c)
 		}
 	}

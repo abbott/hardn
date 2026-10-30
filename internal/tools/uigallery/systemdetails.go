@@ -28,9 +28,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
-// The System Details mocks (refactor plan slice 1, unit (a), next/s1-gallery):
-// a proposal of the System Details screen, main menu 9, for the
-// maintainer's review, nothing of it wired into hardn. There is no Figma
+// The System Details mocks (refactor plan slice 1, unit (a), next/s1-gallery,
+// adopted 2026-10-30): the System Details screen, main menu 9, for unit (c) to
+// build, nothing of it wired into hardn. There is no Figma
 // frame and it is not in v0.3.2: it is inferred from origin/main
 // (pkg/system/display.go:43-129, pkg/menu/system_details_menu.go), with
 // P-17's sections, the 2025 prototype's as reference only. Each mock's note
@@ -68,7 +68,7 @@ var sdLinks = map[string]string{mainMenuMock + "/9": sdMainHost}
 
 // The screen's words: the main menu's label for the title, Backup's and
 // Environment's decided heading and prompt (screen-backup.md §5, P-29 (a));
-// P-17's sections; the rest proposed.
+// P-17's sections; the rest decided (gallery-system-details.md §6).
 const (
 	sdTitle   = "System Details"
 	sdHeading = "Select an option"

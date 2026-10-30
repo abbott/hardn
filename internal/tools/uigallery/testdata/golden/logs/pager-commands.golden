@@ -20,19 +20,26 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, adopted␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo-rs, PAGER dropped [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
       ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mIts environment␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSSECURE␛[m           ␛[38;2;129;134;156m1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSHISTFILE␛[m         ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTERM␛[m                 ␛[38;2;129;134;156mxterm-256color␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLC_ALL␛[m               ␛[38;2;129;134;156mC.UTF-8␛[m$
 $
 $
 
@@ -54,19 +61,26 @@ $
 # pager-less, adopted ------------------------------------------$
 $
    -  root login, PAGER=most$
-      LESSSECURE=1 less /var/log/hardn.log$
+      less -- /var/log/hardn.log$
    -  sudo, PAGER dropped$
-      LESSSECURE=1 less /var/log/hardn.log$
+      less -- /var/log/hardn.log$
    -  sudo-rs, PAGER dropped [I]$
-      LESSSECURE=1 less /var/log/hardn.log$
+      less -- /var/log/hardn.log$
    -  doas, BusyBox's less$
       None: BusyBox's has no secure mode$
    -  doas, the less package [I]$
-      LESSSECURE=1 less /var/log/hardn.log$
+      less -- /var/log/hardn.log$
    -  sudo, PAGER=most kept$
-      LESSSECURE=1 less /var/log/hardn.log$
+      less -- /var/log/hardn.log$
    -  no less, no PAGER$
       None: the last lines alone$
+$
+# Its environment ----------------------------------------------$
+$
+   -  LESSSECURE           1$
+   -  LESSHISTFILE         -$
+   -  TERM                 xterm-256color$
+   -  LC_ALL               C.UTF-8$
 $
 $
 
@@ -89,19 +103,30 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, adopted␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo-rs, PAGER dropped [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
       ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mIts environment␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSSECURE␛[m$
+      ␛[38;2;129;134;156m1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSHISTFILE␛[m$
+      ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTERM␛[m$
+      ␛[38;2;129;134;156mxterm-256color␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLC_ALL␛[m$
+      ␛[38;2;129;134;156mC.UTF-8␛[m$
 $
 $
 
@@ -123,18 +148,25 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpager-less, adopted␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo-rs, PAGER dropped [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
-      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+      ␛[38;2;129;134;156mless -- /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
       ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mIts environment␛[m ␛[38;2;48;52;64m----------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSSECURE␛[m           ␛[38;2;129;134;156m1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLESSHISTFILE␛[m         ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTERM␛[m                 ␛[38;2;129;134;156mxterm-256color␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLC_ALL␛[m               ␛[38;2;129;134;156mC.UTF-8␛[m$
 $
 $
