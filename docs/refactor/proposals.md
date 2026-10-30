@@ -409,7 +409,7 @@
 <a id="p-17"></a>
 ### P-17: System Details content
 
-- **Status:** proposed
+- **Status:** decided (maintainer, 2026-10-30, slice 1 decisions 1 to 5, "Adopt all eleven"; [gallery-system-details.md](../engine/gallery-system-details.md) §5): the seven sections with the rows `screen-debian13` draws, the report whole at every height; Last Login is root's and each listed user's newest login with a terminal, from `lslogins`; no Export item, `hardn system-details > file` saving it and `--output json` on this command alone (§3.11's `system-details` change approved, narrowed).
 - **Source:** plan §5.10.
 - **Problem:**
   - There is no Figma frame, and the screen is not in v0.3.2.
@@ -431,7 +431,7 @@
 <a id="p-18"></a>
 ### P-18: Logs via `$PAGER` or a tail, from the file hardn writes
 
-- **Status:** proposed
+- **Status:** decided on the maintainer's terms (2026-10-30, slice 1 decisions 6 to 10, "Adopt all eleven"; [gallery-system-details.md](../engine/gallery-system-details.md) §5): the screen opens on the last lines as written, with an Open item running GNU `less` alone as root, `LESSSECURE=1`, none on BusyBox's; `$PAGER` is not read; the file hardn writes is read always, and `logFile` retired by a warning; `-p` alone needs no root, with the forms of decision 10 (a).
 - **Source:** plan §5.11.
 - **Problem:**
   - The Logs screen prints the entire file.
