@@ -195,6 +195,7 @@ func logHosts() []logHost {
 func noPagerLog() *fakeHost {
 	h := simulate(debian13Platform)
 	h.f.AddFile(hardnLog, []byte(logOf(logSample)), 0o644, 0, 0)
+	h.f.Respond(hostfake.Response{Err: fmt.Errorf("host: less: %w", host.ErrNotFound)}, "less", "--version") // as Run says of a host with no less
 	return h
 }
 

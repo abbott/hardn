@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -28,45 +29,32 @@ func TestPager(t *testing.T) {
 		Argv: []string{"less", "--", "/var/log/hardn.log"},
 		Env:  []string{"LESSSECURE=1", "LESSHISTFILE=-", "TERM=xterm-256color", "LC_ALL=C.UTF-8"},
 	}
-	installed := func(f *hostfake.System) { f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0) }
-	busybox := func(f *hostfake.System) {
-		f.AddFile("/bin/busybox", []byte("ELF"), 0o755, 0, 0)
-		f.AddSymlink("/usr/bin/less", "/bin/busybox")
-	}
-	scripted := func(res hostfake.Response) func(f *hostfake.System) {
-		return func(f *hostfake.System) { f.Respond(res, "less", "--version") }
-	}
 	for _, tt := range []struct {
 		name string
-		host []func(*hostfake.System)
+		res  *hostfake.Response // nil: the fake has no answer, as a host has no less
 		want bool
 	}{
-		{"Debian 13 and Ubuntu 26.04: GNU less 668", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: gnuVersion})}, true},
-		{"Alpine 3.23's less package [I, not run]: the same check", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "less 643 (PCRE2 regular expressions)\n"})}, true},
-		{"the version on stderr, as the VMs' log merges them", []func(*hostfake.System){installed, scripted(hostfake.Response{Stderr: gnuVersion})}, true},
-		{"the version alone", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "less 668\n"})}, true},
-		{"less in another directory of the search path", []func(*hostfake.System){func(f *hostfake.System) { f.AddFile("/bin/less", []byte("ELF"), 0o755, 0, 0) }, scripted(hostfake.Response{Stdout: gnuVersion})}, true},
-		{"Alpine 3.23: BusyBox's, through its link, exit 1", []func(*hostfake.System){busybox, scripted(hostfake.Response{Stderr: busyVersion, ExitCode: 1})}, false},
-		{"BusyBox's, exit 0", []func(*hostfake.System){busybox, scripted(hostfake.Response{Stderr: busyVersion})}, false},
+		{"Debian 13 and Ubuntu 26.04: GNU less 668", &hostfake.Response{Stdout: gnuVersion}, true},
+		{"Alpine 3.23's less package [I, not run]: the same check", &hostfake.Response{Stdout: "less 643 (PCRE2 regular expressions)\n"}, true},
+		{"the version on stderr, as the VMs' log merges them", &hostfake.Response{Stderr: gnuVersion}, true},
+		{"the version alone", &hostfake.Response{Stdout: "less 668\n"}, true},
+		{"Alpine 3.23: BusyBox's, exit 1", &hostfake.Response{Stderr: busyVersion, ExitCode: 1}, false},
+		{"BusyBox's, exit 0", &hostfake.Response{Stderr: busyVersion}, false},
 		{"no less", nil, false},
-		{"no less, though the command would answer", []func(*hostfake.System){scripted(hostfake.Response{Stdout: gnuVersion})}, false},
-		{"not executable", []func(*hostfake.System){func(f *hostfake.System) { f.AddFile("/usr/bin/less", []byte("ELF"), 0o644, 0, 0) }, scripted(hostfake.Response{Stdout: gnuVersion})}, false},
-		{"a directory", []func(*hostfake.System){func(f *hostfake.System) { f.AddDir("/usr/bin/less", 0o755, 0, 0) }, scripted(hostfake.Response{Stdout: gnuVersion})}, false},
-		{"a dangling link", []func(*hostfake.System){func(f *hostfake.System) { f.AddSymlink("/usr/bin/less", "/nowhere") }, scripted(hostfake.Response{Stdout: gnuVersion})}, false},
-		{"exit 1 with the right words", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: gnuVersion, ExitCode: 1})}, false},
-		{"could not run", []func(*hostfake.System){installed, scripted(hostfake.Response{Err: errors.New("exec format error")})}, false},
-		{"not scripted", []func(*hostfake.System){installed}, false},
-		{"no output", []func(*hostfake.System){installed, scripted(hostfake.Response{})}, false},
-		{"another program", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "most 5.2.0\n"})}, false},
-		{"less with no number", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "less version 668\n"})}, false},
-		{"less and a word", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "less 668x (beta)\n"})}, false},
-		{"not the first line", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: "a notice\nless 668\n"})}, false},
-		{"not at the start", []func(*hostfake.System){installed, scripted(hostfake.Response{Stdout: " less 668\n"})}, false},
+		{"not on the search path, as Run says", &hostfake.Response{Err: host.ErrNotFound}, false},
+		{"exit 1 with the right words", &hostfake.Response{Stdout: gnuVersion, ExitCode: 1}, false},
+		{"could not run", &hostfake.Response{Err: errors.New("exec format error")}, false},
+		{"no output", &hostfake.Response{}, false},
+		{"another program", &hostfake.Response{Stdout: "most 5.2.0\n"}, false},
+		{"less with no number", &hostfake.Response{Stdout: "less version 668\n"}, false},
+		{"less and a word", &hostfake.Response{Stdout: "less 668x (beta)\n"}, false},
+		{"not the first line", &hostfake.Response{Stdout: "a notice\nless 668\n"}, false},
+		{"not at the start", &hostfake.Response{Stdout: " less 668\n"}, false},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f := hostfake.New(host.Options{})
-			for _, add := range tt.host {
-				add(f)
+			if tt.res != nil {
+				f.Respond(*tt.res, "less", "--version")
 			}
 			got, ok := logview.Pager(context.Background(), f, "xterm-256color")
 			if ok != tt.want {
@@ -85,10 +73,42 @@ func TestPager(t *testing.T) {
 	}
 }
 
+// TestPagerTerm: what the caller passes for TERM is checked on its way into the
+// command, as it names a file in a root process's terminfo lookup.
+func TestPagerTerm(t *testing.T) {
+	f := hostfake.New(host.Options{})
+	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
+	got, ok := logview.Pager(context.Background(), f, "../../tmp/evil")
+	if !ok || !slices.Contains(got.Env, "TERM=vt100") {
+		t.Errorf("Pager = %+v, %t", got, ok)
+	}
+}
+
+// TestCommandRunChecksAgain: a less replaced after the draw that asked Pager,
+// by BusyBox's, say, is not run: Run's check fails closed.
+func TestCommandRunChecksAgain(t *testing.T) {
+	ctx := context.Background()
+	f := hostfake.New(host.Options{})
+	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
+	f.Respond(hostfake.Response{Stderr: busyVersion, ExitCode: 1}, "less", "--version")
+	f.Respond(hostfake.Response{}, "less", "--", "/var/log/hardn.log")
+	cmd, ok := logview.Pager(ctx, f, "vt100")
+	if !ok {
+		t.Fatal("no pager")
+	}
+	if err := cmd.Run(ctx, f); err == nil {
+		t.Error("it ran")
+	}
+	for _, c := range f.Calls() {
+		if c.Op == "run-interactive" {
+			t.Errorf("call %v", c)
+		}
+	}
+}
+
 // TestPagerDoneContext: a done ctx is no pager.
 func TestPagerDoneContext(t *testing.T) {
 	f := hostfake.New(host.Options{})
-	f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
 	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -122,7 +142,6 @@ func (d *deadlined) Run(ctx context.Context, name string, args ...string) (host.
 // left behind past its grace: a timeout is no pager, and the draw goes on.
 func TestPagerBound(t *testing.T) {
 	f := hostfake.New(host.Options{})
-	f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
 	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
 	d := &deadlined{System: f}
 	if _, ok := logview.Pager(context.Background(), d, "vt100"); !ok {
@@ -154,7 +173,6 @@ func TestPagerBound(t *testing.T) {
 func TestCommandRun(t *testing.T) {
 	ctx := context.Background()
 	f := hostfake.New(host.Options{})
-	f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
 	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
 	f.Respond(hostfake.Response{}, "less", "--", "/var/log/hardn.log")
 	cmd, ok := logview.Pager(ctx, f, "tmux-256color")
@@ -178,7 +196,7 @@ func TestCommandRun(t *testing.T) {
 	}
 	for _, c := range calls {
 		switch c.Op {
-		case "stat", "run", "run-interactive":
+		case "run", "run-interactive":
 		default:
 			t.Errorf("call %v", c)
 		}
@@ -191,7 +209,6 @@ func TestCommandRun(t *testing.T) {
 func TestPagerCheckIsACommand(t *testing.T) {
 	var log bytes.Buffer
 	f := hostfake.New(host.Options{RunLog: &log})
-	f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
 	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
 	if _, ok := logview.Pager(context.Background(), f, "vt100"); !ok {
 		t.Fatal("no pager")

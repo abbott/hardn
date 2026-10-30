@@ -2,6 +2,7 @@ package logview
 
 import (
 	"context"
+	"errors"
 	"regexp"
 	"strings"
 	"time"
@@ -16,8 +17,17 @@ type Command struct {
 	Env  []string
 }
 
-// Run runs c through sys: it has the terminal until it ends.
+// errNoPager is why Run runs nothing where less is no longer what Pager found.
+var errNoPager = errors.New("logview: less is not GNU less")
+
+// Run runs c through sys: it has the terminal until it ends. Pager was asked at
+// a draw, and RunInteractive finds less again by its name, so a package changed
+// under an open menu could otherwise run BusyBox's as root: the check runs again
+// here, and fails closed.
 func (c Command) Run(ctx context.Context, sys host.System) error {
+	if !gnuLess(ctx, sys, lessCheck, lessGrace) {
+		return errNoPager
+	}
 	return sys.RunInteractive(ctx, c.Env, c.Argv[0], c.Argv[1:]...)
 }
 
@@ -37,11 +47,11 @@ var lessVersion = regexp.MustCompile(`^less [0-9]+( |$)`)
 
 // Pager returns the command that shows the whole log, or false for none
 // (decision 7 (a), gallery-system-details.md §5): GNU less alone, the one less
-// with a secure mode. less must be an executable file on host.SearchPath, as
-// Run finds it, AND less --version must exit 0 and print what lessVersion
-// matches. Anything else, any error, is no pager: it fails closed, as BusyBox's
-// less writes any path at its s key (the page, §5, decision 7). It reads no
-// variable: $PAGER names a program a root process would run.
+// with a secure mode. less --version, which Run finds on host.SearchPath as an
+// executable file, must exit 0 and print what lessVersion matches. Anything else,
+// any error, is no pager: it fails closed, as BusyBox's less writes any path at
+// its s key (the page, §5, decision 7). It reads no variable: $PAGER names a
+// program a root process would run.
 //
 // term is the value of TERM to pass: it comes from whoever started a root
 // process, and names a file in the terminfo database, so it is passed only
@@ -78,27 +88,12 @@ func pager(ctx context.Context, sys host.System, term string, limit, grace time.
 
 // gnuLess is Pager's check.
 func gnuLess(ctx context.Context, sys host.System, limit, grace time.Duration) bool {
-	if !onSearchPath(ctx, sys, "less") {
-		return false
-	}
 	res, err := host.RunBounded(ctx, sys, limit, grace, "less", "--version")
 	if err != nil || res.ExitCode != 0 {
 		return false
 	}
 	first, _, _ := strings.Cut(string(res.Combined), "\n")
 	return lessVersion.MatchString(first)
-}
-
-// onSearchPath reports whether name is what Run would find (host.Real's
-// resolve): the first regular file with an execute bit, a link followed.
-func onSearchPath(ctx context.Context, sys host.System, name string) bool {
-	for _, dir := range strings.Split(host.SearchPath, ":") {
-		fi, err := sys.Stat(ctx, dir+"/"+name)
-		if err == nil && fi.Mode().IsRegular() && fi.Mode().Perm()&0o111 != 0 {
-			return true
-		}
-	}
-	return false
 }
 
 // fallbackTerm is TERM where the value given is not safe to pass: the
