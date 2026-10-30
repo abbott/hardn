@@ -51,7 +51,7 @@ stderr: hardn: -n/--dry-run only previews changes. Nothing was changed.
 `
 
 // TestReadLegacy: the parser reads each section's end state, the
-// V-numbers once each, and the -n refusal; the probes are recorded apart
+// V-numbers once each, and each -n refusal; the probes are recorded apart
 // from the commands that change something.
 func TestReadLegacy(t *testing.T) {
 	dir := t.TempDir()
@@ -61,12 +61,17 @@ func TestReadLegacy(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "ops", "example", "debian.golden"), []byte(legacyGolden), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	r := readLegacy(t, dir, []string{"which resolvconf"}, "ops/example/debian.golden", nil)
+	r := readLegacy(t, dir, "ops/example/debian.golden", reader{probes: []string{"which resolvconf"}})
 	if r.Golden != "ops/example/debian.golden" || !slices.Equal(r.Vs, []string{"V1", "V18"}) {
 		t.Errorf("golden %q, V-numbers %q", r.Golden, r.Vs)
 	}
-	if want := "exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed."; r.CLI != want {
+	if want := []string{"exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed."}; !slices.Equal(r.CLI, want) {
 		t.Errorf("the -n refusal %q, want %q", r.CLI, want)
+	}
+	two := legacyGolden + "\n== hardn -n -y (modelled)\nrefused: exit status 2\nstderr: hardn: -y too. Nothing was changed.\n"
+	if r, err := parseLegacy([]byte(two), "ops/example/debian.golden", reader{probes: []string{"which resolvconf"}}); err != nil ||
+		!slices.Equal(r.CLI, []string{"exit status 2: hardn: -n/--dry-run only previews changes. Nothing was changed.", "exit status 2: hardn: -y too. Nothing was changed."}) {
+		t.Errorf("two -n refusals: %v, %q", err, r.CLI)
 	}
 	l := r.Live
 	if len(l.Files) != 1 || l.Files[0].String() != "/etc/example/example.conf 0644" || l.Files[0].Atomic ||
@@ -131,7 +136,7 @@ backupPath: $TMP/var/backups/example
 // before $TMP as the root.
 func TestReadRepository(t *testing.T) {
 	root := []string{"$TMP", ""}
-	r, err := parseLegacy([]byte(repoGolden), nil, "menu/example.golden", root)
+	r, err := parseLegacy([]byte(repoGolden), "menu/example.golden", reader{paths: root})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,12 +159,12 @@ func TestReadRepository(t *testing.T) {
 	failed := strings.Replace(strings.Replace(repoGolden, "  1 mkdir  $TMP/var/backups/example mode=0755 -> ok\n  2 write  $TMP/var/backups/example/.write_test mode=0644 -> ok\n        | test\n        \\ no newline at end of content\n  3 remove $TMP/var/backups/example/.write_test -> ok\n",
 		"  1 mkdir  $TMP/var/backups/example mode=0755 -> error: mkdir $TMP/var/backups/example: not a directory\n", 1),
 		"exists and is writable$\n 3)", "doesn't exist or isn't writable$\n 3)", 1)
-	r, err = parseLegacy([]byte(failed), nil, "menu/example.golden", root)
+	r, err = parseLegacy([]byte(failed), "menu/example.golden", reader{paths: root})
 	if err != nil || r.Live.Refusal != "failed: mkdir /var/backups/example: not a directory" || len(r.Live.Under) != 0 {
 		t.Errorf("a call that failed: %v, refusal %q, under %q", err, r.Live.Refusal, r.Live.Under)
 	}
 	home := strings.ReplaceAll(repoGolden, "$TMP/var/backups/example", "$TMP/home/alice/backups")
-	r, err = parseLegacy([]byte(home), nil, "menu/example.golden", []string{"$TMP/home", "$HOME", "$TMP", ""})
+	r, err = parseLegacy([]byte(home), "menu/example.golden", reader{paths: []string{"$TMP/home", "$HOME", "$TMP", ""}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +220,7 @@ trace:
 			`menu/example.golden: the temp dir afterwards holds a .write_test, which the reader takes the screen's write test to have removed: "hardn.yml var/ var/backups/ var/backups/example/ var/backups/example/.write_test"`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			if _, err := parseLegacy([]byte(tc.golden), nil, "menu/example.golden", []string{"$TMP", ""}); err == nil || err.Error() != tc.want {
+			if _, err := parseLegacy([]byte(tc.golden), "menu/example.golden", reader{paths: []string{"$TMP", ""}}); err == nil || err.Error() != tc.want {
 				t.Errorf("parseLegacy: %v, want %s", err, tc.want)
 			}
 		})
@@ -430,5 +435,399 @@ func TestPageCites(t *testing.T) {
 		if got := renderPage(Slice{Pkg: "pkg/screens/example", Golden: "parity.golden", V032Sections: sections}, nil); !strings.Contains(got, want) {
 			t.Errorf("V032Sections %q: the page has no %q:\n%s", sections, want, got)
 		}
+	}
+}
+
+// rootGolden is a characterization golden in the root layout
+// (pkg/characterization's environment/keep_*): a V-number in a
+// KNOWN-DEFECT line, one in a NOTE (not named), a symlink planted at the
+// temp file's name before, the temp file written (through the link), a
+// check, the temp file removed (the link), the user's file written, a
+// command that changes something; afterwards the user's file new, the
+// link's target changed, the link gone.
+const rootGolden = `# origin/main behaviour (baseline per maintainer decision 6)
+# Generated by TestLegacyExample (pkg/characterization); regenerate with -update. Do not edit.
+# Operation: Example.Keep
+# Environment: SUDO_USER alice, USER root
+# Start: a symlink at the temp file's name
+# KNOWN-DEFECT: V20: a fixed temp name.
+# NOTE: Said in a note: V12.
+# The file system is the real one under the case's temp dir, which stands for /; each call is recorded with hardn's path.
+
+== / before
+/etc: a directory, mode 0755
+/etc/hosts: a file, 20 bytes, mode 0644
+        | 127.0.0.1 localhost
+/tmp/example_temp: a symlink to ../etc/hosts
+
+== result
+Keep: ok
+screen, item 1 as root (read, not run: example.go:1): "Done"
+hardn -e and setup-sudo-env (read, not run: main.go:1): "Done", exit status 0
+
+== calls
+  1 stat   /etc/example.d/alice -> not-exist
+  2 write  /tmp/example_temp mode=0440 -> ok
+        | keep HARDN_CONFIG
+  3 exec   visudo -c -f /tmp/example_temp -> ok
+  4 remove /tmp/example_temp -> ok
+  5 write  /etc/example.d/alice mode=0440 -> ok
+        | keep HARDN_CONFIG
+        |
+  6 exec   systemctl reload example -> ok
+
+== / afterwards
+/etc/example.d/alice: new, a file, 19 bytes
+        | keep HARDN_CONFIG
+        |
+/etc/hosts: changed, a file, 18 bytes, mode 0644 (was a file, 20 bytes, mode 0644)
+        | keep HARDN_CONFIG
+/tmp/example_temp: gone (was a symlink to ../etc/hosts)
+unchanged: /etc
+`
+
+// rootReader reads the root layout as Environment's slice does: visudo a
+// check, a file written then removed a temp file, $TMP the root.
+var rootReader = reader{paths: []string{"$TMP", ""}, check: func(a string) bool { return strings.HasPrefix(a, "visudo ") }, temps: true}
+
+// TestReadRoot: the root layout read: the V-number of the KNOWN-DEFECT
+// line alone; Start, the environment and "/ before"; each file new or
+// changed afterwards with its content, a new file's mode the write's, a
+// changed one's the afterwards section's, the link's target explained by
+// the temp file's write through the link; the check apart from the
+// command that changes something; the temp file, written through the
+// planted link and removed; a call that failed is the run's refusal, and
+// its check says so.
+func TestReadRoot(t *testing.T) {
+	r, err := parseLegacy([]byte(rootGolden), "environment/example.golden", rootReader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := r.Live
+	if want := "Environment: SUDO_USER alice, USER root; /etc: a directory, mode 0755; /etc/hosts: a file, 20 bytes, mode 0644; | 127.0.0.1 localhost; /tmp/example_temp: a symlink to ../etc/hosts"; !slices.Equal(r.Vs, []string{"V20"}) || r.Start != want {
+		t.Errorf("V-numbers %q, start %q", r.Vs, r.Start)
+	}
+	if len(l.Files) != 2 || l.Files[0].String() != "/etc/example.d/alice 0440" || !slices.Equal(l.Files[0].Lines, []string{"keep HARDN_CONFIG", ""}) ||
+		l.Files[1].String() != "/etc/hosts 0644" || !slices.Equal(l.Files[1].Lines, []string{"keep HARDN_CONFIG"}) || l.Files[0].Atomic || l.Files[1].Atomic {
+		t.Errorf("files %+v", l.Files)
+	}
+	if !slices.Equal(l.Checks, []string{"visudo -c -f /tmp/example_temp"}) || !slices.Equal(l.Actions, []string{"systemctl reload example"}) || l.Refusal != "" ||
+		!slices.Equal(l.Temps, []string{"/tmp/example_temp 0440, written through the symlink there to /etc/hosts, the symlink removed"}) {
+		t.Errorf("checks %q, actions %q, temps %q, refusal %q", l.Checks, l.Actions, l.Temps, l.Refusal)
+	}
+	failed := strings.NewReplacer("Keep: ok", "Keep: error: invalid: exit status 1",
+		"visudo -c -f /tmp/example_temp -> ok", "visudo -c -f /tmp/example_temp -> error: exit status 1").Replace(rootGolden)
+	failed = failed[:strings.Index(failed, "  5 write")] + failed[strings.Index(failed, "\n== / afterwards"):]
+	failed = strings.Replace(failed, "/etc/example.d/alice: new, a file, 19 bytes\n        | keep HARDN_CONFIG\n        |\n", "", 1)
+	r, err = parseLegacy([]byte(failed), "environment/example.golden", rootReader)
+	if err != nil || r.Live.Refusal != "failed: invalid: exit status 1" || !slices.Equal(r.Live.Checks, []string{"visudo -c -f /tmp/example_temp -> exit status 1"}) || len(r.Live.Files) != 1 {
+		t.Errorf("a check that failed: %v, refusal %q, checks %q, files %+v", err, r.Live.Refusal, r.Live.Checks, r.Live.Files)
+	}
+}
+
+// TestParseRootRefuses: what the root layout's reader does not compare is
+// an error, not dropped: a section, header line, before line, result line,
+// call, operation or afterwards line it does not know; a removal of a file
+// the run did not write, or with temp files not compared; a change no
+// write explains, a write not shown, a file gone that nothing removed;
+// a second call that failed, one that failed with the outcome ok, and a
+// command that failed; content with no file before it; a removal of a
+// file "/ before" holds, which the run did not make; a write through a
+// planted link whose target the afterwards section does not show changed,
+// or the link not gone.
+func TestParseRootRefuses(t *testing.T) {
+	const rel = "environment/example.golden: "
+	for _, tc := range []struct {
+		name, golden string
+		rd           reader
+		want         string
+	}{
+		{"a section", strings.Replace(rootGolden, "== calls", "== trace", 1), rootReader,
+			`a section the reader does not know, or out of its order (== / before, == result, == calls, == / afterwards): "== trace"`},
+		{"a header line", strings.Replace(rootGolden, "# Start:", "# Pauses: 1\n# Start:", 1), rootReader, `a header line the reader does not know: "# Pauses: 1"`},
+		{"a before line", strings.Replace(rootGolden, "/etc: a directory, mode 0755", "/etc: a socket", 1), rootReader, `a line of / before the reader does not know: "/etc: a socket"`},
+		{"a result line", strings.Replace(rootGolden, `screen, item 1 as root (read, not run: example.go:1): "Done"`, "printed: Done", 1), rootReader,
+			`a result line the reader does not know: "printed: Done"`},
+		{"an operation", strings.Replace(rootGolden, "  6 exec   systemctl reload example -> ok", "  6 mkdir  /etc/example.d mode=0755 -> ok", 1), rootReader,
+			`an operation the harness does not compare (mkdir): "  6 mkdir  /etc/example.d mode=0755 -> ok"`},
+		{"a removal of a file not written", strings.Replace(rootGolden, "  4 remove /tmp/example_temp", "  4 remove /etc/hosts", 1), rootReader,
+			`an operation the harness does not compare (remove): "  4 remove /etc/hosts -> ok"`},
+		{"a removal, temp files not compared", rootGolden, reader{check: rootReader.check},
+			`an operation the harness does not compare (remove): "  4 remove /tmp/example_temp -> ok"`},
+		{"an afterwards line", strings.Replace(rootGolden, "unchanged: /etc", "/etc/example.d: new, a directory", 1), rootReader,
+			`an afterwards line the reader does not know: "/etc/example.d: new, a directory"`},
+		{"a change no write explains", strings.Replace(rootGolden, "mode 0644)\n        | keep HARDN_CONFIG", "mode 0644)\n        | something else", 1), rootReader,
+			`/etc/hosts changed afterwards, which no write of the calls explains`},
+		{"a write not shown", strings.Replace(rootGolden, "/etc/example.d/alice: new, a file, 19 bytes\n        | keep HARDN_CONFIG\n        |\n", "", 1), rootReader,
+			`a write of /etc/example.d/alice that the afterwards section does not show`},
+		{"a file gone, nothing removed", strings.Replace(rootGolden, "unchanged: /etc", "/etc/other: gone (was a file, 1 bytes, mode 0644)", 1), rootReader,
+			`/etc/other gone afterwards, which no removal of the calls explains`},
+		{"two calls that failed", strings.NewReplacer("Keep: ok", "Keep: error: x", "/tmp/example_temp -> ok\n  4", "/tmp/example_temp -> error: x\n  4",
+			"systemctl reload example -> ok", "systemctl reload example -> error: y").Replace(rootGolden), rootReader,
+			`a second call that failed, which the harness does not compare: "  6 exec   systemctl reload example -> error: y"`},
+		{"a call that failed, the outcome ok", strings.Replace(rootGolden, "visudo -c -f /tmp/example_temp -> ok", "visudo -c -f /tmp/example_temp -> error: x", 1), rootReader,
+			`a call that failed, and the outcome ok: "  3 exec   visudo -c -f /tmp/example_temp -> error: x"`},
+		{"a command that failed", strings.NewReplacer("Keep: ok", "Keep: error: y", "systemctl reload example -> ok", "systemctl reload example -> error: y").Replace(rootGolden), rootReader,
+			`a command that failed, which the harness does not compare: "  6 exec   systemctl reload example -> error: y"`},
+		{"content with no file", strings.Replace(rootGolden, "  6 exec   systemctl reload example -> ok", "  6 exec   systemctl reload example -> ok\n        | stray", 1), rootReader,
+			`content with no file before it: "        | stray"`},
+		{"a removal of a file / before holds", strings.NewReplacer("/tmp/example_temp: a symlink", "/etc/example.d/alice: a file, 6 bytes, mode 0440\n        | grant\n/tmp/example_temp: a symlink",
+			"  6 exec   systemctl reload example -> ok", "  6 exec   systemctl reload example -> ok\n  7 remove /etc/example.d/alice -> ok").Replace(rootGolden), rootReader,
+			`a removal of /etc/example.d/alice, which / before holds: not a temp file the run made: "  7 remove /etc/example.d/alice -> ok"`},
+		{"a write through a link not shown", strings.Replace(rootGolden, "/etc/hosts: changed, a file, 18 bytes, mode 0644 (was a file, 20 bytes, mode 0644)\n        | keep HARDN_CONFIG\n", "", 1), rootReader,
+			`a write through the symlink at /tmp/example_temp that the afterwards section does not show at /etc/hosts`},
+		{"a link removed, not shown gone", strings.Replace(rootGolden, "/tmp/example_temp: gone (was a symlink to ../etc/hosts)\n", "", 1), rootReader,
+			`a removal of the symlink at /tmp/example_temp that the afterwards section does not show gone`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := parseLegacy([]byte(tc.golden), "environment/example.golden", tc.rd); err == nil || err.Error() != rel+tc.want {
+				t.Errorf("parseLegacy: %v, want %s", err, rel+tc.want)
+			}
+		})
+	}
+}
+
+// opsTempGolden is an ops golden whose run writes a temp file, checks it,
+// removes it, then writes the file it checked, from a seed.
+const opsTempGolden = `# origin/main behaviour
+# KNOWN-DEFECT: V20 — a fixed temp name
+
+== fixture
+host: os=debian version=13
+seed dir: /etc/example.d
+seed file: /etc/example.d/alice
+        | alice line
+        |
+note: a note
+
+== cfg.DryRun=false
+result Manager.Keep: ok
+trace:
+  1 write  /tmp/example_temp mode=0440 -> ok
+        | keep
+  2 exec   visudo -c -f /tmp/example_temp -> ok
+  3 remove /tmp/example_temp -> ok
+  4 write  /etc/example.d/alice mode=0440 -> ok
+        | keep
+`
+
+// TestReadOpsTemps: in the ops layout, with temp files and checks
+// compared, a file written then removed is a temp file and visudo a check;
+// the seed lines are the start. Without them, the removal fails the reader
+// as before and visudo is a command that changes something; a golden with
+// no seed has no start (DNS's). The removal of a file the fixture seeded,
+// written first, fails the reader: it is no temp file.
+func TestReadOpsTemps(t *testing.T) {
+	r, err := parseLegacy([]byte(opsTempGolden), "ops/example/debian.golden", rootReader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := r.Live
+	if r.Start != "seed dir: /etc/example.d; seed file: /etc/example.d/alice; | alice line; |" || len(l.Files) != 1 || l.Files[0].String() != "/etc/example.d/alice 0440" ||
+		!slices.Equal(l.Temps, []string{"/tmp/example_temp 0440, removed"}) || !slices.Equal(l.Checks, []string{"visudo -c -f /tmp/example_temp"}) || len(l.Actions) != 0 {
+		t.Errorf("start %q, files %+v, temps %q, checks %q, actions %q", r.Start, l.Files, l.Temps, l.Checks, l.Actions)
+	}
+	if _, err := parseLegacy([]byte(opsTempGolden), "ops/example/debian.golden", reader{}); err == nil || !strings.Contains(err.Error(), "(remove)") {
+		t.Errorf("a removal without temp files compared: %v", err)
+	}
+	seededGone := opsTempGolden + "  5 remove /etc/example.d/alice -> ok\n"
+	if _, err := parseLegacy([]byte(seededGone), "ops/example/debian.golden", rootReader); err == nil ||
+		err.Error() != `ops/example/debian.golden: a removal of /etc/example.d/alice, which the fixture seeded: not a temp file the run made: "  5 remove /etc/example.d/alice -> ok"` {
+		t.Errorf("a removal of a seeded file: %v", err)
+	}
+	noRemove := strings.Replace(opsTempGolden, "  3 remove /tmp/example_temp -> ok\n", "", 1)
+	if r, err := parseLegacy([]byte(noRemove), "ops/example/debian.golden", reader{}); err != nil || !slices.Equal(r.Live.Actions, []string{"visudo -c -f /tmp/example_temp"}) || r.Live.Checks != nil {
+		t.Errorf("no check named: %v, actions %q, checks %q", err, r.Live.Actions, r.Live.Checks)
+	}
+	if r, err := parseLegacy([]byte(legacyGolden), "ops/example/debian.golden", reader{probes: []string{"which resolvconf"}}); err != nil || r.Start != "" {
+		t.Errorf("no seed: %v, start %q", err, r.Start)
+	}
+}
+
+// TestNewStateChecked: the commands a check names are Checks, a failed
+// one with its exit status, each run id as <run id>; what was written
+// under the engine's run directory is Temps, removed where a removal took
+// it; another command is an action. NewState records neither.
+func TestNewStateChecked(t *testing.T) {
+	ctx := context.Background()
+	h := hostfake.New(host.Options{})
+	for _, d := range []string{"/etc", "/run"} {
+		h.AddDir(d, 0o755, 0, 0)
+	}
+	const run = "/run/hardn/20261029T120000Z-0a1b2c3d"
+	h.Handler = func(argv []string, _ []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "visudo -c" && len(h.Runs()) > 2 {
+			return hostfake.Response{ExitCode: 1}
+		}
+		return hostfake.Response{}
+	}
+	n := len(h.Calls())
+	for _, step := range []func() error{
+		func() error { return h.MkdirAll(ctx, run+"/check", 0o700) },
+		func() error { _, err := h.Run(ctx, "visudo", "-c"); return err },
+		func() error { return h.WriteFileAtomic(ctx, run+"/check/alice", []byte("x\n"), 0o440, 0, 0) },
+		func() error { return h.WriteFileAtomic(ctx, run+"/left", []byte("y\n"), 0o600, 0, 0) },
+		func() error { _, err := h.Run(ctx, "visudo", "-cf", run+"/check/alice"); return err },
+		func() error { return h.RemoveAll(ctx, run+"/check") },
+		func() error { _, err := h.Run(ctx, "systemctl", "reload", "example"); return err },
+	} {
+		if err := step(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := h.Run(ctx, "visudo", "-c"); err == nil {
+		t.Fatal("the last visudo -c: no failure")
+	}
+	check := func(a string) bool { return strings.HasPrefix(a, "visudo ") }
+	s := NewStateChecked(t, h, n, check, "")
+	if want := []string{"visudo -c", "visudo -cf /run/hardn/<run id>/check/alice", "visudo -c -> exit status 1"}; !slices.Equal(s.Checks, want) {
+		t.Errorf("checks %q, want %q", s.Checks, want)
+	}
+	if want := []string{"/run/hardn/<run id>/check/alice 0440, removed", "/run/hardn/<run id>/left 0600, left"}; !slices.Equal(s.Temps, want) {
+		t.Errorf("temps %q, want %q", s.Temps, want)
+	}
+	if !slices.Equal(s.Actions, []string{"systemctl reload example"}) || s.Wrote() {
+		t.Errorf("actions %q, wrote %t", s.Actions, s.Wrote())
+	}
+	if s := NewState(t, h, n, nil, ""); s.Checks != nil || s.Temps != nil || len(s.Actions) != 4 {
+		t.Errorf("NewState: checks %q, temps %q, actions %q", s.Checks, s.Temps, s.Actions)
+	}
+}
+
+// TestCompareChecked: with Slice.Check and Slice.Temps the checks and the
+// temp files are aspects of their own; without, they are not compared.
+func TestCompareChecked(t *testing.T) {
+	l := EndState{Checks: []string{"visudo -c -f /tmp/x"}, Temps: []string{"/tmp/x 0440, removed"}}
+	n := EndState{Checks: []string{"visudo -c"}}
+	diffs, _ := compare(t, Slice{Check: func(string) bool { return true }, Temps: true}, "", l, n)
+	got := map[string]string{}
+	for _, a := range diffs {
+		got[a.Name] = a.Legacy + " | " + a.New
+	}
+	if got["checks"] != "visudo -c -f /tmp/x | visudo -c" || got["temp files"] != "/tmp/x 0440, removed | none" {
+		t.Errorf("differences %q", got)
+	}
+	diffs, agree := compare(t, Slice{}, "", l, n)
+	if slices.ContainsFunc(append(diffs, agree...), func(a aspect) bool { return a.Name == "checks" || a.Name == "temp files" }) {
+		t.Error("compared checks or temp files a slice does not compare")
+	}
+}
+
+// TestCompareEither: with Slice.Either the content is compared where one
+// path alone wrote, against none, and the backup and the journal where
+// one alone wrote, backed up or journalled, a run that backed up and
+// journalled and then wrote nothing too; the write is still compared only
+// where both wrote. Without it, none of them is compared there.
+func TestCompareEither(t *testing.T) {
+	content := func(add func(name, legacy, new string), l, n []FileWrite) {
+		var ll, nl []string
+		for _, f := range l {
+			ll = append(ll, f.Lines...)
+		}
+		for _, f := range n {
+			nl = append(nl, f.Lines...)
+		}
+		add("lines", Joined(ll), Joined(nl))
+	}
+	wrote := EndState{Files: []FileWrite{{Path: "/etc/example.d/hardn-alice", Mode: 0o440, Lines: []string{"# a header", "keep"}, Atomic: true}},
+		Backups: []string{"/etc/example.d/hardn-alice (absent before: the rollback removes it)"}, Journal: true}
+	refused := EndState{Backups: wrote.Backups, Journal: true}
+	names := func(as []aspect) []string {
+		var out []string
+		for _, a := range as {
+			out = append(out, a.Name)
+		}
+		return out
+	}
+	for _, tc := range []struct {
+		name   string
+		either bool
+		n      EndState
+		want   []string
+	}{
+		{"wrote, either", true, wrote, []string{"lines", "backup", "journal"}},
+		{"backed up and journalled, either", true, refused, []string{"backup", "journal"}},
+		{"wrote, both only", false, wrote, nil},
+		{"backed up and journalled, both only", false, refused, nil},
+	} {
+		diffs, agree := compare(t, Slice{Content: content, Either: tc.either}, "", EndState{}, tc.n)
+		var got []string
+		for _, a := range names(diffs) {
+			if a != "files" {
+				got = append(got, a)
+			}
+		}
+		if !slices.Equal(got, tc.want) || slices.Contains(names(append(diffs, agree...)), "write") {
+			t.Errorf("%s: differences %q (want %q besides files), agreeing %q", tc.name, names(diffs), tc.want, names(agree))
+		}
+	}
+	diffs, _ := compare(t, Slice{Content: content, Either: true}, "", EndState{}, wrote)
+	if i := slices.IndexFunc(diffs, func(a aspect) bool { return a.Name == "lines" }); i < 0 || diffs[i].Legacy != "none" || diffs[i].New != "# a header, keep" {
+		t.Errorf("the content against none: %+v", diffs)
+	}
+}
+
+// TestCellNote: a slice's cell note follows the scenario's in the golden,
+// for the cells it names alone.
+func TestCellNote(t *testing.T) {
+	sc := Scenario{Name: "new", Note: "the scenario's note"}
+	cells := []Cell{{Scenario: sc, Distro: Distro{Name: "debian", Label: "Debian 13"}}, {Scenario: sc, Distro: Distro{Name: "alpine", Label: "Alpine 3.23"}}}
+	sl := Slice{CellNote: func(c Cell) string {
+		if c.Distro.Name == "alpine" {
+			return "alpine's note"
+		}
+		return ""
+	}}
+	g := renderCells(sl, cells)
+	if strings.Count(g, "  alpine's note\n") != 1 || !strings.Contains(g, "  the scenario's note\n  alpine's note\n") || !strings.Contains(g, "== new on Debian 13\nhost:") {
+		t.Errorf("cell notes:\n%s", g)
+	}
+	if strings.Contains(renderCells(Slice{}, cells), "alpine's note") {
+		t.Error("a note without CellNote")
+	}
+}
+
+// TestLegacyDry: a dry-run section that differs from the live one only in
+// its checks or temp files is not "as live", and says them; one that
+// does the same is; a slice with neither (DNS's) reads as before; each
+// refusal's status is said once.
+func TestLegacyDry(t *testing.T) {
+	live := EndState{Checks: []string{"visudo -c -f /tmp/x"}, Temps: []string{"/tmp/x 0440, removed"}}
+	for _, tc := range []struct {
+		name string
+		r    legacyRun
+		want string
+	}{
+		{"checks and temps differ", legacyRun{Live: live}, "the service writes none and runs none, checks none, temp files none"},
+		{"as live", legacyRun{Live: live, Dry: live, CLI: []string{"exit status 2: a", "exit status 2: b"}},
+			"the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)"},
+		{"neither", legacyRun{Dry: EndState{Actions: []string{"systemctl restart example"}}}, "the service writes none and runs systemctl restart example"},
+	} {
+		if got := legacyDry(tc.r); got != tc.want {
+			t.Errorf("%s: %q, want %q", tc.name, got, tc.want)
+		}
+	}
+}
+
+// TestPending: an entry carried pending is listed, so no problem, but its
+// V-numbers are held to the golden as any entry's; the golden and the page
+// mark its difference UNEXPLAINED, with the tie proposed.
+func TestPending(t *testing.T) {
+	cell := Cell{Scenario: Scenario{Name: "new"}, Distro: Distro{Name: "debian", Label: "Debian 13"},
+		legacy: legacyRun{Golden: "environment/example.golden"},
+		diffs:  []aspect{{Name: "comments", Legacy: "none", New: "# a header"}}}
+	pending := Tie{Scenarios: []string{"new"}, Distros: []string{"debian"}, Aspect: "comments", Source: "a page", Why: "a header", Pending: true}
+	if got := tableProblems([]Tie{pending}, []Cell{cell}); got != nil {
+		t.Errorf("tableProblems = %q", got)
+	}
+	v := pending
+	v.Source = "V20; a page"
+	if got := tableProblems([]Tie{v}, []Cell{cell}); len(got) != 1 || !strings.Contains(got[0], "tied to V20") {
+		t.Errorf("a pending entry's V-number: %q", got)
+	}
+	sl := Slice{Table: []Tie{pending}, Distros: []Distro{cell.Distro}, Scenarios: []Scenario{cell.Scenario}, Pkg: "pkg/screens/example", Golden: "parity.golden"}
+	const want = "UNEXPLAINED (pending; proposed, not approved: a page): a header"
+	if g, p := renderCells(sl, []Cell{cell}), renderPage(sl, []Cell{cell}); !strings.Contains(g, want) || !strings.Contains(p, want) {
+		t.Errorf("the golden or the page do not say %q:\n%s\n%s", want, g, p)
 	}
 }
