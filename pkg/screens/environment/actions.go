@@ -22,14 +22,19 @@ import (
 // The screen's own words (docs/engine/screen-environment.md §5): the
 // questions and the line after a change applied, decided with decision 7
 // (gallery-environment.md §6); the typed confirmation's label, the flow's
-// (P-25 (d)), proposed there; cantConfirm, new in this unit, proposed.
-// The state's, the change's and the refusals' words are the control's.
+// (P-25 (d)), proposed there; cantConfirm and cantAsk, new in this unit,
+// proposed. The state's, the change's and the refusals' words are the
+// control's.
 const (
 	askKeep         = "Keep HARDN_CONFIG under %s?"
 	askStop         = "Stop keeping HARDN_CONFIG under %s?"
 	takesEffect     = "Takes effect at the next %s hardn."
 	typeTheHostname = "Type the hostname"
-	cantConfirm     = "Can't read the hostname to confirm with: %s"
+	// cantConfirm says why a lockout-risk change cannot be confirmed with
+	// the hostname: it cannot be read (the error as it is), it is empty,
+	// or the prompt cannot ask for it (cantAsk).
+	cantConfirm = "Can't confirm with the hostname: %s"
+	cantAsk     = "the prompt can't ask for %q"
 )
 
 // action returns what choosing the item keyed key does with the reading
@@ -130,8 +135,9 @@ func (r *runner) change(ctx context.Context, h reading) error {
 	return err
 }
 
-// cantConfirm says, as a warning, that the hostname a lockout-risk
-// change is confirmed by cannot be read, and why; nothing is asked.
+// cantConfirm says, as a warning, that a lockout-risk change cannot be
+// confirmed with the hostname, and why (hostname's error); nothing is
+// asked.
 func (r *runner) cantConfirm(err error) error {
 	return r.s.Say(screenkit.Warnings(screenkit.FullStop(fmt.Sprintf(cantConfirm, err))))()
 }
@@ -141,8 +147,9 @@ func (r *runner) cantConfirm(err error) error {
 // hostname(1) prints it and the main menu's header shows it; and its
 // first label where the name has more, asked in its place where the name
 // does not show whole beside the label (flow.Confirm.Short; P-27 (e),
-// proposed). An error where the name cannot be read, or is no phrase nav
-// can ask for (nav.CheckPhrase).
+// proposed). An error where the name cannot be read, as it is; where it
+// is empty; or where it is no phrase nav can ask for (nav.CheckPhrase),
+// in the user's words (cantAsk), nav's own being a developer's.
 func hostname(ctx context.Context, sys host.System) (phrase, short string, err error) {
 	data, err := sys.ReadFile(ctx, header.HostnameFile)
 	if err != nil {
@@ -153,7 +160,7 @@ func hostname(ctx context.Context, sys host.System) (phrase, short string, err e
 	case phrase == "":
 		return "", "", fmt.Errorf("%s is empty", header.HostnameFile)
 	case err != nil:
-		return "", "", err
+		return "", "", fmt.Errorf(cantAsk, phrase)
 	}
 	if first, _, ok := strings.Cut(phrase, "."); ok && nav.CheckPhrase(first) == nil {
 		short = first

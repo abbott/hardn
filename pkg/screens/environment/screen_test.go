@@ -252,7 +252,17 @@ func TestHostname(t *testing.T) {
 	if p.err != nil || !strings.Contains(p.out, "Type the hostname [web-01, 0 or q]: 0") {
 		t.Errorf("a long name: Run = %v:\n%s", p.err, p.out)
 	}
-	for name, data := range map[string]*string{"absent": nil, "empty": new(string), "a comma": ptr("web,01\n")} {
+	for _, tt := range []struct {
+		name  string
+		data  *string
+		words string
+	}{
+		{"absent", nil, "Can't confirm with the hostname: open /proc/sys/kernel/hostname: no such file or directory."},
+		{"empty", new(string), "Can't confirm with the hostname: /proc/sys/kernel/hostname is empty."},
+		{"a comma", ptr("web,01\n"), `Can't confirm with the hostname: the prompt can't ask for "web,01".`},
+		{"q", ptr("q\n"), `Can't confirm with the hostname: the prompt can't ask for "q".`},
+	} {
+		name, data := tt.name, tt.data
 		h := newHost(t, hostOverridden)
 		if data == nil {
 			if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
@@ -266,8 +276,8 @@ func TestHostname(t *testing.T) {
 		if p.err != nil || p.unread != 0 || p.engines != 0 || len(p.runs) != 0 || len(screens(p.out)) != 2 || strings.Contains(p.out, "Type the hostname") {
 			t.Errorf("%s: Run = %v, %d unread, %d engines, %d runs:\n%s", name, p.err, p.unread, p.engines, len(p.runs), p.out)
 		}
-		if !strings.Contains(flat(p.out), "Warning Can't read the hostname to confirm with: ") {
-			t.Errorf("%s: not said:\n%s", name, p.out)
+		if !strings.Contains(flat(p.out), "Warning "+tt.words) || strings.Contains(p.out, "nav:") {
+			t.Errorf("%s: %q not said, or nav's words said:\n%s", name, tt.words, p.out)
 		}
 		if w := writes(h, n); len(w) > 0 {
 			t.Errorf("%s: wrote %v", name, w)
