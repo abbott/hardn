@@ -430,7 +430,7 @@ func fileOn(h *fakeHost, name string) string {
 }
 
 // detailsReading is what details.Read read, and the facts it read it on, which
-// say whose words "No sudo" or "No doas" are.
+// the document's host object takes.
 type detailsReading struct {
 	details.Report
 	facts detect.Facts
@@ -564,7 +564,7 @@ func (r detailsReading) userRows() []component.KeyValue {
 		return cantReadRows(r.Users.Unread)
 	}
 	noTool := noSudo
-	if r.facts.Elevation.Doas.Present == detect.Yes {
+	if r.Users.Tool == sudoers.ToolDoas.String() {
 		noTool = noDoas
 	}
 	var rows []component.KeyValue

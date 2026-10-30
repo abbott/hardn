@@ -129,7 +129,11 @@ type Users struct {
 	// being unable to read them, where the same refusal to root is another
 	// matter. /etc/sudoers.d is drwxr-x--- on all three VMs, so it cannot even be
 	// listed, and Alpine's /etc/doas.conf is 0640 (vm-runs/s1/01-tools.log).
-	Root   detect.Tri
+	Root detect.Tri
+	// Tool names the tool a user's No is said of, as "No sudo" or "No doas":
+	// doas where detect found doas and not sudo, else sudo. A No means no tool
+	// grants it, so this is the word's choice and not a further fact.
+	Tool   string
 	Unread []Unread
 }
 
@@ -173,7 +177,10 @@ func (u User) Admin() (tool string, t detect.Tri) {
 var nobodies = []string{"nobody", "nfsnobody"}
 
 func readUsers(ctx context.Context, sys host.System, f detect.Facts) Users {
-	var s Users
+	s := Users{Tool: sudoers.ToolSudo.String()}
+	if f.Elevation.Doas.Present == detect.Yes && f.Elevation.Sudo.Present != detect.Yes {
+		s.Tool = sudoers.ToolDoas.String()
+	}
 	s.Root = readRoot(ctx, sys)
 	db, err := accounts.Read(ctx, sys)
 	if err != nil {

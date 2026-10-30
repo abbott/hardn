@@ -446,6 +446,25 @@ func TestUsers(t *testing.T) {
 		h.cmd["doas -C /etc/doas.d"] = hostfake.Response{}
 		admin(t, details.Read(ctx, h, alpineFacts()), "alice", "doas", detect.Yes)
 	})
+	t.Run("the tool a No is said of: doas alone, else sudo", func(t *testing.T) {
+		both := debianFacts()
+		both.Elevation.Doas = detect.Tool{Present: detect.Yes, Path: "/usr/bin/doas"}
+		neither := debianFacts()
+		neither.Elevation.Sudo = detect.Tool{Present: detect.No}
+		unknown := alpineFacts()
+		unknown.Elevation.Doas = detect.Tool{Present: detect.Unknown}
+		for name, tc := range map[string]struct {
+			facts detect.Facts
+			want  string
+		}{
+			"sudo": {debianFacts(), "sudo"}, "doas": {alpineFacts(), "doas"}, "both": {both, "sudo"},
+			"neither": {neither, "sudo"}, "doas not established": {unknown, "sudo"},
+		} {
+			if got := details.Read(ctx, newHost(t), tc.facts).Users.Tool; got != tc.want {
+				t.Errorf("%s: Tool = %q, want %q", name, got, tc.want)
+			}
+		}
+	})
 	t.Run("uid 1000 and up, but nobody and nfsnobody, each name once", func(t *testing.T) {
 		h := newHost(t)
 		h.add(passwdFile, "root:x:0:0::/root:/bin/bash\nsshd:x:999:999::/:/bin/false\nalice:x:1000:1000::/home/alice:/bin/bash\nalice:x:1005:1000::/home/alice:/bin/bash\nsvc:x:1001:1001::/:/usr/sbin/nologin\nnobody:x:65534:65534::/:/bin/false\nnfsnobody:x:65535:65535::/:/bin/false\n")
