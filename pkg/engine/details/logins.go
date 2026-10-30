@@ -48,7 +48,7 @@ const (
 	// LoginUnknown: nothing is known of the account: lslogins had no line for
 	// it, or a blank where no source shows it could have had one. The zero value.
 	LoginUnknown LoginState = iota
-	// LoginNone: a blank, where a source can be read and holds records.
+	// LoginNone: a blank, where no source refuses and one holds records.
 	LoginNone
 	// LoginAt: its newest login with a terminal.
 	LoginAt
@@ -138,17 +138,19 @@ func readLogins(ctx context.Context, sys host.System, listed []User, limit time.
 		return s
 	}
 	// lslogins answers blank, exit 0, when its sources are missing, empty or
-	// unreadable (vm-runs/s1/09-lslogins-blank.log), so a blank is no login only
-	// where a source can be read and holds records.
+	// unreadable, wtmp among them (vm-runs/s1/09-lslogins-blank.log), so a login
+	// held in one it cannot read answers blank too. A blank is no login only
+	// where no source refuses and one holds records.
 	ctx, cancel := context.WithTimeout(ctx, limit)
 	defer cancel()
-	holds := false
+	holds, refused := false, false
 	for _, p := range []string{WtmpFile, Lastlog2File, LastlogFile} {
 		src := readSource(ctx, sys, p)
 		s.Sources = append(s.Sources, src)
 		holds = holds || src.State == SourceRecords
+		refused = refused || src.State == SourceUnread
 	}
-	if !holds {
+	if !holds || refused {
 		for i := range s.List {
 			if s.List[i].State == LoginNone {
 				s.List[i].State = LoginUnknown
