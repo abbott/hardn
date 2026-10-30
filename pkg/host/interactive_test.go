@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -377,10 +378,12 @@ func TestRunInteractiveTerminalModes(t *testing.T) {
 // the environment logview gives it, "--" before the path: the file shows, its
 // OSC as text and not as itself, a shell escape is refused, q ends it, exit 0.
 // It is macOS's less 581.2 here, and GNU less where the tests run on Linux;
-// written, not run there.
+// written, not run there. BusyBox's, whose ! does nothing
+// (vm-runs/s1/04-less2-alpine323-vm.log), is skipped with a less that is none.
 func TestRunInteractiveLess(t *testing.T) {
-	if _, err := NewReal(Options{}).resolve("less"); err != nil {
-		t.Skip("no less")
+	res, err := NewReal(Options{}).Run(context.Background(), "less", "--version")
+	if err != nil || !regexp.MustCompile(`^less [0-9]`).Match(res.Combined) {
+		t.Skipf("no less of that kind: %v, %q", err, res.Combined)
 	}
 	name := filepath.Join(t.TempDir(), "hardn.log")
 	if err := os.WriteFile(name, []byte("first line\n\x1b]0;a title\x07 second line\n"), 0o644); err != nil {

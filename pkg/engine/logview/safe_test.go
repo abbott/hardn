@@ -1,6 +1,7 @@
 package logview_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 	"unicode"
@@ -86,7 +87,11 @@ func checkSafe(t *testing.T, in, out string) {
 func TestSafeWhole(t *testing.T) {
 	for r := rune(0); r <= unicode.MaxRune; r++ {
 		s := string(r)
-		checkSafe(t, s, logview.Safe(s))
+		got := logview.Safe(s)
+		checkSafe(t, s, got)
+		if len(got) > maxGrowth*len(s) {
+			t.Fatalf("Safe(%q) = %q: past %d bytes for one", s, got, maxGrowth)
+		}
 	}
 	for a := range 256 {
 		for b := range 256 {
@@ -107,6 +112,21 @@ func TestSafeKeepsTypography(t *testing.T) {
 		if got := logview.Safe(s); got != s {
 			t.Errorf("Safe(%q) = %q", s, got)
 		}
+	}
+}
+
+// maxGrowth is the most bytes Safe makes of one, a byte that is not UTF-8.
+const maxGrowth = 6
+
+// TestShowBound: what MaxLast's bound says: a line of bad bytes, cut, is the most
+// Show makes of a line, so Last holds at most MaxLast of these, about 96 MiB.
+func TestShowBound(t *testing.T) {
+	got := logview.Show(host.Line{Text: bytes.Repeat([]byte{0xff}, host.MaxLine), Cut: true})
+	if want := maxGrowth*host.MaxLine + len("<cut>"); len(got) != want {
+		t.Errorf("%d bytes, want %d", len(got), want)
+	}
+	if total := logview.MaxLast * len(got); total > 97<<20 {
+		t.Errorf("Last can hold %d bytes", total)
 	}
 }
 

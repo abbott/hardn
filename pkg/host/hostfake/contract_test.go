@@ -462,6 +462,7 @@ func TestContract(t *testing.T) {
 				{"one past", long + "y\nnext\n", []string{long, "next"}, []bool{true, false}},
 				{"one past, CRLF", long + "y\r\nnext\n", []string{long, "next"}, []bool{true, false}},
 				{"one past, no ending", long + "y", []string{long}, []bool{true}},
+				{"at the cap, a CR, then more", long + "\ry\nnext\n", []string{long, "next"}, []bool{true, false}},
 				{"far past", long + strings.Repeat("y", 3*host.MaxLine) + "\nnext\nlast", []string{long, "next", "last"}, []bool{true, false, false}},
 				{"far past, no ending", long + strings.Repeat("y", 3*host.MaxLine), []string{long}, []bool{true}},
 				{"two in a row", long + "y\n" + long + "z\n", []string{long, long}, []bool{true, true}},

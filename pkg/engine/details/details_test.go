@@ -551,6 +551,23 @@ func TestNotRoot(t *testing.T) {
 			t.Errorf("Users = %+v", r.Users)
 		}
 	})
+	// The effective uid, the second number (proc_pid_status(5) [read]), and not
+	// the real one: a setuid hardn is root, and one that dropped it is not.
+	for name, tc := range map[string]struct {
+		status string
+		want   detect.Tri
+	}{
+		"real alice, effective root": {"Uid:\t1000\t0\t0\t0\n", detect.Yes},
+		"real root, effective alice": {"Uid:\t0\t1000\t1000\t1000\n", detect.No},
+	} {
+		t.Run(name, func(t *testing.T) {
+			h := newHost(t)
+			h.add(statusFile, tc.status)
+			if got := details.Read(ctx, h, debianFacts()).Users.Root; got != tc.want {
+				t.Errorf("Root = %v, want %v", got, tc.want)
+			}
+		})
+	}
 	for name, status := range map[string]string{"not read": "", "no Uid line": "Name:\thardn\n", "not numbers": "Uid:\ta\tb\tc\td\n"} {
 		t.Run("whether root: "+name, func(t *testing.T) {
 			h := newHost(t)
@@ -589,6 +606,7 @@ func TestCPU(t *testing.T) {
 	}{
 		{"amd64", cpuAmd64, "0.12 0.08 0.03 1/234 5678\n", details.CPU{Model: "QEMU Virtual CPU version 2.5+", CPUs: 2, Sockets: 1, Load: [3]string{"0.12", "0.08", "0.03"}}, ""},
 		{"arm64 [I]", cpuArm64, "0.12 0.08 0.03 1/234 5678\n", details.CPU{CPUs: 2, Load: [3]string{"0.12", "0.08", "0.03"}}, ""},
+		{"two model names, the first", "processor : 0\nmodel name : first\nprocessor : 1\nmodel name : second\n", "1.00 2.00 3.00 1/2 3\n", details.CPU{Model: "first", CPUs: 2, Load: [3]string{"1.00", "2.00", "3.00"}}, ""},
 		{"two sockets", "processor : 0\nphysical id : 0\nprocessor : 1\nphysical id : 1\n", "1.00 2.00 3.00 1/2 3\n", details.CPU{CPUs: 2, Sockets: 2, Load: [3]string{"1.00", "2.00", "3.00"}}, ""},
 		{"no processor line", "vendor_id : x\nmodel name : y\nphysical id : 0\n", "1.00 2.00 3.00 1/2 3\n", details.CPU{Load: [3]string{"1.00", "2.00", "3.00"}}, cpuFile},
 		{"load cut short", cpuArm64, "1.00 2.00\n", details.CPU{CPUs: 2}, loadFile},
@@ -1000,6 +1018,50 @@ func TestBlankGuard(t *testing.T) {
 			}
 		}
 	})
+}
+
+// scanDeadline records the deadline the guard's reads run under.
+type scanDeadline struct {
+	*fakeHost
+	left time.Duration
+}
+
+func (d *scanDeadline) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
+	if at, ok := ctx.Deadline(); ok {
+		d.left = time.Until(at)
+	}
+	return d.fakeHost.ScanLines(ctx, name, yield)
+}
+
+// endsAtLogins cancels the draw's ctx once lslogins has answered.
+type endsAtLogins struct {
+	*fakeHost
+	cancel context.CancelFunc
+}
+
+func (e endsAtLogins) Run(ctx context.Context, name string, args ...string) (host.Result, error) {
+	res, err := e.fakeHost.Run(ctx, name, args...)
+	if name == "lslogins" {
+		e.cancel()
+	}
+	return res, err
+}
+
+// TestGuardBound: the guard's reads run under a command's bound, and under the
+// draw's ctx: a blank whose guard was cut off is not no login.
+func TestGuardBound(t *testing.T) {
+	d := &scanDeadline{fakeHost: loginsHost(t, hostfake.Response{Stdout: blankRoot + "alice   \n"})}
+	details.Read(context.Background(), d, debianFacts())
+	if d.left <= details.Bounds.Command-time.Second || d.left > details.Bounds.Command {
+		t.Errorf("the guard read with %v left", d.left)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	e := endsAtLogins{fakeHost: loginsHost(t, hostfake.Response{Stdout: blankRoot + "alice   \n"}), cancel: cancel}
+	l := details.Read(ctx, e, debianFacts()).Logins
+	if l.State != details.LoginsRead || l.List[1].State != details.LoginUnknown {
+		t.Errorf("Logins = %+v", l)
+	}
 }
 
 // TestReadSourceRealFiles: the guard's read truly opens the file, on real files
