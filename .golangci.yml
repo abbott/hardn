@@ -599,6 +599,32 @@ linters:
               desc: the header probe returns data; pkg/output maps it to the header blocks (docs/engine/header.md §2)
             - pkg: github.com/abbott/hardn/pkg/output
               desc: the header probe returns data; pkg/output maps it to the header blocks (docs/engine/header.md §2)
+        # next/s1-readers: the reader of hardn's log reads only through
+        # host.System, as the header probe does, and renders nothing: the
+        # Logs screen and -p draw what it read. (engine-through-host's glob
+        # covers the directory too; this block names the unit's own rule, so
+        # that a later change to that glob does not drop it.)
+        logview-through-host:
+          files:
+            - "${base-path}/pkg/engine/logview/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: the log's reader reads only through host.System (docs/engine/readers-system-details.md §2)
+            - pkg: io/ioutil
+              desc: the log's reader reads only through host.System (docs/engine/readers-system-details.md §2)
+            - pkg: golang.org/x/sys
+              desc: the log's reader makes no system calls of its own (docs/engine/readers-system-details.md §2)
+            - pkg: syscall
+              desc: the log's reader makes no system calls of its own (docs/engine/readers-system-details.md §2)
+            - pkg: net
+              desc: the log's reader makes no network calls (docs/engine/readers-system-details.md §2)
+            - pkg: plugin
+              desc: the log's reader loads no code (docs/engine/readers-system-details.md §2)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: the log's reader returns data; the screen and -p draw it (docs/engine/readers-system-details.md §2)
+            - pkg: github.com/abbott/hardn/pkg/output
+              desc: the log's reader returns data; the screen and -p draw it (docs/engine/readers-system-details.md §2)
         # next/p4-vmcheck: internal/tools/p4status, the read-only driver of
         # Phase 4 on a host, reaches the host only through its guard over
         # host.System, which refuses every change and runs only the
