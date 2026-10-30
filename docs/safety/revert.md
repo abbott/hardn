@@ -361,14 +361,14 @@ The apply's own report said `doas hardn confirm`, and the refusal beside it said
 
 The alternative, confirming on the `sshd` process alone when `Conn` is empty, was rejected: `ErrLocalConn` and `ErrWrongListener` need the connection's ends, so a `-L` tunnel over the held port would have confirmed.
 
-### 9.3 The words (*proposed*)
+### 9.3 The words (*decided* by the maintainer, 2026-10-30)
 
 | Where | Line |
 |---|---|
-| `hardn confirm`, its connection not read (`loginHint`) | "log in over a new SSH connection to port 2230, made from another machine, and run `doas hardn confirm` at the prompt, not inside tmux or screen, before 2026-10-30 10:11:34 UTC" (*proposed*) |
-| The root check (`rootHint`), one line for the host in place of a line each for Ubuntu/Debian and Alpine, which said `sudo hardn` on Alpine | "Run `doas hardn` or switch to root `su`"; "Run `sudo hardn` or switch to root `sudo -i`" (*proposed*) |
-| `hardn confirm --help`, `hardn rollback --help` | "Example (doas in place of sudo on a doas host):" (*proposed*) |
-| `Session.Source`, after "found by" in the refusal | "/proc/4100/stat (its sockets cannot be read)", "(its TCP table cannot be read)", "(no TCP connection among its sockets)", "(2 TCP connections among its sockets)" (*proposed*) |
+| `hardn confirm`, its connection not read (`loginHint`) | "log in over a new SSH connection to port 2230, made from another machine, and run `doas hardn confirm` at the prompt, not inside tmux or screen, before 2026-10-30 10:11:34 UTC" |
+| The root check (`rootHint`), one line for the host in place of a line each for Ubuntu/Debian and Alpine, which said `sudo hardn` on Alpine | "Run `doas hardn` or switch to root `su`"; "Run `sudo hardn` or switch to root `sudo -i`" |
+| `hardn confirm --help`, `hardn rollback --help` | "Example (doas in place of sudo on a doas host):" |
+| `Session.Source`, after "found by" in the refusal | "/proc/4100/stat (its sockets cannot be read)", "(its TCP table cannot be read)", "(no TCP connection among its sockets)", "(2 TCP connections among its sockets)" |
 
 The other lines keep their words, with the tool in place of `sudo`.
 
