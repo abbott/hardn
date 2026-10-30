@@ -28,9 +28,10 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // its sub-menus, User Management's Manage User to the user list and on to
 // george's menu, its Sudo Method to the sudo change, and SSH Login's first
 // item to the root-login toggle. The main menu's 3 leads to the real DNS
-// screen (dnsLinks, dnsscreen.go) and its 5 to the real Backup screen
+// screen (dnsLinks, dnsscreen.go), its 5 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
-// kept among the mocks as Figma's record (figmaRecords). An item with no
+// kept among the mocks as Figma's record (figmaRecords), and its 8 to the
+// real Environment screen (envLinks, environment.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
 // no screen for it.
 var links = map[string]string{
@@ -128,13 +129,13 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Environment mocks fail where their host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the Environment screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Environment mocks play normal or dry-run", *sequence)
+			return usage("-sequence %s: the Environment screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
-			return s.play("play "+name, []string{envNote}, s.openEnv(name), stderr)
+			return s.play("play "+name, []string{engineNote}, s.openEnv(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
@@ -423,9 +424,10 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, or the DNS or Backup screen on the
-// host dnsLinks or backupLinks name, an item m refuses says why, and an
-// item with none of these says that the gallery has no screen for it.
+// opens the mock links name for it, or the DNS, Backup or Environment
+// screen on the host dnsLinks, backupLinks or envLinks name, an item m
+// refuses says why, and an item with none of these says that the gallery
+// has no screen for it.
 func (s *session) menu(m screen.Mock) nav.Menu {
 	view, _ := menuOf(m.Screen)
 	out := nav.Menu{Exit: view.Exit}
@@ -442,6 +444,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := backupLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openBackup(to)
+		}
+		if to, ok := envLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openEnv(to)
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}
