@@ -346,7 +346,9 @@ func readLegacy(t *testing.T, dir, rel string, rd reader) legacyRun {
 // menu/backup_*, frozen in pkg/screens/backup/testdata/legacy since
 // next/s3-replace) is read by parseRepository, its paths read as
 // rd.paths says; one in the root layout (the Environment area's,
-// pkg/characterization's environment/keep_*) by parseRoot.
+// pkg/characterization's environment/keep_*, frozen in
+// pkg/screens/environment/testdata/legacy since next/s9-replace) by
+// parseRoot.
 func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 	if bytes.Contains(data, []byte("\n"+repoCalls+"\n")) {
 		return parseRepository(data, rel, rd.paths)

@@ -235,10 +235,7 @@ type cliRun struct {
 }
 
 // Where cmd/hardn/main.go calls pkg/cmd's RefuseDryRunOperations.
-const (
-	refusedInRoot         = "cmd/hardn/main.go:123, before the root check"
-	refusedInSetupSudoEnv = "cmd/hardn/main.go:440, before OS detection"
-)
+const refusedInRoot = "cmd/hardn/main.go:123, before the root check"
 
 // fixedItem is a V-list (or A-) item a P0.8 hazard gate fixed: its id (a
 // key of fixedText) and the unexported constant(s) that gate the fix.
@@ -724,24 +721,13 @@ func opScenarios() []opScenario {
 				return d
 			},
 		},
-		{
-			name:  "setup_sudo_preservation",
-			op:    "EnvironmentManager.SetupSudoPreservation -> FileEnvironmentRepository.SetupSudoPreservation",
-			entry: "hardn -e (cmd/hardn/main.go:409-416), hardn setup-sudo-env (cmd/hardn/main.go:426-461), Environment menu",
-			cli: []cliRun{
-				{"-e", []string{hardncmd.FlagSetupSudoEnv}, refusedInRoot},
-				{"setup-sudo-env", []string{hardncmd.CommandSetupSudoEnv}, refusedInSetupSudoEnv},
-			},
-			notes: []string{"Environment: SUDO_USER=alice, USER=root, HARDN_CONFIG and TMPDIR unset (so os.TempDir() is /tmp on Linux and macOS). Seed: the sudoers file ConfigureSudo writes."},
-			setup: func(e *opEnv) {
-				e.fs.Directories["/etc/sudoers.d"] = true
-				e.fs.Files["/etc/sudoers.d/alice"] = []byte("alice ALL=(ALL) NOPASSWD: ALL\n")
-			},
-			run: func(e *opEnv) []callResult {
-				return []callResult{{"EnvironmentManager.SetupSudoPreservation", e.factory.CreateEnvironmentManager().SetupSudoPreservation()}}
-			},
-			defects: func(c osCell, o observed) []string { return []string{"V18", "V20"} },
-		},
+		// setup_sudo_preservation, origin/main's -e and setup-sudo-env
+		// (EnvironmentManager.SetupSudoPreservation), is retired (refactor
+		// plan slice 9, unit (d), next/s9-replace): the unit puts -e and
+		// setup-sudo-env on the Environment control and deletes the legacy
+		// service, which then has no caller. Its four goldens moved
+		// unchanged to pkg/screens/environment/testdata/legacy/ops,
+		// Environment's parity record (docs/engine/parity-environment.md §8).
 		dnsScenario("systemd-resolved"),
 		dnsScenario("resolvconf"),
 		dnsScenario("direct"),
@@ -925,8 +911,10 @@ func TestOperationGoldensThroughSystem(t *testing.T) {
 }
 
 func testOperationGoldens(t *testing.T, via seam) {
-	// SetupSudoPreservation reads SUDO_USER/USER (file_environment_repository.go:135-138)
-	// and os.TempDir(); pin them so the goldens match on every machine.
+	// SetupSudoPreservation read SUDO_USER/USER (file_environment_repository.go:135-138)
+	// and os.TempDir(), in the setup_sudo_preservation case, now retired; the
+	// environment stays pinned as the goldens were recorded, so that they
+	// match on every machine.
 	t.Setenv("SUDO_USER", fixtureUser)
 	t.Setenv("USER", "root")
 	t.Setenv("HARDN_CONFIG", "")

@@ -204,8 +204,8 @@ func doasOverridden() *fakeHost {
 
 // legacyLines are origin/main's /etc/sudoers.d/<user> once both of its
 // writers ran: ConfigureSudo's grant, then setup-sudo-env's line appended
-// (pkg/characterization's ops/setup_sudo_preservation/debian.golden, step
-// 9).
+// (ops/setup_sudo_preservation/debian.golden, step 9, frozen in
+// pkg/screens/environment/testdata/legacy since next/s9-replace).
 const legacyLines = "alice ALL=(ALL) NOPASSWD: ALL\nDefaults:alice env_keep += \"HARDN_CONFIG\"\n"
 
 // legacyHost is Debian 13 with origin/main's /etc/sudoers.d/alice.

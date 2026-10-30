@@ -35,8 +35,9 @@ import (
 // The Environment parity table (refactor plan §2, slice 9's unit (b2),
 // next/s9-parity; docs/engine/parity-environment.md): origin/main's
 // SetupSudoPreservation, which item 1 of its Environment screen, hardn -e
-// and hardn setup-sudo-env all call, read from pkg/characterization's
-// goldens in place, against the Environment control on the engine from the
+// and hardn setup-sudo-env all call, read from its record (testdata/legacy:
+// pkg/characterization's goldens, moved there unchanged by unit (d),
+// next/s9-replace), against the Environment control on the engine from the
 // same start states, through the parity harness (internal/parity). This
 // file is what Environment supplies to it.
 //
@@ -76,12 +77,21 @@ var envParity = parity.Slice{
 	V032Sections: "§5",
 }
 
-// legacyDir is origin/main's record, read in place: pkg/characterization's
-// goldens, environment/keep_* (TestLegacyEnvironmentKeep) and
-// ops/setup_sudo_preservation (TestOperationGoldens). Unit (d) freezes
-// them under this package's testdata/legacy before the legacy Environment
-// code goes (parity-environment.md §8).
-var legacyDir = filepath.Join("..", "..", "characterization", "testdata", "golden")
+// legacyDir is origin/main's record: pkg/characterization's Environment
+// goldens, moved here unchanged (git mv) in unit (d)'s first commit, in
+// their layout there, before the code they recorded was deleted, as
+// parity-dns.md §7 froze DNS's and parity-backup.md §8 Backup's:
+// environment/keep_* (TestLegacyEnvironmentKeep), menu/environment_*
+// (TestLegacyMenuEnvironment), environment/notice_*
+// (TestLegacyEnvLossNotice), each test retired with its goldens, and
+// ops/setup_sudo_preservation, moved with its TestOperationGoldens case,
+// retired too; ops/configure_sudo, copied byte for byte, as
+// TestOperationGoldens still records ConfigureSudo (slice 5's). Nothing
+// regenerates them: no test writes under testdata/legacy
+// (TestLegacyRecord holds each file's bytes). parity.golden's header
+// still says "read in place": it is part of the golden, kept as it was so
+// that the record is provably unchanged (parity-environment.md §8).
+var legacyDir = filepath.Join("testdata", "legacy")
 
 const envHeader = `# The Environment parity table: origin/main's SetupSudoPreservation against the Environment control
 # on the engine (refactor plan §2, slice 9's unit (b2), next/s9-parity; docs/engine/parity-environment.md).
@@ -103,7 +113,7 @@ const envHeader = `# The Environment parity table: origin/main's SetupSudoPreser
 // The sudoers lines of the starts: alice's grant as ConfigureSudo writes it
 // (ops/configure_sudo), and the line SetupSudoPreservation adds
 // (file_environment_repository.go:69), as pkg/characterization's
-// environment_calls_test.go has them.
+// environment_calls_test.go had them (retired by unit (d)).
 const (
 	grantLine = "alice ALL=(ALL) NOPASSWD: ALL\n"
 	keepLine  = "Defaults:alice env_keep += \"HARDN_CONFIG\"\n"
@@ -114,7 +124,7 @@ const (
 var now = time.Date(2026, 10, 29, 12, 0, 0, 0, time.UTC)
 
 // seed is one thing a start's root holds, as pkg/characterization's
-// envSeed: a directory, a file and its content, or a symlink, and its mode.
+// envSeed (retired by unit (d)): a directory, a file and its content, or a symlink, and its mode.
 type seed struct {
 	path    string
 	dir     bool
@@ -124,7 +134,7 @@ type seed struct {
 }
 
 // hostDirs are what every keep_* start holds (pkg/characterization's
-// hostDirs): /etc, /etc/sudoers.d as Debian's sudo package leaves it, and
+// hostDirs, retired by unit (d)): /etc, /etc/sudoers.d as Debian's sudo package leaves it, and
 // /tmp, anyone's to write in.
 func hostDirs() []seed {
 	return []seed{
@@ -162,8 +172,8 @@ type start struct {
 
 // words is st as origin/main's golden says it (parity.Cell.LegacyStart):
 // the root layout's environment and "/ before" section, or the ops
-// layout's seed lines, as pkg/characterization writes them (seedLines,
-// describe).
+// layout's seed lines, as pkg/characterization wrote them (seedLines,
+// describe; retired by unit (d)).
 func (st start) words() string {
 	val := func(s string) string { return parity.OrElse(s, "unset") }
 	var w []string
