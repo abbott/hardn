@@ -46,6 +46,18 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 11. **Accounts.** `LookupUser` and `LookupGroup` use os/user and return `ErrUnknownUser` / `ErrUnknownGroup`. Release builds are `CGO_ENABLED=0` (`.slsa-goreleaser/*.yml`), so os/user uses its pure-Go implementation, which reads `/etc/passwd` and `/etc/group` itself ([pkg.go.dev/os/user](https://pkg.go.dev/os/user)): accounts that only NSS knows (LDAP, sssd) are not found.
 12. **Service control is a `Run` call** (`systemctl reload ssh`, `rc-service sshd reload`). There is no systemd API here. Which unit, which verb and which init system is `p2-detect`'s and `p2-reload`'s: the service is `ssh` on Debian, Ubuntu and Proxmox and `sshd` under OpenRC on Alpine, and the `sshd` unit alias is missing on fresh Ubuntu 24.04 ([phase0-findings.md §10](../refactor/phase0-findings.md#10-verify-list-brief-9), "Service names / init"; plan `p2-reload`).
 
+### The line scan (`ScanLines`), *since `next/s1-readers`*
+
+`ScanLines(ctx, name, yield)` hands the regular file `name` to `yield` a line at a time, for the Logs screen's last lines and total, `-p`'s pipe form and "can this file be read and does it hold anything" ([readers-system-details.md](../engine/readers-system-details.md) §2). `ReadFile` reads the whole file, and hardn's log is never rotated (`pkg/output/audit.go:22`).
+
+- **Refusals, without blocking.** It opens what `ReadFileNoFollow` opens, through one helper (`openRegular`): lstat first, then `O_NOFOLLOW|O_NONBLOCK`, then fstat. A FIFO with no writer or a device is refused with `fs.ErrInvalid` and never read; a directory with `EISDIR` (run: `TestScanLinesRefusesWithoutBlocking`, on a real FIFO and `/dev/null`; `TestContract`).
+- **No symlink at the path, and guarded.** A symlink at `name` is refused with `ErrSymlink`; one on the way is followed only from a trusted directory, else `ErrSymlinkParent` (run: `TestContract`). This is `System`'s rule for the guarded operations (`pkg/host/guard.go`), against `ReadFile`, which follows: what it reads is shown to whoever asked, so a link planted at the path must not show them a file only root can read.
+- **Bounded.** At most `scanChunk` (32 KiB) and `MaxLine` (64 KiB) and two bytes held, whatever the file holds. A line past `MaxLine` reaches `yield` as soon as that is known, `Line.Cut` set, and the read goes on at the next line, where origin/main's scanner stops silently and loses the rest (gallery-system-details.md §2.10). So a large file with no newline costs `MaxLine` to look at and is one line to read through (run: `TestScanReaderIsBounded`). `Line.Text` is valid during the call alone.
+- **Lines.** No newline at the end is still a line, an empty line is a line, one `\r` before the end of a line goes, a `\r` elsewhere stays (run: `TestContract`).
+- **One moment.** It reads no further than the size `fstat` gave at the open, so the size and the lines agree and a writer that keeps appending cannot keep hardn reading (run: `TestScanLinesStopsAtTheSize`). So a file reporting size 0, as `/proc`'s do, reads as empty: `ReadFile` is for those.
+- **Context** is asked before each read, not only on entry, unlike the other file operations (run: `TestScanLinesContextDuringTheRead`). `yield` returning false stops the read with no error, so there is no sentinel to register, and a caller's own error stays the caller's.
+- **No run-log line,** on a host that has a run log (run: `TestScanLinesNoRunLog`).
+
 ### The fake (`pkg/host/hostfake`)
 
 13. **Scripted commands, in the mocks' style, failing closed.** `Respond(Response{Stdout, Stderr, ExitCode, Err}, name, args...)` scripts one argv; several responses for one argv are used in order and the last repeats. A non-zero `ExitCode` gives `*host.ExitError` whose `Err` reads `exit status N`, as `Real`'s `*exec.ExitError` does, so the legacy adapter shows the same text over either; `Err` is returned verbatim, as `MockCommander` returns its errors. Unscripted commands go to `Handler` if set (it runs without the fake's lock, so it can model a command's effect on the fake). **Without a `Handler` an unscripted command fails with `hostfake.ErrUnscripted`** (exit -1, recorded with the error): unlike `MockCommander`, a test that forgets to script `sshd -t -f …` or `systemctl is-active ssh.socket` gets an error, not a made-up pass. A `Handler` returning `Response{}` opts into `MockCommander`'s empty success; the characterization harness answers every command from the mocks' maps that way. The fake refuses the command names `Real` refuses before looking for a file (empty, relative path) with `host.ErrNotFound`; it has no executables, so it cannot refuse a name missing from `SearchPath`.
@@ -133,6 +145,7 @@ type System interface {
 	ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error)    // next/p2-atomic
 	ResolveSymlink(ctx context.Context, name string) (target, resolved string, err error) // next/p2-atomic
 	StartDetached(ctx context.Context, name string, args ...string) (pid int, err error) // next/p2-revert
+	ScanLines(ctx context.Context, name string, yield func(Line) bool) (fs.FileInfo, error) // next/s1-readers
 }
 
 type LegacySystem interface {

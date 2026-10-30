@@ -41,7 +41,7 @@ const (
 // the guard does not embed a System, so a method added to host.System
 // does not build until the guard has it.
 var decisions = map[string]decision{
-	"ReadFile": pass, "ReadFileNoFollow": pass, "Stat": pass, "Lstat": pass, "ReadDir": pass,
+	"ReadFile": pass, "ReadFileNoFollow": pass, "ScanLines": pass, "Stat": pass, "Lstat": pass, "ReadDir": pass,
 	"Readlink": pass, "ResolveSymlink": pass, "LookupUser": pass, "LookupGroup": pass,
 	"Run": allow,
 	// RunInput: no check or probe gives a command input; StartDetached:
@@ -185,7 +185,8 @@ const notOpened = "a device, FIFO or socket"
 // change the host (a watchdog device starts its timer when opened) or
 // never return (a FIFO with no writer). The other reads open nothing
 // (Stat, Lstat, Readlink), or look before they open (ReadFileNoFollow,
-// ResolveSymlink), or read the account files (LookupUser, LookupGroup).
+// ScanLines, ResolveSymlink), or read the account files (LookupUser,
+// LookupGroup).
 // A file swapped for a special one between this look and the open is not
 // caught: only root can swap the files the checks read.
 func (g *guard) special(ctx context.Context, name string) bool {
@@ -203,6 +204,10 @@ func (g *guard) ReadFile(ctx context.Context, name string) ([]byte, error) {
 
 func (g *guard) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
 	return g.sys.ReadFileNoFollow(ctx, name)
+}
+
+func (g *guard) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
+	return g.sys.ScanLines(ctx, name, yield)
 }
 
 func (g *guard) Stat(ctx context.Context, name string) (fs.FileInfo, error) {

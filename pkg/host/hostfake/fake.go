@@ -55,7 +55,7 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, append, lock, unlock, lookup-user, lookup-group
+	Op       string   // run, start-detached, read, read-nofollow, scan-lines, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, append, lock, unlock, lookup-user, lookup-group
 	Argv     []string // run, start-detached
 	Stdin    []byte   // run: nil for Run, the input for RunInput
 	ExitCode int      // run

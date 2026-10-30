@@ -24,7 +24,7 @@ import (
 // passOps are the fake's records of each method the guard passes through:
 // ReadFile asks what the file is first.
 var passOps = map[string][]string{
-	"ReadFile": {"stat", "read"}, "ReadFileNoFollow": {"read-nofollow"}, "Stat": {"stat"}, "Lstat": {"lstat"},
+	"ReadFile": {"stat", "read"}, "ReadFileNoFollow": {"read-nofollow"}, "ScanLines": {"scan-lines"}, "Stat": {"stat"}, "Lstat": {"lstat"},
 	"ReadDir": {"stat", "readdir"}, "Readlink": {"readlink"}, "ResolveSymlink": {"resolve-symlink"},
 	"LookupUser": {"lookup-user"}, "LookupGroup": {"lookup-group"},
 }
@@ -60,6 +60,8 @@ func TestGuardDecidesEveryMethod(t *testing.T) {
 						in = append(in, reflect.ValueOf(argv[1:]))
 					case p.Kind() == reflect.String && m.Type().IsVariadic():
 						in = append(in, reflect.ValueOf(argv[0]))
+					case p == reflect.TypeFor[func(host.Line) bool]():
+						in = append(in, reflect.ValueOf(func(host.Line) bool { return true }))
 					case p.Kind() == reflect.String:
 						in = append(in, reflect.ValueOf("/etc/ssh/sshd_config"))
 					default:

@@ -236,13 +236,28 @@ func (r *Real) ReadFile(ctx context.Context, name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-// ReadFileNoFollow checks what name is before opening it (a FIFO or a device
-// is never opened), then opens it with O_NOFOLLOW|O_NONBLOCK in its guarded
-// parent and reads content and FileInfo from that one descriptor.
+// ReadFileNoFollow reads what openRegular opens.
 func (r *Real) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
 	if err := ctxErr(ctx, "read", name); err != nil {
 		return nil, nil, err
 	}
+	f, fi, err := r.openRegular(name)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, fi, nil
+}
+
+// openRegular checks what name is before opening it (a FIFO or a device is
+// never opened), then opens it with O_NOFOLLOW|O_NONBLOCK in its guarded
+// parent and returns it with the FileInfo of that one descriptor, which is
+// asked again, as name could have been swapped between the look and the open.
+func (r *Real) openRegular(name string) (*os.File, fs.FileInfo, error) {
 	dir, base, err := r.openParent("open", name)
 	if err != nil {
 		return nil, nil, err
@@ -252,19 +267,15 @@ func (r *Real) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.Fi
 	if err != nil {
 		return nil, nil, err
 	}
-	defer func() { _ = f.Close() }()
 	fi, err := f.Stat()
 	if err == nil {
 		err = regularOnly(name, fi.Mode())
 	}
 	if err != nil {
+		_ = f.Close()
 		return nil, nil, err
 	}
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, fi, nil
+	return f, fi, nil
 }
 
 // openNoFollow opens base in dir read-only with O_NOFOLLOW|O_NONBLOCK, after
