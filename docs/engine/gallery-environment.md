@@ -180,6 +180,8 @@ Each play ends with the fake's record of what changed. Checks are reads and left
 
 *Since `next/s9-control`* the retired hosts' rows (`alpine324-rule`, `alpine323-cloud`, `grant-no-reader`, `kept-only`, `legacy-hardn-only`) are gone from `TestEnvironmentHeights`; the others' heights are unchanged ("Not kept by hardn" fits the row).
 
+*Since `next/s9-screen`* `TestEnvironmentHeights` is `pkg/ui/screen`'s and draws `screen.Environment`, the screen as built, by state: 15, 16 and 18 lines, as above; `origin`'s row went with its mock ([screen-environment.md](screen-environment.md) §8, decision 8).
+
 Each mock is the same number of lines at both heights: one form at every height. A sub-menu has no compact form, and none is proposed (the maintainer, 2026-10-23, of the main menu). At 60 columns rows and items stack, a line each more (the goldens' `truecolor-dark-unicode-60` cells).
 
 ## 5. Decisions for the maintainer
