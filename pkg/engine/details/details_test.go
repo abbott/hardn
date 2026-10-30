@@ -557,8 +557,8 @@ func TestNotRoot(t *testing.T) {
 		status string
 		want   detect.Tri
 	}{
-		"real alice, effective root": {"Uid:\t1000\t0\t0\t0\n", detect.Yes},
-		"real root, effective alice": {"Uid:\t0\t1000\t1000\t1000\n", detect.No},
+		"real alice, effective root": {"Uid:\t1000\t0\t1000\t1000\n", detect.Yes},
+		"real root, effective alice": {"Uid:\t0\t1000\t0\t0\n", detect.No},
 	} {
 		t.Run(name, func(t *testing.T) {
 			h := newHost(t)
@@ -890,8 +890,8 @@ func TestLogins(t *testing.T) {
 }
 
 // TestBlankGuard: lslogins answers blank, exit 0, when its sources are missing,
-// empty or unreadable (09-lslogins-blank.log), so a blank is None only where a
-// source can be read and holds records; otherwise Unknown. A real login reads as
+// empty or unreadable (09-lslogins-blank.log), so a blank is None only where no
+// source refuses and one holds records; otherwise Unknown. A real login reads as
 // itself whatever the sources.
 func TestBlankGuard(t *testing.T) {
 	const (

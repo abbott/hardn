@@ -46,7 +46,7 @@ type LoginState uint8
 
 const (
 	// LoginUnknown: nothing is known of the account: lslogins had no line for
-	// it, or a blank where no source shows it could have had one. The zero value.
+	// it, or a blank where a source refuses or none holds records. The zero value.
 	LoginUnknown LoginState = iota
 	// LoginNone: a blank, where no source refuses and one holds records.
 	LoginNone
