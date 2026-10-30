@@ -97,7 +97,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
-	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Configure sudoers to preserve HARDN_CONFIG environment variable")
+	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, version.UpdateFlagUsage("Enable debugging for update checks"))
 	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, version.UpdateFlagUsage("Force update notification for testing"))
@@ -439,9 +439,8 @@ var rootCmd = &cobra.Command{
 
 var setupSudoEnvCmd = &cobra.Command{
 	Use:   "setup-sudo-env",
-	Short: "Configure sudo to preserve HARDN_CONFIG environment variable",
-	Long: `This command adds a configuration to /etc/sudoers.d/ to ensure that 
-the HARDN_CONFIG environment variable is preserved when using sudo with hardn.
+	Short: "Keep HARDN_CONFIG under sudo or doas",
+	Long: `Keeps HARDN_CONFIG for the user who runs sudo hardn (or doas hardn), in hardn's own rule.
 This allows you to consistently use a custom configuration file location across
 all commands, even when requiring elevated privileges.
 
