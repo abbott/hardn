@@ -231,15 +231,24 @@ func TestLockoutRisk(t *testing.T) {
 	}
 }
 
-// TestHostname: the phrase is the kernel's name; a name too long to show
-// whole beside the label is asked by its first label; one that cannot be
-// read, or typed, is said when item 1 is chosen, before anything is
-// planned or asked, nothing written, and the screen goes on.
+// TestHostname: the phrase is the kernel's name, asked whole where it
+// shows beside the label, its first label then refused; a name too long
+// to show whole is asked by its first label; one that cannot be read, or
+// typed, is said when item 1 is chosen, before anything is planned or
+// asked, nothing written, and the screen goes on.
 func TestHostname(t *testing.T) {
-	long := "web-01.a-subdomain-long-enough-not-to-show.example.net"
+	full := "web-01.example.net"
 	h := newHost(t, hostOverridden)
+	h.AddFile(header.HostnameFile, []byte(full+"\n"), 0o644, 0, 0)
+	p := play(h, false, "1", shortName, "0", "0")
+	if w := inOrder(p.out, "Type the hostname ["+full+", 0 or q]: "+shortName, "That does not match exactly.", "Type the hostname ["+full+", 0 or q]: 0",
+		"Operation Cancelled"); p.err != nil || w != "" {
+		t.Errorf("a full name that shows: Run = %v, %q not shown after what came before it:\n%s", p.err, w, p.out)
+	}
+	long := "web-01.a-subdomain-long-enough-not-to-show.example.net"
+	h = newHost(t, hostOverridden)
 	h.AddFile(header.HostnameFile, []byte(long+"\n"), 0o644, 0, 0)
-	p := play(h, false, "1", "0", "0")
+	p = play(h, false, "1", "0", "0")
 	if p.err != nil || !strings.Contains(p.out, "Type the hostname [web-01, 0 or q]: 0") {
 		t.Errorf("a long name: Run = %v:\n%s", p.err, p.out)
 	}
