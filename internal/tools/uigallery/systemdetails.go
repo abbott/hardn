@@ -1143,8 +1143,8 @@ func (run *sdRun) tick() {
 	f.AddFile("/proc/loadavg", []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
 }
 
-// main()'s two lines as a user other than root: logging.go:39's and
-// cmd/hardn/main.go:61's, on stdout today, the reasons the system's words
+// main()'s two lines as a user other than root: logging.go:40's and
+// cmd/hardn/main.go:62's, on stdout today, the reasons the system's words
 // [I, not run as a user other than root].
 const (
 	mainOpenLine    = "Failed to open log file /var/log/hardn.log: open /var/log/hardn.log: permission denied"
@@ -1259,7 +1259,7 @@ func sdMocks() []listMock {
 			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
 		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
 			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d's files are 0440, root's [I]; on a doas host /etc/doas.conf. The stand-in reads groups alone, so its root and non-root reads are the same today. The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:39; read, not run); unit (d) moves them to stderr.",
+		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d's files are 0440, root's [I]; on a doas host /etc/doas.conf. The stand-in reads groups alone, so its root and non-root reads are the same today. The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				sh := notRootHost()
 				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readDetails(ctx, sh.host().sys(), sh).report(c)), nil

@@ -16,7 +16,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. The␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo lines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:39; read, not run); unit␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
@@ -78,7 +78,7 @@ $
 # alone, so its root and non-root reads are the same today. The$
 # two lines above the report are main()'s, unrelated, on stdout$
 # today, so hardn system-details > file holds them$
-# (cmd/hardn/main.go:57-62; logging.go:39; read, not run); unit$
+# (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit$
 # (d) moves them to stderr.$
 $
       Failed to open log file /var/log/hardn.log: open$
@@ -141,7 +141,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits root and non-root reads are the same today. The two␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:39; read, not run);␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run);␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (d) moves them to stderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
@@ -216,7 +216,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. The␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo lines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:39; read, not run); unit␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$

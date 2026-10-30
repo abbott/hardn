@@ -192,7 +192,7 @@ func logHosts() []logHost {
 	const deb = hostFQDN + " runs Debian 13, less installed. "
 	return []logHost{
 		{name: "lines", label: "A log with lines", about: "Fits the screen", host: logOn(logOf(logSample[len(logSample)-4:])),
-			note: deb + "Treatment read-tail: the log's 4 lines, all of them, WARNING and ERROR in the warning's colour."},
+			note: deb + "Treatment read-tail: a log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
 		{name: "long", label: "A long log", about: "1204 lines", host: logOn(longLog()),
 			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: 6 rows at 80x24, 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
@@ -429,7 +429,7 @@ func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, 
 }
 
 // logRows are lines of the log as code, as an error report's captured output
-// (component's code and raw; README §9.2, "captured output"): no bullet, from
+// (component's code and raw; README §9.1, "captured output"): no bullet, from
 // theme.LabelCol, every character kept in both glyph sets, never cut. WARNING
 // and ERROR take the warning's colour, the rest the output's, muted.
 func logRows(c component.Ctx, lines []string) []string {
