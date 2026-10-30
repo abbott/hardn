@@ -289,7 +289,7 @@ In dependency order: a decision whose answer changes another decision, or anothe
 - §6's words are decided, main menu 9 and 10 unchanged (11).
 - The mocks of the options not adopted go with unit (b).
 
-*Since `next/s1-readers`:* they have gone, and git keeps them at 701449ae; `DETAILS_UNREADABLE` is registered; `safeLine` and `parseLogLine`, in the Made here calls below, are `logview.Safe` and `logview.ParseLine`; and the report as a user other than root reads "Not known" for a user's tool (`cli-not-root`), which is what decision 2's "each row reads a fact or says it could not" asks.
+*Since `next/s1-readers`:* they have gone, and git keeps them at 701449ae; `DETAILS_UNREADABLE` is registered; `safeLine` and `parseLogLine`, in the Made here calls below, are `logview.Safe` and `logview.ParseLine`; and the report as a user other than root reads "Not known" for a user's tool (`cli-not-root`), which is what decision 2's "each row reads a fact or says it could not" asks. A blank reads "None recorded" only where, further, no source refuses ([readers-system-details.md](readers-system-details.md), item 22). The tests §1, §5 and §7 name as `TestSafeLine`, `TestParseLogLine` and `TestPagerFor` are now `TestControlHostIsSafe` here and `logview`'s `TestSafe`; `logview`'s `TestParseLine`; and `TestPagerOnTheHosts` here and `logview`'s `TestPager`.
 
 ### System Details
 
@@ -541,17 +541,17 @@ Others found:
 
 ## 8. What the mocks take from real code, and what not
 
-**Real:** the host's facts, `detect.Detect`; the report, `details.Read`, with OS, hostname and uptime through the header probe and users through `accounts.Read` and `users.Elevation`; the JSON document, `output.Build` and `output.WriteJSON`; the log, `logview.Read`, `Safe`, `Show`, `ParseLine`, `Elsewhere`; the pager, `logview.Pager`; every read on the seam, `ScanLines` among them; the layout, `screen.SubMenu`, and every component.
+**Real:** the host's facts, `detect.Detect`; the report, `details.Read`, with OS, hostname and uptime as the header probe reads them and users through `accounts.Read` and `users.Elevation`; the JSON document, `output.Build` and `output.WriteJSON`; the log, `logview.Read`, `Safe`, `Show`, `ParseLine`, `Elsewhere`; the pager, `logview.Pager`; every read on the seam, `ScanLines` among them; the layout, `screen.SubMenu`, and every component.
 
 *Since `next/s1-readers`,* **no stand-in for unit (b) is left.** What now holds each one's job (git keeps the stand-ins at 701449ae; the items cited are §2's of [readers-system-details.md](readers-system-details.md), which has each form and why):
 
 | Stand-in | What holds its job now |
 |---|---|
-| `readDetails`: `readAddrs`, `readUsers`, `readCPU`, `readDisk`, `readMemory`, `readLogins`, `parseLogin` | `details.Read`, section by section, on a host with no run log (items 13 to 24). The gallery's `readDetails` is `detect.Detect` and that call. Users are as the users check reads them; a blank is guarded; a fact keeps its section's others; ZFS with no `zpool` or `zfs` falls back to `df`; arm64's blanks say Not known |
+| `readDetails`: `readAddrs`, `readUsers`, `readCPU`, `readDisk`, `readMemory`, `readLogins`, `parseLogin` | `details.Read`, section by section, on a host with no run log (items 13 to 24). The gallery's `readDetails` is `detect.Detect`, through `details.Bounded`, and that call. Users are as the users check reads them; a blank is guarded; a fact keeps its section's others; ZFS with no `zpool` or `zfs` falls back to `df`; arm64's blanks say Not known |
 | `detailsModel`, `withDetails`, `ipLine`, `alpineIPLine`, `cpuinfo` | Stay: what a fake host answers. They gain `/proc/self/status` and a wtmp record |
 | `detailsDocument`, `detailsJSON` | `Run.Details`, `Document.Details`, `output.Details` and `DETAILS_UNREADABLE` in `pkg/output` (items 25, 26); `--output` is unit (d)'s |
 | `report`, `offTerminalCtx` | Stay until unit (c): the uncapped plain form, in `pkg/ui` |
-| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `ScanLines` and `Show` |
+| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `logview.Each` |
 | `safeLine` | `logview.Safe`, and `Show` for a cut line (item 8) |
 | `parseLogLine` | `logview.ParseLine`, for the colour alone (item 9) |
 | `logRows`, `codeRows`, `logScreen` | Stay until unit (c): a section that holds code, in `pkg/ui`, a deviation to log |

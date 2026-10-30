@@ -62,6 +62,7 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 
 `RunInteractive(ctx, env, name, args...)` runs one named program as a child with hardn's own stdin, stdout and stderr, so it has the terminal, and waits for it: the seam decision 7 (a) of [gallery-system-details.md](../engine/gallery-system-details.md) §5 accepts, for the Logs screen's pager. `Run` pipes output and gives no terminal (`pkg/host/real.go`, `start`).
 
+- **Off a terminal it runs nothing,** where stdin or stdout is not one, and returns an error: a child that has the terminal may do otherwise off one, as `less` on a pipe acts as `cat`, passing a log's bytes through raw, and the pipe can end at a terminal, `hardn | tee` (run: `TestRunInteractiveNeedsATerminal`; `less` by hand on 581.2, GNU's [I]). The fake has no terminal to ask about, and does not refuse.
 - **No shell, the name as `Run` resolves it**, the working directory `/`, `Args[0]` the name (run: `TestRunInteractiveCommand`, through the exec seam).
 - **The environment is exactly `env` and `Run`'s `PATH`** (`InteractiveEnv`), which no entry of `env` replaces: nothing is inherited, for `commandEnv`'s reason, no `PATH`, `IFS`, `ENV`, `LD_PRELOAD` or locale from whoever started a root process (run: `TestRunInteractiveExactEnvironment`: `env(1)` as a real child prints the three lines passed, under a parent holding `PAGER`, `LESS`, `LESSOPEN`, `LESSCLOSE`, `LESSKEY`, `EDITOR`, `VISUAL`, `SHELL`, `HOME`, `LD_LIBRARY_PATH`, `TERM` and `LC_ALL`). The run log holds the argv and the exit, not `env`.
 - **A non-zero exit is an `*ExitError`,** `ExitCode` -1 when ended by a signal (run: `TestRunInteractiveExit`).
@@ -70,6 +71,7 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 - **Context.** A done ctx runs nothing. Done while the child runs: SIGTERM, which it can act on, then SIGKILL after 5 s, an error wrapping `ctx.Err()` (run: `TestRunInteractiveContext`, with a trap and with SIGTERM ignored). A caller holding `signal.NotifyContext` around the call gets this on Ctrl-C too, so a screen does not hold one: `cmd/hardn`'s are around an apply and `hardn confirm`'s clean-up alone (`screenApplyContext`, `confirmSignals`).
 - **The terminal's modes.** A child that ends with them changed, killed or crashed in raw mode, has them put back from before the call (`keepTerminal`), so the next prompt reads cooked (run: `TestRunInteractiveTerminalModes`: `stty raw -echo`, then a line typed reads whole).
 - **Real less on a pseudo-terminal, this Mac's 581.2** (run: `TestRunInteractiveLess`): with `LESSSECURE=1` and `--` before the path the file shows, `!` says "not available", `q` ends it, exit 0. **Not run:** a person's real terminal; GNU less 668 under hardn; as root; on Linux at all (`pty_linux_test.go` is written, vetted by `make check-cross`).
+- **`RunBounded`,** a free function and no method, runs a command through any `System` under a limit, and returns a grace past it whether or not the command has ended, leaving it behind: for a read a person waits for (run: `TestHungCommand`, `TestPagerBound`, `TestBoundOnARealChild`). *Since `next/s1-readers`.*
 - **Known limits, written, not run:** Ctrl-Z stops the group, hardn with it, and `fg` resumes both, as any foreground program's child; a SIGTERM or hangup sent to hardn alone ends hardn by what it has at the call and leaves the child to its terminal.
 
 ### The fake (`pkg/host/hostfake`)
@@ -212,7 +214,7 @@ type SystemCommander struct{ Sys host.System }
 type SystemFileSystem struct{ Sys host.LegacySystem }
 ```
 
-**Import rules** (depguard, `.golangci.yml`): `pkg/host/**` keeps to the standard library (rule `host-stdlib`), so nothing it links runs a command or touches a file behind the seam, with `golang.org/x/sys/unix` allowed since `next/p2-atomic` for the guarded walk ([atomic.md](atomic.md) §5); `pkg/host/hangup` (*since `next/s3-hangup`*) is under it too, its code the standard library alone (its pty tests use `golang.org/x/sys/unix`; test files are outside the rule); `hostfake` is for tests and `internal/tools` only (rule `test-only`).
+**Import rules** (depguard, `.golangci.yml`): `pkg/host/**` keeps to the standard library (rule `host-stdlib`), so nothing it links runs a command or touches a file behind the seam, with `golang.org/x/sys/unix` allowed since `next/p2-atomic` for the guarded walk ([atomic.md](atomic.md) §5), and since `next/s1-readers` for `RunInteractive`'s termios; `pkg/host/hangup` (*since `next/s3-hangup`*) is under it too, its code the standard library alone (its pty tests use `golang.org/x/sys/unix`; test files are outside the rule); `hostfake` is for tests and `internal/tools` only (rule `test-only`).
 
 ## 7. Not in this unit
 

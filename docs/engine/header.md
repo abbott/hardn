@@ -176,6 +176,9 @@ func (Family) Known() bool
 func (Address) Primary() (addr netip.Addr, known bool)
 type Reboot struct { Pending detect.Tri; HostKernel bool; Running string; Findings []engine.Finding; Evidence []string; Err error }
 func Read(ctx context.Context, sys host.System, f detect.Facts) Header
+func OSOf(f detect.Facts) OS // since next/s1-readers, with the next two: Read's own reads, which the System Details report takes alone
+func ReadHostname(ctx context.Context, sys host.System) Hostname
+func ReadUptime(ctx context.Context, sys host.System) Uptime
 
 package detect // pkg/host/detect, added
 func DpkgVersion(ctx context.Context, sys host.System, pkg string) (Tri, string, error) // DpkgInstalled's rule, with the version
