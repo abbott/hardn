@@ -66,6 +66,13 @@
 // (docs/engine/screen-backup.md). Figma's frame stays among the mocks as
 // its record (sub-menu/05-backup).
 //
+// Environment is the Environment screen (slice 9, next/s9-screen):
+// origin/main's main menu 8 as the maintainer adopted its mock, with no
+// status row, filled from the Environment control's reading that
+// pkg/screens/environment makes, which also runs its items; Step and
+// Review give item 1's workflow, EnvironmentGuide item 2
+// (docs/engine/screen-environment.md).
+//
 // # Fixtures and mocks
 //
 // MainMenuFixture, UserFixture and ManageSudoFixture fill the three
