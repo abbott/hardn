@@ -92,7 +92,7 @@ origin/main disables password authentication in the same step that adds keys, wi
 | A Go program writing to a broken pipe on fd 1 or 2 without `signal.Notify` exits with `SIGPIPE` | [system.md](system.md) §2.5 | §2.7 |
 | `SSH_CONNECTION` "Identifies the client and server ends of the connection": client address, client port, server address, server port; `SSH_TTY` names the session's tty | [ssh(1)](https://man.openbsd.org/ssh.1), ENVIRONMENT | §2.10, §2.11 |
 | With `env_reset` sudo keeps "TERM, PATH, HOME, MAIL, SHELL, LOGNAME, USER and SUDO_*" and what `env_keep`/`env_check` add: not `SSH_CONNECTION` by default | [sudoers(5)](https://www.sudo.ws/docs/man/sudoers.man/) | §2.10 |
-| sudo-rs (Ubuntu 26.04) and doas (Alpine) reset the environment too | sudo-rs **[unverified]**; doas seen on the Alpine 3.23 VM, 2026-10-30, and with no fork it leaves no ancestor holding `SSH_CONNECTION` (§9.2) | §2.10 |
+| sudo-rs (Ubuntu 26.04) and doas (Alpine) reset the environment too | seen on the VMs, 2026-10-30 (§9.4): sudo and sudo-rs stay in the chain holding `SSH_CONNECTION`; doas, with no fork, leaves no ancestor holding it (§9.2) | §2.10 |
 | `/proc/<pid>/environ` is the initial environment, NUL-separated, behind a `PTRACE_MODE_READ_FSCREDS` check; `/proc/<pid>/cmdline` the argv NUL-separated | [proc_pid_environ(5)](https://manpages.debian.org/trixie/manpages/proc_pid_environ.5.en.html); `cmdline` from proc(5) **[not re-read here]** | §2.9, §2.10 |
 | `/proc/<pid>/stat`: (1) "The process ID", (2) comm, "The filename of the executable, in parentheses", truncated to 15 characters; (4) "The PID of the parent"; (7) tty_nr, "The controlling terminal of the process", "the minor device number is contained in the combination of bits 31 to 20 and 7 to 0; the major device number is in bits 15 to 8"; (22) starttime, "The time the process started after system boot", in clock ticks | [proc_pid_stat(5)](https://manpages.debian.org/trixie/manpages/proc_pid_stat.5.en.html) | §2.10, §2.11, §2.16 |
 | A pid's start time tells two processes that ran under one pid apart; a zombie keeps its `stat` (state `Z`) | follows from field 22 and field 3; **[not re-read here]** for the zombie | §2.11, §2.16 |
@@ -330,7 +330,7 @@ func (e *NotPendingError) RolledBack() bool
 
 ## 9. The host's tool, and a one-command confirm (2026-10-30)
 
-Two defects in this page's code, found on the Alpine 3.23 VM (doas) during slice 9's VM run, where a change first needed confirming on a doas host (`_support/hardn-audit-2026-10-16/vm-runs/s9/first-alpine/`, `06-stop-alpine323-vm.ans`, `06-confirm1-alpine323-vm.out`). Built and tested on macOS on the fake; not run on a VM (§9.4).
+Two defects in this page's code, found on the Alpine 3.23 VM (doas) during slice 9's VM run, where a change first needed confirming on a doas host (`_support/hardn-audit-2026-10-16/vm-runs/s9/first-alpine/`, `06-stop-alpine323-vm.ans`, `06-confirm1-alpine323-vm.out`). Built and tested on macOS on the fake, then run on the VMs on 2026-10-30 (§9.4).
 
 ### 9.1 Every line says the host's tool
 
@@ -380,6 +380,16 @@ The other lines keep their words, with the tool in place of `sudo`.
 | `SSH_CONNECTION` is built from the connection's remote and local address and port | OpenSSH `session.c`, read here | §9.2 |
 | `/proc/net/tcp` and `tcp6`: entry, local address, remote address, state, then the inode at field 10, addresses in hex | [proc_net_tcp.rst](https://docs.kernel.org/networking/proc_net_tcp.html); state `01` is the kernel's `TCP_ESTABLISHED` | §9.2 |
 | `/proc/<pid>/net` is that process's network namespace | [proc_pid_net(5)](https://man7.org/linux/man-pages/man5/proc_pid_net.5.html) | §9.2 |
-| The closest `sshd` of a session holds the connection's socket, as it does the session's packet I/O | **[unverified on a VM]**: `lsof` on an sshd process shows it, from memory | §9.2 |
+| The closest `sshd` of a session holds the connection's socket, and it is the only established TCP connection among its sockets. Its descriptor is not fixed (7 on Debian 13 and Alpine 3.23, 9 on Ubuntu 26.04), and the others are not in the TCP tables | run 2026-10-30 on OpenSSH 10.0p2 (Debian 13) and 10.2p1 (Ubuntu 26.04, Alpine 3.23), read as root | §9.2 |
 
-**Not run on a VM** (a VM run needs the maintainer's go-ahead). If the last row is wrong, or the fd layout differs, the session stays not established and the refusal stands, now with its advice: nothing confirms that should not. The check is in [vmtest.md](vmtest.md) §4.11.
+**Run on the VMs, 2026-10-30** (`_support/hardn-audit-2026-10-16/vm-runs/s9-confirm/`, binary from this commit's code; run by the maintainer from the Terminal panel). Debian 13 and Ubuntu 26.04 were read only, as Environment's change is never lockout-risk under sudo: sudo and sudo-rs stay in the chain holding `SSH_CONNECTION`, so those hosts find it there as before, and no socket is read. On Alpine 3.23, with a change waiting:
+
+| Check | Result |
+|---|---|
+| `doas hardn confirm` from a new connection, one command | **Confirmed**, from the connection read from the kernel (`hardn.log`: "from SSH connection ..."), in place of the refusal of the first run |
+| The same over the connection that applied it | Refused, `ErrSameSession`, saying `doas`. That needs all four values read from the kernel to equal the `SSH_CONNECTION` journalled at the apply, so this is the check that they are the same values |
+| A second change | Refused, `CHANGE_PENDING`, saying `doas hardn confirm` and `doas hardn rollback <id>`; the notice on the same run says `doas` too |
+| `hardn` and `hardn confirm`, not as root | "Run `doas hardn` or switch to root `su`"; "must be run as root: doas hardn confirm" |
+| The host afterwards | Restored as found, by slice 9's kit (`99-restore-alpine323-vm.log`) |
+
+**Not shown on a VM:** the refusal with a forward in use. On Alpine the probe saw one established connection with `ssh -L` set up and `nc` connected through it, so the kit did not try the confirm, and why the forward did not show was not established. `TestConfirmOneCommand` and `TestReadSession` cover the refusal. If a real forward's socket were held elsewhere, the count would still be right. Also not run: a real confirm under sudo (the code path is unchanged, as above), and the `sudo sshd -t` line's doas form in the abandon report.
