@@ -425,7 +425,7 @@
   - Exports go through `--output json`.
 - **Effort:** M.
 - **Risk:** Low (read-only).
-- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 1 to 6): the seven sections on the design system, one form at every height. Saving is `hardn system-details > file`; `--output json` is drawn as a proposal, §3.11 not being approved.
+- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 1 to 6): the seven sections on the design system, one form at every height. Where Last Login reads from, with `last` and `lastlog` gone from stock Debian 13 and Ubuntu 26.04, is decision 3. Saving is `hardn system-details > file`; `--output json` is drawn as a proposal, §3.11 not being approved.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-17-before.png` (placeholder). After: `docs/refactor/img/p-17-after.png` (placeholder).
 
 <a id="p-18"></a>
@@ -441,7 +441,7 @@
   - Read the file hardn actually writes.
 - **Effort:** S.
 - **Risk:** Low.
-- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 7 to 10): the last lines the terminal holds, from the file hardn writes, with an item that opens `less`. This proposal as written is drawn too, for comparison (`read-pager`, `pager-env`). A pager needs a new seam on `host.System`, more than Effort S suggests [I].
+- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) decisions 7 to 10): the last lines the terminal holds, from the file hardn writes, with an item that opens GNU `less`, none on BusyBox's. This proposal as written is drawn too, for comparison (`read-pager`, `pager-env`). A pager needs a new seam on `host.System`, more than Effort S suggests [I].
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-18-before.png` (placeholder). After: `docs/refactor/img/p-18-after.png` (placeholder).
 
 <a id="p-19"></a>
@@ -653,6 +653,7 @@
   - (b) if P-09 keeps "Enter to continue" where output must be read, as here: a fourth layout, a display: the title bar ([P-08](#p-08), decided), its sections, then a pause `PromptLine` in P-09's words, which `pkg/ui/nav` would ask as a pause of its own.
 - **Effort:** S for (a); M for (b) (a layout, a pause in `pkg/ui/nav`, goldens).
 - **Risk:** Low: display only.
+- **Mocked** (slice 1, unit (a), `next/s1-gallery`; [gallery-system-details.md](../engine/gallery-system-details.md) §5, Made here): System Details and Logs as (a), a sub-menu with no pause. SSH_LOGIN-SSH_SETTINGS_DISPLAY's own choice stays open, and so does this proposal.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: Figma `SSH_LOGIN-SSH_SETTINGS_DISPLAY.png` (reference only). After: `docs/refactor/img/p-28-after.png` (placeholder).
 
 <a id="p-29"></a>
