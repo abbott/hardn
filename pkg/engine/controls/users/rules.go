@@ -54,6 +54,58 @@ func readTools(ctx context.Context, sys host.System, f detect.Facts) []tool {
 	}
 }
 
+// Elevation is the host's elevation rules as Check reads them, for another
+// reader of the same question, the System Details report (pkg/engine/details;
+// slice 1): the smallest Check exposes, so that the row and the report cannot
+// read the rules differently. It says nothing of shells, locks or findings,
+// which are the row's. The zero Elevation has no tool.
+type Elevation struct{ tools []tool }
+
+// ReadElevation reads sudo's rules, then doas's, for the tools detect found,
+// as Check does: each tool's own check of its files runs first (visudo -c,
+// doas -C). It changes nothing.
+func ReadElevation(ctx context.Context, sys host.System, f detect.Facts) Elevation {
+	return Elevation{tools: readTools(ctx, sys, f)}
+}
+
+// NotRead is a tool whose rules are not established, and why: its rules
+// unreadable to a user other than root, a configuration its tool rejects,
+// whether it is installed not established.
+type NotRead struct {
+	Tool string // "sudo" (sudo or sudo-rs) or "doas"
+	Err  error
+}
+
+// NotRead are the tools whose rules are not established, in the order read.
+func (e Elevation) NotRead() []NotRead {
+	var out []NotRead
+	for _, t := range e.tools {
+		if t.state == detect.Unknown {
+			out = append(out, NotRead{Tool: t.name, Err: t.err})
+		}
+	}
+	return out
+}
+
+// Grant is what one tool's rules decide for one account: Yes, the rule that
+// decides lets it run every command as root; No, the tool makes no one root
+// or no rule that decides does; Unknown, a rule hardn does not read may decide,
+// or the tool's rules are not read (Elevation.NotRead). Passwords are not said.
+type Grant struct {
+	Tool   string // "sudo" (sudo or sudo-rs) or "doas"
+	Grants detect.Tri
+}
+
+// GrantsOf is what each tool decides for u, by the rules Check decides by, in
+// the order read: sudo, then doas.
+func (e Elevation) GrantsOf(db accounts.DB, u accounts.User) []Grant {
+	var out []Grant
+	for _, t := range e.tools {
+		out = append(out, Grant{Tool: t.name, Grants: t.decide(db, u).tri})
+	}
+	return out
+}
+
 // readTool reads one tool's rules: where the tool reads them is
 // sudoers.Read's (sudo-rs's /etc/sudoers-rs, the drop-ins it skips), and
 // doas only on Alpine, whose doas reads /etc/doas.d (sudoers.Choose). The
