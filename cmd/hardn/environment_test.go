@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -251,6 +252,58 @@ func TestEnvironmentHook(t *testing.T) {
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
+	}
+}
+
+// TestBackupThenEnvironment: a path change through the Backup item leaves
+// the main menu's configuration holding the new path, and the Environment
+// item's next change backs hardn-env-alice up under it, nothing under the
+// old: each visit assembles engineOptions from the configuration as it
+// then is (runEnvironmentScreen), as TestBackupThenDNS holds for DNS.
+// Environment is visited, with a change, before the path change, so that
+// options assembled once, when the hook is set, at the first visit or at
+// the first change, back the last change up under the old path. Both
+// hooks as main sets them, on one host, the user typing on through the
+// three visits, as from the main menu: keep, the path change, then stop
+// keeping.
+func TestBackupThenEnvironment(t *testing.T) {
+	h := newEnvHost(t, "debian13")
+	h.AddDir("/srv", 0o755, 0, 0)
+	h.AddFile(dnsTestYML, []byte("# hardn's configuration (web-01.example.net)\nusername: alice\n"), 0o644, 0, 0)
+	cfg, err := config.Read(context.Background(), h, dnsTestYML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := useEnvHost(t, h, "1", "y", "0", "2", backupTestPath, "y", "0", "1", "y", "0")
+	set := &hookSet{}
+	if got := withEnvironmentScreen(withBackupScreen(set, cfg), cfg); got != set || set.backup == nil || set.environment == nil {
+		t.Fatal("withBackupScreen and withEnvironmentScreen did not set the Backup and Environment items' screens on the menu given")
+	}
+	if err := set.environment(); err != nil {
+		t.Fatalf("the Environment item, first = %v; screen:\n%s", err, s.out.String())
+	}
+	if h.content(envTestFile) == "<absent>" {
+		t.Fatalf("the first visit did not keep HARDN_CONFIG; screen:\n%s", s.out.String())
+	}
+	if err := set.backup(); err != nil {
+		t.Fatalf("the Backup item = %v; screen:\n%s", err, s.out.String())
+	}
+	if cfg.BackupPath != backupTestPath {
+		t.Fatalf("the main menu's configuration says backupPath %q after the path change, want %q; screen:\n%s", cfg.BackupPath, backupTestPath, s.out.String())
+	}
+	before := len(h.writes())
+	if err := set.environment(); err != nil {
+		t.Fatalf("the Environment item, again = %v; screen:\n%s", err, s.out.String())
+	}
+	envWrites := h.writes()[before:]
+	if !slices.Contains(envWrites, "remove "+envTestFile) || len(under(envWrites, backupTestPath)) == 0 {
+		t.Errorf("stopping wrote %q: want %s removed and its backup under %s; screen:\n%s", envWrites, envTestFile, backupTestPath, s.out.String())
+	}
+	if got := under(envWrites, backup.DefaultPath); len(got) > 0 {
+		t.Errorf("stopping wrote under the old path: %q", got)
+	}
+	if s.applies != 3 || s.live != 0 || s.atPrompt != 0 {
+		t.Errorf("signals registered %d times (want 3), %d left, %d prompts read under them", s.applies, s.live, s.atPrompt)
 	}
 }
 
