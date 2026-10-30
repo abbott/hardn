@@ -147,6 +147,7 @@ type Grant uint8 // GrantNone, GrantPassword, GrantNoPassword; String()
 type Policy struct { User string; Grant Grant; Env []string }
 
 type File struct { Path string; Exists bool; Data []byte; Mode fs.FileMode; UID, GID int }
+func (File) RootsAlone() bool // owner and group 0, no group or other write: what Plan.Check asks of an old file (next/s9-screen)
 type FindingKind uint8 // FindingLater "sudoers-later-file", FindingAfterInclude "sudoers-after-include", FindingLegacy "sudoers-legacy-file"
 type Finding struct { Kind FindingKind; File string; Line int; Detail string }
 type State struct { Choice Choice; Main string; Entries []string; Files map[string]File; Findings []Finding }

@@ -81,6 +81,9 @@ const (
 	codeNoUser = "ENVIRONMENT_NO_USER"
 	codeEdited = "SUDOERS_FILE_EDITED"
 	codeNoRule = "SUDOERS_ENV_NEEDS_GRANT"
+	// codePlanInvalid: the journal's refusal of a plan (plans.ErrPlan), said
+	// in words where a file of hardn's is not root's alone (notRoots).
+	codePlanInvalid = "PLAN_INVALID"
 )
 
 // Controls is the Environment control, keeping HARDN_CONFIG for the user
@@ -352,7 +355,7 @@ func planFor(r Reading, st sudoers.State, stop bool) (sudoers.Plan, error) {
 	}
 	if st.Choice.Tool == sudoers.ToolSudo {
 		if _, err := steps.Sudoers(ChangeKeep, p, SummaryKeep); err != nil {
-			return sudoers.Plan{Tool: st.Choice.Tool}, err
+			return sudoers.Plan{Tool: st.Choice.Tool}, notRoots(p, err)
 		}
 		n, err := sudoers.FileNames(sudoers.ToolSudo, r.User)
 		if err != nil {
@@ -379,9 +382,22 @@ func change(r Reading, st sudoers.State, stop bool) (*engine.Change, error) {
 	}
 	c, err := steps.Sudoers(id, p, summary)
 	if err != nil {
-		return nil, err
+		return nil, notRoots(p, err)
 	}
 	return &c, nil
+}
+
+// notRoots is err, the journal's refusal of p (steps.Sudoers), with its
+// report where a file of hardn's that p changes, or on sudo leaves out
+// (decision 16), is not root's alone (sudoers.File.RootsAlone): the first
+// such file named, in the words adopted 2026-10-30. Any other error is err.
+func notRoots(p sudoers.Plan, err error) error {
+	for _, c := range p.Changes {
+		if c.Old.Exists && !c.Old.RootsAlone() {
+			return &steps.Refusal{Code: codePlanInvalid, Why: c.Path + " isn't root's alone", Fix: "make it root:root, writable by root only", Err: err}
+		}
+	}
+	return err
 }
 
 // Check reads the Environment of sys (Read, without item 1's plan):

@@ -27,8 +27,8 @@ const (
 	noUserWords = "hardn wasn't run with sudo, so there's no user to keep it for. Run sudo hardn as that user."
 	editedWords = "/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't write. Put hardn's back, or remove it."
 	// journalWords are the journal's refusal of a file of hardn's not
-	// root's alone, as it is (control-environment.md §6).
-	journalWords = "is not a file only root can write"
+	// root's alone, in the words adopted 2026-10-30 (control-environment.md §6).
+	journalWords = "/etc/sudoers.d/hardn-env-alice isn't root's alone. Make it root:root, writable by root only."
 	keepSudo     = "Takes effect at the next sudo hardn."
 	keepDoas     = "Takes effect at the next doas hardn."
 	planOnly     = "No actual changes were made to your system."
