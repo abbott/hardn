@@ -390,7 +390,10 @@ func (o observed) firstKeysFile() []string {
 	return strings.Fields(o.ssh[len(o.ssh)-1].authorizedKeysFile[0])
 }
 
-// Short texts for the V-list (Phase 0 side-effect inventory, V1-V27).
+// Short texts for the V-list (Phase 0 side-effect inventory, V1-V27), for
+// the V-numbers a case cites. V20's, cited by setup_sudo_preservation
+// alone, went with that case (slice 9, unit (d)); its frozen goldens keep
+// it (pkg/screens/environment/testdata/legacy/ops).
 var vText = map[string]string{
 	"V1":  "CLI -n/--dry-run is ignored below the menu layer: the cfg.DryRun=true section repeats every command and write",
 	"V4":  "disable-root rebuilds the SSH config from a stub (Port 22, no ListenAddress/AllowUsers, key-only) instead of editing PermitRootLogin",
@@ -408,7 +411,6 @@ var vText = map[string]string{
 	"V16": "sudoers file written without visudo -c and non-atomically; the overwrite drops any env_keep line",
 	"V17": "the user is created without a password",
 	"V18": "writes are non-atomic and nothing is backed up first",
-	"V20": "a predictable temp file (os.TempDir()/hardn_sudoers_temp) is written as root",
 	"V21": "Alpine: root writes /home/<user>/.ssh/authorized_keys (home path assumed; write follows symlinks)",
 	"V22": "the key is appended again with no dedupe (cat >>) on every run for an existing user",
 	"V24": "a single AuthorizedKeysFile drops v0.3.2's ~/.ssh_<user>/authorized_keys, so keys on upgraded hosts stop working",
