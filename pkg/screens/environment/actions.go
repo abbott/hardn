@@ -140,9 +140,9 @@ func (r *runner) cantConfirm(err error) error {
 // the host's name as the kernel has it (header.HostnameFile), as
 // hostname(1) prints it and the main menu's header shows it; and its
 // first label where the name has more, asked in its place where the name
-// does not show whole beside the label (flow.Confirm.Short; P-25 (e)). An
-// error where the name cannot be read, or is no phrase nav can ask for
-// (nav.CheckPhrase).
+// does not show whole beside the label (flow.Confirm.Short; P-27 (e),
+// proposed). An error where the name cannot be read, or is no phrase nav
+// can ask for (nav.CheckPhrase).
 func hostname(ctx context.Context, sys host.System) (phrase, short string, err error) {
 	data, err := sys.ReadFile(ctx, header.HostnameFile)
 	if err != nil {
