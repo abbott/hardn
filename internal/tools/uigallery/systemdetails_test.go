@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"path"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -255,5 +258,93 @@ func TestSystemDetailsUsage(t *testing.T) {
 	var out, errs bytes.Buffer
 	if code := run([]string{sdPrefix, "-list"}, nil, offTerminal, &out, &errs); code != exitOK || !strings.Contains(out.String(), "screen-debian13\n") {
 		t.Errorf("-list: exit %d, %q", code, out.String())
+	}
+}
+
+// drawnLines is draw's lines at 80 columns and rows rows, with or without
+// Unicode glyphs, in plain text.
+func drawnLines(rows int, unicode bool, draw func(component.Ctx) string) []string {
+	env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
+	env.Height = rows
+	return strings.Split(ansi.Strip(draw(component.NewCtx(env))), "\n")
+}
+
+// TestSystemDetailsHeights: the screen on every host and in each treatment,
+// at 80x24 and at 80x40, in Unicode and ASCII: each is as many lines at
+// either height, the prompt on its last. Treatment report-whole is longer
+// than either height, its top scrolling off, as the main menu's does
+// (DEV-052); report-sections and report-pager fit 24 rows.
+func TestSystemDetailsHeights(t *testing.T) {
+	want := map[string]int{"debian13": 43, "ubuntu2604": 43, "alpine323": 43, "pve9": 44, "zfs-degraded": 44, "unreadable": 43,
+		"no-last-login": 43, "many": 64, reportSections: 16, reportPager: 20, exportCommand: 44, exportFile: 44}
+	if len(want) != len(sdHosts()) {
+		t.Fatalf("%d heights, %d hosts", len(want), len(sdHosts()))
+	}
+	for _, sh := range sdHosts() {
+		r, err := readSDHost(context.Background(), sh.name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, rows := range []int{24, 40} {
+			for _, unicode := range []bool{true, false} {
+				lines := drawnLines(rows, unicode, func(c component.Ctx) string { return r.subMenu().Render(c) })
+				fits := sh.report == "" || len(lines) <= 24
+				if len(lines) != want[sh.name] || !fits || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
+					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q; want %d, the prompt", sh.name, rows, unicode, len(lines), lines[len(lines)-1], want[sh.name])
+				}
+			}
+		}
+	}
+}
+
+// readOnly are the commands the System Details and Logs stand-ins run beyond
+// those reads knows: they read and change nothing.
+var readOnly = []string{"ip", "df", "zpool", "zfs", "last"}
+
+// assertOnlyReads fails t for anything h did but read: a file or directory
+// changed, a command not known to read, or one the model does not answer.
+func assertOnlyReads(t *testing.T, name string, h *fakeHost) {
+	t.Helper()
+	if got := writesAfter(h, 0); len(got) > 0 {
+		t.Errorf("%s: changed the host: %q", name, got)
+	}
+	for _, c := range h.f.Calls() {
+		if (c.Op == "run" || c.Op == "start-detached") && !reads(c.Argv) && !slices.Contains(readOnly, path.Base(c.Argv[0])) {
+			t.Errorf("%s: ran %s", name, c)
+		}
+		if c.Op == "start-detached" || (c.Op == "run" && slices.Contains([]string{"less", "more", "most", "sh"}, path.Base(c.Argv[0]))) {
+			t.Errorf("%s: ran a pager or started a process: %s", name, c)
+		}
+	}
+	if u := h.unanswered(); len(u) > 0 {
+		t.Errorf("%s: the host was asked what it does not model: %q", name, u)
+	}
+}
+
+// TestSystemDetailsWritesNothing: on every host, live and under plan only,
+// the screen drawn and every item chosen, Refresh and Export among them,
+// write nothing and run no command but reads; no engine is built and no hold
+// taken. Export's treatment export-file says what it would write and the
+// gallery does not write it; a pager is said, not run.
+func TestSystemDetailsWritesNothing(t *testing.T) {
+	for _, sh := range sdHosts() {
+		for _, dryRun := range []bool{false, true} {
+			h := sh.host()
+			var lines []string
+			for _, it := range readDetails(context.Background(), h.sys(), sh).items() {
+				lines = append(lines, it.item.Key)
+			}
+			lines = append(lines, "0")
+			s, out, code := playWith(t, sdPrefix+"/"+sh.name, func(s *session) func() error {
+				if dryRun {
+					s.sequence = "dry-run"
+				}
+				return func() error { return s.sdScreen(context.Background(), sh, h) }
+			}, lines...)
+			if code != exitOK || len(s.engineRuns) != 0 || s.holds != 0 {
+				t.Errorf("%s, plan only %t: exit %d, %d engines, the hold taken %d times:\n%s", sh.name, dryRun, code, len(s.engineRuns), s.holds, out)
+			}
+			assertOnlyReads(t, sh.name, h)
+		}
 	}
 }

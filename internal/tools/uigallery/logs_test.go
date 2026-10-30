@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -109,7 +110,7 @@ func TestSafeLine(t *testing.T) {
 		"a\tb":               "a b",
 		"a\x7fb":             "a^?b",
 		"\u009b31m":          "<U+009B>31m",
-		"abc‮def":       "abc<U+202E>def",
+		"abc‮def":            "abc<U+202E>def",
 		"caf\xe9":            "caf<0xe9>",
 		"café":               "café",
 	} {
@@ -189,5 +190,65 @@ func TestLogsUsage(t *testing.T) {
 	var out, errs bytes.Buffer
 	if code := run([]string{logsPrefix, "-list"}, nil, offTerminal, &out, &errs); code != exitOK || !strings.Contains(out.String(), "screen-lines\n") {
 		t.Errorf("-list: exit %d, %q", code, out.String())
+	}
+}
+
+// TestLogsHeights: the screen on every host at 80x24 and at 80x40, in Unicode
+// and ASCII: the prompt on its last line, within the terminal's rows, the
+// long log filling them exactly, more of its lines at 40 than at 24; so does
+// its form on a host with a shorter log, no more than it holds.
+func TestLogsHeights(t *testing.T) {
+	shown := map[int]string{24: "Last 5 of 1204 lines", 40: "Last 20 of 1204 lines"}
+	for _, lh := range logHosts() {
+		if lh.read == readPager && lh.name == "read-pager" {
+			continue // no screen: the pager at once
+		}
+		r, err := readLogHost(context.Background(), lh.name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, rows := range []int{24, 40} {
+			for _, unicode := range []bool{true, false} {
+				lines := drawnLines(rows, unicode, func(c component.Ctx) string { return r.subMenu(c).Render(c) })
+				if len(lines) > rows || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
+					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q", lh.name, rows, unicode, len(lines), lines[len(lines)-1])
+				}
+				if lh.name == "long" {
+					if len(lines) != rows || !strings.Contains(strings.Join(lines, "\n"), shown[rows]) {
+						t.Errorf("long at 80x%d, unicode %v: %d lines, want %d and %q:\n%s", rows, unicode, len(lines), rows, shown[rows], strings.Join(lines, "\n"))
+					}
+				}
+			}
+		}
+	}
+}
+
+// TestLogsWriteNothing: on every host, live and under plan only, the screen
+// drawn and every item chosen, Open and Refresh among them, write nothing and
+// run nothing but reads: a pager is said, not run. Refresh's new line is the
+// model's, put there unrecorded, as another hardn would write it.
+func TestLogsWriteNothing(t *testing.T) {
+	for _, lh := range logHosts() {
+		for _, dryRun := range []bool{false, true} {
+			h := lh.host()
+			r := readLog(context.Background(), h.system(), lh)
+			var lines []string
+			if lh.read != readPager || r.pager.name == "" {
+				for _, it := range r.items() {
+					lines = append(lines, it.item.Key)
+				}
+				lines = append(lines, "0")
+			}
+			s, out, code := playWith(t, logsPrefix+"/"+lh.name, func(s *session) func() error {
+				if dryRun {
+					s.sequence = "dry-run"
+				}
+				return func() error { return s.logsScreen(context.Background(), lh, h) }
+			}, lines...)
+			if code != exitOK || len(s.engineRuns) != 0 || s.holds != 0 {
+				t.Errorf("%s, plan only %t: exit %d, %d engines, the hold taken %d times:\n%s", lh.name, dryRun, code, len(s.engineRuns), s.holds, out)
+			}
+			assertOnlyReads(t, lh.name, h)
+		}
 	}
 }

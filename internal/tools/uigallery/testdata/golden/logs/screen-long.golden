@@ -8,7 +8,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13, less␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Treatment read-tail: as many of the last lines as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds: 5 rows at 80x24, 21 at 80x40 (-height 40).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds: 5 at 80x24, 20 at 80x40 (-height 40).␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main prints all 1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -44,7 +44,7 @@ $
 # Note$
 # Mock: the Logs screen. web-01.example.net runs Debian 13, less$
 # installed. Treatment read-tail: as many of the last lines as$
-# the terminal holds: 5 rows at 80x24, 21 at 80x40 (-height 40).$
+# the terminal holds: 5 at 80x24, 20 at 80x40 (-height 40).$
 # origin/main prints all 1204.$
 $
 # Logs #########################################################$
@@ -80,8 +80,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless installed. Treatment read-tail: as many of the last␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines as the terminal holds: 5 rows at 80x24, 21 at 80x40␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(-height 40). origin/main prints all 1204.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines as the terminal holds: 5 at 80x24, 20 at 80x40 (-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheight 40). origin/main prints all 1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -116,7 +116,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13, less␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Treatment read-tail: as many of the last lines as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds: 5 rows at 80x24, 21 at 80x40 (-height 40).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds: 5 at 80x24, 20 at 80x40 (-height 40).␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main prints all 1204.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$

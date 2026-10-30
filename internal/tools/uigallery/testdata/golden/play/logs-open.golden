@@ -15,8 +15,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/long␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Treatment␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: as many of the last lines as the terminal holds: 5␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows at 80x24, 21 at 80x40 (-height 40). origin/main prints␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mall 1204.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x24, 20 at 80x40 (-height 40). origin/main prints all␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -91,8 +91,8 @@ $
 # Info: logs/long$
 # web-01.example.net runs Debian 13, less installed. Treatment$
 # read-tail: as many of the last lines as the terminal holds: 5$
-# rows at 80x24, 21 at 80x40 (-height 40). origin/main prints$
-# all 1204.$
+# at 80x24, 20 at 80x40 (-height 40). origin/main prints all$
+# 1204.$
 $
 # Logs #########################################################$
 $
@@ -168,7 +168,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/long␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-tail: as many of the last lines as the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: 5 rows at 80x24, 21 at 80x40 (-height 40).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: 5 at 80x24, 20 at 80x40 (-height 40).␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main prints all 1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$

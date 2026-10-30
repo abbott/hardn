@@ -169,7 +169,7 @@ func logHosts() []logHost {
 		{name: "lines", label: "A log with lines", about: "Fits the screen", host: logOn(logOf(logSample[len(logSample)-4:])),
 			note: deb + "Treatment read-tail: the log's 4 lines, all of them, WARNING and ERROR in the warning's colour."},
 		{name: "long", label: "A long log", about: "1204 lines", host: logOn(longLog()),
-			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: 5 rows at 80x24, 21 at 80x40 (-height 40). origin/main prints all 1204."},
+			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: 5 at 80x24, 20 at 80x40 (-height 40). origin/main prints all 1204."},
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
 			note: deb + "No file there. origin/main's main() makes it at every start as root, before flags (cmd/hardn/main.go:57; logging.go:38), so today this shows only where that open failed; next/p3-startup moves that write."},
 		{name: "unreadable", label: "Unreadable", about: "A directory there", host: unreadableLog,
