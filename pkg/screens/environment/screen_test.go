@@ -264,6 +264,21 @@ func TestHostname(t *testing.T) {
 			t.Errorf("%s: wrote %v", name, w)
 		}
 	}
+	// Plan only confirms nothing, so it needs no hostname: item 1 stops at
+	// its plan, as on every other host.
+	h = newHost(t, hostOverridden)
+	if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
+		t.Fatal(err)
+	}
+	n := len(h.Calls())
+	p = play(h, true, "1", "0")
+	if p.err != nil || p.unread != 0 || len(p.runs) != 1 || p.runs[0].Mode != output.ModePlan || !strings.Contains(p.out, planOnly) ||
+		strings.Contains(p.out, "Can't") || strings.Contains(p.out, "Type the hostname") {
+		t.Errorf("plan only, absent: Run = %v, %d unread, runs %+v:\n%s", p.err, p.unread, p.runs, p.out)
+	}
+	if w := writes(h, n); len(w) > 0 {
+		t.Errorf("plan only, absent: wrote %v", w)
+	}
 }
 
 // ptr is a pointer to s.

@@ -34,9 +34,11 @@ const (
 
 // action returns what choosing the item keyed key does with the reading
 // h: item 1, where the reading refuses it, says why before asking
-// anything; where its change is lockout-risk and the hostname it is
-// confirmed by cannot be read, says that, before asking too; else its
-// change. Item 2 says the guide.
+// anything; where its change is lockout-risk, is to be applied, and the
+// hostname it is confirmed by cannot be read, says that, before asking
+// too; else its change. Plan only confirms nothing (the flow stops at the
+// plan before its Confirm), so it needs no hostname. Item 2 says the
+// guide.
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.EnvironmentKeepItem:
@@ -44,7 +46,7 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 			return r.s.Say(screenkit.Warnings(refused(h.Reading)))
 		}
 		return func() error {
-			if h.Risk {
+			if h.Risk && !r.o.DryRun {
 				if _, _, err := hostname(ctx, r.o.System); err != nil {
 					return r.cantConfirm(err)
 				}
