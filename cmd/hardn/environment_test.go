@@ -70,7 +70,7 @@ type envTestHost struct {
 //   - alpine324: doas through 20-wheel.conf, no rule of hardn's for alice
 //     (SUDOERS_ENV_NEEDS_GRANT);
 //   - doas-password: Alpine 3.23's cloud image, doas, hardn's rule for
-//     alice asking her password and keeping nothing, so that keeping
+//     alice asking for a password and keeping nothing, so that keeping
 //     HARDN_CONFIG rewrites it: a lockout-risk plan;
 //   - pve9: Proxmox VE 9, neither tool, root logged in (SUDOERS_NO_TOOL).
 func newEnvHost(t *testing.T, name string) *envTestHost {
