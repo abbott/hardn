@@ -44,7 +44,8 @@ type Real struct {
 
 var _ LegacySystem = (*Real)(nil)
 
-// commandEnv is the whole environment of every command Real runs. Nothing is
+// commandEnv is the whole environment of every command Real runs, but
+// RunInteractive's, which is what its caller passes and this PATH. Nothing is
 // inherited from hardn's own environment: no PATH, IFS, ENV, BASH_ENV,
 // LD_PRELOAD or locale from whoever started hardn.
 var commandEnv = []string{"PATH=" + SearchPath, "LC_ALL=C"}

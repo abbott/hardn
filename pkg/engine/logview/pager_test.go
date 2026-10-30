@@ -13,11 +13,11 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
-// The first lines of less --version on the VMs:
+// The first line of less --version on the VMs, all the log holds of it:
 // _support/hardn-audit-2026-10-16/vm-runs/s1/01-tools.log.
 const (
-	gnuVersion  = "less 668 (GNU regular expressions)\nCopyright (C) 1984-2024  Mark Nudelman\n"
-	busyVersion = "less: unrecognized option: version\nBusyBox v1.37.0 (2025-09-24) multi-call binary.\n"
+	gnuVersion  = "less 668 (GNU regular expressions)\n"
+	busyVersion = "less: unrecognized option: version\n"
 )
 
 // TestPager holds exactly what would run, per host shape, and that anything
