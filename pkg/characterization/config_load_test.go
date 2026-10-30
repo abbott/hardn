@@ -53,8 +53,6 @@ func TestConfigLoadGoldens(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			dir := t.TempDir()
 			t.Setenv("HOME", dir)
-			// DetectEnvVarLoss runs `su` when SUDO_UID is set (pkg/config/config.go:290-323).
-			t.Setenv("SUDO_UID", "")
 			t.Setenv("SUDO_USER", "")
 			t.Setenv("HARDN_CONFIG", "")
 
