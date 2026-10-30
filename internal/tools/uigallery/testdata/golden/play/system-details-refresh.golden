@@ -6,13 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the real reader (pkg/engine/details), its rows and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlayout unit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -122,13 +121,12 @@ $
 # play system-details/debian13 ---------------------------------$
 $
 # Note$
-# Play mode, mocks: the System Details screen proposed for slice$
-# 1, inferred from origin/main (unreleased), read from a$
-# simulated host, by real code where there is some (detect, the$
-# header probe, accounts) and by the gallery's stand-ins$
-# elsewhere, unit (b)'s to build. It only reads: no plan, no$
-# y/N, no journal. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# Play mode, mocks: the System Details screen of slice 1,$
+# inferred from origin/main (unreleased), read from a simulated$
+# host by the real reader (pkg/engine/details), its rows and$
+# layout unit (c)'s to build. It only reads: no plan, no y/N, no$
+# journal. Nothing on this machine changes: every command and$
+# file is the fake's.$
 $
 # Info: system-details/debian13$
 # web-01.example.net runs Debian 13, as the VM of 2026-10-21$
@@ -238,13 +236,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, inferred from origin/main (unreleased), read from␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma simulated host, by real code where there is some␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(detect, the header probe, accounts) and by the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno plan, no y/N, no journal. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the real reader (pkg/engine/details),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits rows and layout unit (c)'s to build. It only reads: no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -384,13 +381,12 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the real reader (pkg/engine/details), its rows and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlayout unit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$

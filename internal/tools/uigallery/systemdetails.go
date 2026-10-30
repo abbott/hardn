@@ -3,21 +3,20 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/colorprofile"
 
+	"github.com/abbott/hardn/pkg/engine/details"
 	probe "github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -40,14 +39,13 @@ import (
 // It only reads, so it has no plan, no y/N and no journal: its sequence is
 // the reading, opening, each state, refreshing and leaving.
 //
-// Real code reads what it can of a simulated host: detect's facts, the
-// header probe's OS, hostname and uptime, accounts.Read's users. The rest
-// is the gallery's, each a stand-in for unit (b)'s work, labelled so here
-// and in the page: readDetails itself, its CPU, load, memory, disk, ZFS,
-// address and login readers, and detailsModel, what the simulated host
-// answers them. Their forms ran read-only, as a user, on the Debian 13,
-// Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's, no VM having it,
-// and /proc/loadavg, inet6 and df's header, which no VM printed.
+// Real code reads a simulated host: details.Read, on detect's facts, and
+// output.Build's document (next/s1-readers). The sections, rows and layout are
+// still the gallery's, unit (c)'s to build, as is detailsModel, what the
+// simulated host answers the reader, in the forms that ran read-only, as a user,
+// on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's, no
+// VM having it, and /proc/loadavg, inet6, df's header and /proc/self/status, which
+// no VM printed.
 //
 // "system-details" lists the mocks with no input; "play system-details" is
 // the menu of the hosts and "play system-details/<host>" the screen on one.
@@ -109,7 +107,7 @@ const (
 	fromHost = "%s from %s"
 	onTTY    = "%s on %s"
 	// notRootRow is said under Users to a user other than root, who cannot
-	// read the rules the group names do not show.
+	// read the rules that say who may administer.
 	notRootRow = "Not root: %s not read"
 	// Items.
 	itemRefresh  = "Refresh"
@@ -127,10 +125,6 @@ type sdHost struct {
 	note string
 	// host returns the simulated host, fresh.
 	host func() *fakeHost
-	// notRoot: hardn runs as a user other than root, which only
-	// hardn system-details can (cmd/hardn/main.go:148, its Run's root check,
-	// which a subcommand's RunE does not pass through).
-	notRoot bool
 }
 
 // The simulated hosts' CPUs, as /proc/cpuinfo names them, each synthetic: a
@@ -150,11 +144,11 @@ func sdHosts() []sdHost {
 		other = "Debian 13, as debian13. "
 	)
 	return []sdHost{
-		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: details(debian13Platform),
+		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: vmDetails(debian13Platform),
 			note: deb + "The report, Refresh and Return. Last Login is lslogins' newest login for root and each user (decision 3 (a)), the same answer as a user and as root, an account with none answering blanks (vm-runs/s1/02-login.log)."},
-		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform),
+		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: vmDetails(ubuntu2604Platform),
 			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. lslogins is in util-linux-extra there, and answers as on Debian 13 (vm-runs/s1/02-login.log)."},
-		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform),
+		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: vmDetails(alpine323Platform),
 			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no lslogins or lastlog, /var/log/wtmp and /run/utmp stay at 0 bytes after a terminal login, and BusyBox's last -n 1 alice prints its usage and fails; sshd's own lines go to /var/log/messages, 0640 root wheel (vm-runs/s1/01-tools.log, 08-lslogins.log, 09-lslogins-blank.log). So one row says so."},
 		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails,
 			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root. lslogins by inference from Debian 13, its base [I, no VM]. The CPU's name is cut at its row."},
@@ -181,10 +175,10 @@ func findSDHost(name string) (sdHost, bool) {
 }
 
 // detailsModel is what a System Details host answers beyond statusOn's
-// model, each command's output as the stand-in reads it: gallery-local, as
-// readDetails is. The forms are those the VMs printed (vm-runs/s1/01-tools.log,
-// 02-login.log), but zpool's and zfs's, written from their manuals, no VM having
-// ZFS, and /proc/loadavg, inet6 and df's header, which no VM printed.
+// model, each command's output as details.Read reads it. The forms are those the
+// VMs printed (vm-runs/s1/01-tools.log, 02-login.log), but zpool's and zfs's,
+// written from their manuals, no VM having ZFS, and /proc/loadavg, inet6 and df's
+// header, which no VM printed.
 type detailsModel struct {
 	addrs      string            // ip -o addr show scope global
 	df         string            // df -kP /
@@ -196,14 +190,15 @@ type detailsModel struct {
 	noLslogins bool              // no lslogins, as host.Real says it
 	memInfo    string            // /proc/meminfo; "" is memInfo
 	noMemInfo  bool              // /proc/meminfo cannot be read
+	noWtmp     bool              // /var/log/wtmp is not there, so no source holds records
 }
 
-// lsloginsArgs is how the stand-in asks lslogins about names, which follow -l,
+// lsloginsArgs is how the reader asks lslogins about names, which follow -l,
 // joined by commas: a raw line each, each blank field empty, no line for a name
 // it does not know, exit 0 (vm-runs/s1/02-login.log, 08-lslogins.log).
 var lsloginsArgs = []string{"--time-format=iso", "--noheadings", "--raw", "--output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME", "-l"}
 
-// answer answers the stand-in's commands.
+// answer answers the reader's commands.
 func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
 	switch cmd := strings.Join(argv, " "); {
 	case cmd == "ip -o addr show scope global":
@@ -262,7 +257,7 @@ func broadcast(addr string) string {
 }
 
 // cpuinfo is /proc/cpuinfo for n logical CPUs on sockets sockets, the
-// lines the stand-in reads.
+// lines the reader reads.
 func cpuinfo(model string, n, sockets int) string {
 	var b strings.Builder
 	for i := range n {
@@ -271,12 +266,18 @@ func cpuinfo(model string, n, sockets int) string {
 	return b.String()
 }
 
-// The stand-in's files and the standard outputs, as the kernel and df
-// print them; the figures are synthetic.
+// The reader's files and the standard outputs, as the kernel and df
+// print them; the figures are synthetic. A wtmp record is 384 bytes on amd64
+// (vm-runs/s1/05-wtmp-*.tail), which the reader does not parse: it asks only that
+// the file hold a byte other than NUL, so this is a record's start. As root, the
+// status file's Uid line says 0 (proc_pid_status(5); no VM printed it [I]).
 const (
-	loadAvg = "0.12 0.08 0.03 1/123 4567\n"
-	memInfo = "MemTotal:        4030544 kB\nMemFree:          812344 kB\nMemAvailable:    2801234 kB\nBuffers:           91234 kB\n"
-	dfRoot  = "Filesystem     1024-blocks    Used Available Capacity Mounted on\n/dev/vda1         40470732 4412345  36058387      11% /\n"
+	wtmpRecord = "\x06\x00\x00\x00\x10\x02\x00\x00LOGIN\x00"
+	rootStatus = "Name:\thardn\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\n"
+	userStatus = "Name:\thardn\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\n"
+	loadAvg    = "0.12 0.08 0.03 1/123 4567\n"
+	memInfo    = "MemTotal:        4030544 kB\nMemFree:          812344 kB\nMemAvailable:    2801234 kB\nBuffers:           91234 kB\n"
+	dfRoot     = "Filesystem     1024-blocks    Used Available Capacity Mounted on\n/dev/vda1         40470732 4412345  36058387      11% /\n"
 )
 
 // The kernels of the VM runs: vmtest.md §8.5 and §8.6.
@@ -286,17 +287,22 @@ const (
 	alpineVMKernel = "6.18.53-0-virt"
 )
 
-// withDetails adds to h, a status host, what the stand-in reads of it: the
-// files and m's commands, its Handler answering them first.
+// withDetails adds to h, a status host, what the reader reads of it: the
+// files and m's commands, its Handler answering them first. Where lslogins is
+// there, wtmp holds records, as on the VMs (vm-runs/s1/01-tools.log:30, :96).
 func withDetails(h *fakeHost, m detailsModel, cpu string, cores, sockets int) *fakeHost {
-	h.f.AddFile("/proc/cpuinfo", []byte(cpuinfo(cpu, cores, sockets)), 0o444, 0, 0)
-	h.f.AddFile("/proc/loadavg", []byte(loadAvg), 0o444, 0, 0)
+	h.f.AddFile(details.CPUInfoFile, []byte(cpuinfo(cpu, cores, sockets)), 0o444, 0, 0)
+	h.f.AddFile(details.LoadAvgFile, []byte(loadAvg), 0o444, 0, 0)
+	h.f.AddFile(details.SelfStatusFile, []byte(rootStatus), 0o444, 0, 0)
 	if !m.noMemInfo {
 		mem := memInfo
 		if m.memInfo != "" {
 			mem = m.memInfo
 		}
-		h.f.AddFile("/proc/meminfo", []byte(mem), 0o444, 0, 0)
+		h.f.AddFile(details.MemInfoFile, []byte(mem), 0o444, 0, 0)
+	}
+	if !m.noLslogins && !m.noWtmp {
+		h.f.AddFile(details.WtmpFile, []byte(wtmpRecord), 0o664, 0, 43)
 	}
 	for _, line := range strings.Split(fileOn(h, "/etc/passwd"), "\n") {
 		if name, _, ok := strings.Cut(line, ":"); ok {
@@ -320,10 +326,10 @@ func vmModel() detailsModel {
 	return detailsModel{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, logins: map[string]string{"alice": sessionLine("alice")}}
 }
 
-// details returns a function making a host of platform p as the VM runs
+// vmDetails returns a function making a host of platform p as the VM runs
 // show it: its kernel, vmModel, on Alpine its ip's form and no lslogins, and
 // 4 CPUs (synthetic: the VMs have 2).
-func details(p platform) func() *fakeHost {
+func vmDetails(p platform) func() *fakeHost {
 	return func() *fakeHost {
 		m := vmModel()
 		if p.openRC {
@@ -423,362 +429,37 @@ func fileOn(h *fakeHost, name string) string {
 	return string(e.Data)
 }
 
-// detailAddr is one address the stand-in read.
-type detailAddr struct {
-	Iface  string `json:"interface"`
-	Family string `json:"family"`
-	Addr   string `json:"address"`
-}
-
-// detailUser is one user other than root and the system's, as origin/main
-// chooses them (UID 1000 and up, not nobody, user_info.go:43-61) and the
-// tool they are in the group of, "" for none. origin/main also asks sudo
-// -l -U (user_info.go:89); the stand-in reads the groups alone, unit (b)'s
-// to read as the users check reads them (pkg/engine/controls).
-type detailUser struct {
-	Name string `json:"name"`
-	Tool string `json:"tool"`
-}
-
-// detailCPU is /proc/cpuinfo's and /proc/loadavg's: CPUs are its processor
-// lines, logical CPUs, not cores. Model is "" and Sockets 0 where the file
-// has no model name or physical id, which on arm64 is [I, not run].
-type detailCPU struct {
-	Model   string    `json:"model"`
-	CPUs    int       `json:"cpus"`
-	Sockets int       `json:"sockets"`
-	Load    [3]string `json:"load"`
-}
-
-// detailDisk is the root file system: /proc/self/mounts's device and type,
-// then df's figures, or on ZFS the dataset's and its pool's health.
-type detailDisk struct {
-	Source string `json:"source"`
-	Type   string `json:"type"`
-	Used   uint64 `json:"usedBytes"`
-	Total  uint64 `json:"totalBytes"`
-	Pool   string `json:"pool,omitempty"`
-	Health string `json:"health,omitempty"`
-}
-
-// detailMemory is /proc/meminfo's: used is what MemAvailable leaves.
-// origin/main's used is total less MemFree (collectors.go:329), which
-// counts the kernel's caches as used.
-type detailMemory struct {
-	Used  uint64 `json:"usedBytes"`
-	Total uint64 `json:"totalBytes"`
-}
-
-// detailLogin is lslogins' answer for one account: its newest login, When
-// and the rest "" where it has none. When is as lslogins prints it, TTY and
-// From its other fields, From "" for a login with no remote host. Unknown: it
-// had no line for the name, so nothing is known of the account.
-type detailLogin struct {
-	User    string `json:"user"`
-	When    string `json:"when"`
-	TTY     string `json:"tty"`
-	From    string `json:"from"`
-	Unknown bool   `json:"unknown,omitempty"`
-	at      time.Time
-}
-
-// detailsReading is what readDetails read: the stand-in for what unit (b)
-// builds. A section not read is in unread, under its title, its source
-// saying what could not be read, and the rest stays.
+// detailsReading is what details.Read read, and the facts it read it on, which
+// say whose words "No sudo" or "No doas" are.
 type detailsReading struct {
-	sh       sdHost
-	facts    detect.Facts
-	os       string
-	kernel   string
-	uptime   string
-	hostname string
-	addrs    []detailAddr
-	users    []detailUser
-	cpu      detailCPU
-	disk     detailDisk
-	memory   detailMemory
-	logins   []detailLogin
-	unread   map[string]unreadFact
+	details.Report
+	facts detect.Facts
 }
 
-// unreadFact says what a section could not read.
-type unreadFact struct {
-	source string
-	err    error
+// readDetails reads sys with the real reader, on detect's facts, as unit (d)'s
+// command and unit (c)'s screen will. It changes nothing, and what it cannot read
+// the sections say.
+func readDetails(ctx context.Context, sys host.System) detailsReading {
+	facts, _ := detect.Detect(ctx, sys) // what detect does not establish, the report says not read
+	return detailsReading{Report: details.Read(ctx, sys, facts), facts: facts}
 }
 
-// readDetails reads sys for sh: real code where
-// there is some (detect, the header probe, accounts), the gallery's
-// stand-ins for the rest. It changes nothing, and a section it cannot read
-// is said where it would be.
-func readDetails(ctx context.Context, sys host.System, sh sdHost) detailsReading {
-	r := detailsReading{sh: sh, unread: map[string]unreadFact{}}
-	fail := func(section, source string, err error) { r.unread[section] = unreadFact{source, err} }
-	facts, err := detect.Detect(ctx, sys)
-	if err != nil {
-		fail(secOS, detect.EtcOSRelease, err)
+// loginRow is a login's row in the section. When is the year in place of the
+// clock, as ls does, where it was not this year, galleryNow's on these hosts.
+func loginRow(l details.Login) component.KeyValue {
+	when := l.At.Format("Jan 2 15:04")
+	if l.At.Year() != galleryNow.Year() {
+		when = l.At.Format("Jan 2 2006")
 	}
-	r.facts = facts
-	hd := probe.Read(ctx, sys, facts)
-	head := output.HeaderViewOf("", hd).Context
-	r.os = strings.TrimSpace(head.Name + " " + head.Version)
-	if head.Codename != "" {
-		r.os += " (" + head.Codename + ")"
-	}
-	if hd.Uptime.Known {
-		r.uptime = output.FormatUptime(hd.Uptime.Duration)
-	}
-	if data, err := sys.ReadFile(ctx, probe.KernelReleaseFile); err != nil {
-		fail(secOS, probe.KernelReleaseFile, err)
-	} else {
-		r.kernel = strings.TrimSpace(string(data))
-	}
-	if r.hostname = hd.Hostname.Name; hd.Hostname.Err != nil {
-		fail(secHost, probe.HostnameFile, hd.Hostname.Err)
-	}
-	r.readAddrs(ctx, sys, fail)
-	r.readUsers(ctx, sys, fail)
-	r.readCPU(ctx, sys, fail)
-	r.readDisk(ctx, sys, fail)
-	r.readMemory(ctx, sys, fail)
-	r.readLogins(ctx, sys, fail)
-	return r
-}
-
-// readAddrs is ip -o addr show scope global's addresses: IPv4 and IPv6.
-func (r *detailsReading) readAddrs(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	res, err := sys.Run(ctx, "ip", "-o", "addr", "show", "scope", "global")
-	if err != nil {
-		fail(secHost, "ip addr", err)
-		return
-	}
-	for _, line := range strings.Split(string(res.Stdout), "\n") {
-		if f := strings.Fields(line); len(f) >= 4 && (f[2] == "inet" || f[2] == "inet6") {
-			r.addrs = append(r.addrs, detailAddr{Iface: f[1], Family: f[2], Addr: f[3]})
-		}
-	}
-}
-
-// readUsers is accounts.Read's users, UID 1000 and up but nobody, and the
-// tool each is in the group of.
-func (r *detailsReading) readUsers(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	db, err := accounts.Read(ctx, sys)
-	if err != nil {
-		fail(secUsers, accounts.PasswdFile, err)
-		return
-	}
-	for _, u := range db.Users {
-		if u.UID < 1000 || u.Name == "nobody" || u.Name == "nfsnobody" {
-			continue
-		}
-		du := detailUser{Name: u.Name}
-		switch {
-		case r.facts.Elevation.Doas.Present == detect.Yes && db.Member(u, "wheel"):
-			du.Tool = "doas"
-		case db.Member(u, "sudo"), db.Member(u, "admin"), db.Member(u, "wheel"):
-			du.Tool = "sudo"
-		}
-		r.users = append(r.users, du)
-	}
-}
-
-// readCPU is /proc/cpuinfo's model, count and sockets, and /proc/loadavg's
-// three figures.
-func (r *detailsReading) readCPU(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	data, err := sys.ReadFile(ctx, "/proc/cpuinfo")
-	if err != nil {
-		fail(secCPU, "/proc/cpuinfo", err)
-		return
-	}
-	sockets := map[string]bool{}
-	for _, line := range strings.Split(string(data), "\n") {
-		k, v, ok := strings.Cut(line, ":")
-		k, v = strings.TrimSpace(k), strings.TrimSpace(v)
-		switch {
-		case !ok:
-		case k == "processor":
-			r.cpu.CPUs++
-		case k == "model name" && r.cpu.Model == "":
-			r.cpu.Model = v
-		case k == "physical id":
-			sockets[v] = true
-		}
-	}
-	r.cpu.Sockets = len(sockets)
-	load, err := sys.ReadFile(ctx, "/proc/loadavg")
-	if err != nil {
-		fail(secCPU, "/proc/loadavg", err)
-		return
-	}
-	if f := strings.Fields(string(load)); len(f) >= 3 {
-		r.cpu.Load = [3]string{f[0], f[1], f[2]}
-	}
-}
-
-// readDisk is the root file system's: from /proc/self/mounts its source
-// and type, then df -kP / or, on ZFS, the dataset mounted there and its
-// pool, never a dataset of the gallery's own. With no zpool or zfs, as in an
-// LXC guest on ZFS [I, not run], the stand-in loses the section: unit (b)
-// falls back to df (the page, §8).
-func (r *detailsReading) readDisk(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	data, err := sys.ReadFile(ctx, detect.SelfMounts)
-	if err != nil {
-		fail(secDisk, detect.SelfMounts, err)
-		return
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		if f := strings.Fields(line); len(f) >= 3 && f[1] == "/" {
-			r.disk.Source, r.disk.Type = f[0], f[2]
-		}
-	}
-	if r.disk.Type == "zfs" {
-		r.disk.Pool, _, _ = strings.Cut(r.disk.Source, "/")
-		pool, err := sys.Run(ctx, "zpool", "list", "-H", "-o", "health", r.disk.Pool)
-		if err != nil {
-			fail(secDisk, "zpool list", err)
-			return
-		}
-		r.disk.Health = strings.TrimSpace(string(pool.Stdout))
-		res, err := sys.Run(ctx, "zfs", "get", "-Hp", "-o", "value", "used,available", r.disk.Source)
-		if err != nil {
-			fail(secDisk, "zfs get", err)
-			return
-		}
-		if f := strings.Fields(string(res.Stdout)); len(f) == 2 {
-			used, _ := strconv.ParseUint(f[0], 10, 64)
-			avail, _ := strconv.ParseUint(f[1], 10, 64)
-			r.disk.Used, r.disk.Total = used, used+avail
-		}
-		return
-	}
-	res, err := sys.Run(ctx, "df", "-kP", "/")
-	if err != nil {
-		fail(secDisk, "df", err)
-		return
-	}
-	lines := strings.Split(strings.TrimSpace(string(res.Stdout)), "\n")
-	if f := strings.Fields(lines[len(lines)-1]); len(f) >= 6 {
-		total, _ := strconv.ParseUint(f[1], 10, 64)
-		used, _ := strconv.ParseUint(f[2], 10, 64)
-		r.disk.Total, r.disk.Used = total*1024, used*1024
-	}
-}
-
-// readMemory is /proc/meminfo's total, less what MemAvailable leaves.
-func (r *detailsReading) readMemory(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	data, err := sys.ReadFile(ctx, "/proc/meminfo")
-	if err != nil {
-		fail(secMemory, "/proc/meminfo", err)
-		return
-	}
-	var total, avail uint64
-	for _, line := range strings.Split(string(data), "\n") {
-		if f := strings.Fields(line); len(f) >= 2 {
-			n, _ := strconv.ParseUint(f[1], 10, 64)
-			switch f[0] {
-			case "MemTotal:":
-				total = n * 1024
-			case "MemAvailable:":
-				avail = n * 1024
-			}
-		}
-	}
-	r.memory = detailMemory{Used: total - avail, Total: total}
-}
-
-// readLogins is lslogins' answer for root and each user the Users section read,
-// in one call, the cost being wtmp's per call (vm-runs/s1/08-lslogins.log). It
-// is the same as a user and as root, so who ran hardn does not matter
-// (vm-runs/s1/02-login.log). An answer that fails, or a line that does not
-// parse, is not a fact about the account, so the section says it could not read
-// it, never that there was no login.
-func (r *detailsReading) readLogins(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	names := []string{"root"}
-	for _, u := range r.users {
-		names = append(names, u.Name)
-	}
-	res, err := sys.Run(ctx, "lslogins", append(slices.Clone(lsloginsArgs), strings.Join(names, ","))...)
-	if err != nil {
-		fail(secLogin, "lslogins", err)
-		return
-	}
-	logins, err := parseLogins(names, string(res.Stdout))
-	if err != nil {
-		fail(secLogin, "lslogins", err)
-		return
-	}
-	r.logins = logins
-}
-
-// parseLogins reads lslogins' lines for names, keyed by name, as it need not
-// answer in the order asked: the logins come in names' order, a name with no
-// line Unknown, and a line for a name not asked for does not parse.
-func parseLogins(names []string, out string) ([]detailLogin, error) {
-	read := map[string]detailLogin{}
-	if out != "" {
-		for _, line := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
-			name, _, _ := strings.Cut(line, " ")
-			if !slices.Contains(names, name) {
-				return nil, fmt.Errorf("a line for no name asked: %q", line)
-			}
-			login, err := parseLogin(name, line)
-			if err != nil {
-				return nil, err
-			}
-			read[name] = login
-		}
-	}
-	logins := make([]detailLogin, len(names))
-	for i, name := range names {
-		login, ok := read[name]
-		if !ok {
-			login = detailLogin{User: name, Unknown: true}
-		}
-		logins[i] = login
-	}
-	return logins, nil
-}
-
-// parseLogin reads lslogins' raw line for name: four fields, each a single
-// space from the next, so a blank one is empty; all three after the name blank
-// is no login.
-func parseLogin(name, line string) (detailLogin, error) {
-	f := strings.Split(line, " ")
-	if len(f) != 4 || f[0] != name {
-		return detailLogin{}, fmt.Errorf("not %s's line: %q", name, line)
-	}
-	login := detailLogin{User: name, When: f[1], TTY: f[2], From: f[3]}
-	if login.When+login.TTY+login.From == "" {
-		return login, nil
-	}
-	at, err := time.Parse(time.RFC3339, login.When)
-	if err != nil {
-		return detailLogin{}, fmt.Errorf("a line with no time: %q", line)
-	}
-	login.at = at
-	return login, nil
-}
-
-// when says when the login was: the year in place of the clock, as ls does,
-// where it was not this year, galleryNow's on these hosts.
-func (l detailLogin) when() string {
-	if l.at.Year() != galleryNow.Year() {
-		return l.at.Format("Jan 2 2006")
-	}
-	return l.at.Format("Jan 2 15:04")
-}
-
-// row is the login's row in the section.
-func (l detailLogin) row() component.KeyValue {
 	switch {
-	case l.Unknown:
+	case l.State == details.LoginUnknown:
 		return component.KeyValue{Key: l.User, Value: notKnown, State: component.ValueUnknown}
-	case l.When == "":
+	case l.State == details.LoginNone:
 		return component.KeyValue{Key: l.User, Value: noLogin, State: component.ValueNone}
 	case l.From == "":
-		return component.KeyValue{Key: l.User, Value: fmt.Sprintf(onTTY, l.when(), l.TTY)}
+		return component.KeyValue{Key: l.User, Value: fmt.Sprintf(onTTY, when, l.TTY)}
 	}
-	return component.KeyValue{Key: l.User, Value: fmt.Sprintf(fromHost, l.when(), l.From)}
+	return component.KeyValue{Key: l.User, Value: fmt.Sprintf(fromHost, when, l.From)}
 }
 
 // gib is n bytes in GiB, one decimal, as origin/main's memory says GiB and
@@ -800,89 +481,183 @@ func percent(used, total uint64) string {
 	return fmt.Sprintf("%d%%", (used*100+total/2)/total)
 }
 
-// sectionRows are section's rows: what it read, or the one row that says
-// what it could not.
-func (r detailsReading) sectionRows(section string) []component.KeyValue {
-	if u, ok := r.unread[section]; ok {
-		if section == secLogin && errors.Is(u.err, host.ErrNotFound) {
-			return []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}
-		}
-		return []component.KeyValue{{Key: fmt.Sprintf(cantRead, u.source), State: component.ValueWarn}}
+// notKnownRow is a row whose fact is not established, though read.
+func notKnownRow(key string) component.KeyValue {
+	return component.KeyValue{Key: key, Value: notKnown, State: component.ValueUnknown}
+}
+
+// cantReadRows are the rows that say what of a section was not read.
+func cantReadRows(unread []details.Unread) []component.KeyValue {
+	var rows []component.KeyValue
+	for _, u := range unread {
+		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(cantRead, u.Source), State: component.ValueWarn})
 	}
+	return rows
+}
+
+// sectionRows are section's rows: each fact read, then a row for each thing that
+// could not be read. A fact keeps its section's others.
+func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	switch section {
 	case secOS:
-		return []component.KeyValue{{Key: rowOS, Value: r.os}, {Key: rowKernel, Value: r.kernel}, {Key: rowUptime, Value: r.uptime}}
+		return r.osRows()
 	case secHost:
-		rows := []component.KeyValue{{Key: rowHostname, Value: r.hostname}}
-		for _, a := range r.addrs {
-			rows = append(rows, component.KeyValue{Key: a.Iface, Value: a.Addr})
-		}
-		if len(r.addrs) == 0 {
-			rows = append(rows, component.KeyValue{Key: noAddresses, State: component.ValueNone})
-		}
-		return rows
+		return r.hostRows()
 	case secUsers:
 		return r.userRows()
 	case secCPU:
-		model := component.KeyValue{Key: rowModel, Value: r.cpu.Model}
-		if r.cpu.Model == "" {
-			model.Value, model.State = notKnown, component.ValueUnknown
-		}
-		return []component.KeyValue{model, {Key: rowCPUs, Value: cpusWords(r.cpu)},
-			{Key: rowLoad, Value: strings.Join(r.cpu.Load[:], ", ")}}
+		return r.cpuRows()
 	case secDisk:
-		rows := []component.KeyValue{{Key: rowRoot, Value: r.disk.Source + " " + r.disk.Type}, {Key: rowUsed, Value: usedOf(r.disk.Used, r.disk.Total)}}
-		if r.disk.Pool != "" {
-			state := component.ValueWarn
-			if r.disk.Health == "ONLINE" {
-				state = component.ValueOK
-			}
-			rows = append(rows, component.KeyValue{Key: fmt.Sprintf(rowPool, r.disk.Pool), Value: r.disk.Health, State: state})
-		}
-		return rows
+		return r.diskRows()
 	case secMemory:
-		return []component.KeyValue{{Key: rowUsed, Value: usedOf(r.memory.Used, r.memory.Total)}}
+		return r.memoryRows()
 	case secLogin:
-		var rows []component.KeyValue
-		for _, l := range r.logins {
-			rows = append(rows, l.row())
-		}
-		return rows
+		return r.loginRows()
 	}
 	return nil
 }
 
-// userRows are the Users section's rows.
-func (r detailsReading) userRows() []component.KeyValue {
+// osWords is the distribution as the header's bar names it: "Debian 13 (Trixie)".
+func (r detailsReading) osWords() string {
+	head := output.HeaderViewOf("", probe.Header{OS: r.OS.OS}).Context
+	name := strings.TrimSpace(head.Name + " " + head.Version)
+	if head.Codename != "" {
+		name += " (" + head.Codename + ")"
+	}
+	return name
+}
+
+func (r detailsReading) osRows() []component.KeyValue {
 	var rows []component.KeyValue
+	if name := r.osWords(); name != "" {
+		rows = append(rows, component.KeyValue{Key: rowOS, Value: name})
+	}
+	if r.OS.Kernel != "" {
+		rows = append(rows, component.KeyValue{Key: rowKernel, Value: r.OS.Kernel})
+	}
+	if r.OS.Uptime.Known {
+		rows = append(rows, component.KeyValue{Key: rowUptime, Value: output.FormatUptime(r.OS.Uptime.Duration)})
+	}
+	return append(rows, cantReadRows(r.OS.Unread)...)
+}
+
+func (r detailsReading) hostRows() []component.KeyValue {
+	var rows []component.KeyValue
+	if r.Host.Hostname != "" {
+		rows = append(rows, component.KeyValue{Key: rowHostname, Value: r.Host.Hostname})
+	}
+	for _, a := range r.Host.Addresses {
+		rows = append(rows, component.KeyValue{Key: a.Interface, Value: a.Address})
+	}
+	if r.Host.Addresses != nil && len(r.Host.Addresses) == 0 {
+		rows = append(rows, component.KeyValue{Key: noAddresses, State: component.ValueNone})
+	}
+	return append(rows, cantReadRows(r.Host.Unread)...)
+}
+
+// userRows are the Users section's rows: each user and what lets them administer,
+// as the users check reads it. As a user other than root the rules refused are one
+// row, naming each: where they are not read a user's row says Not known, never a
+// group's guess.
+func (r detailsReading) userRows() []component.KeyValue {
+	if r.Users.List == nil {
+		return cantReadRows(r.Users.Unread)
+	}
 	noTool := noSudo
 	if r.facts.Elevation.Doas.Present == detect.Yes {
 		noTool = noDoas
 	}
-	for _, u := range r.users {
-		tool := u.Tool
-		if tool == "" {
-			tool = noTool
+	var rows []component.KeyValue
+	for _, u := range r.Users.List {
+		switch tool, t := u.Admin(); t {
+		case detect.Yes:
+			rows = append(rows, component.KeyValue{Key: u.Name, Value: tool})
+		case detect.No:
+			rows = append(rows, component.KeyValue{Key: u.Name, Value: noTool})
+		default:
+			rows = append(rows, notKnownRow(u.Name))
 		}
-		rows = append(rows, component.KeyValue{Key: u.Name, Value: tool})
 	}
 	if len(rows) == 0 {
 		rows = []component.KeyValue{{Key: noUsers, State: component.ValueNone}}
 	}
-	if r.sh.notRoot {
-		// What unit (b)'s reader skips, reading as the users check reads
-		// (pkg/host/sudoers): the stand-in reads groups alone, root or not.
-		rules := sudoers.DropInDir
-		if r.facts.Elevation.Doas.Present == detect.Yes {
-			rules = sudoers.DoasConfig
+	unread := r.Users.Unread
+	if refused := r.Users.NotRead(); r.Users.Root == detect.No && len(refused) > 0 {
+		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, strings.Join(refused, ", ")), State: component.ValueWarn})
+		unread = slices.DeleteFunc(slices.Clone(unread), func(u details.Unread) bool { return slices.Contains(refused, u.Source) })
+	}
+	return append(rows, cantReadRows(unread)...)
+}
+
+// cpuRows are the CPU and Load section's rows: Model says Not known where a
+// /proc/cpuinfo read has no model name, as on arm64 [I, not run].
+func (r detailsReading) cpuRows() []component.KeyValue {
+	var rows []component.KeyValue
+	if c := r.CPU; c.CPUs > 0 {
+		model := component.KeyValue{Key: rowModel, Value: c.Model}
+		if c.Model == "" {
+			model = notKnownRow(rowModel)
 		}
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, rules), State: component.ValueWarn})
+		rows = append(rows, model, component.KeyValue{Key: rowCPUs, Value: cpusWords(c)})
+	}
+	if r.CPU.Load[0] != "" {
+		rows = append(rows, component.KeyValue{Key: rowLoad, Value: strings.Join(r.CPU.Load[:], ", ")})
+	}
+	return append(rows, cantReadRows(r.CPU.Unread)...)
+}
+
+func (r detailsReading) diskRows() []component.KeyValue {
+	var rows []component.KeyValue
+	d := r.Disk
+	if d.Source != "" {
+		rows = append(rows, component.KeyValue{Key: rowRoot, Value: d.Source + " " + d.Type})
+	}
+	if d.Known {
+		rows = append(rows, component.KeyValue{Key: rowUsed, Value: usedOf(d.Used, d.Total)})
+	}
+	if d.Pool != "" {
+		pool := component.KeyValue{Key: fmt.Sprintf(rowPool, d.Pool), Value: d.Health, State: component.ValueWarn}
+		switch d.Health {
+		case "":
+			pool = notKnownRow(pool.Key)
+		case "ONLINE":
+			pool.State = component.ValueOK
+		}
+		rows = append(rows, pool)
+	}
+	return append(rows, cantReadRows(d.Unread)...)
+}
+
+func (r detailsReading) memoryRows() []component.KeyValue {
+	var rows []component.KeyValue
+	if r.Memory.Total > 0 {
+		if used, ok := r.Memory.Used(); ok {
+			rows = append(rows, component.KeyValue{Key: rowUsed, Value: usedOf(used, r.Memory.Total)})
+		} else {
+			rows = append(rows, notKnownRow(rowUsed))
+		}
+	}
+	return append(rows, cantReadRows(r.Memory.Unread)...)
+}
+
+// loginRows are the Last Login section's rows: one where no answer holds any, its
+// words by why.
+func (r detailsReading) loginRows() []component.KeyValue {
+	switch r.Logins.State {
+	case details.LoginsNoTool:
+		return []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}
+	case details.LoginsUnread:
+		return cantReadRows(r.Logins.Unread)
+	}
+	var rows []component.KeyValue
+	for _, l := range r.Logins.List {
+		rows = append(rows, loginRow(l))
 	}
 	return rows
 }
 
 // cpusWords is "4, 1 socket", the CPUs alone where the sockets are not known.
-func cpusWords(c detailCPU) string {
+func cpusWords(c details.CPU) string {
 	switch c.Sockets {
 	case 0:
 		return strconv.Itoa(c.CPUs)
@@ -944,7 +719,6 @@ func offTerminalCtx() component.Ctx {
 // sdRun is one run of the System Details screen on a simulated host.
 type sdRun struct {
 	s     *session
-	sh    sdHost
 	h     *fakeHost
 	ticks int
 }
@@ -993,7 +767,7 @@ func hostsMenu(title string, fill func(add func(label, about string, action func
 // sequence draws the same screen, as Backup and Environment are under plan
 // only.
 func (s *session) sdScreen(ctx context.Context, sh sdHost, h *fakeHost) error {
-	run := &sdRun{s: s, sh: sh, h: h}
+	run := &sdRun{s: s, h: h}
 	if err := s.writeNote(sdPrefix+"/"+sh.name, sh.note); err != nil {
 		return err
 	}
@@ -1002,7 +776,7 @@ func (s *session) sdScreen(ctx context.Context, sh sdHost, h *fakeHost) error {
 
 // draw reads the host and returns the screen, its one item bound.
 func (run *sdRun) draw(ctx context.Context) nav.Screen {
-	r := readDetails(ctx, run.h.sys(), run.sh)
+	r := readDetails(ctx, run.h.sys())
 	vm := r.subMenu()
 	menu := nav.Menu{Exit: vm.Menu.Exit}
 	for _, it := range r.items() {
@@ -1021,7 +795,7 @@ func (run *sdRun) tick() {
 		up = fmt.Sprintf("%d.00 7000000.00\n", 3546000+60*run.ticks)
 	}
 	f.AddFile(probe.UptimeFile, []byte(up), 0o444, 0, 0)
-	f.AddFile("/proc/loadavg", []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
+	f.AddFile(details.LoadAvgFile, []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
 }
 
 // main()'s two lines as a user other than root: logging.go:40's and
@@ -1052,8 +826,8 @@ func sdStart(args []string) (string, bool, error) {
 }
 
 // sdNote is play's note for the System Details mocks.
-const sdNote = "Play mode, mocks: the System Details screen proposed for slice 1, inferred from origin/main (unreleased), read from a simulated host, " +
-	"by real code where there is some (detect, the header probe, accounts) and by the gallery's stand-ins elsewhere, unit (b)'s to build. " +
+const sdNote = "Play mode, mocks: the System Details screen of slice 1, inferred from origin/main (unreleased), read from a simulated host by the real reader (pkg/engine/details), " +
+	"its rows and layout unit (c)'s to build. " +
 	"It only reads: no plan, no y/N, no journal. Nothing on this machine changes: every command and file is the fake's."
 
 // readSDHost reads the host named name, fresh, as the screen does.
@@ -1062,12 +836,58 @@ func readSDHost(ctx context.Context, name string) (detailsReading, error) {
 	if !ok {
 		return detailsReading{}, fmt.Errorf("no system-details host %q", name)
 	}
-	return readDetails(ctx, sh.host().sys(), sh), nil
+	return readDetails(ctx, sh.host().sys()), nil
 }
 
-// notRootHost is Debian 13, hardn run by alice, not through sudo.
-func notRootHost() sdHost {
-	return sdHost{name: "not-root", host: details(debian13Platform), notRoot: true}
+// asUserSys is a host as a user other than root reads it, which only hardn
+// system-details can (cmd/hardn/main.go:148, its Run's root check, which a
+// subcommand's RunE does not pass through): the rules refuse them, /etc/sudoers.d
+// and /etc/doas.d being drwxr-x--- and /etc/doas.conf 0640 on the VMs
+// (vm-runs/s1/01-tools.log:65, :130, :191-193); /etc/sudoers 0440 is [I], no log
+// lists it.
+type asUserSys struct{ host.System }
+
+// refusesUser reports whether a user other than root is refused name.
+func refusesUser(name string) bool {
+	return slices.Contains([]string{sudoers.MainConfig, sudoers.DropInDir, sudoers.DoasConfig, sudoers.DoasDir}, name)
+}
+
+func (s asUserSys) refusal(name string) error {
+	if refusesUser(name) {
+		return &fs.PathError{Op: "open", Path: name, Err: fs.ErrPermission}
+	}
+	return nil
+}
+
+// ReadFile is the host's, but for what a user is refused.
+func (s asUserSys) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if err := s.refusal(name); err != nil {
+		return nil, err
+	}
+	return s.System.ReadFile(ctx, name)
+}
+
+// ReadFileNoFollow is the host's, but for what a user is refused.
+func (s asUserSys) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := s.refusal(name); err != nil {
+		return nil, nil, err
+	}
+	return s.System.ReadFileNoFollow(ctx, name)
+}
+
+// ReadDir is the host's, but for what a user is refused.
+func (s asUserSys) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
+	if err := s.refusal(name); err != nil {
+		return nil, err
+	}
+	return s.System.ReadDir(ctx, name)
+}
+
+// readAsUser reads a host of platform p as alice, not through sudo.
+func readAsUser(ctx context.Context, p platform) detailsReading {
+	h := vmDetails(p)()
+	h.f.AddFile(details.SelfStatusFile, []byte(userStatus), 0o444, 0, 0)
+	return readDetails(ctx, asUserSys{h.sys()})
 }
 
 // onSDHost returns a drawing of the host named name's reading.
@@ -1098,16 +918,15 @@ func sdMocks() []listMock {
 			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
 		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
 			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log). The stand-in reads groups alone, so its root and non-root reads are the same today. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
+		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
-				sh := notRootHost()
-				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readDetails(ctx, sh.host().sys(), sh).report(c)), nil
+				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readAsUser(ctx, debian13Platform).report(c)), nil
 			}},
-		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Proposal, depends on §3.11 (not approved: cmd/hardn/output.go:4): hardn system-details --output json. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
+		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Decision 1 (a): hardn system-details --output json, whose flag is unit (d)'s; the document is output.Build's. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
 			draw: onSDHost("debian13", jsonDrawing)},
-		listMock{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "Proposal, as cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE (proposed code), which is not an error: the rest was read, so the exit status stays 0.",
+		listMock{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "As cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE, which is not an error: the rest was read, so the exit status stays 0.",
 			draw: onSDHost("unreadable", jsonDrawing)},
-		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is §3.11's: not approved, so this is a proposal.",
+		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is decision 1 (a): §3.11's system-details change alone is approved, narrowed; unit (d) builds it.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
 		listMock{name: "origin", own: true, note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Last Login is blank, as lastlog is not there (menu/system_details_no_lastlog.golden). Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.originScreen(false).Render(c) })},
@@ -1123,74 +942,23 @@ func sdMocks() []listMock {
 	)
 }
 
-// detailsDocument is the proposed JSON form: pkg/output's document, built
-// by output.Build, and one field more. Gallery-local: the field is unit
-// (b)'s, should §3.11 be approved.
-type detailsDocument struct {
-	output.Document
-	Details detailsJSON `json:"details"`
+// document is the reading as the JSON form decision 1 (a) adopted: pkg/output's
+// document, built by output.Build.
+func (r detailsReading) document() output.Document {
+	facts, report := r.facts, r.Report
+	return output.Build(output.Run{Mode: output.ModeCheck, HardnVersion: "0.4.0", Hostname: r.Host.Hostname, Facts: &facts, Details: &report})
 }
 
-// detailsJSON is the report's facts; a section not read is null.
-type detailsJSON struct {
-	Kernel    *string       `json:"kernel"`
-	Uptime    *string       `json:"uptime"`
-	Addresses []detailAddr  `json:"addresses"`
-	Users     []detailUser  `json:"users"`
-	CPU       *detailCPU    `json:"cpu"`
-	Disk      *detailDisk   `json:"disk"`
-	Memory    *detailMemory `json:"memory"`
-	Logins    []detailLogin `json:"logins"`
-}
-
-// document is the reading as the proposed JSON form.
-func (r detailsReading) document() detailsDocument {
-	facts := r.facts
-	d := detailsDocument{Document: output.Build(output.Run{Mode: output.ModeCheck, HardnVersion: "0.4.0", Hostname: r.hostname, Facts: &facts})}
-	read := func(section string) bool { _, unread := r.unread[section]; return !unread }
-	if read(secOS) {
-		d.Details.Kernel, d.Details.Uptime = &r.kernel, &r.uptime
-	}
-	d.Details.Addresses, d.Details.Users = []detailAddr{}, []detailUser{}
-	if read(secHost) && r.addrs != nil {
-		d.Details.Addresses = r.addrs
-	}
-	if read(secUsers) && r.users != nil {
-		d.Details.Users = r.users
-	}
-	if read(secCPU) {
-		d.Details.CPU = &r.cpu
-	}
-	if read(secDisk) {
-		d.Details.Disk = &r.disk
-	}
-	if read(secMemory) {
-		d.Details.Memory = &r.memory
-	}
-	if read(secLogin) {
-		d.Details.Logins = r.logins
-	}
-	for _, s := range sdSections {
-		if u, ok := r.unread[s]; ok {
-			d.Findings = append(d.Findings, output.Finding{Code: "DETAILS_UNREADABLE", Detail: strings.ToLower(s) + " not read", Source: u.source})
-		}
-	}
-	return d
-}
-
-// jsonDrawing is the proposed JSON form, as it would print, in plain text.
+// jsonDrawing is the JSON form as it prints: output.WriteJSON's.
 func jsonDrawing(r detailsReading, _ component.Ctx) string {
 	var b bytes.Buffer
-	enc := json.NewEncoder(&b)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(r.document()); err != nil {
+	if err := output.WriteJSON(&b, r.document()); err != nil {
 		return err.Error()
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
 
-// flagsDrawing is the five flags, today and as proposed under §3.11.
+// flagsDrawing is the five flags, today and as decision 1 (a) has them.
 func flagsDrawing(c component.Ctx) string {
 	const warn = "--output json, with a warning"
 	return apart(
@@ -1216,12 +984,12 @@ func (r detailsReading) originScreen(failed bool) screen.SubMenu {
 	if !failed {
 		items = append(items, component.MenuItem{Key: "2", Label: "Export Information", Description: "Export system status to file"})
 		rows := []component.KeyValue{
-			{Key: "OS", Value: "Debian 13 Trixie"}, {Key: "Kernel", Value: "Linux " + r.kernel}, {Key: "Hostname", Value: r.hostname},
+			{Key: "OS", Value: "Debian 13 Trixie"}, {Key: "Kernel", Value: "Linux " + r.OS.Kernel}, {Key: "Hostname", Value: r.Host.Hostname},
 			{Key: "IP Addresses", Value: "192.0.2.20"}, {Key: "Client IP", Value: "Not connected"}, {Key: "DNS IP 1", Value: "192.0.2.53"}, {Key: "User", Value: "root"},
-			{Key: "Non-System Users", Value: "alice (sudo)"}, {Key: "Processor", Value: r.cpu.Model}, {Key: "Cores", Value: "4 vCPU(s) / 1 Socket(s)"},
+			{Key: "Non-System Users", Value: "alice (sudo)"}, {Key: "Processor", Value: r.CPU.Model}, {Key: "Cores", Value: "4 vCPU(s) / 1 Socket(s)"},
 			{Key: "Hypervisor", Value: "KVM"}, {Key: "CPU Freq", Value: "0.00 GHz"}, {Key: "Load 1m", Value: "(0.12)"}, {Key: "Load 5m", Value: "(0.08)"}, {Key: "Load 15m", Value: "(0.03)"},
 			{Key: "Volume", Value: "6.17/38.60 GB [15.99%]"}, {Key: "Memory", Value: "3.07/3.84 GiB [79.84%]"},
-			{Key: "Last Login"}, {Key: "Uptime", Value: r.uptime},
+			{Key: "Last Login"}, {Key: "Uptime", Value: output.FormatUptime(r.OS.Uptime.Duration)},
 		}
 		vm.Sections = []screen.Section{{Rows: component.BulletList{Items: rows}}}
 	}
