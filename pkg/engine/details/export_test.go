@@ -16,5 +16,10 @@ func ReadBounded(ctx context.Context, sys host.System, f detect.Facts, command, 
 	return read(ctx, sys, f, bounds{command: command, lslogins: lslogins, grace: grace})
 }
 
+// RunBounded gives the tests the bound on a real child.
+func RunBounded(ctx context.Context, sys host.System, command, grace time.Duration, name string, args ...string) (host.Result, error) {
+	return boundedSystem{System: sys, bounds: bounds{command: command, grace: grace}}.Run(ctx, name, args...)
+}
+
 // ReadSource gives the tests the blank guard's read of a real file.
 var ReadSource = readSource

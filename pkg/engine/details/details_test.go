@@ -699,19 +699,21 @@ func TestZFS(t *testing.T) {
 			}
 		}
 	})
-	t.Run("a dataset that reads as an option", func(t *testing.T) {
-		h := newHost(t)
-		h.add(mountsFile, "-rpool/x / zfs rw 0 0\n")
-		r := details.Read(context.Background(), h, debianFacts()).Disk
-		if !r.Known || len(r.Unread) != 1 {
-			t.Errorf("Disk = %+v", r)
-		}
-		for _, run := range h.runs() {
-			if strings.HasPrefix(run, "z") {
-				t.Errorf("ran %s", run)
+	for name, source := range map[string]string{"an option": "-rpool/x", "no pool": "/rpool/x"} {
+		t.Run("a dataset with "+name, func(t *testing.T) {
+			h := newHost(t)
+			h.add(mountsFile, source+" / zfs rw 0 0\n")
+			r := details.Read(context.Background(), h, debianFacts()).Disk
+			if !r.Known || r.Pool != "" || len(r.Unread) != 1 {
+				t.Errorf("Disk = %+v", r)
 			}
-		}
-	})
+			for _, run := range h.runs() {
+				if strings.HasPrefix(run, "z") {
+					t.Errorf("ran %s", run)
+				}
+			}
+		})
+	}
 }
 
 // TestMemory: no MemAvailable is a fact the report carries.
@@ -1151,6 +1153,21 @@ func (h *ctxHost) Run(ctx context.Context, name string, args ...string) (host.Re
 		return host.Result{}, fmt.Errorf("killed: %w", ctx.Err())
 	}
 	return h.fakeHost.Run(ctx, name, args...)
+}
+
+// TestBoundOnARealChild: host.Real under the bound: a real sleep(1), killed at
+// the bound, its section's kind of error, in about the bound and well inside the
+// command's own time.
+func TestBoundOnARealChild(t *testing.T) {
+	real := host.NewReal(host.Options{})
+	start := time.Now()
+	_, err := details.RunBounded(context.Background(), real, 100*time.Millisecond, time.Minute, "sleep", "30")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("err = %v", err)
+	}
+	if took := time.Since(start); took > 15*time.Second {
+		t.Errorf("took %v", took)
+	}
 }
 
 // TestReadWritesNothing: a Read writes nothing and runs nothing but its read-only

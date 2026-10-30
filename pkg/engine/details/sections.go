@@ -397,11 +397,12 @@ func readDisk(ctx context.Context, sys host.System) Disk {
 // fails is said, and df still gives the figures. Every form here is
 // [unverified]: no ZFS VM has run it.
 func (s *Disk) readZFS(ctx context.Context, sys host.System) bool {
-	if strings.HasPrefix(s.Source, "-") {
+	pool, _, _ := strings.Cut(s.Source, "/")
+	if pool == "" || strings.HasPrefix(pool, "-") {
 		s.Unread = append(s.Unread, Unread{detect.SelfMounts, fmt.Errorf("details: dataset %q: %w", s.Source, detect.ErrUnrecognised)})
 		return false
 	}
-	s.Pool, _, _ = strings.Cut(s.Source, "/")
+	s.Pool = pool
 	res, err := sys.Run(ctx, "zpool", "list", "-H", "-o", "health", s.Pool)
 	switch f := strings.Fields(string(res.Stdout)); {
 	case errors.Is(err, host.ErrNotFound):
