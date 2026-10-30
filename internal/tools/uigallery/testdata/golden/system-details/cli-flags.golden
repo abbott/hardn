@@ -24,10 +24,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m        ␛[38;2;129;134;156mRefused, exit 2␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m         ␛[38;2;129;134;156mRefused: use > file␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
-$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -51,10 +47,6 @@ $
    -  -O text              Accepted, with a warning$
    -  -S, --section        Refused, exit 2$
    -  -E, --export         Refused: use > file$
-$
-# Until 3.11 is decided ----------------------------------------$
-$
-   -  All five             Parsed and ignored, as today$
 $
 $
 
@@ -87,11 +79,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m$
       ␛[38;2;129;134;156mRefused: use > file␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m$
-      ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
-$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -115,9 +102,5 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O text␛[m              ␛[38;2;129;134;156mAccepted, with a warning␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m        ␛[38;2;129;134;156mRefused, exit 2␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m         ␛[38;2;129;134;156mRefused: use > file␛[m$
-$
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
 $
 $

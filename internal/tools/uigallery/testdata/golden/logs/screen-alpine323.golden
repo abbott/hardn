@@ -13,9 +13,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). No path was typed at s, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits write did not run; E did try a name that does not exist.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So treatment pager-less gives it␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno Open item (decision 7). With Alpine's less package there is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So it has no Open item (decision 7␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(a)). With Alpine's less package there is one (pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -55,9 +55,9 @@ $
 # runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so$
 # its write did not run; E did try a name that does not exist.$
 # That s writes and E opens any path as root is read$
-# (miscutils/less.c, master). So treatment pager-less gives it$
-# no Open item (decision 7). With Alpine's less package there is$
-# one (pager-commands).$
+# (miscutils/less.c, master). So it has no Open item (decision 7$
+# (a)). With Alpine's less package there is one (pager-$
+# commands).$
 $
 # Logs #########################################################$
 $
@@ -97,9 +97,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/04-less2-alpine323-vm.log). No path was typed␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat s, so its write did not run; E did try a name that does␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot exist. That s writes and E opens any path as root is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread (miscutils/less.c, master). So treatment pager-less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgives it no Open item (decision 7). With Alpine's less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage there is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread (miscutils/less.c, master). So it has no Open item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 7 (a)). With Alpine's less package there is one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pager-commands).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -138,9 +138,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). No path was typed at s, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits write did not run; E did try a name that does not exist.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So treatment pager-less gives it␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno Open item (decision 7). With Alpine's less package there is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So it has no Open item (decision 7␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(a)). With Alpine's less package there is one (pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

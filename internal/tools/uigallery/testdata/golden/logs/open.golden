@@ -6,10 +6,9 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs open␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Treatment read-tail:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 1, Open. A golden cannot run a pager: this is what the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen says and the command hardn would run, the screen drawn␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156magain when it exits.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Item 1, Open. A golden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot run a pager: this is what the screen says and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand hardn would run, the screen drawn again when it exits.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -69,10 +68,9 @@ $
 # logs open ----------------------------------------------------$
 $
 # Note$
-# Inferred from v0.3.2 and origin/main. Treatment read-tail:$
-# item 1, Open. A golden cannot run a pager: this is what the$
-# screen says and the command hardn would run, the screen drawn$
-# again when it exits.$
+# Inferred from v0.3.2 and origin/main. Item 1, Open. A golden$
+# cannot run a pager: this is what the screen says and the$
+# command hardn would run, the screen drawn again when it exits.$
 $
 # Logs #########################################################$
 $
@@ -132,10 +130,10 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs open␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Treatment read-tail:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 1, Open. A golden cannot run a pager: this is what␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe screen says and the command hardn would run, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen drawn again when it exits.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Item 1, Open. A␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgolden cannot run a pager: this is what the screen says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the command hardn would run, the screen drawn again␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhen it exits.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -195,10 +193,9 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs open␛[m ␛[38;2;48;52;64m----------------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Treatment read-tail:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 1, Open. A golden cannot run a pager: this is what the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen says and the command hardn would run, the screen drawn␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156magain when it exits.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. Item 1, Open. A golden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot run a pager: this is what the screen says and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand hardn would run, the screen drawn again when it exits.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

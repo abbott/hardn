@@ -25,17 +25,13 @@ import (
 // here runs a command or writes a file outside the fake.
 
 // listCells are a listing mock's golden cells: the core set and LANG=C's,
-// leaving out those narrower than the mock needs, with a cell of its own
-// for one wider than any of them.
+// leaving out those narrower than the mock needs.
 func listCells(m listMock) []uitest.Cell {
 	var cells []uitest.Cell
 	for _, c := range append(uitest.Core(), asciiColour) {
 		if c.Env.Width >= m.wide {
 			cells = append(cells, c)
 		}
-	}
-	if m.wide > term.DefaultWidth {
-		cells = append(cells, uitest.Cell{Name: "truecolor-dark-unicode-132", Env: term.Fixed(m.wide, colorprofile.TrueColor, true, true)})
 	}
 	return cells
 }
@@ -57,16 +53,13 @@ func goldenListing(t *testing.T, l listing) {
 }
 
 // TestSystemDetailsGolden pins each listing mock on the core set and under
-// LANG=C: the screen on each host and in each treatment, each treatment's
-// item opened, plan only, the non-interactive forms and origin/main's
-// report.
+// LANG=C: the screen on each host, plan only, the non-interactive forms and
+// origin/main's report.
 func TestSystemDetailsGolden(t *testing.T) { goldenListing(t, sdListing) }
 
 // TestPlaySystemDetailsGolden plays the reading end to end and pins each
 // transcript: from the main menu's 9, on Debian 13, Refresh and leaving;
-// the same under plan only; on each release; one section unreadable; the
-// sections treatment, opening one; the pager treatment, its item saying
-// what it would run; each Export treatment, under plan only too; and the
+// the same under plan only; on each release; one section unreadable; and the
 // hosts' menu.
 func TestPlaySystemDetailsGolden(t *testing.T) {
 	tests := []struct {
@@ -82,11 +75,6 @@ func TestPlaySystemDetailsGolden(t *testing.T) {
 		{"system-details-alpine", []string{"system-details/alpine323"}, []string{"1", "0"}, nil},
 		{"system-details-zfs", []string{"system-details/pve9"}, []string{"1", "0"}, nil},
 		{"system-details-unreadable", []string{"system-details/unreadable"}, []string{"1", "q"}, nil},
-		{"system-details-sections", []string{"system-details/report-sections"}, []string{"5", "8", "0"}, nil},
-		{"system-details-pager", []string{"system-details/report-pager"}, []string{"1", "0"}, nil},
-		{"system-details-export-command", []string{"system-details/export-command"}, []string{"2", "0"}, nil},
-		{"system-details-export-file", []string{"system-details/export-file"}, []string{"2", "0"}, nil},
-		{"system-details-export-file-plan-only", []string{"-sequence", "dry-run", "system-details/export-file"}, []string{"2", "0"}, nil},
 		{"system-details-hosts", []string{"system-details"}, []string{"6", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
@@ -312,8 +300,7 @@ func TestSDNotRootNamesTheRules(t *testing.T) {
 
 // TestSDUnreadableKeepsTheRest: one section not read leaves the other six,
 // where origin/main loses the whole report (details.go:91-117): the section
-// says which file, and under export-file Export is not offered, as origin/
-// main's is not (system_details_menu.go:75-79).
+// says which file.
 func TestSDUnreadableKeepsTheRest(t *testing.T) {
 	r, err := readSDHost(context.Background(), "unreadable")
 	if err != nil {
@@ -326,14 +313,6 @@ func TestSDUnreadableKeepsTheRest(t *testing.T) {
 		if s != secMemory && len(r.sectionRows(s)) == 0 {
 			t.Errorf("%s has no row", s)
 		}
-	}
-	r.sh.export = exportFile
-	if slices.ContainsFunc(r.items(), func(it sdItem) bool { return it.action == itemExport }) {
-		t.Error("export-file offers Export with a section unread")
-	}
-	r.sh.export = exportCommand
-	if !slices.ContainsFunc(r.items(), func(it sdItem) bool { return it.action == itemExport }) {
-		t.Error("export-command does not offer Export with a section unread")
 	}
 }
 
@@ -413,14 +392,13 @@ func drawnLines(rows int, unicode bool, draw func(component.Ctx) string) []strin
 	return strings.Split(ansi.Strip(draw(component.NewCtx(env))), "\n")
 }
 
-// TestSystemDetailsHeights: the screen on every host and in each treatment,
-// at 80x24 and at 80x40, in Unicode and ASCII: each is as many lines at
-// either height, the prompt on its last. Treatment report-whole is longer
-// than either height, its top scrolling off, as the main menu's does
-// (DEV-052); report-sections and report-pager fit 24 rows.
+// TestSystemDetailsHeights: the screen on every host, at 80x24 and at 80x40,
+// in Unicode and ASCII: each is as many lines at either height, the prompt on
+// its last, longer than either height, its top scrolling off, as the main
+// menu's does (DEV-052).
 func TestSystemDetailsHeights(t *testing.T) {
 	want := map[string]int{"debian13": 44, "ubuntu2604": 44, "alpine323": 43, "pve9": 44, "zfs-degraded": 44, "unreadable": 44,
-		"no-logins": 44, "login-console": 44, "many": 78, reportSections: 16, reportPager: 20, exportCommand: 45, exportFile: 45}
+		"no-logins": 44, "login-console": 44, "many": 78}
 	if len(want) != len(sdHosts()) {
 		t.Fatalf("%d heights, %d hosts", len(want), len(sdHosts()))
 	}
@@ -432,8 +410,7 @@ func TestSystemDetailsHeights(t *testing.T) {
 		for _, rows := range []int{24, 40} {
 			for _, unicode := range []bool{true, false} {
 				lines := drawnLines(rows, unicode, func(c component.Ctx) string { return r.subMenu().Render(c) })
-				fits := sh.report == "" || len(lines) <= 24
-				if len(lines) != want[sh.name] || !fits || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
+				if len(lines) != want[sh.name] || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
 					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q; want %d, the prompt", sh.name, rows, unicode, len(lines), lines[len(lines)-1], want[sh.name])
 				}
 			}
@@ -466,17 +443,15 @@ func assertOnlyReads(t *testing.T, name string, h *fakeHost) {
 }
 
 // TestSystemDetailsWritesNothing: on every host, live and under plan only,
-// the screen drawn and every item chosen, Refresh and Export among them,
-// write nothing and run no command but reads; no engine is built and no hold
-// taken. Export's treatment export-file says what it would write and the
-// gallery does not write it; a pager is said, not run.
+// the screen drawn and Refresh chosen, write nothing and run no command but
+// reads; no engine is built and no hold taken.
 func TestSystemDetailsWritesNothing(t *testing.T) {
 	for _, sh := range sdHosts() {
 		for _, dryRun := range []bool{false, true} {
 			h := sh.host()
 			var lines []string
 			for _, it := range readDetails(context.Background(), h.sys(), sh).items() {
-				lines = append(lines, it.item.Key)
+				lines = append(lines, it.Key)
 			}
 			lines = append(lines, "0")
 			s, out, code := playWith(t, sdPrefix+"/"+sh.name, func(s *session) func() error {

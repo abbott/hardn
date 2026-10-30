@@ -114,40 +114,8 @@ const (
 	// Items.
 	itemRefresh  = "Refresh"
 	aboutRefresh = "Read the host again"
-	itemExport   = "Export"
-	aboutCommand = "Say how to save it"
-	aboutFile    = "Write it to a file"
 	itemOpen     = "Open"
-	aboutOpen    = "The whole report in %s"
-	// Treatment export-command's words, and export-file's.
-	saveCommand = "To save it, run: hardn system-details > report.txt"
-	askPath     = "Path to write"
-	wholePath   = "Use a full path, such as /root/system-details.txt."
-	savedTo     = "Written to /root/system-details.txt, 0600."
-	planOnlyNo  = "Not available in plan only."
-	// Treatment report-pager's section.
-	secSummary = "Summary"
 )
-
-// The treatments the maintainer chooses between (gallery-system-details.md).
-// How the report fits: each host draws the report whole, its top scrolling
-// off a shorter terminal, as the main menu's, unless it names another.
-const (
-	reportSections = "report-sections" // one line per section; an item opens its rows
-	reportPager    = "report-pager"    // one line per section; an item opens the whole report in the pager
-	reportWide     = "report-wide"     // two columns from wideCols up; report-whole below
-)
-
-// The treatments of Export: each host offers none, leaving hardn
-// system-details > file, unless it names another.
-const (
-	exportCommand = "export-command" // an item that says the command
-	exportFile    = "export-file"    // an item that asks a full path and writes the file, a change as root
-)
-
-// wideCols is the width report-wide takes two columns from: two content
-// boxes and the gap between them (theme.ContentWidth, sideGap).
-const wideCols = 2*theme.ContentWidth + sideGap
 
 // sdHost is one simulated host the System Details mocks run on.
 type sdHost struct {
@@ -163,8 +131,6 @@ type sdHost struct {
 	// hardn system-details can (cmd/hardn/main.go:148, its Run's root check,
 	// which a subcommand's RunE does not pass through).
 	notRoot bool
-	// report and export are the treatments it draws; "" is the proposed.
-	report, export string
 }
 
 // The simulated hosts' CPUs, as /proc/cpuinfo names them, each synthetic: a
@@ -176,8 +142,8 @@ const (
 	serverCPU = "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz"
 )
 
-// sdHosts are the hosts, in the menu's order: the four releases, the
-// states, then the treatments on Debian 13.
+// sdHosts are the hosts, in the menu's order: the four releases, then the
+// states.
 func sdHosts() []sdHost {
 	const (
 		deb   = hostFQDN + " runs Debian 13, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. "
@@ -185,7 +151,7 @@ func sdHosts() []sdHost {
 	)
 	return []sdHost{
 		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: details(debian13Platform),
-			note: deb + "Treatment report-whole, export-none: the report, Refresh and Return. Last Login is lslogins' newest login for root and each user (decision 3 (a)), the same answer as a user and as root, an account with none answering blanks (vm-runs/s1/02-login.log)."},
+			note: deb + "The report, Refresh and Return. Last Login is lslogins' newest login for root and each user (decision 3 (a)), the same answer as a user and as root, an account with none answering blanks (vm-runs/s1/02-login.log)."},
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform),
 			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. lslogins is in util-linux-extra there, and answers as on Debian 13 (vm-runs/s1/02-login.log)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform),
@@ -202,14 +168,6 @@ func sdHosts() []sdHost {
 			note: other + "alice logged in at a console, so lslogins' line has no host [I: the VMs ran it with a host]."},
 		{name: "many", label: "Many users and addresses", about: "14 users, 9 addresses", host: manyDetails,
 			note: other + "14 users and 9 addresses, IPv6 among them: the origin/main report lists IPv4 alone (os_host_info_repository.go:161, collectors.go:186). Last Login takes a row for root and one for each user."},
-		{name: reportSections, label: "Treatment: sections", about: "A line each, items open them", host: details(debian13Platform), report: reportSections,
-			note: other + "Treatment report-sections: one line per section, an item opening its rows. It fits 80x24."},
-		{name: reportPager, label: "Treatment: pager", about: "A line each, the rest in less", host: details(debian13Platform), report: reportPager,
-			note: other + "Treatment report-pager: one line per section, an item opening the whole report in the pager. It fits 80x24. The gallery runs no pager: the item says what it would run."},
-		{name: exportCommand, label: "Treatment: Export says how", about: "No file written", host: details(debian13Platform), export: exportCommand,
-			note: other + "Treatment export-command: Export says the command."},
-		{name: exportFile, label: "Treatment: Export writes", about: "A file, as root", host: details(debian13Platform), export: exportFile,
-			note: other + "Treatment export-file: Export asks a full path and writes the file, as root: a change on the host, so not read only. The gallery writes nothing."},
 	}
 }
 
@@ -951,130 +909,20 @@ func (r detailsReading) section(title string) screen.Section {
 	return screen.Section{Header: component.SectionHeader{Title: title}, Rows: component.BulletList{Items: r.sectionRows(title)}}
 }
 
-// summary is section's one line, for treatments report-sections and
-// report-pager.
-func (r detailsReading) summary(section string) (string, component.ValueState) {
-	if _, ok := r.unread[section]; ok {
-		return "", component.ValueUnknown
-	}
-	switch section {
-	case secOS:
-		return r.os, component.ValuePlain
-	case secHost:
-		s := r.hostname
-		if len(r.addrs) > 0 {
-			s += ", " + r.addrs[0].Addr
-		}
-		if n := len(r.addrs) - 1; n > 0 {
-			s += fmt.Sprintf(" (+%d)", n)
-		}
-		return s, component.ValuePlain
-	case secUsers:
-		switch n := len(r.users); n {
-		case 0:
-			return noUsers, component.ValuePlain
-		case 1:
-			return r.users[0].Name, component.ValuePlain
-		default:
-			return fmt.Sprintf("%d users", n), component.ValuePlain
-		}
-	case secCPU:
-		return strconv.Itoa(r.cpu.CPUs) + " CPUs, load " + r.cpu.Load[0], component.ValuePlain
-	case secDisk:
-		return percent(r.disk.Used, r.disk.Total) + " of " + gib(r.disk.Total) + " GiB", component.ValuePlain
-	case secMemory:
-		return percent(r.memory.Used, r.memory.Total) + " of " + gib(r.memory.Total) + " GiB", component.ValuePlain
-	case secLogin:
-		var newest detailLogin
-		unknown := false
-		for _, l := range r.logins {
-			unknown = unknown || l.Unknown
-			if l.at.After(newest.at) {
-				newest = l
-			}
-		}
-		switch {
-		case newest.When == "" && unknown:
-			return notKnown, component.ValueUnknown
-		case newest.When == "":
-			return noLogin, component.ValuePlain
-		}
-		return newest.User + ", " + newest.when(), component.ValuePlain
-	}
-	return "", component.ValuePlain
+// items are the screen's items: Refresh.
+func (r detailsReading) items() []component.MenuItem {
+	return []component.MenuItem{{Key: "1", Label: itemRefresh, Description: aboutRefresh}}
 }
 
-// sdItem is one item of the screen, and which action it runs.
-type sdItem struct {
-	item    component.MenuItem
-	section string // report-sections: the section it opens
-	action  string // itemRefresh, itemExport, itemOpen
-}
-
-// items are the screen's items: under report-sections one per section,
-// under report-pager Open; then Refresh; then Export under its treatments.
-// Under export-file, as origin/main's (system_details_menu.go:75-79), it is
-// not offered with a section unread, the file being part of a report;
-// export-command's command prints what can be read.
-func (r detailsReading) items() []sdItem {
-	var out []sdItem
-	add := func(label, about, section, action string) {
-		out = append(out, sdItem{item: component.MenuItem{Key: strconv.Itoa(len(out) + 1), Label: label, Description: about}, section: section, action: action})
-	}
-	switch r.sh.report {
-	case reportSections:
-		for _, s := range sdSections {
-			about, _ := r.summary(s)
-			if _, unread := r.unread[s]; unread {
-				about = "Unknown"
-			}
-			add(s, about, s, "")
-		}
-	case reportPager:
-		add(itemOpen, fmt.Sprintf(aboutOpen, "less"), "", itemOpen)
-	}
-	add(itemRefresh, aboutRefresh, "", itemRefresh)
-	switch r.sh.export {
-	case exportCommand:
-		add(itemExport, aboutCommand, "", itemExport)
-	case exportFile:
-		if len(r.unread) == 0 {
-			add(itemExport, aboutFile, "", itemExport)
-		}
-	}
-	return out
-}
-
-// subMenu is the screen, in the host's treatments.
+// subMenu is the screen.
 func (r detailsReading) subMenu() screen.SubMenu {
-	var items []component.MenuItem
-	for _, it := range r.items() {
-		items = append(items, it.item)
+	return screen.SubMenu{
+		Title:    component.TitleBar{Title: sdTitle},
+		Sections: r.sections(),
+		Heading:  sdHeading,
+		Menu:     component.Menu{Items: r.items(), Exit: component.MenuItem{Key: "0", Label: "Return"}},
+		Prompt:   sdPrompt,
 	}
-	vm := screen.SubMenu{
-		Title:   component.TitleBar{Title: sdTitle},
-		Heading: sdHeading,
-		Menu:    component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:  sdPrompt,
-	}
-	switch r.sh.report {
-	case reportSections:
-	case reportPager:
-		vm.Sections = []screen.Section{{Header: component.SectionHeader{Title: secSummary}, Rows: component.BulletList{Items: r.summaryRows()}}}
-	default:
-		vm.Sections = r.sections()
-	}
-	return vm
-}
-
-// summaryRows are report-pager's rows: a section and its one line.
-func (r detailsReading) summaryRows() []component.KeyValue {
-	var rows []component.KeyValue
-	for _, s := range sdSections {
-		v, state := r.summary(s)
-		rows = append(rows, component.KeyValue{Key: s, Value: v, State: state})
-	}
-	return rows
 }
 
 // report is the report with no menu and no prompt: what hardn system-details
@@ -1143,7 +991,7 @@ func hostsMenu(title string, fill func(add func(label, about string, action func
 // it: its note above it, then each round the screen read again from the
 // host, which is all that Refresh does. Nothing is written; the plan-only
 // sequence draws the same screen, as Backup and Environment are under plan
-// only, and refuses treatment export-file's write.
+// only.
 func (s *session) sdScreen(ctx context.Context, sh sdHost, h *fakeHost) error {
 	run := &sdRun{s: s, sh: sh, h: h}
 	if err := s.writeNote(sdPrefix+"/"+sh.name, sh.note); err != nil {
@@ -1152,43 +1000,15 @@ func (s *session) sdScreen(ctx context.Context, sh sdHost, h *fakeHost) error {
 	return s.p.Run(func() nav.Screen { return run.draw(ctx) })
 }
 
-// draw reads the host and returns the screen, its items bound.
+// draw reads the host and returns the screen, its one item bound.
 func (run *sdRun) draw(ctx context.Context) nav.Screen {
-	s := run.s
 	r := readDetails(ctx, run.h.sys(), run.sh)
 	vm := r.subMenu()
 	menu := nav.Menu{Exit: vm.Menu.Exit}
 	for _, it := range r.items() {
-		menu.Options = append(menu.Options, nav.Option{Item: it.item, Action: run.action(r, it)})
+		menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { run.tick(); return nil }})
 	}
-	return vm.Screen(s.p.Ctx, menu)
-}
-
-// action is what item it does on the screen.
-func (run *sdRun) action(r detailsReading, it sdItem) func() error {
-	s := run.s
-	write := func(text string) func() error {
-		return func() error {
-			_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+text+"\n")
-			return err
-		}
-	}
-	c := s.p.Ctx
-	switch {
-	case it.section != "":
-		return write(r.section(it.section).Render(c))
-	case it.action == itemRefresh:
-		return func() error { run.tick(); return nil }
-	case it.action == itemOpen:
-		return write(pagerNote(c, reportCommand))
-	case it.action == itemExport && run.sh.export == exportCommand:
-		return s.say(component.Message{Text: saveCommand})
-	case it.action == itemExport && s.sequence == "dry-run":
-		return s.say(component.Message{Text: planOnlyNo})
-	case it.action == itemExport:
-		return write(exportFileWords(c))
-	}
-	return func() error { return nil }
+	return vm.Screen(run.s.p.Ctx, menu)
 }
 
 // tick moves the simulated host on, as if a Refresh a minute later found it
@@ -1211,27 +1031,6 @@ const (
 	mainOpenLine    = "Failed to open log file /var/log/hardn.log: open /var/log/hardn.log: permission denied"
 	mainExampleLine = "Warning: Unable to create example configuration file: failed to create directory for example config: mkdir /etc/hardn: permission denied"
 )
-
-// reportCommand is what treatment report-pager's Open would run.
-const reportCommand = "LESSSECURE=1 less, the report on its standard input"
-
-// pagerNote is the gallery's note where hardn would run a pager: no golden
-// can run one, and the fake models none.
-func pagerNote(c component.Ctx, command string) string {
-	return component.Callout{Kind: component.MessageInfo, Body: []string{
-		"The gallery runs no pager. hardn would run " + command + ", then draw this screen again.",
-	}}.Render(c)
-}
-
-// exportFileWords are treatment export-file's words: the question, a
-// relative path refused, the file written. The gallery writes nothing.
-func exportFileWords(c component.Ctx) string {
-	return apart(
-		component.PromptLine{Label: askPath}.Render(c),
-		component.Message{Kind: component.MessageWarn, Text: wholePath}.Render(c),
-		component.Message{Kind: component.MessageOK, Text: savedTo}.Render(c),
-	)
-}
 
 // sdStart returns the hosts' menu, or the host, that args name
 // ("system-details", "system-details/<host>"), and whether they name one;
@@ -1282,9 +1081,8 @@ func onSDHost(name string, view func(detailsReading, component.Ctx) string) func
 	}
 }
 
-// sdMocks are the listing's mocks, in order: the screen on each host, each
-// treatment's item opened, the wide form, plan only, the non-interactive
-// forms, and origin/main's report in its own words.
+// sdMocks are the listing's mocks, in order: the screen on each host, plan
+// only, the non-interactive forms, and origin/main's report in its own words.
 func sdMocks() []listMock {
 	var mocks []listMock
 	for _, sh := range sdHosts() {
@@ -1292,28 +1090,8 @@ func sdMocks() []listMock {
 			draw: onSDHost(sh.name, func(r detailsReading, c component.Ctx) string { return r.subMenu().Render(c) })})
 	}
 	return append(mocks,
-		listMock{name: reportSections + "-open", note: "Treatment report-sections: item 5, Disk, opened, under the prompt, on the screen drawn again.",
-			draw: onSDHost(reportSections, func(r detailsReading, c component.Ctx) string {
-				return apart(r.subMenu().Render(c), r.section(secDisk).Render(c), r.subMenu().Render(c))
-			})},
-		listMock{name: reportPager + "-open", note: "Treatment report-pager: item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run.",
-			draw: onSDHost(reportPager, func(r detailsReading, c component.Ctx) string {
-				return apart(r.subMenu().Render(c), pagerNote(c, reportCommand), r.subMenu().Render(c))
-			})},
-		listMock{name: reportWide, wide: wideCols, note: fmt.Sprintf("Treatment report-wide: two columns from %d cells up (run with -width %d), a second 64-cell box beside the first, past the content cap of §7 and so a new layout; below that width it is report-whole.", wideCols, wideCols),
-			draw: onSDHost("debian13", wideDrawing)},
-		listMock{name: exportCommand + "-open", note: "Treatment export-command: item 2 says the command.",
-			draw: onSDHost(exportCommand, func(r detailsReading, c component.Ctx) string {
-				return apart(r.subMenu().Render(c), component.Message{Text: saveCommand}.Render(c))
-			})},
-		listMock{name: exportFile + "-open", note: "Treatment export-file: item 2's question, a relative path refused (origin/main takes it, system_details_menu.go:135, and writes under the current directory as root), and the file written. Under plan only it says " + planOnlyNo,
-			draw: onSDHost(exportFile, func(r detailsReading, c component.Ctx) string {
-				return apart(r.subMenu().Render(c), exportFileWords(c))
-			})},
 		listMock{name: "plan-only", note: "Plan only, as the other sub-menus show it: they show nothing. No sub-menu shows the mode (SubMenu.Heading, sub.go:58: \"with no mode beside it\"; play/backup-plan-only, play/environment-main-plan-only). The screen is the same under plan only, since it changes nothing, and the main menu says the mode.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.subMenu().Render(c) })},
-		listMock{name: "plan-only-indicator", note: "Treatment mode-beside-heading, not proposed: the mode beside this screen's heading, as the main menu has it (\"Mode Plan only (-n)\"). No sub-menu does this today, and the layout has no field for it.",
-			draw: onSDHost("debian13", planOnlyIndicator)},
 		listMock{name: "cli-terminal", note: "hardn system-details to a terminal: the report, no menu and no prompt. It reads the same as the screen.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.report(c) })},
 		listMock{name: "cli-pipe", wide: theme.ContentWidth, note: "hardn system-details not to a terminal: plain mode, no colour, ASCII, whatever the terminal around it (term.Env's Plain). Its values are cut at the 64-cell content width like any row's today; unit (c) must not cut them (the page, Made here; cli-pipe-cut). As a user other than root, see cli-not-root.",
@@ -1343,36 +1121,6 @@ func sdMocks() []listMock {
 					}}.Render(c), r.originScreen(true).Render(c))
 			})},
 	)
-}
-
-// wideDrawing is treatment report-wide: at wideCols and up, the sections
-// in two columns, then the menu; narrower, report-whole.
-func wideDrawing(r detailsReading, c component.Ctx) string {
-	if c.Env.Width < wideCols {
-		return r.subMenu().Render(c)
-	}
-	col := func(titles ...string) string {
-		var blocks []string
-		for _, t := range titles {
-			blocks = append(blocks, r.section(t).Render(c))
-		}
-		return apart(blocks...)
-	}
-	left := col(secOS, secHost, secUsers, secCPU)
-	right := col(secDisk, secMemory, secLogin)
-	vm := r.subMenu()
-	vm.Sections, vm.Title = nil, component.TitleBar{}
-	menu := strings.TrimLeft(vm.Render(c), "\n")
-	_, menu, _ = strings.Cut(menu, "\n\n") // the empty title bar
-	return apart(component.TitleBar{Title: sdTitle}.Render(c), beside(left, right, theme.ContentWidth, sideGap), menu)
-}
-
-// planOnlyIndicator is the screen with the mode beside its heading, each
-// from its component.
-func planOnlyIndicator(r detailsReading, c component.Ctx) string {
-	mode := component.ModeIndicator{DryRun: true, Source: component.ModeSourceFlag}
-	heading := component.MenuHeading{Title: sdHeading}.Render(c)
-	return strings.Replace(r.subMenu().Render(c), heading, component.MenuHeading{Title: sdHeading, Mode: &mode}.Render(c), 1)
 }
 
 // detailsDocument is the proposed JSON form: pkg/output's document, built
@@ -1456,8 +1204,6 @@ func flagsDrawing(c component.Ctx) string {
 			{Key: "-S, --section", Value: "Refused, exit 2"},
 			{Key: "-E, --export", Value: "Refused: use > file"},
 		}}.Render(c),
-		component.SectionHeader{Title: "Until 3.11 is decided"}.Render(c),
-		component.BulletList{Items: []component.KeyValue{{Key: "All five", Value: "Parsed and ignored, as today"}}}.Render(c),
 	)
 }
 
@@ -1484,8 +1230,8 @@ func (r detailsReading) originScreen(failed bool) screen.SubMenu {
 }
 
 // listMock is one mock a listing shows: its name, its note, its drawing,
-// and the cells it needs, if more than any terminal's: its off-terminal
-// and wide forms do not draw to the listing's width.
+// and the width it needs, if more than any terminal's: its off-terminal
+// forms do not draw to the listing's width.
 type listMock struct {
 	name, note string
 	draw       func(ctx context.Context, c component.Ctx) (string, error)

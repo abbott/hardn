@@ -84,14 +84,6 @@ const (
 	cliRunWith  = "Run it with %s."
 )
 
-// The treatments the maintainer chooses between
-// (gallery-system-details.md): how the log reads. Each host draws a screen of
-// the last lines, as many as the terminal holds, an item opening the pager
-// (read-tail, in the notes), unless it names read-pager.
-const (
-	readPager = "read-pager" // P-18 as written: the main menu's item runs the pager at once; the tail screen only without one
-)
-
 // logState is what readLog found.
 type logState uint8
 
@@ -113,8 +105,6 @@ type logHost struct {
 	note string
 	// host returns the simulated host, fresh.
 	host func() *fakeHost
-	// read is the treatment it draws; "" is read-tail.
-	read string
 }
 
 // startupLines are what every start of hardn with a hardn.yml writes before
@@ -188,14 +178,14 @@ func withLess(h *fakeHost) *fakeHost {
 }
 
 // logHosts are the hosts, in the menu's order: the log's states, then the
-// other pager's and the treatment on the same logs.
+// hosts with no pager.
 func logHosts() []logHost {
 	const deb = hostFQDN + " runs Debian 13, less installed. "
 	return []logHost{
 		{name: "lines", label: "A log with lines", about: "Fits the screen", host: logOn(logOf(logSample[len(logSample)-4:])),
-			note: deb + "Treatment read-tail: a log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
+			note: deb + "A log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
 		{name: "long", label: "A long log", about: "1204 lines", host: logOn(longLog()),
-			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
+			note: deb + "As many of the last lines as the terminal holds: room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
 			note: deb + "No file there. origin/main's main() makes it at every start as root, before flags (cmd/hardn/main.go:57; logging.go:38), so today this shows only where that open failed; next/p3-startup moves that write."},
 		{name: "unreadable", label: "Unreadable", about: "A directory there", host: unreadableLog,
@@ -207,13 +197,9 @@ func logHosts() []logHost {
 		{name: "elsewhere", label: "logFile elsewhere", about: "hardn.yml says another path", host: elsewhereLog,
 			note: deb + "hardn.yml says logFile: /srv/log/hardn.log, where nothing writes. The screen reads the file hardn writes and says so; origin/main reads logFile, not what main() opens (P-18; config.go:324)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "BusyBox's less", host: alpineLog,
-			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). So treatment pager-less gives it no Open item (decision 7). With Alpine's less package there is one (pager-commands)."},
+			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). So it has no Open item (decision 7 (a)). With Alpine's less package there is one (pager-commands)."},
 		{name: "no-pager", label: "No pager", about: "No less installed", host: noPagerLog,
 			note: hostFQDN + " runs Debian 13 with no less: no Open item, the last lines alone."},
-		{name: "read-pager", label: "Treatment: pager first", about: "Item 10 runs less", host: logOn(longLog()), read: readPager,
-			note: deb + "Treatment read-pager, P-18 as written: the main menu's 10 runs the pager at once, and returns there. A golden cannot run it: this says what would run."},
-		{name: "read-pager-none", label: "Pager first, no pager", about: "The last lines instead", host: noPagerLog, read: readPager,
-			note: hostFQDN + " runs Debian 13 with no less: treatment read-pager falls back to read-tail's screen, P-18's \"otherwise the last N lines\"."},
 	}
 }
 
@@ -281,7 +267,7 @@ type logReading struct {
 // the whole file, as origin/main does: nothing rotates the log, so unit
 // (b)'s reader should read its end alone, which host.System has no call for.
 func readLog(ctx context.Context, sys host.System) logReading {
-	r := logReading{path: hardnLog, pager: pagerFor(ctx, sys, noEnv, false)}
+	r := logReading{path: hardnLog, pager: pagerFor(ctx, sys)}
 	if cfg, err := statusConfig(ctx, sys); err == nil && cfg.LogFile != "" && cfg.LogFile != hardnLog {
 		r.elsewhere = cfg.LogFile
 	}
@@ -377,8 +363,7 @@ func parseLogLine(line string) logLine {
 }
 
 // pagerChoice is what would read the log; name is "" for no pager. busybox
-// says the less found is BusyBox's: chosen only under pager-env, without
-// LESSSECURE, which it does not read.
+// says the less found is BusyBox's, which has no secure mode, so is not chosen.
 type pagerChoice struct {
 	name    string
 	argv    []string
@@ -395,28 +380,17 @@ func (p pagerChoice) command(file string) string {
 	return cmd
 }
 
-// noEnv is an environment with nothing in it.
-func noEnv(string) string { return "" }
-
-// pagerFor is what would read the log: with useEnv (treatment pager-env,
-// P-18 as written) $PAGER where it is set, its words as the argv, through
-// no shell; else less, found where hardn finds a command (host.SearchPath),
-// with LESSSECURE=1 (treatment pager-less, proposed), which turned off !, |,
-// v, E and :e in GNU less 668 on the VMs, as a user, not as root
-// (vm-runs/s1/04-less2-*); else none. BusyBox's less has no such mode: the
-// variable changed nothing on the VM, and miscutils/less.c (master) reads LESS
-// alone from the environment, at :1836, its s and E keys writing and opening any
-// path, :1554-1566, :1212, read: no path was typed at s, and E tried only a name
-// that does not exist. So pager-less does not choose it, and pager-env runs it
-// as it is. It goes by the link, and where it cannot tell chooses none; unit (b)
-// asks less --version (the page, §8). A stand-in: nothing on the new side runs one,
-// and host.System's Run pipes a command's output and gives it no terminal.
-func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, useEnv bool) pagerChoice {
-	if useEnv {
-		if f := strings.Fields(getenv("PAGER")); len(f) > 0 {
-			return pagerChoice{name: path.Base(f[0]), argv: f}
-		}
-	}
+// pagerFor is what would read the log: less, found where hardn finds a command
+// (host.SearchPath), with LESSSECURE=1, which turned off !, |, v, E and :e in GNU
+// less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*); else none.
+// BusyBox's less has no such mode: the variable changed nothing on the VM, and
+// miscutils/less.c (master) reads LESS alone from the environment, at :1836, its
+// s and E keys writing and opening any path, :1554-1566, :1212, read: no path was
+// typed at s, and E tried only a name that does not exist. So it does not choose
+// it. It goes by the link, and where it cannot tell chooses none; unit (b) asks
+// less --version (the page, §8). A stand-in: nothing on the new side runs one, and
+// host.System's Run pipes a command's output and gives it no terminal.
+func pagerFor(ctx context.Context, sys host.System) pagerChoice {
 	for _, dir := range strings.Split(host.SearchPath, ":") {
 		if _, err := sys.Stat(ctx, dir+"/less"); err != nil {
 			continue
@@ -427,8 +401,6 @@ func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, 
 			return pagerChoice{}
 		case err != nil || path.Base(target) != "busybox":
 			return pagerChoice{name: "less", argv: []string{"less"}, env: "LESSSECURE=1"}
-		case useEnv:
-			return pagerChoice{name: "less", argv: []string{"less"}, busybox: true}
 		}
 		return pagerChoice{busybox: true}
 	}
@@ -647,26 +619,20 @@ func (s *session) openLogs(name string) func() error {
 }
 
 // logsScreen runs the screen on h, lh's host, until the user goes back from
-// it, or under read-pager with a pager at hand says what it would run and
-// returns. Nothing is written or run; the plan-only sequence draws the same
-// screen.
+// it. Nothing is written or run; the plan-only sequence draws the same screen.
 func (s *session) logsScreen(ctx context.Context, lh logHost, h *fakeHost) error {
 	run := &logsRun{s: s, lh: lh, h: h}
 	if err := s.writeNote(logsPrefix+"/"+lh.name, lh.note); err != nil {
 		return err
 	}
-	if r := readLog(ctx, h.system()); lh.read == readPager && r.state == logLines && r.pager.name != "" {
-		_, err := io.WriteString(s.p.Out, pagerSays(s.p.Ctx, r.pager.command(r.path))+"\n")
-		return err
-	}
 	return s.p.Run(func() nav.Screen { return run.draw(ctx) })
 }
 
-// pagerSays is the gallery's note for treatment read-pager, whose item runs
-// the pager at once and returns to the main menu.
-func pagerSays(c component.Ctx, command string) string {
+// pagerNote is the gallery's note where hardn would run a pager: no golden
+// can run one, and the fake models none.
+func pagerNote(c component.Ctx, command string) string {
 	return component.Callout{Kind: component.MessageInfo, Body: []string{
-		"The gallery runs no pager. hardn would run " + command + ", then draw the main menu again.",
+		"The gallery runs no pager. hardn would run " + command + ", then draw this screen again.",
 	}}.Render(c)
 }
 
@@ -745,7 +711,6 @@ func onLogHost(name string, view func(logReading, component.Ctx) string) func(co
 // pagerEnv is one environment hardn may run in, as the pager table shows it.
 type pagerEnv struct {
 	label string
-	env   map[string]string
 	host  func() *fakeHost
 }
 
@@ -754,44 +719,36 @@ type pagerEnv struct {
 // HARDN_CONFIG on the VMs, vmtest.md §4.9; PAGER was not run; sudo-rs took
 // env_keep from a drop-in, vmtest.md:315, so a rule may keep it there too;
 // doas keeps only what setenv or keepenv says, sudoers.md:102]; sudo where a
-// rule or -E keeps it; and a host with no less.
+// rule or -E keeps it; and a host with no less. PAGER is not read in any.
 func pagerEnvs() []pagerEnv {
-	with := func(user string) map[string]string {
-		return map[string]string{"SUDO_USER": user, "USER": "root", "PAGER": "most"}
-	}
 	return []pagerEnv{
-		{"root login, PAGER=most", map[string]string{"USER": "root", "PAGER": "most"}, logOn("")},
-		{"sudo, PAGER dropped", sudoAlice, logOn("")},
-		{"sudo-rs, PAGER dropped [I]", sudoAlice, logOn("")},
-		{"doas, BusyBox's less", doasAlice, alpineLog},
-		{"doas, the less package [I]", doasAlice, alpineLessPackage},
-		{"sudo, PAGER=most kept", with("alice"), logOn("")},
-		{"no less, no PAGER", sudoAlice, noPagerLog},
+		{"root login, PAGER=most", logOn("")},
+		{"sudo, PAGER dropped", logOn("")},
+		{"sudo-rs, PAGER dropped [I]", logOn("")},
+		{"doas, BusyBox's less", alpineLog},
+		{"doas, the less package [I]", alpineLessPackage},
+		{"sudo, PAGER=most kept", logOn("")},
+		{"no less, no PAGER", noPagerLog},
 	}
 }
 
-// pagerTable draws what each treatment would run in each environment.
+// pagerTable draws what would run in each environment.
 func pagerTable(ctx context.Context, c component.Ctx) (string, error) {
-	rows := func(useEnv bool) []component.KeyValue {
-		var out []component.KeyValue
-		for _, e := range pagerEnvs() {
-			p := pagerFor(ctx, e.host().system(), lookup(e.env), useEnv)
-			v := p.command(hardnLog)
-			switch {
-			case p.busybox && p.name == "":
-				v = "None: BusyBox's has no secure mode"
-			case p.name == "":
-				v = "None: the last lines alone"
-			}
-			out = append(out, component.KeyValue{Key: e.label, Value: v})
+	var rows []component.KeyValue
+	for _, e := range pagerEnvs() {
+		p := pagerFor(ctx, e.host().system())
+		v := p.command(hardnLog)
+		switch {
+		case p.busybox && p.name == "":
+			v = "None: BusyBox's has no secure mode"
+		case p.name == "":
+			v = "None: the last lines alone"
 		}
-		return out
+		rows = append(rows, component.KeyValue{Key: e.label, Value: v})
 	}
 	return apart(
-		component.SectionHeader{Title: "pager-less, proposed"}.Render(c),
-		component.BulletList{Items: rows(false)}.Render(c),
-		component.SectionHeader{Title: "pager-env, P-18 as written"}.Render(c),
-		component.BulletList{Items: rows(true)}.Render(c),
+		component.SectionHeader{Title: "pager-less, adopted"}.Render(c),
+		component.BulletList{Items: rows}.Render(c),
 	), nil
 }
 
@@ -802,28 +759,19 @@ func logsMocks() []listMock {
 	var mocks []listMock
 	for _, lh := range logHosts() {
 		mocks = append(mocks, listMock{name: "screen-" + lh.name, note: "The Logs screen. " + lh.note,
-			draw: onLogHost(lh.name, func(r logReading, c component.Ctx) string {
-				if lh.read == readPager && r.state == logLines && r.pager.name != "" {
-					return pagerSays(c, r.pager.command(r.path))
-				}
-				return r.subMenu(c).Render(c)
-			})})
+			draw: onLogHost(lh.name, func(r logReading, c component.Ctx) string { return r.subMenu(c).Render(c) })})
 	}
 	return append(mocks,
-		listMock{name: "open", note: "Treatment read-tail: item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run, the screen drawn again when it exits.",
+		listMock{name: "open", note: "Item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run, the screen drawn again when it exits.",
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
 				return apart(r.subMenu(c).Render(c), pagerNote(c, r.pager.command(r.path)), r.subMenu(c).Render(c))
 			})},
-		listMock{name: "pager-commands", note: "What each pager treatment would run, by the environment. Under sudo, sudo-rs and doas PAGER is dropped [I; not run for PAGER]. pager-env runs as root whatever a kept PAGER names, and most has its own shell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c, master): no path was typed at s, and E tried only a name that does not exist. Alpine's less package is [I, not run]. The gallery's table: nothing runs.",
+		listMock{name: "pager-commands", note: "What would run, by the environment: PAGER is not read, kept or dropped (decision 7 (a)). Under sudo, sudo-rs and doas it is dropped [I; not run for PAGER]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c, master): no path was typed at s, and E tried only a name that does not exist. Alpine's less package is [I, not run]. The gallery's table: nothing runs.",
 			draw: pagerTable},
-		listMock{name: "cli-terminal-tail", note: "hardn -p to a terminal, treatment read-tail: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
+		listMock{name: "cli-terminal-tail", note: "hardn -p to a terminal: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
 				n := r.fitTail(c, c.Env.Height-cliChrome)
 				return apart(component.TitleBar{Title: logsTitle}.Render(c), r.fileSection().Render(c), r.tailHeader(n).Render(c), r.tailRows(c, n))
-			})},
-		listMock{name: "cli-terminal-pager", note: "hardn -p to a terminal, treatment read-pager: the pager at once, as the screen's. A golden cannot run it.",
-			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
-				return component.Callout{Kind: component.MessageInfo, Body: []string{"The gallery runs no pager. hardn would run " + r.pager.command(r.path) + ", then exit."}}.Render(c)
 			})},
 		listMock{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: this needs unit (d) to run -p ahead of the config load, or with a silent console (decision 10). origin/main's opens with the config line, the clear sequence and the rest (origin-p). Exit 0.",
 			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},

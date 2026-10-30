@@ -26,8 +26,7 @@ func TestLogsGolden(t *testing.T) { goldenListing(t, logsListing) }
 // TestPlayLogsGolden plays the reading end to end and pins each transcript:
 // from the main menu's 10, on a log of lines, leaving; Refresh, a line
 // having been written; the same under plan only; a long log's Open, which
-// says what it would run; each state; no pager; treatment read-pager, with
-// a pager and with none; and the hosts' menu.
+// says what it would run; each state; no pager; and the hosts' menu.
 func TestPlayLogsGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -46,8 +45,6 @@ func TestPlayLogsGolden(t *testing.T) {
 		{"logs-elsewhere", []string{"logs/elsewhere"}, []string{"0"}, nil},
 		{"logs-alpine", []string{"logs/alpine323"}, []string{"1", "0"}, nil},
 		{"logs-no-pager", []string{"logs/no-pager"}, []string{"1", "0"}, nil},
-		{"logs-read-pager", []string{"logs/read-pager"}, nil, nil},
-		{"logs-read-pager-none", []string{"logs/read-pager-none"}, []string{"0"}, nil},
 		{"logs-hosts", []string{"logs"}, []string{"6", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
@@ -86,8 +83,6 @@ func TestLogHosts(t *testing.T) {
 		{host: "elsewhere", state: logLines, lines: 10, pager: "less", elsewhere: "/srv/log/hardn.log"},
 		{host: "alpine323", state: logLines, lines: 10},
 		{host: "no-pager", state: logLines, lines: 10},
-		{host: "read-pager", state: logLines, lines: 1204, pager: "less"},
-		{host: "read-pager-none", state: logLines, lines: 10},
 	}
 	if len(tests) != len(logHosts()) {
 		t.Fatalf("%d hosts tested, %d hosts", len(tests), len(logHosts()))
@@ -200,37 +195,25 @@ func TestParseLogLine(t *testing.T) {
 	}
 }
 
-// TestPagerFor: treatment pager-less reads no environment, pager-env reads
-// PAGER; less is found through the fake, with its secure mode; no pager is
-// no choice.
+// TestPagerFor: no environment is read; less is found through the fake, with
+// its secure mode; no pager is no choice.
 func TestPagerFor(t *testing.T) {
 	ctx := context.Background()
-	env := lookup(map[string]string{"PAGER": "most -s"})
-	less := logOn("")().system()
-	if p := pagerFor(ctx, less, env, false); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
-		t.Errorf("pager-less: %q", p.command(hardnLog))
+	if p := pagerFor(ctx, logOn("")().system()); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
+		t.Errorf("less: %q", p.command(hardnLog))
 	}
-	if p := pagerFor(ctx, less, env, true); p.command(hardnLog) != "most -s "+hardnLog || p.name != "most" {
-		t.Errorf("pager-env: %q", p.command(hardnLog))
-	}
-	if p := pagerFor(ctx, less, noEnv, true); p.name != "less" {
-		t.Errorf("pager-env, no PAGER: %q", p.name)
-	}
-	if p := pagerFor(ctx, noPagerLog().system(), noEnv, false); p.name != "" {
+	if p := pagerFor(ctx, noPagerLog().system()); p.name != "" {
 		t.Errorf("no less: %q", p.name)
 	}
-	if p := pagerFor(ctx, alpineLog().system(), noEnv, false); p.name != "" || !p.busybox {
-		t.Errorf("pager-less, BusyBox's less, through its link: %+v", p)
+	if p := pagerFor(ctx, alpineLog().system()); p.name != "" || !p.busybox {
+		t.Errorf("BusyBox's less, through its link: %+v", p)
 	}
-	if p := pagerFor(ctx, alpineLog().system(), noEnv, true); p.command(hardnLog) != "less "+hardnLog || !p.busybox {
-		t.Errorf("pager-env, BusyBox's less: %+v", p)
-	}
-	if p := pagerFor(ctx, alpineLessPackage().system(), noEnv, false); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
+	if p := pagerFor(ctx, alpineLessPackage().system()); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
 		t.Errorf("Alpine's less package: %+v", p)
 	}
 	unsure := alpineLog()
 	unsure.f.AddDir("/usr/bin", 0o777, 0, 0) // a link the guarded walk will not read
-	if p := pagerFor(ctx, unsure.system(), noEnv, false); p.name != "" {
+	if p := pagerFor(ctx, unsure.system()); p.name != "" {
 		t.Errorf("a less it cannot tell: %+v", p)
 	}
 }
@@ -265,9 +248,6 @@ func TestLogsUsage(t *testing.T) {
 func TestLogsHeights(t *testing.T) {
 	shown := map[int]string{24: "Last 3 of 1204 lines", 40: "Last 17 of 1204 lines"}
 	for _, lh := range logHosts() {
-		if lh.read == readPager && lh.name == "read-pager" {
-			continue // no screen: the pager at once
-		}
 		r, err := readLogHost(context.Background(), lh.name)
 		if err != nil {
 			t.Fatal(err)
@@ -298,12 +278,10 @@ func TestLogsWriteNothing(t *testing.T) {
 			h := lh.host()
 			r := readLog(context.Background(), h.system())
 			var lines []string
-			if lh.read != readPager || r.pager.name == "" {
-				for _, it := range r.items() {
-					lines = append(lines, it.item.Key)
-				}
-				lines = append(lines, "0")
+			for _, it := range r.items() {
+				lines = append(lines, it.item.Key)
 			}
+			lines = append(lines, "0")
 			s, out, code := playWith(t, logsPrefix+"/"+lh.name, func(s *session) func() error {
 				if dryRun {
 					s.sequence = "dry-run"
