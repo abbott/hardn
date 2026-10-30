@@ -625,6 +625,34 @@ linters:
               desc: the log's reader returns data; the screen and -p draw it (docs/engine/readers-system-details.md §2)
             - pkg: github.com/abbott/hardn/pkg/output
               desc: the log's reader returns data; the screen and -p draw it (docs/engine/readers-system-details.md §2)
+        # next/s1-readers: the System Details report's reader reads and runs
+        # only through host.System, and returns facts. (engine-through-host's
+        # glob covers the directory too; this block names the unit's own rule,
+        # as logview-through-host does.) net/netip reads ip's addresses.
+        details-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/engine/details/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: the report's reader reads and runs only through host.System (docs/engine/readers-system-details.md §2)
+            - pkg: io/ioutil
+              desc: the report's reader reads only through host.System (docs/engine/readers-system-details.md §2)
+            - pkg: golang.org/x/sys
+              desc: the report's reader makes no system calls of its own (docs/engine/readers-system-details.md §2)
+            - pkg: syscall
+              desc: the report's reader makes no system calls of its own (docs/engine/readers-system-details.md §2)
+            - pkg: net
+              desc: the report's reader makes no network calls; ip reads the addresses (docs/engine/readers-system-details.md §2)
+            - pkg: plugin
+              desc: the report's reader loads no code (docs/engine/readers-system-details.md §2)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: the report's reader returns data; the screen and pkg/output map it (docs/engine/readers-system-details.md §2)
+            - pkg: github.com/abbott/hardn/pkg/output
+              desc: the report's reader returns data; the screen and pkg/output map it (docs/engine/readers-system-details.md §2)
         # next/p4-vmcheck: internal/tools/p4status, the read-only driver of
         # Phase 4 on a host, reaches the host only through its guard over
         # host.System, which refuses every change and runs only the
