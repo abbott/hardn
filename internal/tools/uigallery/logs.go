@@ -273,16 +273,16 @@ func commandWords(c logview.Command) string {
 	return strings.Join(slices.Concat(c.Env, c.Argv), " ")
 }
 
-// pipeLines is every line of the log as hardn -p writes it off a terminal: the
-// seam's line scan, each line made safe, in memory bounded by the line
-// (host.ScanLines). Unit (d) writes each as it reads.
+// pipeLines is every line of the log as hardn -p writes it off a terminal:
+// logview.Each, in memory bounded by the line. Unit (d) writes each as it reads,
+// and says a failure in the Reading's words.
 func pipeLines(ctx context.Context, sys host.System) (string, error) {
 	var out []string
-	_, err := sys.ScanLines(ctx, hardnLog, func(l host.Line) bool {
-		out = append(out, logview.Show(l))
+	r := logview.Each(ctx, sys, func(l logview.Line) bool {
+		out = append(out, l.Text)
 		return true
 	})
-	return strings.Join(out, "\n"), err
+	return strings.Join(out, "\n"), r.Err
 }
 
 // logRows are lines of the log as code, as an error report's captured output

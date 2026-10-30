@@ -8,7 +8,8 @@
 //     (decision 6 (a), gallery-system-details.md §5); Elsewhere says when
 //     logFile names another path.
 //   - Read gives the path, the size, the number of lines and the last lines,
-//     or why there are none, in the words the row shows.
+//     or why there are none, in the words the row shows. Each gives every line
+//     as it reads, and the same words: hardn -p off a terminal.
 //   - Safe and Show make a line of the log safe to show, on the screen and
 //     off it (-p): what a terminal would act on is shown, not stripped.
 //   - ParseLine reads a line's level, for its colour alone.
@@ -39,7 +40,9 @@ const File = "/var/log/hardn.log"
 
 // MaxLast is the most lines Read keeps, oldest dropped. A screen fits what it
 // has room for from their end; each takes a row at least, so no terminal needs
-// more, and with host.MaxLine it bounds what Read holds, 16 MiB at worst.
+// more. With host.MaxLine it bounds what Read holds: 16 MiB of the file's bytes,
+// and at worst about 96 MiB once shown, Safe making a bad byte 6, so about 112
+// MiB at the moment it maps one to the other. Writing such a log needs root.
 const MaxLast = 256
 
 // State is what Read found.
@@ -90,12 +93,35 @@ func Read(ctx context.Context, sys host.System) Reading {
 }
 
 func read(ctx context.Context, sys host.System, file string) Reading {
-	r := Reading{Path: file}
 	var last tail
-	fi, err := sys.ScanLines(ctx, file, func(l host.Line) bool {
-		r.Total++
+	r := scan(ctx, sys, file, func(l host.Line) bool {
 		last.add(l)
 		return true
+	})
+	if r.State == Lines {
+		for _, l := range last.lines() {
+			r.Last = append(r.Last, lineOf(l))
+		}
+	}
+	return r
+}
+
+// Each gives yield every line of the log as it reads, safe to show, until yield
+// returns false: hardn -p off a terminal, a pass over a log nothing rotates, in
+// memory bounded by the line. What it returns is Read's, Last empty: a failure
+// part way, after lines have gone, is Unreadable in Read's words, so -p's "can't
+// read <path>: <reason>" is one form whenever it fails. A caller's write error
+// is the caller's: it returns false, and keeps the error.
+func Each(ctx context.Context, sys host.System, yield func(Line) bool) Reading {
+	return scan(ctx, sys, File, func(l host.Line) bool { return yield(lineOf(l)) })
+}
+
+// scan is one pass over file, and what became of it.
+func scan(ctx context.Context, sys host.System, file string, yield func(host.Line) bool) Reading {
+	r := Reading{Path: file}
+	fi, err := sys.ScanLines(ctx, file, func(l host.Line) bool {
+		r.Total++
+		return yield(l)
 	})
 	if fi != nil {
 		r.Size = fi.Size()
@@ -109,12 +135,14 @@ func read(ctx context.Context, sys host.System, file string) Reading {
 		r.State = Empty
 	default:
 		r.State = Lines
-		for _, l := range last.lines() {
-			text := Show(l)
-			r.Last = append(r.Last, Line{Text: text, Level: ParseLine(text).Level})
-		}
 	}
 	return r
+}
+
+// lineOf is a line of the file as Read and Each give it.
+func lineOf(l host.Line) Line {
+	text := Show(l)
+	return Line{Text: text, Level: ParseLine(text).Level}
 }
 
 // tail keeps the last MaxLast lines it is given, reusing their memory: a log

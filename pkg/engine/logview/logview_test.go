@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"syscall"
 	"testing"
@@ -272,21 +273,99 @@ func TestParseLine(t *testing.T) {
 	}
 }
 
-// TestEveryLineAsItReads: -p's pipe form on the same seam: every line, Show,
-// written as it reads, with a line past the cap marked and the rest there
-// (unit (d) writes this; the words of the stream are its).
+// TestEveryLineAsItReads: -p's pipe form: every line, Show, written as it reads,
+// with a line past the cap marked and the rest there (unit (d) writes this; the
+// words of the stream are its).
 func TestEveryLineAsItReads(t *testing.T) {
 	long := strings.Repeat("x", host.MaxLine)
 	f := logHost(t, "one\n"+long+"y\n\x1b[31mred\r\n\nlast")
 	var out bytes.Buffer
-	if _, err := f.ScanLines(context.Background(), logPath, func(l host.Line) bool {
-		fmt.Fprintln(&out, logview.Show(l))
+	r := logview.Each(context.Background(), f, func(l logview.Line) bool {
+		fmt.Fprintln(&out, l.Text)
 		return true
-	}); err != nil {
-		t.Fatal(err)
-	}
+	})
 	if want := "one\n" + long + "<cut>\n^[[31mred\n\nlast\n"; out.String() != want {
 		t.Errorf("%d bytes, want %d", out.Len(), len(want))
+	}
+	if r.State != logview.Lines || r.Total != 5 || r.Last != nil {
+		t.Errorf("%+v", r)
+	}
+}
+
+// TestEachStops: a caller's false ends the pass, no error, as a write that
+// failed; the error is the caller's.
+func TestEachStops(t *testing.T) {
+	n := 0
+	r := logview.Each(context.Background(), logHost(t, "one\ntwo\nthree\n"), func(logview.Line) bool { n++; return n < 2 })
+	if n != 2 || r.State != logview.Lines || r.Err != nil {
+		t.Errorf("%d lines, %+v", n, r)
+	}
+}
+
+// failingScan is a host whose read of the log gives lines, then fails.
+type failingScan struct {
+	*hostfake.System
+	after []string
+	err   error
+}
+
+func (f failingScan) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
+	for _, l := range f.after {
+		if !yield(host.Line{Text: []byte(l)}) {
+			return nil, nil
+		}
+	}
+	return nil, f.err
+}
+
+// TestEachFails: Each says what Read says of every failure, a read that fails
+// part way too, which gives no Total: -p's stderr and the screen's row are one
+// set of words, and a part is no total.
+func TestEachFails(t *testing.T) {
+	ctx := context.Background()
+	f := hostfake.New(host.Options{})
+	ioErr := &fs.PathError{Op: "read", Path: logPath, Err: syscall.EIO}
+	refused := &fs.PathError{Op: "open", Path: logPath, Err: fs.ErrPermission}
+	for _, tt := range []struct {
+		name   string
+		after  []string
+		err    error
+		reason string
+	}{
+		{"part way", []string{"one", "two"}, ioErr, "input/output error"},
+		{"at the open", nil, refused, "permission denied"},
+		{"not a regular file", nil, fmt.Errorf("host: %w", fs.ErrInvalid), "not a regular file"},
+		{"a link", nil, &fs.PathError{Op: "open", Path: logPath, Err: host.ErrSymlink}, host.ErrSymlink.Error()},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			sys := failingScan{f, tt.after, tt.err}
+			var lines []string
+			each := logview.Each(ctx, sys, func(l logview.Line) bool {
+				lines = append(lines, l.Text)
+				return true
+			})
+			read := logview.Read(ctx, sys)
+			if !slices.Equal(lines, tt.after) {
+				t.Errorf("gave %q", lines)
+			}
+			for name, r := range map[string]logview.Reading{"Each": each, "Read": read} {
+				if r.State != logview.Unreadable || r.Reason != tt.reason || r.Total != 0 || r.Last != nil || !errors.Is(r.Err, tt.err) {
+					t.Errorf("%s: %+v", name, r)
+				}
+			}
+		})
+	}
+}
+
+// TestEachMissing: no file, or nothing in it, is what Read says.
+func TestEachMissing(t *testing.T) {
+	ctx := context.Background()
+	never := func(logview.Line) bool { t.Error("a line"); return false }
+	if r := logview.Each(ctx, hostfake.New(host.Options{}), never); r.State != logview.NoLog {
+		t.Errorf("%+v", r)
+	}
+	if r := logview.Each(ctx, logHost(t, ""), never); r.State != logview.Empty {
+		t.Errorf("%+v", r)
 	}
 }
 
