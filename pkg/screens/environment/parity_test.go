@@ -89,8 +89,8 @@ const envHeader = `# The Environment parity table: origin/main's SetupSudoPreser
 # origin/main: pkg/characterization's goldens, read in place: environment/keep_* (item 1 as root;
 # -e and setup-sudo-env call the same function), one run for every distribution, its temp dir the
 # root; ops/setup_sudo_preservation/<distribution> (-e and setup-sudo-env). The new path: the
-# Environment control through screenkit.Session.Change (item 1, as unit (c)'s screen is to run it)
-# and through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
+# Environment screen's Run (item 1, typed as each cell's "new path:" line says) and the Environment
+# control through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
