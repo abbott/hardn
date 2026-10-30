@@ -259,3 +259,52 @@ func isExit(code int) func(error) bool {
 		return errors.As(err, &xe) && xe.ExitCode == code
 	}
 }
+
+// RunInteractive runs nothing: it answers as Run does, failing closed, and
+// records the whole environment host.Real would give, logged as host.Real
+// logs it, with no environment in the log.
+func TestRunInteractive(t *testing.T) {
+	ctx := context.Background()
+	var log bytes.Buffer
+	f := hostfake.New(host.Options{RunLog: &log})
+	f.Respond(hostfake.Response{}, "less", "--", "/var/log/hardn.log")
+	f.Respond(hostfake.Response{ExitCode: 3}, "stty", "raw")
+	env := []string{"LESSSECURE=1", "PATH=/tmp/x", "TERM=vt100"}
+	if err := f.RunInteractive(ctx, env, "less", "--", "/var/log/hardn.log"); err != nil {
+		t.Fatal(err)
+	}
+	calls := f.Calls()
+	if len(calls) != 1 || calls[0].Op != "run-interactive" {
+		t.Fatalf("calls = %v", calls)
+	}
+	if want := []string{"LESSSECURE=1", "TERM=vt100", "PATH=" + host.SearchPath}; !reflect.DeepEqual(calls[0].Env, want) {
+		t.Errorf("Env = %q, want %q", calls[0].Env, want)
+	}
+	if !reflect.DeepEqual(calls[0].Argv, []string{"less", "--", "/var/log/hardn.log"}) {
+		t.Errorf("Argv = %q", calls[0].Argv)
+	}
+	if got, want := calls[0].String(), `run-interactive less -- /var/log/hardn.log <env LESSSECURE=1 TERM=vt100 PATH=/usr/sbin:/usr/bin:/sbin:/bin>: exit 0`; got != want {
+		t.Errorf("String() = %q, want %q", got, want)
+	}
+	if len(f.Runs()) != 0 {
+		t.Errorf("Runs() = %q", f.Runs())
+	}
+	if want := "run 1: $ less -- /var/log/hardn.log\nrun 1: exit 0\n"; log.String() != want {
+		t.Errorf("run log = %q, want %q", log.String(), want)
+	}
+	var xe *host.ExitError
+	if err := f.RunInteractive(ctx, nil, "stty", "raw"); !errors.As(err, &xe) || xe.ExitCode != 3 {
+		t.Errorf("exit 3: %v", err)
+	}
+	if err := f.RunInteractive(ctx, nil, "unscripted"); !errors.Is(err, hostfake.ErrUnscripted) {
+		t.Errorf("unscripted: %v", err)
+	}
+	if err := f.RunInteractive(ctx, nil, "./less"); !errors.Is(err, host.ErrNotFound) {
+		t.Errorf("relative: %v", err)
+	}
+	done, cancel := context.WithCancel(ctx)
+	cancel()
+	if err := f.RunInteractive(done, nil, "less", "--", "/var/log/hardn.log"); !errors.Is(err, context.Canceled) {
+		t.Errorf("done: %v", err)
+	}
+}

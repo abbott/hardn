@@ -38,6 +38,8 @@ type Real struct {
 	// fail, when set, is asked before each step of WriteFileAtomic; an
 	// error makes that step fail with it (crash-safety tests).
 	fail func(step string) error
+	// interactiveWait is how long RunInteractive waits after SIGTERM.
+	interactiveWait time.Duration
 }
 
 var _ LegacySystem = (*Real)(nil)
@@ -63,6 +65,8 @@ func NewReal(opts Options) *Real {
 		stat:  os.Stat,
 		exec:  runCmd,
 		spawn: spawnCmd,
+
+		interactiveWait: interactiveWait,
 	}
 }
 
@@ -153,6 +157,12 @@ func (r *Real) start(ctx context.Context, res *Result, stdin []byte, name string
 	res.Stdout, res.Stderr, res.Combined = stdout.Bytes(), stderr.Bytes(), combined.Bytes()
 	res.ExitCode = code
 	res.Tail = TailLines(res.Combined, r.tail)
+	return runOutcome(ctx, res, code, runErr)
+}
+
+// runOutcome is what a command that was started returns: nil, or an
+// *ExitError, or why it did not finish.
+func runOutcome(ctx context.Context, res *Result, code int, runErr error) error {
 	var xe *exec.ExitError
 	switch {
 	case code == 0 && (runErr == nil || errors.Is(runErr, exec.ErrWaitDelay)):

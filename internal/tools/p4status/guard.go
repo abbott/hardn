@@ -45,8 +45,9 @@ var decisions = map[string]decision{
 	"Readlink": pass, "ResolveSymlink": pass, "LookupUser": pass, "LookupGroup": pass,
 	"Run": allow,
 	// RunInput: no check or probe gives a command input; StartDetached:
-	// nothing they start may outlive the run.
-	"RunInput": refuse, "StartDetached": refuse,
+	// nothing they start may outlive the run; RunInteractive: no check or
+	// probe hands the terminal to a command.
+	"RunInput": refuse, "StartDetached": refuse, "RunInteractive": refuse,
 	"MkdirAll": refuse, "Remove": refuse, "RemoveAll": refuse, "Rename": refuse, "Chmod": refuse,
 	"Chown": refuse, "WriteFileAtomic": refuse, "AppendFile": refuse, "Lock": refuse,
 }
@@ -170,6 +171,12 @@ func (g *guard) RunInput(_ context.Context, _ []byte, name string, args ...strin
 func (g *guard) StartDetached(_ context.Context, name string, args ...string) (int, error) {
 	_, err := g.denyRun("StartDetached", append([]string{name}, args...), "a detached process")
 	return 0, err
+}
+
+// RunInteractive is refused.
+func (g *guard) RunInteractive(_ context.Context, _ []string, name string, args ...string) error {
+	_, err := g.denyRun("RunInteractive", append([]string{name}, args...), "an interactive command")
+	return err
 }
 
 // The reads, passed through.

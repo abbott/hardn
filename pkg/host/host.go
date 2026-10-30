@@ -73,6 +73,20 @@ type System interface {
 	// entry only: it never kills the process. The run log records the
 	// start and the process id. The OpenRC revert timer (p2-revert).
 	StartDetached(ctx context.Context, name string, args ...string) (pid int, err error)
+	// RunInteractive runs name with args as a child with hardn's own stdin,
+	// stdout and stderr, so it has the terminal, and waits for it. No shell;
+	// name is resolved as Run resolves it, and the working directory is
+	// Run's. Its environment is exactly env and Run's PATH (InteractiveEnv):
+	// nothing is inherited, as for every command hardn runs (commandEnv),
+	// and an entry of env naming PATH is dropped. Ctrl-C and Ctrl-\ while it
+	// runs reach it and do not end hardn, and hardn's signal handling is as
+	// it was once it returns. A non-zero exit is an *ExitError, ExitCode -1
+	// when ended by a signal. A done ctx runs nothing; ctx done while it runs
+	// sends it SIGTERM, then SIGKILL 5 s later, and returns an error wrapping
+	// ctx.Err(). The run log records the argv and the exit, not env. See
+	// Real.RunInteractive. For a program that needs a terminal, on the
+	// person's say: the Logs screen's pager.
+	RunInteractive(ctx context.Context, env []string, name string, args ...string) error
 
 	// ReadFile returns the content of name, following symlinks.
 	ReadFile(ctx context.Context, name string) ([]byte, error)
