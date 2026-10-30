@@ -696,22 +696,19 @@ func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
 // but the DNS, Backup and Environment items', which are the hooks
-// cmd/hardn sets (SetDNS, SetBackup, SetEnvironment). Its environment
-// entry, opened by no item since slice 9's unit (d), goes with
-// environment_settings_menu.go.
+// cmd/hardn sets (SetDNS, SetBackup, SetEnvironment).
 type screens struct {
-	users, sshLogin, firewall, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, runAll, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
 // handleMenuChoice built it, the same constructor with the same
 // arguments.
 var legacyScreens = screens{
-	users:       func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
-	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
-	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
-	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
-	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
+	users:    func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
+	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
+	firewall: func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
+	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 	systemDetails: func(m *MainMenu) legacyScreen {
 		return NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
 	},

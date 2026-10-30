@@ -195,7 +195,6 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 	firewallManager := f.CreateFirewallManager()
 	dnsManager := f.CreateDNSManager()
 	packageManager := f.CreatePackageManager()
-	environmentManager := f.CreateEnvironmentManager()
 	logsManager := f.CreateLogsManager()
 	hostInfoManager := f.CreateHostInfoManager()
 	securityManager := application.NewSecurityManager(
@@ -208,23 +207,10 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 		dnsManager,
 		packageManager,
 		securityManager,
-		environmentManager,
 		logsManager,
 		hostInfoManager)
 	menuManager.SetProxmoxCheck(f.IsProxmoxHost)
 	return menuManager
-}
-
-// CreateEnvironmentManager creates an EnvironmentManager with all required dependencies
-func (f *ServiceFactory) CreateEnvironmentManager() *application.EnvironmentManager {
-	// Create repository
-	environmentRepo := secondary.NewFileEnvironmentRepository(f.provider.FS, f.provider.Commander)
-
-	// Create domain service
-	environmentService := service.NewEnvironmentServiceImpl(environmentRepo)
-
-	// Create application service
-	return application.NewEnvironmentManager(environmentService)
 }
 
 // CreateLogsManager creates a LogsManager

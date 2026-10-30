@@ -10,15 +10,14 @@ import (
 
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	userManager        *UserManager
-	sshManager         *SSHManager
-	firewallManager    *FirewallManager
-	dnsManager         *DNSManager
-	packageManager     *PackageManager
-	securityManager    *SecurityManager
-	environmentManager *EnvironmentManager
-	logsManager        *LogsManager
-	hostInfoManager    *HostInfoManager
+	userManager     *UserManager
+	sshManager      *SSHManager
+	firewallManager *FirewallManager
+	dnsManager      *DNSManager
+	packageManager  *PackageManager
+	securityManager *SecurityManager
+	logsManager     *LogsManager
+	hostInfoManager *HostInfoManager
 	// proxmoxCheck is the host's Proxmox VE check (SetProxmoxCheck)
 	proxmoxCheck func() bool
 }
@@ -31,20 +30,18 @@ func NewMenuManager(
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
 	securityManager *SecurityManager,
-	environmentManager *EnvironmentManager,
 	logsManager *LogsManager,
 	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
-		userManager:        userManager,
-		sshManager:         sshManager,
-		firewallManager:    firewallManager,
-		dnsManager:         dnsManager,
-		packageManager:     packageManager,
-		securityManager:    securityManager,
-		environmentManager: environmentManager,
-		logsManager:        logsManager,
-		hostInfoManager:    hostInfoManager,
+		userManager:     userManager,
+		sshManager:      sshManager,
+		firewallManager: firewallManager,
+		dnsManager:      dnsManager,
+		packageManager:  packageManager,
+		securityManager: securityManager,
+		logsManager:     logsManager,
+		hostInfoManager: hostInfoManager,
 	}
 }
 
@@ -125,21 +122,6 @@ func (m *MenuManager) UpdateProxmoxSources() error {
 // retrieve the current status of the firewall
 func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
 	return m.firewallManager.GetFirewallStatus()
-}
-
-// configure sudo to preserve the HARDN_CONFIG environment variable
-func (m *MenuManager) SetupSudoPreservation() error {
-	return m.environmentManager.SetupSudoPreservation()
-}
-
-// check if sudo is configured to preserve the HARDN_CONFIG environment variable
-func (m *MenuManager) IsSudoPreservationEnabled() (bool, error) {
-	return m.environmentManager.IsSudoPreservationEnabled()
-}
-
-// retrieve the current environment configuration
-func (m *MenuManager) GetEnvironmentConfig() (*model.EnvironmentConfig, error) {
-	return m.environmentManager.GetEnvironmentConfig()
 }
 
 // print the log file content to the console

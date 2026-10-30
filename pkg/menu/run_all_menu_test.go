@@ -49,7 +49,7 @@ func newRunAllMenuOn(t *testing.T, dryRun, pve bool) (*RunAllMenu, *interfaces.M
 	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, host), osInfo))
 	dns := application.NewDNSManager(service.NewDNSServiceImpl(secondary.NewFileDNSRepository(fs, mc, "debian"), osInfo))
 	security := application.NewSecurityManager(users, ssh, firewall, dns)
-	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, security, nil, nil, nil)
+	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, security, nil, nil)
 	mm.SetProxmoxCheck(host.IsProxmox)
 
 	cfg := config.DefaultConfig()
