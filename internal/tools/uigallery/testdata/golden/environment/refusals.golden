@@ -26,6 +26,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUnder doas stays Not kept by hardn.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
 $
@@ -59,6 +60,7 @@ $
 # Warning$
 # hardn has no doas rule for alice to keep HARDN_CONFIG on. Add$
 # setenv { HARDN_CONFIG } to the rule that lets alice use doas.$
+# Under doas stays Not kept by hardn.$
 $
 # item 1, hardn-env-alice edited -------------------------------$
 $
@@ -92,7 +94,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on.␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd setenv { HARDN_CONFIG } to the rule that lets alice␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156muse doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156muse doas. Under doas stays Not kept by hardn.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
@@ -126,6 +128,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUnder doas stays Not kept by hardn.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m-------------------------------␛[m$
 $

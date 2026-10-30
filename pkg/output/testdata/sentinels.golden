@@ -55,6 +55,7 @@ engine.ErrRolledBack ROLLED_BACK
 engine.ErrUnjournalled CHANGE_UNJOURNALLED
 engine.ErrUnsupported PLATFORM_UNSUPPORTED
 engine.ErrWindow CONFIRM_WINDOW_CLOSING
+environment.ErrNoUser ENVIRONMENT_NO_USER
 fs.ErrNotExist FILE_NOT_FOUND
 fs.ErrPermission PERMISSION_DENIED
 host.ErrHardLink HARD_LINK_REFUSED
@@ -144,6 +145,7 @@ steps.ErrProxmoxRoot PVE_ROOT_LOGIN_NOT_KEPT
 steps.ErrSessionNotKept SSH_CLEANUP_SESSION_NOT_KEPT
 sudoers.ErrAmbiguous SUDOERS_TOOL_AMBIGUOUS
 sudoers.ErrChanged SUDOERS_CHANGED
+sudoers.ErrEdited SUDOERS_FILE_EDITED
 sudoers.ErrEnvNeedsGrant SUDOERS_ENV_NEEDS_GRANT
 sudoers.ErrNoTool SUDOERS_NO_TOOL
 sudoers.ErrNotIncluded SUDOERS_NOT_INCLUDED

@@ -1,0 +1,18 @@
+# Golden file of TestGoldens/refused-no-tool, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msudo isn't installed here (SUDOERS_NO_TOOL)␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Operation Failed$
+# sudo isn't installed here (SUDOERS_NO_TOOL)$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msudo isn't installed here (SUDOERS_NO_TOOL)␛[m$
+$

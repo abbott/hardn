@@ -259,6 +259,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SUDOERS_PERMS` | 1 | a doas file is not root's, or group or others can write it |
 | `SUDOERS_CHANGED` | 1 | an elevation file changed since it was read |
 | `SUDOERS_NOT_RESTORED` | 1 | the files were not all put back, or do not check |
+| `SUDOERS_FILE_EDITED` | 1 | hardn's file holds a rule hardn did not write, so the user's rules are not read back from it (`sudoers.EditedError` names it); new in `next/s9-control` ([sudoers.md](../safety/sudoers.md) §2 item 13) |
+| `ENVIRONMENT_NO_USER` | 1 | no user ran hardn through sudo or doas (a root login), so there is no user to keep HARDN_CONFIG for (`environment.ErrNoUser`); new in `next/s9-control` ([control-environment.md](../engine/control-environment.md) §6) |
 | `ALPINE_NOT_ALPINE` | 1 | not an Alpine host |
 | `ALPINE_UNKNOWN` | 1 | Alpine's updates: a fact the answer depends on is not established |
 | `ALPINE_NO_OPENRC` | 1 | OpenRC did not boot the host, so it runs no crond |

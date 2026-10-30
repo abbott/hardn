@@ -1,0 +1,30 @@
+# Golden file of TestGoldens/refused-doas, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(SUDOERS_ENV_NEEDS_GRANT)␛[m$
+$
+  ␛[38;2;129;134;156mTo go on: add setenv { HARDN_CONFIG } to the rule that lets␛[m$
+  ␛[38;2;129;134;156malice use doas.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Operation Failed$
+# hardn has no doas rule for alice to keep HARDN_CONFIG on$
+# (SUDOERS_ENV_NEEDS_GRANT)$
+$
+  To go on: add setenv { HARDN_CONFIG } to the rule that lets$
+  alice use doas.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(SUDOERS_ENV_NEEDS_GRANT)␛[m$
+$
+  ␛[38;2;129;134;156mTo go on: add setenv { HARDN_CONFIG } to the rule that␛[m$
+  ␛[38;2;129;134;156mlets alice use doas.␛[m$
+$

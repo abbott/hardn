@@ -156,16 +156,15 @@
 //
 // "environment" lists the Environment mocks of refactor plan slice 9,
 // unit (a) (environment.go, docs/engine/gallery-environment.md), each
-// under a note: the proposed Environment screen on fifteen simulated
-// hosts, read by real code (sudoers.Choose, Read and PlanFor), origin/main's
-// screen in its words, item 1 under each doas treatment, the guide and
-// the refusals. "play environment" is the menu of the hosts and "play
-// environment/<host>" the screen on one, each change on the real engine
-// (steps.Sudoers), with the gallery's stand-ins for what unit (b) builds:
-// who ran hardn, the reader of hardn's files, the plan's findings on the
-// change. -sequence dry-run stops each change at its plan, as plan only
-// would; -fail is refused there. Its flags are -list, -theme, -profile,
-// -ascii, -override, and -width and -height sized as play's.
+// under a note: the proposed Environment screen on ten simulated hosts,
+// read by the Environment control (environment.Read, since
+// next/s9-control), origin/main's screen in its words, item 1 refused on
+// doas, the guide and the refusals. "play environment" is the menu of the
+// hosts and "play environment/<host>" the screen on one, each change the
+// control's on the real engine (steps.Sudoers). -sequence dry-run stops
+// each change at its plan, as plan only would; -fail is refused there.
+// Its flags are -list, -theme, -profile, -ascii, -override, and -width
+// and -height sized as play's.
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the

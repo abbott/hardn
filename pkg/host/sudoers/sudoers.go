@@ -342,7 +342,13 @@ func sudoGrant(user string, g Grant) []byte {
 
 // sudoEnv is origin/main's env_keep line (setup-sudo-env), in its own file.
 func sudoEnv(user string, vars []string) []byte {
-	return []byte(Header + "Defaults:" + user + " env_keep += \"" + strings.Join(vars, " ") + "\"\n")
+	return []byte(Header + envLine(user, vars) + "\n")
+}
+
+// envLine is origin/main's env_keep line for user, with no newline
+// (file_environment_repository.go:69, the variable HARDN_CONFIG there).
+func envLine(user string, vars []string) string {
+	return "Defaults:" + user + " env_keep += \"" + strings.Join(vars, " ") + "\""
 }
 
 // doasRule is the user's one doas rule, in the shape of Alpine's

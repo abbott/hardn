@@ -43,18 +43,19 @@ func emptied() *engine.Undo { return &engine.Undo{} }
 // step. Lockout risk when a change of the plan is (a grant removed, or
 // one that asks a password: sudoers.RiskLockout), so that a new SSH
 // connection, where elevation is checked, confirms it; plain otherwise.
-// Apply backs up every file it writes or removes into the plan's backup
-// run (RollbackRequired), then sudoers.Apply with the plan's run
-// directory. The step is dropped when Apply wrote nothing: an error with
-// nothing installed, nothing restored and not sudoers.ErrNotRestored, or a
-// backup that failed before it.
+// The plan's findings ride on the change (SudoersFinding), where they
+// were dropped (next/s9-control). Apply backs up every file it writes or
+// removes into the plan's backup run (RollbackRequired), then
+// sudoers.Apply with the plan's run directory. The step is dropped when
+// Apply wrote nothing: an error with nothing installed, nothing restored
+// and not sudoers.ErrNotRestored, or a backup that failed before it.
 func Sudoers(id string, p sudoers.Plan, summary string) (engine.Change, error) {
 	step, err := plans.Sudoers(p, summary)
 	if err != nil {
 		return engine.Change{}, err
 	}
 	c := engine.Change{ID: id, Summary: summary, Target: strings.Join(sudoersPaths(p), ", "), Stage: engine.StageAccounts,
-		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitSudoers}}
+		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitSudoers}, Findings: sudoersFindings(p.Findings)}
 	if slices.ContainsFunc(p.Changes, func(ch sudoers.Change) bool { return ch.Risk == sudoers.RiskLockout }) {
 		c.Risk = engine.RiskLockout
 	}

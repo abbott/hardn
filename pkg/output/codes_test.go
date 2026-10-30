@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
+	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -182,6 +183,7 @@ var sentinels = map[string]error{
 	"steps.ErrSessionNotKept":        steps.ErrSessionNotKept,
 	"sudoers.ErrAmbiguous":           sudoers.ErrAmbiguous,
 	"sudoers.ErrChanged":             sudoers.ErrChanged,
+	"sudoers.ErrEdited":              sudoers.ErrEdited,
 	"sudoers.ErrEnvNeedsGrant":       sudoers.ErrEnvNeedsGrant,
 	"sudoers.ErrNoTool":              sudoers.ErrNoTool,
 	"sudoers.ErrNotIncluded":         sudoers.ErrNotIncluded,
@@ -201,6 +203,7 @@ var sentinels = map[string]error{
 	"ufw.ErrStateUnknown":            ufw.ErrStateUnknown,
 	"ufw.ErrVerify":                  ufw.ErrVerify,
 	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
+	"environment.ErrNoUser":          environment.ErrNoUser,
 }
 
 // otherSentinels are the sentinels of other packages that have codes of
@@ -491,6 +494,7 @@ func TestTypedErrors(t *testing.T) {
 		"sshd.UnexpectedError":   &sshd.UnexpectedError{ExitCode: 3},
 		"migrate.NarrowError":    &migrate.NarrowError{},
 		"sudoers.CheckError":     &sudoers.CheckError{Stage: sudoers.StageCandidate, Err: sudoers.ErrPerms},
+		"sudoers.EditedError":    &sudoers.EditedError{Path: "/etc/sudoers.d/hardn-env-alice"},
 		"reload.HoldError":       &reload.HoldError{},
 		"reload.ListenerError":   &reload.ListenerError{Err: reload.ErrSocketConfig},
 		"ufw.BlockError":         &ufw.BlockError{},
