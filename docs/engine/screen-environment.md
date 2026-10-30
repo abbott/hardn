@@ -1,0 +1,174 @@
+# The Environment screen on the Environment control (`pkg/screens/environment`, `screen.Environment`)
+
+> **Unit:** refactor plan slice 9 (Environment), unit (c), `next/s9-screen`, from `next/s9-parity` at dba2ef6: "Screen on the design system and prompt kit" (plan §2, "Phases 3–5 together", §3.22); [gallery-environment.md](gallery-environment.md) §9: "the screen on the design system and prompt kit, `pkg/screens/environment`, retiring these mocks"; [control-environment.md](control-environment.md) §11, which lists what it takes. It builds the screen the maintainer adopted as the gallery's mock on 2026-10-29 (gallery-environment.md §5, decisions 1 to 7 and the Made here calls, with §6's words; decision 1 (a)'s open item settled by words the same day), drawn through the Environment control ([control-environment.md](control-environment.md), its words adopted 2026-10-29) and acting through the engine and the flow, and makes `TestParity` drive it ([parity-environment.md](parity-environment.md) §7). Decisions implemented: 1 (a) (on doas, item 1 refused where hardn has no rule for the user, and the row said to stay), 2 (a) (a root login refused), 3 (a) (origin/main's line read, "Kept by /etc/sudoers.d/alice"), 5 (a) (item 1 both ways), 6 (a) (no status row), 7 (the words); the Made here calls for plan only, the line after a change and the file read after hardn's rule. V-numbers: V16, V18, V20, on the screen's path, through the control.
+> **Status:** built and tested on macOS, in process: the screen through its entry point on the recording fake (`hostfake`), every host state the control's tests and the gallery cover, every item, refusal, failure, redraw, plan only, decline and navigation; `TestParity` through the screen; the gallery's playable mode on its simulated hosts, its transcripts pinned on the core set. No real terminal, no hardn binary and no host were used; nothing ran on Linux or as root: every host claim is **written, not run (gate 5)** (§4). Nothing is wired into `cmd/hardn` or the live main menu (unit (d), §7); the legacy Environment screen (`pkg/menu/environment_settings_menu.go`), `-e`, `setup-sudo-env`, the `su -` probe and their characterization goldens are untouched. Words: the decided ones used exactly; two are **proposed** (§5).
+
+## 1. Why
+
+origin/main's Environment screen reads its state as a substring of one file, falls back to `USER` at a root login, writes through `/tmp/hardn_sudoers_temp` into the file its grant overwrites, in place, nothing backed up, and has no doas path (gallery-environment.md §2, §7). Unit (a) drew the replacement on the real reading, which the maintainer adopted; unit (b) built the control, its reader and its refusals; unit (b2) recorded the parity table with a driver of its own. This unit draws the adopted screen from the host and runs its one change through the control and the engine, so that one Environment screen exists, on the real code, for unit (d) to call from hardn's main menu.
+
+## 2. Guarantees
+
+### Where the screen lives
+
+1. **The drawing in `pkg/ui`, the reading and the running outside it.** `pkg/ui/screen` holds the view-model, `screen.Environment` (the tool's name, the state, the user, the state row's words, the files read after hardn's rule, `HARDN_CONFIG` as hardn sees it, whether item 1 is refused or lockout-risk), which draws the screen on the sub-menu layout (`SubMenu`), item 1's title bar and review (`Step`, `Review`) and item 2 (`EnvironmentGuide`). `pkg/screens/environment` reads the host with the control, fills the view, binds the items and runs item 1's change with `screenkit.Session.Change`. **One entry point**, `Run` (§6).
+2. **Through `host.System` only.** `pkg/screens/environment` reaches the host through the `host.System` it is given, the control, `pkg/engine/header`'s hostname file and the engine, and hardn's environment only through `Options.Getenv`; it draws through `pkg/ui` and `pkg/output`: depguard's `screens-through-host` covers it (`os` and the rest denied to its non-test files; run: lint 0 issues). `pkg/ui/screen/environment.go` imports nothing of the host (`ui-renders-only`; run). It never calls `engine.New`: the caller builds the engine (`Options.NewEngine`), so the gallery's `TestPlayTouchesNothing` walks it, now naming it, the control and `pkg/host/sudoers` among the packages it must reach (run).
+
+### The screen (decisions 1 (a), 2 (a), 3 (a), 5 (a), 6 (a), 7)
+
+3. **Each round reads the host and draws the screen** (`nav.Prompter.Run`'s draw): `environment.Read` on `Options.Facts` and `Options.Getenv` (the tool, who ran hardn, hardn's files and origin/main's for that user, item 1's change built as `Plan` builds it). **Drawing writes and runs nothing, live and under plan only** (run: `TestScreen`, 13 host states, both modes: no write, no command, no engine, nothing planned). **No hardn.yml is read or adopted**: the control reads and saves no setting (read: `Keep.Plan` builds `steps.Sudoers` alone, no `steps.PlanSave`), so `screenkit.NotLoaded` does not apply: with no hardn.yml read, item 1 plans as anywhere; the session's configuration is one read from no file, which the control does not read and `Adopt` leaves alone.
+4. **The title bar and section as adopted**, by the control's `Reading.State` (control-environment.md §10, decision 19): "Environment Variable Settings"; no status row (decision 6 (a)); "HARDN_CONFIG" with **User**, "alice", or with no user "Not run with sudo" ("doas") in `status.warn` and no state row; **Under sudo** or **Under doas**, "Kept by hardn" in `status.ok` (in `status.warn` where a file read after hardn's rule may override it, each such file a line under it, "/etc/doas.d/wheel.conf may override hardn's rule"), "Not kept by hardn" in `status.warn`, "Kept by /etc/sudoers.d/alice" in `status.ok`, the value muted and the note in the state's colour; Not Applicable with neither tool, and no User row; Unknown where the state was not read, under the User row where the user is known; **Value**, `HARDN_CONFIG` as hardn sees it, or "Not set". 15 lines to the prompt with no User or no state row, 16 with the three, 18 with a may-override line and a Lockout risk line, at 80×24 and 80×40 alike, the mock's counts (run: `TestEnvironmentHeights`).
+5. **Items 1 and 2 and Return**, the decided words: 1 labelled by the tool ("Under sudo", "Under doas"; "Under sudo" with neither tool, as drawn), "Keep HARDN_CONFIG", or once hardn's files keep it "Stop keeping HARDN_CONFIG" (decision 5 (a)), marked Lockout risk where it asks and its plan is; 2 "Guide" "How to set HARDN_CONFIG"; "Return"; "Select an option"; "Enter selection" (P-29 (a)).
+
+### The items (decisions 1 (a), 2 (a), 3 (a), 5 (a), 7; the Made here calls)
+
+6. **Item 1 is refused before it asks wherever the reading refuses it** (`Reading.Refusal`: no tool, no user, a file of hardn's edited by hand, on doas no rule of hardn's for the user, a plan the journal refuses, sudoers not included), as one warning: the refusal's Why and Fix (`screenkit.RefusalWords`; control-environment.md §6, decided), the error as it is where the control has no words, then on doas "Under doas stays Not kept by hardn." (`Reading.Stays`, decided, the screen's alone: control-environment.md §10, decision 18). No engine is made, nothing planned, written or run, live and under plan only; the screen is drawn again as it was (run: `TestRefusedBeforeAsking`, six hosts, both modes; `TestParity`, every refused cell).
+7. **Item 1 keeps `HARDN_CONFIG`, or stops keeping it, through the plan**, under "Keep HARDN_CONFIG" or "Stop Keeping HARDN_CONFIG": the review, "HARDN_CONFIG", User and the state the change makes (`environment.Words(!Kept)`), then the plan's findings (origin/main's file, "/etc/sudoers.d/alice may also let alice use sudo"; a file read after hardn's rule); the plan, the control's (`environment.Keep{Getenv, Stop: Kept}`, the user's grant and other variables carried); the question, "Keep HARDN_CONFIG under sudo?" or "Stop keeping HARDN_CONFIG under sudo?" ("under doas"), y/N; the apply (run: `TestKeep` on Debian 13 and Ubuntu 26.04, hardn-env-alice alone written, 0440 `0:0`, its copy checked in the run directory, nothing under `/tmp`, no `su`; `TestStop`, removed and its backup said; `TestGrantCarried`, hardn-grant-alice byte for byte, mode and owner; `TestLegacy`, the finding before the question, origin/main's file as it was).
+8. **A lockout-risk plan is confirmed by typing the hostname, never y/N** (on doas, a rule of hardn's that asks the user's password: control-environment.md §2.8): the question on its own line, then "Type the hostname [web-01, 0 or q]:", a line that does not match refused and asked again; the phrase the kernel's name (`/proc/sys/kernel/hostname`, `header.HostnameFile`), and its first label where the name does not show whole beside the label (`flow.Confirm.Short`; P-25 (e)). Once typed: hardn's boot unit, the revert timer armed, the rule rewritten, the countdown and "doas hardn confirm" (`pkg/output`'s) (run: `TestLockoutRisk`, applied on hostfake and declined with 0; `TestHostname`, a 54-character name asked by its first label). **Where the hostname cannot be read, or is no phrase nav can ask for**, item 1 says so when chosen, before anything is planned or asked, "Can't read the hostname to confirm with: <error>." (proposed, §5), nothing written (run: `TestHostname`: absent, empty, with a comma). A plan that became lockout-risk after the screen read the host says the same in place of the question.
+9. **After a change applied, "Takes effect at the next sudo hardn."** ("doas hardn"), under the flow's result and `pkg/output`'s lines (the backup kept, the countdown): the Value row is this hardn's environment, which the change cannot reach, so it stays as it was. Not after a decline, plan only, a failure or a cancelled apply (run: `TestKeep`, `TestStop`, `TestNothingWritten`, `TestFailedApply`, `TestApplyContext`).
+10. **A failure is the engine's.** visudo refusing the configuration fails the change at its first check, before hardn-env-alice is written, backed up and journalled first, rolled back from the journal: the flow's report, `SUDOERS_INVALID_BEFORE`, visudo's output, the host as it was (run: `TestFailedApply`; `TestParity`'s `visudo-fails`).
+11. **Item 2, the guide**, three lines, writing nothing, under plan only too (run: `TestGuide`).
+
+### After a change
+
+12. **The result stays on the screen, and the screen is drawn again under it from a fresh reading**: after keeping, Kept by hardn, Value as it was, item 1 stopping; after stopping on doas, Not kept by hardn, item 1 keeping, Lockout risk; after a failure, the host as it was.
+13. **Navigation**: 0 returns (`Run` returns nil); q quits from the screen and from item 1's question, y/N or typed (`nav.ErrQuit`); the end of the input and Ctrl-C abort (`prompt.ErrAborted`; Ctrl-C's `prompt.ErrInterrupted` wraps it), at the screen, the y/N question and the typed hostname, writing nothing; plan only stops item 1 at its plan, "No actual changes were made to your system."; the apply alone runs under `Options.ApplyContext`, a cancelled one rolled back and the screen going on (run: `TestNavigation`; `TestInterrupt`, SIGINT sent to the test while the screen reads a pipe, Linux and macOS; `TestNothingWritten`, `TestApplyContext`). `Options.Ran` is given what each planned change did. `Run`'s misuse (no Prompter's In or Out, System, Getenv or NewEngine) wraps `fs.ErrInvalid`, writing nothing (run: `TestRunNeeds`).
+14. **Mutation-checked** with `go test -overlay` (run, not committed): the draw writing a file fails `TestScreen` and 13 more, `TestParity` among them; item 1 asking where the reading refuses fails `TestRefusedBeforeAsking` and `TestParity`; a lockout-risk plan's confirmation given no label or hostname fails `TestLockoutRisk`, `TestHostname`, `TestNavigation` and `TestInterrupt`; the phrase "y" in place of the hostname fails `TestLockoutRisk` and `TestHostname`; the hostname not checked before asking fails `TestHostname`; item 1 turned the wrong way fails ten tests, `TestParity` among them; "Takes effect" said after any change fails `TestNothingWritten`, `TestFailedApply`, `TestApplyContext` and `TestLockoutRisk`; the control dropping the grant fails `TestLockoutRisk` alone, and with the sudo plan's filter of the grant's file removed too (control-environment.md §10, decision 16), `TestGrantCarried` and `TestScreen` as well.
+
+## 3. Facts relied on
+
+| Fact | Source | Used for |
+|---|---|---|
+| `Read` refuses item 1 where `Plan` refuses it, and builds the change as `Plan` does | control-environment.md §2.3, §10 decision 17; its `TestRefusals` (run there) | §2.6: refused before asking only what the plan refuses |
+| `Reading.State` is the one classification of a reading, `Check`'s too | control-environment.md §10 decision 19 | §2.4 |
+| On sudo the change is to `hardn-env-<stem>` alone and never lockout-risk; on doas a password rule of hardn's makes it lockout-risk | control-environment.md §2.7, §2.8; `TestPlan`, `TestDoasLockout` (run there) | §2.7, §2.8 |
+| A plan `Typed` reports is confirmed by its phrase, never y/N; a phrase `nav.CheckPhrase` refuses is not asked (`nav.ErrPhrase`), and one too long to show beside the label is asked by `Confirm.Short` | `pkg/ui/flow` `run.typed` (read); design-system README §9.8 | §2.8 |
+| The kernel's hostname is `/proc/sys/kernel/hostname`, the name set, short or full; `hostname(1)` prints it | `pkg/engine/header` `HostnameFile` and its doc (read); proc_sys_kernel(5), hostname(1) **[I, not run]** | §2.8: the phrase |
+| A lockout-risk plan needs the engine's `Session` and `Hardn` | `cmd/hardn/engine.go` `engineOptions`' doc (read) | §7 |
+
+## 4. Written, not run (gate 5)
+
+Nothing here has run on Linux or as root, and nothing calls `Run` but the tests and the gallery. control-environment.md §4 covers the control's own claims. For the maintainer's VM runs once unit (d) wires it, as root on Debian 13 (sudo), Ubuntu 26.04 (sudo-rs) and Alpine 3.24 (doas; 3.23 where there is no 3.24 VM), and by hand on Proxmox VE 9, through main menu 8, after `touch` of a stamp and `sleep 2`, each host put back after:
+
+1. **8 opens the screen** under `sudo hardn` from alice, under sudo-rs, under `doas hardn`, at a root login, and on Proxmox VE 9: the rows of §2.4; 0 back to the main menu; nothing written by opening (`find /etc /var/backups /var/lib/hardn -newer <stamp>`: nothing).
+2. **Keep (1, y)** on Debian and Ubuntu: `/etc/sudoers.d/hardn-env-alice` 0440 `root:root`, `sudo -l -U alice` showing the line, "Takes effect at the next sudo hardn."; the next `sudo hardn` from alice with `HARDN_CONFIG` set: Value the path, Kept by hardn.
+3. **Stop (1, y)**: the file removed, its backup kept, Not kept after.
+4. **With `hardn-grant-alice`** (a password grant): keeping and stopping leave it byte for byte, 0440 `root:root`, and alice's `sudo` asks as before.
+5. **origin/main's `/etc/sudoers.d/alice`** as its `-e` wrote it: "Kept by /etc/sudoers.d/alice"; item 1 writes `hardn-env-alice`, the review listing the legacy finding.
+6. **Alpine**: without a rule of hardn's, refused before asking with "Under doas stays Not kept by hardn."; with one written by hand as `PlanFor` writes it, a password rule keeping `HARDN_CONFIG`: stopping asks "Type the hostname" with the name `hostname` prints, installs hardn's boot unit, arms the revert timer, says "doas hardn confirm"; `doas hardn confirm` from a new session keeps it. doas's `setenv` keeping `HARDN_CONFIG` has run on no host.
+7. **Plan only**: `sudo hardn -n`: 8 opens, item 1 stops at its plan, nothing written.
+8. **A configuration visudo refuses** (a broken line in a file of `/etc/sudoers.d`): item 1 fails `SUDOERS_INVALID_BEFORE`, nothing written but the journal's and backup's own, rolled back.
+9. **Leaving**: q at the screen ends hardn; Ctrl-D and Ctrl-C at its prompt, at the y/N question and at the typed hostname.
+
+## 5. Words
+
+The decided words used exactly ([gallery-environment.md](gallery-environment.md) §6, adopted 2026-10-29 with decision 7; [control-environment.md](control-environment.md) §6 and §7, adopted 2026-10-29); **two are proposed**.
+
+| Where | Words | Source |
+|---|---|---|
+| Title bar | "Environment Variable Settings" | origin/main (`environment_settings_menu.go:34`) |
+| Section, rows | "HARDN_CONFIG"; "User" "alice", "Not run with sudo" / "Not run with doas" (warn); "Under sudo" / "Under doas" "Kept" / "Not kept" with "by hardn", "Kept" with "by /etc/sudoers.d/alice", Not Applicable, Unknown; "<file> may override hardn's rule" (warn); "Value" "<path>" / "Not set" | **decided** (decision 7; the state's words the control's, adopted 2026-10-29; Not Applicable and Unknown the components' state words) |
+| Items | "Under sudo" / "Under doas" "Keep HARDN_CONFIG" / "Stop keeping HARDN_CONFIG"; "Guide" "How to set HARDN_CONFIG"; "Return"; "Select an option"; "Enter selection" | **decided** (decision 7; heading and prompt Backup's) |
+| Flows' title bars | "Keep HARDN_CONFIG", "Stop Keeping HARDN_CONFIG" | **decided** (decision 7) |
+| Review | "HARDN_CONFIG", "User", the state the change makes in the state's words | **decided** (decision 7) |
+| The plan's change and findings | "Keep HARDN_CONFIG", "Stop keeping HARDN_CONFIG"; "/etc/sudoers.d/alice may also let alice use sudo", "<file> may override hardn's rule" | **decided** (the control's, control-environment.md §7) |
+| Questions | "Keep HARDN_CONFIG under sudo?", "Stop keeping HARDN_CONFIG under sudo?" ("under doas") | **decided** (decision 7) |
+| The typed confirmation's label | "Type the hostname" | the flow's (nav's example label, P-25 (d)), **proposed** there, as gallery-environment.md §6 notes |
+| After a change applied | "Takes effect at the next sudo hardn." ("doas hardn") | **decided** (decision 7) |
+| Refusals before asking | "sudo isn't installed here."; "hardn wasn't run with sudo, so there's no user to keep it for. Run sudo hardn as that user."; "<file> holds a rule hardn didn't write. Put hardn's back, or remove it." (two files: "… hold rules … remove them."); "hardn has no doas rule for alice to keep HARDN_CONFIG on. Add setenv { HARDN_CONFIG } to the rule that lets alice use doas." then "Under doas stays Not kept by hardn."; the others the error as it is | **decided** (the control's, control-environment.md §6, §7) |
+| The hostname not read, new | "Can't read the hostname to confirm with: <error>." | this unit, **proposed** (§8, decision 3) |
+| Guide | "HARDN_CONFIG names the hardn.yml hardn reads. Set it in your shell profile:" / "export HARDN_CONFIG=/path/to/hardn.yml" / "Then keep it with item 1." | **decided** (decision 7) |
+| The flow's and `pkg/output`'s | "Operation Successful", "Operation Cancelled", "No actual changes were made to your system.", the countdown, "Backup of <file> kept in" | P-27's, P-23 to P-25's (proposed there); "Backup of … kept in" **decided** (Backup's decision 8) |
+| The gallery's, dev-only | "Environment hosts", "Select a host", "Enter your choice", each host's label, about and note | the gallery's |
+
+## 6. API
+
+```go
+package environment // pkg/screens/environment (new; parity_test.go was its only file)
+
+type Options struct {
+	Prompter     nav.Prompter                                     // the one line reader, the writer, the render context
+	System       host.System                                      // the host
+	Facts        detect.Facts                                     // detect's: the control takes the tool from them
+	Getenv       func(string) string                              // hardn's environment: os.Getenv in hardn. Required
+	NewEngine    func(progress func(engine.Event)) *engine.Engine // one per change. Required
+	ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc) // each apply's context; nil: Run's
+	DryRun       bool
+	LogPath      string           // a failure's report names it
+	Now          func() time.Time // AfterFlow's clock; nil is time.Now
+	Ran          func(output.Run) // what each planned change did, for the audit log
+}
+
+// Run shows the Environment screen until 0 (nil) or q (nav.ErrQuit);
+// prompt.ErrAborted on the end of the input or Ctrl-C; fs.ErrInvalid,
+// writing nothing, without a Prompter's In and Out, System, Getenv or NewEngine.
+func Run(ctx context.Context, o Options) error
+
+package screen // pkg/ui/screen, added
+const EnvironmentKeepItem, EnvironmentGuideItem = "1", "2"
+type EnvironmentState uint8 // EnvironmentNotKept, EnvironmentKept, EnvironmentKeptLegacy, EnvironmentNotRun, EnvironmentNoTool, EnvironmentUnknown
+type Environment struct {
+	Tool string; State EnvironmentState; User, Word, Note string
+	Later []string; Value string; Refused, Risk bool
+}
+func (Environment) SubMenu() SubMenu
+func (Environment) Step() WorkflowStep
+func (Environment) Review(word, note string) flow.Review
+func EnvironmentGuide() component.Messages
+```
+
+`Options` are the DNS screen's but `Config`, with `Getenv` (§8, decision 1). No new error, code or sentinel; no change to `pkg/engine`, `pkg/host`, `pkg/output`, `pkg/config`, `pkg/screens/screenkit`, `pkg/ui/flow`, `pkg/ui/nav`, the components or the control.
+
+## 7. What unit (d) must do
+
+Unit (d) replaces the legacy Environment path (gallery-environment.md §9; parity-environment.md §8):
+
+- **Main menu 8 calls `Run`** in place of `NewEnvironmentSettingsMenu(m.menuManager, m.config)` (`pkg/menu/main_menu.go:694`, the item at `:747`), through a hook `cmd/hardn` sets, as `SetBackup` and `withBackupScreen` do (`main_menu.go:132-144`, `cmd/hardn/backup.go`), so that `pkg/menu` builds no engine; its description "Keep HARDN_CONFIG" (decision 7 (a), P-07 (c)). The hook's `Options`: `Prompter` on `engineInput()` and `stdoutEnv()`; `System`, `engineHost()`; `Facts`, `detect.Detect` once per visit, as DNS's; **`Getenv`, `os.Getenv`**; `NewEngine`, `newEngine(sys, engineOptions(ctx, sys, c))` (its `Session` and `Hardn` are what a lockout-risk plan needs: §3); `ApplyContext`, `screenApplyContext`; `DryRun`, `c.DryRun`; `LogPath`, `output.LegacyLogPath`; `Now`, `revertNow`; `Ran` nil until the audit log has a writer. No `Config`. Main menu 8 opens under plan only as today, item 1 stopping at its plan.
+- **Map what `Run` returns** as for DNS and Backup: nil back to the main menu; `nav.ErrQuit` ends hardn as the main menu's q; `prompt.ErrAborted` and any other error as at every prompt (`endHardn`).
+- **`-e` and `setup-sudo-env` on the control** (`environment.Controls(os.Getenv)`) through the engine, as `-g` runs the DNS control, applied without asking, `output.Human`'s report; **refused, non-zero, naming main menu 8, where the plan is lockout-risk** (`Plan.Risk == engine.RiskLockout`), so that the revert timer is never armed unasked (gallery-environment.md §5, Made here, adopted), with words proposed then; a plan that would write the user's first doas rule the control refuses itself (`SUDOERS_ENV_NEEDS_GRANT`); `-n` shows the plan and writes nothing, where today it exits 2; `setup-sudo-env` gains the root check the root command has (`cmd/hardn/main.go:141-152`) and loads hardn.yml (whose backup settings the engine takes); both spellings stay.
+- **Remove the `su -` probe and its notice** from `config.LoadConfig` (`DetectEnvVarLoss` and the notice, `pkg/config/config.go:312-356`; decision 4); the screen's state row says what the notice said.
+- **Freeze the record first, then delete** ([parity-environment.md](parity-environment.md) §8): move `environment/keep_*` (10), `menu/environment_*` (12), `environment/notice_*` (9) and `ops/setup_sudo_preservation/*` under `pkg/screens/environment/testdata/legacy/` with their tests' retirement, copy `ops/configure_sudo/*`, point `legacyDir` there, and prove it (`cmp`; `-update` leaves `git status` clean); then delete `environment_settings_menu.go`, `MenuManager`'s three environment methods, `application.EnvironmentManager`, the environment service and its test, its port, `FileEnvironmentRepository`, `model.EnvironmentConfig` and `ServiceFactory.CreateEnvironmentManager`, each with its grep.
+
+## 8. Decisions of this unit
+
+None is the maintainer's; each is for review.
+
+1. **`Options` are DNS's `Facts` and no `Config`, with `Getenv` required** (§6): the control takes the tool from the facts and reads and saves no setting of hardn.yml, so the screen reads and adopts none; its session's configuration is one read from no file. `Getenv` cannot default to `os.Getenv` inside the package (depguard's `screens-through-host` denies `os` to `pkg/screens`, `.golangci.yml:720-739`), and a nil lookup would read every host as a root login, so it is required, unit (d) passing `os.Getenv`. One consequence: a change's record (`Ran`) names no hardn.yml and carries none of its deprecations, as hardn.yml plays no part in it. *Alternatives:* nil an empty environment, as the control's `Keep.Getenv` takes it; `Config` kept for the run's record alone.
+2. **The typed phrase is the kernel's hostname, read by the screen** through `host.System` at the confirmation (`header.HostnameFile`, the name the main menu's header shows), its first label asked where the name does not show whole (`Confirm.Short`). *Alternative:* `Options.Hostname`, from the caller's header probe.
+3. **A lockout-risk change whose hostname cannot be read or typed is refused when chosen**, before anything is planned, in proposed words, "Can't read the hostname to confirm with: <error>." (§2.8); the flow would otherwise end at the question with `nav.ErrPhrase`, which `nav.Prompter.Run` would make the screen's error. *Alternative:* let the flow say it after the plan (the plan drawn for nothing, and its findings said twice by `output.AfterFlow`, as happens on the race path).
+4. **"Takes effect at the next sudo hardn." is said once `Session.Change` returns**, from the run `Ran` gave, for an apply that changed something and did not fail, where the mock said it from inside `Ran`: the same place in the transcript, and `Options.Ran` stays the caller's.
+5. **Item 1's title bar carries the screen as its parent** (`trail`, shown only with `TitleTrail`), as the Backup and DNS screens' do (screen-backup.md §8, decision 8); the mock's had none. The same drawing while `TitleTrail` is off.
+6. **The view-model's own state** (`screen.EnvironmentState`), where `pkg/ui` may not take the control's: kept by hardn, by origin/main's line, not kept, no user, no tool, not read, mapped from `Reading.State` and `Kept` in one place (`viewOf`); the state's words are the control's, passed in; the colours are the view's, as the mock drew them. The files read after hardn's rule are given whatever the state, drawn under a Kept row alone, and colour the review's state row too, as the mock's did.
+7. **The main menu's 8 in play leads to the real screen on debian13** (`envLinks`), where it said the gallery had no screen for it; `play/environment` pins it.
+8. **Every listing mock is retired, `origin` included** (as screen-backup.md decision 12 and screen-dns.md decision 9): origin/main's screen is recorded as it ran by `pkg/characterization`'s 12 `menu/environment_*` goldens, which unit (d) freezes as the parity record, and its words were drawn for decision 7, decided 2026-10-29; no part of the screen is a later unit's, so no mock is kept. git keeps them (`next/s9-parity`), and gallery-environment.md §3 records them. *Alternative:* keep `origin` as a design record, its listing mode and golden kept for it alone.
+9. **`TestParity` types what the screen asks**: 1 and y where it asks, 1 alone where `Read` refuses it or under plan only (read first with `Read`, as the screen reads), then 0; it checks that the screen said the refusal before asking, or asked the decided question y/N, and planned once. Its "new path:" lines name the screen and the lines typed, as Backup's do; the golden's header, which says "as unit (c)'s screen is to run it", is kept.
+10. **No gallery host refuses at visudo**: the gallery's fake passes every visudo check; the render of a configuration visudo refuses is made from the screen's own test host (`visudo-fails`), and the gallery's ten hosts are the mocks' ten.
+
+## 9. Tests
+
+- `pkg/screens/environment` (through `Run`, on `hostfake`): `TestScreen` (13 host states, both modes), `TestKeep` (Debian 13, Ubuntu 26.04), `TestStop`, `TestGrantCarried`, `TestLegacy`, `TestLockoutRisk` (applied, the hostname typed after a y refused; declined), `TestHostname` (a long name asked by its first label; absent, empty, a comma), `TestRefusedBeforeAsking` (alpine324, alpine324-setenv, pve9, root-login, an edited file, the journal's refusal; both modes), `TestFailedApply` (visudo refusing), `TestNothingWritten` (n, 0, plan only of keep, stop and a lockout-risk stop), `TestGuide`, `TestApplyContext` (made per apply, a cancelled apply rolled back), `TestNavigation`, `TestRunNeeds`, `TestInterrupt` (Ctrl-C at the screen, the y/N question and the typed hostname; Linux and macOS; it signals the screen even where its prompt never shows, so that a failing case ends rather than hangs). Mutation checks: §2.14.
+- `pkg/screens/environment` `TestParity`: drives `Run` (parity-environment.md §7); 44 cells, no end state changed; `TestParityGoldens` unchanged.
+- `pkg/ui/screen`: `TestEnvironmentScreen`, `TestEnvironmentHeights` (moved from the gallery), `TestEnvironmentWorkflows`, `TestEnvironmentGuide`.
+- The gallery: `TestPlayEnvironmentGolden` (13 transcripts), `TestEnvironmentScreenHosts` (each host held to the control's reading, drawn with the guide, live and plan only, writing nothing, no engine, no hold), `TestPlayEnvironment` (each change: the transcript in order, what the host changed), `TestEnvironmentNoTmpNoProbe`, `TestEnvironmentPlanOnlyWritesNothing`, `TestPlayEnvironmentStepsNotCut` (kept, on the real screen), `TestPlayEnvironmentUsage`, `TestPlayReaches` (`envLinks`), `TestPlayTouchesNothing` (walks `pkg/screens/environment`, `pkg/engine/controls/environment`, `pkg/host/sudoers`). Retired with the mocks: `TestEnvironmentGolden`, `TestEnvHosts` (`TestEnvironmentScreenHosts`), `TestEnvironmentGrantCarried` (`TestGrantCarried`, `TestPlayEnvironment`'s grant), `TestEnvironmentDoas` (`TestLockoutRisk`, `TestRefusedBeforeAsking`, the control's `TestDoasLockout`), `TestEnvironmentHeights` (moved), `TestEnvironmentUsage` (`TestPlayEnvironmentUsage`).
+
+## 10. Goldens
+
+- **Changed, the "new path:" line alone:** `pkg/screens/environment/testdata/golden/parity.golden`, all 44 cells (eaecab6's body lists them). Every end state, the 69-entry table and parity-environment.md §4's region are as they were (run: `git diff` shows "new path:" lines only; the page unchanged).
+- **Removed:** `internal/tools/uigallery/testdata/golden/environment/*.golden` (14), the listing's mocks.
+- **Changed:** `play/environment-keep`, `-sudo-rs`, `-kept`, `-root-login`, `-pve9`, `-plan-only`, `-grant`, `-doas-refuse`, `-doas-setenv`, `-doas-stop`, `-legacy`, `-hosts` (12): the real screen where the mock was; the opening note play's own (`engineNote`, as the DNS and Backup screens' play opens); otherwise byte for byte the mock's (run: every changed line is the note's, in every cell).
+- **Added:** `play/environment` (the main menu's 8, the guide).
+- **Unchanged:** every other golden: the legacy and characterization goldens, DNS's and Backup's (their screens, parity goldens and pages' regions), the controls', `pkg/output`'s, `pkg/ui/screen`'s, and the gallery's others (run: `git diff --stat dba2ef6` lists no other testdata).
+
+## 11. Not in this unit; inputs to later units; open items
+
+- **Unit (d)**: §7. **Run (unit (d))**: §4.
+- **For the maintainer:**
+  - **The proposed words** (§5): "Can't read the hostname to confirm with: <error>." (decision 3), and the flow's "Type the hostname" (P-25 (d)), which this is the first live screen to ask.
+  - **A change's record names no hardn.yml** (decision 1): if the audit log (`next/p3-startup`) wants each record's hardn.yml and its deprecations, `Options` gains `Config` for the record alone.
+  - **An edited file and the journal's refusal have no gallery host**: play cannot show them; `TestRefusedBeforeAsking` holds them, and the retired `refusals` mock drew the first (git keeps it).
+  - **The journal's refusal is said as the error is** ("plans: sudoers: not a plan its unit's rollback accepts, … is not a file only root can write: invalid argument."), as control-environment.md §6 decided for the errors with no words of the control's; a screen's words for it would be the control's to propose.
+  - **On the race path** of decision 3 (the host changed between the draw and the plan), `output.AfterFlow` says the plan's findings again after the review listed them: `pkg/output`'s, for a run that ended at the question with an error.
+
+## 12. Size
+
+`git diff --numstat dba2ef6` at b14d126 (run): non-test Go 678 lines added and 550 removed: `pkg/ui/screen/environment.go` 219 (88 of them whole-line comments), `pkg/screens/environment` 344 (128), `doc.go` 7; the gallery's `environment.go` 81 added and 522 removed (now 317 lines, 78 of them comments), `main.go` 14 and 20, `play.go` 13 and 8. Tests 1,375 added and 294 removed: `pkg/screens/environment`'s 970 new and `parity_test.go` 64 and 63, `pkg/ui/screen`'s 173, the gallery's 168 and 231. Testdata 680 lines added and 1,967 removed (28 files: 1 added, 13 changed, 14 removed). Over the guideline of about 500 changed lines, as screen-backup.md's: a screen, its view-model, its parity driver and its gallery play together, and retiring the mocks removes their code in the same unit; net of the removals, about 130 lines of non-test Go. `go.mod` and `go.sum` unchanged.
