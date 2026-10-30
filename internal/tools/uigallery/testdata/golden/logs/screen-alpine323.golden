@@ -7,12 +7,14 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough a link [I, not run on the VM]. BusyBox's less reads no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLESSSECURE, and its s and E keys can write and open any path␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas root (miscutils/less.c, read, not run), so treatment pager-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless gives it no Open item (decision 8). With Alpine's less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage there is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is a link to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). That its s writes and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mE opens any path as root is read (miscutils/less.c): no path␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas typed. So treatment pager-less gives it no Open item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 7). With Alpine's less package there is one (pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -46,12 +48,14 @@ $
 $
 # Note$
 # Inferred from v0.3.2 and origin/main. The Logs screen. web-$
-# 01.example.net runs Alpine 3.23, whose less is BusyBox's$
-# through a link [I, not run on the VM]. BusyBox's less reads no$
-# LESSSECURE, and its s and E keys can write and open any path$
-# as root (miscutils/less.c, read, not run), so treatment pager-$
-# less gives it no Open item (decision 8). With Alpine's less$
-# package there is one (pager-commands).$
+# 01.example.net runs Alpine 3.23, whose less is a link to$
+# BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes$
+# nothing there: s still prompts Log file, E and :e Examine (vm-$
+# runs/s1/04-less2-alpine323-vm.log). That its s writes and its$
+# E opens any path as root is read (miscutils/less.c): no path$
+# was typed. So treatment pager-less gives it no Open item$
+# (decision 7). With Alpine's less package there is one (pager-$
+# commands).$
 $
 # Logs #########################################################$
 $
@@ -85,13 +89,14 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, whose less is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox's through a link [I, not run on the VM]. BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless reads no LESSSECURE, and its s and E keys can write␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand open any path as root (miscutils/less.c, read, not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun), so treatment pager-less gives it no Open item␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 8). With Alpine's less package there is one␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, whose less is a link␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/04-less2-alpine323-vm.log). That its s writes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand its E opens any path as root is read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c): no path was typed. So treatment pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless gives it no Open item (decision 7). With Alpine's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless package there is one (pager-commands).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -124,12 +129,14 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough a link [I, not run on the VM]. BusyBox's less reads no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLESSSECURE, and its s and E keys can write and open any path␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas root (miscutils/less.c, read, not run), so treatment pager-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless gives it no Open item (decision 8). With Alpine's less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage there is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is a link to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). That its s writes and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mE opens any path as root is read (miscutils/less.c): no path␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas typed. So treatment pager-less gives it no Open item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 7). With Alpine's less package there is one (pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommands).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/colorprofile"
 
@@ -43,9 +44,9 @@ import (
 // header probe's OS, hostname and uptime, accounts.Read's users. The rest
 // is the gallery's, each a stand-in for unit (b)'s work, labelled so here
 // and in the page: readDetails itself, its CPU, load, memory, disk, ZFS,
-// address and last-login readers, and detailsModel, what the simulated
-// host answers them. Which commands unit (b) reads them with on the
-// releases is [unverified]: none has run on a VM.
+// address and login readers, and detailsModel, what the simulated host
+// answers them. Their forms ran read-only, as a user, on the Debian 13,
+// Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's: no VM has it.
 //
 // "system-details" lists the mocks with no input; "play system-details" is
 // the menu of the hosts and "play system-details/<host>" the screen on one.
@@ -98,11 +99,14 @@ const (
 	noLogin     = "None recorded"
 	cantRead    = "Can't read %s"
 	notKnown    = "Not known"
-	// noLast is Last Login where the host has no last command at all, as
-	// Debian 13 and Ubuntu 26.04 have none by default.
-	noLast = "Not known: last isn't installed"
-	// onTTY follows the time of a login with no remote host.
-	onTTY = "%s on %s"
+	// rowLogins and noLslogins are Last Login's one row where the host has no
+	// lslogins, as Alpine 3.23 has none (vm-runs/s1/01-tools.log).
+	rowLogins  = "Logins"
+	noLslogins = "Not known: lslogins isn't installed"
+	// fromHost and onTTY follow the time of a login, with a remote host and
+	// with none.
+	fromHost = "%s from %s"
+	onTTY    = "%s on %s"
 	// notRootRow is said under Users to a user other than root, who cannot
 	// read the rules the group names do not show.
 	notRootRow = "Not root: %s not read"
@@ -155,8 +159,6 @@ type sdHost struct {
 	note string
 	// host returns the simulated host, fresh.
 	host func() *fakeHost
-	// env is hardn's environment there: who ran it.
-	env map[string]string
 	// notRoot: hardn runs as a user other than root, which only
 	// hardn system-details can (cmd/hardn/main.go:148, its Run's root check,
 	// which a subcommand's RunE does not pass through).
@@ -177,39 +179,36 @@ const (
 // states, then the treatments on Debian 13.
 func sdHosts() []sdHost {
 	const (
-		deb    = hostFQDN + " runs Debian 13, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. alice ran sudo hardn. "
-		other  = "Debian 13, as debian13. "
-		wtmpdb = "Debian 13 with the wtmpdb package added, which provides last; its form is [unverified]. "
+		deb   = hostFQDN + " runs Debian 13, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. "
+		other = "Debian 13, as debian13. "
 	)
 	return []sdHost{
-		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: details(debian13Platform), env: sudoAlice,
-			note: deb + "Treatment report-whole, export-none: the report, Refresh and Return. Debian 13's util-linux no longer provides last and login no longer provides lastlog (Debian 13 release notes, 5.1.9), so the login row says not known (decision 3)."},
-		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform), env: sudoAlice,
-			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. alice ran sudo hardn. last is in universe's wtmpdb package alone (resolute's Contents-amd64), so the login row says not known."},
-		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform), env: doasAlice,
-			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. BusyBox's ip and df forms are [unverified]. alice ran doas hardn. Alpine builds BusyBox's last without FEATURE_LAST_FANCY (aports 3.23-stable busyboxconfig), which takes no argument at all: last -n 1 alice prints its usage and fails (util-linux/last.c), so the section can't be read this way. Whether /var/log/wtmp exists on Alpine 3.23 is [unverified]."},
-		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails, env: rootLogin,
-			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root. No last, by inference from Debian 13, its base [I, no VM]. The CPU's name is cut at its row."},
-		{name: "zfs-degraded", label: "ZFS degraded", about: "Pool not ONLINE", host: pveDegraded, env: rootLogin,
+		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: details(debian13Platform),
+			note: deb + "Treatment report-whole, export-none: the report, Refresh and Return. Last Login is lslogins' newest login for root and each user (decision 3 (a)), the same answer as a user and as root, an account with none answering blanks (vm-runs/s1/02-login.log)."},
+		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform),
+			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. lslogins is in util-linux-extra there, and answers as on Debian 13 (vm-runs/s1/02-login.log)."},
+		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform),
+			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no lslogins, and nothing there records a login: wtmp holds 0 records after logins, and BusyBox's last -n 1 alice prints its usage and fails (vm-runs/s1/01-tools.log, 02-login.log). So one row says so."},
+		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails,
+			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root. lslogins by inference from Debian 13, its base [I, no VM]. The CPU's name is cut at its row."},
+		{name: "zfs-degraded", label: "ZFS degraded", about: "Pool not ONLINE", host: pveDegraded,
 			note: "As pve9, its pool DEGRADED. origin/main's zpool status -x reads \"is healthy\" alone, and otherwise falls through to the root partition's figures, ZFS not mentioned (collectors.go:384-432; menu/system_details_zfs_all_healthy.golden)."},
-		{name: "unreadable", label: "One section unreadable", about: "Memory", host: unreadableDetails, env: sudoAlice,
-			note: wtmpdb + "/proc/meminfo cannot be read. origin/main's GenerateSystemStatus stops at the first collector's error and the whole report is lost (details.go:91-117); here the rest stays and the section says which."},
-		{name: "no-last-login", label: "No last login", about: "Nothing recorded", host: noLoginDetails, env: sudoAlice,
-			note: wtmpdb + "last finds no login for alice."},
-		{name: "login-recorded", label: "A login recorded", about: "wtmpdb's last", host: recordedDetails, env: sudoAlice,
-			note: wtmpdb + "The login row where the host has last (decision 3 (a)). The stand-in's line is this session's, which decision 4 is about."},
-		{name: "login-console", label: "A console login", about: "No remote host", host: consoleDetails, env: sudoAlice,
-			note: wtmpdb + "alice logged in at a console, so last's line has no host column."},
-		{name: "many", label: "Many users and addresses", about: "14 users, 9 addresses", host: manyDetails, env: sudoAlice,
-			note: other + "14 users and 9 addresses, IPv6 among them: the origin/main report lists IPv4 alone (os_host_info_repository.go:161, collectors.go:186)."},
-		{name: reportSections, label: "Treatment: sections", about: "A line each, items open them", host: details(debian13Platform), env: sudoAlice, report: reportSections,
+		{name: "unreadable", label: "One section unreadable", about: "Memory", host: unreadableDetails,
+			note: other + "/proc/meminfo cannot be read. origin/main's GenerateSystemStatus stops at the first collector's error and the whole report is lost (details.go:91-117); here the rest stays and the section says which."},
+		{name: "no-logins", label: "No logins", about: "Nothing recorded", host: noLoginDetails,
+			note: other + "lslogins answers blanks for root and alice, its form for an account with no login (vm-runs/s1/02-login.log)."},
+		{name: "login-console", label: "A console login", about: "No remote host", host: consoleDetails,
+			note: other + "alice logged in at a console, so lslogins' line has no host [I: the VMs ran it with a host]."},
+		{name: "many", label: "Many users and addresses", about: "14 users, 9 addresses", host: manyDetails,
+			note: other + "14 users and 9 addresses, IPv6 among them: the origin/main report lists IPv4 alone (os_host_info_repository.go:161, collectors.go:186). Last Login takes a row for root and one for each user."},
+		{name: reportSections, label: "Treatment: sections", about: "A line each, items open them", host: details(debian13Platform), report: reportSections,
 			note: other + "Treatment report-sections: one line per section, an item opening its rows. It fits 80x24."},
-		{name: reportPager, label: "Treatment: pager", about: "A line each, the rest in less", host: details(debian13Platform), env: sudoAlice, report: reportPager,
+		{name: reportPager, label: "Treatment: pager", about: "A line each, the rest in less", host: details(debian13Platform), report: reportPager,
 			note: other + "Treatment report-pager: one line per section, an item opening the whole report in the pager. It fits 80x24. The gallery runs no pager: the item says what it would run."},
-		{name: exportCommand, label: "Treatment: Export says how", about: "No file written", host: details(debian13Platform), env: sudoAlice, export: exportCommand,
+		{name: exportCommand, label: "Treatment: Export says how", about: "No file written", host: details(debian13Platform), export: exportCommand,
 			note: other + "Treatment export-command: Export says the command."},
-		{name: exportFile, label: "Treatment: Export writes", about: "A file, as root", host: recordedDetails, env: sudoAlice, export: exportFile,
-			note: wtmpdb + "Treatment export-file: Export asks a full path and writes the file, as root: a change on the host, so not read only. The gallery writes nothing."},
+		{name: exportFile, label: "Treatment: Export writes", about: "A file, as root", host: details(debian13Platform), export: exportFile,
+			note: other + "Treatment export-file: Export asks a full path and writes the file, as root: a change on the host, so not read only. The gallery writes nothing."},
 	}
 }
 
@@ -224,40 +223,24 @@ func findSDHost(name string) (sdHost, bool) {
 
 // detailsModel is what a System Details host answers beyond statusOn's
 // model, each command's output as the stand-in reads it: gallery-local, as
-// readDetails is. The forms are written from iproute2's, coreutils', zfs's
-// and, for last, wtmpdb's, taken to be util-linux's form [unverified]; on
-// Alpine BusyBox's are [unverified], and so is every command's presence on
-// a release (unit (b), on the VMs), but last's: see lastTool.
+// readDetails is. The forms are those the VMs printed (vm-runs/s1/01-tools.log,
+// 02-login.log), but zpool's and zfs's, written from their manuals, no VM having
+// ZFS.
 type detailsModel struct {
-	addrs      string // ip -o addr show scope global
-	df         string // df -kP /
-	pool       string // zpool list -H -o health <pool>, for a pool
-	zfs        string // zfs get -Hp -o value used,available <dataset>
-	dataset    string // the dataset zfs is asked about
-	last       lastTool
-	lastOutput string // last -n 1 <user>, where last takes it
-	memInfo    string // /proc/meminfo; "" is memInfo
-	noMemInfo  bool   // /proc/meminfo cannot be read
+	addrs      string            // ip -o addr show scope global
+	df         string            // df -kP /
+	pool       string            // zpool list -H -o health <pool>, for a pool
+	zfs        string            // zfs get -Hp -o value used,available <dataset>
+	dataset    string            // the dataset zfs is asked about
+	logins     map[string]string // lslogins' line for a name with a login; any other answers noLoginLine
+	noLslogins bool              // no lslogins, as host.Real says it
+	memInfo    string            // /proc/meminfo; "" is memInfo
+	noMemInfo  bool              // /proc/meminfo cannot be read
 }
 
-// lastTool is what the host's last is: the releases differ.
-type lastTool uint8
-
-// The last a host has.
-const (
-	// lastWtmpdb is the wtmpdb package's, added to the host: it takes the
-	// stand-in's form [unverified].
-	lastWtmpdb lastTool = iota
-	// lastAbsent is none, as host.Real says it: Debian 13 (release notes,
-	// 5.1.9; trixie's Contents, where wtmpdb alone has usr/bin/last), Ubuntu
-	// 26.04 (resolute's Contents: universe's wtmpdb alone) and by inference
-	// Proxmox VE 9. Whether an image adds wtmpdb is [unverified].
-	lastAbsent
-	// lastBusyBox is Alpine's: built with no FEATURE_LAST_FANCY (aports
-	// 3.23-stable main/busybox/busyboxconfig), any argument gets its usage and
-	// a failure (util-linux/last.c, "if (argv[1]) bb_show_usage()").
-	lastBusyBox
-)
+// lsloginsArgs is how the stand-in asks lslogins about a name, which follows
+// -l: one line, raw, each blank field empty (vm-runs/s1/02-login.log).
+var lsloginsArgs = []string{"--time-format=iso", "--noheadings", "--raw", "--output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME", "-l"}
 
 // answer answers the stand-in's commands.
 func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
@@ -270,22 +253,47 @@ func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: m.pool + "\n"}, true
 	case m.dataset != "" && cmd == "zfs get -Hp -o value used,available "+m.dataset:
 		return hostfake.Response{Stdout: m.zfs}, true
-	case argv[0] == "last":
-		switch m.last {
-		case lastAbsent:
-			return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "last", host.SearchPath, host.ErrNotFound)}, true
-		case lastBusyBox:
-			return hostfake.Response{Stderr: "BusyBox v1.37.0 multi-call binary.\n\nUsage: last\n", ExitCode: 1}, true
-		case lastWtmpdb:
-			return hostfake.Response{Stdout: m.lastOutput}, true
+	case argv[0] == "lslogins" && m.noLslogins:
+		return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "lslogins", host.SearchPath, host.ErrNotFound)}, true
+	case len(argv) == len(lsloginsArgs)+2 && argv[0] == "lslogins" && slices.Equal(argv[1:len(argv)-1], lsloginsArgs):
+		name := argv[len(argv)-1]
+		if line, ok := m.logins[name]; ok {
+			return hostfake.Response{Stdout: line + "\n"}, true
 		}
+		return hostfake.Response{Stdout: noLoginLine(name) + "\n"}, true
 	}
 	return hostfake.Response{}, false
 }
 
-// ipLine is one line of ip -o addr show: iproute2's form.
+// noLoginLine is lslogins' line for an account with no login: its name and
+// three spaces (vm-runs/s1/02-login.log, root and nobody).
+func noLoginLine(name string) string { return name + "   " }
+
+// sessionLine is lslogins' line for name's login session (the form of
+// vm-runs/s1/02-login.log; the time and address synthetic).
+func sessionLine(name string) string {
+	return name + " 2026-10-20T11:42:05+00:00 pts/0 192.0.2.10"
+}
+
+// ipLine is one line of ip -o addr show, iproute2's form as the Debian 13 and
+// Ubuntu 26.04 VMs print it (vm-runs/s1/01-tools.log). inet6's, with no brd or
+// label, is [I]: no VM has a global IPv6 address.
 func ipLine(index int, iface, family, addr string) string {
-	return fmt.Sprintf("%d: %s    %s %s scope global %s\\       valid_lft forever preferred_lft forever\n", index, iface, family, addr, iface)
+	if family == "inet6" {
+		return fmt.Sprintf("%d: %s    inet6 %s scope global \\       valid_lft 7104sec preferred_lft 7104sec\n", index, iface, addr)
+	}
+	return fmt.Sprintf("%d: %s    %s %s metric 100 brd %s scope global dynamic %s\\       valid_lft 7104sec preferred_lft 7104sec\n", index, iface, family, addr, broadcast(addr), iface)
+}
+
+// alpineIPLine is the same as the Alpine 3.23 VM prints it, noprefixroute and
+// no metric (vm-runs/s1/01-tools.log).
+func alpineIPLine(index int, iface, addr string) string {
+	return fmt.Sprintf("%d: %s    inet %s brd %s scope global dynamic noprefixroute %s\\       valid_lft 5235sec preferred_lft 4411sec\n", index, iface, addr, broadcast(addr), iface)
+}
+
+// broadcast is the .255 of an IPv4 address, which is all a fixture needs.
+func broadcast(addr string) string {
+	return addr[:strings.LastIndexByte(addr, '.')] + ".255"
 }
 
 // cpuinfo is /proc/cpuinfo for n logical CPUs on sockets sockets, the
@@ -301,11 +309,9 @@ func cpuinfo(model string, n, sockets int) string {
 // The stand-in's files and the standard outputs, as the kernel and df
 // print them; the figures are synthetic.
 const (
-	loadAvg     = "0.12 0.08 0.03 1/123 4567\n"
-	memInfo     = "MemTotal:        4030544 kB\nMemFree:          812344 kB\nMemAvailable:    2801234 kB\nBuffers:           91234 kB\n"
-	dfRoot      = "Filesystem     1024-blocks    Used Available Capacity Mounted on\n/dev/vda1         40470732 4412345  36058387      11% /\n"
-	lastSession = "alice    pts/0        192.0.2.10       Tue Oct 20 11:42   still logged in\n\nwtmp begins Mon Oct 19 08:01:22 2026\n"
-	lastConsole = "alice    tty1                          Tue Oct 20 11:42   still logged in\n\nwtmp begins Mon Oct 19 08:01:22 2026\n"
+	loadAvg = "0.12 0.08 0.03 1/123 4567\n"
+	memInfo = "MemTotal:        4030544 kB\nMemFree:          812344 kB\nMemAvailable:    2801234 kB\nBuffers:           91234 kB\n"
+	dfRoot  = "Filesystem     1024-blocks    Used Available Capacity Mounted on\n/dev/vda1         40470732 4412345  36058387      11% /\n"
 )
 
 // The kernels of the VM runs: vmtest.md §8.5 and §8.6.
@@ -338,35 +344,30 @@ func withDetails(h *fakeHost, m detailsModel, cpu string, cores, sockets int) *f
 }
 
 // vmModel is a VM's model: eth0 at 192.0.2.20, the root file system on
-// /dev/vda1 (simulate's mounts), wtmpdb's last added and alice's session
-// from the runner.
+// /dev/vda1 (simulate's mounts), alice's session from the runner and no login
+// for root.
 func vmModel() detailsModel {
-	return detailsModel{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, lastOutput: lastSession}
+	return detailsModel{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, logins: map[string]string{"alice": sessionLine("alice")}}
 }
 
 // details returns a function making a host of platform p as the VM runs
-// show it: its kernel, 4 CPUs, vmModel, and the last the release comes with.
+// show it: its kernel, 4 CPUs, vmModel, and on Alpine its ip's form and no
+// lslogins.
 func details(p platform) func() *fakeHost {
 	return func() *fakeHost {
 		m := vmModel()
-		m.last = lastAbsent
 		if p.openRC {
-			m.last = lastBusyBox
+			m.noLslogins = true
+			m.addrs = alpineIPLine(2, "eth0", "192.0.2.20/24")
 		}
 		return withDetails(onVMKernel(p), m, vmCPU, 4, 1)
 	}
 }
 
-// recordedDetails is Debian 13 with wtmpdb's last added, alice's session
-// its newest line.
-func recordedDetails() *fakeHost {
-	return withDetails(onVMKernel(debian13Platform), vmModel(), vmCPU, 4, 1)
-}
-
-// consoleDetails is recordedDetails with alice's login at a console.
+// consoleDetails is Debian 13 with alice's login at a console.
 func consoleDetails() *fakeHost {
 	m := vmModel()
-	m.lastOutput = lastConsole
+	m.logins["alice"] = "alice 2026-10-20T11:42:05+00:00 tty1 "
 	return withDetails(onVMKernel(debian13Platform), m, vmCPU, 4, 1)
 }
 
@@ -398,13 +399,13 @@ func pveDetails() *fakeHost { return pveOn("ONLINE") }
 func pveDegraded() *fakeHost { return pveOn("DEGRADED") }
 
 // pveOn is a Proxmox VE 9 node with root on ZFS, its pool health as given:
-// 48 CPUs on 2 sockets, vmbr0, no last (lastAbsent).
+// 48 CPUs on 2 sockets, vmbr0, root's session from the runner.
 func pveOn(health string) *fakeHost {
 	h := pveNode()
 	h.f.AddFile(detect.SelfMounts, []byte("proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n"+pveDataset+" / zfs rw,relatime,xattr,noacl 0 0\n"+
 		"/dev/fuse /etc/pve fuse rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other 0 0\n"), 0o444, 0, 0)
 	return withDetails(h, detailsModel{addrs: ipLine(4, "vmbr0", "inet", "192.0.2.20/24"), pool: health, dataset: pveDataset,
-		zfs: "53687091200\n429496729600\n", memInfo: "MemTotal:       131072000 kB\nMemFree:        81234000 kB\nMemAvailable:   96123000 kB\n", last: lastAbsent}, serverCPU, 48, 2)
+		zfs: "53687091200\n429496729600\n", memInfo: "MemTotal:       131072000 kB\nMemFree:        81234000 kB\nMemAvailable:   96123000 kB\n", logins: map[string]string{"root": sessionLine("root")}}, serverCPU, 48, 2)
 }
 
 // unreadableDetails is Debian 13 whose /proc/meminfo cannot be read.
@@ -414,16 +415,15 @@ func unreadableDetails() *fakeHost {
 	return withDetails(onVMKernel(debian13Platform), m, vmCPU, 4, 1)
 }
 
-// noLoginDetails is Debian 13 where wtmpdb's last finds nothing for alice.
+// noLoginDetails is Debian 13 where lslogins finds nothing for anyone.
 func noLoginDetails() *fakeHost {
-	h := onVMKernel(debian13Platform)
 	m := vmModel()
-	m.lastOutput = "\nwtmp begins Mon Oct 19 08:01:22 2026\n"
-	return withDetails(h, m, vmCPU, 4, 1)
+	m.logins = nil
+	return withDetails(onVMKernel(debian13Platform), m, vmCPU, 4, 1)
 }
 
 // manyDetails is Debian 13 with 14 users and 9 addresses, in documentation
-// ranges.
+// ranges, two of the users having logged in.
 func manyDetails() *fakeHost {
 	h := onVMKernel(debian13Platform)
 	passwd, group := fileOn(h, "/etc/passwd"), fileOn(h, "/etc/group")
@@ -440,7 +440,7 @@ func manyDetails() *fakeHost {
 	h.f.AddFile("/etc/passwd", []byte(passwd), 0o644, 0, 0)
 	h.f.AddFile("/etc/group", []byte(group), 0o644, 0, 0)
 	m := vmModel()
-	m.last = lastAbsent
+	m.logins["bob"] = "bob 2026-10-19T08:01:22+00:00 pts/1 192.0.2.11"
 	m.addrs = ipLine(2, "eth0", "inet", "192.0.2.20/24") + ipLine(2, "eth0", "inet", "192.0.2.21/24") + ipLine(2, "eth0", "inet6", "2001:db8:0:1::20/64") +
 		ipLine(3, "eth1", "inet", "198.51.100.20/24") + ipLine(3, "eth1", "inet6", "2001:db8:0:2::20/64") + ipLine(4, "bond0", "inet", "203.0.113.20/24") +
 		ipLine(5, "wg0", "inet", "198.18.0.20/32") + ipLine(5, "wg0", "inet6", "2001:db8:0:3::20/128") + ipLine(6, "docker0", "inet", "198.19.0.1/16")
@@ -499,14 +499,15 @@ type detailMemory struct {
 	Total uint64 `json:"totalBytes"`
 }
 
-// detailLogin is who ran hardn and last's line for them. origin/main asks
-// for the current user, root under sudo (collectors.go:498). From is "" for
-// a login with no remote host, TTY then saying where.
+// detailLogin is lslogins' answer for one account: its newest login, When
+// and the rest "" where it has none. When is as lslogins prints it, TTY and
+// From its other fields, From "" for a login with no remote host.
 type detailLogin struct {
 	User string `json:"user"`
 	When string `json:"when"`
-	From string `json:"from"`
 	TTY  string `json:"tty"`
+	From string `json:"from"`
+	at   time.Time
 }
 
 // detailsReading is what readDetails read: the stand-in for what unit (b)
@@ -524,7 +525,7 @@ type detailsReading struct {
 	cpu      detailCPU
 	disk     detailDisk
 	memory   detailMemory
-	login    detailLogin
+	logins   []detailLogin
 	unread   map[string]unreadFact
 }
 
@@ -534,7 +535,7 @@ type unreadFact struct {
 	err    error
 }
 
-// readDetails reads sys, hardn's environment being sh's: real code where
+// readDetails reads sys for sh: real code where
 // there is some (detect, the header probe, accounts), the gallery's
 // stand-ins for the rest. It changes nothing, and a section it cannot read
 // is said where it would be.
@@ -568,7 +569,7 @@ func readDetails(ctx context.Context, sys host.System, sh sdHost) detailsReading
 	r.readCPU(ctx, sys, fail)
 	r.readDisk(ctx, sys, fail)
 	r.readMemory(ctx, sys, fail)
-	r.readLogin(ctx, sys, fail)
+	r.readLogins(ctx, sys, fail)
 	return r
 }
 
@@ -713,63 +714,72 @@ func (r *detailsReading) readMemory(ctx context.Context, sys host.System, fail f
 	r.memory = detailMemory{Used: total - avail, Total: total}
 }
 
-// who is the user who ran hardn: SUDO_USER or DOAS_USER, as the Environment
-// control reads them, else the current user, USER here.
-func (sh sdHost) who() string {
-	for _, k := range []string{"SUDO_USER", "DOAS_USER", "USER"} {
-		if v := sh.env[k]; v != "" {
-			return v
-		}
+// readLogins is lslogins' answer for root and each user the Users section read.
+// It is the same as a user and as root, so who ran hardn does not matter
+// (vm-runs/s1/02-login.log). An answer that fails, or that does not parse, is
+// not a fact about the account, so the section says it could not read it,
+// never that there was no login.
+func (r *detailsReading) readLogins(ctx context.Context, sys host.System, fail func(string, string, error)) {
+	names := []string{"root"}
+	for _, u := range r.users {
+		names = append(names, u.Name)
 	}
-	return "root"
+	var logins []detailLogin
+	for _, name := range names {
+		res, err := sys.Run(ctx, "lslogins", append(slices.Clone(lsloginsArgs), name)...)
+		if err != nil {
+			fail(secLogin, "lslogins", err)
+			return
+		}
+		line, _, _ := strings.Cut(string(res.Stdout), "\n")
+		login, err := parseLogin(name, line)
+		if err != nil {
+			fail(secLogin, "lslogins", err)
+			return
+		}
+		logins = append(logins, login)
+	}
+	r.logins = logins
 }
 
-// readLogin is last -n 1's line for who ran hardn. Debian 13 and Ubuntu
-// 26.04 have no last, and Alpine's refuses this form (lastTool), so which
-// source to read is the maintainer's (decision 3), and last's most recent
-// line is commonly this very session [I] (decision 4). A first line that is
-// blank is no login; one that names another user, which a name last cuts to
-// 8 columns would [I, not run], or that does not parse, is not a fact about
-// the user, so the section says it could not read it.
-func (r *detailsReading) readLogin(ctx context.Context, sys host.System, fail func(string, string, error)) {
-	r.login.User = r.sh.who()
-	res, err := sys.Run(ctx, "last", "-n", "1", r.login.User)
+// parseLogin reads lslogins' raw line for name: four fields, each a single
+// space from the next, so a blank one is empty; all three after the name blank
+// is no login.
+func parseLogin(name, line string) (detailLogin, error) {
+	f := strings.Split(line, " ")
+	if len(f) != 4 || f[0] != name {
+		return detailLogin{}, fmt.Errorf("not %s's line: %q", name, line)
+	}
+	login := detailLogin{User: name, When: f[1], TTY: f[2], From: f[3]}
+	if login.When+login.TTY+login.From == "" {
+		return login, nil
+	}
+	at, err := time.Parse(time.RFC3339, login.When)
 	if err != nil {
-		fail(secLogin, "last", err)
-		return
+		return detailLogin{}, fmt.Errorf("a line with no time: %q", line)
 	}
-	line, _, _ := strings.Cut(string(res.Stdout), "\n")
-	if strings.TrimSpace(line) == "" {
-		return
-	}
-	login, err := parseLast(r.login.User, line)
-	if err != nil {
-		fail(secLogin, "last", err)
-		return
-	}
-	r.login = login
+	login.at = at
+	return login, nil
 }
 
-// parseLast reads a line of last for user: its name, its terminal, a host if
-// there is one, and the weekday that starts the time, by which a line with
-// no host column is told apart. A stand-in: unit (b) parses the source chosen
-// by its own format.
-func parseLast(user, line string) (detailLogin, error) {
-	f := strings.Fields(line)
-	if len(f) == 0 || f[0] != user {
-		return detailLogin{}, fmt.Errorf("a line for another name: %q", line)
+// when says when the login was: the year in place of the clock, as ls does,
+// where it was not this year, galleryNow's on these hosts.
+func (l detailLogin) when() string {
+	if l.at.Year() != galleryNow.Year() {
+		return l.at.Format("Jan 2 2006")
 	}
-	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-	for i := 2; i <= 3 && i+3 < len(f); i++ {
-		if slices.Contains(days, f[i]) {
-			login := detailLogin{User: user, TTY: f[1], When: f[i+1] + " " + f[i+2] + " " + f[i+3]}
-			if i == 3 {
-				login.From = f[2]
-			}
-			return login, nil
-		}
+	return l.at.Format("Jan 2 15:04")
+}
+
+// row is the login's row in the section.
+func (l detailLogin) row() component.KeyValue {
+	switch {
+	case l.When == "":
+		return component.KeyValue{Key: l.User, Value: noLogin, State: component.ValueNone}
+	case l.From == "":
+		return component.KeyValue{Key: l.User, Value: fmt.Sprintf(onTTY, l.when(), l.TTY)}
 	}
-	return detailLogin{}, fmt.Errorf("a line with no time: %q", line)
+	return component.KeyValue{Key: l.User, Value: fmt.Sprintf(fromHost, l.when(), l.From)}
 }
 
 // gib is n bytes in GiB, one decimal, as origin/main's memory says GiB and
@@ -796,7 +806,7 @@ func percent(used, total uint64) string {
 func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	if u, ok := r.unread[section]; ok {
 		if section == secLogin && errors.Is(u.err, host.ErrNotFound) {
-			return []component.KeyValue{{Key: r.login.User, Value: noLast, State: component.ValueUnknown}}
+			return []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}
 		}
 		return []component.KeyValue{{Key: fmt.Sprintf(cantRead, u.source), State: component.ValueWarn}}
 	}
@@ -834,13 +844,11 @@ func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	case secMemory:
 		return []component.KeyValue{{Key: rowUsed, Value: usedOf(r.memory.Used, r.memory.Total)}}
 	case secLogin:
-		if r.login.When == "" {
-			return []component.KeyValue{{Key: r.login.User, Value: noLogin, State: component.ValueNone}}
+		var rows []component.KeyValue
+		for _, l := range r.logins {
+			rows = append(rows, l.row())
 		}
-		if r.login.From == "" {
-			return []component.KeyValue{{Key: r.login.User, Value: fmt.Sprintf(onTTY, r.login.When, r.login.TTY)}}
-		}
-		return []component.KeyValue{{Key: r.login.User, Value: r.login.When + " from " + r.login.From}}
+		return rows
 	}
 	return nil
 }
@@ -936,10 +944,16 @@ func (r detailsReading) summary(section string) (string, component.ValueState) {
 	case secMemory:
 		return percent(r.memory.Used, r.memory.Total) + " of " + gib(r.memory.Total) + " GiB", component.ValuePlain
 	case secLogin:
-		if r.login.When == "" {
+		var newest detailLogin
+		for _, l := range r.logins {
+			if l.at.After(newest.at) {
+				newest = l
+			}
+		}
+		if newest.When == "" {
 			return noLogin, component.ValuePlain
 		}
-		return r.login.User + ", " + r.login.When, component.ValuePlain
+		return newest.User + ", " + newest.when(), component.ValuePlain
 	}
 	return "", component.ValuePlain
 }
@@ -1208,7 +1222,7 @@ func readSDHost(ctx context.Context, name string) (detailsReading, error) {
 
 // notRootHost is Debian 13, hardn run by alice, not through sudo.
 func notRootHost() sdHost {
-	return sdHost{name: "not-root", host: details(debian13Platform), env: map[string]string{"USER": "alice"}, notRoot: true}
+	return sdHost{name: "not-root", host: details(debian13Platform), notRoot: true}
 }
 
 // onSDHost returns a drawing of the host named name's reading.
@@ -1260,12 +1274,12 @@ func sdMocks() []listMock {
 			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
 		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
 			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d's files are 0440, root's [I]; on a doas host /etc/doas.conf. The stand-in reads groups alone, so its root and non-root reads are the same today. The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
+		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log). The stand-in reads groups alone, so its root and non-root reads are the same today. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				sh := notRootHost()
 				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readDetails(ctx, sh.host().sys(), sh).report(c)), nil
 			}},
-		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Proposal, depends on §3.11 (not approved: cmd/hardn/output.go:4): hardn system-details --output json. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. Stock Debian 13 has no last, so lastLogin is null and one finding says so. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
+		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Proposal, depends on §3.11 (not approved: cmd/hardn/output.go:4): hardn system-details --output json. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
 			draw: onSDHost("debian13", jsonDrawing)},
 		listMock{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "Proposal, as cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE (proposed code), which is not an error: the rest was read, so the exit status stays 0.",
 			draw: onSDHost("unreadable", jsonDrawing)},
@@ -1332,7 +1346,7 @@ type detailsJSON struct {
 	CPU       *detailCPU    `json:"cpu"`
 	Disk      *detailDisk   `json:"disk"`
 	Memory    *detailMemory `json:"memory"`
-	LastLogin *detailLogin  `json:"lastLogin"`
+	Logins    []detailLogin `json:"logins"`
 }
 
 // document is the reading as the proposed JSON form.
@@ -1360,7 +1374,7 @@ func (r detailsReading) document() detailsDocument {
 		d.Details.Memory = &r.memory
 	}
 	if read(secLogin) {
-		d.Details.LastLogin = &r.login
+		d.Details.Logins = r.logins
 	}
 	for _, s := range sdSections {
 		if u, ok := r.unread[s]; ok {

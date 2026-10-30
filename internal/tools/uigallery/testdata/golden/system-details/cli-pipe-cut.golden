@@ -47,7 +47,7 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-  [?] root                 Not known: last isn't installed$
+   -  root                 Oct 20 11:42 from 192.0.2.10$
 $
 $
 
@@ -96,7 +96,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-  [?] root                 Not known: last isn't installed$
+   -  root                 Oct 20 11:42 from 192.0.2.10$
 $
 $
 
@@ -145,6 +145,6 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-  [?] root                 Not known: last isn't installed$
+   -  root                 Oct 20 11:42 from 192.0.2.10$
 $
 $

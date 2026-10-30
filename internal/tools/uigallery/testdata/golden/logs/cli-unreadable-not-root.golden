@@ -7,9 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 11 (a), where the log is not 0644:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits 0644 is what hardn asks, less the umask of the start that␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmade it (logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 10 (a), where the log is not 0644:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0644 on the three VMs (vm-runs/s1/01-tools.log), it is what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn asks, less the umask of the start that made it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
 $
 hardn: can't read /var/log/hardn.log: permission denied$
 Run it with sudo.$
@@ -21,9 +22,10 @@ $
 $
 # Note$
 # Inferred from v0.3.2 and origin/main. The same as a user other$
-# than root, under decision 11 (a), where the log is not 0644:$
-# its 0644 is what hardn asks, less the umask of the start that$
-# made it (logging.go:38; a tighter umask [I, not run]). Exit 1.$
+# than root, under decision 10 (a), where the log is not 0644:$
+# 0644 on the three VMs (vm-runs/s1/01-tools.log), it is what$
+# hardn asks, less the umask of the start that made it$
+# (logging.go:38; a tighter umask [I, not run]). Exit 1.$
 $
 hardn: can't read /var/log/hardn.log: permission denied$
 Run it with sudo.$
@@ -35,10 +37,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother than root, under decision 11 (a), where the log is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot 0644: its 0644 is what hardn asks, less the umask of␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe start that made it (logging.go:38; a tighter umask [I,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot run]). Exit 1.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother than root, under decision 10 (a), where the log is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot 0644: 0644 on the three VMs (vm-runs/s1/01-tools.log),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit is what hardn asks, less the umask of the start that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmade it (logging.go:38; a tighter umask [I, not run]).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mExit 1.␛[m$
 $
 hardn: can't read /var/log/hardn.log: permission denied$
 Run it with sudo.$
@@ -50,9 +53,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 11 (a), where the log is not 0644:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits 0644 is what hardn asks, less the umask of the start that␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmade it (logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 10 (a), where the log is not 0644:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0644 on the three VMs (vm-runs/s1/01-tools.log), it is what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn asks, less the umask of the start that made it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
 $
 hardn: can't read /var/log/hardn.log: permission denied$
 Run it with sudo.$

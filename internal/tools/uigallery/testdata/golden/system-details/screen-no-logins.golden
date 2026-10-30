@@ -3,14 +3,13 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-login-recorded␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-no-logins␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. The login row where␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe host has last (decision 3 (a)). The stand-in's line is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis session's, which decision 4 is about.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. lslogins answers blanks for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot and alice, its form for an account with no login (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -46,7 +45,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNone recorded␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -59,14 +59,13 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# system-details screen-login-recorded -------------------------$
+# system-details screen-no-logins ------------------------------$
 $
 # Note$
 # Inferred from origin/main (unreleased). The System Details$
-# screen. Debian 13 with the wtmpdb package added, which$
-# provides last; its form is [unverified]. The login row where$
-# the host has last (decision 3 (a)). The stand-in's line is$
-# this session's, which decision 4 is about.$
+# screen. Debian 13, as debian13. lslogins answers blanks for$
+# root and alice, its form for an account with no login (vm-$
+# runs/s1/02-login.log).$
 $
 # System Details ###############################################$
 $
@@ -102,7 +101,8 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  alice                Oct 20 11:42 from 192.0.2.10$
+   -  root                 None recorded$
+   -  alice                None recorded$
 $
   Select an option$
 $
@@ -115,14 +115,13 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-login-recorded␛[m ␛[38;2;48;52;64m─────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-no-logins␛[m ␛[38;2;48;52;64m──────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. The login row␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere the host has last (decision 3 (a)). The stand-in's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline is this session's, which decision 4 is about.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. lslogins answers blanks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor root and alice, its form for an account with no login␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -170,8 +169,10 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -185,14 +186,13 @@ $
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-login-recorded␛[m ␛[38;2;48;52;64m-------------------------␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-no-logins␛[m ␛[38;2;48;52;64m------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. The login row where␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe host has last (decision 3 (a)). The stand-in's line is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis session's, which decision 4 is about.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. lslogins answers blanks for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot and alice, its form for an account with no login (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -228,7 +228,8 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNone recorded␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

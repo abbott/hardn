@@ -10,7 +10,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal: every line, as written, in no style, no heading, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: this needs unit (d) to run -p␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mahead of the config load, or with a silent console (decision␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10). origin/main's opens with the config line, the clear␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9). origin/main's opens with the config line, the clear␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msequence and the rest (origin-p). Exit 0.␛[m$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
@@ -28,7 +28,7 @@ $
 # terminal: every line, as written, in no style, no heading, so$
 # that a tool reads the log alone: this needs unit (d) to run -p$
 # ahead of the config load, or with a silent console (decision$
-# 10). origin/main's opens with the config line, the clear$
+# 9). origin/main's opens with the config line, the clear$
 # sequence and the rest (origin-p). Exit 0.$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
@@ -46,7 +46,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal: every line, as written, in no style, no heading, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: this needs unit (d) to run -p␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mahead of the config load, or with a silent console (decision␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10). origin/main's opens with the config line, the clear␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9). origin/main's opens with the config line, the clear␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msequence and the rest (origin-p). Exit 0.␛[m$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$

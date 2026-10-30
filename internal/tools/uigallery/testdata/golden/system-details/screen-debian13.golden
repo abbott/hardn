@@ -9,11 +9,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Debian 13, as the VM of 2026-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo. alice ran sudo hardn. Treatment report-whole, export-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnone: the report, Refresh and Return. Debian 13's util-linux␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno longer provides last and login no longer provides lastlog␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(Debian 13 release notes, 5.1.9), so the login row says not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mknown (decision 3).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo. Treatment report-whole, export-none: the report, Refresh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand Return. Last Login is lslogins' newest login for root and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach user (decision 3 (a)), the same answer as a user and as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot, an account with none answering blanks (vm-runs/s1/02-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -49,7 +49,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -68,11 +69,11 @@ $
 # Inferred from origin/main (unreleased). The System Details$
 # screen. web-01.example.net runs Debian 13, as the VM of 2026-$
 # 10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64,$
-# sudo. alice ran sudo hardn. Treatment report-whole, export-$
-# none: the report, Refresh and Return. Debian 13's util-linux$
-# no longer provides last and login no longer provides lastlog$
-# (Debian 13 release notes, 5.1.9), so the login row says not$
-# known (decision 3).$
+# sudo. Treatment report-whole, export-none: the report, Refresh$
+# and Return. Last Login is lslogins' newest login for root and$
+# each user (decision 3 (a)), the same answer as a user and as$
+# root, an account with none answering blanks (vm-runs/s1/02-$
+# login.log).$
 $
 # System Details ###############################################$
 $
@@ -108,7 +109,8 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
   Select an option$
 $
@@ -127,11 +129,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Debian 13, as the VM of␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mamd64, sudo. alice ran sudo hardn. Treatment report-whole,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexport-none: the report, Refresh and Return. Debian 13's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mutil-linux no longer provides last and login no longer␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides lastlog (Debian 13 release notes, 5.1.9), so the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin row says not known (decision 3).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mamd64, sudo. Treatment report-whole, export-none: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreport, Refresh and Return. Last Login is lslogins' newest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin for root and each user (decision 3 (a)), the same␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswer as a user and as root, an account with none␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswering blanks (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -179,8 +181,10 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -200,11 +204,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Debian 13, as the VM of 2026-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo. alice ran sudo hardn. Treatment report-whole, export-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnone: the report, Refresh and Return. Debian 13's util-linux␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno longer provides last and login no longer provides lastlog␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(Debian 13 release notes, 5.1.9), so the login row says not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mknown (decision 3).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo. Treatment report-whole, export-none: the report, Refresh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand Return. Last Login is lslogins' newest login for root and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach user (decision 3 (a)), the same answer as a user and as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot, an account with none answering blanks (vm-runs/s1/02-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -240,7 +244,8 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
-  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

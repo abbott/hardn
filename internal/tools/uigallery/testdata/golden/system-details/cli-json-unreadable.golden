@@ -95,12 +95,20 @@ $
       "totalBytes": 41442029568$
     },$
     "memory": null,$
-    "lastLogin": {$
-      "user": "alice",$
-      "when": "Oct 20 11:42",$
-      "from": "192.0.2.10",$
-      "tty": "pts/0"$
-    }$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $
@@ -199,12 +207,20 @@ $
       "totalBytes": 41442029568$
     },$
     "memory": null,$
-    "lastLogin": {$
-      "user": "alice",$
-      "when": "Oct 20 11:42",$
-      "from": "192.0.2.10",$
-      "tty": "pts/0"$
-    }$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $
@@ -303,12 +319,20 @@ $
       "totalBytes": 41442029568$
     },$
     "memory": null,$
-    "lastLogin": {$
-      "user": "alice",$
-      "when": "Oct 20 11:42",$
-      "from": "192.0.2.10",$
-      "tty": "pts/0"$
-    }$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $

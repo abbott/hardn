@@ -16,13 +16,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/alpine323␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23.6, as the 2026-10-21 VM␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.6): kernel 6.18.53-0-virt, doas. BusyBox's ip␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand df forms are [unverified]. alice ran doas hardn. Alpine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuilds BusyBox's last without FEATURE_LAST_FANCY (aports 3.23-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstable busyboxconfig), which takes no argument at all: last -n␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1 alice prints its usage and fails (util-linux/last.c), so the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msection can't be read this way. Whether /var/log/wtmp exists␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon Alpine 3.23 is [unverified].␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins, and nothing there records a login: wtmp holds 0␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecords after logins, and BusyBox's last -n 1 alice prints its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musage and fails (vm-runs/s1/01-tools.log, 02-login.log). So␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone row says so.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -58,7 +56,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read last␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogins␛[m               ␛[38;2;129;134;156mNot known: lslogins isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -102,7 +100,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read last␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogins␛[m               ␛[38;2;129;134;156mNot known: lslogins isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -132,13 +130,11 @@ $
 $
 # Info: system-details/alpine323$
 # web-01.example.net runs Alpine 3.23.6, as the 2026-10-21 VM$
-# (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. BusyBox's ip$
-# and df forms are [unverified]. alice ran doas hardn. Alpine$
-# builds BusyBox's last without FEATURE_LAST_FANCY (aports 3.23-$
-# stable busyboxconfig), which takes no argument at all: last -n$
-# 1 alice prints its usage and fails (util-linux/last.c), so the$
-# section can't be read this way. Whether /var/log/wtmp exists$
-# on Alpine 3.23 is [unverified].$
+# (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no$
+# lslogins, and nothing there records a login: wtmp holds 0$
+# records after logins, and BusyBox's last -n 1 alice prints its$
+# usage and fails (vm-runs/s1/01-tools.log, 02-login.log). So$
+# one row says so.$
 $
 # System Details ###############################################$
 $
@@ -174,7 +170,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  Can't read last$
+  [?] Logins               Not known: lslogins isn't installed$
 $
   Select an option$
 $
@@ -218,7 +214,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  Can't read last$
+  [?] Logins               Not known: lslogins isn't installed$
 $
   Select an option$
 $
@@ -248,14 +244,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/alpine323␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23.6, as the 2026-10-21␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox's ip and df forms are [unverified]. alice ran doas␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn. Alpine builds BusyBox's last without␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mFEATURE_LAST_FANCY (aports 3.23-stable busyboxconfig),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhich takes no argument at all: last -n 1 alice prints its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musage and fails (util-linux/last.c), so the section can't␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbe read this way. Whether /var/log/wtmp exists on Alpine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.23 is [unverified].␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno lslogins, and nothing there records a login: wtmp holds␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0 records after logins, and BusyBox's last -n 1 alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprints its usage and fails (vm-runs/s1/01-tools.log, 02-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log). So one row says so.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -303,7 +296,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read last␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogins␛[m$
+      ␛[38;2;129;134;156mNot known: lslogins isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -360,7 +354,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read last␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogins␛[m$
+      ␛[38;2;129;134;156mNot known: lslogins isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

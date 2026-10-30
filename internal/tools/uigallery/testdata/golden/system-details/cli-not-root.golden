@@ -11,10 +11,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno root check (cmd/hardn/main.go:84; the check at :148 is in␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says, naming what unit (b)'s reader skips, as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d's files are 0440, root's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[I]; on a doas host /etc/doas.conf. The stand-in reads groups␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo lines above the report are main()'s, unrelated, on stdout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d is drwxr-x--- root root,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log). The stand-in reads groups␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. Last␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin reads the same, run (vm-runs/s1/02-login.log). The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
@@ -60,7 +62,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
 $
 
@@ -73,10 +76,12 @@ $
 # no root check (cmd/hardn/main.go:84; the check at :148 is in$
 # the root command's Run). The main menu and -p are not. What it$
 # cannot read it says, naming what unit (b)'s reader skips, as$
-# the users check reads: /etc/sudoers.d's files are 0440, root's$
-# [I]; on a doas host /etc/doas.conf. The stand-in reads groups$
-# alone, so its root and non-root reads are the same today. The$
-# two lines above the report are main()'s, unrelated, on stdout$
+# the users check reads: /etc/sudoers.d is drwxr-x--- root root,$
+# so a user cannot list it; on a doas host /etc/doas.conf, 0640$
+# root (vm-runs/s1/01-tools.log). The stand-in reads groups$
+# alone, so its root and non-root reads are the same today. Last$
+# Login reads the same, run (vm-runs/s1/02-login.log). The two$
+# lines above the report are main()'s, unrelated, on stdout$
 # today, so hardn system-details > file holds them$
 # (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit$
 # (d) moves them to stderr.$
@@ -122,7 +127,8 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
 $
 
@@ -136,9 +142,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcheck at :148 is in the root command's Run). The main menu␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand -p are not. What it cannot read it says, naming what␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s reader skips, as the users check reads:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d's files are 0440, root's [I]; on a doas␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost /etc/doas.conf. The stand-in reads groups alone, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits root and non-root reads are the same today. The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d is drwxr-x--- root root, so a user cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlist it; on a doas host /etc/doas.conf, 0640 root (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/01-tools.log). The stand-in reads groups alone, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits root and non-root reads are the same today. Last Login␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads the same, run (vm-runs/s1/02-login.log). The two␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run);␛[m$
@@ -197,8 +205,10 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
 $
 
@@ -211,10 +221,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno root check (cmd/hardn/main.go:84; the check at :148 is in␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says, naming what unit (b)'s reader skips, as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d's files are 0440, root's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[I]; on a doas host /etc/doas.conf. The stand-in reads groups␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo lines above the report are main()'s, unrelated, on stdout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d is drwxr-x--- root root,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log). The stand-in reads groups␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. Last␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin reads the same, run (vm-runs/s1/02-login.log). The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
@@ -260,6 +272,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
-  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
 $

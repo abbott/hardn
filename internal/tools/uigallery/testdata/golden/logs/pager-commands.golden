@@ -10,11 +10,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment would run, by the environment. Under sudo, sudo-rs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand doas PAGER is dropped [I; not run for PAGER]. pager-env␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns as root whatever a kept PAGER names, and most has its own␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshell escape [I]. LESSSECURE=1 is less(1)'s secure mode,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mturning off ! and | and v [unverified: not run]. BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless reads no LESSSECURE and has no secure mode, and its s and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mE keys write and open any path as root (miscutils/less.c;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run). The gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGNU less 668 on the VMs, as a user, not as root (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-*). On BusyBox's less it changed nothing, s␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand E still prompting; that they write and open any path as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c), no path having been typed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
@@ -60,11 +61,12 @@ $
 # treatment would run, by the environment. Under sudo, sudo-rs$
 # and doas PAGER is dropped [I; not run for PAGER]. pager-env$
 # runs as root whatever a kept PAGER names, and most has its own$
-# shell escape [I]. LESSSECURE=1 is less(1)'s secure mode,$
-# turning off ! and | and v [unverified: not run]. BusyBox's$
-# less reads no LESSSECURE and has no secure mode, and its s and$
-# E keys write and open any path as root (miscutils/less.c;$
-# read, not run). The gallery's table: nothing runs.$
+# shell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in$
+# GNU less 668 on the VMs, as a user, not as root (vm-$
+# runs/s1/04-less2-*). On BusyBox's less it changed nothing, s$
+# and E still prompting; that they write and open any path as$
+# root is read (miscutils/less.c), no path having been typed.$
+# The gallery's table: nothing runs.$
 $
 # pager-less, proposed -----------------------------------------$
 $
@@ -110,12 +112,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment would run, by the environment. Under sudo, sudo-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrs and doas PAGER is dropped [I; not run for PAGER].␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager-env runs as root whatever a kept PAGER names, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmost has its own shell escape [I]. LESSSECURE=1 is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless(1)'s secure mode, turning off ! and | and v␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[unverified: not run]. BusyBox's less reads no LESSSECURE␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand has no secure mode, and its s and E keys write and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mopen any path as root (miscutils/less.c; read, not run).␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmost has its own shell escape [I]. LESSSECURE=1 turned off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m!, |, v, E and :e in GNU less 668 on the VMs, as a user,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot as root (vm-runs/s1/04-less2-*). On BusyBox's less it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanged nothing, s and E still prompting; that they write␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand open any path as root is read (miscutils/less.c), no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpath having been typed. The gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
@@ -161,11 +163,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment would run, by the environment. Under sudo, sudo-rs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand doas PAGER is dropped [I; not run for PAGER]. pager-env␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns as root whatever a kept PAGER names, and most has its own␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshell escape [I]. LESSSECURE=1 is less(1)'s secure mode,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mturning off ! and | and v [unverified: not run]. BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless reads no LESSSECURE and has no secure mode, and its s and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mE keys write and open any path as root (miscutils/less.c;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run). The gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGNU less 668 on the VMs, as a user, not as root (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-*). On BusyBox's less it changed nothing, s␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand E still prompting; that they write and open any path as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c), no path having been typed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $

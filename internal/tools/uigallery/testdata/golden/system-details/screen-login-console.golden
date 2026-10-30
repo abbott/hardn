@@ -7,9 +7,8 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. alice logged in at a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconsole, so last's line has no host column.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. alice logged in at a console,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso lslogins' line has no host [I: the VMs ran it with a host].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -45,6 +44,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 on tty1␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
@@ -62,9 +62,8 @@ $
 $
 # Note$
 # Inferred from origin/main (unreleased). The System Details$
-# screen. Debian 13 with the wtmpdb package added, which$
-# provides last; its form is [unverified]. alice logged in at a$
-# console, so last's line has no host column.$
+# screen. Debian 13, as debian13. alice logged in at a console,$
+# so lslogins' line has no host [I: the VMs ran it with a host].$
 $
 # System Details ###############################################$
 $
@@ -100,6 +99,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
+   -  root                 None recorded$
    -  alice                Oct 20 11:42 on tty1$
 $
   Select an option$
@@ -117,9 +117,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. alice logged in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat a console, so last's line has no host column.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. alice logged in at a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconsole, so lslogins' line has no host [I: the VMs ran it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a host].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -167,6 +167,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
       ␛[38;2;129;134;156mOct 20 11:42 on tty1␛[m$
 $
@@ -186,9 +188,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. alice logged in at a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconsole, so last's line has no host column.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. alice logged in at a console,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso lslogins' line has no host [I: the VMs ran it with a host].␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -224,6 +225,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 on tty1␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$

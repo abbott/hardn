@@ -17,9 +17,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-10-21␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran sudo hardn. last is in universe's wtmpdb package␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone (resolute's Contents-amd64), so the login row says not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mknown.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins is in util-linux-extra there, and answers as on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -55,7 +54,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -86,9 +86,8 @@ $
 # Info: system-details/ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04, as the VM of 2026-10-21$
 # (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13.$
-# alice ran sudo hardn. last is in universe's wtmpdb package$
-# alone (resolute's Contents-amd64), so the login row says not$
-# known.$
+# lslogins is in util-linux-extra there, and answers as on$
+# Debian 13 (vm-runs/s1/02-login.log).$
 $
 # System Details ###############################################$
 $
@@ -124,7 +123,8 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
   Select an option$
 $
@@ -155,9 +155,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.2.13. alice ran sudo hardn. last is in universe's wtmpdb␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage alone (resolute's Contents-amd64), so the login␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow says not known.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.2.13. lslogins is in util-linux-extra there, and answers␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas on Debian 13 (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -205,8 +204,10 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

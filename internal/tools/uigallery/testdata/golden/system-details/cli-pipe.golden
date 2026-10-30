@@ -47,7 +47,8 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
 $
 
@@ -96,7 +97,8 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
 $
 
@@ -145,6 +147,7 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-  [?] alice                Not known: last isn't installed$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
 $
 $

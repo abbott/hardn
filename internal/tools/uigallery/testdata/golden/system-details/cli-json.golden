@@ -14,11 +14,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange nothing", host already holds the name and OS, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwire.go's SchemaVersion comment lets a field be added without␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma new version. So the nine fields, and one more, details, on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis form alone; result nothing-to-do, exit 0. Stock Debian 13␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no last, so lastLogin is null and one finding says so. As␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma user other than root main()'s two lines (cli-not-root) reach␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstdout first until unit (d) moves them, and the output would␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot parse.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis form alone; result nothing-to-do, exit 0. logins holds␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach account's answer. As a user other than root main()'s two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines (cli-not-root) reach stdout first until unit (d) moves␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthem, and the output would not parse.␛[m$
 $
 {$
   "schemaVersion": 1,$
@@ -61,15 +60,7 @@ $
   },$
   "changes": [],$
   "status": [],$
-  "findings": [$
-    {$
-      "code": "DETAILS_UNREADABLE",$
-      "detail": "last login not read",$
-      "source": "last",$
-      "control": "",$
-      "change": ""$
-    }$
-  ],$
+  "findings": [],$
   "errors": [],$
   "details": {$
     "kernel": "6.12.113+deb13-cloud-amd64",$
@@ -107,7 +98,20 @@ $
       "usedBytes": 1258813440,$
       "totalBytes": 4127277056$
     },$
-    "lastLogin": null$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $
@@ -125,11 +129,10 @@ $
 # change nothing", host already holds the name and OS, and$
 # wire.go's SchemaVersion comment lets a field be added without$
 # a new version. So the nine fields, and one more, details, on$
-# this form alone; result nothing-to-do, exit 0. Stock Debian 13$
-# has no last, so lastLogin is null and one finding says so. As$
-# a user other than root main()'s two lines (cli-not-root) reach$
-# stdout first until unit (d) moves them, and the output would$
-# not parse.$
+# this form alone; result nothing-to-do, exit 0. logins holds$
+# each account's answer. As a user other than root main()'s two$
+# lines (cli-not-root) reach stdout first until unit (d) moves$
+# them, and the output would not parse.$
 $
 {$
   "schemaVersion": 1,$
@@ -172,15 +175,7 @@ $
   },$
   "changes": [],$
   "status": [],$
-  "findings": [$
-    {$
-      "code": "DETAILS_UNREADABLE",$
-      "detail": "last login not read",$
-      "source": "last",$
-      "control": "",$
-      "change": ""$
-    }$
-  ],$
+  "findings": [],$
   "errors": [],$
   "details": {$
     "kernel": "6.12.113+deb13-cloud-amd64",$
@@ -218,7 +213,20 @@ $
       "usedBytes": 1258813440,$
       "totalBytes": 4127277056$
     },$
-    "lastLogin": null$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $
@@ -236,11 +244,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange nothing", host already holds the name and OS, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwire.go's SchemaVersion comment lets a field be added without␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma new version. So the nine fields, and one more, details, on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis form alone; result nothing-to-do, exit 0. Stock Debian 13␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no last, so lastLogin is null and one finding says so. As␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma user other than root main()'s two lines (cli-not-root) reach␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstdout first until unit (d) moves them, and the output would␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot parse.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis form alone; result nothing-to-do, exit 0. logins holds␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach account's answer. As a user other than root main()'s two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines (cli-not-root) reach stdout first until unit (d) moves␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthem, and the output would not parse.␛[m$
 $
 {$
   "schemaVersion": 1,$
@@ -283,15 +290,7 @@ $
   },$
   "changes": [],$
   "status": [],$
-  "findings": [$
-    {$
-      "code": "DETAILS_UNREADABLE",$
-      "detail": "last login not read",$
-      "source": "last",$
-      "control": "",$
-      "change": ""$
-    }$
-  ],$
+  "findings": [],$
   "errors": [],$
   "details": {$
     "kernel": "6.12.113+deb13-cloud-amd64",$
@@ -329,7 +328,20 @@ $
       "usedBytes": 1258813440,$
       "totalBytes": 4127277056$
     },$
-    "lastLogin": null$
+    "logins": [$
+      {$
+        "user": "root",$
+        "when": "",$
+        "tty": "",$
+        "from": ""$
+      },$
+      {$
+        "user": "alice",$
+        "when": "2026-10-20T11:42:05+00:00",$
+        "tty": "pts/0",$
+        "from": "192.0.2.10"$
+      }$
+    ]$
   }$
 }$
 $

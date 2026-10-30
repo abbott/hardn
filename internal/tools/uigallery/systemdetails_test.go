@@ -12,7 +12,9 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -105,26 +107,25 @@ func TestPlaySystemDetailsGolden(t *testing.T) {
 
 // TestSDHosts holds each host's reading to what its note says: the release
 // detect establishes, the kernel, the file system, ZFS's dataset as read,
-// the users and their tool, the last login, and which section is not read.
+// the users and their tool, how many logins it read, and which section is not
+// read.
 func TestSDHosts(t *testing.T) {
 	tests := []struct {
 		host, id, kernel, fs, source string
 		health                       string
 		tool                         string
-		users, addrs                 int
-		login                        string
+		users, addrs, logins         int
 		unread                       []string
 	}{
-		{host: "debian13", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, unread: []string{secLogin}},
-		{host: "ubuntu2604", id: "ubuntu", kernel: ubuntuVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, unread: []string{secLogin}},
+		{host: "debian13", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, logins: 2},
+		{host: "ubuntu2604", id: "ubuntu", kernel: ubuntuVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, logins: 2},
 		{host: "alpine323", id: "alpine", kernel: alpineVMKernel, fs: "ext4", source: "/dev/vda1", tool: "doas", users: 1, addrs: 1, unread: []string{secLogin}},
-		{host: "pve9", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "ONLINE", addrs: 1, unread: []string{secLogin}},
-		{host: "zfs-degraded", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "DEGRADED", addrs: 1, unread: []string{secLogin}},
-		{host: "unreadable", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42", unread: []string{secMemory}},
-		{host: "no-last-login", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1},
-		{host: "login-recorded", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
-		{host: "login-console", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
-		{host: "many", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 14, addrs: 9, unread: []string{secLogin}},
+		{host: "pve9", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "ONLINE", addrs: 1, logins: 1},
+		{host: "zfs-degraded", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "DEGRADED", addrs: 1, logins: 1},
+		{host: "unreadable", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, logins: 2, unread: []string{secMemory}},
+		{host: "no-logins", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, logins: 2},
+		{host: "login-console", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, logins: 2},
+		{host: "many", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 14, addrs: 9, logins: 15},
 	}
 	for _, tt := range tests {
 		r, err := readSDHost(context.Background(), tt.host)
@@ -144,8 +145,8 @@ func TestSDHosts(t *testing.T) {
 			t.Errorf("%s: %d users, %d addresses", tt.host, len(r.users), len(r.addrs))
 		case tt.users > 0 && r.users[0].Tool != tt.tool:
 			t.Errorf("%s: %s's tool %q, want %q", tt.host, r.users[0].Name, r.users[0].Tool, tt.tool)
-		case !strings.HasPrefix(r.login.When, tt.login) || tt.login == "" && r.login.When != "":
-			t.Errorf("%s: last login %q, want %q", tt.host, r.login.When, tt.login)
+		case len(r.logins) != tt.logins:
+			t.Errorf("%s: %d logins, want %d", tt.host, len(r.logins), tt.logins)
 		case !slices.Equal(unread, tt.unread):
 			t.Errorf("%s: unread %q, want %q", tt.host, unread, tt.unread)
 		}
@@ -168,40 +169,92 @@ func sdHostNamed(t *testing.T, name string) sdHost {
 	return sh
 }
 
-// TestSDLastLogin: a host with no last says so, in words of its own; Alpine's
-// BusyBox last refuses the form and the section says it can't read it; a line
-// with no host column keeps its time; and a line for another name, as a name
-// cut to 8 columns would be [I], is not read as no login.
+// TestSDLastLogin holds the rows to lslogins' answers: root first, then the
+// users; a login with a host, a dotless one included, and with none; another
+// year's; blanks. An answer for another name, a garbled one or a failure says it
+// could not read it, never no login, and a host with no lslogins says that.
 func TestSDLastLogin(t *testing.T) {
-	rows := func(host string) []component.KeyValue {
-		r, err := readSDHost(context.Background(), host)
+	const at = "2026-10-20T11:42:05+00:00"
+	cant := []component.KeyValue{{Key: "Can't read lslogins", State: component.ValueWarn}}
+	none := component.KeyValue{Key: "root", Value: noLogin, State: component.ValueNone}
+	alice := func(value string) []component.KeyValue {
+		return []component.KeyValue{none, {Key: "alice", Value: value}}
+	}
+	for _, tt := range []struct {
+		name string
+		res  hostfake.Response
+		want []component.KeyValue
+	}{
+		{"a host", hostfake.Response{Stdout: "alice " + at + " pts/0 192.0.2.10\n"}, alice("Oct 20 11:42 from 192.0.2.10")},
+		{"a dotless host", hostfake.Response{Stdout: "alice " + at + " pts/0 bastion\n"}, alice("Oct 20 11:42 from bastion")},
+		{"no host", hostfake.Response{Stdout: "alice " + at + " tty1 \n"}, alice("Oct 20 11:42 on tty1")},
+		{"all blank", hostfake.Response{Stdout: "alice   \n"}, []component.KeyValue{none, {Key: "alice", Value: noLogin, State: component.ValueNone}}},
+		{"another year", hostfake.Response{Stdout: "alice 2025-12-31T23:59:00+00:00 pts/0 192.0.2.10\n"}, alice("Dec 31 2025 from 192.0.2.10")},
+		{"another name", hostfake.Response{Stdout: "alice-long " + at + " pts/0 192.0.2.10\n"}, cant},
+		{"garbled time", hostfake.Response{Stdout: "alice yesterday pts/0 192.0.2.10\n"}, cant},
+		{"too few fields", hostfake.Response{Stdout: "alice " + at + " pts/0\n"}, cant},
+		{"a terminal and no time", hostfake.Response{Stdout: "alice  pts/0 \n"}, cant},
+		{"nothing", hostfake.Response{}, cant},
+		{"a failure", hostfake.Response{Stderr: "lslogins: cannot open\n", ExitCode: 1}, cant},
+		{"not found", hostfake.Response{Err: host.ErrNotFound}, []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}},
+	} {
+		sh := sdHostNamed(t, "debian13")
+		h := sh.host()
+		model := h.f.Handler
+		h.f.Handler = func(argv []string, stdin []byte) hostfake.Response {
+			if argv[0] == "lslogins" && argv[len(argv)-1] == "alice" {
+				return tt.res
+			}
+			return model(argv, stdin)
+		}
+		if got := readDetails(context.Background(), h.sys(), sh).sectionRows(secLogin); !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %+v, want %+v", tt.name, got, tt.want)
+		}
+	}
+	session := "Oct 20 11:42 from 192.0.2.10"
+	for name, want := range map[string][]component.KeyValue{
+		"debian13":      alice(session),
+		"ubuntu2604":    alice(session),
+		"unreadable":    alice(session),
+		"alpine323":     {{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}},
+		"pve9":          {{Key: "root", Value: session}},
+		"zfs-degraded":  {{Key: "root", Value: session}},
+		"no-logins":     {none, {Key: "alice", Value: noLogin, State: component.ValueNone}},
+		"login-console": alice("Oct 20 11:42 on tty1"),
+	} {
+		r, err := readSDHost(context.Background(), name)
 		if err != nil {
 			t.Fatal(err)
 		}
-		return r.sectionRows(secLogin)
-	}
-	for host, want := range map[string]component.KeyValue{
-		"debian13":       {Key: "alice", Value: noLast, State: component.ValueUnknown},
-		"pve9":           {Key: "root", Value: noLast, State: component.ValueUnknown},
-		"alpine323":      {Key: "Can't read last", State: component.ValueWarn},
-		"login-recorded": {Key: "alice", Value: "Oct 20 11:42 from 192.0.2.10"},
-		"login-console":  {Key: "alice", Value: "Oct 20 11:42 on tty1"},
-		"no-last-login":  {Key: "alice", Value: noLogin, State: component.ValueNone},
-	} {
-		if got := rows(host); len(got) != 1 || got[0] != want {
-			t.Errorf("%s: %+v, want %+v", host, got, want)
+		if got := r.sectionRows(secLogin); !slices.Equal(got, want) {
+			t.Errorf("%s: %+v, want %+v", name, got, want)
 		}
 	}
-	sh := sdHostNamed(t, "login-recorded")
-	h := sh.host()
-	m := vmModel()
-	m.lastOutput = "alice-lo pts/0        192.0.2.10       Tue Oct 20 11:42   still logged in\n"
-	withDetails(h, m, vmCPU, 4, 1)
-	if r := readDetails(context.Background(), h.sys(), sh); r.unread[secLogin].source != "last" {
-		t.Errorf("a line for another name: %+v, unread %+v", r.login, r.unread)
-	}
-	if _, err := parseLast("alice", "alice pts/0 192.0.2.10 gone"); err == nil {
-		t.Error("a line with no time parsed")
+}
+
+// TestSDReadsAddrs: readAddrs takes the forms the VMs print, Debian's and
+// Ubuntu's with a metric, Alpine's with noprefixroute and none (vm-runs/s1,
+// 01-tools.log), and the fixtures print those forms.
+func TestSDReadsAddrs(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		host func() *fakeHost
+		line string
+	}{
+		{"debian13", details(debian13Platform), "2: eth0    inet 192.0.2.20/24 metric 100 brd 192.0.2.255 scope global dynamic eth0\\       valid_lft 7104sec preferred_lft 7104sec\n"},
+		{"alpine323", details(alpine323Platform), "2: eth0    inet 192.0.2.20/24 brd 192.0.2.255 scope global dynamic noprefixroute eth0\\       valid_lft 5235sec preferred_lft 4411sec\n"},
+	} {
+		res, err := tt.host().f.Run(context.Background(), "ip", "-o", "addr", "show", "scope", "global")
+		if err != nil || string(res.Stdout) != tt.line {
+			t.Errorf("%s: %q, %v; want %q", tt.name, res.Stdout, err, tt.line)
+		}
+		r, err := readSDHost(context.Background(), tt.name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := (detailAddr{Iface: "eth0", Family: "inet", Addr: "192.0.2.20/24"}); len(r.addrs) != 1 || r.addrs[0] != want {
+			t.Errorf("%s: %+v", tt.name, r.addrs)
+		}
 	}
 }
 
@@ -218,7 +271,7 @@ func TestSDBlankCPU(t *testing.T) {
 // TestSDNotRootNamesTheRules: the row names the file the host's tool reads.
 func TestSDNotRootNamesTheRules(t *testing.T) {
 	for p, want := range map[*platform]string{&debian13Platform: "/etc/sudoers.d", &alpine323Platform: "/etc/doas.conf"} {
-		sh := sdHost{name: "not-root", host: details(*p), env: map[string]string{"USER": "alice"}, notRoot: true}
+		sh := sdHost{name: "not-root", host: details(*p), notRoot: true}
 		rows := readDetails(context.Background(), sh.host().sys(), sh).sectionRows(secUsers)
 		if got := rows[len(rows)-1].Key; !strings.Contains(got, want) {
 			t.Errorf("%s: %q", want, got)
@@ -292,7 +345,7 @@ func TestSDJSONIsTheDocument(t *testing.T) {
 	if len(doc) != 10 {
 		t.Errorf("%d top-level fields, want the nine and details", len(doc))
 	}
-	if !strings.Contains(string(doc["findings"]), "DETAILS_UNREADABLE") || !strings.Contains(string(doc["details"]), `"memory": null`) {
+	if !strings.Contains(string(doc["findings"]), "DETAILS_UNREADABLE") || !strings.Contains(string(doc["details"]), `"memory": null`) || !strings.Contains(string(doc["details"]), `"when": "2026-10-20T11:42:05+00:00"`) {
 		t.Errorf("findings %s, details %s", doc["findings"], doc["details"])
 	}
 }
@@ -335,8 +388,8 @@ func drawnLines(rows int, unicode bool, draw func(component.Ctx) string) []strin
 // than either height, its top scrolling off, as the main menu's does
 // (DEV-052); report-sections and report-pager fit 24 rows.
 func TestSystemDetailsHeights(t *testing.T) {
-	want := map[string]int{"debian13": 43, "ubuntu2604": 43, "alpine323": 43, "pve9": 44, "zfs-degraded": 44, "unreadable": 43,
-		"no-last-login": 43, "login-recorded": 43, "login-console": 43, "many": 64, reportSections: 16, reportPager: 20, exportCommand: 44, exportFile: 44}
+	want := map[string]int{"debian13": 44, "ubuntu2604": 44, "alpine323": 43, "pve9": 44, "zfs-degraded": 44, "unreadable": 44,
+		"no-logins": 44, "login-console": 44, "many": 78, reportSections: 16, reportPager: 20, exportCommand: 45, exportFile: 45}
 	if len(want) != len(sdHosts()) {
 		t.Fatalf("%d heights, %d hosts", len(want), len(sdHosts()))
 	}
@@ -359,7 +412,7 @@ func TestSystemDetailsHeights(t *testing.T) {
 
 // readOnly are the commands the System Details and Logs stand-ins run beyond
 // those reads knows: they read and change nothing.
-var readOnly = []string{"ip", "df", "zpool", "zfs", "last"}
+var readOnly = []string{"ip", "df", "zpool", "zfs", "lslogins"}
 
 // assertOnlyReads fails t for anything h did but read: a file or directory
 // changed, a command not known to read, or one the model does not answer.

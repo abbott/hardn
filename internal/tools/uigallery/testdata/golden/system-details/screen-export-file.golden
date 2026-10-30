@@ -7,11 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as root: a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the host, so not read only. The gallery writes␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment export-file: Export␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masks a full path and writes the file, as root: a change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost, so not read only. The gallery writes nothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -47,6 +45,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
@@ -65,11 +64,9 @@ $
 $
 # Note$
 # Inferred from origin/main (unreleased). The System Details$
-# screen. Debian 13 with the wtmpdb package added, which$
-# provides last; its form is [unverified]. Treatment export-$
-# file: Export asks a full path and writes the file, as root: a$
-# change on the host, so not read only. The gallery writes$
-# nothing.$
+# screen. Debian 13, as debian13. Treatment export-file: Export$
+# asks a full path and writes the file, as root: a change on the$
+# host, so not read only. The gallery writes nothing.$
 $
 # System Details ###############################################$
 $
@@ -105,6 +102,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
+   -  root                 None recorded$
    -  alice                Oct 20 11:42 from 192.0.2.10$
 $
   Select an option$
@@ -123,11 +121,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot: a change on the host, so not read only. The gallery␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites nothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment export-file:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mExport asks a full path and writes the file, as root: a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the host, so not read only. The gallery writes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -175,6 +172,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
       ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
@@ -196,11 +195,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as root: a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the host, so not read only. The gallery writes␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment export-file: Export␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156masks a full path and writes the file, as root: a change on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost, so not read only. The gallery writes nothing.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -236,6 +233,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
