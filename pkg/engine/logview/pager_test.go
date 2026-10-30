@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
@@ -93,6 +94,57 @@ func TestPagerDoneContext(t *testing.T) {
 	cancel()
 	if got, ok := logview.Pager(ctx, f, "vt100"); ok {
 		t.Errorf("Pager = %+v", got)
+	}
+}
+
+// deadlined records the deadline less --version runs under, and when hang is set
+// never ends, whatever ctx says, as a process stuck in the kernel on a hung file
+// system: host.Real's Run could not return.
+type deadlined struct {
+	*hostfake.System
+	left    time.Duration
+	hang    bool
+	release chan struct{}
+}
+
+func (d *deadlined) Run(ctx context.Context, name string, args ...string) (host.Result, error) {
+	if at, ok := ctx.Deadline(); ok {
+		d.left = time.Until(at)
+	}
+	if d.hang {
+		<-d.release
+		return host.Result{}, ctx.Err()
+	}
+	return d.System.Run(ctx, name, args...)
+}
+
+// TestPagerBound: less --version runs under 5 s, and one that will not end is
+// left behind past its grace: a timeout is no pager, and the draw goes on.
+func TestPagerBound(t *testing.T) {
+	f := hostfake.New(host.Options{})
+	f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
+	f.Respond(hostfake.Response{Stdout: gnuVersion}, "less", "--version")
+	d := &deadlined{System: f}
+	if _, ok := logview.Pager(context.Background(), d, "vt100"); !ok {
+		t.Fatal("no pager")
+	}
+	if d.left <= 4*time.Second || d.left > 5*time.Second {
+		t.Errorf("ran with %v left", d.left)
+	}
+	d = &deadlined{System: f, hang: true, release: make(chan struct{})}
+	defer close(d.release)
+	done := make(chan bool, 1)
+	go func() {
+		_, ok := logview.PagerBounded(context.Background(), d, "vt100", 20*time.Millisecond, 10*time.Millisecond)
+		done <- ok
+	}()
+	select {
+	case ok := <-done:
+		if ok {
+			t.Error("a pager, from a check that did not end")
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("Pager did not return")
 	}
 }
 

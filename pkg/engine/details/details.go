@@ -28,7 +28,6 @@ package details
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/abbott/hardn/pkg/engine/header"
@@ -71,9 +70,7 @@ const (
 // from glibc, not run), and it reads the whole of wtmp, about 0.9 s on the VMs'
 // 34 to 36 MB (vm-runs/s1/08-lslogins.log). 20 s is one such wait and a wtmp
 // about five times theirs. Past grace, a command that has not ended is left
-// behind: host.Real kills it when ctx is done, but its Wait returns only once
-// the process has gone, and one stuck in the kernel on a hung pool or mount
-// cannot go (os/exec's Cmd.Wait).
+// behind (host.RunBounded).
 type bounds struct {
 	command, lslogins, grace time.Duration
 }
@@ -103,6 +100,11 @@ func read(ctx context.Context, sys host.System, f detect.Facts, b bounds) Report
 	}
 }
 
+// Bounded is sys with every command under Read's bounds, for what a draw runs
+// before Read: hardn system-details' detect.Detect (unit (d)). Read bounds its
+// own, so it takes sys itself.
+func Bounded(sys host.System) host.System { return boundedSystem{System: sys, bounds: defaultBounds} }
+
 // boundedSystem is sys with every command Read runs bounded, those of the
 // packages it reads through too (header.Read's, the elevation tools' checks).
 type boundedSystem struct {
@@ -110,36 +112,11 @@ type boundedSystem struct {
 	bounds bounds
 }
 
-// Run runs the command under its bound, and returns at the bound plus grace
-// whether or not the command has ended: the error then wraps ctx's.
+// Run runs the command under its bound (host.RunBounded).
 func (s boundedSystem) Run(ctx context.Context, name string, args ...string) (host.Result, error) {
 	limit := s.bounds.command
 	if name == "lslogins" {
 		limit = s.bounds.lslogins
 	}
-	ctx, cancel := context.WithTimeout(ctx, limit)
-	defer cancel()
-	type answer struct {
-		res host.Result
-		err error
-	}
-	done := make(chan answer, 1)
-	go func() {
-		res, err := s.System.Run(ctx, name, args...)
-		done <- answer{res, err}
-	}()
-	select {
-	case a := <-done:
-		return a.res, a.err
-	case <-ctx.Done():
-	}
-	timer := time.NewTimer(s.bounds.grace)
-	defer timer.Stop()
-	select {
-	case a := <-done:
-		return a.res, a.err
-	case <-timer.C:
-		argv := append([]string{name}, args...)
-		return host.Result{Argv: argv, ExitCode: -1}, fmt.Errorf("details: %s did not end: %w", host.FormatArgv(argv), ctx.Err())
-	}
+	return host.RunBounded(ctx, s.System, limit, s.bounds.grace, name, args...)
 }

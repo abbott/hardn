@@ -21,8 +21,12 @@ func (c Command) Run(ctx context.Context, sys host.System) error {
 	return sys.RunInteractive(ctx, c.Env, c.Argv[0], c.Argv[1:]...)
 }
 
-// lessCheck bounds less --version, which a draw waits for.
-const lessCheck = 5 * time.Second
+// The bounds on less --version, which a draw waits for: past lessGrace it is
+// left behind (host.RunBounded), and a timeout is no pager.
+const (
+	lessCheck = 5 * time.Second
+	lessGrace = time.Second
+)
 
 // lessVersion is the first line of GNU less's --version: "less 668 (GNU regular
 // expressions)" on Debian 13 and Ubuntu 26.04, where BusyBox's says "less:
@@ -43,7 +47,11 @@ var lessVersion = regexp.MustCompile(`^less [0-9]+( |$)`)
 // process, and names a file in the terminfo database, so it is passed only
 // when safeTerm passes it.
 func Pager(ctx context.Context, sys host.System, term string) (Command, bool) {
-	if !gnuLess(ctx, sys) {
+	return pager(ctx, sys, term, lessCheck, lessGrace)
+}
+
+func pager(ctx context.Context, sys host.System, term string, limit, grace time.Duration) (Command, bool) {
+	if !gnuLess(ctx, sys, limit, grace) {
 		return Command{}, false
 	}
 	return Command{
@@ -69,13 +77,11 @@ func Pager(ctx context.Context, sys host.System, term string) (Command, bool) {
 }
 
 // gnuLess is Pager's check.
-func gnuLess(ctx context.Context, sys host.System) bool {
+func gnuLess(ctx context.Context, sys host.System, limit, grace time.Duration) bool {
 	if !onSearchPath(ctx, sys, "less") {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(ctx, lessCheck)
-	defer cancel()
-	res, err := sys.Run(ctx, "less", "--version")
+	res, err := host.RunBounded(ctx, sys, limit, grace, "less", "--version")
 	if err != nil || res.ExitCode != 0 {
 		return false
 	}

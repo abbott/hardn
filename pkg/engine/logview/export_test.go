@@ -5,3 +5,6 @@ var ReadFile = read
 
 // SafeTerm gives the tests the check of TERM.
 var SafeTerm = safeTerm
+
+// PagerBounded gives the tests Pager under short bounds.
+var PagerBounded = pager

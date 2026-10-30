@@ -1097,6 +1097,20 @@ func TestBounds(t *testing.T) {
 	}
 }
 
+// TestBounded: what runs before Read on the same draw, detect's commands, runs
+// under the same bounds.
+func TestBounded(t *testing.T) {
+	d := &deadlines{fakeHost: newHost(t), left: map[string]time.Duration{}}
+	sys := details.Bounded(d)
+	_, _ = sys.Run(context.Background(), "systemctl", "--version")
+	_, _ = sys.Run(context.Background(), "lslogins", "--version")
+	for name, limit := range map[string]time.Duration{"systemctl": details.Bounds.Command, "lslogins": details.Bounds.Lslogins} {
+		if left := d.left[name]; left <= limit-time.Second || left > limit {
+			t.Errorf("%s ran with %v left, bound %v", name, left, limit)
+		}
+	}
+}
+
 // hung is a host whose named commands never end, whatever ctx says, as a process
 // stuck in the kernel on a hung pool or mount: host.Real's Run could not return.
 type hung struct {

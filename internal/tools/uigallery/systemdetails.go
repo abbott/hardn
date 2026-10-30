@@ -440,7 +440,7 @@ type detailsReading struct {
 // command and unit (c)'s screen will. It changes nothing, and what it cannot read
 // the sections say.
 func readDetails(ctx context.Context, sys host.System) detailsReading {
-	facts, _ := detect.Detect(ctx, sys) // what detect does not establish, the report says not read
+	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
 	return detailsReading{Report: details.Read(ctx, sys, facts), facts: facts}
 }
 
