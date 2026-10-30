@@ -276,8 +276,9 @@ func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
 			return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "last", host.SearchPath, host.ErrNotFound)}, true
 		case lastBusyBox:
 			return hostfake.Response{Stderr: "BusyBox v1.37.0 multi-call binary.\n\nUsage: last\n", ExitCode: 1}, true
+		case lastWtmpdb:
+			return hostfake.Response{Stdout: m.lastOutput}, true
 		}
-		return hostfake.Response{Stdout: m.lastOutput}, true
 	}
 	return hostfake.Response{}, false
 }
