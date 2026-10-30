@@ -34,8 +34,11 @@ import (
 // and again once the user followed it; stopping on doas, lockout-risk,
 // the cloud image's wheel.conf reported, the hostname typed; origin/main's
 // file; the hosts' menu, to the overridden doas host; and the main menu's
-// 8, the guide. Each change id's random suffix is written xxxxxxxx
-// (sessionIDs).
+// 8, "Keep HARDN_CONFIG", live, the guide, and under plan only, item 1
+// stopping at its plan (as hardn's main menu 8 runs the screen since
+// next/s9-replace; the gallery's main menu is the fixture, its indicator
+// "Mode Live" either way). Each change id's random suffix is written
+// xxxxxxxx (sessionIDs).
 func TestPlayEnvironmentGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -44,6 +47,7 @@ func TestPlayEnvironmentGolden(t *testing.T) {
 		cells []uitest.Cell
 	}{
 		{"environment", nil, []string{"8", "2", "0", "0"}, nil},
+		{"environment-main-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "1", "0", "0"}, nil},
 		{"environment-keep", []string{"environment/debian13"}, []string{"2", "1", "y", "0"}, append(uitest.Core(), asciiColour)},
 		{"environment-sudo-rs", []string{"environment/ubuntu2604"}, []string{"1", "y", "0"}, nil},
 		{"environment-kept", []string{"environment/kept"}, []string{"1", "y", "0"}, nil},

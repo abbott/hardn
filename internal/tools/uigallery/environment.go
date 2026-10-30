@@ -26,8 +26,10 @@ import (
 // hardn's environment there through the Environment control, its one
 // change on the real engine, on the hosts the Environment mocks were drawn
 // for, which it replaces (docs/engine/screen-environment.md). The main
-// menu's 8 leads to it on Debian 13; "play environment" is the menu of
-// the hosts and "play environment/<host>" one. The listing of the mocks,
+// menu's 8, "Keep HARDN_CONFIG", leads to it on Debian 13, as hardn's main
+// menu 8 runs it since next/s9-replace, under plan only too (-sequence
+// dry-run); "play environment" is the menu of the hosts and "play
+// environment/<host>" one. The listing of the mocks,
 // "uigallery environment", was retired with them: git keeps it
 // (environment.go, next/s9-parity), and gallery-environment.md records
 // what each showed.
