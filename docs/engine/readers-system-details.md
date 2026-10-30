@@ -1,13 +1,15 @@
-# The readers of System Details and Logs (`pkg/engine/logview`, `host.System`'s `ScanLines` and `RunInteractive`)
+# The readers of System Details and Logs (`pkg/engine/details`, `pkg/engine/logview`, `host.System`'s `ScanLines` and `RunInteractive`, `pkg/output`'s `details`)
 
-> **Unit:** refactor plan slice 1 (System Details + Logs, both read only), unit (b), `next/s1-readers`, from `next/s1-gallery` at 7bc756c7. It builds on unit (a) ([gallery-system-details.md](gallery-system-details.md)), whose eleven decisions the maintainer adopted on 2026-10-30 ("Adopt all eleven"). Decisions implemented here: 6 (a) (the log's file), 7 (a) (GNU `less` alone), and 8 (a)'s and 10 (a)'s needs (the last lines, the pipe form). This page holds the log side; System Details' reader is the unit's next part, and the gallery moves onto both after it. No V-number holds the defects it fixes (gallery-system-details.md §7: the slice's "Logs dump" and "Broken log parser", and the reader's side of rows 21, 22 and 26).
-> **Status:** built and tested on macOS, in process, on `hostfake` and on real files, real children and pseudo-terminals in `t.TempDir()` (run). **Nothing has run on Linux or as root**, and hardn itself has not run: §4. There is no control on the engine, no `Check`, no plan and no flow, as neither screen has a main-menu row or a change. Nothing is wired into `cmd/hardn`, `pkg/menu`, `pkg/system`, `pkg/cmd`, `pkg/logging`, `pkg/adapter` or `pkg/config`; no `--output` flag and no screen package here (units (c) and (d)). No golden changed (`git diff --name-only 7bc756c7 -- '*testdata*'` is empty at this page's commit).
+> **Unit:** refactor plan slice 1 (System Details + Logs, both read only), unit (b), `next/s1-readers`, from `next/s1-gallery` at 7bc756c7. It builds on unit (a) ([gallery-system-details.md](gallery-system-details.md)), whose eleven decisions the maintainer adopted on 2026-10-30 ("Adopt all eleven"). Decisions implemented here: 1 (a)'s document (the `details` field, no flag), 2 (a) (the seven sections), 3 (a) (Last Login, its blank guard), 6 (a) (the log's file), 7 (a) (GNU `less` alone), and 8 (a)'s and 10 (a)'s needs (the last lines, the pipe form). The gallery moves onto both readers in this unit's last part. No V-number holds the defects it fixes (gallery-system-details.md §7: the slice's "Logs dump" and "Broken log parser", the reader's side of rows 21, 22 and 26, and rows 7 to 16 of the report).
+> **Status:** built and tested on macOS, in process, on `hostfake` and on real files, real children and pseudo-terminals in `t.TempDir()` (run). Each form the report parses is typed from a VM's log with synthetic values, or labelled. **Nothing has run on Linux or as root**, and hardn itself has not run: §4. There is no control on the engine, no `Check`, no plan and no flow, as neither screen has a main-menu row or a change. Nothing is wired into `cmd/hardn`, `pkg/menu`, `pkg/system`, `pkg/cmd`, `pkg/logging`, `pkg/adapter` or `pkg/config`; no `--output` flag and no screen package here (units (c) and (d)). Goldens: `pkg/output/testdata/codes.golden` gains `DETAILS_UNREADABLE`'s line, as a registered code does; `json/details.json` and `details-unreadable.json` are new; nothing else (`git diff --name-only 7bc756c7 -- '*testdata*'`).
 
-The screens of unit (c) and the wiring of unit (d) should only draw and wire. So the host gains two seams, `ScanLines` and `RunInteractive`, and `pkg/engine/logview` reads hardn's log through them as data, with nothing rendered, as `pkg/engine/header` reads the header's facts.
+The screens of unit (c) and the wiring of unit (d) should only draw and wire. So the host gains two seams, `ScanLines` and `RunInteractive`; `pkg/engine/logview` reads hardn's log through them, and `pkg/engine/details` the report's seven sections, both as data, with nothing rendered, as `pkg/engine/header` reads the header's facts; and `pkg/output` gains the report's JSON form.
 
 ## 1. Why
 
 origin/main prints the whole log at once, 20,000 of 20,000 lines, read whole into memory, its bytes raw, from `cfg.LogFile`, which hardn has never written (gallery-system-details.md §2.7, §2.8). Its parser stops silently at a line over 64 KiB and reads the clock as the level, and nothing live calls it (§2.10). Unit (a) drew the replacement on the gallery's stand-ins, `readLog`, `safeLine`, `parseLogLine` and `pagerFor` (§8), which read the whole file and go by a link to tell BusyBox's `less`. `host.System` had no call for the end of a file and none that gives a child the terminal: `Run` pipes output (`pkg/host/real.go`, `start`).
+
+origin/main's report stops at its first collector's error and loses all it read (§2.3), asks `zfs` about a hard-coded dataset (§2.5), reads Last Login from a `lastlog` stock Debian 13 and Ubuntu 26.04 do not have (§2.5), and says "Bare Metal", "1 socket" and "0.00 GHz" for what it does not know. Unit (a) drew the replacement on `readDetails`, which groups read and any failure loses a section (§8).
 
 ## 2. Guarantees
 
@@ -43,6 +45,26 @@ origin/main prints the whole log at once, 20,000 of 20,000 lines, read whole int
     - No `LESS`, `LESSOPEN`, `LESSCLOSE`, `LESSKEY`, `EDITOR`, `VISUAL`, `SHELL` or `HOME` gets through: `RunInteractive` passes nothing it is not given (run: `TestRunInteractiveExactEnvironment`, with each set in the parent).
 12. **All on `host.System`, no line for a draw.** `Read` runs nothing. `Pager` runs `less --version`, a command, which a host with a run log logs (run: `TestPagerCheckIsACommand`): a draw reads on a host with none, the shape of `statusHost` (`cmd/hardn/status.go:29`).
 
+### The report's reader (`pkg/engine/details`)
+
+13. **`Read(ctx, sys, facts)`** gives a `Report` of seven sections, facts and states and no words: `OS`, `Host`, `Users`, `CPU`, `Disk`, `Memory`, `Logins`. A section that fails leaves the others, and a fact leaves its section's others: what could not be read is that section's `Unread`, by source and why (run: `TestOneSectionLeavesTheRest`, each source failing alone, the others whole). A done ctx leaves every fact with ctx's error (run: `TestDoneContext`). A zero fact is not established, and a slice is `nil` only where it was not read (`[]`, none).
+14. **OS, kernel, uptime, hostname:** `header.Read` and `/proc/sys/kernel/osrelease`, on the caller's detect facts (run: `TestRead`).
+15. **Addresses:** `ip -o addr show scope global`, `metric 100` (Debian, Ubuntu) and `noprefixroute` (Alpine) passed over alike, IPv4 and IPv6 ([I] for `inet6`: no VM has a global address) (run: `TestAddresses`, typed from `vm-runs/s1/01-tools.log`:50, :115, :178). A line in no form known is said once in `Unread` and the others stay.
+16. **Users:** uid 1000 and up, not `nobody` or `nfsnobody`, each name once, as the users check takes the first (`getpwnam`'s [I]). What lets each administer is `users.Elevation`, `readTools` and `decide` exposed and not copied, so a rule such as cloud-init's counts and a group a rule does not name does not (run: `TestUsers`, `TestElevation`). `User.Admin()` gives the first tool that grants, or No, or Unknown, as the check's `elevates`. Root alone reads no rule and runs no `visudo` (run: `TestUsers`).
+17. **As a user other than root** the report says so and does not guess. `Users.Root` is `/proc/self/status`'s effective uid, the second number of its `Uid:` line, read through `ReadFile`, so on the seam and with no new method on `System` ([I] for the form: no VM printed it). Unknown, with `RootErr`, where it cannot tell, which takes nothing else with it. `/etc/sudoers.d` is `drwxr-x---` on all three VMs and Alpine's `/etc/doas.conf` 0640 (`vm-runs/s1/01-tools.log`:65, :130, :191-193). The rules' read stops at the first refusal, and `NotRead()` holds every file of that tool's that refuses: `/etc/sudoers` and `/etc/sudoers.d`, or `/etc/doas.conf` and `/etc/doas.d` (run: `TestNotRoot`; `/etc/sudoers` 0440 is [I], no log lists it). Each user's grant is then Unknown, never a group's guess, and no `visudo` runs.
+18. **CPU and load:** `processor` lines are logical CPUs; the first `model name`; distinct `physical id`s. Where those two are absent, as on arm64 [I, not run], `Model` is "" and `Sockets` 0, and none is made up. No `processor` line at all is not a form known. `/proc/loadavg`'s form is proc(5)'s; no VM printed it [I] (run: `TestCPU`).
+19. **Disk:** `/proc/self/mounts`' last line for `/`, through `detect.ParseMounts`, then `df -kP /`, header passed over (no VM's log kept it [I]), figures in KiB (run: `TestDF`, on `01-tools.log`:51-52, :116-117, :179-180). **On ZFS, every form [unverified], no ZFS VM** (run: `TestZFS`): the dataset is the mount's, never one of hardn's; `zpool list -H -o health <pool>`; `zfs get -Hp -o value used,available <dataset>`, total their sum. No `zpool`, `Health` "" beside its `Pool`, so not known, and not a finding. No `zfs`, `df` gives the figures. One that fails is in `Unread`, and `df` still answers.
+20. **Memory:** `MemTotal` and `MemAvailable`. No `MemAvailable` is `AvailableKnown` false, and `Used()` says not known (run: `TestMemory`). `Used` never counts the kernel's caches, as origin/main's does.
+21. **Last Login (decision 3 (a)):** one call, `lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,<each listed user>`, its lines keyed by name, in the order asked, split at single spaces (run: `TestLogins`, on `02-login.log`, `08-lslogins.log`). A name with no line is that account's `LoginUnknown`; the others stay. A line that does not parse, a line for a name not asked, a second for a name, or a failed run is `LoginsUnread` with source `lslogins`, never no login. Not found is its own state, `LoginsNoTool`. A name `-l` would split or the raw form would escape (`,`, `\`, a blank, what does not print: libsmartcols `fputs_nonblank`, v2.41) is not asked, and reads as a name with no line.
+22. **The blank guard, as adopted:** a blank is `LoginNone` only where a source can be read and holds records; otherwise `LoginUnknown` (`vm-runs/s1/09-lslogins-blank.log`). The sources, in `lslogins`' order: `/var/log/wtmp`, `/var/lib/lastlog/lastlog2.db` where it exists, `/var/log/lastlog` (read: `lslogins.c` v2.41:827, :601; both VMs' builds link lastlog2, `08-lslogins.log`; the path, `lastlog2.h`:35 and `01-tools.log`:24). They are asked only where a blank needs it, and each is truly opened with `ScanLines`, no mode looked at: a symlink, a FIFO and a directory read as not read, without blocking. A file of NUL bytes alone holds no record, and the VMs' sparse `lastlog`, whose one record lies past the first `MaxLine`, does: past a cut it reads the whole file up to 4 MiB, uids to about 14,000, and longer than that with nothing in its first look is the safe side, no records (run: `TestBlankGuard`, 13 cases, among them all readable with records (None), wtmp unreadable and lastlog empty (Unknown), a real login beside them; `TestReadSourceRealFiles`, real files, mode 0000, a FIFO, a link). `Logins.Sources` carries what it found.
+23. **Bounds.** Every command runs under a bound, those of the packages it reads through too, by a `System` wrapping `Run` (run: `TestBounds`): **5 s**, as `Pager`'s `less --version` (`pkg/engine/logview/pager.go`:25); **`lslogins` 20 s**, one wait for the password lock (15 s: `lslogins.c` v2.41:831, `lckpwdf`; read from glibc, not run) and about five of the VMs' wtmp read (0.9 s on 34 to 36 MB, `08-lslogins.log`). So the worst a draw waits, on every command hanging, is about 60 s, by adding the bounds; `lslogins`, the one timed, took 0.9 s on the VMs. At the bound the section says its source and `errors.Is(err, context.DeadlineExceeded)`, so "Can't read lslogins", and the rest stays. **A command that will not die is left behind:** `host.Real` kills it at the bound (run: `TestBoundOnARealChild`, a real `sleep`), but `os/exec`'s `Wait` waits on the process first (`os/exec/exec.go`, `c.Process.Wait()`), and one stuck in the kernel on a hung pool or mount cannot go. So `Run` returns one second later regardless, its goroutine waiting on (run: `TestHungCommand`, a host whose command never returns; no real process has hung).
+24. **Writes nothing, runs only reads, no line of its own in a run log** (run: `TestReadWritesNothing`, every call on a host with a run log, both a ZFS and a plain root): its file calls are `read`, `read-nofollow`, `scan-lines`, `stat`, `lstat` and `readdir`; its commands `ip`, `df`, `zpool list`, `zfs get`, `visudo -c`, `doas -C`, `lslogins` and the header probe's `ip -4 addr show dev` and `dpkg-query --show`. Each command is the host's to log, so a draw takes a host with no run log, the shape of `statusHost` (`cmd/hardn/status.go:29`). **The one effect is not hardn's:** `lslogins` as root takes the password lock, and `lckpwdf` makes `/etc/.pwd.lock` where it is absent [I, from glibc]; it exists on both VMs (`08-lslogins.log`:4, :58).
+
+### The JSON form (`pkg/output`)
+
+25. **`details`, on the document, not beside it** ([output.md](../reference/output.md) §1.10): `Run.Details`, `Document.Details`, omitted otherwise. Every other document holds the nine, and an audit line ten with `time` (run: `TestDetailsOnThisFormAlone`, `TestStdoutIsOneDocument`, the old goldens unchanged). `Build` stays pure (run: `TestDetailsPure`). No flag reaches it until unit (d).
+26. **A null is a fact here:** a section or a fact not read or not known is null, `[]` read and none. One finding per section with anything not read, `DETAILS_UNREADABLE`, registered, `detail` `<section> not read`, `source` what was not read; exit 0 (run: `TestDetailsUnread`, 14 cases; `TestDetailsNotKnown`; goldens `json/details.json`, `json/details-unreadable.json`). `logins` as `cli-json` draws them, `unknown: true` on an account with no line, or on a blank the guard cannot back (run: `TestDetailsRead`).
+
 ## 3. Facts relied on
 
 | Fact | Source |
@@ -53,15 +75,25 @@ origin/main prints the whole log at once, 20,000 of 20,000 lines, read whole int
 | exec gives a caught signal its default action and keeps an ignored one ignored | run here: the pseudo-terminal tests above; POSIX exec |
 | `signal.Notify` on a signal started ignored stops ignoring it; `signal.Stop` puts it back | read: os/signal's doc; `signal.Ignored`'s use, `pkg/ui/prompt/reader.go:311` |
 | `less` shows a log's OSC as text with no `-r` | run: `TestRunInteractiveLess`, this Mac's 581.2; on GNU 668 [I] |
+| `ip -o addr`'s two shapes; `df -kP /`'s line; `/proc/self/mounts`' line; `/proc/cpuinfo`'s three keys; `/proc/meminfo`'s lines | run: `vm-runs/s1/01-tools.log`, "reader forms" |
+| `/etc/sudoers.d` `drwxr-x---` on the three VMs; Alpine's `/etc/doas.conf` 0640, `/etc/doas.d` `drwxr-x---` | run: `vm-runs/s1/01-tools.log`:65, :130, :191-193 |
+| `lslogins`' one call: a line per name it knows, the name and three spaces for no login, no line and exit 0 for a name it does not know | run: `vm-runs/s1/02-login.log`, `08-lslogins.log` |
+| It answers blank, exit 0, with its sources missing, empty or unreadable | run: `vm-runs/s1/09-lslogins-blank.log` |
+| Its order: wtmp, then lastlog2, then lastlog; the password lock per account; lastlog read at uid times the slot | read: `login-utils/lslogins.c` v2.41:827, :601, :605, :831 |
+| The raw form escapes a blank, `\`, what does not print: so a field holds no space, and a control character in a host name reaches hardn as `\x1b` | read: `libsmartcols/src/print.c` v2.41:620, `include/carefulputc.h`:109 |
+| lastlog2's database is `/var/lib/lastlog/lastlog2.db`, and its table is made in the call that writes a row | read: `liblastlog2/src/lastlog2.h`:35, `lastlog2.c`:239 |
+| `Cmd.Wait` waits on the process before anything else, whatever `WaitDelay` says | read: Go's `os/exec/exec.go`, `(*Cmd).Wait` |
 
 ## 4. Written, not run (gate 5)
 
-Nothing here has run on Linux or as root. On a VM, read only:
+Nothing here has run on Linux or as root. For the log side, on a VM, read only:
 
 - the new tests in `pkg/host`, `pkg/host/hostfake` and `pkg/engine/logview`, `pty_linux_test.go` among them (vetted by `make check-cross` alone), and `TestRunInteractiveLess` on GNU `less` 668;
 - `less --` and non-ASCII under `LC_ALL=C.UTF-8` on Debian 13 and Ubuntu 26.04; Alpine's less package (item 10's row is [I]);
 - `less` as root under hardn: `LESSSECURE`, `q`, Ctrl-C at its prompt, the terminal after it, through sudo, sudo-rs and doas;
 - `ScanLines` on `/var/log/hardn.log` and `/var/log/wtmp` as root and as a user; a read that fails as root.
+
+**The report:** nothing has run on a host, `pkg/engine/details` being on `hostfake` but for `TestReadSourceRealFiles` and `TestBoundOnARealChild`. On a VM, read only: `/proc/self/status`'s form, as root and as a user; `/proc/loadavg`'s; `df`'s header; `visudo -c` and `doas -C` under the bound; `lslogins` as root for more than one account, on a usual host, with the password lock held, and through a real rotation; `ScanLines` on `/var/log/wtmp` and `/var/log/lastlog`, and the `lastlog` slot size; a global IPv6 address; a real hung process. **No VM exists for:** `zpool` and `zfs` on a ZFS root, in an LXC guest; arm64's `/proc/cpuinfo`; a lastlog2 database that exists.
 
 **Not closed, known:** `Read` refuses a link at the path, but `less` opens the path itself, as root, so a link planted after the screen's read is followed by `less` [I, not run]; that needs write access in `/var/log`. `less`'s handling of bidi characters is its own: `Safe` does not reach it [I, not run]. Ctrl-Z and a SIGTERM to hardn alone: system.md, "Known limits".
 
@@ -74,6 +106,11 @@ gallery-system-details.md §6 is used as it stands; the words themselves are uni
 | A line past the cap, after its 64 KiB | `<cut>` | The sanitiser's own notation, `<0xe9>`, `<U+202E>` |
 | `Reading.Reason` for a FIFO or a device, after "Can't read it: " | "not a regular file" | `fs.ErrInvalid`'s own text is "invalid argument", which says neither |
 | `Reading.Reason` for a link at the path, and on the way | "refusing a symlink"; "refusing a symlink in a directory another user can change" | `host.ErrSymlink`'s and `ErrSymlinkParent`'s text, as `reasonOf` gives other errors' |
+| `DETAILS_UNREADABLE`'s `<section>`, §6 giving the form and "memory" alone | "os and kernel", "host and ips", "users", "cpu and load", "disk", "memory", "last login" | P-17's words in lower case, as the stand-in has them |
+| `DETAILS_UNREADABLE`'s `source` | each source, joined by ", "; "ip addr", "df", "zpool list", "zfs get", "lslogins" | The stand-in's sources, and "Can't read <source>" uses them alike |
+| JSON: `users[].tool`, `disk.health` | "unknown" | §6's word, as `host`'s facts use it, where the rules are not read and where no `zpool` answers |
+
+**For unit (c):** "Not root: <file> not read" has one `<file>`, and the report can carry two; a user's row where the rules are not read is "Not known" (§6's state), since the report no longer says what a group says (`cli-not-root` draws `alice  sudo`, the stand-in's guess).
 
 ## 6. Decisions of this unit (engineering, stated; say if you'd rather otherwise)
 
@@ -95,6 +132,22 @@ gallery-system-details.md §6 is used as it stands; the words themselves are uni
 16. `less --version` is bounded at 5 s, as a draw waits for it; a timeout is no pager.
 17. `Safe` also marks noncharacters, which the stand-in kept; no mock holds one.
 18. `Elsewhere` returns the path `Safe`, as hardn.yml may be `./hardn.yml` (`pkg/config/config.go:210`) and both its callers show it.
+19. `pkg/engine/details` is the name, beside `header`: depguard's `engine-through-host` fits, and a block names its own rule, `details-through-host`, which keeps it off `pkg/ui` and `pkg/output`.
+20. `users.Elevation` is exposed, not `tool` and `decide`: three methods, and the row's shells, locks and findings stay private.
+21. Facts keep their section's others, as the header's do, past the stand-in's whole-section rule: decision 2 (a) has "each row reads a fact or says it could not".
+22. `/proc/self/status` tells root from another user, not a new `System` method: a method means p4status' guard, the fake and every other implementer, for one read of a file `ReadFile` reaches.
+23. A user's grant with rules unread is Unknown, not a group's guess: a group names nothing a rule does not, and the stand-in's "sudo" there would be the guess decision 2's rows avoid.
+24. A rule file is reported only where a tool that matters read it: on Alpine, whose `/etc/sudoers.d` also refuses (`01-tools.log`:193), sudo is not installed, so it is not named.
+25. The guard's "a source" is any one, as adopted: wtmp holding records with `lastlog` unreadable reads None. `Logins.Sources` keeps what each said, should that tighten.
+26. A lastlog2 database with any bytes counts as holding records: hardn has no SQLite reader, and the table is made by the write of a row (`lastlog2.c`:239), so empty after a removal is the false None left [I]. No VM has the file.
+27. A blank's guard costs one look per source, only where there is a blank: a host where all have logged in reads nothing more.
+28. A name not askable is not asked, so one odd account in `/etc/passwd` does not turn the whole section unread.
+29. A failed `zfs get` or `zpool list` stays a finding though `df` answered, as the pool's figures were not what was asked; not installed is no finding, only "unknown".
+30. `lslogins`' 20 s is the section's, not per account: a held lock past one wait reads "Can't read lslogins", and the next Refresh tries again.
+31. Commands run one after another: running them at once would save time on a hung host alone.
+32. Report values are as the host gave them, not `logview.Safe`d: the rows clean what they draw (`pkg/ui/component/ctx.go`, `clean`), JSON escapes it, and `lslogins`' raw form has already escaped `From` and `TTY`. Unit (c)'s uncapped off-terminal path must clean too.
+33. `DETAILS_UNREADABLE`'s code is `pkg/output`'s, beside `CONFIG_DEPRECATED_VALUE`: `Build` makes the finding.
+34. `hostname` and `os` stay in `host`, as the gallery has them, and `Run.Hostname` stays the caller's to set from `Report.Host.Hostname`.
 
 ## 7. API
 
@@ -126,10 +179,51 @@ func Show(l host.Line) string
 func ParseLine(line string) Entry
 func Pager(ctx context.Context, sys host.System, term string) (Command, bool)
 func (c Command) Run(ctx context.Context, sys host.System) error
+
+package details
+
+const CPUInfoFile, LoadAvgFile, MemInfoFile, SelfStatusFile // the kernel's files
+const WtmpFile, LastlogFile, Lastlog2File                   // lslogins' sources
+const SourceIP, SourceDF, SourceZpool, SourceZFS, SourceLslogins // as Unread names them
+type Report struct { OS OSKernel; Host HostIPs; Users Users; CPU CPU; Disk Disk; Memory Memory; Logins Logins }
+type Unread struct { Source string; Err error }
+type OSKernel struct { OS header.OS; Kernel string; Uptime header.Uptime; Unread []Unread }
+type HostIPs struct { Hostname string; Addresses []Address; Unread []Unread }
+type Address struct { Interface, Family, Address string }
+type Users struct { List []User; Root detect.Tri; RootErr error; Unread []Unread }
+func (u Users) NotRead() []string
+type User struct { Name string; UID int; Grants []users.Grant }
+func (u User) Admin() (tool string, t detect.Tri)
+type CPU struct { Model string; CPUs, Sockets int; Load [3]string; Unread []Unread }
+type Disk struct { Source, Type string; Used, Total uint64; Known bool; Pool, Health string; Unread []Unread }
+type Memory struct { Total, Available uint64; AvailableKnown bool; Unread []Unread }
+func (m Memory) Used() (used uint64, ok bool)
+type LoginsState uint8 // LoginsUnread, LoginsNoTool, LoginsRead
+type LoginState uint8  // LoginUnknown, LoginNone, LoginAt
+type Logins struct { State LoginsState; List []Login; Sources []Source; Unread []Unread }
+type Login struct { User string; State LoginState; When, TTY, From string; At time.Time }
+type SourceState uint8 // SourceUnread, SourceMissing, SourceNoRecords, SourceRecords
+type Source struct { Path string; State SourceState; Err error }
+func Read(ctx context.Context, sys host.System, f detect.Facts) Report
+
+package users // pkg/engine/controls/users
+
+type Elevation struct{ /* the tools */ }
+type NotRead struct { Tool string; Err error }
+type Grant struct { Tool string; Grants detect.Tri }
+func ReadElevation(ctx context.Context, sys host.System, f detect.Facts) Elevation
+func (e Elevation) NotRead() []NotRead
+func (e Elevation) GrantsOf(db accounts.DB, u accounts.User) []Grant
+
+package output
+
+const CodeDetailsUnreadable = "DETAILS_UNREADABLE"
+type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users []DetailUser; CPU *DetailCPU; Disk *DetailDisk; Memory *DetailMemory; Logins []DetailLogin }
+// Run gains Details *details.Report; Document gains Details *Details, omitted when nil.
 ```
 
-## 8. Not in this unit's log side
+## 8. Not in these parts
 
-- **The gallery:** its `readLog`, `safeLine`, `parseLogLine` and `pagerFor` stay until the gallery moves onto this package (this unit's last part). `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
-- **Unit (c):** the screen, its "Last N of M lines" and the size's words, Open, what it does with a pager's error, `Flush`.
-- **Unit (d):** `-p`'s forms and exit statuses, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`.
+- **The gallery:** its `readLog`, `safeLine`, `parseLogLine`, `pagerFor`, `readDetails`, `parseLogins` and `detailsDocument` stay until the gallery moves onto these packages (this unit's last part). It will then differ from what it draws today where the stand-in guessed: a user's row with the rules unread, `details.addresses` and `details.users` null where not read (the stand-in has `[]`), `cpu.model` and `cpu.sockets` null where not known (the stand-in has `""` and `0`). `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
+- **Unit (c):** the screen, its "Last N of M lines" and the size's words, Open, what it does with a pager's error, `Flush`; the report's rows, each fact's or its "Can't read <source>" from `Unread`, and its sizes' GiB and percentages.
+- **Unit (d):** `-p`'s forms and exit statuses, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log.
